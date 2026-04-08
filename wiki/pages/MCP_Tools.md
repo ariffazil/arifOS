@@ -5,6 +5,7 @@ sources: [tool_specs.py, server.py]
 last_sync: 2026-04-08
 confidence: 1.0
 ---
+
 # MCP Tool Surface
 
 Canonical tool surface for the arifOS MCP Server. These tools are the primary interface for agents interacting with the system.
@@ -26,10 +27,12 @@ Canonical tool surface for the arifOS MCP Server. These tools are the primary in
 | `arifos_forge` | 010 | EXECUTION | Delegated execution to AF-FORGE substrate. |
 
 ## Discovery
+
 - **Well-known**: `/.well-known/mcp`
 - **Health**: `/health`
 - **Protocol**: MCP 2025-11-05
 
 Citations:
+
 - [[Concept_Metabolic_Loop]]
 - `arifosmcp/runtime/tool_specs.py`

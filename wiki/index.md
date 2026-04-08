@@ -1,8 +1,8 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-08 (Cycle 1: ToolSpec_arifos_judge forged)
-> **Total Pages**: 22
-> **System Status**: SEALED
+> **Last Updated**: 2026-04-08 (Structural Cleanup Audit + Drift Checker)
+> **Total Pages**: 32
+> **System Status**: ACTIVE
 
 ## 🏛️ Foundations
 - [[SCHEMA]] (Wiki Constitution)
@@ -13,6 +13,7 @@
 ## 💡 Concepts
 - [[Metabolic_Loop]] (The 000-999 Execution Pipeline)
 - [[MCP_Tools]] (Canonical arifos_* Tool Surface)
+- [[Tool_Surface_Architecture]] (Canonical spec, runtime, compatibility, transport, and wiki layers)
 - [[Concept_Godellock]] (F7 Humility and the Overconfidence Threshold)
 - [[Agents-and-AAA-Architecture]] (Ring 3: Practical Execution layer)
 - [[Concept_Architecture]] (The Trinity ΔΩΨ model and CCC/AAA layers)
@@ -43,8 +44,10 @@
 - [[Synthesis_OpenQuestions]] (Unresolved Design Tensions)
 - [[Horizon_2_Swarm]] (H2 Governed Autonomy — A2A protocols, EvidenceBundle, ΔS Gauges)
 - [[Horizon_3_Universal_Body]] (H3 Hardware Sovereignty — HSM/BLS, WebMCP P2P, ASIC loops)
+- [[Audit_Surface_Fragmentation]] (Surface inventory, mismatch audit, compatibility boundary)
+- [[Drift_Checks]] (Checker scope, policy, and CI guidance)
 
 ---
 
 > [!NOTE]
-> **Ω-Wiki v1.1 Status**: Trinity symbol consistency verified, 4 ghost pages forged, 1 ToolSpec forged. Cycle 1 (spec-only) complete for `arifos.judge`. Awaiting Cycle 2 (code alignment) and Cycle 3 (governance tightening).
+> **Ω-Wiki Status**: Structural-cleanup audit active. `tool_specs.py` is treated as canonical candidate truth; drift remains across transport, compatibility, and registry surfaces.

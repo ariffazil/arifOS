@@ -1,9 +1,9 @@
 """
-arifosmcp/runtime/tools.py — arifOS MCP Sovereign Core — 10 Canonical Tools
+arifosmcp/runtime/tools.py — arifOS MCP Sovereign Core — 11 Canonical Tools
 
-10 canonical tools, clean implementation, MCP-standard compliant.
+11 canonical tools, clean implementation, MCP-standard compliant.
 
-The 10th Tool (arifos.forge) is the Delegated Execution Bridge:
+The execution bridge `arifos_forge` issues delegated manifests:
   • Requires judge verdict = SEAL
   • Issues signed execution manifest
   • Dispatches to AF-FORGE substrate
@@ -60,10 +60,14 @@ logger = logging.getLogger(__name__)
 # INTERNAL HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _make_f12_block_envelope(injection_score: float, threats: list[str], session_id: str | None) -> Any:
+
+def _make_f12_block_envelope(
+    injection_score: float, threats: list[str], session_id: str | None
+) -> Any:
     """Return a VOID RuntimeEnvelope blocking an F12 injection attempt."""
     from arifosmcp.runtime.models import RuntimeEnvelope as _RE
     from arifosmcp.runtime.models import RuntimeStatus, Verdict
+
     return _RE(
         ok=False,
         tool="arifos_init",
@@ -92,6 +96,7 @@ def _make_f12_block_envelope(injection_score: float, threats: list[str], session
 # V2 TOOL IMPLEMENTATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _stamp_platform(envelope: Any, platform: str) -> None:
     """Stamp platform_context onto envelope in-place (F1-safe: no-op if field absent)."""
     if hasattr(envelope, "platform_context"):
@@ -101,9 +106,10 @@ def _stamp_platform(envelope: Any, platform: str) -> None:
     elif hasattr(envelope, "policy") and envelope.policy is None:
         envelope.policy = {"platform_context": platform}
 
+
 async def arifos_init(
-    actor_id: str,
-    intent: str,
+    actor_id: str | None = None,
+    intent: str | None = None,
     declared_name: str | None = None,
     session_id: str | None = None,
     risk_tier: str = "medium",
@@ -112,6 +118,7 @@ async def arifos_init(
     debug: bool = False,
     platform: str = "unknown",
     mode: str = "init",
+    payload: dict[str, Any] | None = None,
     # Kernel syscall parameters (for mode="describe_kernel", etc.)
     query: str | None = None,
     current_tool: str | None = None,
@@ -123,25 +130,30 @@ async def arifos_init(
 ) -> RuntimeEnvelope:
     """
     Initialize constitutional session OR perform kernel syscall.
-    
-    Standard modes:
-    - "init": Bootstrap constitutional session (default)
-    
-    Kernel syscall modes (internal governance substrate):
-    - "describe_kernel": Return contract registry or specific tool contract
-    - "validate_transition": Check if metabolic transition is lawful
-    - "audit_contracts": Full drift audit on tool execution
-    - "emit_proof_stub": Get execution trace proof for session
-    - "get_pipeline": Return metabolic DAG
     """
+    # ── Handle payload unpacking for backward compatibility ───────────────
+    if payload:
+        actor_id = actor_id or payload.get("actor_id")
+        intent = intent or payload.get("intent")
+        declared_name = declared_name or payload.get("declared_name")
+        # For tests that pass query in payload
+        if not intent:
+            intent = payload.get("query") or payload.get("raw_input") or "no intent provided"
+
+    # Default values for required fields if still missing
+    actor_id = actor_id or "anonymous"
+    intent = intent or "no intent provided"
+
     # ── F12: Injection Guard ──────────────────────────────────────────────
     from arifosmcp.runtime.webmcp.security import WebInjectionGuard
+
     _guard = WebInjectionGuard()
     _injection_score, _threats = _guard._scan_text(intent)
     if _injection_score >= 0.85:
         logger.warning(
-            "F12 BLOCK: injection detected in arifos.init intent (score=%.2f, threats=%s)",
-            _injection_score, _threats,
+            "F12 BLOCK: injection detected in arifos_init intent (score=%.2f, threats=%s)",
+            _injection_score,
+            _threats,
         )
         return seal_runtime_envelope(
             _make_f12_block_envelope(_injection_score, _threats, session_id),
@@ -151,18 +163,25 @@ async def arifos_init(
     # ═══════════════════════════════════════════════════════════════════════
     # KERNEL SYSCALL BRANCH
     # ═══════════════════════════════════════════════════════════════════════
-    if mode in ("describe_kernel", "validate_transition", "audit_contracts", "emit_proof_stub", "get_pipeline"):
+    if mode in (
+        "describe_kernel",
+        "validate_transition",
+        "audit_contracts",
+        "emit_proof_stub",
+        "get_pipeline",
+    ):
         from arifosmcp.runtime.kernel_runtime import get_kernel_runtime
+
         kernel = get_kernel_runtime()
-        
+
         result = {}
         syscall_verdict = "SEAL"
         syscall_reason = "KERNEL_SYSCALL_OK"
-        
+
         try:
             if mode == "describe_kernel":
                 result = kernel.syscall_describe_kernel(query)
-                
+
             elif mode == "validate_transition":
                 if not current_tool or not requested_tool:
                     result = {"error": "current_tool and requested_tool required"}
@@ -175,7 +194,7 @@ async def arifos_init(
                     if not result.get("allowed"):
                         syscall_verdict = "HOLD"
                         syscall_reason = result.get("violation_type", "TRANSITION_BLOCKED")
-                        
+
             elif mode == "audit_contracts":
                 if not query or not actual_output:
                     result = {"error": "query (tool_name) and actual_output required"}
@@ -186,30 +205,30 @@ async def arifos_init(
                         tool_name=query,
                         actual_output=actual_output,
                         call_graph=call_graph or [],
-                        observed_effects=observed_effects or []
+                        observed_effects=observed_effects or [],
                     )
                     if result.get("drift_detected"):
                         severity = result.get("severity", "minor")
                         if severity in ("major", "critical"):
                             syscall_verdict = "HOLD"
                         syscall_reason = f"DRIFT_DETECTED:{severity}"
-                        
+
             elif mode == "emit_proof_stub":
                 target_session = query or session_id or "anon"
                 result = kernel.syscall_emit_proof_stub(target_session)
-                
+
             elif mode == "get_pipeline":
                 result = kernel.syscall_get_pipeline(query)  # query = from_tool
-                
+
         except Exception as e:
             result = {"error": str(e), "syscall": mode}
             syscall_verdict = "VOID"
             syscall_reason = "KERNEL_EXCEPTION"
-        
+
         # Build kernel syscall envelope
         from arifosmcp.runtime.models import RuntimeStatus
         from arifosmcp.runtime.arifos_runtime_envelope import RuntimeEnvelope
-        
+
         envelope = RuntimeEnvelope(
             ok=syscall_verdict == "SEAL",
             tool="arifos_init",
@@ -218,24 +237,17 @@ async def arifos_init(
             status=RuntimeStatus.READY if syscall_verdict == "SEAL" else RuntimeStatus.BLOCKED,
             verdict=syscall_verdict,
             session_id=session_id or "kernel_syscall",
-            payload={
-                "mode": mode,
-                "syscall_result": result,
-                "kernel_version": "0.2.0"
-            },
-            policy={
-                "floors_checked": ["F11", "F12"],
-                "syscall": mode,
-                "reason": syscall_reason
-            }
+            payload={"mode": mode, "syscall_result": result, "kernel_version": "0.2.0"},
+            policy={"floors_checked": ["F11", "F12"], "syscall": mode, "reason": syscall_reason},
         )
         return seal_runtime_envelope(envelope, "arifos_init")
 
-    # ═══════════════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════════════════
     # STANDARD INIT BRANCH
-    # ═══════════════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════════════════
+    effective_mode = mode if mode in ("probe", "revoke", "refresh", "state", "status") else "init"
     envelope = await _mega_init_anchor(
-        mode="init",
+        mode=effective_mode,
         payload={"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
         session_id=session_id,
         risk_tier=risk_tier,
@@ -245,13 +257,17 @@ async def arifos_init(
     )
     # Stamp F12 result into policy so floors_checked is never empty
     if hasattr(envelope, "policy") and isinstance(envelope.policy, dict):
-        envelope.policy["floors_checked"] = list(dict.fromkeys(
-            ["F12"] + envelope.policy.get("floors_checked", [])
-        ))
+        envelope.policy["floors_checked"] = list(
+            dict.fromkeys(["F12"] + envelope.policy.get("floors_checked", []))
+        )
         envelope.policy["injection_score"] = round(_injection_score, 4)
         envelope.policy["platform_context"] = platform
     elif hasattr(envelope, "policy"):
-        envelope.policy = {"floors_checked": ["F12"], "injection_score": round(_injection_score, 4), "platform_context": platform}
+        envelope.policy = {
+            "floors_checked": ["F12"],
+            "injection_score": round(_injection_score, 4),
+            "platform_context": platform,
+        }
     if hasattr(envelope, "platform_context"):
         envelope.platform_context = platform
     return seal_runtime_envelope(envelope, "arifos_init")
@@ -273,22 +289,26 @@ async def arifos_sense(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """
-    arifos.sense — Constitutional Reality Sensing
+    arifos_sense — Constitutional Reality Sensing
     """
     # ── EMPTY QUERY GUARD ──────────────────────────────────────────────────
     if not query or not query.strip():
         from arifosmcp.runtime.models import RuntimeEnvelope as _RE
         from arifosmcp.runtime.models import RuntimeStatus, Verdict
-        return seal_runtime_envelope(_RE(
-            ok=False,
-            tool="arifos_sense",
-            canonical_tool_name="arifos_sense",
-            stage="111_SENSE",
-            status=RuntimeStatus.ERROR,
-            verdict=Verdict.VOID,
-            detail="Query cannot be empty for reality grounding.",
-            session_id=session_id,
-        ), "arifos_sense")
+
+        return seal_runtime_envelope(
+            _RE(
+                ok=False,
+                tool="arifos_sense",
+                canonical_tool_name="arifos_sense",
+                stage="111_SENSE",
+                status=RuntimeStatus.ERROR,
+                verdict=Verdict.VOID,
+                detail="Query cannot be empty for reality grounding.",
+                session_id=session_id,
+            ),
+            "arifos_sense",
+        )
 
     # ── governed mode: full constitutional protocol ────────────────────────────
     if mode == "governed":
@@ -350,7 +370,9 @@ async def arifos_sense(
 
         # Derive verdict
         route_reason = sense_packet.routing.route_reason
-        verdict_tag = route_reason.split("]")[0].lstrip("[") if route_reason.startswith("[") else "SABAR"
+        verdict_tag = (
+            route_reason.split("]")[0].lstrip("[") if route_reason.startswith("[") else "SABAR"
+        )
         if verdict_tag == "SEAL":
             verdict = Verdict.SEAL
             ok = True
@@ -484,14 +506,14 @@ async def arifos_mind(
             intel["audit_packet"] = audit_packet
 
         intel["reasoning_trace"] = {
-            "causal_hypotheses": [h.get("claim") for h in audit_packet.get("full_hypothesis_set", [])],
+            "causal_hypotheses": [
+                h.get("claim") for h in audit_packet.get("full_hypothesis_set", [])
+            ],
             "grounding_facts": decision_packet.get("facts", []),
             "uncertainties": decision_packet.get("uncertainties", []),
-            "prescribed_next_step": decision_packet.get("next_step", "")
+            "prescribed_next_step": decision_packet.get("next_step", ""),
         }
-        intel["chaos_score"] = audit_packet.get(
-            "constitutional_checks", {}
-        ).get("chaos_score", 0.0)
+        intel["chaos_score"] = audit_packet.get("constitutional_checks", {}).get("chaos_score", 0.0)
         sealed.intelligence_state = intel
         sealed.platform_context = platform
 
@@ -500,20 +522,27 @@ async def arifos_mind(
     if not dry_run and session_id and session_id != "global":
         try:
             import json as _json
+
             # Use the status from the decision packet as the verdict tag
             v_tag = decision_packet.get("status", "PARTIAL")
-            if v_tag == "OK": v_tag = "SEAL"
-            elif v_tag == "HOLD": v_tag = "HOLD"
-            elif v_tag == "ERROR": v_tag = "VOID"
-            else: v_tag = "PARTIAL"
+            if v_tag == "OK":
+                v_tag = "SEAL"
+            elif v_tag == "HOLD":
+                v_tag = "HOLD"
+            elif v_tag == "ERROR":
+                v_tag = "VOID"
+            else:
+                v_tag = "PARTIAL"
 
             # evidence string is the compact JSON of the audit packet
-            evidence_str = _json.dumps({
-                "type": "PROVENANCE_MIND",
-                "query": query,
-                "summary": decision_packet.get("summary"),
-                "audit": audit_packet
-            })
+            evidence_str = _json.dumps(
+                {
+                    "type": "PROVENANCE_MIND",
+                    "query": query,
+                    "summary": decision_packet.get("summary"),
+                    "audit": audit_packet,
+                }
+            )
 
             await arifos_vault(
                 verdict=v_tag,
@@ -521,7 +550,7 @@ async def arifos_mind(
                 session_id=session_id,
                 risk_tier="low",
                 dry_run=False,
-                platform=platform
+                platform=platform,
             )
         except Exception as vexc:
             logger.warning("P2: Auto-seal failed for session %s: %s", session_id, vexc)
@@ -594,7 +623,7 @@ async def arifos_heart(
             risks = critique_packet["risk_trace"]
             if risks:
                 base_detail = sealed.detail or critique_packet["summary"]
-                sealed.detail = f"{base_detail}\n\nRISK ASSESSMENT: {'; ' .join(risks[:3])}"
+                sealed.detail = f"{base_detail}\n\nRISK ASSESSMENT: {'; '.join(risks[:3])}"
 
             intel = sealed.intelligence_state or {}
             intel["safety_trace"] = {
@@ -668,7 +697,7 @@ async def arifos_memory(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Retrieve governed memory from vector store or update the continuous world model."""
-    
+
     # Karpathy Injection: Continuous Learning (Animal Archetype vs Ghost)
     # Overcoming Anterograde Amnesia through active world model updates.
     payload = {"query": query}
@@ -718,7 +747,7 @@ async def arifos_vps_monitor(
             if os.path.exists("/sys/block/zram0"):
                 with open("/sys/block/zram0/disksize", "r") as f:
                     size = int(f.read().strip()) / (1024**2)
-                
+
                 # mm_stat: [orig_data_size, compr_data_size, mem_used_total, ...]
                 with open("/sys/block/zram0/mm_stat", "r") as f:
                     stats = f.read().split()
@@ -730,34 +759,64 @@ async def arifos_vps_monitor(
                 output = "zram0 not found in /sys/block/"
         elif action == "get_disk_usage":
             # df is a core binary, but if it fails we report error
-            process = subprocess.Popen("df -h /", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            process = subprocess.Popen(
+                "df -h /", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
             stdout, _ = process.communicate(timeout=2)
             output = stdout.strip()
         else:
-            return seal_runtime_envelope(RE(
-                ok=False, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
-                stage="111_SENSE", verdict=Verdict.VOID, status=RuntimeStatus.ERROR,
-                detail=f"F12_BLOCKED: Action '{action}' not permitted."
-            ), "arifos_vps_monitor")
+            return seal_runtime_envelope(
+                RE(
+                    ok=False,
+                    tool="arifos_vps_monitor",
+                    canonical_tool_name="arifos_vps_monitor",
+                    stage="111_SENSE",
+                    verdict=Verdict.VOID,
+                    status=RuntimeStatus.ERROR,
+                    detail=f"F12_BLOCKED: Action '{action}' not permitted.",
+                ),
+                "arifos_vps_monitor",
+            )
 
         if dry_run:
-            return seal_runtime_envelope(RE(
-                ok=True, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
-                stage="111_SENSE", verdict=Verdict.SEAL, status=RuntimeStatus.SUCCESS,
-                payload={"mode": "dry_run", "action": action}
-            ), "arifos_vps_monitor")
+            return seal_runtime_envelope(
+                RE(
+                    ok=True,
+                    tool="arifos_vps_monitor",
+                    canonical_tool_name="arifos_vps_monitor",
+                    stage="111_SENSE",
+                    verdict=Verdict.SEAL,
+                    status=RuntimeStatus.SUCCESS,
+                    payload={"mode": "dry_run", "action": action},
+                ),
+                "arifos_vps_monitor",
+            )
 
-        return seal_runtime_envelope(RE(
-            ok=True, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
-            stage="111_SENSE", verdict=Verdict.SEAL, status=RuntimeStatus.SUCCESS,
-            payload={"output": output, "success": True}
-        ), "arifos_vps_monitor")
+        return seal_runtime_envelope(
+            RE(
+                ok=True,
+                tool="arifos_vps_monitor",
+                canonical_tool_name="arifos_vps_monitor",
+                stage="111_SENSE",
+                verdict=Verdict.SEAL,
+                status=RuntimeStatus.SUCCESS,
+                payload={"output": output, "success": True},
+            ),
+            "arifos_vps_monitor",
+        )
     except Exception as e:
-        return seal_runtime_envelope(RE(
-            ok=False, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
-            stage="111_SENSE", verdict=Verdict.VOID, status=RuntimeStatus.ERROR,
-            detail=str(e)
-        ), "arifos_vps_monitor")
+        return seal_runtime_envelope(
+            RE(
+                ok=False,
+                tool="arifos_vps_monitor",
+                canonical_tool_name="arifos_vps_monitor",
+                stage="111_SENSE",
+                verdict=Verdict.VOID,
+                status=RuntimeStatus.ERROR,
+                detail=str(e),
+            ),
+            "arifos_vps_monitor",
+        )
 
 
 async def arifos_vault(
@@ -831,26 +890,41 @@ architect_registry = arifos_init
 check_vital = arifos_vps_monitor
 system_health = arifos_vps_monitor
 
+
 def _normalize_session_id(session_id: str | None) -> str:
     """Legacy helper for session normalization."""
     import secrets
+
     return session_id or f"session-{secrets.token_hex(8)}"
 
-def _resolve_caller_context(session_id: str | None = None, actor_id: str | None = None) -> dict:
-    """Legacy helper for caller context resolution."""
-    return {"session_id": _normalize_session_id(session_id), "actor_id": actor_id or "anonymous"}
 
-def _resolve_caller_state(session_id: str) -> str:
+def _resolve_caller_context(session_id: str | None = None, actor_id: str | None = None) -> Any:
+    """Legacy helper for caller context resolution."""
+    from types import SimpleNamespace
+    return SimpleNamespace(
+        session_id=_normalize_session_id(session_id),
+        actor_id=actor_id or "anonymous",
+        identity_type="anonymous" if not actor_id or actor_id == "anonymous" else "claimed"
+    )
+
+def _resolve_caller_state(session_id: str, auth: Any = None) -> tuple:
     """Legacy helper for caller state resolution."""
-    return "anchored"
+    state = "anonymous"
+    if auth and hasattr(auth, "claim_status"):
+        state = auth.claim_status
+    return state, [{"tool": "init_anchor"}], False
+
+
 
 def _wrap_call(func):
     """Legacy wrapper for tool calls."""
     return func
 
+
 def select_governed_philosophy(preference: str | None = None) -> str:
     """Legacy helper for philosophy selection."""
     return "DITEMPA BUKAN DIBERI"
+
 
 def register_v2_tools(mcp: FastMCP) -> list[str]:
     """Register all v2 tools on the MCP instance."""
@@ -864,7 +938,7 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
         if not handler:
             logger.warning(f"No handler for v2 tool: {spec.name}")
             continue
-        
+
         ft = FunctionTool.from_function(
             handler,
             name=spec.name,

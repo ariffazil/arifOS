@@ -68,7 +68,7 @@ class ShadowComparator:
         ranking_delta = self._calculate_ranking_delta(v1_result, v2_result)
         
         comparison = ShadowComparison(
-            tool="arifos.memory",
+            tool="arifos_memory",
             match=(v1_hash == v2_hash),
             v1_duration_ms=v1_duration * 1000,
             v2_duration_ms=v2_duration * 1000,
@@ -115,7 +115,7 @@ class ShadowComparator:
         grade = v2_result.get("verification_grade", {})
         
         comparison = ShadowComparison(
-            tool="arifos.vault",
+            tool="arifos_vault",
             match=(v1_hash == v2_hash),
             v1_duration_ms=v1_duration * 1000,
             v2_duration_ms=v2_duration * 1000,
@@ -211,9 +211,9 @@ async def run_shadow_comparison(
     v1_impl, v2_impl = backends[tool]
     comparator = ShadowComparator()
     
-    if tool == "arifos.memory":
+    if tool == "arifos_memory":
         return await comparator.compare_memory(args[0], v1_impl, v2_impl)
-    elif tool == "arifos.vault":
+    elif tool == "arifos_vault":
         return await comparator.compare_vault(args[0], v1_impl, v2_impl)
     
     return None

@@ -5,6 +5,7 @@ sources: [CONSTITUTION.md]
 last_sync: 2026-04-08
 confidence: 1.0
 ---
+
 # Constitutional Floors (F1-F13)
 
 The 13 Constitutional Floors are the fundamental invariants governing all operations within arifos_
@@ -28,8 +29,10 @@ The 13 Constitutional Floors are the fundamental invariants governing all operat
 | **F13** | **ADAPTABILITY** | Hard | Governed evolution that preserves all floors. |
 
 ## Hard vs Soft Floors
+
 - **Hard Floors** (F1, F2, F9, F10, F13): Failures trigger an immediate **VOID** verdict (Action Blocked).
 - **Soft Floors** (F3-F8, F11, F12): Failures trigger **CAUTION** (Proceed with Warning) or **HOLD** (Escalate to Human).
 
 Citations:
+
 - [[CONSTITUTION.md]] (Raw)

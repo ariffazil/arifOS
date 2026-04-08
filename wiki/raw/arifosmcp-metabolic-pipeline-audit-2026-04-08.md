@@ -15,7 +15,7 @@ Scope: `arifOS/arifosmcp/` runtime shell and public runtime docs
   - Horizon mode is described as a gateway or proxy policy layer; VPS mode attempts to load the full sovereign kernel.
 
 - `arifosmcp/server_horizon.py`
-  - Maps legacy Horizon tool names onto canonical v2 names such as `arifOS_kernel -> arifos.route`, `agi_mind -> arifos.mind`, and `vault_ledger -> arifos.vault`.
+  - Maps legacy Horizon tool names onto canonical v2 names such as `arifOS_kernel -> arifos_route`, `agi_mind -> arifos_mind`, and `vault_ledger -> arifos_vault`.
   - Describes `arifOS_kernel` as the `444_ROUTER` and the primary metabolic conductor.
 
 - `arifosmcp/constitutional_map.py`
@@ -37,7 +37,7 @@ Scope: `arifOS/arifosmcp/` runtime shell and public runtime docs
 ## Audit findings
 
 1. The metabolic pipeline is not a single function. It is a layered control path spanning environment detection (`server.py`), Horizon/VPS dispatch (`server_horizon.py` vs `runtime/server.py`), canonical routing (`arifos_route` / `arifOS_kernel`), and final audit verification (`verify_vault_ledger`).
-2. The pipeline uses both legacy and canonical names. Public-facing and compatibility surfaces still reference `arifOS_kernel` and `metabolic_loop_router`, while newer maps and tool specs converge on `arifos.route` / `arifos_route`.
+2. The pipeline uses both legacy and canonical names. Public-facing and compatibility surfaces still reference `arifOS_kernel` and `metabolic_loop_router`, while newer maps and tool specs converge on `arifos_route` / `arifos_route`.
 3. The pipeline is stage-oriented rather than strictly linear for every tool. Public docs state the full `000-999` loop is always traversed by `arifOS_kernel`, while simpler tools may bypass the full path.
 
 ## Contradictions to surface
@@ -47,9 +47,9 @@ Scope: `arifOS/arifosmcp/` runtime shell and public runtime docs
   - `arifosmcp/constitutional_map.py` says `10-tool mega-surface`.
   - `arifosmcp/runtime/tool_specs.py` says `10 sovereign tools` but the tuple continues beyond the first seven shown in the initial excerpt.
 - Naming drifts across layers.
-  - Canonical v2 naming uses dotted or underscored `arifos.*` forms.
+  - Canonical v2 naming uses dotted or underscored `arifos_*` forms.
   - Legacy or compatibility layers still expose `arifOS_kernel`, `metabolic_loop`, and `metabolic_loop_router`.
 
 ## Working interpretation
 
-Use `Metabolic Pipeline` to mean the governed execution path that starts with session and environment anchoring, routes through constitutional stages, and terminates in verdict and seal logic. Treat `arifOS_kernel` / `arifos.route` as the main conductor, not the entirety of the pipeline.
+Use `Metabolic Pipeline` to mean the governed execution path that starts with session and environment anchoring, routes through constitutional stages, and terminates in verdict and seal logic. Treat `arifOS_kernel` / `arifos_route` as the main conductor, not the entirety of the pipeline.

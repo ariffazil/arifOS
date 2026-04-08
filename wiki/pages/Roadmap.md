@@ -8,8 +8,8 @@ confidence: 1.0
 
 # arifOS Roadmap
 
-> **Source:** `wiki/raw/ROADMAP.md` | Version: `2026.04.07-SOT-SEALED`  
-> **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)  
+> **Source:** `wiki/raw/ROADMAP.md` | Version: `2026.04.07-SOT-SEALED`
+> **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)
 > **Motto:** *Execution is the proof of Law.*
 
 ---
@@ -19,7 +19,7 @@ confidence: 1.0
 arifOS is LLM-agnostic and platform-agnostic by design. Four execution paths ordered by Expected Monetary Value × Net Present Value:
 
 | Path | Name | Effort | NPV (12–24mo) | Risk | Status |
-|------|------|--------|----------------|------|--------|
+| :--- | :--- | :--- | :--- | :--- | :--- |
 | **A** | Tool `platform=` Mode Parameter | 1–2 wks | ~$35k | Low | Foundation shipped, dispatch pending |
 | **D** | ChatGPT Widget Phase 1 | 1–2 wks | ~$40k | Low–Med | Blocked on DNS + TLS (human action) |
 | **B** | MCP Profile Gateway | 4–6 wks | ~$180k | Medium | H2 2026 |
@@ -29,10 +29,11 @@ arifOS is LLM-agnostic and platform-agnostic by design. Four execution paths ord
 
 ### Recommended Execution Order
 
-```
+```text
 NOW (0–2 weeks):    D + A  →  Fix ChatGPT deployment + add platform= mode
 MID (1–4 months):   B      →  MCP Profile Gateway
 LONG (4–12 months): C      →  REST Constitutional API
+
 ```
 
 ---
@@ -40,7 +41,7 @@ LONG (4–12 months): C      →  REST Constitutional API
 ## Drift Audit Summary (Apr 1 → Apr 6, 2026)
 
 | Dimension | Apr 1 | Apr 6 | Δ |
-|-----------|-------|-------|---|
+| :--- | :--- | :--- | :--- |
 | Constitutional Coverage | 80 | 96 | +16 |
 | Injection Resistance | 70 | 92 | — |
 | Determinism | 75 | 90 | — |
@@ -61,6 +62,7 @@ LONG (4–12 months): C      →  REST Constitutional API
 Goal: Solidify the 11 Mega-Tool Surface for Institutional Adoption.
 
 Key completions (as of 2026.04.07):
+
 - Unified MCP surface — dual transport (stdio/http/streamable-http)
 - Constitutional Health Tooling — `get_constitutional_health`, `render_vault_seal`, `list_recent_verdicts`
 - ChatGPT Apps Integration — Apps SDK manifest bound to `/mcp`
@@ -95,7 +97,7 @@ Goal: Hardware-Anchored Sovereignty.
 ## Valuation Band (as of April 2026)
 
 | Scenario | Valuation (USD) | Triggers |
-|----------|-----------------|----------|
+| :--- | :--- | :--- |
 | Core Fair Band | $2M – $8M | Working 16-container stack, early traction |
 | Institutional De-risking | $10M – $15M | First paid pilots, signed LOIs |
 | Maturity (3–5yr) | ~$27M (Median) | Monte Carlo median at full systemic de-risk |
@@ -122,7 +124,7 @@ Goal: Hardware-Anchored Sovereignty.
 
 ---
 
-> [!NOTE]  
+> [!NOTE]
 > This page is a synthesis of `wiki/raw/ROADMAP.md`. For full EMV tables, infrastructure status, and constitutional quotes corpus, see the raw source.
 
 **Related:** [[Changelog]] | [[What-is-arifOS]]

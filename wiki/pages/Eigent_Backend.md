@@ -20,6 +20,7 @@ confidence: 0.9
 **Eigent Backend** is the multi-agent desktop automation framework deployed on arifOS VPS infrastructure. It represents the first production bridge between **local constitutional governance** (arifOS MCP) and **remote agent swarms** capable of desktop-level task automation.
 
 The name derives from:
+
 - **Eigen** (German: "own, intrinsic, characteristic") — the inherent capability of the system
 - **Agent** — autonomous actor with bounded scope
 - Together: "Intrinsic Agent Substrate"
@@ -52,6 +53,7 @@ The name derives from:
 │                  Desktop Automation                         │
 │              (Browser, Files, System)                       │
 └─────────────────────────────────────────────────────────────┘
+
 ```
 
 ---
@@ -95,6 +97,7 @@ Local arifOS          VPS Eigent
     │<─SEAL────────────────│  Authority granted
     │─arifos_forge─────────>│  Execute on desktop
     │<─result──────────────│  Return with telemetry
+
 ```
 
 ---
@@ -141,9 +144,11 @@ Horizon 1 (Execution Engine)    Horizon 2 (Swarm)
     │ Eigent │ ─────────────────>│ A2A Proto │
     │Backend │    Bridge          │  Swarm    │
     └────────┘                    └───────────┘
+
 ```
 
 **H2 Dependencies on Eigent**:
+
 - EvidenceBundle serialization (Eigent as first producer)
 - Desktop automation baseline (Eigent as reference impl)
 - VPS-side Vault999 anchoring (Eigent as testbed)
@@ -185,7 +190,9 @@ Horizon 1 (Execution Engine)    Horizon 2 (Swarm)
 ## Integration Example
 
 ```yaml
+
 # arifOS → Eigent workflow
+
 session:
   intent: "Research competitor pricing"
   
@@ -208,6 +215,7 @@ execution:
 seal:
   vault: VAULT999
   chain_hash: "sha256:..."
+
 ```
 
 ---

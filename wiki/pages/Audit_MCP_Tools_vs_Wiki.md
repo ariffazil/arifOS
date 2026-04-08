@@ -64,9 +64,11 @@ confidence: 1.0
 **Fix Applied**: Added `MegaToolName = str` alias.
 
 **Verification**:
+
 ```bash
 $ python -c "from arifosmcp.capability_map import MEGA_TOOLS, MegaToolName"
 ✅ MEGA_TOOLS: (ToolSpec(...), ...)  # 11 tools
+
 ```
 
 **Status**: FIXED by other agent.
@@ -76,6 +78,7 @@ $ python -c "from arifosmcp.capability_map import MEGA_TOOLS, MegaToolName"
 ## 5. Missing Wiki Documentation — RESOLVED
 
 **Pages Created**:
+
 - `wiki/pages/arifos_forge.md` — Execution Bridge documentation
 - `wiki/pages/arifos_vps_monitor.md` — VPS Telemetry documentation
 - `wiki/pages/ToolSpec_arifos_judge.md` — Judge tool spec
@@ -89,6 +92,7 @@ $ python -c "from arifosmcp.capability_map import MEGA_TOOLS, MegaToolName"
 ```bash
 $ python scripts/verify_wiki_sync.py
 ✅ SYNC VERIFIED: All canonical MCP tools are documented in Ω-Wiki.
+
 ```
 
 ---
@@ -100,7 +104,7 @@ $ python scripts/verify_wiki_sync.py
 | Item | Description | Action |
 |------|-------------|--------|
 | `megaTools/__init__.py` | 12 tools vs 11 canonical | Needs consolidation decision |
-| `tool_registry.json` | Uses dot notation (`arifos.init`) | Legacy, should migrate |
+| `tool_registry.json` | Uses dot notation (`arifos_init`) | Legacy, should migrate |
 | `AGENTS.md` | Still uses legacy names | Needs rewrite |
 
 ### NOTED (By Design)

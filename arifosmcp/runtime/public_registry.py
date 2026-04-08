@@ -49,12 +49,12 @@ def _transform_public_tool_spec(spec: ToolSpec) -> ToolSpec | None:
     )
 
 
-# Canonical 9 Sovereign Core Tools
+# Canonical public tool contract derived from tool_specs.py
 CANONICAL_PUBLIC_TOOLS = frozenset(
     _public_spec_name(spec.name)
     for spec in PUBLIC_TOOL_SPECS
 )
-EXPECTED_TOOL_COUNT = 10
+EXPECTED_TOOL_COUNT = 11
 
 # Mandatory schema for resource discovery
 RUNTIME_ENVELOPE_SCHEMA = {

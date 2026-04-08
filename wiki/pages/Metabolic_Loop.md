@@ -5,6 +5,7 @@ sources: [README.md, CONSTITUTION.md]
 last_sync: 2026-04-08
 confidence: 1.0
 ---
+
 # The Metabolic Loop (000-999 Pipeline)
 
 The **Metabolic Loop** is the 9-stage execution path that every request in arifOS must follow. It transforms raw intent into governed, auditable action.
@@ -23,8 +24,10 @@ The **Metabolic Loop** is the 9-stage execution path that every request in arifO
 10. **999_SEAL (Vault)**: Immutable audit log and ledger entry.
 
 ## Why "Metabolic"?
+
 Like biological metabolism, this pipeline ingests raw input, processes it through multiple filters (Floors), extracts value (safe actions), and excretes waste (blocked actions, logs). This process maintains system **homeostasis** (constitutional invariants).
 
 Citations:
+
 - [[README.md]] (Raw)
 - [[CONSTITUTION.md]] (Raw)

@@ -2,7 +2,7 @@
 arifosmcp/runtime/server.py — arifOS MCP Server
 
 Complete MCP package:
-- 10 canonical tools (arifos.init through arifos.forge)
+- 11 canonical tools (arifos_init through arifos_vps_monitor)
 - Structured prompts
 - Constitutional resources
 - Well-known manifest + canonical index
@@ -302,7 +302,7 @@ mcp = FastMCP(
 
 Golden path: init → sense → mind → heart → judge → vault
 
-Public tools: arifos.init, arifos.route, arifos.judge
+Public tools are derived from tool_specs.py and exposed with canonical underscore ids.
 Internal tools: sense, mind, heart, ops, memory, vault, forge
 
 Use prompts for structured workflows:
@@ -403,7 +403,7 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
     debug = body.pop("debug", False)
 
     # Parameter normalization: map common aliases to expected names
-    # arifos.sense expects "query", arifos.ops expects "action"
+    # arifos_sense expects "query", arifos_ops expects "action"
     # But callers may send "query" for any tool
     if v2_name == "arifos_sense" and "query" not in body:
         body.setdefault("query", body.pop("input", None))
@@ -421,14 +421,14 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
         # judge expects "candidate"
         body.setdefault("candidate", body.pop("query", ""))
     elif v2_name == "arifos_route":
-        # arifos.route expects "request" but callers may send "intent", "query", "input"
+        # arifos_route expects "request" but callers may send "intent", "query", "input"
         if "request" not in body:
             for key in ["intent", "query", "input", "content", "text"]:
                 if key in body:
                     body["request"] = body.pop(key)
                     break
     elif v2_name == "arifos_mind" and "query" not in body:
-        # arifos.mind expects "query" but callers may send "content"
+        # arifos_mind expects "query" but callers may send "content"
         if "content" in body:
             body["query"] = body.pop("content")
 
@@ -718,7 +718,7 @@ async def a2a_tasks_handler(request: Request) -> JSONResponse:
                 {
                     "id": task_id,
                     "status": "requires_verdict",
-                    "note": "Execution requires judge verdict. Route through arifos.judge first.",
+                    "note": "Execution requires judge verdict. Route through arifos_judge first.",
                 }
             )
         else:

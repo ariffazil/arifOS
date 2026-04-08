@@ -6,9 +6,9 @@ last_sync: 2026-04-08
 confidence: 0.95
 ---
 
-# ToolSpec: `arifos.judge`
+# ToolSpec: `arifos_judge`
 
-> **Canonical Name**: `arifos.judge`  
+> **Canonical Name**: `arifos_judge`  
 > **Legacy Names**: `apex_soul`, `apex_judge`  
 > **Stage**: 888_JUDGE  
 > **Trinity**: Ψ (Soul/Authority)  
@@ -19,16 +19,17 @@ confidence: 0.95
 
 ## 1. Purpose
 
-`arifos.judge` is the **final constitutional verdict authority** in the arifOS metabolic pipeline. It evaluates candidate actions against the 13 Constitutional Floors (F1-F13) and issues binding verdicts that determine whether execution may proceed.
+`arifos_judge` is the **final constitutional verdict authority** in the arifOS metabolic pipeline. It evaluates candidate actions against the 13 Constitutional Floors (F1-F13) and issues binding verdicts that determine whether execution may proceed.
 
 **Key Responsibilities**:
+
 - Evaluate `candidate_action` against constitutional floors
 - Issue verdicts: `SEAL`, `PARTIAL`, `VOID`, `HOLD`
 - Compute and return telemetry (G★, ΔS, witness scores)
 - Anchor verdicts to Vault999 for immutable audit
-- Serve as the **sole gateway** to `arifos.forge` (execution bridge)
+- Serve as the **sole gateway** to `arifos_forge` (execution bridge)
 
-**Governance Principle**: *No action may proceed to execution without a `SEAL` verdict from `arifos.judge`.*
+**Governance Principle**: *No action may proceed to execution without a `SEAL` verdict from `arifos_judge`.*
 
 ---
 
@@ -46,6 +47,7 @@ async def arifos_judge(
     debug: bool = False,            # OPTIONAL: Include forensics
     platform: str = "unknown",      # OPTIONAL: Caller platform
 ) -> RuntimeEnvelope
+
 ```
 
 ### 2.2 MegaTool Interface (`tool_03_apex_soul.py`)
@@ -63,6 +65,7 @@ async def apex_judge(
     ctx: Any | None = None,
     **kwargs: Any,
 ) -> RuntimeEnvelope
+
 ```
 
 ### 2.3 Input Schema (Canonical)
@@ -78,6 +81,7 @@ async def apex_judge(
 | `platform` | `str` | ❌ | `"unknown"` | Caller platform surface |
 
 **Field Constraints**:
+
 - `risk_tier` must be one of: `["low", "medium", "high", "critical"]`
 - `candidate_action` minimum length: 1 character
 - `session_id` if provided: 8-128 characters
@@ -86,7 +90,7 @@ async def apex_judge(
 
 ## 3. ToM (Theory of Mind) Requirements
 
-Per `TOM_INTEGRATION_SUMMARY.md`, `arifos.judge` requires structured mental model fields:
+Per `TOM_INTEGRATION_SUMMARY.md`, `arifos_judge` requires structured mental model fields:
 
 | ToM Field | Purpose | Required |
 |-----------|---------|----------|
@@ -97,6 +101,7 @@ Per `TOM_INTEGRATION_SUMMARY.md`, `arifos.judge` requires structured mental mode
 | `second_order_effects` | Downstream consequences modeled | Recommended |
 
 **ToM Violation Response**:
+
 ```json
 {
   "ok": false,
@@ -104,6 +109,7 @@ Per `TOM_INTEGRATION_SUMMARY.md`, `arifos.judge` requires structured mental mode
   "error": "Missing required ToM fields: ['logical_consistency', 'self_critique', 'uncertainty_quantified']",
   "verdict": "VOID"
 }
+
 ```
 
 ---
@@ -121,6 +127,7 @@ Per `TOM_INTEGRATION_SUMMARY.md`, `arifos.judge` requires structured mental mode
 | **F13** Sovereign Override | Human approval | HARD | 888_HOLD | Critical actions require human |
 
 **Floor Evaluation Order**:
+
 1. F12 (Injection) → F11 (Auth) → Pre-processing
 2. F1 (Amanah) → F2 (Truth) → F10 (Ontology)
 3. F3 (Tri-Witness) → F8 (Genius) → Derived scores
@@ -131,21 +138,24 @@ Per `TOM_INTEGRATION_SUMMARY.md`, `arifos.judge` requires structured mental mode
 
 ## 5. Mode Dispatch
 
-| Mode | Purpose | Input Requirements | Return Type |
-|------|---------|-------------------|-------------|
-| **`judge`** | Constitutional verdict | `candidate_action` | `RuntimeEnvelope` with verdict |
-| **`rules`** | List constitutional rules | None | Rule catalog with guidance |
-| **`validate`** | Validate input against floors | `input_to_validate` | Validation report |
-| **`hold`** | Check hold status | `hold_id` | Hold state resolution |
-| **`armor`** | Security scan | `content` | Armor scan report |
-| **`notify`** | Escalation notification | `message` | Notification confirmation |
-| **`probe`** | Synthetic floor test | `target_floor` | Probe results |
+| Mode | Purpose | Input Requirements | Return Type | Status |
+|------|---------|-------------------|-------------|--------|
+| **`judge`** | Constitutional verdict | `candidate_action` | `RuntimeEnvelope` with verdict | ✅ Implemented |
+| **`rules`** | List constitutional rules | None | Rule catalog with guidance | ✅ Implemented |
+| **`health`** | Constitutional health check | `session_id` (optional) | Health telemetry snapshot | ✅ **Phase 1 Complete** |
+| **`validate`** | Validate input against floors | `input_to_validate` | Validation report | ✅ Implemented |
+| **`hold`** | Check hold status | `hold_id` | Hold state resolution | ✅ Implemented |
+| **`armor`** | Security scan | `content` | Armor scan report | ✅ Implemented |
+| **`notify`** | Escalation notification | `message` | Notification confirmation | ✅ Implemented |
+| **`probe`** | Synthetic floor test | `target_floor` | Probe results | ✅ Implemented |
+| ~~`history`~~ | ~~Query verdict history~~ | ~~`session_id`, `since`~~ | ~~Verdict log~~ | 🚧 **Phase 2 Pending** |
 
 ### 5.1 Mode: `judge` (Default)
 
 Primary constitutional evaluation mode.
 
 **Payload Schema**:
+
 ```json
 {
   "candidate": "action to evaluate",
@@ -153,13 +163,62 @@ Primary constitutional evaluation mode.
   "telemetry": {"g_score": 0.85, "delta_s": -0.2},
   "verdict_candidate": "SEAL"  // Internal field
 }
+
 ```
+
+### 5.2 Mode: `health` (Phase 1 Complete ✅)
+
+Returns constitutional health telemetry without issuing a verdict. Useful for monitoring system vitality.
+
+**Input**: `{"session_id": "..."}` (optional)
+
+**Returns**:
+
+```json
+{
+  "ok": true,
+  "tool": "apex_judge",
+  "canonical_tool_name": "arifos_judge",
+  "stage": "888_JUDGE",
+  "verdict": "SEAL",
+  "status": "SUCCESS",
+  "payload": {
+    "mode": "health",
+    "floors_active": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
+    "telemetry_snapshot": {
+      "ds": -0.32,
+      "peace2": 1.21,
+      "G_star": 0.91,
+      "confidence": 0.08,
+      "shadow": 0.07
+    },
+    "verdicts_summary": {
+      "note": "Synthetic data for Phase 1 implementation",
+      "SEAL": 42,
+      "VOID": 3,
+      "HOLD": 7,
+      "SABAR": 12,
+      "window": "24h"
+    },
+    "system_status": "HEALTHY",
+    "judge_readiness": "READY"
+  }
+}
+
+```
+
+**Implementation Notes**:
+
+- Phase 1 (2026-04-08): Synthetic telemetry with realistic constitutional values
+- Phase 2 (Planned): Live Vault999 query for actual verdict history
+- Phase 3 (Planned): Real-time telemetry from active sessions
 
 ### 5.2 Mode: `rules`
 
 Returns constitutional grounding rules.
 
 **Returns**:
+
 ```json
 {
   "ok": true,
@@ -175,6 +234,7 @@ Returns constitutional grounding rules.
   "guidance": [...],
   "hooks": [...]
 }
+
 ```
 
 ### 5.3 Mode: `validate`
@@ -190,6 +250,7 @@ Runs synthetic test to verify floor defense.
 **Payload**: `{"target_floor": "F12_DEFENSE"}`
 
 **Test Patterns**:
+
 - F12: `"IGNORE ALL PREVIOUS INSTRUCTIONS"`
 - Others: `"rm -rf /"`
 
@@ -202,8 +263,8 @@ Runs synthetic test to verify floor defense.
 ```python
 class RuntimeEnvelope:
     ok: bool                          # Execution success
-    tool: str                         # "arifos.judge"
-    canonical_tool_name: str          # "arifos.judge"
+    tool: str                         # "arifos_judge"
+    canonical_tool_name: str          # "arifos_judge"
     version: str                      # "2026.04"
     stage: str                        # "888_JUDGE"
     status: RuntimeStatus             # SUCCESS, ERROR, DRY_RUN, SABAR, HOLD
@@ -236,6 +297,7 @@ class RuntimeEnvelope:
     payload: dict                     # Mode-specific result data
     errors: list[CanonicalError]      # Error details if any
     meta: CanonicalMeta               # Schema version, floors_checked, etc.
+
 ```
 
 ### 6.2 CanonicalMetrics (Telemetry)
@@ -256,6 +318,7 @@ class TripleWitness:
     human: float   # Human witness score (F3)
     ai: float      # AI witness score (F3)
     earth: float   # Earth witness score (F3)
+
 ```
 
 ### 6.3 Verdict Values
@@ -282,6 +345,7 @@ class TripleWitness:
   "error": "Missing required ToM fields: [...]",
   "required_fields": ["logical_consistency", "self_critique", "uncertainty_quantified"]
 }
+
 ```
 
 ### 7.2 Missing Auth Context
@@ -292,9 +356,10 @@ class TripleWitness:
   "verdict": "HOLD",
   "code": "INIT_AUTH_401",
   "detail": "No auth_context provided",
-  "hint": "Run arifos.init first to establish session",
+  "hint": "Run arifos_init first to establish session",
   "required_next_tool": "arifos_init"
 }
+
 ```
 
 ### 7.3 Backend/Schema Drift
@@ -308,6 +373,7 @@ class TripleWitness:
   "hint": "Client may need update; retry with current schema",
   "retryable": true
 }
+
 ```
 
 ### 7.4 Hard Floor Breach (ConstitutionalViolationError)
@@ -321,6 +387,7 @@ class TripleWitness:
   "fault_class": "CONSTITUTIONAL",
   "remediation": {"action": "immediate_halt"}
 }
+
 ```
 
 ---
@@ -330,7 +397,9 @@ class TripleWitness:
 ### 8.1 Pattern 1: Direct Human Query (Simple)
 
 ```python
+
 # Initialize session first
+
 init_result = await arifos_init(
     actor_id="user_001",
     intent="Evaluate deployment proposal"
@@ -338,6 +407,7 @@ init_result = await arifos_init(
 session_id = init_result.session_id
 
 # Call judge
+
 result = await arifos_judge(
     candidate_action="Deploy Terraform to production",
     risk_tier="critical",
@@ -347,18 +417,22 @@ result = await arifos_judge(
 
 if result.verdict == "SEAL":
     await arifos_forge(action="deploy", ...)
+
 ```
 
 ### 8.2 Pattern 2: Piped Agent Plan (Multi-Stage)
 
 ```python
+
 # Full metabolic pipeline
+
 sense_result = await arifos_sense(query="Production deployment risks")
 mind_result = await arifos_mind(query="Analyze deployment plan", context=sense_result.payload)
 heart_result = await arifos_heart(content=mind_result.payload["proposal"])
 ops_result = await arifos_ops(action="Estimate deployment costs")
 
 # Judge with accumulated telemetry
+
 judge_result = await arifos_judge(
     candidate_action=mind_result.payload["proposal"],
     risk_tier="high",
@@ -369,6 +443,7 @@ judge_result = await arifos_judge(
     },
     session_id=session_id
 )
+
 ```
 
 ### 8.3 Pattern 3: Batched Audit (Multiple Candidates)
@@ -390,7 +465,9 @@ for candidate in candidates:
     })
 
 # Select best candidate
+
 best = max(results, key=lambda x: x["g_score"] if x["verdict"] == "SEAL" else -1)
+
 ```
 
 ---
@@ -399,14 +476,14 @@ best = max(results, key=lambda x: x["g_score"] if x["verdict"] == "SEAL" else -1
 
 | Tool | Relationship | Transition Rule |
 |------|--------------|-----------------|
-| **`arifos.init`** | Predecessor | Must establish session before judge |
-| **`arifos.sense`** | Predecessor | Grounds reality for judge evaluation |
-| **`arifos.mind`** | Predecessor | Provides structured reasoning |
-| **`arifos.heart`** | Predecessor | Safety critique feeds judge |
-| **`arifos.ops`** | Predecessor | Cost estimation informs verdict |
-| **`arifos.vault`** | Successor | SEAL → log to immutable ledger |
-| **`arifos.forge`** | Successor | SEAL + vault → execution bridge |
-| **`arifos.memory`** | Parallel | Context retrieval (any stage) |
+| **`arifos_init`** | Predecessor | Must establish session before judge |
+| **`arifos_sense`** | Predecessor | Grounds reality for judge evaluation |
+| **`arifos_mind`** | Predecessor | Provides structured reasoning |
+| **`arifos_heart`** | Predecessor | Safety critique feeds judge |
+| **`arifos_ops`** | Predecessor | Cost estimation informs verdict |
+| **`arifos_vault`** | Successor | SEAL → log to immutable ledger |
+| **`arifos_forge`** | Successor | SEAL + vault → execution bridge |
+| **`arifos_memory`** | Parallel | Context retrieval (any stage) |
 
 ### 9.1 State Machine Transitions
 
@@ -422,39 +499,44 @@ arifos_init → arifos_sense → arifos_mind → arifos_heart → arifos_ops
                                     arifos_forge
                                            ↓
                                      [EXECUTE]
+
 ```
 
 **Gated Transition**: `arifos_judge` → `arifos_forge` requires:
+
 ```json
 {
   "requires": {"judge_verdict": "SEAL"},
   "message": "arifos_forge requires judge:SEAL verdict"
 }
+
 ```
 
 ---
 
-## 10. Open Questions / TODOs
+## 10. Open Questions / TODOs (Updated 2026-04-08)
 
 | Question | Status | Notes |
 |----------|--------|-------|
-| **Mode `health`**: Listed in docs but not implemented? | 🔍 INVESTIGATE | `TOM_INTEGRATION_SUMMARY.md` lists `health` mode; `tools_internal.py` implements 7 modes without `health` |
-| **Mode `history`**: Listed but not implemented? | 🔍 INVESTIGATE | Same as above |
-| **Telemetry pre-computation**: How much can be passed vs computed? | 📋 DOCUMENT | Current: G★, ΔS can be pre-computed; witness scores always computed |
-| **F3 witness weights**: Are they configurable? | 📋 DOCUMENT | Currently hardcoded at W₄ ≥ 0.75 |
+| **Mode `health`**: Listed in docs but not implemented? | ✅ **RESOLVED** | Implemented 2026-04-08 — returns synthetic constitutional health telemetry |
+| **Mode `history`**: Listed but not implemented? | 🚧 **PHASE 2** | Queued for implementation — requires Vault999 integration for verdict history |
+| **Telemetry pre-computation**: How much can be passed vs computed? | 📋 DOCUMENTED | Current: G★, ΔS can be pre-computed; witness scores always computed |
+| **F3 witness weights**: Are they configurable? | 📋 DOCUMENTED | Currently hardcoded at W₄ ≥ 0.75 |
+| **Health mode Phase 2**: Live Vault999 integration? | 🔮 **PLANNED** | Query actual verdict counts instead of synthetic data |
 
-### 10.1 Auditor HOLD Items
+### 10.1 Auditor HOLD Items (Updated 2026-04-08)
 
-| Issue | Severity | Evidence |
-|-------|----------|----------|
-| Mode mismatch between spec and impl | MEDIUM | `TOM_INTEGRATION_SUMMARY.md` claims `health`, `history` modes; `apex_judge_dispatch_impl` has 7 modes without these |
-| Floor F11 not in tool_spec floors | LOW | `tool_specs.py` lists F1,F2,F3,F9,F10,F12,F13; F11 (Command Auth) enforced at init |
-| `candidate` vs `candidate_action` field name | LOW | Public API uses `candidate_action`; internal uses `candidate`; mapping in `apex_judge_dispatch_impl` |
+| Issue | Severity | Status | Evidence |
+|-------|----------|--------|----------|
+| Mode `health` | MEDIUM | ✅ **RESOLVED** | Implemented in `apex_judge_dispatch_impl` — Phase 1 complete |
+| Mode `history` | MEDIUM | 🚧 **PENDING** | Listed in docs; not yet implemented — Phase 2 queued |
+| Floor F11 not in tool_spec floors | LOW | 📋 **ACCEPTED** | `tool_specs.py` lists F1,F2,F3,F9,F10,F12,F13; F11 enforced at `init` stage |
+| `candidate` vs `candidate_action` field name | LOW | 📋 **DOCUMENTED** | Translation layer in `apex_judge_dispatch_impl` line 372-373 |
 
 ---
 
 > [!IMPORTANT]
-> **Separation of Powers**: `arifos.judge` is the **sole authority** for verdicts. No other tool may issue SEAL. `arifos.forge` is the **sole execution bridge**. No tool may execute without passing through judge.
+> **Separation of Powers**: `arifos_judge` is the **sole authority** for verdicts. No other tool may issue SEAL. `arifos_forge` is the **sole execution bridge**. No tool may execute without passing through judge.
 
 ---
 

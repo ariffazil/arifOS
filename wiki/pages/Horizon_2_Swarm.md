@@ -52,6 +52,7 @@ Horizon 2 transitions arifOS from **single-agent constitutional governance** to 
 ### Problem
 
 When agents hand off tasks:
+
 - How does Agent B verify Agent A's work?
 - What context must survive the handoff?
 - How do we prevent "telephone game" degradation?
@@ -84,6 +85,7 @@ When agents hand off tasks:
     "seal_timestamp": "2026-07-15T10:00:00Z"
   }
 }
+
 ```
 
 ### A2A Protocol Mapping
@@ -128,6 +130,7 @@ Developer pushes code
    │ APPLY  │ │  STOP  │
    │(forge) │ │(notify)│
    └────────┘ └────────┘
+
 ```
 
 ### 888_HOLD Triggers
@@ -167,6 +170,7 @@ Developer pushes code
   /─────────────\
  Δ               Ω
 (Human)       (Mind)
+
 ```
 
 The swarm operates within the constitutional tetrahedron—any drift toward a face triggers SABAR.
@@ -187,6 +191,7 @@ The swarm operates within the constitutional tetrahedron—any drift toward a fa
 ### Adapter Contract
 
 Every adapter must:
+
 1. Preserve ToM field requirements
 2. Map native errors to arifOS verdicts
 3. Maintain Vault999 audit chain
@@ -225,6 +230,7 @@ Every adapter must:
 │              │ (shared)    │            │
 │              └─────────────┘            │
 └─────────────────────────────────────────┘
+
 ```
 
 ### Index Priority
@@ -265,6 +271,7 @@ H2 establishes **governed autonomy at the software layer**. H3 will harden this 
 ```
 H2: Software Swarm ──> H3: Hardware-Anchored Sovereignty
        (Ω APPS)              (Ψ THEORY physicalized)
+
 ```
 
 ---

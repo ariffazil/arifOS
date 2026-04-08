@@ -9,6 +9,7 @@ confidence: 1.0
 # Concept: Metabolic Pipeline
 
 ## Definition
+
 The **Metabolic Pipeline** is the 11-stage thermodynamic execution path of arifOS. It transforms raw, high-entropy user intent into "cooled," audited, and sealed intelligence. 
 
 The pipeline supports two primary execution modes: **Sequence Mode** (Manual) and **Integrative Mode** (Auto-AGI).
@@ -38,21 +39,26 @@ To resolve naming drift, arifOS standardizes on **Underscore Aliases** mapping t
 ## Pipeline Execution Modes
 
 ### 1. Manual Sequence Mode
+
 Tools are called independently. This provides maximum transparency for auditors.
+
 - Example: `init` → `sense` → `judge` → `vault`.
 
 ### 2. Auto-AGI Mode (The "Typed" Pipeline)
+
 The `arifos_mind` tool can execute an internal, governed chain of reasoning within a single call. This "Typed" pipeline handles the transition between Sensing, Thinking, and Red-Teaming (Heart) before returning a synthesized result.
 
 ---
 
 ## Fail-safes & Hard-Stops
+
 - **GlobalPanicMiddleware**: Intercepts kernel panics and emits a **Constitutional VOID**.
 - **GovernanceEnforcer**: Performs pre-tool classification (Class A/B/C) and structural enforcement of Floors F1, F12, and F13.
 
 ---
 
 ## Related
+
 - [[Concept_Architecture]]
 - [[Concept_Governance_Enforcer]]
 - [[Concept_Floors]]

@@ -29,7 +29,7 @@ Each profile gates tool subset + output format + rate policy.
 
 | Profile | Tools exposed | Use case |
 |---|---|---|
-| `chatgpt_apps` | `arifos.init`, `arifos.judge`, `arifos.vault` (read-only) | ChatGPT widget |
+| `chatgpt_apps` | `arifos_init`, `arifos_judge`, `arifos_vault` (read-only) | ChatGPT widget |
 | `cursor` | Full 10-tool surface | Developer IDE |
 | `enterprise` | Full surface + signed responses | B2B API |
 | `stdio` | Full surface, text output | CLI/agent scripts |
@@ -47,7 +47,7 @@ MCP becomes one transport, not the only one.
 OpenAI custom actions, Anthropic tool use, and raw HTTP all point to the same API.
 
 ```
-POST /api/v1/judge     → F1-F13 verdict (replaces arifos.judge)
+POST /api/v1/judge     → F1-F13 verdict (replaces arifos_judge)
 POST /api/v1/init      → session bootstrap
 POST /api/v1/sense     → evidence gather
 GET  /api/v1/health    → constitutional health
@@ -122,9 +122,9 @@ LONG (4–12 months): C      →  REST Constitutional API (true platform agnosti
 The 9+1 Constitutional Architecture is now operational:
 
 - ✅ **9 Governance Tools** with mandatory ToM fields
-- ✅ **1 Execution Bridge** (`arifos.forge`) gated by SEAL
+- ✅ **1 Execution Bridge** (`arifos_forge`) gated by SEAL
 - ✅ **Philosophy Registry v1.2.0** — 83 quotes, G★ bands
-- ✅ **Clean 2-term naming** — `arifos.init`, `arifos.judge`, etc.
+- ✅ **Clean 2-term naming** — `arifos_init`, `arifos_judge`, etc.
 - ✅ **Separation of Powers** — Think/Validate vs Execute strictly separated
 
 ---

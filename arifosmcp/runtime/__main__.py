@@ -15,7 +15,9 @@ from .fastmcp_ext.transports import run_server
 
 def _bootstrap_environment() -> None:
     try:
-        mode = (sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")).lower()
+        mode = (
+            sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")
+        ).lower()
         if mode == "stdio":
             os.environ.setdefault("ARIFOS_MINIMAL_STDIO", "1")
             for logger_name in ("fastmcp", "mcp", "uvicorn", "uvicorn.error", "uvicorn.access"):
@@ -38,14 +40,22 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
         {"floor_id": "F1", "name": "Amanah", "doctrine": "Reversible or auditable action"},
         {"floor_id": "F2", "name": "Haqq", "doctrine": "Truth and information fidelity"},
         {"floor_id": "F3", "name": "Tri-Witness", "doctrine": "Consensus across witnesses"},
-        {"floor_id": "F4", "name": "Clarity", "doctrine": "Entropy must not increase destructively"},
+        {
+            "floor_id": "F4",
+            "name": "Clarity",
+            "doctrine": "Entropy must not increase destructively",
+        },
         {"floor_id": "F5", "name": "Peace2", "doctrine": "Stability before force"},
         {"floor_id": "F6", "name": "Empathy", "doctrine": "Protect weakest stakeholder"},
         {"floor_id": "F7", "name": "Humility", "doctrine": "Uncertainty admitted explicitly"},
         {"floor_id": "F8", "name": "Wisdom", "doctrine": "Governed intelligence quality threshold"},
         {"floor_id": "F9", "name": "Anti-Hantu", "doctrine": "No deceptive shadow behavior"},
         {"floor_id": "F10", "name": "Ontology Lock", "doctrine": "Category precision enforced"},
-        {"floor_id": "F11", "name": "Command Authority", "doctrine": "Identity and authority boundary"},
+        {
+            "floor_id": "F11",
+            "name": "Command Authority",
+            "doctrine": "Identity and authority boundary",
+        },
         {"floor_id": "F12", "name": "Injection Defense", "doctrine": "Prompt and input defense"},
         {"floor_id": "F13", "name": "Sovereign Override", "doctrine": "Human final authority"},
     ]
@@ -57,7 +67,7 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
     if handler_name in ("vault_seal", "arifos_vault"):
         return {
             "ok": True,
-            "tool": "arifos.vault",
+            "tool": "arifos_vault",
             "session_id": arguments.get("session_id"),
             "stage": "999_VAULT",
             "verdict": arguments.get("verdict", "SEAL"),
@@ -174,6 +184,7 @@ def _run_minimal_stdio_server() -> None:
 
         if method == "tools/call":
             from .tool_specs import normalize_tool_name
+
             name = normalize_tool_name(params.get("name", ""))
             arguments = params.get("arguments") or {}
             handler = tool_handlers.get(name)

@@ -41,6 +41,7 @@ The Universal Body is arifOS embodied in silicon, steel, and cryptographic root-
 ### Problem
 
 Vault999 seals are currently software-signed. A compromised host can:
+
 - Forge seal hashes
 - Rewrite audit history
 - Spoof verdicts
@@ -63,11 +64,13 @@ Vault999 seals are currently software-signed. A compromised host can:
 │  Tier 1: Physical tamper mesh               │
 │          (Side-channel resistance)          │
 └─────────────────────────────────────────────┘
+
 ```
 
 ### BLS Signatures for Vault999
 
 BLS (Boneh-Lynn-Shacham) enables:
+
 - **Signature aggregation**: Many seals → one proof
 - **Key aggregation**: Multi-party threshold signing
 - **Short signatures**: 96 bytes vs 512 bytes (RSA)
@@ -76,6 +79,7 @@ BLS (Boneh-Lynn-Shacham) enables:
 Seal Event → BLS Sign (HSM) → Aggregate (daily) → Post to Chain
      │                                           │
      └─────── Vault999.jsonl (local) ────────────┘
+
 ```
 
 ### Sovereign Guarantee
@@ -102,6 +106,7 @@ A **decentralized trust layer** where Vault999 instances form a mesh:
               │  Vault999 Mesh  │
               │  (Merkle DAG)   │
               └─────────────────┘
+
 ```
 
 ### Properties
@@ -139,6 +144,7 @@ A **decentralized trust layer** where Vault999 instances form a mesh:
 │  Total: <1μs                      ▼        │
 │                              Output        │
 └─────────────────────────────────────────────┘
+
 ```
 
 ### Implementation Path
@@ -152,6 +158,7 @@ A **decentralized trust layer** where Vault999 instances form a mesh:
 ### Thermodynamic Hardware
 
 Custom circuits for:
+
 - **ΔS calculation**: Entropy estimation in hardware
 - **W₄ consensus**: Geometric mean of 4 witnesses (parallel)
 - **G★ scoring**: Multiplicative wisdom equation (pipelined)

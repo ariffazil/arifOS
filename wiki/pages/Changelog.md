@@ -20,6 +20,7 @@ confidence: 1.0
 **Scale:** −3,841 lines of chaos eliminated.
 
 Key changes:
+
 - **13 versioned files** (`tools_v2.py`, `prompts_v2.py`, `schemas_v2_clean.py`, etc.) → consolidated into single canonical modules
 - `ToolSpecV2 → ToolSpec`, `V2_TOOLS → TOOLS` (backward-compat aliases preserved)
 - `/health` endpoint now exposes: `source_repo`, `source_commit`, `release_tag`, `transport`, `governance_version`, `floors_active`, `warnings[]`
@@ -51,12 +52,14 @@ Key changes:
 Factors: confidence estimates, alternative count, assumptions declared, second-order effects, consistency checks, harm probability (inverse).
 
 #### Philosophy Registry v1.2.0
+
 - 83 civilizational quotes across 5 G★ bands
 - Deterministic selection: `sha256(session_id + band + g_star) % count`
 - Hard override: INIT stage and SEAL verdict → "DITEMPA, BUKAN DIBERI."
 - Diversity score: 0.85 (target ≥0.80)
 
 #### Tool Modes (consolidation)
+
 - `arifos_judge` → modes: `judge`, `health`, `history`, `validate`
 - `arifos_vault` → modes: `seal`, `seal_card`, `render`, `status`
 
@@ -78,6 +81,7 @@ Factors: confidence estimates, alternative count, assumptions declared, second-o
 **arifOS exposes constitutional health via OpenAI Apps SDK.**
 
 Exposed tools (read-only Phase 1):
+
 - `get_constitutional_health` — health card with telemetry
 - `render_vault_seal` — widget render
 - `list_recent_verdicts` — vault audit log (last 100 entries)
@@ -121,6 +125,7 @@ Ignition (concept)
   → Great Unification (repo restructure, Apr 6)
   → ToM-Anchored (9+1 architecture, Apr 6.3)
   → SOT-Sealed (single source of truth, Apr 7) ← CURRENT
+
 ```
 
 ---

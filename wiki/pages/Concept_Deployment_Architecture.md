@@ -39,7 +39,9 @@ The arifOS architecture is bifurcated into two distinct operational modes to bal
 ---
 
 ## The Air Gap Bridge (BBB)
+
 Communication between the Horizon and the VPS happens via a secure, audited protocol. In most deployments:
+
 1. **Horizon** receives an "Intent."
 2. **Horizon** selects the correct v2 tool (e.g., `arifos_init`).
 3. **VPS Kernel** performs the actual "Metabolism."
@@ -57,6 +59,7 @@ Communication between the Horizon and the VPS happens via a secure, audited prot
 ---
 
 ## Related
+
 - [[What-is-arifOS]]
 - [[Concept_Architecture]]
 - [[Concept_Governance_Enforcer]]

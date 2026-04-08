@@ -72,6 +72,7 @@ The Enforcer operates as a non-bypassable guard. If a tool returns any verdict o
 ---
 
 ## Related
+
 - [[Concept_Floors]]
 - [[Concept_Metabolic_Pipeline]]
 - [[What-is-arifOS]]

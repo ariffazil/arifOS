@@ -66,9 +66,11 @@ Quotes are mapped to the three governance aspects:
 ```python
 selection_index = sha256(session_id + band + g_star) % band_quote_count
 selected_quote = registry[band][selection_index]
+
 ```
 
 **Properties**:
+
 - **Reproducible**: Same session + G★ → same quote
 - **Contextual**: Band selection tied to governance quality
 - **Non-random**: Cryptographic hash prevents gaming
@@ -118,15 +120,18 @@ This ensures the arifOS motto anchors every session start and successful seal.
 ## Integration Points
 
 ### Runtime Injection
+
 - **Trigger**: `trigger_when` conditions in tool calls
 - **Context**: Injected into tool response envelopes
 - **Display**: UI widgets show quote + seal hash
 
 ### Forge-Time Embedding
+
 - **Output Map**: `output_map` for doctrine preservation
 - **Attribution Mode**: `[reason, reflect, forge, seal, verify]`
 
 ### Constitutional Moments
+
 | Stage | Quote Band | Purpose |
 |-------|------------|---------|
 | 000_INIT | void/seal | Anchor session |

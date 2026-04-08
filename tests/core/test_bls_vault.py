@@ -19,7 +19,7 @@ from copy import deepcopy
 
 import pytest
 
-from arifosmcp.core.shared.bls_vault import (
+from core.shared.bls_vault import (
     BLS_AVAILABLE,
     JUROR_IDS,
     SUPERMAJORITY_THRESHOLD,

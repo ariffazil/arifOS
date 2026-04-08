@@ -75,7 +75,7 @@ Several tools support multiple modes:
 
 | Tool | Modes | Description |
 |------|-------|-------------|
-| `arifos.judge` | `judge`, `health`, `history`, `validate` | Verdict + diagnostics |
+| `arifos.judge` | `judge`, `health`, `validate`, `hold`, `armor`, `notify`, `probe` | Verdict + diagnostics |
 | `arifos.vault` | `seal`, `seal_card`, `render`, `status` | Ledger + widgets |
 
 ---

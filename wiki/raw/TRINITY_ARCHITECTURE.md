@@ -189,7 +189,7 @@ APPS/llms.txt     → "Here is how to implement the law"
 ## The Well-Known Endpoints
 
 ```
-/.well-known/arifos.json
+/.well-known/arifos_json
 ```
 
 Each site exposes its role in the Trinity:

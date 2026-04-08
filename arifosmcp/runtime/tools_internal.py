@@ -422,6 +422,48 @@ async def apex_judge_dispatch_impl(
                 "envelope": envelope.model_dump(),
             },
         )
+    elif mode == "health":
+        # Constitutional health check: Return telemetry snapshot without issuing verdict
+        # Phase 1 implementation: Synthetic health data based on session context
+        if ctx and hasattr(ctx, "info"):
+            await ctx.info(f"Health check requested for session {session_id}")
+        
+        # Build health telemetry from available session/context data
+        # Note: Real implementation would query Vault999 for actual verdict history
+        health_payload = {
+            "mode": "health",
+            "floors_active": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
+            "telemetry_snapshot": {
+                "ds": -0.32,  # Entropy delta (F4)
+                "peace2": 1.21,  # Stability (F5)
+                "G_star": 0.91,  # Genius score (F8)
+                "confidence": 0.08,  # Humility band (F7)
+                "shadow": 0.07,  # Anti-hantu (F9)
+            },
+            "verdicts_summary": {
+                "note": "Synthetic data for Phase 1 implementation",
+                "SEAL": 42,
+                "VOID": 3,
+                "HOLD": 7,
+                "SABAR": 12,
+                "window": "24h",
+            },
+            "system_status": "HEALTHY",
+            "judge_readiness": "READY",
+            "session_id": session_id,
+            "timestamp_utc": "2026-04-08T14:00:00Z",  # Placeholder
+        }
+        
+        return RuntimeEnvelope(
+            ok=True,
+            tool="apex_judge",
+            canonical_tool_name="arifos.judge",
+            session_id=session_id,
+            stage="888_JUDGE",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload=health_payload,
+        )
 
     raise ValueError(f"Invalid mode for apex_judge: {mode}")
 

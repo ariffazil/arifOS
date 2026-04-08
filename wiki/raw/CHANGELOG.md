@@ -8,7 +8,7 @@ All notable changes to arifOS MCP are documented in this file.
 
 - **Canonical modules**: 13 versioned files (`tools_v2.py`, `prompts_v2.py`, `resources_v2.py`, `manifest_v2.py`, `tool_specs_v2.py`, `schemas_v2_clean.py`, `sensing_protocol_v2.py`, `tools_v2_forge.py`, `contracts_v2.py`, etc.) consolidated into single canonical modules.
 - **ToolSpecV2 → ToolSpec**, **V2_TOOLS → TOOLS** — backward-compat aliases preserved.
-- **`__main__.py` stdio path** updated to expose canonical `arifos.*` tools (was exposing old `init_anchor`, `check_vital`, etc.).
+- **`__main__.py` stdio path** updated to expose canonical `arifos_*` tools (was exposing old `init_anchor`, `check_vital`, etc.).
 - All archived v1/v2 files preserved in `.archive/v1_legacy/`.
 
 ### 🏛️ MAJOR: Single Source of Truth Enforced
@@ -20,7 +20,7 @@ All notable changes to arifOS MCP are documented in this file.
 
 ### 🧹 CLEANUP: Last `arifos.v2` Namespace Leaks Purged
 
-- `manifest.py`: resource URIs `arifos.v2.*` → `arifos.*`, namespace corrected.
+- `manifest.py`: resource URIs `arifos.v2.*` → `arifos_*`, namespace corrected.
 - `server.py`: module docstring, llms.txt public tool list corrected.
 - `resources.py`: `SYSTEM_CAPABILITIES` namespace corrected.
 - Zero `arifos.v2` strings remain in any active runtime Python file.
@@ -60,18 +60,18 @@ All notable changes to arifOS MCP are documented in this file.
 #### The 9+1 Constitutional Architecture
 
 - **9 Governance Tools** (think, validate, reason — never execute directly):
-  - `arifos.init` — Session anchoring with ToM
-  - `arifos.sense` — Reality grounding with evidence type
-  - `arifos.mind` — Structured reasoning (min 2 alternatives required)
-  - `arifos.route` — Lane selection with intent classification
-  - `arifos.heart` — Safety & human modeling
-  - `arifos.ops` — Operational cost (irreversibility + rollback plan)
-  - `arifos.judge` — Constitutional verdict (sole SEAL authority)
-  - `arifos.memory` — Governed context recall
-  - `arifos.vault` — Immutable seal (receipt only, no execution)
+  - `arifos_init` — Session anchoring with ToM
+  - `arifos_sense` — Reality grounding with evidence type
+  - `arifos_mind` — Structured reasoning (min 2 alternatives required)
+  - `arifos_route` — Lane selection with intent classification
+  - `arifos_heart` — Safety & human modeling
+  - `arifos_ops` — Operational cost (irreversibility + rollback plan)
+  - `arifos_judge` — Constitutional verdict (sole SEAL authority)
+  - `arifos_memory` — Governed context recall
+  - `arifos_vault` — Immutable seal (receipt only, no execution)
 
 - **1 Execution Bridge** (action after SEAL):
-  - `arifos.forge` — Delegated execution (requires judge verdict="SEAL")
+  - `arifos_forge` — Delegated execution (requires judge verdict="SEAL")
 
 #### Philosophy Registry v1.2.0
 
@@ -88,7 +88,7 @@ All notable changes to arifOS MCP are documented in this file.
 Every tool now requires structured fields that force LLM mental model externalization:
 
 ```python
-# Example: arifos.mind
+# Example: arifos_mind
 {
   "problem_statement": "...",
   "alternative_hypotheses": ["Path A", "Path B", "Path C"],  # min 2
@@ -115,14 +115,14 @@ Formula: `G★ = confidence + adjustments` → clamped [0,1]
 #### Tool Modes
 
 Multi-function tools consolidated:
-- `arifos.judge` → modes: `judge`, `health`, `history`, `validate`
-- `arifos.vault` → modes: `seal`, `seal_card`, `render`, `status`
+- `arifos_judge` → modes: `judge`, `health`, `history`, `validate`
+- `arifos_vault` → modes: `seal`, `seal_card`, `render`, `status`
 
 #### Clean 2-Term Naming
 
-All tools use `arifos.{tool}` format:
-- `arifos.init` (was `arifos.v2.init`)
-- `arifos.judge` (was `arifos.v2.judge`)
+All tools use `arifos_{tool}` format:
+- `arifos_init` (was `arifos.v2.init`)
+- `arifos_judge` (was `arifos.v2.judge`)
 - etc.
 
 ---

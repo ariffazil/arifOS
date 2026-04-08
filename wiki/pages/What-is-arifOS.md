@@ -27,14 +27,21 @@ arifOS operationalizes this philosophy through a strict physical and logical sep
 arifOS is organized around three interdependent rings (The Trinity/ΔΩΨ Architecture), ensuring a strict separation of powers across both **Layer** (AAA vertical) and **Engine** (horizontal governance):
 
 ### Layer Mapping (AAA Vertical Stack)
+
 Per `TRINITY_ARCHITECTURE.md` (000_IGNITION canon):
+
 - **Δ HUMAN (The Body / Epistemic)**: Identity, biography, scars. Who is building this? Why does it matter?
+
 - **Ω APPS (The Mind / Implementation)**: Tools, code, execution. How do we implement the law?
+
 - **Ψ THEORY (The Soul / Authority)**: Constitutional law, 13 Floors. What law governs all action?
 
 ### Engine Mapping (Governance Pipeline)
+
 - **AGI Mind (The Architect)**: Analytical reasoning, logic, factuality. Stages 111 (SENSE) to 333 (ATLAS). Proposals only; zero execution authority.
+
 - **ASI Heart (The Guardian)**: Safety, empathy, impact simulation. Stages 444 (ALIGN) to 666 (BRIDGE). Holds veto and SABAR power.
+
 - **APEX Soul (The Judge)**: Judiciary layer. Stages 777 (EUREKA) to 999 (VAULT). Issues final verdicts (SEAL, VOID, SABAR, HOLD_888).
 
 > [!NOTE]
@@ -45,10 +52,15 @@ Per `TRINITY_ARCHITECTURE.md` (000_IGNITION canon):
 Every action processed by arifOS must pass through 13 safety floors. Key floors include:
 
 - **F1 Amanah**: Reversibility and sacred trust.
+
 - **F2 Truth**: Reality grounding and citation.
+
 - **F3 Tri-Witness**: Triple-verifiable execution.
+
 - **F4 Clarity**: Entropy reduction (ΔS ≤ 0).
+
 - **F9 Ethics**: Measuring harm potential (C_dark < 0.30).
+
 - **F11 Audit**: Immutable logging in VAULT999.
 
 ## The Metabolic Pipeline (000-999)
@@ -56,27 +68,45 @@ Every action processed by arifOS must pass through 13 safety floors. Key floors 
 Requests flow through a 9-stage metabolic loop:
 
 - **000_INIT**: Session anchoring.
+
 - **111_SENSE**: Reality grounding.
+
 - **333_MIND**: Constitutional evaluation.
+
 - **444_ROUT**: Execution planning.
+
 - **555_MEM**: Context retrieval (Vector memory).
+
 - **666_HEART**: Safety critique.
+
 - **777_OPS**: Resource/Thermodynamic estimation.
+
 - **888_JUDGE**: Final verdict (SEAL, HOLD, VOID).
+
 - **999_SEAL**: Immutable audit trail.
 
 ## Technology Stack
+
 - **Primary Language:** Python 3.12+
+
 - **Infrastructure:** FastAPI, FastMCP, Redis, PostgreSQL (Vault999), Qdrant/Chroma.
+
 - **Inference:** Ollama (local LLM orchestration).
 
 ## Role-Based Permissions
+
 - **A-ARCHITECT:** Read, Plan, Design only.
+
 - **A-ENGINEER:** Read, Write, Edit (requires approval).
+
 - **A-AUDITOR:** Read, Review, issue VOID verdicts.
+
 - **A-VALIDATOR:** Authorized to Deploy and issue final SEALs.
 
 Citations:
-- [[README.md]] (Root documentation)
-- [[GEMINI.md]] (Agent instructions)
-- [[Floors]] (Detailed floor specs)
+
+- [README.md](README.md) (Root documentation)
+
+- [GEMINI.md](GEMINI.md) (Agent instructions)
+
+- [Floors](Floors) (Detailed floor specs)

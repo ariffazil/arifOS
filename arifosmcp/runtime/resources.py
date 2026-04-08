@@ -245,7 +245,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
     
     @mcp.resource("arifos://schema/tool/{tool_id}")
     def schema_tool(tool_id: str) -> dict[str, Any]:
-        """Context packet for a specific tool (e.g., arifos.mind)."""
+        """Context packet for a specific tool (e.g., arifos_mind)."""
         packet = registry.get_tool_packet(tool_id)
         if packet:
             return packet

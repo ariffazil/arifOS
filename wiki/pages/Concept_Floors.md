@@ -51,6 +51,7 @@ The 13 Floors **enforce all four axioms** at runtime.
 | **F13** | Sovereign Override | S | HUMAN_APPROVAL | **HARD** | APEX Soul | 888 JUDGE |
 
 **Floor types:**
+
 - **HARD** — violation = VOID (immediate halt)
 - **SOFT** — violation = PARTIAL/SABAR (warn, proceed with caution)
 - **DERIVED** — computed from other metric combinations
@@ -60,30 +61,38 @@ The 13 Floors **enforce all four axioms** at runtime.
 ## Key Formulas
 
 ### Truth Probability (F2 + F3 + F4 composite)
+
 ```
 P_truth(τ) = 1 - exp(-α × (E_eff/E₀) × (-ΔS/S₀) × TW(τ))
+
 ```
 Low energy + high entropy + weak witness → low truth probability. Never reaches 1.0 (preserves humility).
 
 ### Quad-Witness (F3) — Byzantine Fault Tolerance
+
 ```
 W₄ = ∜(H × A × E × V) ≥ 0.75
 H = Human witness · A = AI witness · E = Earth witness · V = Vault-Shadow
+
 ```
 Geometric mean: ALL four witnesses must contribute. One zero collapses consensus.
 
 ### Genius Index (F8)
+
 ```
 G = A × P × X × E²
 A = Akal (Clarity)  ·  P = Peace (Stability)  ·  X = Exploration (RASA/Trust)  ·  E² = Energy (squared)
+
 ```
 E is squared: `E=0.5 → E²=0.25` — energy depletion is exponential.
 
 ### Anti-Hantu (F9) Detection Patterns
+
 ```
 HANTU: technically_true_but_misleading | legal_but_unethical
        follows_letter_not_spirit | optimizes_metric_not_goal
        plausible_deniability_setup
+
 ```
 
 ---
@@ -96,6 +105,7 @@ F12 → F11 (Walls — preprocessing, block attacks + verify identity first)
   → ASI Floors: F5, F6, F9, F11, F13 (ethical + safety checks)
   → Mirrors: F3, F8 (derived consensus + genius score)
   → Ledger (audit trail)
+
 ```
 
 ---
@@ -164,6 +174,7 @@ Each floor maps to a Malay/Arabic cultural concept:
 ## 888_HOLD Triggers
 
 Require explicit human confirmation before proceeding:
+
 - Database migrations, production deployments
 - Credential / secret handling
 - Mass file operations (>10 files)
