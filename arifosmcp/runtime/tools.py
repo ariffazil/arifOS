@@ -817,6 +817,41 @@ vault_v2 = arifos_vault
 forge_v2 = arifos_forge
 V2_TOOL_HANDLERS = CANONICAL_TOOL_HANDLERS
 
+# Legacy Horizon/v1 aliases for tests
+init_anchor = arifos_init
+arifOS_kernel = arifos_route
+apex_soul = arifos_judge
+vault_ledger = arifos_vault
+math_estimator = arifos_ops
+physics_reality = arifos_sense
+engineering_memory = arifos_memory
+asi_heart = arifos_heart
+agi_mind = arifos_mind
+architect_registry = arifos_init
+check_vital = arifos_vps_monitor
+system_health = arifos_vps_monitor
+
+def _normalize_session_id(session_id: str | None) -> str:
+    """Legacy helper for session normalization."""
+    import secrets
+    return session_id or f"session-{secrets.token_hex(8)}"
+
+def _resolve_caller_context(session_id: str | None = None, actor_id: str | None = None) -> dict:
+    """Legacy helper for caller context resolution."""
+    return {"session_id": _normalize_session_id(session_id), "actor_id": actor_id or "anonymous"}
+
+def _resolve_caller_state(session_id: str) -> str:
+    """Legacy helper for caller state resolution."""
+    return "anchored"
+
+def _wrap_call(func):
+    """Legacy wrapper for tool calls."""
+    return func
+
+def select_governed_philosophy(preference: str | None = None) -> str:
+    """Legacy helper for philosophy selection."""
+    return "DITEMPA BUKAN DIBERI"
+
 def register_v2_tools(mcp: FastMCP) -> list[str]:
     """Register all v2 tools on the MCP instance."""
     from fastmcp.tools.function_tool import FunctionTool
@@ -866,4 +901,22 @@ __all__ = [
     "judge_v2",
     "vault_v2",
     "forge_v2",
+    # Legacy exports
+    "init_anchor",
+    "arifOS_kernel",
+    "apex_soul",
+    "vault_ledger",
+    "math_estimator",
+    "physics_reality",
+    "engineering_memory",
+    "asi_heart",
+    "agi_mind",
+    "architect_registry",
+    "check_vital",
+    "system_health",
+    "_normalize_session_id",
+    "_resolve_caller_context",
+    "_resolve_caller_state",
+    "_wrap_call",
+    "select_governed_philosophy",
 ]

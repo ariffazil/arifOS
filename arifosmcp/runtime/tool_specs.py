@@ -339,6 +339,16 @@ LEGACY_NAME_MAP: dict[str, str] = {
 }
 
 
+def normalize_tool_name(name: str) -> str:
+    """Normalize tool name (dots to underscores) for arifOS v2.
+    
+    Example: 'arifos.init' -> 'arifos_init'
+    """
+    if name.startswith("arifos."):
+        return name.replace(".", "_")
+    return name
+
+
 def get_tool_spec(name: str) -> ToolSpec | None:
     """Get tool spec by name."""
     for spec in TOOLS:
@@ -366,7 +376,11 @@ v2_tool_names = tool_names
 # public_registry.py compat
 PUBLIC_TOOL_SPECS = TOOLS
 PUBLIC_RESOURCE_SPECS: tuple[()] = ()
-PUBLIC_PROMPT_SPECS: tuple[()] = ()
+PUBLIC_PROMPT_SPECS = ()
+
+# MegaTool Compat Aliases
+MEGA_TOOLS = TOOLS
+MegaToolName = str
 
 
 __all__ = [
@@ -388,4 +402,6 @@ __all__ = [
     "PUBLIC_TOOL_SPECS",
     "PUBLIC_RESOURCE_SPECS",
     "PUBLIC_PROMPT_SPECS",
+    "MEGA_TOOLS",
+    "MegaToolName",
 ]

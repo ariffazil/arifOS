@@ -90,16 +90,17 @@ def _run_minimal_stdio_server() -> None:
     from .tool_specs import TOOLS
 
     tool_handlers: dict[str, Any] = {
-        "arifos.init": runtime_tools.arifos_init,
-        "arifos.sense": runtime_tools.arifos_sense,
-        "arifos.mind": runtime_tools.arifos_mind,
-        "arifos.route": runtime_tools.arifos_route,
-        "arifos.heart": runtime_tools.arifos_heart,
-        "arifos.ops": runtime_tools.arifos_ops,
-        "arifos.judge": runtime_tools.arifos_judge,
-        "arifos.memory": runtime_tools.arifos_memory,
-        "arifos.vault": runtime_tools.arifos_vault,
-        "arifos.forge": runtime_tools.arifos_forge,
+        "arifos_init": runtime_tools.arifos_init,
+        "arifos_sense": runtime_tools.arifos_sense,
+        "arifos_mind": runtime_tools.arifos_mind,
+        "arifos_route": runtime_tools.arifos_route,
+        "arifos_heart": runtime_tools.arifos_heart,
+        "arifos_ops": runtime_tools.arifos_ops,
+        "arifos_judge": runtime_tools.arifos_judge,
+        "arifos_memory": runtime_tools.arifos_memory,
+        "arifos_vault": runtime_tools.arifos_vault,
+        "arifos_forge": runtime_tools.arifos_forge,
+        "arifos_vps_monitor": runtime_tools.arifos_vps_monitor,
     }
 
     # Build spec lookup from canonical TOOLS tuple
@@ -172,7 +173,8 @@ def _run_minimal_stdio_server() -> None:
             continue
 
         if method == "tools/call":
-            name = params.get("name")
+            from .tool_specs import normalize_tool_name
+            name = normalize_tool_name(params.get("name", ""))
             arguments = params.get("arguments") or {}
             handler = tool_handlers.get(name)
             if handler is None:

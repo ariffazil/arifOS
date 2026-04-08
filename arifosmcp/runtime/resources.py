@@ -182,9 +182,9 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
     "namespace": "arifos",
     "constitutional_floors": 13,
     "tools": {
-        "public": ["arifos.init", "arifos.route", "arifos.judge", "arifos.forge"],
-        "internal": ["arifos.sense", "arifos.mind", "arifos.heart", "arifos.ops", "arifos.memory", "arifos.vault"],
-        "total": 10,
+        "public": ["arifos_init", "arifos_route", "arifos_judge", "arifos_forge"],
+        "internal": ["arifos_sense", "arifos_mind", "arifos_heart", "arifos_ops", "arifos_memory", "arifos_vault", "arifos_vps_monitor"],
+        "total": 11,
     },
     "mcp_version": "2025-11-25",
     "schema_registry": {

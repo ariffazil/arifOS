@@ -84,17 +84,17 @@ mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
 # This maintains backward compatibility while using the v2 architecture
 HORIZON_TO_V2_MAP = {
     # Horizon Name → v2 Canonical Name
-    "init_anchor": "arifos.init",  # 000_INIT
-    "arifOS_kernel": "arifos.route",  # 444_ROUTER (the kernel)
-    "physics_reality": "arifos.sense",  # 111_SENSE
-    "agi_mind": "arifos.mind",  # 333_MIND
-    "asi_heart": "arifos.heart",  # 666_HEART
-    "math_estimator": "arifos.ops",  # 777_OPS
-    "apex_soul": "arifos.judge",  # 888_JUDGE
-    "engineering_memory": "arifos.memory",  # 555_MEMORY
-    "vault_ledger": "arifos.vault",  # 999_VAULT (the seal)
-    "code_engine": "arifos.forge",  # FORGE_010 (execution bridge)
-    "architect_registry": "arifos.init",  # Registry folded into init
+    "init_anchor": "arifos_init",  # 000_INIT
+    "arifOS_kernel": "arifos_route",  # 444_ROUTER (the kernel)
+    "physics_reality": "arifos_sense",  # 111_SENSE
+    "agi_mind": "arifos_mind",  # 333_MIND
+    "asi_heart": "arifos_heart",  # 666_HEART
+    "math_estimator": "arifos_ops",  # 777_OPS
+    "apex_soul": "arifos_judge",  # 888_JUDGE
+    "engineering_memory": "arifos_memory",  # 555_MEMORY
+    "vault_ledger": "arifos_vault",  # 999_VAULT (the seal)
+    "code_engine": "arifos_forge",  # FORGE_010 (execution bridge)
+    "architect_registry": "arifos_init",  # Registry folded into init
 }
 
 PUBLIC_PROXY_SPECS = {

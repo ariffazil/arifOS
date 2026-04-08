@@ -222,27 +222,17 @@ def _map_verdict(verdict: Verdict | str | None) -> str:
 def _build_summary(envelope: RuntimeEnvelope) -> str:
     """Build plain-language summary of what happened."""
     tool_names = {
-        "init_anchor": "Session initialization",
-        "arifos.init": "Session initialization",
-        "physics_reality": "Reality grounding",
-        "arifos.sense": "Reality grounding",
-        "agi_mind": "Reasoning",
-        "arifos.mind": "Reasoning",
-        "arifOS_kernel": "Routing",
-        "arifos.route": "Routing",
-        "asi_heart": "Safety critique",
-        "arifos.heart": "Safety critique",
-        "math_estimator": "Cost estimation",
-        "arifos.ops": "Cost estimation",
-        "apex_judge": "Constitutional judgment",
-        "apex_soul": "Constitutional judgment",
-        "arifos.judge": "Constitutional judgment",
-        "engineering_memory": "Memory recall",
-        "arifos.memory": "Memory recall",
-        "vault_ledger": "Vault sealing",
-        "arifos.vault": "Vault sealing",
-        "code_engine": "Execution",
-        "arifos.forge": "Execution",
+        "arifos_init": "Session initialization",
+        "arifos_sense": "Reality grounding",
+        "arifos_mind": "Reasoning",
+        "arifos_route": "Routing",
+        "arifos_heart": "Safety critique",
+        "arifos_ops": "Cost estimation",
+        "arifos_judge": "Constitutional judgment",
+        "arifos_memory": "Memory recall",
+        "arifos_vault": "Vault sealing",
+        "arifos_forge": "Execution",
+        "arifos_vps_monitor": "Telemetry",
     }
     
     tool = tool_names.get(envelope.tool, envelope.tool)

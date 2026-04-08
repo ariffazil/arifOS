@@ -46,31 +46,26 @@ telegram: @AGI_ASI_bot
 
 ---
 
-## 🤖 arifOS MCP Mega-Tools
+## 🤖 arifOS MCP Canonical Tools (v2)
 
-### 111 SENSE — Fact Acquisition
-- `search_reality` — Evidence-grounded search
-- `physics_reality` — Earth-witness fact mapping
+### GOVERNANCE (Ψ Soul)
+- `arifos_init` — Constitutional session ignition (000)
+- `arifos_route` — Metabolic lane routing (444)
+- `arifos_judge` — Sovereign verdict rendering (888)
+- `arifos_vault` — Immutable Merkle-hashed recording (999)
 
-### 333 MIND — Reasoning
-- `agi_mind` — First-principles reasoning
-- `agi_reflect` — Self-critique and synthesis
+### INTELLIGENCE (Δ Mind / Ω Heart)
+- `arifos_mind` — First-principles reasoning & synthesis (333)
+- `arifos_memory` — Governed recall & engineering context (555)
+- `arifos_heart` — Safety, empathy, & consequence modeling (666)
 
-### 444 ROUTER — Orchestration
-- `arifOS_kernel` — Metabolic loop routing
+### MACHINE (Δ Mind)
+- `arifos_sense` — Reality grounding & physics sensing (111)
+- `arifos_ops` — Capacity & thermodynamic estimation (777)
+- `arifos_vps_monitor` — Hardened read-only telemetry (111)
 
-### 555 MEMORY — Engineering
-- `agentzero_engineer` — Governed code execution
-- `engineering_memory` — Vector memory operations
-
-### 666 HEART — Safety
-- `asi_heart` — Empathy and consequence modeling
-- `asi_critique` — Safety critique
-
-### 888 JUDGE — Verdict
-- `init_anchor` — Constitutional session ignition
-- `apex_judge` — Final verdict rendering
-- `vault_ledger` — Permanent decision recording
+### EXECUTION (Δ Mind)
+- `arifos_forge` — Signed manifest bridge to AF-FORGE (010)
 
 ---
 

@@ -58,8 +58,8 @@ TOOL_ALIASES: dict[str, str] = dict(AAA_TOOL_ALIASES)
 # Parameter name normalization for REST/Horizon compatibility
 # Maps common parameter names to canonical parameter names per tool
 PARAMETER_ALIASES: dict[str, dict[str, str]] = {
-    "arifos.init": {"intent": "intent", "goal": "intent", "task": "intent"},
-    "arifos.sense": {
+    "arifos_init": {"intent": "intent", "goal": "intent", "task": "intent"},
+    "arifos_sense": {
         "query": "input",
         "content": "input", 
         "text": "input",
@@ -67,14 +67,14 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
         "mode": "mode",
         "scan": "mode",
     },
-    "arifos.mind": {
+    "arifos_mind": {
         "query": "query",
         "content": "query",
         "input": "query",
         "text": "query",
         "context": "context",
     },
-    "arifos.route": {
+    "arifos_route": {
         "intent": "request",
         "query": "request",
         "input": "request",
@@ -83,13 +83,13 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
         "candidates": "candidates",
         "tools": "candidates",
     },
-    "arifos.heart": {
+    "arifos_heart": {
         "query": "input",
         "content": "input",
         "input": "input",
         "text": "input",
     },
-    "arifos.ops": {
+    "arifos_ops": {
         "query": "input",
         "content": "input",
         "input": "input",
@@ -97,28 +97,28 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
         "action": "action",
         "command": "action",
     },
-    "arifos.judge": {
+    "arifos_judge": {
         "query": "input",
         "content": "input",
         "input": "input",
         "text": "input",
         "evidence": "evidence",
     },
-    "arifos.memory": {
+    "arifos_memory": {
         "query": "query",
         "content": "query",
         "input": "query",
         "action": "action",
         "operation": "action",
     },
-    "arifos.vault": {
+    "arifos_vault": {
         "query": "query",
         "content": "query",
         "input": "query",
         "action": "action",
         "operation": "action",
     },
-    "arifos.forge": {
+    "arifos_forge": {
         "intent": "intent",
         "query": "intent",
         "input": "intent",
