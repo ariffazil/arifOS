@@ -1,8 +1,8 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-08 (Unity Audit + Ghost Page Synthesis)
-> **Total Pages**: 21
-> **System Status**: SEALED
+> **Last Updated**: 2026-04-08 (Architecture Realignment, Deployment Modes, Enforcer Logic)
+> **Total Pages**: 18
+> **System Status**: ACTIVE
 > **Audit**: Trinity symbol consistency verified, F11/F12 stage assignment clarified, 4 ghost pages forged
 
 ---
@@ -18,9 +18,12 @@
 
 ## 💡 Concepts
 - [[Concept_LLM_Wiki_Pattern]] (Core Architecture)
-- [[Concept_Metabolic_Pipeline]] (Runtime execution path across entrypoint, router, verdict, and seal layers)
-- [[Concept_Metabolic_Loop]] (The 000-999 processing stages)
-- [[Concept_Vault999_Architecture]] (Stage-999 audit subsystem)
+- [[Concept_Architecture]] (The Trinity ΔΩΨ model and CCC/AAA layers)
+- [[Concept_Deployment_Architecture]] (Horizon Gateway vs. VPS Sovereign Execution)
+- [[Concept_Metabolic_Pipeline]] (The 11-stage thermodynamic intent digestion)
+- [[Concept_Governance_Enforcer]] (Structural Hard-Stops, Class A/B/C, and Floor Realism)
+- [[Concept_Floors]] (The 13 Constitutional Floors F1-F13)
+- [[Concept_Vault999_Architecture]] (Immutable Audit Ledger — Postgres + Filesystem)
 - [[Architecture]] (High-level ΔΩΨ structural map)
 - [[Concept_Trinity]] (ΔΩΨ Deep-dive: Soul, Mind, Body)
 - [[Concept_Godellock]] (F7 Humility and the Overconfidence Threshold)

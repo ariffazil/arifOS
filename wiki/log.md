@@ -71,3 +71,65 @@
   - [[Concept_Trinity]] (ΔΩΨ Paradigm)
 - Updated `index.md` and `log.md`.
 - **System Status: SEALED**
+
+## [2026-04-08] Unity Audit + Ghost Page Synthesis | Ω-Wiki Clerk Batch
+
+### Unity Audit Findings
+
+**AUDITOR**: Ω-Wiki Clerk (Kimi-CLI)  
+**MOTTO**: *Ditempa Bukan Diberi*
+
+#### Finding 1: Trinity Symbol Inconsistency [RESOLVED]
+- **Issue**: `What-is-arifOS.md` mapped Δ→AGI Mind, Ω→ASI Heart, Ψ→APEX Soul
+- **Conflict**: `TRINITY_ARCHITECTURE.md` (000_IGNITION canon) maps Δ→HUMAN, Ω→APPS, Ψ→THEORY
+- **Resolution**: Added **Layer vs Engine distinction** to `What-is-arifOS.md`:
+  - **Layer Mapping** (AAA vertical): Δ HUMAN, Ω APPS, Ψ THEORY
+  - **Engine Mapping** (governance horizontal): AGI Mind, ASI Heart, APEX Soul
+  - Documented that AGI operates at Ω (APPS) layer implementation
+- **Confidence**: High — aligns with `TRINITY_ARCHITECTURE.md` authority
+
+#### Finding 2: F11/F12 Stage Assignment Ambiguity [CLARIFIED]
+- **Issue**: F11 (Command Auth) and F12 (Injection Defense) assigned to ASI Heart at stage 111_SENSE, but 111 is canonically AGI Mind domain
+- **Resolution**: Added clarifying note to `Concept_Floors.md` explaining that trust verification and attack detection are safety-critical functions requiring ASI perspective even at early stages
+- **Confidence**: Medium — operational necessity documented, architectural tension acknowledged
+
+### Ghost Page Synthesis (4 pages forged)
+
+#### 1. [[Philosophy_Registry]] [COMPLETED]
+- **Source**: `CHANGELOG.md` v1.2.0, `ROADMAP.md`
+- **Content**: 83 quotes, 5 G★ bands, deterministic selection algorithm, Trinity distribution, hard overrides (INIT + SEAL), 8 categories, attribution hygiene
+- **Confidence**: 0.95 (grounded in prompts.py evidence)
+
+#### 2. [[Eigent_Backend]] [COMPLETED]
+- **Source**: `ROADMAP.md` H1+H2, `CHANGELOG.md`
+- **Content**: MiniMax-M2.7 integration, desktop automation surface, constitutional bridge flow, 888_HOLD governance, H1→H2 roadmap position
+- **Confidence**: 0.90 (endpoint verified, architecture speculative)
+
+#### 3. [[Horizon_2_Swarm]] [COMPLETED]
+- **Source**: `ROADMAP.md` H2, metabolic pipeline audit
+- **Content**: 6 H2 tasks (EvidenceBundle/A2A, Auto-Deploy, ΔS Gauges, MCP Adapters, Sensitivity Studies, Qdrant RAG), risk assessment, success criteria
+- **Confidence**: 0.75 (design phase, not yet implemented)
+
+#### 4. [[Horizon_3_Universal_Body]] [COMPLETED]
+- **Source**: `ROADMAP.md` H3
+- **Content**: 4 pillars (Hardware BLS, WebMCP P2P, ASIC Loops, Benchmark Suite), economic model, risk assessment, Trinity physicalization
+- **Confidence**: 0.60 (speculative, research phase)
+
+### Metadata Updates
+- `wiki/index.md`: 16 → 21 pages, added new Concept and Synthesis entries
+- All new pages: YAML frontmatter per `SCHEMA.md`, F2 citations to raw sources
+- F11: This log entry serves as audit trail
+
+### Ghosts Resolved
+| Ghost | Status | Location |
+|-------|--------|----------|
+| Philosophy_Registry | ✅ Forged | `wiki/pages/Philosophy_Registry.md` |
+| Eigent_Backend | ✅ Forged | `wiki/pages/Eigent_Backend.md` |
+| Horizon_2_Swarm | ✅ Forged | `wiki/pages/Horizon_2_Swarm.md` |
+| Horizon_3_Universal_Body | ✅ Forged | `wiki/pages/Horizon_3_Universal_Body.md` |
+
+**Verdict**: SEAL — Unity achieved, ghosts laid to rest.
+
+---
+
+*End of Ω-Wiki Clerk Batch. DITEMPA BUKAN DIBERI.*
