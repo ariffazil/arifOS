@@ -22,8 +22,8 @@ def verify_sync():
     
     # Core wiki pages to check for tool names
     wiki_files = [
-        wiki_pages_dir / "Architecture.md",
-        wiki_pages_dir / "Concept_Metabolic_Loop.md",
+        wiki_pages_dir / "Trinity_Architecture.md",
+        wiki_pages_dir / "Metabolic_Loop.md",
         wiki_pages_dir / "MCP_Tools.md"
     ]
     

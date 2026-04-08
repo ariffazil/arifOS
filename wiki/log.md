@@ -132,4 +132,26 @@
 
 ---
 
+## [2026-04-08] Audit | MCP Tools vs Ω-Wiki Alignment
+
+- **Audited**: `arifosmcp/` MCP implementation vs `wiki/pages/` documentation
+- **Created**: `wiki/pages/Audit_MCP_Tools_vs_Wiki.md` — full alignment audit
+- **Findings**:
+  - Tool count drift: wiki says 10, code has 11 canonical tools
+  - Import error in `capability_map.py`: imports `MEGA_TOOLS` from `tool_specs` but spec defines `TOOLS`
+  - Missing wiki pages for `arifos_forge` and `arifos_vps_monitor`
+  - Naming drift: wiki uses legacy names, code uses `arifos_*` format
+  - `tool_registry.json` uses dots (`arifos.init`) vs underscores (`arifos_init`)
+- **Changes proposed**:
+  - [HIGH] Add `MEGA_TOOLS = TOOLS` alias to `tool_specs.py` OR fix `capability_map.py` import
+  - [HIGH] Sync wiki tool count (choose 10 or 11)
+  - [MEDIUM] Add missing wiki pages for `arifos_forge` and `arifos_vps_monitor`
+  - [MEDIUM] Normalize naming conventions across all surfaces
+- **HOLD**: Deep refactor of megaTools/__init__.py (12 tools vs 11), tool count decision, breaking change assessment
+- **F11**: Logged here
+- **F2**: All claims traceable to source files in `arifosmcp/` and `wiki/pages/`
+- **Verdict**: PARTIAL — wiki needs sync, code needs import fix
+
+---
+
 *End of Ω-Wiki Clerk Batch. DITEMPA BUKAN DIBERI.*
