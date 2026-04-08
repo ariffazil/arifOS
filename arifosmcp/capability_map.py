@@ -19,6 +19,7 @@ class InitAnchorMode(str, Enum):
     refresh = "refresh"
     state = "state"
     status = "status"
+    probe = "probe"
 
 
 class KernelMode(str, Enum):
@@ -58,6 +59,8 @@ class EngineeringMemoryMode(str, Enum):
     recall = "recall"
     write = "write"
     generate = "generate"
+    vector_query = "vector_query"
+    vector_store = "vector_store"
 
 
 class PhysicsRealityMode(str, Enum):
@@ -65,15 +68,24 @@ class PhysicsRealityMode(str, Enum):
     ingest = "ingest"
     compass = "compass"
     atlas = "atlas"
+    time = "time"
+    governed = "governed"
 
 
 class MathEstimatorMode(str, Enum):
     cost = "cost"
     health = "health"
     vitals = "vitals"
+    entropy = "entropy"
 
 
 class CodeEngineMode(str, Enum):
+    shell = "shell"
+    api_call = "api_call"
+    contract = "contract"
+    compute = "compute"
+    container = "container"
+    vm = "vm"
     fs = "fs"
     process = "process"
     net = "net"
@@ -87,19 +99,24 @@ class ArchitectRegistryMode(str, Enum):
     read = "read"
     context = "context"
 
+class VpsMonitorMode(str, Enum):
+    get_telemetry = "get_telemetry"
+    get_zram_status = "get_zram_status"
+    get_disk_usage = "get_disk_usage"
+
 
 MEGA_TOOL_MODES: dict[str, set[str]] = {
-    "init_session_anchor": {m.value for m in InitAnchorMode},
-    "route_execution": {m.value for m in KernelMode},
-    "judge_verdict": {m.value for m in ApexSoulMode},
-    "record_vault_entry": {m.value for m in VaultLedgerMode},
-    "reason_synthesis": {m.value for m in AgiMindMode},
-    "critique_safety": {m.value for m in AsiHeartMode},
-    "load_memory_context": {m.value for m in EngineeringMemoryMode},
-    "sense_reality": {m.value for m in PhysicsRealityMode},
-    "estimate_ops": {m.value for m in MathEstimatorMode},
-    "execute_vps_task": {m.value for m in CodeEngineMode},
-    "get_tool_registry": {m.value for m in ArchitectRegistryMode},
+    "arifos_init": {m.value for m in InitAnchorMode},
+    "arifos_route": {m.value for m in KernelMode},
+    "arifos_judge": {m.value for m in ApexSoulMode},
+    "arifos_vault": {m.value for m in VaultLedgerMode},
+    "arifos_mind": {m.value for m in AgiMindMode},
+    "arifos_heart": {m.value for m in AsiHeartMode},
+    "arifos_memory": {m.value for m in EngineeringMemoryMode},
+    "arifos_sense": {m.value for m in PhysicsRealityMode},
+    "arifos_ops": {m.value for m in MathEstimatorMode},
+    "arifos_forge": {m.value for m in CodeEngineMode},
+    "arifos_vps_monitor": {m.value for m in VpsMonitorMode},
 }
 
 
@@ -108,100 +125,68 @@ MEGA_TOOL_MODES: dict[str, set[str]] = {
 # -----------------------------------------------------------------------------
 LEGACY_TOOLS: set[str] = {
     "init_anchor",
-    "register_tools",
     "arifOS_kernel",
-    "forge",
-    "agi_reason",
-    "agi_reflect",
-    "reality_compass",
-    "reality_atlas",
-    "search_reality",
-    "ingest_evidence",
-    "asi_critique",
-    "asi_simulate",
-    "agentzero_engineer",
-    "agentzero_memory_query",
-    "apex_judge",
-    "agentzero_validate",
-    "audit_rules",
-    "agentzero_armor_scan",
-    "agentzero_hold_check",
-    "check_vital",
-    "open_apex_dashboard",
-    "vault_seal",
-    "verify_vault_ledger",
+    "apex_soul",
+    "vault_ledger",
+    "agi_mind",
+    "asi_heart",
+    "engineering_memory",
+    "physics_reality",
+    "math_estimator",
+    "code_engine",
+    "architect_registry",
     "system_health",
-    "fs_inspect",
-    "process_list",
-    "net_status",
-    "log_tail",
-    "cost_estimator",
-    "chroma_query",
-    "trace_replay",
-    "list_resources",
-    "read_resource",
-    "arifos_list_resources",
-    "arifos_read_resource",
-    "metabolic_loop",
-    "metabolic_loop_router",
-    "apex_score_app",
-    "stage_pipeline_app",
+    "check_vital",
 }
 
 
-# -----------------------------------------------------------------------------
-# CAPABILITY MAP (legacy tool -> mega_tool + mode)
-# -----------------------------------------------------------------------------
-@dataclass(frozen=True)
+@dataclass
 class CapabilityTarget:
     mega_tool: str
     mode: str
-    note: str = ""
+    description: str
 
 
 CAPABILITY_MAP: dict[str, CapabilityTarget] = {
-    # ---- Governance / Bootstrap (000_INIT) ----
-    "init_anchor": CapabilityTarget("init_session_anchor", "init", "Canonical init"),
-    "arifOS_kernel": CapabilityTarget("route_execution", "kernel", "Canonical router"),
-    "metabolic_loop": CapabilityTarget("route_execution", "kernel", "Legacy compatibility"),
-    # ---- AGI (333/555) ----
-    "agi_reason": CapabilityTarget("reason_synthesis", "reason", "Reasoning"),
-    "agi_reflect": CapabilityTarget("reason_synthesis", "reflect", "Reflection"),
-    "forge": CapabilityTarget("reason_synthesis", "forge", "Forge"),
-    # ---- ASI (666) ----
-    "asi_critique": CapabilityTarget("critique_safety", "critique", "Adversarial critique"),
-    "asi_simulate": CapabilityTarget("critique_safety", "simulate", "Consequence simulation"),
-    # ---- Reality / Physics (111/222) ----
-    "search_reality": CapabilityTarget("sense_reality", "search", "External search"),
-    "ingest_evidence": CapabilityTarget("sense_reality", "ingest", "URL/file -> evidence"),
-    "reality_compass": CapabilityTarget("sense_reality", "compass", "Quick grounding"),
-    "reality_atlas": CapabilityTarget("sense_reality", "atlas", "Evidence merge"),
-    # ---- Math / telemetry (444) ----
-    "check_vital": CapabilityTarget("estimate_ops", "vitals", "Thermo vitals"),
-    "system_health": CapabilityTarget("estimate_ops", "health", "Host health metrics"),
-    "cost_estimator": CapabilityTarget("estimate_ops", "cost", "Cost estimator"),
+    # ---- Governance (000/444) ----
+    "init_anchor": CapabilityTarget("arifos_init", "init", "Session ignition"),
+    "architect_registry": CapabilityTarget("arifos_init", "init", "Registry fallback"),
+    "arifOS_kernel": CapabilityTarget("arifos_route", "kernel", "Central kernel"),
+    "route_intent": CapabilityTarget("arifos_route", "kernel", "Routing intent"),
+    # ---- Intelligence (111/333) ----
+    "physics_reality": CapabilityTarget("arifos_sense", "search", "Reality grounding"),
+    "reality_search": CapabilityTarget("arifos_sense", "search", "Web search"),
+    "agi_mind": CapabilityTarget("arifos_mind", "reason", "Structured reasoner"),
+    "asi_heart": CapabilityTarget("arifos_heart", "critique", "Safety critique"),
+    "asi_empathize": CapabilityTarget("arifos_heart", "critique", "Safety critique"),
+    "asi_align": CapabilityTarget("arifos_heart", "critique", "Safety critique"),
+    # ---- Machine (777/Vitals) ----
+    "math_estimator": CapabilityTarget("arifos_ops", "cost", "Cost estimation"),
+    "check_vital": CapabilityTarget("arifos_ops", "vitals", "Thermo vitals"),
+    "system_health": CapabilityTarget("arifos_ops", "health", "Host health metrics"),
+    "cost_estimator": CapabilityTarget("arifos_ops", "cost", "Cost estimator"),
     # ---- Code / machine ops (M-3) ----
-    "fs_inspect": CapabilityTarget("execute_vps_task", "fs", "Filesystem inspection"),
-    "process_list": CapabilityTarget("execute_vps_task", "process", "Process listing"),
-    "net_status": CapabilityTarget("execute_vps_task", "net", "Network status"),
-    "log_tail": CapabilityTarget("execute_vps_task", "tail", "Log tail"),
-    "trace_replay": CapabilityTarget("execute_vps_task", "replay", "Replay traces"),
+    "fs_inspect": CapabilityTarget("arifos_forge", "fs", "Filesystem inspection"),
+    "process_list": CapabilityTarget("arifos_forge", "process", "Process listing"),
+    "net_status": CapabilityTarget("arifos_forge", "net", "Network status"),
+    "log_tail": CapabilityTarget("arifos_forge", "tail", "Log tail"),
+    "trace_replay": CapabilityTarget("arifos_forge", "replay", "Replay traces"),
     # ---- Engineering + memory (555/666) ----
-    "agentzero_engineer": CapabilityTarget("load_memory_context", "engineer", "Material execution"),
-    "agentzero_memory_query": CapabilityTarget("load_memory_context", "query", "Recall memory"),
-    "chroma_query": CapabilityTarget("load_memory_context", "query", "Vector query"),
+    "agentzero_engineer": CapabilityTarget("arifos_memory", "engineer", "Material execution"),
+    "agentzero_memory_query": CapabilityTarget("arifos_memory", "query", "Recall memory"),
+    "chroma_query": CapabilityTarget("arifos_memory", "query", "Vector query"),
     # ---- APEX / governance (888) ----
-    "apex_judge": CapabilityTarget("judge_verdict", "judge", "Verdict"),
-    "audit_rules": CapabilityTarget("judge_verdict", "rules", "Inspect floors"),
-    "agentzero_validate": CapabilityTarget("judge_verdict", "validate", "Validator"),
-    "agentzero_hold_check": CapabilityTarget("judge_verdict", "hold", "Hold status"),
-    "agentzero_armor_scan": CapabilityTarget("judge_verdict", "armor", "Injection scan"),
-    "open_apex_dashboard": CapabilityTarget("judge_verdict", "rules", "Dashboard"),
-    "apex_score_app": CapabilityTarget("judge_verdict", "rules", "Score UI"),
-    "stage_pipeline_app": CapabilityTarget("judge_verdict", "rules", "Pipeline UI"),
+    "apex_judge": CapabilityTarget("arifos_judge", "judge", "Verdict"),
+    "audit_rules": CapabilityTarget("arifos_judge", "rules", "Inspect floors"),
+    "agentzero_validate": CapabilityTarget("arifos_judge", "validate", "Validator"),
+    "agentzero_hold_check": CapabilityTarget("arifos_judge", "hold", "Hold status"),
+    "agentzero_armor_scan": CapabilityTarget("arifos_judge", "armor", "Injection scan"),
+    "open_apex_dashboard": CapabilityTarget("arifos_judge", "rules", "Dashboard"),
+    "apex_score_app": CapabilityTarget("arifos_judge", "rules", "Score UI"),
+    "stage_pipeline_app": CapabilityTarget("arifos_judge", "rules", "Pipeline UI"),
     # ---- Vault (999) ----
-    "vault_seal": CapabilityTarget("record_vault_entry", "seal", "Seal ledger"),
-    "verify_vault_ledger": CapabilityTarget("record_vault_entry", "verify", "Verify ledger"),
+    "vault_seal": CapabilityTarget("arifos_vault", "seal", "Seal ledger"),
+    "verify_vault_ledger": CapabilityTarget("arifos_vault", "verify", "Verify ledger"),
 }
 
 
@@ -216,7 +201,7 @@ def iter_unknown_tools_in_map() -> list[str]:
 
 
 def iter_invalid_megatool_targets() -> list[str]:
-    allowed = set(MEGA_TOOLS)
+    allowed = {s.name for s in MEGA_TOOLS}
     bad: list[str] = []
     for legacy, tgt in CAPABILITY_MAP.items():
         if tgt.mega_tool not in allowed:
@@ -233,12 +218,12 @@ def iter_invalid_modes() -> list[str]:
     return sorted(bad)
 
 CAPABILITY_MAP.update({
-    "arifos_list_resources": CapabilityTarget("load_memory_context", "query", "fallback"),
-    "arifos_read_resource": CapabilityTarget("load_memory_context", "query", "fallback"),
-    "list_resources": CapabilityTarget("load_memory_context", "query", "fallback"),
-    "metabolic_loop_router": CapabilityTarget("route_execution", "kernel", "fallback"),
-    "read_resource": CapabilityTarget("load_memory_context", "query", "fallback"),
-    "register_tools": CapabilityTarget("route_execution", "kernel", "fallback"),
+    "arifos_list_resources": CapabilityTarget("arifos_memory", "query", "fallback"),
+    "arifos_read_resource": CapabilityTarget("arifos_memory", "query", "fallback"),
+    "list_resources": CapabilityTarget("arifos_memory", "query", "fallback"),
+    "metabolic_loop_router": CapabilityTarget("arifos_route", "kernel", "fallback"),
+    "read_resource": CapabilityTarget("arifos_memory", "query", "fallback"),
+    "register_tools": CapabilityTarget("arifos_route", "kernel", "fallback"),
 })
 
 
@@ -252,12 +237,13 @@ def build_llm_context_map() -> dict[str, Any]:
     from .runtime.contracts import AAA_TOOL_LAW_BINDINGS, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
 
     canonical_tools: dict[str, Any] = {}
-    for mega in MEGA_TOOLS:
+    for spec in MEGA_TOOLS:
+        mega = spec.name
         aliases = sorted(
             legacy for legacy, target in CAPABILITY_MAP.items() if target.mega_tool == mega
         )
         canonical_tools[mega] = {
-            "modes": sorted(MEGA_TOOL_MODES.get(mega, set())),
+            "modes": sorted(list(MEGA_TOOL_MODES.get(mega, set()))),
             "stage": AAA_TOOL_STAGE_MAP.get(mega),
             "trinity": TRINITY_BY_TOOL.get(mega),
             "floors": AAA_TOOL_LAW_BINDINGS.get(mega, []),
@@ -266,7 +252,7 @@ def build_llm_context_map() -> dict[str, Any]:
 
     return {
         "schema": "arifos-llm-context/v1",
-        "canonical_mega_tools": list(MEGA_TOOLS),
+        "canonical_mega_tools": [s.name for s in MEGA_TOOLS],
         "legacy_alias_count": len(CAPABILITY_MAP),
         "canonical_tools": canonical_tools,
         "continuity_contract": {
@@ -278,64 +264,15 @@ def build_llm_context_map() -> dict[str, Any]:
                 "session_binding",
                 "authorization",
                 "governance_closure",
-                "policy_checks",
-                "transitions",
+                "reasoning",
+                "metrics",
                 "handoff",
-                "diagnostics",
             ],
-            "invariants": [
-                "verified_identity may not change without explicit verification",
-                "authorization may not widen without authority_transition",
-                "session continuity is versioned and trace-linked",
-                "downstream tools must not infer authority from prior success",
-            ],
+            "recommended_flow": "init -> route -> (sense | mind | memory) -> heart -> ops -> judge -> vault",
         },
-        "usage_guidance": {
-            "bootstrap_path": [
-                "get_tool_registry",
-                "estimate_ops",
-                "init_session_anchor",
-                "route_execution",
-            ],
-            "global_session_rule": "global is diagnostics-only and must not authorize mutations",
-            "preferred_reasoning_path": ["init_session_anchor", "reason_synthesis", "critique_safety", "judge_verdict"],
-            "preferred_grounding_path": ["init_session_anchor", "sense_reality", "reason_synthesis"],
-        },
+        "naming_alignment": {
+            "canonical": "arifos.verb (e.g., arifos.init)",
+            "internal": "arifos_verb (e.g., arifos_init)",
+            "legacy": "snake_case (e.g., init_anchor)",
+        }
     }
-
-
-def build_llm_context_markdown() -> str:
-    """Render the canonical LLM context map as markdown for llms.txt surfaces."""
-    payload = build_llm_context_map()
-    lines = [
-        "## Canonical MCP Context",
-        "",
-        f"- Schema: `{payload['schema']}`",
-        f"- Continuity Contract: `{payload['continuity_contract']['contract_version']}`",
-        f"- Canonical Mega-Tools: `{', '.join(payload['canonical_mega_tools'])}`",
-        "",
-        "### Continuity Invariants",
-    ]
-    for invariant in payload["continuity_contract"]["invariants"]:
-        lines.append(f"- {invariant}")
-
-    lines.extend(["", "### Canonical Tools"])
-    for name, spec in payload["canonical_tools"].items():
-        aliases = ", ".join(spec["legacy_aliases"]) if spec["legacy_aliases"] else "none"
-        lines.append(
-            f"- `{name}` — stage `{spec['stage']}`, modes `{', '.join(spec['modes'])}`, "
-            f"floors `{', '.join(spec['floors'])}`, aliases `{aliases}`"
-        )
-
-    lines.extend(["", "### Usage Guidance"])
-    lines.append(
-        f"- Bootstrap Path: `{', '.join(payload['usage_guidance']['bootstrap_path'])}`"
-    )
-    lines.append(f"- Global Session Rule: {payload['usage_guidance']['global_session_rule']}")
-    lines.append(
-        f"- Preferred Reasoning Path: `{', '.join(payload['usage_guidance']['preferred_reasoning_path'])}`"
-    )
-    lines.append(
-        f"- Preferred Grounding Path: `{', '.join(payload['usage_guidance']['preferred_grounding_path'])}`"
-    )
-    return "\n".join(lines)

@@ -327,6 +327,7 @@ from arifosmcp.runtime.build_info import get_build_info
 v2_tools_registered = register_v2_tools(mcp)
 v2_prompts_registered = register_v2_prompts(mcp)
 v2_resources_registered = register_v2_resources(mcp)
+v2_routes_registered = register_rest_routes(mcp, CANONICAL_TOOL_HANDLERS)
 
 logger.info(
     f"ARIFOS MCP v2 initialized: {len(v2_tools_registered)} tools, "
