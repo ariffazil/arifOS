@@ -210,7 +210,7 @@ async def init_anchor(
                 "anchor_state": "created",
             },
             "caller_state": "anonymous",
-            "allowed_next_tools": ["arifos.sense", "arifos.mind", "arifos.route", "arifos.ops"],
+            "allowed_next_tools": ["arifos_sense", "arifos_mind", "arifos_route", "arifos_ops"],
             "scope": {"granted": ["query", "reflect"], "max_risk_tier": "medium"},
         }
         _duration_ms = int((time.monotonic() - _t0) * 1000)
@@ -232,6 +232,20 @@ async def init_anchor(
 
             # ─── V2 FLATTENING (Always return flat result for success) ───
             if ok:
+                # Task Ψ1: Bind session identity to registry for cross-tool continuity
+                from arifosmcp.runtime.sessions import bind_session_identity
+                bind_session_identity(
+                    session_id=effective_session_id,
+                    actor_id=declared_identity,
+                    authority_level="declared",
+                    auth_context={
+                        "session_id": effective_session_id, 
+                        "actor_id": declared_identity,
+                        "authority_level": "declared"
+                    },
+                    caller_state="anchored"
+                )
+
                 identity = _payload.get("identity") or {}
                 bound_session = _payload.get("bound_session") or {}
                 v2_result = {

@@ -72,6 +72,8 @@ class Provenance(BaseModel):
     grounding_status: Literal[
         "data-based", "sensor-based", "human-mediated", "ungrounded"
     ] = "human-mediated"
+    actor_id: str = "anonymous"  # Ψ-Continuity: canonical identity
+    verified_actor_id: str | None = None
     stakes_model: Literal[
         "none", "simulated", "externalized-to-human", "shared"
     ] = "externalized-to-human"
@@ -135,6 +137,9 @@ class OutputEnvelope(BaseModel):
     next_step: str              # exactly 1
     human_decision_required: bool
     provenance: Provenance
+    chaos_score: float = 0.0  # Ω-Stability: entropy metric
+    peace2: float = 1.0       # Ω-Stability: stability index
+    g_star: float = 0.0       # Δ-Intelligence: epistemic quality (G*T*C)^1/3
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -146,6 +151,8 @@ class RuntimeState(BaseModel):
     sense: dict[str, Any] = Field(default_factory=dict)
     mind: MindState | None = None
     heart_risks: list[str] = Field(default_factory=list)
+    peace2: float = 1.0
+    g_star: float = 0.0
     judge_status: str = "PENDING"
     judge_violations: list[str] = Field(default_factory=list)
     chaos_score: float = 0.0
@@ -197,9 +204,7 @@ def chaos_score(state: MindState) -> float:
     """
     Compute entropy score from internal mind state and thermodynamic budget.
 
-    Low chaos  (< 1.0) → answer directly
-    Medium     (< 2.0) → answer with uncertainty disclosure
-    High       (≥ 2.0) → HOLD — narrow scope or get human judgment
+    Task Ω1: Bind to real thermodynamic signal if available.
     """
     # 1. Cognitive chaos (base)
     score = 0.0
@@ -208,12 +213,12 @@ def chaos_score(state: MindState) -> float:
     score += len(state.contradictions) * 0.5
     score += max(0, len(state.hypotheses) - 2) * 0.1
 
-    # 2. Thermodynamic stress (if available)
+    # 2. Thermodynamic stress (Task Ω1: Real chaos_score binding)
     try:
         from core.physics.thermodynamics_hardened import get_thermodynamic_budget
-        # Try real session_id first, then internal mind_state session_id
-        # Note: Thermodynamic budget is keyed by the session_id from init_anchor
+        # Thermodynamic budget is keyed by the canonical session_id
         budget = get_thermodynamic_budget(state.session_id)
+        # calculate_chaos_score considers depletion, Landauer, and complexity
         thermo_score = budget.calculate_chaos_score()
         score += thermo_score
     except Exception:
@@ -221,6 +226,44 @@ def chaos_score(state: MindState) -> float:
         pass
 
     return round(score, 2)
+
+
+def calculate_peace2(risks: list[str]) -> float:
+    """
+    Task Ω2: Peace² (Stability Index)
+    Formula: peace2 = 1 / (1 + total_risk)
+    """
+    if not risks:
+        return 1.0
+    # Simple heuristic: each risk trace item adds 0.25 to cumulative risk
+    total_risk = len(risks) * 0.25
+    return round(1.0 / (1.0 + total_risk), 2)
+
+
+def calculate_g_star(state: MindState) -> float:
+    """
+    Task Δ4: G★ implementation
+    Formula: G_star = (grounding * truth * coherence) ** (1/3)
+    """
+    # 1. Grounding (G): based on fact count and provenance
+    g = min(1.0, len(state.facts) * 0.3)
+    if state.provenance.grounding_status == "sensor-based":
+        g = max(g, 0.8)
+    elif state.provenance.grounding_status == "data-based":
+        g = max(g, 0.6)
+    
+    # 2. Truth (T): based on hypothesis confidence and falsifiability
+    if not state.hypotheses:
+        t = 0.0
+    else:
+        t = max(h.confidence for h in state.hypotheses)
+    
+    # 3. Coherence (C): inverse of contradictions and unknowns
+    c = 1.0 - (min(1.0, len(state.contradictions) * 0.4 + len(state.unknowns) * 0.2))
+    
+    # G* Calculation
+    g_star = (g * t * c) ** (1/3)
+    return round(g_star, 2)
 
 
 def output_mode_from_chaos(score: float) -> Literal["OK", "PARTIAL", "HOLD"]:
@@ -262,41 +305,61 @@ def mind_stage(
 ) -> list[Hypothesis]:
     """
     Stage 2: Grounded facts → structured hypotheses with falsifiers.
+
+    Task Δ2: Dynamic generation from facts.
+    Task Δ3: Provenance binding.
     """
     objective = sense_packet.get("objective", "")
     facts = sense_packet.get("facts", [])
-    short_obj = objective[:100] if len(objective) > 100 else objective
+    
+    # If we have real facts, use them to build causal links
+    if facts:
+        hypotheses = []
+        # H1: The most direct causal model based on primary evidence
+        hypotheses.append(
+            Hypothesis(
+                id="H1-DIRECT",
+                claim=f"Direct Model: Based on evidence '{facts[0][:60]}...', the objective '{objective[:40]}' is achievable through linear execution.",
+                confidence=0.75,
+                evidence_for=[facts[0]],
+                falsifier=f"Evidence {facts[0][:30]} is proven stale or irrelevant to the target domain.",
+                disconfirming_test="Attempt to achieve objective while intentionally ignoring the primary evidence fact."
+            )
+        )
+        
+        # H2: A secondary model considering potential interactions or context
+        claim_2 = f"Interaction Model: The facts {', '.join([f[:20] for f in facts[:2]])} suggest a non-linear dependency."
+        hypotheses.append(
+            Hypothesis(
+                id="H2-COMPLEX",
+                claim=claim_2,
+                confidence=0.55,
+                evidence_for=facts[:2],
+                falsifier="Direct causal proof that the variables are independent.",
+                disconfirming_test="Isolate the primary variable and check if the outcome remains invariant."
+            )
+        )
+        return hypotheses
 
+    # Fallback to structural templates if no facts present (but still dynamic)
+    short_obj = objective[:100] if len(objective) > 100 else objective
     context_note = f" (context: {additional_context[:60]})" if additional_context else ""
 
     return [
         Hypothesis(
             id="H1-CAUSAL",
-            claim=f"Primary Causal Model: {short_obj}{context_note}. This model assumes that the stated objective is the core requirement and uses grounding facts to synthesize a direct solution path.",
+            claim=f"Primary Causal Model: {short_obj}{context_note}. Assumes direct synthesis path.",
             confidence=0.65,
-            evidence_for=facts[:3] if facts else ["Constitutional alignment with input directive"],
-            evidence_against=[],
-            falsifier=(
-                f"Obtaining data that shows the core assumption of '{short_obj[:40]}' is structurally flawed or contains a category error."
-            ),
-            disconfirming_test=(
-                "Synthesize a scenario where the grounding facts are unchanged but the desired outcome is inverted."
-            ),
+            evidence_for=["Structural alignment with input directive"],
+            falsifier=f"Discovery that the objective '{short_obj[:30]}' contains a category error.",
+            disconfirming_test="Invert the core assumption and check if the result is still coherent."
         ),
         Hypothesis(
             id="H2-EPISTEMIC",
-            claim=(
-                f"Epistemic Alternative: The objective '{short_obj[:60]}' may be a symptom of a deeper architectural misalignment or missing prerequisite context."
-            ),
+            claim=f"Epistemic Alternative: Objective '{short_obj[:40]}' is a symptom of architectural misalignment.",
             confidence=0.35,
-            evidence_for=[],
-            evidence_against=facts[:1] if facts else [],
-            falsifier=(
-                "Proof that the current grounding is complete and no latent variables exist in the target domain."
-            ),
-            disconfirming_test=(
-                "Attempt to solve the objective using only out-of-band information to check for reliance on potentially stale grounding."
-            ),
+            falsifier="Verified proof that the current grounding is complete.",
+            disconfirming_test="Search for prerequisite dependencies not mentioned in the input."
         ),
     ]
 
@@ -391,15 +454,20 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
     )
 
     score = chaos_score(state)
-    if state.decision_required or score >= 2.0:
+    peace2 = calculate_peace2(state.risks)
+    g_star = calculate_g_star(state)
+
+    if state.decision_required or score >= 2.0 or peace2 < 1.0 or g_star < 0.3:
         status: Literal["OK", "PARTIAL", "HOLD", "ERROR"] = "HOLD"
-    elif state.unknowns:
+    elif state.unknowns or score >= 1.0 or g_star < 0.5:
         status = "PARTIAL"
     else:
         status = "OK"
 
     if state.decision_required:
         next_step = "Human judgment required before proceeding."
+    elif status == "HOLD" and g_star < 0.3:
+        next_step = "Low epistemic quality (G* < 0.3). Acquire more grounding facts before proceeding."
     elif top_hypotheses:
         next_step = (
             f"Test the top hypothesis against its falsifier: "
@@ -417,6 +485,9 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
         next_step=next_step,
         human_decision_required=state.decision_required,
         provenance=state.provenance,
+        chaos_score=score,
+        peace2=peace2,
+        g_star=g_star,
     )
 
 
@@ -442,9 +513,16 @@ def build_decision_packet(
         "options": envelope.options,
         "next_step": envelope.next_step,
         "human_decision_required": envelope.human_decision_required,
+        "metrics": {
+            "chaos_score": envelope.chaos_score,
+            "peace2": envelope.peace2,
+            "g_star": envelope.g_star,
+        },
         "provenance": {
             "type": envelope.provenance.intelligence_type,
             "grounding": envelope.provenance.grounding_status,
+            "actor_id": envelope.provenance.actor_id,
+            "verified_actor_id": envelope.provenance.verified_actor_id,
             "stakes": envelope.provenance.stakes_model,
             "confidence_domain": envelope.provenance.confidence_domain,
             "meaning_source": envelope.provenance.meaning_source,
@@ -480,6 +558,8 @@ def build_audit_packet(
             "judge_status": runtime_state.judge_status,
             "violations": runtime_state.judge_violations,
             "chaos_score": runtime_state.chaos_score,
+            "peace2": runtime_state.peace2,
+            "g_star": runtime_state.g_star,
             "chaos_mode": output_mode_from_chaos(runtime_state.chaos_score),
         },
         "provenance": envelope.provenance.model_dump(),
@@ -561,18 +641,20 @@ async def run_agi_mind(
             "pipeline_trace": state.pipeline_trace + ["judge:OK"],
         })
 
-    # ── Chaos gate ──────────────────────────────────────────────────────
+    # ── Chaos gate & Stability check ─────────────────────────────────────
     score = chaos_score(state)
+    peace2 = calculate_peace2(state.risks)
+    g_star = calculate_g_star(state)
 
     # ── Compress → OutputEnvelope ────────────────────────────────────────
     envelope = compress_for_operator(state)
 
-    # Override if chaos or judge forced HOLD
-    if verdict == "HOLD" or score >= 2.0:
+    # Override if chaos, peace2, g_star or judge forced HOLD
+    if verdict == "HOLD" or score >= 2.0 or peace2 < 1.0 or g_star < 0.3:
         envelope = envelope.model_copy(update={
             "status": "HOLD",
             "next_step": (
-                "Narrow the scope, resolve contradictions, "
+                "Narrow the scope, resolve stability/epistemic issues, "
                 "or obtain human judgment before proceeding."
             ),
             "human_decision_required": True,
@@ -583,7 +665,9 @@ async def run_agi_mind(
         sense=sensed,
         mind=state,
         heart_risks=risks,
-        judge_status=verdict,
+        peace2=peace2,
+        g_star=g_star,
+        judge_status=envelope.status if envelope.status == "HOLD" else verdict,
         judge_violations=violations,
         chaos_score=score,
     )

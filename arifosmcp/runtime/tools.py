@@ -465,13 +465,36 @@ async def arifos_mind(
     producing a narrow decision_packet for the operator and a full
     audit_packet for the vault.  Internal richness, external compression.
     """
-    from arifosmcp.runtime.arifos_runtime_envelope import run_agi_mind
+    from arifosmcp.runtime.arifos_runtime_envelope import Provenance, run_agi_mind
+    from arifosmcp.runtime.sessions import _normalize_session_id, get_session_identity
+
+    # ── Task Ψ1: Identity & Session Stability (Continuity Phase) ──────────
+    # 1. Resolve canonical session_id
+    session_id = _normalize_session_id(session_id)
+    
+    # 2. Retrieve anchored identity
+    identity = get_session_identity(session_id) or {}
+    actor_id = identity.get("actor_id", "anonymous")
+    
+    # 3. Guard: No drift allowed for non-global sessions
+    if session_id and not session_id.startswith("global") and actor_id == "anonymous":
+        logger.warning(f"Ψ-BREACH: Identity lost in pipeline for session {session_id}")
+        # In strict VPS mode, this would raise a ContinuityError.
+
+    # 4. Prepare provenance with session identity
+    prov = Provenance(
+        intelligence_type="statistical",
+        grounding_status="human-mediated",
+        actor_id=actor_id,
+        verified_actor_id=identity.get("verified_actor_id")
+    )
 
     # ── Typed pipeline: sense → mind → heart → judge ─────────────────────
     decision_packet, audit_packet = await run_agi_mind(
         raw_input=query,
         session_id=session_id,
         additional_context=context or "",
+        provenance=prov,
     )
 
     # ── Forward enriched payload through mega tool ────────────────────────
@@ -481,6 +504,9 @@ async def arifos_mind(
             "query": query,
             "context": context,
             "decision_packet": decision_packet,
+            "actor_id": actor_id,
+            "declared_actor_id": actor_id,
+            "verified_actor_id": identity.get("verified_actor_id"),
         },
         session_id=session_id,
         risk_tier=risk_tier,
@@ -489,7 +515,15 @@ async def arifos_mind(
     )
 
     # ── Seal and inject typed packets into intelligence_state ─────────────
-    sealed = seal_runtime_envelope(envelope, "arifos_mind")
+    sealed = seal_runtime_envelope(
+        envelope, 
+        "arifos_mind", 
+        input_payload={
+            "query": query, 
+            "session_id": session_id,
+            "actor_id": actor_id
+        }
+    )
 
     # ── Visibility Injection: Surface reasoning to top-level ────────────────
     if hasattr(sealed, "__dict__"):

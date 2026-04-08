@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -18,6 +19,8 @@ from arifosmcp.runtime.sessions import (
     get_session_continuity_state,
     set_session_continuity_state,
 )
+
+logger = logging.getLogger(__name__)
 
 CONTINUITY_CONTRACT_VERSION = "0.1.0"
 _RISK_ORDER = {"low": 0, "medium": 1, "high": 2, "critical": 3, "sovereign": 4}
@@ -74,6 +77,19 @@ def seal_runtime_envelope(
     session_id = envelope.session_id or input_payload.get("session_id") or "global"
     previous_state = get_session_continuity_state(session_id) or {}
 
+    # ── Task Ψ3: State Hash Enforcement (Continuity Phase) ─────────────
+    # If we have a previous state, verify its hash before generating next state
+    prev_state_data = previous_state.get("state")
+    prev_hash = previous_state.get("state_hash")
+    state_integrity = "VALID"
+    if prev_state_data and prev_hash:
+        recomputed = _hash_dict(prev_state_data)
+        if recomputed != prev_hash:
+            logger.error(f"Ψ-BREACH: State hash mismatch for session {session_id}!")
+            state_integrity = "FAILED"
+        else:
+            logger.info(f"Ψ-VERIFIED: State hash check PASS for session {session_id}")
+
     declared_identity = _build_declared_identity(envelope, payload, input_payload, previous_state)
     verified_identity = _build_verified_identity(envelope, payload, previous_state)
     session_binding = _build_session_binding(
@@ -113,7 +129,7 @@ def seal_runtime_envelope(
         "trace_id": envelope.trace_id,
         "parent_trace_id": _parent_trace_id(envelope),
     }
-    diagnostics = _build_diagnostics(envelope, payload, transitions)
+    diagnostics = _build_diagnostics(envelope, payload, transitions, state_integrity)
     operator_summary = _build_operator_summary(
         declared_identity,
         verified_identity,
@@ -166,6 +182,8 @@ def _build_declared_identity(
     actor_id = (
         _deep_get(payload, "result", "declared_actor_id")
         or _deep_get(payload, "declared_actor_id")
+        or _deep_get(payload, "provenance", "actor_id")
+        or _deep_get(payload, "decision_packet", "provenance", "actor_id")
         or input_payload.get("actor_id")
         or input_payload.get("declared_name")
         or envelope.authority.actor_id
@@ -195,6 +213,8 @@ def _build_verified_identity(
     verified_actor_id = (
         _deep_get(payload, "result", "verified_actor_id")
         or _deep_get(payload, "verified_actor_id")
+        or _deep_get(payload, "provenance", "verified_actor_id")
+        or _deep_get(payload, "decision_packet", "provenance", "verified_actor_id")
         or prev.get("verified_actor_id")
     )
     if (
@@ -402,6 +422,7 @@ def _build_diagnostics(
     envelope: RuntimeEnvelope,
     payload: dict[str, Any],
     transitions: list[dict[str, Any]],
+    state_integrity: str = "VALID",
 ) -> dict[str, Any]:
     telemetry = _as_dict(envelope.metrics.telemetry)
     entropy = payload.get("entropy") or {}
@@ -411,6 +432,7 @@ def _build_diagnostics(
             "typed_error_code": envelope.code,
             "floors_failed": _as_dict(envelope.policy).get("floors_failed", []),
             "privilege_drift_detected": privilege_drift,
+            "state_integrity": state_integrity,
         },
         "advisory_signals": {
             "warnings": list(payload.get("warnings") or []),

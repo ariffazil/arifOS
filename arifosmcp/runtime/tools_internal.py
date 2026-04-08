@@ -104,35 +104,35 @@ def _resolve_caller_state(
         caller_state = "anonymous"
 
     MEGA_TOOLS = [
-        "init_anchor",
-        "arifOS_kernel",
-        "apex_judge",
-        "vault_ledger",
-        "agi_mind",
-        "asi_heart",
-        "engineering_memory",
-        "physics_reality",
-        "math_estimator",
-        "code_engine",
-        "architect_registry",
+        "arifos_init",
+        "arifos_route",
+        "arifos_judge",
+        "arifos_vault",
+        "arifos_mind",
+        "arifos_heart",
+        "arifos_memory",
+        "arifos_sense",
+        "arifos_ops",
+        "arifos_forge",
+        "arifos_vps_monitor",
     ]
 
     visibility = {
         "anonymous": {
-            "allowed": ["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
+            "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifOS_kernel": "Requires anchored session. Run init_anchor first.",
-                "agi_mind": "Requires anchored session.",
-                "engineering_memory": "Requires anchored session and high-tier auth.",
-                "vault_ledger": "Requires anchored session and high-tier auth.",
+                "arifos_route": "Requires anchored session. Run arifos_init first.",
+                "arifos_mind": "Requires anchored session.",
+                "arifos_memory": "Requires anchored session and high-tier auth.",
+                "arifos_vault": "Requires anchored session and high-tier auth.",
             },
         },
         "claimed": {
-            "allowed": ["init_anchor", "math_estimator", "architect_registry", "apex_judge"],
+            "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifOS_kernel": "Elevate to verified identity for full kernel access.",
-                "engineering_memory": "Requires verified identity.",
-                "vault_ledger": "Requires verified identity.",
+                "arifos_route": "Elevate to verified identity for full kernel access.",
+                "arifos_memory": "Requires verified identity.",
+                "arifos_vault": "Requires verified identity.",
             },
         },
         "anchored": {"allowed": MEGA_TOOLS, "blocked": {}},
@@ -185,6 +185,15 @@ async def _wrap_call(
     payload["session_id"] = session_id
     payload["tool"] = tool_name
     payload["stage"] = stage.value
+    
+    # Propagate actor_id from session if missing in payload
+    if "actor_id" not in payload:
+        from arifosmcp.runtime.sessions import get_session_identity
+        ident = get_session_identity(session_id)
+        if ident:
+            payload["actor_id"] = ident.get("actor_id")
+            if ident.get("verified_actor_id"):
+                payload["verified_actor_id"] = ident.get("verified_actor_id")
 
     if ctx and hasattr(ctx, "info"):
         await ctx.info(f"Calling metabolic stage {stage.value} for {tool_name}")
