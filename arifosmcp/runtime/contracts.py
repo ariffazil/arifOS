@@ -221,7 +221,7 @@ AAA_PUBLIC_TOOLS = AAA_CANONICAL_TOOLS
 
 AAA_TOOL_ALIASES = {
     "init_anchor": "arifos.init",
-    "arifOS_kernel": "arifos.route",
+    "arifOS_kernel": "arifos.kernel",
     "apex_soul": "arifos.judge",
     "apex_judge": "arifos.judge",
     "vault_ledger": "arifos.vault",
@@ -231,6 +231,19 @@ AAA_TOOL_ALIASES = {
     "physics_reality": "arifos.sense",
     "math_estimator": "arifos.ops",
     "architect_registry": "arifos.init",  # Merged into init
+    # v2 underscored aliases
+    "arifos_init": "arifos.init",
+    "arifos_kernel": "arifos.kernel",
+    "arifos_route": "arifos.kernel",
+    "arifos_sense": "arifos.sense",
+    "arifos_mind": "arifos.mind",
+    "arifos_heart": "arifos.heart",
+    "arifos_ops": "arifos.ops",
+    "arifos_judge": "arifos.judge",
+    "arifos_memory": "arifos.memory",
+    "arifos_vault": "arifos.vault",
+    "arifos_forge": "arifos.forge",
+    "arifos_vps_monitor": "arifos.vps_monitor",
 }
 
 AAA_TOOL_STAGE_MAP = {
@@ -245,6 +258,19 @@ AAA_TOOL_STAGE_MAP = {
     "judge_verdict": "888_JUDGE",
     "record_vault_entry": "999_VAULT",
     "execute_vps_task": "M-3_EXEC",
+    # v2 dotted names
+    "arifos.init": "000_INIT",
+    "arifos.sense": "111_SENSE",
+    "arifos.mind": "333_MIND",
+    "arifos.kernel": "444_ROUTER",
+    "arifos.route": "444_ROUTER",
+    "arifos.heart": "666_HEART",
+    "arifos.ops": "777_OPS",
+    "arifos.judge": "888_JUDGE",
+    "arifos.memory": "555_MEMORY",
+    "arifos.vault": "999_VAULT",
+    "arifos.forge": "010_FORGE",
+    "arifos.vps_monitor": "111_SENSE",
 }
 
 TRINITY_BY_TOOL = {
@@ -259,12 +285,47 @@ TRINITY_BY_TOOL = {
     "judge_verdict": "PSI Ψ",
     "record_vault_entry": "PSI Ψ",
     "execute_vps_task": "ALL",
+    # v2 dotted names
+    "arifos.init": "Ψ",
+    "arifos.sense": "Δ",
+    "arifos.mind": "Δ",
+    "arifos.kernel": "Δ/Ψ",
+    "arifos.route": "Δ/Ψ",
+    "arifos.heart": "Ω",
+    "arifos.ops": "Δ",
+    "arifos.judge": "Ψ",
+    "arifos.memory": "Ω",
+    "arifos.vault": "Ψ",
+    "arifos.forge": "Δ",
+    "arifos.vps_monitor": "Δ",
 }
 
 AAA_TOOL_LAW_BINDINGS = {
     "init_session_anchor": ["F11", "F12", "F13"],
     "get_tool_registry": ["F10", "F11"],
     "sense_reality": ["F2", "F3", "F10"],
+    "reason_synthesis": ["F2", "F4", "F7", "F8"],
+    "critique_safety": ["F5", "F6", "F9"],
+    "route_execution": ["F4", "F11"],
+    "load_memory_context": ["F2", "F10", "F11"],
+    "estimate_ops": ["F4", "F5"],
+    "judge_verdict": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
+    "record_vault_entry": ["F1", "F13"],
+    "execute_vps_task": ["F1", "F2", "F7", "F13"],
+    # v2 dotted names
+    "arifos.init": ["F11", "F12", "F13"],
+    "arifos.sense": ["F2", "F3", "F4", "F10"],
+    "arifos.mind": ["F2", "F4", "F7", "F8"],
+    "arifos.kernel": ["F4", "F11"],
+    "arifos.route": ["F4", "F11"],
+    "arifos.heart": ["F5", "F6", "F9"],
+    "arifos.ops": ["F4", "F5"],
+    "arifos.judge": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
+    "arifos.memory": ["F2", "F10", "F11"],
+    "arifos.vault": ["F1", "F13"],
+    "arifos.forge": ["F1", "F2", "F7", "F13"],
+    "arifos.vps_monitor": ["F4", "F12"],
+}
     "reason_synthesis": ["F2", "F4", "F7", "F8"],
     "critique_safety": ["F5", "F6", "F9"],
     "route_execution": ["F4", "F11"],

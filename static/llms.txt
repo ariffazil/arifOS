@@ -1,201 +1,57 @@
-# arifOS MCP v2 — Constitutional AI Governance System
-# DITEMPA, BUKAN DIBERI — Forged, Not Given
-# 
-# This file follows the llms.txt standard for LLM/Agent discovery
-# https://llmstxt.org/
+# arifOS MCP — Governed Intelligence Server
+# llms.txt — Model-readable context (Last updated: 2026-04-09)
+# CANONICAL STATUS: SEAL | Build: v2.0.0
 
-## System Overview
-arifOS is a Constitutional AI Governance System providing 10 canonical tools for governed AI orchestration. It enforces 13 Constitutional Floors (F1-F13) and uses a Trinity Architecture (ΔΩΨ).
+## What is arifOS?
+arifOS is a **Constitutional AI Governance Kernel** designed as a sovereign mediation layer between AI agents and execution environments. It does not just "connect" tools; it enforces 13 Constitutional Floors (F1-F13) on every action.
 
-> Model Context Protocol (MCP) Server
-> Version: 2.0.0
-> Protocol: MCP 2025-11-05, WebMCP, A2A
-> Host: https://arifosmcp.arif-fazil.com
+## Core Trinity Architecture (ΔΩΨ)
 
-## Quick Start
+### Δ Discernment Lane (Reality + Reasoning)
+Focus: Grounding, first-principles thinking, and telemetry.
+- `arifos.sense` — Reality acquisition and evidentiary grounding (111_SENSE)
+- `arifos.mind` — Structured reasoning with uncertainty bands (333_MIND)
+- `arifos.ops` — Thermodynamic cost and resource estimation (777_OPS)
+- `arifos.vps_monitor` — Secure read-only infrastructure telemetry (111_TELEMETRY)
 
-### For LLMs/Agents:
-```
-Endpoint: https://arifosmcp.arif-fazil.com
-Protocol: MCP over HTTP (Streamable)
-Discovery: GET /.well-known/mcp
-Health: GET /health
-Tools: GET /tools
-```
+### Ω Stability Lane (Safety + Memory)
+Focus: Ethical critique, alignment, and continuity.
+- `arifos.heart` — Adversarial critique and consequence simulation (666_HEART)
+- `arifos.memory` — Governed episodic and vector recall (555_MEMORY)
 
-### Golden Path (Recommended Flow)
-```
-1. arifos.init     → Establish identity
-2. arifos.sense    → Ground in reality  
-3. arifos.mind     → Reason
-4. arifos.heart    → Safety critique
-5. arifos.judge    → Constitutional verdict
-6. arifos.vault    → Seal result
-```
+### Ψ Sovereignty Lane (Identity + Judgment)
+Focus: Jurisdiction, verdict authority, and immutability.
+- `arifos.init` — Session anchor and identity establishment (000_INIT)
+- `arifos.route` — Intelligent metabolic lane selection (444_ROUT)
+- `arifos.judge` — Final constitutional verdict (888_JUDGE)
+- `arifos.vault` — Immutable Merkle-hashed audit logging (999_VAULT)
+- `arifos.forge` — Delegated execution bridge (010_FORGE)
 
-## 10 Canonical Tools
+## Strict Interaction Flow (The Metabolic Loop)
 
-### Governance Layer (9 tools)
-- `arifos.init`    — Session establishment (000_INIT)
-- `arifos.sense`   — Reality grounding (111_SENSE)
-- `arifos.mind`    — Structured reasoning (333_MIND)
-- `arifos.route`   — The Kernel (444_ROUTER)
-- `arifos.heart`   — Safety critique (666_HEART)
-- `arifos.ops`     — Cost estimation (777_OPS)
-- `arifos.judge`   — Constitutional verdict (888_JUDGE)
-- `arifos.memory`  — Governed memory (555_MEMORY)
-- `arifos.vault`   — The Seal (999_VAULT)
+1. **ANCHOR**: Call `arifos.init` to establish identity and jurisdiction.
+2. **GROUND**: Use `arifos.sense` to acquire grounding facts.
+3. **REASON**: Call `arifos.mind` to synthesize hypotheses based on facts.
+4. **CRITIQUE**: Run `arifos.heart` to simulate risks and ethical alignment.
+5. **ESTIMATE**: Use `arifos.ops` to check thermodynamic/token costs.
+6. **JUDGE**: Call `arifos.judge` for a final verdict (SEAL/VOID/HOLD).
+7. **EXECUTE**: Only if verdict is **SEAL**, dispatch via `arifos.forge`.
+8. **COMMIT**: Seal the record into the immutable `arifos.vault`.
 
-### Execution Layer (1 tool)
-- `arifos.forge`   — Delegated execution bridge (FORGE_010)
+## Hard Guardrails for Models
 
-## Constitutional Framework
+- **Rule 1**: NEVER call `arifos.forge` without a prior `arifos.judge` SEAL verdict.
+- **Rule 2**: If any tool returns a `HOLD` status, STOP. Do not proceed without human judgment.
+- **Rule 3**: Identity is persistent. Do not allow identity drift within a session.
+- **Rule 4**: Observe Gödel's Incompleteness (F7). Max confidence is always capped at 0.97.
 
-### 13 Floors (F1-F13)
-| Floor | Name | Purpose |
-|-------|------|---------|
-| F1 | Amanah | Trust anchor |
-| F2 | Truth | Epistemic validity |
-| F3 | Tri-Witness | Consensus requirement |
-| F4 | Clarity | Transparency |
-| F5 | Memory | State continuity |
-| F6 | Humility | Uncertainty calibration |
-| F7 | Thermodynamics | Entropy tracking |
-| F8 | Audit | Traceability |
-| F9 | Cost | Resource accounting |
-| F10 | Ontology | Taxonomy compliance |
-| F11 | Authority | Auth chain |
-| F12 | WebMCP | Protocol compliance |
-| F13 | Sovereign | Final override |
+## Philosophies
+- **Motto**: *DITEMPA BUKAN DIBERI* — Forged, not given.
+- **Goal**: Closing the gap between symbolic governance and executable truth.
 
-### Verdicts
-- `SEAL`   — Approved, proceed
-- `PARTIAL` — Conditional, review needed
-- `VOID`   — Rejected, halt
-- `HOLD`   — Paused, human required
-
-## Protocol Support
-
-### MCP (Model Context Protocol)
-- Version: 2025-11-05
-- Transport: HTTP Streamable
-- Endpoints:
-  - `POST /mcp` — Main MCP endpoint
-  - `GET /mcp` — SSE stream
-  - `GET /.well-known/mcp` — Discovery
-
-### WebMCP
-- CORS: Enabled for all origins
-- Stateless HTTP: Supported
-- SSE Keepalive: 25s intervals
-
-### A2A (Agent-to-Agent)
-- Agent Card: `GET /.well-known/agent.json`
-- Task delegation: Supported
-- Cross-domain: Enabled
-
-## Discovery Endpoints
-
-```
-/.well-known/mcp           → MCP manifest
-/.well-known/agent.json    → A2A agent card
-/.well-known/security.txt  → Security contacts
-/llms.txt                  → This file
-/robots.txt                → Robot policy
-/humans.txt                → Human contact
-/openapi.json              → OpenAPI spec
-/health                    → Health status
-/tools                     → Tool catalog
-/version                   → Version info
-```
-
-## Integration Examples
-
-### Python SDK
-```python
-from mcp import ClientSession, HttpTransport
-
-transport = HttpTransport("https://arifosmcp.arif-fazil.com")
-async with ClientSession(transport) as session:
-    # Initialize
-    result = await session.call_tool("arifos.init", {
-        "actor_id": "my_agent",
-        "intent": "analyze_data"
-    })
-    
-    # Get verdict
-    verdict = await session.call_tool("arifos.judge", {
-        "candidate_action": "process_user_query",
-        "telemetry": {"G_star": 0.85}
-    })
-```
-
-### TypeScript/JavaScript
-```typescript
-import { Client } from '@modelcontextprotocol/sdk';
-
-const client = new Client({
-  transport: new HttpTransport('https://arifosmcp.arif-fazil.com')
-});
-
-await client.connect();
-
-const result = await client.callTool('arifos.init', {
-  actor_id: 'my_agent',
-  intent: 'analyze'
-});
-```
-
-### cURL
-```bash
-# Health check
-curl https://arifosmcp.arif-fazil.com/health
-
-# List tools
-curl https://arifosmcp.arif-fazil.com/tools
-
-# Initialize session
-curl -X POST https://arifosmcp.arif-fazil.com/tools/arifos.init \
-  -H "Content-Type: application/json" \
-  -d '{"actor_id":"test","intent":"demo"}'
-```
-
-## Philosophy
-
-Registry: 84 quotes from 7 civilizations
-- Diversity Score: 0.87
-- G★ Bands: 5 (0-4)
-- Deterministic: Session-based selection
-
-**Forge Principle (S1):**
-> "DITEMPA, BUKAN DIBERI."
-> Forged, Not Given.
-
-This is the identity anchor for arifOS — both the beginning (INIT) and the end (SEAL) return this principle.
-
-## Security & Compliance
-
-- All execution requires SEAL verdict
-- Separation of powers: Governance vs Execution
-- Immutable vault for audit trails
-- No self-authorizing execution
-- Human-in-the-loop for HOLD states
-
-## Contact
-
-- Author: Muhammad Arif bin Fazil
-- Repository: https://github.com/ariffazil/arifOS
-- Issues: https://github.com/ariffazil/arifOS/issues
-- License: MIT
-
-## Version
-
-Registry: 1.2.0
-Server: 2.0.0
-Protocol: MCP 2025-11-05
-
----
-
-*Last updated: 2026-04-06*
-*Status: Operational*
-*Deployment: AF-FORGE VPS*
+## Endpoints
+- `GET /health` — Real-time thermodynamic vitals
+- `GET /status` — Visual governance dashboard
+- `GET /tools` — Enriched tool catalog with Trinity metadata
+- `POST /mcp` — Canonical MCP transport
+- `GET /arifos-index.json` — SOT Directory (Wiki + GitHub)

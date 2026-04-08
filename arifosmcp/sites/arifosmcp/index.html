@@ -11,77 +11,263 @@
     <title>arifOS MCP | Thermodynamic Truth Preservation (ΔΩΨ)</title>
     <style>
         :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --text-primary: #e8e8f0;
-            --text-secondary: #8888a0;
-            --accent-gold: #d4af37;
-            --accent-seal: #22c55e;
-            --accent-void: #ef4444;
-            --accent-partial: #f59e0b;
-            --accent-delta: #3b82f6;
-            --accent-omega: #a855f7;
-            --accent-psi: #ec4899;
-            --accent-entropy: #06b6d4;
-            --accent-time: #f97316;
-            --accent-space: #10b981;
-            --border: #2a2a3a;
+            /* Primary Colors - Geometric Clarity */
+            --primary-red: #E53935;
+            --primary-blue: #1E88E5;
+            --primary-yellow: #FDD835;
+            
+            /* Secondary Accents */
+            --accent-gold: #FFB300;
+            --accent-seal: #43A047;
+            --accent-void: #D32F2F;
+            
+            /* Trinity Colors */
+            --trinity-delta: #1E88E5;   /* Blue - Mind */
+            --trinity-omega: #7B1FA2;   /* Purple - Heart */
+            --trinity-psi: #FDD835;     /* Yellow - Soul */
+            
+            /* Thermodynamic Colors */
+            --entropy-cyan: #00ACC1;
+            --time-orange: #FB8C00;
+            --space-teal: #00897B;
+            
+            /* Backgrounds */
+            --bg-primary: #0D1117;
+            --bg-secondary: #161B22;
+            --bg-tertiary: #1C2128;
+            --bg-card: #21262D;
+            
+            /* Text */
+            --text-primary: #E6EDF3;
+            --text-secondary: #8B949E;
+            --text-muted: #6E7681;
+            
+            /* Borders */
+            --border: #30363D;
+            --border-highlight: #484F58;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', monospace;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+            overflow-x: hidden;
         }
         
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        /* Sacred Geometry Background */
+        .geometry-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+        }
         
+        .geometry-bg svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 2rem; 
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header Section */
         header {
             text-align: center;
-            padding: 3rem 0;
+            padding: 4rem 0 3rem;
             border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        /* Geometric Logo Container */
+        .logo-container {
+            position: relative;
+            display: inline-block;
             margin-bottom: 2rem;
         }
         
         .forge-mark { 
-            font-size: 4rem; 
-            margin-bottom: 1rem;
+            font-size: 5rem; 
+            position: relative;
+            z-index: 2;
             animation: pulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(253, 216, 53, 0.3));
+        }
+        
+        /* Sacred Geometry Ring */
+        .geometry-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+        
+        .geometry-ring::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 1px dashed var(--primary-yellow);
+            border-radius: 50%;
+            animation: rotate 30s linear infinite reverse;
+        }
+        
+        .geometry-ring::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid var(--primary-red);
+            border-radius: 50%;
+            animation: rotate 15s linear infinite;
         }
         
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(0.98); }
+            50% { opacity: 0.8; transform: scale(0.95); }
+        }
+        
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
         }
         
         h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, var(--accent-gold), #fff);
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--trinity-psi), var(--primary-red));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
         }
         
         .subtitle {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             margin-bottom: 0.5rem;
         }
         
         .motto {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             color: var(--accent-gold);
             font-weight: bold;
-            margin: 1rem 0;
-            letter-spacing: 0.1em;
+            margin: 1.5rem 0;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+        
+        /* Trinity Symbols */
+        .trinity-bar {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 2rem 0;
+            font-size: 2rem;
+        }
+        
+        .trinity-symbol {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .trinity-symbol .symbol {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .trinity-symbol.delta .symbol { color: var(--trinity-delta); text-shadow: 0 0 20px rgba(30, 136, 229, 0.5); }
+        .trinity-symbol.omega .symbol { color: var(--trinity-omega); text-shadow: 0 0 20px rgba(123, 31, 162, 0.5); }
+        .trinity-symbol.psi .symbol { color: var(--trinity-psi); text-shadow: 0 0 20px rgba(253, 216, 53, 0.5); }
+        
+        .trinity-symbol .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+        }
+        
+        /* What is arifOS Section */
+        .intro-section {
+            background: linear-gradient(135deg, rgba(30, 136, 229, 0.1), rgba(123, 31, 162, 0.1));
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--trinity-psi);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 900px;
+            text-align: left;
+        }
+        
+        .intro-section h2 {
+            color: var(--trinity-psi);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .intro-section p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+        
+        .intro-section strong {
+            color: var(--text-primary);
+        }
+        
+        /* Live Indicator */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(67, 160, 71, 0.1);
+            border: 1px solid var(--accent-seal);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: var(--accent-seal);
+            margin-top: 1rem;
+        }
+        
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-seal);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+            box-shadow: 0 0 10px var(--accent-seal);
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
         
         /* === THERMODYNAMIC TRUTH GRID === */
@@ -89,7 +275,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            margin: 2rem 0;
+            margin: 3rem 0;
         }
         
         @media (max-width: 900px) {
@@ -103,6 +289,13 @@
             padding: 1.5rem;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .dimension-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-highlight);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
         
         .dimension-card::before {
@@ -111,12 +304,25 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 3px;
+            height: 4px;
         }
         
-        .dimension-space::before { background: linear-gradient(90deg, var(--accent-space), #34d399); }
-        .dimension-time::before { background: linear-gradient(90deg, var(--accent-time), #fb923c); }
-        .dimension-energy::before { background: linear-gradient(90deg, var(--accent-entropy), #67e8f9); }
+        .dimension-space::before { background: linear-gradient(90deg, var(--space-teal), #26A69A); }
+        .dimension-time::before { background: linear-gradient(90deg, var(--time-orange), #FFB74D); }
+        .dimension-energy::before { background: linear-gradient(90deg, var(--entropy-cyan), #4DD0E1); }
+        
+        /* Geometric Corner Decorations */
+        .dimension-card::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-right: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            opacity: 0.5;
+        }
         
         .dimension-header {
             display: flex;
@@ -138,14 +344,15 @@
             letter-spacing: 0.1em;
         }
         
-        .dimension-space .dimension-title { color: var(--accent-space); }
-        .dimension-time .dimension-title { color: var(--accent-time); }
-        .dimension-energy .dimension-title { color: var(--accent-entropy); }
+        .dimension-space .dimension-title { color: var(--space-teal); }
+        .dimension-time .dimension-title { color: var(--time-orange); }
+        .dimension-energy .dimension-title { color: var(--entropy-cyan); }
         
         .dimension-symbol {
             margin-left: auto;
-            font-size: 1.2rem;
-            opacity: 0.6;
+            font-size: 1.3rem;
+            opacity: 0.7;
+            font-weight: bold;
         }
         
         .truth-metric {
@@ -165,20 +372,20 @@
         
         .metric-value {
             font-family: 'SF Mono', monospace;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: bold;
             text-align: right;
         }
         
-        .dimension-space .metric-value { color: var(--accent-space); }
-        .dimension-time .metric-value { color: var(--accent-time); }
-        .dimension-energy .metric-value { color: var(--accent-entropy); }
+        .dimension-space .metric-value { color: var(--space-teal); }
+        .dimension-time .metric-value { color: var(--time-orange); }
+        .dimension-energy .metric-value { color: var(--entropy-cyan); }
         
         .metric-value.live { animation: livePulse 2s infinite; }
         
         @keyframes livePulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.6; }
         }
         
         /* Entropy Bar */
@@ -193,8 +400,9 @@
         
         .entropy-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--accent-seal), var(--accent-entropy));
+            background: linear-gradient(90deg, var(--accent-seal), var(--entropy-cyan));
             transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(0, 172, 193, 0.5);
         }
         
         /* Status Grid */
@@ -212,90 +420,180 @@
             padding: 1.5rem;
             text-align: center;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-red), var(--primary-yellow));
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         
         .status-item:hover {
-            border-color: var(--accent-gold);
+            border-color: var(--border-highlight);
             transform: translateY(-2px);
+        }
+        
+        .status-item:hover::before {
+            opacity: 1;
         }
         
         .status-item h4 {
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
+            letter-spacing: 0.1em;
             margin-bottom: 0.5rem;
         }
         
         .status-item .value {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: bold;
             margin: 0.5rem 0;
+            font-family: 'SF Mono', monospace;
         }
         
         .status-item .meta {
             font-size: 0.75rem;
-            color: var(--text-secondary);
+            color: var(--text-muted);
+        }
+        
+        /* Section Titles */
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin: 3rem 0 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+            margin-left: 1rem;
         }
         
         /* Tools Container */
         .tools-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1rem;
             margin-top: 1.5rem;
         }
         
         .tool-item {
-            background: var(--bg-tertiary);
-            padding: 1rem;
-            border-radius: 8px;
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 12px;
             border-left: 4px solid var(--accent-gold);
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.03) 50%);
         }
         
         .tool-item:hover {
-            transform: translateX(4px);
-            border-color: var(--accent-seal);
+            transform: translateX(6px);
+            background: var(--bg-tertiary);
         }
+        
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tool-trinity {
+            font-size: 1.2rem;
+            font-weight: bold;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+        }
+        
+        .tool-item.delta .tool-trinity { color: var(--trinity-delta); border: 1px solid var(--trinity-delta); }
+        .tool-item.omega .tool-trinity { color: var(--trinity-omega); border: 1px solid var(--trinity-omega); }
+        .tool-item.psi .tool-trinity { color: var(--trinity-psi); border: 1px solid var(--trinity-psi); }
+        
+        .tool-item.delta { border-left-color: var(--trinity-delta); }
+        .tool-item.omega { border-left-color: var(--trinity-omega); }
+        .tool-item.psi { border-left-color: var(--trinity-psi); }
         
         .tool-name {
             font-weight: bold;
-            color: var(--accent-gold);
-            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+            font-size: 1.1rem;
         }
         
         .tool-stage {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'SF Mono', monospace;
+            margin-bottom: 0.5rem;
         }
         
-        .trinity-delta { border-left-color: var(--accent-delta); }
-        .trinity-omega { border-left-color: var(--accent-omega); }
-        .trinity-psi { border-left-color: var(--accent-psi); }
+        .tool-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
         
         /* Philosophy Box */
         .philosophy-box {
-            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
-            border: 1px solid var(--accent-gold);
-            border-radius: 12px;
-            padding: 2rem;
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
             text-align: center;
-            margin: 2rem 0;
+            margin: 3rem 0;
             position: relative;
+            overflow: hidden;
         }
         
         .philosophy-box::before {
-            content: 'Ψ';
+            content: '';
             position: absolute;
-            top: 1rem;
-            right: 1.5rem;
-            font-size: 2rem;
-            opacity: 0.2;
-            color: var(--accent-psi);
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(30, 136, 229, 0.03), transparent, rgba(253, 216, 53, 0.03), transparent);
+            animation: rotate 60s linear infinite;
+        }
+        
+        .philosophy-content {
+            position: relative;
+            z-index: 1;
         }
         
         .philosophy-text {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             font-style: italic;
             color: var(--accent-gold);
             margin-bottom: 1rem;
@@ -303,14 +601,15 @@
         }
         
         .philosophy-meta {
-            color: var(--text-secondary);
+            color: var(--text-muted);
             font-size: 0.9rem;
+            font-family: 'SF Mono', monospace;
         }
         
         /* API Links */
         .api-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 1rem;
             margin-top: 1.5rem;
         }
@@ -319,9 +618,9 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            background: var(--bg-tertiary);
-            padding: 1rem;
-            border-radius: 8px;
+            background: var(--bg-card);
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
             text-decoration: none;
             color: var(--text-primary);
             border: 1px solid var(--border);
@@ -329,103 +628,204 @@
         }
         
         .api-link:hover {
-            border-color: var(--accent-gold);
-            background: var(--bg-secondary);
+            border-color: var(--primary-blue);
+            background: var(--bg-tertiary);
+            transform: translateX(4px);
         }
         
         .api-method {
             font-weight: bold;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            padding: 0.35rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
         }
         
-        .api-method.get { background: var(--accent-delta); color: white; }
-        .api-method.post { background: var(--accent-omega); color: white; }
+        .api-method.get { background: var(--trinity-delta); color: white; }
+        .api-method.post { background: var(--trinity-omega); color: white; }
         
         .api-path {
-            font-family: monospace;
+            font-family: 'SF Mono', monospace;
             color: var(--accent-gold);
+            font-size: 0.9rem;
         }
         
-        /* Section */
-        .section-title {
-            font-size: 1.5rem;
-            color: var(--accent-gold);
-            margin: 2rem 0 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        /* Live Indicator */
-        .live-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid var(--accent-seal);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+        .api-desc {
+            color: var(--text-muted);
             font-size: 0.85rem;
-            color: var(--accent-seal);
-        }
-        
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent-seal);
-            border-radius: 50%;
-            animation: blink 2s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            margin-left: auto;
         }
         
         /* Footer */
         .footer {
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 2rem;
             border-top: 1px solid var(--border);
-            margin-top: 2rem;
+            margin-top: 3rem;
             color: var(--text-secondary);
+        }
+        
+        .footer-seal {
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+            letter-spacing: 0.1em;
         }
         
         .footer-code {
             font-family: monospace;
             font-size: 0.85rem;
             opacity: 0.6;
-            margin-top: 0.5rem;
+            margin-top: 1rem;
+            color: var(--text-muted);
         }
         
         /* Thermodynamic Warning */
         .thermo-warning {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(211, 47, 47, 0.1);
             border: 1px solid var(--accent-void);
             color: var(--accent-void);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
             margin: 1rem 0;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             display: none;
+            align-items: center;
+            gap: 0.75rem;
         }
         
-        .thermo-warning.visible { display: block; }
+        .thermo-warning.visible { display: flex; }
+        
+        /* Governance Pipeline Visualization */
+        .pipeline-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .pipeline-stage {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .pipeline-stage .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .pipeline-stage .name {
+            font-weight: bold;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .pipeline-stage .desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .pipeline-arrow {
+            color: var(--border-highlight);
+            font-size: 1.5rem;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Tool count highlight */
+        .tool-count {
+            color: var(--trinity-psi);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <!-- Sacred Geometry Background -->
+    <div class="geometry-bg">
+        <svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                    <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#1E88E5" stroke-width="0.5" opacity="0.3"/>
+                </pattern>
+                <pattern id="hex" width="100" height="86.6" patternUnits="userSpaceOnUse">
+                    <path d="M 50 0 L 100 28.87 L 100 86.6 L 50 115.47 L 0 86.6 L 0 28.87 Z" fill="none" stroke="#FDD835" stroke-width="0.5" opacity="0.2"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)"/>
+            <rect width="100%" height="100%" fill="url(#hex)" opacity="0.5"/>
+            <!-- Geometric Circles -->
+            <circle cx="200" cy="200" r="150" fill="none" stroke="#E53935" stroke-width="1" opacity="0.1"/>
+            <circle cx="200" cy="200" r="100" fill="none" stroke="#1E88E5" stroke-width="1" opacity="0.1"/>
+            <circle cx="1720" cy="880" r="200" fill="none" stroke="#FDD835" stroke-width="1" opacity="0.1"/>
+            <circle cx="1720" cy="880" r="140" fill="none" stroke="#7B1FA2" stroke-width="1" opacity="0.1"/>
+        </svg>
+    </div>
+
     <div class="container">
         <header>
-            <div class="forge-mark">🔥</div>
+            <div class="logo-container">
+                <div class="geometry-ring"></div>
+                <div class="forge-mark">🔥</div>
+            </div>
             <h1>arifOS MCP</h1>
             <p class="subtitle">Thermodynamic Truth Preservation System</p>
-            <p class="motto">DITEMPA, BUKAN DIBERI</p>
+            <p class="motto">DITEMPA BUKAN DIBERI — Forged, Not Given</p>
+            
+            <!-- Trinity Symbols -->
+            <div class="trinity-bar">
+                <div class="trinity-symbol delta">
+                    <span class="symbol">Δ</span>
+                    <span class="label">Mind</span>
+                </div>
+                <div class="trinity-symbol omega">
+                    <span class="symbol">Ω</span>
+                    <span class="label">Heart</span>
+                </div>
+                <div class="trinity-symbol psi">
+                    <span class="symbol">Ψ</span>
+                    <span class="label">Soul</span>
+                </div>
+            </div>
+            
             <div class="live-indicator">
                 <span class="live-dot"></span>
                 <span id="status-text">Initializing thermodynamic sensors...</span>
             </div>
         </header>
+
+        <!-- What is arifOS Section -->
+        <div class="intro-section">
+            <h2>🔱 What is arifOS?</h2>
+            <p>
+                <strong>arifOS</strong> is a sovereign mediation layer designed to enforce constitutional constraints on AI agent actions. 
+                It operates via the <strong>Trinity Architecture</strong> (Δ Mind, Ω Heart, Ψ Soul) and a strict <strong>Metabolic Pipeline</strong>, 
+                ensuring that every tool execution is grounded in reality, ethically critiqued, and formally judged before dispatch.
+                <br><br>
+                Connect any MCP client to a policy-enforced runtime with <strong>13 constitutional floors</strong>, 
+                real-time thermodynamic monitoring, and Ω-Wiki doctrine sync.
+            </p>
+        </div>
 
         <!-- === THERMODYNAMIC TRUTH DIMENSIONS === -->
         <div class="truth-dimensions">
@@ -522,7 +922,8 @@
 
         <!-- Thermodynamic Warning -->
         <div class="thermo-warning" id="thermo-warning">
-            ⚠️ <strong>Entropy Alert:</strong> ΔS > 0 detected. System may be generating rather than reducing uncertainty.
+            <span>⚠️</span>
+            <strong>Entropy Alert:</strong> ΔS > 0 detected. System may be generating rather than reducing uncertainty.
         </div>
 
         <!-- Status Grid -->
@@ -535,32 +936,37 @@
             </div>
             <div class="status-item">
                 <h4>Tools Active</h4>
-                <div class="value" id="status-tools" style="color: var(--accent-delta);">--</div>
+                <div class="value" id="status-tools" style="color: var(--trinity-delta);">--</div>
                 <div class="meta">Canonical capabilities</div>
             </div>
             <div class="status-item">
                 <h4>Floors Enforced</h4>
-                <div class="value" id="status-floors" style="color: var(--accent-omega);">--</div>
+                <div class="value" id="status-floors" style="color: var(--trinity-omega);">--</div>
                 <div class="meta">F1-F13 constitutional</div>
             </div>
             <div class="status-item">
                 <h4>Protocol</h4>
-                <div class="value" id="status-protocol" style="color: var(--accent-psi);">--</div>
+                <div class="value" id="status-protocol" style="color: var(--trinity-psi);">--</div>
                 <div class="meta">MCP transport version</div>
             </div>
         </div>
 
         <!-- Philosophy Box -->
         <div class="philosophy-box">
-            <div class="philosophy-text" id="philosophy-text">"Loading constitutional anchor..."</div>
-            <div class="philosophy-meta" id="philosophy-meta">Initializing thermodynamic truth preservation</div>
+            <div class="philosophy-content">
+                <div class="philosophy-text" id="philosophy-text">"Loading constitutional anchor..."</div>
+                <div class="philosophy-meta" id="philosophy-meta">Initializing thermodynamic truth preservation</div>
+            </div>
         </div>
 
-        <!-- Tools -->
-        <h2 class="section-title">🛠️ Canonical Tools</h2>
+        <!-- Tools Section -->
+        <h2 class="section-title">🛠️ <span id="tool-count-display">11</span> Canonical Tools</h2>
         <div class="tools-container" id="tools-container">
             <div class="tool-item">
-                <div class="tool-name">Loading...</div>
+                <div class="tool-header">
+                    <span class="tool-trinity">Δ</span>
+                    <span class="tool-name">Loading...</span>
+                </div>
             </div>
         </div>
 
@@ -570,28 +976,28 @@
             <a href="/health" target="_blank" class="api-link">
                 <span class="api-method get">GET</span>
                 <span class="api-path">/health</span>
-                <span style="color: var(--text-secondary); font-size: 0.85rem;">Full thermodynamic state</span>
+                <span class="api-desc">Full thermodynamic state</span>
             </a>
             <a href="/version" target="_blank" class="api-link">
                 <span class="api-method get">GET</span>
                 <span class="api-path">/version</span>
-                <span style="color: var(--text-secondary); font-size: 0.85rem;">Build provenance</span>
+                <span class="api-desc">Build provenance</span>
             </a>
             <a href="/tools" target="_blank" class="api-link">
                 <span class="api-method get">GET</span>
                 <span class="api-path">/tools</span>
-                <span style="color: var(--text-secondary); font-size: 0.85rem;">Capability registry</span>
+                <span class="api-desc">Capability registry</span>
             </a>
             <a href="/.well-known/arifos-index.json" target="_blank" class="api-link">
                 <span class="api-method get">GET</span>
                 <span class="api-path">/.well-known/arifos-index.json</span>
-                <span style="color: var(--text-secondary); font-size: 0.85rem;">Canonical index</span>
+                <span class="api-desc">Canonical index</span>
             </a>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p><strong>999_VAULT SEAL</strong> | Thermodynamic Truth Preservation Active</p>
+            <div class="footer-seal">🔥 999_VAULT SEAL — Thermodynamic Truth Preservation Active 🔥</div>
             <p>ΔΩΨ — Truth preserved in Space (Source), Time (Epoch), Energy (Entropy)</p>
             <p class="footer-code" id="footer-meta">Initializing...</p>
         </div>
@@ -599,6 +1005,21 @@
 
     <script>
         const API_BASE = window.location.origin;
+        
+        // Tool registry with Trinity lanes - now includes vps_monitor
+        const TOOLS_REGISTRY = [
+            { name: 'arifos.init', stage: '000_INIT', trinity: 'Δ', lane: 'delta', desc: 'Session anchoring & identity establishment' },
+            { name: 'arifos.sense', stage: '111_SENSE', trinity: 'Δ', lane: 'delta', desc: 'Reality grounding & evidentiary acquisition' },
+            { name: 'arifos.mind', stage: '333_MIND', trinity: 'Δ', lane: 'delta', desc: 'Structured first-principles reasoning' },
+            { name: 'arifos.route', stage: '444_ROUT', trinity: 'Ψ', lane: 'psi', desc: 'Intelligent metabolic routing between lanes' },
+            { name: 'arifos.memory', stage: '555_MEM', trinity: 'Ω', lane: 'omega', desc: 'Governed continuity & vector recall' },
+            { name: 'arifos.heart', stage: '666_HEART', trinity: 'Ω', lane: 'omega', desc: 'Safety, empathy & consequence modeling' },
+            { name: 'arifos.ops', stage: '777_OPS', trinity: 'Ω', lane: 'omega', desc: 'Thermodynamic cost & capacity estimation' },
+            { name: 'arifos.judge', stage: '888_JUDGE', trinity: 'Ψ', lane: 'psi', desc: 'Constitutional verdict engine (SEAL/VOID)' },
+            { name: 'arifos.vault', stage: '999_VAULT', trinity: 'Ψ', lane: 'psi', desc: 'Immutable Merkle-hashed ledger commit' },
+            { name: 'arifos.forge', stage: '010_FORGE', trinity: 'Δ', lane: 'delta', desc: 'Signed execution bridge with autonomy slider' },
+            { name: 'arifos.vps_monitor', stage: '111_TEL', trinity: 'Δ', lane: 'delta', desc: 'Secure read-only VPS telemetry & metrics' }
+        ];
         
         // Thermodynamic state cache
         let thermoState = {
@@ -617,15 +1038,6 @@
                 const healthRes = await fetch(`${API_BASE}/health`);
                 const health = await healthRes.json();
                 const latency = Math.round(performance.now() - startTime);
-                
-                // Try to get deeper thermodynamic data from status endpoint
-                let status = {};
-                try {
-                    const statusRes = await fetch(`${API_BASE}/status`);
-                    status = await statusRes.json();
-                } catch (e) {
-                    // Status endpoint may not exist, use defaults
-                }
                 
                 // Update SPACE dimension
                 document.getElementById('space-repo').textContent = 
@@ -646,35 +1058,27 @@
                     serverTime.toISOString().replace('T', ' ').substring(0, 19);
                 document.getElementById('time-unix').textContent = 
                     Math.floor(serverTime.getTime() / 1000);
-                document.getElementById('time-recency').textContent = 
-                    'Live';
-                document.getElementById('time-latency').textContent = 
-                    `${latency}ms`;
+                document.getElementById('time-recency').textContent = 'Live';
+                document.getElementById('time-latency').textContent = `${latency}ms`;
                 
                 // Update ENERGY dimension (Thermodynamics)
-                // Extract from thermodynamic field in health response
-                const thermo = health.thermodynamic || {};
-                const entropyDelta = thermo.entropy_delta ?? -0.35;
-                const psi = thermo.vitality_index ?? 0.82;
-                const peace2 = thermo.peace_squared ?? 1.04;
+                const thermo = health.thermodynamic || health.telemetry || {};
+                const entropyDelta = thermo.entropy_delta ?? thermo.ds ?? -0.02;
+                const psi = thermo.vitality_index ?? thermo.peace2 ?? 1.01;
+                const peace2 = thermo.peace_squared ?? thermo.peace2 ?? 1.01;
                 
                 thermoState.entropyDelta = entropyDelta;
                 thermoState.psi = psi;
                 thermoState.peace2 = peace2;
                 
-                document.getElementById('energy-delta').textContent = 
-                    entropyDelta.toFixed(3);
-                document.getElementById('energy-psi').textContent = 
-                    psi.toFixed(3);
-                document.getElementById('energy-peace').textContent = 
-                    peace2.toFixed(3);
-                document.getElementById('energy-floors').textContent = 
-                    health.floors_active || 13;
+                document.getElementById('energy-delta').textContent = entropyDelta.toFixed(3);
+                document.getElementById('energy-psi').textContent = psi.toFixed(3);
+                document.getElementById('energy-peace').textContent = peace2.toFixed(3);
+                document.getElementById('energy-floors').textContent = health.floors_active || 13;
                 document.getElementById('energy-stage').textContent = 
-                    thermo.metabolic_stage || '444_ROUT';
+                    thermo.metabolic_stage || health.stage || '444_ROUT';
                 
                 // Entropy bar (visualize ΔS ≤ 0 requirement)
-                // Map -1.0 to 0.0 range to 0-100% bar
                 const entropyPercent = Math.min(Math.max((1 + entropyDelta) * 50, 0), 100);
                 document.getElementById('entropy-bar').style.width = `${entropyPercent}%`;
                 
@@ -687,62 +1091,34 @@
                 }
                 
                 // Update Status Grid
+                const toolsCount = health.tools_loaded || TOOLS_REGISTRY.length;
                 document.getElementById('status-health').textContent = 
                     (health.status || 'unknown').toUpperCase();
-                document.getElementById('status-tools').textContent = 
-                    health.tools_loaded || '--';
+                document.getElementById('status-tools').textContent = toolsCount;
                 document.getElementById('status-floors').textContent = 
                     health.floors_active || 13;
                 document.getElementById('status-protocol').textContent = 
-                    health.transport?.toUpperCase() || 'HTTP';
+                    (health.transport || 'HTTP').toUpperCase();
+                
+                // Update tool count display
+                document.getElementById('tool-count-display').textContent = toolsCount;
                 
                 // Update Status Text
                 document.getElementById('status-text').textContent = 
-                    `Thermodynamic Truth Active — ${health.tools_loaded || 0} tools, ${health.floors_active || 13} floors`;
+                    `Thermodynamic Truth Active — ${toolsCount} tools, ${health.floors_active || 13} floors`;
                 
-                // Fetch philosophy
-                try {
-                    const philRes = await fetch(`${API_BASE}/mcp`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            jsonrpc: '2.0',
-                            method: 'tools/call',
-                            params: {
-                                name: 'arifos.init',
-                                arguments: { 
-                                    actor_id: 'landing_page', 
-                                    declared_name: 'ThermodynamicObserver',
-                                    mode: 'status'
-                                }
-                            },
-                            id: Date.now()
-                        })
-                    });
-                    const phil = await philRes.json();
-                    
-                    if (phil.result?.philosophy) {
-                        document.getElementById('philosophy-text').textContent = 
-                            `"${phil.result.philosophy}"`;
-                        document.getElementById('philosophy-meta').textContent = 
-                            `Ψ = ${psi.toFixed(2)} | ΔS = ${entropyDelta.toFixed(3)} | F4 Clarity Preserved`;
-                    }
-                } catch (e) {
-                    // Fallback philosophy
-                    document.getElementById('philosophy-text').textContent = 
-                        '"DITEMPA, BUKAN DIBERI."';
-                    document.getElementById('philosophy-meta').textContent = 
-                        `Ψ = ${psi.toFixed(2)} | ΔS = ${entropyDelta.toFixed(3)} | Truth preserved in Space, Time, and Energy`;
-                }
+                // Update Philosophy
+                document.getElementById('philosophy-text').textContent = 
+                    '"DITEMPA BUKAN DIBERI." Forged, not given.';
+                document.getElementById('philosophy-meta').textContent = 
+                    `Ψ = ${psi.toFixed(2)} | ΔS = ${entropyDelta.toFixed(3)} | Peace² = ${peace2.toFixed(2)} | Truth preserved in Space, Time, and Energy`;
                 
                 // Update Footer
                 document.getElementById('footer-meta').textContent = 
-                    `Commit: ${health.source_commit?.substring(0, 7)} | Epoch: ${serverTime.toISOString()} | ΔS: ${entropyDelta.toFixed(3)}`;
+                    `Commit: ${health.source_commit?.substring(0, 7) || '--'} | Epoch: ${serverTime.toISOString()} | ΔS: ${entropyDelta.toFixed(3)} | arifOS v${health.version || '2.0.0'}`;
                 
                 // Render Tools
-                if (health.tools_loaded > 0) {
-                    renderToolsFromRegistry();
-                }
+                renderTools(toolsCount);
                 
                 thermoState.lastUpdate = now;
                 
@@ -752,32 +1128,29 @@
                     'Thermodynamic sensors offline — using cached truth';
                 document.getElementById('status-health').textContent = 'DEGRADED';
                 document.getElementById('status-health').style.color = 'var(--accent-void)';
+                // Still render tools from registry
+                renderTools(TOOLS_REGISTRY.length);
             }
         }
         
-        function renderToolsFromRegistry() {
+        function renderTools(dynamicCount) {
             const container = document.getElementById('tools-container');
             container.innerHTML = '';
             
-            const tools = [
-                { name: 'arifos.init', stage: '000_INIT', trinity: 'Δ', cls: 'trinity-delta', desc: 'Session anchoring & identity' },
-                { name: 'arifos.sense', stage: '111_SENSE', trinity: 'Δ', cls: 'trinity-delta', desc: 'Reality grounding' },
-                { name: 'arifos.mind', stage: '333_MIND', trinity: 'Δ', cls: 'trinity-delta', desc: 'Structured reasoning' },
-                { name: 'arifos.route', stage: '444_ROUT', trinity: 'Ψ', cls: 'trinity-psi', desc: 'Intelligent routing' },
-                { name: 'arifos.memory', stage: '555_MEM', trinity: 'Ω', cls: 'trinity-omega', desc: 'Continuity & recall' },
-                { name: 'arifos.heart', stage: '666_HEART', trinity: 'Ω', cls: 'trinity-omega', desc: 'Safety & ethics' },
-                { name: 'arifos.ops', stage: '777_OPS', trinity: 'Ω', cls: 'trinity-omega', desc: 'Thermodynamic ops' },
-                { name: 'arifos.judge', stage: '888_JUDGE', trinity: 'Ψ', cls: 'trinity-psi', desc: 'Constitutional verdict' },
-                { name: 'arifos.vault', stage: '999_VAULT', trinity: 'Ψ', cls: 'trinity-psi', desc: 'Immutable seal' },
-                { name: 'arifos.forge', stage: 'FORGE', trinity: 'Δ', cls: 'trinity-delta', desc: 'Execution bridge' }
-            ];
+            // Use actual count from health endpoint if available
+            const toolsToShow = dynamicCount && dynamicCount > 0 ? 
+                TOOLS_REGISTRY.slice(0, dynamicCount) : TOOLS_REGISTRY;
             
-            tools.forEach(tool => {
+            toolsToShow.forEach(tool => {
                 const div = document.createElement('div');
-                div.className = `tool-item ${tool.cls}`;
+                div.className = `tool-item ${tool.lane}`;
                 div.innerHTML = `
-                    <div class="tool-name">${tool.trinity} ${tool.name}</div>
-                    <div class="tool-stage">${tool.stage} | ${tool.desc}</div>
+                    <div class="tool-header">
+                        <span class="tool-trinity">${tool.trinity}</span>
+                        <span class="tool-name">${tool.name}</span>
+                    </div>
+                    <div class="tool-stage">${tool.stage}</div>
+                    <div class="tool-desc">${tool.desc}</div>
                 `;
                 container.appendChild(div);
             });
@@ -793,10 +1166,11 @@
         setInterval(() => {
             if (thermoState.lastUpdate) {
                 const seconds = Math.floor((Date.now() - thermoState.lastUpdate) / 1000);
+                const recencyEl = document.getElementById('time-recency');
                 if (seconds < 60) {
-                    document.getElementById('time-recency').textContent = `${seconds}s ago`;
+                    recencyEl.textContent = `${seconds}s ago`;
                 } else {
-                    document.getElementById('time-recency').textContent = `${Math.floor(seconds / 60)}m ago`;
+                    recencyEl.textContent = `${Math.floor(seconds / 60)}m ago`;
                 }
             }
         }, 1000);

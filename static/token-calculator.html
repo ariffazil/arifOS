@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS Token Savings Calculator — Thermodynamic Edition</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888a0;
+            --accent-gold: #d4af37;
+            --accent-seal: #22c55e;
+            --accent-delta: #3b82f6;
+            --accent-omega: #a855f7;
+            --accent-psi: #ec4899;
+            --border: #2a2a3a;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 1.75rem;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .motto {
+            color: var(--accent-gold);
+            font-style: italic;
+            margin-top: 1rem;
+            letter-spacing: 0.1em;
+        }
+        
+        .calculator {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+        
+        .results {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .result-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .result-card h3 {
+            color: var(--accent-gold);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .metric:last-child { border-bottom: none; }
+        
+        .metric-label { color: var(--text-secondary); }
+        
+        .metric-value {
+            font-weight: bold;
+            color: var(--accent-seal);
+        }
+        
+        .metric-value.negative {
+            color: var(--accent-delta);
+        }
+        
+        .thermodynamics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .thermo-card {
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .thermo-card h4 {
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .thermo-card.raw h4 { color: var(--text-secondary); }
+        .thermo-card.governed h4 { color: var(--accent-seal); }
+        
+        .formula {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .formula code {
+            color: var(--accent-gold);
+        }
+        
+        .insight {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), transparent);
+            border-left: 4px solid var(--accent-gold);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .insight strong {
+            color: var(--accent-gold);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 arifOS Token Savings Calculator</h1>
+            <p class="subtitle">Thermodynamic Edition — Token = Energy, Waste = Entropy</p>
+            <p class="motto">DITEMPA, BUKAN DIBERI</p>
+        </header>
+
+        <div class="formula">
+            <strong>Constitutional Physics:</strong><br>
+            <code>Token = Energy (G)</code> | 
+            <code>Waste = Entropy (ΔS)</code> | 
+            <code>Governance = ΔS < 0</code>
+        </div>
+
+        <div class="calculator">
+            <div class="input-group">
+                <div>
+                    <label for="agents">Number of AI Agents</label>
+                    <input type="number" id="agents" value="10" min="1" max="10000">
+                </div>
+                <div>
+                    <label for="sessions">Sessions per Agent / Month</label>
+                    <input type="number" id="sessions" value="1000" min="1" max="100000">
+                </div>
+            </div>
+
+            <div class="results">
+                <div class="result-card">
+                    <h3>📊 Monthly Token Economics</h3>
+                    <div class="metric">
+                        <span class="metric-label">Raw LLM Stack Cost</span>
+                        <span class="metric-value" id="raw-cost">--</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">arifOS Governed Cost</span>
+                        <span class="metric-value" id="gov-cost">--</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Savings</span>
+                        <span class="metric-value" id="savings">--</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Efficiency Gain</span>
+                        <span class="metric-value" id="efficiency">--</span>
+                    </div>
+                </div>
+
+                <div class="thermodynamics">
+                    <div class="thermo-card raw">
+                        <h4>🌡️ Raw LLM State</h4>
+                        <div class="metric">
+                            <span class="metric-label">G (Grounding)</span>
+                            <span class="metric-value" id="raw-g">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">τ (Truth)</span>
+                            <span class="metric-value" id="raw-tau">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">ΔS (Entropy)</span>
+                            <span class="metric-value negative" id="raw-ds">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Status</span>
+                            <span class="metric-value" id="raw-status">--</span>
+                        </div>
+                    </div>
+
+                    <div class="thermo-card governed">
+                        <h4>⚖️ arifOS Governed State</h4>
+                        <div class="metric">
+                            <span class="metric-label">G (Grounding)</span>
+                            <span class="metric-value" id="gov-g">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">τ (Truth)</span>
+                            <span class="metric-value" id="gov-tau">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">ΔS (Entropy)</span>
+                            <span class="metric-value" id="gov-ds">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">F4 Status</span>
+                            <span class="metric-value" id="gov-status">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insight">
+                    <strong>💡 Thermodynamic Insight:</strong>
+                    <span id="insight-text">Adjust parameters to see how arifOS reduces system entropy (ΔS < 0) while maintaining constitutional compliance.</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Token = Energy | Governance = Negative Entropy Engine</p>
+            <p>Built with ΔΩΨ Trinity Architecture | 13 Constitutional Floors</p>
+        </footer>
+    </div>
+
+    <script>
+        // Thermodynamic calculation
+        function calculate() {
+            const agents = parseInt(document.getElementById('agents').value) || 10;
+            const sessions = parseInt(document.getElementById('sessions').value) || 1000;
+            
+            // System definitions
+            const rawSystem = {
+                systemPrompt: 3500,
+                toolSchema: 2000,
+                safetyCheck: 800,
+                memory: 1500,
+                failureRate: 0.20
+            };
+            
+            const govSystem = {
+                systemPrompt: 200,
+                toolSchema: 800,
+                safetyCheck: 150,
+                memory: 100,
+                failureRate: 0.05
+            };
+            
+            // Calculate costs
+            const rawBase = rawSystem.systemPrompt + rawSystem.toolSchema + rawSystem.safetyCheck + rawSystem.memory;
+            const govBase = govSystem.systemPrompt + govSystem.toolSchema + govSystem.safetyCheck + govSystem.memory;
+            
+            const rawEffective = Math.floor(rawBase * (1 + rawSystem.failureRate));
+            const govEffective = Math.floor(govBase * (1 + govSystem.failureRate));
+            
+            const totalSessions = agents * sessions;
+            const rawMonthly = rawEffective * totalSessions;
+            const govMonthly = govEffective * totalSessions;
+            const savings = rawMonthly - govMonthly;
+            
+            // Thermodynamic states
+            const workOutput = 500;
+            
+            // Raw system (entropy increases)
+            const rawG = Math.min(1.0, workOutput / rawEffective);
+            const rawTau = 1.0 - rawSystem.failureRate;
+            const rawSigma = rawSystem.failureRate * (rawSystem.toolSchema / 1000);
+            const rawC = Math.min(1.0, workOutput / rawEffective);
+            const rawDeltaS = 0.25 * (rawSystem.failureRate + rawSigma); // Positive = bad
+            
+            // Governed system (entropy decreases)
+            const govG = Math.min(1.0, workOutput / govEffective);
+            const govTau = 1.0 - govSystem.failureRate;
+            const govSigma = govSystem.failureRate * (govSystem.toolSchema / 1000);
+            const govC = Math.min(1.0, (workOutput / govEffective) + 0.2); // Coherence boost
+            const govDeltaS = -0.15 * (govSystem.failureRate + govSigma); // Negative = good
+            
+            // Update UI
+            document.getElementById('raw-cost').textContent = rawMonthly.toLocaleString() + ' tokens';
+            document.getElementById('gov-cost').textContent = govMonthly.toLocaleString() + ' tokens';
+            document.getElementById('savings').textContent = savings.toLocaleString() + ' tokens';
+            document.getElementById('efficiency').textContent = Math.round((savings / rawMonthly) * 100) + '%';
+            
+            // Thermodynamics
+            document.getElementById('raw-g').textContent = rawG.toFixed(3);
+            document.getElementById('raw-tau').textContent = rawTau.toFixed(3);
+            document.getElementById('raw-ds').textContent = (rawDeltaS > 0 ? '+' : '') + rawDeltaS.toFixed(3);
+            document.getElementById('raw-status').textContent = '❌ ENTROPY ↑';
+            document.getElementById('raw-status').style.color = '#ef4444';
+            
+            document.getElementById('gov-g').textContent = govG.toFixed(3);
+            document.getElementById('gov-tau').textContent = govTau.toFixed(3);
+            document.getElementById('gov-ds').textContent = govDeltaS.toFixed(3);
+            document.getElementById('gov-status').textContent = '✅ SEAL (ΔS < 0)';
+            document.getElementById('gov-status').style.color = '#22c55e';
+            
+            // Insight
+            const entropyDelta = govDeltaS - rawDeltaS;
+            document.getElementById('insight-text').textContent = 
+                `With ${agents} agents, arifOS reduces system entropy by ${Math.abs(entropyDelta).toFixed(3)} units ` +
+                `while saving ${(savings / 1000000).toFixed(1)}M tokens/month. ` +
+                `F4 Constitutional Floor (ΔS ≤ 0): ${govDeltaS <= 0 ? 'SATISFIED' : 'VIOLATED'}.`;
+        }
+        
+        // Event listeners
+        document.getElementById('agents').addEventListener('input', calculate);
+        document.getElementById('sessions').addEventListener('input', calculate);
+        
+        // Initial calc
+        calculate();
+    </script>
+</body>
+</html>

@@ -33,7 +33,7 @@ RUN python -m pip install --upgrade pip && \
     pip install --no-cache-dir .
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
-RUN pip install --no-cache-dir itsdangerous fastapi uvicorn redis python-multipart
+RUN pip install --no-cache-dir itsdangerous fastapi uvicorn redis python-multipart psutil
 
 # BGE-M3 model is served by Ollama (ollama_engine container).
 # No local HuggingFace model baking required — eliminates ~750MB torch + ~570MB model from image.

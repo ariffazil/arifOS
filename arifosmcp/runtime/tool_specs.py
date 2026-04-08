@@ -152,10 +152,10 @@ TOOLS: tuple[ToolSpec, ...] = (
         },
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 4. arifos.route — Execution Lane Selection (was 444_ROUT, arifOS_kernel)
+    # 4. arifos.kernel — Execution Lane Selection (was 444_ROUT, arifos.route)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_route",
+        name="arifos.kernel",
         stage="444",
         purpose="Execution lane selection",
         layer="GOVERNANCE",
@@ -380,7 +380,7 @@ LEGACY_NAME_MAP: dict[str, str] = {
     "init_anchor": "arifos_init",
     "physics_reality": "arifos_sense",
     "agi_mind": "arifos_mind",
-    "arifOS_kernel": "arifos_route",
+    "arifOS_kernel": "arifos.kernel",
     "asi_heart": "arifos_heart",
     "math_estimator": "arifos_ops",
     "apex_soul": "arifos_judge",

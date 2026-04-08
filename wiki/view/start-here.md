@@ -1,0 +1,58 @@
+---
+type: Meta
+auto_generated: true
+generated_at: 2026-04-08T16:29:38.786143
+generation_source: prerequisites_graph
+---
+
+# Start Here — The Guided Journey
+
+> **Auto-generated** from page prerequisites and tier ordering.
+> **Total Entry Points**: 7
+
+This path takes you from zero knowledge to system fluency.
+
+## Phase 1: Orientation
+
+1. **[[Prerequisite_Map|Prerequisite Map]]** — 5 min
+   - *onboarding* — > The dependency graph of arifOS knowledge. Each arrow represents a "must understand before" rela...
+
+2. **[[quickstart|quickstart]]** — 5 min
+   - *onboarding* — Welcome to arifOS — the Constitutional AI Governance System. This guide will orient you in 5 page...
+
+## Phase 3: 10 Foundations
+
+3. **[[What-is-arifOS|What is arifOS]]** — 5 min
+   - *philosophy* — arifOS is a production-grade Constitutional AI Governance System. It is an open-source, MCP-nativ...
+
+## Phase 4: 90 Entities
+
+4. **[[GEOX|GEOX]]** — 5 min
+   - *architecture* — > The Large Earth Model (LEM) in the arifOS constitutional federation
+
+5. **[[Source_Karpathy_LLM_Wiki|Source Karpathy LLM Wiki]]** — 5 min
+   - *philosophy* — A concise blueprint shared by Andrej Karpathy (April 2026) describing a pattern for building pers...
+
+6. **[[Entity_Andrej_Karpathy|Entity Andrej Karpathy]]** — 5 min
+   - *philosophy* — Andrej Karpathy is a prominent AI researcher and educator.
+
+7. **[[Source_NotebookLM_HighLevel_Overview|Source NotebookLM HighLevel Overview]]** — 5 min
+   - *philosophy* — > [!NOTE]
+
+---
+
+## Choose Your Path
+
+After the foundation journey, explore by interest:
+
+### 🔧 Engineering (strand: integration)
+→ [[MCP_Tools]] → [[Integration_Patterns]] → [[Agent_Roles]]
+
+### ⚖️ Governance (strand: constitutional)
+→ [[Philosophy_Registry]] → [[Floor_Tensions]] → [[Governance_Enforcer]]
+
+### 🚀 Future (strand: roadmap)
+→ [[Horizon_2_Swarm]] → [[Horizon_3_Universal_Body]]
+
+### 🔍 Operations (strand: operations)
+→ [[Drift_Checks]] → [[Surface_Fragmentation]]

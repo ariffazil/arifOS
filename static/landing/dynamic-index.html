@@ -6,8 +6,8 @@
     <meta name="description" content="arifOS MCP Server - Constitutional runtime for governed AI tool execution. Enforce 13 constitutional floors on any AI agent.">
     <meta name="keywords" content="arifOS, MCP, Model Context Protocol, AI Governance, Constitutional AI, Trinity Architecture, F1-F13, ΔΩΨ, AGI, ASI, APEX">
     <meta name="author" content="Muhammad Arif bin Fazil">
-    <meta name="version" content="2026.04.07-LLM-OS">
-    <meta name="ai-context" content="This is the arifOS MCP Server - A Constitutional AI Governance System aligned with Karpathy's LLM OS architecture. It provides 10 canonical tools enforcing 13 Constitutional Floors (F1-F13). Features: Autonomy Slider, Process-Based Supervision, and Continuous World Model updates. Trinity Architecture (Δ Mind, Ω Heart, Ψ Soul). Transport: streamable-http. MCP endpoint: /mcp.">
+    <meta name="version" content="2026.04.08-Ω-WIKI-SYNC">
+    <meta name="ai-context" content="This is the arifOS MCP Server - A Constitutional AI Governance System. It provides 11 canonical tools enforcing 13 Constitutional Floors (F1-F13). Features: Ω-Wiki integration, Trinity Architecture (Δ Mind, Ω Heart, Ψ Soul). Transport: streamable-http. MCP endpoint: /mcp.">
     <title>arifOS MCP | Constitutional AI Governance (ΔΩΨ)</title>
     <style>
         :root {
@@ -165,28 +165,59 @@
     <div class="container">
         <!-- SOT BANNER -->
         <div class="sot-banner">
-            <strong>Source of Truth for arifOS:</strong> <a href="https://github.com/ariffazil/arifOS" style="color: inherit; font-weight: bold;">ariffazil/arifOS repository</a>.
+            <strong>Source of Truth:</strong> <a href="https://github.com/ariffazil/arifOS" style="color: inherit; font-weight: bold;">ariffazil/arifOS</a> | <a href="https://github.com/ariffazil/arifOS/tree/main/wiki" style="color: inherit; font-weight: bold;">Ω-Wiki (Doctrine)</a>.
             Runtime truth (this page): current deployed server status.
         </div>
 
         <!-- HERO -->
         <header>
             <div class="logo">🔱</div>
-            <div class="version-badge">v2026.04.07-SOT-ALIGN</div>
+            <div class="version-badge">v2.0.0-SEAL</div>
             <h1>arifOS MCP</h1>
-            <h2 style="color: var(--text-primary); margin-top: 0.5rem; font-size: 1.8rem; font-weight: 400;">Constitutional runtime for governed AI tool execution.</h2>
-            <p style="max-width: 850px; margin: 2rem auto; font-size: 1.3rem; color: var(--text-secondary);">
-                Connect Claude, Cursor, or any MCP client to a policy-enforced tool runtime with 13 constitutional floors, auditable reasoning gates, and protocol-native execution.
+            <h2 style="color: var(--text-primary); margin-top: 0.5rem; font-size: 1.8rem; font-weight: 400;">Constitutional AI Governance Kernel</h2>
+            
+            <div id="what-is-arifos" style="max-width: 800px; margin: 2rem auto; text-align: left; background: rgba(0,0,0,0.2); padding: 1.5rem; border-left: 4px solid var(--accent-psi); border-radius: 4px;">
+                <p style="font-size: 1.1rem; color: var(--text-primary); line-height: 1.6; margin: 0;">
+                    <strong>What is arifOS?</strong> arifOS is a sovereign mediation layer designed to enforce constitutional constraints on AI agent actions. 
+                    It operates via the <strong>Trinity Architecture</strong> (Δ Mind, Ω Heart, Ψ Soul) and a strict <strong>Metabolic Pipeline</strong>, 
+                    ensuring that every tool execution is grounded in reality, ethically critiqued, and formally judged before dispatch.
+                </p>
+            </div>
+
+            <p style="max-width: 850px; margin: 1rem auto; font-size: 1.2rem; color: var(--text-secondary);">
+                Connect any MCP client to a policy-enforced runtime with 13 constitutional floors, real-time thermodynamic monitoring, and Ω-Wiki doctrine sync.
             </p>
             
             <div class="cta-buttons">
                 <a href="#quickstart" class="btn btn-primary">🔌 Connect Your Client</a>
-                <a href="/openapi.json" class="btn btn-secondary">🔍 View OpenAPI Spec</a>
+                <a href="https://github.com/ariffazil/arifOS/tree/main/wiki" class="btn btn-secondary">📖 Explore Ω-Wiki</a>
                 <a href="/.well-known/arifos-index.json" class="btn btn-secondary">📜 Canonical Index</a>
             </div>
 
             <div class="trinity-symbols">Δ Ω Ψ</div>
         </header>
+
+        <!-- VITALS DASHBOARD -->
+        <div class="section" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem; padding: 1.5rem;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 1rem; text-align: center;">
+                <div style="flex: 1; min-width: 150px;">
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Entropy Delta (ΔS)</div>
+                    <div id="metric-ds" style="font-size: 1.8rem; font-family: monospace; color: var(--accent-success); font-weight: bold;">-0.020</div>
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Stability (Peace²)</div>
+                    <div id="metric-peace" style="font-size: 1.8rem; font-family: monospace; color: var(--accent-psi); font-weight: bold;">1.01</div>
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Epistemic Confidence</div>
+                    <div id="metric-confidence" style="font-size: 1.8rem; font-family: monospace; color: var(--accent-delta); font-weight: bold;">0.88</div>
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Governance Verdict</div>
+                    <div id="metric-verdict" style="font-size: 1.8rem; font-family: monospace; color: var(--accent-omega); font-weight: bold;">SEAL</div>
+                </div>
+            </div>
+        </div>
 
         <!-- TRUST STRIP -->
         <div style="text-align: center; padding: 1.2rem; background: var(--bg-secondary); border-radius: 50px; border: 1px solid var(--border); margin-bottom: 4rem; font-size: 0.95rem; color: var(--text-secondary);">
@@ -276,7 +307,7 @@
 
         <!-- TOOLS -->
         <div class="section">
-            <h2 style="text-align: center;">The 10 Canonical Capabilities</h2>
+            <h2 style="text-align: center;">The <span id="tool-count-dynamic">11</span> Canonical Capabilities</h2>
             <p style="text-align: center; color: var(--text-secondary);">arifOS provides a unified sovereign core for autonomous intelligence.</p>
             <div class="tool-grid">
                 <div class="tool-card vault">
@@ -289,7 +320,7 @@
                 </div>
                 <div class="tool-card agi">
                     <h4>arifos.mind</h4>
-                    <p>LLM OS Kernel: structured reasoning with process supervision.</p>
+                    <p>Reasoning: structured first-principles thinking with uncertainty bands.</p>
                 </div>
                 <div class="tool-card asi">
                     <h4>arifos.heart</h4>
@@ -301,7 +332,7 @@
                 </div>
                 <div class="tool-card asi">
                     <h4>arifos.memory</h4>
-                    <p>Continuity: active world model updates (Animal Archetype).</p>
+                    <p>Continuity: active world model updates via vector recall.</p>
                 </div>
                 <div class="tool-card vault">
                     <h4>arifos.ops</h4>
@@ -318,6 +349,10 @@
                 <div class="tool-card apex">
                     <h4>arifos.forge</h4>
                     <p>Execution: delegated action bridge with autonomy slider.</p>
+                </div>
+                <div class="tool-card agi">
+                    <h4>arifos.vps_monitor</h4>
+                    <p>Telemetry: Secure read-only VPS utilization metrics.</p>
                 </div>
             </div>
         </div>
@@ -338,9 +373,9 @@
                 <div class="tool-card" style="border-top: 3px solid var(--accent-delta);">
                     <h4>Discovery & Specs</h4>
                     <ul style="list-style: none; font-size: 0.9rem;">
+                        <li style="margin-bottom: 0.8rem;"><code><a href="https://github.com/ariffazil/arifOS/tree/main/wiki" style="color: var(--accent-delta); text-decoration: none;" target="_blank">Ω-Wiki</a></code> — Doctrine & Architecture</li>
                         <li style="margin-bottom: 0.8rem;"><code><a href="/tools" style="color: var(--accent-delta); text-decoration: none;">GET /tools</a></code> — Canonical tool list</li>
                         <li style="margin-bottom: 0.8rem;"><code><a href="/openapi.json" style="color: var(--accent-delta); text-decoration: none;">GET /openapi.json</a></code> — OpenAPI 3.1 Spec</li>
-                        <li style="margin-bottom: 0.8rem;"><code><a href="/llms.txt" style="color: var(--accent-delta); text-decoration: none;">GET /llms.txt</a></code> — AI Agent context</li>
                     </ul>
                 </div>
 
@@ -405,15 +440,33 @@
                 const h = await fetchJson(`${API_BASE}/health`);
                 const lat = Math.round(performance.now() - start);
 
+                // Update Vitals Dashboard (Top)
+                if (h.telemetry) {
+                    const ds = h.telemetry.ds || 0;
+                    document.getElementById('metric-ds').innerText = ds.toFixed(3);
+                    document.getElementById('metric-peace').innerText = (h.telemetry.peace2 || 1.0).toFixed(2);
+                    document.getElementById('metric-confidence').innerText = (h.telemetry.confidence || 0.0).toFixed(2);
+                    document.getElementById('metric-verdict').innerText = h.verdict || 'SEAL';
+                    
+                    const dsColor = ds <= 0 ? 'var(--accent-success)' : 'var(--accent-omega)';
+                    document.getElementById('metric-ds').style.color = dsColor;
+                }
+
+                // Update Telemetry Grid (Bottom)
                 const grid = document.getElementById('telemetry-grid');
                 if (grid) grid.style.display = 'grid';
                 
                 document.getElementById('live-version').textContent = h.version || h.release_tag || '2.0.0';
-                document.getElementById('live-tools').textContent = h.tools_loaded || '10';
+                document.getElementById('live-tools').textContent = h.tools_loaded || '11';
                 document.getElementById('live-commit').textContent = h.source_commit || '--';
                 document.getElementById('live-latency').textContent = `${lat}ms`;
                 document.getElementById('refresh-time').textContent = `Verified at ${new Date().toLocaleTimeString()}`;
-            } catch (e) { console.warn('Telemetry offline'); }
+
+                // Update Dynamic Tool Count
+                const toolCountElem = document.getElementById('tool-count-dynamic');
+                if (toolCountElem) toolCountElem.innerText = h.tools_loaded || '11';
+
+            } catch (e) { console.warn('Telemetry offline', e); }
         }
 
         refreshStatus();
@@ -422,15 +475,15 @@
     <script type="application/json" id="arifos-metadata">
     {
         "name": "arifOS MCP Server",
-        "version": "2026.04.07-LLM-OS",
-        "description": "Production Constitutional AI Governance System — LLM OS & Karpathy Aligned",
+        "version": "2.0.0",
+        "description": "Production Constitutional AI Governance System — Ω-Wiki & Trinity Aligned",
         "architecture": {
-            "type": "Trinity + LLM OS",
-            "features": ["Autonomy Slider", "Process-Based Supervision", "Continuous World Model"],
+            "type": "Trinity + Metabolic Pipeline",
+            "features": ["13 Constitutional Floors", "Ω-Wiki Doctrine", "Immutable Vault Ledger"],
             "transport": "streamable-http",
             "source_of_truth": "https://github.com/ariffazil/arifOS"
         },
-        "tools": { "total": 10, "canonical": ["init", "sense", "mind", "heart", "route", "memory", "ops", "judge", "vault", "forge"] }
+        "tools": { "total": 11, "canonical": ["init", "sense", "mind", "heart", "route", "memory", "ops", "judge", "vault", "forge", "vps_monitor"] }
     }
     </script>
 </body>
