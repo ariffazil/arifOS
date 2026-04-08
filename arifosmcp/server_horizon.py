@@ -380,13 +380,82 @@ async def arifOS_kernel(
     session_id: Optional[str] = None,
     mode: str = "kernel",
 ) -> dict:
-    """444_ROUTER: Primary metabolic conductor."""
+    """444_ROUTER: Primary metabolic conductor (legacy name)."""
     return await _gateway_call(
         "arifOS_kernel",
         {
             "query": query,
             "session_id": session_id,
             "mode": mode,
+        },
+    )
+
+
+@mcp.tool(name="arifos.kernel")
+async def arifos_kernel(
+    query: str,
+    session_id: Optional[str] = None,
+    actor_id: Optional[str] = None,
+    intent: Optional[str] = None,
+    mode: str = "kernel",
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    platform: str = "unknown",
+) -> dict:
+    """
+    444_KERNEL: Unified KERNEL rCore — Primary metabolic conductor.
+
+    INPUT → ORCHESTRATE → OUTPUT pipeline.
+
+    This is the canonical KERNEL tool for arifOS. It orchestrates:
+    - Query normalization and session context assembly (INPUT)
+    - Classification, tool selection, and governance enforcement (ORCHESTRATE)
+    - Envelope sealing and continuity state management (OUTPUT)
+
+    Stage: 444_KERNEL | Trinity: ΔΩΨ | Floors: F4, F11
+    """
+    return await _gateway_call(
+        "arifOS_kernel",
+        {
+            "query": query,
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "intent": intent,
+            "mode": mode,
+            "risk_tier": risk_tier,
+            "dry_run": dry_run,
+            "platform": platform,
+        },
+    )
+
+
+@mcp.tool(name="arifos.route")
+async def arifos_route(
+    query: str,
+    session_id: Optional[str] = None,
+    actor_id: Optional[str] = None,
+    intent: Optional[str] = None,
+    mode: str = "kernel",
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    platform: str = "unknown",
+) -> dict:
+    """
+    444_ROUTE: Alias for arifos.kernel — Unified KERNEL rCore.
+
+    DEPRECATED: Use arifos.kernel instead. This alias exists for backward compatibility.
+    """
+    return await _gateway_call(
+        "arifOS_kernel",
+        {
+            "query": query,
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "intent": intent,
+            "mode": mode,
+            "risk_tier": risk_tier,
+            "dry_run": dry_run,
+            "platform": platform,
         },
     )
 

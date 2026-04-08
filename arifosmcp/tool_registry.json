@@ -65,7 +65,18 @@
       "type": "function",
       "function": {
         "name": "arifos_route",
-        "description": "Route request to the correct metabolic lane or tool family.",
+        "description": "Route request to the correct metabolic lane or tool family. (Alias for arifos.kernel)",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "arifos_kernel",
+        "description": "444_KERNEL: Unified KERNEL rCore — Primary metabolic conductor. INPUT → ORCHESTRATE → OUTPUT pipeline. Orchestrates query classification, tool selection, governance enforcement, and continuity state management.",
         "parameters": {
           "type": "object",
           "properties": {}

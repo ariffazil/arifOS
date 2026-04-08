@@ -1,10 +1,13 @@
 """
 arifosmcp/runtime/megaTools/02_arifOS_kernel.py
 
-444_ROUTER: Primary metabolic conductor
-Stage: 444_ROUTER | Trinity: DELTA/PSI | Floors: F4, F11
+444_KERNEL: Primary metabolic conductor
+Stage: 444_KERNEL | Trinity: DELTA/PSI | Floors: F4, F11
 
 Modes: kernel, status
+
+Now delegates to unified KERNEL rCore (kernel_core.py).
+The internal implementation uses INPUT → ORCHESTRATE → OUTPUT stages.
 """
 
 from __future__ import annotations
@@ -36,74 +39,53 @@ async def arifOS_kernel(
     use_heart: bool = True,
     **kwargs: Any,
 ) -> RuntimeEnvelope:
-    payload = dict(payload or {})
-    payload.update(kwargs)
-    if raw_input:
-        payload.setdefault("query", raw_input)
-    if caller_context:
-        payload.setdefault("caller_context", caller_context)
-    if auth_context:
-        payload.setdefault("auth_context", auth_context)
-    if query:
-        payload.setdefault("query", query)
-    if session_id:
-        payload.setdefault("session_id", session_id)
-    if actor_id:
-        payload.setdefault("actor_id", actor_id)
+    """
+    KERNEL rCore entry point.
 
-    effective_query = payload.get("query") or query or raw_input or ""
+    Now delegates to unified kernel_core.execute() for INPUT → ORCHESTRATE → OUTPUT pipeline.
+    Maintains backward compatibility with existing call signatures.
+    """
+    # Use unified KERNEL rCore
+    from arifosmcp.runtime.kernel_core import kernel_execute
+    from arifosmcp.runtime.models import Stage
 
-    from arifosmcp.runtime.kernel_router import process_query
-    from arifosmcp.runtime.models import (
-        RuntimeEnvelope as _Envelope,
-        Stage,
+    # Normalize inputs for kernel_core
+    if raw_input and not query:
+        query = raw_input
+
+    result = await kernel_execute(
+        query=query,
+        session_id=session_id,
+        actor_id=actor_id,
+        intent=intent,
+        auth_context=auth_context,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        allow_execution=allow_execution,
+        caller_context=caller_context,
+        payload=payload,
+        use_memory=use_memory,
+        use_heart=use_heart,
+        debug=debug,
+        **kwargs,
     )
+
+    # Return as RuntimeEnvelope if needed
+    if isinstance(result, RuntimeEnvelope):
+        return result
+
+    # Build envelope from result dict
     from core.shared.types import Verdict
 
-    actor = str(payload.get("actor_id") or actor_id or "anonymous").strip().lower()
-    context: dict[str, Any] = {
-        "payload": payload,
-        "risk_tier": risk_tier,
-        "dry_run": dry_run,
-        "allow_execution": allow_execution,
-        "intent": intent,
-        "use_memory": use_memory,
-        "use_heart": use_heart,
-        "debug": debug,
-        "auth_context": auth_context or {},
-    }
+    ok = result.get("ok", True)
+    tool_name = result.get("tool", "arifos.kernel")
 
-    routing_result = await process_query(
-        query=effective_query,
-        actor_id=actor,
-        session_id=session_id,
-        context=context,
-    )
-
-    # If the router already produced a RuntimeEnvelope (governed path), return it.
-    tool_result = routing_result.get("tool_result")
-    if isinstance(tool_result, _Envelope):
-        return tool_result
-
-    # Governance-blocked — wrap as RuntimeEnvelope VOID.
-    if not routing_result.get("ok", True) or routing_result.get("governance_block"):
-        return _Envelope(
-            ok=False,
-            tool="arifos.route",
-            canonical_tool_name="arifos.route",
-            stage=Stage.ROUTER_444.value,
-            verdict=Verdict.VOID,
-            session_id=session_id,
-            detail=routing_result.get("audit_note", "Governance block"),
-        )
-
-    # Informational / governance-passed — return SEAL envelope.
-    return _Envelope(
-        ok=True,
-        tool="arifos.route",
-        canonical_tool_name="arifos.route",
+    return RuntimeEnvelope(
+        ok=ok,
+        tool=tool_name,
+        canonical_tool_name="arifos.kernel",
         stage=Stage.ROUTER_444.value,
-        verdict=Verdict.SEAL,
+        verdict=Verdict.SEAL if ok else Verdict.VOID,
         session_id=session_id,
-        detail=routing_result.get("note") or routing_result.get("audit_note"),
+        payload=result,
     )
