@@ -66,8 +66,8 @@ def _make_f12_block_envelope(injection_score: float, threats: list[str], session
     from arifosmcp.runtime.models import RuntimeStatus, Verdict
     return _RE(
         ok=False,
-        tool="arifos.init",
-        canonical_tool_name="arifos.init",
+        tool="arifos_init",
+        canonical_tool_name="arifos_init",
         stage="000_INIT",
         status=RuntimeStatus.ERROR,
         verdict=Verdict.VOID,
@@ -145,7 +145,7 @@ async def arifos_init(
         )
         return seal_runtime_envelope(
             _make_f12_block_envelope(_injection_score, _threats, session_id),
-            "arifos.init",
+            "arifos_init",
         )
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -212,8 +212,8 @@ async def arifos_init(
         
         envelope = RuntimeEnvelope(
             ok=syscall_verdict == "SEAL",
-            tool="arifos.init",
-            canonical_tool_name="arifos.init",
+            tool="arifos_init",
+            canonical_tool_name="arifos_init",
             stage="000_INIT",
             status=RuntimeStatus.READY if syscall_verdict == "SEAL" else RuntimeStatus.BLOCKED,
             verdict=syscall_verdict,
@@ -229,7 +229,7 @@ async def arifos_init(
                 "reason": syscall_reason
             }
         )
-        return seal_runtime_envelope(envelope, "arifos.init")
+        return seal_runtime_envelope(envelope, "arifos_init")
 
     # ═══════════════════════════════════════════════════════════════════════
     # STANDARD INIT BRANCH
@@ -254,7 +254,7 @@ async def arifos_init(
         envelope.policy = {"floors_checked": ["F12"], "injection_score": round(_injection_score, 4), "platform_context": platform}
     if hasattr(envelope, "platform_context"):
         envelope.platform_context = platform
-    return seal_runtime_envelope(envelope, "arifos.init")
+    return seal_runtime_envelope(envelope, "arifos_init")
 
 
 async def arifos_sense(
@@ -281,14 +281,14 @@ async def arifos_sense(
         from arifosmcp.runtime.models import RuntimeStatus, Verdict
         return seal_runtime_envelope(_RE(
             ok=False,
-            tool="arifos.sense",
-            canonical_tool_name="arifos.sense",
+            tool="arifos_sense",
+            canonical_tool_name="arifos_sense",
             stage="111_SENSE",
             status=RuntimeStatus.ERROR,
             verdict=Verdict.VOID,
             detail="Query cannot be empty for reality grounding.",
             session_id=session_id,
-        ), "arifos.sense")
+        ), "arifos_sense")
 
     # ── governed mode: full constitutional protocol ────────────────────────────
     if mode == "governed":
@@ -374,8 +374,8 @@ async def arifos_sense(
 
         envelope = _RE(
             ok=ok,
-            tool="arifos.sense",
-            canonical_tool_name="arifos.sense",
+            tool="arifos_sense",
+            canonical_tool_name="arifos_sense",
             stage="111_SENSE",
             status=status,
             verdict=verdict,
@@ -399,7 +399,7 @@ async def arifos_sense(
                 "truth_vector": intel_state.truth_vector.to_dict(),
             }
         _stamp_platform(envelope, platform)
-        return seal_runtime_envelope(envelope, "arifos.sense")
+        return seal_runtime_envelope(envelope, "arifos_sense")
 
     # ── legacy modes: delegate to physics_reality ─────────────────────────────
     return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug, platform)
@@ -424,7 +424,7 @@ async def _sense_legacy(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos.sense")
+    return seal_runtime_envelope(envelope, "arifos_sense")
 
 
 async def arifos_mind(
@@ -467,22 +467,22 @@ async def arifos_mind(
     )
 
     # ── Seal and inject typed packets into intelligence_state ─────────────
-    sealed = seal_runtime_envelope(envelope, "arifos.mind")
-    
+    sealed = seal_runtime_envelope(envelope, "arifos_mind")
+
     # ── Visibility Injection: Surface reasoning to top-level ────────────────
     if hasattr(sealed, "__dict__"):
         # Enrich detail with the reasoning summary
         reasoning_summary = decision_packet.get("summary", "")
         if reasoning_summary:
             sealed.detail = f"{sealed.detail}\n\nREASONING: {reasoning_summary}"
-        
+
         # Inject structured trace
         intel = sealed.intelligence_state or {}
         intel["decision_packet"] = decision_packet
         # Do not include full audit packet to avoid token bloat unless debug is on
         if debug:
             intel["audit_packet"] = audit_packet
-        
+
         intel["reasoning_trace"] = {
             "causal_hypotheses": [h.get("claim") for h in audit_packet.get("full_hypothesis_set", [])],
             "grounding_facts": decision_packet.get("facts", []),
@@ -494,7 +494,38 @@ async def arifos_mind(
         ).get("chaos_score", 0.0)
         sealed.intelligence_state = intel
         sealed.platform_context = platform
-    
+
+    # ── P2: Provenance Ledger — Auto-seal outcome to VAULT999 ───────────────
+    # Only seal if NOT dry_run and session_id is active.
+    if not dry_run and session_id and session_id != "global":
+        try:
+            import json as _json
+            # Use the status from the decision packet as the verdict tag
+            v_tag = decision_packet.get("status", "PARTIAL")
+            if v_tag == "OK": v_tag = "SEAL"
+            elif v_tag == "HOLD": v_tag = "HOLD"
+            elif v_tag == "ERROR": v_tag = "VOID"
+            else: v_tag = "PARTIAL"
+
+            # evidence string is the compact JSON of the audit packet
+            evidence_str = _json.dumps({
+                "type": "PROVENANCE_MIND",
+                "query": query,
+                "summary": decision_packet.get("summary"),
+                "audit": audit_packet
+            })
+
+            await arifos_vault(
+                verdict=v_tag,
+                evidence=evidence_str,
+                session_id=session_id,
+                risk_tier="low",
+                dry_run=False,
+                platform=platform
+            )
+        except Exception as vexc:
+            logger.warning("P2: Auto-seal failed for session %s: %s", session_id, vexc)
+
     return sealed
 
 
@@ -519,7 +550,7 @@ async def arifos_route(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos.route")
+    return seal_runtime_envelope(envelope, "arifos_route")
 
 
 async def arifos_heart(
@@ -553,7 +584,7 @@ async def arifos_heart(
         debug=debug,
     )
 
-    sealed = seal_runtime_envelope(envelope, "arifos.heart")
+    sealed = seal_runtime_envelope(envelope, "arifos_heart")
 
     # ── Visibility Injection: Surface safety reasoning ─────────────────────
     if hasattr(sealed, "__dict__"):
@@ -597,7 +628,7 @@ async def arifos_ops(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos.ops")
+    return seal_runtime_envelope(envelope, "arifos_ops")
 
 
 async def arifos_judge(
@@ -623,7 +654,7 @@ async def arifos_judge(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos.judge")
+    return seal_runtime_envelope(envelope, "arifos_judge")
 
 
 async def arifos_memory(
@@ -657,7 +688,7 @@ async def arifos_memory(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos.memory")
+    return seal_runtime_envelope(envelope, "arifos_memory")
 
 
 async def arifos_vps_monitor(
@@ -704,29 +735,29 @@ async def arifos_vps_monitor(
             output = stdout.strip()
         else:
             return seal_runtime_envelope(RE(
-                ok=False, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+                ok=False, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
                 stage="111_SENSE", verdict=Verdict.VOID, status=RuntimeStatus.ERROR,
                 detail=f"F12_BLOCKED: Action '{action}' not permitted."
-            ), "arifos.vps_monitor")
+            ), "arifos_vps_monitor")
 
         if dry_run:
             return seal_runtime_envelope(RE(
-                ok=True, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+                ok=True, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
                 stage="111_SENSE", verdict=Verdict.SEAL, status=RuntimeStatus.SUCCESS,
                 payload={"mode": "dry_run", "action": action}
-            ), "arifos.vps_monitor")
+            ), "arifos_vps_monitor")
 
         return seal_runtime_envelope(RE(
-            ok=True, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+            ok=True, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
             stage="111_SENSE", verdict=Verdict.SEAL, status=RuntimeStatus.SUCCESS,
             payload={"output": output, "success": True}
-        ), "arifos.vps_monitor")
+        ), "arifos_vps_monitor")
     except Exception as e:
         return seal_runtime_envelope(RE(
-            ok=False, tool="arifos.vps_monitor", canonical_tool_name="arifos.vps_monitor",
+            ok=False, tool="arifos_vps_monitor", canonical_tool_name="arifos_vps_monitor",
             stage="111_SENSE", verdict=Verdict.VOID, status=RuntimeStatus.ERROR,
             detail=str(e)
-        ), "arifos.vps_monitor")
+        ), "arifos_vps_monitor")
 
 
 async def arifos_vault(
@@ -748,7 +779,7 @@ async def arifos_vault(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos.vault")
+    return seal_runtime_envelope(envelope, "arifos_vault")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -759,17 +790,17 @@ async def arifos_vault(
 from arifosmcp.runtime.tools_forge import arifos_forge
 
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
-    "arifos.init": arifos_init,
-    "arifos.sense": arifos_sense,
-    "arifos.mind": arifos_mind,
-    "arifos.route": arifos_route,
-    "arifos.heart": arifos_heart,
-    "arifos.ops": arifos_ops,
-    "arifos.judge": arifos_judge,
-    "arifos.memory": arifos_memory,
-    "arifos.vault": arifos_vault,
-    "arifos.forge": arifos_forge,  # The 10th Tool — Delegated Execution
-    "arifos.vps_monitor": arifos_vps_monitor,
+    "arifos_init": arifos_init,
+    "arifos_sense": arifos_sense,
+    "arifos_mind": arifos_mind,
+    "arifos_route": arifos_route,
+    "arifos_heart": arifos_heart,
+    "arifos_ops": arifos_ops,
+    "arifos_judge": arifos_judge,
+    "arifos_memory": arifos_memory,
+    "arifos_vault": arifos_vault,
+    "arifos_forge": arifos_forge,  # The 10th Tool — Delegated Execution
+    "arifos_vps_monitor": arifos_vps_monitor,
 }
 
 

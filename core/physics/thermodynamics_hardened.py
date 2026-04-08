@@ -289,6 +289,28 @@ class ThermodynamicBudget:
             "violation": not result["passed"],
         }
 
+    def calculate_chaos_score(self) -> float:
+        """
+        Calculate total cognitive chaos from thermodynamic state.
+
+        Factors:
+        - Depletion ratio (0.0 - 1.0)
+        - Landauer violations (0 - max_violations)
+        - Entropy reduction claimed (cumulative ΔS)
+        """
+        score = 0.0
+        # Energy stress: more depletion = more chaos (0.0 to 1.5)
+        score += self.depletion_ratio * 1.5
+
+        # Forensic stress: violations indicate instability (0.0 to 2.0)
+        violation_ratio = self.landauer_violations / max(1, self.max_violations)
+        score += violation_ratio * 2.0
+
+        # Complexity stress: high ΔS claimed indicates high mental load (0.0 to 0.5)
+        score += min(1.0, self.entropy_reduction_claimed / 5.0) * 0.5
+
+        return round(score, 2)
+
     def to_dict(self) -> dict[str, Any]:
         """Export thermodynamic state."""
         return {

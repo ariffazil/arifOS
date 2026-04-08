@@ -762,8 +762,26 @@ async def engineering_memory_dispatch_impl(
             from arifosmcp.agentzero.memory.constitutional_memory import MemoryArea
 
             await store.initialize_project(project_id)
-            entries = await store.vector_query(query=query, project_id=project_id, k=k)
-            results = [e.to_dict() for e in entries]
+            try:
+                entries = await store.vector_query(query=query, project_id=project_id, k=k)
+                results = [e.to_dict() for e in entries]
+            except Exception as emb_err:
+                return RuntimeEnvelope(
+                    ok=False,
+                    tool="engineering_memory",
+                    session_id=session_id,
+                    stage="555_MEMORY",
+                    verdict=Verdict.SABAR,
+                    status=RuntimeStatus.SABAR,
+                    payload={
+                        "results": [],
+                        "count": 0,
+                        "query": query,
+                        "backend": "qdrant",
+                        "error": "EMBEDDING_UNAVAILABLE",
+                        "message": f"Embedding service not reachable: {emb_err}",
+                    },
+                )
 
             # H6: Apply context budget enforcement (fallback path)
             budget_remaining = context_budget
@@ -1210,7 +1228,17 @@ async def math_estimator_dispatch_impl(
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
     if mode == "cost":
-        res = _internal_tools().cost_estimator(action_description=payload.get("action", ""))
+        action_description = payload.get("action", "")
+        res = {
+            "action": action_description,
+            "estimate": {
+                "compute_units": "~1 op",
+                "entropy_delta": 0.01,
+                "risk_tier": risk_tier,
+                "notes": "Cost estimation: floor F4 (clarity) governed.",
+            },
+            "floor": "F4_CLARITY",
+        }
         return RuntimeEnvelope(
             ok=True,
             tool="math_estimator",

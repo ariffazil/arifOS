@@ -59,20 +59,30 @@ async def vault_ledger(
         if mode is None:
             mode = "seal"
         res_dict = await HARDENED_DISPATCH_MAP["vault_ledger"](mode=mode, payload=payload)
-        
+
         # ─── V1.0 VERDICT FORGING ───
         from arifosmcp.runtime.models import CanonicalMetrics
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
-        
+
+        # Normalize: RuntimeEnvelope (pydantic) → dict
+        if hasattr(res_dict, "model_dump"):
+            _res = res_dict.model_dump()
+        elif hasattr(res_dict, "dict"):
+            _res = res_dict.dict()
+        elif isinstance(res_dict, dict):
+            _res = res_dict
+        else:
+            _res = {}
+
         return forge_verdict(
-            tool_id="arifos.vault",
-            canonical_tool_name="arifos.vault",
+            tool_id="arifos_vault",
+            canonical_tool_name="arifos_vault",
             stage="999_VAULT",
-            payload=res_dict.get("payload", res_dict),
+            payload=_res.get("payload", _res),
             session_id=session_id,
             metrics=CanonicalMetrics(),
             floors_checked=["F1", "F13"],
-            message=res_dict.get("note")
+            message=_res.get("note")
         )
 
     resolved_payload = dict(payload or {})

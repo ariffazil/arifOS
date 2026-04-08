@@ -142,42 +142,42 @@ class HardenedKernelRouter:
 
         # Session/init queries
         if any(kw in query_lower for kw in ["init", "session", "anchor", "start"]):
-            return "arifos.init"
+            return "arifos_init"
 
         # Memory queries
         if any(kw in query_lower for kw in ["remember", "recall", "memory", "context"]):
-            return "arifos.memory"
+            return "arifos_memory"
 
         # Execution/forge queries
         if any(kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]):
-            return "arifos.forge"
+            return "arifos_forge"
 
         # Seal/vault queries
         if any(kw in query_lower for kw in ["seal", "commit", "vault", "ledger"]):
-            return "arifos.vault"
+            return "arifos_vault"
 
         # Reasoning/mind queries
         if any(kw in query_lower for kw in ["reason", "think", "analyze", "mind"]):
-            return "arifos.mind"
+            return "arifos_mind"
 
         # Safety/heart queries
         if any(kw in query_lower for kw in ["safe", "risk", "harm", "heart"]):
-            return "arifos.heart"
+            return "arifos_heart"
 
         # Operations/cost queries
         if any(kw in query_lower for kw in ["cost", "ops", "estimate", "feasible"]):
-            return "arifos.ops"
+            return "arifos_ops"
 
         # Reality/sense queries
         if any(kw in query_lower for kw in ["sense", "ground", "verify", "reality"]):
-            return "arifos.sense"
+            return "arifos_sense"
 
         # Judge queries (default for critical)
         if query_class == QueryClass.CRITICAL:
-            return "arifos.judge"
+            return "arifos_judge"
 
         # Route as default
-        return "arifos.route"
+        return "arifos_route"
 
     async def _invoke_tool_with_governance(
         self,
@@ -229,7 +229,7 @@ class HardenedKernelRouter:
         if context.get("mode") is not None:
             common_args["mode"] = context.get("mode")
 
-        if tool_name == "arifos.init":
+        if tool_name == "arifos_init":
             return await handler(
                 actor_id=actor_id,
                 intent=str(payload.get("declared_intent") or query),
@@ -237,9 +237,9 @@ class HardenedKernelRouter:
                 allow_execution=context.get("allow_execution", False),
                 **common_args,
             )
-        if tool_name in ("arifos.sense", "arifos.mind", "arifos.memory"):
+        if tool_name in ("arifos_sense", "arifos_mind", "arifos_memory"):
             extra_args = {}
-            if tool_name == "arifos.mind":
+            if tool_name == "arifos_mind":
                 extra_args["context"] = payload.get("context")
                 # ── ToM: inject belief state into mind invocation ──────────
                 # Load cross-session actor belief and pass as second-order context.
@@ -266,13 +266,13 @@ class HardenedKernelRouter:
                         )
                 # ── end ToM wiring ──────────────────────────────────────────
             return await handler(query=str(payload.get("query") or query), **extra_args, **common_args)
-        if tool_name == "arifos.route":
+        if tool_name == "arifos_route":
             return await handler(request=str(payload.get("query") or query), **common_args)
-        if tool_name == "arifos.heart":
+        if tool_name == "arifos_heart":
             return await handler(content=str(payload.get("content") or payload.get("query") or query), **common_args)
-        if tool_name == "arifos.ops":
+        if tool_name == "arifos_ops":
             return await handler(action=str(payload.get("action") or payload.get("query") or query), **common_args)
-        if tool_name == "arifos.judge":
+        if tool_name == "arifos_judge":
             return await handler(candidate_action=str(payload.get("query") or query), **common_args)
 
         return RuntimeEnvelope(

@@ -6,6 +6,7 @@ This module provides runtime traceability back to that canonical repo.
 
 from __future__ import annotations
 
+import os
 import subprocess
 from datetime import datetime, timezone
 from typing import Any
@@ -17,7 +18,7 @@ def _git_sha_short() -> str:
         return subprocess.check_output(
             ["git", "rev-parse", "--short", "HEAD"],
             stderr=subprocess.DEVNULL,
-            cwd="/root/arifOS",
+            cwd="C:/ariffazil/arifOS",
         ).decode().strip()
     except Exception:
         return "909c4ca"  # v2026.04.07 release SHA
@@ -31,10 +32,11 @@ def get_build_info() -> dict[str, Any]:
         build metadata (commit, branch), and status.
     """
     commit = _git_sha_short()
+    app_version = os.environ.get("ARIFOS_APP_VERSION", "2026.04.07")
     return {
         # Server version (semantic, required by A2A/WebMCP)
-        "version": "2026.04.07",
-        "server_version": "2026.04.07",
+        "version": app_version,
+        "server_version": app_version,
         "update_summary": "Enforced single Source-of-Truth architecture and aligned runtime endpoints. This eliminates doctrine fragmentation and ensures live server status is the undisputed authority for system capabilities.",
 
         # MCP protocol compatibility

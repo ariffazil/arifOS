@@ -255,7 +255,7 @@ def _forge_error(
     """Generate forge error envelope."""
     return {
         "ok": False,
-        "tool": "arifos.forge",
+        "tool": "arifos_forge",
         "stage": "FORGE_010",
         "session_id": session_id,
         "verdict": "VOID",
@@ -270,7 +270,7 @@ def _forge_error(
             "error": message,
             "resolution": "Route through arifos.judge first to obtain SEAL verdict.",
         },
-        "allowed_next_tools": ["arifos.judge", "arifos.init"],
+        "allowed_next_tools": ["arifos_judge", "arifos_init"],
     }
 
 
@@ -294,13 +294,13 @@ def _forge_success(
     
     return {
         "ok": True,
-        "tool": "arifos.forge",
+        "tool": "arifos_forge",
         "stage": "FORGE_010",
         "session_id": session_id,
         "verdict": "SEAL",
         "status": "SUCCESS",
         "payload": payload,
-        "allowed_next_tools": ["arifos.vault", "arifos.memory"],
+        "allowed_next_tools": ["arifos_vault", "arifos_memory"],
     }
 
 

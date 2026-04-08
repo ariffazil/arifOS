@@ -195,17 +195,31 @@ def require_falsification(hypotheses: list[Hypothesis]) -> None:
 
 def chaos_score(state: MindState) -> float:
     """
-    Compute entropy score from internal mind state.
+    Compute entropy score from internal mind state and thermodynamic budget.
 
     Low chaos  (< 1.0) → answer directly
     Medium     (< 2.0) → answer with uncertainty disclosure
     High       (≥ 2.0) → HOLD — narrow scope or get human judgment
     """
+    # 1. Cognitive chaos (base)
     score = 0.0
     score += len(state.assumptions) * 0.2
     score += len(state.unknowns) * 0.3
     score += len(state.contradictions) * 0.5
     score += max(0, len(state.hypotheses) - 2) * 0.1
+
+    # 2. Thermodynamic stress (if available)
+    try:
+        from core.physics.thermodynamics_hardened import get_thermodynamic_budget
+        # Try real session_id first, then internal mind_state session_id
+        # Note: Thermodynamic budget is keyed by the session_id from init_anchor
+        budget = get_thermodynamic_budget(state.session_id)
+        thermo_score = budget.calculate_chaos_score()
+        score += thermo_score
+    except Exception:
+        # Fallback to cognitive only if budget is missing or PHYSICS_DISABLED
+        pass
+
     return round(score, 2)
 
 

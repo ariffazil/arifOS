@@ -339,30 +339,30 @@ logger.info(
 
 # Horizon → v2 tool name mapping (for REST proxy compatibility)
 HORIZON_TO_V2_MAP: dict[str, str] = {
-    "init_anchor": "arifos.init",
-    "arifOS_kernel": "arifos.route",
-    "physics_reality": "arifos.sense",
-    "agi_mind": "arifos.mind",
-    "asi_heart": "arifos.heart",
-    "math_estimator": "arifos.ops",
-    "apex_soul": "arifos.judge",
-    "engineering_memory": "arifos.memory",
-    "vault_ledger": "arifos.vault",
-    "code_engine": "arifos.forge",
-    "vps_monitor": "arifos.vps_monitor",
-    "architect_registry": "arifos.init",
+    "init_anchor": "arifos_init",
+    "arifOS_kernel": "arifos_route",
+    "physics_reality": "arifos_sense",
+    "agi_mind": "arifos_mind",
+    "asi_heart": "arifos_heart",
+    "math_estimator": "arifos_ops",
+    "apex_soul": "arifos_judge",
+    "engineering_memory": "arifos_memory",
+    "vault_ledger": "arifos_vault",
+    "code_engine": "arifos_forge",
+    "vps_monitor": "arifos_vps_monitor",
+    "architect_registry": "arifos_init",
     # v2 names also accepted directly
-    "arifos.init": "arifos.init",
-    "arifos.route": "arifos.route",
-    "arifos.sense": "arifos.sense",
-    "arifos.mind": "arifos.mind",
-    "arifos.heart": "arifos.heart",
-    "arifos.ops": "arifos.ops",
-    "arifos.judge": "arifos.judge",
-    "arifos.memory": "arifos.memory",
-    "arifos.vault": "arifos.vault",
-    "arifos.forge": "arifos.forge",
-    "arifos.vps_monitor": "arifos.vps_monitor",
+    "arifos_init": "arifos_init",
+    "arifos_route": "arifos_route",
+    "arifos_sense": "arifos_sense",
+    "arifos_mind": "arifos_mind",
+    "arifos_heart": "arifos_heart",
+    "arifos_ops": "arifos_ops",
+    "arifos_judge": "arifos_judge",
+    "arifos_memory": "arifos_memory",
+    "arifos_vault": "arifos_vault",
+    "arifos_forge": "arifos_forge",
+    "arifos_vps_monitor": "arifos_vps_monitor",
 }
 
 
@@ -405,29 +405,29 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
     # Parameter normalization: map common aliases to expected names
     # arifos.sense expects "query", arifos.ops expects "action"
     # But callers may send "query" for any tool
-    if v2_name == "arifos.sense" and "query" not in body:
+    if v2_name == "arifos_sense" and "query" not in body:
         body.setdefault("query", body.pop("input", None))
-    elif v2_name == "arifos.ops":
+    elif v2_name == "arifos_ops":
         # For ops, accept "query" as alias for "action"
         if "action" not in body:
             body["action"] = body.pop("query", "") or ""
-    elif v2_name in ("arifos.mind", "arifos.heart") and "content" not in body:
+    elif v2_name in ("arifos_mind", "arifos_heart") and "content" not in body:
         # mind and heart expect "content"
         if "query" in body:
             body.setdefault("content", body.pop("query", ""))
         elif "input" in body:
             body.setdefault("content", body.pop("input", ""))
-    elif v2_name == "arifos.judge" and "candidate" not in body:
+    elif v2_name == "arifos_judge" and "candidate" not in body:
         # judge expects "candidate"
         body.setdefault("candidate", body.pop("query", ""))
-    elif v2_name == "arifos.route":
+    elif v2_name == "arifos_route":
         # arifos.route expects "request" but callers may send "intent", "query", "input"
         if "request" not in body:
             for key in ["intent", "query", "input", "content", "text"]:
                 if key in body:
                     body["request"] = body.pop(key)
                     break
-    elif v2_name == "arifos.mind" and "query" not in body:
+    elif v2_name == "arifos_mind" and "query" not in body:
         # arifos.mind expects "query" but callers may send "content"
         if "content" in body:
             body["query"] = body.pop("content")

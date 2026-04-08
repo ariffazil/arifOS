@@ -124,8 +124,8 @@ class ContractRegistry:
             # ═════════════════════════════════════════════════════════════════
             # FOUNDATION LAYER
             # ═════════════════════════════════════════════════════════════════
-            "arifos.init": ToolContract(
-                name="arifos.init",
+            "arifos_init": ToolContract(
+                name="arifos_init",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -156,13 +156,13 @@ class ContractRegistry:
                 side_effect_class=SideEffectClass.WRITE_SAFE,
                 reversibility_class=ReversibilityClass.FULL,
                 allowed_predecessors=set(),  # Genesis
-                allowed_successors={"arifos.sense", "arifos.route"},
+                allowed_successors={"arifos_sense", "arifos_route"},
                 proof_requirements=["session_binding"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.sense": ToolContract(
-                name="arifos.sense",
+            "arifos_sense": ToolContract(
+                name="arifos_sense",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -192,14 +192,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.SAFE,
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos.init"},
-                allowed_successors={"arifos.mind", "arifos.route"},
+                allowed_predecessors={"arifos_init"},
+                allowed_successors={"arifos_mind", "arifos_route"},
                 proof_requirements=["grounding_check", "uncertainty_attached"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.mind": ToolContract(
-                name="arifos.mind",
+            "arifos_mind": ToolContract(
+                name="arifos_mind",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -230,14 +230,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos.sense", "arifos.init"},
-                allowed_successors={"arifos.route"},
+                allowed_predecessors={"arifos_sense", "arifos_init"},
+                allowed_successors={"arifos_route"},
                 proof_requirements=["reasoning_trace", "confidence_attached"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.route": ToolContract(
-                name="arifos.route",
+            "arifos_route": ToolContract(
+                name="arifos_route",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -268,14 +268,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos.init", "arifos.sense", "arifos.mind"},
-                allowed_successors={"arifos.ops", "arifos.heart", "arifos.judge"},
+                allowed_predecessors={"arifos_init", "arifos_sense", "arifos_mind"},
+                allowed_successors={"arifos_ops", "arifos_heart", "arifos_judge"},
                 proof_requirements=["transition_logged"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.ops": ToolContract(
-                name="arifos.ops",
+            "arifos_ops": ToolContract(
+                name="arifos_ops",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -304,14 +304,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos.route"},
-                allowed_successors={"arifos.heart", "arifos.judge"},
+                allowed_predecessors={"arifos_route"},
+                allowed_successors={"arifos_heart", "arifos_judge"},
                 proof_requirements=["calculation_method", "uncertainty_attached"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.heart": ToolContract(
-                name="arifos.heart",
+            "arifos_heart": ToolContract(
+                name="arifos_heart",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -339,14 +339,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos.route", "arifos.ops"},
-                allowed_successors={"arifos.judge"},
+                allowed_predecessors={"arifos_route", "arifos_ops"},
+                allowed_successors={"arifos_judge"},
                 proof_requirements=["value_alignment_check"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.judge": ToolContract(
-                name="arifos.judge",
+            "arifos_judge": ToolContract(
+                name="arifos_judge",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -375,14 +375,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos.route", "arifos.ops", "arifos.heart"},
-                allowed_successors={"arifos.vault", "arifos.forge"},
+                allowed_predecessors={"arifos_route", "arifos_ops", "arifos_heart"},
+                allowed_successors={"arifos_vault", "arifos_forge"},
                 proof_requirements=["tri_witness_verification", "floor_check_all"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.vault": ToolContract(
-                name="arifos.vault",
+            "arifos_vault": ToolContract(
+                name="arifos_vault",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -411,14 +411,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.DANGEROUS,
                 side_effect_class=SideEffectClass.WRITE_DANGEROUS,
                 reversibility_class=ReversibilityClass.NONE,
-                allowed_predecessors={"arifos.judge"},
+                allowed_predecessors={"arifos_judge"},
                 allowed_successors=set(),  # Terminal
                 proof_requirements=["judge_verdict_seal", "merkle_integrity", "authority_signature"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.memory": ToolContract(
-                name="arifos.memory",
+            "arifos_memory": ToolContract(
+                name="arifos_memory",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -447,14 +447,14 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.WRITE_SAFE,
                 reversibility_class=ReversibilityClass.PARTIAL,
-                allowed_predecessors={"arifos.init", "arifos.judge"},
+                allowed_predecessors={"arifos_init", "arifos_judge"},
                 allowed_successors=set(),  # Parallel access
                 proof_requirements=["continuity_preserved"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.forge": ToolContract(
-                name="arifos.forge",
+            "arifos_forge": ToolContract(
+                name="arifos_forge",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -483,7 +483,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.CRITICAL,
                 side_effect_class=SideEffectClass.FORGE,
                 reversibility_class=ReversibilityClass.REQUIRES_APPROVAL,
-                allowed_predecessors={"arifos.judge"},  # ONLY from judge
+                allowed_predecessors={"arifos_judge"},  # ONLY from judge
                 allowed_successors=set(),  # Terminal
                 proof_requirements=[
                     "judge_verdict_seal",
@@ -494,8 +494,8 @@ class ContractRegistry:
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos.vps_monitor": ToolContract(
-                name="arifos.vps_monitor",
+            "arifos_vps_monitor": ToolContract(
+                name="arifos_vps_monitor",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -523,7 +523,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.SAFE,
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos.init"},  # Can call anytime after init
+                allowed_predecessors={"arifos_init"},  # Can call anytime after init
                 allowed_successors=set(),  # Parallel, diagnostic only
                 proof_requirements=["measurement_only"]
             ),
@@ -585,24 +585,24 @@ class MetabolicRouter:
     
     # Canonical metabolic flow
     METABOLIC_DAG: Dict[str, Set[str]] = {
-        "arifos.init": {"arifos.sense", "arifos.route"},
-        "arifos.sense": {"arifos.mind", "arifos.route"},
-        "arifos.mind": {"arifos.route"},
-        "arifos.route": {"arifos.ops", "arifos.heart", "arifos.judge"},
-        "arifos.ops": {"arifos.heart", "arifos.judge"},
-        "arifos.heart": {"arifos.judge"},
-        "arifos.judge": {"arifos.vault", "arifos.forge"},
-        "arifos.vault": set(),  # Terminal
-        "arifos.forge": set(),  # Terminal
-        "arifos.memory": set(),  # Parallel
-        "arifos.vps_monitor": set(),  # Parallel
+        "arifos_init": {"arifos_sense", "arifos_route"},
+        "arifos_sense": {"arifos_mind", "arifos_route"},
+        "arifos_mind": {"arifos_route"},
+        "arifos_route": {"arifos_ops", "arifos_heart", "arifos_judge"},
+        "arifos_ops": {"arifos_heart", "arifos_judge"},
+        "arifos_heart": {"arifos_judge"},
+        "arifos_judge": {"arifos_vault", "arifos_forge"},
+        "arifos_vault": set(),  # Terminal
+        "arifos_forge": set(),  # Terminal
+        "arifos_memory": set(),  # Parallel
+        "arifos_vps_monitor": set(),  # Parallel
     }
     
     # Special gates requiring preconditions
     GATED_TRANSITIONS: Dict[Tuple[str, str], Dict[str, Any]] = {
-        ("arifos.judge", "arifos.forge"): {
+        ("arifos_judge", "arifos_forge"): {
             "requires": {"judge_verdict": "SEAL"},
-            "message": "arifos.forge requires judge:SEAL verdict"
+            "message": "arifos_forge requires judge:SEAL verdict"
         }
     }
     
@@ -676,7 +676,7 @@ class MetabolicRouter:
         return {
             "dag": {k: list(v) for k, v in cls.METABOLIC_DAG.items()},
             "terminals": [k for k, v in cls.METABOLIC_DAG.items() if not v],
-            "genesis": ["arifos.init"]
+            "genesis": ["arifos_init"]
         }
 
 

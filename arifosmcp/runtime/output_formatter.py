@@ -37,7 +37,7 @@ def format_output(
     options: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    Format RuntimeEnvelope into clean 3-tier output.
+    Format RuntimeEnvelope into platform-specific clean output.
     
     Args:
         envelope: The raw runtime envelope from tool execution
@@ -46,12 +46,45 @@ def format_output(
             - debug: Include full forensic state
             
     Returns:
-        Clean dict following fixed block structure
+        Platform-dispatched formatted data
     """
     options = options or {}
     verbose = options.get("verbose", False)
     debug = options.get("debug", False)
+    platform = envelope.platform_context or "unknown"
     
+    # ── Platform Dispatch ─────────────────────────────────────────────────────
+    
+    # 1. chatgpt_apps — widget-renderable JSON
+    if platform == "chatgpt_apps":
+        clean = _build_base_output(envelope)
+        res = clean.model_dump(exclude_none=True)
+        res["render_hint"] = "widget"
+        res["platform"] = "chatgpt_apps"
+        return res
+        
+    # 2. api — flat JSON, no MCP envelope
+    if platform == "api":
+        clean = _build_base_output(envelope)
+        return {
+            "ok": clean.execution.ok,
+            "status": clean.execution.status,
+            "verdict": clean.governance.verdict,
+            "summary": clean.operator.summary,
+            "next_step": clean.operator.next_step,
+            "payload": envelope.payload,
+            "session_id": clean.context.session,
+        }
+        
+    # 3. stdio — human-readable text
+    if platform == "stdio":
+        clean = _build_base_output(envelope)
+        text = f"[{clean.execution.status}] {clean.governance.verdict}: {clean.operator.summary}"
+        if clean.operator.next_step:
+            text += f"\nNext: {clean.operator.next_step}"
+        return {"output": text}
+
+    # 4. mcp (default) — 3-tier structure
     # Build base operator view
     clean = _build_base_output(envelope)
     
@@ -136,6 +169,7 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
             session=envelope.session_id,
             verified=envelope.authority.claim_status == "verified" if envelope.authority else False,
             risk=envelope.risk_class.value if envelope.risk_class else "low",
+            platform=envelope.platform_context or "unknown",
         ),
         error=error,
         debug=None,  # Never in base view

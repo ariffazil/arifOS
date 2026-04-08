@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 # PLATFORM CONTEXT — which caller surface invoked this tool
 # ═══════════════════════════════════════════════════════════════════════════════
 
-PlatformType = Literal["chatgpt", "perplexity", "mcp-cli", "playground", "api", "unknown"]
+PlatformType = Literal["mcp", "chatgpt_apps", "cursor", "api", "stdio", "unknown"]
 """
 Valid caller-platform values. Default is "unknown" (backward compat, F1 safe).
 Pass via request body `platform` field or HTTP header `X-Arifos-Platform`.
@@ -147,6 +147,7 @@ class ContextSummary(BaseModel):
     session: str | None = Field(default=None, description="Session ID")
     verified: bool = Field(default=False, description="Identity verified?")
     risk: str = Field(default="low", description="Risk tier")
+    platform: PlatformType = Field(default="unknown", description="Caller platform")
 
 
 class CleanError(BaseModel):
