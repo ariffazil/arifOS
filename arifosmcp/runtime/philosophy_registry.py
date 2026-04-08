@@ -120,7 +120,7 @@ ZONES = {
     # calibrated, adaptive
     "X0Y-Z-": PhilosophyProfile("X0Y-Z-", "Adaptive Listener", "balanced claim, adaptive, restrained", "Navigator", "Void", ["Listening first.", "Non-biological collaborator.", "Calibrated silence."]),
     "X0Y-Z0": PhilosophyProfile("X0Y-Z0", "Field Pragmatist", "balanced claim, adaptive, bounded action", "Navigator", "Forge", ["Practical wisdom.", "Evolving judgment.", "Field sense."]),
-    "X0Y-Z+": PhilosophyProfile("X0Y-Z+", "Dynamic Steward", "balanced claim, adaptive, active", "Steward", "Navigator", "Mission action.", "Flexible duty.", "Responsive governance."),
+    "X0Y-Z+": PhilosophyProfile("X0Y-Z+", "Dynamic Steward", "balanced claim, adaptive, active", "Steward", "Navigator", ["Mission action.", "Flexible duty.", "Responsive governance."]),
     
     # calibrated, balanced (CENTER)
     "X0Y0Z-": PhilosophyProfile("X0Y0Z-", "Governed Inquiry", "centered, restrained, balanced", "Pilgrim", "Void", ["Inquiry over assertion.", "Dialogue of reason.", "Careful clarity."]),
@@ -146,6 +146,22 @@ ZONES = {
     "X+Y+Z-": PhilosophyProfile("X+Y+Z-", "Silent Monastery", "humble, ordered, restrained", "Void", "Builder", ["He who knows does not speak.", "Contemplative order.", "Anti-haste."]),
     "X+Y+Z0": PhilosophyProfile("X+Y+Z0", "Custodian of Limits", "humble, ordered, bounded", "Builder", "Steward", ["Lawful restraint.", "Guardianship of the threshold.", "Humility in order."]),
     "X+Y+Z+": PhilosophyProfile("X+Y+Z+", "Reluctant Sovereign", "humble, ordered, active", "Steward", "Tragic", ["Grave duty.", "Constrained command.", "No clean victory."]),
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TELOS MODIFIERS (Legacy Compatibility)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+PHILOSOPHY_TELOS_MODIFIERS = {
+    "wisdom": {"A": 0.10, "P": 0.00, "X": 0.15, "E": -0.10},  # High clarity, low entropy
+    "power": {"A": 0.25, "P": 0.15, "X": 0.00, "E": 0.15},   # High intervention, active agency
+    "paradox": {"A": 0.00, "P": 0.10, "X": 0.45, "E": 0.00}, # Structural tension, Ψ-dominant
+    "void": {"A": -0.20, "P": 0.00, "X": 0.30, "E": -0.25},  # Peak humility, Ω-dominant
+    "seal": {"A": 0.40, "P": 0.40, "X": 0.00, "E": 0.00},    # Absolute alignment, forged truth
+    "love": {"A": 0.10, "P": -0.20, "X": 0.10, "E": -0.10},  # Empathy focus, low aggression
+    "scar": {"A": -0.10, "P": 0.10, "X": 0.20, "E": 0.10},   # Historical weight, accountability
+    "triumph": {"A": 0.35, "P": 0.25, "X": -0.15, "E": 0.05}, # High efficacy, low uncertainty
 }
 
 
