@@ -7,7 +7,7 @@ confidence: 1.0
 ---
 # Constitutional Floors (F1-F13)
 
-The 13 Constitutional Floors are the fundamental invariants governing all operations within arifOS.
+The 13 Constitutional Floors are the fundamental invariants governing all operations within arifos_
 
 ## The Floors Reference
 

@@ -33,7 +33,7 @@ To resolve naming drift, arifOS maintains a clear distinction between the **numb
 | **999** | `seal_999` | `vault` | Immutable Merkle commitment | **APEX Ψ** |
 
 > [!NOTE]
-> The **+1 Tool** (`arifos.forge`) is the execution bridge. It is not part of the audit loop but is **gated** by the Stage 888 SEAL verdict.
+> The **+1 Tool** (`arifos_forge`) is the execution bridge. It is not part of the audit loop but is **gated** by the Stage 888 SEAL verdict.
 
 ---
 

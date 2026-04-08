@@ -48,29 +48,29 @@ The canonical MCP surface as of `2026.04.06.3-TOM-ANCHORED`:
 
 | Tool | Role | ToM fields required |
 |------|------|-------------------|
-| `arifos.init` | Session anchoring | user_intent, assumed_context |
-| `arifos.sense` | Reality grounding + evidence gathering | evidence_type, source_confidence |
-| `arifos.mind` | Structured multi-hypothesis reasoning | alternative_hypotheses (min 2), second_order_effects |
-| `arifos.route` | Lane selection + intent classification | intent_class, priority |
-| `arifos.heart` | Safety analysis + human modeling | stakeholder_model, harm_probability |
-| `arifos.ops` | Operational cost (irreversibility + rollback) | rollback_plan, estimated_irreversibility |
-| `arifos.judge` | Constitutional verdict — **sole SEAL authority** | full_floor_scores, tri_witness |
-| `arifos.memory` | Governed context recall | recall_scope, confidence |
-| `arifos.vault` | Immutable seal receipt (no execution) | seal_hash, ledger_entry |
+| `arifos_init` | Session anchoring | user_intent, assumed_context |
+| `arifos_sense` | Reality grounding + evidence gathering | evidence_type, source_confidence |
+| `arifos_mind` | Structured multi-hypothesis reasoning | alternative_hypotheses (min 2), second_order_effects |
+| `arifos_route` | Lane selection + intent classification | intent_class, priority |
+| `arifos_heart` | Safety analysis + human modeling | stakeholder_model, harm_probability |
+| `arifos_ops` | Operational cost (irreversibility + rollback) | rollback_plan, estimated_irreversibility |
+| `arifos_judge` | Constitutional verdict — **sole SEAL authority** | full_floor_scores, tri_witness |
+| `arifos_memory` | Governed context recall | recall_scope, confidence |
+| `arifos_vault` | Immutable seal receipt (no execution) | seal_hash, ledger_entry |
 
 ### 1 Execution Bridge (Action — gated by SEAL)
 
 | Tool | Role | Gate condition |
 |------|------|---------------|
-| `arifos.forge` | Delegated execution | `judge verdict = "SEAL"` required |
+| `arifos_forge` | Delegated execution | `judge verdict = "SEAL"` required |
 
-**Separation of powers:** Think/Validate tools vs. Execute tool. `arifos.forge` cannot run without a prior `arifos.judge` SEAL verdict.
+**Separation of powers:** Think/Validate tools vs. Execute tool. `arifos_forge` cannot run without a prior `arifos_judge` SEAL verdict.
 
 ### Tool Modes
 
 Multi-function tools:
-- `arifos.judge` → modes: `judge` | `health` | `history` | `validate`
-- `arifos.vault` → modes: `seal` | `seal_card` | `render` | `status`
+- `arifos_judge` → modes: `judge` | `health` | `history` | `validate`
+- `arifos_vault` → modes: `seal` | `seal_card` | `render` | `status`
 
 ---
 
@@ -155,7 +155,7 @@ arifosmcp/          ← Canonical package (all logic here)
 ├── schemas.py      ← Canonical schemas
 ├── prompts.py      ← Philosophy Registry v1.2.0 (83 quotes)
 ├── resources.py    ← 8 resources
-├── manifest.py     ← arifos.* namespace (no arifos.v2)
+├── manifest.py     ← arifos_* namespace (no arifos_v2)
 ├── server.py       ← FastAPI + streamable-http + stdio
 ├── build_info.py   ← Live git SHA, release_tag
 └── sensing_protocol.py ← governed_sense_v2 (8 stages)
@@ -191,7 +191,7 @@ Civilizational quotes injected at constitutional moments:
 - `core/` directory — 153 files, migrated → `arifosmcp/` (Apr 5, 2026)
 - 13 versioned `*_v2.py` files consolidated (Apr 7, 2026)  
 - ~6,000 lines of dead/parallel implementations archived (Apr 6.2, 2026)
-- `arifos.v2` namespace fully purged
+- `arifos_v2` namespace fully purged
 - Docker image: 6.1GB → ~500MB (lean multi-stage build)
 
 ---
@@ -199,7 +199,7 @@ Civilizational quotes injected at constitutional moments:
 ## Open Questions
 
 - What is the exact `platform=` dispatch mechanism in Path A (how does `_stamp_platform()` route to different output formatters)?
-- Is `arifos.mind` the primary locus of ToM fields, or do all 9 governance tools carry the full ToM schema?
+- Is `arifos_mind` the primary locus of ToM fields, or do all 9 governance tools carry the full ToM schema?
 - What does the `/dashboard` look like when ΔS + psi_LE gauges ship (H2 roadmap item)?
 
 ---

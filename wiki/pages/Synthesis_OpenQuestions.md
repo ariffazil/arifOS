@@ -30,8 +30,8 @@ confidence: 1.0
 ### Execution & Tooling
 
 - **Path A (`platform=` dispatch):** `_stamp_platform()` stamps context on every envelope — but what does the `output_formatter` dispatch look like? Which tool handles it: `tools.py` + `schemas.py`, or a new middleware? *(Source: [[Roadmap]] Path A)*
-- **`arifos.forge` gate:** Does `arifos.forge` technically accept a `judge_receipt` parameter carrying the SEAL verdict, or is it implicit session state? *(Source: [[Concept_Architecture]])*
-- **ToM field scope:** Does every governance tool carry the full ToM schema, or only `arifos.mind`? The [[Changelog]] shows the `arifos.mind` example — unclear if `arifos.init` and `arifos.sense` also carry `alternative_hypotheses`. *(Source: [[Concept_Architecture]])*
+- **`arifos_forge` gate:** Does `arifos_forge` technically accept a `judge_receipt` parameter carrying the SEAL verdict, or is it implicit session state? *(Source: [[Concept_Architecture]])*
+- **ToM field scope:** Does every governance tool carry the full ToM schema, or only `arifos_mind`? The [[Changelog]] shows the `arifos_mind` example — unclear if `arifos_init` and `arifos_sense` also carry `alternative_hypotheses`. *(Source: [[Concept_Architecture]])*
 
 ### Roadmap Decisions
 
@@ -69,7 +69,7 @@ confidence: 1.0
 | Item | Resolved | How |
 |------|----------|-----|
 | Versioned file chaos (`tools_v2.py` etc.) | 2026-04-07 | SOT-SEALED — consolidated to single canonical modules |
-| `arifos.v2` namespace leaks | 2026-04-07 | Fully purged from runtime Python |
+| `arifos_v2` namespace leaks | 2026-04-07 | Fully purged from runtime Python |
 | `core/` vs `arifosmcp/` split | 2026-04-05 | Archive Surgery — 153 files migrated, `core/` deleted |
 | 42 tools sprawl | 2026-03-20 | Consolidated to 11 Mega-Tools |
 

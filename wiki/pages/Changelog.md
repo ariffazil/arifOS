@@ -24,7 +24,7 @@ Key changes:
 - `ToolSpecV2 → ToolSpec`, `V2_TOOLS → TOOLS` (backward-compat aliases preserved)
 - `/health` endpoint now exposes: `source_repo`, `source_commit`, `release_tag`, `transport`, `governance_version`, `floors_active`, `warnings[]`
 - `/.well-known/arifos-index.json` — new canonical index linking runtime to SoT repo
-- `arifos.v2` namespace fully purged from all active runtime Python files
+- `arifos_v2` namespace fully purged from all active runtime Python files
 - Lean Dockerfile: ~500MB multi-stage build (was 6.1GB)
 - AGI Mind Pipeline: Wide internal state → Narrow output envelopes (max 15 lines)
 - VPS Docker hygiene: reclaimed 32.5GB; git phantom history cleaned
@@ -57,8 +57,8 @@ Factors: confidence estimates, alternative count, assumptions declared, second-o
 - Diversity score: 0.85 (target ≥0.80)
 
 #### Tool Modes (consolidation)
-- `arifos.judge` → modes: `judge`, `health`, `history`, `validate`
-- `arifos.vault` → modes: `seal`, `seal_card`, `render`, `status`
+- `arifos_judge` → modes: `judge`, `health`, `history`, `validate`
+- `arifos_vault` → modes: `seal`, `seal_card`, `render`, `status`
 
 ---
 

@@ -36,7 +36,7 @@ The name derives from:
 │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘        │
 │       └─────────────┴─────────────┴─────────────┘           │
 │                         │                                   │
-│                    arifos.forge                             │
+│                    arifos_forge                             │
 │                         │                                   │
 └─────────────────────────┼───────────────────────────────────┘
                           │ HTTPS
@@ -80,7 +80,7 @@ Eigent provides governed access to:
 | **Processes** | List, monitor, signal | Non-destructive |
 | **Network** | HTTP requests, WebSocket | Logged |
 
-All operations flow through `arifos.forge` with SEAL gating.
+All operations flow through `arifos_forge` with SEAL gating.
 
 ### 3. Constitutional Bridge
 
@@ -89,11 +89,11 @@ Eigent operates under **888_HOLD** for all desktop automation:
 ```
 Local arifOS          VPS Eigent
     │                       │
-    │─arifos.init──────────>│  Session bind
-    │─arifos.sense─────────>│  Evidence gather
-    │─arifos.judge─────────>│  Verdict request
+    │─arifos_init──────────>│  Session bind
+    │─arifos_sense─────────>│  Evidence gather
+    │─arifos_judge─────────>│  Verdict request
     │<─SEAL────────────────│  Authority granted
-    │─arifos.forge─────────>│  Execute on desktop
+    │─arifos_forge─────────>│  Execute on desktop
     │<─result──────────────│  Return with telemetry
 ```
 
@@ -190,15 +190,15 @@ session:
   intent: "Research competitor pricing"
   
 stages:
-  000_INIT:    { tool: arifos.init,    actor: user }
-  111_SENSE:   { tool: arifos.sense,   evidence: [web, market] }
-  333_MIND:    { tool: arifos.mind,    hypotheses: 3 }
-  666_HEART:   { tool: arifos.heart,   stakeholders: [user, competitors] }
-  888_JUDGE:   { tool: arifos.judge,   verdict: SEAL }
+  000_INIT:    { tool: arifos_init,    actor: user }
+  111_SENSE:   { tool: arifos_sense,   evidence: [web, market] }
+  333_MIND:    { tool: arifos_mind,    hypotheses: 3 }
+  666_HEART:   { tool: arifos_heart,   stakeholders: [user, competitors] }
+  888_JUDGE:   { tool: arifos_judge,   verdict: SEAL }
   
 execution:
   999_FORGE:   { 
-    tool: arifos.forge,
+    tool: arifos_forge,
     target: "eigent.vps.arif-fazil.com",
     action: "browser_automation",
     scope: "read_only",

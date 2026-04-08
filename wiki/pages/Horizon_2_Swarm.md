@@ -90,7 +90,7 @@ When agents hand off tasks:
 
 | Google A2A Concept | arifOS Mapping |
 |-------------------|----------------|
-| Agent Card | `/.well-known/arifos.json` |
+| Agent Card | `/.well-known/arifos_json` |
 | Task | EvidenceBundle + intent |
 | Artifact | Vault999-sealed output |
 | State | Metabolic pipeline stage |
@@ -113,7 +113,7 @@ Developer pushes code
         │
         ▼
 ┌───────────────┐
-│ arifos.judge  │←── Evaluates: F1 (reversibility), F13 (sovereignty)
+│ arifos_judge  │←── Evaluates: F1 (reversibility), F13 (sovereignty)
 │ (terraform    │    F9 (blast radius), F6 (stakeholder impact)
 │  plan mode)   │
 └───────┬───────┘

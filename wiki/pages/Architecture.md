@@ -16,7 +16,7 @@ confidence: 1.0
 2. **THEORY (Ψ The Soul / Authority Layer)**: `apex.arif-fazil.com`
    - Houses the immutable 13 Constitutional Floors (F1-F13), the Three Pillars (Φ, ∑, λ), and Verdicts.
    - Why: Law must stand independent of personal narrative and implementation details.
-3. **APPS (Ω The Mind / Implementation Layer)**: `arifos.arif-fazil.com`
+3. **APPS (Ω The Mind / Implementation Layer)**: `arifos_arif-fazil.com`
    - Contains the L1–L7 Stack, MCP tools, SDK, and executable code.
    - Why: Implementation changes frequently; law does not.
 
