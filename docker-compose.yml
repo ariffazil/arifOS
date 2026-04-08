@@ -156,6 +156,7 @@ services:
     image: arifos/arifosmcp:latest
     container_name: arifosmcp
     init: true
+    working_dir: /usr/src/project
     command: ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
     env_file:
       - path: .env
@@ -169,13 +170,12 @@ services:
       - QDRANT_COLLECTION=arifos_memory
       - EMBEDDING_MODEL=bge-m3
       - EMBEDDING_DIMENSION=1024
-      - LANCEDB_PATH=/usr/src/app/data/vector_cache.lance
+      - LANCEDB_PATH=/usr/src/project/arifosmcp/data/vector_cache.lance
     volumes:
-      - /root/arifOS:/usr/src/project:ro
-      - /opt/arifos/data/core:/usr/src/app/data:rw
-      - /root/arifOS/arifosmcp:/usr/src/app:rw
-      - arifosmcp_telemetry:/usr/src/app/telemetry:rw
-      - arifosmcp_vault:/usr/src/app/VAULT999:rw
+      - /root/arifOS:/usr/src/project:rw
+      - /opt/arifos/data/core:/usr/src/project/arifosmcp/data:rw
+      - arifosmcp_telemetry:/usr/src/project/arifosmcp/telemetry:rw
+      - arifosmcp_vault:/usr/src/project/arifosmcp/VAULT999:rw
       - arifosmcp_secrets:/secrets:ro
     networks:
       - arifos_core_network

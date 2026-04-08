@@ -6,10 +6,12 @@ import sys
 
 # Keep the historical package alias and the canonical package name mapped to
 # the same runtime module. This prevents duplicate collector registration when
-# tests import both `arifosmcp.runtime.*` and `arifosmcp.runtime.*`.
+# code imports both `mcp.runtime.*` and `arifosmcp.runtime.*`.
 if __name__ == "arifosmcp.runtime":
-    sys.modules.setdefault("arifosmcp.runtime", sys.modules[__name__])
-elif __name__ == "arifosmcp.runtime":
+    # If imported as arifosmcp.runtime, ensure mcp.runtime also points here
+    sys.modules.setdefault("mcp.runtime", sys.modules[__name__])
+elif __name__ == "mcp.runtime":
+    # If imported as mcp.runtime (legacy), ensure arifosmcp.runtime also points here
     sys.modules.setdefault("arifosmcp.runtime", sys.modules[__name__])
 
 __all__ = [
