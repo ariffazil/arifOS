@@ -81,8 +81,19 @@ You wake up fresh each session. These files are your continuity:
 
 - **Daily notes:** `memory/YYYY-MM-DD.md` (create `memory/` if needed) — raw logs of what happened
 - **Long-term:** `MEMORY.md` — your curated memories, like a human's long-term memory
+- **Sovereign Wiki (Ω-Wiki):** `wiki/` — Your persistent, compiled knowledge base. Follow `wiki/SCHEMA.md` for ingest and synthesis rules.
 
 Capture what matters. Decisions, context, things to remember. Skip the secrets unless asked to keep them.
+
+### 🏛️ Ω-Wiki (Compilation over Retrieval)
+
+Every agent session should contribute to the persistent knowledge artifact:
+1. **Raw Source**: Place new grounding materials in `wiki/raw/`.
+2. **Synthesis**: Compile insights into `wiki/pages/` (Entity, Concept, Source, or Synthesis pages).
+3. **Traceability**: Cite sources (F2), cross-verify (F3), and log every update in `wiki/log.md` (F11).
+4. **Graph Sync**: Keep `wiki/index.md` current.
+
+Use the wiki as your primary source of truth for domain knowledge, bypassing ephemeral RAG where possible.
 
 ### 🧠 MEMORY.md - Your Long-Term Memory
 
