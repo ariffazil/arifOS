@@ -24,6 +24,7 @@ import sys
 
 _sys_path_inserted = False
 
+
 def _ensure_path():
     """Ensure project root is in path - safe for both VPS and Horizon."""
     global _sys_path_inserted
@@ -61,6 +62,7 @@ def _is_horizon_environment() -> bool:
     # Quaternary: FastMCP version check (runtime only)
     try:
         import fastmcp
+
         version = getattr(fastmcp, "__version__", "0.0.0")
         major = int(version.split(".")[0])
         if major < 3:
@@ -84,11 +86,12 @@ if IS_HORIZON:
     # ═════════════════════════════════════════════════════════════════════════
     # HORIZON MODE: Lightweight gateway, no heavy runtime imports
     # ═════════════════════════════════════════════════════════════════════════
-    from ops.runtime.server_horizon import mcp
+    from arifosmcp.server_horizon import mcp
 
     # Import config only for logging (it's lightweight)
     try:
         from config.environments import get_environment, is_public
+
         env = get_environment()
         print(f"☁️  HORIZON GATEWAY: {env.name}", file=sys.stderr)
         print(f"   Public tools: /metadata endpoint for policy", file=sys.stderr)
@@ -106,6 +109,7 @@ else:
 
         try:
             from config.environments import get_environment, is_sovereign
+
             env = get_environment()
             if is_sovereign():
                 print(f"🔥 SOVEREIGN KERNEL: {env.name}", file=sys.stderr)
@@ -118,7 +122,7 @@ else:
     except (ImportError, ModuleNotFoundError) as e:
         # Fallback: Heavy deps missing, use Horizon gateway
         print(f"⚠️  VPS deps unavailable ({e}), falling back to Horizon mode", file=sys.stderr)
-        from ops.runtime.server_horizon import mcp
+        from arifosmcp.server_horizon import mcp
 
 
 # Export for FastMCP Cloud / Horizon / CLI

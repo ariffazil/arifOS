@@ -25,16 +25,6 @@ from collections.abc import Callable
 from datetime import date, datetime, timezone
 from typing import Any
 
-from arifosmcp.runtime.public_registry import (
-    build_mcp_discovery_json,
-    build_server_json,
-    public_tool_specs,
-)
-from arifosmcp.runtime.resources import apex_tools_html_rows, apex_tools_markdown_table
-from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, Response
-from starlette.staticfiles import StaticFiles
-
 from core.shared.floor_audit import get_ml_floor_runtime
 from core.shared.floors import (
     FLOOR_SPEC_KEYS,
@@ -42,6 +32,16 @@ from core.shared.floors import (
     get_floor_spec,
     get_floor_threshold,
 )
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, JSONResponse, Response
+from starlette.staticfiles import StaticFiles
+
+from arifosmcp.runtime.public_registry import (
+    build_mcp_discovery_json,
+    build_server_json,
+    public_tool_specs,
+)
+from arifosmcp.runtime.resources import apex_tools_markdown_table
 
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
@@ -1240,12 +1240,13 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     @route("/metrics", methods=["GET"])
     async def metrics_endpoint(request: Request) -> Response:
         """Prometheus metrics — scraped by arifos_prometheus every 30s."""
+        from starlette.responses import Response as _Resp
+
         from arifosmcp.runtime.metrics import (
             CONTENT_TYPE_LATEST,
             generate_latest,
             update_prometheus_metrics,
         )
-        from starlette.responses import Response as _Resp
 
         update_prometheus_metrics()
 

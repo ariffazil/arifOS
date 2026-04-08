@@ -476,3 +476,15 @@ NO DRIFT DETECTED
 - generated targets are aligned
 - dotted names remain only inside approved compatibility files
 - destructive cleanup remains `888_HOLD` pending the next structural phase
+
+## [2026-04-08] Audit + Forge | Repo Chaos Reduction — Pass 1+2+3
+- **Auditor:** Copilot (A-AUDITOR → A-ENGINEER roles)
+- **Scope:** ~378 active .md files (1,622 already in archive/ excluded)
+- **Classification:** 74 canonical | 62 operational | 89 historical | 61 redundant | 12 generated | 80 unknown
+- **Audit report:** [[Audit_Repo_Chaos_Reduction]] (wiki/pages/)
+- **Archive pass (Pass 2):** 49 files/dirs moved → rchive/root/, rchive/docs/, rchive/core/, rchive/memory/, rchive/arifosmcp/, rchive/geox/
+- **Delete pass (Pass 3):** 10 files deleted — 3 empty 0-byte stubs (arifosmcp/), 7 VPS path stubs (docs/core/)
+- **888 HOLD:** 8 items flagged for human decision (K000_LAW.md contradiction, docs/AGENTS.md unique content, docs/others.md unknown)
+- **Contradictions registered:** C-001 HIGH (two K000_LAW.md at 20KB vs 22KB), C-002 MEDIUM, C-003 MEDIUM, C-004 LOW
+- **Ω-Wiki gaps:** 9 gaps identified — integration_patterns.md (158KB), agent role details, skills registry, deployment architecture
+- **Ω-Wiki updated:** index.md (33 pages), log.md
