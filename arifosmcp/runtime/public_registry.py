@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import tomllib
 
+from .prompts import V2_PROMPT_SPECS
 from .tool_specs import (
-    PUBLIC_PROMPT_SPECS,
     PUBLIC_RESOURCE_SPECS,
     PUBLIC_TOOL_SPECS,
     ToolSpec,
@@ -105,7 +106,25 @@ def public_tool_spec_by_name() -> dict[str, ToolSpec]:
     return {spec.name: spec for spec in public_tool_specs()}
 
 
+PUBLIC_PROMPT_SPECS = tuple(
+    SimpleNamespace(
+        name=spec["name"],
+        description=spec["description"],
+        arguments=[],
+        input_schema=spec.get("input_schema", {}),
+        default_tools=spec.get("default_tools", []),
+        tool_choice=spec.get("tool_choice", "auto"),
+    )
+    for spec in V2_PROMPT_SPECS
+)
+
+
 PUBLIC_TOOL_SPEC_BY_NAME = public_tool_spec_by_name()
+
+
+def public_prompt_specs() -> tuple[Any, ...]:
+    """Return prompt templates exposed through the public registry."""
+    return PUBLIC_PROMPT_SPECS
 
 
 def is_public_profile(profile: str) -> bool:

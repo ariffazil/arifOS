@@ -87,8 +87,15 @@ def _derive_vitality_index(
     return {"psi": psi, "status": "HEALTHY" if psi >= 1.0 else "UNSTABLE"}
 
 
-def wrap_tool_output(tool_name: str, result: dict[str, Any]) -> dict[str, Any]:
-    payload = result if isinstance(result, dict) else {"result": result}
+def wrap_tool_output(
+    tool_name: str | None = None,
+    result: dict[str, Any] | None = None,
+    *,
+    tool: str | None = None,
+    payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    tool_name = tool_name or tool or "unknown_tool"
+    payload = payload if isinstance(payload, dict) else result if isinstance(result, dict) else {"result": result}
     verdict = str(payload.get("verdict", "SEAL"))
     if verdict not in {"SEAL", "SABAR", "PARTIAL", "VOID", "HOLD", "888_HOLD"}:
         verdict = "SEAL"
@@ -103,7 +110,20 @@ def wrap_tool_output(tool_name: str, result: dict[str, Any]) -> dict[str, Any]:
     tri = _calculate_tri_witness_consensus(tool_name, payload)
     failed = [name for name, meta in law_checks.items() if meta.get("required") and not meta.get("pass")]
 
-    errors = [{"code": name, "message": f"{name} check failed"} for name in failed]
+    errors = []
+    for name in failed:
+        remediation = None
+        if name == "F11_AUTHORITY":
+            remediation = {
+                "next_tool": "init_anchor",
+                "required_args": ["actor_id", "intent"],
+                "example_payload": {
+                    "actor_id": "operator",
+                    "intent": "authenticate and continue",
+                },
+                "retry_safe": True,
+            }
+        errors.append({"code": name, "message": f"{name} check failed", "remediation": remediation})
     note = payload.get("message") or payload.get("note") or ("Compatibility wrapper output")
 
     return {

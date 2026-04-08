@@ -240,6 +240,9 @@ def select_atlas_philosophy(
     # Select quote from zone
     quote = deterministic_select_from_zone(zone, session_id, context, contrast_override)
 
+    # Compute operational bias
+    bias = get_philosophical_bias(quote.get("category", "wisdom"))
+
     return {
         "motto": None,
         "primary_quote": quote,
@@ -259,7 +262,16 @@ def select_atlas_philosophy(
             "verdict": scores.get("verdict", "SABAR"),
         },
         "selection_type": "atlas_27",
+        "telos_bias": bias,  # Operational modifier
     }
+
+
+def get_philosophical_bias(category: str) -> dict[str, float]:
+    """Retrieve the Telos bias/modifier for a given philosophical category."""
+    from arifosmcp.runtime.philosophy_registry import PHILOSOPHY_TELOS_MODIFIERS
+
+    # Default to neutral if category not found
+    return PHILOSOPHY_TELOS_MODIFIERS.get(category.lower(), {"A": 0.0, "P": 0.0, "X": 0.0, "E": 0.0})
 
 
 def _get_zone_quote_for_motto(

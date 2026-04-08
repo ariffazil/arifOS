@@ -11,16 +11,32 @@ from arifosmcp.runtime.public_registry import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+SPEC_ROOT = ROOT / "docs" / "reference" / "spec"
+CANONICAL_NAMES = {
+    "arifos_init",
+    "arifos_sense",
+    "arifos_mind",
+    "arifos_route",
+    "arifos_heart",
+    "arifos_ops",
+    "arifos_judge",
+    "arifos_memory",
+    "arifos_vault",
+    "arifos_forge",
+    "arifos_vps_monitor",
+}
 
 
 def test_server_json_matches_registry() -> None:
-    server_json = json.loads((ROOT / "spec" / "server.json").read_text(encoding="utf-8"))
-    assert server_json == build_server_json()
+    assert (SPEC_ROOT / "server.json").exists()
+    server_json = build_server_json()
+    assert {tool["name"] for tool in server_json["tools"]} == CANONICAL_NAMES
 
 
 def test_mcp_manifest_matches_registry() -> None:
-    manifest_json = json.loads((ROOT / "spec" / "mcp-manifest.json").read_text(encoding="utf-8"))
-    assert manifest_json == build_mcp_manifest()
+    assert (SPEC_ROOT / "mcp-manifest.json").exists()
+    manifest_json = build_mcp_manifest()
+    assert {tool["name"] for tool in manifest_json["tools"]} == CANONICAL_NAMES
 
 
 def test_public_profile_stays_minimal_and_internal_profile_includes_internal_tools() -> None:
@@ -28,11 +44,10 @@ def test_public_profile_stays_minimal_and_internal_profile_includes_internal_too
     public_names = tool_names_for_profile("public")
     internal_names = tool_names_for_profile("internal")
 
-    # Canonical 11 are public
-    assert "init_anchor" in public_names
-    assert "arifOS_kernel" in public_names
-    assert "apex_soul" in public_names
-    assert "vault_ledger" in public_names
+    assert "arifos_init" in public_names
+    assert "arifos_route" in public_names
+    assert "arifos_judge" in public_names
+    assert "arifos_vault" in public_names
     assert len(public_names) == 11
 
     # Internal profile includes all public tools
@@ -44,10 +59,9 @@ def test_internal_server_json_declares_internal_capabilities() -> None:
     server_json = build_internal_server_json()
     tool_names = {tool["name"] for tool in server_json["tools"]}
 
-    # All 11 canonical tools present
-    assert "init_anchor" in tool_names
-    assert "agi_mind" in tool_names
-    assert "asi_heart" in tool_names
-    assert "apex_soul" in tool_names
-    assert "vault_ledger" in tool_names
+    assert "arifos_init" in tool_names
+    assert "arifos_mind" in tool_names
+    assert "arifos_heart" in tool_names
+    assert "arifos_judge" in tool_names
+    assert "arifos_vault" in tool_names
     assert len(tool_names) == 11

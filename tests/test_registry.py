@@ -9,10 +9,10 @@ import pytest
 from pathlib import Path
 
 REGISTRY_PATH = Path(__file__).parent.parent
-MODELS_PATH = REGISTRY_PATH / "models"
-SOULS_PATH = REGISTRY_PATH / "provider_souls"
-RUNTIME_PATH = REGISTRY_PATH / "runtime_profiles"
-CATALOG_PATH = REGISTRY_PATH / "catalog.json"
+MODELS_PATH = REGISTRY_PATH / "archive" / "models"
+SOULS_PATH = REGISTRY_PATH / "archive" / "provider_souls"
+RUNTIME_PATH = REGISTRY_PATH / "archive" / "runtime_profiles"
+CATALOG_PATH = REGISTRY_PATH / "docs" / "reference" / "catalog.json"
 SCHEMAS_PATH = REGISTRY_PATH / "schemas"
 
 
@@ -116,7 +116,7 @@ class TestProviderSouls:
         assert len(list(SOULS_PATH.glob("*.json"))) > 0
 
     @pytest.mark.parametrize("soul_file", [
-        f for f in (REGISTRY_PATH / "provider_souls").glob("*.json")
+        f for f in SOULS_PATH.glob("*.json")
         if not f.stem.startswith("wrong_")
     ])
     def test_soul_required_fields(self, soul_file):
@@ -125,7 +125,7 @@ class TestProviderSouls:
             assert field in data, f"{soul_file.name}: missing field '{field}'"
 
     @pytest.mark.parametrize("soul_file", [
-        f for f in (REGISTRY_PATH / "provider_souls").glob("*.json")
+        f for f in SOULS_PATH.glob("*.json")
         if not f.stem.startswith("wrong_")
     ])
     def test_soul_provider_key_no_underscore(self, soul_file):
@@ -136,7 +136,7 @@ class TestProviderSouls:
         )
 
     @pytest.mark.parametrize("soul_file", [
-        f for f in (REGISTRY_PATH / "provider_souls").glob("*.json")
+        f for f in SOULS_PATH.glob("*.json")
         if not f.stem.startswith("wrong_")
     ])
     def test_soul_array_fields(self, soul_file):
@@ -148,7 +148,7 @@ class TestProviderSouls:
                 )
 
     @pytest.mark.parametrize("soul_file", [
-        f for f in (REGISTRY_PATH / "provider_souls").glob("*.json")
+        f for f in SOULS_PATH.glob("*.json")
         if not f.stem.startswith("wrong_")
     ])
     def test_soul_schema_validation(self, soul_file, soul_schema):
@@ -164,13 +164,13 @@ class TestProviderSouls:
 class TestModelFiles:
     MODEL_REQUIRED = ["provider", "model_family", "model_variant", "soul_archetype"]
 
-    @pytest.mark.parametrize("model_file", list((REGISTRY_PATH / "models").rglob("*.json")))
+    @pytest.mark.parametrize("model_file", list(MODELS_PATH.rglob("*.json")))
     def test_model_required_fields(self, model_file):
         data = load_json(model_file)
         for field in self.MODEL_REQUIRED:
             assert field in data, f"{model_file}: missing field '{field}'"
 
-    @pytest.mark.parametrize("model_file", list((REGISTRY_PATH / "models").rglob("*.json")))
+    @pytest.mark.parametrize("model_file", list(MODELS_PATH.rglob("*.json")))
     def test_model_soul_archetype_exists(self, model_file, catalog):
         """Model's soul_archetype must be registered in catalog."""
         data = load_json(model_file)
@@ -205,7 +205,7 @@ class TestRuntimeProfiles:
         for field in ["deployment_id", "provider_key", "family_key", "model_id"]:
             assert field in data, f"Missing required field: {field}"
 
-    @pytest.mark.parametrize("rt_file", list((REGISTRY_PATH / "runtime_profiles").glob("*.json")))
+    @pytest.mark.parametrize("rt_file", list(RUNTIME_PATH.glob("*.json")))
     def test_runtime_schema_validation(self, rt_file, runtime_schema):
         jsonschema = pytest.importorskip("jsonschema")
         data = load_json(rt_file)

@@ -190,6 +190,26 @@ class GovernanceEnforcer:
             "action_required": "Contact administrator",
         })
         
+        # Select contextually relevant philosophy for the block
+        from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
+        
+        # Map decision to philosophical coordinates proxy
+        # BLOCKED_VOID/HOLD -> Void/Paradox zone
+        # BLOCKED_F1/UNVERIFIED -> Discipline zone
+        phi_category = "void" if decision in (PropagationDecision.BLOCKED_VOID, PropagationDecision.BLOCKED_HOLD) else "discipline"
+        
+        scores = AtlasScores(
+            delta_s=1.0, # High entropy (void/block)
+            g_score=0.2, # Low capability (failure)
+            omega_score=0.9, # High uncertainty
+            lyapunov_sign="stable",
+            verdict=envelope.verdict.value if hasattr(envelope.verdict, 'value') else str(envelope.verdict),
+            session_stage=envelope.stage
+        )
+        
+        phi_result = select_atlas_philosophy(scores, contrast_override=phi_category)
+        primary = phi_result.get("primary_quote", {})
+        
         return {
             "ok": False,
             "governance_block": True,
@@ -199,8 +219,10 @@ class GovernanceEnforcer:
             "stage": envelope.stage,
             **message,
             "philosophy": {
-                "quote": "DITEMPA, BUKAN DIBERI.",
-                "context": "Governance boundary enforced",
+                "quote": primary.get("quote", "DITEMPA, BUKAN DIBERI."),
+                "author": primary.get("author", "arifOS"),
+                "category": primary.get("category", phi_category),
+                "note": "Governance boundary enforced with constitutional framing.",
             },
         }
     

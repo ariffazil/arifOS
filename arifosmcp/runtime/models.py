@@ -50,6 +50,28 @@ class CoolingLedgerEntry(BaseModel):
     immutable: bool = True
 
 
+
+class PhilosophyState(BaseModel):
+    """
+    Hyperlattice v1: The causal philosophical posture of the system.
+    Determines behavioral deltas (caps, multipliers) and Surfaces archetypal quotes.
+    """
+
+    zone_code: str = Field(..., description="27-zone code (e.g. X-Y0Z0)")
+    zone_name: str = Field(..., description="Human-readable zone name")
+    lock_code: str = Field("G0", description="Active G-lock manifold state (G0-G7)")
+    archetype_primary: str = Field(..., description="Primary archetype family")
+    archetype_secondary: str | None = None
+    quote: str | None = None
+
+    # Causal Deltas (Applied at runtime)
+    confidence_cap: float = 1.0
+    witness_multiplier: float = 1.0
+    grounding_floor_offset: float = 0.0
+    execution_bias: int = 0  # -2 to +2
+    posture: str = "PARTIAL"  # Baseline posture matching the zone
+
+
 class ArifOSError(FastMCPError):
     """Base exception for all arifOS-related errors."""
 
@@ -847,6 +869,7 @@ class RuntimeEnvelope(BaseModel):
     metrics: CanonicalMetrics = Field(default_factory=lambda: CanonicalMetrics())
     trace: dict[str, Any] = Field(default_factory=dict)
     authority: CanonicalAuthority = Field(default_factory=CanonicalAuthority)
+    philosophy: PhilosophyState | None = Field(default=None, description="Active Hyperlattice posture.")
     payload: dict[str, Any] = Field(default_factory=dict)
     errors: list[CanonicalError] = Field(default_factory=list)
     meta: CanonicalMeta = Field(default_factory=CanonicalMeta)

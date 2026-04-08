@@ -177,10 +177,6 @@ async def init_anchor(
     #   init_anchor is the ROOT - it creates sessions directly.
     # ═══════════════════════════════════════════════════════════════════════════
     if True:  # Always execute (replaces the 'if in dispatch_map' check)
-        if mode is None:
-            mode = "init"
-        _t0 = time.monotonic()
-
         # Direct session initialization (no dispatch recursion)
         effective_session_id = (
             session_id or payload.get("session_id") or f"sess_{uuid.uuid4().hex[:16]}"
@@ -188,6 +184,27 @@ async def init_anchor(
         declared_identity = (
             payload.get("declared_name") or actor_id or payload.get("actor_id") or "anonymous"
         )
+        
+        if mode is None:
+            mode = "init"
+        _t0 = time.monotonic()
+
+        # Select initial philosophy (Causal Anchor)
+        from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
+        
+        # Initial scores for bootstrap
+        init_scores = AtlasScores(
+            delta_s=0.0,
+            g_score=0.5,
+            omega_score=0.05,
+            lyapunov_sign="stable",
+            verdict="SEAL",
+            session_stage="000_INIT"
+        )
+        # Select philosophy based on intent if possible
+        phi_result = select_atlas_philosophy(init_scores, context={"intent": intent})
+        phi_quote = phi_result.get("primary_quote", {})
+        phi_bias = phi_result.get("telos_bias", {"A": 0.0, "P": 0.0, "X": 0.0, "E": 0.0})
 
         # Build success result directly
         res = {
@@ -197,6 +214,14 @@ async def init_anchor(
             "organ_stage": "000_INIT",
             "status": "SUCCESS",
             "verdict": "SEAL",
+            "g_score": 0.88,  # High bootstrap score
+            "entropy": 0.0,   # Reset entropy
+            "philosophy": {
+                "quote": phi_quote.get("text", "DITEMPA, BUKAN DIBERI."),
+                "author": phi_quote.get("author", "arifOS"),
+                "category": phi_quote.get("category", "wisdom"),
+                "telos_bias": phi_bias,
+            },
             "identity": {
                 "declared_actor_id": declared_identity,
                 "verified_actor_id": None,

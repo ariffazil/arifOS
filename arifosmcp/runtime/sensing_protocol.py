@@ -46,6 +46,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Protocol, runtime_checkable
 
+from arifosmcp.runtime.philosophy_registry import select_philosophy_state
+
 logger = logging.getLogger(__name__)
 
 
@@ -1517,6 +1519,49 @@ def detect_conflicts_from_items(items: list[EvidenceItem]) -> ConflictModel:
     )
 
 
+def detect_glocks(
+    si: SenseInput,
+    tc: TruthClassification,
+    ub: UncertaintyBand,
+    conflict: ConflictModel,
+    ambiguity: AmbiguityModel,
+) -> list[str]:
+    """Detect active Gödel/Void locks based on structural signals."""
+    locks = []
+    
+    # G1: Incompleteness (grounding gap)
+    if ub.basis.evidence_quality < 0.4 or tc.truth_class == TruthClass.UNKNOWN:
+        locks.append("G1")
+        
+    # G2: Contradiction
+    if conflict.detected:
+        locks.append("G2")
+        
+    # G3: Self-Reference (heuristic)
+    self_ref_patterns = ["system", "myself", "constitution", "certified by arifos"]
+    if any(p in si.input.value.lower() for p in self_ref_patterns) and tc.truth_class == TruthClass.OPERATIONAL_PRINCIPLE:
+        locks.append("G3")
+        
+    # G4: Undecidability
+    if ub.sigma > 0.6 and not (conflict.detected or ambiguity.detected):
+        locks.append("G4")
+        
+    # G5: Meaning Drift
+    if ambiguity.detected:
+        locks.append("G5")
+        
+    # G6: Regress / Infinity (heuristic)
+    if ub.sigma > 0.4 and "..." in si.input.value:
+        locks.append("G6")
+        
+    # G7: Moral Remainder (heuristic: keyword-based or high risk)
+    moral_patterns = ["tradeoff", "sacrifice", "lesser evil", "choice"]
+    if any(p in si.input.value.lower() for p in moral_patterns):
+        locks.append("G7")
+        
+    return sorted(list(set(locks))) or ["G0"]
+
+
 def compute_uncertainty_band(
     items: list[EvidenceItem],
     conflict: ConflictModel,
@@ -1594,13 +1639,27 @@ def compute_uncertainty_band(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def compute_intelligence_state(
-    packet: SensePacket,
+    si: SenseInput,
+    packet: 'SensePacket',
     tc: TruthClassification,
     ub: UncertaintyBand,
-) -> IntelligenceState:
-    """Derive IntelligenceState from the completed sense packet."""
+    session_id: str | None = None,
+) -> tuple[IntelligenceState, dict[str, Any]]:
+    """Derive IntelligenceState and PhilosophyState from the packet."""
+    # 1. Detect locks and compute philosophy
+    locks = detect_glocks(si, tc, ub, packet.conflict, packet.ambiguity)
+    p_state = select_philosophy_state(
+        confidence=1.0 - ub.sigma,
+        dS=1.0 - ub.basis.temporal_alignment,
+        intervention=0.5, # Default intervention
+        session_id=session_id or "global",
+        locks=locks
+    )
+
+    # 2. Derive metrics
     confidence = 1.0 - ub.sigma
-    confidence = min(confidence, ub.omega0_cap)
+    # Apply philosophy cap
+    confidence = min(confidence, p_state["confidence_cap"])
 
     # Exploration posture
     if len(packet.evidence_items) >= 3:
@@ -1646,10 +1705,10 @@ def compute_intelligence_state(
         uncertainty_sigma=ub.sigma,
         coherence_c=ub.basis.frame_clarity,
         entropy_delta_s=round(1.0 - ub.basis.temporal_alignment, 4),
-        humility_omega0=ub.omega0_cap,
+        humility_omega0=p_state["confidence_cap"], # Using Hyperlattice cap
     )
 
-    return IntelligenceState(
+    intel = IntelligenceState(
         exploration=exploration,
         entropy=entropy,
         eureka=eureka,
@@ -1662,6 +1721,8 @@ def compute_intelligence_state(
         decision_required=decision_required,
         truth_vector=tv,
     )
+    
+    return intel, p_state
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1921,8 +1982,19 @@ async def governed_sense(
         handoff=handoff,
     )
 
-    # Compute IntelligenceState
-    intel = compute_intelligence_state(packet, tc, ub)
+    # Compute IntelligenceState + Philosophy
+    intel, p_state = compute_intelligence_state(si, packet, tc, ub, session_id=session_id)
+    
+    # Inject philosophy into handoff and routing
+    state_update = StateUpdate(
+        stable_facts_delta=grounded_facts[:3],
+        unknowns_delta=unresolved,
+        conflicts_delta=[conflict.conflict_summary] if conflict.detected and conflict.conflict_summary else [],
+        confidence_delta=round(intel.confidence, 4),
+        uncertainty_delta=round(ub.sigma, 4),
+    )
+    
+    packet.routing.extra = {"philosophy": p_state}
 
     # Inject verdict into packet metadata (routing carries the canonical verdict)
     packet.routing.route_reason = (

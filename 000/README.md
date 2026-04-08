@@ -19,7 +19,7 @@ Everything in AAA (the runtime body) executes under these laws. Everything in th
 000/                     ← You are here — The Soul Layer
 ├── 000_CONSTITUTION.md  ← HOW it's enforced (Math ∩ Machine)
 ├── 000_THEORY.md        ← WHAT is possible (Physics ∩ Earth)
-├── 000_MANIFESTO.md     ← WHY it matters (Language ∩ Human)
+├── 000_DOCTRINE.md      ← AGENT rules (Delegated Intelligence)
 ├── 000_INIT.md          ← Boot protocol — session initialization
 ├── SEAL.md              ← ZKPC integrity seal
 │
@@ -100,6 +100,7 @@ If ANY dial = 0 → G = 0. No shortcuts.
 000_THEORY.md        ← Physics ∩ Earth  — WHAT is possible
 000_CONSTITUTION.md  ← Math ∩ Machine   — HOW it's enforced
 000_MANIFESTO.md     ← Language ∩ Human — WHY it matters
+000_DOCTRINE.md      ← Execution ∩ Agent — HOW it's delegated
 
 W³ = W_theory × W_constitution × W_manifesto ≥ 0.95
 ```

@@ -9,12 +9,32 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
 from fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
+
+CANON_SESSION_STATES = """# arifOS Session Ladder
+
+- anonymous: no verified session binding
+- claimed: actor declared but not yet anchored
+- anchored: session established with governed continuity
+- verified: authority and continuity checks passed
+- OPERATOR: explicit operator authority present
+"""
+
+CANON_INDEX = {
+    "resources": [
+        "canon://states",
+        "canon://index",
+        "arifos://governance/floors",
+        "arifos://governance/verdict",
+        "arifos://system/capabilities",
+    ]
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -336,6 +356,8 @@ def apex_tools_markdown_table() -> str:
 def manifest_resources() -> list[dict]:
     """Return registered resource URIs (stub for stdio compat)."""
     return [
+        {"uri": "canon://states", "name": "Session Ladder"},
+        {"uri": "canon://index", "name": "Compatibility Resource Index"},
         {"uri": "arifos://governance/floors", "name": "Constitutional Floors"},
         {"uri": "arifos://governance/verdict", "name": "Verdict Specification"},
         {"uri": "arifos://system/capabilities", "name": "System Capabilities"},
@@ -345,7 +367,11 @@ def manifest_resources() -> list[dict]:
 
 
 async def read_resource_content(uri: str) -> str:
-    """Read resource content by URI (stub — returns empty for unknown URIs)."""
+    """Read resource content by URI, including legacy canon:// compatibility."""
+    if uri == "canon://states":
+        return CANON_SESSION_STATES
+    if uri == "canon://index":
+        return json.dumps(CANON_INDEX)
     return ""
 
 

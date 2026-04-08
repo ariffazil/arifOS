@@ -250,10 +250,7 @@ async def _wrap_call(
             )
 
         # ── Philosophy Injection ──
-        # Post-verdict symbolic reflection. ONLY G★ determines band.
-        # Rule 1: stage == "INIT" → S1 (Forge Principle)
-        # Rule 2: verdict == "SEAL" → S1 (Forge Principle)  
-        # Rule 3: Otherwise → band = floor(5 * G★)
+        # Uses Hyperlattice v1: Ψ (Claim) × Ω (Stability) × Δ (Intervention)
         from arifosmcp.runtime.philosophy_registry import inject_philosophy
         
         envelope.philosophy = inject_philosophy(envelope)
@@ -292,19 +289,9 @@ async def _wrap_call(
         )
 
         # ── Philosophy Injection (Failure Anchor) ──
-        from arifosmcp.runtime.philosophy import select_governed_philosophy
+        from arifosmcp.runtime.philosophy_registry import inject_philosophy
 
-        envelope.philosophy = select_governed_philosophy(
-            context=str(payload.get("query") or payload.get("intent") or tool_name),
-            stage=envelope.stage,
-            verdict=str(envelope.verdict.value)
-            if hasattr(envelope.verdict, "value")
-            else str(envelope.verdict),
-            g_score=0.33,  # Humility floor for failures
-            session_id=session_id,
-            delta_s=0.0,  # Unknown in failure state
-            omega_score=0.08,  # Higher humility in failure
-        )
+        envelope.philosophy = inject_philosophy(envelope)
 
         return envelope
 

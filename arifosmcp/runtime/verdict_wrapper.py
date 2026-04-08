@@ -13,6 +13,7 @@ from typing import Any
 
 from arifosmcp.runtime.models import (
     CanonicalMetrics,
+    PhilosophyState,
     RuntimeEnvelope,
     RuntimeStatus,
     VerdictCode,
@@ -29,7 +30,8 @@ def forge_verdict(
     floors_checked: list[str] | None = None,
     override_code: VerdictCode | None = None,
     message: str | None = None,
-    canonical_tool_name: str | None = None
+    canonical_tool_name: str | None = None,
+    philosophy: PhilosophyState | None = None
 ) -> RuntimeEnvelope:
     """
     Forge a standardized verdict envelope (v1.0) from raw tool output.
@@ -37,8 +39,8 @@ def forge_verdict(
     Priority Logic:
     1. If override_code is provided, use it.
     2. If entropy delta (dS) > 0.1, result is VOID (Clarity failure).
-    3. If confidence < 0.7, result is SABAR (Grounding failure).
-    4. If payload is empty, result is PARTIAL.
+    3. If confidence < threshold (influenced by philosophy), result is SABAR/HOLD.
+    4. If philosophy-imposed posture exists, use it as ceiling.
     5. Default is SEAL.
     """
     
@@ -46,6 +48,11 @@ def forge_verdict(
     metrics = metrics or CanonicalMetrics()
     ds = metrics.telemetry.ds
     conf = metrics.telemetry.confidence
+    
+    # Apply philosophy cap to confidence if present
+    if philosophy:
+        conf = min(conf, philosophy.confidence_cap)
+        metrics.telemetry.confidence = conf
     
     # 2. Determine Code & Reason
     if override_code:
@@ -55,18 +62,29 @@ def forge_verdict(
         code = VerdictCode.VOID
         reason = "ENTROPY_HIGH"
         message = message or f"F4 Violation: Entropy spike detected (dS={ds})."
-    elif conf < 0.7:
-        code = VerdictCode.SABAR
-        reason = "LOW_CONFIDENCE"
-        message = message or f"F7 Caution: Confidence {conf} below metabolic threshold."
-    elif not payload or (isinstance(payload, dict) and not payload.get("data") and not payload):
-        code = VerdictCode.PARTIAL
-        reason = "DATA_INCOMPLETE"
-        message = message or "Tool executed but returned null/empty dataset."
     else:
-        code = VerdictCode.SEAL
-        reason = "OK_ALL_PASS"
-        message = message or "Constitutional alignment confirmed. Proceed."
+        # Philosophy-aware thresholding
+        threshold = 0.7 # Default metabolic threshold
+        
+        # Check posture-based caps from Hyperlattice
+        if philosophy and philosophy.posture == "VOID":
+            code = VerdictCode.VOID
+            reason = "PHILOSOPHY_VOID"
+        elif philosophy and philosophy.posture == "HOLD":
+            code = VerdictCode.SABAR # Note: models use SABAR for hold-like states
+            reason = "PHILOSOPHY_HOLD"
+        elif conf < threshold:
+            code = VerdictCode.SABAR
+            reason = "LOW_CONFIDENCE"
+            message = message or f"F7 Caution: Confidence {conf} below metabolic threshold."
+        elif not payload or (isinstance(payload, dict) and not payload.get("data") and not payload):
+            code = VerdictCode.PARTIAL
+            reason = "DATA_INCOMPLETE"
+            message = message or "Tool executed but returned null/empty dataset."
+        else:
+            code = VerdictCode.SEAL
+            reason = "OK_ALL_PASS"
+            message = message or "Constitutional alignment confirmed. Proceed."
 
     # 3. Construct Detail
     detail = VerdictDetail(
@@ -85,10 +103,12 @@ def forge_verdict(
         verdict=code, # For backward compat
         verdict_detail=detail,
         metrics=metrics,
+        philosophy=philosophy,
         payload={"data": payload},
-        audit={
+        policy={
             "floors_checked": floors_checked or ["F4", "F11"],
-            "floors_failed": ["F4" if ds > 0.1 else ""]
+            "floors_failed": ["F4" if ds > 0.1 else ""],
+            "philosophy_zone": philosophy.zone_code if philosophy else "N/A"
         },
         status=RuntimeStatus.SUCCESS if code != VerdictCode.VOID else RuntimeStatus.ERROR
     )

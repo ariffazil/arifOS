@@ -16,7 +16,7 @@
 |----------|---------|-----------|
 | **Root** (`README.md`, `AGENTS.md`, `pyproject.toml`) | Primary SoT — law, narrative, manifest | **PRIMARY** |
 | **`core/`** | Governance kernel, floors F1-F13, judgment engine | **PRIMARY** |
-| **`000/`** | Constitutional law, K000 theory | **PRIMARY** |
+| **`000/`** | Constitutional law, K000 theory, Agent Doctrine | **PRIMARY** |
 | **`config/`** | Canonical schemas, `/health` SoT fields | **PRIMARY** |
 | **`arifosmcp/`** | Runtime shell — MCP server, HTTP transport | **RUNTIME** |
 | **`docs/deployment/`** | Deployment artifacts, scripts, configs | **OPERATIONAL** |
