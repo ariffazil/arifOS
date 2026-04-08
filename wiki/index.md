@@ -13,6 +13,7 @@
 ## 💡 Concepts
 - [[Metabolic_Loop]] (The 000-999 Execution Pipeline)
 - [[MCP_Tools]] (Canonical arifos_* Tool Surface)
+- **K00X_RUNTIME_POLICY** ([Runtime Policy — Token Budget Law + Call Rules](raw/K00X_RUNTIME_POLICY.md))
 - [[Tool_Surface_Architecture]] (Canonical spec, runtime, compatibility, transport, and wiki layers)
 - [[Concept_Godellock]] (F7 Humility and the Overconfidence Threshold)
 - [[Agents-and-AAA-Architecture]] (Ring 3: Practical Execution layer)
