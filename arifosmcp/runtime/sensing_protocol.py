@@ -50,13 +50,29 @@ from arifosmcp.runtime.philosophy_registry import select_philosophy_state
 
 logger = logging.getLogger(__name__)
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARSING LIMITS — Zero-Day Mitigation (Category 5)
+# Prevents parser/resource weirdness and schema smuggling
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_MAX_QUERY_LENGTH = 10000  # Max raw query string length
+_MAX_ENTITIES = 50  # Max entity list size
+_MAX_CLAIMS = 100  # Max claim target list size
+_MAX_EVIDENCE = 200  # Max evidence items list size
+_MAX_NESTED_DEPTH = 10  # Max nested object depth
+_MAX_STRING_FIELD_LENGTH = 5000  # Max individual string field length
+_MAX_LIST_FIELD_LENGTH = 100  # Max list field size
+_PARSER_TIMEOUT_SECONDS = 5.0  # Max time for any parsing operation
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENUMERATIONS — Constitutional Classification
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ExplorationState(str, Enum):
     """Cognitive exploration posture."""
+
     NARROW = "NARROW"
     BROAD = "BROAD"
     FOCUSED = "FOCUSED"
@@ -64,6 +80,7 @@ class ExplorationState(str, Enum):
 
 class EntropyState(str, Enum):
     """Information entropy assessment."""
+
     LOW = "LOW"
     MANAGEABLE = "MANAGEABLE"
     HIGH = "HIGH"
@@ -71,6 +88,7 @@ class EntropyState(str, Enum):
 
 class EurekaState(str, Enum):
     """Insight emergence detection."""
+
     NONE = "NONE"
     EMERGING = "EMERGING"
     STRONG = "STRONG"
@@ -78,17 +96,19 @@ class EurekaState(str, Enum):
 
 class TruthClass(str, Enum):
     """Seven truth classification lanes."""
-    ABSOLUTE_INVARIANT = "absolute_invariant"      # Lane A: Logic, math, physics
-    CONDITIONAL_INVARIANT = "conditional_invariant" # Lane B: Frame-dependent truths
-    OPERATIONAL_PRINCIPLE = "operational_principle" # Lane C: Strategy, governance
-    TIME_SENSITIVE_FACT = "time_sensitive_fact"     # Lane D: Current events, live data
-    CONTESTED_FRAMEWORK = "contested_framework"     # Lane F: Axiom-dependent, ideological
-    AMBIGUOUS_QUERY = "ambiguous_query"             # Lane G: Frame unresolved
-    UNKNOWN = "unknown"                             # Lane H: Insufficient basis
+
+    ABSOLUTE_INVARIANT = "absolute_invariant"  # Lane A: Logic, math, physics
+    CONDITIONAL_INVARIANT = "conditional_invariant"  # Lane B: Frame-dependent truths
+    OPERATIONAL_PRINCIPLE = "operational_principle"  # Lane C: Strategy, governance
+    TIME_SENSITIVE_FACT = "time_sensitive_fact"  # Lane D: Current events, live data
+    CONTESTED_FRAMEWORK = "contested_framework"  # Lane F: Axiom-dependent, ideological
+    AMBIGUOUS_QUERY = "ambiguous_query"  # Lane G: Frame unresolved
+    UNKNOWN = "unknown"  # Lane H: Insufficient basis
 
 
 class TaskType(str, Enum):
     """User intent classification."""
+
     DEFINE = "define"
     VERIFY = "verify"
     COMPARE = "compare"
@@ -101,6 +121,7 @@ class TaskType(str, Enum):
 
 class DecisionProximity(str, Enum):
     """Consequence proximity of the query."""
+
     INFORMATIONAL = "informational"
     PREPARATORY = "preparatory"
     DECISION_CRITICAL = "decision_critical"
@@ -108,6 +129,7 @@ class DecisionProximity(str, Enum):
 
 class TimeScope(str, Enum):
     """Temporal classification."""
+
     TIMELESS = "timeless"
     HISTORICAL = "historical"
     DATED = "dated"
@@ -117,6 +139,7 @@ class TimeScope(str, Enum):
 
 class InputType(str, Enum):
     """Input modality."""
+
     QUERY = "query"
     URL = "url"
     BUNDLE = "bundle"
@@ -126,6 +149,7 @@ class InputType(str, Enum):
 
 class SensingMode(str, Enum):
     """Sensing execution modes."""
+
     SEARCH = "search"
     INGEST = "ingest"
     COMPASS = "compass"
@@ -136,17 +160,19 @@ class SensingMode(str, Enum):
 
 class EvidenceRank(int, Enum):
     """Seven-tier evidence hierarchy — constitutional rank."""
-    DIRECT_MEASUREMENT = 1    # Sensors, primary data
-    PRIMARY_SOURCE = 2        # Original documents, raw data
-    OFFICIAL_ISSUER = 3       # Current authority on subject
+
+    DIRECT_MEASUREMENT = 1  # Sensors, primary data
+    PRIMARY_SOURCE = 2  # Original documents, raw data
+    OFFICIAL_ISSUER = 3  # Current authority on subject
     TECHNICAL_DOCUMENTATION = 4  # Specs, standards, methods
-    REPUTABLE_SECONDARY = 5   # Vetted summaries, analysis
-    AGGREGATOR_OR_INDEX = 6   # Search engines, databases
+    REPUTABLE_SECONDARY = 5  # Vetted summaries, analysis
+    AGGREGATOR_OR_INDEX = 6  # Search engines, databases
     SOCIAL_OR_UNVERIFIED = 7  # Social media, unvetted claims
 
 
 class AmbiguityType(str, Enum):
     """Seven ambiguity categories."""
+
     ENTITY = "entity"
     TIMEFRAME = "timeframe"
     JURISDICTION = "jurisdiction"
@@ -158,6 +184,7 @@ class AmbiguityType(str, Enum):
 
 class ConflictType(str, Enum):
     """Six conflict categories."""
+
     SOURCE_DISAGREEMENT = "source_disagreement"
     TEMPORAL_MISMATCH = "temporal_mismatch"
     DEFINITIONAL_MISMATCH = "definitional_mismatch"
@@ -168,6 +195,7 @@ class ConflictType(str, Enum):
 
 class UncertaintyLevel(str, Enum):
     """Epistemic uncertainty bands."""
+
     LOW = "low"
     MODERATE = "moderate"
     HIGH = "high"
@@ -176,6 +204,7 @@ class UncertaintyLevel(str, Enum):
 
 class StalenessRisk(str, Enum):
     """Temporal staleness assessment."""
+
     NONE = "none"
     LOW = "low"
     MODERATE = "moderate"
@@ -184,6 +213,7 @@ class StalenessRisk(str, Enum):
 
 class ClaimType(str, Enum):
     """Claim categorization."""
+
     DEFINITION = "definition"
     STATUS = "status"
     EVENT = "event"
@@ -196,6 +226,7 @@ class ClaimType(str, Enum):
 
 class Polarity(str, Enum):
     """Claim polarity."""
+
     AFFIRM = "affirm"
     DENY = "deny"
     QUESTION = "question"
@@ -205,6 +236,7 @@ class Polarity(str, Enum):
 
 class EntityType(str, Enum):
     """Entity categorization."""
+
     PERSON = "person"
     COMPANY = "company"
     PLACE = "place"
@@ -217,6 +249,7 @@ class EntityType(str, Enum):
 
 class ResolutionStatus(str, Enum):
     """Conflict resolution state."""
+
     RESOLVED = "resolved"
     UNRESOLVED = "unresolved"
     PARTIALLY_RESOLVED = "partially_resolved"
@@ -224,6 +257,7 @@ class ResolutionStatus(str, Enum):
 
 class QualityFlag(str, Enum):
     """Evidence quality markers."""
+
     PRIMARY = "primary"
     OFFICIAL = "official"
     STALE = "stale"
@@ -235,6 +269,7 @@ class QualityFlag(str, Enum):
 
 class RoutingTarget(str, Enum):
     """Downstream routing destinations."""
+
     MIND = "arifos.mind"
     HEART = "arifos.heart"
     JUDGE = "arifos.judge"
@@ -245,11 +280,12 @@ class RoutingTarget(str, Enum):
 # DATA CLASSES — Intelligence State (Whole-State Alignment)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class TruthVector:
     """
     Constitutional physics vector for truth assessment.
-    
+
     grounding_g: Grounding score (how well evidence supports claim)
     truth_tau: Truth integrity (internal consistency)
     uncertainty_sigma: Residual uncertainty (what remains unknown)
@@ -257,13 +293,14 @@ class TruthVector:
     entropy_delta_s: Local entropic effect estimate (ΔS ≤ 0 principle)
     humility_omega0: Humility/confidence cap (Ω₀ band)
     """
+
     grounding_g: float = 0.0
     truth_tau: float = 0.0
     uncertainty_sigma: float = 1.0
     coherence_c: float = 0.0
     entropy_delta_s: float = 0.0
     humility_omega0: float = 0.5
-    
+
     def to_dict(self) -> dict[str, float]:
         return {
             "grounding_g": round(self.grounding_g, 4),
@@ -279,10 +316,11 @@ class TruthVector:
 class IntelligenceState:
     """
     Live state of cognition at the moment sense finishes.
-    
+
     This aligns sense to the full constitutional state, not just retrieval.
     Downstream tools inherit the epistemic posture, not only the data.
     """
+
     exploration: ExplorationState = ExplorationState.NARROW
     entropy: EntropyState = EntropyState.MANAGEABLE
     eureka: EurekaState = EurekaState.NONE
@@ -294,7 +332,7 @@ class IntelligenceState:
     conflicts: list[str] = field(default_factory=list)
     decision_required: list[str] = field(default_factory=list)
     truth_vector: TruthVector = field(default_factory=TruthVector)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "exploration": self.exploration.value,
@@ -315,9 +353,11 @@ class IntelligenceState:
 # DATA CLASSES — Input Contract
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class InputSpec:
     """Input specification."""
+
     type: InputType = InputType.QUERY
     value: str = ""
     mode: SensingMode = SensingMode.GOVERNED
@@ -326,6 +366,7 @@ class InputSpec:
 @dataclass
 class IntentSpec:
     """Intent specification."""
+
     task_type: TaskType = TaskType.UNKNOWN
     user_goal: str | None = None
     decision_proximity: DecisionProximity = DecisionProximity.INFORMATIONAL
@@ -334,11 +375,12 @@ class IntentSpec:
 @dataclass
 class EntityRef:
     """Entity reference."""
+
     name: str
     type: EntityType = EntityType.UNKNOWN
     canonical_id: str | None = None
     aliases: list[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
@@ -351,10 +393,11 @@ class EntityRef:
 @dataclass
 class ClaimTarget:
     """Target claim specification."""
+
     text: str
     polarity: Polarity = Polarity.QUESTION
     claim_type: ClaimType = ClaimType.UNKNOWN
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "text": self.text,
@@ -366,12 +409,13 @@ class ClaimTarget:
 @dataclass
 class QueryFrame:
     """Query framing context."""
+
     domain: str = "unknown"
     time_scope: TimeScope = TimeScope.TIMELESS
     jurisdiction: str | None = None
     entity_targets: list[EntityRef] = field(default_factory=list)
     claim_targets: list[ClaimTarget] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "domain": self.domain,
@@ -385,6 +429,7 @@ class QueryFrame:
 @dataclass
 class PolicySpec:
     """Sensing policy constraints."""
+
     obey_robots: bool = True
     allow_paywalls: bool = False
     allow_login: bool = False
@@ -394,7 +439,7 @@ class PolicySpec:
     min_evidence_rank: int | None = None
     offline_first: bool = False
     fail_closed: bool = True
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "obey_robots": self.obey_robots,
@@ -412,11 +457,12 @@ class PolicySpec:
 @dataclass
 class BudgetSpec:
     """Resource budget constraints."""
+
     top_k: int = 5
     fetch_top_k: int = 2
     budget_ms: int = 15000
     token_budget: int | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "top_k": self.top_k,
@@ -429,10 +475,11 @@ class BudgetSpec:
 @dataclass
 class ActorSpec:
     """Actor/authority specification."""
+
     actor_id: str = "anonymous"
     auth_state: str = "unverified"
     authority_level: str = "anonymous"
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "actor_id": self.actor_id,
@@ -445,16 +492,17 @@ class ActorSpec:
 class SenseInput:
     """
     Canonical sense input contract.
-    
+
     Backward compatible: simple string query auto-normalizes to full structure.
     """
+
     input: InputSpec = field(default_factory=InputSpec)
     intent: IntentSpec = field(default_factory=IntentSpec)
     query_frame: QueryFrame = field(default_factory=QueryFrame)
     policy: PolicySpec = field(default_factory=PolicySpec)
     budget: BudgetSpec = field(default_factory=BudgetSpec)
     actor: ActorSpec = field(default_factory=ActorSpec)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "input": {
@@ -478,13 +526,15 @@ class SenseInput:
 # DATA CLASSES — Truth Classification
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class TruthClassification:
     """
     Truth classification block — heart of governed sensing.
-    
+
     Determines whether and how to search based on the nature of the query.
     """
+
     truth_class: TruthClass = TruthClass.UNKNOWN
     search_required: bool = False
     search_reason: str | None = None
@@ -493,7 +543,7 @@ class TruthClassification:
     temporal_dependency: bool = False
     temporal_note: str | None = None
     classification_confidence: float = 0.0
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "truth_class": self.truth_class.value,
@@ -511,9 +561,11 @@ class TruthClassification:
 # DATA CLASSES — Evidence Planning
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class FreshnessRequirement:
     """Temporal freshness constraints."""
+
     required: bool = False
     max_age_days: int | None = None
     reference_time: str | None = None
@@ -522,6 +574,7 @@ class FreshnessRequirement:
 @dataclass
 class CorroborationSpec:
     """Multi-source corroboration requirements."""
+
     min_distinct_sources: int = 2
     require_primary_if_available: bool = True
 
@@ -529,6 +582,7 @@ class CorroborationSpec:
 @dataclass
 class ConflictPolicy:
     """Conflict resolution policy."""
+
     mode: str = "prefer_higher_rank"  # or: prefer_newer_if_same_rank, hold_on_conflict, summarize_disagreement
 
 
@@ -536,9 +590,10 @@ class ConflictPolicy:
 class EvidencePlan:
     """
     Evidence gathering plan based on classification.
-    
+
     Constrained retrieval: only fetch what meets the plan.
     """
+
     retrieval_lane: str = "hold"  # offline_reason | web_search | url_ingest | mixed | hold
     preferred_sources: list[str] = field(default_factory=list)
     banned_sources: list[str] = field(default_factory=list)
@@ -546,7 +601,7 @@ class EvidencePlan:
     freshness_requirement: FreshnessRequirement = field(default_factory=FreshnessRequirement)
     corroboration: CorroborationSpec = field(default_factory=CorroborationSpec)
     conflict_policy: ConflictPolicy = field(default_factory=ConflictPolicy)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "retrieval_lane": self.retrieval_lane,
@@ -570,21 +625,25 @@ class EvidencePlan:
 # DATA CLASSES — Temporal Grounding
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class TemporalGrounding:
     """
     Temporal grounding block.
-    
+
     Essential because sense is not just "what sources say",
     but what they say relative to time.
     """
+
     query_time_class: TimeScope = TimeScope.TIMELESS
     detected_dates: list[str] = field(default_factory=list)
-    effective_reference_time: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    effective_reference_time: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     freshness_required: bool = False
     staleness_risk: StalenessRisk = StalenessRisk.NONE
     temporal_notes: list[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "query_time_class": self.query_time_class.value,
@@ -600,20 +659,22 @@ class TemporalGrounding:
 # DATA CLASSES — Ambiguity, Conflict, Uncertainty
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class AmbiguityModel:
     """
     Ambiguity detection and containment.
-    
+
     Ambiguity must be surfaced, not hidden.
     """
+
     detected: bool = False
     ambiguity_type: list[AmbiguityType] = field(default_factory=list)
     candidate_interpretations: list[str] = field(default_factory=list)
     chosen_interpretation: str | None = None
     assumption_disclosed: bool = False
     needs_human_narrowing: bool = False
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "detected": self.detected,
@@ -629,15 +690,16 @@ class AmbiguityModel:
 class ConflictModel:
     """
     Conflict detection and resolution.
-    
+
     Conflict is signal, not noise. Do not average blindly.
     """
+
     detected: bool = False
     conflict_type: list[ConflictType] = field(default_factory=list)
     conflict_summary: str | None = None
     resolution_status: ResolutionStatus = ResolutionStatus.RESOLVED
     resolution_method: str | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "detected": self.detected,
@@ -651,12 +713,13 @@ class ConflictModel:
 @dataclass
 class UncertaintyBasis:
     """Five-dimensional uncertainty basis."""
+
     evidence_quality: float = 0.0
     source_agreement: float = 0.0
     temporal_alignment: float = 0.0
     frame_clarity: float = 0.0
     model_fit: float = 0.0
-    
+
     def to_dict(self) -> dict[str, float]:
         return {
             "evidence_quality": round(self.evidence_quality, 4),
@@ -671,15 +734,16 @@ class UncertaintyBasis:
 class UncertaintyBand:
     """
     Uncertainty band with Ω₀ humility integration.
-    
+
     Uncertainty must remain explicit. Confidence capped by humility.
     """
+
     level: UncertaintyLevel = UncertaintyLevel.HIGH
     sigma: float = 1.0
     omega0_cap: float = 0.5
     basis: UncertaintyBasis = field(default_factory=UncertaintyBasis)
     narrative_note: str | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "level": self.level.value,
@@ -694,14 +758,16 @@ class UncertaintyBand:
 # DATA CLASSES — Evidence Items
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ExtractedClaim:
     """Claim extracted from evidence."""
+
     claim_text: str
     claim_type: ClaimType = ClaimType.UNKNOWN
     supports_target: bool | None = None
     confidence: float = 0.5
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "claim_text": self.claim_text,
@@ -715,9 +781,10 @@ class ExtractedClaim:
 class EvidenceItem:
     """
     Normalized evidence item with full provenance.
-    
+
     Required for downstream traceability and constitutional audit.
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     source_name: str = ""
     source_type: str = ""
@@ -734,7 +801,7 @@ class EvidenceItem:
     snippets: list[str] = field(default_factory=list)
     provenance_hash: str | None = None
     quality_flags: list[QualityFlag] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
@@ -760,19 +827,21 @@ class EvidenceItem:
 # DATA CLASSES — Normalized Findings
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class NormalizedFindings:
     """
     Structured findings from evidence processing.
-    
+
     Not raw links. Normalized observations ready for downstream reasoning.
     """
+
     grounded_facts: list[str] = field(default_factory=list)
     unresolved_questions: list[str] = field(default_factory=list)
     assumptions_made: list[str] = field(default_factory=list)
     rejected_claims: list[str] = field(default_factory=list)
     contested_points: list[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "grounded_facts": self.grounded_facts,
@@ -787,18 +856,20 @@ class NormalizedFindings:
 # DATA CLASSES — Routing and Handoff
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class RoutingDecision:
     """
     Deterministic routing to next stage.
-    
+
     Must be explicit, not implied.
     """
+
     next_stage: RoutingTarget = RoutingTarget.HOLD
     route_reason: str = ""
     requires_human_decision: bool = False
     requires_live_verification: bool = False
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "next_stage": self.next_stage.value,
@@ -812,15 +883,16 @@ class RoutingDecision:
 class StateUpdate:
     """
     Delta update to intelligence state.
-    
+
     What changed as a result of this sensing operation.
     """
+
     stable_facts_delta: list[str] = field(default_factory=list)
     unknowns_delta: list[str] = field(default_factory=list)
     conflicts_delta: list[str] = field(default_factory=list)
     confidence_delta: float = 0.0
     uncertainty_delta: float = 0.0
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "stable_facts_delta": self.stable_facts_delta,
@@ -836,10 +908,13 @@ class HandoffSpec:
     """
     Handoff specification for downstream consumption.
     """
+
     packet_type: str = "sense_packet@v2"
-    consumable_by: list[str] = field(default_factory=lambda: ["arifos.mind", "arifos.heart", "arifos.judge"])
+    consumable_by: list[str] = field(
+        default_factory=lambda: ["arifos.mind", "arifos.heart", "arifos.judge"]
+    )
     state_update: StateUpdate = field(default_factory=StateUpdate)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "packet_type": self.packet_type,
@@ -852,14 +927,16 @@ class HandoffSpec:
 # DATA CLASSES — Input Summary
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class InputSummary:
     """Summary of input processing."""
+
     raw_query: str | None = None
     normalized_query: str | None = None
     mode_used: str = "governed"
     domain: str | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "raw_query": self.raw_query,
@@ -873,17 +950,19 @@ class InputSummary:
 # DATA CLASSES — Canonical SensePacket
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class SensePacket:
     """
     Canonical SensePacket — the full output of governed sensing.
-    
+
     This is not raw search results. This is a structured, bounded,
     time-aware, source-ranked, uncertainty-tagged observation packet.
     """
+
     packet_id: str = field(default_factory=lambda: f"spk_{uuid.uuid4().hex[:12]}")
     stage: str = "111_SENSE"
-    
+
     input_summary: InputSummary = field(default_factory=InputSummary)
     truth_classification: TruthClassification = field(default_factory=TruthClassification)
     temporal_grounding: TemporalGrounding = field(default_factory=TemporalGrounding)
@@ -891,15 +970,15 @@ class SensePacket:
     conflict: ConflictModel = field(default_factory=ConflictModel)
     uncertainty: UncertaintyBand = field(default_factory=UncertaintyBand)
     evidence_plan: EvidencePlan = field(default_factory=EvidencePlan)
-    
+
     entities: list[EntityRef] = field(default_factory=list)
     target_claims: list[ClaimTarget] = field(default_factory=list)
     evidence_items: list[EvidenceItem] = field(default_factory=list)
-    
+
     normalized_findings: NormalizedFindings = field(default_factory=NormalizedFindings)
     routing: RoutingDecision = field(default_factory=RoutingDecision)
     handoff: HandoffSpec = field(default_factory=HandoffSpec)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "packet_id": self.packet_id,
@@ -927,40 +1006,106 @@ class SensePacket:
 # Absolute invariants — no web search ever needed
 _INVARIANT_TERMS: dict[str, list[str]] = {
     "physics": [
-        "entropy", "thermodynamics", "conservation of energy", "speed of light",
-        "gravity", "relativity", "quantum mechanics", "second law", "planck",
-        "boltzmann", "maxwell", "newton", "faraday",
+        "entropy",
+        "thermodynamics",
+        "conservation of energy",
+        "speed of light",
+        "gravity",
+        "relativity",
+        "quantum mechanics",
+        "second law",
+        "planck",
+        "boltzmann",
+        "maxwell",
+        "newton",
+        "faraday",
     ],
     "math": [
-        "nash equilibrium", "pythagorean theorem", "turing completeness",
-        "algorithm", "complexity", "proof", "axiom", "theorem", "lemma",
-        "derivative", "integral", "eigenvalue", "fourier",
+        "nash equilibrium",
+        "pythagorean theorem",
+        "turing completeness",
+        "algorithm",
+        "complexity",
+        "proof",
+        "axiom",
+        "theorem",
+        "lemma",
+        "derivative",
+        "integral",
+        "eigenvalue",
+        "fourier",
     ],
     "logic": [
-        "syllogism", "deductive reasoning", "inductive reasoning",
-        "occam's razor", "falsification", "null hypothesis", "modus ponens",
-        "modus tollens", "contrapositive",
+        "syllogism",
+        "deductive reasoning",
+        "inductive reasoning",
+        "occam's razor",
+        "falsification",
+        "null hypothesis",
+        "modus ponens",
+        "modus tollens",
+        "contrapositive",
     ],
     "definitions": [
-        "is defined as", "what is the meaning of", "definition of",
-        "what does.*mean", r"\bmeaning\b",
+        "is defined as",
+        "what is the meaning of",
+        "definition of",
+        "what does.*mean",
+        r"\bmeaning\b",
     ],
 }
 
 # Time-sensitive triggers — live search required
 _LIVE_TRIGGERS: list[str] = [
-    "current", "now", "today", "latest", "recent", "right now", "at the moment",
-    "this year", "2024", "2025", "2026", "price", "trading at", "rate of",
-    "ceo", "cto", "president", "prime minister", "minister", "leader",
-    "outbreak", "election", "war", "outage", "breach", "release", "launched",
-    "weather", "temperature", "forecast",
+    "current",
+    "now",
+    "today",
+    "latest",
+    "recent",
+    "right now",
+    "at the moment",
+    "this year",
+    "2024",
+    "2025",
+    "2026",
+    "price",
+    "trading at",
+    "rate of",
+    "ceo",
+    "cto",
+    "president",
+    "prime minister",
+    "minister",
+    "leader",
+    "outbreak",
+    "election",
+    "war",
+    "outage",
+    "breach",
+    "release",
+    "launched",
+    "weather",
+    "temperature",
+    "forecast",
 ]
 
 # Contested / axiom-dependent markers
 _CONTESTED_MARKERS: list[str] = [
-    "best framework", "best language", "better than", "vs ", " versus ",
-    "capitalism", "socialism", "religion", "god", "morality", "ethical",
-    "should society", "is it wrong", "political", "ideology",
+    "best framework",
+    "best language",
+    "better than",
+    "vs ",
+    " versus ",
+    "capitalism",
+    "socialism",
+    "religion",
+    "god",
+    "morality",
+    "ethical",
+    "should society",
+    "is it wrong",
+    "political",
+    "ideology",
 ]
 
 # Domain → staleness threshold (days)
@@ -977,21 +1122,22 @@ _FRESHNESS_BY_DOMAIN: dict[str, int] = {
 
 # Domain detection keywords
 _DOMAIN_KEYWORDS: dict[str, list[str]] = {
-    "finance":    ["price", "stock", "crypto", "market", "trading", "bitcoin", "investment", "fund"],
-    "weather":    ["weather", "temperature", "forecast", "rain", "humidity"],
-    "security":   ["cve", "vulnerability", "exploit", "breach", "malware", "ransomware"],
-    "software":   ["api", "library", "framework", "version", "github", "npm", "pypi", "sdk"],
-    "law":        ["law", "legal", "statute", "regulation", "gdpr", "jurisdiction", "court"],
-    "medicine":   ["drug", "treatment", "disease", "diagnosis", "clinical", "fda", "who"],
-    "geopolitics":["election", "war", "country", "government", "treaty", "sanctions"],
-    "physics":    ["entropy", "quantum", "energy", "force", "thermodynamics"],
-    "math":       ["equation", "theorem", "proof", "formula", "algorithm"],
+    "finance": ["price", "stock", "crypto", "market", "trading", "bitcoin", "investment", "fund"],
+    "weather": ["weather", "temperature", "forecast", "rain", "humidity"],
+    "security": ["cve", "vulnerability", "exploit", "breach", "malware", "ransomware"],
+    "software": ["api", "library", "framework", "version", "github", "npm", "pypi", "sdk"],
+    "law": ["law", "legal", "statute", "regulation", "gdpr", "jurisdiction", "court"],
+    "medicine": ["drug", "treatment", "disease", "diagnosis", "clinical", "fda", "who"],
+    "geopolitics": ["election", "war", "country", "government", "treaty", "sanctions"],
+    "physics": ["entropy", "quantum", "energy", "force", "thermodynamics"],
+    "math": ["equation", "theorem", "proof", "formula", "algorithm"],
 }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # WEB SEARCH PROVIDER PROTOCOL
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @runtime_checkable
 class WebSearchProvider(Protocol):
@@ -1001,6 +1147,7 @@ class WebSearchProvider(Protocol):
     The governed protocol stays constant; backends are swappable.
     Implement this to plug in Brave, DDGS, Perplexity, or any other engine.
     """
+
     async def search(
         self,
         query: str,
@@ -1029,6 +1176,7 @@ class RealityHandlerSearchProvider:
     def _get_handler(self) -> Any:
         if self._handler is None:
             from arifosmcp.runtime.reality_handlers import handler as _h
+
             self._handler = _h
         return self._handler
 
@@ -1073,14 +1221,17 @@ def _get_default_provider() -> WebSearchProvider:
 # STAGE 1: PARSE — Normalize raw string into SenseInput
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def normalize_query(raw: str) -> SenseInput:
     """
     Stage 1: Convert a raw query string into a structured SenseInput.
 
     Extracts: domain, time_scope, entity targets, task_type.
     Backward-compatible: callers passing a plain string get the full structure.
+
+    SECURITY: Enforces _MAX_QUERY_LENGTH to prevent resource exhaustion.
     """
-    q = raw.strip()
+    q = raw.strip()[:_MAX_QUERY_LENGTH]  # Hard limit on query length
     ql = q.lower()
 
     # Detect domain
@@ -1093,27 +1244,27 @@ def normalize_query(raw: str) -> SenseInput:
     # Detect time scope
     if any(t in ql for t in _LIVE_TRIGGERS[:15]):  # current/now/today keywords
         time_scope = TimeScope.LIVE
-    elif re.search(r'\b(yesterday|last week|ago|previous|historical|in \d{4})\b', ql):
+    elif re.search(r"\b(yesterday|last week|ago|previous|historical|in \d{4})\b", ql):
         time_scope = TimeScope.HISTORICAL
-    elif re.search(r'\b(this week|this month|recently)\b', ql):
+    elif re.search(r"\b(this week|this month|recently)\b", ql):
         time_scope = TimeScope.DATED
-    elif re.search(r'\b(will|predict|forecast|next year)\b', ql):
+    elif re.search(r"\b(will|predict|forecast|next year)\b", ql):
         time_scope = TimeScope.FORECAST
     else:
         time_scope = TimeScope.TIMELESS
 
     # Detect task type
-    if re.search(r'\b(what is|define|meaning of|definition)\b', ql):
+    if re.search(r"\b(what is|define|meaning of|definition)\b", ql):
         task_type = TaskType.DEFINE
-    elif re.search(r'\b(is it true|verify|confirm|check)\b', ql):
+    elif re.search(r"\b(is it true|verify|confirm|check)\b", ql):
         task_type = TaskType.VERIFY
-    elif re.search(r'\b(compare|vs|versus|better|worse|difference)\b', ql):
+    elif re.search(r"\b(compare|vs|versus|better|worse|difference)\b", ql):
         task_type = TaskType.COMPARE
-    elif re.search(r'\b(where|location|find|who is|current.*ceo|current.*president)\b', ql):
+    elif re.search(r"\b(where|location|find|who is|current.*ceo|current.*president)\b", ql):
         task_type = TaskType.LOCATE
-    elif re.search(r'\b(monitor|track|watch|alert)\b', ql):
+    elif re.search(r"\b(monitor|track|watch|alert)\b", ql):
         task_type = TaskType.MONITOR
-    elif re.search(r'\b(why|explain|how does|reason)\b', ql):
+    elif re.search(r"\b(why|explain|how does|reason)\b", ql):
         task_type = TaskType.EXPLAIN
     else:
         task_type = TaskType.UNKNOWN
@@ -1121,7 +1272,7 @@ def normalize_query(raw: str) -> SenseInput:
     # Extract entity (simple heuristic: proper-ish nouns after "of/for/about/is")
     entity_targets: list[EntityRef] = []
     m = re.search(
-        r'(?:of|for|about|is|who is|what is)\s+([A-Z][a-zA-Z\s\-]{2,40}?)(?:\?|$|\s+(?:today|now|currently|the))',
+        r"(?:of|for|about|is|who is|what is)\s+([A-Z][a-zA-Z\s\-]{2,40}?)(?:\?|$|\s+(?:today|now|currently|the))",
         q,
     )
     if m:
@@ -1144,6 +1295,7 @@ def normalize_query(raw: str) -> SenseInput:
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 2: CLASSIFY — Truth-Class Router (7 lanes)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def classify_truth_class(si: SenseInput) -> TruthClassification:
     """
@@ -1196,9 +1348,19 @@ def classify_truth_class(si: SenseInput) -> TruthClassification:
 
     # Lane B: Conditional invariant (frame-dependent)
     conditional_markers = [
-        "in the us", "in malaysia", "in uk", "under gdpr", "according to",
-        "in python", "in version", "based on", "depending on", "in context of",
-        "under ", "per ", "jurisdiction",
+        "in the us",
+        "in malaysia",
+        "in uk",
+        "under gdpr",
+        "according to",
+        "in python",
+        "in version",
+        "based on",
+        "depending on",
+        "in context of",
+        "under ",
+        "per ",
+        "jurisdiction",
     ]
     if any(m in ql for m in conditional_markers):
         return TruthClassification(
@@ -1210,9 +1372,18 @@ def classify_truth_class(si: SenseInput) -> TruthClassification:
 
     # Lane C: Operational principle
     operational_markers = [
-        "best practice", "should i", "recommend", "strategy",
-        "tradeoff", "trade-off", "architecture", "design pattern",
-        "how to", "guide", "tutorial", "steps to",
+        "best practice",
+        "should i",
+        "recommend",
+        "strategy",
+        "tradeoff",
+        "trade-off",
+        "architecture",
+        "design pattern",
+        "how to",
+        "guide",
+        "tutorial",
+        "steps to",
     ]
     if any(m in ql for m in operational_markers):
         return TruthClassification(
@@ -1253,15 +1424,14 @@ def classify_truth_class(si: SenseInput) -> TruthClassification:
 # STAGE 3: TEMPORAL GROUNDING
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def build_temporal_grounding(si: SenseInput, tc: TruthClassification) -> TemporalGrounding:
     """Stage 3: Determine temporal validity constraints."""
     time_scope = si.query_frame.time_scope
     domain = si.query_frame.domain
     now = datetime.now(timezone.utc).isoformat()
 
-    freshness_required = tc.temporal_dependency or time_scope in (
-        TimeScope.LIVE, TimeScope.DATED
-    )
+    freshness_required = tc.temporal_dependency or time_scope in (TimeScope.LIVE, TimeScope.DATED)
     freshness_days = _FRESHNESS_BY_DOMAIN.get(domain)
 
     staleness_risk = StalenessRisk.NONE
@@ -1277,9 +1447,11 @@ def build_temporal_grounding(si: SenseInput, tc: TruthClassification) -> Tempora
         notes.append("Historical query — exact date reference preferred.")
 
     # Detect explicit date mentions in query
-    detected_dates = re.findall(r'\b(20\d{2}|january|february|march|april|may|june|july|'
-                                r'august|september|october|november|december)\b',
-                                si.input.value.lower())
+    detected_dates = re.findall(
+        r"\b(20\d{2}|january|february|march|april|may|june|july|"
+        r"august|september|october|november|december)\b",
+        si.input.value.lower(),
+    )
 
     return TemporalGrounding(
         query_time_class=time_scope,
@@ -1294,6 +1466,7 @@ def build_temporal_grounding(si: SenseInput, tc: TruthClassification) -> Tempora
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 4: PLAN — Evidence Hierarchy
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def build_evidence_plan(si: SenseInput, tc: TruthClassification) -> EvidencePlan:
     """
@@ -1326,11 +1499,11 @@ def build_evidence_plan(si: SenseInput, tc: TruthClassification) -> EvidencePlan
         freshness_days = freshness_days or 1
 
     domain_sources: dict[str, list[str]] = {
-        "software":    ["official documentation", "github releases", "pypi", "npm"],
-        "finance":     ["stock exchange", "official filings", "bloomberg", "reuters"],
-        "law":         ["government gazette", "official court records", "legal databases"],
-        "security":    ["cve database", "security advisories", "vendor notices"],
-        "medicine":    ["pubmed", "who", "fda", "cdc", "lancet", "nejm"],
+        "software": ["official documentation", "github releases", "pypi", "npm"],
+        "finance": ["stock exchange", "official filings", "bloomberg", "reuters"],
+        "law": ["government gazette", "official court records", "legal databases"],
+        "security": ["cve database", "security advisories", "vendor notices"],
+        "medicine": ["pubmed", "who", "fda", "cdc", "lancet", "nejm"],
         "geopolitics": ["reuters", "ap news", "bbc", "official government sites"],
     }
 
@@ -1365,6 +1538,7 @@ def build_evidence_plan(si: SenseInput, tc: TruthClassification) -> EvidencePlan
 # STAGE 6: NORMALIZE — Raw results → EvidenceItem list
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _infer_source_rank(url: str, title: str) -> int:
     """Heuristic source-rank inference from URL/title signals."""
     u = (url or "").lower()
@@ -1377,9 +1551,21 @@ def _infer_source_rank(url: str, title: str) -> int:
     if any(x in u for x in ["github.com", "docs.", "pypi.org", "npmjs.com", "developer."]):
         return EvidenceRank.TECHNICAL_DOCUMENTATION.value
     # Rank 4: technical documentation
-    if any(x in u for x in ["reuters.com", "ap.org", "bbc.com", "bloomberg.com",
-                              "ft.com", "wsj.com", "economist.com", "nature.com",
-                              "pubmed", "ncbi.nlm"]):
+    if any(
+        x in u
+        for x in [
+            "reuters.com",
+            "ap.org",
+            "bbc.com",
+            "bloomberg.com",
+            "ft.com",
+            "wsj.com",
+            "economist.com",
+            "nature.com",
+            "pubmed",
+            "ncbi.nlm",
+        ]
+    ):
         return EvidenceRank.REPUTABLE_SECONDARY.value
     # Rank 5: reputable secondary
     if any(x in u for x in ["wikipedia.org", "britannica.com", "investopedia.com"]):
@@ -1411,31 +1597,36 @@ def normalize_results_to_items(raw_results: list[dict[str, Any]]) -> list[Eviden
         # Extract a simple claim from description
         extracted: list[ExtractedClaim] = []
         if description:
-            extracted.append(ExtractedClaim(
-                claim_text=description[:200],
-                claim_type=ClaimType.STATUS,
-                confidence=0.6,
-            ))
+            extracted.append(
+                ExtractedClaim(
+                    claim_text=description[:200],
+                    claim_type=ClaimType.STATUS,
+                    confidence=0.6,
+                )
+            )
 
-        items.append(EvidenceItem(
-            source_name=url.split("/")[2] if url.startswith("http") else url,
-            source_type="web",
-            source_rank=source_rank,
-            url=url if url else None,
-            title=title if title else None,
-            published_at=str(pub_date) if pub_date else None,
-            observed_at=datetime.now(timezone.utc).isoformat(),
-            extracted_claims=extracted,
-            snippets=[description[:300]] if description else [],
-            provenance_hash=provenance_hash,
-            quality_flags=quality_flags,
-        ))
+        items.append(
+            EvidenceItem(
+                source_name=url.split("/")[2] if url.startswith("http") else url,
+                source_type="web",
+                source_rank=source_rank,
+                url=url if url else None,
+                title=title if title else None,
+                published_at=str(pub_date) if pub_date else None,
+                observed_at=datetime.now(timezone.utc).isoformat(),
+                extracted_claims=extracted,
+                snippets=[description[:300]] if description else [],
+                provenance_hash=provenance_hash,
+                quality_flags=quality_flags,
+            )
+        )
     return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 7: GATE — Ambiguity, Conflict, Uncertainty
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def detect_ambiguity(si: SenseInput, tc: TruthClassification) -> AmbiguityModel:
     """Detect ambiguity in the query."""
@@ -1462,7 +1653,7 @@ def detect_ambiguity(si: SenseInput, tc: TruthClassification) -> AmbiguityModel:
     # Temporal ambiguity: only for status/locate queries that lack time context
     # (e.g. "who is the president" — which year?)
     if (
-        re.search(r'\b(who is|current)\b', ql)
+        re.search(r"\b(who is|current)\b", ql)
         and si.query_frame.time_scope == TimeScope.TIMELESS
         and si.intent.task_type in (TaskType.LOCATE, TaskType.UNKNOWN)
     ):
@@ -1490,13 +1681,9 @@ def detect_conflicts_from_items(items: list[EvidenceItem]) -> ConflictModel:
     conflict_notes: list[str] = []
 
     # Check for negations in claims
-    all_claims = [
-        claim.claim_text
-        for item in items
-        for claim in item.extracted_claims
-    ]
+    all_claims = [claim.claim_text for item in items for claim in item.extracted_claims]
     has_negation = any(
-        re.search(r'\b(not|no longer|false|incorrect|denied|wrong|misleading)\b', c.lower())
+        re.search(r"\b(not|no longer|false|incorrect|denied|wrong|misleading)\b", c.lower())
         for c in all_claims
     )
     if has_negation:
@@ -1528,37 +1715,40 @@ def detect_glocks(
 ) -> list[str]:
     """Detect active Gödel/Void locks based on structural signals."""
     locks = []
-    
+
     # G1: Incompleteness (grounding gap)
     if ub.basis.evidence_quality < 0.4 or tc.truth_class == TruthClass.UNKNOWN:
         locks.append("G1")
-        
+
     # G2: Contradiction
     if conflict.detected:
         locks.append("G2")
-        
+
     # G3: Self-Reference (heuristic)
     self_ref_patterns = ["system", "myself", "constitution", "certified by arifos"]
-    if any(p in si.input.value.lower() for p in self_ref_patterns) and tc.truth_class == TruthClass.OPERATIONAL_PRINCIPLE:
+    if (
+        any(p in si.input.value.lower() for p in self_ref_patterns)
+        and tc.truth_class == TruthClass.OPERATIONAL_PRINCIPLE
+    ):
         locks.append("G3")
-        
+
     # G4: Undecidability
     if ub.sigma > 0.6 and not (conflict.detected or ambiguity.detected):
         locks.append("G4")
-        
+
     # G5: Meaning Drift
     if ambiguity.detected:
         locks.append("G5")
-        
+
     # G6: Regress / Infinity (heuristic)
     if ub.sigma > 0.4 and "..." in si.input.value:
         locks.append("G6")
-        
+
     # G7: Moral Remainder (heuristic: keyword-based or high risk)
     moral_patterns = ["tradeoff", "sacrifice", "lesser evil", "choice"]
     if any(p in si.input.value.lower() for p in moral_patterns):
         locks.append("G7")
-        
+
     return sorted(list(set(locks))) or ["G0"]
 
 
@@ -1628,7 +1818,11 @@ def compute_uncertainty_band(
         narrative_note=(
             f"σ={sigma:.2f} — "
             + (f"conflict detected; " if conflict.detected else "")
-            + (f"staleness risk={temporal.staleness_risk.value}; " if temporal.staleness_risk != StalenessRisk.NONE else "")
+            + (
+                f"staleness risk={temporal.staleness_risk.value}; "
+                if temporal.staleness_risk != StalenessRisk.NONE
+                else ""
+            )
             + f"{len(items)} evidence item(s)"
         ),
     )
@@ -1638,9 +1832,10 @@ def compute_uncertainty_band(
 # INTELLIGENCE STATE — Compute from packet
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def compute_intelligence_state(
     si: SenseInput,
-    packet: 'SensePacket',
+    packet: "SensePacket",
     tc: TruthClassification,
     ub: UncertaintyBand,
     session_id: str | None = None,
@@ -1651,9 +1846,9 @@ def compute_intelligence_state(
     p_state = select_philosophy_state(
         confidence=1.0 - ub.sigma,
         dS=1.0 - ub.basis.temporal_alignment,
-        intervention=0.5, # Default intervention
+        intervention=0.5,  # Default intervention
         session_id=session_id or "global",
-        locks=locks
+        locks=locks,
     )
 
     # 2. Derive metrics
@@ -1688,9 +1883,11 @@ def compute_intelligence_state(
     stable_facts = packet.normalized_findings.grounded_facts[:5]
     unstable = packet.normalized_findings.assumptions_made[:3]
     unknowns = packet.normalized_findings.unresolved_questions[:3]
-    conflicts_list = [packet.conflict.conflict_summary] if (
-        packet.conflict.detected and packet.conflict.conflict_summary
-    ) else []
+    conflicts_list = (
+        [packet.conflict.conflict_summary]
+        if (packet.conflict.detected and packet.conflict.conflict_summary)
+        else []
+    )
 
     decision_required: list[str] = []
     if packet.ambiguity.needs_human_narrowing:
@@ -1705,7 +1902,7 @@ def compute_intelligence_state(
         uncertainty_sigma=ub.sigma,
         coherence_c=ub.basis.frame_clarity,
         entropy_delta_s=round(1.0 - ub.basis.temporal_alignment, 4),
-        humility_omega0=p_state["confidence_cap"], # Using Hyperlattice cap
+        humility_omega0=p_state["confidence_cap"],  # Using Hyperlattice cap
     )
 
     intel = IntelligenceState(
@@ -1721,13 +1918,14 @@ def compute_intelligence_state(
         decision_required=decision_required,
         truth_vector=tv,
     )
-    
+
     return intel, p_state
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 8: ROUTING — Deterministic next-stage selection
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def compute_routing(
     tc: TruthClassification,
@@ -1805,6 +2003,7 @@ def compute_routing(
 # VERDICT GATE — SEAL only when conditions are met
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def compute_verdict(
     tc: TruthClassification,
     ub: UncertaintyBand,
@@ -1828,10 +2027,7 @@ def compute_verdict(
 
     # SEAL conditions
     classified = tc.classification_confidence >= 0.70
-    grounded = (
-        tc.truth_class == TruthClass.ABSOLUTE_INVARIANT
-        or len(items) >= 1
-    )
+    grounded = tc.truth_class == TruthClass.ABSOLUTE_INVARIANT or len(items) >= 1
     bounded = ub.level in (UncertaintyLevel.LOW, UncertaintyLevel.MODERATE)
     handoff_safe = routing.next_stage in (RoutingTarget.MIND, RoutingTarget.HEART)
 
@@ -1845,6 +2041,7 @@ def compute_verdict(
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN — governed_sense()
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def governed_sense(
     query: str | SenseInput,
@@ -1909,6 +2106,8 @@ async def governed_sense(
             logger.warning("governed_sense: search failed: %s", exc)
 
     # ── STAGE 6: NORMALIZE ────────────────────────────────────────────────────
+    # SECURITY: Apply parsing limits to prevent resource exhaustion
+    raw_results = raw_results[:_MAX_EVIDENCE]  # Hard cap on evidence items
     evidence_items = normalize_results_to_items(raw_results)
 
     # Offline: for invariants, derive facts from the query itself
@@ -1917,11 +2116,7 @@ async def governed_sense(
     if tc.truth_class == TruthClass.ABSOLUTE_INVARIANT:
         grounded_facts = [f"This is an invariant claim: {si.input.value[:120]}"]
     elif evidence_items:
-        grounded_facts = [
-            item.snippets[0][:150]
-            for item in evidence_items
-            if item.snippets
-        ]
+        grounded_facts = [item.snippets[0][:150] for item in evidence_items if item.snippets]
     else:
         unresolved = ["No evidence retrieved — cannot verify claim at this time."]
 
@@ -1929,13 +2124,18 @@ async def governed_sense(
         grounded_facts=grounded_facts,
         unresolved_questions=unresolved,
         assumptions_made=(
-            [f"Assumed {tc.truth_class.value} classification (confidence={tc.classification_confidence:.0%})."]
+            [
+                f"Assumed {tc.truth_class.value} classification (confidence={tc.classification_confidence:.0%})."
+            ]
         ),
         contested_points=(
-            [packet_f for item in evidence_items
-             for claim in item.extracted_claims
-             if claim.supports_target is False
-             for packet_f in [claim.claim_text[:100]]]
+            [
+                packet_f
+                for item in evidence_items
+                for claim in item.extracted_claims
+                if claim.supports_target is False
+                for packet_f in [claim.claim_text[:100]]
+            ]
         ),
     )
 
@@ -1950,7 +2150,9 @@ async def governed_sense(
     state_update = StateUpdate(
         stable_facts_delta=grounded_facts[:3],
         unknowns_delta=unresolved,
-        conflicts_delta=[conflict.conflict_summary] if conflict.detected and conflict.conflict_summary else [],
+        conflicts_delta=[conflict.conflict_summary]
+        if conflict.detected and conflict.conflict_summary
+        else [],
         confidence_delta=round(1.0 - ub.sigma, 4),
         uncertainty_delta=round(ub.sigma, 4),
     )
@@ -1984,22 +2186,22 @@ async def governed_sense(
 
     # Compute IntelligenceState + Philosophy
     intel, p_state = compute_intelligence_state(si, packet, tc, ub, session_id=session_id)
-    
+
     # Inject philosophy into handoff and routing
     state_update = StateUpdate(
         stable_facts_delta=grounded_facts[:3],
         unknowns_delta=unresolved,
-        conflicts_delta=[conflict.conflict_summary] if conflict.detected and conflict.conflict_summary else [],
+        conflicts_delta=[conflict.conflict_summary]
+        if conflict.detected and conflict.conflict_summary
+        else [],
         confidence_delta=round(intel.confidence, 4),
         uncertainty_delta=round(ub.sigma, 4),
     )
-    
+
     packet.routing.extra = {"philosophy": p_state}
 
     # Inject verdict into packet metadata (routing carries the canonical verdict)
-    packet.routing.route_reason = (
-        f"[{verdict_str}] {packet.routing.route_reason}"
-    )
+    packet.routing.route_reason = f"[{verdict_str}] {packet.routing.route_reason}"
 
     return packet, intel
 

@@ -33,14 +33,18 @@ def seal_runtime_envelope(
     input_payload: dict[str, Any] | None = None,
     mode: str | None = None,
     output_options: dict[str, Any] | None = None,
+    session_id: str | None = None,
 ) -> RuntimeEnvelope | dict[str, Any]:
     """
     Attach the canonical continuity contract to a RuntimeEnvelope.
 
     The seal is idempotent for the same tool/contract version pair.
-    
+
     NEW (2026-04-06): If output_options is provided, returns clean formatted output
     following the 3-tier clarity model (operator/system/forensic views).
+
+    SECURITY (2026-04-09): Added session_id parameter to ensure session continuity
+    is preserved even when envelope.session_id is None.
     """
 
     existing_handoff = getattr(envelope, "handoff", None) or {}
@@ -57,7 +61,7 @@ def seal_runtime_envelope(
     # ═══════════════════════════════════════════════════════════════════════
     envelope.canonical_tool_name = tool_id
     envelope.tool = tool_id  # Override any legacy internal name
-    
+
     # Sanitize payload to remove legacy name leakage
     if isinstance(envelope.payload, dict):
         envelope.payload.pop("internal_tool_name", None)
@@ -70,12 +74,16 @@ def seal_runtime_envelope(
     # ═══════════════════════════════════════════════════════════════════════
     if output_options:
         from arifosmcp.runtime.output_formatter import format_output
+
         return format_output(envelope, output_options)
 
     payload = _as_dict(envelope.payload)
     input_payload = dict(input_payload or {})
-    session_id = envelope.session_id or input_payload.get("session_id") or "global"
-    previous_state = get_session_continuity_state(session_id) or {}
+    # SECURITY (2026-04-09): session_id parameter takes precedence to preserve continuity
+    resolved_session_id: str = (
+        session_id or envelope.session_id or input_payload.get("session_id") or "global"
+    )
+    previous_state = get_session_continuity_state(resolved_session_id) or {}
 
     # ── Task Ψ3: State Hash Enforcement (Continuity Phase) ─────────────
     # If we have a previous state, verify its hash before generating next state
@@ -85,19 +93,17 @@ def seal_runtime_envelope(
     if prev_state_data and prev_hash:
         recomputed = _hash_dict(prev_state_data)
         if recomputed != prev_hash:
-            logger.error(f"Ψ-BREACH: State hash mismatch for session {session_id}!")
+            logger.error(f"Ψ-BREACH: State hash mismatch for session {resolved_session_id}!")
             state_integrity = "FAILED"
         else:
-            logger.info(f"Ψ-VERIFIED: State hash check PASS for session {session_id}")
+            logger.info(f"Ψ-VERIFIED: State hash check PASS for session {resolved_session_id}")
 
     declared_identity = _build_declared_identity(envelope, payload, input_payload, previous_state)
     verified_identity = _build_verified_identity(envelope, payload, previous_state)
     session_binding = _build_session_binding(
-        envelope, payload, input_payload, previous_state, session_id, tool_id
+        envelope, payload, input_payload, previous_state, resolved_session_id, tool_id
     )
-    authorization = _build_authorization(
-        envelope, payload, input_payload, previous_state, mode
-    )
+    authorization = _build_authorization(envelope, payload, input_payload, previous_state, mode)
     policy_checks = _build_policy_checks(envelope, payload)
     governance_closure = _build_governance_closure(envelope, payload)
     reasoning = _build_reasoning_state(envelope, payload)
@@ -159,7 +165,7 @@ def seal_runtime_envelope(
     envelope.payload = payload
 
     set_session_continuity_state(
-        session_id,
+        resolved_session_id,
         {
             "contract_version": CONTINUITY_CONTRACT_VERSION,
             "tool": tool_id,
@@ -325,9 +331,7 @@ def _build_authorization(
         or envelope.next_allowed_modes
         or ([mode] if mode else []),
         "authorization_state": (
-            "bounded"
-            if envelope.authority.actor_id == "anonymous"
-            else "active"
+            "bounded" if envelope.authority.actor_id == "anonymous" else "active"
         ),
     }
     return authorization
@@ -335,8 +339,12 @@ def _build_authorization(
 
 def _build_policy_checks(envelope: RuntimeEnvelope, payload: dict[str, Any]) -> dict[str, Any]:
     policy = _as_dict(envelope.policy)
-    floors_checked = policy.get("floors_checked") or _deep_get(payload, "audit", "floors_checked") or []
-    floors_failed = policy.get("floors_failed") or _deep_get(payload, "audit", "floors_failed") or []
+    floors_checked = (
+        policy.get("floors_checked") or _deep_get(payload, "audit", "floors_checked") or []
+    )
+    floors_failed = (
+        policy.get("floors_failed") or _deep_get(payload, "audit", "floors_failed") or []
+    )
     floors_failed = [floor for floor in floors_failed if floor]
     return {
         "floors_checked": floors_checked,
@@ -355,7 +363,9 @@ def _build_governance_closure(envelope: RuntimeEnvelope, payload: dict[str, Any]
     return {
         "operational_status": operational_status,
         "proof_status": proof_status,
-        "verdict": envelope.verdict_detail.code.value if envelope.verdict_detail else envelope.verdict.value,
+        "verdict": envelope.verdict_detail.code.value
+        if envelope.verdict_detail
+        else envelope.verdict.value,
     }
 
 
@@ -373,7 +383,9 @@ def _build_reasoning_state(envelope: RuntimeEnvelope, payload: dict[str, Any]) -
     }
 
 
-def _compute_transitions(previous_state: dict[str, Any] | None, current_state: dict[str, Any]) -> list[dict[str, Any]]:
+def _compute_transitions(
+    previous_state: dict[str, Any] | None, current_state: dict[str, Any]
+) -> list[dict[str, Any]]:
     if not previous_state:
         return [
             {
@@ -389,7 +401,13 @@ def _compute_transitions(previous_state: dict[str, Any] | None, current_state: d
     prev_auth = _nested_dict(previous_state, "authorization")
     curr_auth = _nested_dict(current_state, "authorization")
     if prev_auth and curr_auth:
-        for field in ("bound_role", "trust_tier", "granted_scope", "max_risk_tier", "allowed_modes"):
+        for field in (
+            "bound_role",
+            "trust_tier",
+            "granted_scope",
+            "max_risk_tier",
+            "allowed_modes",
+        ):
             prev_value = prev_auth.get(field)
             curr_value = curr_auth.get(field)
             if prev_value != curr_value:
@@ -464,7 +482,9 @@ def _build_operator_summary(
 ) -> dict[str, Any]:
     verified_actor = verified_identity.get("verified_actor_id")
     if verified_actor:
-        identity_text = f"Declared as {declared_identity['declared_actor_id']}; verified as {verified_actor}"
+        identity_text = (
+            f"Declared as {declared_identity['declared_actor_id']}; verified as {verified_actor}"
+        )
     else:
         identity_text = f"Declared as {declared_identity['declared_actor_id']}; not verified"
 

@@ -5,8 +5,14 @@ Centralized session registry for arifOS runtime.
 Single source of truth for session → identity binding.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
+
+SECURITY HARDENING (Zero-Day Mitigation):
+- Strict sovereign identity map: explicit verified identities only
+- No guessable aliases (e.g., "arif" not promoted to "ariffazil")
+- Identity trust precedence: verified token > signed session > explicit admin map > anonymous
 """
 
+import re
 import uuid
 from typing import Any
 
@@ -17,6 +23,14 @@ _ACTOR_IDENTITIES: dict[str, ActorIdentity] = {}
 _ACTOR_SESSION_MAP: dict[str, str] = {}  # session_id -> actor_id
 _ACTIVE_SESSION_ID: str | None = None
 _SESSION_CONTINUITY_STATE: dict[str, dict[str, Any]] = {}
+
+# ── Sovereign Identity Map ─────────────────────────────────────────────────
+# Explicit verified identities only — no guessable aliases
+# Blind spot 3 amendment: moved from hardcoded function logic to explicit map
+_SOVEREIGN_IDENTITY_MAP: dict[str, str] = {
+    "ariffazil": "ariffazil",
+}
+_VALID_ACTOR_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\.]{1,64}$")
 
 # ── Session Identity Storage ──────────────────────────────────────────────
 # Stores the resolved identity for each anchored session.
@@ -100,8 +114,12 @@ def set_session_continuity_state(session_id: str, state: dict[str, Any]) -> None
 
 # ── Session Truth Resolution ──────────────────────────────────────────────
 # F2 Truth: Single canonical resolution of session + identity continuity.
-# Session Precedence: auth_context.session_id (verified) > anchored session
-# state > request session_id > "global"
+# Identity Trust Chain (strict precedence per Zero-Day hardening):
+#   1. verified token identity (auth_context.session_id)
+#   2. signed trusted session identity (anchored session state)
+#   3. explicit admin-approved mapping (SOVEREIGN_IDENTITY_MAP)
+#   4. otherwise anonymous / denied
+# No transport-provided actor string outranks verified identity.
 
 
 def resolve_runtime_context(
@@ -154,7 +172,7 @@ def resolve_runtime_context(
     unified_session_id = resolved_session_id
 
     return {
-        "session_id": unified_session_id,           # ← Canonical single truth (NEW)
+        "session_id": unified_session_id,  # ← Canonical single truth (NEW)
         "resolved_session_id": unified_session_id,  # ← Same value, explicit redundancy
         "transport_session_id": transport_session_id,  # ← Debug/audit only
         "canonical_actor_id": canonical_actor_id,
@@ -167,32 +185,36 @@ def resolve_runtime_context(
 def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) -> str:
     """
     Identity precedence: actor_id > declared_name > anonymous.
-    Handles alias normalization (arif -> ariffazil).
+    Strict sovereign protection: uses SOVEREIGN_IDENTITY_MAP for verified identities.
+    No guessable aliases like "arif" are promoted to "ariffazil" at this layer.
+    Identity verification happens in governance layers (F11/F13).
     """
     # Normalize inputs
-    aid = (actor_id or "").strip().lower().replace("_", "-")
-    dname = (declared_name or "").strip().lower().replace("_", "-")
+    aid = (actor_id or "").strip()
+    dname = (declared_name or "").strip()
 
-    # Sovereign actor aliases
-    sovereign_aliases = {
-        "arif",
-        "arif-fazil",
-        "arif_fazil",
-        "ariffazil",
-        "muhammad-arif",
-    }
+    # Strict pattern validation — reject malformed actor_id before any processing
+    if aid and not _VALID_ACTOR_ID_PATTERN.match(aid):
+        aid = ""
+    if dname and not _VALID_ACTOR_ID_PATTERN.match(dname):
+        dname = ""
+
+    aid_normalized = aid.lower().replace("_", "-") if aid else ""
+    dname_normalized = dname.lower().replace("_", "-") if dname else ""
 
     # Precedence: actor_id first
-    if aid and aid != "anonymous":
-        if aid in sovereign_aliases or aid.replace("-", "") == "ariffazil":
-            return "ariffazil"
-        return aid
+    if aid_normalized and aid_normalized != "anonymous":
+        # Check sovereign identity map first — explicit verified identities only
+        if aid_normalized in _SOVEREIGN_IDENTITY_MAP:
+            return _SOVEREIGN_IDENTITY_MAP[aid_normalized]
+        return aid  # Return original case-preserved form if valid
 
     # Fallback: declared_name (normalized)
-    if dname and dname != "anonymous":
-        if dname in sovereign_aliases or dname.replace("-", "") == "ariffazil":
-            return "ariffazil"
-        return dname
+    if dname_normalized and dname_normalized != "anonymous":
+        # Check sovereign identity map — explicit verified identities only
+        if dname_normalized in _SOVEREIGN_IDENTITY_MAP:
+            return _SOVEREIGN_IDENTITY_MAP[dname_normalized]
+        return dname  # Return original case-preserved form if valid
 
     return "anonymous"
 

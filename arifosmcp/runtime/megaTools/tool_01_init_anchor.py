@@ -89,6 +89,19 @@ async def init_anchor(
             else f"❌ MISMATCH ({raw_level})"
         )
 
+        # Honest trust-based recommendation
+        high_trust_levels = {"verified", "sovereign", "apex", "human"}
+        low_trust_levels = {"anonymous", "declared", "claimed", "none"}
+
+        if "❌" in enum_compat:
+            recommendation = "Use init_anchor to re-align if MISMATCH detected."
+        elif raw_level.lower() in high_trust_levels:
+            recommendation = "Trust established. System ready for governed execution."
+        elif raw_level.lower() in low_trust_levels:
+            recommendation = "Anonymous/declared identity — use init_anchor with verified credentials for full access."
+        else:
+            recommendation = "Identity recognized — init_anchor required to escalate privileges."
+
         probe_payload = {
             "ok": True,
             "tool": "init_anchor",
@@ -103,9 +116,7 @@ async def init_anchor(
                 "authority_enum": enum_compat,
                 "current_level": raw_level,
             },
-            "recommendation": "Use init_anchor to re-align if MISMATCH detected."
-            if "❌" in enum_compat
-            else "System ready for high-stakes execution.",
+            "recommendation": recommendation,
             "floors_checked": ["F11"],
         }
 
@@ -184,14 +195,14 @@ async def init_anchor(
         declared_identity = (
             payload.get("declared_name") or actor_id or payload.get("actor_id") or "anonymous"
         )
-        
+
         if mode is None:
             mode = "init"
         _t0 = time.monotonic()
 
         # Select initial philosophy (Causal Anchor)
         from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
-        
+
         # Initial scores for bootstrap
         init_scores = AtlasScores(
             delta_s=0.0,
@@ -199,7 +210,7 @@ async def init_anchor(
             omega_score=0.05,
             lyapunov_sign="stable",
             verdict="SEAL",
-            session_stage="000_INIT"
+            session_stage="000_INIT",
         )
         # Select philosophy based on intent if possible
         phi_result = select_atlas_philosophy(init_scores, context={"intent": intent})
@@ -215,7 +226,7 @@ async def init_anchor(
             "status": "SUCCESS",
             "verdict": "SEAL",
             "g_score": 0.88,  # High bootstrap score
-            "entropy": 0.0,   # Reset entropy
+            "entropy": 0.0,  # Reset entropy
             "philosophy": {
                 "quote": phi_quote.get("text", "DITEMPA, BUKAN DIBERI."),
                 "author": phi_quote.get("author", "arifOS"),
@@ -237,6 +248,27 @@ async def init_anchor(
             "caller_state": "anonymous",
             "allowed_next_tools": ["arifos_sense", "arifos_mind", "arifos_route", "arifos_ops"],
             "scope": {"granted": ["query", "reflect"], "max_risk_tier": "medium"},
+            "auth_guidance": {
+                "current_trust_level": "anonymous",
+                "identity_status": "unverified",
+                "next_steps": [
+                    "To verify identity: call init_anchor with actor_id='ariffazil' and signature/proof",
+                    "For full sovereign access: provide human_approval=True or verified auth_context",
+                ],
+                "trust_escalation": {
+                    "declared": {"unlocks": ["query", "reflect"], "risk_tier": "low"},
+                    "verified": {"unlocks": ["query", "reflect", "execute"], "risk_tier": "medium"},
+                    "sovereign": {
+                        "unlocks": ["query", "reflect", "execute", "vault"],
+                        "risk_tier": "high",
+                    },
+                },
+                "mode_requirements": {
+                    "init": "Establishes session anchor only",
+                    "verify": "Requires signature/proof in auth_context for verified identity",
+                    "escalate": "Requires human_approval=True for sovereign access",
+                },
+            },
         }
         _duration_ms = int((time.monotonic() - _t0) * 1000)
         if isinstance(res, dict):
@@ -259,16 +291,17 @@ async def init_anchor(
             if ok:
                 # Task Ψ1: Bind session identity to registry for cross-tool continuity
                 from arifosmcp.runtime.sessions import bind_session_identity
+
                 bind_session_identity(
                     session_id=effective_session_id,
                     actor_id=declared_identity,
                     authority_level="declared",
                     auth_context={
-                        "session_id": effective_session_id, 
+                        "session_id": effective_session_id,
                         "actor_id": declared_identity,
-                        "authority_level": "declared"
+                        "authority_level": "declared",
                     },
-                    caller_state="anchored"
+                    caller_state="anchored",
                 )
 
                 identity = _payload.get("identity") or {}

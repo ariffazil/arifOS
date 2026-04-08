@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 import uuid
 from datetime import datetime, timezone
@@ -77,6 +78,18 @@ VPS_URL = os.getenv("ARIFOS_VPS_URL", "https://arifosmcp.arif-fazil.com")
 ARIFOS_GOVERNANCE_SECRET = os.getenv("ARIFOS_GOVERNANCE_SECRET", "")
 ARIFOS_VERSION = os.getenv("ARIFOS_VERSION", "2026.04.06")
 MCP_PROTOCOL_VERSION = "2025-11-05"
+
+# Strict input validation allowlists (Blind spot 2 hardening)
+_VALID_ACTOR_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\.]{1,64}$")
+_VALID_MODE_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,32}$")
+_SANITIZER_MAX_LENGTH = 500
+
+# Soverign identity map — explicit verified identities only
+# No guessable aliases like "arif" — must be explicit
+_SOVEREIGN_IDENTITY_MAP = {
+    "ariffazil": "ariffazil",
+    "arif-fazil": "ariffazil",  # normalized form
+}
 
 mcp = FastMCP("arifOS Horizon Gateway (v3 Registry-Driven)")
 
@@ -143,22 +156,53 @@ async def _upstream_status() -> str:
         return "unreachable"
 
 
+def _sanitize_prompt_input(text: str | None) -> str:
+    """Basic protection against prompt injection in template fields."""
+    if not text:
+        return ""
+    # Strip common injection characters and limit length
+    safe = str(text).replace("<", "&lt;").replace(">", "&gt;").replace("{", "(").replace("}", ")")
+    return safe[:1000]
+
+
+def _validate_actor_id(actor_id: str | None) -> str:
+    """Strict allowlist validation for actor_id — reject if not matching pattern."""
+    if not actor_id:
+        return "anonymous"
+    normalized = str(actor_id).strip()[:_SANITIZER_MAX_LENGTH]
+    if _VALID_ACTOR_ID_PATTERN.match(normalized):
+        return normalized
+    return "anonymous"
+
+
+def _validate_mode(mode: str | None) -> str:
+    """Strict allowlist validation for mode — reject if not matching pattern."""
+    if not mode:
+        return "unknown"
+    normalized = str(mode).strip()[:_SANITIZER_MAX_LENGTH]
+    if _VALID_MODE_PATTERN.match(normalized):
+        return normalized
+    return "unknown"
+
+
+def _apply_input_validation(actor_id: str | None, mode: str | None) -> tuple[str, str]:
+    """Apply strict validation to actor_id and mode inputs. Returns validated tuple."""
+    return _validate_actor_id(actor_id), _validate_mode(mode)
+
+
 async def _build_gateway_metadata() -> dict:
     upstream_vps = await _upstream_status()
     status = "ok" if upstream_vps == "reachable" else "degraded"
     return {
         "status": status,
         "mode": "horizon_gateway",
-        "entrypoint": "server.py:mcp",
-        "version": ARIFOS_VERSION,
         "protocol_version": MCP_PROTOCOL_VERSION,
         "tool_policy": _policy_counts(),
-        "auth_status": "session_continuity",  # init_anchor → session_id → authenticated tools
-        "upstream_vps": upstream_vps,
-        "deprecated_paths": ["horizon/server.py"],
+        "auth_status": "session_continuity",
+        "upstream_vps": "available" if upstream_vps == "reachable" else "unavailable",
         "canonical_story": {
             "public_ingress": "Horizon gateway",
-            "sovereign_execution": VPS_URL,
+            "sovereign_execution": "Sovereign VPS",
         },
     }
 
@@ -179,49 +223,40 @@ def _typed_horizon_error(
     status_map = {401: "error", 403: "error", 422: "error", 503: "degraded", 500: "error"}
     status = status_map.get(http_status, "error") if http_status else "degraded"
     errors = []
-    if http_status:
-        errors.append(
-            {
-                "type": "kernel_error",
-                "source": "sovereign_kernel",
-                "message": f"Upstream returned HTTP {http_status}.",
-            }
-        )
+
+    # Redact sensitive details from transport exceptions
     if exc:
+        safe_exc_msg = "Ambassador link severed or transport exception occurred."
         errors.append(
             {
                 "type": "transport_error",
                 "source": "horizon_gateway",
-                "message": str(exc),
+                "message": safe_exc_msg,
             }
         )
+
     return {
         "ok": False,
         "tool": tool_name,
-        "version": ARIFOS_VERSION,
-        "stage": "000_INIT",
         "status": status,
         "verdict": "SABAR",
         "code": code,
         "message": message,
+        # detail and hint are kept for user guidance but should not contain system paths
         "detail": detail,
         "hint": hint,
         "action": action,
         "retryable": code not in ("INIT_AUTH_401", "INIT_POLICY_403"),
-        "rollback_available": True,
         "timestamp": now,
         "duration_ms": duration_ms,
         "trace_id": f"trace_{uuid.uuid4().hex[:16]}",
         "system": {
-            "kernel_version": ARIFOS_VERSION,
             "adapter": "horizon_gateway",
-            "env": os.getenv("ARIFOS_ENV", "production"),
             "dependency_health": "degraded"
             if (http_status and http_status >= 500)
             else "unreachable",
         },
         "errors": errors,
-        "warnings": [],
     }
 
 
@@ -264,7 +299,7 @@ async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
             return _typed_horizon_error(
                 code=_code,
                 message=f"Sovereign kernel returned {response.status_code} for {tool_name}.",
-                detail=f"HTTP {response.status_code} from upstream at {VPS_URL}/tools/{tool_name}.",
+                detail="Upstream kernel error — check sovereignty health.",
                 hint="Check kernel health, dependency wiring, and adapter-to-kernel contract.",
                 action="retry_safe | inspect_kernel_health | fallback_query_only",
                 tool_name=tool_name,
@@ -276,7 +311,7 @@ async def _proxy_to_vps(tool_name: str, arguments: dict) -> dict:
         return _typed_horizon_error(
             code="INIT_TRANSPORT_503",
             message=f"Ambassador link severed — cannot reach sovereign kernel for {tool_name}.",
-            detail=f"Transport exception: {type(e).__name__}: {e}",
+            detail="Transport exception — ambassador link severed or unreachable.",
             hint="Verify VPS reachability, ARIFOS_VPS_URL env var, and network connectivity.",
             action="inspect_vps_health | check_env_vars | retry_with_backoff",
             tool_name=tool_name,
@@ -327,11 +362,12 @@ async def init_anchor(
     intent: Optional[str] = None,
 ) -> dict:
     """000_INIT: Initialize constitutional session anchor."""
+    validated_actor, validated_mode = _apply_input_validation(actor_id, mode)
     return await _proxy_to_vps(
         "init_anchor",
         {
-            "actor_id": actor_id,
-            "mode": mode,
+            "actor_id": validated_actor,
+            "mode": validated_mode,
             "declared_name": declared_name,
             "intent": intent,
         },
@@ -345,7 +381,7 @@ async def arifOS_kernel(
     mode: str = "kernel",
 ) -> dict:
     """444_ROUTER: Primary metabolic conductor."""
-    return await _proxy_to_vps(
+    return await _gateway_call(
         "arifOS_kernel",
         {
             "query": query,
@@ -362,7 +398,7 @@ async def apex_soul(
     mode: str = "validate",
 ) -> dict:
     """888_JUDGE: Final constitutional verdict — judge, validate, hold, armor, probe."""
-    return await _proxy_to_vps(
+    return await _gateway_call(
         "apex_soul",
         {"query": query, "session_id": session_id, "mode": mode},
     )
@@ -375,7 +411,7 @@ async def agi_mind(
     mode: str = "reason",
 ) -> dict:
     """333_MIND: Reasoning and synthesis engine."""
-    return await _proxy_to_vps(
+    return await _gateway_call(
         "agi_mind",
         {
             "query": query,
@@ -392,7 +428,7 @@ async def asi_heart(
     mode: str = "critique",
 ) -> dict:
     """666_HEART: Safety and empathy critique."""
-    return await _proxy_to_vps(
+    return await _gateway_call(
         "asi_heart",
         {
             "query": query,
@@ -409,7 +445,7 @@ async def physics_reality(
     mode: str = "governed",
 ) -> dict:
     """111_SENSE: Constitutional reality sensing — 8-stage protocol, truth classification, gated live search."""
-    return await _proxy_to_vps(
+    return await _gateway_call(
         "physics_reality",
         {
             "query": query,
@@ -426,7 +462,7 @@ async def math_estimator(
     mode: str = "cost",
 ) -> dict:
     """777_OPS: Thermodynamic vitals and cost estimation."""
-    return await _proxy_to_vps(
+    return await _gateway_call(
         "math_estimator",
         {
             "query": query,
@@ -443,7 +479,7 @@ async def architect_registry(
     mode: str = "list",
 ) -> dict:
     """000_INIT: Tool and resource discovery."""
-    return await _proxy_to_vps(
+    return await _gateway_call(
         "architect_registry",
         {
             "query": query,
@@ -605,53 +641,65 @@ def arifos_tool_spec(tool_name: str) -> str:
 
 
 @mcp.prompt()
-def init_anchor(actor_id: str = "anonymous", intent: str = "") -> str:
-    return f"Enter arifOS as {actor_id}. Intent: {intent}. Establishing identity anchor..."
+def init_anchor_prompt(actor_id: str = "anonymous", intent: str = "") -> str:
+    s_actor = _sanitize_prompt_input(actor_id)
+    s_intent = _sanitize_prompt_input(intent)
+    return f"Enter arifOS as {s_actor}. Intent: {s_intent}. Establishing identity anchor..."
 
 
 @mcp.prompt()
-def arifOS_kernel(query: str = "") -> str:
-    return f"Conductor request: {query}. Routing through constitutional pipeline..."
+def arifOS_kernel_prompt(query: str = "") -> str:
+    s_query = _sanitize_prompt_input(query)
+    return f"Conductor request: {s_query}. Routing through constitutional pipeline..."
 
 
 @mcp.prompt()
-def agi_mind(query: str, context: str = "") -> str:
-    return f"Architect task: {query}. Context: {context}. Focus on F2 (Truth) and F4 (Clarity)."
+def agi_mind_prompt(query: str, context: str = "") -> str:
+    s_query = _sanitize_prompt_input(query)
+    s_context = _sanitize_prompt_input(context)
+    return f"Architect task: {s_query}. Context: {s_context}. Focus on F2 (Truth) and F4 (Clarity)."
 
 
 @mcp.prompt()
-def asi_heart(content: str) -> str:
-    return f"Empath evaluation: {content}. Simulating impact per F6 (Empathy)..."
+def asi_heart_prompt(content: str) -> str:
+    s_content = _sanitize_prompt_input(content)
+    return f"Empath evaluation: {s_content}. Simulating impact per F6 (Empathy)..."
 
 
 @mcp.prompt()
-def apex_soul(candidate: str = "") -> str:
-    return f"Judge verdict required for: {candidate}. Seeking final SEAL/VOID..."
+def apex_soul_prompt(candidate: str = "") -> str:
+    s_candidate = _sanitize_prompt_input(candidate)
+    return f"Judge verdict required for: {s_candidate}. Seeking final SEAL/VOID..."
 
 
 @mcp.prompt()
-def vault_ledger() -> str:
+def vault_ledger_prompt() -> str:
     return "Australian Auditor mode: Commit truths to Merkle chain..."
 
 
 @mcp.prompt()
-def physics_reality(input: str = "") -> str:
-    return f"Grounding request: {input}. Connecting to Earth-Witness (W3)..."
+def physics_reality_prompt(input: str = "") -> str:
+    s_input = _sanitize_prompt_input(input)
+    return f"Grounding request: {s_input}. Connecting to Earth-Witness (W3)..."
 
 
 @mcp.prompt()
-def code_engine(path: str = ".") -> str:
-    return f"System hygiene at {path}. Safe process execution enabled."
+def code_engine_prompt(path: str = ".") -> str:
+    s_path = _sanitize_prompt_input(path)
+    return f"System hygiene at {s_path}. Safe process execution enabled."
 
 
 @mcp.prompt()
-def agent_skills(role: str = "A-ARCHITECT") -> str:
-    return f"Operating as {role}. Governed by 13 Floors. Motto: DITEMPA BUKAN DIBERI."
+def agent_skills_prompt(role: str = "A-ARCHITECT") -> str:
+    s_role = _sanitize_prompt_input(role)
+    return f"Operating as {s_role}. Governed by 13 Floors. Motto: DITEMPA BUKAN DIBERI."
 
 
 @mcp.prompt()
-def human_explainer(verdict: str, reasoning: str) -> str:
-    return f"Translating {verdict} verdict. Reasoning: {reasoning}. Explain for Sovereign..."
+def human_explainer_prompt(verdict: str, reasoning: str) -> str:
+    s_verdict = _sanitize_prompt_input(verdict)
+    s_reasoning = _sanitize_prompt_input(reasoning)
+    return f"Translating {s_verdict} verdict. Reasoning: {s_reasoning}. Explain for Sovereign..."
 
 
 # Register ChatGPT Apps SDK tools (vault_seal_card + render_vault_seal + widget resource)

@@ -21,16 +21,29 @@ RuntimeEnvelope = dict[str, Any]
 from fastmcp import FastMCP
 
 from arifosmcp.runtime.megaTools import (
-    agi_mind as _mega_agi_mind,
-    apex_judge as _mega_apex_judge,
-    arifOS_kernel as _mega_arifOS_kernel,
-    asi_heart as _mega_asi_heart,
-    engineering_memory as _mega_engineering_memory,
-    init_anchor as _mega_init_anchor,
-    math_estimator as _mega_math_estimator,
-    physics_reality as _mega_physics_reality,
-    vault_ledger as _mega_vault_ledger,
+    agi_mind as agi_mind,
+    apex_judge as apex_judge,
+    arifOS_kernel as arifOS_kernel,
+    asi_heart as asi_heart,
+    engineering_memory as engineering_memory,
+    init_anchor as init_anchor,
+    math_estimator as math_estimator,
+    physics_reality as physics_reality,
+    vault_ledger as vault_ledger,
+    code_engine as code_engine,
+    architect_registry as architect_registry,
 )
+
+# Legacy aliases for direct import (v2 compatibility)
+init_anchor = init_anchor
+physics_reality = physics_reality
+agi_mind = agi_mind
+asi_heart = asi_heart
+apex_judge = apex_judge
+engineering_memory = engineering_memory
+vault_ledger = vault_ledger
+math_estimator = math_estimator
+arifOS_kernel = arifOS_kernel
 
 logger = logging.getLogger(__name__)
 
@@ -97,12 +110,10 @@ async def arifos_init(
     debug: bool = False,
     platform: str = "unknown",
     mode: str = "init",
-    payload: dict[str, Any] | None = None,
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
     """Initialize constitutional session OR perform kernel syscall."""
     effective_mode = mode if mode in ("probe", "revoke", "refresh", "state", "status") else "init"
-    envelope = await _mega_init_anchor(
+    envelope = await init_anchor(
         mode=effective_mode,
         payload={"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
         session_id=session_id,
@@ -112,7 +123,8 @@ async def arifos_init(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_init")
+    return seal_runtime_envelope(envelope, "arifos_init", session_id=session_id)
+
 
 async def arifos_sense(
     query: str | None = None,
@@ -120,20 +132,17 @@ async def arifos_sense(
     session_id: str | None = None,
     dry_run: bool = True,
     platform: str = "unknown",
-    payload: dict[str, Any] | None = None,
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
     """Constitutional Identity Sensing --- delegates to physics_reality."""
-    envelope = await _mega_physics_reality(
+    envelope = await physics_reality(
         query=query or "",
         mode=mode,
         session_id=session_id,
         dry_run=dry_run,
-        payload=payload,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_sense")
+    return seal_runtime_envelope(envelope, "arifos_sense", session_id=session_id)
+
 
 async def arifos_mind(
     query: str | None = None,
@@ -141,18 +150,17 @@ async def arifos_mind(
     session_id: str | None = None,
     dry_run: bool = True,
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
-    """Structured reasoning typed cognitive pipeline --- delegates to mega_agi_mind."""
-    envelope = await _mega_agi_mind(
+    """Structured reasoning typed cognitive pipeline --- delegates to agi_mind."""
+    envelope = await agi_mind(
         query=query or "",
         context=context or {},
         session_id=session_id,
         dry_run=dry_run,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_mind")
+    return seal_runtime_envelope(envelope, "arifos_mind", session_id=session_id)
+
 
 async def arifos_heart(
     query: str | None = None,
@@ -160,18 +168,17 @@ async def arifos_heart(
     session_id: str | None = None,
     dry_run: bool = True,
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
-    """Constitutional Safety Check --- delegates to mega_asi_heart."""
-    envelope = await _mega_asi_heart(
+    """Constitutional Safety Check --- delegates to asi_heart."""
+    envelope = await asi_heart(
         query=query or "",
         risk_profile=risk_profile or {},
         session_id=session_id,
         dry_run=dry_run,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_heart")
+    return seal_runtime_envelope(envelope, "arifos_heart", session_id=session_id)
+
 
 async def arifos_judge(
     query: str | None = None,
@@ -179,103 +186,144 @@ async def arifos_judge(
     session_id: str | None = None,
     dry_run: bool = True,
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
-    """Final constitutional evaluation --- delegates to mega_apex_judge."""
-    envelope = await _mega_apex_judge(
+    """Final constitutional evaluation --- delegates to apex_judge."""
+    envelope = await apex_judge(
         query=query or "",
         evidence_bundle=evidence_bundle or {},
         session_id=session_id,
         dry_run=dry_run,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_judge")
+    return seal_runtime_envelope(envelope, "arifos_judge", session_id=session_id)
+
 
 async def arifos_memory(
     query: str | None = None,
     mode: str = "retrieve",
     session_id: str | None = None,
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
-    """Retrieve governed memory --- delegates to mega_engineering_memory."""
-    envelope = await _mega_engineering_memory(
+    """Retrieve governed memory --- delegates to engineering_memory."""
+    envelope = await engineering_memory(
         query=query or "",
         mode=mode,
         session_id=session_id,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_memory")
+    return seal_runtime_envelope(envelope, "arifos_memory", session_id=session_id)
+
 
 async def arifos_vault(
     query: str | None = None,
     operation: str = "audit",
     session_id: str | None = None,
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
-    """Append to immutable constitutional ledger --- delegates to mega_vault_ledger."""
-    envelope = await _mega_vault_ledger(
+    """Append to immutable constitutional ledger --- delegates to vault_ledger."""
+    envelope = await vault_ledger(
         query=query or "",
         operation=operation,
         session_id=session_id,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_vault")
+    return seal_runtime_envelope(envelope, "arifos_vault", session_id=session_id)
+
 
 async def arifos_math(
     query: str | None = None,
     mode: str = "estimate",
     session_id: str | None = None,
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
-    """Calculate operation costs and thermodynamics --- delegates to mega_math_estimator."""
-    envelope = await _mega_math_estimator(
+    """Calculate operation costs and thermodynamics --- delegates to math_estimator."""
+    envelope = await math_estimator(
         query=query or "",
         mode=mode,
         session_id=session_id,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_math")
+    return seal_runtime_envelope(envelope, "arifos_math", session_id=session_id)
+
 
 async def arifos_kernel(
     query: str | None = None,
     mode: str = "status",
     session_id: str | None = None,
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
-    """Kernel diagnostics and resource management --- delegates to mega_arifOS_kernel."""
-    envelope = await _mega_arifOS_kernel(
+    """Kernel diagnostics and resource management --- delegates to arifOS_kernel."""
+    envelope = await arifOS_kernel(
         query=query or "",
         mode=mode,
         session_id=session_id,
-        **kwargs,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_kernel")
+    return seal_runtime_envelope(envelope, "arifos_kernel", session_id=session_id)
+
+
+async def arifos_code(
+    query: str | None = None,
+    session_id: str | None = None,
+    platform: str = "unknown",
+) -> RuntimeEnvelope:
+    """Code generation and analysis --- delegates to code_engine."""
+    envelope = await code_engine(
+        query=query or "",
+        session_id=session_id,
+    )
+    _stamp_platform(envelope, platform)
+    return seal_runtime_envelope(envelope, "arifos_code", session_id=session_id)
+
+
+async def arifos_architect(
+    query: str | None = None,
+    session_id: str | None = None,
+    platform: str = "unknown",
+) -> RuntimeEnvelope:
+    """Sovereign architectural design --- delegates to architect_registry."""
+    envelope = await architect_registry(
+        query=query or "",
+        session_id=session_id,
+    )
+    _stamp_platform(envelope, platform)
+    return seal_runtime_envelope(envelope, "arifos_architect", session_id=session_id)
+
 
 # ===============================================================================
 # REGISTRATION & EXPORTS
 # ===============================================================================
 
-def register_tools(mcp: FastMCP) -> None:
-    """Register all metabolic tools on the MCP instance."""
-    mcp.tool()(arifos_init)
-    mcp.tool()(arifos_sense)
-    mcp.tool()(arifos_mind)
-    mcp.tool()(arifos_heart)
-    mcp.tool()(arifos_judge)
-    mcp.tool()(arifos_memory)
-    mcp.tool()(arifos_vault)
-    mcp.tool()(arifos_math)
-    mcp.tool()(arifos_kernel)
+
+def register_tools(mcp: FastMCP) -> list[str]:
+    """Register all metabolic tools on the MCP instance and return tool names."""
+    tools = [
+        arifos_init,
+        arifos_sense,
+        arifos_mind,
+        arifos_heart,
+        arifos_judge,
+        arifos_memory,
+        arifos_vault,
+        arifos_math,
+        arifos_kernel,
+        arifos_code,
+        arifos_architect,
+    ]
+    for t in tools:
+        mcp.tool()(t)
     logger.info("Metabolic tools registered on MCP surface.")
+    return [t.__name__ for t in tools]
+
+
+# Legacy Compatibility Aliases (Standardized to Metabolic Surface)
+arifos_route = arifos_kernel
+arifos_ops = arifos_math
+arifos_forge = arifos_vault
+arifos_vps_monitor = arifos_kernel
+
+register_v2_tools = register_tools
+register_v3_tools = register_tools
 
 __all__ = [
     "arifos_init",
@@ -287,5 +335,25 @@ __all__ = [
     "arifos_vault",
     "arifos_math",
     "arifos_kernel",
+    "arifos_code",
+    "arifos_architect",
+    "arifos_route",
+    "arifos_ops",
+    "arifos_forge",
+    "arifos_vps_monitor",
+    "init_anchor",
+    "physics_reality",
+    "agi_mind",
+    "asi_heart",
+    "apex_judge",
+    "engineering_memory",
+    "vault_ledger",
+    "math_estimator",
+    "arifOS_kernel",
+    "code_engine",
+    "architect_registry",
     "register_tools",
+    "register_v2_tools",
+    "register_v3_tools",
+    "CANONICAL_TOOL_HANDLERS",
 ]
