@@ -376,8 +376,10 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
 
     tool_name = request.path_params.get("tool_name") or ""
 
-    # Map Horizon name to v2 name
-    v2_name = HORIZON_TO_V2_MAP.get(tool_name, tool_name)
+    # Map Horizon name to v2 name, normalizing dots to underscores
+    from arifosmcp.runtime.tool_specs import normalize_tool_name
+    normalized_name = normalize_tool_name(tool_name)
+    v2_name = HORIZON_TO_V2_MAP.get(normalized_name, normalized_name)
 
     # Get handler
     handler = CANONICAL_TOOL_HANDLERS.get(v2_name)

@@ -939,14 +939,19 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
             logger.warning(f"No handler for v2 tool: {spec.name}")
             continue
 
-        ft = FunctionTool.from_function(
-            handler,
-            name=spec.name,
-            description=spec.description,
-        )
-        ft.parameters = dict(spec.input_schema)
-        mcp.add_tool(ft)
-        registered.append(spec.name)
+        # Register both underscored and dotted names for broader client compatibility
+        # and to resolve tool-registry/invocation mismatch (dotted in JSON vs underscored in spec).
+        canonical_dotted = spec.name.replace("_", ".", 1)
+        for name_to_register in {spec.name, canonical_dotted}:
+            ft = FunctionTool.from_function(
+                handler,
+                name=name_to_register,
+                description=spec.description,
+            )
+            ft.parameters = dict(spec.input_schema)
+            mcp.add_tool(ft)
+            if name_to_register not in registered:
+                registered.append(name_to_register)
 
     logger.info(f"Registered {len(registered)} v2 tools: {registered}")
     return registered
