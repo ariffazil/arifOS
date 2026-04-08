@@ -17,7 +17,6 @@ from unittest.mock import patch, AsyncMock, MagicMock
 from arifosmcp.runtime.public_registry import (
     public_tool_names,
     public_tool_specs,
-    CAPABILITY_MAP,
     CANONICAL_PUBLIC_TOOLS,
     EXPECTED_TOOL_COUNT,
 )

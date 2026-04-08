@@ -3,7 +3,7 @@ type: Synthesis
 tags: [audit, checker, ci, drift, tooling, governance]
 sources: [check_tool_surface_drift.py, tool_specs.py, MCP_Tools.md, Tool_Surface_Architecture.md]
 last_sync: 2026-04-08
-confidence: 0.95
+confidence: 0.97
 ---
 
 # Drift Checks
@@ -13,6 +13,7 @@ confidence: 0.95
 - Script: `scripts/check_tool_surface_drift.py`
 - Purpose: detect divergence between canonical tool contract and outward surfaces
 - Exit behavior: non-zero on drift
+- Current verdict: **GREEN**
 
 ## What It Verifies
 
@@ -26,7 +27,6 @@ confidence: 0.95
    - `arifosmcp/tool_registry.json`
    - `wiki/pages/MCP_Tools.md`
    - `wiki/pages/Tool_Surface_Architecture.md`
-
 4. Count hints in `arifosmcp/runtime/public_registry.py`
 5. Dotted-name leakage outside approved compatibility files
 6. Deprecated alias usage, reported separately
@@ -34,6 +34,8 @@ confidence: 0.95
 ## Approved Compatibility Files
 
 - `arifosmcp/runtime/tool_specs.py`
+- `arifosmcp/runtime/tools_hardened_dispatch.py`
+- `arifosmcp/runtime/megaTools/__init__.py`
 - `arifosmcp/runtime/compatibility/memory_backend.py`
 - `arifosmcp/runtime/compatibility/vault_backend.py`
 
@@ -41,17 +43,23 @@ confidence: 0.95
 
 ```bash
 python scripts/check_tool_surface_drift.py
-
 ```
 
-## Current Expected Failures
+## Live Result
 
-As of this audit:
+```text
+== Verdict ==
+NO DRIFT DETECTED
+```
 
-- `tool_registry.json` is still 10-tool dotted surface
-- `public_registry.py` still expects 10
-- `tools_hardened_dispatch.py` still omits `arifos_vps_monitor` from `list_canonical_tools()`
-- dotted-name leakage exists outside compatibility files
+Generated target surfaces currently aligned:
+
+- `arifosmcp/tool_registry.json`
+- `arifosmcp/runtime/public_registry.py`
+- `arifosmcp/runtime/resources.py`
+- `arifosmcp/runtime/tools_hardened_dispatch.py`
+- `wiki/pages/MCP_Tools.md`
+- `wiki/pages/Tool_Surface_Architecture.md`
 
 ## CI Recommendation
 
@@ -64,4 +72,12 @@ Run the checker in pull requests before any merge that touches:
 
 ## 888_HOLD
 
-The checker is intentionally audit-first. It should fail loudly before any destructive cleanup or alias removal is attempted.
+Green checker does **not** authorize destructive cleanup by itself.
+
+Still held:
+
+- collapsing compatibility surfaces
+- deleting dotted-name adapters
+- archive relocation or mega-tool namespace removal
+
+Those changes should follow only after generation is extended and downstream compatibility usage is confirmed.

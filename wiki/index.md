@@ -1,7 +1,7 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-08 (Structural Cleanup Audit + Drift Checker)
-> **Total Pages**: 32
+> **Last Updated**: 2026-04-08 (Repo Chaos Reduction — Forge Pass executed)
+> **Total Pages**: 33
 > **System Status**: ACTIVE
 
 ## 🏛️ Foundations
@@ -46,6 +46,7 @@
 - [[Horizon_3_Universal_Body]] (H3 Hardware Sovereignty — HSM/BLS, WebMCP P2P, ASIC loops)
 - [[Audit_Surface_Fragmentation]] (Surface inventory, mismatch audit, compatibility boundary)
 - [[Drift_Checks]] (Checker scope, policy, and CI guidance)
+- [[Audit_Repo_Chaos_Reduction]] (Pass 1 Audit — 378 active docs classified, 122 archived, 10 deleted)
 
 ---
 
