@@ -572,3 +572,20 @@ archive/
 
 *Audit sealed by: A-AUDITOR (Copilot) | 2026-04-08 | No files were modified during this audit.*  
 *Next recommended action: Human review of H-001 through H-008 in Hold List before any cleanup passes.*
+
+---
+
+## Hold Resolution Log — 2026-04-08 (Forge Pass)
+
+| # | Item | Resolution | Action Taken |
+|---|---|---|---|
+| H-001 ✅ | K000_LAW.md contradiction | THEORY (22KB, Apr 6) = canonical. FLOORS = Mar 27 snapshot. |  00/FLOORS/K000_LAW.md → rchive/000/K000_LAW_v2026-03-27_FLOORS.md. wiki/raw/K000_LAW.md updated to THEORY version. |
+| H-002 ✅ | docs/AGENTS.md unique content | Not a duplicate — different purpose (developer MCP guide vs governance SoT). Category error in audit. | Renamed → docs/AGENTS_MCP_SERVER_GUIDE.md. Kept. |
+| H-003 ✅ | docs/others.md unknown file | **SENSITIVE PERSONAL DATA** — relationship intelligence profiles of real people. Not a technical doc. | Moved → HUMAN/personal/others.md. Removed from docs/. |
+| H-004 ✅ | NERVOUS_SYSTEM_9.md | "9" = component name (internal tool architecture layer), NOT a version number. Status: Production-Ready. | Reclassified: canonical | keep. No file action. |
+| H-005 ✅ | wiki/raw/CHANGELOG.md snapshot | Undated snapshot = silent staleness. Policy: all wiki/raw snapshots must be dated. | Renamed → wiki/raw/CHANGELOG_snapshot_2026-04-07.md. |
+| H-006 ✅ | core/ constitutional amendment spec | Already moved to rchive/core/ in forge pass. | Done in Pass 2. |
+| H-007 ✅ | arifosmcp/ empty files | Confirmed 0 bytes. No unique content. | Deleted in Pass 3. |
+| H-008 ✅ | memory/ rotation policy | Policy formalised: TTL = 1 session, archive previous day, compress monthly into wiki/log.md. | Written → docs/runbooks/MEMORY_ROTATION_POLICY.md. |
+
+**All 8 HOLD items resolved.**
