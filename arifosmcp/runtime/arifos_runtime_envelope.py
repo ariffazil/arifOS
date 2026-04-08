@@ -140,6 +140,7 @@ class OutputEnvelope(BaseModel):
     chaos_score: float = 0.0  # Ω-Stability: entropy metric
     peace2: float = 1.0       # Ω-Stability: stability index
     g_star: float = 0.0       # Δ-Intelligence: epistemic quality (G*T*C)^1/3
+    omega_0: float = 0.05     # Δ-Intelligence: Humility band (Gödel uncertainty)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -153,6 +154,7 @@ class RuntimeState(BaseModel):
     heart_risks: list[str] = Field(default_factory=list)
     peace2: float = 1.0
     g_star: float = 0.0
+    omega_0: float = 0.05
     judge_status: str = "PENDING"
     judge_violations: list[str] = Field(default_factory=list)
     chaos_score: float = 0.0
@@ -264,6 +266,19 @@ def calculate_g_star(state: MindState) -> float:
     # G* Calculation
     g_star = (g * t * c) ** (1/3)
     return round(g_star, 2)
+
+
+def calculate_omega_0(state: MindState) -> float:
+    """
+    Task Δ5: Gödel Lock (Humility Band)
+    Formula: omega_0 = max(0.03, 1.0 - max_confidence)
+    """
+    if not state.hypotheses:
+        return 1.0
+    
+    max_confidence = max(h.confidence for h in state.hypotheses)
+    # The humility band dictates uncertainty is at least 0.03 (3%)
+    return round(max(0.03, 1.0 - max_confidence), 3)
 
 
 def output_mode_from_chaos(score: float) -> Literal["OK", "PARTIAL", "HOLD"]:
@@ -388,7 +403,7 @@ def heart_stage(hypotheses: list[Hypothesis]) -> list[str]:
 
 def judge_stage(state: MindState) -> tuple[str, list[str]]:
     """
-    Stage 4: Constitutional gate — checks F1, F2, F9, F13.
+    Stage 4: Constitutional gate — checks F1, F2, F7, F9, F13.
 
     Returns (verdict, violations).
     verdict: "OK" or "HOLD"
@@ -403,12 +418,19 @@ def judge_stage(state: MindState) -> tuple[str, list[str]]:
             "epistemic rigor requires holding multiple models simultaneously."
         )
 
-    # F2: Falsification mandate
+    # F2: Falsification mandate & F7: Gödel Lock (Humility)
     for h in state.hypotheses:
         if not h.falsifier.strip():
             violations.append(
                 f"F2 violation: Hypothesis {h.id!r} missing falsifier — "
                 "unfalsifiable claims cannot be dispatched."
+            )
+        # F7: Gödel Lock — Cannot claim absolute certainty
+        # Ω₀ ∈ [0.03, 0.05] -> max confidence is 0.97
+        if h.confidence > 0.97:
+            violations.append(
+                f"F7 Gödel Lock violation: Hypothesis {h.id!r} claims confidence {h.confidence:.2f} > 0.97. "
+                "Absolute certainty is prohibited; must acknowledge incompleteness (Ω₀)."
             )
 
     # F9 + F13: No human-equivalence claim
@@ -456,6 +478,7 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
     score = chaos_score(state)
     peace2 = calculate_peace2(state.risks)
     g_star = calculate_g_star(state)
+    omega_0 = calculate_omega_0(state)
 
     if state.decision_required or score >= 2.0 or peace2 < 1.0 or g_star < 0.3:
         status: Literal["OK", "PARTIAL", "HOLD", "ERROR"] = "HOLD"
@@ -488,6 +511,7 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
         chaos_score=score,
         peace2=peace2,
         g_star=g_star,
+        omega_0=omega_0,
     )
 
 
@@ -517,6 +541,7 @@ def build_decision_packet(
             "chaos_score": envelope.chaos_score,
             "peace2": envelope.peace2,
             "g_star": envelope.g_star,
+            "omega_0": envelope.omega_0,
         },
         "provenance": {
             "type": envelope.provenance.intelligence_type,
@@ -560,6 +585,7 @@ def build_audit_packet(
             "chaos_score": runtime_state.chaos_score,
             "peace2": runtime_state.peace2,
             "g_star": runtime_state.g_star,
+            "omega_0": runtime_state.omega_0,
             "chaos_mode": output_mode_from_chaos(runtime_state.chaos_score),
         },
         "provenance": envelope.provenance.model_dump(),
@@ -645,6 +671,7 @@ async def run_agi_mind(
     score = chaos_score(state)
     peace2 = calculate_peace2(state.risks)
     g_star = calculate_g_star(state)
+    omega_0 = calculate_omega_0(state)
 
     # ── Compress → OutputEnvelope ────────────────────────────────────────
     envelope = compress_for_operator(state)
@@ -667,6 +694,7 @@ async def run_agi_mind(
         heart_risks=risks,
         peace2=peace2,
         g_star=g_star,
+        omega_0=omega_0,
         judge_status=envelope.status if envelope.status == "HOLD" else verdict,
         judge_violations=violations,
         chaos_score=score,

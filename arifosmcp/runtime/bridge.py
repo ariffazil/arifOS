@@ -961,6 +961,7 @@ async def call_kernel(
                 "truth_score": metrics.get("g_star", 0.85),
                 "peace2": metrics.get("peace2", 1.0),
                 "delta_s": -0.1 * metrics.get("chaos_score", 0.0), # Heuristic: chaos increases entropy
+                "omega_0": metrics.get("omega_0", 0.05),
                 "note": packet.get("summary", "AGI reasoning complete."),
             }
 
