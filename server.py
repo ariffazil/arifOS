@@ -6,8 +6,9 @@ This is the only supported public FastMCP entrypoint for both:
 1. VPS sovereign execution (full F1-F13 floors)
 2. Horizon gateway/proxy mode (public tools only)
 
-Environment-specific behavior is delegated to ``arifosmcp.server``.
-No parallel ingress narrative should point at legacy horizon-specific files.
+Environment-specific behavior is delegated to:
+- Horizon: ``arifosmcp.server_horizon``
+- VPS: ``arifosmcp.runtime.server``
 
 FastMCP Compatibility:
 - Entrypoint: server.py:mcp
@@ -105,7 +106,7 @@ else:
     # VPS MODE: Full sovereign kernel (or fallback to Horizon if deps missing)
     # ═════════════════════════════════════════════════════════════════════════
     try:
-        from arifosmcp.server import mcp
+        from arifosmcp.runtime.server import mcp
 
         try:
             from config.environments import get_environment, is_sovereign
