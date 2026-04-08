@@ -4,7 +4,7 @@ arifosmcp/runtime/megaTools/01_init_anchor.py
 🔥 THE IGNITION STATE OF INTELLIGENCE (Unified)
 Stage: 000_INIT | Trinity: PSI Ψ | Floors: F11, F12, F13
 
-Modes: init, revoke, refresh, state, status
+Modes: init, revoke, refresh, state, status, probe
 """
 
 from __future__ import annotations
@@ -49,9 +49,75 @@ async def init_anchor(
     deployment_id: str | None = None,
     session_class: str = "execute",
 ) -> RuntimeEnvelope:
-    allowed_modes = {"init", "revoke", "refresh", "state", "status"}
+    allowed_modes = {"init", "revoke", "refresh", "state", "status", "probe"}
     if mode is not None and mode not in allowed_modes:
         raise ValueError(f"Invalid mode for init_anchor: {mode}")
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # PROBE MODE: Session diagnostic and compatibility check
+    # ═══════════════════════════════════════════════════════════════════════════
+    if mode == "probe":
+        from arifosmcp.runtime.sessions import get_session_identity
+
+        identity = get_session_identity(session_id) if session_id else None
+        anchor_status = "VALID" if identity else "MISSING"
+
+        raw_level = (
+            (auth_context or {}).get("authority_level")
+            or (identity or {}).get("authority_level")
+            or "anonymous"
+        )
+
+        canonical_identity_classes = {
+            "human",
+            "user",
+            "agent",
+            "system",
+            "anonymous",
+            "operator",
+            "sovereign",
+            "declared",
+            "claimed",
+            "verified",
+            "apex",
+            "none",
+        }
+
+        enum_compat = (
+            "✅ COMPATIBLE"
+            if raw_level.lower() in canonical_identity_classes
+            else f"❌ MISMATCH ({raw_level})"
+        )
+
+        probe_payload = {
+            "ok": True,
+            "tool": "init_anchor",
+            "status": "SUCCESS",
+            "result_type": "init_anchor_probe_result@v2",
+            "mode": "probe",
+            "organ_stage": "000_INIT",
+            "verdict": "SEAL",
+            "session_id": session_id or "global",
+            "probe_result": {
+                "anchor": anchor_status,
+                "authority_enum": enum_compat,
+                "current_level": raw_level,
+            },
+            "recommendation": "Use init_anchor to re-align if MISMATCH detected."
+            if "❌" in enum_compat
+            else "System ready for high-stakes execution.",
+            "floors_checked": ["F11"],
+        }
+
+        return RuntimeEnvelope(
+            tool="init_anchor",
+            canonical_tool_name="arifos_init",
+            stage="000_INIT",
+            status=RuntimeStatus.SUCCESS,
+            verdict=Verdict.SEAL,
+            session_id=session_id or "global",
+            payload=probe_payload,
+        )
 
     payload = dict(payload or {})
     if session_class:
