@@ -38,7 +38,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 1. arifos.init — Session Initialization (was 000_INIT, init_anchor)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_init",
+        name="arifos.init",
         stage="000",
         purpose="Start governed session + session diagnostics",
         layer="GOVERNANCE",
@@ -81,7 +81,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 2. arifos.sense — Constitutional Reality Sensing (was 111_SENSE, physics_reality)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_sense",
+        name="arifos.sense",
         stage="111",
         purpose="Constitutional reality sensing — 8-stage governed protocol",
         layer="MACHINE",
@@ -129,7 +129,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 3. arifos.mind — Structured Reasoning (was 333_MIND, agi_mind)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_mind",
+        name="arifos.mind",
         stage="333",
         purpose="Structured reasoning + synthesis",
         layer="INTELLIGENCE",
@@ -155,7 +155,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 4. arifos.kernel — Execution Lane Selection (was 444_ROUT, arifos.route)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_kernel",
+        name="arifos.kernel",
         stage="444",
         purpose="Execution lane selection",
         layer="GOVERNANCE",
@@ -176,7 +176,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 5. arifos.heart — Safety Critique (was 666_HEART, asi_heart)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_heart",
+        name="arifos.heart",
         stage="666",
         purpose="Safety, dignity, adversarial critique",
         layer="INTELLIGENCE",
@@ -197,7 +197,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 6. arifos.ops — Cost Estimation (was 777_OPS, math_estimator)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_ops",
+        name="arifos.ops",
         stage="777",
         purpose="Cost, thermodynamic, capacity estimation",
         layer="MACHINE",
@@ -222,7 +222,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 7. arifos.judge — Constitutional Verdict (was 888_JUDGE, apex_soul)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_judge",
+        name="arifos.judge",
         stage="888",
         purpose="Constitutional verdict engine",
         layer="GOVERNANCE",
@@ -248,7 +248,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 8. arifos.memory — Governed Recall (was 555_MEMORY, engineering_memory)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_memory",
+        name="arifos.memory",
         stage="555",
         purpose="Governed memory + recall",
         layer="INTELLIGENCE",
@@ -273,7 +273,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 9. arifos.vault — Immutable Logging (was 999_VAULT, vault_ledger)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_vault",
+        name="arifos.vault",
         stage="999",
         purpose="Immutable verdict logging",
         layer="GOVERNANCE",
@@ -298,7 +298,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 10. arifos.forge — Delegated Execution Bridge (was shell_forge)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_forge",
+        name="arifos.forge",
         stage="010",
         purpose="Delegated execution to AF-FORGE substrate",
         layer="EXECUTION",
@@ -349,7 +349,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # Use instead of chaining 7 tools manually.
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_reply",
+        name="arifos.reply",
         stage="000-999",
         purpose="Governed reply compositor — deterministic dual-axis reply pipeline",
         layer="GOVERNANCE",
@@ -441,7 +441,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 12. arifos.vps_monitor — Secure Telemetry (New)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_vps_monitor",
+        name="arifos.vps_monitor",
         stage="111",
         purpose="Secure VPS telemetry",
         layer="MACHINE",
@@ -467,7 +467,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 13. arifos.fetch — Governed Web Fetch (F9 Anti-Hantu)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_fetch",
+        name="arifos.fetch",
         stage="111",
         purpose="Governed URL fetch + F9 Anti-Hantu filtering",
         layer="MACHINE",
@@ -498,7 +498,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 14. arifos.git_status — Governed Repository State (Substrate)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_git_status",
+        name="arifos.git_status",
         stage="911",
         purpose="Read governed repository state",
         layer="EXECUTION",
@@ -517,7 +517,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 15. arifos.git_commit — Governed Repository Mutation (Substrate)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_git_commit",
+        name="arifos.git_commit",
         stage="999",
         purpose="Mutate governed repository state (F13 Required)",
         layer="EXECUTION",

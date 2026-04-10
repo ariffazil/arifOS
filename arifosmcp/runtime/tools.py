@@ -439,7 +439,7 @@ async def arifos_sense(
     return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug, platform)
 
 
-@seal_runtime_envelope
+
 async def arifos_fetch_tool(
     url: str,
     max_length: int = 10000,
@@ -1469,6 +1469,7 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
 
 
 # Backward-compatible aliases for older runtime imports.
+arifos_route = arifos_kernel # [P1 FIX] Preserve canonical route symbol
 init_v2 = arifos_init
 sense_v2 = arifos_sense
 mind_v2 = arifos_mind
@@ -1654,3 +1655,16 @@ __all__ = [
     "_wrap_call",
     "select_governed_philosophy",
 ]
+
+async def arifos_diag_substrate(session_id: str | None = None) -> Any:
+    """Maintainer: Run substrate protocol conformance check."""
+    from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict
+    
+    verdict = await run_protocol_conformance_test()
+    return _RE(
+        ok=verdict == Verdict.SEAL,
+        tool="arifos_diag_substrate",
+        verdict=verdict,
+        payload={"message": f"Substrate conformance result: {verdict}"}
+    )

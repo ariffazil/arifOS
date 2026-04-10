@@ -165,6 +165,30 @@ async def kg_search(
         logger.error(f"KG search error: {e}")
         return []
 
+async def kg_delete_entity(
+    entity_id: str,
+    actor_id: str,
+    session_id: str | None = None
+) -> tuple[bool, str | None]:
+    """Delete an entity from the MCP memory KG."""
+    
+    gov = evaluate_tool_call(
+        action="memory_delete",
+        tool_name="arifos_memory",
+        parameters={"entity_id": entity_id},
+        actor_id=actor_id,
+        session_id=session_id
+    )
+    
+    if gov.verdict != Verdict.SEAL:
+        return False, f"Governance blocked: {gov.message}"
+
+    try:
+        await bridge.memory.call_tool("delete_entities", {"entityNames": [entity_id]})
+        return True, None
+    except Exception as e:
+        return False, str(e)
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ARIFOS TOOL INTEGRATION
 # ═══════════════════════════════════════════════════════════════════════════════

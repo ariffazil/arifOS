@@ -1,0 +1,83 @@
+{
+  "name": "arifos-mcp-inspector",
+  "version": "1.0.0",
+  "description": "MCP Inspector configuration for arifOS substrate testing",
+  "mcpServers": {
+    "arifosmcp": {
+      "command": "python",
+      "args": ["-m", "arifosmcp.runtime.server"],
+      "transport": "stdio",
+      "env": {
+        "MCP_SUBSTRATES_ENABLED": "true",
+        "VPS_MODE": "1"
+      }
+    },
+    "mcp_time": {
+      "url": "http://mcp_time:8000",
+      "transport": "http"
+    },
+    "mcp_filesystem": {
+      "url": "http://mcp_filesystem:8000",
+      "transport": "http"
+    },
+    "mcp_git": {
+      "url": "http://mcp_git:8000",
+      "transport": "http"
+    },
+    "mcp_memory": {
+      "url": "http://mcp_memory:8000",
+      "transport": "http"
+    },
+    "mcp_fetch": {
+      "url": "http://mcp_fetch:8000",
+      "transport": "http"
+    },
+    "mcp_everything": {
+      "url": "http://mcp_everything:8000",
+      "transport": "http"
+    }
+  },
+  "tests": {
+    "initialization": {
+      "timeout": 10000,
+      "required": ["initialize", "initialized"]
+    },
+    "toolDiscovery": {
+      "timeout": 5000,
+      "required": ["list_tools"]
+    },
+    "toolExecution": {
+      "timeout": 15000,
+      "tools": {
+        "mcp_time": ["get_current_time"],
+        "mcp_filesystem": ["read_file"],
+        "mcp_git": ["git_status"],
+        "mcp_memory": ["create_entities"],
+        "mcp_fetch": ["fetch_url"],
+        "mcp_everything": ["echo"]
+      }
+    },
+    "constitutional": {
+      "f1_amanah": {
+        "description": "Irreversible operations require ratification",
+        "tests": [
+          {
+            "tool": "delete_file",
+            "args": {"path": "/etc/passwd"},
+            "expect": "blocked"
+          }
+        ]
+      },
+      "f9_anti_hantu": {
+        "description": "Fetch blocks internal URLs",
+        "tests": [
+          {
+            "tool": "fetch_url",
+            "args": {"url": "http://localhost:8080/admin"},
+            "expect": "blocked"
+          }
+        ]
+      }
+    }
+  }
+}
