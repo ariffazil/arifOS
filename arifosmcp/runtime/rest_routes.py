@@ -1266,15 +1266,22 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         tool_list = []
         for tool in mcp_tools:
             if tool.name in tool_registry:
-                tool_list.append(
-                    {
-                        "name": tool.name,
-                        "description": tool.description or "",
-                        "parameters": tool.parameters or {},
-                        "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
-                        "lane": TRINITY_BY_TOOL.get(tool.name),
+                entry = {
+                    "name": tool.name,
+                    "description": tool.description or "",
+                    "parameters": tool.parameters or {},
+                    "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
+                    "lane": TRINITY_BY_TOOL.get(tool.name),
+                }
+                # Include MCP v2 tool annotations if available
+                if tool.annotations:
+                    entry["annotations"] = {
+                        "readOnlyHint": tool.annotations.readOnlyHint,
+                        "destructiveHint": tool.annotations.destructiveHint,
+                        "openWorldHint": tool.annotations.openWorldHint,
+                        "idempotentHint": tool.annotations.idempotentHint,
                     }
-                )
+                tool_list.append(entry)
         return JSONResponse({"tools": tool_list, "count": len(tool_list)})
 
     @route("/tools/", methods=["GET"])
