@@ -28,6 +28,29 @@ htmlcov/
 .tox/
 .nox/
 .cache/
+
+# Debug/Temp JSON artifacts (NEVER commit these)
+v*.json
+final_*.json
+trace_*.json
+live_*.json
+debug_*.json
+test_*.json
+persist_*.json
+init_res.json
+mind_res.json
+sense_trace.json
+mcp.json
+wow_*.json
+
+# Deployment audit artifacts (should be in wiki, not repo root)
+DEPLOY_*.md
+EPOCH_*.md
+STATUS_EPOCH_*.md
+THERMO_*.md
+MCP_WEB_*.md
+LANDING_PAGE_*.md
+TOOLS_FLOORS_*.md
 nosetests.xml
 coverage.xml
 *.cover

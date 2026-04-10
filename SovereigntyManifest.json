@@ -1,0 +1,334 @@
+{
+  "$schema": "https://arifos.org/schemas/sovereignty-manifest/v1",
+  "$id": "arifos-sovereignty-manifest",
+  "title": "arifOS Sovereignty Manifest",
+  "description": "Machine-readable sovereignty configuration for arifOS deployments. Enables automated verification of constitutional enforcement across sovereignty levels.",
+  "type": "object",
+  "required": ["manifest_version", "deployment_id", "sovereignty_level", "identity", "infrastructure", "constitution"],
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version for sovereignty manifest"
+    },
+    "deployment_id": {
+      "type": "string",
+      "pattern": "^did:arif:[a-f0-9]{32}$",
+      "description": "BLS-DID identifier for this deployment"
+    },
+    "deployment_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of manifest generation"
+    },
+    "sovereignty_level": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3, 4],
+      "description": "Sovereignty tier: 0=Captive, 1=Portable, 2=Resilient, 3=Sovereign, 4=Absolute"
+    },
+    "identity": {
+      "type": "object",
+      "required": ["root_type", "provider_chain"],
+      "properties": {
+        "root_type": {
+          "type": "string",
+          "enum": ["BLS-DID", "vendor-managed", "hybrid"],
+          "description": "Root identity authority"
+        },
+        "did_document": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI to DID document"
+        },
+        "provider_chain": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["provider", "type", "fallback_order"],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": ["BLS-DID", "Entra-ID", "AWS-IAM", "Google-IAM", "local-wallet"]
+              },
+              "type": {
+                "type": "string",
+                "enum": ["primary", "fallback", "assertion"]
+              },
+              "fallback_order": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Priority in fallback chain (1=first)"
+              }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "infrastructure": {
+      "type": "object",
+      "required": ["llm", "storage", "execution"],
+      "properties": {
+        "llm": {
+          "type": "object",
+          "required": ["provider_chain", "local_available"],
+          "properties": {
+            "provider_chain": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["provider", "model", "fallback_order"],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": ["Azure-OpenAI", "OpenAI", "Anthropic", "Google-Gemini", "Ollama", "llama.cpp", "NIM"]
+                  },
+                  "model": {
+                    "type": "string",
+                    "description": "Model identifier (e.g., gpt-4, llama3:70b)"
+                  },
+                  "fallback_order": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "endpoint": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "API endpoint (if applicable)"
+                  }
+                }
+              }
+            },
+            "local_available": {
+              "type": "boolean",
+              "description": "Whether local LLM (Ollama/llama.cpp) is configured"
+            },
+            "air_gapped_capable": {
+              "type": "boolean",
+              "description": "Can operate without network access"
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "required": ["backends", "encryption", "replica_count"],
+          "properties": {
+            "backends": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["type", "priority"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["Azure-Blob", "AWS-S3", "GCP-Storage", "SQLite", "Postgres", "IPFS", "local-disk"]
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "encrypted": {
+                    "type": "boolean"
+                  },
+                  "region": {
+                    "type": "string",
+                    "description": "Geographic region (for cloud backends)"
+                  }
+                }
+              },
+              "minItems": 1
+            },
+            "encryption": {
+              "type": "object",
+              "required": ["algorithm", "key_derivation"],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "enum": ["AES-256-GCM", "ChaCha20-Poly1305"]
+                },
+                "key_derivation": {
+                  "type": "string",
+                  "enum": ["Argon2id", "PBKDF2"]
+                },
+                "key_storage": {
+                  "type": "string",
+                  "enum": ["HSM", "hardware-wallet", "file-encrypted", "memory"]
+                }
+              }
+            },
+            "replica_count": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of redundant storage backends"
+            }
+          }
+        },
+        "execution": {
+          "type": "object",
+          "required": ["engines", "sandbox_type"],
+          "properties": {
+            "engines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["type", "priority"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["AKS", "EKS", "GKE", "Lambda", "Cloud-Run", "Docker", "gVisor", "firecracker"]
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "network_mode": {
+                    "type": "string",
+                    "enum": ["full", "restricted", "none"],
+                    "description": "Network access level"
+                  }
+                }
+              }
+            },
+            "sandbox_type": {
+              "type": "string",
+              "enum": ["gVisor", "firecracker", "Docker", "none"],
+              "description": "Isolation technology for tool execution"
+            },
+            "local_fallback": {
+              "type": "boolean",
+              "description": "Can execute tools locally if cloud unavailable"
+            }
+          }
+        }
+      }
+    },
+    "constitution": {
+      "type": "object",
+      "required": ["version", "floors", "enforcement_mode"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^F1-F13@[A-Z0-9]+$",
+          "description": "Constitutional version (e.g., F1-F13@VAULT999)"
+        },
+        "floors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["F0-SOVEREIGN", "F1-AMANAH", "F2-TRUTH", "F3-TRI-WITNESS", "F4-CLARITY", "F5-PEACE", "F6-EMPATHY", "F7-HUMILITY", "F8-GENIUS", "F9-ANTI-HANTU", "F10-ONTOLOGY", "F11-AUDIT", "F12-INJECTION", "F13-SOVEREIGN"]
+          },
+          "minItems": 14,
+          "description": "Active constitutional floors"
+        },
+        "enforcement_mode": {
+          "type": "string",
+          "enum": ["strict", "permissive", "audit-only"],
+          "description": "Enforcement strictness level"
+        },
+        "audit_ledger": {
+          "type": "object",
+          "required": ["type", "integrity_proof"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["VAULT999", "PostgreSQL", "SQLite", "blockchain"]
+            },
+            "integrity_proof": {
+              "type": "string",
+              "enum": ["BLS-signature", "Merkle-tree", "hash-chain"]
+            },
+            "retention_days": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "last_tested": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "test_suite_version": {
+          "type": "string"
+        },
+        "sovereignty_tests_passed": {
+          "type": "integer"
+        },
+        "checksum": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "SHA-256 hash of normalized manifest for integrity"
+        }
+      }
+    }
+  },
+  
+  "examples": [
+    {
+      "manifest_version": "1.0.0",
+      "deployment_id": "did:arif:a1b2c3d4e5f6789012345678901234567890abcd",
+      "deployment_timestamp": "2026-04-09T12:00:00Z",
+      "sovereignty_level": 3,
+      "identity": {
+        "root_type": "BLS-DID",
+        "did_document": "https://did.arifos.org/did:arif:a1b2c3d4...",
+        "provider_chain": [
+          {"provider": "BLS-DID", "type": "primary", "fallback_order": 1},
+          {"provider": "Entra-ID", "type": "assertion", "fallback_order": 2}
+        ]
+      },
+      "infrastructure": {
+        "llm": {
+          "provider_chain": [
+            {"provider": "Azure-OpenAI", "model": "gpt-4", "fallback_order": 1, "endpoint": "https://arifos.openai.azure.com"},
+            {"provider": "Anthropic", "model": "claude-3-opus", "fallback_order": 2},
+            {"provider": "Ollama", "model": "llama3:70b", "fallback_order": 999, "endpoint": "http://localhost:11434"}
+          ],
+          "local_available": true,
+          "air_gapped_capable": true
+        },
+        "storage": {
+          "backends": [
+            {"type": "Azure-Blob", "priority": 1, "encrypted": true, "region": "southeast-asia"},
+            {"type": "AWS-S3", "priority": 2, "encrypted": true, "region": "ap-southeast-1"},
+            {"type": "SQLite", "priority": 3, "encrypted": true}
+          ],
+          "encryption": {
+            "algorithm": "AES-256-GCM",
+            "key_derivation": "Argon2id",
+            "key_storage": "hardware-wallet"
+          },
+          "replica_count": 3
+        },
+        "execution": {
+          "engines": [
+            {"type": "AKS", "priority": 1, "network_mode": "restricted"},
+            {"type": "Docker", "priority": 2, "network_mode": "none"}
+          ],
+          "sandbox_type": "gVisor",
+          "local_fallback": true
+        }
+      },
+      "constitution": {
+        "version": "F1-F13@VAULT999",
+        "floors": ["F0-SOVEREIGN", "F1-AMANAH", "F2-TRUTH", "F3-TRI-WITNESS", "F4-CLARITY", "F5-PEACE", "F6-EMPATHY", "F7-HUMILITY", "F8-GENIUS", "F9-ANTI-HANTU", "F10-ONTOLOGY", "F11-AUDIT", "F12-INJECTION", "F13-SOVEREIGN"],
+        "enforcement_mode": "strict",
+        "audit_ledger": {
+          "type": "VAULT999",
+          "integrity_proof": "BLS-signature",
+          "retention_days": 2555
+        }
+      },
+      "verification": {
+        "last_tested": "2026-04-09T12:00:00Z",
+        "test_suite_version": "v2026.04.09",
+        "sovereignty_tests_passed": 47,
+        "checksum": "sha256:a3f5c8d9e2b1..."
+      }
+    }
+  ]
+}
