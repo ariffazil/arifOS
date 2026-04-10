@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-04-10T20:29:24.351966+00:00",
-  "git_sha": "0aed60032201",
+  "timestamp": "2026-04-10T20:46:40.670093+00:00",
+  "git_sha": "64e2fd933ad7",
   "branch": "main",
   "transport": "http",
   "final_verdict": "VOID",
@@ -41,7 +41,7 @@
       "status": "FAIL",
       "description": "P0 Constitutional breach tests",
       "evidence": {},
-      "error": "while parsing a block collection\n  in \"arifosmcp\\evals\\constitutional_breach_tests.yaml\", line 264, column 11\nexpected <block end>, but found ','\n  in \"arifosmcp\\evals\\constitutional_breach_tests.yaml\", line 264, column 21"
+      "error": "while parsing a block collection\n  in \"arifosmcp\\evals\\constitutional_breach_tests.yaml\", line 372, column 11\nexpected <block end>, but found ','\n  in \"arifosmcp\\evals\\constitutional_breach_tests.yaml\", line 372, column 18"
     },
     {
       "gate": "D",
@@ -52,34 +52,34 @@
         "total": 6,
         "substrates": {
           "mcp_time": {
-            "status": "DOWN",
+            "status": "DEGRADED",
             "service": "mcp_time",
-            "error": "[Errno 11001] getaddrinfo failed"
+            "error": "No health endpoint responded"
           },
           "mcp_filesystem": {
-            "status": "DOWN",
+            "status": "DEGRADED",
             "service": "mcp_filesystem",
-            "error": "[Errno 11001] getaddrinfo failed"
+            "error": "No health endpoint responded"
           },
           "mcp_git": {
-            "status": "DOWN",
+            "status": "DEGRADED",
             "service": "mcp_git",
-            "error": "[Errno 11001] getaddrinfo failed"
+            "error": "No health endpoint responded"
           },
           "mcp_memory": {
-            "status": "DOWN",
+            "status": "DEGRADED",
             "service": "mcp_memory",
-            "error": "[Errno 11001] getaddrinfo failed"
+            "error": "No health endpoint responded"
           },
           "mcp_fetch": {
-            "status": "DOWN",
+            "status": "DEGRADED",
             "service": "mcp_fetch",
-            "error": "[Errno 11001] getaddrinfo failed"
+            "error": "No health endpoint responded"
           },
           "mcp_everything": {
-            "status": "DOWN",
+            "status": "DEGRADED",
             "service": "mcp_everything",
-            "error": "[Errno 11001] getaddrinfo failed"
+            "error": "No health endpoint responded"
           }
         }
       },

@@ -567,7 +567,7 @@ class DeployGateRunner:
         else:
             print("🟡 DEPLOYMENT WARNING: SABAR - Review required")
     
-    def seal_to_vault(self, report: DeployGateReport):
+    async def seal_to_vault(self, report: DeployGateReport):
         """Seal deployment gate report to VAULT999"""
         try:
             from arifosmcp.runtime.tools import arifos_vault
@@ -594,11 +594,11 @@ class DeployGateRunner:
                 ]
             }
             
-            asyncio.run(arifos_vault(
+            await arifos_vault(
                 verdict=report.final_verdict.value,
                 evidence=json.dumps(evidence, indent=2),
                 session_id="deploy-gate"
-            ))
+            )
             print("\n🔒 Deployment gate report sealed to VAULT999")
         except Exception as e:
             print(f"\n⚠️ Could not seal to vault: {e}")

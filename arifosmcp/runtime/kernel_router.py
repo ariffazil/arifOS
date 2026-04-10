@@ -142,42 +142,42 @@ class HardenedKernelRouter:
 
         # Session/init queries
         if any(kw in query_lower for kw in ["init", "session", "anchor", "start"]):
-            return "arifos_init"
+            return "arifos.init"
 
         # Memory queries
         if any(kw in query_lower for kw in ["remember", "recall", "memory", "context"]):
-            return "arifos_memory"
+            return "arifos.memory"
 
         # Execution/forge queries
         if any(kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]):
-            return "arifos_forge"
+            return "arifos.forge"
 
         # Seal/vault queries
         if any(kw in query_lower for kw in ["seal", "commit", "vault", "ledger"]):
-            return "arifos_vault"
+            return "arifos.vault"
 
         # Reasoning/mind queries
         if any(kw in query_lower for kw in ["reason", "think", "analyze", "mind"]):
-            return "arifos_mind"
+            return "arifos.mind"
 
         # Safety/heart queries
         if any(kw in query_lower for kw in ["safe", "risk", "harm", "heart"]):
-            return "arifos_heart"
+            return "arifos.heart"
 
         # Operations/cost queries
         if any(kw in query_lower for kw in ["cost", "ops", "estimate", "feasible"]):
-            return "arifos_ops"
+            return "arifos.ops"
 
         # Reality/sense queries
         if any(kw in query_lower for kw in ["sense", "ground", "verify", "reality"]):
-            return "arifos_sense"
+            return "arifos.sense"
 
         # Judge queries (default for critical)
         if query_class == QueryClass.CRITICAL:
-            return "arifos_judge"
+            return "arifos.judge"
 
         # Route as default
-        return "arifos_route"
+        return "arifos.kernel"
 
     async def _invoke_tool_with_governance(
         self,
@@ -229,7 +229,7 @@ class HardenedKernelRouter:
         if context.get("mode") is not None:
             common_args["mode"] = context.get("mode")
 
-        if tool_name == "arifos_init":
+        if tool_name in ("arifos.init", "arifos_init"):
             return await handler(
                 actor_id=actor_id,
                 intent=str(payload.get("declared_intent") or query),
@@ -237,9 +237,9 @@ class HardenedKernelRouter:
                 allow_execution=context.get("allow_execution", False),
                 **common_args,
             )
-        if tool_name in ("arifos_sense", "arifos_mind", "arifos_memory"):
+        if tool_name in ("arifos.sense", "arifos_sense", "arifos.mind", "arifos_mind", "arifos.memory", "arifos_memory"):
             extra_args = {}
-            if tool_name == "arifos_mind":
+            if tool_name in ("arifos.mind", "arifos_mind"):
                 extra_args["context"] = payload.get("context")
                 # ── ToM: inject belief state into mind invocation ──────────
                 # Load cross-session actor belief and pass as second-order context.
@@ -266,13 +266,13 @@ class HardenedKernelRouter:
                         )
                 # ── end ToM wiring ──────────────────────────────────────────
             return await handler(query=str(payload.get("query") or query), **extra_args, **common_args)
-        if tool_name == "arifos_route":
+        if tool_name in ("arifos.kernel", "arifos_kernel", "arifos_route"):
             return await handler(request=str(payload.get("query") or query), **common_args)
-        if tool_name == "arifos_heart":
+        if tool_name in ("arifos.heart", "arifos_heart"):
             return await handler(content=str(payload.get("content") or payload.get("query") or query), **common_args)
-        if tool_name == "arifos_ops":
+        if tool_name in ("arifos.ops", "arifos_ops"):
             return await handler(action=str(payload.get("action") or payload.get("query") or query), **common_args)
-        if tool_name == "arifos_judge":
+        if tool_name in ("arifos.judge", "arifos_judge"):
             return await handler(candidate_action=str(payload.get("query") or query), **common_args)
 
         return RuntimeEnvelope(

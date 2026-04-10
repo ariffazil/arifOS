@@ -41,7 +41,7 @@ class TestResourceAlignment:
         """Verify prompt templates are defined in the registry."""
         from arifosmcp.runtime.public_registry import public_prompt_specs
         prompts = public_prompt_specs()
-        assert len(prompts) == 4
+        assert len(prompts) == 5
         assert any(p.name == "bootstrap_session" for p in prompts)
 
 class TestToolPayloadAlignment:
@@ -51,8 +51,8 @@ class TestToolPayloadAlignment:
         # Patch the mega tool that arifos_init calls
         with patch("arifosmcp.runtime.tools._mega_init_anchor", new_callable=AsyncMock) as mock_mega:
             mock_envelope = RuntimeEnvelope(
-                tool="arifos_init",
-                canonical_tool_name="arifos_init",
+                tool="arifos.init",
+                canonical_tool_name="arifos.init",
                 session_id="test-sid",
                 stage=Stage.INIT_000.value,
                 verdict=Verdict.SEAL,
@@ -62,7 +62,7 @@ class TestToolPayloadAlignment:
                     "caller_state": "anchored",
                     "authority": "OPERATOR",
                     "auth_context": {"actor_id": "test-actor"},
-                    "next_action": "Use arifOS_kernel"
+                    "next_action": "Use arifos.kernel"
                 }
             )
             mock_mega.return_value = mock_envelope
@@ -71,7 +71,7 @@ class TestToolPayloadAlignment:
             
             # seal_runtime_envelope will process this
             assert result.payload["caller_state"] == "anchored"
-            assert result.payload["canonical_tool_name"] == "arifos_init"
+            assert result.payload["canonical_tool_name"] == "arifos.init"
             assert "next_action" in result.payload
 
     @pytest.mark.asyncio
@@ -79,8 +79,8 @@ class TestToolPayloadAlignment:
         """P1: Verify arifos_vps_monitor bootstrap guidance fields."""
         # For this test, we mock the entire tool since it has complex internal logic
         mock_envelope = RuntimeEnvelope(
-            tool="arifos_vps_monitor",
-            canonical_tool_name="arifos_vps_monitor",
+            tool="arifos.vps_monitor",
+            canonical_tool_name="arifos.vps_monitor",
             session_id="global",
             stage=Stage.INIT_000.value,
             verdict=Verdict.SEAL,
@@ -116,6 +116,9 @@ class TestErrorRemediationAlignment:
             "failed_laws": ["F11_AUTHORITY"],
             "auth_state": "unverified",
             "error": "Authentication required",
+            "authority": "operator",
+            "truth_score": 1.0,
+            "grounded": True,
             "stage": "444_ROUTER",
         }
         
@@ -130,7 +133,7 @@ class TestErrorRemediationAlignment:
         error = result["errors"][0]
         assert "remediation" in error
         remediation = error["remediation"]
-        assert remediation["next_tool"] == "arifos_init"
+        assert remediation["next_tool"] == "arifos.init"
         assert "required_args" in remediation
         assert "example_payload" in remediation
         assert remediation["retry_safe"] is True
