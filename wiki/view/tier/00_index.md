@@ -1,17 +1,18 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:25:47.502095
+generated_at: 2026-04-10T00:42:11.324646
 filter: tier=00_INDEX
 ---
 
 # View: 00 Index
 
 > **Auto-generated** from `tier: 00_INDEX` filter.
-> **Total Pages**: 2
+> **Total Pages**: 3
 
 | Page | Strand | Difficulty | Prerequisites |
 |------|--------|------------|---------------|
+| [[Federation_Three_Wikis|Federation Three Wikis]] | onboarding | beginner |  |
 | [[Prerequisite_Map|Prerequisite Map]] | onboarding | beginner |  |
 | [[quickstart|quickstart]] | onboarding | beginner |  |
 

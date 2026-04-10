@@ -517,3 +517,8 @@ NO DRIFT DETECTED
 - Verification result:
   - missing required frontmatter keys: **0**
   - broken internal wiki page links: **0**
+
+## [2026-04-10] Federation | Three-wiki gateway added
+- Added [[Federation_Three_Wikis]] as a first-class entry point in the arifOS wiki.
+- Promoted federation navigation in `index.md` so arifOS, GEOX, and AF-FORGE read as one system, not separate silos.
+- Updated `PAGE_REGISTRY.md` and regenerated views to include the new federation gateway page.

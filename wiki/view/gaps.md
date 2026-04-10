@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:25:47.504129
+generated_at: 2026-04-10T00:42:11.326695
 filter: gaps_analysis
 ---
 
@@ -11,8 +11,9 @@ filter: gaps_analysis
 
 ## Orphan Pages (No Incoming Links)
 
-Pages with no `depended_by` references (excluding 90_ENTITIES): 20
+Pages with no `depended_by` references (excluding 90_ENTITIES): 21
 
+- [[Federation_Three_Wikis|Federation Three Wikis]] (00_INDEX)
 - [[Prerequisite_Map|Prerequisite Map]] (00_INDEX)
 - [[Concept_Floors|Concept Floors]] (10_FOUNDATIONS)
 - [[arifos_vps_monitor|arifos vps monitor]] (20_RUNTIME)

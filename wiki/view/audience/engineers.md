@@ -1,19 +1,20 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:25:47.503659
+generated_at: 2026-04-10T00:42:11.326281
 filter: audience=engineers
 ---
 
 # Audience: Engineers
 
 > **Auto-generated** for `engineers` audience.
-> **Total Pages**: 27
+> **Total Pages**: 28
 
 Pages relevant to **Engineers**.
 
 | Page | Tier | Difficulty | Strand |
 |------|------|------------|--------|
+| [[Federation_Three_Wikis|Federation Three Wikis]] | 00 INDEX | beginner | onboarding |
 | [[Prerequisite_Map|Prerequisite Map]] | 00 INDEX | beginner | onboarding |
 | [[quickstart|quickstart]] | 00 INDEX | beginner | onboarding |
 | [[What-is-arifOS|What is arifOS]] | 10 FOUNDATIONS | beginner | philosophy |

@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:25:47.504586
+generated_at: 2026-04-10T00:42:11.327336
 target: ToolSpec_arifos_judge
 ---
 

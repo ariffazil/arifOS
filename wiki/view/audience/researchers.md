@@ -1,19 +1,20 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:25:47.503766
+generated_at: 2026-04-10T00:42:11.326404
 filter: audience=researchers
 ---
 
 # Audience: Researchers
 
 > **Auto-generated** for `researchers` audience.
-> **Total Pages**: 20
+> **Total Pages**: 21
 
 Pages relevant to **Researchers**.
 
 | Page | Tier | Difficulty | Strand |
 |------|------|------------|--------|
+| [[Federation_Three_Wikis|Federation Three Wikis]] | 00 INDEX | beginner | onboarding |
 | [[Prerequisite_Map|Prerequisite Map]] | 00 INDEX | beginner | onboarding |
 | [[quickstart|quickstart]] | 00 INDEX | beginner | onboarding |
 | [[What-is-arifOS|What is arifOS]] | 10 FOUNDATIONS | beginner | philosophy |

@@ -1,11 +1,12 @@
 # Ω-Wiki Index
 
 > **Last Updated**: 2026-04-10 (AF-FORGE wiki review and tree reconciliation)
-> **Total Pages**: 40
+> **Total Pages**: 41
 > **System Status**: ACTIVE
 
 ## 🏛️ Foundations
 - [[SCHEMA]] (Wiki Constitution)
+- [[Federation_Three_Wikis]] (Gateway to arifOS, GEOX, and AF-FORGE as one system)
 - [[What-is-arifOS]] (Core Concept & Philosophy)
 - [[Floors]] (The 13 Constitutional Floors F1-F13)
 - [[Trinity_Architecture]] (The ΔΩΨ Paradigm: Soul, Mind, Body)
