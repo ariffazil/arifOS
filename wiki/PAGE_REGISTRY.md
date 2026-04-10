@@ -1,6 +1,6 @@
 # Ω-Wiki Page Registry
 
-Complete mapping of all 42 pages to their tiers, strands, and metadata.
+Complete mapping of all 43 pages to their tiers, strands, and metadata.
 
 **Purpose**: This registry defines the semantic structure of the wiki. Update frontmatter on each page to match this registry.
 
@@ -46,6 +46,7 @@ Complete mapping of all 42 pages to their tiers, strands, and metadata.
 | [[Concept_LLM_Wiki_Pattern]] | 20_RUNTIME | architecture | engineers | intermediate | [quickstart] |
 | [[agent-roles]] | 20_RUNTIME | architecture | engineers | intermediate | [Trinity_Architecture] |
 | [[integration-patterns]] | 20_RUNTIME | integration | engineers | intermediate | [MCP_Tools, Metabolic_Loop] |
+| [[Reference_MCP_Servers]] | 20_RUNTIME | integration | engineers | intermediate | [Tool_Surface_Architecture] |
 | [[arifos_forge]] | 20_RUNTIME | tools | engineers | intermediate | [MCP_Tools] |
 | [[arifos_vps_monitor]] | 20_RUNTIME | tools | engineers | intermediate | [MCP_Tools] |
 | [[Concept_Decision_Velocity]] | 20_RUNTIME | paradox | researchers | advanced | [Concept_Metabolic_Pipeline] |
@@ -88,6 +89,7 @@ Complete mapping of all 42 pages to their tiers, strands, and metadata.
 |------|------|--------|----------|------------|---------------|
 | [[Drift_Checks]] | 50_AUDITS | operations | engineers | intermediate | [Tool_Surface_Architecture] |
 | [[Audit_Surface_Fragmentation]] | 50_AUDITS | operations | engineers | intermediate | [Tool_Surface_Architecture] |
+| [[Audit_999_SEAL_Runtime_Contrast]] | 50_AUDITS | operations | operators, engineers | intermediate | [Concept_Deployment_Architecture, Reference_MCP_Servers] |
 | [[Audit_Repo_Chaos_Reduction]] | 50_AUDITS | operations | operators | intermediate | [Concept_Architecture] |
 | [[Audit_MCP_Tools_vs_Wiki]] | 50_AUDITS | operations | engineers | intermediate | [MCP_Tools] |
 
@@ -143,14 +145,14 @@ Complete mapping of all 42 pages to their tiers, strands, and metadata.
 
 | Strand | Pages | Tiers Covered |
 |--------|-------|---------------|
-| **architecture** | 11 | 10, 20, 30, 90 |
-| **constitutional** | 7 | 10, 30 |
+| **architecture** | 12 | 10, 20, 30, 90 |
+| **constitutional** | 4 | 10, 30 |
 | **integration** | 4 | 20, 40 |
 | **operations** | 6 | 50 |
-| **roadmap** | 5 | 30, 40 |
-| **paradox** | 3 | 20, 30 |
+| **roadmap** | 4 | 40 |
+| **paradox** | 4 | 20, 30 |
 | **tools** | 4 | 20 |
-| **philosophy** | 6 | 10, 30, 90 |
+| **philosophy** | 5 | 10, 30, 90 |
 
 ---
 
@@ -159,8 +161,8 @@ Complete mapping of all 42 pages to their tiers, strands, and metadata.
 | Difficulty | Count | Pages |
 |------------|-------|-------|
 | beginner | 13 | quickstart, Federation_Three_Wikis, Naming_Canon, What-is-arifOS, Floors, Trinity_Architecture, Roadmap, GEOX, Entity_Andrej_Karpathy, Changelog, Source_Karpathy_LLM_Wiki, Source_NotebookLM_HighLevel_Overview, Prerequisite_Map |
-| intermediate | 19 | (see registry above) |
-| advanced | 10 | Vault999_Architecture, Metabolic_Pipeline, Governance_Enforcer, Godellock, Floor_Tensions, Epistemic_Circuit_Breakers, Decision_Velocity, ToolSpec_arifos_judge, Horizon_2_Swarm, Horizon_3_Universal_Body |
+| intermediate | 21 | (see registry above) |
+| advanced | 11 | Concept_Vault999_Architecture, Concept_Metabolic_Pipeline, Concept_Gateway_Architecture, Concept_Governance_Enforcer, Concept_Godellock, Concept_Floor_Tensions, Concept_Epistemic_Circuit_Breakers, Concept_Decision_Velocity, ToolSpec_arifos_judge, Horizon_2_Swarm, Horizon_3_Universal_Body |
 
 ---
 
@@ -183,7 +185,7 @@ quickstart → Trinity_Architecture → Concept_Architecture → Concept_Deploym
 
 ### Path: Operator (DevOps)
 ```
-quickstart → MCP_Tools → Tool_Surface_Architecture → Drift_Checks → Audit_Surface_Fragmentation
+quickstart → MCP_Tools → Reference_MCP_Servers → Audit_999_SEAL_Runtime_Contrast → Drift_Checks
 ```
 
 ---
@@ -206,6 +208,6 @@ quickstart → MCP_Tools → Tool_Surface_Architecture → Drift_Checks → Audi
 
 ---
 
-**Registry Version**: 2026.04.10  
-**Total Pages**: 42  
+**Registry Version**: 2026.04.11  
+**Total Pages**: 45  
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.

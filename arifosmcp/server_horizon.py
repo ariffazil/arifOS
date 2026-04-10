@@ -611,10 +611,42 @@ async def gateway_registry() -> dict:
     }
 
 
+@mcp.custom_route("/", methods=["GET"])
+async def serve_root(_request: Request):
+    """Serve the dynamic landing page at the root."""
+    static_path = Path(__file__).parent.parent / "static" / "landing" / "dynamic-index.html"
+    if static_path.exists():
+        from starlette.responses import HTMLResponse
+        return HTMLResponse(static_path.read_text())
+    return JSONResponse({"message": "arifOS Horizon Gateway Active", "mode": "mcp-only"}, status_code=200)
+
+
 @mcp.custom_route("/health", methods=["GET"])
 async def horizon_health(_request: Request):
     """Operational liveness endpoint for Horizon mode."""
     return JSONResponse(await _build_gateway_metadata())
+
+
+@mcp.custom_route("/humans.txt", methods=["GET"])
+async def serve_humans_txt(_request: Request):
+    """Serve the humans.txt file from the static directory."""
+    static_path = Path(__file__).parent.parent / "static" / "humans.txt"
+    if static_path.exists():
+        from starlette.responses import PlainTextResponse
+        return PlainTextResponse(static_path.read_text())
+    return JSONResponse({"error": "humans.txt not found"}, status_code=404)
+
+
+@mcp.custom_route("/static/{path:path}", methods=["GET"])
+async def serve_static(request: Request):
+    """Serve static assets from the static directory."""
+    path = request.path_params.get("path")
+    static_dir = Path(__file__).parent.parent / "static"
+    file_path = static_dir / path
+    if file_path.exists() and file_path.is_file():
+        from starlette.responses import FileResponse
+        return FileResponse(file_path)
+    return JSONResponse({"error": "Static file not found"}, status_code=404)
 
 
 @mcp.custom_route("/metadata", methods=["GET"])
@@ -633,16 +665,28 @@ def arifos_floors() -> str:
     """arifOS Governance: Constitutional F1-F13 thresholds and doctrine."""
     return json.dumps(
         {
-            "floors": {
-                "F1": "Amanah (Reversibility)",
-                "F2": "Truth (≥ 0.99)",
-                "F3": "Tri-Witness (≥ 0.95)",
-                "F4": "ΔS Clarity (≤ 0)",
-                "F7": "Ω₀ Humility (0.03-0.05)",
-                "F13": "Sovereign (Human Veto)",
-            },
             "motto": "DITEMPA BUKAN DIBERI",
             "entrypoint": "server.py:mcp",
+            "floors": {
+                "F1": "AMANAH (Reversibility)",
+                "F2": "TRUTH (Accuracy \u2265 0.99)",
+                "F3": "TRI-WITNESS (Consensus \u2265 0.95)",
+                "F4": "CLARITY (\u0394S \u2264 0)",
+                "F5": "PEACE\u00b2 (Non-destruction)",
+                "F6": "EMPATHY (RASA Active Listening)",
+                "F7": "HUMILITY (\u03a9\u2080 0.03-0.05)",
+                "F8": "GENIUS (Systemic Health G \u2265 0.80)",
+                "F9": "ETHICS (C_dark < 0.30)",
+                "F10": "CONSCIENCE (No False Claims)",
+                "F11": "AUDITABILITY (Transparent Logs)",
+                "F12": "RESILIENCE (Graceful Failure)",
+                "F13": "SOVEREIGNTY (Human Veto)"
+            },
+            "trinity": {
+                "\u0394": "Discernment (Reality grounding)",
+                "\u03a9": "Stability (Memory & Safety)",
+                "\u03a8": "Sovereignty (Identity & Law)"
+            }
         }
     )
 

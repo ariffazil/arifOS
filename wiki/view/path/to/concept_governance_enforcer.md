@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:52:51.651302
+generated_at: 2026-04-10T21:00:14.846147
 target: Concept_Governance_Enforcer
 ---
 

@@ -2,8 +2,7 @@
 type: Synthesis
 tier: 20_RUNTIME
 strand:
-- substrate
-- mcp
+- integration
 audience:
 - engineers
 difficulty: intermediate

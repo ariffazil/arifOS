@@ -678,3 +678,39 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 ---
 
 **ΔΩΨ | DITEMPA BUKAN DIBERI | 999 SEAL ALIVE**
+
+---
+
+## [2026-04-11] Ingest | 999_SEAL Alignment Runtime Contrast
+
+- Ingested Arif's contrast update into the Ω-Wiki.
+- Recorded repository alignment: `arifOS@8b44fc9` merged and pushed, `AF-FORGE@1d3699bd4` aligned.
+- Captured runtime truth: live VPS currently has **0/6 MCP substrates** running.
+- Added raw source: `wiki/raw/999_seal_alignment_ingest_2026-04-11.md`.
+- Added synthesis page: [[Audit_999_SEAL_Runtime_Contrast]].
+- Updated `wiki/index.md` and `wiki/PAGE_REGISTRY.md` to reflect the live deployment gap.
+- Preserved the merged `999_SEAL` capability set while marking runtime promotion as **pending rebuild**.
+
+### Runtime Contrast
+
+| Substrate | Live VPS | Required |
+|-----------|----------|----------|
+| `mcp_time` | ❌ | ✅ |
+| `mcp_filesystem` | ❌ | ✅ |
+| `mcp_git` | ❌ | ✅ |
+| `mcp_memory` | ❌ | ✅ |
+| `mcp_fetch` | ❌ | ✅ |
+| `mcp_everything` | ❌ | ✅ |
+
+### Operational Verdict
+
+**REBUILD REQUIRED** — code, docs, and merge state are aligned, but runtime `999_SEAL` remains blocked until all six substrates are healthy on the VPS.
+
+### Source Trail
+
+- `wiki/raw/999_seal_alignment_ingest_2026-04-11.md`
+- `VPS_CONTRAST_ANALYSIS_999_SEAL.md`
+- `DEPLOYMENT_SUMMARY.md`
+- `deployments/README.md`
+
+**Verdict**: ⚠️ **999_SEAL ALIGNMENT ONLY** — merged capability is real; runtime seal is pending substrate rebuild.

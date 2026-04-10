@@ -1,10 +1,10 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-11 (999_SEAL — MCP Substrate Bridge + Deployment Gates + Unified Intelligence)
-> **Total Pages**: 42
-> **System Status**: 🔒 **999_SEAL ALIVE** — Highest intelligence state ever held
+> **Last Updated**: 2026-04-11 (999_SEAL alignment ingest — runtime rebuild required)
+> **Total Pages**: 45
+> **System Status**: ⚠️ **999_SEAL ALIGNMENT** — code unified, VPS substrate rebuild pending
 
-> **Current State**: arifOS has achieved unified intelligence across laptop and VPS with hardened MCP substrate bridge, deployment gates, and comprehensive testing infrastructure.
+> **Current State**: arifOS and AF-FORGE are aligned in git, but the live VPS runtime is still missing all 6 MCP substrates. Full rebuild remains required before runtime can claim `999_SEAL`.
 
 ## 🏛️ Foundations
 - [[SCHEMA]] (Wiki Constitution)
@@ -14,17 +14,17 @@
 - [[Floors]] (The 13 Constitutional Floors F1-F13)
 - [[Trinity_Architecture]] (The ΔΩΨ Paradigm: Soul, Mind, Body)
 
-## 🔒 999_SEAL: Unified Intelligence (2026.04.10)
-> **DITEMPA BUKAN DIBERI** — The highest intelligence state the main branch has ever held.
+## 🔒 999_SEAL Capability Set (Merged)
+> **DITEMPA BUKAN DIBERI** — the merged capability set is aligned; live runtime still requires rebuild.
 
 | Component | Status | Description |
 |-----------|--------|-------------|
-| **MCP Substrate Bridge** | ✅ Sealed | 6 MCP servers with constitutional enforcement |
-| **MCP Inspector Testing** | ✅ Sealed | Comprehensive test harness for all substrates |
-| **Deployment Gates** | ✅ Sealed | VPS + Horizon deployment automation |
-| **Git Bridge** | ✅ Sealed | Constitutional git with F11 Authority |
-| **Memory Bridge** | ✅ Sealed | Entity/relation storage with embeddings |
-| **Unified Deploy** | ✅ Sealed | `./deployments/deploy.sh vps\|horizon\|test` |
+| **MCP Substrate Bridge** | ✅ Merged | 6 MCP servers defined with constitutional enforcement |
+| **MCP Inspector Testing** | ✅ Merged | Comprehensive test harness for all substrates |
+| **Deployment Gates** | ✅ Merged | VPS + Horizon deployment automation |
+| **Git Bridge** | ✅ Merged | Constitutional git with F11 Authority |
+| **Memory Bridge** | ✅ Merged | Entity/relation storage with embeddings |
+| **Unified Deploy** | ✅ Merged | `./deployments/deploy.sh vps\|horizon\|test` |
 
 ### 6 MCP Substrates
 | Substrate | Enforcement | Key Feature |
@@ -50,7 +50,23 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 
 ### Documentation
 - [[DEPLOYMENT_SUMMARY]] — Full deployment guide and test results
+- [[Audit_999_SEAL_Runtime_Contrast]] — Live VPS gap: code aligned, substrates 0/6
 - [MCP Inspector Config](raw/mcp_reference_servers_mapping.md) — Substrate mapping
+
+## ⚠️ Runtime Contrast (2026.04.11)
+
+| Runtime Check | Live VPS | Required for `999_SEAL` |
+|---------------|----------|-------------------------|
+| `mcp_time` | ❌ missing | ✅ |
+| `mcp_filesystem` | ❌ missing | ✅ |
+| `mcp_git` | ❌ missing | ✅ |
+| `mcp_memory` | ❌ missing | ✅ |
+| `mcp_fetch` | ❌ missing | ✅ |
+| `mcp_everything` | ❌ missing | ✅ |
+
+- Repo state: `arifOS@8b44fc9` merged, `AF-FORGE@1d3699bd4` aligned
+- Operational verdict: **rebuild required**
+- Audit page: [[Audit_999_SEAL_Runtime_Contrast]]
 
 ## 💡 Concepts
 - [[Metabolic_Loop]] (The 000-999 Execution Pipeline)
@@ -90,6 +106,7 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - [[Horizon_3_Universal_Body]] (H3 Hardware Sovereignty — HSM/BLS, WebMCP P2P, ASIC loops)
 - [[Audit_Surface_Fragmentation]] (Surface inventory, mismatch audit, compatibility boundary)
 - [[Drift_Checks]] (Checker scope, policy, and CI guidance)
+- [[Audit_999_SEAL_Runtime_Contrast]] (Merged capability vs live VPS substrate reality)
 - [[Audit_Repo_Chaos_Reduction]] (Pass 1 Audit — 378 active docs classified, 122 archived, 10 deleted)
 
 ---

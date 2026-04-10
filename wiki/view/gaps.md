@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:52:51.650334
+generated_at: 2026-04-10T21:00:14.844403
 filter: gaps_analysis
 ---
 
@@ -11,7 +11,7 @@ filter: gaps_analysis
 
 ## Orphan Pages (No Incoming Links)
 
-Pages with no `depended_by` references (excluding 90_ENTITIES): 22
+Pages with no `depended_by` references (excluding 90_ENTITIES): 23
 
 - [[Federation_Three_Wikis|Federation Three Wikis]] (00_INDEX)
 - [[Prerequisite_Map|Prerequisite Map]] (00_INDEX)
@@ -19,8 +19,8 @@ Pages with no `depended_by` references (excluding 90_ENTITIES): 22
 - [[Concept_Floors|Concept Floors]] (10_FOUNDATIONS)
 - [[arifos_vps_monitor|arifos vps monitor]] (20_RUNTIME)
 - [[Concept_LLM_Wiki_Pattern|Concept LLM Wiki Pattern]] (20_RUNTIME)
-- [[Concept_Deployment_Architecture|Concept Deployment Architecture]] (20_RUNTIME)
 - [[arifos_forge|arifos forge]] (20_RUNTIME)
+- [[Concept_Gateway_Architecture|Concept Gateway Architecture]] (20_RUNTIME)
 - [[Concept_Decision_Velocity|Concept Decision Velocity]] (20_RUNTIME)
 - [[ToolSpec_arifos_judge|ToolSpec arifos judge]] (20_RUNTIME)
 - [[Concept_Vault999_Architecture|Concept Vault999 Architecture]] (20_RUNTIME)
@@ -31,6 +31,7 @@ Pages with no `depended_by` references (excluding 90_ENTITIES): 22
 - [[Eigent_Backend|Eigent Backend]] (40_HORIZONS)
 - [[Horizon_3_Universal_Body|Horizon 3 Universal Body]] (40_HORIZONS)
 - [[Changelog|Changelog]] (50_AUDITS)
+- [[Audit_999_SEAL_Runtime_Contrast|Audit 999 SEAL Runtime Contrast]] (50_AUDITS)
 - [[Drift_Checks|Drift Checks]] (50_AUDITS)
 - [[Audit_MCP_Tools_vs_Wiki|Audit MCP Tools vs Wiki]] (50_AUDITS)
 - [[Audit_Repo_Chaos_Reduction|Audit Repo Chaos Reduction]] (50_AUDITS)
