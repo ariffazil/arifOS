@@ -1409,7 +1409,7 @@ async def arifos_reply(
         "informed_agents": _cc,
     }
 
-    from arifosmcp.runtime.models import RE, RuntimeStatus, Verdict as V
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict as V
     _verdict_map = {"SEAL": V.SEAL, "PARTIAL": V.PROVISIONAL, "HOLD": V.HOLD, "VOID": V.VOID}
     return seal_runtime_envelope(
         RE(

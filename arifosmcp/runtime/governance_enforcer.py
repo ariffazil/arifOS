@@ -321,9 +321,13 @@ def get_enforcer() -> GovernanceEnforcer:
 def classify_and_route(
     query: str,
     context: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> tuple[QueryClass, bool]:
     """
     Classify query and determine if tool invocation is required.
+    
+    Accepts optional kwargs (actor_id, session_id, etc.) from kernel_core
+    to maintain adapter compatibility without bloating the core router.
     
     Returns:
         (query_class, requires_tool)
