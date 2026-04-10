@@ -153,8 +153,9 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "context": {"type": "string", "description": "Additional context for reasoning"},
                 "mode": {
                     "type": "string",
-                    "enum": ["reason", "reflect", "forge"],
+                    "enum": ["reason", "sequential", "step", "branch", "merge", "review"],
                     "default": "reason",
+                    "description": "reason=AGI pipeline; sequential=constitutional step-thinking; step/branch/merge/review=thinking session ops",
                 },
                 "session_id": {"type": "string"},
             },
