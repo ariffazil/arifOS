@@ -285,9 +285,13 @@ def _perform_boot_integrity_check() -> None:
     )
     from arifosmcp.runtime.tool_specs import TOOLS, TOOL_NAMES, normalize_tool_name
     
+    # Normalize tool names: arifos.init -> arifos_init for integrity check compatibility
+    def _normalize_tool_name(name: str) -> str:
+        return name.replace(".", "_")
+    
     tool_registry: dict[str, dict[str, Any]] = {}
     for tool in TOOLS:
-        normalized_name = normalize_tool_name(tool.name)
+        normalized_name = _normalize_tool_name(tool.name)
         tool_registry[normalized_name] = {
             "name": normalized_name,
             "stage": tool.stage,
@@ -297,7 +301,7 @@ def _perform_boot_integrity_check() -> None:
     
     router_visible_tools = {
         name for name in tool_registry.keys()
-        if name != "arifos_route"
+        if not name.startswith("arifos_vps_") and name != "arifos_route"
     }
     
     registered_endpoints = {
@@ -350,19 +354,20 @@ logger.info(
 
 # Horizon → v2 tool name mapping (for REST proxy compatibility)
 # CORRECTED per EPOCH-NOW audit: arifos.route -> arifos.kernel (unified rCore)
+# NOTE: Uses underscore format to match integrity check (arifos_init not arifos.init)
 HORIZON_TO_V2_MAP: dict[str, str] = {
-    "init_anchor": "arifos.init",
-    "arifOS_kernel": "arifos.kernel",
-    "physics_reality": "arifos.sense",
-    "agi_mind": "arifos.mind",
-    "asi_heart": "arifos.heart",
-    "math_estimator": "arifos.ops",
-    "apex_soul": "arifos.judge",
-    "engineering_memory": "arifos.memory",
-    "vault_ledger": "arifos.vault",
-    "code_engine": "arifos.forge",
-    "vps_monitor": "arifos.vps_monitor",
-    "architect_registry": "arifos.init",
+    "init_anchor": "arifos_init",
+    "arifOS_kernel": "arifos_kernel",
+    "physics_reality": "arifos_sense",
+    "agi_mind": "arifos_mind",
+    "asi_heart": "arifos_heart",
+    "math_estimator": "arifos_ops",
+    "apex_soul": "arifos_judge",
+    "engineering_memory": "arifos_memory",
+    "vault_ledger": "arifos_vault",
+    "code_engine": "arifos_forge",
+    "vps_monitor": "arifos_vps_monitor",
+    "architect_registry": "arifos_init",
     # v2 names also accepted directly
     "arifos_init": "arifos.init",
     "arifos_route": "arifos.kernel",
