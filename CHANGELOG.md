@@ -2,6 +2,35 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [2026.04.10-CHAOS-CONTAINED] - Repo Root Cleanup — 70+ Temp Artifacts Removed
+
+### 🔥 F1 AMANAH: Deployment Pollution Eliminated
+
+**Problem:** 70+ temporary JSON artifacts and debug files were committed to the repo root during rapid iteration cycles.
+
+**Files Removed:**
+| Category | Count | Examples |
+|----------|-------|----------|
+| Versioned JSON | 33 | `v1.json` through `v22_final.json` |
+| Final traces | 8 | `final_mind.json`, `final_trace.json`, etc. |
+| Debug traces | 9 | `trace_mind.json`, `sense_trace.json`, etc. |
+| Live dumps | 4 | `live_mind.json`, `live_sense.json`, etc. |
+| Test artifacts | 5 | `test_*.json`, `persist_*.json` |
+| Deployment docs | 9 | `DEPLOY_*.md`, `EPOCH_*.md`, `STATUS_*.md` |
+
+**Prevention:**
+- Added comprehensive `.gitignore` rules for temp artifact patterns
+- All temp files now blocked at commit time
+
+**Impact:**
+- Tracked JSON files: 264 → 205 (-59)
+- Repo root: CLEAN
+- Git history: Preserved (reversible via `git checkout` if needed)
+
+**Verdict:** SEAL — F1 AMANAH (Reversibility) maintained.
+
+---
+
 ## [2026.04.09-KERNEL-SEALED] - UNIFIED KERNEL rCore Architecture
 
 ### 🔥 MAJOR: KERNEL Unified — Fragmentation Eliminated

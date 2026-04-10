@@ -1,8 +1,8 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-10 (AF-FORGE wiki review and tree reconciliation)
+> **Last Updated**: 2026-04-10 (F1 AMANAH — Repo root cleanup, 70+ temp artifacts removed)
 > **Total Pages**: 42
-> **System Status**: ACTIVE
+> **System Status**: SEALED — Chaos contained, constitution enforced
 
 ## 🏛️ Foundations
 - [[SCHEMA]] (Wiki Constitution)

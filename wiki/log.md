@@ -527,3 +527,41 @@ NO DRIFT DETECTED
 - Added [[Naming_Canon]] as the constitutional naming rule for the three-wiki federation.
 - Defined the core law: one canonical name, optional aliases, declared truth source, explicit scope.
 - Promoted naming into the arifOS foundation layer so future wiki, runtime, and infrastructure naming work has a shared reference point.
+
+## [2026-04-10] F1 AMANAH | Repo Root Cleanup — 70+ Temp Artifacts Removed
+
+**Operator:** KIMI CLI (Sovereign Session)  
+**Authority:** ARIF (888_APEX)  
+**Commit:** `0e67fca`
+
+### Chaos Detected
+- **33** versioned JSON files (`v1.json` through `v22_final.json`) committed to repo root
+- **8** `final_*.json` trace artifacts (`final_mind.json`, `final_trace.json`, etc.)
+- **9** `trace_*.json` debug logs
+- **4** `live_*.json` runtime dumps
+- **9** deployment audit MD files (`DEPLOY_*.md`, `EPOCH_*.md`, etc.)
+- **7** other temp files (`debug_*.json`, `test_*.json`, `persist_*.json`, etc.)
+
+### Constitutional Response
+| Floor | Check | Result |
+|-------|-------|--------|
+| F1 AMANAH | Reversibility | ✅ PASS — All changes reversible via git history |
+| F2 TRUTH | Accuracy | ✅ PASS — Files identified and categorized correctly |
+| F4 CLARITY | Documentation | ✅ PASS — .gitignore rules added to prevent recurrence |
+| F11 AUDITABILITY | Trail | ✅ PASS — This log entry + commit message |
+
+### Actions Taken
+1. Added `.gitignore` patterns for temp artifact categories:
+   - `v*.json`, `final_*.json`, `trace_*.json`, `live_*.json`
+   - `debug_*.json`, `test_*.json`, `persist_*.json`
+   - `DEPLOY_*.md`, `EPOCH_*.md`, `STATUS_EPOCH_*.md`, etc.
+2. Deleted 70+ temp files from repo root
+3. Committed with F1 AMANAH seal message
+4. Pushed to `origin/main`
+
+### Result
+- **Before:** 264 tracked JSON files
+- **After:** 205 tracked JSON files (-59 temp artifacts)
+- **Repo status:** CLEAN
+
+**Verdict:** SEAL — Chaos contained, constitution enforced.
