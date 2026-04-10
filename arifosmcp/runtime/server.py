@@ -232,6 +232,10 @@ Use prompts for structured workflows:
 - governance.audit: Compliance review
 - execution.planning: Costed execution
 - minimal.response: Direct answer
+- reply_protocol_v3: AGI Reply Protocol v3 — governed dual-axis reply
+
+Use arifos.reply for deterministic governed reply (composite orchestrator).
+Schema: arifos://reply/schemas | Context: arifos://reply/context-pack
 """,
 )
 
@@ -250,6 +254,15 @@ v2_tools_registered = register_v2_tools(mcp)
 v2_prompts_registered = register_v2_prompts(mcp)
 v2_resources_registered = register_v2_resources(mcp)
 v2_routes_registered = register_rest_routes(mcp, CANONICAL_TOOL_HANDLERS)
+
+# PromptsAsTools — expose prompts as callable tools for tool-only MCP clients
+# (clients that support tools but not the MCP prompts protocol natively)
+try:
+    from fastmcp.server.transforms import prompts_as_tools
+    mcp.add_transform(prompts_as_tools())
+    logger.info("PromptsAsTools transform registered — reply_protocol_v3 available as tool")
+except Exception as _pat_err:  # noqa: BLE001
+    logger.warning(f"PromptsAsTools unavailable (non-critical): {_pat_err}")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BOOT-TIME INTEGRITY CHECK — Fail-Fast Constitutional Gate

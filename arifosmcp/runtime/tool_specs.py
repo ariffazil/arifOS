@@ -38,7 +38,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 1. arifos.init — Session Initialization (was 000_INIT, init_anchor)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_init",
+        name="arifos.init",
         stage="000",
         purpose="Start governed session + session diagnostics",
         layer="GOVERNANCE",
@@ -81,7 +81,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 2. arifos.sense — Constitutional Reality Sensing (was 111_SENSE, physics_reality)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_sense",
+        name="arifos.sense",
         stage="111",
         purpose="Constitutional reality sensing — 8-stage governed protocol",
         layer="MACHINE",
@@ -129,7 +129,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 3. arifos.mind — Structured Reasoning (was 333_MIND, agi_mind)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_mind",
+        name="arifos.mind",
         stage="333",
         purpose="Structured reasoning + synthesis",
         layer="INTELLIGENCE",
@@ -176,7 +176,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 5. arifos.heart — Safety Critique (was 666_HEART, asi_heart)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_heart",
+        name="arifos.heart",
         stage="666",
         purpose="Safety, dignity, adversarial critique",
         layer="INTELLIGENCE",
@@ -197,7 +197,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 6. arifos.ops — Cost Estimation (was 777_OPS, math_estimator)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_ops",
+        name="arifos.ops",
         stage="777",
         purpose="Cost, thermodynamic, capacity estimation",
         layer="MACHINE",
@@ -222,7 +222,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 7. arifos.judge — Constitutional Verdict (was 888_JUDGE, apex_soul)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_judge",
+        name="arifos.judge",
         stage="888",
         purpose="Constitutional verdict engine",
         layer="GOVERNANCE",
@@ -248,7 +248,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 8. arifos.memory — Governed Recall (was 555_MEMORY, engineering_memory)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_memory",
+        name="arifos.memory",
         stage="555",
         purpose="Governed memory + recall",
         layer="INTELLIGENCE",
@@ -273,7 +273,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 9. arifos.vault — Immutable Logging (was 999_VAULT, vault_ledger)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_vault",
+        name="arifos.vault",
         stage="999",
         purpose="Immutable verdict logging",
         layer="GOVERNANCE",
@@ -298,7 +298,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 10. arifos.forge — Delegated Execution Bridge (was shell_forge)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_forge",
+        name="arifos.forge",
         stage="010",
         purpose="Delegated execution to AF-FORGE substrate",
         layer="EXECUTION",
@@ -341,10 +341,107 @@ TOOLS: tuple[ToolSpec, ...] = (
         },
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 11. arifos.vps_monitor — Secure Telemetry (New)
+    # 11. arifos.reply — Governed Reply Compositor (AGI Reply Protocol v3)
+    # ─────────────────────────────────────────────────────────────────────────
+    # Composite orchestrator: enforces memory→sense→mind→heart→ops→judge→vault
+    # in deterministic order. Prompt reply_protocol_v3 defines the contract;
+    # this tool enforces execution order so the LLM cannot skip or reorder stages.
+    # Use instead of chaining 7 tools manually.
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_vps_monitor",
+        name="arifos.reply",
+        stage="000-999",
+        purpose="Governed reply compositor — deterministic dual-axis reply pipeline",
+        layer="GOVERNANCE",
+        description=(
+            "Composite orchestrator for AGI Reply Protocol v3. "
+            "Internally runs: memory → sense → mind → heart → ops → judge → [vault/forge]. "
+            "Emits AgiReplyEnvelopeHuman (recipient=human) or AgiReplyEnvelopeAgent (recipient=agent). "
+            "Every output includes: TO/CC/TITLE/KEY_CONTEXT header, RACI block, "
+            "computed τ, constitutional floor tags, SEAL signoff. "
+            "888 HOLD blocks forge. F1/F13 triggers require human:arif ratification. "
+            "Schema at arifos://reply/schemas. Session state at arifos://reply/context-pack."
+        ),
+        trinity="ALL",
+        floors=("F1", "F2", "F3", "F4", "F7", "F9", "F11", "F13"),
+        visibility="public",
+        readonly=False,
+        input_schema={
+            "type": "object",
+            "required": ["query", "session_id"],
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "User query or agent task to govern and reply to",
+                },
+                "session_id": {"type": "string"},
+                "recipient": {
+                    "type": "string",
+                    "enum": ["human", "agent", "auto"],
+                    "default": "auto",
+                    "description": (
+                        "auto → classify via sense stage. "
+                        "human → AgiReplyEnvelopeHuman. "
+                        "agent → AgiReplyEnvelopeAgent."
+                    ),
+                },
+                "depth": {
+                    "type": "string",
+                    "enum": ["SURFACE", "ENGINEER", "ARCHITECT"],
+                    "default": "ENGINEER",
+                },
+                "compression": {
+                    "type": "string",
+                    "enum": ["FULL", "DELTA", "SIGNAL_ONLY"],
+                    "default": "DELTA",
+                    "description": (
+                        "FULL = session start / cross-agent handoff. "
+                        "DELTA = normal iterative turns (default). "
+                        "SIGNAL_ONLY = sub-agent internal hops."
+                    ),
+                },
+                "risk_tier": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "default": "medium",
+                },
+                "prior_state": {
+                    "type": "string",
+                    "description": "Compressed one-line prior context (omit on first turn)",
+                },
+                "platform": {
+                    "type": "string",
+                    "enum": ["mcp", "chatgpt_apps", "api", "stdio", "agi_reply"],
+                    "default": "agi_reply",
+                    "description": "Output formatter platform. Use agi_reply for protocol envelope.",
+                },
+                "to": {
+                    "type": "string",
+                    "description": "Primary recipient name or agent_id for the reply header",
+                },
+                "cc": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Secondary recipients (agents, vault refs)",
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "True = plan pipeline without executing stages",
+                },
+            },
+        },
+        outputs={
+            "human": "AgiReplyEnvelopeHuman — see arifos://reply/schemas",
+            "agent": "AgiReplyEnvelopeAgent — see arifos://reply/schemas",
+            "platform": "agi_reply (formatter dispatch in output_formatter.py)",
+        },
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 12. arifos.vps_monitor — Secure Telemetry (New)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos.vps_monitor",
         stage="111",
         purpose="Secure VPS telemetry",
         layer="MACHINE",

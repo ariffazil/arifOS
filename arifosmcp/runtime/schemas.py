@@ -261,4 +261,284 @@ __all__ = [
     # Builders & migration
     "build_operator_view", "build_system_view", "build_forensic_view",
     "migrate_from_legacy_input", "migrate_to_legacy_output",
+    # AGI Reply Protocol v3
+    "AgiReplyHeader", "AgiReplyRACI", "AgiReplySeal",
+    "AgiReplyGovernanceTrace", "AgiReplyToolReturn",
+    "AgiReplyEnvelopeHuman", "AgiReplyEnvelopeAgent",
 ]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGI REPLY PROTOCOL v3 — DITEMPA EDITION
+# Dual-axis reply envelopes: human-cognitive + agent-machine
+# Aligned with MCP resource arifos://reply/schemas
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class AgiReplyHeader(BaseModel):
+    """
+    Email-style routing header. Every governed reply must have one.
+    Encodes: who it's for, who is copied, what it is, and minimum context.
+    """
+    TO: str = Field(description="Primary recipient — human name or agent_id")
+    CC: list[str] = Field(
+        default_factory=list,
+        description="Secondary recipients: audit agents, downstream agents, vault ref",
+    )
+    TITLE: str = Field(description="One-line verdict statement (becomes the TITLE line)")
+    KEY_CONTEXT: str = Field(
+        description="1-2 essential sentences — what the recipient must know to act"
+    )
+    reply_to: str | None = Field(
+        default=None,
+        description="Agent or human to route clarification back to",
+    )
+
+
+class AgiReplyRACI(BaseModel):
+    """
+    Principal role map for this reply.
+    R — who forged the output.
+    A — who is accountable (judge + sovereign human).
+    C — who was consulted before forging.
+    I — who must be informed after.
+    """
+    responsible: str = Field(
+        description="Agent/tool that produced this output (e.g. arifos.forge, arifos.mind)"
+    )
+    accountable: str = Field(
+        description="Constitutional authority — always arifos.judge + human:arif for F1/F13"
+    )
+    consulted: list[str] = Field(
+        default_factory=list,
+        description="Tools/agents consulted during reasoning (e.g. arifos.heart, arifos.ops)",
+    )
+    informed: list[str] = Field(
+        default_factory=list,
+        description="Recipients who must receive the output (e.g. arifos.vault, downstream agents)",
+    )
+
+
+class AgiReplyGovernanceTrace(BaseModel):
+    """
+    Typed governance trace — replaces raw dict[str, Any].
+    Populated when F1 or F13 is triggered (888 HOLD path).
+    Required for vault persistence and auditability.
+    """
+    floors_triggered: list[str] = Field(
+        description="F1-F13 floor codes that fired"
+    )
+    verdict: Literal["888_HOLD", "SEAL", "PARTIAL", "VOID"] = Field(
+        description="Constitutional verdict at time of governance check"
+    )
+    escalate_to: str = Field(
+        description="Principal who must ratify — format: human:<actor_id>"
+    )
+    audit_ref: str = Field(
+        description="Short audit hash from AgiReplySeal"
+    )
+    rights_impact: bool = Field(
+        default=False,
+        description="True if [F7 ADIL] triggered — recommendation affects another's rights",
+    )
+    reversible: Literal["YES", "NO", "PARTIAL"] = Field(
+        default="YES",
+        description="Can the proposed action be undone?",
+    )
+    human_confirmed: bool = Field(
+        default=False,
+        description="F13 gate: human ratification received (required before forge on F1/F13)",
+    )
+
+
+class AgiReplySeal(BaseModel):
+    """
+    Cryptographic + governance signoff from the forging agent.
+    Appended to every output. Required for SEAL verdict.
+    No seal = provisional output only.
+    """
+    forged_by: str = Field(description="agent_id that produced and signs this output")
+    judge_verdict: Literal["SEAL", "PARTIAL", "HOLD", "VOID"] = Field(
+        description="Verdict from arifos.judge at time of forging"
+    )
+    tau: float = Field(ge=0.0, le=1.0, description="Grounding score τ (F7 proxy)")
+    tau_source: Literal["computed", "fallback", "manual"] = Field(
+        default="fallback",
+        description=(
+            "computed = derived from reasoning atoms via F7_PROXY_v1; "
+            "fallback = default 0.5 (no atoms available); "
+            "manual = caller-supplied override"
+        ),
+    )
+    floors_passed: list[str] = Field(default_factory=list, description="F1-F13 floors that passed")
+    floors_triggered: list[str] = Field(default_factory=list, description="Floors that flagged")
+    audit_hash: str = Field(
+        description="sha256(TITLE + timestamp + forged_by + judge_verdict)"
+    )
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+    vault_ref: str | None = Field(
+        default=None,
+        description="arifos.vault ledger reference if sealed",
+    )
+    seal_phrase: str = Field(
+        default="DITEMPA BUKAN DIBERI — 999 SEAL ALIVE",
+        description="Constitutional seal phrase — never alter",
+    )
+
+
+class AgiReplyToolReturn(BaseModel):
+    """
+    Normalized tool return envelope — every arifOS tool should return this shape.
+    Enables the LLM to align output format from repeated structured signals.
+    Based on external agent recommendation: status + evidence + floor_flags +
+    reversible + next_recommended_tool.
+    """
+    status: Literal["OK", "HOLD", "VOID", "PARTIAL", "ERROR"] = Field(
+        description="Execution outcome"
+    )
+    evidence: list[str] = Field(
+        default_factory=list,
+        description="FACT/VERIFY atoms collected by this tool",
+    )
+    constraints: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Resource or policy constraints active during this call",
+    )
+    suggested_delta: str | None = Field(
+        default=None,
+        description="Compressed one-line state change to carry into STEP -1 CONTEXT STATE",
+    )
+    floor_flags: list[str] = Field(
+        default_factory=list,
+        description="F1-F13 floors triggered by this tool call",
+    )
+    reversible: Literal["YES", "NO", "PARTIAL"] = Field(
+        default="YES",
+        description="Can the action taken by this tool be undone?",
+    )
+    next_recommended_tool: str | None = Field(
+        default=None,
+        description="arifOS golden-path: which tool should be called next",
+    )
+    payload: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Tool-specific output payload",
+    )
+
+
+class AgiReplyEnvelopeHuman(BaseModel):
+    """
+    Human-facing reply envelope.
+    Cognitively aligned: narrative structure, plain bullets, optional code.
+    No machine blocks. One clarifying question maximum.
+    """
+    # Routing
+    header: AgiReplyHeader
+    raci: AgiReplyRACI
+
+    # Context state (STEP -1)
+    prior_state: str | None = Field(default=None, description="Compressed prior context")
+    delta: str | None = Field(default=None, description="What changed this turn")
+    depth: Literal["SURFACE", "ENGINEER", "ARCHITECT"] = Field(default="ENGINEER")
+
+    # Verdict (STEP 1)
+    verdict_token: Literal[
+        "CLAIM", "PLAUSIBLE", "HYPOTHESIS", "ESTIMATE", "UNKNOWN", "CONFLICT", "888 HOLD"
+    ]
+    tau: float = Field(ge=0.0, le=1.0)
+    verdict_statement: str = Field(description="One concrete, plain-language statement")
+    floors_triggered: list[str] = Field(default_factory=list)
+
+    # Answer (STEP 2A)
+    direct_answer: list[str] = Field(
+        description="2-5 bullets. Strongest conclusion first. No apologies."
+    )
+
+    # Reasoning (STEP 2B) — compressed for human, not raw chain
+    reasoning_snapshot: list[str] = Field(
+        description="3-7 tagged bullets: FACT/ASSUME/RISK/DELTA/UNKNOWN/DERIVE/VERIFY"
+    )
+
+    # Output (STEP 2C)
+    action_output: str | None = Field(
+        default=None,
+        description="Code block, numbered steps, or Markdown table",
+    )
+    clarifying_question: str | None = Field(
+        default=None,
+        description="ONE question only — omit if it wouldn't materially change the answer",
+    )
+
+    # Seal (always last)
+    seal: AgiReplySeal
+
+
+class AgiReplyEnvelopeAgent(BaseModel):
+    """
+    Agent-facing reply envelope.
+    Machine-aligned: compact kv, explicit action block, resource envelope,
+    governance trace. No prose. Full signal density.
+    """
+    # Routing
+    header: AgiReplyHeader
+    raci: AgiReplyRACI
+
+    # Context state (STEP -1)
+    prior_state: str | None = None
+    delta: str | None = None
+    depth: Literal["SURFACE", "ENGINEER", "ARCHITECT"] = "ENGINEER"
+    recipient: str = "agent"
+
+    # Verdict (STEP 1)
+    verdict_token: Literal[
+        "CLAIM", "PLAUSIBLE", "HYPOTHESIS", "ESTIMATE", "UNKNOWN", "CONFLICT", "888 HOLD"
+    ]
+    tau: float = Field(ge=0.0, le=1.0)
+    verdict_statement: str
+    floors_triggered: list[str] = Field(default_factory=list)
+
+    # Answer (STEP 2A) — kv or JSON-compatible
+    direct_answer: dict[str, Any] = Field(
+        description="Compact key-value direct answer for machine consumption"
+    )
+
+    # Reasoning (STEP 2B)
+    reasoning_snapshot: list[str] = Field(
+        description="Tagged reasoning atoms: FACT/ASSUME/RISK/DELTA/UNKNOWN/DERIVE/VERIFY"
+    )
+
+    # Action block (STEP 2C)
+    action_output: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "Structured action: {action, params, confidence, reversible, "
+            "escalate_if, next_agent}"
+        ),
+    )
+
+    # Resource envelope (STEP 2D)
+    resource_envelope: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "compression_mode": "DELTA",
+            "tokens_estimated": None,
+            "cache_stable_prefix": True,
+            "parallel_ok": True,
+            "next_agent": None,
+        }
+    )
+
+    # Constitutional guard (STEP 3)
+    governance_trace: AgiReplyGovernanceTrace | None = Field(
+        default=None,
+        description="Typed governance trace — populated when F1 or F13 triggered",
+    )
+
+    # Telemetry passthrough
+    telemetry: dict[str, Any] | None = Field(
+        default=None,
+        description="Raw telemetry from arifos.ops / vps_monitor",
+    )
+
+    # Seal (always last)
+    seal: AgiReplySeal

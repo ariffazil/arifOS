@@ -319,6 +319,176 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         """Complete routing guidance for stage transitions."""
         return registry.get_routing_guide()
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # AGI REPLY PROTOCOL v3 RESOURCES
+    # arifos://reply/schemas  — static formal schema pack (stable prefix, cacheable)
+    # arifos://reply/context-pack — dynamic per-session evolving state
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # ── STATIC: Formal schema definitions for all reply envelope types ──────────
+    # This is a stable-prefix resource. Load once per session, then cache.
+    # Defines: RecipientMode, VerdictToken, ReasoningTag, GovernanceTrace,
+    #          ResourceEnvelope, Telemetry, HumanReplyEnvelope, AgentReplyEnvelope,
+    #          AgiReplyHeader, AgiReplyRACI, AgiReplySeal, AgiReplyToolReturn
+    @mcp.resource("arifos://reply/schemas")
+    def reply_schemas() -> dict[str, Any]:
+        """
+        AGI Reply Protocol v3 — canonical schema pack.
+        Stable prefix: load once, cache across turns (KV-cache eligible).
+        """
+        return {
+            "protocol": "AGI_REPLY_V3",
+            "version": "3.0.0",
+            "cache_hint": "STABLE_PREFIX",
+            "RecipientMode": {
+                "enum": ["human", "agent", "auto"],
+                "rule": "auto → classify via arifos.sense; ambiguous → human + append agent block",
+            },
+            "DepthMode": {
+                "enum": ["SURFACE", "ENGINEER", "ARCHITECT"],
+                "default": "ENGINEER",
+            },
+            "CompressionMode": {
+                "enum": ["FULL", "DELTA", "SIGNAL_ONLY"],
+                "rules": {
+                    "FULL": "Session start or cross-agent handoff",
+                    "DELTA": "Normal iterative turns (default)",
+                    "SIGNAL_ONLY": "Sub-agent internal hops — strip all narrative",
+                },
+            },
+            "VerdictToken": {
+                "enum": ["CLAIM", "PLAUSIBLE", "HYPOTHESIS", "ESTIMATE",
+                         "UNKNOWN", "CONFLICT", "888 HOLD"],
+                "tau_bands": {
+                    "CLAIM":      "τ ≥ 0.85 — high confidence, grounded",
+                    "PLAUSIBLE":  "τ ≥ 0.65 — likely true, not fully verified",
+                    "HYPOTHESIS": "τ ≥ 0.50 — untested model",
+                    "ESTIMATE":   "τ ≥ 0.35 — quantitative guess, error range known",
+                    "UNKNOWN":    "τ < 0.35 — data missing",
+                    "CONFLICT":   "multiple valid contradictory answers",
+                    "888 HOLD":   "F1 or F13 triggered — human must confirm",
+                },
+                "tau_formula": (
+                    "τ = (FACT_count×1.0 + ASSUME_count×0.7 + UNKNOWN_count×0.2) "
+                    "/ total_reasoning_steps — see policy/confidence.ts F7_PROXY_v1"
+                ),
+            },
+            "ReasoningTag": {
+                "enum": ["FACT", "ASSUME", "RISK", "DELTA", "UNKNOWN", "DERIVE", "VERIFY"],
+                "definitions": {
+                    "FACT":    "Verified, citable, directly observed",
+                    "ASSUME":  "Working assumption — state basis",
+                    "RISK":    "Failure mode, hidden cost, blast radius",
+                    "DELTA":   "Changed vs prior known state / context",
+                    "UNKNOWN": "Information gap limiting confidence",
+                    "DERIVE":  "Explicit logical step: A therefore B because C",
+                    "VERIFY":  "Cross-check against known constraint or prior FACT",
+                },
+            },
+            "FloorCodes": {k: v["name"] for k, v in FLOORS_SPEC.items()},
+            "FloorTriggerRules": {
+                "F1": "Action deletes / overwrites data → prepend [F1 AMANAH]",
+                "F2": "Claim lacks explicit evidence chain → prepend [F2 TRUTH]",
+                "F7": "Recommendation affects another's rights → prepend [F7 ADIL]",
+                "F9": "Output could manipulate or deceive → prepend [F9 ANTI-HANTU]",
+                "F13": "Final decision belongs to Arif, not the agent → prepend [F13 SOVEREIGN]",
+                "888_HOLD_RULE": "Any F1 or F13 trigger → verdict MUST be 888 HOLD. Never self-approve.",
+            },
+            "AgiReplyHeader": {
+                "fields": ["TO", "CC", "TITLE", "KEY_CONTEXT", "reply_to"],
+                "purpose": "Email-style routing. Every governed reply must include this.",
+            },
+            "AgiReplyRACI": {
+                "R_responsible": "Agent/tool that forged the output",
+                "A_accountable": "arifos.judge + human:arif (F13 sovereign)",
+                "C_consulted":   "arifos.heart, arifos.ops, arifos.memory",
+                "I_informed":    "arifos.vault, downstream agents, CC recipients",
+            },
+            "AgiReplySeal": {
+                "required_fields": [
+                    "forged_by", "judge_verdict", "tau",
+                    "floors_passed", "audit_hash", "timestamp", "seal_phrase",
+                ],
+                "audit_hash_input": "sha256(TITLE + timestamp + forged_by + judge_verdict)",
+                "seal_phrase": "DITEMPA BUKAN DIBERI — 999 SEAL ALIVE",
+            },
+            "AgiReplyToolReturn": {
+                "normalized_shape": [
+                    "status", "evidence", "constraints", "suggested_delta",
+                    "floor_flags", "reversible", "next_recommended_tool", "payload",
+                ],
+                "purpose": (
+                    "Every tool returns this shape so the LLM aligns to "
+                    "structured output from repeated signals — not re-explaining format."
+                ),
+            },
+            "HumanReplyEnvelope": {
+                "sections": [
+                    "header (AgiReplyHeader)",
+                    "raci (AgiReplyRACI)",
+                    "prior_state | delta | depth",
+                    "verdict_token τ=N.NN — statement",
+                    "direct_answer (2-5 bullets, plain English)",
+                    "reasoning_snapshot (3-7 tagged bullets)",
+                    "action_output (code | steps | table — optional)",
+                    "clarifying_question (ONE — omit if not material)",
+                    "seal (AgiReplySeal)",
+                ],
+                "style": "engineer-to-engineer, dense, no small talk, no apologies",
+            },
+            "AgentReplyEnvelope": {
+                "sections": [
+                    "header (AgiReplyHeader)",
+                    "raci (AgiReplyRACI)",
+                    "prior_state | delta | depth | recipient",
+                    "verdict_token τ=N.NN — statement",
+                    "direct_answer (compact kv or JSON-compatible)",
+                    "reasoning_snapshot (tagged atoms)",
+                    "action_output {action, params, confidence, reversible, escalate_if, next_agent}",
+                    "resource_envelope {compression_mode, tokens_estimated, cache_stable_prefix, parallel_ok, next_agent}",
+                    "governance_trace {floors_triggered, verdict, escalate_to, audit_ref} — if F1/F13",
+                    "telemetry (from arifos.ops passthrough)",
+                    "seal (AgiReplySeal)",
+                ],
+                "style": "signal-only, diff+plan not essay, no narrative",
+            },
+        }
+
+    # ── DYNAMIC: Compressed session state — evolves every turn ─────────────────
+    # This is a DELTA resource. Only session-specific state lives here.
+    # Never replay raw transcript — always summarise via arifos.memory first.
+    @mcp.resource("arifos://reply/context-pack")
+    def reply_context_pack() -> dict[str, Any]:
+        """
+        AGI Reply Protocol v3 — live session context pack.
+        Delta resource: updated each turn, never grows unbounded.
+        Load into STEP -1 CONTEXT STATE at the start of every reply turn.
+        """
+        return {
+            "protocol": "AGI_REPLY_V3",
+            "cache_hint": "DELTA",
+            "compression_target": "100:1 via arifos.memory vector recall",
+            "fields": {
+                "prior_state": "Compressed summary of last known context (1 line)",
+                "delta":       "What changed this turn vs prior_state",
+                "depth":       "Current depth mode: SURFACE | ENGINEER | ARCHITECT",
+                "recipient":   "Resolved recipient: human | agent",
+                "last_verdict": "Last judge verdict + τ score",
+                "active_floors": "Currently triggered F1-F13 floor codes",
+                "session_id":   "Active session identifier",
+                "epoch":        "Governance epoch (2026-04-10)",
+                "compression_mode": "FULL | DELTA | SIGNAL_ONLY for this turn",
+            },
+            "update_rule": (
+                "After each turn: call arifos.memory(mode=vector_store) "
+                "to compress and persist. Never replay raw transcript."
+            ),
+            "handoff_rule": (
+                "On cross-agent handoff: switch compression_mode to FULL "
+                "and include last_verdict + active_floors in the handoff payload."
+            ),
+        }
+
     registered = [
         "arifos://governance/floors",
         "arifos://governance/verdict",
@@ -334,6 +504,9 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         "arifos://schema/tool-summary",
         "arifos://schema/chatgpt-guide/{tool_id}",
         "arifos://schema/routing-guide",
+        # AGI Reply Protocol v3 resources
+        "arifos://reply/schemas",
+        "arifos://reply/context-pack",
     ]
     logger.info(f"Registered {len(registered)} v2 resources.")
     return registered

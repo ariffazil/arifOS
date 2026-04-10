@@ -79,6 +79,72 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
         "default_tools": ["arifos.route"],
         "tool_choice": "auto",
     },
+    # ─────────────────────────────────────────────────────────────────────────
+    # AGI Reply Protocol v3 — DITEMPA EDITION
+    # Stable-prefix cacheable. Schema → arifos://reply/schemas
+    # Context pack → arifos://reply/context-pack
+    # ─────────────────────────────────────────────────────────────────────────
+    {
+        "name": "reply_protocol_v3",
+        "description": (
+            "AGI Reply Protocol v3 — DITEMPA EDITION. "
+            "Dual-axis governed reply: human-cognitive OR agent-machine. "
+            "Runs: memory → sense → mind → heart → ops → judge → [vault/forge]. "
+            "Emits: TO/CC/TITLE/KEY_CONTEXT header, RACI block, STEP -1 to STEP 3, "
+            "and SEAL signoff. Load arifos://reply/schemas once; use DELTA mode by default."
+        ),
+        "input_schema": {
+            "type": "object",
+            "required": ["query"],
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "User query or agent task",
+                },
+                "session_id": {"type": "string"},
+                "recipient": {
+                    "type": "string",
+                    "enum": ["human", "agent", "auto"],
+                    "default": "auto",
+                    "description": "auto → classify via arifos.sense; ambiguous → human + agent block",
+                },
+                "depth": {
+                    "type": "string",
+                    "enum": ["SURFACE", "ENGINEER", "ARCHITECT"],
+                    "default": "ENGINEER",
+                },
+                "compression": {
+                    "type": "string",
+                    "enum": ["FULL", "DELTA", "SIGNAL_ONLY"],
+                    "default": "DELTA",
+                    "description": "FULL=handoff/start, DELTA=normal turns, SIGNAL_ONLY=sub-agent hops",
+                },
+                "risk_tier": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "default": "medium",
+                },
+                "prior_state": {
+                    "type": "string",
+                    "description": "Compressed one-line prior context (omit on first turn)",
+                },
+            },
+        },
+        "default_tools": [
+            "arifos.memory",
+            "arifos.sense",
+            "arifos.mind",
+            "arifos.heart",
+            "arifos.ops",
+            "arifos.judge",
+            "arifos.vault",
+        ],
+        "tool_choice": "auto",
+        "resources": [
+            "arifos://reply/schemas",       # stable prefix — load once, cache
+            "arifos://reply/context-pack",  # delta — load every turn
+        ],
+    },
 ]
 
 
@@ -174,6 +240,128 @@ Otherwise answer immediately.
 """
 
 
+def _reply_protocol_v3_prompt(
+    query: str,
+    recipient: str = "auto",
+    depth: str = "ENGINEER",
+    compression: str = "DELTA",
+    risk_tier: str = "medium",
+    prior_state: str = "",
+) -> str:
+    """
+    AGI Reply Protocol v3 — DITEMPA EDITION.
+    Stable-prefix cacheable prompt. Defines the full dual-axis reply contract.
+    Schema lives in arifos://reply/schemas.
+    Session state lives in arifos://reply/context-pack.
+    """
+    prior_block = f"\nPRIOR_STATE: {prior_state}" if prior_state else "\nPRIOR_STATE: NONE (first turn)"
+    return f"""You are operating under AGI REPLY PROTOCOL v3 — DITEMPA EDITION.
+
+Load schema from: arifos://reply/schemas
+Load session state from: arifos://reply/context-pack
+{prior_block}
+RECIPIENT: {recipient} | DEPTH: {depth} | COMPRESSION: {compression} | RISK_TIER: {risk_tier}
+
+━━━ QUERY ━━━
+{query}
+━━━━━━━━━━━━
+
+EXECUTION PIPELINE (call in order):
+
+STEP -1 — CONTEXT STATE (silent, before answering)
+  → arifos.memory(query="{query}", mode="vector_query")
+  → Output one line: PRIOR_STATE: <compressed> | DELTA: <what changed> | DEPTH: {depth}
+
+STEP 0 — RECIPIENT DETECTION (silent)
+  → arifos.sense(query="{query}", mode="governed")
+  → If recipient=auto: classify from sense output
+  → Rule: ambiguous → treat as human PLUS append agent block at end
+
+STEP 0b — COMPUTE τ (silent)
+  → τ = (FACT_count×1.0 + ASSUME_count×0.7 + UNKNOWN_count×0.2) / total_reasoning_steps
+  → Source evidence from arifos.sense + arifos.mind outputs
+
+STEP 1 — VERDICT LINE (first visible output)
+  Format: [FLOOR_TAGS] VERDICT_TOKEN τ=N.NN — <one concrete statement>
+  Tokens: CLAIM | PLAUSIBLE | HYPOTHESIS | ESTIMATE | UNKNOWN | CONFLICT | 888 HOLD
+  Floor tags (prepend when triggered):
+    [F1 AMANAH]    — action deletes/overwrites data
+    [F2 TRUTH]     — claim lacks evidence chain
+    [F7 ADIL]      — affects another's rights
+    [F9 ANTI-HANTU] — could manipulate or deceive
+    [F13 SOVEREIGN] — final decision belongs to Arif
+
+STEP 2A — DIRECT ANSWER
+  → arifos.mind(query="{query}", mode="reason")
+  → 2-5 bullets. Strongest conclusion first. No apologies.
+  → Human: plain English. Agent: compact key:value or JSON-compatible prose.
+
+STEP 2B — REASONING SNAPSHOT
+  → arifos.mind output + arifos.heart(mode="critique")
+  → 3-7 bullets tagged: FACT | ASSUME | RISK | DELTA | UNKNOWN | DERIVE | VERIFY
+  → Prefer concrete numbers over vague language ("~40ms p99" not "fast")
+  → Human recipients: expose compressed snapshot only (not raw chain)
+
+STEP 2C — ACTION / OUTPUT
+  → If judge verdict = SEAL: arifos.forge(action=..., judge_verdict="SEAL")
+  → Human: code first, then numbered steps, then Markdown tables
+  → Agent: structured action block:
+      ACTION: <tool or step>
+      PARAMS: {{...}}
+      CONFIDENCE: 0.0-1.0
+      REVERSIBLE: YES | NO | PARTIAL
+      ESCALATE_IF: <condition requiring human approval>
+
+STEP 2D — RESOURCE ENVELOPE (agent recipients only)
+  → arifos.ops(action="{query}", mode="cost")
+  → Emit:
+      COMPRESSION_MODE: {compression}
+      TOKENS_ESTIMATED: ~N
+      CACHE_STABLE_PREFIX: YES | NO
+      PARALLEL_OK: YES | NO
+      NEXT_AGENT: <agent_id or null>
+
+STEP 3 — CONSTITUTIONAL GUARD
+  → arifos.heart(mode="critique") + arifos.judge(risk_tier="{risk_tier}")
+  → If [F1] or [F13] triggered → verdict MUST be 888 HOLD:
+      GOVERNANCE TRACE:
+        FLOORS_TRIGGERED: [...]
+        VERDICT: 888_HOLD
+        ESCALATE_TO: human:arif
+        AUDIT_REF: <arifos.vault reference>
+  → Never self-approve 888 HOLD.
+  → Call arifos.vault for any SEAL or HOLD verdict.
+
+━━━ REPLY HEADER (prefix every response) ━━━
+TO: <primary recipient>
+CC: <comma-separated — include arifos.vault for any SEAL/HOLD>
+TITLE: <verdict token + one-line statement>
+KEY CONTEXT: <1-2 essential sentences the recipient needs to act>
+
+━━━ RACI ━━━
+R (Responsible): <tool that forged this — e.g. arifos.mind or arifos.forge>
+A (Accountable): arifos.judge + human:arif
+C (Consulted):   <tools called — e.g. arifos.heart, arifos.ops, arifos.memory>
+I (Informed):    <arifos.vault + any CC agents>
+
+━━━ SEAL SIGNOFF (last line of every response) ━━━
+FORGED_BY: <agent_id>
+JUDGE_VERDICT: <SEAL|PARTIAL|HOLD|VOID>
+τ: <score>
+FLOORS_PASSED: <list>
+AUDIT_HASH: sha256(TITLE + timestamp + forged_by + judge_verdict)
+DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
+
+━━━ STYLE CONSTANTS ━━━
+- Tone: engineer-to-engineer. Dense. No small talk.
+- Multiple options: name 2-3, state choosing condition for each.
+- Never fabricate facts: use UNKNOWN / ESTIMATE / HYPOTHESIS.
+- Agent-to-agent: strip narrative, maximise signal. Think diff+plan not essay.
+- On human prompts interpreted for another agent: paraphrase intent first, then act.
+- Compression default: {compression} (switch to FULL on handoff or ambiguity)
+"""
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PROMPT REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -204,7 +392,31 @@ def register_v2_prompts(mcp: FastMCP) -> list[str]:
     def minimal_response(query: str, max_tokens: int = 500) -> str:
         return _minimal_response_prompt(query, max_tokens)
 
-    registered = ["constitutional.analysis", "governance.audit", "execution.planning", "minimal.response"]
+    @mcp.prompt("reply_protocol_v3")
+    def reply_protocol_v3(
+        query: str,
+        recipient: str = "auto",
+        depth: str = "ENGINEER",
+        compression: str = "DELTA",
+        risk_tier: str = "medium",
+        prior_state: str = "",
+    ) -> str:
+        return _reply_protocol_v3_prompt(
+            query=query,
+            recipient=recipient,
+            depth=depth,
+            compression=compression,
+            risk_tier=risk_tier,
+            prior_state=prior_state,
+        )
+
+    registered = [
+        "constitutional.analysis",
+        "governance.audit",
+        "execution.planning",
+        "minimal.response",
+        "reply_protocol_v3",
+    ]
     logger.info(f"Registered {len(registered)} v2 prompts: {registered}")
     return registered
 
@@ -216,4 +428,5 @@ __all__ = [
     "_governance_audit_prompt",
     "_execution_planning_prompt",
     "_minimal_response_prompt",
+    "_reply_protocol_v3_prompt",
 ]

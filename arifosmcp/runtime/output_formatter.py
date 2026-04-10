@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import hashlib
+
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.schemas import (
     CleanOutput,
@@ -29,6 +31,12 @@ from arifosmcp.runtime.schemas import (
     DebugForensics,
     build_system_view,
     build_forensic_view,
+    AgiReplyHeader,
+    AgiReplyRACI,
+    AgiReplySeal,
+    AgiReplyGovernanceTrace,
+    AgiReplyEnvelopeHuman,
+    AgiReplyEnvelopeAgent,
 )
 
 
@@ -84,7 +92,11 @@ def format_output(
             text += f"\nNext: {clean.operator.next_step}"
         return {"output": text}
 
-    # 4. mcp (default) — 3-tier structure
+    # 4. agi_reply — AGI Reply Protocol v3 dual-axis envelope
+    if platform == "agi_reply":
+        return _format_agi_reply(envelope)
+
+    # 5. mcp (default) — 3-tier structure
     # Build base operator view
     clean = _build_base_output(envelope)
     
@@ -126,6 +138,224 @@ def format_output(
     
     # Return minimal operator view
     return clean.model_dump(exclude_none=True)
+
+
+def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
+    """
+    AGI Reply Protocol v3 — DITEMPA EDITION output formatter.
+
+    Routes to AgiReplyEnvelopeHuman or AgiReplyEnvelopeAgent based on
+    envelope.payload["recipient"]. Ambiguous → human envelope + agent block appended.
+
+    Builds:
+      - AgiReplyHeader  (TO / CC / TITLE / KEY_CONTEXT)
+      - AgiReplyRACI    (R/A/C/I principal roles)
+      - AgiReplySeal    (cryptographic + governance signoff)
+      - Full envelope   (human or agent)
+    """
+    from datetime import datetime, timezone
+
+    p = envelope.payload if isinstance(envelope.payload, dict) else {}
+    recipient = p.get("recipient", "auto")
+    depth = p.get("depth", "ENGINEER")
+    compression = p.get("compression_mode", "DELTA")
+    actor = envelope.authority.actor_id if envelope.authority else "anonymous"
+    session = envelope.session_id
+
+    # ── Verdict mapping ───────────────────────────────────────────────────────
+    _verdict_token_map = {
+        "SEAL": "CLAIM", "PARTIAL": "PLAUSIBLE",
+        "HOLD": "888 HOLD", "VOID": "UNKNOWN",
+        "APPROVED": "CLAIM", "PAUSE": "UNKNOWN",
+    }
+    raw_verdict = _map_verdict(envelope.verdict)
+    verdict_token = _verdict_token_map.get(raw_verdict, "UNKNOWN")
+
+    # ── τ score — ONE canonical source, in priority order ────────────────────
+    # 1. payload.tau (explicitly computed by judge from reasoning atoms)
+    # 2. metrics.tau (AF-FORGE F7 proxy attached post-completion)
+    # 3. fallback 0.5 (no atoms available — mark as tau_source="fallback")
+    # Do NOT read from metrics.confidence — that is a separate signal.
+    tau_source = "fallback"
+    tau = 0.5
+    if p.get("tau") is not None:
+        tau = float(p["tau"])
+        tau_source = p.get("tau_source", "computed")
+    elif envelope.metrics and hasattr(envelope.metrics, "tau"):
+        tau = float(envelope.metrics.tau)
+        tau_source = "computed"
+    elif envelope.metrics and hasattr(envelope.metrics, "confidence"):
+        # legacy path — treat confidence as tau proxy but mark as fallback
+        tau = float(envelope.metrics.confidence) * 0.85  # discount: confidence != tau
+        tau_source = "fallback"
+
+    # ── Floors ────────────────────────────────────────────────────────────────
+    floors_triggered: list[str] = p.get("floors_triggered", [])
+    floors_passed: list[str] = p.get("floors_passed", [])
+
+    # ── Verdict statement ─────────────────────────────────────────────────────
+    verdict_statement = (
+        p.get("verdict_statement")
+        or envelope.detail
+        or envelope.hint
+        or _build_summary(envelope)
+    )
+
+    # ── TITLE for header ──────────────────────────────────────────────────────
+    title = f"{verdict_token} τ={tau:.2f} — {verdict_statement}"
+
+    # ── SEAL signoff ──────────────────────────────────────────────────────────
+    timestamp = datetime.now(timezone.utc).isoformat()
+    forged_by = p.get("forged_by", envelope.tool or "arifos.mind")
+    judge_verdict_raw = p.get("judge_verdict", raw_verdict)
+    judge_verdict_seal: Any = judge_verdict_raw if judge_verdict_raw in (
+        "SEAL", "PARTIAL", "HOLD", "VOID"
+    ) else "HOLD"
+
+    audit_input = f"{title}{timestamp}{forged_by}{judge_verdict_seal}"
+    audit_hash = hashlib.sha256(audit_input.encode()).hexdigest()[:16]
+
+    seal = AgiReplySeal(
+        forged_by=forged_by,
+        judge_verdict=judge_verdict_seal,
+        tau=tau,
+        tau_source=tau_source,
+        floors_passed=floors_passed,
+        floors_triggered=floors_triggered,
+        audit_hash=audit_hash,
+        timestamp=timestamp,
+        vault_ref=p.get("vault_ref"),
+    )
+
+    # ── RACI ──────────────────────────────────────────────────────────────────
+    raci = AgiReplyRACI(
+        responsible=forged_by,
+        accountable=f"arifos.judge + human:{actor}",
+        consulted=p.get("consulted_tools", ["arifos.heart", "arifos.ops", "arifos.memory"]),
+        informed=p.get("informed_agents", ["arifos.vault"]),
+    )
+
+    # ── Header ────────────────────────────────────────────────────────────────
+    cc_list: list[str] = p.get("cc", [])
+    if verdict_token in ("CLAIM", "888 HOLD") and "arifos.vault" not in cc_list:
+        cc_list.append("arifos.vault")
+
+    header = AgiReplyHeader(
+        TO=p.get("to", actor),
+        CC=cc_list,
+        TITLE=title,
+        KEY_CONTEXT=(
+            p.get("key_context")
+            or f"{_build_summary(envelope)} Session: {session}."
+        ),
+        reply_to=p.get("reply_to"),
+    )
+
+    # ── Context state ─────────────────────────────────────────────────────────
+    prior_state = p.get("prior_state")
+    delta = p.get("delta") or p.get("suggested_delta")
+
+    # ── Direct answer + reasoning ─────────────────────────────────────────────
+    direct_answer_raw = p.get("direct_answer", [])
+    reasoning_snapshot = p.get("reasoning_snapshot", [])
+
+    # ── Governance trace (F1/F13) — typed model ──────────────────────────────
+    governance_trace: AgiReplyGovernanceTrace | None = None
+    if floors_triggered and any(f in floors_triggered for f in ("F1", "F13")):
+        governance_trace = AgiReplyGovernanceTrace(
+            floors_triggered=floors_triggered,
+            verdict="888_HOLD",
+            escalate_to=f"human:{actor}",
+            audit_ref=audit_hash,
+            rights_impact="F7" in floors_triggered,
+            reversible=p.get("reversible", "PARTIAL"),
+            human_confirmed=bool(p.get("human_confirmed", False)),
+        )
+
+    # ── Guard: never emit structurally valid but empty direct_answer ──────────
+    fallback_answer = _build_summary(envelope)
+    if not direct_answer_raw:
+        direct_answer_raw = [fallback_answer] if recipient != "agent" else {"summary": fallback_answer}
+
+    # ── Route to human or agent envelope ─────────────────────────────────────
+    if recipient == "agent":
+        direct_answer_kv: dict[str, Any] = (
+            direct_answer_raw if isinstance(direct_answer_raw, dict)
+            else {"answer": direct_answer_raw}
+        )
+        env_agent = AgiReplyEnvelopeAgent(
+            header=header,
+            raci=raci,
+            prior_state=prior_state,
+            delta=delta,
+            depth=depth,
+            recipient="agent",
+            verdict_token=verdict_token,
+            tau=tau,
+            verdict_statement=verdict_statement,
+            floors_triggered=floors_triggered,
+            direct_answer=direct_answer_kv,
+            reasoning_snapshot=reasoning_snapshot,
+            action_output=p.get("action_output"),
+            resource_envelope={
+                "compression_mode": compression,
+                "tokens_estimated": (
+                    envelope.metrics.tokens_used
+                    if envelope.metrics and hasattr(envelope.metrics, "tokens_used")
+                    else p.get("tokens_estimated")
+                ),
+                "cache_stable_prefix": p.get("cache_stable_prefix", True),
+                "parallel_ok": p.get("parallel_ok", True),
+                "next_agent": (
+                    envelope.handoff.get("next_agent")
+                    if isinstance(envelope.handoff, dict)
+                    else p.get("next_agent")
+                ),
+            },
+            governance_trace=governance_trace,
+            telemetry=p.get("telemetry"),
+            seal=seal,
+        )
+        return env_agent.model_dump(exclude_none=True)
+
+    # Human envelope (default + ambiguous)
+    direct_answer_bullets: list[str] = (
+        direct_answer_raw if isinstance(direct_answer_raw, list)
+        else [str(direct_answer_raw)]
+    )
+    env_human = AgiReplyEnvelopeHuman(
+        header=header,
+        raci=raci,
+        prior_state=prior_state,
+        delta=delta,
+        depth=depth,
+        verdict_token=verdict_token,
+        tau=tau,
+        verdict_statement=verdict_statement,
+        floors_triggered=floors_triggered,
+        direct_answer=direct_answer_bullets or [_build_summary(envelope)],
+        reasoning_snapshot=reasoning_snapshot,
+        action_output=p.get("action_output"),
+        clarifying_question=p.get("clarifying_question"),
+        seal=seal,
+    )
+    result = env_human.model_dump(exclude_none=True)
+
+    # Ambiguous → also append compact agent block
+    if recipient == "auto" and p.get("include_agent_block", False):
+        result["_agent_block"] = {
+            "action_output": p.get("action_output"),
+            "resource_envelope": {
+                "compression_mode": compression,
+                "cache_stable_prefix": True,
+                "parallel_ok": True,
+                "next_agent": p.get("next_agent"),
+            },
+            "governance_trace": governance_trace,
+            "seal": seal.model_dump(),
+        }
+
+    return result
 
 
 def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
@@ -316,4 +546,5 @@ def format_output_legacy(
 __all__ = [
     "format_output",
     "format_output_legacy",
+    "_format_agi_reply",
 ]
