@@ -23,6 +23,10 @@ from enum import Enum
 from typing import Any, Optional
 
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.irreversibility import AmanahIrreversibilityScorer
+
+# Global scorer instance — stateless, thread-safe
+_AMANAH_SCORER = AmanahIrreversibilityScorer()
 
 
 class QueryClass(str, Enum):
@@ -144,6 +148,27 @@ class GovernanceEnforcer:
                 return decision, response
         
         # ALLOWED: SEAL or PARTIAL with no blocking conditions
+        # ── F1 Amanah: Irreversibility pre-check before propagation ──────────────
+        mode = envelope.mode or "default"
+        args = envelope.payload or {}
+        irreversibility_result = _AMANAH_SCORER.evaluate_payload(
+            tool_name=tool_name,
+            mode=mode,
+            args=args,
+            actor_id=actor_id,
+        )
+        if irreversibility_result.triggers_888_hold:
+            decision = PropagationDecision.BLOCKED_HOLD
+            response = self._create_block_response(PropagationDecision.BLOCKED_HOLD, tool_name, envelope)
+            # Inject irreversibility detail into response
+            response["_amanah_score"] = irreversibility_result.score
+            response["_floor_violations"] = irreversibility_result.floor_violations
+            response["_reason"] = irreversibility_result.reason
+            response["_detail"] = irreversibility_result.detail
+            response["error"] = f"888_HOLD (Amanah): {irreversibility_result.reason} — score={irreversibility_result.score} — {irreversibility_result.detail}"
+            self._log_audit(query_hash, tool_name, verdict, decision, actor_id)
+            return decision, response
+
         decision = PropagationDecision.ALLOWED
         self._log_audit(query_hash, tool_name, verdict, decision, actor_id)
         return decision, None

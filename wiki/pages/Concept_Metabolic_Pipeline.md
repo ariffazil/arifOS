@@ -28,29 +28,30 @@ confidence: 1.0
 
 ## Definition
 
-The **Metabolic Pipeline** is the 11-stage thermodynamic execution path of arifOS. It transforms raw, high-entropy user intent into "cooled," audited, and sealed intelligence. 
+The **Metabolic Pipeline** is the 9-stage thermodynamic execution path of arifOS (8 active processing stages + vault seal). It transforms raw, high-entropy user intent into "cooled," audited, and sealed intelligence. 
 
 The pipeline supports two primary execution modes: **Sequence Mode** (Manual) and **Integrative Mode** (Auto-AGI).
 
 ---
 
-## 🏛️ The 11 Canonical Tools
+## 🏛️ The 12 Canonical Tools
 
-To resolve naming drift, arifOS standardizes on **Underscore Aliases** mapping to **Numbered Stages**.
+arifOS standardizes on **Underscore Aliases** mapping to **Numbered Stages**. The registry contains 12 tools (including `arifos_kernel` as the canonical 444 stage, with `arifos_route` as a transitional alias).
 
-| Stage | Canonical Alias | Trinity | Layer | Legacy Source |
+| Stage | Canonical Alias | Trinity | Layer | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **000** | `arifos_init` | Ψ | GOV | `init_anchor` |
-| **111** | `arifos_sense` | Δ | MAC | `physics_reality` |
-| **333** | `arifos_mind` | Δ | INT | `agi_mind` |
-| **444** | `arifos_route` | Δ/Ψ | GOV | `arifOS_kernel` |
-| **555** | `arifos_memory` | Ω | INT | `engineering_memory` |
-| **666** | `arifos_heart` | Ω | INT | `asi_heart` |
-| **777** | `arifos_ops` | Δ | MAC | `math_estimator` |
-| **888** | `arifos_judge` | Ψ | GOV | `apex_soul` |
-| **999** | `arifos_vault` | Ψ | GOV | `vault_ledger` |
-| **010** | `arifos_forge` | Δ | EXE | *(New: AF-FORGE Bridge)* |
-| **EXT** | `arifos_vps_monitor` | Δ | MAC | *(New: Telemetry)* |
+| **000** | `arifos_init` | Ψ | GOV | Session anchoring |
+| **111** | `arifos_sense` | Δ | MAC | Reality grounding |
+| **111** | `arifos_vps_monitor` | Δ | MAC | VPS telemetry (separate tool) |
+| **333** | `arifos_mind` | Δ | INT | Structured reasoning |
+| **444** | `arifos_kernel` | Δ/Ψ | GOV | Primary metabolic conductor *(canonical)* |
+| **444** | `arifos_route` | Δ/Ψ | GOV | Alias for `arifos_kernel` *(transitional)* |
+| **555** | `arifos_memory` | Ω | INT | Vector memory recall |
+| **666** | `arifos_heart` | Ω | INT | Safety & empathy critique |
+| **777** | `arifos_ops` | Δ | MAC | Thermodynamic estimation |
+| **888** | `arifos_judge` | Ψ | GOV | Final constitutional verdict |
+| **999** | `arifos_vault` | Ψ | GOV | Immutable audit ledger |
+| **010** | `arifos_forge` | Δ | EXE | AF-FORGE execution bridge |
 
 ---
 

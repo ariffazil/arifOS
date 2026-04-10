@@ -1,10 +1,6 @@
 # ── arifOS AI-First Unified Trinity Stack ──────────────────────────
 # HARDENED PRODUCTION CONFIGURATION
 # Version: 2026.03.12-SEAL-HARDENED
-# Changes:
-#   - Optimized Dockerfile with layer caching
-#   - Non-root user security (arifos:1000)
-#   - Health checks with Traefik integration
 # ─────────────────────────────────────────────────────────────────
 
 services:
@@ -64,10 +60,9 @@ services:
 
   # --- Persistence Layers ---
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: postgres
     init: true
-
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-arifos_vault}
       POSTGRES_USER: ${POSTGRES_USER:-arifos_admin}
@@ -195,47 +190,6 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # --- AgentZero (Reasoning Engine) ---
-  agent-zero:
-    image: agent0ai/agent-zero:latest
-    container_name: agent-zero
-    init: true
-    environment:
-      - HF_TOKEN=${HF_TOKEN}
-      - OPENCLAW_URL=http://openclaw:18789
-      - AGENT_NAME=arifos-agentzero
-    volumes:
-      - /opt/arifos/data/agent_zero:/app/work_dir:rw
-      - /root/arifOS:/mnt/arifos:rw
-      - /opt/arifos/APEX-THEORY:/mnt/apex:rw
-    networks:
-      - arifos_trinity
-    ports:
-      - "127.0.0.1:18001:80"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.agentzero.rule=Host(`agentzero.arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.agentzero.entrypoints=websecure"
-      - "traefik.http.routers.agentzero.tls.certresolver=letsencrypt"
-      - "traefik.http.services.agentzero.loadbalancer.server.port=80"
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2048M
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-
   # --- Gateways & Reasoning ---
   openclaw:
     build:
@@ -244,7 +198,7 @@ services:
     image: arifos/openclaw-forged:2026.03.14
     container_name: openclaw
     init: true
-    user: root  # AGI-level executive power
+    user: root
     env_file:
       - path: .env.docker
         required: true
@@ -319,7 +273,7 @@ services:
       redis:
         condition: service_healthy
 
-  # --- Constitutional Kernel (HARDENED) ---
+  # --- Constitutional Kernel ---
   arifosmcp:
     build:
       context: .
@@ -361,7 +315,6 @@ services:
       OLLAMA_URL: http://ollama_engine:11434
       BROWSERLESS_URL: http://headless_browser:3000
       OPENCLAW_URL: http://openclaw:18789
-      AGENT_ZERO_URL: http://agent-zero:80
       DASHBOARD_ENABLED: "true"
       AAA_MCP_TRANSPORT: http
       ARIFOS_GOVERNANCE_SECRET_FILE: ${ARIFOS_GOVERNANCE_SECRET_FILE:-}
@@ -381,33 +334,27 @@ services:
       - arifos_trinity
     labels:
       - "traefik.enable=true"
-      # Single backend service for all routers
       - "traefik.http.services.arifosmcp.loadbalancer.server.port=8080"
       - "traefik.http.services.arifosmcp.loadbalancer.healthcheck.path=/health"
       - "traefik.http.services.arifosmcp.loadbalancer.healthcheck.interval=10s"
       - "traefik.http.services.arifosmcp.loadbalancer.healthcheck.timeout=5s"
-      # Root landing page / Dashboard / Health / Tools (priority 100 = highest)
       - "traefik.http.routers.arifosmcp-root.rule=Host(`arifosmcp.arif-fazil.com`) && (Path(`/`) || PathPrefix(`/health`) || PathPrefix(`/tools`) || PathPrefix(`/dashboard`) || PathPrefix(`/static-sites`) || PathPrefix(`/sites`) || PathPrefix(`/openapi`) || PathPrefix(`/llms`) || PathPrefix(`/version`) || PathPrefix(`/status`) || PathPrefix(`/discovery`) || PathPrefix(`/ready`) || PathPrefix(`/metrics`))"
       - "traefik.http.routers.arifosmcp-root.entrypoints=websecure"
       - "traefik.http.routers.arifosmcp-root.tls.certresolver=letsencrypt"
       - "traefik.http.routers.arifosmcp-root.priority=100"
       - "traefik.http.routers.arifosmcp-root.service=arifosmcp@docker"
-      # A2A MCP router - main domain + /mcp path
       - "traefik.http.routers.arifosmcp.rule=Host(`arifosmcp.arif-fazil.com`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.arifosmcp.entrypoints=websecure"
       - "traefik.http.routers.arifosmcp.tls.certresolver=letsencrypt"
       - "traefik.http.routers.arifosmcp.service=arifosmcp@docker"
-      # WebMCP router - main domain + /webmcp (Real WebMCP W3C Standard)
       - "traefik.http.routers.webmcp.rule=Host(`arifosmcp.arif-fazil.com`) && PathPrefix(`/webmcp`)"
       - "traefik.http.routers.webmcp.entrypoints=websecure"
       - "traefik.http.routers.webmcp.tls.certresolver=letsencrypt"
       - "traefik.http.routers.webmcp.service=arifosmcp@docker"
-      # A2A router - main domain + /a2a (Google A2A Protocol)
       - "traefik.http.routers.a2a.rule=Host(`arifosmcp.arif-fazil.com`) && PathPrefix(`/a2a`)"
       - "traefik.http.routers.a2a.entrypoints=websecure"
       - "traefik.http.routers.a2a.tls.certresolver=letsencrypt"
       - "traefik.http.routers.a2a.service=arifosmcp@docker"
-      # A2A Agent Card - /.well-known/agent.json
       - "traefik.http.routers.a2a-wellknown.rule=Host(`arifosmcp.arif-fazil.com`) && PathPrefix(`/.well-known`)"
       - "traefik.http.routers.a2a-wellknown.entrypoints=websecure"
       - "traefik.http.routers.a2a-wellknown.tls.certresolver=letsencrypt"
@@ -427,7 +374,6 @@ services:
           cpus: '0.5'
           memory: 1024M
     restart: unless-stopped
-    # Host system access for machine tools (system_health, process_list, etc.)
     pid: host
     privileged: true
     tmpfs:
@@ -442,8 +388,7 @@ services:
       ollama:
         condition: service_started
 
-
-  # --- GEOX Earth Physics MCP (Option B Federation) ---
+  # --- GEOX Earth Physics MCP ---
   geox-mcp:
     build:
       context: ./geox
@@ -490,8 +435,36 @@ services:
       arifosmcp:
         condition: service_healthy
 
-
   # --- Monitoring Stack ---
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - arifos_trinity
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - arifos_trinity
+
   prometheus:
     image: prom/prometheus:latest
     container_name: arifos_prometheus
@@ -613,7 +586,7 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # --- AAA Landing (L3 Layer) ---
+  # --- AAA Landing ---
   aaa-landing:
     image: nginx:alpine
     container_name: arifos_aaa_landing
@@ -668,7 +641,7 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # --- Headless Browser (DOM Reality) ---
+  # --- Headless Browser ---
   headless_browser:
     image: ghcr.io/browserless/chromium:latest
     container_name: headless_browser
@@ -704,16 +677,7 @@ services:
     security_opt:
       - no-new-privileges:true
 
-
-# --- Persistent Volumes for arifosmcp ---
-
-# --- Network Definition ---
-
-  # ═════════════════════════════════════════════════════════════════
-  # CIV-INFRA: 3 Missing Apps for Full Autonomy
-  # ═════════════════════════════════════════════════════════════════
-
-  # CIV-08: Developer Agent Workspace (Code-Server)
+  # --- Developer Agent Workspace ---
   code-server:
     image: codercom/code-server:latest
     container_name: civ08_code_server
@@ -733,7 +697,7 @@ services:
       - "traefik.http.services.codeserver.loadbalancer.server.port=8080"
     restart: unless-stopped
 
-  # CIV-01: Document Intelligence Factory (Stirling PDF)
+  # --- Document Intelligence Factory ---
   stirling-pdf:
     image: frooodle/s-pdf:latest
     container_name: civ01_stirling_pdf
@@ -752,7 +716,7 @@ services:
       - "traefik.http.services.stirling.loadbalancer.server.port=8080"
     restart: unless-stopped
 
-  # CIV-03: Citizen Service Gateway (Evolution API)
+  # --- Citizen Service Gateway ---
   evolution-api:
     image: atendai/evolution-api:v1.8.1
     container_name: civ03_evolution_api
@@ -774,15 +738,14 @@ services:
       - "traefik.http.routers.evolution.tls.certresolver=letsencrypt"
       - "traefik.http.services.evolution.loadbalancer.server.port=8080"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
 networks:
   arifos_trinity:
     driver: bridge
 
-
-# --- Named Volumes ---
 volumes:
   arifosmcp_telemetry:
     driver: local

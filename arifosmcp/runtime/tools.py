@@ -459,7 +459,7 @@ async def _sense_legacy(
 
 
 async def arifos_mind(
-    query: str,
+    query: str = "",
     context: str | None = None,
     mode: str = "reason",
     session_id: str | None = None,
@@ -699,7 +699,7 @@ async def arifos_heart(
 
 
 async def arifos_ops(
-    action: str,
+    action: str = "",
     mode: str = "cost",
     session_id: str | None = None,
     risk_tier: str = "medium",
@@ -747,7 +747,7 @@ async def arifos_judge(
 
 
 async def arifos_memory(
-    query: str,
+    query: str = "",
     content: str | None = None,
     mode: str = "vector_query",
     session_id: str | None = None,

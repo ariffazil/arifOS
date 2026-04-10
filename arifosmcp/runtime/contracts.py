@@ -326,15 +326,6 @@ AAA_TOOL_LAW_BINDINGS = {
     "arifos.forge": ["F1", "F2", "F7", "F13"],
     "arifos.vps_monitor": ["F4", "F12"],
 }
-    "reason_synthesis": ["F2", "F4", "F7", "F8"],
-    "critique_safety": ["F5", "F6", "F9"],
-    "route_execution": ["F4", "F11"],
-    "load_memory_context": ["F10", "F11", "F2"],
-    "estimate_ops": ["F4", "F5"],
-    "judge_verdict": ["F3", "F12", "F13"],
-    "record_vault_entry": ["F1", "F13"],
-    "execute_vps_task": ["F1"],
-}
 
 # Missing names identified from contracts_v2.py
 DOMAIN_PAYLOAD_GATES = {}

@@ -32,7 +32,8 @@ Canonical tool surface for the arifOS MCP Server. These tools are the primary in
 | `arifos_sense` | 111 | MACHINE | Constitutional reality sensing & grounding. |
 | `arifos_vps_monitor` | 111 | MACHINE | Secure VPS telemetry (CPU, RAM, Disk). |
 | `arifos_mind` | 333 | INTELLIGENCE | Structured reasoning & multi-source synthesis. |
-| `arifos_route` | 444 | GOVERNANCE | Execution lane selection & metabolic routing. |
+| `arifos_kernel` | 444 | GOVERNANCE | Primary metabolic conductor *(canonical)* |
+| `arifos_route` | 444 | GOVERNANCE | Alias for `arifos_kernel` *(transitional)* |
 | `arifos_memory` | 555 | INTELLIGENCE | Governed memory recall from vector store. |
 | `arifos_heart` | 666 | INTELLIGENCE | Safety, dignity, & adversarial critique. |
 | `arifos_ops` | 777 | MACHINE | Cost, thermodynamic, & capacity estimation. |

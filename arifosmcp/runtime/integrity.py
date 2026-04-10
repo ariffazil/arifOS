@@ -82,10 +82,10 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "floors": ["F5", "F6", "F9"],
     },
     "arifos.ops": {
-        "stage": "444",
+        "stage": "777",
         "lane": "Δ",
         "trinity": "DELTA",
-        "router_visible": False,  # Auxiliary — not in router surface
+        "router_visible": True,  # Auxiliary — now in router surface for consistency
         "risk_class": "low",
         "governance_critical": False,  # Auxiliary tool
         "floors": ["F4", "F5"],
