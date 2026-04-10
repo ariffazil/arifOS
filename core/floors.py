@@ -146,8 +146,10 @@ class ConstitutionalFloors:
         if not f12_result.passed:
             violations.append(f"{f12_result.floor_id}_INJECTION")
 
+        # Note: third param was accidentally passing tool_name (str) instead of agent_capability (float)
+        # This caused: TypeError: can't multiply sequence by non-int of type 'float'
         tri_witness = self._calculate_tri_witness(
-            human_intent, tool_name, environment_safety
+            human_intent, 0.5, environment_safety  # 0.5 = neutral agent_capability
         )
 
         risk_tier = self._assess_risk_tier(action, tool_name, parameters)
