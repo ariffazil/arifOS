@@ -74,9 +74,9 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["init", "revoke", "refresh", "state", "status", "probe"],
+                    "enum": ["init", "refresh", "state", "status", "probe"],
                     "default": "init",
-                    "description": "Session operation mode. probe=diagnostic compatibility check.",
+                    "description": "Session operation mode. probe=diagnostic compatibility check. revoke=separate arifos.session tool (requires human_approval).",
                 },
             },
         },

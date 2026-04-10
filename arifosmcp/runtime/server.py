@@ -518,7 +518,7 @@ async def health_handler(request: Request) -> JSONResponse:
         {
             "status": "healthy",
             "service": "arifos-mcp",
-            "version": build["server_version"],
+            "version": build["version"],
             "release_tag": build["release_tag"],
             "namespace": "arifos",
             "transport": "streamable-http",
