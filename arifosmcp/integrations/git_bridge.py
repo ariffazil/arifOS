@@ -16,6 +16,7 @@ import logging
 from core.floors import evaluate_tool_call
 
 from arifosmcp.integrations.substrate_bridge import bridge
+from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 from arifosmcp.runtime.models import RiskClass, Verdict
 from arifosmcp.runtime.models import RuntimeEnvelope as _RE
 
@@ -45,7 +46,7 @@ class GitBridge:
         gov = evaluate_tool_call(
             action="git_status",
             tool_name="arifos_git",
-            parameters={"repo_path": repo_path},
+            parameters={"repo_path": repo_path, "query": f"git_status {repo_path}"},
             actor_id=actor_id,
             session_id=session_id
         )
@@ -136,16 +137,24 @@ git_bridge = GitBridge()
 # Internal interface: repo_path (str, default '/usr/src/project')
 async def arifos_git_status(path: str = "./", actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
     repo_path = path if path else "/usr/src/project"
-    return await git_bridge.get_repo_state(repo_path, actor_id, session_id)
+    result = await git_bridge.get_repo_state(repo_path, actor_id, session_id)
+    # Auto-seal: if already a sealed RuntimeEnvelope, return as-is
+    if isinstance(result, RuntimeEnvelope):
+        return result
+    # Otherwise wrap via continuity contract
+    return seal_runtime_envelope(result, "arifos.git_status", session_id=session_id)
 
 # Public contract: message (required), files (optional)
 # Internal interface: repo_path, message, files, actor_id
 async def arifos_git_commit(message: str, files: list[str] | None = None, actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
     repo_path = "/usr/src/project"
-    return await git_bridge.propose_commit(
+    result = await git_bridge.propose_commit(
         repo_path=repo_path,
         message=message,
         files=files or [],
         actor_id=actor_id,
         session_id=session_id
     )
+    if isinstance(result, RuntimeEnvelope):
+        return result
+    return seal_runtime_envelope(result, "arifos.git_commit", session_id=session_id)
