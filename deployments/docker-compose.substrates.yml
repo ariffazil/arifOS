@@ -1,0 +1,150 @@
+# MCP Substrate Services for 999_SEAL
+# Run with: docker-compose -f docker-compose.substrates.yml up -d
+
+version: "3.8"
+
+services:
+  mcp_time:
+    build:
+      context: .
+      dockerfile: Dockerfile.substrates
+    image: arifos/mcp-substrate:999seal
+    container_name: mcp_time
+    environment:
+      - SUBSTRATE_NAME=time
+    ports:
+      - "127.0.0.1:8001:8001"
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+    command: ["time"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+    labels:
+      - "traefik.enable=false"
+
+  mcp_filesystem:
+    build:
+      context: .
+      dockerfile: Dockerfile.substrates
+    image: arifos/mcp-substrate:999seal
+    container_name: mcp_filesystem
+    environment:
+      - SUBSTRATE_NAME=filesystem
+      - MCP_FS_DATA_DIR=/data
+    volumes:
+      - /opt/arifos/data:/data:ro
+    ports:
+      - "127.0.0.1:8002:8002"
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+    command: ["filesystem"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    labels:
+      - "traefik.enable=false"
+
+  mcp_git:
+    build:
+      context: .
+      dockerfile: Dockerfile.substrates
+    image: arifos/mcp-substrate:999seal
+    container_name: mcp_git
+    environment:
+      - SUBSTRATE_NAME=git
+    volumes:
+      - /root/arifOS:/repos/arifOS:ro
+    ports:
+      - "127.0.0.1:8003:8003"
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+    command: ["git"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    labels:
+      - "traefik.enable=false"
+
+  mcp_memory:
+    build:
+      context: .
+      dockerfile: Dockerfile.substrates
+    image: arifos/mcp-substrate:999seal
+    container_name: mcp_memory
+    environment:
+      - SUBSTRATE_NAME=memory
+    ports:
+      - "127.0.0.1:8004:8004"
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+    command: ["memory"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    labels:
+      - "traefik.enable=false"
+
+  mcp_fetch:
+    build:
+      context: .
+      dockerfile: Dockerfile.substrates
+    image: arifos/mcp-substrate:999seal
+    container_name: mcp_fetch
+    environment:
+      - SUBSTRATE_NAME=fetch
+      - MCP_FETCH_BLOCK_INTERNAL=true
+    ports:
+      - "127.0.0.1:8005:8005"
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+    command: ["fetch"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    labels:
+      - "traefik.enable=false"
+
+  mcp_everything:
+    build:
+      context: .
+      dockerfile: Dockerfile.substrates
+    image: arifos/mcp-substrate:999seal
+    container_name: mcp_everything
+    environment:
+      - SUBSTRATE_NAME=everything
+    ports:
+      - "127.0.0.1:8006:8006"
+    networks:
+      - arifos_trinity
+    restart: unless-stopped
+    command: ["everything"]
+    profiles:
+      - testing
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    labels:
+      - "traefik.enable=false"
+
+networks:
+  arifos_trinity:
+    name: arifosmcp_arifos_trinity
+    external: true
