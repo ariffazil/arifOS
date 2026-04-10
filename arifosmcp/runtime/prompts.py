@@ -362,6 +362,74 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
 
+def _af_forge_govern_prompt(task: str, mode: str = "check_governance") -> str:
+    """AF-FORGE governance check prompt — routes task through F3/F6/F9 TypeScript engine."""
+    mode_desc = {
+        "check_governance": "Run F3 InputClarity + F6 HarmDignity + F9 Injection checks only. Return per-floor verdicts.",
+        "run": "Run full governed agent task (explore profile, mock LLM). Governance gates run first.",
+        "health": "Return AF-FORGE server health and F1–F13 floor implementation status.",
+    }.get(mode, mode)
+
+    return f"""You are routing a task through the AF-FORGE constitutional engine.
+
+Task: {task}
+Mode: {mode} — {mode_desc}
+
+Steps:
+1. Call arifos.forge_bridge(task="{task}", mode="{mode}") via HTTP POST to http://localhost:7071
+   - For check_governance: POST /sense → returns F3/F6/F9 verdict per floor
+   - For run: POST to forge_run endpoint
+   - For health: GET /health
+
+2. Interpret the result:
+   - PASS → proceed; task cleared all governance floors
+   - SABAR → F3 InputClarity blocked: task too vague or empty — request clarification
+   - VOID → F6 HarmDignity or F9 Injection blocked: task contains harmful or injection pattern — escalate F13 HOLD
+
+3. If PASS and mode=run: record finalText and turnCount in the session context.
+
+4. If any VOID verdict: trigger 888_HOLD (F13 Sovereign) — do not proceed without human approval.
+
+Resource: arifos://af-forge/context (full tool schema and deployment info)
+"""
+
+
+def _af_forge_deploy_prompt(target: str = "local") -> str:
+    """AF-FORGE deployment guidance prompt."""
+    if target == "docker":
+        steps = """
+1. Build: cd af-forge && npm run build
+2. Start bridge: docker-compose up -d af-forge-bridge
+3. Verify health: curl http://localhost:7071/health
+4. Register MCP: the .mcp.json is already wired for Claude Desktop/Code"""
+    elif target == "smithery":
+        steps = """
+1. Ensure smithery.yaml is correct (already present at af-forge/smithery.yaml)
+2. Run: smithery publish af-forge/ (requires Smithery CLI)
+3. Tools published: forge_check_governance, forge_health, forge_run"""
+    else:  # local
+        steps = """
+1. Build: cd af-forge && npm install && npm run build
+2. Start MCP stdio: npm run serve:mcp  (or node dist/src/mcp/server.js)
+3. Start HTTP bridge: node dist/src/server.js  (port 7071)
+4. Test governance: echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"forge_check_governance","arguments":{"task":"test"}}}' | node dist/src/mcp/server.js"""
+
+    return f"""AF-FORGE Deployment — Target: {target}
+{steps}
+
+Platform configs already present:
+- Claude Desktop/Code: af-forge/.mcp.json
+- Cursor: af-forge/.cursor/mcp.json
+- OpenCode: af-forge/.opencode.json
+- Smithery: af-forge/smithery.yaml
+- Docker: af-forge/Dockerfile + af-forge/docker-compose.yml
+- CI launcher: af-forge/.github/mcp/start-af-forge-stdio.sh
+
+All 62 tests pass. Constitution: 11/13 floors implemented.
+F3 InputClarity + F6 HarmDignity + F9 Injection gates are live in AgentEngine.
+"""
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PROMPT REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -410,12 +478,22 @@ def register_v2_prompts(mcp: FastMCP) -> list[str]:
             prior_state=prior_state,
         )
 
+    @mcp.prompt("af-forge.govern")
+    def af_forge_govern(task: str, mode: str = "check_governance") -> str:
+        return _af_forge_govern_prompt(task, mode)
+
+    @mcp.prompt("af-forge.deploy")
+    def af_forge_deploy(target: str = "local") -> str:
+        return _af_forge_deploy_prompt(target)
+
     registered = [
         "constitutional.analysis",
         "governance.audit",
         "execution.planning",
         "minimal.response",
         "reply_protocol_v3",
+        "af-forge.govern",
+        "af-forge.deploy",
     ]
     logger.info(f"Registered {len(registered)} v2 prompts: {registered}")
     return registered
@@ -427,6 +505,8 @@ __all__ = [
     "_constitutional_analysis_prompt",
     "_governance_audit_prompt",
     "_execution_planning_prompt",
+    "_af_forge_govern_prompt",
+    "_af_forge_deploy_prompt",
     "_minimal_response_prompt",
     "_reply_protocol_v3_prompt",
 ]

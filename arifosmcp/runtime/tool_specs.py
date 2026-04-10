@@ -528,7 +528,69 @@ TOOLS: tuple[ToolSpec, ...] = (
         default_tier="small",
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 15. arifos.git_commit — Governed Repository Mutation (Substrate)
+    # 15. arifos.forge_bridge — AF-FORGE Governance Bridge
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos.forge_bridge",
+        stage="FORGE_010",
+        purpose="Route task through AF-FORGE TypeScript constitutional engine (F3/F6/F9 gates)",
+        layer="GOVERNANCE",
+        description=(
+            "Proxy task to AF-FORGE HTTP bridge (port 7071). "
+            "AF-FORGE runs F3 InputClarity → F6 HarmDignity → F9 Injection checks before any LLM call. "
+            "Returns SABAR (F3 blocked), VOID (F6/F9 blocked), or governed agent output. "
+            "Use for tasks requiring TypeScript-side constitutional validation or AF-FORGE agent execution."
+        ),
+        trinity="Δ/Ψ",
+        floors=("F3", "F6", "F9", "F13"),
+        input_schema={
+            "type": "object",
+            "required": ["task"],
+            "properties": {
+                "task": {"type": "string", "minLength": 3, "maxLength": 10000, "description": "Task to evaluate or execute"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["check_governance", "run", "health"],
+                    "default": "check_governance",
+                    "description": "check_governance=F3/F6/F9 verdict only | run=full agent execution | health=floor status",
+                },
+                "agent_mode": {
+                    "type": "string",
+                    "enum": ["internal_mode", "external_safe_mode"],
+                    "default": "external_safe_mode",
+                },
+            },
+        },
+        outputs={
+            "check_governance": {
+                "overall": "PASS | BLOCK",
+                "blocked": "boolean",
+                "floors": {
+                    "F3_InputClarity": {"verdict": "SABAR | PASS"},
+                    "F6_HarmDignity": {"verdict": "VOID | PASS"},
+                    "F9_Injection": {"verdict": "VOID | PASS"},
+                },
+            },
+            "run": {
+                "finalText": "string",
+                "turnCount": "integer",
+                "blocked": "boolean",
+            },
+            "health": {
+                "status": "healthy",
+                "constitutional_floors": {"implemented": "integer", "total": 13, "coverage": "string"},
+            },
+        },
+        visibility="internal",
+        default_tier="medium",
+        readonly=True,
+        read_only_hint=True,
+        destructive_hint=False,
+        open_world_hint=True,
+        idempotent_hint=True,
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 16. arifos.git_commit — Governed Repository Mutation (Substrate)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos.git_commit",
