@@ -16,7 +16,8 @@ import logging
 from core.floors import evaluate_tool_call
 
 from arifosmcp.integrations.substrate_bridge import bridge
-from arifosmcp.runtime.models import RiskClass, Verdict
+from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
+from arifosmcp.runtime.models import RiskClass, RuntimeEnvelope, Verdict
 from arifosmcp.runtime.models import RuntimeEnvelope as _RE
 
 logger = logging.getLogger(__name__)
@@ -39,19 +40,19 @@ class GitBridge:
     ) -> _RE:
         """F2/F11: Read-only audit of current repository status."""
         if not self._is_repo_allowed(repo_path):
-            return _RE(ok=False, detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
+            return _RE(ok=False, tool="arifos.git_status", stage='', verdict=Verdict.VOID, detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
 
         # Governance Check (Baseline Audit)
         gov = evaluate_tool_call(
             action="git_status",
             tool_name="arifos_git",
-            parameters={"repo_path": repo_path},
+            parameters={"repo_path": repo_path, "query": f"git_status {repo_path}"},
             actor_id=actor_id,
             session_id=session_id
         )
         
         if gov.verdict != Verdict.SEAL:
-            return _RE(ok=False, verdict=gov.verdict, detail=gov.message)
+            return _RE(ok=False, tool="arifos.git_status", stage='', verdict=gov.verdict, detail=gov.message)
 
         try:
             status = await bridge.git.call_tool("git_status", {"repo_path": repo_path})
@@ -59,7 +60,8 @@ class GitBridge:
             
             return _RE(
                 ok=True,
-                tool="arifos_git",
+                tool="arifos.git_status",
+                stage='',
                 verdict=Verdict.SEAL,
                 payload={
                     "status": status,
@@ -67,7 +69,7 @@ class GitBridge:
                 }
             )
         except Exception as e:
-            return _RE(ok=False, detail=str(e), verdict=Verdict.VOID)
+            return _RE(ok=False, tool="arifos.git_status", stage='', verdict=Verdict.VOID, detail=str(e))
 
     async def propose_commit(
         self,
@@ -79,7 +81,7 @@ class GitBridge:
     ) -> _RE:
         """F1/F13: Execute a commit ONLY after human ratification and SEAL validation."""
         if not self._is_repo_allowed(repo_path):
-            return _RE(ok=False, detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
+            return _RE(ok=False, tool="arifos.git_commit", stage='', verdict=Verdict.VOID, detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
 
         # 1. Evaluate Mutation Governance (Requires HIGH risk tier)
         gov = evaluate_tool_call(
@@ -117,7 +119,8 @@ class GitBridge:
             
             return _RE(
                 ok=True,
-                tool="arifos_git",
+                tool="arifos.git_commit",
+                stage='',
                 verdict=Verdict.SEAL,
                 payload={
                     "commit_sha": result.get("sha"),
@@ -125,14 +128,35 @@ class GitBridge:
                 }
             )
         except Exception as e:
-            return _RE(ok=False, detail=str(e), verdict=Verdict.VOID)
+            return _RE(ok=False, tool="arifos.git_commit", stage='', verdict=Verdict.VOID, detail=str(e))
 
 # Global bridge instance
 git_bridge = GitBridge()
 
 # Module-level wrappers for runtime integration
-async def arifos_git_status(repo_path: str = "/usr/src/project", actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
-    return await git_bridge.get_repo_state(repo_path, actor_id, session_id)
+# These adapt the public tool contract to the internal GitBridge interface.
+# Public contract: path (str, default './')
+# Internal interface: repo_path (str, default '/usr/src/project')
+async def arifos_git_status(path: str = "./", actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
+    repo_path = path if path else "/usr/src/project"
+    result = await git_bridge.get_repo_state(repo_path, actor_id, session_id)
+    # Auto-seal: if already a sealed RuntimeEnvelope, return as-is
+    if isinstance(result, RuntimeEnvelope):
+        return result
+    # Otherwise wrap via continuity contract
+    return seal_runtime_envelope(result, "arifos.git_status", session_id=session_id)
 
-async def arifos_git_commit(repo_path: str, message: str, files: list[str], actor_id: str, session_id: str | None = None) -> _RE:
-    return await git_bridge.propose_commit(repo_path, message, files, actor_id, session_id)
+# Public contract: message (required), files (optional)
+# Internal interface: repo_path, message, files, actor_id
+async def arifos_git_commit(message: str, files: list[str] | None = None, actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
+    repo_path = "/usr/src/project"
+    result = await git_bridge.propose_commit(
+        repo_path=repo_path,
+        message=message,
+        files=files or [],
+        actor_id=actor_id,
+        session_id=session_id
+    )
+    if isinstance(result, RuntimeEnvelope):
+        return result
+    return seal_runtime_envelope(result, "arifos.git_commit", session_id=session_id)
