@@ -655,6 +655,63 @@ async def metabolic_loop(
         if Stage.VAULT_999.value not in plan:
             plan.append(Stage.VAULT_999.value)
 
+        # ── Constitutional DAG Executor: Pre-flight check ─────────────────────────
+        # For plans with 3+ stages, attempt DAG execution for constitutionally
+        # governed dependency-order walking with F1 (Amanah) pre-checks.
+        # Falls back to sequential if scorer unavailable or < 3 stages.
+        dag_result: dict[str, Any] | None = None
+        if len(plan) >= 3:
+            try:
+                from arifosmcp.runtime.dag_executor import ConstitutionalDAGExecutor
+                from arifosmcp.runtime.irreversibility import AmanahIrreversibilityScorer
+                from arifosmcp.agentzero.escalation.hold_state import HoldStateManager
+
+                scorer = AmanahIrreversibilityScorer()
+                hold_mgr = HoldStateManager()
+                dag_exec = ConstitutionalDAGExecutor(
+                    dag_id=f"ml:{current_session_id[:8]}",
+                    hold_manager=hold_mgr,
+                    irreversibility_scorer=scorer,
+                )
+                # Convert plan stages to DAG nodes (one node per stage)
+                for idx, stage_id in enumerate(plan):
+                    deps = [] if idx == 0 else [plan[idx - 1]]
+                    dag_exec.add_node(
+                        node_id=stage_id,
+                        tool_name=stage_id,  # Full stage_id e.g. "333_MIND"
+                        mode="default",
+                        args={"query": query, "session_id": current_session_id},
+                        dependencies=deps,
+                    )
+
+                async def dag_node_executor(node) -> dict[str, Any]:
+                    """Execute one stage as a DAG node."""
+                    stage_res = await run_stage(
+                        stage_id=node.id,  # Full stage_id from node_id
+                        query=node.args["query"],
+                        session_id=node.args["session_id"],
+                        auth_ctx=auth_ctx,
+                        verdicts=verdict_history,
+                        trace=trace,
+                        reality_summary=reality_summary,
+                        caller_ctx=caller_ctx,
+                        pns_context=pns_context,
+                        dry_run=dry_run,
+                        actor_id=actor_id,
+                        risk_tier=risk_tier,
+                    )
+                    return stage_res.model_dump(mode="json") if hasattr(stage_res, "model_dump") else {"verdict": "SEAL"}
+
+                dag_result = await dag_exec.execute(dag_node_executor)
+                logger.info(
+                    f"[DAG] Completed {dag_result.get('completed',0)}/{dag_result.get('total_nodes',0)} nodes "
+                    f" halted_at={dag_result.get('halted_at_node','none')}"
+                )
+            except Exception as e:
+                logger.warning(f"[DAG] Executor error, falling back to sequential: {e}")
+                dag_result = None
+
+        # ── Sequential stage execution (fallback or for simple plans) ────────────
         reality_summary = {"status": "SKIPPED", "required": False, "score": 0.0}
         verdict_history: list[Verdict] = [init_res.verdict]
         
@@ -778,6 +835,11 @@ async def metabolic_loop(
                 "pns_active": pns_context is not None,
                 "caller_context": _dump_caller_context(caller_ctx),
                 "auth_context": auth_ctx,
+                # DAG execution metadata (present when DAG executor was used)
+                "dag": {
+                    "dag_executed": dag_result is not None,
+                    "dag_result": dag_result if dag_result else {},
+                },
             }
         )
 
