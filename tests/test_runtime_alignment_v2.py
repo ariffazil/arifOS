@@ -42,7 +42,7 @@ class TestResourceAlignment:
         from arifosmcp.runtime.public_registry import public_prompt_specs
         prompts = public_prompt_specs()
         assert len(prompts) == 5
-        assert any(p.name == "bootstrap_session" for p in prompts)
+        assert any(p.name == "constitutional.analysis" for p in prompts)
 
 class TestToolPayloadAlignment:
     @pytest.mark.asyncio
