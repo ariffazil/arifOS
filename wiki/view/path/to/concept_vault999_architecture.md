@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.798266
+generated_at: 2026-04-10T00:25:47.504753
 target: Concept_Vault999_Architecture
 ---
 
@@ -24,6 +24,8 @@ target: Concept_Vault999_Architecture
 
 - [[Agents-and-AAA-Architecture|Agents and AAA Architecture]]
 - [[Concept_Architecture|Concept Architecture]]
+- [[Concept_LLM_Wiki_Pattern|Concept LLM Wiki Pattern]]
+- [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]]
 - [[GEOX|GEOX]]
 - [[Metabolic_Loop|Metabolic Loop]]
 - [[Tool_Surface_Architecture|Tool Surface Architecture]]

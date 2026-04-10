@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.786143
+generated_at: 2026-04-10T00:25:47.501168
 generation_source: prerequisites_graph
 ---
 
@@ -28,7 +28,7 @@ This path takes you from zero knowledge to system fluency.
 ## Phase 4: 90 Entities
 
 4. **[[GEOX|GEOX]]** — 5 min
-   - *architecture* — > The Large Earth Model (LEM) in the arifOS constitutional federation
+   - *architecture* — GEOX is the Earth Witness organ in the arifOS constitutional federation. It serves as the reality...
 
 5. **[[Source_Karpathy_LLM_Wiki|Source Karpathy LLM Wiki]]** — 5 min
    - *philosophy* — A concise blueprint shared by Andrej Karpathy (April 2026) describing a pattern for building pers...

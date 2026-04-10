@@ -1,8 +1,22 @@
 ---
 type: Concept
-tags: [metabolism, pipeline, runtime, execution]
-sources: [README.md, CONSTITUTION.md]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- architecture
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- Trinity_Architecture
+tags:
+- metabolism
+- pipeline
+- runtime
+- execution
+sources:
+- README.md
+- CONSTITUTION.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 
@@ -52,5 +66,5 @@ Like biological metabolism, this pipeline ingests raw input, processes it throug
 
 Citations:
 
-- [[README.md]] (Raw)
-- [[CONSTITUTION.md]] (Raw)
+- `README.md` (Raw)
+- `wiki/raw/CONSTITUTION.md` (Raw)

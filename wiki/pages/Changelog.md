@@ -1,8 +1,22 @@
 ---
 type: Source
-tags: [changelog, release, audit, architecture, history]
-sources: [CHANGELOG.md]
-last_sync: 2026-04-08
+tier: 50_AUDITS
+strand:
+- operations
+audience:
+- operators
+difficulty: beginner
+prerequisites:
+- What-is-arifOS
+tags:
+- changelog
+- release
+- audit
+- architecture
+- history
+sources:
+- CHANGELOG.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

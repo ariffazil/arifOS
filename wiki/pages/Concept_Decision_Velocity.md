@@ -1,15 +1,28 @@
 ---
 type: Synthesis
 tier: 20_RUNTIME
-strand: [paradox]
-audience: [researchers]
+strand:
+- paradox
+audience:
+- researchers
 difficulty: advanced
-prerequisites: [Concept_Metabolic_Pipeline]
-tags: [velocity, latency, performance, metabolic_pipeline, thermodynamics]
-sources: [CONSTITUTION.md, K000_LAW.md, Concept_Floor_Tensions.md, Metabolic_Loop.md]
-last_sync: 2026-04-08
+prerequisites:
+- Concept_Metabolic_Pipeline
+tags:
+- velocity
+- latency
+- performance
+- metabolic_pipeline
+- thermodynamics
+sources:
+- CONSTITUTION.md
+- K000_LAW.md
+- Concept_Floor_Tensions.md
+- Metabolic_Loop.md
+last_sync: '2026-04-10'
 confidence: 0.92
 ---
+
 # Decision Velocity: The Thermodynamic Friction of Constitutional AI
 
 > How fast can a governed system decide? This page maps the **latency budget** of the 000-999 pipeline—where the Floors add friction, and where they don't.
@@ -274,10 +287,10 @@ Given the latency budget, what's the max throughput?
 
 ## Citations
 
-- [[Metabolic_Loop.md]] — Stage descriptions
-- [[Concept_Floor_Tensions.md]] — T1 (F4↔F1) latency impact
-- [[Concept_Epistemic_Circuit_Breakers.md]] — Breaker evaluation costs
-- [[K000_LAW.md]] — Parallelism and orthogonality principles
+- [[Metabolic_Loop]] — Stage descriptions
+- [[Concept_Floor_Tensions]] — T1 (F4↔F1) latency impact
+- [[Concept_Epistemic_Circuit_Breakers]] — Breaker evaluation costs
+- `wiki/raw/K000_LAW.md` — Parallelism and orthogonality principles
 
 ---
 

@@ -1,8 +1,25 @@
 ---
 type: Concept
-tags: [philosophy, quotes, corpus, civilization, wisdom, G-star, constitution]
-sources: [CHANGELOG.md, ROADMAP.md]
-last_sync: 2026-04-08
+tier: 30_GOVERNANCE
+strand:
+- philosophy
+audience:
+- researchers
+difficulty: intermediate
+prerequisites:
+- Floors
+tags:
+- philosophy
+- quotes
+- corpus
+- civilization
+- wisdom
+- G-star
+- constitution
+sources:
+- CHANGELOG.md
+- ROADMAP.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
 

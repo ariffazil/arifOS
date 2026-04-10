@@ -1,10 +1,22 @@
 ---
 type: Source
-tags: [notebooklm, high-level-overview, architecture, constitutional-governance]
-sources: [user_paste_2026_04_08.md]
-origin: NotebookLM
-last_sync: 2026-04-08
+tier: 90_ENTITIES
+strand:
+- philosophy
+audience:
+- researchers
+difficulty: beginner
+prerequisites: []
+tags:
+- notebooklm
+- high-level-overview
+- architecture
+- constitutional-governance
+sources:
+- user_paste_2026_04_08.md
+last_sync: '2026-04-10'
 confidence: 0.95
+origin: NotebookLM
 ---
 
 # Source: NotebookLM (High-Level Overview)

@@ -1,8 +1,25 @@
 ---
 type: Synthesis
-tags: [open-questions, todos, unknowns, ghosts, blockers]
-sources: [ROADMAP.md, CHANGELOG.md, K000_LAW.md]
-last_sync: 2026-04-08
+tier: 30_GOVERNANCE
+strand:
+- roadmap
+audience:
+- researchers
+difficulty: intermediate
+prerequisites:
+- Roadmap
+- Floors
+tags:
+- open-questions
+- todos
+- unknowns
+- ghosts
+- blockers
+sources:
+- ROADMAP.md
+- CHANGELOG.md
+- K000_LAW.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

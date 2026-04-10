@@ -1,15 +1,24 @@
 ---
 type: Meta
 tier: 00_INDEX
-strand: [onboarding]
-audience: [all]
+strand:
+- onboarding
+audience:
+- all
 difficulty: beginner
 prerequisites: []
-tags: [meta, dependencies, graph, navigation, wiki-infrastructure]
-sources: [wiki/pages/*.md]
-last_sync: 2026-04-08
+tags:
+- meta
+- dependencies
+- graph
+- navigation
+- wiki-infrastructure
+sources:
+- wiki/pages/*.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
+
 # Ω-Wiki Prerequisite Map
 
 > The dependency graph of arifOS knowledge. Each arrow represents a "must understand before" relationship.
@@ -239,7 +248,7 @@ Pages that SHOULD list prerequisites but don't:
 ### For New Contributors
 1. Start at **Tier 00** (Foundations)
 2. Follow the arrows — don't skip prerequisites
-3. If stuck, check the [[Start_Here]] guided path
+3. If stuck, check the [[quickstart]] guided path
 
 ### For Maintainers
 1. Before editing a page, check its **depended_by** list

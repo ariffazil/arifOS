@@ -1,8 +1,22 @@
 ---
 type: Concept
-tags: [architecture, runtime, audit, ledger, vault]
-sources: [arifosmcp-vault999-architecture-audit-2026-04-08.md]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- architecture
+audience:
+- engineers
+difficulty: advanced
+prerequisites:
+- Concept_Architecture
+tags:
+- architecture
+- runtime
+- audit
+- ledger
+- vault
+sources:
+- arifosmcp-vault999-architecture-audit-2026-04-08.md
+last_sync: '2026-04-10'
 confidence: 0.9
 ---
 

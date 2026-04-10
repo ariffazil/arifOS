@@ -1,8 +1,24 @@
 ---
 type: Concept
-tags: [architecture, deployment, horizon, vps, gateway, infrastructure]
-sources: [server.py, server_horizon.py]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- integration
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- Concept_Architecture
+tags:
+- architecture
+- deployment
+- horizon
+- vps
+- gateway
+- infrastructure
+sources:
+- server.py
+- server_horizon.py
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

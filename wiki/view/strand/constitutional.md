@@ -1,17 +1,18 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.794539
+generated_at: 2026-04-10T00:25:47.503012
 filter: strand=constitutional
 ---
 
 # Strand: Constitutional
 
 > **Auto-generated** from `strand: constitutional` filter.
-> **Total Pages**: 2
+> **Total Pages**: 3
 
 ## 10 Foundations
 
+- [[Concept_Floors|Concept Floors]] [intermediate]
 - [[Floors|Floors]] [beginner]
 
 ## 30 Governance

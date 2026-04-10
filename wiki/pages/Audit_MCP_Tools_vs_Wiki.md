@@ -1,8 +1,29 @@
 ---
 type: Synthesis
-tags: [audit, MCP, tools, wiki, alignment, drift]
-sources: [tool_specs.py, tools.py, capability_map.py, megaTools/__init__.py, tool_registry.json, Concept_Architecture.md, Concept_Metabolic_Pipeline.md]
-last_sync: 2026-04-08
+tier: 50_AUDITS
+strand:
+- operations
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- MCP_Tools
+tags:
+- audit
+- MCP
+- tools
+- wiki
+- alignment
+- drift
+sources:
+- tool_specs.py
+- tools.py
+- capability_map.py
+- megaTools/__init__.py
+- tool_registry.json
+- Concept_Architecture.md
+- Concept_Metabolic_Pipeline.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

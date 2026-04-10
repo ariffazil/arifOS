@@ -1,13 +1,26 @@
 ---
 type: Tool
 tier: 20_RUNTIME
-strand: [tools]
-audience: [engineers, operators]
+strand:
+- tools
+audience:
+- engineers
 difficulty: intermediate
-prerequisites: [MCP_Tools, Concept_Deployment_Architecture]
-tags: [execution, bridge, forge, shell, manifest, af-forge]
-sources: [tool_specs.py, capability_map.py, ROADMAP.md, CHANGELOG_snapshot_2026-04-07.md]
-last_sync: 2026-04-10
+prerequisites:
+- MCP_Tools
+tags:
+- execution
+- bridge
+- forge
+- shell
+- manifest
+- af-forge
+sources:
+- tool_specs.py
+- capability_map.py
+- ROADMAP.md
+- CHANGELOG_snapshot_2026-04-07.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
 

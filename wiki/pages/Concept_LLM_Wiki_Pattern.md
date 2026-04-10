@@ -1,8 +1,20 @@
 ---
 type: Concept
-tags: [architecture, knowledge-management, pattern]
-sources: [karpathy-llm-wiki.md]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- architecture
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- quickstart
+tags:
+- architecture
+- knowledge-management
+- pattern
+sources:
+- karpathy-llm-wiki.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
 

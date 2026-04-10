@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.799063
+generated_at: 2026-04-10T00:25:47.505463
 target: Horizon_3_Universal_Body
 ---
 
@@ -15,15 +15,20 @@ target: Horizon_3_Universal_Body
 
 ### Path 1
 
-→ [[Agent_Roles|Agent_Roles]]
-  → [[Horizon_2_Swarm|Horizon 2 Swarm]]
-    🎯 [[Horizon_3_Universal_Body|Horizon 3 Universal Body]]
+→ [[What-is-arifOS|What is arifOS]]
+  → [[Trinity_Architecture|Trinity Architecture]]
+    → [[agent-roles|agent roles]]
+      → [[Horizon_2_Swarm|Horizon 2 Swarm]]
+        🎯 [[Horizon_3_Universal_Body|Horizon 3 Universal Body]]
 
 ### Path 2
 
-→ [[Concept_Metabolic_Pipeline|Concept_Metabolic_Pipeline]]
-  → [[Horizon_2_Swarm|Horizon 2 Swarm]]
-    🎯 [[Horizon_3_Universal_Body|Horizon 3 Universal Body]]
+→ [[What-is-arifOS|What is arifOS]]
+  → [[Trinity_Architecture|Trinity Architecture]]
+    → [[Metabolic_Loop|Metabolic Loop]]
+      → [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]]
+        → [[Horizon_2_Swarm|Horizon 2 Swarm]]
+          🎯 [[Horizon_3_Universal_Body|Horizon 3 Universal Body]]
 
 ## Related Pages (Same Strand)
 

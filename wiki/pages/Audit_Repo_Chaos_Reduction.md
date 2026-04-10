@@ -1,3 +1,25 @@
+---
+type: Synthesis
+tier: 50_AUDITS
+strand:
+- operations
+audience:
+- operators
+difficulty: intermediate
+prerequisites:
+- Concept_Architecture
+tags:
+- audit-repo-chaos-reduction
+sources:
+- README.md
+- AGENTS.md
+- CHANGELOG.md
+- ROADMAP.md
+- TODO.md
+last_sync: '2026-04-10'
+confidence: 0.9
+---
+
 # Audit: Repo Chaos Reduction
 
 **Date:** 2026-04-08  

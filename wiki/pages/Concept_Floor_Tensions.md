@@ -1,15 +1,29 @@
 ---
 type: Synthesis
 tier: 30_GOVERNANCE
-strand: [paradox]
-audience: [researchers]
+strand:
+- paradox
+audience:
+- researchers
 difficulty: advanced
-prerequisites: [Floors, Trinity_Architecture]
-tags: [floors, paradox, tension, resolution, governance]
-sources: [CONSTITUTION.md, Floors.md, Trinity_Architecture.md, K000_LAW.md]
-last_sync: 2026-04-08
+prerequisites:
+- Floors
+- Trinity_Architecture
+tags:
+- floors
+- paradox
+- tension
+- resolution
+- governance
+sources:
+- CONSTITUTION.md
+- Floors.md
+- Trinity_Architecture.md
+- K000_LAW.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
+
 # Floor Tensions: When the Constitution Conflicts with Itself
 
 > The 13 Floors are not a checklist—they are a field of forces. When two Floors pull in opposite directions, the system must choose. This page maps those conflicts and their resolutions.
@@ -171,10 +185,10 @@ Tension resolution adds **deterministic latency**:
 
 ## Citations
 
-- [[CONSTITUTION.md]] (Raw) — Floor definitions
-- [[Floors.md]] — Hard/Soft classification
-- [[K000_LAW.md]] — Resolution hierarchy
-- [[Trinity_Architecture.md]] — ΔΩΨ separation of concerns
+- `wiki/raw/CONSTITUTION.md` (Raw) — Floor definitions
+- [[Floors]] — Hard/Soft classification
+- `wiki/raw/K000_LAW.md` — Resolution hierarchy
+- [[Trinity_Architecture]] — ΔΩΨ separation of concerns
 
 ---
 

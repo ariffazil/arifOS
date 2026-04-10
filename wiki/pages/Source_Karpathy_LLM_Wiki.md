@@ -1,8 +1,19 @@
 ---
 type: Source
-tags: [knowledge-management, llm, workflow]
-sources: [karpathy-llm-wiki.md]
-last_sync: 2026-04-08
+tier: 90_ENTITIES
+strand:
+- philosophy
+audience:
+- researchers
+difficulty: beginner
+prerequisites: []
+tags:
+- knowledge-management
+- llm
+- workflow
+sources:
+- karpathy-llm-wiki.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

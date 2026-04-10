@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.797138
+generated_at: 2026-04-10T00:25:47.504129
 filter: gaps_analysis
 ---
 
@@ -11,15 +11,14 @@ filter: gaps_analysis
 
 ## Orphan Pages (No Incoming Links)
 
-Pages with no `depended_by` references (excluding 90_ENTITIES): 21
+Pages with no `depended_by` references (excluding 90_ENTITIES): 20
 
 - [[Prerequisite_Map|Prerequisite Map]] (00_INDEX)
-- [[quickstart|quickstart]] (00_INDEX)
+- [[Concept_Floors|Concept Floors]] (10_FOUNDATIONS)
 - [[arifos_vps_monitor|arifos vps monitor]] (20_RUNTIME)
-- [[integration-patterns|integration patterns]] (20_RUNTIME)
+- [[Concept_LLM_Wiki_Pattern|Concept LLM Wiki Pattern]] (20_RUNTIME)
 - [[Concept_Deployment_Architecture|Concept Deployment Architecture]] (20_RUNTIME)
 - [[arifos_forge|arifos forge]] (20_RUNTIME)
-- [[agent-roles|agent roles]] (20_RUNTIME)
 - [[Concept_Decision_Velocity|Concept Decision Velocity]] (20_RUNTIME)
 - [[ToolSpec_arifos_judge|ToolSpec arifos judge]] (20_RUNTIME)
 - [[Concept_Vault999_Architecture|Concept Vault999 Architecture]] (20_RUNTIME)
@@ -37,11 +36,9 @@ Pages with no `depended_by` references (excluding 90_ENTITIES): 21
 
 ## Missing Prerequisite Pages
 
-Referenced but not created: 3
+Referenced but not created: 0
 
-- `[[Agent_Roles]]` — referenced by: Horizon_2_Swarm
-- `[[Concept_Metabolic_Pipeline]]` — referenced by: Concept_Decision_Velocity, Horizon_2_Swarm
-- `[[Integration_Patterns]]` — referenced by: Eigent_Backend
+*All prerequisites resolved.*
 
 ## Frontmatter Completeness
 

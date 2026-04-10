@@ -1,8 +1,21 @@
 ---
 type: Concept
-tags: [agents, aaa, architecture, execution]
-sources: [ARIF_SITES_README.md]
-last_sync: 2026-04-08
+tier: 30_GOVERNANCE
+strand:
+- architecture
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- Trinity_Architecture
+tags:
+- agents
+- aaa
+- architecture
+- execution
+sources:
+- ARIF_SITES_README.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 
@@ -26,4 +39,4 @@ Agents operating within the AAA layer must comply with the 13 Constitutional Flo
 
 Citations:
 
-- [[ARIF_SITES_README.md]] (Raw)
+- `wiki/raw/ARIF_SITES_README.md` (Raw)

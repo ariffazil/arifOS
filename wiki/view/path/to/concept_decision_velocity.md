@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.797619
+generated_at: 2026-04-10T00:25:47.504457
 target: Concept_Decision_Velocity
 ---
 
@@ -15,8 +15,11 @@ target: Concept_Decision_Velocity
 
 ### Path 1
 
-→ [[Concept_Metabolic_Pipeline|Concept_Metabolic_Pipeline]]
-  🎯 [[Concept_Decision_Velocity|Concept Decision Velocity]]
+→ [[What-is-arifOS|What is arifOS]]
+  → [[Trinity_Architecture|Trinity Architecture]]
+    → [[Metabolic_Loop|Metabolic Loop]]
+      → [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]]
+        🎯 [[Concept_Decision_Velocity|Concept Decision Velocity]]
 
 ## Related Pages (Same Strand)
 

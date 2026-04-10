@@ -1,20 +1,22 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.790268
+generated_at: 2026-04-10T00:25:47.502342
 filter: tier=20_RUNTIME
 ---
 
 # View: 20 Runtime
 
 > **Auto-generated** from `tier: 20_RUNTIME` filter.
-> **Total Pages**: 12
+> **Total Pages**: 14
 
 | Page | Strand | Difficulty | Prerequisites |
 |------|--------|------------|---------------|
 | [[Concept_Architecture|Concept Architecture]] | architecture | intermediate | Trinity_Architecture |
 | [[Concept_Decision_Velocity|Concept Decision Velocity]] | paradox | advanced | Concept_Metabolic_Pipeline |
 | [[Concept_Deployment_Architecture|Concept Deployment Architecture]] | integration | intermediate | Concept_Architecture |
+| [[Concept_LLM_Wiki_Pattern|Concept LLM Wiki Pattern]] | architecture | intermediate | quickstart |
+| [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]] | architecture | advanced | Metabolic_Loop |
 | [[Concept_Vault999_Architecture|Concept Vault999 Architecture]] | architecture | advanced | Concept_Architecture |
 | [[MCP_Tools|MCP Tools]] | tools | intermediate | Metabolic_Loop |
 | [[Metabolic_Loop|Metabolic Loop]] | architecture | intermediate | Trinity_Architecture |

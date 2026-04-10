@@ -1,15 +1,30 @@
 ---
 type: Synthesis
 tier: 30_GOVERNANCE
-strand: [paradox]
-audience: [researchers]
+strand:
+- paradox
+audience:
+- researchers
 difficulty: advanced
-prerequisites: [Floors, Concept_Godellock]
-tags: [epistemics, circuit_breakers, humility, truth, self_distrust, safety]
-sources: [CONSTITUTION.md, K000_LAW.md, Concept_Godellock.md, Floors.md]
-last_sync: 2026-04-08
+prerequisites:
+- Floors
+- Concept_Godellock
+tags:
+- epistemics
+- circuit_breakers
+- humility
+- truth
+- self_distrust
+- safety
+sources:
+- CONSTITUTION.md
+- K000_LAW.md
+- Concept_Godellock.md
+- Floors.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
+
 # Epistemic Circuit Breakers: When arifOS Stops Trusting Itself
 
 > A system that cannot doubt itself is dangerous. These are the triggers that force arifOS to pause, escalate, or void—based on its own reasoning quality.
@@ -240,8 +255,8 @@ Systems with robust epistemic breakers pay a **humility tax**:
 ## Related Pages
 
 - [[Concept_Godellock]] — The Ω₀ band in detail
-- [[Floors.md]] — F2, F3, F7 definitions
-- [[Trinity_Architecture.md]] — Where breakers fit in ΔΩΨ
+- [[Floors]] — F2, F3, F7 definitions
+- [[Trinity_Architecture]] — Where breakers fit in ΔΩΨ
 - [[Concept_Floor_Tensions]] — When breakers conflict
 
 ---

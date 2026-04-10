@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.799256
+generated_at: 2026-04-10T00:25:47.505591
 target: Horizon_2_Swarm
 ---
 
@@ -15,13 +15,18 @@ target: Horizon_2_Swarm
 
 ### Path 1
 
-→ [[Agent_Roles|Agent_Roles]]
-  🎯 [[Horizon_2_Swarm|Horizon 2 Swarm]]
+→ [[What-is-arifOS|What is arifOS]]
+  → [[Trinity_Architecture|Trinity Architecture]]
+    → [[agent-roles|agent roles]]
+      🎯 [[Horizon_2_Swarm|Horizon 2 Swarm]]
 
 ### Path 2
 
-→ [[Concept_Metabolic_Pipeline|Concept_Metabolic_Pipeline]]
-  🎯 [[Horizon_2_Swarm|Horizon 2 Swarm]]
+→ [[What-is-arifOS|What is arifOS]]
+  → [[Trinity_Architecture|Trinity Architecture]]
+    → [[Metabolic_Loop|Metabolic Loop]]
+      → [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]]
+        🎯 [[Horizon_2_Swarm|Horizon 2 Swarm]]
 
 ## Related Pages (Same Strand)
 

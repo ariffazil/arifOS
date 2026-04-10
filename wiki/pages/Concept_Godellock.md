@@ -1,8 +1,22 @@
 ---
 type: Concept
-tags: [governance, humility, paradox, math]
-sources: [HUMILITY_SPEC.md, CONSTITUTION.md]
-last_sync: 2026-04-08
+tier: 30_GOVERNANCE
+strand:
+- paradox
+audience:
+- researchers
+difficulty: advanced
+prerequisites:
+- Floors
+tags:
+- governance
+- humility
+- paradox
+- math
+sources:
+- HUMILITY_SPEC.md
+- CONSTITUTION.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 
@@ -36,5 +50,5 @@ When Godellock is detected:
 
 Citations:
 
-- [[HUMILITY_SPEC.md]] (Raw)
-- [[CONSTITUTION.md]] (Raw)
+- `wiki/raw/HUMILITY_SPEC.md` (Raw)
+- `wiki/raw/CONSTITUTION.md` (Raw)

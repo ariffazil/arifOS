@@ -1,8 +1,21 @@
 ---
 type: Concept
-tags: [architecture, governance, constitution, intelligence]
-sources: [README.md, GEMINI.md]
-last_sync: 2026-04-08
+tier: 10_FOUNDATIONS
+strand:
+- philosophy
+audience:
+- all
+difficulty: beginner
+prerequisites: []
+tags:
+- architecture
+- governance
+- constitution
+- intelligence
+sources:
+- README.md
+- GEMINI.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

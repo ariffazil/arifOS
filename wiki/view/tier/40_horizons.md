@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.790555
+generated_at: 2026-04-10T00:25:47.502540
 filter: tier=40_HORIZONS
 ---
 
@@ -12,8 +12,8 @@ filter: tier=40_HORIZONS
 
 | Page | Strand | Difficulty | Prerequisites |
 |------|--------|------------|---------------|
-| [[Eigent_Backend|Eigent Backend]] | integration | intermediate | Integration_Patterns |
-| [[Horizon_2_Swarm|Horizon 2 Swarm]] | roadmap | advanced | Agent_Roles, Concept_Metabolic_Pipeline |
+| [[Eigent_Backend|Eigent Backend]] | integration | intermediate | integration-patterns |
+| [[Horizon_2_Swarm|Horizon 2 Swarm]] | roadmap | advanced | agent-roles, Concept_Metabolic_Pipeline |
 | [[Horizon_3_Universal_Body|Horizon 3 Universal Body]] | roadmap | advanced | Horizon_2_Swarm |
 | [[Roadmap|Roadmap]] | roadmap | beginner | What-is-arifOS |
 

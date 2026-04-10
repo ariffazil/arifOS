@@ -1,8 +1,20 @@
 ---
 type: Entity
-tags: [ai-researcher, openai, tesla, eureka-labs]
-sources: [karpathy-llm-wiki.md]
-last_sync: 2026-04-08
+tier: 90_ENTITIES
+strand:
+- philosophy
+audience:
+- all
+difficulty: beginner
+prerequisites: []
+tags:
+- ai-researcher
+- openai
+- tesla
+- eureka-labs
+sources:
+- karpathy-llm-wiki.md
+last_sync: '2026-04-10'
 confidence: 0.9
 ---
 
@@ -25,5 +37,5 @@ Andrej Karpathy is a prominent AI researcher and educator.
 ## Related Concepts
 
 - [[Concept_LLM_Wiki_Pattern]]
-- [[Concept_Software_2.0]]
-- [[Concept_Zero_Maintenance_Knowledge]]
+- Software 2.0
+- zero-maintenance knowledge systems

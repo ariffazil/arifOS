@@ -1,8 +1,26 @@
 ---
 type: Concept
-tags: [architecture, runtime, governance, pipeline, stages, tools]
-sources: [tool_specs.py, tools.py, capability_map.py, Audit_MCP_Tools_vs_Wiki.md]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- architecture
+audience:
+- engineers
+difficulty: advanced
+prerequisites:
+- Metabolic_Loop
+tags:
+- architecture
+- runtime
+- governance
+- pipeline
+- stages
+- tools
+sources:
+- tool_specs.py
+- tools.py
+- capability_map.py
+- Audit_MCP_Tools_vs_Wiki.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

@@ -1,15 +1,24 @@
 ---
 type: Concept
 tier: 00_INDEX
-strand: [onboarding]
-audience: [all]
+strand:
+- onboarding
+audience:
+- all
 difficulty: beginner
 prerequisites: []
-tags: [quickstart, onboarding, guide, beginner]
-sources: [README.md, wiki/index.md]
-last_sync: 2026-04-08
+tags:
+- quickstart
+- onboarding
+- guide
+- beginner
+sources:
+- README.md
+- wiki/index.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
+
 # Quickstart: Start Here
 
 Welcome to **arifOS** — the Constitutional AI Governance System. This guide will orient you in 5 pages and point you toward deeper learning based on your role.

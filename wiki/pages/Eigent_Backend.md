@@ -1,8 +1,25 @@
 ---
 type: Concept
-tags: [eigent, backend, multi-agent, desktop-automation, H2, swarm, MiniMax]
-sources: [ROADMAP.md, CHANGELOG.md]
-last_sync: 2026-04-08
+tier: 40_HORIZONS
+strand:
+- integration
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- integration-patterns
+tags:
+- eigent
+- backend
+- multi-agent
+- desktop-automation
+- H2
+- swarm
+- MiniMax
+sources:
+- ROADMAP.md
+- CHANGELOG.md
+last_sync: '2026-04-10'
 confidence: 0.9
 ---
 

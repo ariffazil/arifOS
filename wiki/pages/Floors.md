@@ -1,8 +1,20 @@
 ---
 type: Synthesis
-tags: [constitution, governance, floors]
-sources: [CONSTITUTION.md]
-last_sync: 2026-04-08
+tier: 10_FOUNDATIONS
+strand:
+- constitutional
+audience:
+- all
+difficulty: beginner
+prerequisites:
+- What-is-arifOS
+tags:
+- constitution
+- governance
+- floors
+sources:
+- CONSTITUTION.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 
@@ -35,4 +47,4 @@ The 13 Constitutional Floors are the fundamental invariants governing all operat
 
 Citations:
 
-- [[CONSTITUTION.md]] (Raw)
+- `wiki/raw/CONSTITUTION.md` (Raw)

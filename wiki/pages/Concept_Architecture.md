@@ -1,8 +1,26 @@
 ---
 type: Concept
-tags: [architecture, trinity, governance, intelligence, machine, execution]
-sources: [GEMINI.md, tool_specs.py, capability_map.py, Audit_MCP_Tools_vs_Wiki.md]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- architecture
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- Trinity_Architecture
+tags:
+- architecture
+- trinity
+- governance
+- intelligence
+- machine
+- execution
+sources:
+- GEMINI.md
+- tool_specs.py
+- capability_map.py
+- Audit_MCP_Tools_vs_Wiki.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

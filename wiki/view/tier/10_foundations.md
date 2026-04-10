@@ -1,17 +1,18 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.790124
+generated_at: 2026-04-10T00:25:47.502210
 filter: tier=10_FOUNDATIONS
 ---
 
 # View: 10 Foundations
 
 > **Auto-generated** from `tier: 10_FOUNDATIONS` filter.
-> **Total Pages**: 3
+> **Total Pages**: 4
 
 | Page | Strand | Difficulty | Prerequisites |
 |------|--------|------------|---------------|
+| [[Concept_Floors|Concept Floors]] | constitutional | intermediate | Floors |
 | [[Floors|Floors]] | constitutional | beginner | What-is-arifOS |
 | [[Trinity_Architecture|Trinity Architecture]] | architecture | beginner | What-is-arifOS |
 | [[What-is-arifOS|What is arifOS]] | philosophy | beginner |  |

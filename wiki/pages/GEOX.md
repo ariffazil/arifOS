@@ -1,8 +1,21 @@
 ---
 type: Entity
-tags: [geox, geoscience, app, witness]
-sources: [GEOX_README.md, GEOX_MANIFESTO.md]
-last_sync: 2026-04-08
+tier: 90_ENTITIES
+strand:
+- architecture
+audience:
+- all
+difficulty: beginner
+prerequisites: []
+tags:
+- geox
+- geoscience
+- app
+- witness
+sources:
+- GEOX_README.md
+- GEOX_MANIFESTO.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 
@@ -30,5 +43,5 @@ GEOX rigorously enforces arifOS constitutional floors:
 
 Citations:
 
-- [[GEOX_README.md]] (Raw)
-- [[GEOX_MANIFESTO.md]] (Raw)
+- `wiki/raw/GEOX_README.md` (Raw)
+- `wiki/raw/GEOX_MANIFESTO.md` (Raw)

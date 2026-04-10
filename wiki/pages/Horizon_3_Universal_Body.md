@@ -1,9 +1,27 @@
 ---
 type: Synthesis
-tags: [horizon-3, H3, hardware, HSM, BLS, ASIC, FPGA, sovereignty, universal-body]
-sources: [ROADMAP.md]
-last_sync: 2026-04-08
-confidence: 0.60
+tier: 40_HORIZONS
+strand:
+- roadmap
+audience:
+- researchers
+difficulty: advanced
+prerequisites:
+- Horizon_2_Swarm
+tags:
+- horizon-3
+- H3
+- hardware
+- HSM
+- BLS
+- ASIC
+- FPGA
+- sovereignty
+- universal-body
+sources:
+- ROADMAP.md
+last_sync: '2026-04-10'
+confidence: 0.6
 ---
 
 # Horizon 3: The Universal Body

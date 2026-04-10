@@ -503,4 +503,17 @@ NO DRIFT DETECTED
 - Updated [[arifos_forge]] to describe AF-FORGE as the execution bridge and substrate boundary, not a sovereign decision surface.
 - Updated [[arifos_vps_monitor]] to describe the VPS telemetry role more clearly and anchor it to AF-FORGE machine operations.
 - Fixed an internal link in [[quickstart]] to the live `integration-patterns` page.
-- Note: auto-generated views were left untouched in this pass because broader page frontmatter normalization is still incomplete across the wiki.
+
+## [2026-04-10] Normalize | Full wiki normalization pass
+- Normalized frontmatter across all **40** pages so each page now carries the full schema set:
+  - `type`, `tier`, `strand`, `audience`, `difficulty`, `prerequisites`, `tags`, `sources`, `last_sync`, `confidence`
+- Reconciled page metadata to match `PAGE_REGISTRY.md`.
+- Fixed all remaining broken internal wiki links, including:
+  - stale `.md` page-link forms
+  - raw-source links that should be plain source paths instead of wiki page links
+  - missing alias references such as `Start_Here`
+  - undeclared concept links in `Entity_Andrej_Karpathy.md`
+- Regenerated all auto-generated views under `wiki/view/` from the normalized metadata.
+- Verification result:
+  - missing required frontmatter keys: **0**
+  - broken internal wiki page links: **0**

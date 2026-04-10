@@ -1,15 +1,27 @@
 ---
 type: Concept
 tier: 20_RUNTIME
-strand: [integration]
-audience: [engineers]
+strand:
+- integration
+audience:
+- engineers
 difficulty: intermediate
-prerequisites: [MCP_Tools, Metabolic_Loop]
-tags: [integration, mcp, patterns, deployment, architecture]
-sources: [docs/integration_patterns.md, docs/protocols/WEBMCP_ARCHITECTURE.md]
-last_sync: 2026-04-08
-confidence: 0.90
+prerequisites:
+- MCP_Tools
+- Metabolic_Loop
+tags:
+- integration
+- mcp
+- patterns
+- deployment
+- architecture
+sources:
+- docs/integration_patterns.md
+- docs/protocols/WEBMCP_ARCHITECTURE.md
+last_sync: '2026-04-10'
+confidence: 0.9
 ---
+
 # Integration Patterns
 
 arifOS is designed as a **constitutional kernel**, not a standalone application. It integrates with existing AI ecosystems through the Model Context Protocol (MCP), providing governance as a service layer. This document describes the key patterns for integrating arifOS with ChatGPT, Claude, IDEs, automation platforms, and custom applications.

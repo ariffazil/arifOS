@@ -1,8 +1,23 @@
 ---
 type: Concept
-tags: [floors, constitutional-law, governance, F1-F13, verdicts, thermodynamics]
-sources: [K000_LAW.md]
-last_sync: 2026-04-08
+tier: 10_FOUNDATIONS
+strand:
+- constitutional
+audience:
+- all
+difficulty: intermediate
+prerequisites:
+- Floors
+tags:
+- floors
+- constitutional-law
+- governance
+- F1-F13
+- verdicts
+- thermodynamics
+sources:
+- K000_LAW.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

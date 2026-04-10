@@ -1,8 +1,27 @@
 ---
 type: Synthesis
-tags: [horizon-2, H2, swarm, multi-agent, autonomy, A2A, evidence-bundle, governed]
-sources: [ROADMAP.md, arifosmcp-metabolic-pipeline-audit-2026-04-08.md]
-last_sync: 2026-04-08
+tier: 40_HORIZONS
+strand:
+- roadmap
+audience:
+- researchers
+difficulty: advanced
+prerequisites:
+- agent-roles
+- Concept_Metabolic_Pipeline
+tags:
+- horizon-2
+- H2
+- swarm
+- multi-agent
+- autonomy
+- A2A
+- evidence-bundle
+- governed
+sources:
+- ROADMAP.md
+- arifosmcp-metabolic-pipeline-audit-2026-04-08.md
+last_sync: '2026-04-10'
 confidence: 0.75
 ---
 

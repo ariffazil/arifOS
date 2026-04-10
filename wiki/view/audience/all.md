@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.796872
+generated_at: 2026-04-10T00:25:47.503993
 filter: audience=all
 ---
 
 # Audience: All
 
 > **Auto-generated** for `all` audience.
-> **Total Pages**: 37
+> **Total Pages**: 40
 
 Pages relevant to **All**.
 
@@ -19,8 +19,10 @@ Pages relevant to **All**.
 | [[What-is-arifOS|What is arifOS]] | 10 FOUNDATIONS | beginner | philosophy |
 | [[Floors|Floors]] | 10 FOUNDATIONS | beginner | constitutional |
 | [[Trinity_Architecture|Trinity Architecture]] | 10 FOUNDATIONS | beginner | architecture |
+| [[Concept_Floors|Concept Floors]] | 10 FOUNDATIONS | intermediate | constitutional |
 | [[arifos_vps_monitor|arifos vps monitor]] | 20 RUNTIME | intermediate | tools |
 | [[Metabolic_Loop|Metabolic Loop]] | 20 RUNTIME | intermediate | architecture |
+| [[Concept_LLM_Wiki_Pattern|Concept LLM Wiki Pattern]] | 20 RUNTIME | intermediate | architecture |
 | [[Tool_Surface_Architecture|Tool Surface Architecture]] | 20 RUNTIME | intermediate | architecture |
 | [[integration-patterns|integration patterns]] | 20 RUNTIME | intermediate | integration |
 | [[Concept_Deployment_Architecture|Concept Deployment Architecture]] | 20 RUNTIME | intermediate | integration |
@@ -28,6 +30,7 @@ Pages relevant to **All**.
 | [[arifos_forge|arifos forge]] | 20 RUNTIME | intermediate | tools |
 | [[MCP_Tools|MCP Tools]] | 20 RUNTIME | intermediate | tools |
 | [[agent-roles|agent roles]] | 20 RUNTIME | intermediate | architecture |
+| [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]] | 20 RUNTIME | advanced | architecture |
 | [[Concept_Decision_Velocity|Concept Decision Velocity]] | 20 RUNTIME | advanced | paradox |
 | [[ToolSpec_arifos_judge|ToolSpec arifos judge]] | 20 RUNTIME | advanced | tools |
 | [[Concept_Vault999_Architecture|Concept Vault999 Architecture]] | 20 RUNTIME | advanced | architecture |

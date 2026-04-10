@@ -1,13 +1,25 @@
 ---
 type: Tool
 tier: 20_RUNTIME
-strand: [tools]
-audience: [engineers, operators]
+strand:
+- tools
+audience:
+- engineers
 difficulty: intermediate
-prerequisites: [MCP_Tools, Concept_Deployment_Architecture]
-tags: [telemetry, hardware, machine, vps, monitoring, ops]
-sources: [tool_specs.py, vps_monitor.py, ROADMAP.md]
-last_sync: 2026-04-10
+prerequisites:
+- MCP_Tools
+tags:
+- telemetry
+- hardware
+- machine
+- vps
+- monitoring
+- ops
+sources:
+- tool_specs.py
+- vps_monitor.py
+- ROADMAP.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
 

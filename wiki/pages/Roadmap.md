@@ -1,8 +1,22 @@
 ---
 type: Source
-tags: [roadmap, engineering, strategy, valuation, horizons]
-sources: [ROADMAP.md]
-last_sync: 2026-04-08
+tier: 40_HORIZONS
+strand:
+- roadmap
+audience:
+- all
+difficulty: beginner
+prerequisites:
+- What-is-arifOS
+tags:
+- roadmap
+- engineering
+- strategy
+- valuation
+- horizons
+sources:
+- ROADMAP.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

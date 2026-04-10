@@ -1,8 +1,26 @@
 ---
 type: Synthesis
-tags: [audit, checker, ci, drift, tooling, governance]
-sources: [check_tool_surface_drift.py, tool_specs.py, MCP_Tools.md, Tool_Surface_Architecture.md]
-last_sync: 2026-04-08
+tier: 50_AUDITS
+strand:
+- operations
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- Tool_Surface_Architecture
+tags:
+- audit
+- checker
+- ci
+- drift
+- tooling
+- governance
+sources:
+- check_tool_surface_drift.py
+- tool_specs.py
+- MCP_Tools.md
+- Tool_Surface_Architecture.md
+last_sync: '2026-04-10'
 confidence: 0.97
 ---
 

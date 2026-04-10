@@ -1,10 +1,36 @@
 ---
 type: Synthesis
-tags: [audit, architecture, drift, compatibility, runtime, wiki]
-sources: [tool_specs.py, tools.py, tools_hardened_dispatch.py, kernel_router.py, __main__.py, server.py, rest_routes.py, resources.py, public_registry.py, tool_registry.json, MCP_Tools.md, check_tool_surface_drift.py]
-last_sync: 2026-04-08
-verified_clean: true
+tier: 50_AUDITS
+strand:
+- operations
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- Tool_Surface_Architecture
+tags:
+- audit
+- architecture
+- drift
+- compatibility
+- runtime
+- wiki
+sources:
+- tool_specs.py
+- tools.py
+- tools_hardened_dispatch.py
+- kernel_router.py
+- __main__.py
+- server.py
+- rest_routes.py
+- resources.py
+- public_registry.py
+- tool_registry.json
+- MCP_Tools.md
+- check_tool_surface_drift.py
+last_sync: '2026-04-10'
 confidence: 0.96
+verified_clean: true
 ---
 
 # Audit: Surface Fragmentation

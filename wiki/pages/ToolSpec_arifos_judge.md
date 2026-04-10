@@ -1,8 +1,28 @@
 ---
 type: ToolSpec
-tags: [tool-spec, arifos-judge, apex-soul, constitutional-verdict, 888-judge]
-sources: [tool_specs.py, tools.py, tool_03_apex_soul.py, tools_internal.py, models.py, TOM_INTEGRATION_SUMMARY.md]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- tools
+audience:
+- engineers
+difficulty: advanced
+prerequisites:
+- MCP_Tools
+- Concept_Governance_Enforcer
+tags:
+- tool-spec
+- arifos-judge
+- apex-soul
+- constitutional-verdict
+- 888-judge
+sources:
+- tool_specs.py
+- tools.py
+- tool_03_apex_soul.py
+- tools_internal.py
+- models.py
+- TOM_INTEGRATION_SUMMARY.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
 

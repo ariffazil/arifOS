@@ -1,8 +1,21 @@
 ---
 type: Concept
-tags: [architecture, trinity, governance]
-sources: [TRINITY_ARCHITECTURE.md, README.md]
-last_sync: 2026-04-08
+tier: 10_FOUNDATIONS
+strand:
+- architecture
+audience:
+- all
+difficulty: beginner
+prerequisites:
+- What-is-arifOS
+tags:
+- architecture
+- trinity
+- governance
+sources:
+- TRINITY_ARCHITECTURE.md
+- README.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 
@@ -32,5 +45,5 @@ The 888 Judge holds ultimate sovereign authority (F13). The human can override a
 
 Citations:
 
-- [[TRINITY_ARCHITECTURE.md]] (Raw)
-- [[README.md]] (Raw)
+- `wiki/raw/TRINITY_ARCHITECTURE.md` (Raw)
+- `README.md` (Raw)

@@ -1,8 +1,22 @@
 ---
 type: Concept
-tags: [mcp, tools, substrate, execution]
-sources: [tool_specs.py, server.py]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- tools
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- Metabolic_Loop
+tags:
+- mcp
+- tools
+- substrate
+- execution
+sources:
+- tool_specs.py
+- server.py
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 
@@ -34,5 +48,5 @@ Canonical tool surface for the arifOS MCP Server. These tools are the primary in
 
 Citations:
 
-- [[Concept_Metabolic_Loop]]
+- [[Metabolic_Loop]]
 - `arifosmcp/runtime/tool_specs.py`

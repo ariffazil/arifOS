@@ -1,8 +1,31 @@
 ---
 type: Concept
-tags: [architecture, tools, contracts, generation, compatibility, drift]
-sources: [tool_specs.py, tools.py, tools_hardened_dispatch.py, __main__.py, server.py, rest_routes.py, resources.py, public_registry.py, tool_registry.json]
-last_sync: 2026-04-08
+tier: 20_RUNTIME
+strand:
+- architecture
+audience:
+- engineers
+difficulty: intermediate
+prerequisites:
+- MCP_Tools
+tags:
+- architecture
+- tools
+- contracts
+- generation
+- compatibility
+- drift
+sources:
+- tool_specs.py
+- tools.py
+- tools_hardened_dispatch.py
+- __main__.py
+- server.py
+- rest_routes.py
+- resources.py
+- public_registry.py
+- tool_registry.json
+last_sync: '2026-04-10'
 confidence: 0.94
 ---
 

@@ -1,8 +1,26 @@
 ---
 type: Concept
-tags: [architecture, governance, enforcer, compliance, floors, query-class]
-sources: [governance_enforcer.py, AGENTS.md, K000_LAW.md]
-last_sync: 2026-04-08
+tier: 30_GOVERNANCE
+strand:
+- constitutional
+audience:
+- researchers
+difficulty: advanced
+prerequisites:
+- Floors
+- Philosophy_Registry
+tags:
+- architecture
+- governance
+- enforcer
+- compliance
+- floors
+- query-class
+sources:
+- governance_enforcer.py
+- AGENTS.md
+- K000_LAW.md
+last_sync: '2026-04-10'
 confidence: 1.0
 ---
 

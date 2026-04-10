@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-08T16:29:38.798878
+generated_at: 2026-04-10T00:25:47.505356
 target: Concept_Governance_Enforcer
 ---
 
@@ -28,4 +28,5 @@ target: Concept_Governance_Enforcer
 
 ## Related Pages (Same Strand)
 
+- [[Concept_Floors|Concept Floors]]
 - [[Floors|Floors]]

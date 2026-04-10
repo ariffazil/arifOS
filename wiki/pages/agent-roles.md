@@ -1,15 +1,29 @@
 ---
 type: Concept
 tier: 20_RUNTIME
-strand: [architecture]
-audience: [engineers]
+strand:
+- architecture
+audience:
+- engineers
 difficulty: intermediate
-prerequisites: [Trinity_Architecture]
-tags: [agents, governance, roles, trinity, workflows]
-sources: [docs/agents/A-ARCHITECT.md, docs/agents/A-AUDITOR.md, docs/agents/A-ENGINEER.md, docs/agents/A-VALIDATOR.md, docs/agents/A-ORCHESTRATOR.md]
-last_sync: 2026-04-08
+prerequisites:
+- Trinity_Architecture
+tags:
+- agents
+- governance
+- roles
+- trinity
+- workflows
+sources:
+- docs/agents/A-ARCHITECT.md
+- docs/agents/A-AUDITOR.md
+- docs/agents/A-ENGINEER.md
+- docs/agents/A-VALIDATOR.md
+- docs/agents/A-ORCHESTRATOR.md
+last_sync: '2026-04-10'
 confidence: 0.95
 ---
+
 # Agent Roles in arifOS
 
 arifOS operates through a **constitutional agent ecosystem** — specialized AI agents that each hold specific authorities and responsibilities within the governance framework. These agents are not autonomous overlords; they are constrained tools that serve human intent through structured constitutional processes.
