@@ -299,7 +299,7 @@ class DeployGateRunner:
             report = runner.generate_report()
             
             p0_pass = report['summary']['passed']
-            p0_total = report['summary']['total_tests']
+            p0_total = report['meta']['total_tests']
             
             status = GateStatus.PASS if (p0_pass == p0_total) else GateStatus.FAIL
             
@@ -653,7 +653,7 @@ async def main():
     print(f"\n📄 Full report saved to: {args.output}")
     
     if not args.no_vault:
-        runner.seal_to_vault(report)
+        await runner.seal_to_vault(report)
     
     # Exit code
     exit_code = {

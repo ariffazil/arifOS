@@ -5,7 +5,7 @@ import json
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from fastmcp import FastMCP
 from arifosmcp.runtime.resources import register_resources, read_resource_content
-from arifosmcp.runtime.tools import arifos_init, arifos_vps_monitor
+from arifosmcp.runtime import tools
 from arifosmcp.runtime.models import Verdict, RuntimeEnvelope, CanonicalAuthority, RuntimeStatus, Stage
 
 @pytest.fixture
@@ -67,7 +67,7 @@ class TestToolPayloadAlignment:
             )
             mock_mega.return_value = mock_envelope
             
-            result = await arifos_init(actor_id="test-actor")
+            result = await tools.arifos_init(actor_id="test-actor")
             
             # seal_runtime_envelope will process this
             assert result.payload["caller_state"] == "anchored"
@@ -97,7 +97,7 @@ class TestToolPayloadAlignment:
         with patch("arifosmcp.runtime.tools.arifos_vps_monitor", new_callable=AsyncMock) as mock_tool:
             mock_tool.return_value = mock_envelope
             
-            result = await arifos_vps_monitor()
+            result = await tools.arifos_vps_monitor()
             
             assert "bootstrap" in result.payload
             bootstrap = result.payload["bootstrap"]
