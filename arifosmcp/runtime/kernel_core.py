@@ -27,11 +27,17 @@ import logging
 import time
 from typing import Any
 
+from core.kernel.pattern_registry import PatternRegistry
+from core.kernel.pattern_selector import PatternSelector
+from core.kernel.planner import Planner
+from core.kernel.tool_registry import ToolContractRegistry
+from core.kernel.role_registry import AgentRoleRegistry
+
 logger = logging.getLogger(__name__)
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
 # KERNEL rCore — Unified Metabolic Orchestrator
-# ═══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
 
 
 class KernelCore:
@@ -47,10 +53,17 @@ class KernelCore:
     def __init__(self):
         self._tool_handlers: dict[str, Any] = {}
         self._governance_enabled: bool = True
+        
+        # New Kernel Primitives (30-day Roadmap)
+        self.pattern_registry = PatternRegistry()
+        self.pattern_selector = PatternSelector(self.pattern_registry)
+        self.planner = Planner()
+        self.tool_registry = ToolContractRegistry()
+        self.role_registry = AgentRoleRegistry()
 
-    # ═══════════════════════════════════════════════════════════════════════════
+    # =============================================================================
     # INPUT Stage — Query Normalization & Context Assembly
-    # ═══════════════════════════════════════════════════════════════════════════
+    # =============================================================================
 
     async def input_stage(
         self,
@@ -91,6 +104,9 @@ class KernelCore:
         effective_query = payload.get("query") or query or ""
         effective_actor = str(payload.get("actor_id") or actor_id or "anonymous").strip().lower()
 
+        # Pattern selection
+        selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
+
         context = {
             "payload": payload,
             "query": effective_query,
@@ -101,10 +117,16 @@ class KernelCore:
             "allow_execution": allow_execution,
             "intent": intent,
             "auth_context": auth_context or {},
+            "selected_pattern": selected_pattern,
+            "kernel_primitives": {
+                "planner": self.planner,
+                "tool_registry": self.tool_registry,
+                "role_registry": self.role_registry,
+            }
         }
 
         logger.info(
-            f"KERNEL INPUT: query='{effective_query[:50]}...' actor={effective_actor} session={session_id}"
+            f"KERNEL INPUT: query='{effective_query[:50]}...' actor={effective_actor} session={session_id} pattern={selected_pattern}"
         )
 
         return context
