@@ -185,35 +185,35 @@ class SubstrateBridge:
     
     def __init__(self):
         # Service URLs - use environment variables for flexibility
-        # Default to Docker container names for internal network
+        # Each substrate runs on its own port (8001-8006)
         self.time = SubstrateClient(
             "mcp_time",
-            os.getenv("MCP_TIME_URL", "http://mcp_time:8000"),
+            os.getenv("MCP_TIME_URL", "http://mcp_time:8001"),
             MCP_SUBSTRATE_TIMEOUT
         )
         self.filesystem = SubstrateClient(
             "mcp_filesystem",
-            os.getenv("MCP_FILESYSTEM_URL", "http://mcp_filesystem:8000"),
+            os.getenv("MCP_FILESYSTEM_URL", "http://mcp_filesystem:8002"),
             MCP_SUBSTRATE_TIMEOUT
         )
         self.git = SubstrateClient(
             "mcp_git",
-            os.getenv("MCP_GIT_URL", "http://mcp_git:8000"),
+            os.getenv("MCP_GIT_URL", "http://mcp_git:8003"),
             MCP_SUBSTRATE_TIMEOUT
         )
         self.memory = SubstrateClient(
             "mcp_memory",
-            os.getenv("MCP_MEMORY_URL", "http://mcp_memory:8000"),
+            os.getenv("MCP_MEMORY_URL", "http://mcp_memory:8004"),
             MCP_SUBSTRATE_TIMEOUT
         )
         self.fetch = SubstrateClient(
             "mcp_fetch",
-            os.getenv("MCP_FETCH_URL", "http://mcp_fetch:8000"),
+            os.getenv("MCP_FETCH_URL", "http://mcp_fetch:8005"),
             MCP_SUBSTRATE_TIMEOUT
         )
         self.everything = SubstrateClient(
             "mcp_everything",
-            os.getenv("MCP_EVERYTHING_URL", "http://mcp_everything:8000"),
+            os.getenv("MCP_EVERYTHING_URL", "http://mcp_everything:8006"),
             MCP_SUBSTRATE_TIMEOUT
         )
         
