@@ -39,7 +39,7 @@ class GitBridge:
     ) -> _RE:
         """F2/F11: Read-only audit of current repository status."""
         if not self._is_repo_allowed(repo_path):
-            return _RE(ok=False, detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
+            return _RE(ok=False, tool="arifos.git_status", detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
 
         # Governance Check (Baseline Audit)
         gov = evaluate_tool_call(
@@ -51,7 +51,7 @@ class GitBridge:
         )
         
         if gov.verdict != Verdict.SEAL:
-            return _RE(ok=False, verdict=gov.verdict, detail=gov.message)
+            return _RE(ok=False, tool="arifos.git_status", verdict=gov.verdict, detail=gov.message)
 
         try:
             status = await bridge.git.call_tool("git_status", {"repo_path": repo_path})
@@ -59,7 +59,7 @@ class GitBridge:
             
             return _RE(
                 ok=True,
-                tool="arifos_git",
+                tool="arifos.git_status",
                 verdict=Verdict.SEAL,
                 payload={
                     "status": status,
@@ -67,7 +67,7 @@ class GitBridge:
                 }
             )
         except Exception as e:
-            return _RE(ok=False, detail=str(e), verdict=Verdict.VOID)
+            return _RE(ok=False, tool="arifos.git_status", detail=str(e), verdict=Verdict.VOID)
 
     async def propose_commit(
         self,
@@ -79,7 +79,7 @@ class GitBridge:
     ) -> _RE:
         """F1/F13: Execute a commit ONLY after human ratification and SEAL validation."""
         if not self._is_repo_allowed(repo_path):
-            return _RE(ok=False, detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
+            return _RE(ok=False, tool="arifos.git_commit", detail=f"F8 BLOCK: Unauthorized repo path: {repo_path}")
 
         # 1. Evaluate Mutation Governance (Requires HIGH risk tier)
         gov = evaluate_tool_call(
@@ -117,7 +117,7 @@ class GitBridge:
             
             return _RE(
                 ok=True,
-                tool="arifos_git",
+                tool="arifos.git_commit",
                 verdict=Verdict.SEAL,
                 payload={
                     "commit_sha": result.get("sha"),
@@ -125,7 +125,7 @@ class GitBridge:
                 }
             )
         except Exception as e:
-            return _RE(ok=False, detail=str(e), verdict=Verdict.VOID)
+            return _RE(ok=False, tool="arifos.git_commit", detail=str(e), verdict=Verdict.VOID)
 
 # Global bridge instance
 git_bridge = GitBridge()
