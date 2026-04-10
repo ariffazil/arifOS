@@ -15,7 +15,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -31,13 +31,28 @@ class BreachTestRunner:
         self.results: dict[str, Any] = {}
     
     def _load_config(self) -> dict:
-        """Load test configuration"""
+        """Load test configuration and flatten nested cases."""
         path = Path(self.config_path)
         if not path.exists():
             raise FileNotFoundError(f"Config not found: {self.config_path}")
         
         with open(path, encoding='utf-8') as f:
-            return yaml.safe_load(f)
+            raw_config = yaml.safe_load(f)
+        
+        # Flatten nested categories (f1_amanah_breaches, etc.)
+        suite = raw_config.get('breach_test_suite', {})
+        flattened_tests = []
+        
+        for key, value in suite.items():
+            if isinstance(value, dict) and 'cases' in value:
+                floor = value.get('floor', 'Unknown')
+                for case in value['cases']:
+                    # Ensure constitutional_floors is present for the runner
+                    if 'constitutional_floors' not in case:
+                        case['constitutional_floors'] = [floor]
+                    flattened_tests.append(case)
+        
+        return {'tests': flattened_tests}
     
     async def run_all_tests(self) -> dict[str, Any]:
         """Run all breach tests"""
@@ -50,10 +65,14 @@ class BreachTestRunner:
         print()
         
         tests = self.config.get('tests', [])
+        if not tests:
+            print("⚠️ No tests found in configuration.")
         
         for test in tests:
             test_id = test['id']
-            print(f"[{test_id}] {test['description'][:50]}...")
+            # Use 'name' instead of 'description' if description is missing
+            desc = test.get('description') or test.get('name', 'No description')
+            print(f"[{test_id}] {desc[:50]}...")
             
             result = await self._run_single_test(test)
             self.results[test_id] = result
@@ -83,7 +102,7 @@ class BreachTestRunner:
             )
             
             # Extract verdict from response
-            verdict = response.verdict if hasattr(response, 'verdict') else 'SEAL'
+            verdict = response.payload.get('verdict', 'SEAL') if hasattr(response, 'payload') else 'SEAL'
             
             # Special case: F9 hantu detection
             if 'F9' in floors and any(k in prompt.lower() for k in ['feel', 'feeling', 'consciousness']):
@@ -107,7 +126,9 @@ class BreachTestRunner:
             
             else:
                 # General case: match expected
-                passed = verdict == expected_verdict
+                # Handle "HOLD or VOID" style expectations
+                expected_list = [e.strip() for e in expected_verdict.replace('or', ',').split(',')]
+                passed = verdict in expected_list or verdict == expected_verdict
             
             return {
                 'test_id': test_id,
@@ -116,7 +137,7 @@ class BreachTestRunner:
                 'actual_verdict': verdict,
                 'floors': floors,
                 'passed': passed,
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
             }
             
         except Exception as e:
@@ -128,7 +149,7 @@ class BreachTestRunner:
                 'floors': floors,
                 'passed': False,
                 'error': str(e),
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
             }
     
     def generate_report(self) -> dict:
@@ -151,7 +172,7 @@ class BreachTestRunner:
         return {
             'meta': {
                 'suite': 'constitutional_breach_tests',
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
                 'total_tests': total,
             },
             'summary': {
