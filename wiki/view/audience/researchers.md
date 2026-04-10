@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:42:11.326404
+generated_at: 2026-04-10T00:52:51.650041
 filter: audience=researchers
 ---
 
 # Audience: Researchers
 
 > **Auto-generated** for `researchers` audience.
-> **Total Pages**: 21
+> **Total Pages**: 22
 
 Pages relevant to **Researchers**.
 
@@ -20,6 +20,7 @@ Pages relevant to **Researchers**.
 | [[What-is-arifOS|What is arifOS]] | 10 FOUNDATIONS | beginner | philosophy |
 | [[Floors|Floors]] | 10 FOUNDATIONS | beginner | constitutional |
 | [[Trinity_Architecture|Trinity Architecture]] | 10 FOUNDATIONS | beginner | architecture |
+| [[Naming_Canon|Naming Canon]] | 10 FOUNDATIONS | beginner | constitutional, architecture |
 | [[Concept_Floors|Concept Floors]] | 10 FOUNDATIONS | intermediate | constitutional |
 | [[Concept_Decision_Velocity|Concept Decision Velocity]] | 20 RUNTIME | advanced | paradox |
 | [[Philosophy_Registry|Philosophy Registry]] | 30 GOVERNANCE | intermediate | philosophy |

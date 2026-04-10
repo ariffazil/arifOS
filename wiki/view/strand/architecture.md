@@ -1,17 +1,18 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:42:11.325385
+generated_at: 2026-04-10T00:52:51.649195
 filter: strand=architecture
 ---
 
 # Strand: Architecture
 
 > **Auto-generated** from `strand: architecture` filter.
-> **Total Pages**: 10
+> **Total Pages**: 11
 
 ## 10 Foundations
 
+- [[Naming_Canon|Naming Canon]] [beginner]
 - [[Trinity_Architecture|Trinity Architecture]] [beginner]
 
 ## 20 Runtime

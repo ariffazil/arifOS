@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:42:11.326499
+generated_at: 2026-04-10T00:52:51.650143
 filter: audience=operators
 ---
 
 # Audience: Operators
 
 > **Auto-generated** for `operators` audience.
-> **Total Pages**: 12
+> **Total Pages**: 13
 
 Pages relevant to **Operators**.
 
@@ -20,6 +20,7 @@ Pages relevant to **Operators**.
 | [[What-is-arifOS|What is arifOS]] | 10 FOUNDATIONS | beginner | philosophy |
 | [[Floors|Floors]] | 10 FOUNDATIONS | beginner | constitutional |
 | [[Trinity_Architecture|Trinity Architecture]] | 10 FOUNDATIONS | beginner | architecture |
+| [[Naming_Canon|Naming Canon]] | 10 FOUNDATIONS | beginner | constitutional, architecture |
 | [[Concept_Floors|Concept Floors]] | 10 FOUNDATIONS | intermediate | constitutional |
 | [[Roadmap|Roadmap]] | 40 HORIZONS | beginner | roadmap |
 | [[Changelog|Changelog]] | 50 AUDITS | beginner | operations |

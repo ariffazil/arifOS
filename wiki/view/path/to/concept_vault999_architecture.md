@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:42:11.327530
+generated_at: 2026-04-10T00:52:51.650873
 target: Concept_Vault999_Architecture
 ---
 
@@ -28,6 +28,7 @@ target: Concept_Vault999_Architecture
 - [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]]
 - [[GEOX|GEOX]]
 - [[Metabolic_Loop|Metabolic Loop]]
+- [[Naming_Canon|Naming Canon]]
 - [[Tool_Surface_Architecture|Tool Surface Architecture]]
 - [[Trinity_Architecture|Trinity Architecture]]
 - [[agent-roles|agent roles]]

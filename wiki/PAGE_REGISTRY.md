@@ -1,6 +1,6 @@
 # Ω-Wiki Page Registry
 
-Complete mapping of all 41 pages to their tiers, strands, and metadata.
+Complete mapping of all 42 pages to their tiers, strands, and metadata.
 
 **Purpose**: This registry defines the semantic structure of the wiki. Update frontmatter on each page to match this registry.
 
@@ -12,6 +12,7 @@ Complete mapping of all 41 pages to their tiers, strands, and metadata.
 |------|------|--------|----------|------------|---------------|
 | [[quickstart]] | 00_INDEX | onboarding | all | beginner | [] |
 | [[Federation_Three_Wikis]] | 00_INDEX | onboarding | all | beginner | [] |
+| [[Naming_Canon]] | 10_FOUNDATIONS | constitutional, architecture | all | beginner | [What-is-arifOS] |
 
 **Rationale**: Single entry point for all newcomers. Auto-generated "Start Here" path begins here.
 
@@ -156,7 +157,7 @@ Complete mapping of all 41 pages to their tiers, strands, and metadata.
 
 | Difficulty | Count | Pages |
 |------------|-------|-------|
-| beginner | 12 | quickstart, Federation_Three_Wikis, What-is-arifOS, Floors, Trinity_Architecture, Roadmap, GEOX, Entity_Andrej_Karpathy, Changelog, Source_Karpathy_LLM_Wiki, Source_NotebookLM_HighLevel_Overview, Prerequisite_Map |
+| beginner | 13 | quickstart, Federation_Three_Wikis, Naming_Canon, What-is-arifOS, Floors, Trinity_Architecture, Roadmap, GEOX, Entity_Andrej_Karpathy, Changelog, Source_Karpathy_LLM_Wiki, Source_NotebookLM_HighLevel_Overview, Prerequisite_Map |
 | intermediate | 19 | (see registry above) |
 | advanced | 10 | Vault999_Architecture, Metabolic_Pipeline, Governance_Enforcer, Godellock, Floor_Tensions, Epistemic_Circuit_Breakers, Decision_Velocity, ToolSpec_arifos_judge, Horizon_2_Swarm, Horizon_3_Universal_Body |
 
@@ -205,5 +206,5 @@ quickstart → MCP_Tools → Tool_Surface_Architecture → Drift_Checks → Audi
 ---
 
 **Registry Version**: 2026.04.10  
-**Total Pages**: 41  
+**Total Pages**: 42  
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.

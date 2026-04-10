@@ -522,3 +522,8 @@ NO DRIFT DETECTED
 - Added [[Federation_Three_Wikis]] as a first-class entry point in the arifOS wiki.
 - Promoted federation navigation in `index.md` so arifOS, GEOX, and AF-FORGE read as one system, not separate silos.
 - Updated `PAGE_REGISTRY.md` and regenerated views to include the new federation gateway page.
+
+## [2026-04-10] Canon | Naming canon established
+- Added [[Naming_Canon]] as the constitutional naming rule for the three-wiki federation.
+- Defined the core law: one canonical name, optional aliases, declared truth source, explicit scope.
+- Promoted naming into the arifOS foundation layer so future wiki, runtime, and infrastructure naming work has a shared reference point.

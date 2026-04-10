@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:42:11.324925
+generated_at: 2026-04-10T00:52:51.648835
 filter: tier=30_GOVERNANCE
 ---
 

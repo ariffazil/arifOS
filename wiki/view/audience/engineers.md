@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:42:11.326281
+generated_at: 2026-04-10T00:52:51.649912
 filter: audience=engineers
 ---
 
 # Audience: Engineers
 
 > **Auto-generated** for `engineers` audience.
-> **Total Pages**: 28
+> **Total Pages**: 29
 
 Pages relevant to **Engineers**.
 
@@ -20,6 +20,7 @@ Pages relevant to **Engineers**.
 | [[What-is-arifOS|What is arifOS]] | 10 FOUNDATIONS | beginner | philosophy |
 | [[Floors|Floors]] | 10 FOUNDATIONS | beginner | constitutional |
 | [[Trinity_Architecture|Trinity Architecture]] | 10 FOUNDATIONS | beginner | architecture |
+| [[Naming_Canon|Naming Canon]] | 10 FOUNDATIONS | beginner | constitutional, architecture |
 | [[Concept_Floors|Concept Floors]] | 10 FOUNDATIONS | intermediate | constitutional |
 | [[arifos_vps_monitor|arifos vps monitor]] | 20 RUNTIME | intermediate | tools |
 | [[Metabolic_Loop|Metabolic Loop]] | 20 RUNTIME | intermediate | architecture |

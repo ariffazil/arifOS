@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T00:42:11.328211
+generated_at: 2026-04-10T00:52:51.651302
 target: Concept_Governance_Enforcer
 ---
 
@@ -30,3 +30,4 @@ target: Concept_Governance_Enforcer
 
 - [[Concept_Floors|Concept Floors]]
 - [[Floors|Floors]]
+- [[Naming_Canon|Naming Canon]]
