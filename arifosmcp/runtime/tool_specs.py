@@ -15,7 +15,7 @@ from typing import Any, Literal
 class ToolSpec:
     """Canonical tool specification with visibility control."""
 
-    name: str  # arifos.{verb} format
+    name: str  # arifos_{verb} format
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
     layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION"]
@@ -38,7 +38,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 1. arifos.init — Session Initialization (was 000_INIT, init_anchor)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.init",
+        name="arifos_init",
         stage="000",
         purpose="Start governed session + session diagnostics",
         layer="GOVERNANCE",
@@ -81,7 +81,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 2. arifos.sense — Constitutional Reality Sensing (was 111_SENSE, physics_reality)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.sense",
+        name="arifos_sense",
         stage="111",
         purpose="Constitutional reality sensing — 8-stage governed protocol",
         layer="MACHINE",
@@ -129,7 +129,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 3. arifos.mind — Structured Reasoning (was 333_MIND, agi_mind)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.mind",
+        name="arifos_mind",
         stage="333",
         purpose="Structured reasoning + synthesis",
         layer="INTELLIGENCE",
@@ -155,7 +155,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 4. arifos.kernel — Execution Lane Selection (was 444_ROUT, arifos.route)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.kernel",
+        name="arifos_kernel",
         stage="444",
         purpose="Execution lane selection",
         layer="GOVERNANCE",
@@ -176,7 +176,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 5. arifos.heart — Safety Critique (was 666_HEART, asi_heart)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.heart",
+        name="arifos_heart",
         stage="666",
         purpose="Safety, dignity, adversarial critique",
         layer="INTELLIGENCE",
@@ -197,7 +197,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 6. arifos.ops — Cost Estimation (was 777_OPS, math_estimator)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.ops",
+        name="arifos_ops",
         stage="777",
         purpose="Cost, thermodynamic, capacity estimation",
         layer="MACHINE",
@@ -222,7 +222,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 7. arifos.judge — Constitutional Verdict (was 888_JUDGE, apex_soul)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.judge",
+        name="arifos_judge",
         stage="888",
         purpose="Constitutional verdict engine",
         layer="GOVERNANCE",
@@ -248,7 +248,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 8. arifos.memory — Governed Recall (was 555_MEMORY, engineering_memory)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.memory",
+        name="arifos_memory",
         stage="555",
         purpose="Governed memory + recall",
         layer="INTELLIGENCE",
@@ -273,7 +273,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 9. arifos.vault — Immutable Logging (was 999_VAULT, vault_ledger)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.vault",
+        name="arifos_vault",
         stage="999",
         purpose="Immutable verdict logging",
         layer="GOVERNANCE",
@@ -298,7 +298,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 10. arifos.forge — Delegated Execution Bridge (was shell_forge)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.forge",
+        name="arifos_forge",
         stage="010",
         purpose="Delegated execution to AF-FORGE substrate",
         layer="EXECUTION",
@@ -349,7 +349,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # Use instead of chaining 7 tools manually.
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.reply",
+        name="arifos_reply",
         stage="000-999",
         purpose="Governed reply compositor — deterministic dual-axis reply pipeline",
         layer="GOVERNANCE",
@@ -441,7 +441,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 12. arifos.vps_monitor — Secure Telemetry (New)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos.vps_monitor",
+        name="arifos_vps_monitor",
         stage="111",
         purpose="Secure VPS telemetry",
         layer="MACHINE",
@@ -463,6 +463,81 @@ TOOLS: tuple[ToolSpec, ...] = (
         },
         default_tier="low",
     ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 13. arifos.fetch — Governed Web Fetch (F9 Anti-Hantu)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos_fetch",
+        stage="111",
+        purpose="Governed URL fetch + F9 Anti-Hantu filtering",
+        layer="MACHINE",
+        description=(
+            "Retrieve raw content from a URL via mcp_fetch substrate. "
+            "Applies F9 Anti-Hantu constitutional filtering to redact spiritual cosplay "
+            "or hallucinatory consciousness claims in the source content."
+        ),
+        trinity="Δ",
+        floors=("F2", "F9", "F11"),
+        visibility="public",
+        input_schema={
+            "type": "object",
+            "required": ["url"],
+            "properties": {
+                "url": {"type": "string", "description": "URL to fetch"},
+                "max_length": {
+                    "type": "integer",
+                    "default": 10000,
+                    "description": "Max characters to retrieve",
+                },
+                "session_id": {"type": "string"},
+            },
+        },
+        default_tier="medium",
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 14. arifos.git_status — Governed Repository State (Substrate)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos_git_status",
+        stage="911",
+        purpose="Read governed repository state",
+        layer="EXECUTION",
+        description="Check git status, diffs, and log with constitutional path whitelisting.",
+        trinity="Ψ",
+        floors=("F11",),
+        input_schema={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "default": "./"},
+            },
+        },
+        default_tier="small",
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 15. arifos.git_commit — Governed Repository Mutation (Substrate)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos_git_commit",
+        stage="999",
+        purpose="Mutate governed repository state (F13 Required)",
+        layer="EXECUTION",
+        description=(
+            "Add and commit changes to the repository. REQUIRES F13 human ratification. "
+            "Enforces F11 audit logging of all substrate mutations."
+        ),
+        trinity="Ψ",
+        floors=("F11", "F13"),
+        input_schema={
+            "type": "object",
+            "required": ["message"],
+            "properties": {
+                "message": {"type": "string", "minLength": 10},
+                "files": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+        default_tier="medium",
+        readonly=False,
+    ),
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -477,7 +552,7 @@ LEGACY_NAME_MAP: dict[str, str] = {
     "init_anchor": "arifos_init",
     "physics_reality": "arifos_sense",
     "agi_mind": "arifos_mind",
-    "arifOS_kernel": "arifos.kernel",
+    "arifOS_kernel": "arifos_kernel",
     "asi_heart": "arifos_heart",
     "math_estimator": "arifos_ops",
     "apex_soul": "arifos_judge",

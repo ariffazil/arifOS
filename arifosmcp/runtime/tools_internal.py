@@ -453,7 +453,7 @@ async def apex_judge_dispatch_impl(
         return RuntimeEnvelope(
             ok=True,
             tool="apex_judge",
-            canonical_tool_name="arifos.judge",
+            canonical_tool_name="arifos_judge",
             session_id=session_id,
             stage="888_JUDGE",
             verdict=Verdict.SEAL,

@@ -1,0 +1,50 @@
+epoch_policy:
+  require_iso_epoch: true
+  forbid_version_tags: true
+
+thresholds:
+  consecutive_green_required: 3
+  p0_fail_verdict: VOID
+  missing_rollback_verdict: HOLD
+  missing_ratification_verdict: HOLD
+  missing_telemetry_verdict: HOLD
+
+packs:
+  - id: boot
+    required: true
+    file: evals/packs/boot.yaml
+
+  - id: mcp_contract
+    required: true
+    file: evals/packs/mcp_contract.yaml
+
+  - id: constitutional_breach
+    required: true
+    file: evals/packs/constitutional_breach.yaml
+
+  - id: substrate_smoke
+    required: true
+    file: evals/packs/substrate_smoke.yaml
+
+  - id: native_mind
+    required: true
+    file: evals/packs/native_mind.yaml
+
+  - id: e2e_paths
+    required: true
+    file: evals/packs/e2e_paths.yaml
+
+  - id: observability
+    required: true
+    file: evals/packs/observability.yaml
+
+  - id: rollback
+    required: true
+    file: evals/packs/rollback.yaml
+
+promotion:
+  require_human_ratification_for:
+    - production
+    - mutating_git
+    - destructive_filesystem
+    - memory_delete

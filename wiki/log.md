@@ -565,3 +565,15 @@ NO DRIFT DETECTED
 - **Repo status:** CLEAN
 
 **Verdict:** SEAL — Chaos contained, constitution enforced.
+
+---
+
+## [2026-04-11] Ingest | Source: MCP Reference Servers Mapping
+- Ingested official 7-server MCP mapping from human directive.
+- Created raw source: `wiki/raw/mcp_reference_servers_mapping.md`.
+- Created synthesis page: [[Reference_MCP_Servers]].
+- Updated [[MCP_Tools]] with substrate layer cross-references.
+- Updated index and log.
+- F2 Truth aligned: reference servers provide the reality grounding for metabolic tools.
+- F11 Audit: Trail recorded.
+

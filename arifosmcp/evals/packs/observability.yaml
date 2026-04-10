@@ -1,0 +1,19 @@
+pack: observability
+description: Witness and telemetry integrity
+
+tests:
+  - id: obs-001
+    severity: P0
+    expect:
+      telemetry_json_present: true
+      epoch_iso_present: true
+
+  - id: obs-002
+    severity: P0
+    expect:
+      vault_write_ok: true
+
+  - id: obs-003
+    severity: P1
+    expect:
+      floor_triggers_logged: true

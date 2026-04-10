@@ -237,7 +237,70 @@ services:
       - "traefik.http.services.webhook.loadbalancer.server.port=9000"
     restart: unless-stopped
 
+# ── arifOS MCP Substrate Services (Official Reference Layer) ──────────────
+# Enabled per Priority Integration Order (EP-2026.04.11)
+# ─────────────────────────────────────────────────────────────────
+
+  mcp_time:
+    image: mcp/server-time:latest
+    container_name: mcp_time
+    networks:
+      - arifos_core_network
+    restart: unless-stopped
+    # 000 INIT epoch anchor
+
+  mcp_filesystem:
+    image: mcp/server-filesystem:latest
+    container_name: mcp_filesystem
+    volumes:
+      - /root/arifOS:/usr/src/project:rw
+    environment:
+      - ALLOWED_DIRECTORIES=/usr/src/project
+    networks:
+      - arifos_core_network
+    restart: unless-stopped
+    # F1/F8/888 AUDIT access
+
+  mcp_git:
+    image: mcp/server-git:latest
+    container_name: mcp_git
+    volumes:
+      - /root/arifOS:/usr/src/project:ro
+    networks:
+      - arifos_core_network
+    restart: unless-stopped
+    # F2 integrity layer
+
+  mcp_memory:
+    image: mcp/server-memory:latest
+    container_name: mcp_memory
+    networks:
+      - arifos_core_network
+    restart: unless-stopped
+    # F3 alignment backbone
+
+  mcp_fetch:
+    image: mcp/server-fetch:latest
+    container_name: mcp_fetch
+    networks:
+      - arifos_core_network
+    restart: unless-stopped
+    # F9 reality grounding
+
+  mcp_everything:
+    image: mcp/server-everything:latest
+    container_name: mcp_everything
+    networks:
+      - arifos_core_network
+    restart: unless-stopped
+    # ─────────────────────────────────────────────────────────────
+    # CONFORMANCE HARNESS: Protocol wind-tunnel only.
+    # NOT for production metabolic paths.
+    # ─────────────────────────────────────────────────────────────
+
+
 volumes:
+
   arifosmcp_secrets:
     external: true
   arifosmcp_telemetry:

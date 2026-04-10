@@ -25,6 +25,7 @@
 - [[Concept_Governance_Enforcer]] (Structural Hard-Stops, Class A/B/C, and Floor Realism)
 - [[Eigent_Backend]] (Multi-agent desktop automation — H1+H2 bridge)
 - [[Philosophy_Registry]] (v1.2.0 quotes corpus — 83 quotes, 5 G★ bands)
+- [[Reference_MCP_Servers]] (Official 7-server MCP substrate layer)
 
 ## 👤 Entities & Apps
 - [[GEOX]] (Earth Witness, Reality Gatekeeper)

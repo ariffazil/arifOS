@@ -20,6 +20,18 @@ CANONICAL_TOOL_HANDLERS = {
     "arifos_architect": "arifos_architect",
 }
 
+# Substrate Capability Families
+SUBSTRATE_CAPABILITIES = {
+    "substrate.git.audit": "git_bridge.get_repo_state",
+    "substrate.git.propose": "git_bridge.propose_changes",
+    "substrate.git.commit": "git_bridge.commit_governed",
+    "substrate.fetch.guarded": "fetch_bridge.fetch_guarded",
+    # Validation Layer (Substrate Wind-Tunnel)
+    "substrate.validation.everything.probe": "everything_probe.run_full_diagnostic",
+    "substrate.validation.everything.transport_check": "everything_probe.probe_server_features",
+    "substrate.validation.everything.protocol_smoke": "everything_probe.probe_tools_roundtrip",
+}
+
 # Legacy dotted-map for v1 compatibility
 LEGACY_TOOL_MAP = {
     "arifos.init": "arifos_init",

@@ -115,7 +115,7 @@ def wrap_tool_output(
         remediation = None
         if name == "F11_AUTHORITY":
             remediation = {
-                "next_tool": "init_anchor",
+                "next_tool": "arifos_init",
                 "required_args": ["actor_id", "intent"],
                 "example_payload": {
                     "actor_id": "operator",

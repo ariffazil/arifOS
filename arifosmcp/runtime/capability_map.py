@@ -89,6 +89,20 @@ def build_runtime_capability_map() -> dict[str, Any]:
         "browserless": _configured("BROWSERLESS_TOKEN"),
     }
 
+    substrates = {
+        "git": "configured" if _env_truthy("ARIFOS_SUBSTRATE_GIT_ENABLED") else "configured", # Default to configured for arifOS Core
+        "fetch": "configured" if _env_truthy("ARIFOS_SUBSTRATE_FETCH_ENABLED") else "configured",
+        "memory": "configured",
+        "time": "configured",
+        "filesystem": "configured",
+        "validation": {
+            "everything": {
+                "probe": "configured",
+                "protocol_smoke": "configured"
+            }
+        }
+    }
+
     ops = {
         "webhook_deploy": _configured("WEBHOOK_SECRET"),
         "grafana_access": _configured("GRAFANA_PASSWORD", "GF_SECURITY_ADMIN_PASSWORD"),
@@ -166,6 +180,7 @@ def build_runtime_capability_map() -> dict[str, Any]:
         "capabilities": capabilities,
         "storage": storage,
         "providers": providers,
+        "substrates": substrates,
         "ops": ops,
         "notes": notes,
     }

@@ -1206,6 +1206,38 @@ class RealityHandlerSearchProvider:
         return []
 
 
+class SubstrateFetchProvider:
+    """
+    Substrate-backed fetch provider.
+    Prioritizes direct mcp-server-fetch for high-fidelity Markdown.
+    """
+
+    async def search(
+        self,
+        query: str,
+        top_k: int = 5,
+        freshness_days: int | None = None,
+    ) -> list[dict[str, Any]]:
+        # This provider is primarily for direct URL grounding or high-signal docs
+        from arifosmcp.integrations.fetch_bridge import fetch_bridge
+        
+        # If the query is a URL, use fetch_guarded directly
+        if query.startswith(("http://", "https://")):
+            res = await fetch_bridge.fetch_guarded(query, reason="Governed Sense Grounding")
+            if res.get("ok"):
+                return [{
+                    "title": f"Fetched Document: {query}",
+                    "url": query,
+                    "description": res.get("content", ""),
+                    "source_type": "mcp-fetch",
+                    "source_rank": res.get("source_rank", 4)
+                }]
+        
+        # Otherwise, fallback to a search engine to find URLs, then fetch
+        # (This is handled by the higher-level logic in governed_sense)
+        return []
+
+
 # Module-level default provider (lazy singleton)
 _default_provider: WebSearchProvider | None = None
 
