@@ -1,0 +1,147 @@
+# arifOS VPS Deployment Configuration
+# For Hostinger VPS (Ubuntu 22.04 LTS)
+# 
+# Deploy with:
+#   docker-compose -f docker-compose.yml -f deployments/vps-deploy.yml up -d
+
+version: "3.8"
+
+services:
+  # Override arifosmcp for VPS
+  arifosmcp:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+    environment:
+      - VPS_MODE=1
+      - ARIFOS_DEPLOYMENT=vps-prod
+      - LOG_LEVEL=INFO
+      - MCP_SUBSTRATES_ENABLED=true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.arifosmcp.rule=Host(`arifosmcp.arif-fazil.com`)"
+      - "traefik.http.routers.arifosmcp.entrypoints=websecure"
+      - "traefik.http.routers.arifosmcp.tls.certresolver=letsencrypt"
+      - "traefik.http.services.arifosmcp.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.arifosmcp-ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.arifosmcp-ratelimit.ratelimit.burst=50"
+      - "traefik.http.routers.arifosmcp.middlewares=arifosmcp-ratelimit"
+
+  # MCP Substrates - Production Configuration
+  mcp_time:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"  # Internal only
+
+  mcp_filesystem:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
+
+  mcp_git:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
+
+  mcp_memory:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
+
+  mcp_fetch:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
+
+  mcp_everything:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
+    profiles:
+      - testing  # Only start when explicitly testing
+
+  # Monitoring stack for VPS
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - /opt/arifos/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - arifos_core_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`metrics.arif-fazil.com`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - /opt/arifos/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - /opt/arifos/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - arifos_core_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`dash.arif-fazil.com`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+    profiles:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:

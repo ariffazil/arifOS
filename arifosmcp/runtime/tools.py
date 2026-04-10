@@ -19,8 +19,7 @@ from typing import Any
 
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 
-# RuntimeEnvelope is a dict type for tool outputs
-RuntimeEnvelope = dict[str, Any]
+from arifosmcp.runtime.models import RuntimeEnvelope
 # Philosophy injection removed from tools - happens centrally in _wrap_call()
 # to ensure ONLY G★ determines band, never tool identity
 from fastmcp import FastMCP
@@ -52,6 +51,10 @@ from arifosmcp.runtime.megaTools import (
 from arifosmcp.runtime.megaTools import (
     vault_ledger as _mega_vault_ledger,
 )
+from arifosmcp.tools.fetch_tool import arifos_fetch
+from arifosmcp.integrations.memory_bridge import arifos_memory_query as arifos_memory
+from arifosmcp.integrations.git_bridge import arifos_git_status, arifos_git_commit
+from arifosmcp.integrations.everything_probe import everything_probe
 
 logger = logging.getLogger(__name__)
 
@@ -436,6 +439,19 @@ async def arifos_sense(
     return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug, platform)
 
 
+
+async def arifos_fetch_tool(
+    url: str,
+    max_length: int = 10000,
+    actor_id: str = "anonymous",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    """
+    Governed web fetch with F9 Anti-Hantu filtering.
+    """
+    return await arifos_fetch(url, max_length, actor_id, session_id)
+
+
 async def _sense_legacy(
     query: str,
     mode: str,
@@ -467,28 +483,70 @@ async def arifos_mind(
     dry_run: bool = True,
     debug: bool = False,
     platform: str = "unknown",
+    # ═══════════════════════════════════════════════════════════════════════
+    # SEQUENTIAL THINKING PARAMETERS (005-IMPLEMENTATION-SEQUENTIAL)
+    # ═══════════════════════════════════════════════════════════════════════
+    template: str | None = None,
+    thinking_session_id: str | None = None,
+    step_type: str | None = None,
+    step_content: str | None = None,
+    from_step: int | None = None,
+    alternative_reasoning: str | None = None,
+    branch_ids: list[str] | None = None,
 ) -> RuntimeEnvelope:
     """Structured reasoning with typed cognitive pipeline.
 
-    Runs the constitutional AGI pipeline (sense → mind → heart → judge)
-    producing a narrow decision_packet for the operator and a full
-    audit_packet for the vault.  Internal richness, external compression.
-    """
-    from arifosmcp.runtime.arifos_runtime_envelope import Provenance, run_agi_mind
-    from arifosmcp.runtime.sessions import _normalize_session_id, get_session_identity
-
-    # ── Task Ψ1: Identity & Session Stability (Continuity Phase) ──────────
-    # 1. Resolve canonical session_id
-    session_id = _normalize_session_id(session_id)
+    Modes:
+    - "reason" (default): Standard AGI pipeline (sense → mind → heart → judge)
+    - "sequential": Constitutionally-governed sequential thinking with templates
+    - "step": Add a step to an existing thinking session
+    - "branch": Create a reasoning branch from a step
+    - "merge": Synthesize insights across branches
+    - "review": Review/export a thinking session
     
-    # 2. Retrieve anchored identity
+    Sequential thinking enforces F1-F13 at each step, replacing external 
+    Sequential Thinking MCP with native constitutional governance.
+
+    Runs the constitutional AGI pipeline producing a narrow decision_packet 
+    for the operator and a full audit_packet for the vault.
+    """
+    from arifosmcp.runtime.sessions import _normalize_session_id, get_session_identity
+    
+    # Normalize session
+    session_id = _normalize_session_id(session_id)
     identity = get_session_identity(session_id) or {}
     actor_id = identity.get("actor_id", "anonymous")
     
+    # ═══════════════════════════════════════════════════════════════════════
+    # SEQUENTIAL THINKING MODE (005-IMPLEMENTATION-SEQUENTIAL)
+    # ═══════════════════════════════════════════════════════════════════════
+    if mode in ("sequential", "step", "branch", "merge", "review"):
+        return await _run_sequential_thinking(
+            mode=mode,
+            query=query,
+            context=context,
+            session_id=session_id,
+            actor_id=actor_id,
+            risk_tier=risk_tier,
+            dry_run=dry_run,
+            template=template,
+            thinking_session_id=thinking_session_id,
+            step_type=step_type,
+            step_content=step_content,
+            from_step=from_step,
+            alternative_reasoning=alternative_reasoning,
+            branch_ids=branch_ids,
+        )
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # STANDARD REASONING MODE (existing implementation)
+    # ═══════════════════════════════════════════════════════════════════════
+    from arifosmcp.runtime.arifos_runtime_envelope import Provenance, run_agi_mind
+
+    # ── Task Ψ1: Identity & Session Stability (Continuity Phase) ──────────
     # 3. Guard: No drift allowed for non-global sessions
     if session_id and not session_id.startswith("global") and actor_id == "anonymous":
         logger.warning(f"Ψ-BREACH: Identity lost in pipeline for session {session_id}")
-        # In strict VPS mode, this would raise a ContinuityError.
 
     # 4. Prepare provenance with session identity
     prov = Provenance(
@@ -618,7 +676,260 @@ async def arifos_mind(
     return sealed
 
 
-async def arifos_route(
+# ═══════════════════════════════════════════════════════════════════════════════
+# SEQUENTIAL THINKING IMPLEMENTATION (005-IMPLEMENTATION-SEQUENTIAL)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def _run_sequential_thinking(
+    mode: str,
+    query: str,
+    context: str | None,
+    session_id: str | None,
+    actor_id: str,
+    risk_tier: str,
+    dry_run: bool,
+    template: str | None,
+    thinking_session_id: str | None,
+    step_type: str | None,
+    step_content: str | None,
+    from_step: int | None,
+    alternative_reasoning: str | None,
+    branch_ids: list[str] | None,
+) -> RuntimeEnvelope:
+    """
+    Run sequential thinking with constitutional governance.
+    
+    This is the native arifOS replacement for Sequential Thinking MCP,
+    enforcing F1-F13 at every step.
+    """
+    from arifosmcp.runtime.thinking import ThinkingSessionManager, THINKING_TEMPLATES
+    from arifosmcp.runtime.thinking.templates import auto_select_template
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, RuntimeStatus, Verdict
+    
+    manager = ThinkingSessionManager()
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MODE: SEQUENTIAL - Start a new thinking session
+    # ═══════════════════════════════════════════════════════════════════════════
+    if mode == "sequential":
+        # Auto-select template if not provided
+        if not template:
+            template = auto_select_template(query)
+        
+        # ── INITIAL KNOWLEDGE ACQUISITION (Substrate Bridge) ─────────────
+        # Query memory for existing entities related to the problem
+        mem_context = ""
+        try:
+            from arifosmcp.integrations.memory_bridge import arifos_memory_query
+            mem_report = await arifos_memory_query(query=query, actor_id=actor_id, session_id=session_id)
+            if mem_report.ok:
+                entities = mem_report.payload.get("entities", [])
+                if entities:
+                    from arifosmcp.integrations.memory_bridge import KGEntity
+                    # Re-map to objects for formatting if needed, or format directly
+                    mem_context = "\n## Knowledge Graph Context\n"
+                    for e in entities:
+                        mem_context += f"### {e['name']} ({e['type']})\n"
+                        for obs in e.get("observations", [])[:3]:
+                            mem_context += f"- {obs}\n"
+                    context = f"{context}\n{mem_context}" if context else mem_context
+        except Exception as e:
+            logger.warning(f"Memory lookup failed at MIND start: {e}")
+
+        # Start session
+        thinking_session = manager.start_session(
+            problem=query,
+            context={"context": context, "kg_entities_found": len(entities) if 'entities' in locals() else 0} if context else None,
+            template=template,
+            arifos_session_id=session_id
+        )
+        
+        # If template provided, auto-generate initial steps
+        if template and template in THINKING_TEMPLATES:
+            tmpl = THINKING_TEMPLATES[template]
+            # Generate step content via LLM (simplified here)
+            for i, step_prompt in enumerate(tmpl.steps[:3]):  # First 3 steps
+                step = manager.add_step(
+                    session_id=thinking_session.session_id,
+                    step_type=tmpl.step_types[i],
+                    content=f"[Step {i+1}: {step_prompt}]\n\nAnalyzing: {query[:100]}..."
+                )
+                # F2 check - stop on VOID
+                if step.constitutional_verdict == "VOID":
+                    break
+        
+        return _RE(
+            ok=True,
+            tool="arifos_mind",
+            canonical_tool_name="arifos.mind",
+            stage="333_MIND",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "mode": "sequential",
+                "thinking_session_id": thinking_session.session_id,
+                "template": template,
+                "problem": query,
+                "steps_count": len(thinking_session.steps),
+                "quality_score": thinking_session.quality_score,
+                "constitutional_verdicts": [s.constitutional_verdict for s in thinking_session.steps],
+            },
+            session_id=session_id,
+        )
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MODE: STEP - Add a step to existing session
+    # ═══════════════════════════════════════════════════════════════════════════
+    elif mode == "step":
+        if not thinking_session_id:
+            return _RE(
+                ok=False,
+                tool="arifos_mind",
+                stage="333_MIND",
+                verdict=Verdict.VOID,
+                status=RuntimeStatus.ERROR,
+                payload={"error": "thinking_session_id required for mode='step'"},
+            )
+        
+        step = manager.add_step(
+            session_id=thinking_session_id,
+            step_type=step_type or "analysis",
+            content=step_content or query,
+        )
+        
+        return _RE(
+            ok=True,
+            tool="arifos_mind",
+            stage="333_MIND",
+            verdict=Verdict.SEAL if step.constitutional_verdict != "VOID" else Verdict.VOID,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "mode": "step",
+                "step_number": step.step_number,
+                "constitutional_verdict": step.constitutional_verdict,
+                "f2_truth_score": step.f2_truth_score,
+                "f7_uncertainty": step.f7_uncertainty,
+                "quality_score": step.quality_score,
+            },
+            session_id=session_id,
+        )
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MODE: BRANCH - Create a reasoning branch
+    # ═══════════════════════════════════════════════════════════════════════════
+    elif mode == "branch":
+        if not thinking_session_id or not from_step:
+            return _RE(
+                ok=False,
+                tool="arifos_mind",
+                stage="333_MIND",
+                verdict=Verdict.VOID,
+                status=RuntimeStatus.ERROR,
+                payload={"error": "thinking_session_id and from_step required for mode='branch'"},
+            )
+        
+        branch_id = manager.branch_session(
+            session_id=thinking_session_id,
+            from_step=from_step,
+            alternative_reasoning=alternative_reasoning or query,
+        )
+        
+        return _RE(
+            ok=True,
+            tool="arifos_mind",
+            stage="333_MIND",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "mode": "branch",
+                "branch_id": branch_id,
+                "from_step": from_step,
+            },
+            session_id=session_id,
+        )
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MODE: MERGE - Synthesize branches
+    # ═══════════════════════════════════════════════════════════════════════════
+    elif mode == "merge":
+        if not thinking_session_id:
+            return _RE(
+                ok=False,
+                tool="arifos_mind",
+                stage="333_MIND",
+                verdict=Verdict.VOID,
+                status=RuntimeStatus.ERROR,
+                payload={"error": "thinking_session_id required for mode='merge'"},
+            )
+        
+        conclusion = manager.merge_insights(
+            session_id=thinking_session_id,
+            branch_ids=branch_ids or [],
+        )
+        
+        return _RE(
+            ok=True,
+            tool="arifos_mind",
+            stage="333_MIND",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "mode": "merge",
+                "conclusion_step": conclusion.step_number,
+                "content": conclusion.content,
+                "quality_score": conclusion.quality_score,
+            },
+            session_id=session_id,
+        )
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MODE: REVIEW - Export/review session
+    # ═══════════════════════════════════════════════════════════════════════════
+    elif mode == "review":
+        if not thinking_session_id:
+            return _RE(
+                ok=False,
+                tool="arifos_mind",
+                stage="333_MIND",
+                verdict=Verdict.VOID,
+                status=RuntimeStatus.ERROR,
+                payload={"error": "thinking_session_id required for mode='review'"},
+            )
+        
+        exported = manager.export_session(
+            session_id=thinking_session_id,
+            format_type="json"
+        )
+        
+        thinking_session = manager.get_session(thinking_session_id)
+        
+        return _RE(
+            ok=True,
+            tool="arifos_mind",
+            stage="333_MIND",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload={
+                "mode": "review",
+                "session": exported,
+                "quality_score": thinking_session.quality_score if thinking_session else 0,
+                "constitutional_verdicts": [s.constitutional_verdict for s in thinking_session.steps] if thinking_session else [],
+            },
+            session_id=session_id,
+        )
+    
+    # Unknown mode
+    return _RE(
+        ok=False,
+        tool="arifos_mind",
+        stage="333_MIND",
+        verdict=Verdict.VOID,
+        status=RuntimeStatus.ERROR,
+        payload={"error": f"Unknown sequential thinking mode: {mode}"},
+    )
+
+
+async def arifos_kernel(
     request: str,
     mode: str = "kernel",
     session_id: str | None = None,
@@ -639,7 +950,7 @@ async def arifos_route(
         debug=debug,
     )
     _stamp_platform(envelope, platform)
-    return seal_runtime_envelope(envelope, "arifos_route")
+    return seal_runtime_envelope(envelope, "arifos_kernel")
 
 
 async def arifos_heart(
@@ -922,7 +1233,7 @@ async def arifos_reply(
     dry_run: bool = False,
 ) -> RuntimeEnvelope:
     """
-    arifos.reply — Governed Reply Compositor (AGI Reply Protocol v3).
+    arifos_reply — Governed Reply Compositor (AGI Reply Protocol v3).
 
     Composite orchestrator: enforces memory → sense → mind → heart → ops → judge → vault
     in deterministic order. Emits AgiReplyEnvelopeHuman or AgiReplyEnvelopeAgent.
@@ -1046,11 +1357,11 @@ async def arifos_reply(
     )
     title = f"{verdict_token} τ={tau:.2f} — {verdict_statement}"
     audit_hash = hashlib.sha256(
-        f"{title}{_ts}arifos.reply{judge_verdict_str}".encode()
+        f"{title}{_ts}arifos_reply{judge_verdict_str}".encode()
     ).hexdigest()[:16]
 
-    if "arifos.vault" not in _cc and judge_verdict_str in ("SEAL", "HOLD"):
-        _cc.append("arifos.vault")
+    if "arifos_vault" not in _cc and judge_verdict_str in ("SEAL", "HOLD"):
+        _cc.append("arifos_vault")
 
     # ── 888 HOLD governance trace ─────────────────────────────────────────────
     governance_trace = None
@@ -1088,12 +1399,12 @@ async def arifos_reply(
         },
         "governance_trace": governance_trace,
         "telemetry": ops_result or None,
-        "forged_by": "arifos.reply",
+        "forged_by": "arifos_reply",
         "judge_verdict": judge_verdict_str,
         "to": _actor,
         "cc": _cc,
         "vault_ref": vault_ref,
-        "consulted_tools": ["arifos.memory", "arifos.sense", "arifos.mind", "arifos.heart", "arifos.ops", "arifos.judge"],
+        "consulted_tools": ["arifos_memory", "arifos_sense", "arifos_mind", "arifos_heart", "arifos_ops", "arifos_judge"],
         "informed_agents": _cc,
     }
 
@@ -1103,7 +1414,7 @@ async def arifos_reply(
         RE(
             ok=judge_verdict_str in ("SEAL", "PARTIAL"),
             tool="arifos_reply",
-            canonical_tool_name="arifos.reply",
+            canonical_tool_name="arifos_reply",
             stage="000-999",
             verdict=_verdict_map.get(judge_verdict_str, V.HOLD),
             status=RuntimeStatus.SUCCESS if judge_verdict_str in ("SEAL", "PARTIAL") else RuntimeStatus.HOLD,
@@ -1117,27 +1428,52 @@ async def arifos_reply(
     )
 
 
+async def arifos_diag_substrate(session_id: str | None = None) -> RuntimeEnvelope:
+    """
+    arifos_diag_substrate — Maintainer-only substrate conformance diagnostic.
+    Runs protocol exercise probes against 'everything' harness.
+    """
+    from arifosmcp.runtime.models import Verdict, RuntimeStatus, RuntimeEnvelope as _RE
+    
+    # F11: Restricted to maintainer flows
+    diag = await everything_probe.run_full_diagnostic()
+    
+    return _RE(
+        ok=diag["verdict"] == "SEAL",
+        tool="arifos_diag_substrate",
+        verdict=Verdict.SEAL if diag["verdict"] == "SEAL" else Verdict.VOID,
+        status=RuntimeStatus.SUCCESS if diag["verdict"] == "SEAL" else RuntimeStatus.ERROR,
+        payload=diag,
+        detail=f"Substrate Conformance: {diag['verdict']}"
+    )
+
+
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
-    "arifos.init": arifos_init,
-    "arifos.sense": arifos_sense,
-    "arifos.mind": arifos_mind,
-    "arifos.kernel": arifos_route,
-    "arifos.heart": arifos_heart,
-    "arifos.ops": arifos_ops,
-    "arifos.judge": arifos_judge,
-    "arifos.memory": arifos_memory,
-    "arifos.vault": arifos_vault,
-    "arifos.forge": arifos_forge,
-    "arifos.vps_monitor": arifos_vps_monitor,
-    "arifos.reply": arifos_reply,   # Tool #12 — Governed Reply Compositor
+    "arifos_init": arifos_init,
+    "arifos_sense": arifos_sense,
+    "arifos_mind": arifos_mind,
+    "arifos_kernel": arifos_kernel,
+    "arifos_heart": arifos_heart,
+    "arifos_ops": arifos_ops,
+    "arifos_judge": arifos_judge,
+    "arifos_memory": arifos_memory,
+    "arifos_vault": arifos_vault,
+    "arifos_forge": arifos_forge,
+    "arifos_vps_monitor": arifos_vps_monitor,
+    "arifos_reply": arifos_reply,   # Tool #12 — Governed Reply Compositor
+    "arifos_fetch": arifos_fetch,   # Tool #13 — Governed Web Fetch
+    "arifos_git_status": arifos_git_status, # Substrate: Git Read
+    "arifos_git_commit": arifos_git_commit, # Substrate: Git Write (F13)
+    "arifos_diag_substrate": arifos_diag_substrate, # Maintainer: Conformance
 }
 
 
 # Backward-compatible aliases for older runtime imports.
+arifos_route = arifos_kernel # [P1 FIX] Preserve canonical route symbol
 init_v2 = arifos_init
 sense_v2 = arifos_sense
 mind_v2 = arifos_mind
-route_v2 = arifos_route
+route_v2 = arifos_kernel
 memory_v2 = arifos_memory
 heart_v2 = arifos_heart
 ops_v2 = arifos_ops
@@ -1148,7 +1484,7 @@ V2_TOOL_HANDLERS = CANONICAL_TOOL_HANDLERS
 
 # Legacy Horizon/v1 aliases for tests
 init_anchor = arifos_init
-arifOS_kernel = arifos_route
+arifOS_kernel = arifos_kernel
 apex_soul = arifos_judge
 vault_ledger = arifos_vault
 math_estimator = arifos_ops
@@ -1284,7 +1620,7 @@ __all__ = [
     "arifos_init",
     "arifos_sense",
     "arifos_mind",
-    "arifos_route",
+    "arifos_kernel",
     "arifos_heart",
     "arifos_ops",
     "arifos_judge",
@@ -1319,3 +1655,16 @@ __all__ = [
     "_wrap_call",
     "select_governed_philosophy",
 ]
+
+async def arifos_diag_substrate(session_id: str | None = None) -> Any:
+    """Maintainer: Run substrate protocol conformance check."""
+    from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict
+    
+    verdict = await run_protocol_conformance_test()
+    return _RE(
+        ok=verdict == Verdict.SEAL,
+        tool="arifos_diag_substrate",
+        verdict=verdict,
+        payload={"message": f"Substrate conformance result: {verdict}"}
+    )

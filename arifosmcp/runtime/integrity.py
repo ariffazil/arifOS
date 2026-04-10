@@ -36,7 +36,7 @@ REQUIRED_PROTOCOL_VERSION = "2025-03-26"
 # Core 9+1 Governance Layer (Constitutional Tools)
 # NOTE: These values must match tool_specs.py exactly
 REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
-    "arifos.init": {
+    "arifos_init": {
         "stage": "000",  # Short form as in tool_specs.py
         "lane": "Ψ",
         "trinity": "PSI",
@@ -45,7 +45,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F11", "F12", "F13"],
     },
-    "arifos.sense": {
+    "arifos_sense": {
         "stage": "111",
         "lane": "Δ",
         "trinity": "DELTA",
@@ -54,7 +54,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F2", "F3", "F4", "F10"],
     },
-    "arifos.mind": {
+    "arifos_mind": {
         "stage": "333",
         "lane": "Δ",
         "trinity": "DELTA",
@@ -63,7 +63,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F2", "F4", "F7", "F8"],
     },
-    "arifos.kernel": {
+    "arifos_kernel": {
         "stage": "444",
         "lane": "Δ/Ψ",
         "trinity": "DELTA_PSI",
@@ -72,7 +72,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F4", "F11"],
     },
-    "arifos.heart": {
+    "arifos_heart": {
         "stage": "666",
         "lane": "Ω",
         "trinity": "OMEGA",
@@ -81,16 +81,16 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F5", "F6", "F9"],
     },
-    "arifos.ops": {
+    "arifos_ops": {
         "stage": "777",
         "lane": "Δ",
         "trinity": "DELTA",
-        "router_visible": True,  # Auxiliary — now in router surface for consistency
+        "router_visible": False,  # Auxiliary — not in router surface
         "risk_class": "low",
         "governance_critical": False,  # Auxiliary tool
         "floors": ["F4", "F5"],
     },
-    "arifos.judge": {
+    "arifos_judge": {
         "stage": "888",
         "lane": "Ψ",
         "trinity": "PSI",
@@ -99,7 +99,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
     },
-    "arifos.memory": {
+    "arifos_memory": {
         "stage": "555",
         "lane": "Ω",
         "trinity": "OMEGA",
@@ -108,7 +108,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F2", "F10", "F11"],
     },
-    "arifos.vault": {
+    "arifos_vault": {
         "stage": "999",
         "lane": "Ψ",
         "trinity": "PSI",
@@ -117,7 +117,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "governance_critical": True,
         "floors": ["F1", "F13"],
     },
-    "arifos.forge": {
+    "arifos_forge": {
         "stage": "010",  # Short form as in tool_specs.py
         "lane": "Δ",
         "trinity": "DELTA",
@@ -130,8 +130,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
 
 # Auxiliary tools (may exist but not router-visible by default)
 AUXILIARY_TOOLS: set[str] = {
-    "arifos.vps_monitor",
-    "arifos.route",  # Deprecated, maps to kernel
+    "arifos_vps_monitor",
 }
 
 # Required endpoints for constitutional compliance

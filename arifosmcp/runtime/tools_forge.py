@@ -268,7 +268,7 @@ def _forge_error(
         }],
         "payload": {
             "error": message,
-            "resolution": "Route through arifos.judge first to obtain SEAL verdict.",
+            "resolution": "Route through arifos_judge first to obtain SEAL verdict.",
         },
         "allowed_next_tools": ["arifos_judge", "arifos_init"],
     }

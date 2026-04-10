@@ -1,0 +1,163 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- C:\ariffazil\arifOS\arifosmcp\.venv\Scripts\python.exe
+cachedir: C:\Users\User\AppData\Local\Temp\pytest_cache
+rootdir: C:\ariffazil\arifOS
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.13.0, asyncio-1.3.0, cov-7.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 963 items / 13 errors
+
+=================================== ERRORS ====================================
+_________ ERROR collecting tests/runtime/test_capability_map_gate.py __________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\runtime\test_capability_map_gate.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\runtime\test_capability_map_gate.py:5: in <module>
+    from arifosmcp.capability_map import (
+E   ImportError: cannot import name 'MEGA_TOOLS' from 'arifosmcp.capability_map' (C:\ariffazil\arifOS\arifosmcp\capability_map.py)
+______________ ERROR collecting tests/runtime/test_mega_audit.py ______________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\runtime\test_mega_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\runtime\test_mega_audit.py:24: in <module>
+    from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS
+E   ImportError: cannot import name 'FINAL_TOOL_IMPLEMENTATIONS' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+___________ ERROR collecting tests/runtime/test_mega_tool_audit.py ____________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\runtime\test_mega_tool_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\runtime\test_mega_tool_audit.py:12: in <module>
+    from arifosmcp.runtime.tools import register_tools
+E   ImportError: cannot import name 'register_tools' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+_________________ ERROR collecting tests/specs/test_specs.py __________________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\specs\test_specs.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\specs\test_specs.py:14: in <module>
+    from arifosmcp.specs import (
+E   ModuleNotFoundError: No module named 'arifosmcp.specs'
+___________ ERROR collecting tests/test_caller_context_envelope.py ____________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_caller_context_envelope.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_caller_context_envelope.py:25: in <module>
+    from arifosmcp.runtime.tools import _build_user_model, _resolve_caller_context
+E   ImportError: cannot import name '_build_user_model' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+___________ ERROR collecting tests/test_constitutional_heartbeat.py ___________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_constitutional_heartbeat.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_constitutional_heartbeat.py:2: in <module>
+    from arifosmcp.runtime.tools import check_vital, init_anchor, forge, arifos_kernel
+E   ImportError: cannot import name 'forge' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+_____________________ ERROR collecting tests/test_e2e.py ______________________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_e2e.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_e2e.py:3: in <module>
+    from arifosmcp.runtime.tools import metabolic_loop_router
+E   ImportError: cannot import name 'metabolic_loop_router' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+______________ ERROR collecting tests/test_hardened_toolchain.py ______________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_hardened_toolchain.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_hardened_toolchain.py:16: in <module>
+    from arifosmcp.runtime.contracts_v2 import (
+E   ModuleNotFoundError: No module named 'arifosmcp.runtime.contracts_v2'
+_____________ ERROR collecting tests/test_invariants_authority.py _____________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_invariants_authority.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_invariants_authority.py:7: in <module>
+    from arifosmcp.runtime.tools import init_anchor, arifos_kernel
+E   ImportError: cannot import name 'arifos_kernel' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+_______________ ERROR collecting tests/test_llm_context_map.py ________________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_llm_context_map.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_llm_context_map.py:4: in <module>
+    from arifosmcp.capability_map import build_llm_context_map
+E   ImportError: cannot import name 'build_llm_context_map' from 'arifosmcp.capability_map' (C:\ariffazil\arifOS\arifosmcp\capability_map.py)
+___________ ERROR collecting tests/test_runtime_adversarial_auth.py ___________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_runtime_adversarial_auth.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_runtime_adversarial_auth.py:11: in <module>
+    from arifosmcp.runtime.tools import init_anchor, arifos_kernel
+E   ImportError: cannot import name 'arifos_kernel' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+_______________ ERROR collecting tests/test_runtime_prompts.py ________________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_runtime_prompts.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_runtime_prompts.py:3: in <module>
+    from arifosmcp.runtime.prompts import register_prompts
+E   ImportError: cannot import name 'register_prompts' from 'arifosmcp.runtime.prompts' (C:\ariffazil\arifOS\arifosmcp\runtime\prompts.py)
+___________ ERROR collecting tests/test_runtime_tools_bootstrap.py ____________
+ImportError while importing test module 'C:\ariffazil\arifOS\tests\test_runtime_tools_bootstrap.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\User\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_runtime_tools_bootstrap.py:16: in <module>
+    from arifosmcp.runtime.tools import (
+E   ImportError: cannot import name 'audit_rules' from 'arifosmcp.runtime.tools' (C:\ariffazil\arifOS\arifosmcp\runtime\tools.py)
+============================== warnings summary ===============================
+arifosmcp\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:288
+  C:\ariffazil\arifOS\arifosmcp\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:288: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/runtime/test_capability_map_gate.py
+ERROR tests/runtime/test_mega_audit.py
+ERROR tests/runtime/test_mega_tool_audit.py
+ERROR tests/specs/test_specs.py
+ERROR tests/test_caller_context_envelope.py
+ERROR tests/test_constitutional_heartbeat.py
+ERROR tests/test_e2e.py
+ERROR tests/test_hardened_toolchain.py
+ERROR tests/test_invariants_authority.py
+ERROR tests/test_llm_context_map.py
+ERROR tests/test_runtime_adversarial_auth.py
+ERROR tests/test_runtime_prompts.py
+ERROR tests/test_runtime_tools_bootstrap.py
+!!!!!!!!!!!!!!!!!! Interrupted: 13 errors during collection !!!!!!!!!!!!!!!!!!!
+======================= 1 warning, 13 errors in 21.75s ========================

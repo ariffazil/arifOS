@@ -51,8 +51,12 @@ class HandoffReceipt:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict(), sort_keys=True)
+    def to_json(self, exclude_signature: bool = False) -> str:
+        """Serialize to JSON. Optionally exclude signature for signing operations."""
+        d = self.to_dict()
+        if exclude_signature:
+            d.pop("signature", None)
+        return json.dumps(d, sort_keys=True)
 
 
 @dataclass
@@ -145,7 +149,7 @@ class HandoffSealer:
             merkle_root_before=merkle_root_before,
             tri_witness_score=tri_witness_score,
         )
-        merkle_leaf = self._compute_leaf(pre_receipt.to_json())
+        merkle_leaf = self._compute_leaf(pre_receipt)
         pre_receipt.merkle_leaf = merkle_leaf
 
         # Step 4: Append to vault ledger (get new root)
@@ -197,15 +201,44 @@ class HandoffSealer:
             response=response,
         )
 
-    def _sign_receipt(self, receipt: HandoffReceipt) -> str:
-        """HMAC sign the receipt."""
-        receipt_str = receipt.to_json()
+    def _sign_receipt(self, receipt: HandoffReceipt, for_verification: bool = False) -> str:
+        """
+        HMAC sign the receipt.
+
+        The signature is computed over the receipt EXCLUDING the signature field
+        itself (breaking the circular dependency).
+
+        Args:
+            receipt: Receipt to sign
+            for_verification: If True, receipt.signature is the stored value
+                              being verified (excluded from hash input)
+        """
+        # Always exclude signature field to break circular dependency:
+        # - When signing: signature field is empty "", we sign the content
+        # - When verifying: signature field holds the value we need to verify against
+        receipt_str = receipt.to_json(exclude_signature=True)
         sig = hmac.new(self._secret, receipt_str.encode(), hashlib.sha256).hexdigest()
         return sig
 
-    def _compute_leaf(self, receipt_json: str) -> str:
-        """Compute SHA-256 merkle leaf from receipt JSON."""
-        return hashlib.sha256(receipt_json.encode()).hexdigest()
+    def _compute_leaf(self, receipt: HandoffReceipt) -> str:
+        """
+        Compute SHA-256 merkle leaf from receipt identity fields only.
+
+        Uses a fixed subset of fields that are stable and immutable:
+        receipt_id + action_digest + source + target + verdict + timestamp.
+
+        This avoids any serialization variation (float precision, field ordering)
+        and ensures the leaf is deterministic across all verification nodes.
+        """
+        leaf_input = "|".join([
+            receipt.receipt_id,
+            receipt.action_digest,
+            receipt.source_agent,
+            receipt.target_agent,
+            receipt.verdict,
+            f"{receipt.timestamp:.6f}",
+        ])
+        return hashlib.sha256(leaf_input.encode()).hexdigest()
 
     def _get_vault_root(self) -> str:
         """Get current vault merkle root."""
@@ -252,7 +285,7 @@ class HandoffSealer:
             return False, f"Receipt expired (age={(time.time()-receipt.timestamp):.1f}s)"
 
         # 2. Signature verification
-        expected_sig = self._sign_receipt(receipt)
+        expected_sig = self._sign_receipt(receipt, for_verification=True)
         if not hmac.compare_digest(receipt.signature, expected_sig):
             return False, "HMAC signature mismatch"
 
@@ -262,7 +295,7 @@ class HandoffSealer:
             return False, f"zkPC verification failed: {zkpc_reason}"
 
         # 4. Merkle leaf integrity
-        computed_leaf = self._compute_leaf(receipt.to_json())
+        computed_leaf = self._compute_leaf(receipt)
         if not hmac.compare_digest(computed_leaf, receipt.merkle_leaf):
             return False, "Merkle leaf mismatch"
 

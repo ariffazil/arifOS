@@ -42,7 +42,7 @@ class TestHealthMode:
         
         assert result.ok is True
         assert result.tool == "apex_judge"
-        assert result.canonical_tool_name == "arifos.judge"
+        assert result.canonical_tool_name == "arifos_judge"
         assert result.stage == "888_JUDGE"
         assert result.verdict == Verdict.SEAL
         assert result.status == RuntimeStatus.SUCCESS

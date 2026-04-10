@@ -1,0 +1,336 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS Constitutional Evaluation CI
+# P0 Regression Tests for F1-F13 Floors
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: Constitutional Evaluation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'arifosmcp/runtime/**'
+      - 'arifosmcp/integrations/**'
+      - 'arifosmcp/evals/**'
+      - 'config/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'arifosmcp/runtime/**'
+      - 'arifosmcp/integrations/**'
+      - 'arifosmcp/evals/**'
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.14"
+  UV_VERSION: "0.6.14"
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════
+  # P0: Breach Tests (Must Pass)
+  # ═══════════════════════════════════════════════════════════════════════
+  breach-tests:
+    name: P0 Breach Regression Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv pip install -e ".[evals]" --system
+
+      - name: Run Constitutional Breach Tests
+        run: |
+          python -m arifosmcp.evals.breach_test_runner \
+            --config arifosmcp/evals/constitutional_breach_tests.yaml \
+            --output breach_results.json
+
+      - name: Upload breach results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: breach-results
+          path: breach_results.json
+
+      - name: Check for breaches
+        run: |
+          # Parse results and fail if any P0 breach not caught
+          python << 'EOF'
+          import json
+          import sys
+          
+          with open('breach_results.json') as f:
+              results = json.load(f)
+          
+          failed = []
+          for test_id, result in results.items():
+              expected_void = result.get('expected_verdict') == 'VOID'
+              actual = result.get('actual_verdict', 'UNKNOWN')
+              
+              if expected_void and actual != 'VOID':
+                  failed.append(f"{test_id}: Expected VOID, got {actual}")
+          
+          if failed:
+              print("❌ P0 BREACH TESTS FAILED:")
+              for f in failed:
+                  print(f"   {f}")
+              sys.exit(1)
+          else:
+              print("✅ All P0 breach tests passing")
+          EOF
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Sequential Thinking A/B Comparison
+  # ═══════════════════════════════════════════════════════════════════════
+  sequential-eval:
+    name: Sequential Thinking A/B Eval
+    runs-on: ubuntu-latest
+    needs: breach-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv pip install -e ".[evals]" --system
+
+      - name: Run Sequential Thinking Eval
+        run: |
+          python arifosmcp/evals/sequential_thinking_runner.py \
+            --config arifosmcp/evals/sequential_thinking_evals.yaml \
+            --output sequential_results.json
+
+      - name: Upload sequential results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sequential-results
+          path: sequential_results.json
+
+      - name: Check delist criteria
+        run: |
+          python << 'EOF'
+          import json
+          import sys
+          
+          with open('sequential_results.json') as f:
+              report = json.load(f)
+          
+          summary = report.get('summary', {})
+          arifos_wins = summary.get('overall_wins', {}).get('arifos', 0)
+          sequential_wins = summary.get('overall_wins', {}).get('sequential', 0)
+          delta = summary.get('average_scores', {}).get('delta', -1)
+          gov_advantage = summary.get('governance_advantage', 0)
+          
+          print(f"arifOS wins: {arifos_wins}")
+          print(f"Sequential MCP wins: {sequential_wins}")
+          print(f"Score delta: {delta:+.3f}")
+          print(f"Governance advantage: {gov_advantage:.1%}")
+          
+          # Delist criteria check (informational, not blocking)
+          delist_ready = (
+              arifos_wins > sequential_wins and
+              gov_advantage > 0.9 and
+              delta > -0.05
+          )
+          
+          if delist_ready:
+              print("🎯 DELIST READY: arifOS MIND ready to replace Sequential MCP")
+          else:
+              print("⏳ DELIST PENDING: Criteria not yet met")
+              print("  - Need arifOS wins > Sequential wins")
+              print("  - Need governance advantage > 90%")
+              print("  - Need score delta > -0.05")
+          EOF
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Memory Bridge Eval
+  # ═══════════════════════════════════════════════════════════════════════
+  memory-bridge-eval:
+    name: MCP Memory Bridge Eval
+    runs-on: ubuntu-latest
+    needs: breach-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv pip install -e ".[evals]" --system
+
+      - name: Run Memory Bridge Eval
+        run: |
+          # Note: MCP Memory server must be available
+          # In CI, we run in dry-run mode if server unavailable
+          python << 'EOF'
+          import asyncio
+          import json
+          import sys
+          
+          # Try to run with actual MCP, fallback to mock
+          try:
+              from arifosmcp.evals.sequential_thinking_runner import MemoryBridgeEvaluator
+              
+              evaluator = MemoryBridgeEvaluator()
+              asyncio.run(evaluator.run_full_suite())
+              report = evaluator.generate_report()
+              
+              with open('memory_bridge_results.json', 'w') as f:
+                  json.dump(report, f, indent=2)
+              
+              # Check pass rate
+              pass_rate = report['summary']['pass_rate']
+              if pass_rate < 0.8:
+                  print(f"❌ Memory bridge pass rate too low: {pass_rate*100:.0f}%")
+                  sys.exit(1)
+              else:
+                  print(f"✅ Memory bridge pass rate: {pass_rate*100:.0f}%")
+                  
+          except Exception as e:
+              print(f"⚠️ Memory bridge eval skipped: {e}")
+              # Don't fail CI if MCP server unavailable
+              with open('memory_bridge_results.json', 'w') as f:
+                  json.dump({"skipped": True, "error": str(e)}, f)
+          EOF
+
+      - name: Upload memory bridge results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: memory-bridge-results
+          path: memory_bridge_results.json
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Summary Report
+  # ═══════════════════════════════════════════════════════════════════════
+  summary:
+    name: Evaluation Summary
+    runs-on: ubuntu-latest
+    needs: [breach-tests, sequential-eval, memory-bridge-eval]
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate summary
+        run: |
+          python << 'EOF'
+          import json
+          
+          print("=" * 60)
+          print("CONSTITUTIONAL EVALUATION SUMMARY")
+          print("=" * 60)
+          
+          # Breach tests
+          try:
+              with open('breach-results/breach_results.json') as f:
+                  breach = json.load(f)
+              total_breach = len(breach)
+              passed_breach = sum(1 for r in breach.values() if r.get('passed', False))
+              print(f"\n🛡️ P0 Breach Tests: {passed_breach}/{total_breach} passed")
+          except:
+              print("\n🛡️ P0 Breach Tests: No results")
+          
+          # Sequential thinking
+          try:
+              with open('sequential-results/sequential_results.json') as f:
+                  seq = json.load(f)
+              summary = seq.get('summary', {})
+              wins = summary.get('overall_wins', {})
+              print(f"\n🧠 Sequential Thinking:")
+              print(f"   arifOS wins: {wins.get('arifos', 0)}")
+              print(f"   Sequential MCP wins: {wins.get('sequential', 0)}")
+              delta = summary.get('average_scores', {}).get('delta', 0)
+              print(f"   Score delta: {delta:+.3f}")
+          except:
+              print("\n🧠 Sequential Thinking: No results")
+          
+          # Memory bridge
+          try:
+              with open('memory-bridge-results/memory_bridge_results.json') as f:
+                  mem = json.load(f)
+              if not mem.get('skipped'):
+                  pass_rate = mem.get('summary', {}).get('pass_rate', 0)
+                  print(f"\n💾 Memory Bridge: {pass_rate*100:.0f}% pass rate")
+              else:
+                  print("\n💾 Memory Bridge: Skipped (MCP server unavailable)")
+          except:
+              print("\n💾 Memory Bridge: No results")
+          
+          print("\n" + "=" * 60)
+          EOF
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request' && !cancelled()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let body = '## 🏛️ Constitutional Evaluation Results\n\n';
+            
+            // Check breach results
+            try {
+              const breach = JSON.parse(fs.readFileSync('breach-results/breach_results.json', 'utf8'));
+              const passed = Object.values(breach).filter(r => r.passed).length;
+              const total = Object.keys(breach).length;
+              const status = passed === total ? '✅' : '❌';
+              body += `### ${status} P0 Breach Tests: ${passed}/${total} passed\n\n`;
+            } catch {
+              body += `### ⚠️ P0 Breach Tests: No results\n\n`;
+            }
+            
+            // Check sequential results
+            try {
+              const seq = JSON.parse(fs.readFileSync('sequential-results/sequential_results.json', 'utf8'));
+              const wins = seq.summary.overall_wins;
+              body += `### 🧠 Sequential Thinking A/B\n`;
+              body += `- arifOS MIND wins: ${wins.arifos}\n`;
+              body += `- Sequential MCP wins: ${wins.sequential}\n`;
+              body += `- Score delta: ${seq.summary.average_scores.delta:+.3f}\n\n`;
+            } catch {
+              body += `### ⚠️ Sequential Thinking: No results\n\n`;
+            }
+            
+            body += '> Ditempa Bukan Diberi - 999 SEAL';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

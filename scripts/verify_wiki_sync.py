@@ -30,7 +30,7 @@ def verify_sync():
     wiki_content = ""
     for wf in wiki_files:
         if wf.exists():
-            wiki_content += "\n" + wf.read_text()
+            wiki_content += "\n" + wf.read_text(encoding="utf-8")
     
     missing_from_wiki = []
     for name in mcp_names:

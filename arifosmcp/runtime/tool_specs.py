@@ -15,7 +15,7 @@ from typing import Any, Literal
 class ToolSpec:
     """Canonical tool specification with visibility control."""
 
-    name: str  # arifos.{verb} format
+    name: str  # arifos_{verb} format
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
     layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION"]
@@ -463,6 +463,81 @@ TOOLS: tuple[ToolSpec, ...] = (
         },
         default_tier="low",
     ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 13. arifos.fetch — Governed Web Fetch (F9 Anti-Hantu)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos.fetch",
+        stage="111",
+        purpose="Governed URL fetch + F9 Anti-Hantu filtering",
+        layer="MACHINE",
+        description=(
+            "Retrieve raw content from a URL via mcp_fetch substrate. "
+            "Applies F9 Anti-Hantu constitutional filtering to redact spiritual cosplay "
+            "or hallucinatory consciousness claims in the source content."
+        ),
+        trinity="Δ",
+        floors=("F2", "F9", "F11"),
+        visibility="public",
+        input_schema={
+            "type": "object",
+            "required": ["url"],
+            "properties": {
+                "url": {"type": "string", "description": "URL to fetch"},
+                "max_length": {
+                    "type": "integer",
+                    "default": 10000,
+                    "description": "Max characters to retrieve",
+                },
+                "session_id": {"type": "string"},
+            },
+        },
+        default_tier="medium",
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 14. arifos.git_status — Governed Repository State (Substrate)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos.git_status",
+        stage="911",
+        purpose="Read governed repository state",
+        layer="EXECUTION",
+        description="Check git status, diffs, and log with constitutional path whitelisting.",
+        trinity="Ψ",
+        floors=("F11",),
+        input_schema={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "default": "./"},
+            },
+        },
+        default_tier="small",
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 15. arifos.git_commit — Governed Repository Mutation (Substrate)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos.git_commit",
+        stage="999",
+        purpose="Mutate governed repository state (F13 Required)",
+        layer="EXECUTION",
+        description=(
+            "Add and commit changes to the repository. REQUIRES F13 human ratification. "
+            "Enforces F11 audit logging of all substrate mutations."
+        ),
+        trinity="Ψ",
+        floors=("F11", "F13"),
+        input_schema={
+            "type": "object",
+            "required": ["message"],
+            "properties": {
+                "message": {"type": "string", "minLength": 10},
+                "files": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+        default_tier="medium",
+        readonly=False,
+    ),
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -477,7 +552,7 @@ LEGACY_NAME_MAP: dict[str, str] = {
     "init_anchor": "arifos_init",
     "physics_reality": "arifos_sense",
     "agi_mind": "arifos_mind",
-    "arifOS_kernel": "arifos.kernel",
+    "arifOS_kernel": "arifos_kernel",
     "asi_heart": "arifos_heart",
     "math_estimator": "arifos_ops",
     "apex_soul": "arifos_judge",
