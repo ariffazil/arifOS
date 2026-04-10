@@ -1594,8 +1594,7 @@ def _create_signature_matched_alias(name: str, original_fn: Any) -> Any:
 
 def register_v2_tools(mcp: FastMCP) -> list[str]:
     """Register all v2 tools on the MCP instance with MCP v2 tool annotations."""
-    from fastmcp.tools.function_tool import FunctionTool
-    from fastmcp.tools.tool_manager import ToolAnnotations
+    from fastmcp.tools.function_tool import FunctionTool, ToolAnnotations
 
     from arifosmcp.runtime.tool_specs import V2_TOOLS
 
