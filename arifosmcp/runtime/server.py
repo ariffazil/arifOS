@@ -283,12 +283,13 @@ def _perform_boot_integrity_check() -> None:
         TRINITY_BY_TOOL,
         AAA_TOOL_LAW_BINDINGS,
     )
-    from arifosmcp.runtime.tool_specs import TOOLS, TOOL_NAMES
+    from arifosmcp.runtime.tool_specs import TOOLS, TOOL_NAMES, normalize_tool_name
     
     tool_registry: dict[str, dict[str, Any]] = {}
     for tool in TOOLS:
-        tool_registry[tool.name] = {
-            "name": tool.name,
+        normalized_name = normalize_tool_name(tool.name)
+        tool_registry[normalized_name] = {
+            "name": normalized_name,
             "stage": tool.stage,
             "lane": tool.trinity,
             "floors": tool.floors,
@@ -296,7 +297,7 @@ def _perform_boot_integrity_check() -> None:
     
     router_visible_tools = {
         name for name in tool_registry.keys()
-        if not name.startswith("arifos.vps_") and name != "arifos.route"
+        if name != "arifos_route"
     }
     
     registered_endpoints = {
@@ -548,6 +549,26 @@ async def llms_txt_handler(request: Request) -> Response:
     return Response("LLMs.txt not found", status_code=404)
 
 
+async def humans_txt_handler(request: Request) -> Response:
+    """Serve humans.txt for human sovereign info."""
+    file_path = os.path.join(os.path.dirname(__file__), "..", "..", "static", "humans.txt")
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            content = f.read()
+        return Response(content=content, media_type="text/plain")
+    return Response("Humans.txt not found", status_code=404)
+
+
+async def mcp_web_ready_audit_handler(request: Request) -> Response:
+    """Serve the MCP Web Ready Audit report."""
+    file_path = os.path.join(os.path.dirname(__file__), "..", "..", "static", "MCP_WEB_READY_AUDIT.md")
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            content = f.read()
+        return Response(content=content, media_type="text/markdown")
+    return Response("Audit report not found", status_code=404)
+
+
 async def version_handler(request: Request) -> JSONResponse:
     """Version and capability endpoint."""
     return JSONResponse(
@@ -608,6 +629,8 @@ app.add_route("/version", version_handler, methods=["GET"])
 app.add_route("/tools", tools_handler, methods=["GET"])
 app.add_route("/tools/{tool_name}", rest_tool_handler, methods=["POST"])
 app.add_route("/llms.txt", llms_txt_handler, methods=["GET"])
+app.add_route("/humans.txt", humans_txt_handler, methods=["GET"])
+app.add_route("/MCP_WEB_READY_AUDIT.md", mcp_web_ready_audit_handler, methods=["GET"])
 
 app.add_route("/.well-known/mcp", manifest_handler, methods=["GET"])
 app.add_route("/.well-known/mcp/server.json", manifest_handler, methods=["GET"])

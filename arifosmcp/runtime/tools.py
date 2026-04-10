@@ -1593,8 +1593,9 @@ def _create_signature_matched_alias(name: str, original_fn: Any) -> Any:
 
 
 def register_v2_tools(mcp: FastMCP) -> list[str]:
-    """Register all v2 tools on the MCP instance."""
+    """Register all v2 tools on the MCP instance with MCP v2 tool annotations."""
     from fastmcp.tools.function_tool import FunctionTool
+    from fastmcp.tools.tool_manager import ToolAnnotations
 
     from arifosmcp.runtime.tool_specs import V2_TOOLS
 
@@ -1605,18 +1606,26 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
             logger.warning(f"No handler for v2 tool: {spec.name}")
             continue
 
+        # Build MCP v2 tool annotations
+        annotations = ToolAnnotations(
+            readOnlyHint=spec.read_only_hint,
+            destructiveHint=spec.destructive_hint,
+            openWorldHint=spec.open_world_hint,
+            idempotentHint=spec.idempotent_hint,
+        )
+
         # 1. Register canonical dotted name (primary surface for v2)
         ft_dotted = FunctionTool.from_function(
             handler,
             name=spec.name,
             description=spec.description,
+            annotations=annotations,
         )
         ft_dotted.parameters = dict(spec.input_schema)
         mcp.add_tool(ft_dotted)
         registered.append(spec.name)
 
         # 2. Register underscored alias ONLY for public tools
-        # (internal tools don't need a second surface name — reduces chaos)
         if spec.visibility == "public":
             underscored_name = spec.name.replace(".", "_")
             if underscored_name != spec.name:
@@ -1625,6 +1634,7 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
                     alias_handler,
                     name=underscored_name,
                     description=f"Alias for {spec.name}. {spec.description}",
+                    annotations=annotations,
                 )
                 ft_u.parameters = dict(spec.input_schema)
                 mcp.add_tool(ft_u)

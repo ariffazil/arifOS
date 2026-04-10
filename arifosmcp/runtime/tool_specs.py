@@ -27,6 +27,11 @@ class ToolSpec:
     default_tier: str = "medium"
     readonly: bool = True
     outputs: dict[str, Any] = field(default_factory=dict)  # Machine-readable output schema
+    # MCP v2 tool annotations (OpenAI/ChatGPT compatibility)
+    read_only_hint: bool = True       # readOnlyHint: no environment modification
+    destructive_hint: bool = False     # destructiveHint: may perform destructive updates
+    open_world_hint: bool = True      # openWorldHint: interacts with external world
+    idempotent_hint: bool = False     # idempotentHint: repeated calls have no extra effect
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -44,7 +49,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         layer="GOVERNANCE",
         description=(
             "Initialize constitutional session with identity binding and telemetry seed. "
-            "Modes: init (default), revoke, refresh, state, status, probe. "
+            "Modes: init/probe/state/status (safe read modes) | revoke requires human_approval. "
             "probe mode: Session diagnostic checking anchor validity and authority enum compatibility."
         ),
         trinity="Ψ",
@@ -76,6 +81,10 @@ TOOLS: tuple[ToolSpec, ...] = (
             },
         },
         default_tier="small",
+        read_only_hint=True,       # Default mode is init (read-like)
+        destructive_hint=False,    # Not primarily destructive
+        open_world_hint=False,     # Closed session management domain
+        idempotent_hint=True,      # Idempotent under same session
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 2. arifos.sense — Constitutional Reality Sensing (was 111_SENSE, physics_reality)
@@ -268,6 +277,10 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "session_id": {"type": "string"},
             },
         },
+        read_only_hint=False,      # Has vector_store/engineer modes (write)
+        destructive_hint=True,        # vector_store writes to vector DB
+        open_world_hint=False,        # Closed memory domain
+        idempotent_hint=False,        # vector_store is not idempotent
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 9. arifos.vault — Immutable Logging (was 999_VAULT, vault_ledger)
