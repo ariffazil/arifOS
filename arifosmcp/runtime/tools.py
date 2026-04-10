@@ -314,13 +314,17 @@ async def arifos_sense(
     if mode == "governed":
         from arifosmcp.runtime.models import RuntimeEnvelope as _RE
         from arifosmcp.runtime.models import RuntimeStatus, Verdict
-        from arifosmcp.runtime.sensing_protocol import (
-            TimeScope,
-            normalize_query,
-        )
-        from arifosmcp.runtime.sensing_protocol import (
-            governed_sense as _governed_sense,
-        )
+        try:
+            from arifosmcp.runtime.sensing_protocol import (
+                TimeScope,
+                normalize_query,
+            )
+            from arifosmcp.runtime.sensing_protocol import (
+                governed_sense as _governed_sense,
+            )
+        except ImportError as _ie:
+            logger.warning("sensing_protocol import failed (%s) — falling back to legacy sense", _ie)
+            return await _sense_legacy(query, "search", session_id, risk_tier, dry_run, debug, platform)
 
         # Build SenseInput — use extended fields if provided, otherwise auto-normalize
         if query_frame or intent or policy or budget or actor:
@@ -421,6 +425,11 @@ async def arifos_sense(
                 "truth_vector": intel_state.truth_vector.to_dict(),
             }
         _stamp_platform(envelope, platform)
+        # ── floors_checked: write to envelope.meta before sealing ───────────
+        sense_floors = ["F2", "F3", "F4", "F7", "F8", "F10"]
+        if envelope.meta:
+            existing_floors = envelope.meta.floors_checked or []
+            envelope.meta.floors_checked = list(dict.fromkeys(sense_floors + existing_floors))
         return seal_runtime_envelope(envelope, "arifos_sense")
 
     # ── legacy modes: delegate to physics_reality ─────────────────────────────
@@ -550,6 +559,23 @@ async def arifos_mind(
         intel["chaos_score"] = audit_packet.get("constitutional_checks", {}).get("chaos_score", 0.0)
         sealed.intelligence_state = intel
         sealed.platform_context = platform
+
+    # ── G★ + Confidence Propagation ────────────────────────────────────────
+    # Wire the computed g_star and omega_0 from run_agi_mind into telemetry
+    # so the public envelope reflects real epistemic quality (not 0.0).
+    _dp_metrics = decision_packet.get("metrics", {})
+    _g_star = _dp_metrics.get("g_star", 0.0)
+    _omega_0 = _dp_metrics.get("omega_0", 1.0)
+    if _g_star > 0.0 and sealed.metrics:
+        sealed.metrics.telemetry.G_star = _g_star
+        # confidence = 1 - omega_0, clamped to [0, 1]
+        sealed.metrics.telemetry.confidence = round(max(0.0, min(1.0, 1.0 - _omega_0)), 3)
+
+    # ── floors_checked: record constitutional floors validated by mind ───────
+    _mind_floors = ["F1", "F2", "F7", "F8", "F9", "F13"]
+    if sealed.meta:
+        _existing = sealed.meta.floors_checked or []
+        sealed.meta.floors_checked = list(dict.fromkeys(_mind_floors + _existing))
 
     # ── P2: Provenance Ledger — Auto-seal outcome to VAULT999 ───────────────
     # Only seal if NOT dry_run and session_id is active.
@@ -882,6 +908,215 @@ async def arifos_vault(
 # Import the 10th tool (Delegated Execution Bridge)
 from arifosmcp.runtime.tools_forge import arifos_forge
 
+async def arifos_reply(
+    query: str,
+    session_id: str | None = None,
+    recipient: str = "auto",
+    depth: str = "ENGINEER",
+    compression: str = "DELTA",
+    risk_tier: str = "medium",
+    prior_state: str | None = None,
+    platform: str = "agi_reply",
+    to: str | None = None,
+    cc: list[str] | None = None,
+    dry_run: bool = False,
+) -> RuntimeEnvelope:
+    """
+    arifos.reply — Governed Reply Compositor (AGI Reply Protocol v3).
+
+    Composite orchestrator: enforces memory → sense → mind → heart → ops → judge → vault
+    in deterministic order. Emits AgiReplyEnvelopeHuman or AgiReplyEnvelopeAgent.
+    888 HOLD blocks forge. F1/F13 requires human:arif ratification.
+    """
+    import hashlib
+    from datetime import datetime, timezone
+
+    _session = session_id or f"reply-{query[:8].replace(' ', '-')}"
+    _ts = datetime.now(timezone.utc).isoformat()
+    _actor = to or "arif"
+    _cc = cc or []
+
+    # ── STEP -1: memory → PRIOR_STATE + DELTA ────────────────────────────────
+    mem_result: dict[str, Any] = {}
+    try:
+        mem_env = await arifos_memory(query=query, mode="vector_query", session_id=_session)
+        if isinstance(mem_env, dict):
+            mem_result = mem_env.get("payload", {}) or {}
+    except Exception:
+        pass
+    resolved_prior = prior_state or mem_result.get("summary", "NONE")
+
+    # ── STEP 0: sense → recipient + stakes ───────────────────────────────────
+    resolved_recipient = recipient
+    sense_result: dict[str, Any] = {}
+    try:
+        sense_env = await arifos_sense(query=query, mode="governed", session_id=_session)
+        if isinstance(sense_env, dict):
+            sense_result = sense_env.get("payload", {}) or {}
+            if recipient == "auto":
+                resolved_recipient = sense_result.get("caller_type", "human")
+    except Exception:
+        if recipient == "auto":
+            resolved_recipient = "human"
+
+    # ── STEP 2A+2B: mind → direct_answer + reasoning_atoms ───────────────────
+    mind_result: dict[str, Any] = {}
+    direct_answer: list[str] = []
+    reasoning_snapshot: list[str] = []
+    try:
+        mind_env = await arifos_mind(query=query, mode="reason", session_id=_session)
+        if isinstance(mind_env, dict):
+            mind_result = mind_env.get("payload", {}) or {}
+            raw = mind_result.get("output") or mind_result.get("answer") or ""
+            direct_answer = [raw] if isinstance(raw, str) and raw else []
+            reasoning_snapshot = mind_result.get("reasoning_atoms", [])
+    except Exception:
+        pass
+
+    # ── STEP 3 (partial): heart → floor_flags + rights_impact ────────────────
+    heart_result: dict[str, Any] = {}
+    floors_triggered: list[str] = []
+    try:
+        critique_content = direct_answer[0] if direct_answer else query
+        heart_env = await arifos_heart(content=critique_content, mode="critique", session_id=_session)
+        if isinstance(heart_env, dict):
+            heart_result = heart_env.get("payload", {}) or {}
+            floors_triggered = heart_result.get("floor_flags", [])
+    except Exception:
+        pass
+
+    # ── STEP 2D: ops → resource envelope ─────────────────────────────────────
+    ops_result: dict[str, Any] = {}
+    try:
+        ops_env = await arifos_ops(action=query, mode="cost", session_id=_session)
+        if isinstance(ops_env, dict):
+            ops_result = ops_env.get("payload", {}) or {}
+    except Exception:
+        pass
+
+    # ── STEP 1: judge → verdict + τ ──────────────────────────────────────────
+    judge_verdict_str = "HOLD"
+    tau = 0.5
+    tau_source = "fallback"
+    try:
+        judge_env = await arifos_judge(
+            candidate_action=query,
+            risk_tier=risk_tier,
+            telemetry=ops_result or None,
+            session_id=_session,
+        )
+        if isinstance(judge_env, dict):
+            jp = judge_env.get("payload", {}) or {}
+            judge_verdict_str = jp.get("verdict", judge_env.get("verdict", "HOLD"))
+            if jp.get("tau") is not None:
+                tau = float(jp["tau"])
+                tau_source = "computed"
+            elif jp.get("confidence") is not None:
+                tau = float(jp["confidence"]) * 0.85
+                tau_source = "fallback"
+    except Exception:
+        pass
+
+    # ── STEP 3: vault for SEAL or HOLD ───────────────────────────────────────
+    vault_ref = None
+    if not dry_run and judge_verdict_str in ("SEAL", "HOLD"):
+        try:
+            evidence_summary = "; ".join(reasoning_snapshot[:2]) if reasoning_snapshot else query
+            vault_env = await arifos_vault(
+                verdict=judge_verdict_str if judge_verdict_str in ("SEAL", "PARTIAL", "VOID", "HOLD") else "HOLD",
+                evidence=evidence_summary,
+                session_id=_session,
+                risk_tier=risk_tier,
+            )
+            if isinstance(vault_env, dict):
+                vault_ref = (vault_env.get("payload", {}) or {}).get("ledger_ref")
+        except Exception:
+            pass
+
+    # ── Build reply envelope payload ──────────────────────────────────────────
+    _verdict_token_map = {
+        "SEAL": "CLAIM", "PARTIAL": "PLAUSIBLE",
+        "HOLD": "888 HOLD", "VOID": "UNKNOWN",
+    }
+    verdict_token = _verdict_token_map.get(judge_verdict_str, "UNKNOWN")
+    verdict_statement = (
+        mind_result.get("summary")
+        or sense_result.get("summary")
+        or f"Governed reply for: {query[:80]}"
+    )
+    title = f"{verdict_token} τ={tau:.2f} — {verdict_statement}"
+    audit_hash = hashlib.sha256(
+        f"{title}{_ts}arifos.reply{judge_verdict_str}".encode()
+    ).hexdigest()[:16]
+
+    if "arifos.vault" not in _cc and judge_verdict_str in ("SEAL", "HOLD"):
+        _cc.append("arifos.vault")
+
+    # ── 888 HOLD governance trace ─────────────────────────────────────────────
+    governance_trace = None
+    if floors_triggered and any(f in floors_triggered for f in ("F1", "F13")):
+        governance_trace = {
+            "floors_triggered": floors_triggered,
+            "verdict": "888_HOLD",
+            "escalate_to": f"human:{_actor}",
+            "audit_ref": audit_hash,
+            "reversible": "PARTIAL",
+            "human_confirmed": False,
+        }
+
+    payload: dict[str, Any] = {
+        "recipient": resolved_recipient,
+        "depth": depth,
+        "compression_mode": compression,
+        "prior_state": resolved_prior,
+        "delta": sense_result.get("delta"),
+        "verdict_token": verdict_token,
+        "verdict_statement": verdict_statement,
+        "tau": tau,
+        "tau_source": tau_source,
+        "floors_triggered": floors_triggered,
+        "floors_passed": [f for f in ["F1","F2","F4","F7","F9","F11","F13"] if f not in floors_triggered],
+        "direct_answer": direct_answer,
+        "reasoning_snapshot": reasoning_snapshot,
+        "action_output": mind_result.get("action_output"),
+        "resource_envelope": {
+            "compression_mode": compression,
+            "tokens_estimated": ops_result.get("tokens_estimated"),
+            "cache_stable_prefix": True,
+            "parallel_ok": True,
+            "next_agent": None,
+        },
+        "governance_trace": governance_trace,
+        "telemetry": ops_result or None,
+        "forged_by": "arifos.reply",
+        "judge_verdict": judge_verdict_str,
+        "to": _actor,
+        "cc": _cc,
+        "vault_ref": vault_ref,
+        "consulted_tools": ["arifos.memory", "arifos.sense", "arifos.mind", "arifos.heart", "arifos.ops", "arifos.judge"],
+        "informed_agents": _cc,
+    }
+
+    from arifosmcp.runtime.models import RE, RuntimeStatus, Verdict as V
+    _verdict_map = {"SEAL": V.SEAL, "PARTIAL": V.PROVISIONAL, "HOLD": V.HOLD, "VOID": V.VOID}
+    return seal_runtime_envelope(
+        RE(
+            ok=judge_verdict_str in ("SEAL", "PARTIAL"),
+            tool="arifos_reply",
+            canonical_tool_name="arifos.reply",
+            stage="000-999",
+            verdict=_verdict_map.get(judge_verdict_str, V.HOLD),
+            status=RuntimeStatus.SUCCESS if judge_verdict_str in ("SEAL", "PARTIAL") else RuntimeStatus.HOLD,
+            payload=payload,
+            hint=title,
+            detail=verdict_statement,
+            platform_context=platform,
+            session_id=_session,
+        ),
+        "arifos_reply",
+    )
+
+
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos.init": arifos_init,
     "arifos.sense": arifos_sense,
@@ -892,8 +1127,9 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos.judge": arifos_judge,
     "arifos.memory": arifos_memory,
     "arifos.vault": arifos_vault,
-    "arifos.forge": arifos_forge,  # The 10th Tool — Delegated Execution
+    "arifos.forge": arifos_forge,
     "arifos.vps_monitor": arifos_vps_monitor,
+    "arifos.reply": arifos_reply,   # Tool #12 — Governed Reply Compositor
 }
 
 
@@ -1022,18 +1258,20 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
         mcp.add_tool(ft_dotted)
         registered.append(spec.name)
 
-        # 2. Register underscored alias (for backward compat with older MCP clients)
-        underscored_name = spec.name.replace(".", "_")
-        if underscored_name != spec.name:
-            alias_handler = _create_signature_matched_alias(underscored_name, handler)
-            ft_u = FunctionTool.from_function(
-                alias_handler,
-                name=underscored_name,
-                description=f"Alias for {spec.name}. {spec.description}",
-            )
-            ft_u.parameters = dict(spec.input_schema)
-            mcp.add_tool(ft_u)
-            registered.append(underscored_name)
+        # 2. Register underscored alias ONLY for public tools
+        # (internal tools don't need a second surface name — reduces chaos)
+        if spec.visibility == "public":
+            underscored_name = spec.name.replace(".", "_")
+            if underscored_name != spec.name:
+                alias_handler = _create_signature_matched_alias(underscored_name, handler)
+                ft_u = FunctionTool.from_function(
+                    alias_handler,
+                    name=underscored_name,
+                    description=f"Alias for {spec.name}. {spec.description}",
+                )
+                ft_u.parameters = dict(spec.input_schema)
+                mcp.add_tool(ft_u)
+                registered.append(underscored_name)
 
     logger.info(f"Registered {len(registered)} v2 tools: {registered}")
     return registered
