@@ -131,8 +131,21 @@ class GitBridge:
 git_bridge = GitBridge()
 
 # Module-level wrappers for runtime integration
-async def arifos_git_status(repo_path: str = "/usr/src/project", actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
+# These adapt the public tool contract to the internal GitBridge interface.
+# Public contract: path (str, default './')
+# Internal interface: repo_path (str, default '/usr/src/project')
+async def arifos_git_status(path: str = "./", actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
+    repo_path = path if path else "/usr/src/project"
     return await git_bridge.get_repo_state(repo_path, actor_id, session_id)
 
-async def arifos_git_commit(repo_path: str, message: str, files: list[str], actor_id: str, session_id: str | None = None) -> _RE:
-    return await git_bridge.propose_commit(repo_path, message, files, actor_id, session_id)
+# Public contract: message (required), files (optional)
+# Internal interface: repo_path, message, files, actor_id
+async def arifos_git_commit(message: str, files: list[str] | None = None, actor_id: str = "anonymous", session_id: str | None = None) -> _RE:
+    repo_path = "/usr/src/project"
+    return await git_bridge.propose_commit(
+        repo_path=repo_path,
+        message=message,
+        files=files or [],
+        actor_id=actor_id,
+        session_id=session_id
+    )
