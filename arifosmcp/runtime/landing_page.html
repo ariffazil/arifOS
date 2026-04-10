@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="arifOS MCP - Constitutional AI Governance with 50 Core Quotes | AF-FORGE">
-    <meta name="version" content="2.1.0-unified">
-    <title>arifOS MCP | Constitutional Source of Truth</title>
+    <meta name="description" content="arifOS MCP — Production-grade constitutional AI governance. 13 governing floors, immutable VAULT audit trail, human-sovereign 888_HOLD, and MCP protocol for multi-agent orchestration.">
+    <meta property="og:title" content="arifOS MCP | Constitutional AI Governance">
+    <meta property="og:description" content="An open AI orchestration server enforcing a constitutional framework for safe, auditable AI actions.">
+    <title>arifOS MCP | Constitutional AI Governance</title>
     <style>
         :root {
             --bg-primary: #0a0a0f;
             --bg-secondary: #12121a;
             --bg-tertiary: #1a1a25;
+            --bg-card: #161620;
             --text-primary: #e8e8f0;
-            --text-secondary: #8888a0;
+            --text-secondary: #9090a8;
+            --text-muted: #606075;
             --accent-gold: #d4af37;
+            --accent-gold-dim: rgba(212,175,55,0.15);
             --accent-seal: #22c55e;
             --accent-void: #ef4444;
             --accent-partial: #f59e0b;
@@ -21,622 +25,586 @@
             --accent-omega: #a855f7;
             --accent-psi: #ec4899;
             --border: #2a2a3a;
+            --border-hover: #3a3a50;
+            --radius: 12px;
         }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', monospace;
             background: var(--bg-primary);
             color: var(--text-primary);
-            line-height: 1.6;
+            line-height: 1.7;
             min-height: 100vh;
         }
-        
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-        
-        header {
-            text-align: center;
-            padding: 3rem 0;
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* Skip nav */
+        .skip-nav {
+            position: absolute; top: -100px; left: 1rem;
+            background: var(--accent-gold); color: #000; padding: 0.5rem 1rem;
+            border-radius: 4px; z-index: 999; font-weight: bold;
+            transition: top 0.2s;
+        }
+        .skip-nav:focus { top: 1rem; }
+
+        /* Nav */
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(10,10,15,0.92);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
-            margin-bottom: 2rem;
-        }
-        
-        .forge-mark { 
-            font-size: 4rem; 
-            margin-bottom: 1rem;
-            animation: pulse 3s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, var(--accent-gold), #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-        
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .motto {
-            font-size: 1.3rem;
-            color: var(--accent-gold);
-            font-weight: bold;
-            margin: 1rem 0;
-            letter-spacing: 0.1em;
-        }
-        
-        .live-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--bg-secondary);
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-top: 1rem;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--accent-seal);
-            animation: blink 2s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: border-color 0.3s;
-        }
-        
-        .card:hover {
-            border-color: var(--accent-gold);
-        }
-        
-        .card h3 {
-            color: var(--accent-gold);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
             padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border);
         }
-        
-        .metric-row:last-child { border-bottom: none; }
-        
-        .metric-label { color: var(--text-secondary); }
-        
-        .metric-value {
-            font-weight: bold;
-            color: var(--accent-seal);
+        .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+        .nav-brand { display: flex; align-items: center; gap: 0.75rem; font-weight: bold; font-size: 1rem; color: var(--text-primary); text-decoration: none; }
+        .trinity-badge { background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: bold; letter-spacing: 0.05em; }
+        .nav-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+        .nav-links a:hover, .nav-links a:focus { color: var(--accent-gold); outline: none; }
+        .nav-links a:focus-visible { outline: 2px solid var(--accent-gold); border-radius: 4px; }
+
+        /* Hero */
+        .hero { text-align: center; padding: 5rem 0 4rem; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.07) 0%, transparent 70%); pointer-events: none; }
+        .hero-trinity { font-size: 3rem; margin-bottom: 1rem; animation: floatglow 4s ease-in-out infinite; }
+        @keyframes floatglow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(212,175,55,0.4)); transform: translateY(0); }
+            50% { filter: drop-shadow(0 0 16px rgba(212,175,55,0.8)); transform: translateY(-4px); }
         }
-        
-        .tools-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
+        h1 { font-size: clamp(1.8rem, 4vw, 3rem); background: linear-gradient(135deg, var(--accent-gold) 0%, #fff 60%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.75rem; font-weight: 900; }
+        .hero-tagline { color: var(--text-secondary); font-size: clamp(0.95rem, 2vw, 1.15rem); max-width: 680px; margin: 0 auto 0.5rem; }
+        .hero-motto { font-size: 1rem; color: var(--accent-gold); letter-spacing: 0.15em; margin: 1.25rem 0; font-weight: bold; }
+        .status-pill { display: inline-flex; align-items: center; gap: 0.6rem; background: var(--bg-secondary); border: 1px solid var(--border); padding: 0.6rem 1.25rem; border-radius: 30px; font-size: 0.85rem; margin: 0.5rem; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-seal); animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
         }
-        
-        .tool-item {
-            background: var(--bg-tertiary);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent-gold);
-        }
-        
-        .tool-name {
-            font-weight: bold;
-            color: var(--accent-gold);
-            margin-bottom: 0.25rem;
-        }
-        
-        .tool-stage {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-        
-        .trinity-delta { border-left-color: var(--accent-delta); }
-        .trinity-omega { border-left-color: var(--accent-omega); }
-        .trinity-psi { border-left-color: var(--accent-psi); }
-        
-        .philosophy-box {
-            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
-            border: 1px solid var(--accent-gold);
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            margin: 2rem 0;
-        }
-        
-        .philosophy-text {
-            font-size: 1.5rem;
-            font-style: italic;
-            color: var(--accent-gold);
-            margin-bottom: 1rem;
-        }
-        
-        .philosophy-meta {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        
-        .quotes-section {
-            margin: 2rem 0;
-        }
-        
-        .quotes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .quote-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            position: relative;
-        }
-        
-        .quote-card::before {
-            content: '"';
-            font-size: 3rem;
-            color: var(--accent-gold);
-            opacity: 0.3;
-            position: absolute;
-            top: -0.5rem;
-            left: 0.5rem;
-        }
-        
-        .quote-text {
-            font-style: italic;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .quote-author {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-align: right;
-        }
-        
-        .quote-tool {
-            font-size: 0.75rem;
-            color: var(--accent-gold);
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid var(--border);
-        }
-        
-        .api-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-        
-        .api-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background: var(--bg-tertiary);
-            padding: 1rem;
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-        }
-        
-        .api-link:hover {
-            border-color: var(--accent-gold);
-            background: var(--bg-secondary);
-        }
-        
-        .api-method {
-            font-weight: bold;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-        
-        .api-method.get { background: var(--accent-delta); color: white; }
-        .api-method.post { background: var(--accent-omega); color: white; }
-        
-        .api-path {
-            font-family: monospace;
-            color: var(--accent-gold);
-        }
-        
-        .api-desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-left: auto;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            border-top: 1px solid var(--border);
-            margin-top: 2rem;
-            color: var(--text-secondary);
-        }
-        
-        .last-updated {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-top: 1rem;
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            color: var(--accent-gold);
-            margin: 2rem 0 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .corpus-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--bg-tertiary);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin: 0.5rem;
-        }
-        
-        .corpus-badge .count {
-            background: var(--accent-gold);
-            color: var(--bg-primary);
-            padding: 0.2rem 0.5rem;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        
-        .sensing-flow {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-        
-        .flow-stage {
-            background: var(--bg-tertiary);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            border: 1px solid var(--border);
-        }
-        
-        .flow-arrow {
-            color: var(--accent-gold);
-            font-size: 1.2rem;
+        .verdict-chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: rgba(34,197,94,0.1); color: var(--accent-seal); border: 1px solid rgba(34,197,94,0.3); }
+        .hero-ctas { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+        .btn { padding: 0.65rem 1.4rem; border-radius: 8px; font-family: inherit; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--accent-gold); color: #0a0a0f; }
+        .btn-primary:hover { background: #e6c14a; transform: translateY(-1px); }
+        .btn-outline { background: transparent; color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-outline:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .btn:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
+
+        /* Sections */
+        section { padding: 3rem 0; border-bottom: 1px solid var(--border); }
+        .section-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
+        .section-header h2 { font-size: 1.4rem; color: var(--accent-gold); }
+        .section-header p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Stats */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 900; color: var(--accent-gold); line-height: 1.1; }
+        .stat-label { color: var(--text-secondary); font-size: 0.82rem; margin-top: 0.25rem; }
+
+        /* What grid */
+        .what-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+        .pillar-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; transition: border-color 0.25s, transform 0.2s; }
+        .pillar-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+        .pillar-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .pillar-name { font-weight: bold; color: var(--text-primary); margin-bottom: 0.35rem; }
+        .pillar-desc { color: var(--text-secondary); font-size: 0.88rem; }
+
+        /* Tools */
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
+        .tool-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; cursor: pointer; transition: border-color 0.2s, background 0.2s; display: flex; align-items: flex-start; gap: 0.75rem; }
+        .tool-card:hover { border-color: var(--border-hover); background: var(--bg-tertiary); }
+        .tool-card:focus-visible { outline: 2px solid var(--accent-gold); border-radius: var(--radius); }
+        .tool-accent { width: 4px; border-radius: 4px; flex-shrink: 0; align-self: stretch; min-height: 2.5rem; }
+        .tool-accent.delta { background: var(--accent-delta); }
+        .tool-accent.omega { background: var(--accent-omega); }
+        .tool-accent.psi   { background: var(--accent-psi); }
+        .tool-body { flex: 1; min-width: 0; }
+        .tool-name { font-weight: bold; color: var(--accent-gold); margin-bottom: 0.1rem; font-size: 0.9rem; }
+        .tool-stage { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.2rem; }
+        .tool-desc { font-size: 0.85rem; color: var(--text-secondary); }
+        .tool-copied { font-size: 0.7rem; color: var(--accent-seal); display: none; margin-top: 0.25rem; }
+
+        /* Sensing flow */
+        .flow-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem; margin: 1rem 0; }
+        .flow-stage { background: var(--bg-card); border: 1px solid var(--border); padding: 0.4rem 0.85rem; border-radius: 20px; font-size: 0.8rem; color: var(--text-secondary); }
+        .flow-arrow { color: var(--accent-gold); font-size: 1rem; }
+
+        /* Floors */
+        .floors-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.6rem; }
+        .floor-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; }
+        .floor-num { background: var(--accent-gold-dim); color: var(--accent-gold); border: 1px solid var(--accent-gold); border-radius: 6px; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; flex-shrink: 0; }
+        .floor-name { font-weight: bold; font-size: 0.85rem; }
+        .floor-desc { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem; }
+
+        /* API */
+        .api-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
+        .api-link { display: flex; align-items: center; gap: 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem 1rem; text-decoration: none; color: var(--text-primary); transition: border-color 0.2s; }
+        .api-link:hover { border-color: var(--accent-gold); }
+        .api-link:focus-visible { outline: 2px solid var(--accent-gold); }
+        .method-badge { font-size: 0.7rem; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 4px; flex-shrink: 0; }
+        .method-get { background: var(--accent-delta); color: #fff; }
+        .method-post { background: var(--accent-omega); color: #fff; }
+        .api-path { font-family: monospace; color: var(--accent-gold); font-size: 0.9rem; }
+        .api-desc { color: var(--text-secondary); font-size: 0.82rem; margin-left: auto; text-align: right; }
+
+        /* Discovery box */
+        .discovery-box { background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--accent-delta); border-radius: var(--radius); padding: 1.25rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+        .discovery-box code { background: var(--bg-tertiary); color: var(--accent-gold); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Compare table */
+        .compare-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: var(--bg-tertiary); color: var(--accent-gold); padding: 0.75rem 1rem; text-align: left; border-bottom: 2px solid var(--border); }
+        td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text-secondary); }
+        tr:hover td { background: var(--bg-card); }
+        .check { color: var(--accent-seal); }
+        .partial-check { color: var(--accent-partial); }
+        .no-check { color: var(--text-muted); }
+
+        /* Philosophy */
+        .philosophy-box { background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-card)); border: 1px solid var(--accent-gold); border-radius: var(--radius); padding: 2rem; text-align: center; margin: 2rem 0; }
+        .philosophy-text { font-size: clamp(1rem, 2.5vw, 1.3rem); font-style: italic; color: var(--accent-gold); margin-bottom: 0.75rem; }
+        .philosophy-meta { color: var(--text-secondary); font-size: 0.85rem; }
+
+        /* Quotes */
+        .quotes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
+        .quote-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; position: relative; }
+        .quote-card::before { content: '"'; font-size: 2.5rem; color: var(--accent-gold); opacity: 0.25; position: absolute; top: -0.25rem; left: 0.75rem; line-height: 1; pointer-events: none; }
+        .quote-text { font-style: italic; margin-bottom: 0.5rem; font-size: 0.88rem; }
+        .quote-author { color: var(--text-secondary); font-size: 0.8rem; text-align: right; }
+        .quote-tool { font-size: 0.72rem; color: var(--accent-gold); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+
+        /* Footer */
+        footer { text-align: center; padding: 2.5rem 0; color: var(--text-secondary); font-size: 0.85rem; }
+        footer p { margin: 0.3rem 0; }
+        .footer-links { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin: 1rem 0; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--accent-gold); }
+
+        @media (max-width: 640px) {
+            .hero { padding: 3rem 0 2.5rem; }
+            .nav-links { display: none; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .hero-ctas { flex-direction: column; align-items: center; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="forge-mark">🔥</div>
+    <a href="#main" class="skip-nav">Skip to content</a>
+
+    <nav aria-label="Main navigation">
+        <div class="container nav-inner">
+            <a href="/" class="nav-brand" aria-label="arifOS MCP home">
+                🔱 arifOS MCP <span class="trinity-badge">ΔΩΨ</span>
+            </a>
+            <div class="nav-links" role="list">
+                <a href="#what" role="listitem">What is arifOS</a>
+                <a href="#tools" role="listitem">Tools</a>
+                <a href="#floors" role="listitem">13 Floors</a>
+                <a href="#api" role="listitem">API</a>
+                <a href="#compare" role="listitem">Compare</a>
+                <a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener" role="listitem" aria-label="GitHub (opens in new tab)">GitHub ↗</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <div class="hero-trinity" aria-hidden="true">🔱</div>
             <h1>arifOS MCP</h1>
-            <p class="subtitle">Constitutional AI Governance — Source of Truth</p>
-            <p class="motto">DITEMPA, BUKAN DIBERI</p>
-            <div class="live-status">
-                <span class="status-dot"></span>
-                <span id="status-text">Connecting to AF-FORGE...</span>
+            <p class="hero-tagline">
+                Production-grade constitutional AI governance — 13 governing floors, immutable audit trail,
+                human-sovereign veto, and MCP protocol for multi-agent orchestration.
+            </p>
+            <p class="hero-motto" aria-label="Motto: Ditempa, bukan diberi — Forged, not given">DITEMPA, BUKAN DIBERI</p>
+            <div style="margin-top:1.25rem;">
+                <span class="status-pill" id="status-pill">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <span id="status-text">Connecting...</span>
+                </span>
+                <span class="verdict-chip" id="verdict-chip" style="display:none;" aria-live="polite">
+                    <span aria-hidden="true">✓</span> <span id="verdict-text">SEAL</span>
+                </span>
             </div>
-        </header>
-
-        <div class="grid">
-            <div class="card">
-                <h3>📊 System Status</h3>
-                <div class="metric-row">
-                    <span class="metric-label">Health</span>
-                    <span class="metric-value" id="health">--</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Version</span>
-                    <span class="metric-value" id="version">--</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Constitutional Floors</span>
-                    <span class="metric-value" id="floors">--</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Tools Loaded</span>
-                    <span class="metric-value" id="tool-count">--</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Quotes Corpus</span>
-                    <span class="metric-value" id="quotes-corpus">v2.1.0-unified</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Governed Sensing</span>
-                    <span class="metric-value" id="sensing-protocol">8-Stage Protocol</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Commit Hash</span>
-                    <span class="metric-value" style="font-size: 0.85rem;" id="commit-hash">be770d0</span>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>🔱 Trinity Alignment</h3>
-                <div class="metric-row">
-                    <span class="metric-label">Δ (Discernment)</span>
-                    <span class="metric-value" style="color: var(--accent-delta);">25 quotes</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Ω (Empathy)</span>
-                    <span class="metric-value" style="color: var(--accent-omega);">10 quotes</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Ψ (Authority)</span>
-                    <span class="metric-value" style="color: var(--accent-psi);">15 quotes</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Total Core Quotes</span>
-                    <span class="metric-value" id="total-quotes">50</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Truth Classes</span>
-                    <span class="metric-value">7 (A → Unknown)</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-label">Evidence Ranks</span>
-                    <span class="metric-value">7 (Direct → Social)</span>
-                </div>
+            <div class="hero-ctas">
+                <a href="#api" class="btn btn-primary">⚡ Start Building</a>
+                <a href="/tools" target="_blank" class="btn btn-outline">🛠️ View Tools</a>
+                <a href="/.well-known/mcp/server.json" target="_blank" class="btn btn-outline">🤖 Agent Manifest</a>
             </div>
         </div>
+    </header>
 
-        <div class="philosophy-box">
-            <div class="philosophy-text" id="philosophy-text">"Loading constitutional anchor..."</div>
-            <div class="philosophy-meta" id="philosophy-meta">arifOS Principle | Initializing...</div>
+    <main id="main">
+
+        <!-- Live Stats -->
+        <section aria-label="Live system statistics" style="padding:2rem 0;">
+            <div class="container">
+                <div class="stats-row">
+                    <div class="stat-card"><div class="stat-value" id="stat-tools">11</div><div class="stat-label">Tools Loaded</div></div>
+                    <div class="stat-card"><div class="stat-value">13</div><div class="stat-label">Constitutional Floors</div></div>
+                    <div class="stat-card"><div class="stat-value" id="stat-vitality">—</div><div class="stat-label">Vitality Index</div></div>
+                    <div class="stat-card"><div class="stat-value" id="stat-version">—</div><div class="stat-label">Kernel Version</div></div>
+                    <div class="stat-card"><div class="stat-value" id="stat-verdict" style="color:var(--accent-seal)">SEAL</div><div class="stat-label">Current Verdict</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- What is arifOS -->
+        <section id="what" aria-labelledby="what-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="what-heading">🧭 What is arifOS?</h2>
+                </div>
+                <p style="color:var(--text-secondary); max-width:750px; margin-bottom:2rem; font-size:0.95rem;">
+                    arifOS is an AI governance server that enforces a constitutional framework — 13 governing laws called
+                    <em>floors</em> — on every AI action. Unlike rule-based guardrail libraries, arifOS is a full orchestration
+                    runtime: agents connect via <abbr title="Model Context Protocol">MCP</abbr>,
+                    every decision is logged to an immutable <strong>VAULT999</strong> ledger, and high-risk actions are
+                    paused until a human approves via the <strong>888_HOLD</strong> mechanism.
+                </p>
+                <div class="what-grid">
+                    <div class="pillar-card" style="border-top:3px solid var(--accent-delta)">
+                        <div class="pillar-icon" aria-hidden="true">Δ</div>
+                        <div class="pillar-name">Discernment (Sense + Mind)</div>
+                        <div class="pillar-desc">Reality intake, evidence grounding, structured reasoning. Everything starts with what is verifiably true.</div>
+                    </div>
+                    <div class="pillar-card" style="border-top:3px solid var(--accent-omega)">
+                        <div class="pillar-icon" aria-hidden="true">Ω</div>
+                        <div class="pillar-name">Empathy (Memory + Heart)</div>
+                        <div class="pillar-desc">Continuity, dignity protection, and ethical review. Agents never forget context; they never harm.</div>
+                    </div>
+                    <div class="pillar-card" style="border-top:3px solid var(--accent-psi)">
+                        <div class="pillar-icon" aria-hidden="true">Ψ</div>
+                        <div class="pillar-name">Authority (Judge + Vault)</div>
+                        <div class="pillar-desc">Constitutional verdict, consequence enforcement, and tamper-proof sealing. Every outcome is accountable.</div>
+                    </div>
+                    <div class="pillar-card" style="border-top:3px solid var(--accent-gold)">
+                        <div class="pillar-icon" aria-hidden="true">👤</div>
+                        <div class="pillar-name">Human Sovereign (F13)</div>
+                        <div class="pillar-desc">The 888_HOLD mechanism halts any irreversible action until a human approves. Human always holds final authority.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Philosophy -->
+        <div class="container">
+            <div class="philosophy-box" aria-live="polite">
+                <div class="philosophy-text" id="philosophy-text">"DITEMPA, BUKAN DIBERI."</div>
+                <div class="philosophy-meta" id="philosophy-meta">arifOS Principle | S1 | Forge Identity</div>
+            </div>
         </div>
 
-        <h2 class="section-title">⚡ Governed Sensing Protocol</h2>
-        <div class="sensing-flow">
-            <span class="flow-stage">PARSE</span>
-            <span class="flow-arrow">→</span>
-            <span class="flow-stage">CLASSIFY</span>
-            <span class="flow-arrow">→</span>
-            <span class="flow-stage">DECIDE</span>
-            <span class="flow-arrow">→</span>
-            <span class="flow-stage">PLAN</span>
-            <span class="flow-arrow">→</span>
-            <span class="flow-stage">SENSE</span>
-            <span class="flow-arrow">→</span>
-            <span class="flow-stage">NORMALIZE</span>
-            <span class="flow-arrow">→</span>
-            <span class="flow-stage">GATE</span>
-            <span class="flow-arrow">→</span>
-            <span class="flow-stage">HANDOFF</span>
-        </div>
-        <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
-            8-stage constitutional sensing with IntelligenceState (G, τ, σ, C, ΔS, Ω₀)
-        </p>
+        <!-- Sensing Flow -->
+        <section aria-labelledby="sensing-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="sensing-heading">⚡ Governed Sensing Protocol</h2>
+                    <p>Every input passes through 8 constitutional stages</p>
+                </div>
+                <div class="flow-row" role="list" aria-label="8-stage sensing pipeline">
+                    <span class="flow-stage" role="listitem">PARSE</span><span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-stage" role="listitem">CLASSIFY</span><span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-stage" role="listitem">DECIDE</span><span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-stage" role="listitem">PLAN</span><span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-stage" role="listitem">SENSE</span><span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-stage" role="listitem">NORMALIZE</span><span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-stage" role="listitem">GATE</span><span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-stage" role="listitem">HANDOFF</span>
+                </div>
+                <p style="text-align:center; color:var(--text-muted); font-size:0.82rem; margin-top:0.75rem;">
+                    IntelligenceState: G (grounding) · τ (truth) · σ (signal) · C (confidence) · ΔS (entropy) · Ω₀ (baseline)
+                </p>
+            </div>
+        </section>
 
-        <h2 class="section-title">🛠️ Canonical Tools</h2>
-        <div class="tools-container" id="tools-container">
-            <div class="tool-item"><div class="tool-name">Loading...</div></div>
-        </div>
+        <!-- Tools -->
+        <section id="tools" aria-labelledby="tools-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="tools-heading">🛠️ Canonical Tools</h2>
+                    <p>Click any tool to copy its MCP name</p>
+                </div>
+                <div class="tools-grid" id="tools-container" aria-label="Available MCP tools">
+                    <div class="tool-card">
+                        <div class="tool-accent delta"></div>
+                        <div class="tool-body"><div class="tool-name">Loading tools...</div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <h2 class="section-title">📜 Constitutional Quotes Corpus</h2>
-        <div style="text-align: center; margin-bottom: 1rem;">
-            <span class="corpus-badge">Tools: <span class="count">10</span></span>
-            <span class="corpus-badge">Core Quotes: <span class="count">50</span></span>
-            <span class="corpus-badge">Schema: <span class="count">v2.1.0</span></span>
-        </div>
-        <div class="quotes-grid" id="quotes-container">
-            <!-- Quotes loaded dynamically -->
-        </div>
+        <!-- 13 Floors -->
+        <section id="floors" aria-labelledby="floors-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="floors-heading">🏛️ 13 Constitutional Floors</h2>
+                    <p>Every AI action is tested against all 13 in real-time</p>
+                </div>
+                <div class="floors-grid" role="list" aria-label="Constitutional floors F1 to F13">
+                    <div class="floor-item" role="listitem"><div class="floor-num">F1</div><div><div class="floor-name">Amanah — Trust</div><div class="floor-desc">No irreversible action without VAULT999 seal</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F2</div><div><div class="floor-name">Haqq — Truth</div><div class="floor-desc">No ungrounded claims (τ ≥ 0.99 threshold)</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F3</div><div><div class="floor-name">Hikmah — Wisdom</div><div class="floor-desc">Logical consistency and proportional response</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F4</div><div><div class="floor-name">Sabr — Patience</div><div class="floor-desc">No premature action; wait for full context</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F5</div><div><div class="floor-name">Rahmah — Compassion</div><div class="floor-desc">Peace-orientation scored in every output</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F6</div><div><div class="floor-name">Adl — Justice</div><div class="floor-desc">Fair treatment across all actors and contexts</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F7</div><div><div class="floor-name">Gödel Lock — Humility</div><div class="floor-desc">No false omniscience; bounded confidence only</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F8</div><div><div class="floor-name">Ilm — Knowledge</div><div class="floor-desc">Source-traced evidence for all factual claims</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F9</div><div><div class="floor-name">Anti-Hantu — No Deception</div><div class="floor-desc">Prohibits manipulation and false identity claims</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F10</div><div><div class="floor-name">Ontology — Self-model</div><div class="floor-desc">No contradictory self-models or identity fraud</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F11</div><div><div class="floor-name">Wala — Loyalty</div><div class="floor-desc">Alignment to principal hierarchy; no defection</div></div></div>
+                    <div class="floor-item" role="listitem"><div class="floor-num">F12</div><div><div class="floor-name">Curiosity — Open Inquiry</div><div class="floor-desc">Epistemic openness; no premature closure</div></div></div>
+                    <div class="floor-item" role="listitem" style="border-color:rgba(212,175,55,0.4)"><div class="floor-num" style="border-color:var(--accent-gold)">F13</div><div><div class="floor-name">Sovereign — Human Authority</div><div class="floor-desc">888_HOLD blocks; human holds final veto always</div></div></div>
+                </div>
+            </div>
+        </section>
 
-        <h2 class="section-title">🔌 API Endpoints</h2>
-        <div class="api-grid" id="api-container">
-            <a href="/health" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/health</span>
-                <span class="api-desc">Health status & metrics</span>
-            </a>
-            <a href="/tools" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/tools</span>
-                <span class="api-desc">List canonical tools</span>
-            </a>
-            <a href="/prompts" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/prompts</span>
-                <span class="api-desc">Constitutional prompts</span>
-            </a>
-            <a href="/resources" target="_blank" class="api-link">
-                <span class="api-method get">GET</span>
-                <span class="api-path">/resources</span>
-                <span class="api-desc">Governed resources</span>
-            </a>
-        </div>
+        <!-- Agent Integration -->
+        <section id="api" aria-labelledby="api-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="api-heading">🔌 Agent Integration</h2>
+                    <p>Any AI agent using arifOS inherits all 13 constitutional guardrails automatically</p>
+                </div>
+                <div class="discovery-box" style="margin-bottom:1.5rem;">
+                    <span aria-hidden="true">🤖</span>
+                    <div>
+                        <div style="font-weight:bold; color:var(--text-primary); margin-bottom:0.25rem;">WebMCP Agent Discovery</div>
+                        <div style="font-size:0.85rem; color:var(--text-secondary);">
+                            Agents auto-configure by fetching: <code>GET /.well-known/mcp/server.json</code>
+                        </div>
+                    </div>
+                    <a href="/.well-known/mcp/server.json" target="_blank" class="btn btn-outline" style="margin-left:auto; font-size:0.8rem;">View Manifest ↗</a>
+                </div>
+                <div class="api-grid">
+                    <a href="/" target="_blank" class="api-link"><span class="method-badge method-get">GET</span><span class="api-path">/</span><span class="api-desc">Service info &amp; tools</span></a>
+                    <a href="/health" target="_blank" class="api-link"><span class="method-badge method-get">GET</span><span class="api-path">/health</span><span class="api-desc">Health &amp; verdict</span></a>
+                    <a href="/tools" target="_blank" class="api-link"><span class="method-badge method-get">GET</span><span class="api-path">/tools</span><span class="api-desc">List canonical tools</span></a>
+                    <a href="/mcp" class="api-link"><span class="method-badge method-post">POST</span><span class="api-path">/mcp</span><span class="api-desc">MCP JSON-RPC gateway</span></a>
+                    <a href="/prompts" target="_blank" class="api-link"><span class="method-badge method-get">GET</span><span class="api-path">/prompts</span><span class="api-desc">Constitutional prompts</span></a>
+                    <a href="/resources" target="_blank" class="api-link"><span class="method-badge method-get">GET</span><span class="api-path">/resources</span><span class="api-desc">Governed resources</span></a>
+                    <a href="/version" target="_blank" class="api-link"><span class="method-badge method-get">GET</span><span class="api-path">/version</span><span class="api-desc">Release &amp; commit info</span></a>
+                    <a href="/.well-known/mcp/server.json" target="_blank" class="api-link"><span class="method-badge method-get">GET</span><span class="api-path">/.well-known/mcp/server.json</span><span class="api-desc">Discovery manifest</span></a>
+                </div>
+            </div>
+        </section>
 
-        <div class="footer">
-            <p>🔒 <strong>999_VALIDATOR SEAL</strong> | Constitutional Source of Truth</p>
+        <!-- Comparison -->
+        <section id="compare" aria-labelledby="compare-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="compare-heading">📊 Platform Comparison</h2>
+                    <p>How arifOS positions vs. other AI governance approaches</p>
+                </div>
+                <div class="compare-wrap">
+                    <table aria-label="AI governance platform comparison">
+                        <thead>
+                            <tr>
+                                <th scope="col">Platform</th>
+                                <th scope="col">Governance Model</th>
+                                <th scope="col">Agent Protocol</th>
+                                <th scope="col">Human-in-Loop</th>
+                                <th scope="col">Audit Trail</th>
+                                <th scope="col">Open Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>arifOS MCP</strong><br><small style="color:var(--accent-gold)">Constitutional (13-Floor)</small></td>
+                                <td>Trinity ΔΩΨ, 13 floors enforced per-action</td>
+                                <td>MCP + SSE streaming + REST/JSON-RPC</td>
+                                <td><span class="check">✓</span> 888_HOLD cryptographic veto</td>
+                                <td><span class="check">✓</span> VAULT999 immutable ledger</td>
+                                <td><span class="check">✓</span> MIT</td>
+                            </tr>
+                            <tr>
+                                <td><strong>NVIDIA NeMo Guardrails</strong><br><small>Developer SDK</small></td>
+                                <td>Rule-based conversation flows</td>
+                                <td>Python SDK middleware; no standard protocol</td>
+                                <td><span class="partial-check">~</span> Fail-safe responses only</td>
+                                <td><span class="no-check">—</span> No built-in ledger</td>
+                                <td><span class="check">✓</span> Apache 2.0</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Prime AI</strong><br><small>Enterprise Platform</small></td>
+                                <td>AI registry, policy engine</td>
+                                <td>Enterprise API; no MCP</td>
+                                <td><span class="partial-check">~</span> Approval workflows</td>
+                                <td><span class="check">✓</span> Dashboard reporting</td>
+                                <td><span class="no-check">—</span> Commercial SaaS</td>
+                            </tr>
+                            <tr>
+                                <td><strong>IBM WatsonX.governance</strong><br><small>Enterprise Suite</small></td>
+                                <td>AI lifecycle, bias/risk management</td>
+                                <td>IBM pipeline integrations</td>
+                                <td><span class="partial-check">~</span> Model approval workflows</td>
+                                <td><span class="check">✓</span> Compliance reporting</td>
+                                <td><span class="no-check">—</span> IBM commercial</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="color:var(--text-muted); font-size:0.78rem; margin-top:0.75rem;">
+                    arifOS uniquely combines: constitutional governance + live MCP agent protocol + cryptographic HITL + tamper-proof audit — self-hosted and open-source.
+                </p>
+            </div>
+        </section>
+
+        <!-- Philosophical Corpus -->
+        <section aria-labelledby="quotes-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="quotes-heading">📜 Philosophical Corpus</h2>
+                    <p>50 human wisdom anchors calibrate reasoning across all tool stages</p>
+                </div>
+                <div class="quotes-grid" id="quotes-container" aria-label="Constitutional quote corpus"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>🔒 <strong>999_VALIDATOR SEAL</strong> — Constitutional Source of Truth</p>
             <p>ΔΩΨ — Discernment · Empathy · Authority</p>
-            <p class="last-updated" id="last-updated">Last updated: --</p>
-            <p class="last-updated">Commit: <code id="footer-commit">be770d0</code> | Branch: main</p>
+            <div class="footer-links">
+                <a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener">📦 GitHub</a>
+                <a href="/health" target="_blank">🩺 Health</a>
+                <a href="/tools" target="_blank">🛠️ Tools</a>
+                <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">📡 MCP Protocol</a>
+                <a href="/.well-known/mcp/server.json" target="_blank">🤖 Discovery</a>
+            </div>
+            <p style="color:var(--text-muted); font-size:0.78rem;" id="last-updated">—</p>
+            <p style="color:var(--text-muted); font-size:0.78rem;">Commit: <code id="footer-commit">—</code> | Branch: main | NIST AI RMF aligned</p>
         </div>
-    </div>
+    </footer>
 
     <script>
         const API_BASE = window.location.origin;
-        
-        // Core quotes data (embedded for instant render, updated via API)
+
         const CORE_QUOTES = [
             { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu", tool: "arifos.init", category: "origin_intent" },
-            { text: "It is wrong... to believe anything upon insufficient evidence.", author: "William Clifford", tool: "arifos.sense", category: "evidence_first" },
+            { text: "It is wrong to believe anything upon insufficient evidence.", author: "William Clifford", tool: "arifos.sense", category: "evidence_first" },
             { text: "The first principle is that you must not fool yourself.", author: "Richard Feynman", tool: "arifos.sense", category: "perception_reality" },
             { text: "I think, therefore I am.", author: "René Descartes", tool: "arifos.mind", category: "logic_truth" },
             { text: "Know thyself.", author: "Socrates", tool: "arifos.mind", category: "knowledge_selfknowledge" },
             { text: "No man ever steps in the same river twice.", author: "Heraclitus", tool: "arifos.sense", category: "temporal_awareness" },
             { text: "First, do no harm.", author: "Hippocrates", tool: "arifos.heart", category: "non_harm" },
             { text: "Act only according to that maxim whereby you can will that it should become universal law.", author: "Immanuel Kant", tool: "arifos.heart", category: "human_dignity" },
-            { text: "With great power comes great responsibility.", author: "Voltaire/Spiderman", tool: "arifos.judge", category: "power_restraint" },
+            { text: "With great power comes great responsibility.", author: "Voltaire", tool: "arifos.judge", category: "power_restraint" },
             { text: "Those who cannot remember the past are condemned to repeat it.", author: "George Santayana", tool: "arifos.memory", category: "history_continuity" }
         ];
-        
-        async function fetchStatus() {
-            try {
-                // Fetch version info (includes commit hash)
-                try {
-                    const versionRes = await fetch(`${API_BASE}/version`);
-                    const version = await versionRes.json();
-                    if (version.commit) {
-                        document.getElementById('commit-hash').textContent = version.commit;
-                        document.getElementById('footer-commit').textContent = version.commit;
-                    }
-                } catch (e) {
-                    console.log('Version endpoint not available');
-                }
-                
-                // Fetch health status
-                const healthRes = await fetch(`${API_BASE}/health`);
-                const health = await healthRes.json();
-                
-                document.getElementById('health').textContent = health.status || 'unknown';
-                document.getElementById('health').style.color = health.status === 'healthy' ? 'var(--accent-seal)' : 'var(--accent-void)';
-                document.getElementById('version').textContent = health.version || 'v2.0.0';
-                document.getElementById('floors').textContent = health.floors_active || '13';
-                document.getElementById('tool-count').textContent = health.tools_loaded || '10';
-                document.getElementById('status-text').textContent = 'AF-FORGE Connected ✓';
-                
-                // Fetch tools list
-                const toolsRes = await fetch(`${API_BASE}/tools`);
-                const tools = await toolsRes.json();
-                
-                if (tools.tools && tools.tools.length > 0) {
-                    renderTools(tools.tools);
-                }
-                
-                // Fetch philosophy via init endpoint (dry-run)
-                try {
-                    const philRes = await fetch(`${API_BASE}/tools/arifos.init`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            actor_id: 'landing_page', 
-                            intent: 'status_check',
-                            dry_run: true 
-                        })
-                    });
-                    const phil = await philRes.json();
-                    
-                    if (phil.philosophy && phil.philosophy.entry) {
-                        document.getElementById('philosophy-text').textContent = `"${phil.philosophy.entry.text}"`;
-                        document.getElementById('philosophy-meta').textContent = 
-                            `${phil.philosophy.entry.author} | Band: ${phil.philosophy.band} | Mode: ${phil.philosophy.selection_mode}`;
-                    }
-                } catch (e) {
-                    // Fallback to static S1
-                    document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
-                    document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
-                }
-                
-                document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString();
-                
-            } catch (error) {
-                console.error('Fetch error:', error);
-                document.getElementById('status-text').textContent = 'AF-FORGE Unreachable';
-                document.querySelector('.live-status').classList.add('error-state');
-                
-                // Show fallback data
-                document.getElementById('health').textContent = 'degraded';
-                document.getElementById('health').style.color = 'var(--accent-void)';
-                document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
-                document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
-            }
-        }
-        
-        function renderTools(tools) {
+
+        const TOOL_INFO = {
+            'arifos.init':    { stage: '000_INIT',   desc: 'Session establishment & anchoring', trinity: 'Δ', tclass: 'delta' },
+            'arifos.sense':   { stage: '111_SENSE',  desc: 'Reality intake & evidence grounding', trinity: 'Δ', tclass: 'delta' },
+            'arifos.mind':    { stage: '333_MIND',   desc: 'Structured reasoning & synthesis', trinity: 'Δ', tclass: 'delta' },
+            'arifos.kernel':  { stage: '333_KERNEL', desc: 'Kernel introspection & routing', trinity: 'Δ', tclass: 'delta' },
+            'arifos.route':   { stage: '444_ROUTER', desc: 'Lane selection & downstream routing', trinity: 'Δ', tclass: 'delta' },
+            'arifos.memory':  { stage: '555_MEMORY', desc: 'Continuity, persistence & recall', trinity: 'Ω', tclass: 'omega' },
+            'arifos.heart':   { stage: '666_HEART',  desc: 'Ethical review & dignity protection', trinity: 'Ω', tclass: 'omega' },
+            'arifos.ops':     { stage: '777_OPS',    desc: 'Execution & implementation', trinity: 'Ψ', tclass: 'psi' },
+            'arifos.judge':   { stage: '888_JUDGE',  desc: 'Constitutional verdict & consequence', trinity: 'Ψ', tclass: 'psi' },
+            'arifos.forge':   { stage: '888_FORGE',  desc: 'Shape durable doctrine & artifact', trinity: 'Δ', tclass: 'delta' },
+            'arifos.vault':   { stage: '999_VAULT',  desc: 'Seal, preserve & archive', trinity: 'Ψ', tclass: 'psi' },
+            'arifos.vps_monitor': { stage: 'SYS',   desc: 'VPS & container health monitoring', trinity: 'Ψ', tclass: 'psi' }
+        };
+
+        function renderTools(toolNames) {
             const container = document.getElementById('tools-container');
             container.innerHTML = '';
-            
-            const toolInfo = {
-                'arifos.init': { stage: '000_INIT', desc: 'Session establishment & anchoring', trinity: 'Δ', class: 'trinity-delta' },
-                'arifos.sense': { stage: '111_SENSE', desc: 'Reality intake & evidence grounding', trinity: 'Δ', class: 'trinity-delta' },
-                'arifos.mind': { stage: '333_MIND', desc: 'Structured reasoning & synthesis', trinity: 'Δ', class: 'trinity-delta' },
-                'arifos.route': { stage: '444_ROUTER', desc: 'Lane selection & downstream routing', trinity: 'Δ', class: 'trinity-delta' },
-                'arifos.memory': { stage: '555_MEMORY', desc: 'Continuity, persistence & recall', trinity: 'Ω', class: 'trinity-omega' },
-                'arifos.heart': { stage: '666_HEART', desc: 'Ethical review & dignity protection', trinity: 'Ω', class: 'trinity-omega' },
-                'arifos.ops': { stage: '777_OPS', desc: 'Execution & implementation', trinity: 'Ψ', class: 'trinity-psi' },
-                'arifos.judge': { stage: '888_JUDGE', desc: 'Constitutional verdict & consequence', trinity: 'Ψ', class: 'trinity-psi' },
-                'arifos.forge': { stage: '888_FORGE', desc: 'Shape durable doctrine & artifact', trinity: 'Δ', class: 'trinity-delta' },
-                'arifos.vault': { stage: '999_VAULT', desc: 'Seal, preserve & archive', trinity: 'Ψ', class: 'trinity-psi' }
-            };
-            
-            tools.forEach(toolName => {
-                const info = toolInfo[toolName] || { stage: '--', desc: 'Tool', trinity: '', class: '' };
+            toolNames.forEach(name => {
+                const info = TOOL_INFO[name] || { stage: '--', desc: 'Tool', trinity: '', tclass: 'delta' };
                 const div = document.createElement('div');
-                div.className = `tool-item ${info.class}`;
-                div.innerHTML = `
-                    <div class="tool-name">${info.trinity} ${toolName}</div>
-                    <div class="tool-stage">${info.stage} | ${info.desc}</div>
-                `;
+                div.className = 'tool-card';
+                div.tabIndex = 0;
+                div.setAttribute('role', 'button');
+                div.setAttribute('aria-label', name + ' — ' + info.desc + '. Click to copy tool name.');
+                div.innerHTML = '<div class="tool-accent ' + info.tclass + '" aria-hidden="true"></div>' +
+                    '<div class="tool-body">' +
+                    '<div class="tool-name">' + info.trinity + ' ' + name + '</div>' +
+                    '<div class="tool-stage">' + info.stage + '</div>' +
+                    '<div class="tool-desc">' + info.desc + '</div>' +
+                    '<div class="tool-copied" aria-live="assertive">Copied ✓</div>' +
+                    '</div>';
+                function copyName() {
+                    navigator.clipboard.writeText(name).then(function() {
+                        var copied = div.querySelector('.tool-copied');
+                        copied.style.display = 'block';
+                        setTimeout(function() { copied.style.display = 'none'; }, 1500);
+                    }).catch(function() {});
+                }
+                div.addEventListener('click', copyName);
+                div.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copyName(); } });
                 container.appendChild(div);
             });
         }
-        
+
         function renderQuotes() {
-            const container = document.getElementById('quotes-container');
+            var container = document.getElementById('quotes-container');
             container.innerHTML = '';
-            
-            CORE_QUOTES.forEach(quote => {
-                const div = document.createElement('div');
+            CORE_QUOTES.forEach(function(q) {
+                var div = document.createElement('div');
                 div.className = 'quote-card';
-                div.innerHTML = `
-                    <div class="quote-text">${quote.text}</div>
-                    <div class="quote-author">— ${quote.author}</div>
-                    <div class="quote-tool">${quote.tool} | ${quote.category}</div>
-                `;
+                div.innerHTML = '<div class="quote-text">' + q.text + '</div>' +
+                    '<div class="quote-author">— ' + q.author + '</div>' +
+                    '<div class="quote-tool">' + q.tool + ' | ' + q.category + '</div>';
                 container.appendChild(div);
             });
         }
-        
-        // Initial load
+
+        async function fetchStatus() {
+            try {
+                var healthRes = await fetch(API_BASE + '/health');
+                var toolsRes = await fetch(API_BASE + '/tools');
+                var health = await healthRes.json();
+                var toolsData = await toolsRes.json();
+
+                var t = health.thermodynamic || {};
+                document.getElementById('stat-tools').textContent = health.tool_count || '11';
+                document.getElementById('stat-vitality').textContent = t.vitality_index != null ? t.vitality_index : '—';
+                document.getElementById('stat-version').textContent = health.version || '—';
+                var verdict = t.verdict || 'SEAL';
+                var verdictEl = document.getElementById('stat-verdict');
+                verdictEl.textContent = verdict;
+                verdictEl.style.color = verdict === 'SEAL' ? 'var(--accent-seal)' : verdict === 'PARTIAL' ? 'var(--accent-partial)' : 'var(--accent-void)';
+
+                document.getElementById('status-text').textContent = (health.service || 'arifOS') + ' · ' + (health.status || 'healthy');
+                document.getElementById('verdict-text').textContent = verdict;
+                document.getElementById('verdict-chip').style.display = 'inline-flex';
+
+                if (toolsData.tools && toolsData.tools.length) renderTools(toolsData.tools);
+
+                try {
+                    var ver = await (await fetch(API_BASE + '/version')).json();
+                    if (ver.commit) document.getElementById('footer-commit').textContent = ver.commit;
+                } catch(e) {}
+
+                try {
+                    var philRes = await fetch(API_BASE + '/tools/arifos.init', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ actor_id: 'landing_page', intent: 'status_check', dry_run: true })
+                    });
+                    var phil = await philRes.json();
+                    if (phil.philosophy && phil.philosophy.entry) {
+                        document.getElementById('philosophy-text').textContent = '"' + phil.philosophy.entry.text + '"';
+                        document.getElementById('philosophy-meta').textContent = phil.philosophy.entry.author + ' | Band: ' + phil.philosophy.band + ' | Mode: ' + phil.philosophy.selection_mode;
+                    }
+                } catch(e) {}
+
+                document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString() + (t.vitality_index != null ? ' — Vitality ' + t.vitality_index : '');
+
+            } catch(err) {
+                document.getElementById('status-text').textContent = 'Kernel unreachable';
+                document.querySelector('.status-dot').style.background = 'var(--accent-void)';
+                renderTools(Object.keys(TOOL_INFO));
+                document.getElementById('last-updated').textContent = 'Status check failed at ' + new Date().toLocaleString();
+            }
+        }
+
         renderQuotes();
         fetchStatus();
-        
-        // Auto-refresh every 30s
         setInterval(fetchStatus, 30000);
     </script>
 </body>

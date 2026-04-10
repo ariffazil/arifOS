@@ -35,19 +35,20 @@ confidence: 0.94
 
 ## Canonical Surface
 
-| Tool | Stage | Layer |
-| :--- | :--- | :--- |
-| `arifos_init` | 000 | GOVERNANCE |
-| `arifos_sense` | 111 | MACHINE |
-| `arifos_mind` | 333 | INTELLIGENCE |
-| `arifos_route` | 444 | GOVERNANCE |
-| `arifos_heart` | 666 | INTELLIGENCE |
-| `arifos_ops` | 777 | MACHINE |
-| `arifos_judge` | 888 | GOVERNANCE |
-| `arifos_memory` | 555 | INTELLIGENCE |
-| `arifos_vault` | 999 | GOVERNANCE |
-| `arifos_forge` | 010 | EXECUTION |
-| `arifos_vps_monitor` | 111 | MACHINE |
+| Tool | Stage | Layer | Notes |
+| :--- | :--- | :--- | :--- |
+| `arifos_init` | 000 | GOVERNANCE | Session anchoring |
+| `arifos_sense` | 111 | MACHINE | Reality grounding |
+| `arifos_mind` | 333 | INTELLIGENCE | Structured reasoning |
+| `arifos_kernel` | 444 | GOVERNANCE | Primary metabolic conductor *(canonical)* |
+| `arifos_route` | 444 | GOVERNANCE | Alias for `arifos_kernel` *(transitional)* |
+| `arifos_memory` | 555 | INTELLIGENCE | Vector memory recall |
+| `arifos_heart` | 666 | INTELLIGENCE | Safety & empathy critique |
+| `arifos_ops` | 777 | MACHINE | Thermodynamic estimation |
+| `arifos_judge` | 888 | GOVERNANCE | Final constitutional verdict |
+| `arifos_vault` | 999 | GOVERNANCE | Immutable audit ledger |
+| `arifos_forge` | 010 | EXECUTION | AF-FORGE execution bridge |
+| `arifos_vps_monitor` | 111 | MACHINE | VPS telemetry |
 
 ## Current Surface Layers
 

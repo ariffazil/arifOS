@@ -40,6 +40,7 @@ Complete mapping of all 42 pages to their tiers, strands, and metadata.
 | [[Tool_Surface_Architecture]] | 20_RUNTIME | architecture | engineers | intermediate | [MCP_Tools] |
 | [[Concept_Architecture]] | 20_RUNTIME | architecture | engineers | intermediate | [Trinity_Architecture] |
 | [[Concept_Deployment_Architecture]] | 20_RUNTIME | integration | engineers | intermediate | [Concept_Architecture] |
+| [[Concept_Gateway_Architecture]] | 20_RUNTIME | architecture | engineers | advanced | [Concept_Architecture, MCP_Tools] |
 | [[Concept_Vault999_Architecture]] | 20_RUNTIME | architecture | engineers | advanced | [Concept_Architecture] |
 | [[Concept_Metabolic_Pipeline]] | 20_RUNTIME | architecture | engineers | advanced | [Metabolic_Loop] |
 | [[Concept_LLM_Wiki_Pattern]] | 20_RUNTIME | architecture | engineers | intermediate | [quickstart] |

@@ -107,7 +107,7 @@ def forge_verdict(
         payload={"data": payload},
         policy={
             "floors_checked": floors_checked or ["F4", "F11"],
-            "floors_failed": ["F4" if ds > 0.1 else ""],
+            "floors_failed": ["F4"] if ds > 0.1 else [],
             "philosophy_zone": philosophy.zone_code if philosophy else "N/A"
         },
         status=RuntimeStatus.SUCCESS if code != VerdictCode.VOID else RuntimeStatus.ERROR

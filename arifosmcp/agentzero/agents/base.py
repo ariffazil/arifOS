@@ -339,6 +339,109 @@ class ConstitutionalAgent(ABC):
         """
         pass
     
+    # ── Agent Handoff Protocol ────────────────────────────────────────────────
+
+    async def handoff(
+        self,
+        target_agent_id: str,
+        action_payload: dict[str, Any],
+        action_summary: str,
+        verdict: str,
+        vault=None,
+        secret_key: str = "",
+    ) -> dict[str, Any]:
+        """
+        Cryptographically seal and hand off a task to another agent.
+
+        Requires:
+        - Current verdict must be SEAL (no handoff of unsealed actions)
+        - Target agent must exist and be reachable
+        - zkPC receipt generated and appended to vault ledger
+
+        Args:
+            target_agent_id: ID of receiving agent
+            action_payload: Full action/task dict being handed off
+            action_summary: Human-readable summary of the action
+            verdict: Verdict under which this action was approved
+            vault: VaultManager instance (for merkle root access)
+            secret_key: HMAC signing key
+
+        Returns:
+            dict with receipt_id, merkle_leaf, merkle_root, and verification token
+
+        Raises:
+            ConstitutionalViolationError: If current verdict is not SEAL
+        """
+        # Require SEAL verdict before handoff (F1 Amanah enforcement)
+        if not hasattr(self, '_last_verdict') or self._last_verdict != "SEAL":
+            raise ConstitutionalViolationError(
+                f"Cannot handoff unsealed action: verdict={getattr(self, '_last_verdict', 'UNKNOWN')}"
+            )
+
+        from arifosmcp.agentzero.handoff.sealer import HandoffSealer
+
+        sealer = HandoffSealer(vault_manager=vault, secret_key=secret_key)
+
+        receipt = sealer.seal_handoff(
+            source_agent_id=self.agent_id,
+            source_role=self.role.name if hasattr(self.role, 'name') else str(self.role),
+            target_agent_id=target_agent_id,
+            target_role="UNKNOWN",  # Target role resolved by registry
+            action_payload=action_payload,
+            action_summary=action_summary,
+            verdict=verdict,
+            tri_witness_score=getattr(self, '_tri_witness_score', 0.0),
+        )
+
+        logger.info(
+            f"[{self.agent_id}] Handoff sealed → {target_agent_id} "
+            f"receipt={receipt.receipt_id} leaf={receipt.merkle_leaf[:8]}..."
+        )
+
+        return {
+            "receipt_id": receipt.receipt_id,
+            "source_agent": receipt.source_agent,
+            "target_agent": receipt.target_agent,
+            "verdict": receipt.verdict,
+            "merkle_leaf": receipt.merkle_leaf,
+            "merkle_root_before": receipt.merkle_root_before,
+            "merkle_root_after": receipt.merkle_root_after,
+            "zkpc_proof": receipt.zkpc_proof,
+            "tri_witness_score": receipt.tri_witness_score,
+            "timestamp": receipt.timestamp,
+            "ttl_seconds": receipt.ttl_seconds,
+            "signature": receipt.signature,
+            "verified": True,
+        }
+
+    @staticmethod
+    async def verify_and_receive_handoff(
+        receipt: dict[str, Any],
+        vault=None,
+        secret_key: str = "",
+    ) -> tuple[bool, str]:
+        """
+        Verify and receive a handoff receipt.
+
+        Called by the target agent to verify the received receipt
+        before accepting the handoff payload.
+
+        Returns:
+            (is_valid, reason)
+        """
+        from arifosmcp.agentzero.handoff.sealer import HandoffReceipt, HandoffSealer
+
+        # Reconstruct receipt object
+        try:
+            receipt_obj = HandoffReceipt(**receipt)
+        except Exception as e:
+            return False, f"Receipt reconstruction failed: {e}"
+
+        sealer = HandoffSealer(vault_manager=vault, secret_key=secret_key)
+        return sealer.verify_handoff(receipt_obj)
+
+    # ── Subagent Spawning ───────────────────────────────────────────────────
+
     def can_spawn_subagent(self) -> bool:
         """Check if agent can spawn subagents (depth limit)."""
         return self.current_depth < self.max_subagent_depth

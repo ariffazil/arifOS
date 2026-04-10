@@ -36,14 +36,17 @@ confidence: 1.0
 
 ---
 
-## 1. MCP Surface Inventory (Canonical 11 Tools)
+## 1. MCP Surface Inventory (Canonical 12 Tools)
+
+> **Updated 2026-04-10**: `tool_registry.json` contains 12 entries. `arifos_kernel` is the canonical 444-stage tool; `arifos_route` is a transitional alias.
 
 | # | Tool Name (Code) | Stage | Layer | Wiki Name | Status |
 |---|------------------|-------|-------|-----------|--------|
 | 1 | `arifos_init` | 000 | GOVERNANCE | `arifos_init` | ✅ |
 | 2 | `arifos_sense` | 111 | MACHINE | `arifos_sense` | ✅ |
 | 3 | `arifos_mind` | 333 | INTELLIGENCE | `arifos_mind` | ✅ |
-| 4 | `arifos_route` | 444 | GOVERNANCE | `arifos_route` | ✅ |
+| 4 | `arifos_kernel` | 444 | GOVERNANCE | `arifos_kernel` | ✅ Canonical |
+| 4a | `arifos_route` | 444 | GOVERNANCE | `arifos_route` | ⚠️ Alias (transitional) |
 | 5 | `arifos_heart` | 666 | INTELLIGENCE | `arifos_heart` | ✅ |
 | 6 | `arifos_ops` | 777 | MACHINE | `arifos_ops` | ✅ |
 | 7 | `arifos_judge` | 888 | GOVERNANCE | `arifos_judge` | ✅ |
@@ -58,10 +61,11 @@ confidence: 1.0
 
 | Source | Count | Status |
 |--------|-------|--------|
-| `tool_specs.py` `TOOLS` | **11** | ✅ Canonical |
+| `tool_registry.json` | **12** | ✅ Live canonical (2026-04-10) |
+| `tool_specs.py` `TOOLS` | **11** | ⚠️ Needs sync to 12 |
 | `megaTools/__init__.py` `MEGA_TOOLS` | **12** | ⚠️ Includes compat_probe |
-| `CANONICAL_TOOL_HANDLERS` | **11** | ✅ Matches spec |
-| `MCP_Tools.md` | **11** | ✅ Verified |
+| `CANONICAL_TOOL_HANDLERS` | **11** | ⚠️ Needs sync to 12 |
+| `MCP_Tools.md` | **11** | ⚠️ Needs sync to 12 |
 
 **Finding**: Code is now consistent at 11 tools. Wiki docs updated.
 
