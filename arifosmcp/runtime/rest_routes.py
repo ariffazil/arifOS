@@ -962,12 +962,13 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
     return {
         "openapi": "3.1.0",
         "info": {
-            "title": "arifOS Checkpoint REST API",
+            "title": "arifOS REST API",
             "version": BUILD_INFO["version"],
             "description": (
-                "Minimal REST/OpenAPI compatibility surface for arifOS constitutional "
-                "evaluation. Primary endpoint: POST /checkpoint. This is not the MCP "
-                "transport; remote MCP clients should connect to `/mcp`."
+                "arifOS constitutional governance REST API. "
+                "MCP clients: connect to `POST /mcp`. "
+                "This REST surface provides checkpoint evaluation and health. "
+                "Governance registry: 13 constitutional floors, F1-F13."
             ),
         },
         "servers": [{"url": base_url}],
