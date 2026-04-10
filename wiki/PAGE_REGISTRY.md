@@ -1,6 +1,6 @@
 # Ω-Wiki Page Registry
 
-Complete mapping of all 37 pages to their tiers, strands, and metadata.
+Complete mapping of all 40 pages to their tiers, strands, and metadata.
 
 **Purpose**: This registry defines the semantic structure of the wiki. Update frontmatter on each page to match this registry.
 
@@ -10,7 +10,7 @@ Complete mapping of all 37 pages to their tiers, strands, and metadata.
 
 | Page | Tier | Strand | Audience | Difficulty | Prerequisites |
 |------|------|--------|----------|------------|---------------|
-| [[Quickstart]] | 00_INDEX | onboarding | all | beginner | [] |
+| [[quickstart]] | 00_INDEX | onboarding | all | beginner | [] |
 
 **Rationale**: Single entry point for all newcomers. Auto-generated "Start Here" path begins here.
 
@@ -22,9 +22,10 @@ Complete mapping of all 37 pages to their tiers, strands, and metadata.
 |------|------|--------|----------|------------|---------------|
 | [[What-is-arifOS]] | 10_FOUNDATIONS | philosophy | all | beginner | [] |
 | [[Floors]] | 10_FOUNDATIONS | constitutional | all | beginner | [What-is-arifOS] |
+| [[Concept_Floors]] | 10_FOUNDATIONS | constitutional | all | intermediate | [Floors] |
 | [[Trinity_Architecture]] | 10_FOUNDATIONS | architecture | all | beginner | [What-is-arifOS] |
 
-**Rationale**: These three pages form the "sacred trinity" of foundation knowledge. Everyone must read these first.
+**Rationale**: These foundation pages establish core philosophy, constitutional law, and architectural framing. Everyone should read them first.
 
 ---
 
@@ -39,8 +40,9 @@ Complete mapping of all 37 pages to their tiers, strands, and metadata.
 | [[Concept_Deployment_Architecture]] | 20_RUNTIME | integration | engineers | intermediate | [Concept_Architecture] |
 | [[Concept_Vault999_Architecture]] | 20_RUNTIME | architecture | engineers | advanced | [Concept_Architecture] |
 | [[Concept_Metabolic_Pipeline]] | 20_RUNTIME | architecture | engineers | advanced | [Metabolic_Loop] |
-| [[Agent_Roles]] | 20_RUNTIME | architecture | engineers | intermediate | [Trinity_Architecture] |
-| [[Integration_Patterns]] | 20_RUNTIME | integration | engineers | intermediate | [MCP_Tools, Metabolic_Loop] |
+| [[Concept_LLM_Wiki_Pattern]] | 20_RUNTIME | architecture | engineers | intermediate | [quickstart] |
+| [[agent-roles]] | 20_RUNTIME | architecture | engineers | intermediate | [Trinity_Architecture] |
+| [[integration-patterns]] | 20_RUNTIME | integration | engineers | intermediate | [MCP_Tools, Metabolic_Loop] |
 | [[arifos_forge]] | 20_RUNTIME | tools | engineers | intermediate | [MCP_Tools] |
 | [[arifos_vps_monitor]] | 20_RUNTIME | tools | engineers | intermediate | [MCP_Tools] |
 | [[Concept_Decision_Velocity]] | 20_RUNTIME | paradox | researchers | advanced | [Concept_Metabolic_Pipeline] |
@@ -69,9 +71,9 @@ Complete mapping of all 37 pages to their tiers, strands, and metadata.
 | Page | Tier | Strand | Audience | Difficulty | Prerequisites |
 |------|------|--------|----------|------------|---------------|
 | [[Roadmap]] | 40_HORIZONS | roadmap | all | beginner | [What-is-arifOS] |
-| [[Horizon_2_Swarm]] | 40_HORIZONS | roadmap | researchers | advanced | [Agent_Roles, Concept_Metabolic_Pipeline] |
+| [[Horizon_2_Swarm]] | 40_HORIZONS | roadmap | researchers | advanced | [agent-roles, Concept_Metabolic_Pipeline] |
 | [[Horizon_3_Universal_Body]] | 40_HORIZONS | roadmap | researchers | advanced | [Horizon_2_Swarm] |
-| [[Eigent_Backend]] | 40_HORIZONS | integration | engineers | intermediate | [Integration_Patterns] |
+| [[Eigent_Backend]] | 40_HORIZONS | integration | engineers | intermediate | [integration-patterns] |
 
 **Rationale**: Horizon pages answer "where is arifOS going?" They can be read early for context but require foundation knowledge to deeply understand.
 
@@ -138,8 +140,8 @@ Complete mapping of all 37 pages to their tiers, strands, and metadata.
 
 | Strand | Pages | Tiers Covered |
 |--------|-------|---------------|
-| **architecture** | 10 | 10, 20, 30, 90 |
-| **constitutional** | 6 | 10, 30 |
+| **architecture** | 11 | 10, 20, 30, 90 |
+| **constitutional** | 7 | 10, 30 |
 | **integration** | 4 | 20, 40 |
 | **operations** | 6 | 50 |
 | **roadmap** | 5 | 30, 40 |
@@ -153,8 +155,8 @@ Complete mapping of all 37 pages to their tiers, strands, and metadata.
 
 | Difficulty | Count | Pages |
 |------------|-------|-------|
-| beginner | 10 | Quickstart, What-is-arifOS, Floors, Trinity_Architecture, Roadmap, GEOX, Entity_Andrej_Karpathy, Changelog, Source_Karpathy_LLM_Wiki, Source_NotebookLM_HighLevel_Overview, Prerequisite_Map |
-| intermediate | 17 | (see registry above) |
+| beginner | 11 | quickstart, What-is-arifOS, Floors, Trinity_Architecture, Roadmap, GEOX, Entity_Andrej_Karpathy, Changelog, Source_Karpathy_LLM_Wiki, Source_NotebookLM_HighLevel_Overview, Prerequisite_Map |
+| intermediate | 19 | (see registry above) |
 | advanced | 10 | Vault999_Architecture, Metabolic_Pipeline, Governance_Enforcer, Godellock, Floor_Tensions, Epistemic_Circuit_Breakers, Decision_Velocity, ToolSpec_arifos_judge, Horizon_2_Swarm, Horizon_3_Universal_Body |
 
 ---
@@ -163,22 +165,22 @@ Complete mapping of all 37 pages to their tiers, strands, and metadata.
 
 ### Path: New Engineer
 ```
-Quickstart → What-is-arifOS → Trinity_Architecture → Metabolic_Loop → MCP_Tools → Integration_Patterns → Agent_Roles
+quickstart → What-is-arifOS → Trinity_Architecture → Metabolic_Loop → MCP_Tools → integration-patterns → agent-roles
 ```
 
 ### Path: Safety Researcher
 ```
-Quickstart → What-is-arifOS → Floors → Philosophy_Registry → Concept_Governance_Enforcer → Floor_Tensions → Epistemic_Circuit_Breakers
+quickstart → What-is-arifOS → Floors → Philosophy_Registry → Concept_Governance_Enforcer → Concept_Floor_Tensions → Concept_Epistemic_Circuit_Breakers
 ```
 
 ### Path: Platform Architect
 ```
-Quickstart → Trinity_Architecture → Concept_Architecture → Concept_Deployment_Architecture → Horizon_2_Swarm → Horizon_3_Universal_Body
+quickstart → Trinity_Architecture → Concept_Architecture → Concept_Deployment_Architecture → Horizon_2_Swarm → Horizon_3_Universal_Body
 ```
 
 ### Path: Operator (DevOps)
 ```
-Quickstart → MCP_Tools → Tool_Surface_Architecture → Drift_Checks → Audit_Surface_Fragmentation
+quickstart → MCP_Tools → Tool_Surface_Architecture → Drift_Checks → Audit_Surface_Fragmentation
 ```
 
 ---
@@ -201,6 +203,6 @@ Quickstart → MCP_Tools → Tool_Surface_Architecture → Drift_Checks → Audi
 
 ---
 
-**Registry Version**: 2026.04.08  
-**Total Pages**: 37  
+**Registry Version**: 2026.04.10  
+**Total Pages**: 40  
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.

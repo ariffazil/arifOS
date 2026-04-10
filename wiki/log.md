@@ -488,3 +488,19 @@ NO DRIFT DETECTED
 - **Contradictions registered:** C-001 HIGH (two K000_LAW.md at 20KB vs 22KB), C-002 MEDIUM, C-003 MEDIUM, C-004 LOW
 - **Ω-Wiki gaps:** 9 gaps identified — integration_patterns.md (158KB), agent role details, skills registry, deployment architecture
 - **Ω-Wiki updated:** index.md (33 pages), log.md
+
+## [2026-04-10] Review | AF-FORGE wiki tree reconciliation
+- Reviewed `/root/arifOS/wiki` tree against live page files.
+- Reconciled registry drift: `PAGE_REGISTRY.md` now matches all **40** page files.
+- Fixed page-name mismatches that were using registry aliases instead of live filenames:
+  - `Quickstart` → `quickstart`
+  - `Agent_Roles` → `agent-roles`
+  - `Integration_Patterns` → `integration-patterns`
+- Added missing registry coverage for:
+  - [[Concept_Floors]]
+  - [[Concept_LLM_Wiki_Pattern]]
+- Refreshed `index.md` metadata to reflect the live page count.
+- Updated [[arifos_forge]] to describe AF-FORGE as the execution bridge and substrate boundary, not a sovereign decision surface.
+- Updated [[arifos_vps_monitor]] to describe the VPS telemetry role more clearly and anchor it to AF-FORGE machine operations.
+- Fixed an internal link in [[quickstart]] to the live `integration-patterns` page.
+- Note: auto-generated views were left untouched in this pass because broader page frontmatter normalization is still incomplete across the wiki.

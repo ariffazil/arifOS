@@ -1,7 +1,7 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-08 (Repo Chaos Reduction — Forge Pass executed)
-> **Total Pages**: 33
+> **Last Updated**: 2026-04-10 (AF-FORGE wiki review and tree reconciliation)
+> **Total Pages**: 40
 > **System Status**: ACTIVE
 
 ## 🏛️ Foundations

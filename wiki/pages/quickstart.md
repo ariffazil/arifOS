@@ -166,7 +166,7 @@ Focus: Understanding *why* the constitution is designed this way.
 
 Continue reading:
 1. **[[Tool_Surface_Architecture]]** — Canonical spec and compatibility layers
-2. **[[Integration_Patterns]]** — ChatGPT, Claude, IDEs, n8n, custom apps
+2. **[[integration-patterns]]** — ChatGPT, Claude, IDEs, n8n, custom apps
 3. **[[Concept_Metabolic_Pipeline]]** — 11-stage thermodynamic digestion
 4. **[[ToolSpec_arifos_judge]]** — The constitutional verdict engine
 
