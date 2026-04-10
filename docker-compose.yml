@@ -170,6 +170,7 @@ services:
       - "traefik.http.routers.openclaw.rule=Host(`claw.arifosmcp.arif-fazil.com`)"
       - "traefik.http.routers.openclaw.entrypoints=websecure"
       - "traefik.http.routers.openclaw.tls.certresolver=letsencrypt"
+      - "traefik.http.services.openclaw.loadbalancer.server.port=18789"
     restart: unless-stopped
 
   arifosmcp:
@@ -201,11 +202,18 @@ services:
       - arifos_core_network
     ports:
       - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8080/health | grep -q 'healthy' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.arifosmcp.rule=Host(`arifosmcp.arif-fazil.com`)"
       - "traefik.http.routers.arifosmcp.entrypoints=websecure"
       - "traefik.http.routers.arifosmcp.tls.certresolver=letsencrypt"
+      - "traefik.http.services.arifosmcp.loadbalancer.server.port=8080"
       # Public access - no auth required
     restart: unless-stopped
 
@@ -226,6 +234,7 @@ services:
       - "traefik.http.routers.webhook.rule=Host(`hook.arifosmcp.arif-fazil.com`)"
       - "traefik.http.routers.webhook.entrypoints=websecure"
       - "traefik.http.routers.webhook.tls.certresolver=letsencrypt"
+      - "traefik.http.services.webhook.loadbalancer.server.port=9000"
     restart: unless-stopped
 
 volumes:
