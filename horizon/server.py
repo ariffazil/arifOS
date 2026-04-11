@@ -1,17 +1,19 @@
 """
-arifOS Horizon Adapter
-=====================
+horizon/server.py — DEPRECATED
 
-DEPRECATED: Import from arifosmcp.server_horizon instead.
+Use the unified server at project root instead:
+    from server import mcp
 
-This file is kept for backward compatibility with existing Horizon deployments.
-All new code should import from arifosmcp.server_horizon.
-
-Status: DEPRECATED - redirects to arifosmcp.server_horizon
-Branch: refactor/v2.0-abi
+This file redirects to the canonical location for backward compatibility.
 """
 
-# Redirect to canonical location
-from arifosmcp.server_horizon import mcp
+import sys
+import os
 
-__all__ = ["mcp"]
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _root not in sys.path:
+    sys.path.insert(0, _root)
+
+from server import mcp, create_aaa_mcp_server
+
+__all__ = ["mcp", "create_aaa_mcp_server"]
