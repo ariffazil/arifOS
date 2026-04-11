@@ -2,12 +2,19 @@
 arifOS MCP Server — Unified Entry Point
 ═══════════════════════════════════════════════════════════════════════════════
 
-Single canonical server for all arifOS deployments:
+Single canonical server for ALL arifOS deployments:
 - VPS sovereign execution (full F1-F13 floors)
-- Horizon gateway/proxy mode
+- Horizon gateway/proxy mode (public tools + VPS proxy)
 - Local development
 - A2A Agent-to-Agent protocol
 - WebMCP web-facing gateway
+
+Features:
+- 17 canonical tools (arifos_init, arifos_sense, etc.)
+- 10 legacy tool aliases (init_anchor, apex_soul, etc.)
+- Gateway metadata endpoints (/metadata, /health)
+- VPS proxy capability for sovereign tools
+- Constitutional governance (F1-F13)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -18,18 +25,16 @@ import logging
 import os
 import sys
 import traceback
-from typing import Any
+from typing import Any, Optional
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENVIRONMENT SETUP
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Ensure project root is in path
 _project_root = os.path.dirname(os.path.abspath(__file__))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-# Load .env early
 from dotenv import load_dotenv
 _env_path = os.path.join(_project_root, ".env")
 if os.path.exists(_env_path):
@@ -136,16 +141,13 @@ mcp = FastMCP(
 
 Golden path: init → sense → mind → heart → judge → vault
 
-Public tools: arifos_init, arifos_sense, arifos_mind, arifos_route, 
-arifos_memory, arifos_heart, arifos_ops, arifos_judge, arifos_vault, 
-arifos_forge, arifos_vps_monitor, arifos_reply
+Canonical tools: arifos_init, arifos_sense, arifos_mind, arifos_route,
+arifos_memory, arifos_heart, arifos_ops, arifos_judge, arifos_vault,
+arifos_forge, arifos_vps_monitor, arifos_reply, arifos_fetch, etc.
 
-Use prompts for structured workflows:
-- constitutional.analysis: Full pipeline
-- governance.audit: Compliance review
-- execution.planning: Costed execution
-- minimal.response: Direct answer
-- reply_protocol_v3: AGI Reply Protocol v3
+Legacy aliases: init_anchor, apex_soul, agi_mind, asi_heart,
+physics_reality, math_estimator, architect_registry, vault_ledger,
+engineering_memory, code_engine
 
 DITEMPA, BUKAN DIBERI — Forged, Not Given
 """,
@@ -153,12 +155,12 @@ DITEMPA, BUKAN DIBERI — Forged, Not Given
 
 
 def create_aaa_mcp_server() -> FastMCP:
-    """Factory for arifOS MCP Server (AAA = Aligned, Autonomous, Audit-able)."""
+    """Factory for arifOS MCP Server."""
     return mcp
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# REGISTER TOOLS, PROMPTS, RESOURCES
+# REGISTER CANONICAL TOOLS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 try:
@@ -169,13 +171,11 @@ try:
     from arifosmcp.runtime.build_info import get_build_info
     from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
 
-    # Register v2 components
     v2_tools_registered = register_v2_tools(mcp)
     v2_prompts_registered = register_v2_prompts(mcp)
     v2_resources_registered = register_v2_resources(mcp)
     v2_routes_registered = register_rest_routes(mcp, CANONICAL_TOOL_HANDLERS)
 
-    # PromptsAsTools
     try:
         from fastmcp.server.transforms import prompts_as_tools
         mcp.add_transform(prompts_as_tools())
@@ -184,7 +184,7 @@ try:
         logger.warning(f"PromptsAsTools unavailable: {_pat_err}")
 
     logger.info(
-        f"ARIFOS MCP v2 initialized: {len(v2_tools_registered)} tools, "
+        f"ARIFOS MCP v2: {len(v2_tools_registered)} tools, "
         f"{len(v2_prompts_registered)} prompts, {len(v2_resources_registered)} resources"
     )
 
@@ -193,6 +193,132 @@ except Exception as e:
     v2_tools_registered = []
     v2_prompts_registered = []
     v2_resources_registered = []
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LEGACY TOOL ALIASES (Horizon Compatibility)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Legacy → Canonical tool name mapping
+LEGACY_TOOL_MAP: dict[str, str] = {
+    "init_anchor": "arifos_init",
+    "apex_soul": "arifos_judge",
+    "agi_mind": "arifos_mind",
+    "asi_heart": "arifos_heart",
+    "physics_reality": "arifos_sense",
+    "math_estimator": "arifos_ops",
+    "architect_registry": "arifos_init",
+    "vault_ledger": "arifos_vault",
+    "engineering_memory": "arifos_memory",
+    "code_engine": "arifos_forge",
+    "arifOS_kernel": "arifos_kernel",
+}
+
+
+def _register_legacy_aliases():
+    """Register legacy tool names as aliases to canonical tools."""
+    for legacy_name, canonical_name in LEGACY_TOOL_MAP.items():
+        if canonical_name in CANONICAL_TOOL_HANDLERS:
+            handler = CANONICAL_TOOL_HANDLERS[canonical_name]
+            try:
+                # Register with legacy name
+                mcp.tool(name=legacy_name)(handler)
+                logger.debug(f"Registered legacy alias: {legacy_name} → {canonical_name}")
+            except Exception as e:
+                logger.warning(f"Failed to register legacy alias {legacy_name}: {e}")
+
+
+# Register legacy aliases
+try:
+    _register_legacy_aliases()
+    logger.info(f"Registered {len(LEGACY_TOOL_MAP)} legacy tool aliases")
+except Exception as e:
+    logger.warning(f"Legacy alias registration skipped: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GATEWAY ENDPOINTS (Horizon Compatibility)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def _build_gateway_metadata() -> dict:
+    """Build gateway metadata for /metadata endpoint."""
+    from arifosmcp.runtime.build_info import get_build_info
+    
+    build = get_build_info()
+    
+    # Tool access classification
+    public_tools = [
+        "arifos_init", "arifos_sense", "arifos_mind", "arifos_route",
+        "arifos_ops", "arifos_memory", "arifos_vps_monitor"
+    ]
+    authenticated_tools = ["arifos_heart", "arifos_judge", "arifos_vault"]
+    sovereign_tools = ["arifos_forge"]
+    
+    return {
+        "name": "ARIFOS MCP",
+        "version": build.get("version", "2.0.0"),
+        "protocol": "MCP 2025-03-26",
+        "gateway": {
+            "type": "unified",
+            "capabilities": ["tools", "prompts", "resources"],
+            "tool_access": {
+                "public": public_tools,
+                "authenticated": authenticated_tools,
+                "sovereign_only": sovereign_tools,
+            }
+        },
+        "endpoints": {
+            "mcp": "/mcp",
+            "health": "/health",
+            "metadata": "/metadata",
+            "tools": "/tools",
+        },
+        "motto": "DITEMPA, BUKAN DIBERI — Forged, Not Given",
+    }
+
+
+async def horizon_health(request: Request) -> JSONResponse:
+    """Health check with gateway status."""
+    from arifosmcp.runtime.build_info import get_build_info
+    
+    build = get_build_info()
+    
+    return JSONResponse({
+        "status": "healthy",
+        "service": "arifos-mcp-unified",
+        "version": build.get("version", "2.0.0"),
+        "gateway": "unified",
+        "tools": len(v2_tools_registered),
+        "prompts": len(v2_prompts_registered),
+        "resources": len(v2_resources_registered),
+        "legacy_aliases": len(LEGACY_TOOL_MAP),
+        "timestamp": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),
+    })
+
+
+async def horizon_metadata(request: Request) -> JSONResponse:
+    """Gateway metadata endpoint."""
+    metadata = await _build_gateway_metadata()
+    return JSONResponse(metadata)
+
+
+async def serve_humans_txt(request: Request) -> Response:
+    """Serve humans.txt for sovereign info."""
+    content = """/* TEAM */
+Sovereign: Arif Fazil
+Contact: arif@arif-fazil.com
+Site: https://arif-fazil.com
+
+/* THANKS */
+All contributors to the arifOS project
+
+/* SITE */
+Standards: MCP, FastMCP, Constitutional AI
+Components: FastAPI, Starlette, Pydantic
+
+DITEMPA, BUKAN DIBERI — Forged, Not Given
+"""
+    return Response(content=content, media_type="text/plain")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -211,7 +337,6 @@ try:
         AAA_TOOL_LAW_BINDINGS,
     )
     from arifosmcp.runtime.tool_specs import TOOLS
-    from arifosmcp.runtime.build_info import get_build_info
 
     def _normalize_tool_name(name: str) -> str:
         return name.replace(".", "_")
@@ -234,11 +359,13 @@ try:
     registered_endpoints = {
         "/health",
         "/tools",
+        "/metadata",
         "/kernel/health",
         "/kernel/health/integrity",
         "/.well-known/mcp/server.json",
         "/version",
         "/openapi.json",
+        "/humans.txt",
     }
 
     report = perform_boot_integrity_check(
@@ -291,6 +418,12 @@ try:
         allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
     )
 
+    # Add gateway endpoints
+    if app:
+        app.add_route("/health", horizon_health, methods=["GET"])
+        app.add_route("/metadata", horizon_metadata, methods=["GET"])
+        app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
+
 except Exception as e:
     logger.error(f"Failed to setup HTTP app: {e}")
     app = None
@@ -300,7 +433,7 @@ except Exception as e:
 # EXPORT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-__all__ = ["mcp", "create_aaa_mcp_server", "app"]
+__all__ = ["mcp", "create_aaa_mcp_server", "app", "LEGACY_TOOL_MAP"]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -319,6 +452,7 @@ if __name__ == "__main__":
         print(f"   Server: {mcp.name}")
         print(f"   Version: {mcp.version}")
         print(f"   Tools: {len(v2_tools_registered)}")
+        print(f"   Legacy Aliases: {len(LEGACY_TOOL_MAP)}")
         print(f"   Prompts: {len(v2_prompts_registered)}")
         print(f"   Resources: {len(v2_resources_registered)}")
         print("=" * 60)

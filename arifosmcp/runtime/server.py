@@ -2,7 +2,7 @@
 arifosmcp/runtime/server.py — DEPRECATED
 
 This file is now a redirect to the unified server at the project root.
-Use `from server import mcp` instead.
+Use `from server import mcp, LEGACY_TOOL_MAP` instead.
 
 For backward compatibility, this module re-exports from the root server.
 """
@@ -16,6 +16,6 @@ if _root not in sys.path:
     sys.path.insert(0, _root)
 
 # Import from unified server
-from server import mcp, create_aaa_mcp_server, app
+from server import mcp, create_aaa_mcp_server, app, LEGACY_TOOL_MAP
 
-__all__ = ["mcp", "create_aaa_mcp_server", "app"]
+__all__ = ["mcp", "create_aaa_mcp_server", "app", "LEGACY_TOOL_MAP"]
