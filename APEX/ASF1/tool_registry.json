@@ -1,0 +1,266 @@
+{
+  "$schema": "arifos://apex/asf1/tool-registry/v2",
+  "description": "arifOS MCP Tool Registry - Constitution-Safe Interface Migration",
+  "canonical_hash": "PENDING_SEAL",
+  "last_updated": "2026-04-11",
+  "migration_id": "UNIVERSAL_NAMING_2026_04_11",
+  "seal": "PENDING_999_SEAL",
+  
+  "migration_plan": {
+    "phase": "A",
+    "phase_a_alias_safe": true,
+    "phase_b_observation_days": 30,
+    "phase_c_hard_cut_pending_evidence": true,
+    "rollback_available": true
+  },
+  
+  "capability_axes": {
+    "READ": "Observe / inspect / query - No side effects",
+    "REASON": "Analyze / synthesize / plan - Pure computation", 
+    "GOVERN": "Judge / gate / verdict - Constitutional enforcement",
+    "WRITE": "Persist / mutate / archive - State changes",
+    "EXECUTE": "Trigger external side effects - Irreversible actions"
+  },
+  
+  "public_tools": {
+    "arifos_init": {
+      "canonical_name": "arifos_init",
+      "stage": "000",
+      "layer": "GOVERNANCE",
+      "capabilities": ["READ", "REASON"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.init", "init_v2"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "none",
+      "description": "Session anchoring, load constitution, return status"
+    },
+    "arifos_sense": {
+      "canonical_name": "arifos_sense",
+      "stage": "111",
+      "layer": "MACHINE",
+      "capabilities": ["READ", "REASON"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.sense", "sense_v2"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "none",
+      "description": "Reality grounding, evidence + entropy Δ computation"
+    },
+    "arifos_mind": {
+      "canonical_name": "arifos_mind",
+      "stage": "333",
+      "layer": "INTELLIGENCE",
+      "capabilities": ["REASON"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.mind", "mind_v2"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "none",
+      "description": "Structured reasoning, alternatives, second-order effects"
+    },
+    "arifos_kernel": {
+      "canonical_name": "arifos_kernel",
+      "stage": "444",
+      "layer": "GOVERNANCE",
+      "capabilities": ["READ", "REASON", "GOVERN"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.kernel", "arifos_route", "route_v2"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "none",
+      "modes": ["route", "orchestrate", "reply"],
+      "description": "Routing/orchestration, intent model → lane selection. Primary orchestrator face.",
+      "note": "reply mode absorbs arifos_reply functionality"
+    },
+    "arifos_heart": {
+      "canonical_name": "arifos_heart",
+      "stage": "666",
+      "layer": "INTELLIGENCE",
+      "capabilities": ["REASON", "GOVERN"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.heart", "heart_v2"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "none",
+      "description": "Harm modeling, human state, soft governance checks"
+    },
+    "arifos_ops": {
+      "canonical_name": "arifos_ops",
+      "stage": "777",
+      "layer": "MACHINE",
+      "capabilities": ["READ", "REASON"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.ops", "ops_v2"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "none",
+      "modes": ["monitor", "resource_check"],
+      "description": "Complexity, resource, irreversibility, rollback planning",
+      "note": "vps_monitor mode absorbed here"
+    },
+    "arifos_judge": {
+      "canonical_name": "arifos_judge",
+      "stage": "888",
+      "layer": "GOVERNANCE",
+      "capabilities": ["GOVERN"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.judge"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "governance_only",
+      "description": "888_JUDGE — Floors → SEAL / HOLD / VOID"
+    },
+    "arifos_memory": {
+      "canonical_name": "arifos_memory",
+      "stage": "555",
+      "layer": "INTELLIGENCE",
+      "capabilities": ["READ"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.memory", "memory_v2"],
+      "migration_phase": "active",
+      "requires_judge": false,
+      "side_effect_level": "none",
+      "description": "Governed recall of session/knowledge context"
+    },
+    "arifos_vault": {
+      "canonical_name": "arifos_vault",
+      "stage": "999",
+      "layer": "GOVERNANCE",
+      "capabilities": ["READ", "GOVERN", "WRITE"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.vault"],
+      "migration_phase": "active",
+      "requires_judge": true,
+      "requires_f13": true,
+      "side_effect_level": "write",
+      "description": "999_VAULT — immutable seal/log + render/status"
+    },
+    "arifos_forge": {
+      "canonical_name": "arifos_forge",
+      "stage": "010",
+      "layer": "EXECUTION",
+      "capabilities": ["EXECUTE"],
+      "exposure": "public",
+      "deprecated_aliases": ["arifos.forge", "forge_v2"],
+      "migration_phase": "active",
+      "requires_judge": true,
+      "requires_f13": true,
+      "side_effect_level": "execute",
+      "modes": ["deploy", "git_commit", "git_status", "bridge"],
+      "description": "Execution bridge to AF-FORGE substrate (after SEAL)",
+      "note": "Git operations and forge_bridge absorbed as modes"
+    }
+  },
+  
+  "internal_tools": {
+    "arifos_fetch": {
+      "canonical_name": "arifos_fetch",
+      "stage": "111",
+      "layer": "MACHINE",
+      "capabilities": ["READ"],
+      "exposure": "internal",
+      "deprecated_aliases": ["arifos.fetch"],
+      "migration_phase": "fold_into_sense",
+      "target": "arifos_sense(mode='fetch')",
+      "description": "External HTTP fetch under F9/F12 constraints"
+    },
+    "arifos_vps_monitor": {
+      "canonical_name": "arifos_vps_monitor",
+      "stage": "111",
+      "layer": "MACHINE",
+      "capabilities": ["READ"],
+      "exposure": "internal",
+      "deprecated_aliases": ["arifos.vps_monitor"],
+      "migration_phase": "fold_into_ops",
+      "target": "arifos_ops(mode='monitor')",
+      "description": "System telemetry / health monitoring"
+    },
+    "arifos_git_status": {
+      "canonical_name": "arifos_git_status",
+      "stage": "911",
+      "layer": "EXECUTION",
+      "capabilities": ["READ"],
+      "exposure": "internal",
+      "deprecated_aliases": ["arifos.git_status"],
+      "migration_phase": "fold_into_forge",
+      "target": "arifos_forge(mode='git_status')",
+      "description": "Git read-only state"
+    },
+    "arifos_git_commit": {
+      "canonical_name": "arifos_git_commit",
+      "stage": "999",
+      "layer": "EXECUTION",
+      "capabilities": ["GOVERN", "WRITE", "EXECUTE"],
+      "exposure": "internal",
+      "deprecated_aliases": ["arifos.git_commit"],
+      "migration_phase": "fold_into_forge",
+      "target": "arifos_forge(mode='git_commit')",
+      "requires_judge": true,
+      "requires_f13": true,
+      "description": "Mutates Git repo; gated by F1/F11/F13"
+    },
+    "arifos_reply": {
+      "canonical_name": "arifos_reply",
+      "stage": "000-999",
+      "layer": "GOVERNANCE",
+      "capabilities": ["READ", "REASON", "GOVERN", "WRITE", "EXECUTE"],
+      "exposure": "internal",
+      "deprecated_aliases": ["arifos.reply"],
+      "migration_phase": "fold_into_kernel",
+      "target": "arifos_kernel(mode='reply')",
+      "requires_judge": true,
+      "description": "End-to-end orchestrator — absorbed into kernel"
+    }
+  },
+  
+  "legacy_alias_map": {
+    "arifos.init": "arifos_init",
+    "arifos.sense": "arifos_sense",
+    "arifos.mind": "arifos_mind",
+    "arifos.kernel": "arifos_kernel",
+    "arifos.heart": "arifos_heart",
+    "arifos.ops": "arifos_ops",
+    "arifos.judge": "arifos_judge",
+    "arifos.memory": "arifos_memory",
+    "arifos.vault": "arifos_vault",
+    "arifos.forge": "arifos_forge",
+    "arifos.reply": "arifos_kernel",
+    "arifos.vps_monitor": "arifos_ops",
+    "arifos.fetch": "arifos_sense",
+    "arifos.git_status": "arifos_forge",
+    "arifos.git_commit": "arifos_forge",
+    "arifos.route": "arifos_kernel",
+    "init_v2": "arifos_init",
+    "sense_v2": "arifos_sense",
+    "mind_v2": "arifos_mind",
+    "route_v2": "arifos_kernel",
+    "memory_v2": "arifos_memory",
+    "heart_v2": "arifos_heart",
+    "forge_v2": "arifos_forge"
+  },
+  
+  "invariants": {
+    "F1_reversibility": {
+      "description": "Migration must be rollbackable",
+      "mechanism": "LEGACY_ALIAS_MAP allows instant revert to old names",
+      "rollback_flag": "ARIFOS_LEGACY_NAMES_ONLY=1"
+    },
+    "F2_truth": {
+      "description": "Both old and new names must pass identical tests",
+      "mechanism": "Test suite validates canonical + alias produce identical outputs"
+    },
+    "F4_clarity": {
+      "description": "Public tool list shrinks in entropy",
+      "mechanism": "10 public tools vs 16 previous; internal tools hidden from discovery"
+    },
+    "F11_audit": {
+      "description": "Every alias resolution must be loggable",
+      "mechanism": "Vault entries record both canonical_name and called_alias"
+    },
+    "F13_sovereignty": {
+      "description": "Name changes must not alter constitutional semantics",
+      "mechanism": "Tool logic unchanged; only surface names migrated"
+    }
+  }
+}

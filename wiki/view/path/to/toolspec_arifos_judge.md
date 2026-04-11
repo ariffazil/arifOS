@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.845278
+generated_at: 2026-04-11T04:27:16.604197
 target: ToolSpec_arifos_judge
 ---
 
@@ -38,6 +38,7 @@ target: ToolSpec_arifos_judge
 
 ## Related Pages (Same Strand)
 
+- [[Governed_Packet_Contract|Governed Packet Contract]]
 - [[MCP_Tools|MCP Tools]]
 - [[arifos_forge|arifos forge]]
 - [[arifos_vps_monitor|arifos vps monitor]]

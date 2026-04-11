@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.846147
+generated_at: 2026-04-11T04:27:16.604877
 target: Concept_Governance_Enforcer
 ---
 
@@ -28,6 +28,7 @@ target: Concept_Governance_Enforcer
 
 ## Related Pages (Same Strand)
 
+- [[Audit_MCP_Deploy_Gate|Audit MCP Deploy Gate]]
 - [[Concept_Floors|Concept Floors]]
 - [[Floors|Floors]]
 - [[Naming_Canon|Naming Canon]]

@@ -233,7 +233,7 @@ def _resolve_next_action(
 ) -> dict[str, Any] | None:
     if caller_state in ("anonymous", "claimed"):
         return {
-            "tool": "arifos.init",
+            "tool": "arifos_init",
             "reason": (
                 f"Session is {caller_state}. Call arifos.init first with "
                 f"actor_id and intent to unlock the full constitutional pipeline. "
@@ -1351,7 +1351,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,
@@ -1379,7 +1379,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,
@@ -1432,7 +1432,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,
@@ -1468,7 +1468,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,

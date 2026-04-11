@@ -38,6 +38,7 @@ Complete mapping of all 43 pages to their tiers, strands, and metadata.
 | [[Metabolic_Loop]] | 20_RUNTIME | architecture | engineers | intermediate | [Trinity_Architecture] |
 | [[MCP_Tools]] | 20_RUNTIME | tools | engineers | intermediate | [Metabolic_Loop] |
 | [[Tool_Surface_Architecture]] | 20_RUNTIME | architecture | engineers | intermediate | [MCP_Tools] |
+| [[Governed_Packet_Contract]] | 20_RUNTIME | architecture, tools | engineers, researchers | advanced | [MCP_Tools, Tool_Surface_Architecture, Concept_Godellock] |
 | [[Concept_Architecture]] | 20_RUNTIME | architecture | engineers | intermediate | [Trinity_Architecture] |
 | [[Concept_Deployment_Architecture]] | 20_RUNTIME | integration | engineers | intermediate | [Concept_Architecture] |
 | [[Concept_Gateway_Architecture]] | 20_RUNTIME | architecture | engineers | advanced | [Concept_Architecture, MCP_Tools] |
@@ -92,6 +93,7 @@ Complete mapping of all 43 pages to their tiers, strands, and metadata.
 | [[Audit_999_SEAL_Runtime_Contrast]] | 50_AUDITS | operations | operators, engineers | intermediate | [Concept_Deployment_Architecture, Reference_MCP_Servers] |
 | [[Audit_Repo_Chaos_Reduction]] | 50_AUDITS | operations | operators | intermediate | [Concept_Architecture] |
 | [[Audit_MCP_Tools_vs_Wiki]] | 50_AUDITS | operations | engineers | intermediate | [MCP_Tools] |
+| [[Audit_MCP_Deploy_Gate]] | 50_AUDITS | operations, constitutional | operators, engineers, researchers | intermediate | [MCP_Tools, Tool_Surface_Architecture, Audit_MCP_Tools_vs_Wiki, Governed_Packet_Contract] |
 
 **Rationale**: Audit pages answer "how do we maintain quality?" They are operational documents for maintainers.
 
@@ -209,5 +211,5 @@ quickstart → MCP_Tools → Reference_MCP_Servers → Audit_999_SEAL_Runtime_Co
 ---
 
 **Registry Version**: 2026.04.11  
-**Total Pages**: 45  
+**Total Pages**: 47  
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.

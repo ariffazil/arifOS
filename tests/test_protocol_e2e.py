@@ -6,6 +6,7 @@ import json
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+
 @pytest.mark.asyncio
 async def test_arifosmcp_stdio_e2e_protocol():
     """
@@ -34,35 +35,29 @@ async def test_arifosmcp_stdio_e2e_protocol():
             # 3. List tools and verify core tools are present
             tools_response = await session.list_tools()
             tool_names = [t.name for t in tools_response.tools]
-            
-            print(f"Found tools: {tool_names}")
-            
-            assert "check_vital" in tool_names
-            assert "audit_rules" in tool_names
-            assert "arifOS_kernel" in tool_names
-            
-            # 4. Call check_vital - a safe read-only tool
-            # Using call_tool from the session
-            result = await session.call_tool("check_vital", {})
-            
-            # FastMCP usually returns a list of content items, first one being text
+
+            assert "arifos_init" in tool_names
+            assert "arifos_kernel" in tool_names
+            assert "arifos_vault" in tool_names
+
+            # 4. Call arifos_init through the real stdio MCP lane
+            result = await session.call_tool(
+                "arifos_init",
+                {
+                    "actor_id": "protocol-tester",
+                    "intent": "Validate the stdio output contract.",
+                    "platform": "stdio",
+                },
+            )
+
             assert len(result.content) > 0
             content_text = result.content[0].text
-            envelope = json.loads(content_text)
-            
-            print(f"check_vital response: {json.dumps(envelope, indent=2)}")
-            
-            assert envelope["ok"] is True
-            assert envelope["tool"] == "check_vital"
-            assert envelope["verdict"] in ["SEAL", "PROVISIONAL", "SABAR"]
-            
-            # 5. Call audit_rules
-            result_audit = await session.call_tool("audit_rules", {})
-            envelope_audit = json.loads(result_audit.content[0].text)
-            
-            assert envelope_audit["ok"] is True
-            assert "floors" in envelope_audit["payload"]
-            assert len(envelope_audit["payload"]["floors"]) >= 13
+            payload = json.loads(content_text)
+
+            assert list(payload.keys()) == ["output"]
+            assert "Context: actor" in payload["output"]
+            assert "tool arifos_init." in payload["output"]
+            assert "Verdict:" in payload["output"]
 
 if __name__ == "__main__":
     asyncio.run(test_arifosmcp_stdio_e2e_protocol())

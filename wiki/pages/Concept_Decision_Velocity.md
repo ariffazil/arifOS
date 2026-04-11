@@ -19,8 +19,10 @@ sources:
 - K000_LAW.md
 - Concept_Floor_Tensions.md
 - Metabolic_Loop.md
-last_sync: '2026-04-10'
-confidence: 0.92
+- wiki/raw/governed_packet_bands_and_godellock_ingest_2026-04-11.md
+- wiki/raw/meta_theory_atoms_and_governed_utility_ingest_2026-04-11.md
+last_sync: '2026-04-11'
+confidence: 0.95
 ---
 
 # Decision Velocity: The Thermodynamic Friction of Constitutional AI
@@ -32,6 +34,23 @@ confidence: 0.92
 Constitutional AI is often criticized as "slow." This is partially true: **safety adds latency**. But not all safety adds the same latency. Understanding the **decision velocity** of each stage allows optimization without compromise.
 
 The 000-999 pipeline has a **theoretical minimum** of ~50ms (network overhead) and a **constitutional minimum** of ~200ms (F1 verification for irreversible actions). Everything else is negotiable.
+
+The new doctrine proposals add a second interpretation: velocity is not just latency, but also how much **safe cognitive work** a step can do before it overheats, destabilizes, or enters self-referential lock.
+
+## Proposed Meta-Theory Gauges
+
+The wiki now tracks several **proposed** gauges that would make decision velocity more physically and mathematically explicit:
+
+| Gauge | Meaning | Operational Use |
+|------|---------|-----------------|
+| `APE` | Akal Present Energy — available cognitive/compute free energy for the current step | bound how much complexity a single step should attempt |
+| `AC` | Anomalous Contrast — local weirdness / contrast jump | trigger extra grounding if the jump is too sharp |
+| `PSS` | Paradox Scar Shadow — overlap of prior paradox scars and current shadow mass | mark minefield regions requiring stronger governance |
+| `shadow` | residual unknown risk mass | penalize overconfident routing |
+| `G2` | governed intelligence composite | trust scalar for plan/action quality |
+| `godel_lock` | self-referential undecidability interlock | stop self-certifying totality claims |
+
+These are not yet claimed as live enforced metrics everywhere; they are the **target instrumentation layer**.
 
 ---
 
@@ -69,6 +88,8 @@ The 000-999 pipeline has a **theoretical minimum** of ~50ms (network overhead) a
 - Epistemic breakers: 75ms
 - Confidence calibration: 10-50ms
 - **Godellock penalty**: +100-300ms if CB1 triggered
+- **AC-T penalty** *(proposed)*: +1 extra `sense`/`ops` pass if anomalous contrast spikes
+- **PSS penalty** *(proposed)*: +governance escalation if paradox scars overlap with high shadow
 
 **The Critical Path**: This is where most latency lives.
 
@@ -132,6 +153,8 @@ The 000-999 pipeline has a **theoretical minimum** of ~50ms (network overhead) a
 
 **Optimization**: Pre-computed constants; minimal I/O.
 
+**Proposed extension**: `ops` becomes the main calculator for `APE`, `energy_cost_estimate`, and bounded-work contracts per step.
+
 ---
 
 ### Stage 888_JUDGE — Verdict: ~10ms
@@ -166,6 +189,8 @@ The 000-999 pipeline has a **theoretical minimum** of ~50ms (network overhead) a
 | **Standard** (typical query) | ~300-500ms | F2-F8, F11-F12 | SEAL/CAUTION |
 | **Deep Reasoning** (hard problem) | ~800-1200ms | ALL + breakers | SEAL/HOLD |
 | **Godellock** (CB1 triggered) | +100-300ms | F7 extended | CAUTION |
+| **AC-T escalation** *(proposed)* | +1 grounding cycle | F2/F4 reinforced | HOLD/CAUTION |
+| **PSS escalation** *(proposed)* | +governance cycle | F1/F7/F13 reinforced | HOLD |
 | **Irreversible** (F1 high-stakes) | +200-500ms | F1 extended | HOLD |
 
 ---
@@ -195,6 +220,7 @@ The 000-999 pipeline has a **theoretical minimum** of ~50ms (network overhead) a
 2. **Breaker evaluation** (CB1-CB5) — Already parallel, but skip for simple queries
 3. **Context assembly** — Cache hot contexts, expire cold ones
 4. **LLM calls** — Use smaller models for routine evaluations
+5. **APE-aware routing** *(proposed)* — refuse steps that attempt more work than current cognitive budget supports
 
 ### What CANNOT Be Optimized
 
@@ -202,6 +228,28 @@ The 000-999 pipeline has a **theoretical minimum** of ~50ms (network overhead) a
 2. **F2 grounding** — Evidence lookup requires I/O
 3. **Circuit breakers** — Safety checks can't be skipped
 4. **999_SEAL** — Immutable writes need disk sync
+
+## Proposed Governed Utility Loop
+
+The newest doctrine also proposes using decision velocity inside an **autoresearch loop**:
+
+- make one local tool/prompt change
+- run binary evals
+- compute one scalar
+- keep only if the scalar improves
+
+Candidate scalar:
+
+`U = governed utility`
+
+Candidate ingredients:
+
+- physics quality (`delta_S`, `APE`, energy budget)
+- governance quality (floors, `godel_lock`, `kappa_r`, `shadow`)
+- economic quality (`EMV`, `NPV`)
+- linguistic contract adherence (physics + math + quote bands present)
+
+This gives arifOS a ratchet metric that is not just "faster" or "more accurate", but **more governable per unit of thermodynamic effort**.
 
 ---
 
@@ -291,6 +339,8 @@ Given the latency budget, what's the max throughput?
 - [[Concept_Floor_Tensions]] — T1 (F4↔F1) latency impact
 - [[Concept_Epistemic_Circuit_Breakers]] — Breaker evaluation costs
 - `wiki/raw/K000_LAW.md` — Parallelism and orthogonality principles
+- `wiki/raw/governed_packet_bands_and_godellock_ingest_2026-04-11.md`
+- `wiki/raw/meta_theory_atoms_and_governed_utility_ingest_2026-04-11.md`
 
 ---
 

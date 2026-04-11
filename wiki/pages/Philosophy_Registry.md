@@ -19,8 +19,9 @@ tags:
 sources:
 - CHANGELOG.md
 - ROADMAP.md
-last_sync: '2026-04-10'
-confidence: 0.95
+- wiki/raw/governed_packet_bands_and_godellock_ingest_2026-04-11.md
+last_sync: '2026-04-11'
+confidence: 0.96
 ---
 
 # Philosophy Registry
@@ -100,10 +101,24 @@ Two constitutional moments bypass the algorithm:
 
 | Moment | Override Quote | Reason |
 |--------|----------------|--------|
-| **INIT stage** (000) | *"DITEMPA, BUKAN DIBERI."* | Establish forge ethos |
-| **SEAL verdict** (999) | *"DITEMPA, BUKAN DIBERI."* | Confirm completion |
+| **INIT stage** (000) | *"DITEMPA BUKAN DIBERI"* | Establish forge ethos |
+| **VAULT / SEAL** (999) | *"DITEMPA BUKAN DIBERI"* | Confirm sovereign closure |
 
 This ensures the arifOS motto anchors every session start and successful seal.
+
+## Proposed Wajib Linguistic Band
+
+The current registry already injects quotes at constitutional moments.
+
+The newer doctrine proposal goes further: **every tool output** should emit one linguistic anchor, not just selected moments.
+
+Under that proposal:
+
+- every tool emits `{quote, source, band}`
+- `arifos_init` always overrides the quote with `DITEMPA BUKAN DIBERI`
+- `arifos_vault` always overrides the quote with `DITEMPA BUKAN DIBERI`
+
+This page records that as a **proposed output-band contract**, not as proven live runtime behavior.
 
 ---
 

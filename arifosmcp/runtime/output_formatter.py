@@ -27,6 +27,8 @@ from arifosmcp.runtime.schemas import (
     GovernanceVerdict,
     OperatorAction,
     ContextSummary,
+    HumanLanguageBlock,
+    UniversalContext,
     CleanError,
     DebugForensics,
     build_system_view,
@@ -75,21 +77,25 @@ def format_output(
     if platform == "api":
         clean = _build_base_output(envelope)
         return {
-            "ok": clean.execution.ok,
-            "status": clean.execution.status,
-            "verdict": clean.governance.verdict,
-            "summary": clean.operator.summary,
-            "next_step": clean.operator.next_step,
-            "payload": envelope.payload,
-            "session_id": clean.context.session,
+            "human_language": clean.human_language.model_dump(exclude_none=True),
+            "universal_context": clean.universal_context.model_dump(exclude_none=True),
+            "execution": clean.execution.model_dump(exclude_none=True),
+            "governance": clean.governance.model_dump(exclude_none=True),
+            "error": clean.error.model_dump(exclude_none=True) if clean.error else None,
         }
         
     # 3. stdio — human-readable text
     if platform == "stdio":
         clean = _build_base_output(envelope)
-        text = f"[{clean.execution.status}] {clean.governance.verdict}: {clean.operator.summary}"
-        if clean.operator.next_step:
-            text += f"\nNext: {clean.operator.next_step}"
+        text = clean.human_language.summary
+        context = clean.universal_context
+        text += (
+            f"\nContext: actor {context.actor}, session {context.session or 'unknown'}, "
+            f"risk {context.risk}, platform {context.platform}, tool {context.tool}."
+        )
+        text += f"\nVerdict: {clean.governance.verdict} ({clean.execution.status})"
+        if clean.human_language.next_step:
+            text += f"\nNext: {clean.human_language.next_step}"
         return {"output": text}
 
     # 4. agi_reply — AGI Reply Protocol v3 dual-axis envelope
@@ -370,16 +376,38 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
     # Extract error info
     error = None
     if not envelope.ok or status == "ERROR":
+        payload_error = envelope.payload.get("error") if isinstance(envelope.payload, dict) else None
         error = CleanError(
             code=envelope.code or "UNKNOWN_ERROR",
-            message=envelope.detail or envelope.payload.get("error", "Unknown error"),
+            message=envelope.detail or payload_error or "Unknown error",
         )
-    
+
     # Build operator summary
     summary = _build_summary(envelope)
     next_step = _extract_next_step(envelope)
-    
+    explanation = _build_explanation(envelope)
+    actor = envelope.authority.actor_id if envelope.authority else "anonymous"
+    session = envelope.session_id
+    verified = envelope.authority.claim_status == "verified" if envelope.authority else False
+    risk = envelope.risk_class.value if envelope.risk_class else "low"
+    platform = envelope.platform_context or "unknown"
+    tool = envelope.canonical_tool_name or envelope.tool
+
     return CleanOutput(
+        human_language=HumanLanguageBlock(
+            summary=summary,
+            explanation=explanation,
+            next_step=next_step,
+        ),
+        universal_context=UniversalContext(
+            actor=actor,
+            session=session,
+            verified=verified,
+            risk=risk,
+            platform=platform,
+            tool=tool,
+            stage=envelope.stage,
+        ),
         execution=ExecutionResult(
             ok=envelope.ok,
             status=status,
@@ -395,11 +423,11 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
             retryable=envelope.retryable if envelope.retryable is not None else not envelope.ok,
         ),
         context=ContextSummary(
-            actor=envelope.authority.actor_id if envelope.authority else "anonymous",
-            session=envelope.session_id,
-            verified=envelope.authority.claim_status == "verified" if envelope.authority else False,
-            risk=envelope.risk_class.value if envelope.risk_class else "low",
-            platform=envelope.platform_context or "unknown",
+            actor=actor,
+            session=session,
+            verified=verified,
+            risk=risk,
+            platform=platform,
         ),
         error=error,
         debug=None,  # Never in base view
@@ -455,6 +483,7 @@ def _build_summary(envelope: RuntimeEnvelope) -> str:
         "arifos_init": "Session initialization",
         "arifos_sense": "Reality grounding",
         "arifos_mind": "Reasoning",
+        "arifos_kernel": "Routing",
         "arifos_route": "Routing",
         "arifos_heart": "Safety critique",
         "arifos_ops": "Cost estimation",
@@ -462,17 +491,50 @@ def _build_summary(envelope: RuntimeEnvelope) -> str:
         "arifos_memory": "Memory recall",
         "arifos_vault": "Vault sealing",
         "arifos_forge": "Execution",
+        "arifos_reply": "Governed reply",
         "arifos_vps_monitor": "Telemetry",
+        "arifos_fetch": "Fetch",
+        "arifos_git_status": "Git status",
+        "arifos_git_commit": "Git commit",
     }
-    
-    tool = tool_names.get(envelope.tool, envelope.tool)
-    
+
+    tool = tool_names.get(envelope.canonical_tool_name or envelope.tool, envelope.canonical_tool_name or envelope.tool)
+
+    operator_summary = envelope.operator_summary or {}
+    if isinstance(operator_summary, dict) and operator_summary:
+        pieces = []
+        if operator_summary.get("identity"):
+            pieces.append(operator_summary["identity"])
+        if operator_summary.get("session"):
+            pieces.append(f"Session is {operator_summary['session']}")
+        if operator_summary.get("authority"):
+            pieces.append(f"Authority allows {operator_summary['authority']}")
+        if operator_summary.get("governance"):
+            pieces.append(f"Governance is {operator_summary['governance']}")
+        if pieces:
+            prefix = f"{tool} completed." if envelope.ok else f"{tool} stopped."
+            return f"{prefix} {' '.join(pieces)}"
+
+    if envelope.verdict_detail and envelope.verdict_detail.message:
+        return envelope.verdict_detail.message
+    if envelope.detail and envelope.ok:
+        return envelope.detail
     if envelope.ok:
         return f"{tool} completed successfully."
-    elif envelope.code:
+    if envelope.code:
         return f"{tool} failed with {envelope.code}."
-    else:
-        return f"{tool} failed."
+    return f"{tool} failed."
+
+
+def _build_explanation(envelope: RuntimeEnvelope) -> str | None:
+    """Build a universal plain-language explanation."""
+    if envelope.verdict_detail and envelope.verdict_detail.message:
+        return envelope.verdict_detail.message
+    if envelope.detail:
+        return envelope.detail
+    if envelope.hint:
+        return envelope.hint
+    return None
 
 
 def _extract_next_step(envelope: RuntimeEnvelope) -> str | None:

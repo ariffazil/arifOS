@@ -1,7 +1,7 @@
 # Ω-Wiki Index
 
 > **Last Updated**: 2026-04-11 (999_SEAL alignment ingest — runtime rebuild required)
-> **Total Pages**: 45
+> **Total Pages**: 47
 > **System Status**: ⚠️ **999_SEAL ALIGNMENT** — code unified, VPS substrate rebuild pending
 
 > **Current State**: arifOS and AF-FORGE are aligned in git, but the live VPS runtime is still missing all 6 MCP substrates. Full rebuild remains required before runtime can claim `999_SEAL`.
@@ -70,9 +70,10 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 
 ## 💡 Concepts
 - [[Metabolic_Loop]] (The 000-999 Execution Pipeline)
-- [[MCP_Tools]] (Canonical arifos_* Tool Surface)
+- [[MCP_Tools]] (Current tool-surface contrast: 10-tool target vs runtime migration drift)
 - **K00X_RUNTIME_POLICY** ([Runtime Policy — Token Budget Law + Call Rules](raw/K00X_RUNTIME_POLICY.md))
-- [[Tool_Surface_Architecture]] (Canonical spec, runtime, compatibility, transport, and wiki layers)
+- [[Tool_Surface_Architecture]] (Registry canon vs runtime/discovery contrast, with audit-first next step)
+- [[Governed_Packet_Contract]] (Canonical target contract for governed packets, wajib bands, tripwires, and eval metrics)
 - [[Concept_Godellock]] (F7 Humility and the Overconfidence Threshold)
 - [[Agents-and-AAA-Architecture]] (Ring 3: Practical Execution layer)
 - [[Concept_Architecture]] (The Trinity ΔΩΨ model and CCC/AAA layers)
@@ -108,6 +109,8 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - [[Drift_Checks]] (Checker scope, policy, and CI guidance)
 - [[Audit_999_SEAL_Runtime_Contrast]] (Merged capability vs live VPS substrate reality)
 - [[Audit_Repo_Chaos_Reduction]] (Pass 1 Audit — 378 active docs classified, 122 archived, 10 deleted)
+- [[Audit_MCP_Tools_vs_Wiki]] (Naming migration contrast: registry target is cleaner than runtime/export truth)
+- [[Audit_MCP_Deploy_Gate]] (Canonical release gate: formatter path sealable, full MCP on 888 HOLD until drift = 0)
 
 ---
 

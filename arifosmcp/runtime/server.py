@@ -216,6 +216,10 @@ class SSEKeepAliveMiddleware(BaseHTTPMiddleware):
 # MCP SERVER INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def create_aaa_mcp_server() -> FastMCP:
+    """Factory for arifOS MCP Server (AAA = Aligned, Autonomous, Audit-able)."""
+    return mcp
+
 mcp = FastMCP(
     "ARIFOS MCP",
     version="2.0.0",
@@ -369,20 +373,41 @@ HORIZON_TO_V2_MAP: dict[str, str] = {
     "vps_monitor": "arifos_vps_monitor",
     "architect_registry": "arifos_init",
     # v2 names also accepted directly
-    "arifos_init": "arifos.init",
-    "arifos_route": "arifos.kernel",
-    "arifos_kernel": "arifos.kernel",
-    "arifos_sense": "arifos.sense",
-    "arifos_mind": "arifos.mind",
-    "arifos_heart": "arifos.heart",
-    "arifos_ops": "arifos.ops",
-    "arifos_judge": "arifos.judge",
-    "arifos_memory": "arifos.memory",
-    "arifos_vault": "arifos.vault",
-    "arifos_forge": "arifos.forge",
+    "arifos_init": "arifos_init",
+    "arifos_route": "arifos_kernel",
+    "arifos_kernel": "arifos_kernel",
+    "arifos_sense": "arifos_sense",
+    "arifos_mind": "arifos_mind",
+    "arifos_heart": "arifos_heart",
+    "arifos_ops": "arifos_ops",
+    "arifos_judge": "arifos_judge",
+    "arifos_memory": "arifos_memory",
+    "arifos_vault": "arifos_vault",
+    "arifos_forge": "arifos_forge",
     "arifos_vps_monitor": "arifos.vps_monitor",
-    "arifos_reply": "arifos.reply",
+    "arifos_reply": "arifos_reply",
 }
+
+
+def _serialize_rest_tool_result(
+    result: Any,
+    *,
+    verbose: bool = False,
+    debug: bool = False,
+) -> Any:
+    """Serialize tool results through the shared human-language formatter when possible."""
+    from arifosmcp.runtime.models import RuntimeEnvelope
+    from arifosmcp.runtime.output_formatter import format_output
+
+    if isinstance(result, RuntimeEnvelope):
+        result.platform_context = "api"
+        return format_output(result, {"verbose": verbose, "debug": debug})
+
+    if hasattr(result, "model_dump"):
+        return result.model_dump()
+    if hasattr(result, "__dict__"):
+        return dict(result.__dict__)
+    return result
 
 
 async def rest_tool_handler(request: Request) -> JSONResponse:
@@ -422,6 +447,7 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
     session_id = body.pop("session_id", None)
     risk_tier = body.pop("risk_tier", "medium")
     dry_run = body.pop("dry_run", True)
+    verbose = body.pop("verbose", False)
     debug = body.pop("debug", False)
 
     try:
@@ -434,12 +460,11 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
             **body,
         )
 
-        if hasattr(result, "model_dump"):
-            response_data = result.model_dump()
-        elif hasattr(result, "__dict__"):
-            response_data = dict(result.__dict__)
-        else:
-            response_data = result
+        response_data = _serialize_rest_tool_result(
+            result,
+            verbose=verbose,
+            debug=debug,
+        )
 
         return JSONResponse(response_data)
 
@@ -457,10 +482,10 @@ async def rest_tool_handler(request: Request) -> JSONResponse:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HTTP APP SETUP
+# HTTP APP SETUP — DUAL TRANSPORT (HTTP + SSE)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Create HTTP app
+# Create HTTP app (stateless for /mcp streamable-http)
 if IS_FASTMCP_3:
     app = mcp.http_app(stateless_http=False)
 elif IS_FASTMCP_2:
@@ -471,15 +496,30 @@ elif IS_FASTMCP_2:
 else:
     raise RuntimeError(f"Unsupported FastMCP version: {fastmcp.__version__}")
 
-# Add middleware
-app.add_middleware(GlobalPanicMiddleware)
-app.add_middleware(SSEKeepAliveMiddleware)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
-)
+# Create SSE app for /sse endpoint (A2A Agent-to-Agent)
+if IS_FASTMCP_3:
+    sse_app = mcp.http_app(transport="sse", path="/sse", stateless_http=False)
+elif IS_FASTMCP_2:
+    try:
+        sse_app = mcp.streamable_http_app()
+    except AttributeError:
+        sse_app = mcp._mcp_server.app
+else:
+    raise RuntimeError(f"Unsupported FastMCP version: {fastmcp.__version__}")
+
+# Shared middleware for both apps
+def _add_shared_middleware(target_app: Any) -> None:
+    target_app.add_middleware(GlobalPanicMiddleware)
+    target_app.add_middleware(SSEKeepAliveMiddleware)
+    target_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
+    )
+
+_add_shared_middleware(app)
+_add_shared_middleware(sse_app)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CUSTOM ROUTES
@@ -625,23 +665,64 @@ async def tools_handler(request: Request) -> JSONResponse:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# REGISTER ALL ROUTES
+# REGISTER ALL ROUTES — DUAL TRANSPORT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-app.add_route("/", landing_page_handler, methods=["GET"])
-app.add_route("/health", health_handler, methods=["GET", "OPTIONS"])
-app.add_route("/version", version_handler, methods=["GET"])
-app.add_route("/tools", tools_handler, methods=["GET"])
-app.add_route("/tools/{tool_name}", rest_tool_handler, methods=["POST"])
-app.add_route("/llms.txt", llms_txt_handler, methods=["GET"])
-app.add_route("/humans.txt", humans_txt_handler, methods=["GET"])
-app.add_route("/MCP_WEB_READY_AUDIT.md", mcp_web_ready_audit_handler, methods=["GET"])
+# Shared route handlers (already defined above)
+ROUTE_HANDLERS = [
+    ("/", landing_page_handler, ["GET"]),
+    ("/health", health_handler, ["GET", "OPTIONS"]),
+    ("/version", version_handler, ["GET"]),
+    ("/tools", tools_handler, ["GET"]),
+    ("/tools/{tool_name}", rest_tool_handler, ["POST"]),
+    ("/llms.txt", llms_txt_handler, ["GET"]),
+    ("/humans.txt", humans_txt_handler, ["GET"]),
+    ("/MCP_WEB_READY_AUDIT.md", mcp_web_ready_audit_handler, ["GET"]),
+    ("/.well-known/mcp", manifest_handler, ["GET"]),
+    ("/.well-known/mcp/server.json", manifest_handler, ["GET"]),
+]
 
-app.add_route("/.well-known/mcp", manifest_handler, methods=["GET"])
-app.add_route("/.well-known/mcp/server.json", manifest_handler, methods=["GET"])
+for path, handler, methods in ROUTE_HANDLERS:
+    app.add_route(path, handler, methods=methods)
+    sse_app.add_route(path, handler, methods=methods)
 
 
 if __name__ == "__main__":
-    from arifosmcp.runtime.fastmcp_ext.transports import run_server
+    import asyncio
+    import uvicorn
 
-    run_server(mcp, mode="http", host="0.0.0.0", port=8080)
+    async def run_dual_transport():
+        """Run both HTTP (streamable-http on 8080) and SSE (on 8089) transports."""
+        http_config = uvicorn.Config(
+            app,
+            host="0.0.0.0",
+            port=8080,
+            timeout_graceful_shutdown=2,
+            lifespan="on",
+            ws="websockets-sansio",
+            log_level="info",
+        )
+        sse_config = uvicorn.Config(
+            sse_app,
+            host="0.0.0.0",
+            port=8089,
+            timeout_graceful_shutdown=2,
+            lifespan="on",
+            ws="websockets-sansio",
+            log_level="info",
+        )
+
+        http_server = uvicorn.Server(http_config)
+        sse_server = uvicorn.Server(sse_config)
+
+        logger.info("=" * 60)
+        logger.info("ARIFOS MCP v2 — DUAL TRANSPORT SEALED")
+        logger.info("  HTTP (streamable-http): http://0.0.0.0:8080/mcp")
+        logger.info("  SSE (A2A agents):       http://0.0.0.0:8089/sse")
+        logger.info("=" * 60)
+
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(http_server.serve())
+            tg.create_task(sse_server.serve())
+
+    asyncio.run(run_dual_transport())

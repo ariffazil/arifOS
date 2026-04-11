@@ -78,8 +78,8 @@ async def apex_judge(
                 effective_verdict = verdict_val or (Verdict.SEAL if ok else Verdict.VOID)
 
             return RuntimeEnvelope(
-                tool=res.get("tool", "arifos.judge"),
-                canonical_tool_name="arifos.judge",
+                tool=res.get("tool", "arifos_judge"),
+                canonical_tool_name="arifos_judge",
                 stage=res.get("organ_stage") or res.get("stage") or "888_JUDGE",
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=effective_verdict,

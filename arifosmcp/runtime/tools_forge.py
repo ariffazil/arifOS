@@ -255,7 +255,8 @@ def _forge_error(
     """Generate forge error envelope."""
     return {
         "ok": False,
-        "tool": "arifos_forge",
+        "tool": "arifos.forge",
+        "canonical_tool_name": "arifos.forge",
         "stage": "FORGE_010",
         "session_id": session_id,
         "verdict": "VOID",
@@ -287,14 +288,15 @@ def _forge_success(
         "status": status,
         "note": note,
     }
-    
+
     if receipt_hash:
         payload["receipt_hash"] = receipt_hash
         payload["vault_log"] = f"vault://executions/{receipt_hash}"
-    
+
     return {
         "ok": True,
-        "tool": "arifos_forge",
+        "tool": "arifos.forge",
+        "canonical_tool_name": "arifos.forge",
         "stage": "FORGE_010",
         "session_id": session_id,
         "verdict": "SEAL",

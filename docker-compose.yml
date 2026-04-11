@@ -98,6 +98,7 @@ services:
       - /opt/arifos/sites/arif-fazil.com/apex:/usr/share/nginx/html/apex:ro
       - /opt/arifos/sites/arif-fazil.com/geox:/usr/share/nginx/html/geox:ro
       - /opt/arifos/sites/arif-fazil.com/wiki:/usr/share/nginx/html/wiki:ro
+      - /opt/arifos/sites/arif-fazil.com/arifosmcp:/usr/share/nginx/html/arifosmcp:ro
       - /root/arifOS/infrastructure/nginx/arifos_landings.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - arifos_core_network
@@ -109,7 +110,6 @@ services:
       - "traefik.http.routers.forge-landing.rule=Host(`forge.arif-fazil.com`)"
       - "traefik.http.routers.waw-landing.rule=Host(`waw.arif-fazil.com`)"
       - "traefik.http.routers.apex-landing.rule=Host(`apex.arif-fazil.com`)"
-      - "traefik.http.routers.geox-landing.rule=Host(`geox.arif-fazil.com`)"
       - "traefik.http.routers.wiki-landing.rule=Host(`wiki.arif-fazil.com`)"
       - "traefik.http.routers.arif-landing.entrypoints=websecure"
       - "traefik.http.routers.arif-landing.tls.certresolver=letsencrypt"
@@ -119,14 +119,15 @@ services:
       - "traefik.http.routers.aaa-landing.tls.certresolver=letsencrypt"
       - "traefik.http.routers.forge-landing.entrypoints=websecure"
       - "traefik.http.routers.forge-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.geox-landing.entrypoints=websecure"
-      - "traefik.http.routers.geox-landing.tls.certresolver=letsencrypt"
       - "traefik.http.routers.apex-landing.entrypoints=websecure"
       - "traefik.http.routers.apex-landing.tls.certresolver=letsencrypt"
       - "traefik.http.routers.waw-landing.entrypoints=websecure"
       - "traefik.http.routers.waw-landing.tls.certresolver=letsencrypt"
       - "traefik.http.routers.wiki-landing.entrypoints=websecure"
       - "traefik.http.routers.wiki-landing.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.arifosmcp-landing.rule=Host(`arifosmcp.arif-fazil.com`)"
+      - "traefik.http.routers.arifosmcp-landing.entrypoints=websecure"
+      - "traefik.http.routers.arifosmcp-landing.tls.certresolver=letsencrypt"
     restart: unless-stopped
 
   ollama:
@@ -178,7 +179,7 @@ services:
     container_name: arifosmcp
     init: true
     working_dir: /usr/src/project
-    command: ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["python", "-m", "arifosmcp.runtime.server"]
     env_file:
       - path: .env
     environment:
@@ -202,19 +203,14 @@ services:
       - arifos_core_network
     ports:
       - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8089:8089"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8080/health | grep -q 'healthy' || exit 1"]
       interval: 30s
       timeout: 10s
       start_period: 30s
       retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.arifosmcp.rule=Host(`arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.arifosmcp.entrypoints=websecure"
-      - "traefik.http.routers.arifosmcp.tls.certresolver=letsencrypt"
-      - "traefik.http.services.arifosmcp.loadbalancer.server.port=8080"
-      # Public access - no auth required
+    # Traefik route disabled - served via arifos_landings nginx proxy
     restart: unless-stopped
 
   webhook:

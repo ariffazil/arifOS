@@ -85,8 +85,8 @@ async def agi_mind(
         metrics.telemetry.confidence = res_dict.get("confidence", 0.5)
 
         return forge_verdict(
-            tool_id="arifos.mind",
-            canonical_tool_name="arifos.mind",
+            tool_id="arifos_mind",
+            canonical_tool_name="arifos_mind",
             stage="333_MIND",
             payload=res_dict.get("payload", res_dict),
             session_id=session_id,
@@ -109,8 +109,8 @@ async def agi_mind(
     if not hasattr(res, "verdict_detail") or not res.verdict_detail:
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
         return forge_verdict(
-            tool_id="arifos.mind",
-            canonical_tool_name="arifos.mind",
+            tool_id="arifos_mind",
+            canonical_tool_name="arifos_mind",
             stage=res.stage,
             payload=res.payload,
             session_id=session_id,

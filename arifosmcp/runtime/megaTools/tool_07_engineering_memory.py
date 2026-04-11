@@ -77,8 +77,8 @@ async def engineering_memory(
                     else None,
                 }
             return RuntimeEnvelope(
-                tool="arifos.memory",
-                canonical_tool_name="arifos.memory",
+                tool="arifos_memory",
+                canonical_tool_name="arifos_memory",
                 stage=res.get("stage", "555_MEMORY"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,

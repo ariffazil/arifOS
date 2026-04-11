@@ -41,7 +41,8 @@ async def arifos_fetch(
     if gov.verdict != "SEAL":
         return _RE(
             ok=False,
-            tool="arifos_fetch",
+            tool="arifos.fetch",
+            canonical_tool_name="arifos.fetch",
             verdict=gov.verdict,
             detail=gov.message,
             payload={"violations": gov.violations}
@@ -55,7 +56,8 @@ async def arifos_fetch(
     except Exception as e:
         return _RE(
             ok=False,
-            tool="arifos_fetch",
+            tool="arifos.fetch",
+            canonical_tool_name="arifos.fetch",
             code="SUBSTRATE_ERROR",
             detail=str(e)
         )

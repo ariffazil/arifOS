@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.844403
+generated_at: 2026-04-11T04:27:16.603414
 filter: gaps_analysis
 ---
 
@@ -33,9 +33,9 @@ Pages with no `depended_by` references (excluding 90_ENTITIES): 23
 - [[Changelog|Changelog]] (50_AUDITS)
 - [[Audit_999_SEAL_Runtime_Contrast|Audit 999 SEAL Runtime Contrast]] (50_AUDITS)
 - [[Drift_Checks|Drift Checks]] (50_AUDITS)
-- [[Audit_MCP_Tools_vs_Wiki|Audit MCP Tools vs Wiki]] (50_AUDITS)
 - [[Audit_Repo_Chaos_Reduction|Audit Repo Chaos Reduction]] (50_AUDITS)
 - [[Audit_Surface_Fragmentation|Audit Surface Fragmentation]] (50_AUDITS)
+- [[Audit_MCP_Deploy_Gate|Audit MCP Deploy Gate]] (50_AUDITS)
 
 ## Missing Prerequisite Pages
 

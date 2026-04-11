@@ -475,8 +475,8 @@ async def init_anchor(
                     _code = "INIT_KERNEL_500"
 
             return RuntimeEnvelope(
-                tool=res.get("tool", "arifos.init"),
-                canonical_tool_name="arifos.init",  # ← ADDED: Canonical name
+                tool=res.get("tool", "arifos_init"),
+                canonical_tool_name="arifos_init",  # ← ADDED: Canonical name
                 stage=res.get("organ_stage") or res.get("stage") or "000_INIT",
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=effective_verdict,

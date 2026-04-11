@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.842554
+generated_at: 2026-04-11T04:27:16.601992
 filter: strand=architecture
 ---
 
 # Strand: Architecture
 
 > **Auto-generated** from `strand: architecture` filter.
-> **Total Pages**: 12
+> **Total Pages**: 13
 
 ## 10 Foundations
 
@@ -22,6 +22,7 @@ filter: strand=architecture
 - [[Concept_LLM_Wiki_Pattern|Concept LLM Wiki Pattern]] [intermediate]
 - [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]] [advanced]
 - [[Concept_Vault999_Architecture|Concept Vault999 Architecture]] [advanced]
+- [[Governed_Packet_Contract|Governed Packet Contract]] [advanced]
 - [[Metabolic_Loop|Metabolic Loop]] [intermediate]
 - [[Tool_Surface_Architecture|Tool Surface Architecture]] [intermediate]
 - [[agent-roles|agent roles]] [intermediate]

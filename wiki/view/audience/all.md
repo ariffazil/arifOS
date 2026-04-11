@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.844224
+generated_at: 2026-04-11T04:27:16.603265
 filter: audience=all
 ---
 
 # Audience: All
 
 > **Auto-generated** for `all` audience.
-> **Total Pages**: 45
+> **Total Pages**: 47
 
 Pages relevant to **All**.
 
@@ -36,6 +36,7 @@ Pages relevant to **All**.
 | [[Concept_Gateway_Architecture|Concept Gateway Architecture]] | 20 RUNTIME | advanced | architecture |
 | [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]] | 20 RUNTIME | advanced | architecture |
 | [[Concept_Decision_Velocity|Concept Decision Velocity]] | 20 RUNTIME | advanced | paradox |
+| [[Governed_Packet_Contract|Governed Packet Contract]] | 20 RUNTIME | advanced | architecture, tools |
 | [[ToolSpec_arifos_judge|ToolSpec arifos judge]] | 20 RUNTIME | advanced | tools |
 | [[Concept_Vault999_Architecture|Concept Vault999 Architecture]] | 20 RUNTIME | advanced | architecture |
 | [[Agents-and-AAA-Architecture|Agents and AAA Architecture]] | 30 GOVERNANCE | intermediate | architecture |
@@ -55,6 +56,7 @@ Pages relevant to **All**.
 | [[Audit_MCP_Tools_vs_Wiki|Audit MCP Tools vs Wiki]] | 50 AUDITS | intermediate | operations |
 | [[Audit_Repo_Chaos_Reduction|Audit Repo Chaos Reduction]] | 50 AUDITS | intermediate | operations |
 | [[Audit_Surface_Fragmentation|Audit Surface Fragmentation]] | 50 AUDITS | intermediate | operations |
+| [[Audit_MCP_Deploy_Gate|Audit MCP Deploy Gate]] | 50 AUDITS | intermediate | operations, constitutional |
 | [[GEOX|GEOX]] | 90 ENTITIES | beginner | architecture |
 | [[Source_Karpathy_LLM_Wiki|Source Karpathy LLM Wiki]] | 90 ENTITIES | beginner | philosophy |
 | [[Entity_Andrej_Karpathy|Entity Andrej Karpathy]] | 90 ENTITIES | beginner | philosophy |

@@ -77,8 +77,8 @@ async def code_engine(
                     else None,
                 }
             return RuntimeEnvelope(
-                tool="arifos.forge",
-                canonical_tool_name="arifos.forge",
+                tool="arifos_forge",
+                canonical_tool_name="arifos_forge",
                 stage=res.get("stage", "M-3_EXEC"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,

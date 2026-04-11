@@ -78,12 +78,12 @@ async def arifOS_kernel(
     from core.shared.types import Verdict
 
     ok = result.get("ok", True)
-    tool_name = result.get("tool", "arifos.kernel")
+    tool_name = result.get("tool", "arifos_kernel")
 
     return RuntimeEnvelope(
         ok=ok,
         tool=tool_name,
-        canonical_tool_name="arifos.kernel",
+        canonical_tool_name="arifos_kernel",
         stage=Stage.ROUTER_444.value,
         verdict=Verdict.SEAL if ok else Verdict.VOID,
         session_id=session_id,

@@ -16,141 +16,152 @@ tags:
 - alignment
 - drift
 sources:
+- APEX/ASF1/tool_registry.json
 - tool_specs.py
 - tools.py
-- capability_map.py
-- megaTools/__init__.py
-- tool_registry.json
-- Concept_Architecture.md
-- Concept_Metabolic_Pipeline.md
-last_sync: '2026-04-10'
-confidence: 1.0
+- public_registry.py
+- server.py
+- resources.py
+- kernel_runtime.py
+- wiki/raw/mcp_naming_migration_audit_directive_2026-04-11.md
+last_sync: '2026-04-11'
+confidence: 0.97
 ---
 
 # Audit: MCP Tools vs Ω-Wiki Alignment
 
-> **Auditor**: Ω-Auditor Agent  
-> **Date**: 2026-04-08  
+> **Auditor**: Copilot CLI  
+> **Date**: 2026-04-11  
 > **Motto**: *DITEMPA BUKAN DIBERI*  
-> **Review Status**: ✅ VERIFIED — Prior findings addressed by other agents
+> **Review Status**: ⚠️ CONTRAST ACTIVE — full deployment audit still required
 
 ---
 
-## 1. MCP Surface Inventory (Canonical 12 Tools)
+## 1. Current Verdict
 
-> **Updated 2026-04-10**: `tool_registry.json` contains 12 entries. `arifos_kernel` is the canonical 444-stage tool; `arifos_route` is a transitional alias.
+The wiki can now reflect the **current repo truth**, but the naming migration cannot yet be treated as sealed.
 
-| # | Tool Name (Code) | Stage | Layer | Wiki Name | Status |
-|---|------------------|-------|-------|-----------|--------|
-| 1 | `arifos_init` | 000 | GOVERNANCE | `arifos_init` | ✅ |
-| 2 | `arifos_sense` | 111 | MACHINE | `arifos_sense` | ✅ |
-| 3 | `arifos_mind` | 333 | INTELLIGENCE | `arifos_mind` | ✅ |
-| 4 | `arifos_kernel` | 444 | GOVERNANCE | `arifos_kernel` | ✅ Canonical |
-| 4a | `arifos_route` | 444 | GOVERNANCE | `arifos_route` | ⚠️ Alias (transitional) |
-| 5 | `arifos_heart` | 666 | INTELLIGENCE | `arifos_heart` | ✅ |
-| 6 | `arifos_ops` | 777 | MACHINE | `arifos_ops` | ✅ |
-| 7 | `arifos_judge` | 888 | GOVERNANCE | `arifos_judge` | ✅ |
-| 8 | `arifos_memory` | 555 | INTELLIGENCE | `arifos_memory` | ✅ |
-| 9 | `arifos_vault` | 999 | GOVERNANCE | `arifos_vault` | ✅ |
-| 10 | `arifos_forge` | 010 | EXECUTION | `arifos_forge` | ✅ |
-| 11 | `arifos_vps_monitor` | 111 | MACHINE | `arifos_vps_monitor` | ✅ |
+**Registry truth** and **runtime truth** are still different:
+
+- the registry target is a **10-tool public canon**
+- the runtime still carries older public/transitional surfaces
+- the wiki should document that contrast instead of pretending it is resolved
 
 ---
 
-## 2. Tool Count Discrepancy — RESOLVED
+## 2. Registry Truth vs Runtime Truth
 
-| Source | Count | Status |
-|--------|-------|--------|
-| `tool_registry.json` | **12** | ✅ Live canonical (2026-04-10) |
-| `tool_specs.py` `TOOLS` | **11** | ⚠️ Needs sync to 12 |
-| `megaTools/__init__.py` `MEGA_TOOLS` | **12** | ⚠️ Includes compat_probe |
-| `CANONICAL_TOOL_HANDLERS` | **11** | ⚠️ Needs sync to 12 |
-| `MCP_Tools.md` | **11** | ⚠️ Needs sync to 12 |
+| Layer | Evidence | Finding | Severity |
+|------|----------|---------|----------|
+| Registry | `APEX/ASF1/tool_registry.json` | Declares exactly 10 public canonical tools and 5 internal folded tools | INFO |
+| Runtime spec | `arifosmcp/runtime/tool_specs.py` → `PUBLIC_TOOL_SPECS = TOOLS` | Runtime export still follows full tuple, not the 10-tool registry split | HIGH |
+| Public registry | `arifosmcp/runtime/public_registry.py` → `EXPECTED_TOOL_COUNT = 11` | Discovery contract still expects older count | HIGH |
+| Server instructions | `arifosmcp/runtime/server.py` docstring + instructions | Server narrative still advertises 11 canonical tools, dotted ids, and `arifos.reply` | HIGH |
+| Runtime handlers | `arifosmcp/runtime/tools.py` | Legacy/transitional handlers and aliases still present for `arifos_reply`, `arifos_vps_monitor`, `arifos_route`, dotted names | WARN |
+| Resource discovery | `arifosmcp/runtime/resources.py` | Public/internal surface still organized around `arifos_route` and `arifos_vps_monitor` | WARN |
 
-**Finding**: Code is now consistent at 11 tools. Wiki docs updated.
-
----
-
-## 3. Naming Drift — RESOLVED
-
-| Aspect | Now Uses |
-|--------|---------|
-| Code | `arifos_init` (underscore) |
-| Wiki | `arifos_init` (underscore) |
-
-**Finding**: Unified to `arifos_*` underscore format across all surfaces.
+**Finding**: the migration is **not yet runtime-coherent**.
 
 ---
 
-## 4. Import Error — RESOLVED ✅
+## 3. Canonical Public Target
 
-**File**: `arifosmcp/runtime/tool_specs.py`
+| Canonical public tool |
+|-----------------------|
+| `arifos_init` |
+| `arifos_sense` |
+| `arifos_mind` |
+| `arifos_kernel` |
+| `arifos_heart` |
+| `arifos_ops` |
+| `arifos_judge` |
+| `arifos_memory` |
+| `arifos_vault` |
+| `arifos_forge` |
 
-**Fix Applied**: Added `MegaToolName = str` alias.
-
-**Verification**:
-
-```bash
-$ python -c "from arifosmcp.capability_map import MEGA_TOOLS, MegaToolName"
-✅ MEGA_TOOLS: (ToolSpec(...), ...)  # 11 tools
-
-```
-
-**Status**: FIXED by other agent.
-
----
-
-## 5. Missing Wiki Documentation — RESOLVED
-
-**Pages Created**:
-
-- `wiki/pages/arifos_forge.md` — Execution Bridge documentation
-- `wiki/pages/arifos_vps_monitor.md` — VPS Telemetry documentation
-- `wiki/pages/ToolSpec_arifos_judge.md` — Judge tool spec
-
-**Status**: FIXED by other agent.
+Everything else should be treated as alias, internal-only, deprecated, dead, substrate mode, or unresolved ambiguity until the audit proves otherwise.
 
 ---
 
-## 6. Wiki Sync Verification — PASSING
+## 4. Transitional Surfaces Still Requiring Classification
 
-```bash
-$ python scripts/verify_wiki_sync.py
-✅ SYNC VERIFIED: All canonical MCP tools are documented in Ω-Wiki.
-
-```
-
----
-
-## 7. Remaining Observations
-
-### HOLD (Not Resolved)
-
-| Item | Description | Action |
-|------|-------------|--------|
-| `megaTools/__init__.py` | 12 tools vs 11 canonical | Needs consolidation decision |
-| `tool_registry.json` | Uses dot notation (`arifos_init`) | Legacy, should migrate |
-| `AGENTS.md` | Still uses legacy names | Needs rewrite |
-
-### NOTED (By Design)
-
-| Item | Description |
-|------|-------------|
-| `kernel_runtime.py` | New 1205-line constitutional substrate (internal, not public) |
-| `kernel_syscall` modes | `arifos_init` now handles syscall modes (describe_kernel, validate_transition, etc.) |
+| Surface | Evidence | Current Classification |
+|--------|----------|------------------------|
+| `arifos_reply` | `tool_specs.py`, `tools.py`, `server.py` | internal-only candidate / fold into `arifos_kernel(mode="reply")` |
+| `arifos_vps_monitor` | `tool_specs.py`, `tools.py`, `resources.py`, `server.py` | internal-only candidate / fold into `arifos_ops(mode="monitor")` |
+| `arifos_route` | `tools.py`, `kernel_runtime.py`, `server.py`, `rest_routes.py` | alias or compatibility surface for `arifos_kernel` |
+| dotted `arifos.*` tool names | `tools.py`, `kernel_router.py`, `server.py` | legacy alias layer |
 
 ---
 
-## 8. Verdict
+## 5. Wiki Position After This Update
 
-| Finding | Severity | Status |
-|---------|----------|--------|
-| Tool count drift | MEDIUM | ✅ RESOLVED |
-| Import error | HIGH | ✅ RESOLVED |
-| Missing wiki pages | MEDIUM | ✅ RESOLVED |
-| Naming drift | LOW | ✅ RESOLVED |
+The wiki should now say:
 
-**Overall**: System is now coherent. 11 canonical tools, unified naming, wiki synced.
+1. the intended public canon is 10 tools
+2. the repo runtime still contains legacy/transitional surfaces
+3. a master audit must prove registry/runtime/deployment truth before seal
+
+That is a better F2 posture than declaring the migration done.
+
+---
+
+## 6. Proposed Next Action
+
+Run one **constitutional deployment audit** with five explicit truth lanes:
+
+1. registry truth
+2. runtime truth
+3. reachability truth
+4. deployment truth
+5. client-surface truth
+
+The audit should answer:
+
+- are the 10 canonical public tools real in runtime
+- what is still alias-only or internal-only
+- what is orphaned, duplicated, or stale
+- whether deployment matches repo truth
+
+If deployment cannot be verified, the audit must say:
+
+`DEPLOYMENT STATUS: CANNOT VERIFY FROM CURRENT EVIDENCE`
+
+---
+
+## 7. Proposed Long-Term Doctrine (Not Yet Sealed)
+
+The most coherent target public architecture remains **Machine Governance Intelligence 3x3 + 1**:
+
+| Stage / Lane | Reality | Intelligence | Governance |
+|--------------|---------|--------------|------------|
+| Ingest | `arifos_init` | `arifos_memory` | `arifos_sense` |
+| Deliberate | `arifos_ops` | `arifos_mind` | `arifos_heart` |
+| Act | `arifos_forge` | `arifos_kernel` | `arifos_judge` |
+
+Plus one sovereign boundary:
+
+- `arifos_vault`
+
+But this is **target doctrine**, not current verified deployment truth.
+
+---
+
+## 8. Seal State
+
+| Question | Answer |
+|---------|--------|
+| Wiki aligned to current repo contrast? | ✅ |
+| Registry/runtime fully aligned? | ❌ |
+| Deployment verified? | ❌ not from current evidence in this page |
+| Naming migration seal-ready? | ❌ HOLD |
+
+**Blockers**:
+
+- runtime export still diverges from registry target
+- discovery count still reflects older public surface
+- transport/server narrative still leaks legacy assumptions
+- deployment truth still requires explicit verification
 
 ---
 
@@ -158,13 +169,13 @@ $ python scripts/verify_wiki_sync.py
 
 | Date | Auditor | Action |
 |------|---------|--------|
-| 2026-04-08 | Ω-Auditor Agent | Initial audit — surfaced 4 issues |
-| 2026-04-08 | Other Agent | Fixed import error, naming, wiki pages |
+| 2026-04-08 | Ω-Auditor Agent | Earlier alignment audit page created |
+| 2026-04-11 | Copilot CLI | Rewrote page to document migration contrast and audit-first next step |
 
 ---
 
 > [!NOTE]
-> Re-audit recommended after `megaTools/__init__.py` consolidation decision.
+> Do not propose architectural redesign until current-state truth is proven with evidence.
 
 **F11**: Logged in `wiki/log.md`  
-**F2**: All claims traceable to source files in `arifosmcp/` and `wiki/pages/`
+**F2**: Claims traceable to registry/runtime files and the ingested audit directive

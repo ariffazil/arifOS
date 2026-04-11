@@ -1,7 +1,7 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.844718
+generated_at: 2026-04-11T04:27:16.603640
 target: Concept_Gateway_Architecture
 ---
 
@@ -36,7 +36,7 @@ target: Concept_Gateway_Architecture
 - [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]]
 - [[Concept_Vault999_Architecture|Concept Vault999 Architecture]]
 - [[GEOX|GEOX]]
+- [[Governed_Packet_Contract|Governed Packet Contract]]
 - [[Metabolic_Loop|Metabolic Loop]]
 - [[Naming_Canon|Naming Canon]]
 - [[Tool_Surface_Architecture|Tool Surface Architecture]]
-- [[Trinity_Architecture|Trinity Architecture]]

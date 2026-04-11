@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.841780
+generated_at: 2026-04-11T04:27:16.601474
 filter: tier=20_RUNTIME
 ---
 
 # View: 20 Runtime
 
 > **Auto-generated** from `tier: 20_RUNTIME` filter.
-> **Total Pages**: 16
+> **Total Pages**: 17
 
 | Page | Strand | Difficulty | Prerequisites |
 |------|--------|------------|---------------|
@@ -19,6 +19,7 @@ filter: tier=20_RUNTIME
 | [[Concept_LLM_Wiki_Pattern|Concept LLM Wiki Pattern]] | architecture | intermediate | quickstart |
 | [[Concept_Metabolic_Pipeline|Concept Metabolic Pipeline]] | architecture | advanced | Metabolic_Loop |
 | [[Concept_Vault999_Architecture|Concept Vault999 Architecture]] | architecture | advanced | Concept_Architecture |
+| [[Governed_Packet_Contract|Governed Packet Contract]] | architecture, tools | advanced | MCP_Tools, Tool_Surface_Architecture, Concept_Godellock |
 | [[MCP_Tools|MCP Tools]] | tools | intermediate | Metabolic_Loop |
 | [[Metabolic_Loop|Metabolic Loop]] | architecture | intermediate | Trinity_Architecture |
 | [[Reference_MCP_Servers|Reference MCP Servers]] | integration | intermediate | Tool_Surface_Architecture |

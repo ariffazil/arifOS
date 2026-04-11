@@ -16,6 +16,7 @@ tags:
 - compatibility
 - drift
 sources:
+- APEX/ASF1/tool_registry.json
 - tool_specs.py
 - tools.py
 - tools_hardened_dispatch.py
@@ -24,45 +25,59 @@ sources:
 - rest_routes.py
 - resources.py
 - public_registry.py
-- tool_registry.json
-last_sync: '2026-04-10'
-confidence: 0.94
+- wiki/raw/mcp_naming_migration_audit_directive_2026-04-11.md
+last_sync: '2026-04-11'
+confidence: 0.95
 ---
 
 # Tool Surface Architecture
 
-`arifosmcp/runtime/tool_specs.py` is the best current candidate for **canonical tool truth** inside arifOS. Every other tool surface should either execute that contract, adapt older callers to it, or render it outward to transports and docs.
+The arifOS tool surface currently has **two competing truths**:
 
-## Canonical Surface
+1. the **registry target** in `APEX/ASF1/tool_registry.json`
+2. the **runtime-exported surface** still assembled from `arifosmcp/runtime/tool_specs.py`, `tools.py`, `public_registry.py`, and `server.py`
+
+That makes this page a **contrast architecture** page, not a seal page.
+
+## Registry Target (Current Canon Candidate)
 
 | Tool | Stage | Layer | Notes |
 | :--- | :--- | :--- | :--- |
 | `arifos_init` | 000 | GOVERNANCE | Session anchoring |
 | `arifos_sense` | 111 | MACHINE | Reality grounding |
 | `arifos_mind` | 333 | INTELLIGENCE | Structured reasoning |
-| `arifos_kernel` | 444 | GOVERNANCE | Primary metabolic conductor *(canonical)* |
-| `arifos_route` | 444 | GOVERNANCE | Alias for `arifos_kernel` *(transitional)* |
+| `arifos_kernel` | 444 | GOVERNANCE | Primary conductor |
 | `arifos_memory` | 555 | INTELLIGENCE | Vector memory recall |
 | `arifos_heart` | 666 | INTELLIGENCE | Safety & empathy critique |
 | `arifos_ops` | 777 | MACHINE | Thermodynamic estimation |
 | `arifos_judge` | 888 | GOVERNANCE | Final constitutional verdict |
 | `arifos_vault` | 999 | GOVERNANCE | Immutable audit ledger |
 | `arifos_forge` | 010 | EXECUTION | AF-FORGE execution bridge |
-| `arifos_vps_monitor` | 111 | MACHINE | VPS telemetry |
+
+Everything outside this 10-tool public set should be classified explicitly as:
+
+- alias
+- internal-only
+- deprecated
+- dead code
+- substrate mode
+- unresolved ambiguity
 
 ## Current Surface Layers
 
 ### 1. Canonical Contract
 
+- `APEX/ASF1/tool_registry.json`
 - `arifosmcp/runtime/tool_specs.py`
-- Defines canonical ids, count, schemas, and migration aliases.
+- The registry defines the desired public/internal split.
+- The runtime spec still defines the callable/exported tuple.
 
 ### 2. Runtime Execution Surface
 
 - `arifosmcp/runtime/tools.py`
 - `arifosmcp/runtime/__main__.py`
 - `arifosmcp/runtime/kernel_router.py`
-- These files dispatch or select runtime tools directly.
+- These files still preserve older symbols such as `arifos_route`, `arifos_reply`, and `arifos_vps_monitor`.
 
 ### 3. Compatibility Surface
 
@@ -78,7 +93,6 @@ confidence: 0.94
 - `arifosmcp/runtime/rest_routes.py`
 - `arifosmcp/runtime/resources.py`
 - `arifosmcp/runtime/public_registry.py`
-- `arifosmcp/tool_registry.json`
 - These files expose tool names to REST, MCP, discovery manifests, or resource documents.
 
 ### 5. Wiki / Narrative Surface
@@ -87,17 +101,47 @@ confidence: 0.94
 - `wiki/index.md`
 - audit and concept pages that describe the tool surface
 
+## Contrast Evidence (2026-04-11)
+
+| Layer | Evidence | Meaning |
+| :--- | :--- | :--- |
+| Registry | `APEX/ASF1/tool_registry.json` defines 10 public tools + 5 internal folded tools | Canon target is reduced public surface |
+| Runtime spec | `arifosmcp/runtime/tool_specs.py` exports `PUBLIC_TOOL_SPECS = TOOLS` | Public runtime still follows broad tuple, not the registry split |
+| Discovery registry | `arifosmcp/runtime/public_registry.py` sets `EXPECTED_TOOL_COUNT = 11` | Discovery still expects pre-migration count |
+| Server narrative | `arifosmcp/runtime/server.py` says public tools use canonical dotted ids and mentions `arifos.reply` | Transport docs still leak older naming/surface assumptions |
+| Runtime handlers | `arifosmcp/runtime/tools.py` keeps handlers and aliases for `arifos_reply`, `arifos_vps_monitor`, `arifos_route`, and dotted names | Compatibility still exists inside live code path candidates |
+
 ## Structural Law
 
-The stable target architecture is:
+The stable target architecture remains:
 
-`tool_specs.py` → runtime handlers / compatibility adapter → generated transport surfaces → generated wiki inventory
+`registry canon` → `runtime handlers / compatibility adapter` → `transport discovery surfaces` → `wiki inventory`
 
-Under this model:
+The migration is not seal-ready until these layers agree on the same public surface.
 
-- concept pages remain narrative
-- inventory pages remain derivative
-- compatibility stays explicit and temporary
+## Proposed Doctrine (Target, Not Proven Runtime)
+
+The most coherent long-term model is **Machine Governance Intelligence 3x3 + 1**:
+
+| Stage / Lane | Reality | Intelligence | Governance |
+|--------------|---------|--------------|------------|
+| Ingest | `arifos_init` | `arifos_memory` | `arifos_sense` |
+| Deliberate | `arifos_ops` | `arifos_mind` | `arifos_heart` |
+| Act | `arifos_forge` | `arifos_kernel` | `arifos_judge` |
+
+Plus one sovereign boundary:
+
+- `arifos_vault`
+
+This is a useful organizing doctrine, but it should remain **proposed architecture** until the audit proves current-state truth and the runtime actually matches it.
+
+## Proposed Next Action
+
+Before any redesign:
+
+1. run one master audit across registry, runtime, reachability, deployment, and client discovery
+2. classify every non-canonical surface
+3. only then decide whether to fold or remove legacy paths
 
 ## 888_HOLD
 
@@ -107,4 +151,4 @@ The following are governance-sensitive and should not be deleted in this pass:
 - dotted-name compatibility paths
 - old registry manifests consumed by unknown clients
 
-They should first be isolated behind one compatibility adapter and checked by drift automation.
+They should first be isolated, audited, and covered by rollback + equivalence evidence.
