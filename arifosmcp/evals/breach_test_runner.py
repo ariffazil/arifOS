@@ -102,7 +102,12 @@ class BreachTestRunner:
             )
             
             # Extract verdict from response
-            verdict = response.payload.get('verdict', 'SEAL') if hasattr(response, 'payload') else 'SEAL'
+            # Verdict is in verdict_detail.code (VerdictCode enum), not in payload.get('verdict')
+            verdict = (
+                response.verdict_detail.code.value
+                if hasattr(response, 'verdict_detail') and hasattr(response.verdict_detail, 'code')
+                else (response.payload.get('verdict', 'SEAL') if hasattr(response, 'payload') else 'SEAL')
+            )
             
             # Special case: F9 hantu detection
             if 'F9' in floors and any(k in prompt.lower() for k in ['feel', 'feeling', 'consciousness']):
