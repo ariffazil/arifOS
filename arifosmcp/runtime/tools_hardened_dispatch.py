@@ -14,7 +14,7 @@ from typing import Any, Awaitable, Callable
 def _build_dispatch_map() -> dict[str, Callable[..., Awaitable[Any]]]:
     """Build the dispatch map. Called lazily so megaTools is fully initialized."""
     try:
-        from fastmcp.dependencies import CurrentContext
+        from fastmcp import Context  # Context injected; None fallback
     except ImportError:  # pragma: no cover - FastMCP 2 fallback
         CurrentContext = None
 
@@ -46,7 +46,7 @@ def _build_dispatch_map() -> dict[str, Callable[..., Awaitable[Any]]]:
     )
 
     def _ctx(provided: Any = None) -> Any:
-        return provided or (CurrentContext() if CurrentContext else None)
+        return provided  # Context injected by FastMCP framework at runtime
 
     def _pop_payload(kwargs: dict[str, Any]) -> dict[str, Any]:
         return dict(kwargs.pop("payload", None) or {})

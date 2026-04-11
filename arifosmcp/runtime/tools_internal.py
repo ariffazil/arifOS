@@ -307,25 +307,55 @@ async def _wrap_call(
     try:
         # PHASE 0 FIX: Kernel call with response validation
         kernel_res = await call_kernel(tool_name, session_id, sanitized_payload)
-        
+
         # Validate kernel response structure
         if not isinstance(kernel_res, dict):
             raise ValueError(f"Kernel returned non-dict: {type(kernel_res)}")
-        
+
         # ─── V1.0 VERDICT MAPPING ───
         from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
-        
-        # Convert legacy Verdict to VerdictCode with fallback
+
+        # ─── Constitutional Verdict Override ───
+        # run_agi_mind computes the real constitutional verdict and stores it
+        # in decision_packet.metrics inside the kernel result payload.
+        # Extract it here so forge_verdict uses the correct override.
+        constitutional_verdict: VerdictCode | None = None
+        kernel_payload = kernel_res.get("payload", {})
+        result_block = (kernel_payload.get("result") if isinstance(kernel_payload, dict) else None) or {}
+        decision_packet = (result_block.get("decision_packet") if isinstance(result_block, dict) else None) or {}
+
+        if decision_packet:
+            dp_metrics = decision_packet.get("metrics", {})
+            dp_status = decision_packet.get("status", "")
+            dp_human_req = decision_packet.get("human_decision_required", False)
+            dp_chaos = dp_metrics.get("chaos_score", 0.0)
+            dp_peace2 = dp_metrics.get("peace2", 1.0)
+            dp_g_star = dp_metrics.get("g_star", 0.85)
+
+            if dp_status == "HOLD" or dp_human_req:
+                constitutional_verdict = VerdictCode.SABAR
+            elif dp_chaos >= 2.0:
+                constitutional_verdict = VerdictCode.SABAR
+            elif dp_peace2 < 1.0:
+                constitutional_verdict = VerdictCode.SABAR
+            elif dp_g_star < 0.3:
+                constitutional_verdict = VerdictCode.VOID
+            else:
+                constitutional_verdict = VerdictCode.SEAL
+
+        # Convert legacy Verdict to VerdictCode — prefer constitutional override
         legacy_v = kernel_res.get("verdict", "SABAR")
-        if legacy_v == "SEAL": 
-            v_code = VerdictCode.SEAL
-        elif legacy_v == "VOID": 
-            v_code = VerdictCode.VOID
-        elif legacy_v == "PARTIAL": 
-            v_code = VerdictCode.PARTIAL
-        else: 
-            v_code = VerdictCode.SABAR
+        if legacy_v == "SEAL":
+            legacy_code = VerdictCode.SEAL
+        elif legacy_v == "VOID":
+            legacy_code = VerdictCode.VOID
+        elif legacy_v == "PARTIAL":
+            legacy_code = VerdictCode.PARTIAL
+        else:
+            legacy_code = VerdictCode.SABAR
+
+        v_code = constitutional_verdict if constitutional_verdict is not None else legacy_code
         
         # Build metrics with safe access
         metrics = CanonicalMetrics()

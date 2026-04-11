@@ -134,7 +134,7 @@ def get_compatible_transport(preferred: str = "streamable-http") -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 try:
-    from fastmcp.dependencies import CurrentContext
+    from fastmcp import Context  # Context injected; None fallback
 except ImportError:
     # FastMCP 2.x may not have CurrentContext
     CurrentContext = None  # type: ignore

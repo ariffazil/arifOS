@@ -13,10 +13,10 @@ from typing import Any
 
 # FastMCP 2.x/3.x compatibility
 try:
-    from fastmcp.dependencies import CurrentContext
+    from fastmcp import Context  # Context injected by framework; None if called outside MCP
 except ImportError:
-    # FastMCP 2.x doesn't have dependencies module
-    CurrentContext = None
+    pass
+CurrentContext = None  # Always defined — ctx injected by FastMCP framework at runtime
 
 from arifosmcp.runtime.models import RuntimeEnvelope, VerdictCode
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP

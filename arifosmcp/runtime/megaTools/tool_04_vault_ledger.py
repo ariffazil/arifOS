@@ -14,7 +14,7 @@ from typing import Any
 from arifosmcp.runtime.models import RuntimeEnvelope
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import vault_ledger_dispatch_impl
-from fastmcp.dependencies import CurrentContext
+from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 
 async def vault_ledger(
@@ -92,5 +92,5 @@ async def vault_ledger(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx or CurrentContext(),
+        ctx=ctx  # Context injected by FastMCP framework,
     )

@@ -947,20 +947,39 @@ async def call_kernel(
             packet = payload.get("decision_packet", {})
             if not packet:
                 packet = {"status": "SUCCESS", "message": "AGI reasoning complete."}
-            
+
             # Mirror identity for continuity extraction
             if "actor_id" in payload:
                 packet["declared_actor_id"] = payload["actor_id"]
             if "verified_actor_id" in payload:
                 packet["verified_actor_id"] = payload["verified_actor_id"]
-            
-            # Map metrics for governance engine
+
+            # Derive constitutional verdict from pipeline metrics
             metrics = packet.get("metrics", {})
+            chaos = metrics.get("chaos_score", 0.0)
+            peace2 = metrics.get("peace2", 1.0)
+            g_star = metrics.get("g_star", 0.85)
+            status = packet.get("status", "OK")
+            human_req = packet.get("human_decision_required", False)
+
+            # Constitutional verdict logic (mirrors run_agi_mind override conditions)
+            if status == "HOLD" or human_req:
+                verdict = "HOLD"
+            elif chaos >= 2.0:
+                verdict = "HOLD"
+            elif peace2 < 1.0:
+                verdict = "HOLD"
+            elif g_star < 0.3:
+                verdict = "VOID"
+            else:
+                verdict = "SEAL"
+
             result = {
                 "result": packet,
-                "truth_score": metrics.get("g_star", 0.85),
-                "peace2": metrics.get("peace2", 1.0),
-                "delta_s": -0.1 * metrics.get("chaos_score", 0.0), # Heuristic: chaos increases entropy
+                "verdict": verdict,
+                "truth_score": g_star,
+                "peace2": peace2,
+                "delta_s": -0.1 * chaos,
                 "omega_0": metrics.get("omega_0", 0.05),
                 "note": packet.get("summary", "AGI reasoning complete."),
             }

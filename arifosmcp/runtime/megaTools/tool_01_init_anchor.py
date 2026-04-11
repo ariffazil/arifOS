@@ -514,9 +514,10 @@ async def init_anchor(
 
     # FastMCP 2.x/3.x compatibility
     try:
-        from fastmcp.dependencies import CurrentContext
+        from fastmcp import Context  # Context injected by framework; None if called outside MCP
     except ImportError:
-        CurrentContext = None
+        pass
+    CurrentContext = None  # Always defined — ctx injected by FastMCP framework
 
     resolved_payload = dict(payload or {})
     res = await init_anchor_dispatch_impl(
