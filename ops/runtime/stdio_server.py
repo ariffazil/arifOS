@@ -1,27 +1,16 @@
 """
 arifOS STDIO Server - Local MCP Client Integration
+═══════════════════════════════════════════════════
 
-This is a minimal STDIO entry point for local AI assistants:
-- Claude Desktop
-- Cursor IDE
-- Gemini CLI
-- VS Code Copilot
-- Any MCP-compatible client
+Minimal STDIO entry point for local AI assistants.
+Uses the unified server from project root.
 
 Usage:
-    # Claude Desktop config
-    {
-        "mcpServers": {
-            "arifOS": {
-                "command": "python",
-                "args": ["/path/to/arifOS/stdio_server.py"]
-            }
-        }
-    }
+    python ops/runtime/stdio_server.py
 
 Environment:
     ARIFOS_DEPLOYMENT=local      # Forces local/stdio mode
-    ARIFOS_MINIMAL_STDIO=1       # Disables HTTP/WebMCP/A2A overhead
+    ARIFOS_MINIMAL_STDIO=1       # Disables HTTP overhead
 """
 
 import os
@@ -35,7 +24,8 @@ os.environ["ARIFOS_MINIMAL_STDIO"] = "1"
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from arifosmcp.runtime.server import create_aaa_mcp_server
+# Import unified server
+from server import mcp
 from arifosmcp.runtime.fastmcp_ext.transports import run_server
 
 
@@ -44,12 +34,10 @@ def main():
     print("🔥 arifOS STDIO Server starting...", file=sys.stderr)
     print("   Mode: Local (minimal)", file=sys.stderr)
     print("   Transport: STDIO", file=sys.stderr)
+    print("   Server: Unified (root server.py)", file=sys.stderr)
     print("   Floors: F1-F13 (constitutional governance enabled)", file=sys.stderr)
     
-    # Create minimal MCP server (no HTTP/WebMCP/A2A)
-    mcp = create_aaa_mcp_server()
-    
-    # Run in stdio mode
+    # Run unified server in stdio mode
     try:
         run_server(mcp, mode="stdio", host="", port=0)
     except KeyboardInterrupt:
