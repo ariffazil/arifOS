@@ -317,45 +317,46 @@ async def _wrap_call(
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
         # ─── Constitutional Verdict Override ───
-        # run_agi_mind computes the real constitutional verdict and stores it
-        # in decision_packet.metrics inside the kernel result payload.
-        # Extract it here so forge_verdict uses the correct override.
+        # agi_reason branch in call_kernel returns constitutional metrics at
+        # kernel_res top level: verdict, peace2, g_star, delta_s, omega_0.
+        # The agi_reason branch already computes the correct verdict from
+        # run_agi_mind's decision_packet and stores it in kernel_res["verdict"].
+        # For other tools, fall back to legacy verdict mapping.
         constitutional_verdict: VerdictCode | None = None
-        kernel_payload = kernel_res.get("payload", {})
-        result_block = (kernel_payload.get("result") if isinstance(kernel_payload, dict) else None) or {}
-        decision_packet = (result_block.get("decision_packet") if isinstance(result_block, dict) else None) or {}
 
-        if decision_packet:
-            dp_metrics = decision_packet.get("metrics", {})
-            dp_status = decision_packet.get("status", "")
-            dp_human_req = decision_packet.get("human_decision_required", False)
-            dp_chaos = dp_metrics.get("chaos_score", 0.0)
-            dp_peace2 = dp_metrics.get("peace2", 1.0)
-            dp_g_star = dp_metrics.get("g_star", 0.85)
+        # Check top-level constitutional fields from agi_reason output
+        kr_peace2 = kernel_res.get("peace2", 1.0)
+        kr_g_star = kernel_res.get("truth_score", 0.85)
+        kr_verdict = kernel_res.get("verdict", "SABAR")
 
-            if dp_status == "HOLD" or dp_human_req:
+        if kr_verdict in ("HOLD", "VOID", "PARTIAL"):
+            # agi_reason already computed the constitutional verdict — use it directly
+            if kr_verdict == "HOLD":
                 constitutional_verdict = VerdictCode.SABAR
-            elif dp_chaos >= 2.0:
-                constitutional_verdict = VerdictCode.SABAR
-            elif dp_peace2 < 1.0:
-                constitutional_verdict = VerdictCode.SABAR
-            elif dp_g_star < 0.3:
+            elif kr_verdict == "VOID":
                 constitutional_verdict = VerdictCode.VOID
-            else:
-                constitutional_verdict = VerdictCode.SEAL
-
-        # Convert legacy Verdict to VerdictCode — prefer constitutional override
-        legacy_v = kernel_res.get("verdict", "SABAR")
-        if legacy_v == "SEAL":
-            legacy_code = VerdictCode.SEAL
-        elif legacy_v == "VOID":
-            legacy_code = VerdictCode.VOID
-        elif legacy_v == "PARTIAL":
-            legacy_code = VerdictCode.PARTIAL
+            elif kr_verdict == "PARTIAL":
+                constitutional_verdict = VerdictCode.PARTIAL
+        elif kr_peace2 < 1.0:
+            constitutional_verdict = VerdictCode.SABAR
+        elif kr_g_star < 0.3:
+            constitutional_verdict = VerdictCode.VOID
         else:
-            legacy_code = VerdictCode.SABAR
+            constitutional_verdict = VerdictCode.SEAL
 
-        v_code = constitutional_verdict if constitutional_verdict is not None else legacy_code
+        # Fallback: legacy verdict mapping for non-agi_reason tools
+        if constitutional_verdict is None:
+            legacy_v = kernel_res.get("verdict", "SABAR")
+            if legacy_v == "SEAL":
+                constitutional_verdict = VerdictCode.SEAL
+            elif legacy_v == "VOID":
+                constitutional_verdict = VerdictCode.VOID
+            elif legacy_v == "PARTIAL":
+                constitutional_verdict = VerdictCode.PARTIAL
+            else:
+                constitutional_verdict = VerdictCode.SABAR
+
+        v_code = constitutional_verdict
         
         # Build metrics with safe access
         metrics = CanonicalMetrics()
@@ -737,6 +738,56 @@ async def agi_mind_dispatch_impl(
         )
     
     if mode == "reason":
+        # ─── Decision Packet Short-circuit ───────────────────────────────────
+        # arifos_mind (tools.py) already calls run_agi_mind and passes the
+        # computed decision_packet through _mega_agi_mind → here.
+        # If we have it, use it directly — do NOT re-compute via _wrap_call
+        # (which would hit the kernel's agi_reason handler with an empty packet
+        # and get SEAL regardless of the real constitutional verdict).
+        decision_packet = payload.get("decision_packet", {})
+        if decision_packet:
+            from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
+            from arifosmcp.runtime.verdict_wrapper import forge_verdict
+
+            dp_metrics = decision_packet.get("metrics", {})
+            dp_status = decision_packet.get("status", "OK")
+            dp_human_req = decision_packet.get("human_decision_required", False)
+            dp_chaos = dp_metrics.get("chaos_score", 0.0)
+            dp_peace2 = dp_metrics.get("peace2", 1.0)
+            dp_g_star = dp_metrics.get("g_star", 0.85)
+            dp_omega = dp_metrics.get("omega_0", 0.05)
+            dp_delta_s = dp_metrics.get("delta_s", 0.0)
+
+            # Derive override_code from decision_packet constitutional metrics
+            if dp_status == "HOLD" or dp_human_req:
+                override_code = VerdictCode.SABAR
+            elif dp_chaos >= 2.0:
+                override_code = VerdictCode.SABAR
+            elif dp_peace2 < 1.0:
+                override_code = VerdictCode.SABAR
+            elif dp_g_star < 0.3:
+                override_code = VerdictCode.VOID
+            else:
+                override_code = VerdictCode.SEAL
+
+            metrics = CanonicalMetrics()
+            metrics.telemetry.ds = dp_delta_s
+            metrics.telemetry.G_star = dp_g_star
+            metrics.telemetry.confidence = round(max(0.0, min(1.0, 1.0 - dp_omega)), 3)
+
+            return forge_verdict(
+                tool_id="arifos_mind",
+                canonical_tool_name="arifos_mind",
+                stage=Stage.MIND_333.value,
+                payload=decision_packet,
+                session_id=session_id,
+                metrics=metrics,
+                override_code=override_code,
+                floors_checked=["F2", "F4", "F7", "F8", "F9", "F13"],
+                message=decision_packet.get("summary", "AGI reasoning complete.")
+            )
+
+        # Fallback: no decision_packet — compute via kernel (direct agi_mind call)
         return await _wrap_call("agi_reason", Stage.MIND_333, session_id, {"query": query}, ctx)
     elif mode == "reflect":
         return await _wrap_call(

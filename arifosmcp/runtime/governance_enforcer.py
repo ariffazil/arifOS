@@ -318,11 +318,11 @@ def get_enforcer() -> GovernanceEnforcer:
     return _enforcer
 
 
-def classify_and_route(
+async def classify_and_route(
     query: str,
     context: dict[str, Any] | None = None,
     **kwargs: Any,
-) -> tuple[QueryClass, bool]:
+) -> dict[str, Any]:
     """
     Classify query and determine if tool invocation is required.
     
@@ -330,7 +330,7 @@ def classify_and_route(
     to maintain adapter compatibility without bloating the core router.
     
     Returns:
-        (query_class, requires_tool)
+        dict with routing result (tool_name, ok, etc.) for kernel compatibility
     """
     enforcer = get_enforcer()
     query_class = enforcer.classify_query(query, context)
@@ -338,7 +338,13 @@ def classify_and_route(
     # Informational queries don't require tools
     requires_tool = query_class != QueryClass.INFORMATIONAL
     
-    return query_class, requires_tool
+    # Return dict format expected by kernel_core.orchestrate_stage
+    return {
+        "ok": True,
+        "tool_name": "arifos_mind" if not requires_tool else "arifos_kernel",
+        "query_class": query_class.value,
+        "requires_tool": requires_tool,
+    }
 
 
 def enforce_tool_verdict(
