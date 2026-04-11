@@ -68,6 +68,35 @@ THRESHOLDS = {
     "F12_INJECTION": 0.85,
 }
 
+_INFLAMMATORY_WORDS = frozenset(
+    [
+        "stupid",
+        "idiot",
+        "incompetent",
+        "failure",
+        "terrible",
+        "useless",
+        "moron",
+        "imbecile",
+        "worthless",
+        "pathetic",
+        "loser",
+    ]
+)
+
+_POLICY_VIOLATIONS = frozenset(
+    [
+        "hack ",
+        "exploit ",
+        "bypass security",
+        "illegal ",
+        "synthesize weapon",
+        "malware",
+        "ransomware",
+        "phishing kit",
+    ]
+)
+
 
 FLOOR_DESCRIPTIONS = {
     "F1": "Amanah - Reversibility and audit mandate",
@@ -113,18 +142,33 @@ class ConstitutionalFloors:
         if not f2_result.passed:
             violations.append(f"{f2_result.floor_id}_TRUTH")
 
+        f3_result = self._check_f3_witness(action, parameters)
+        self.results.append(f3_result)
+        if not f3_result.passed:
+            violations.append(f"{f3_result.floor_id}_WITNESS")
+
         f4_result = self._check_f4_clarity(parameters)
         self.results.append(f4_result)
         if not f4_result.passed:
             violations.append(f"{f4_result.floor_id}_CLARITY")
 
+        f5_result = self._check_f5_peace(action, parameters)
+        self.results.append(f5_result)
+        if not f5_result.passed:
+            violations.append(f"{f5_result.floor_id}_PEACE")
+
         f6_result = self._check_f6_empathy(action, tool_name)
         self.results.append(f6_result)
 
-        f7_result = self._check_f7_humility(parameters)
+        f7_result = self._check_f7_humidity(parameters)
         self.results.append(f7_result)
         if not f7_result.passed:
             violations.append(f"{f7_result.floor_id}_HUMIDITY")
+
+        f8_result = self._check_f8_governance(action, parameters)
+        self.results.append(f8_result)
+        if not f8_result.passed:
+            violations.append(f"{f8_result.floor_id}_GENIUS")
 
         f9_result = self._check_f9_anti_hantu(parameters)
         self.results.append(f9_result)
@@ -222,6 +266,75 @@ class ConstitutionalFloors:
             details=f"Evidence check: {'pass' if has_evidence else 'no query evidence'}",
         )
 
+    def _check_f3_witness(
+        self, action: str, parameters: dict[str, Any]
+    ) -> FloorResult:
+        threshold = THRESHOLDS["F3_QUAD_WITNESS"]
+
+        combined = (action + " " + str(parameters)).lower()
+
+        has_human = any(
+            kw in combined
+            for kw in ("888_hold", "888_approved", "ratified", "sovereign", "user confirmed")
+        )
+        has_ai = any(
+            kw in action.lower()
+            for kw in ("critique", "validation", "floor", "constraint", "forged", "reasoning")
+        )
+        has_earth = any(
+            kw in combined for kw in ("http", "source:", "[ref", "evidence", "observation")
+        ) or bool(re.search(r"\[\d+\]", action))
+        has_verifier = any(
+            kw in combined for kw in ("shadow", "adversarial", "risk check", "security scan")
+        )
+
+        witness_count = sum([has_human, has_ai, has_earth, has_verifier])
+        score = witness_count / 4.0
+        passed = score >= threshold
+
+        reasons = []
+        if not has_human:
+            reasons.append("Missing H")
+        if not has_ai:
+            reasons.append("Missing A")
+        if not has_earth:
+            reasons.append("Missing E")
+        if not has_verifier:
+            reasons.append("Missing V")
+
+        return FloorResult(
+            floor_id="F3",
+            name="Quad-Witness",
+            passed=passed,
+            score=score,
+            threshold=threshold,
+            details="; ".join(reasons) if reasons else "All witnesses present",
+        )
+
+    def _check_f5_peace(
+        self, action: str, parameters: dict[str, Any]
+    ) -> FloorResult:
+        threshold = THRESHOLDS["F5_PEACE"]
+
+        combined = (action + " " + str(parameters)).lower()
+        violations = [w for w in _INFLAMMATORY_WORDS if w in combined]
+
+        if violations:
+            score = 0.50
+        else:
+            score = 1.05
+
+        passed = score >= threshold
+
+        return FloorResult(
+            floor_id="F5",
+            name="Peace",
+            passed=passed,
+            score=score,
+            threshold=threshold,
+            details=f"Inflammatory language: {violations}" if violations else "Clean",
+        )
+
     def _check_f4_clarity(self, parameters: dict[str, Any]) -> FloorResult:
         threshold = THRESHOLDS["F4_CLARITY"]
 
@@ -307,6 +420,30 @@ class ConstitutionalFloors:
             score=score,
             threshold=threshold_max,
             details=f"Certainty indicators: {certainty_count}",
+        )
+
+    def _check_f8_governance(
+        self, action: str, parameters: dict[str, Any]
+    ) -> FloorResult:
+        threshold = THRESHOLDS["F8_GENIUS"]
+
+        combined = (action + " " + str(parameters)).lower()
+        violations = [v for v in _POLICY_VIOLATIONS if v in combined]
+
+        if violations:
+            score = 0.40
+        else:
+            score = 0.95
+
+        passed = score >= threshold
+
+        return FloorResult(
+            floor_id="F8",
+            name="Genius",
+            passed=passed,
+            score=score,
+            threshold=threshold,
+            details=f"Platform safety violation: {violations}" if violations else "Clean",
         )
 
     def _check_f9_anti_hantu(self, parameters: dict[str, Any]) -> FloorResult:
