@@ -128,6 +128,9 @@ services:
       - "traefik.http.routers.arifosmcp-landing.rule=Host(`arifosmcp.arif-fazil.com`)"
       - "traefik.http.routers.arifosmcp-landing.entrypoints=websecure"
       - "traefik.http.routers.arifosmcp-landing.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.geox-landing.rule=Host(`geox.arif-fazil.com`)"
+      - "traefik.http.routers.geox-landing.entrypoints=websecure"
+      - "traefik.http.routers.geox-landing.tls.certresolver=letsencrypt"
     restart: unless-stopped
 
   ollama:
