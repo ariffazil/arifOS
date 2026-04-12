@@ -179,7 +179,7 @@ services:
     container_name: arifosmcp
     init: true
     working_dir: /usr/src/project
-    command: ["python", "arifosmcp/runtime/server.py"]
+    command: ["python", "server.py"]
     env_file:
       - path: .env
     environment:

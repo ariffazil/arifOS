@@ -27,6 +27,7 @@ class GovernanceStatus(str, Enum):
 
 class ArtifactStatus(str, Enum):
     """State of the output artifact (Audit Fix 4)."""
+    NONE = "NONE"               # No state assigned
     USABLE = "USABLE"           # Complete, can be used downstream
     PARTIAL = "PARTIAL"         # Incomplete but usable
     STAGED = "STAGED"           # Prepared but not yet committed
