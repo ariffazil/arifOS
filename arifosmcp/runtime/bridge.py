@@ -246,7 +246,7 @@ def _mint_auto_anchor_auth_context(session_id: str, actor_id: str) -> dict[str, 
         actor_id=actor_id,
         token_fingerprint="sha256:auto-anchor",
         approval_scope=[
-            "arifOS_kernel:reason",
+            "arifos_kernel:reason",
             "search_reality",
             "ingest_evidence",
             "session_memory",
@@ -299,7 +299,7 @@ BOOTSTRAP_WHITELIST: set[str] = {
 def _requires_explicit_kernel_auth(
     payload: dict[str, Any], canonical_tool: str | None = None
 ) -> bool:
-    """Decide whether arifOS_kernel must reject missing auth_context."""
+    """Decide whether arifos_kernel must reject missing auth_context."""
     from core.enforcement.auth_continuity import _env_flag
 
     # F11 Bootstrap Whitelist: These tools can run without prior auth
@@ -456,7 +456,7 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
         "tool_contract_table": [
             "check_vital",
             "init_anchor",
-            "arifOS_kernel",
+            "arifos_kernel",
             "agi_mind",
             "asi_heart",
         ],
@@ -562,7 +562,7 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
                 "1. check_vital - System health and vitals (no auth required)",
                 "2. audit_rules - Constitutional floors and tool contracts (no auth required)",
                 "3. init_anchor - Establish identity (creates session anchor)",
-                "4. arifOS_kernel - Primary metabolic loop for governed execution",
+                "4. arifos_kernel - Primary metabolic loop for governed execution",
             ],
             "ladder_resource": "canon://states",
             "current_state": current_state,
@@ -676,8 +676,8 @@ async def call_kernel(
                 )
 
             # Check if actor has required scope for kernel execution
-            required_scope = "arifOS_kernel:execute"
-            required_scope_limited = "arifOS_kernel:execute_limited"
+            required_scope = "arifos_kernel:execute"
+            required_scope_limited = "arifos_kernel:execute_limited"
 
             has_full_scope = required_scope in approval_scope or "*" in approval_scope
             has_limited_scope = required_scope_limited in approval_scope or "*" in approval_scope
@@ -871,7 +871,7 @@ async def call_kernel(
             }
             result["human_approval_persisted"] = ha_value
             result["abi_version"] = "1.0"
-            result["next_action"] = "Run arifOS_kernel to begin governed reasoning."
+            result["next_action"] = "Run arifos_kernel to begin governed reasoning."
             result["operator_guidance"] = "Session anchored. Ready for metabolic loop."
             result["ladder_resource"] = "canon://states"
 
@@ -1132,7 +1132,7 @@ async def call_kernel(
                     approval_scope=(auth_ctx or {}).get(
                         "approval_scope",
                         [
-                            "arifOS_kernel:reason",
+                            "arifos_kernel:reason",
                             "search_reality",
                             "ingest_evidence",
                             "session_memory",

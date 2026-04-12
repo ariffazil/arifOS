@@ -213,7 +213,7 @@ class TestRemediationErrors:
     """Test error responses include remediation guidance."""
 
     async def test_arifos_kernel_remediation_for_auth_failure(self):
-        """arifOS_kernel should return remediation when auth missing."""
+        """arifos_kernel should return remediation when auth missing."""
         # Call without proper auth_context
         envelope = await arifos_kernel(
             query="test query",

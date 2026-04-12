@@ -248,10 +248,10 @@ def _resolve_next_action(
         if auth_context:
             ac_actor = auth_context.get("actor_id", "anonymous")
             ac_scope = auth_context.get("approval_scope", [])
-            has_kernel = any(s.startswith("arifOS_kernel:") or s == "*" for s in ac_scope)
+            has_kernel = any(s.startswith("arifos_kernel:") or s == "*" for s in ac_scope)
             if ac_actor != "anonymous" and has_kernel:
                 return {
-                    "tool": "arifOS_kernel",
+                    "tool": "arifos_kernel",
                     "mode": "kernel",
                     "reason": f"Session anchored as {ac_actor}. Kernel execution available.",
                     "required_payload": ["query"],
@@ -516,7 +516,7 @@ async def arifos_kernel_impl(
         "dry_run": dry_run,
         "allow_execution": allow_execution,
     }
-    return await _wrap_call("arifOS_kernel", Stage.ROUTER_444, session_id, payload, ctx)
+    return await _wrap_call("arifos_kernel", Stage.ROUTER_444, session_id, payload, ctx)
 
 
 async def apex_judge_dispatch_impl(

@@ -26,7 +26,7 @@ from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS
 # Legacy 42 Tools Expected
 LEGACY_TOOLS = {
     "init_anchor", "init_anchor_state", "revoke_anchor_state",
-    "arifOS_kernel", "get_caller_status", "apex_judge", "audit_rules",
+    "arifos_kernel", "get_caller_status", "apex_judge", "audit_rules",
     "agentzero_validate", "agentzero_hold_check", "agentzero_armor_scan",
     "vault_seal", "verify_vault_ledger", "agi_reason", "agi_reflect", "forge",
     "asi_critique", "asi_simulate", "agentzero_engineer", "agentzero_memory_query",
@@ -39,8 +39,8 @@ MEGA_PAYLOADS = {
   ("init_anchor","init"): {"actor_id":"arif","intent":"test"},
   ("init_anchor","revoke"): {"session_id":"sess_test","reason":"test"},
   ("init_anchor","refresh"): {"session_id":"sess_test"},
-  ("arifOS_kernel","status"): {},
-  ("arifOS_kernel","kernel"): {"query":"ping"},
+  ("arifos_kernel","status"): {},
+  ("arifos_kernel","kernel"): {"query":"ping"},
   ("physics_reality","search"): {"input":"test"},
   ("physics_reality","ingest"): {"input":"https://example.com"},
   ("physics_reality","compass"): {"input":"test"},

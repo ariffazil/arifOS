@@ -134,7 +134,7 @@ def handle_stage_failure(
         error_details["context"] = context
     
     return RuntimeEnvelope(
-        tool="arifOS_kernel",
+        tool="arifos_kernel",
         session_id=session_id,
         stage=stage_id,
         verdict=handler["verdict"],
@@ -480,7 +480,7 @@ async def run_stage(
         )
     
     return RuntimeEnvelope(
-        tool="arifOS_kernel",
+        tool="arifos_kernel",
         session_id=session_id,
         stage=stage_id,
         verdict=Verdict.SABAR,
@@ -504,7 +504,7 @@ async def metabolic_loop(
     timeout_seconds: float = 30.0,  # Configurable timeout
     declared_name: str | None = None,
     human_approval: bool = False,
-    tool_name: str = "arifOS_kernel",
+    tool_name: str = "arifos_kernel",
     **kwargs,
 ) -> dict[str, Any]:
     """Run the Double Helix metabolic loop (Inner Ring + Outer Ring)."""
@@ -578,7 +578,7 @@ async def metabolic_loop(
         if pns_context.shield.status == "VOID":
             return {
                 "ok": False,
-                "tool": "arifOS_kernel",
+                "tool": "arifos_kernel",
                 "session_id": current_session_id,
                 "verdict": "VOID",
                 "status": "BLOCKED",
@@ -632,14 +632,14 @@ async def metabolic_loop(
             # We return the initialization failure directly
             out = init_res.model_dump(mode="json")
             out["trace"] = trace
-            out["tool"] = tool_name  # P0: Preserve identity — arifOS_kernel is the router
+            out["tool"] = tool_name  # P0: Preserve identity — arifos_kernel is the router
             return out
 
         # Early timeout check after init
         if _check_timeout():
             return {
                 "ok": False,
-                "tool": "arifOS_kernel",
+                "tool": "arifos_kernel",
                 "session_id": current_session_id,
                 "verdict": "TIMEOUT",
                 "status": "TIMEOUT",

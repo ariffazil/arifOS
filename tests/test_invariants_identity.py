@@ -85,7 +85,7 @@ class TestIdentityStabilityInvariant:
             actor_id="ariffazil",
             authority_level="sovereign",
             auth_context={"actor_id": "ariffazil", "session_id": session_id},
-            approval_scope=["arifOS_kernel:execute"],
+            approval_scope=["arifos_kernel:execute"],
         )
         
         # Multiple lookups must return same identity

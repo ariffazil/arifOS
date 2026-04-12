@@ -32,7 +32,7 @@ from arifosmcp.runtime.megaTools import (
     apex_judge as _mega_apex_judge,
 )
 from arifosmcp.runtime.megaTools import (
-    arifOS_kernel as _mega_arifOS_kernel,
+    arifos_kernel as _mega_arifOS_kernel,
 )
 from arifosmcp.runtime.megaTools import (
     asi_heart as _mega_asi_heart,
@@ -440,17 +440,6 @@ async def arifos_sense(
     return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug, platform)
 
 
-
-async def arifos_fetch_tool(
-    url: str,
-    max_length: int = 10000,
-    actor_id: str = "anonymous",
-    session_id: str | None = None,
-) -> RuntimeEnvelope:
-    """
-    Governed web fetch with F9 Anti-Hantu filtering.
-    """
-    return await arifos_fetch(url, max_length, actor_id, session_id)
 
 
 async def _sense_legacy(
@@ -1429,26 +1418,7 @@ async def arifos_reply(
     )
 
 
-async def arifos_diag_substrate(session_id: str | None = None) -> RuntimeEnvelope:
-    """
-    arifos_diag_substrate — Maintainer-only substrate conformance diagnostic.
-    Runs protocol exercise probes against 'everything' harness.
-    """
-    from arifosmcp.runtime.models import Verdict, RuntimeStatus, RuntimeEnvelope as _RE
-    
-    # F11: Restricted to maintainer flows
-    diag = await everything_probe.run_full_diagnostic()
-    
-    return _RE(
-        ok=diag["verdict"] == "SEAL",
-        tool="arifos.diag_substrate",
-        verdict=Verdict.SEAL if diag["verdict"] == "SEAL" else Verdict.VOID,
-        status=RuntimeStatus.SUCCESS if diag["verdict"] == "SEAL" else RuntimeStatus.ERROR,
-        payload=diag,
-        detail=f"Substrate Conformance: {diag['verdict']}"
-    )
-
-
+# arifos_diag_substrate defined once below — do not duplicate
 # ═══════════════════════════════════════════════════════════════════════════════
 # UNIVERSAL NAMING: All tool names use underscores for cross-platform compatibility
 # Legacy dot-names (arifos.init) are supported via LEGACY_ALIASES mapping
@@ -1556,7 +1526,7 @@ V2_TOOL_HANDLERS = CANONICAL_TOOL_HANDLERS
 
 # Legacy Horizon/v1 aliases for tests
 init_anchor = arifos_init
-arifOS_kernel = arifos_kernel
+arifos_kernel = arifos_kernel  # backward compat alias
 apex_soul = arifos_judge
 vault_ledger = arifos_vault
 math_estimator = arifos_ops
@@ -1719,7 +1689,7 @@ __all__ = [
     "forge_v2",
     # Legacy exports
     "init_anchor",
-    "arifOS_kernel",
+    "arifos_kernel",  # was arifOS_kernel
     "apex_soul",
     "vault_ledger",
     "math_estimator",

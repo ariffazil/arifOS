@@ -24,7 +24,7 @@ except ImportError:
 from arifosmcp.runtime.megaTools import (
     agi_mind,
     apex_soul,
-    arifOS_kernel,
+    arifos_kernel,
     asi_heart,
     init_anchor,
     math_estimator,
@@ -313,7 +313,7 @@ def create_cyclopts_app() -> App:
                 print(f"  {key}: {value}")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # 444_ROUTER: arifOS_kernel
+    # 444_ROUTER: arifos_kernel
     # ═══════════════════════════════════════════════════════════════════════
     
     @app.command
@@ -334,7 +334,7 @@ def create_cyclopts_app() -> App:
         session_id
             Active session ID
         """
-        result = await arifOS_kernel(
+        result = await arifos_kernel(
             mode=mode,
             payload={"intent": intent},
             session_id=session_id,

@@ -249,7 +249,7 @@ class A2ATaskManager:
                 await self._update_task_state(task_id, TaskState.WORKING, "Executing with SEAL...")
                 
                 execution_result = await self._call_mcp_tool(
-                    "arifOS_kernel",
+                    "arifos_kernel",
                     {
                         "query": query,
                         "session_id": task.session_id,
@@ -446,9 +446,9 @@ class A2AServer:
             
             session_id = init_result.get("session_id", "global")
             
-            # Step 2: Execute full metabolic loop via arifOS_kernel
+            # Step 2: Execute full metabolic loop via arifos_kernel
             execution_result = await self.task_manager._call_mcp_tool(
-                "arifOS_kernel",
+                "arifos_kernel",
                 {
                     "query": query,
                     "session_id": session_id,

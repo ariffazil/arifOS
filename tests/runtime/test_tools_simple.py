@@ -16,7 +16,7 @@ class TestPublicKernelToolName:
         """Test the public kernel tool name constant"""
         from arifosmcp.runtime.tools import PUBLIC_KERNEL_TOOL_NAME
 
-        assert PUBLIC_KERNEL_TOOL_NAME == "arifOS_kernel"
+        assert PUBLIC_KERNEL_TOOL_NAME == "arifos_kernel"
 
     def test_legacy_kernel_tool_name_constant(self):
         """Test the legacy kernel tool name constant"""
@@ -206,7 +206,7 @@ class TestArifosKernel:
             mock_loop.return_value = AsyncMock()
             mock_loop.return_value = {
                 "ok": True,
-                "tool": "arifOS_kernel",
+                "tool": "arifos_kernel",
                 "session_id": "test",
                 "stage": "000_INIT",
                 "verdict": "SEAL",
@@ -226,7 +226,7 @@ class TestArifosKernel:
             mock_loop.return_value = AsyncMock()
             mock_loop.return_value = {
                 "ok": True,
-                "tool": "arifOS_kernel",
+                "tool": "arifos_kernel",
                 "session_id": "test",
                 "stage": "000_INIT",
                 "verdict": "SEAL",
@@ -247,7 +247,7 @@ class TestArifosKernel:
             mock_loop.return_value = AsyncMock()
             mock_loop.return_value = {
                 "ok": True,
-                "tool": "arifOS_kernel",
+                "tool": "arifos_kernel",
                 "session_id": "test",
                 "stage": "000_INIT",
                 "verdict": "SEAL",

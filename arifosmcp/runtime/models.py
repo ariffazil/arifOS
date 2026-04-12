@@ -343,7 +343,7 @@ CANONICAL_STAGE_CONTRACTS: dict[Stage, StageContract] = {
     ),
     Stage.ROUTER_444: StageContract(
         stage=Stage.ROUTER_444,
-        allowed_tools=["arifOS_kernel"],
+        allowed_tools=["arifos_kernel"],
         mandatory_floors=["F11", "F12"],
         valid_verdicts=[Verdict.PROVISIONAL, Verdict.HOLD, Verdict.VOID, Verdict.SEAL],
         exit_criteria="Directed reasoning path.",

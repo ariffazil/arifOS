@@ -722,7 +722,7 @@ python -m arifosmcp.runtime stdio</code></pre>
   <h3>⚖️ GOVERNANCE (4 tools)</h3>
   <ul>
     <li><code>init_anchor</code> — Identity & Authority (init, revoke)</li>
-    <li><code>arifOS_kernel</code> — Primary Conductor (kernel, status)</li>
+    <li><code>arifos_kernel</code> — Primary Conductor (kernel, status)</li>
     <li><code>apex_soul</code> — Sovereign Decision & Security (judge, rules, validate, hold, armor)</li>
     <li><code>vault_ledger</code> — Immutable Persistence (seal, verify)</li>
   </ul>
@@ -836,7 +836,7 @@ Domain: AAA / AGENTS·API·AI·APPS
 - `agi_reason` — First-principles reasoning (Δ Mind)
 - `search_reality` — Evidence-grounded search (111 Sense)
 - `agentzero_engineer` — Governed code execution (555 Memory)
-- `arifOS_kernel` — Metabolic loop routing (444 Router)
+- `arifos_kernel` — Metabolic loop routing (444 Router)
 - `apex_judge` — Constitutional verdict rendering (888 Judge)
 
 ## Getting Started
@@ -1626,14 +1626,14 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         try:
             # The arifos_kernel (metabolic_loop_router) is the single canonical entry point
             # for the full ΔΩΨ metabolic pipe. Using it ensures consistency across all entry points.
-            kernel_tool = tool_registry.get("arifOS_kernel") or tool_registry.get(
+            kernel_tool = tool_registry.get("arifos_kernel") or tool_registry.get(
                 "metabolic_loop_router"
             )
 
             if not kernel_tool:
                 return JSONResponse(
                     {
-                        "error": "arifOS_kernel not available",
+                        "error": "arifos_kernel not available",
                         "verdict": "HOLD",
                         "issue": "TOOL_NOT_LOADED",
                     },

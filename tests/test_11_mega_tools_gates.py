@@ -104,7 +104,7 @@ def test_stage_map_is_consistent():
         'physics_reality': '111_SENSE',
         'agi_mind': '333_MIND',
         'math_estimator': '444_ROUTER',
-        'arifOS_kernel': '444_ROUTER',
+        'arifos_kernel': '444_ROUTER',
         'engineering_memory': '555_MEMORY',
         'asi_heart': '666_HEART',
         'apex_soul': '888_JUDGE',

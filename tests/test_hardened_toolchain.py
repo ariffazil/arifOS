@@ -53,7 +53,7 @@ class TestInitAnchorContinuity:
             "signature",
         ):
             assert field in auth_context
-        assert "arifOS_kernel:execute_limited" in auth_context["approval_scope"]
+        assert "arifos_kernel:execute_limited" in auth_context["approval_scope"]
         valid, reason = verify_auth_context(result.session_id, auth_context)
         assert valid, reason
 

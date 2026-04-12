@@ -86,7 +86,7 @@ class TestGlobalSessionIsolationInvariant:
         assert global_status.authority.actor_id == 'anonymous', \
             "global session authority must be anonymous"
         # global should NOT have kernel access
-        assert 'arifOS_kernel' not in global_status.allowed_next_tools, \
+        assert 'arifos_kernel' not in global_status.allowed_next_tools, \
             "global session must be blocked from kernel"
 
     def test_global_in_resolution_context(self):

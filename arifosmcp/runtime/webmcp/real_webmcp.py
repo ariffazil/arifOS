@@ -404,7 +404,7 @@ class RealWebMCPGateway:
             
             <div class="card">
                 <h3>🧠 Constitutional Kernel</h3>
-                <form class="tool-form" onsubmit="executeTool('arifOS_kernel', this); return false;">
+                <form class="tool-form" onsubmit="executeTool('arifos_kernel', this); return false;">
                     <input type="text" name="query" placeholder="What do you want to process?" required>
                     <input type="hidden" name="session_id" id="session-id" value="">
                     <select name="risk_tier">
@@ -414,7 +414,7 @@ class RealWebMCPGateway:
                     </select>
                     <button type="submit">Execute</button>
                 </form>
-                <div class="result" id="result-arifOS_kernel"></div>
+                <div class="result" id="result-arifos_kernel"></div>
             </div>
             
             <div class="card">

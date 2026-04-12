@@ -82,7 +82,7 @@ class KernelCore:
         """
         INPUT Stage: Normalize and assemble context.
 
-        From arifOS_kernel query normalization + session assembly.
+        From arifos_kernel query normalization + session assembly.
         """
         payload = dict(payload or {})
         payload.update(kwargs)

@@ -221,7 +221,7 @@ AAA_PUBLIC_TOOLS = AAA_CANONICAL_TOOLS
 
 AAA_TOOL_ALIASES = {
     "init_anchor": "arifos.init",
-    "arifOS_kernel": "arifos.kernel",
+    "arifos_kernel": "arifos.kernel",
     "apex_soul": "arifos.judge",
     "apex_judge": "arifos.judge",
     "vault_ledger": "arifos.vault",

@@ -132,7 +132,7 @@ class InitAnchorResponse(BaseResponse):
 # =============================================================================
 
 class ArifOSKernelRequest(BaseRequest):
-    """Canonical input schema for arifOS_kernel tool."""
+    """Canonical input schema for arifos_kernel tool."""
 
     query: str = Field(..., description="The query to process", min_length=1)
     intent: str | dict | None = Field(default=None, description="Structured intent")
@@ -142,7 +142,7 @@ class ArifOSKernelRequest(BaseRequest):
 
 
 class ArifOSKernelResponse(BaseResponse):
-    """Canonical output schema for arifOS_kernel tool."""
+    """Canonical output schema for arifos_kernel tool."""
 
     session_id: str
     result: dict[str, Any] = Field(default_factory=dict)
@@ -341,7 +341,7 @@ ABI_SCHEMAS: dict[str, dict[str, type[BaseModel]]] = {
         "request": InitAnchorRequest,
         "response": InitAnchorResponse
     },
-    "arifOS_kernel": {
+    "arifos_kernel": {
         "request": ArifOSKernelRequest,
         "response": ArifOSKernelResponse
     },
@@ -427,7 +427,7 @@ __all__ = [
     # init_anchor
     "InitAnchorRequest",
     "InitAnchorResponse", "IdentityResolution",
-    # arifOS_kernel
+    # arifos_kernel
     "ArifOSKernelRequest",
     "ArifOSKernelResponse",
     # apex_judge

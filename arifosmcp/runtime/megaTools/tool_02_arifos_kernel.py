@@ -1,5 +1,5 @@
 """
-arifosmcp/runtime/megaTools/02_arifOS_kernel.py
+arifosmcp/runtime/megaTools/02_arifos_kernel.py
 
 444_KERNEL: Primary metabolic conductor
 Stage: 444_KERNEL | Trinity: DELTA/PSI | Floors: F4, F11
@@ -17,7 +17,7 @@ from typing import Any
 from arifosmcp.runtime.models import RuntimeEnvelope
 
 
-async def arifOS_kernel(
+async def arifos_kernel(
     query: str | None = None,
     payload: dict[str, Any] | None = None,
     session_id: str | None = None,

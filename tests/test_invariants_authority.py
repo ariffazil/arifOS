@@ -12,7 +12,7 @@ class TestAuthorityScopeInvariant:
 
     @pytest.mark.asyncio
     async def test_sovereign_has_kernel_scope(self):
-        """Sovereign session class must have arifOS_kernel scope"""
+        """Sovereign session class must have arifos_kernel scope"""
         envelope = await init_anchor(
             actor_id='arif',
             intent='establish sovereign anchor',
@@ -21,12 +21,12 @@ class TestAuthorityScopeInvariant:
         )
         
         # Check allowed tools in envelope
-        assert "arifOS_kernel" in envelope.allowed_next_tools, \
+        assert "arifos_kernel" in envelope.allowed_next_tools, \
             "Sovereign anchor must be allowed to call kernel"
 
     @pytest.mark.asyncio
     async def test_anonymous_has_no_kernel_scope(self):
-        """Anonymous session must not have arifOS_kernel scope"""
+        """Anonymous session must not have arifos_kernel scope"""
         # Call without anchoring
         envelope = await arifos_kernel(
             query="dangerous query",
@@ -71,7 +71,7 @@ class TestCapabilityGatingInvariant:
         result = envelope.payload["result"]
         assert "continuation" in result
         next_tools = result["continuation"].get("next_allowed_tools", [])
-        assert "arifOS_kernel" in next_tools, \
+        assert "arifos_kernel" in next_tools, \
             "Sovereign allowed tools should include kernel"
 
     @pytest.mark.asyncio
@@ -85,13 +85,13 @@ class TestRiskClassAlignmentInvariant:
 
     @pytest.mark.asyncio
     async def test_kernel_enforced_at_runtime(self):
-        """arifOS_kernel must report GOVERNANCE layer in specs"""
+        """arifos_kernel must report GOVERNANCE layer in specs"""
         from arifosmcp.runtime.public_registry import public_tool_spec_by_name
         specs = public_tool_spec_by_name()
         
-        if "arifOS_kernel" in specs:
-            spec = specs["arifOS_kernel"]
-            assert spec.layer in ["KERNEL", "444_ROUTER", "GOVERNANCE"], "arifOS_kernel must be KERNEL layer"
+        if "arifos_kernel" in specs:
+            spec = specs["arifos_kernel"]
+            assert spec.layer in ["KERNEL", "444_ROUTER", "GOVERNANCE"], "arifos_kernel must be KERNEL layer"
 
 class TestErrorRemediationInvariant:
     """Invariant: Auth errors include actionable remediation"""

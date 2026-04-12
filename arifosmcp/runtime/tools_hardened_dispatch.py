@@ -381,7 +381,7 @@ def _build_dispatch_map() -> dict[str, Callable[..., Awaitable[Any]]]:
         "arifos_ops": _dispatch_ops,
         "arifos_vault": _dispatch_vault,
         "init_anchor": _legacy_init,
-        "arifOS_kernel": _legacy_route,
+        "arifos_kernel": _legacy_route,
         "engineering_memory": _legacy_memory,
         "asi_heart": _legacy_heart,
         "math_estimator": _legacy_ops,

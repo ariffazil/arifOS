@@ -27,7 +27,7 @@ except Exception:
 
 # The 11 mega-tools — enforce ingress tolerance on all of them
 MEGA_TOOLS = {
-    "init_anchor", "arifOS_kernel", "apex_soul", "vault_ledger",
+    "init_anchor", "arifos_kernel", "apex_soul", "vault_ledger",
     "agi_mind", "asi_heart", "engineering_memory", "physics_reality",
     "math_estimator", "code_engine", "architect_registry",
 }
@@ -53,7 +53,7 @@ MODE_SYNONYMS: dict[str, dict[str, str]] = {
         "navigate": "compass", "explore": "compass", "map": "atlas",
         "now": "time", "datetime": "time", "date": "time", "clock": "time",
     },
-    "arifOS_kernel": {
+    "arifos_kernel": {
         "run": "kernel", "execute": "kernel", "process": "kernel",
         "think": "kernel", "reason": "kernel",
         "health": "status", "ping": "status", "check": "status",

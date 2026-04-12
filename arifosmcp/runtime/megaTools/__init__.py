@@ -7,7 +7,7 @@ Each tool is in its own file for independent auditing and testing.
 """
 
 from .tool_01_init_anchor import init_anchor
-from .tool_02_arifOS_kernel import arifOS_kernel
+from .tool_02_arifos_kernel import arifos_kernel
 from .tool_03_apex_soul import apex_judge
 from .tool_04_vault_ledger import vault_ledger
 from .tool_05_agi_mind import agi_mind
@@ -21,7 +21,7 @@ from .tool_12_compat_probe import compat_probe
 
 MEGA_TOOLS = {
     "init_anchor": init_anchor,
-    "arifOS_kernel": arifOS_kernel,
+    "arifos_kernel": arifos_kernel,
     "apex_judge": apex_judge,
     "vault_ledger": vault_ledger,
     "agi_mind": agi_mind,
@@ -36,7 +36,7 @@ MEGA_TOOLS = {
 
 __all__ = [
     "init_anchor",
-    "arifOS_kernel",
+    "arifos_kernel",
     "apex_judge",
     "vault_ledger",
     "agi_mind",

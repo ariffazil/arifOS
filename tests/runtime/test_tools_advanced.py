@@ -18,7 +18,7 @@ class TestMegaToolRegistration:
         names = public_tool_names()
         assert len(names) == 11
         assert "init_anchor" in names
-        assert "arifOS_kernel" in names
+        assert "arifos_kernel" in names
         assert "apex_soul" in names
 
     def test_mega_tool_schemas(self):
@@ -44,12 +44,12 @@ class TestMegaToolDispatch:
 
     @pytest.mark.asyncio
     async def test_kernel_dispatch(self):
-        """Test arifOS_kernel dispatches to arifos_kernel_impl"""
-        from arifosmcp.runtime.tools import arifOS_kernel
+        """Test arifos_kernel dispatches to arifos_kernel_impl"""
+        from arifosmcp.runtime.tools import arifos_kernel
         # Patch where the implementation is imported in tools.py
         with patch("arifosmcp.runtime.tools.arifos_kernel_impl", new_callable=AsyncMock) as mock_impl:
             mock_impl.return_value = MagicMock()
-            await arifOS_kernel(mode="kernel", payload={"query": "test"})
+            await arifos_kernel(mode="kernel", payload={"query": "test"})
             mock_impl.assert_called_once()
 
     @pytest.mark.asyncio

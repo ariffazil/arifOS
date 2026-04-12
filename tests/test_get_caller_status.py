@@ -33,6 +33,6 @@ async def test_get_caller_status_anchored_visibility():
     
     assert envelope.caller_state == "anchored"
     # Anchored sessions should see intelligence tools
-    assert "arifOS_kernel" in envelope.allowed_next_tools
+    assert "arifos_kernel" in envelope.allowed_next_tools
     assert "agi_mind" in envelope.allowed_next_tools
     assert "physics_reality" in envelope.allowed_next_tools
