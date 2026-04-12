@@ -45,31 +45,31 @@ def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com")
     # Build resource entries
     resources = [
         {
-            "uri": "arifos.governance.floors",
+            "uri": "arifos://governance/floors",
             "name": "Governance Floors",
             "description": "Constitutional F1-F13 thresholds and doctrine",
             "mimeType": "application/json",
         },
         {
-            "uri": "arifos.governance.verdict_spec",
+            "uri": "arifos://governance/verdict_spec",
             "name": "Verdict Specification",
             "description": "Verdict system and output schema",
             "mimeType": "application/json",
         },
         {
-            "uri": "arifos.system.capabilities",
+            "uri": "arifos://system/capabilities",
             "name": "System Capabilities",
             "description": "Machine-readable capability map",
             "mimeType": "application/json",
         },
         {
-            "uri": "arifos.system.architecture",
+            "uri": "arifos://system/architecture",
             "name": "System Architecture",
             "description": "Architecture documentation and pipeline",
             "mimeType": "text/markdown",
         },
         {
-            "uri": "arifos.compliance.mapping",
+            "uri": "arifos://compliance/mapping",
             "name": "Compliance Mapping",
             "description": "Floor-to-standard compliance mapping",
             "mimeType": "application/json",

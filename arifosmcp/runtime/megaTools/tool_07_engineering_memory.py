@@ -14,7 +14,7 @@ from typing import Any
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
-from fastmcp.dependencies import CurrentContext
+from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 
 async def engineering_memory(
@@ -77,8 +77,8 @@ async def engineering_memory(
                     else None,
                 }
             return RuntimeEnvelope(
-                tool="arifos.memory",
-                canonical_tool_name="arifos.memory",
+                tool="arifos_memory",
+                canonical_tool_name="arifos_memory",
                 stage=res.get("stage", "555_MEMORY"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,
@@ -95,5 +95,5 @@ async def engineering_memory(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx or CurrentContext(),
+        ctx=ctx  # Context injected by FastMCP framework,
     )

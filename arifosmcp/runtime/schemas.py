@@ -150,6 +150,24 @@ class ContextSummary(BaseModel):
     platform: PlatformType = Field(default="unknown", description="Caller platform")
 
 
+class HumanLanguageBlock(BaseModel):
+    """Human-first language block shared across surfaces."""
+    summary: str = Field(description="Plain-language explanation of what happened")
+    explanation: str | None = Field(default=None, description="Why it happened, in plain language")
+    next_step: str | None = Field(default=None, description="Actionable next step in plain language")
+
+
+class UniversalContext(BaseModel):
+    """Universal context block reused across external surfaces."""
+    actor: str = Field(description="Who made the request")
+    session: str | None = Field(default=None, description="Session ID")
+    verified: bool = Field(default=False, description="Identity verified?")
+    risk: str = Field(default="low", description="Risk tier")
+    platform: PlatformType = Field(default="unknown", description="Caller platform")
+    tool: str = Field(description="Canonical tool name")
+    stage: str = Field(description="Processing stage")
+
+
 class CleanError(BaseModel):
     """Error details when things fail."""
     code: str = Field(description="Typed error code")
@@ -172,6 +190,8 @@ class DebugForensics(BaseModel):
 
 class CleanOutput(BaseModel):
     """Clean 3-tier output with fixed block structure."""
+    human_language: HumanLanguageBlock
+    universal_context: UniversalContext
     execution: ExecutionResult
     governance: GovernanceVerdict
     operator: OperatorAction
@@ -189,14 +209,28 @@ def build_operator_view(
     summary: str, actor: str, session: str | None, risk: str = "low",
     verified: bool = False, next_step: str | None = None, retryable: bool = False,
     error_code: str | None = None, error_message: str | None = None,
-    reason: str | None = None,
+    reason: str | None = None, platform: PlatformType = "unknown", tool: str = "unknown",
 ) -> CleanOutput:
     """Build minimal operator view (default)."""
     return CleanOutput(
+        human_language=HumanLanguageBlock(
+            summary=summary,
+            explanation=reason,
+            next_step=next_step,
+        ),
+        universal_context=UniversalContext(
+            actor=actor,
+            session=session,
+            verified=verified,
+            risk=risk,
+            platform=platform,
+            tool=tool,
+            stage=stage,
+        ),
         execution=ExecutionResult(ok=ok, status=status, stage=stage),
         governance=GovernanceVerdict(verdict=verdict, reason=reason),
         operator=OperatorAction(summary=summary, next_step=next_step, retryable=retryable),
-        context=ContextSummary(actor=actor, session=session, verified=verified, risk=risk),
+        context=ContextSummary(actor=actor, session=session, verified=verified, risk=risk, platform=platform),
         error=CleanError(code=error_code, message=error_message) if error_code else None,
     )
 
@@ -256,7 +290,8 @@ __all__ = [
     "PlatformType",
     # Clean schemas
     "CleanInput", "QueryOptions", "CleanOutput", "ExecutionResult",
-    "GovernanceVerdict", "OperatorAction", "ContextSummary", "CleanError",
+    "GovernanceVerdict", "OperatorAction", "ContextSummary", "HumanLanguageBlock",
+    "UniversalContext", "CleanError",
     "DebugForensics",
     # Builders & migration
     "build_operator_view", "build_system_view", "build_forensic_view",

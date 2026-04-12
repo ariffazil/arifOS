@@ -29,6 +29,7 @@ _SESSION_CONTINUITY_STATE: dict[str, dict[str, Any]] = {}
 # Blind spot 3 amendment: moved from hardcoded function logic to explicit map
 _SOVEREIGN_IDENTITY_MAP: dict[str, str] = {
     "ariffazil": "ariffazil",
+    "arif": "ariffazil",
 }
 _VALID_ACTOR_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\.]{1,64}$")
 

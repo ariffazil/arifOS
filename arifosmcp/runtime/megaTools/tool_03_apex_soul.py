@@ -13,7 +13,7 @@ from typing import Any
 
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
-from fastmcp.dependencies import CurrentContext
+from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 
 async def apex_judge(
@@ -78,8 +78,8 @@ async def apex_judge(
                 effective_verdict = verdict_val or (Verdict.SEAL if ok else Verdict.VOID)
 
             return RuntimeEnvelope(
-                tool=res.get("tool", "arifos.judge"),
-                canonical_tool_name="arifos.judge",
+                tool=res.get("tool", "arifos_judge"),
+                canonical_tool_name="arifos_judge",
                 stage=res.get("organ_stage") or res.get("stage") or "888_JUDGE",
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=effective_verdict,
@@ -96,5 +96,5 @@ async def apex_judge(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx or CurrentContext(),
+        ctx=ctx  # Context injected by FastMCP framework,
     )

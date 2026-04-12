@@ -64,7 +64,7 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
 async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[str, Any]:
     handler_name = getattr(handler, "__name__", "")
 
-    if handler_name in ("vault_seal", "arifos_vault"):
+    if handler_name == "vault_seal":
         return {
             "ok": True,
             "tool": "arifos_vault",
@@ -83,6 +83,11 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
     result = handler(**arguments)
     if inspect.isawaitable(result):
         result = await result
+    if result.__class__.__name__ == "RuntimeEnvelope":
+        from .output_formatter import format_output
+
+        result.platform_context = "stdio"
+        return format_output(result, {"verbose": False, "debug": False})
     if hasattr(result, "model_dump"):
         envelope = result.model_dump(mode="json")
     elif isinstance(result, dict):
@@ -96,21 +101,13 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
 def _run_minimal_stdio_server() -> None:
     from mcp import types as mcp_types
 
-    from . import tools as runtime_tools
-    from .tool_specs import TOOLS
+    from .tool_specs import LEGACY_NAME_MAP, TOOLS
+    from .tools import CANONICAL_TOOL_HANDLERS, get_tool_handler, normalize_tool_name
 
     tool_handlers: dict[str, Any] = {
-        "arifos_init": runtime_tools.arifos_init,
-        "arifos_sense": runtime_tools.arifos_sense,
-        "arifos_mind": runtime_tools.arifos_mind,
-        "arifos_route": runtime_tools.arifos_route,
-        "arifos_heart": runtime_tools.arifos_heart,
-        "arifos_ops": runtime_tools.arifos_ops,
-        "arifos_judge": runtime_tools.arifos_judge,
-        "arifos_memory": runtime_tools.arifos_memory,
-        "arifos_vault": runtime_tools.arifos_vault,
-        "arifos_forge": runtime_tools.arifos_forge,
-        "arifos_vps_monitor": runtime_tools.arifos_vps_monitor,
+        spec.name: CANONICAL_TOOL_HANDLERS[spec.name]
+        for spec in TOOLS
+        if spec.name in CANONICAL_TOOL_HANDLERS
     }
 
     # Build spec lookup from canonical TOOLS tuple
@@ -183,11 +180,10 @@ def _run_minimal_stdio_server() -> None:
             continue
 
         if method == "tools/call":
-            from .tool_specs import normalize_tool_name
-
             name = normalize_tool_name(params.get("name", ""))
+            name = LEGACY_NAME_MAP.get(name, name)
             arguments = params.get("arguments") or {}
-            handler = tool_handlers.get(name)
+            handler = tool_handlers.get(name) or get_tool_handler(name)
             if handler is None:
                 send(
                     {

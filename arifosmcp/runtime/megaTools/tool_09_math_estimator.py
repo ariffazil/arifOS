@@ -14,7 +14,7 @@ from typing import Any
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import math_estimator_dispatch_impl
-from fastmcp.dependencies import CurrentContext
+from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 
 async def math_estimator(
@@ -63,7 +63,7 @@ async def math_estimator(
             auth_context=resolved_payload.get("auth_context", auth_context),
             risk_tier=resolved_payload.get("risk_tier", risk_tier),
             dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-            ctx=ctx or CurrentContext(),
+            ctx=ctx  # Context injected by FastMCP framework,
         )
 
     if "math_estimator" in HARDENED_DISPATCH_MAP:
@@ -88,8 +88,8 @@ async def math_estimator(
                     else None,
                 }
             return RuntimeEnvelope(
-                tool="arifos.ops",
-                canonical_tool_name="arifos.ops",
+                tool="arifos_ops",
+                canonical_tool_name="arifos_ops",
                 stage=res.get("stage", "444_ROUTER"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,
@@ -106,5 +106,5 @@ async def math_estimator(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx or CurrentContext(),
+        ctx=ctx  # Context injected by FastMCP framework,
     )

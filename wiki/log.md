@@ -1,5 +1,26 @@
 # Ω-Wiki Log
 
+## [2026-04-11] Forge | MCP Deploy Gate Canon
+- Ingested the deploy-gate prompt as `wiki/raw/mcp_deploy_gate_prompt_2026-04-11.md`.
+- Created [[Audit_MCP_Deploy_Gate]] as the canonical release-gate page for the current arifOS MCP state.
+- Captured the split verdict:
+  - local SEAL for formatter / shared-output path
+  - global 888 HOLD for full MCP release
+- Anchored the gate in three wajib bands:
+  - physics: high-entropy release warning
+  - math: explicit `SR` formula and `SR = 0`
+  - linguistics: single release quote band
+- Registered the page in `PAGE_REGISTRY.md` and surfaced it in `index.md`.
+- Next required action remains unchanged: reduce tool-surface drift to zero before any full MCP SEAL claim.
+
+## [2026-04-11] Forge | MCP Seal Readiness Checklist
+- Extended `wiki/raw/mcp_deploy_gate_prompt_2026-04-11.md` with the step-to-metric mapping that flips `SR` from `0` to `1`.
+- Updated [[Audit_MCP_Deploy_Gate]] with:
+  - explicit step-to-metric mapping
+  - canonical agent checklist YAML
+  - the release rule that full MCP SEAL stays blocked until `sr = 1`
+- This turns the deploy gate from a narrative verdict into an operational checklist agents can execute directly.
+
 ## [2026-04-08] Init | Wiki Initialized
 - Created `wiki/` structure.
 - Established `SCHEMA.md` (Constitutional Law).
@@ -714,3 +735,87 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - `deployments/README.md`
 
 **Verdict**: ⚠️ **999_SEAL ALIGNMENT ONLY** — merged capability is real; runtime seal is pending substrate rebuild.
+
+---
+
+## [2026-04-11] Ingest | MCP Naming Migration Audit Directive
+
+- Ingested the operator directive for a single master audit across registry, runtime, reachability, deployment, and client surfaces.
+- Added raw source: `wiki/raw/mcp_naming_migration_audit_directive_2026-04-11.md`.
+- Updated `wiki/pages/MCP_Tools.md` to distinguish the 10-tool public target from the still-present runtime compatibility surface.
+- Updated `wiki/pages/Tool_Surface_Architecture.md` to document registry truth vs runtime/discovery truth as an active contrast.
+- Rewrote `wiki/pages/Audit_MCP_Tools_vs_Wiki.md` so it no longer overclaims alignment and instead recommends an audit-first seal gate.
+- Updated `wiki/index.md` descriptions to point readers at the migration contrast rather than a resolved state.
+
+### Repo Truth Captured
+
+- `APEX/ASF1/tool_registry.json` defines 10 public canonical tools + 5 internal folded tools.
+- `arifosmcp/runtime/tool_specs.py` still exports `PUBLIC_TOOL_SPECS = TOOLS`.
+- `arifosmcp/runtime/public_registry.py` still expects 11 public tools.
+- `arifosmcp/runtime/server.py` still narrates dotted ids and `arifos.reply`.
+- `arifosmcp/runtime/tools.py` still carries compatibility paths for `arifos_reply`, `arifos_vps_monitor`, `arifos_route`, and dotted aliases.
+
+### Operational Verdict
+
+**HOLD** — wiki truth is now closer to repo truth, but the naming migration remains unsealed until a full audit proves registry/runtime/deployment coherence.
+
+---
+
+## [2026-04-11] Ingest | Governed Packet Bands + Godellock Extension
+
+- Ingested the doctrine proposal for mandatory Physics + Math + Linguistic output bands on every tool.
+- Added raw source: `wiki/raw/governed_packet_bands_and_godellock_ingest_2026-04-11.md`.
+- Updated `wiki/pages/Concept_Godellock.md` to distinguish current humility lock behavior from the proposed stronger "undecidable here" meta-floor.
+- Updated `wiki/pages/Philosophy_Registry.md` to record the proposed all-tools linguistic anchor policy and the hard override for `arifos_init` and `arifos_vault`.
+- Updated `wiki/pages/Concept_Metabolic_Pipeline.md` to reflect the 10-tool public canon candidate, 3x3 + 1 target reading, and governed-packet output-band proposal.
+
+### Doctrine Captured
+
+- Every tool output may eventually require a physics note, math metrics, and a linguistic anchor.
+- `arifos_init` and `arifos_vault` are proposed hard overrides for `DITEMPA BUKAN DIBERI`.
+- Gödel lock is proposed as a stronger meta-floor for self-referential totality claims.
+- MCP calls are proposed as governed packets carrying budgets, contracts, tripwires, and verdict expectations.
+
+### Operational Verdict
+
+**PROPOSED, NOT SEALED** — doctrine is now captured in the wiki as a target contract, but runtime enforcement still requires explicit implementation and audit.
+
+---
+
+## [2026-04-11] Ingest | Meta-Theory Atoms + Governed Utility
+
+- Ingested the proposal for additional meta-theory atoms: Gödel lock, anomalous contrast tripwire, paradox scar shadow, APE, G2, and governed utility.
+- Added raw source: `wiki/raw/meta_theory_atoms_and_governed_utility_ingest_2026-04-11.md`.
+- Updated `wiki/pages/Concept_Decision_Velocity.md` to describe proposed gauges, AC-T/PSS latency penalties, APE-aware routing, and the governed-utility autoresearch loop.
+- Updated `wiki/pages/Synthesis_OpenQuestions.md` to record unresolved implementation choices for wajib band enforcement, Gödel lock placement, tripwire computation, and eval-harness design.
+
+### Doctrine Captured
+
+- Velocity is now documented not only as latency, but as bounded safe cognitive work per step.
+- Proposed telemetry atoms include `APE`, `AC`, `PSS`, `shadow`, `G2`, and `godel_lock`.
+- Proposed evaluation direction is a single ratcheting scalar `U` with binary checks underneath.
+
+### Operational Verdict
+
+**CAPTURED AS TARGET DOCTRINE** — the wiki now preserves the meta-theory and eval ideas, but code/runtime enforcement remains future work.
+
+---
+
+## [2026-04-11] Forge | Governed Packet Contract
+
+- Created `wiki/pages/Governed_Packet_Contract.md` as the canonical Ω-Wiki page for governed packets, wajib output bands, telemetry atoms, tripwires, and the governed utility scalar.
+- Updated `wiki/PAGE_REGISTRY.md` to register the new page under `20_RUNTIME`.
+- Updated `wiki/index.md` so the contract appears in the main concepts entry surface.
+- Preserved the doctrine boundary explicitly: the page describes target contract behavior and implementation boundaries without claiming the runtime already enforces it.
+
+### Structured Scope
+
+- packet header / budget / contract / tripwire / payload model
+- mandatory Physics + Math + Linguistic output bands
+- INIT and VAULT override for `DITEMPA BUKAN DIBERI`
+- telemetry atoms: `APE`, `echoDebt`, `AC`, `PSS`, `shadow`, `kappa_r`, `G2`, `godel_lock`
+- binary eval questions and governed utility scalar `U`
+
+### Operational Verdict
+
+**FORGED IN WIKI, NOT YET RUNTIME-ENFORCED** — canonical doctrine page exists and is indexed; implementation remains a separate engineering step after audit truth is settled.

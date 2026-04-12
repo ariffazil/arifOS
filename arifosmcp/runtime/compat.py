@@ -74,7 +74,7 @@ except ImportError:
     Context = Any
 
 try:
-    from fastmcp.dependencies import CurrentContext
+    from fastmcp import Context  # Context injected; None fallback
     HAS_CURRENT_CONTEXT = True
 except ImportError:
     HAS_CURRENT_CONTEXT = False

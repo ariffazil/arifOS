@@ -98,28 +98,29 @@ async def check_philosophy_injection():
     return True
 
 def check_horizon_mapping():
-    """Verify Horizon gateway mappings."""
+    """Verify unified server legacy tool mappings."""
     try:
-        from arifosmcp.server_horizon import HORIZON_TO_V2_MAP
-        print(f"\nChecking Horizon gateway mappings...")
+        from server import LEGACY_TOOL_MAP
+        print(f"\nChecking unified server legacy mappings...")
         
         expected_mappings = {
-            "arifOS_kernel": "arifos.route",
-            "vault_ledger": "arifos.vault",
-            "code_engine": "arifos.forge",
+            "init_anchor": "arifos_init",
+            "apex_soul": "arifos_judge",
+            "agi_mind": "arifos_mind",
         }
         
         all_good = True
-        for horizon_name, v2_name in expected_mappings.items():
-            if HORIZON_TO_V2_MAP.get(horizon_name) == v2_name:
-                print(f"  ✅ {horizon_name} → {v2_name}")
+        for legacy_name, canonical_name in expected_mappings.items():
+            if LEGACY_TOOL_MAP.get(legacy_name) == canonical_name:
+                print(f"  ✅ {legacy_name} → {canonical_name}")
             else:
-                print(f"  ❌ {horizon_name} mapping incorrect")
+                print(f"  ❌ {legacy_name} mapping incorrect (got {LEGACY_TOOL_MAP.get(legacy_name)})")
                 all_good = False
         
+        print(f"  Total legacy aliases: {len(LEGACY_TOOL_MAP)}")
         return all_good
     except Exception as e:
-        print(f"  ❌ Horizon check failed: {e}")
+        print(f"  ❌ Legacy mapping check failed: {e}")
         return False
 
 async def main():

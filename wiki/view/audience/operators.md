@@ -1,14 +1,14 @@
 ---
 type: Meta
 auto_generated: true
-generated_at: 2026-04-10T21:00:14.844077
+generated_at: 2026-04-11T04:27:16.603137
 filter: audience=operators
 ---
 
 # Audience: Operators
 
 > **Auto-generated** for `operators` audience.
-> **Total Pages**: 14
+> **Total Pages**: 15
 
 Pages relevant to **Operators**.
 
@@ -26,5 +26,6 @@ Pages relevant to **Operators**.
 | [[Changelog|Changelog]] | 50 AUDITS | beginner | operations |
 | [[Audit_999_SEAL_Runtime_Contrast|Audit 999 SEAL Runtime Contrast]] | 50 AUDITS | intermediate | operations |
 | [[Audit_Repo_Chaos_Reduction|Audit Repo Chaos Reduction]] | 50 AUDITS | intermediate | operations |
+| [[Audit_MCP_Deploy_Gate|Audit MCP Deploy Gate]] | 50 AUDITS | intermediate | operations, constitutional |
 | [[GEOX|GEOX]] | 90 ENTITIES | beginner | architecture |
 | [[Entity_Andrej_Karpathy|Entity Andrej Karpathy]] | 90 ENTITIES | beginner | philosophy |

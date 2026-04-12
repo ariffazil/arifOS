@@ -1,15 +1,15 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ariffazil/arifos-mcp",
-  "version": "2026.03.10-SEAL",
-  "description": "arifOS AAA MCP runtime with streamable HTTP at /mcp, SSE compatibility, 7 public tools, and the APEX dashboard app resource.",
+  "version": "2026.04.07-SEAL",
+  "description": "arifOS AAA MCP runtime with streamable HTTP at /mcp, SSE compatibility, 17 public tools, and the arifOS dashboard app resources.",
   "vendor": {
     "name": "arifOS",
     "url": "https://arifos.arif-fazil.com"
   },
   "license": "AGPL-3.0-only",
   "repository": {
-    "url": "https://github.com/ariffazil/arifosmcp",
+    "url": "https://github.com/ariffazil/arifOS",
     "source": "github"
   },
   "protocolVersion": "2025-11-25",
@@ -22,7 +22,7 @@
     {
       "registryType": "pypi",
       "identifier": "arifos",
-      "version": "2026.03.10-SEAL",
+      "version": "2026.04.07-SEAL",
       "transport": {
         "type": "stdio",
         "command": "python -m arifosmcp.runtime stdio"
@@ -30,7 +30,7 @@
     },
     {
       "registryType": "oci",
-      "identifier": "docker.io/arifazil/arifosmcp:forge-20260309",
+      "identifier": "docker.io/ariffazil/arifosmcp:latest",
       "transport": {
         "type": "streamable-http",
         "url": "https://arifosmcp.arif-fazil.com/mcp"
@@ -64,13 +64,13 @@
       "uri": "arifos://aaa/governance-gate-profile"
     },
     {
-      "uri": "ui://apex/dashboard-v2.html"
+      "uri": "ui://geox-dashboard"
     }
   ],
   "prompts": [
-    "arifos.prompt.aaa_chain",
-    "arifos.prompt.mcp_transport_bootstrap",
-    "arifos.prompt.tool_routing_policy",
-    "arifos.prompt.chatgpt_connector_bootstrap"
+    "arifos.prompt.run_111_think",
+    "arifos.prompt.run_777_reason",
+    "arifos.prompt.run_888_audit",
+    "arifos.prompt.forge_verdict"
   ]
 }

@@ -18,11 +18,11 @@ echo ""
 echo "🔧 Step 2: Copy code to running container"
 echo "─────────────────────────────────────────────────────────────────────────────"
 # Copy the new v2 code into the container
-docker cp arifosmcp/runtime/tools_v2.py arifosmcp:/usr/src/project/arifosmcp/runtime/
-docker cp arifosmcp/runtime/tools_v2_forge.py arifosmcp:/usr/src/project/arifosmcp/runtime/
-docker cp arifosmcp/runtime/tool_specs_v2.py arifosmcp:/usr/src/project/arifosmcp/runtime/
+docker cp arifosmcp/runtime/tools.py arifosmcp:/usr/src/project/arifosmcp/runtime/
+docker cp arifosmcp/runtime/tools_forge.py arifosmcp:/usr/src/project/arifosmcp/runtime/
+docker cp arifosmcp/runtime/tool_specs.py arifosmcp:/usr/src/project/arifosmcp/runtime/
 docker cp arifosmcp/runtime/philosophy_registry.py arifosmcp:/usr/src/project/arifosmcp/runtime/
-docker cp arifosmcp/server_horizon.py arifosmcp:/usr/src/project/arifosmcp/
+docker cp server.py arifosmcp:/usr/src/project/
 docker cp data/philosophy_registry_v1.json arifosmcp:/usr/src/project/data/ 2>/dev/null || true
 echo "✅ Code copied to container"
 
@@ -51,17 +51,15 @@ echo "────────────────────────�
 TOOL_COUNT=$(curl -s http://localhost:8080/tools | jq '.count' 2>/dev/null || echo "0")
 echo "Tools registered: $TOOL_COUNT"
 
-# Test philosophy injection
-echo ""
-echo "Testing philosophy injection..."
-PHIL=$(curl -s -X POST http://localhost:8080/tools/arifos.init \
-    -H "Content-Type: application/json" \
-    -d '{"actor_id":"deploy","intent":"verify"}' | jq -r '.philosophy.entry.text' 2>/dev/null || echo "FAILED")
+# Test unified server
+ echo ""
+echo "Testing unified server..."
+HEALTH=$(curl -s http://localhost:8080/health | jq -r '.status' 2>/dev/null || echo "FAILED")
 
-if echo "$PHIL" | grep -q "DITEMPA"; then
-    echo "✅ Philosophy injection: $PHIL"
+if [ "$HEALTH" = "healthy" ]; then
+    echo "✅ Unified server healthy"
 else
-    echo "❌ Philosophy injection failed: $PHIL"
+    echo "❌ Health check failed: $HEALTH"
 fi
 
 echo ""

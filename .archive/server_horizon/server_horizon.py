@@ -111,18 +111,25 @@ HORIZON_TO_V2_MAP = {
 }
 
 PUBLIC_PROXY_SPECS = {
-    # 10 canonical v2 tools — mapped from Horizon names to v2 names
-    "init_anchor": "000_INIT: Start a governed constitutional session.",
-    "arifOS_kernel": "444_ROUTER: Primary metabolic conductor (the kernel).",
-    "physics_reality": "111_SENSE: Time grounding and reality verification.",
-    "agi_mind": "333_MIND: Multi-source synthesis and reasoning.",
-    "asi_heart": "666_HEART: Safety and adversarial critique.",
-    "math_estimator": "777_OPS: Calculate costs and thermodynamics.",
-    "apex_soul": "888_JUDGE: Final constitutional verdict.",
-    "engineering_memory": "555_MEMORY: Retrieve governed vector memory.",
-    "vault_ledger": "999_VAULT: Append immutable verdict record (the seal).",
-    "code_engine": "FORGE_010: Delegated execution bridge to AF-FORGE.",
+    # ══════════════════════════════════════════════════════════════════════
+    # Option A+B: Canonical Collapse (2026-04-11)
+    # 9 canonical public tools only. Legacy/alias names removed.
+    # Legacy names kept in TOOL_ACCESS_POLICY as SOVEREIGN_ONLY for
+    # backward compat, but NOT proxied as public endpoints.
+    # Internal sub-mode tools (agi_reason, asi_critique, etc.) are
+    # SOVEREIGN_ONLY — called by canonical tools, never exposed.
+    # ══════════════════════════════════════════════════════════════════════
+    "arifos_init":     "000_INIT: Start a governed constitutional session.",
+    "arifos_sense":    "111_SENSE: Time grounding and reality verification.",
+    "arifos_mind":     "333_MIND: Multi-source synthesis and reasoning.",
+    "arifos_kernel":   "444_ROUTER: Primary metabolic conductor (the kernel).",
+    "arifos_memory":   "555_MEMORY: Retrieve governed vector memory.",
+    "arifos_heart":    "666_HEART: Safety and adversarial critique.",
+    "arifos_ops":      "777_OPS: Calculate costs and thermodynamics.",
+    "arifos_judge":    "888_JUDGE: Final constitutional verdict.",
     "architect_registry": "M-4_ARCH: Discover arifOS tool graph and capabilities.",
+    "check_vital":     "M-5_VPS: Secure VPS telemetry (CPU, Memory, ZRAM, Disk). F12-hardened.",
+    "compat_probe":    "M-6_PROBE: Diagnostic probe for enum/session compatibility.",
 }
 
 AUTHENTICATED_TOOLS = sorted(

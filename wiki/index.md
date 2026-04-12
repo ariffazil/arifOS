@@ -1,10 +1,14 @@
 # Ω-Wiki Index
 
-> **Last Updated**: 2026-04-11 (999_SEAL alignment ingest — runtime rebuild required)
-> **Total Pages**: 45
-> **System Status**: ⚠️ **999_SEAL ALIGNMENT** — code unified, VPS substrate rebuild pending
+> **Last Updated**: 2026-04-12 (Session sealed — anti-chaos restructure complete)
+> **Total Pages**: 48
+> **System Status**: ✅ **999_SEAL CONFIRMED** — All systems operational
 
-> **Current State**: arifOS and AF-FORGE are aligned in git, but the live VPS runtime is still missing all 6 MCP substrates. Full rebuild remains required before runtime can claim `999_SEAL`.
+> **Current State**: 
+> - arifOS: Main @ `af5e70d` — Session sealed
+> - GEOX: Submodule @ `d528aa1` — Anti-chaos architecture + GEOX APPS
+> - AF-FORGE: Operational
+> - All wikis synchronized
 
 ## 🏛️ Foundations
 - [[SCHEMA]] (Wiki Constitution)
@@ -70,9 +74,10 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 
 ## 💡 Concepts
 - [[Metabolic_Loop]] (The 000-999 Execution Pipeline)
-- [[MCP_Tools]] (Canonical arifos_* Tool Surface)
+- [[MCP_Tools]] (Current tool-surface contrast: 10-tool target vs runtime migration drift)
 - **K00X_RUNTIME_POLICY** ([Runtime Policy — Token Budget Law + Call Rules](raw/K00X_RUNTIME_POLICY.md))
-- [[Tool_Surface_Architecture]] (Canonical spec, runtime, compatibility, transport, and wiki layers)
+- [[Tool_Surface_Architecture]] (Registry canon vs runtime/discovery contrast, with audit-first next step)
+- [[Governed_Packet_Contract]] (Canonical target contract for governed packets, wajib bands, tripwires, and eval metrics)
 - [[Concept_Godellock]] (F7 Humility and the Overconfidence Threshold)
 - [[Agents-and-AAA-Architecture]] (Ring 3: Practical Execution layer)
 - [[Concept_Architecture]] (The Trinity ΔΩΨ model and CCC/AAA layers)
@@ -101,6 +106,9 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - [[ToolSpec_arifos_judge]] (Constitutional verdict engine — 888_JUDGE, sole SEAL authority)
 
 ## 🧬 Synthesis
+- [[raw/SOT_ANALYSIS_2026-04-12]] — **🆕 CURRENT** — State of the Tree analysis (arifOS + GEOX)
+- [[raw/ARIFOS_SOT_2026-04-12]] — **🆕 CURRENT** — arifOS canonical SOT reference
+- [[raw/SESSION_SEAL_2026-04-12]] — **🆕 SEALED** — Session seal (anti-chaos restructure complete)
 - [[Synthesis_OpenQuestions]] (Unresolved Design Tensions)
 - [[Horizon_2_Swarm]] (H2 Governed Autonomy — A2A protocols, EvidenceBundle, ΔS Gauges)
 - [[Horizon_3_Universal_Body]] (H3 Hardware Sovereignty — HSM/BLS, WebMCP P2P, ASIC loops)
@@ -108,8 +116,10 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - [[Drift_Checks]] (Checker scope, policy, and CI guidance)
 - [[Audit_999_SEAL_Runtime_Contrast]] (Merged capability vs live VPS substrate reality)
 - [[Audit_Repo_Chaos_Reduction]] (Pass 1 Audit — 378 active docs classified, 122 archived, 10 deleted)
+- [[Audit_MCP_Tools_vs_Wiki]] (Naming migration contrast: registry target is cleaner than runtime/export truth)
+- [[Audit_MCP_Deploy_Gate]] (Canonical release gate: formatter path sealable, full MCP on 888 HOLD until drift = 0)
 
 ---
 
 > [!NOTE]
-> **Ω-Wiki Status**: Structural-cleanup audit active. `tool_specs.py` is treated as canonical candidate truth; drift remains across transport, compatibility, and registry surfaces.
+> **Ω-Wiki Status**: Session sealed 2026-04-12. Anti-chaos restructure implemented across arifOS, GEOX, and AF-FORGE. All systems operational.

@@ -89,8 +89,8 @@ async def compat_probe(
 
     return RuntimeEnvelope(
         ok=True,
-        tool="arifos.probe",
-        canonical_tool_name="arifos.probe",
+        tool="arifos_probe",
+        canonical_tool_name="arifos_probe",
         stage="M-5_COMPAT",
         session_id=session_id,
         verdict=Verdict.SEAL,

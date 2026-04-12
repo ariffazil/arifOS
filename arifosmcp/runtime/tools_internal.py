@@ -233,7 +233,7 @@ def _resolve_next_action(
 ) -> dict[str, Any] | None:
     if caller_state in ("anonymous", "claimed"):
         return {
-            "tool": "arifos.init",
+            "tool": "arifos_init",
             "reason": (
                 f"Session is {caller_state}. Call arifos.init first with "
                 f"actor_id and intent to unlock the full constitutional pipeline. "
@@ -307,25 +307,56 @@ async def _wrap_call(
     try:
         # PHASE 0 FIX: Kernel call with response validation
         kernel_res = await call_kernel(tool_name, session_id, sanitized_payload)
-        
+
         # Validate kernel response structure
         if not isinstance(kernel_res, dict):
             raise ValueError(f"Kernel returned non-dict: {type(kernel_res)}")
-        
+
         # ─── V1.0 VERDICT MAPPING ───
         from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
-        
-        # Convert legacy Verdict to VerdictCode with fallback
-        legacy_v = kernel_res.get("verdict", "SABAR")
-        if legacy_v == "SEAL": 
-            v_code = VerdictCode.SEAL
-        elif legacy_v == "VOID": 
-            v_code = VerdictCode.VOID
-        elif legacy_v == "PARTIAL": 
-            v_code = VerdictCode.PARTIAL
-        else: 
-            v_code = VerdictCode.SABAR
+
+        # ─── Constitutional Verdict Override ───
+        # agi_reason branch in call_kernel returns constitutional metrics at
+        # kernel_res top level: verdict, peace2, g_star, delta_s, omega_0.
+        # The agi_reason branch already computes the correct verdict from
+        # run_agi_mind's decision_packet and stores it in kernel_res["verdict"].
+        # For other tools, fall back to legacy verdict mapping.
+        constitutional_verdict: VerdictCode | None = None
+
+        # Check top-level constitutional fields from agi_reason output
+        kr_peace2 = kernel_res.get("peace2", 1.0)
+        kr_g_star = kernel_res.get("truth_score", 0.85)
+        kr_verdict = kernel_res.get("verdict", "SABAR")
+
+        if kr_verdict in ("HOLD", "VOID", "PARTIAL"):
+            # agi_reason already computed the constitutional verdict — use it directly
+            if kr_verdict == "HOLD":
+                constitutional_verdict = VerdictCode.SABAR
+            elif kr_verdict == "VOID":
+                constitutional_verdict = VerdictCode.VOID
+            elif kr_verdict == "PARTIAL":
+                constitutional_verdict = VerdictCode.PARTIAL
+        elif kr_peace2 < 1.0:
+            constitutional_verdict = VerdictCode.SABAR
+        elif kr_g_star < 0.3:
+            constitutional_verdict = VerdictCode.VOID
+        else:
+            constitutional_verdict = VerdictCode.SEAL
+
+        # Fallback: legacy verdict mapping for non-agi_reason tools
+        if constitutional_verdict is None:
+            legacy_v = kernel_res.get("verdict", "SABAR")
+            if legacy_v == "SEAL":
+                constitutional_verdict = VerdictCode.SEAL
+            elif legacy_v == "VOID":
+                constitutional_verdict = VerdictCode.VOID
+            elif legacy_v == "PARTIAL":
+                constitutional_verdict = VerdictCode.PARTIAL
+            else:
+                constitutional_verdict = VerdictCode.SABAR
+
+        v_code = constitutional_verdict
         
         # Build metrics with safe access
         metrics = CanonicalMetrics()
@@ -707,6 +738,71 @@ async def agi_mind_dispatch_impl(
         )
     
     if mode == "reason":
+        # ─── Decision Packet Short-circuit ───────────────────────────────────
+        # arifos_mind (tools.py) already calls run_agi_mind and passes the
+        # computed decision_packet through _mega_agi_mind → here.
+        # If we have it, use it directly — do NOT re-compute via _wrap_call
+        # (which would hit the kernel's agi_reason handler with an empty packet
+        # and get SEAL regardless of the real constitutional verdict).
+        decision_packet = payload.get("decision_packet", {})
+        if decision_packet:
+            from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
+            from arifosmcp.runtime.verdict_wrapper import forge_verdict
+
+            dp_metrics = decision_packet.get("metrics", {})
+            dp_status = decision_packet.get("status", "OK")
+            dp_human_req = decision_packet.get("human_decision_required", False)
+            dp_chaos = dp_metrics.get("chaos_score", 0.0)
+            dp_peace2 = dp_metrics.get("peace2", 1.0)
+            dp_g_star = dp_metrics.get("g_star", 0.85)
+            dp_omega = dp_metrics.get("omega_0", 0.05)
+            dp_delta_s = dp_metrics.get("delta_s", 0.0)
+
+            # Derive override_code from decision_packet constitutional metrics
+            if dp_status == "HOLD" or dp_human_req:
+                override_code = VerdictCode.SABAR
+            elif dp_chaos >= 2.0:
+                override_code = VerdictCode.SABAR
+            elif dp_peace2 < 1.0:
+                override_code = VerdictCode.SABAR
+            elif dp_g_star < 0.3:
+                override_code = VerdictCode.VOID
+            else:
+                override_code = VerdictCode.SEAL
+
+            metrics = CanonicalMetrics()
+            metrics.telemetry.ds = dp_delta_s
+            metrics.telemetry.G_star = dp_g_star
+            metrics.telemetry.confidence = round(max(0.0, min(1.0, 1.0 - dp_omega)), 3)
+
+            # ── V2 Artifact Hardening (Fix 5) ──────────────────────────────
+            from arifosmcp.contracts.artifacts import AnswerBasis, Claim
+            
+            # Convert decision_packet to structured AnswerBasis
+            basis = AnswerBasis(
+                summary=decision_packet.get("summary", "Constitutional synthesis complete."),
+                detailed_answer=decision_packet.get("note", "Detailed reasoning processed."),
+                claims=[Claim(statement=c, confidence=0.9) for c in decision_packet.get("facts", [])],
+                assumptions=decision_packet.get("assumptions", []),
+                uncertainties=decision_packet.get("uncertainties", ["Epistemic boundary reached."]),
+                key_findings=decision_packet.get("findings", []),
+                recommended_actions=decision_packet.get("next_steps", [])
+            )
+            # ──────────────────────────────────────────────────────────────
+
+            return forge_verdict(
+                tool_id="arifos_mind",
+                canonical_tool_name="arifos_mind",
+                stage=Stage.MIND_333.value,
+                payload=basis.model_dump(),
+                session_id=session_id,
+                metrics=metrics,
+                override_code=override_code,
+                floors_checked=["F2", "F4", "F7", "F8", "F9", "F13"],
+                message=basis.summary
+            )
+
+        # Fallback: no decision_packet — compute via kernel (direct agi_mind call)
         return await _wrap_call("agi_reason", Stage.MIND_333, session_id, {"query": query}, ctx)
     elif mode == "reflect":
         return await _wrap_call(
@@ -1351,7 +1447,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,
@@ -1379,7 +1475,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,
@@ -1432,7 +1528,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,
@@ -1468,7 +1564,7 @@ async def math_estimator_dispatch_impl(
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
-                canonical_tool_name="arifos.ops",
+                canonical_tool_name="arifos_ops",
                 session_id=session_id,
                 stage="444_ROUTER",
                 verdict=Verdict.SEAL,

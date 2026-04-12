@@ -32,7 +32,7 @@ from typing import Any
 from arifosmcp.runtime.models import RuntimeEnvelope
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import physics_reality_dispatch_impl
-from fastmcp.dependencies import CurrentContext
+from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 
 async def physics_reality(
@@ -64,8 +64,8 @@ async def physics_reality(
         from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 
         return RuntimeEnvelope(
-            tool="arifos.sense",
-            canonical_tool_name="arifos.sense",
+            tool="arifos_sense",
+            canonical_tool_name="arifos_sense",
             stage="111_SENSE",
             status=RuntimeStatus.ERROR,
             verdict=Verdict.VOID,
@@ -113,8 +113,8 @@ async def physics_reality(
         )
 
         return forge_verdict(
-            tool_id="arifos.sense",
-            canonical_tool_name="arifos.sense",
+            tool_id="arifos_sense",
+            canonical_tool_name="arifos_sense",
             stage="111_SENSE",
             payload=res_dict.get("payload", res_dict),
             session_id=session_id,
@@ -130,5 +130,5 @@ async def physics_reality(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx or CurrentContext(),
+        ctx=ctx  # Context injected by FastMCP framework,
     )

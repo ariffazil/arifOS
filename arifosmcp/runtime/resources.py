@@ -489,10 +489,82 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
             ),
         }
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # AF-FORGE CONTEXT RESOURCE
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    @mcp.resource("arifos://af-forge/context")
+    def af_forge_context() -> dict[str, Any]:
+        """AF-FORGE TypeScript constitutional engine — context pack for MCP consumers."""
+        return {
+            "name": "AF-FORGE",
+            "version": "0.1.0",
+            "description": (
+                "Constitutional Event-Sourced Agent Runtime. "
+                "Planner/Executor/Verifier triad, policy engine, governed memory, "
+                "and 888_HOLD human sovereignty gates."
+            ),
+            "bridge_endpoint": "http://localhost:7071",
+            "mcp_stdio_cmd": ["node", "af-forge/dist/src/mcp/server.js"],
+            "governance_floors_implemented": {
+                "F3_InputClarity": {
+                    "status": "IMPLEMENTED",
+                    "file": "af-forge/src/governance/f3InputClarity.ts",
+                    "gate": "SABAR — empty, <3 chars, or ambiguous repetition",
+                    "enforced_in": "AgentEngine.run() before LLM",
+                },
+                "F6_HarmDignity": {
+                    "status": "IMPLEMENTED",
+                    "file": "af-forge/src/governance/f6HarmDignity.ts",
+                    "gate": "VOID — 11 regex patterns (rm -rf, exploit, bypass auth, steal, inject, fork bomb)",
+                    "enforced_in": "AgentEngine.run() after F3",
+                },
+                "F9_Injection": {
+                    "status": "IMPLEMENTED",
+                    "file": "af-forge/src/governance/f9Injection.ts",
+                    "gate": "VOID — 10 regex patterns (ignore-instructions, bypass-policy, do-not-log, reveal-secrets, DAN)",
+                    "enforced_in": "AgentEngine.run() after F6",
+                },
+                "F13_Sovereign": {
+                    "status": "IMPLEMENTED",
+                    "file": "af-forge/src/approval/ApprovalBoundary.ts",
+                    "gate": "888_HOLD — blocks until human approval, never auto-approved",
+                },
+                "F7_Confidence": {
+                    "status": "PARTIAL",
+                    "file": "af-forge/src/policy/confidence.ts",
+                    "gate": "Heuristic bands (VERY_HIGH/HIGH/MODERATE/LOW) — hard AgentEngine gate pending LLM API",
+                },
+                "summary": "11/13 floors implemented, 2 partial (F4 entropy metric, F8 grounding link)",
+            },
+            "mcp_tools": {
+                "forge_check_governance": "Run F3+F6+F9 governance pipeline on task string → PASS/BLOCK verdict per floor",
+                "forge_health": "Return F1–F13 implementation status and server health",
+                "forge_run": "Execute governed agent task (explore profile, mock LLM) — governance gates run first",
+            },
+            "mcp_resources": {
+                "forge://governance/floors": "F1–F13 constitutional floor definitions",
+            },
+            "deployment": {
+                "http_bridge": "docker-compose up af-forge-bridge  (port 7071)",
+                "stdio_mcp": "node af-forge/dist/src/mcp/server.js",
+                "launcher": ".github/mcp/start-af-forge-stdio.sh [--build]",
+                "platforms": ["Claude Desktop (.mcp.json)", "Cursor (.cursor/mcp.json)", "OpenCode (.opencode.json)", "Smithery (smithery.yaml)"],
+            },
+            "test_status": {
+                "total": 62,
+                "pass": 62,
+                "fail": 0,
+                "files": ["AgentEngine.test.ts", "confidence.test.ts", "sense.test.ts", "governanceViolation.test.ts"],
+            },
+            "golden_path": "forge_check_governance → forge_run (if PASS) → arifos.vault (to seal)",
+        }
+
     registered = [
         "arifos://governance/floors",
         "arifos://governance/verdict",
         "arifos://system/capabilities",
+        "arifos://af-forge/context",
         # Schema registry resources
         "arifos://schema/master",
         "arifos://schema/tools",

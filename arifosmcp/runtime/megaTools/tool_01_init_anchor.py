@@ -54,6 +54,48 @@ async def init_anchor(
         raise ValueError(f"Invalid mode for init_anchor: {mode}")
 
     # ═══════════════════════════════════════════════════════════════════════════
+    # STATUS MODE: Quick health check (returns same as probe for compatibility)
+    # ═══════════════════════════════════════════════════════════════════════════
+    if mode == "status":
+        from arifosmcp.runtime.sessions import get_session_identity
+
+        identity = get_session_identity(session_id) if session_id else None
+        anchor_status = "VALID" if identity else "MISSING"
+
+        raw_level = (
+            (auth_context or {}).get("authority_level")
+            or (identity or {}).get("authority_level")
+            or "anonymous"
+        )
+
+        status_payload = {
+            "ok": True,
+            "tool": "init_anchor",
+            "status": "SUCCESS",
+            "result_type": "init_anchor_status_result@v2",
+            "mode": "status",
+            "organ_stage": "000_INIT",
+            "verdict": "SEAL",
+            "session_id": session_id or "global",
+            "status_result": {
+                "anchor": anchor_status,
+                "authority_level": raw_level,
+                "health": "operational",
+            },
+            "floors_checked": ["F11"],
+        }
+
+        return RuntimeEnvelope(
+            tool="init_anchor",
+            canonical_tool_name="arifos_init",
+            stage="000_INIT",
+            status=RuntimeStatus.SUCCESS,
+            verdict=Verdict.SEAL,
+            session_id=session_id or "global",
+            payload=status_payload,
+        )
+
+    # ═══════════════════════════════════════════════════════════════════════════
     # PROBE MODE: Session diagnostic and compatibility check
     # ═══════════════════════════════════════════════════════════════════════════
     if mode == "probe":
@@ -475,8 +517,8 @@ async def init_anchor(
                     _code = "INIT_KERNEL_500"
 
             return RuntimeEnvelope(
-                tool=res.get("tool", "arifos.init"),
-                canonical_tool_name="arifos.init",  # ← ADDED: Canonical name
+                tool=res.get("tool", "arifos_init"),
+                canonical_tool_name="arifos_init",  # ← ADDED: Canonical name
                 stage=res.get("organ_stage") or res.get("stage") or "000_INIT",
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=effective_verdict,
@@ -514,9 +556,10 @@ async def init_anchor(
 
     # FastMCP 2.x/3.x compatibility
     try:
-        from fastmcp.dependencies import CurrentContext
+        from fastmcp import Context  # Context injected by framework; None if called outside MCP
     except ImportError:
-        CurrentContext = None
+        pass
+    CurrentContext = None  # Always defined — ctx injected by FastMCP framework
 
     resolved_payload = dict(payload or {})
     res = await init_anchor_dispatch_impl(

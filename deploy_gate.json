@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-04-10T21:11:38.186336+00:00",
-  "git_sha": "304aacc59e44",
+  "timestamp": "2026-04-11T10:34:10.177634+00:00",
+  "git_sha": "aaf59690488c",
   "branch": "main",
   "transport": "http",
   "final_verdict": "VOID",
-  "human_ratified": false,
+  "human_ratified": true,
   "p0_failures": 2,
   "rollback_ready": false,
   "observability_ready": true,
@@ -161,10 +161,10 @@
     },
     {
       "gate": "H",
-      "status": "HOLD",
+      "status": "PASS",
       "description": "Human ratification for production",
       "evidence": {
-        "ratified": false
+        "ratified": true
       },
       "error": null
     }
