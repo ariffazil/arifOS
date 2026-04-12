@@ -398,7 +398,9 @@ except Exception as e:
 
 try:
     if IS_FASTMCP_3:
-        app = mcp.http_app(stateless_http=False)
+        # Use stateless HTTP for ChatGPT compatibility
+        # ChatGPT doesn't properly negotiate SSE, so stateless mode works better
+        app = mcp.http_app(stateless_http=True)
     elif IS_FASTMCP_2:
         try:
             app = mcp.streamable_http_app()
