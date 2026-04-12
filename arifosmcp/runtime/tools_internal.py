@@ -775,16 +775,31 @@ async def agi_mind_dispatch_impl(
             metrics.telemetry.G_star = dp_g_star
             metrics.telemetry.confidence = round(max(0.0, min(1.0, 1.0 - dp_omega)), 3)
 
+            # ── V2 Artifact Hardening (Fix 5) ──────────────────────────────
+            from arifosmcp.contracts.artifacts import AnswerBasis, Claim
+            
+            # Convert decision_packet to structured AnswerBasis
+            basis = AnswerBasis(
+                summary=decision_packet.get("summary", "Constitutional synthesis complete."),
+                detailed_answer=decision_packet.get("note", "Detailed reasoning processed."),
+                claims=[Claim(statement=c, confidence=0.9) for c in decision_packet.get("facts", [])],
+                assumptions=decision_packet.get("assumptions", []),
+                uncertainties=decision_packet.get("uncertainties", ["Epistemic boundary reached."]),
+                key_findings=decision_packet.get("findings", []),
+                recommended_actions=decision_packet.get("next_steps", [])
+            )
+            # ──────────────────────────────────────────────────────────────
+
             return forge_verdict(
                 tool_id="arifos_mind",
                 canonical_tool_name="arifos_mind",
                 stage=Stage.MIND_333.value,
-                payload=decision_packet,
+                payload=basis.model_dump(),
                 session_id=session_id,
                 metrics=metrics,
                 override_code=override_code,
                 floors_checked=["F2", "F4", "F7", "F8", "F9", "F13"],
-                message=decision_packet.get("summary", "AGI reasoning complete.")
+                message=basis.summary
             )
 
         # Fallback: no decision_packet — compute via kernel (direct agi_mind call)

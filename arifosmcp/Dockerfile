@@ -44,7 +44,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     VPS_MODE=1 \
     ARIFOS_DEPLOYMENT=vps
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/project
 
 # Minimal runtime system packages only
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -63,7 +63,7 @@ COPY . .
 RUN pip install --no-deps -e .
 
 # Non-root user for security
-RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /usr/src/app
+RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /usr/src/project
 USER arifos
 
 EXPOSE 8080

@@ -736,13 +736,31 @@ class VerdictDetail(BaseModel):
     message: str = Field(..., description="Human readable explanation.")
 
 
+from arifosmcp.contracts.verdicts import ExecutionStatus, GovernanceStatus, ContinuationStatus, VerdictDetail
+from arifosmcp.contracts.identity import IdentityContext
+from arifosmcp.contracts.artifacts import Artifact, ArtifactStatus
+from arifosmcp.contracts.continuity import ContinuityState
+
 class RuntimeEnvelope(BaseModel):
     ok: bool = True
     tool: str
-    version: str = Field(
-        default="2026.04",
-        description="Envelope schema version — for drift detection between adapter and kernel",
-    )
+    version: str = "2.0.0" # Audit Fix: Incremented to V2
+    
+    # ── V2 Status Hardening (Audit Fix 2, 3) ───────────────────────────
+    execution_status: ExecutionStatus = ExecutionStatus.SUCCESS
+    governance_status: GovernanceStatus = GovernanceStatus.PAUSE
+    continuation_status: ContinuationStatus = ContinuationStatus.READY
+    
+    # ── V2 Artifact Design (Audit Fix 4, 5) ─────────────────────────────
+    primary_artifact: Artifact | None = None
+    artifact_state: ArtifactStatus = ArtifactStatus.NONE
+    # ──────────────────────────────────────────────────────────────
+
+    # ── V2 Identity & Continuity (Audit Fix 1, 6) ──────────────────────
+    identity: IdentityContext | None = None
+    continuity: ContinuityState | None = None
+    # ──────────────────────────────────────────────────────────────
+
     canonical_tool_name: str | None = None
     risk_class: RiskClass = RiskClass.LOW
     requires_auth: bool = False

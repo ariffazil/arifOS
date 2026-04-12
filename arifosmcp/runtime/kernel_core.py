@@ -294,8 +294,9 @@ class KernelCore:
     ) -> dict[str, Any]:
         """
         Execute full KERNEL pipeline: INPUT → ORCHESTRATE → OUTPUT.
-
-        This is the unified entry point for all kernel operations.
+        Unified entry point: INPUT → ORCHESTRATE → OUTPUT
+        
+        Hardened Fix 3: Returns READY | HOLD | BLOCKED contract.
         """
         # INPUT: Normalize and assemble
         context = await self.input_stage(
@@ -327,6 +328,23 @@ class KernelCore:
             context=context,
             routing_result=routing_result,
         )
+        
+        # ── V2 Kernel Contract Hardening (Fix 3) ───────────────────────────
+        # Ensure top-level contract is binary/trinary: READY | HOLD | BLOCKED
+        verdict = final_result.get("verdict", "SABAR")
+        status = "READY"
+        if verdict == "VOID":
+            status = "BLOCKED"
+        elif verdict in ("HOLD", "SABAR", "PARTIAL"):
+            status = "HOLD"
+            
+        final_result["kernel_status"] = status
+        final_result["handoff_spec"] = {
+            "next_stage": routing_result.get("next_stage", "333_MIND"),
+            "required_inputs": routing_result.get("required_inputs", []),
+            "release_condition": routing_result.get("release_condition", "governance_seal")
+        }
+        # ───────────────────────────────────────────────────────────────────
 
         return final_result
 
