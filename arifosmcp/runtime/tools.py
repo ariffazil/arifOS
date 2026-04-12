@@ -32,7 +32,7 @@ from arifosmcp.runtime.megaTools import (
     apex_judge as _mega_apex_judge,
 )
 from arifosmcp.runtime.megaTools import (
-    arifos_kernel as _mega_arifOS_kernel,
+    arifos_kernel as _mega_arifos_kernel,
 )
 from arifosmcp.runtime.megaTools import (
     asi_heart as _mega_asi_heart,
@@ -54,7 +54,7 @@ from arifosmcp.runtime.megaTools import (
 )
 from arifosmcp.tools.fetch_tool import arifos_fetch
 from arifosmcp.integrations.memory_bridge import arifos_memory_query as arifos_memory
-from arifosmcp.integrations.git_bridge import arifos_git_status, arifos_git_commit
+from arifosmcp.integrations.git_bridge import arifos_repo_read, arifos_repo_seal
 from arifosmcp.integrations.everything_probe import everything_probe
 
 logger = logging.getLogger(__name__)
@@ -930,7 +930,7 @@ async def arifos_kernel(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Route request to correct metabolic lane."""
-    envelope = await _mega_arifOS_kernel(
+    envelope = await _mega_arifos_kernel(
         mode=mode,
         payload={"query": request},
         session_id=session_id,
@@ -1081,7 +1081,7 @@ async def arifos_memory(
     return seal_runtime_envelope(envelope, "arifos_memory")
 
 
-async def arifos_vps_monitor(
+async def arifos_health(
     action: str = "get_telemetry",
     session_id: str | None = None,
     risk_tier: str = "low",
@@ -1129,8 +1129,8 @@ async def arifos_vps_monitor(
             return seal_runtime_envelope(
                 RE(
                     ok=False,
-                    tool="arifos.vps_monitor",
-                    canonical_tool_name="arifos.vps_monitor",
+                    tool="arifos.health",
+                    canonical_tool_name="arifos.health",
                     stage="111_SENSE",
                     verdict=Verdict.VOID,
                     status=RuntimeStatus.ERROR,
@@ -1143,8 +1143,8 @@ async def arifos_vps_monitor(
             return seal_runtime_envelope(
                 RE(
                     ok=True,
-                    tool="arifos.vps_monitor",
-                    canonical_tool_name="arifos.vps_monitor",
+                    tool="arifos.health",
+                    canonical_tool_name="arifos.health",
                     stage="111_SENSE",
                     verdict=Verdict.SEAL,
                     status=RuntimeStatus.SUCCESS,
@@ -1156,8 +1156,8 @@ async def arifos_vps_monitor(
         return seal_runtime_envelope(
             RE(
                 ok=True,
-                tool="arifos.vps_monitor",
-                canonical_tool_name="arifos.vps_monitor",
+                tool="arifos.health",
+                canonical_tool_name="arifos.health",
                 stage="111_SENSE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
@@ -1169,8 +1169,8 @@ async def arifos_vps_monitor(
         return seal_runtime_envelope(
             RE(
                 ok=False,
-                tool="arifos.vps_monitor",
-                canonical_tool_name="arifos.vps_monitor",
+                tool="arifos.health",
+                canonical_tool_name="arifos.health",
                 stage="111_SENSE",
                 verdict=Verdict.VOID,
                 status=RuntimeStatus.ERROR,
@@ -1418,7 +1418,7 @@ async def arifos_reply(
     )
 
 
-# arifos_diag_substrate defined once below — do not duplicate
+# arifos_probe defined once below — do not duplicate
 # ═══════════════════════════════════════════════════════════════════════════════
 # UNIVERSAL NAMING: All tool names use underscores for cross-platform compatibility
 # Legacy dot-names (arifos.init) are supported via LEGACY_ALIASES mapping
@@ -1437,11 +1437,11 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos_vault": arifos_vault,
     "arifos_forge": arifos_forge,
     "arifos_reply": arifos_reply,
-    "arifos_vps_monitor": arifos_vps_monitor,
+    "arifos_health": arifos_health,
     "arifos_fetch": arifos_fetch,
-    "arifos_git_status": arifos_git_status,
-    "arifos_git_commit": arifos_git_commit,
-    "arifos_diag_substrate": arifos_diag_substrate,
+    "arifos_repo_read": arifos_repo_read,
+    "arifos_repo_seal": arifos_repo_seal,
+    "arifos_probe": arifos_probe,
     # "arifos_forge_bridge": arifos_forge_bridge,  # TODO: Implement
     # Legacy internal aliases
     "arifos_route": arifos_kernel,
@@ -1460,11 +1460,11 @@ LEGACY_TOOL_ALIASES: dict[str, str] = {
     "arifos.vault": "arifos_vault",
     "arifos.forge": "arifos_forge",
     "arifos.reply": "arifos_reply",
-    "arifos.vps_monitor": "arifos_vps_monitor",
+    "arifos.health": "arifos_health",
     "arifos.fetch": "arifos_fetch",
-    "arifos.git_status": "arifos_git_status",
-    "arifos.git_commit": "arifos_git_commit",
-    "arifos.diag_substrate": "arifos_diag_substrate",
+    "arifos.repo_read": "arifos_repo_read",
+    "arifos.repo_seal": "arifos_repo_seal",
+    "arifos.probe": "arifos_probe",
     # "arifos.forge_bridge": "arifos_forge_bridge",  # TODO: Implement
 }
 
@@ -1535,8 +1535,8 @@ engineering_memory = arifos_memory
 asi_heart = arifos_heart
 agi_mind = arifos_mind
 architect_registry = arifos_init
-check_vital = arifos_vps_monitor
-system_health = arifos_vps_monitor
+check_vital = arifos_health
+system_health = arifos_health
 
 
 def _normalize_session_id(session_id: str | None) -> str:
@@ -1707,7 +1707,7 @@ __all__ = [
     "select_governed_philosophy",
 ]
 
-async def arifos_diag_substrate(session_id: str | None = None) -> Any:
+async def arifos_probe(session_id: str | None = None) -> Any:
     """Maintainer: Run substrate protocol conformance check."""
     from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
     from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict
@@ -1715,7 +1715,7 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
     verdict = await run_protocol_conformance_test()
     return _RE(
         ok=verdict == Verdict.SEAL,
-        tool="arifos.diag_substrate",
+        tool="arifos.probe",
         verdict=verdict,
         payload={"message": f"Substrate conformance result: {verdict}"}
     )

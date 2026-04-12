@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from arifosmcp.runtime.tools import (
     arifos_init, arifos_sense, arifos_mind, arifos_route, 
     arifos_heart, arifos_ops, arifos_judge, arifos_memory, 
-    arifos_vault, arifos_forge, arifos_vps_monitor
+    arifos_vault, arifos_forge, arifos_health
 )
 
 @pytest.mark.asyncio
@@ -58,12 +58,12 @@ async def test_arifos_route_basic():
     assert result.tool == "arifos_route"
 
 @pytest.mark.asyncio
-async def test_arifos_vps_monitor_dry_run():
-    """Test arifos_vps_monitor in dry_run mode."""
-    result = await arifos_vps_monitor(action="get_telemetry", dry_run=True)
+async def test_arifos_health_dry_run():
+    """Test arifos_health in dry_run mode."""
+    result = await arifos_health(action="get_telemetry", dry_run=True)
     # vps_monitor returns error if it can't find /proc even in dry_run.
     # We accept either as long as the tool name is correct.
-    assert result.canonical_tool_name == "arifos_vps_monitor"
+    assert result.canonical_tool_name == "arifos_health"
 
 @pytest.mark.asyncio
 async def test_arifos_ops_basic():

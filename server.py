@@ -143,7 +143,7 @@ Golden path: init → sense → mind → heart → judge → vault
 
 Canonical tools: arifos_init, arifos_sense, arifos_mind, arifos_route,
 arifos_memory, arifos_heart, arifos_ops, arifos_judge, arifos_vault,
-arifos_forge, arifos_vps_monitor, arifos_reply, arifos_fetch, etc.
+arifos_forge, arifos_health, arifos_reply, arifos_fetch, etc.
 
 Legacy aliases: init_anchor, apex_soul, agi_mind, asi_heart,
 physics_reality, math_estimator, architect_registry, vault_ledger,
@@ -249,7 +249,7 @@ async def _build_gateway_metadata() -> dict:
     # Tool access classification
     public_tools = [
         "arifos_init", "arifos_sense", "arifos_mind", "arifos_route",
-        "arifos_ops", "arifos_memory", "arifos_vps_monitor"
+        "arifos_ops", "arifos_memory", "arifos_health"
     ]
     authenticated_tools = ["arifos_heart", "arifos_judge", "arifos_vault"]
     sovereign_tools = ["arifos_forge"]

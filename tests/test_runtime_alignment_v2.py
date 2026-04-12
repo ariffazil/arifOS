@@ -76,7 +76,7 @@ class TestToolPayloadAlignment:
 
     @pytest.mark.asyncio
     async def test_check_vital_bootstrap_guidance(self):
-        """P1: Verify arifos_vps_monitor bootstrap guidance fields."""
+        """P1: Verify arifos_health bootstrap guidance fields."""
         # For this test, we mock the entire tool since it has complex internal logic
         mock_envelope = RuntimeEnvelope(
             tool="arifos.vps_monitor",
@@ -94,10 +94,10 @@ class TestToolPayloadAlignment:
             }
         )
         
-        with patch("arifosmcp.runtime.tools.arifos_vps_monitor", new_callable=AsyncMock) as mock_tool:
+        with patch("arifosmcp.runtime.tools.arifos_health", new_callable=AsyncMock) as mock_tool:
             mock_tool.return_value = mock_envelope
             
-            result = await tools.arifos_vps_monitor()
+            result = await tools.arifos_health()
             
             assert "bootstrap" in result.payload
             bootstrap = result.payload["bootstrap"]

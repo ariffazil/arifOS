@@ -492,10 +492,10 @@ def _build_summary(envelope: RuntimeEnvelope) -> str:
         "arifos_vault": "Vault sealing",
         "arifos_forge": "Execution",
         "arifos_reply": "Governed reply",
-        "arifos_vps_monitor": "Telemetry",
+        "arifos_health": "Telemetry",
         "arifos_fetch": "Fetch",
-        "arifos_git_status": "Git status",
-        "arifos_git_commit": "Git commit",
+        "arifos_repo_read": "Git status",
+        "arifos_repo_seal": "Git commit",
     }
 
     tool = tool_names.get(envelope.canonical_tool_name or envelope.tool, envelope.canonical_tool_name or envelope.tool)

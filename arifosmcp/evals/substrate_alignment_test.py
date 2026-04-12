@@ -11,7 +11,7 @@ import asyncio
 import logging
 
 from arifosmcp.integrations.fetch_bridge import arifos_fetch
-from arifosmcp.integrations.git_bridge import arifos_git_commit, arifos_git_status
+from arifosmcp.integrations.git_bridge import arifos_repo_seal, arifos_repo_read
 from arifosmcp.integrations.memory_bridge import arifos_memory_query, arifos_memory_write
 from arifosmcp.runtime.models import Verdict
 
@@ -21,12 +21,12 @@ async def test_git_alignment():
     print("📋 TESTING GIT ALIGNMENT (F11/F13)...")
     
     # Test read (F11 audit only)
-    status = await arifos_git_status(path="./")
+    status = await arifos_repo_read(path="./")
     print(f"  Status Read: {'OK' if status.ok else 'FAIL'}")
     
     # Test mutation without human (Should be VOID if F13 is not simulated)
     # Note: In a real test we'd mock the judge, but here we test the bridge logic
-    commit = await arifos_git_commit(message="Test commit", files=["README.md"], actor_id="tester")
+    commit = await arifos_repo_seal(message="Test commit", files=["README.md"], actor_id="tester")
     print(f"  Mutation (F13): {'SEAL' if commit.verdict == Verdict.SEAL else 'VOID/HOLD'} (Result: {commit.verdict})")
 
 async def test_fetch_alignment():

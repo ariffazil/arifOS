@@ -78,7 +78,7 @@ def build_llm_context_map() -> dict[str, object]:
             "apex_judge": "arifos_judge",
             "vault_seal": "arifos_vault",
             "forge_exec": "arifos_forge",
-            "vps_monitor": "arifos_vps_monitor",
+            "vps_monitor": "arifos_health",
         },
         "tool_aliases": dict(LEGACY_TOOL_MAP),
         "discovery": {

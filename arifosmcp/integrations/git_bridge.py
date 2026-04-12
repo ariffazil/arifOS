@@ -139,18 +139,18 @@ git_bridge = GitBridge()
 # These adapt the public tool contract to the internal GitBridge interface.
 # Public contract: path (str, default './')
 # Internal interface: repo_path (str, default '/usr/src/project')
-async def arifos_git_status(path: str = "./", actor_id: str = "anonymous", session_id: str | None = None) -> RE:
+async def arifos_repo_read(path: str = "./", actor_id: str = "anonymous", session_id: str | None = None) -> RE:
     repo_path = path if path else "/usr/src/project"
     result = await git_bridge.get_repo_state(repo_path, actor_id, session_id)
     # Auto-seal: if already a sealed RuntimeEnvelope, return as-is
     if isinstance(result, RuntimeEnvelope):
         return result
     # Otherwise wrap via continuity contract
-    return seal_runtime_envelope(result, "arifos.git_status", session_id=session_id)
+    return seal_runtime_envelope(result, "arifos_repo_read", session_id=session_id)
 
 # Public contract: message (required), files (optional)
 # Internal interface: repo_path, message, files, actor_id
-async def arifos_git_commit(message: str, files: list[str] | None = None, actor_id: str = "anonymous", session_id: str | None = None) -> RE:
+async def arifos_repo_seal(message: str, files: list[str] | None = None, actor_id: str = "anonymous", session_id: str | None = None) -> RE:
     repo_path = "/usr/src/project"
     result = await git_bridge.propose_commit(
         repo_path=repo_path,
@@ -161,4 +161,4 @@ async def arifos_git_commit(message: str, files: list[str] | None = None, actor_
     )
     if isinstance(result, RuntimeEnvelope):
         return result
-    return seal_runtime_envelope(result, "arifos.git_commit", session_id=session_id)
+    return seal_runtime_envelope(result, "arifos_repo_seal", session_id=session_id)

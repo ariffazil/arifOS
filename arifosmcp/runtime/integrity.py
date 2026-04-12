@@ -130,7 +130,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
 
 # Auxiliary tools (may exist but not router-visible by default)
 AUXILIARY_TOOLS: set[str] = {
-    "arifos_vps_monitor",
+    "arifos_health",
 }
 
 # Required endpoints for constitutional compliance

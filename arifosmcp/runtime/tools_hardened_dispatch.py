@@ -456,5 +456,5 @@ def list_canonical_tools() -> list[str]:
         "arifos_judge",
         "arifos_vault",
         "arifos_forge",
-        "arifos_vps_monitor",
+        "arifos_health",
     ]

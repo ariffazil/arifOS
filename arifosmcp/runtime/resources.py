@@ -203,7 +203,7 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
     "constitutional_floors": 13,
     "tools": {
         "public": ["arifos_init", "arifos_route", "arifos_judge", "arifos_forge"],
-        "internal": ["arifos_sense", "arifos_mind", "arifos_heart", "arifos_ops", "arifos_memory", "arifos_vault", "arifos_vps_monitor"],
+        "internal": ["arifos_sense", "arifos_mind", "arifos_heart", "arifos_ops", "arifos_memory", "arifos_vault", "arifos_health"],
         "total": 11,
     },
     "mcp_version": "2025-11-25",

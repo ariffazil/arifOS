@@ -195,7 +195,7 @@ def _resolve_caller_state(
         "arifos_sense",
         "arifos_ops",
         "arifos_forge",
-        "arifos_vps_monitor",
+        "arifos_health",
     ]
 
     visibility = {

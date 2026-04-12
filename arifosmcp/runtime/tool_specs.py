@@ -455,7 +455,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 12. arifos.vps_monitor — Secure Telemetry (New)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_vps_monitor",
+        name="arifos_health",
         stage="111",
         purpose="Secure VPS telemetry",
         layer="MACHINE",
@@ -512,7 +512,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 14. arifos.git_status — Governed Repository State (Substrate)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_git_status",
+        name="arifos_repo_read",
         stage="911",
         purpose="Read governed repository state",
         layer="EXECUTION",
@@ -593,7 +593,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 16. arifos.git_commit — Governed Repository Mutation (Substrate)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_git_commit",
+        name="arifos_repo_seal",
         stage="999",
         purpose="Mutate governed repository state (F13 Required)",
         layer="EXECUTION",

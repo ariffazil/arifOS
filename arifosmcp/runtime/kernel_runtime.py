@@ -494,8 +494,8 @@ class ContractRegistry:
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos_vps_monitor": ToolContract(
-                name="arifos_vps_monitor",
+            "arifos_health": ToolContract(
+                name="arifos_health",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -595,7 +595,7 @@ class MetabolicRouter:
         "arifos_vault": set(),  # Terminal
         "arifos_forge": set(),  # Terminal
         "arifos_memory": set(),  # Parallel
-        "arifos_vps_monitor": set(),  # Parallel
+        "arifos_health": set(),  # Parallel
     }
     
     # Special gates requiring preconditions

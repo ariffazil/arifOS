@@ -38,7 +38,7 @@ REGISTRY = {
     "agent-roles": ("20_RUNTIME", "[architecture]", "engineers", "intermediate", "[Trinity_Architecture]"),
     "integration-patterns": ("20_RUNTIME", "[integration]", "engineers", "intermediate", "[MCP_Tools, Metabolic_Loop]"),
     "arifos_forge": ("20_RUNTIME", "[tools]", "engineers", "intermediate", "[MCP_Tools]"),
-    "arifos_vps_monitor": ("20_RUNTIME", "[tools]", "engineers", "intermediate", "[MCP_Tools]"),
+    "arifos_health": ("20_RUNTIME", "[tools]", "engineers", "intermediate", "[MCP_Tools]"),
     "Concept_Decision_Velocity": ("20_RUNTIME", "[paradox]", "researchers", "advanced", "[Concept_Metabolic_Pipeline]"),
     
     # 30_GOVERNANCE
