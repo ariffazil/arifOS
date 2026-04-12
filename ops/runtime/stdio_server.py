@@ -39,7 +39,8 @@ def main():
     
     # Run unified server in stdio mode
     try:
-        run_server(mcp, mode="stdio", host="", port=0)
+        # Pass transport explicitly to avoid picking up bridge/HTTP defaults
+        run_server(mcp, mode="stdio")
     except KeyboardInterrupt:
         print("\n👋 arifOS STDIO Server stopped", file=sys.stderr)
         sys.exit(0)
