@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en" data-ring="BODY">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS MCP — Constitutional AI Gateway</title>
+    <meta name="description" content="Constitutional tools, prompts, and resources for reality-aligned AI. MCP endpoint at /mcp, health at /health, 13 constitutional floors enforced.">
+    <link rel="canonical" href="https://arifosmcp.arif-fazil.com/">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>Δ</text></svg>">
+    <link rel="alternate" type="application/llm-fulltext" href="/llms.txt">
+    <link rel="alternate" type="application/json" href="/.well-known/mcp/server.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --bg-secondary: #111113;
+            --bg-tertiary: #1a1a1f;
+            --border: #2a2a30;
+            --border-hover: #3a3a40;
+            --text: #e5e5e5;
+            --text-secondary: #888;
+            --text-muted: #555;
+            --gold: #D4A853;
+            --gold-dim: #a08040;
+            --cyan: #00D4AA;
+            --red: #ef4444;
+            --green: #22c55e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: var(--gold); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .section { padding: 64px 0; border-bottom: 1px solid var(--border); }
+        .section:last-child { border-bottom: none; }
+        h2 { font-size: 24px; font-weight: 600; margin-bottom: 16px; }
+        h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+        p { color: var(--text-secondary); margin-bottom: 16px; }
+        code {
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--gold);
+        }
+        pre {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        pre code { background: none; padding: 0; color: var(--text); font-size: 13px; }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+        .badge-gold { background: rgba(212,168,83,0.15); color: var(--gold); }
+        .badge-cyan { background: rgba(0,212,170,0.15); color: var(--cyan); }
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .card:hover { border-color: var(--border-hover); }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-primary { background: var(--gold); color: #000; }
+        .btn-primary:hover { background: #e0b560; text-decoration: none; }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--border-hover); text-decoration: none; }
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 2px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+        .status-dot.degraded { background: var(--gold); }
+        .status-dot.down { background: var(--red); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .copy-btn {
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .copy-btn:hover { border-color: var(--border-hover); color: var(--text); }
+        .endpoint-block {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        .endpoint-block .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .method-get { background: rgba(0,212,170,0.2); color: var(--cyan); }
+        .method-post { background: rgba(212,168,83,0.2); color: var(--gold); }
+        .example-json {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+        .example-json .key { color: var(--cyan); }
+        .example-json .string { color: var(--gold); }
+        .example-json .number { color: var(--green); }
+        .tab-group { display: flex; gap: 4px; margin-bottom: 16px; }
+        .tab { padding: 8px 16px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 13px; cursor: pointer; }
+        .tab.active { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-hover); }
+        .tab:hover:not(.active) { border-color: var(--border-hover); }
+        .architecture-diagram {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+        }
+        .arch-box {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin: 8px;
+            font-size: 14px;
+        }
+        .arch-arrow { color: var(--text-muted); font-size: 20px; }
+        .trust-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(212,168,83,0.08);
+            border: 1px solid rgba(212,168,83,0.2);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--gold);
+        }
+        @media (max-width: 768px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header style="border-bottom: 1px solid var(--border);">
+        <div class="container">
+            <div style="display: flex; align-items: center; justify-content: space-between; height: 64px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px; font-weight: 700; color: var(--gold);">Δ</span>
+                    <span style="font-size: 18px; font-weight: 600;">arifOS MCP</span>
+                    <span class="badge badge-green" id="header-status">
+                        <span class="status-dot"></span>
+                        <span id="header-status-text">Live</span>
+                    </span>
+                </div>
+                <nav style="display: flex; gap: 24px; font-size: 14px;">
+                    <a href="#quickstart" style="color: var(--text-secondary);">Quickstart</a>
+                    <a href="#capabilities" style="color: var(--text-secondary);">Capabilities</a>
+                    <a href="#protocols" style="color: var(--text-secondary);">Protocols</a>
+                    <a href="#constitution" style="color: var(--text-secondary);">Constitution</a>
+                    <a href="#governance" style="color: var(--text-secondary);">Governance</a>
+                    <a href="#reference" style="color: var(--text-secondary);">Reference</a>
+                    <a href="/health" style="color: var(--text-secondary);">Health</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero -->
+        <section class="section" style="padding: 80px 0;">
+            <div class="container">
+                <div style="max-width: 700px;">
+                    <h1 style="font-size: 40px; font-weight: 700; line-height: 1.2; margin-bottom: 16px;">
+                        Constitutional tools, prompts, and resources<br>
+                        <span style="color: var(--gold);">for reality-aligned AI.</span>
+                    </h1>
+                    <p style="font-size: 18px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7;">
+                        Connect your host to <code>/mcp</code>, inspect capabilities, enforce floors, 
+                        and route high-risk decisions through human approval.
+                    </p>
+                    
+                    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                        <a href="#quickstart" class="btn btn-primary">Get Started</a>
+                        <a href="#capabilities" class="btn btn-secondary">View Capabilities</a>
+                        <a href="/health" class="btn btn-secondary">Check Health</a>
+                    </div>
+
+                    <div class="trust-line">
+                        <span>🛡️</span>
+                        <span>Enforces 13 constitutional floors across all AI operations. High-risk actions require human confirmation.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quickstart -->
+        <section class="section" id="quickstart">
+            <div class="container">
+                <h2>Quickstart</h2>
+                <p>Connect to the arifOS MCP endpoint in under 60 seconds.</p>
+
+                <div class="grid-2" style="margin-top: 32px;">
+                    <div>
+                        <h3>Endpoints</h3>
+                        <div class="endpoint-block">
+                            <div style="margin-bottom: 12px;">
+                                <span class="method method-get">GET</span>
+                                <code>https://arifosmcp.arif-fazil.com</code>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span class="method method-post">POST</span>
+                                <code>/mcp</code>
+                                <span style="color: var(--text-muted); font-size: 12px;">— MCP tool calls</span>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span class="method method-get">GET</span>
+                                <code>/sse</code>
+                                <span style="color: var(--text-muted); font-size: 12px;">— A2A fallback transport</span>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span class="method method-get">GET</span>
+                                <code>/health</code>
+                                <span style="color: var(--text-muted); font-size: 12px;">— Live status</span>
+                            </div>
+                            <div>
+                                <span class="method method-get">GET</span>
+                                <code>/metrics/json</code>
+                                <span style="color: var(--text-muted); font-size: 12px;">— Telemetry</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Connect via SDK</h3>
+                        <div class="tab-group">
+                            <button class="tab active" onclick="showTab(this, 'claude')">Claude Desktop</button>
+                            <button class="tab" onclick="showTab(this, 'http')">Direct HTTP</button>
+                        </div>
+                        <pre id="sdk-example"><code>npx @anthropic/mcp install arifos \\
+  --url https://arifosmcp.arif-fazil.com/mcp
+
+# Or add to claude_desktop_config.json:
+{
+  "mcpServers": {
+    "arifOS": {
+      "url": "https://arifosmcp.arif-fazil.com/mcp"
+    }
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Capabilities -->
+        <section class="section" id="capabilities">
+            <div class="container">
+                <h2>Capabilities</h2>
+                <p>arifOS MCP exposes three server-side primitives: tools, prompts, and resources.</p>
+
+                <div class="grid-3" style="margin-top: 32px;">
+                    <div class="card">
+                        <h3 style="color: var(--gold);">🔧 Tools</h3>
+                        <p style="font-size: 14px;">Structured actions returning JSON. Tools are model-controlled and discovered by MCP clients.</p>
+                        <div style="margin-top: 16px;">
+                            <code class="tag">constitutional_judge</code>
+                            <code class="tag">risk_score</code>
+                            <code class="tag">truth_band_check</code>
+                            <code class="tag">hold_gate</code>
+                            <code class="tag">telemetry_emit</code>
+                            <code class="tag">vault_seal</code>
+                        </div>
+                        <a href="#tools-list" style="display: inline-block; margin-top: 16px; font-size: 14px;">View all tools →</a>
+                    </div>
+                    <div class="card">
+                        <h3 style="color: var(--cyan);">📋 Prompts</h3>
+                        <p style="font-size: 14px;">Reusable constitutional workflows. Pre-built reasoning chains under arifOS governance.</p>
+                        <div style="margin-top: 16px;">
+                            <code class="tag">run_111_think</code>
+                            <code class="tag">run_777_reason</code>
+                            <code class="tag">run_888_audit</code>
+                            <code class="tag">forge_verdict</code>
+                        </div>
+                        <a href="#prompts-list" style="display: inline-block; margin-top: 16px; font-size: 14px;">View all prompts →</a>
+                    </div>
+                    <div class="card">
+                        <h3 style="color: var(--text);">📚 Resources</h3>
+                        <p style="font-size: 14px;">Doctrine, rules, schemas, and references. Static data your agent can read at runtime.</p>
+                        <div style="margin-top: 16px;">
+                            <code class="tag">floors/F1-F13</code>
+                            <code class="tag">pipeline/000-999</code>
+                            <code class="tag">telemetry/schema</code>
+                            <code class="tag">governance/policies</code>
+                        </div>
+                        <a href="/.well-known/mcp/server.json" style="display: inline-block; margin-top: 16px; font-size: 14px;">View resources →</a>
+                    </div>
+                </div>
+
+                <div style="margin-top: 32px;">
+                    <h3>Live Counts</h3>
+                    <div style="display: flex; gap: 24px; margin-top: 16px;">
+                        <div>
+                            <div style="font-size: 32px; font-weight: 700; color: var(--gold);" id="tools-count">--</div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Tools</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; font-weight: 700; color: var(--cyan);" id="prompts-count">--</div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Prompts</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 32px; font-weight: 700; color: var(--text);" id="resources-count">--</div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Resources</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Protocols -->
+        <section class="section" id="protocols">
+            <div class="container">
+                <h2>Protocol Surfaces</h2>
+                <p>Three ways to interact with arifOS infrastructure.</p>
+
+                <div style="margin-top: 32px;">
+                    <div class="architecture-diagram">
+                        <div class="arch-box" style="border-color: var(--text-muted);">
+                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Browser</div>
+                            <div>Web App</div>
+                        </div>
+                        <span class="arch-arrow">→</span>
+                        <div class="arch-box" style="border-color: var(--gold);">
+                            <div style="font-size: 12px; color: var(--gold); margin-bottom: 4px;">MCP</div>
+                            <div>Tool/Prompt/Resource</div>
+                        </div>
+                        <span class="arch-arrow">→</span>
+                        <div class="arch-box" style="border-color: var(--cyan);">
+                            <div style="font-size: 12px; color: var(--cyan); margin-bottom: 4px;">A2A</div>
+                            <div style="color: var(--text-muted);">Planned</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-top: 32px;">
+                    <div class="card">
+                        <h3>MCP</h3>
+                        <p style="font-size: 14px;">Model Context Protocol. Native tool bridging for Claude Desktop, Cursor, and all MCP-compatible hosts.</p>
+                        <div style="margin-top: 12px;">
+                            <span class="badge badge-gold">Stable</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>WebMCP</h3>
+                        <p style="font-size: 14px;">Browser-native governance via WebSocket. Client-side tool execution with full constitutional enforcement.</p>
+                        <div style="margin-top: 12px;">
+                            <a href="/webmcp/" class="badge badge-cyan">View Console</a>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>A2A</h3>
+                        <p style="font-size: 14px;">Agent-to-Agent protocol. Tri-witness consensus for multi-agent coordination.</p>
+                        <div style="margin-top: 12px;">
+                            <span class="badge" style="background: var(--bg-tertiary); color: var(--text-muted);">Planned</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Governance -->
+        <section class="section" id="governance">
+            <div class="container">
+                <h2>Governance</h2>
+                <p>arifOS MCP is not a generic tool server. Every operation passes through constitutional floors.</p>
+
+                <div class="grid-2" style="margin-top: 32px;">
+                    <div>
+                        <h3>13 Constitutional Floors</h3>
+                        <table style="margin-top: 16px;">
+                            <thead>
+                                <tr>
+                                    <th>Floor</th>
+                                    <th>Name</th>
+                                    <th>Enforcement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>F1</code></td>
+                                    <td>Amanah</td>
+                                    <td>No irreversible action without VAULT999</td>
+                                </tr>
+                                <tr>
+                                    <td><code>F2</code></td>
+                                    <td>Truth</td>
+                                    <td>No ungrounded claims (τ ≥ 0.99)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>F6</code></td>
+                                    <td>Harm/Dignity</td>
+                                    <td>VOID check on task and tools</td>
+                                </tr>
+                                <tr>
+                                    <td><code>F9</code></td>
+                                    <td>Anti-Hantu</td>
+                                    <td>No deception/manipulation</td>
+                                </tr>
+                                <tr>
+                                    <td><code>F13</code></td>
+                                    <td>Sovereign</td>
+                                    <td>Human holds final authority</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <a href="https://apex.arif-fazil.com" style="display: inline-block; margin-top: 16px; font-size: 14px;">View full floor spec →</a>
+                    </div>
+                    <div>
+                        <h3>Approval Model</h3>
+                        <div class="card" style="margin-top: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 20px;">🔓</span>
+                                <span>Read-only operations</span>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Health, capabilities, resource reads — always allowed.</p>
+                            
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 20px;">⚠️</span>
+                                <span>Moderate risk</span>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Tool invocations logged with full telemetry.</p>
+                            
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 20px;">🔒</span>
+                                <span>High risk / 888 HOLD</span>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-muted);">Destructive, credential, infra_mutation — require human confirmation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Example -->
+        <section class="section" id="example">
+            <div class="container">
+                <h2>Example Request</h2>
+                <p>Every tool call returns a structured response with constitutional metadata.</p>
+
+                <div class="grid-2" style="margin-top: 32px; gap: 32px;">
+                    <div>
+                        <h3>Request</h3>
+                        <pre class="example-json"><code>{
+  <span class="key">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="key">"method"</span>: <span class="string">"tools/call"</span>,
+  <span class="key">"params"</span>: {
+    <span class="key">"name"</span>: <span class="string">"constitutional_judge"</span>,
+    <span class="key">"arguments"</span>: {
+      <span class="key">"claim"</span>: <span class="string">"Deploy autonomous action"</span>,
+      <span class="key">"risk_class"</span>: <span class="string">"high"</span>,
+      <span class="key">"reversible"</span>: <span class="number">false</span>
+    }
+  },
+  <span class="key">"id"</span>: <span class="number">1</span>
+}</code></pre>
+                    </div>
+                    <div>
+                        <h3>Response</h3>
+                        <pre class="example-json"><code>{
+  <span class="key">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="key">"result"</span>: {
+    <span class="key">"verdict"</span>: <span class="string">"888 HOLD"</span>,
+    <span class="key">"confidence"</span>: <span class="number">0.94</span>,
+    <span class="key">"requires_human_confirmation"</span>: <span class="number">true</span>,
+    <span class="key">"floors_passed"</span>: [<span class="string">"F2"</span>, <span class="string">"F6"</span>, <span class="string">"F9"</span>],
+    <span class="key">"telemetry_id"</span>: <span class="string">"vault_20260411_7x9k"</span>
+  },
+  <span class="key">"id"</span>: <span class="number">1</span>
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Operational Status -->
+        <section class="section" id="status">
+            <div class="container">
+                <h2>Operational Status</h2>
+                <p>Live system metrics from the arifOS MCP endpoint.</p>
+
+                <div class="grid-3" style="margin-top: 32px;">
+                    <div class="card">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                            <span class="status-dot" id="status-dot"></span>
+                            <span style="font-weight: 600;" id="status-main">Checking...</span>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary);" id="status-sub">Loading status</div>
+                    </div>
+                    <div class="card">
+                        <h3>Version</h3>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--gold); margin-top: 8px;" id="version">--</div>
+                        <div style="font-size: 13px; color: var(--text-muted);" id="transport">--</div>
+                    </div>
+                    <div class="card">
+                        <h3>Thermodynamic</h3>
+                        <div style="display: flex; gap: 16px; margin-top: 8px;">
+                            <div>
+                                <div style="font-size: 18px; font-weight: 600;" id="vitality">--</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Vitality</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 18px; font-weight: 600;" id="peace">--</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Peace²</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 18px; font-weight: 600;" id="confidence">--</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Confidence</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <a href="/health" class="btn btn-secondary">View Full Health JSON</a>
+                    <a href="/metrics/json" class="btn btn-secondary">View Telemetry JSON</a>
+                    <a href="/tools" class="btn btn-secondary">View Tools List</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Constitution -->
+        <section class="section" id="constitution">
+            <div class="container">
+                <h2>Constitution</h2>
+                <p>The written law of arifOS. Every AI product built on arifOS must pass F1-F13 before acting.</p>
+
+                <div class="grid-3" style="margin-top: 32px;">
+                    <div class="card">
+                        <h3>F1 AMANAH</h3>
+                        <p style="font-size: 14px;">Reversibility — can this be undone? No irreversible action without VAULT999 seal.</p>
+                    </div>
+                    <div class="card">
+                        <h3>F2 TRUTH</h3>
+                        <p style="font-size: 14px;">Evidence — is this grounded? No ungrounded claims (τ ≥ 0.99).</p>
+                    </div>
+                    <div class="card">
+                        <h3>F3 TRI-WITNESS</h3>
+                        <p style="font-size: 14px;">Three-way consistency check — theory, code, and intent must agree.</p>
+                    </div>
+                    <div class="card">
+                        <h3>F9 ANTI-HANTU</h3>
+                        <p style="font-size: 14px;">No consciousness claims. AI is symbolic, not sentient.</p>
+                    </div>
+                    <div class="card">
+                        <h3>F13 SOVEREIGN</h3>
+                        <p style="font-size: 14px;">Human veto preserved. Arif holds final authority.</p>
+                    </div>
+                    <div class="card">
+                        <h3>888 JUDGE</h3>
+                        <p style="font-size: 14px;">No agent may approve their own output. Every action reviewed.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px; padding: 16px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px;">
+                    <h3 style="margin-bottom: 8px;">ΔΩΨ Trinity</h3>
+                    <p style="font-size: 14px; margin-bottom: 12px;">Architect / Engineer / Auditor separation. Every action has three witnesses:</p>
+                    <div style="display: flex; gap: 24px; font-size: 13px;">
+                        <div><span style="color: var(--gold);">Δ A-ARCHITECT</span> — Design</div>
+                        <div><span style="color: var(--cyan);">Ω A-ENGINEER</span> — Execute</div>
+                        <div><span style="color: var(--text-secondary);">Ψ A-WITNESS</span> — Verify</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reference -->
+        <section class="section" id="reference">
+            <div class="container">
+                <h2>Reference</h2>
+                <p>Jump to specific documentation sections.</p>
+
+                <div class="grid-3" style="margin-top: 32px;">
+                    <a href="/llms.txt" class="card" style="display: block;">
+                        <h3>LLMs.txt</h3>
+                        <p style="font-size: 14px;">Full-text documentation for AI readers.</p>
+                    </a>
+                    <a href="/.well-known/mcp/server.json" class="card" style="display: block;">
+                        <h3>MCP Manifest</h3>
+                        <p style="font-size: 14px;">Complete server capabilities JSON.</p>
+                    </a>
+                    <a href="/webmcp/" class="card" style="display: block;">
+                        <h3>WebMCP Console</h3>
+                        <p style="font-size: 14px;">Browser-native governance interface.</p>
+                    </a>
+                    <a href="https://aaa.arif-fazil.com" class="card" style="display: block;">
+                        <h3>AAA Protocols</h3>
+                        <p style="font-size: 14px;">MCP, WebMCP, A2A specifications.</p>
+                    </a>
+                    <a href="https://github.com/ariffazil/arifOS" class="card" style="display: block;">
+                        <h3>GitHub</h3>
+                        <p style="font-size: 14px;">Source code and issue tracking.</p>
+                    </a>
+                    <a href="https://wiki.arif-fazil.com" class="card" style="display: block;">
+                        <h3>Wiki</h3>
+                        <p style="font-size: 14px;">arifOS knowledge base.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer style="border-top: 1px solid var(--border); padding: 48px 0;">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px;">
+                <div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">ΔΩΨ — DITEMPA BUKAN DIBERI</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Forged, Not Given — Constitutional AI Gateway</div>
+                </div>
+                <div style="display: flex; gap: 16px; font-size: 14px;">
+                    <a href="https://arif-fazil.com" style="color: var(--text-secondary);">Ψ SOUL</a>
+                    <a href="https://apex.arif-fazil.com" style="color: var(--text-secondary);">Ω MIND</a>
+                    <a href="https://aaa.arif-fazil.com" style="color: var(--text-secondary);">Δ BODY</a>
+                    <a href="https://geox.arif-fazil.com" style="color: var(--text-secondary);">Φ GEOX</a>
+                </div>
+            </div>
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted);">
+                © 2026 ARIF FAZIL — arifOS v2026.04.07-SEAL
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API = 'https://arifosmcp.arif-fazil.com';
+        
+        async function fetchHealth() {
+            try {
+                const res = await fetch(`${API}/health`);
+                const data = await res.json();
+                
+                // Status
+                const isHealthy = data.status === 'healthy';
+                document.getElementById('status-dot').className = 'status-dot' + (isHealthy ? '' : ' degraded');
+                document.getElementById('status-main').textContent = isHealthy ? 'Operational' : 'Degraded';
+                document.getElementById('status-sub').textContent = isHealthy 
+                    ? 'All constitutional floors active' 
+                    : 'System experiencing issues';
+                document.getElementById('header-status-text').textContent = isHealthy ? 'Live' : 'Degraded';
+                
+                // Version
+                document.getElementById('version').textContent = data.version || '--';
+                document.getElementById('transport').textContent = (data.transport || 'HTTP').toUpperCase();
+                
+                // Thermodynamic
+                if (data.thermodynamic) {
+                    document.getElementById('vitality').textContent = (data.thermodynamic.vitality_index || 0).toFixed(2);
+                    document.getElementById('peace').textContent = (data.thermodynamic.peace_squared || 0).toFixed(2);
+                    document.getElementById('confidence').textContent = (data.thermodynamic.confidence || 0).toFixed(2);
+                }
+                
+                // Counts
+                document.getElementById('tools-count').textContent = data.tools_loaded || '--';
+                
+            } catch (e) {
+                document.getElementById('status-dot').className = 'status-dot down';
+                document.getElementById('status-main').textContent = 'Unreachable';
+                document.getElementById('status-sub').textContent = 'Cannot reach ' + API;
+                document.getElementById('header-status-text').textContent = 'Down';
+            }
+        }
+
+        async function fetchCapabilities() {
+            try {
+                const res = await fetch(`${API}/.well-known/mcp/server.json`);
+                const data = await res.json();
+                
+                document.getElementById('prompts-count').textContent = data.prompts?.length || '--';
+                document.getElementById('resources-count').textContent = data.resources?.length || '--';
+            } catch (e) {
+                // Silent fail
+            }
+        }
+
+        function showTab(btn, id) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const examples = {
+                claude: `<code>npx @anthropic/mcp install arifos \\
+  --url https://arifosmcp.arif-fazil.com/mcp
+
+# Or add to claude_desktop_config.json:
+{
+  "mcpServers": {
+    "arifOS": {
+      "url": "https://arifosmcp.arif-fazil.com/mcp"
+    }
+  }
+}`,
+                http: `<code>curl -X POST https://arifosmcp.arif-fazil.com/mcp \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "health_check",
+      "arguments": {}
+    },
+    "id": 1
+  }'`
+            };
+            
+            document.getElementById('sdk-example').innerHTML = examples[id];
+        }
+
+        // Init
+        fetchHealth();
+        fetchCapabilities();
+        setInterval(fetchHealth, 30000);
+    </script>
+</body>
+</html>
