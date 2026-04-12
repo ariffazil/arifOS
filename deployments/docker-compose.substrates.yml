@@ -106,6 +106,7 @@ services:
     environment:
       - SUBSTRATE_NAME=fetch
       - MCP_FETCH_BLOCK_INTERNAL=true
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
     ports:
       - "127.0.0.1:8005:8005"
     networks:
