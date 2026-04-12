@@ -19,8 +19,13 @@ from arifosmcp.runtime.models import (
     VerdictCode,
     VerdictDetail,
 )
-
-
+from arifosmcp.contracts.verdicts import (
+    ExecutionStatus,
+    GovernanceStatus,
+    ContinuationStatus,
+    ArtifactStatus,
+)
+from arifosmcp.contracts.artifacts import Artifact
 from arifosmcp.contracts.envelopes import ResponseEnvelope
 import time
 
