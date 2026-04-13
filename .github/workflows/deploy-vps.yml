@@ -123,7 +123,7 @@ jobs:
         env:
           TS_AUTHKEY: ${{ secrets.TS_AUTHKEY }}
         if: ${{ env.TS_AUTHKEY != '' }}
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
           authkey: ${{ env.TS_AUTHKEY }}
           hostname: gha-arifos-deploy
