@@ -1966,8 +1966,125 @@
 </section>
 
 <!-- ═══════════════════════════════════════════
-     FOOTER
+     QUICK START
 ═══════════════════════════════════════════ -->
+<section class="section" id="quickstart" style="padding-top:0">
+  <div class="container">
+    <p class="section-label">Self-host in 2 minutes</p>
+    <h2 class="section-title">Run your own constitutional gateway</h2>
+    <p class="section-sub">arifOS MCP is self-contained. One Docker command, full constitutional governance, MCP-compatible.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);margin-top:var(--space-6);align-items:start">
+      <div>
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:var(--space-6)">
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)">
+            <span style="background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">1</span>
+            <span style="font-weight:600">Pull &amp; run</span>
+          </div>
+          <pre style="background:#0F1117;border-radius:8px;padding:var(--space-4);font-family:var(--font-mono);font-size:0.8rem;color:#e8e8f0;overflow-x:auto;margin:0;line-height:1.6">docker run -d \
+  --name arifosmcp \
+  -p 8080:8080 \
+  arifos/arifosmcp:latest</pre>
+        </div>
+
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:var(--space-6);margin-top:var(--space-4)">
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)">
+            <span style="background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">2</span>
+            <span style="font-weight:600">Connect any MCP client</span>
+          </div>
+          <pre style="background:#0F1117;border-radius:8px;padding:var(--space-4);font-family:var(--font-mono);font-size:0.8rem;color:#e8e8f0;overflow-x:auto;margin:0;line-height:1.6"># Claude Desktop, Cursor, etc.
+# Server URL:
+https://your-host:8080/mcp
+
+# Or add to config:
+{
+  "mcpServers": {
+    "arifOS": {
+      "url": "https://your-host:8080/mcp"
+    }
+  }
+}</pre>
+        </div>
+
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:var(--space-6);margin-top:var(--space-4)">
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)">
+            <span style="background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">3</span>
+            <span style="font-weight:600">Verify</span>
+          </div>
+          <pre style="background:#0F1117;border-radius:8px;padding:var(--space-4);font-family:var(--font-mono);font-size:0.8rem;color:#e8e8f0;overflow-x:auto;margin:0;line-height:1.6">curl https://your-host:8080/health
+# Returns: vitality, verdict, tool count,
+#          thermodynamic metrics, capability map</pre>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div style="border:1px solid var(--border);border-radius:10px;padding:var(--space-4)">
+            <div style="font-weight:600;margin-bottom:6px">🔱 What's included</div>
+            <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:var(--text-secondary);line-height:1.8">
+              <li>17 governed tools (sense, judge, vault, reply…)</li>
+              <li>13 constitutional floors — F1 Amanah → F13 Sovereign</li>
+              <li>888_HOLD human veto gate</li>
+              <li>VAULT999 immutable audit ledger</li>
+              <li>MCP + WebMCP protocol endpoints</li>
+              <li>Philosophical corpus (50 wisdom anchors)</li>
+            </ul>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:var(--space-4)">
+            <div style="font-weight:600;margin-bottom:6px">⚡ Optional extras</div>
+            <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:var(--text-secondary);line-height:1.8">
+              <li>Postgres — session persistence</li>
+              <li>Redis — rate limiting &amp; pub/sub</li>
+              <li>Qdrant — vector memory</li>
+            </ul>
+          </div>
+          <div style="border:1px solid rgba(0,180,160,0.3);border-radius:10px;padding:var(--space-4);background:rgba(0,180,160,0.05)">
+            <div style="font-weight:600;margin-bottom:6px;color:var(--accent)">📜 AGPL-3.0 — Forged, not given.</div>
+            <div style="font-size:0.82rem;color:var(--text-secondary)">Self-host. Self-govern. No vendor lock-in.</div>
+            <a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:var(--accent);color:#fff;border-radius:6px;padding:6px 14px;font-size:0.78rem;font-weight:600;text-decoration:none">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CONSTELLATION
+═══════════════════════════════════════════ -->
+<section class="section" id="constellation" style="padding-top:0">
+  <div class="container">
+    <p class="section-label">arifOS ecosystem</p>
+    <h2 class="section-title">Part of the constellation</h2>
+    <p class="section-sub">arifOS MCP is the constitutional kernel powering sovereign AI systems — self-hosted, human-sovereign, auditable.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-4);margin-top:var(--space-6)">
+      <a href="https://arif-fazil.com" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">👤</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">Arif Fazil</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Field Geoscientist & AI Constitutionalist · Personal hub</div>
+      </a>
+      <a href="https://geox.arif-fazil.com" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">🌏</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">GEOX</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Earth Intelligence Platform — terrain, hazard, subsurface reasoning governed by arifOS F1–F13</div>
+      </a>
+      <a href="https://arifos.arif-fazil.com" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">🔱</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">arifOS Core</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Constitutional governance kernel — the stack powering this gateway</div>
+      </a>
+      <a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">⚙</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">Open Source</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">AGPL-3.0 · Self-hostable · MIT-like philosophy · Pull requests welcome</div>
+      </a>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="container">
     <div class="footer-grid">
