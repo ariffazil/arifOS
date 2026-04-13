@@ -382,7 +382,7 @@ try:
         trinity_map=TRINITY_BY_TOOL,
         law_bindings=AAA_TOOL_LAW_BINDINGS,
         router_visible_tools=router_visible_tools,
-        policy_version=get_build_info().get("version", "2026.04.07"),
+        policy_version=get_build_info().get("version", "2026.04.11"),
         protocol_version=get_build_info().get("protocol_version", "2025-03-26"),
         registered_endpoints=registered_endpoints,
         entropy_guard_active=True,

@@ -96,7 +96,7 @@ HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
 
 # Metadata Labels
 LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp"
-LABEL io.modelcontextprotocol.server.version="2026.03.28-IDENTITY-BINDING"
+LABEL io.modelcontextprotocol.server.version="2026.04.11-SEAL-UNIFIED"
 LABEL io.modelcontextprotocol.server.description="Constitutional AI governance server with a 10-tool APEX-G core stack plus legacy Phase 2 capability tools."
 
 # Execute consolidated entrypoint

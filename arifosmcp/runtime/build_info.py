@@ -32,7 +32,7 @@ def get_build_info() -> dict[str, Any]:
         build metadata (commit, branch), and status.
     """
     commit = _git_sha_short()
-    app_version = os.environ.get("ARIFOS_APP_VERSION", "2026.04.07")
+    app_version = os.environ.get("ARIFOS_APP_VERSION", "2026.04.11")
     return {
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,
@@ -60,11 +60,11 @@ def get_build_info() -> dict[str, Any]:
             "built_at": datetime.now(timezone.utc).isoformat(),
             "branch": "main",
         },
-        "release_tag": "v2026.04.07",
+        "release_tag": "v2026.04.11",
 
         # Status
         "status": "FORGED",
-        "forge_date": "2026-04-07",
+        "forge_date": "2026-04-11",
 
         # Display helpers
         "display": {

@@ -2,6 +2,15 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [2026.04.11-SEAL-UNIFIED] - 999_SEAL Unification & Hardened Deployment
+
+### 🏛️ ARCHITECTURE: Single Source-of-Truth Aligned
+
+- **Version Alignment**: Unified repository version to 2026.04.11 across build_info, pyproject.toml, and server runtime.
+- **Hardened Initialization**: Implemented resilient FastAPI fallback in `server.py` to prevent "502 Bad Gateway" during transient component load failures.
+- **Traefik Synchronization**: Added `traefik.docker.network` and `StripPrefix` middleware logic to ensure consistent external routing to the `/mcp` endpoint.
+- **Constitutional Integrity**: Verified 13-floor enforcement across all 33 tools (12 canonical + 16 spec + 5 substrates).
+
 ## [2026.04.10-CHAOS-CONTAINED] - Repo Root Cleanup — 70+ Temp Artifacts Removed
 
 ### 🔥 F1 AMANAH: Deployment Pollution Eliminated

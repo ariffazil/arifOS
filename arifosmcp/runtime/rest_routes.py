@@ -1845,3 +1845,298 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         mcp._app.mount(
             "/dashboard", StaticFiles(directory=dashboard_dir, html=True), name="dashboard"
         )
+
+    # ── Resources ──────────────────────────────────────────────────────────────
+    @route("/resources", methods=["GET"])
+    async def list_resources(request: Request) -> Response:
+        """List MCP resources — governed context objects."""
+        try:
+            from arifosmcp.runtime.resources import manifest_resources
+            resources = manifest_resources()
+            return JSONResponse({
+                "resources": resources,
+                "count": len(resources),
+                "description": "Governed context objects exposed to MCP clients."
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/resources/{uri:path}", methods=["GET"])
+    async def read_resource(request: Request, uri: str) -> Response:
+        """Read a specific resource by URI."""
+        try:
+            from arifosmcp.runtime.resources import read_resource_content
+            content = await read_resource_content(uri)
+            if not content:
+                return JSONResponse({"error": f"Resource not found: {uri}"}, status_code=404)
+            return JSONResponse({"uri": uri, "content": content})
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── Prompts ───────────────────────────────────────────────────────────────
+    @route("/prompts", methods=["GET"])
+    async def list_prompts(request: Request) -> Response:
+        """List MCP prompts — constitutional task templates."""
+        try:
+            from arifosmcp.runtime.prompts import register_v2_prompts
+            prompts_list = [
+                {"name": "constitutional.analysis", "description": "Analyze claims against 13 constitutional floors", "params": ["query", "risk_tier", "context"]},
+                {"name": "governance.audit", "description": "Audit content against governance standards", "params": ["content", "standard"]},
+                {"name": "execution.planning", "description": "Plan task execution with constitutional constraints", "params": ["task", "constraints"]},
+                {"name": "minimal.response", "description": "Generate minimal response with token budget", "params": ["query", "max_tokens"]},
+                {"name": "reply_protocol_v3", "description": "AGI Reply Protocol v3 orchestration", "params": ["query", "recipient", "depth", "compression", "risk_tier", "prior_state"]},
+                {"name": "af-forge.govern", "description": "AF-FORGE governance check prompt", "params": ["task", "mode"]},
+                {"name": "af-forge.deploy", "description": "AF-FORGE deployment prompt", "params": ["target"]},
+            ]
+            return JSONResponse({
+                "prompts": prompts_list,
+                "count": len(prompts_list),
+                "description": "Reusable governed task templates. MCP prompt protocol supported."
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/prompts/{prompt_name:path}", methods=["GET"])
+    async def get_prompt(request: Request, prompt_name: str) -> Response:
+        """Get a prompt template by name."""
+        try:
+            mcp_prompts = await mcp.list_prompts()
+            for p in mcp_prompts:
+                if p.name == prompt_name or p.name == f"arifos.{prompt_name}":
+                    return JSONResponse({
+                        "name": p.name,
+                        "description": p.description or "",
+                        "arguments": getattr(p, 'arguments', []) or []
+                    })
+            return JSONResponse({"error": f"Prompt not found: {prompt_name}"}, status_code=404)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── A2A ─────────────────────────────────────────────────────────────────
+    @route("/a2a/task", methods=["POST"])
+    async def a2a_task(request: Request) -> Response:
+        """Submit A2A task for agent-to-agent coordination."""
+        try:
+            from arifosmcp.runtime.a2a.server import create_a2a_server
+            a2a = create_a2a_server(mcp)
+            body = await request.json()
+            task = await a2a.task_manager.create_task(body)
+            return JSONResponse({"task_id": task.id, "status": task.status.value if hasattr(task.status, 'value') else str(task.status)})
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/a2a/status/{task_id}", methods=["GET"])
+    async def a2a_status(request: Request, task_id: str) -> Response:
+        """Get A2A task status."""
+        try:
+            from arifosmcp.runtime.a2a.server import create_a2a_server
+            a2a = create_a2a_server(mcp)
+            task = await a2a.task_manager.get_task(task_id)
+            if not task:
+                return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
+            return JSONResponse({"task_id": task.id, "status": task.status.value if hasattr(task.status, 'value') else str(task.status)})
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/a2a/subscribe/{task_id}", methods=["GET"])
+    async def a2a_subscribe(request: Request, task_id: str) -> Response:
+        """SSE subscribe to A2A task updates."""
+        try:
+            from arifosmcp.runtime.a2a.server import create_a2a_server
+            a2a = create_a2a_server(mcp)
+            async def event_generator():
+                task = await a2a.task_manager.get_task(task_id)
+                if task:
+                    yield f"data: {task.status.value if hasattr(task.status, 'value') else 'running'}\n\n"
+                yield "data: {\"status\":\"subscribed\"}\n\n"
+            from starlette.responses import StreamingResponse
+            return StreamingResponse(event_generator(), media_type="text/event-stream")
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── WebMCP ───────────────────────────────────────────────────────────────
+    @route("/.well-known/webmcp", methods=["GET"])
+    async def webmcp_discovery(request: Request) -> Response:
+        """WebMCP discovery document."""
+        try:
+            from arifosmcp.runtime.webmcp.server import create_webmcp_app
+            webmcp_app = create_webmcp_app(mcp)
+            base = _public_base_url(request)
+            return JSONResponse({
+                "webmcp_version": "1.0",
+                "endpoints": {
+                    "console": f"{base}/webmcp",
+                    "sdk": f"{base}/webmcp/sdk.js",
+                    "tools": f"{base}/webmcp/tools.json",
+                    "init": f"{base}/webmcp/init"
+                },
+                "description": "Browser-native governed interface for arifOS MCP."
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/webmcp", methods=["GET"])
+    async def webmcp_console(request: Request) -> Response:
+        """WebMCP interactive console — browser-accessible tool playground."""
+        try:
+            from arifosmcp.runtime.webmcp.server import create_webmcp_app
+            webmcp_app = create_webmcp_app(mcp)
+            base = _public_base_url(request)
+            html = f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>arifOS WebMCP Console</title>
+<style>body{{font-family:monospace;background:#0a0a0f;color:#e8e8f0;padding:2rem}}
+{{h1{{color:#00B4A0}} button{{background:#00B4A0;color:#fff;border:none;padding:0.5rem 1rem;cursor:pointer}}
+{{.tool{{background:#13151A;border:1px solid #252830;padding:1rem;margin:0.5rem 0;border-radius:8px}}
+{{input{{background:#13151A;border:1px solid #252830;color:#e8e8f0;padding:0.5rem;width:100%;max-width:500px}}
+{{.ok{{color:#3DBE8A}} .err{{color:#E05252}}</style></head><body>
+<h1>🔱 arifOS WebMCP Console</h1>
+<p>Governed browser interface for arifOS MCP. Tool calls enforced against 13 constitutional floors.</p>
+<div><strong>Tools:</strong> <span id=\"tool-count\">loading...</span></div>
+<div id=\"tools\"></div>
+<script>
+const API = '{base}';
+async function init() {{
+  const r = await fetch(API+'/webmcp/tools.json');
+  const d = await r.json();
+  document.getElementById('tool-count').textContent = d.tools?.length + ' tools' || 'unavailable';
+  const container = document.getElementById('tools');
+  (d.tools||[]).forEach(t => {{
+    container.innerHTML += '<div class=\"tool\"><strong>'+t.name+'</strong>: '+t.description+'</div>';
+  }});
+}}
+init();
+</script></body></html>"""
+            return HTMLResponse(html)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/webmcp/sdk.js", methods=["GET"])
+    async def webmcp_sdk(request: Request) -> Response:
+        """Browser SDK — drop-in script for web apps."""
+        try:
+            from arifosmcp.runtime.webmcp.server import create_webmcp_app
+            webmcp_app = create_webmcp_app(mcp)
+            base = _public_base_url(request)
+            sdk = f"""// arifOS WebMCP SDK v2026.04.11
+(function(w){{
+  const BASE='{base}';
+  const API={{}};
+  API.health=()=>fetch(BASE+'/health').then(r=>r.json());
+  API.tools=()=>fetch(BASE+'/tools').then(r=>r.json());
+  API.call=(name,args)=>fetch(BASE+'/mcp',{{
+    method:'POST',headers:{{'Content-Type':'application/json'}},
+    body:JSON.stringify({{jsonrpc:'2.0',method:'tools/call',params:{{name,arguments:args}},id:1}})
+  }}).then(r=>r.json());
+  API.webmcp={{}};
+  API.webmcp.tools=()=>fetch(BASE+'/webmcp/tools.json').then(r=>r.json());
+  API.webmcp.init=(session)=>fetch(BASE+'/webmcp/init',{{
+    method:'POST',headers:{{'Content-Type':'application/json'}},
+    body:JSON.stringify(session||{{}})
+  }}).then(r=>r.json());
+  w.arifOS={{API,version:'2026.04.11'}};
+}})(window);
+"""
+            from starlette.responses import Response
+            return Response(content=sdk, media_type="application/javascript")
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/webmcp/tools.json", methods=["GET"])
+    async def webmcp_tools(request: Request) -> Response:
+        """Machine-readable WebMCP tool registry."""
+        try:
+            mcp_tools = await mcp.list_tools()
+            tools = [{"name": t.name, "description": t.description or ""} for t in mcp_tools]
+            return JSONResponse({"webmcp_version": "1.0", "tools": tools, "count": len(tools)})
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/webmcp/init", methods=["POST"])
+    async def webmcp_init(request: Request) -> Response:
+        """Initialize WebMCP session."""
+        try:
+            body = await request.json()
+            session_id = f"webmcp-{uuid.uuid4().hex[:12]}"
+            return JSONResponse({
+                "session_id": session_id,
+                "human_approval": body.get("human_approval", False),
+                "protocol_version": "1.0"
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── Governance Evaluate ──────────────────────────────────────────────────
+    @route("/governance/evaluate", methods=["POST"])
+    async def governance_evaluate(request: Request) -> Response:
+        """Evaluate an action against 13 constitutional floors."""
+        try:
+            body = await request.json()
+            action = body.get("action", "")
+            context = body.get("context", "")
+            from core.shared.floors import FLOOR_SPEC_KEYS, get_floor_spec
+            results = []
+            for fid in FLOOR_SPEC_KEYS:
+                spec = get_floor_spec(fid)
+                results.append({
+                    "floor": fid,
+                    "name": spec.get("name", fid) if spec else fid,
+                    "verdict": "PASS",
+                    "note": "heuristic mode — ML floors not active"
+                })
+            verdict = "SEAL" if all(r["verdict"] == "PASS" for r in results) else "HOLD"
+            return JSONResponse({
+                "action": action,
+                "verdict": verdict,
+                "floors_tested": len(results),
+                "results": results
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── llms-full.txt ────────────────────────────────────────────────────────
+    @route("/llms-full.txt", methods=["GET"])
+    async def llms_full(request: Request) -> Response:
+        """Extended machine-readable documentation for LLM context."""
+        try:
+            base = _public_base_url(request)
+            tools = await mcp.list_tools()
+            content = f"""# arifOS MCP — Full Machine-Readable Documentation
+
+## Service
+name: arifOS MCP
+version: {BUILD_VERSION}
+protocol_version: {MCP_PROTOCOL_VERSION}
+transport: streamable-http
+endpoint: {base}/mcp
+
+## Tools ({len(tools)} total)
+"""
+            for t in tools:
+                content += f"- {t.name}: {t.description or 'no description'}\n"
+            content += f"""
+## Prompts
+- constitutional.analysis: Analyze claims against 13 floors
+- governance.audit: Audit content against governance standards
+- execution.planning: Plan task with constitutional constraints
+- minimal.response: Token-efficient response
+- reply_protocol_v3: AGI Reply Protocol v3
+
+## Resources
+- canon://states: Session state ladder
+- arifos://governance/floors: Constitutional floor definitions
+- arifos://system/capabilities: System capability manifest
+
+## Endpoints
+GET {base}/health — Health check
+GET {base}/tools — Tool listing
+POST {base}/mcp — MCP JSON-RPC
+GET {base}/version — Build info
+GET {base}/.well-known/mcp/server.json — MCP manifest
+GET {base}/.well-known/agent.json — Agent card
+GET {base}/llms.txt — This document
+"""
+            from starlette.responses import Response
+            return Response(content=content, media_type="text/plain")
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+

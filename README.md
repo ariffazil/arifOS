@@ -37,7 +37,7 @@ TESTING: MCP Inspector + Deployment Gates + Smoke Tests
 ### Primary MCP Server
 | Endpoint | Status | Purpose |
 |----------|--------|---------|
-| [arifosmcp.arif-fazil.com/health](https://arifosmcp.arif-fazil.com/health) | ✅ LIVE | Health check — returns 33 tools, v2026.04.07 |
+| [arifosmcp.arif-fazil.com/health](https://arifosmcp.arif-fazil.com/health) | ✅ LIVE | Health check — returns 33 tools, v2026.04.11 |
 | [arifosmcp.arif-fazil.com/tools](https://arifosmcp.arif-fazil.com/tools) | ✅ LIVE | Tool registry — 33 constitutional tools |
 | [arifosmcp.arif-fazil.com/mcp](https://arifosmcp.arif-fazil.com/mcp) | ✅ LIVE | MCP endpoint — Streamable HTTP transport |
 
@@ -1295,7 +1295,7 @@ arifOS/
 ├── Dockerfile                   # MCP server container image
 │
 ├── arifosmcp/                   # MCP Server implementation (the runtime)
-│   ├── server_horizon.py       # Dynamic registry-driven MCP server
+│   ├── server.py       # Dynamic registry-driven MCP server
 │   ├── tool_registry.json      # Single Source of Constitutional Truth (SSCT)
 │   ├── constitutional_map.py   # v2 enum-based constitutional definitions
 │   ├── runtime/                # FastMCP 3.x runtime
@@ -1366,7 +1366,7 @@ arifOS/
 | File | Purpose |
 |------|---------|
 | `tool_registry.json` | Canonical constitutional registry — SSCT |
-| `server_horizon.py` | Runtime that loads registry dynamically |
+| `server.py` | Runtime that loads registry dynamically |
 | `constitutional_map.py` | v2 enum-based Floor definitions |
 | `NEXUS_HORIZON.md` | v2 Thermodynamic Kernel architecture |
 
