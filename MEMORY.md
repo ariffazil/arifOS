@@ -18,6 +18,7 @@
   3. `arifos://schema` (Complete Blueprint — Δ Discernment)
   4. `arifos://session/{session_id}` (Ephemeral Self — Instance context)
   5. `arifos://forge` (Execution Bridge — Work/Energy)
+- **Horizon Unification**: Standardized tool parameters to use canonical `query` across kernel, heart, ops, and judge tools for cross-platform parity (ChatGPT/Claude).
 - **Impact**: Unified the server entry points, eliminated identity confusion between health/vitals, and synchronized the Trinity (ΔΩΨ) mapping with live runtime surfaces.
 
 ### 2026.04.11 — FastMCP App Suite Activation
