@@ -2062,12 +2062,24 @@
       // Footer
       document.getElementById('footer-version').textContent = 'v' + (d.version || '—');
 
-      // Verdict
+      // Verdict + vitality ring
       const verdict = d.thermodynamic?.verdict || d.verdict;
       const vit = d.thermodynamic?.vitality_index;
       if (verdict) {
         document.getElementById('proof-verdict').style.display = 'flex';
-        document.getElementById('pv-verdict').textContent = verdict + (vit !== undefined ? ` (${vit})` : '');
+        const vClass = verdict === 'SEAL' ? 'seal' : verdict === 'HOLD' ? 'hold' : verdict === 'VOID' ? 'void' : '';
+        const vBadge = document.getElementById('pv-verdict');
+        vBadge.textContent = verdict;
+        vBadge.className = 'verdict-badge ' + vClass;
+      }
+      if (vit !== undefined && vit !== null) {
+        document.getElementById('pv-vitality').textContent = typeof vit === 'number' ? vit.toFixed(2) : vit;
+        const ring = document.getElementById('vit-ring');
+        if (ring) {
+          const circumference = 2 * Math.PI * 24; // r=24
+          const offset = circumference * (1 - (typeof vit === 'number' ? vit : 0));
+          ring.style.strokeDashoffset = offset;
+        }
       }
 
       // Trust chips
@@ -2143,6 +2155,128 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  // ─── Try-It-Now: arifos_sense dry-run ─────────────
+  async function runDemo() {
+    const btn = document.getElementById('demo-submit');
+    const out = document.getElementById('demo-output');
+    const query = document.getElementById('demo-query').value.trim();
+    const risk = document.getElementById('demo-risk').value;
+    const context = document.getElementById('demo-context').value.trim();
+
+    if (!query) {
+      out.innerHTML = '<span class="verdict-label">Error</span> Query cannot be empty.';
+      out.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Analysing through 13 floors...';
+    out.classList.remove('visible');
+    out.innerHTML = '<span class="verdict-label">Running arifos_sense constitutional analysis…</span>';
+    out.classList.add('visible');
+
+    try {
+      const payload = {
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+          name: 'arifos_sense',
+          arguments: {
+            query: query,
+            risk_tier: risk
+          }
+        },
+        id: 1
+      };
+
+      const res = await fetch(API + '/mcp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/event-stream'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      // SSE stream — read until we get a JSON data event
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let done = false;
+      let resultData = null;
+
+      while (!done) {
+        const { value, done: d } = await reader.read();
+        done = d;
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+          // Process complete lines
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('data:')) {
+              try {
+                const jsonStr = trimmed.substring(5).trim();
+                const parsed = JSON.parse(jsonStr);
+                if (parsed.result) {
+                  const contentText = parsed.result.content && parsed.result.content[0] && parsed.result.content[0].text;
+                  if (contentText) {
+                    try { resultData = JSON.parse(contentText); } catch { resultData = { raw: contentText }; }
+                  }
+                }
+                if (parsed.error) throw new Error(parsed.error.message || JSON.stringify(parsed.error));
+              } catch (e) {
+                if (e.message) throw e;
+              }
+            }
+          }
+        }
+      }
+
+      if (!resultData) throw new Error('No result received from arifos_sense.');
+
+      // Parse arifos_sense response
+      const verdict = resultData.verdict || resultData.governance_status || 'SEAL';
+      const govStatus = resultData.governance_status || '';
+      const riskClass = resultData.risk_class || '';
+      const execStatus = resultData.execution_status || '';
+      const intel = resultData.intelligence_state || {};
+      const confidence = intel.confidence;
+      const uncertainty = intel.uncertainty_score;
+      const stage = resultData.stage || '';
+      const blocked = resultData.blocked_tools || [];
+      const allowed = resultData.allowed_next_tools || [];
+      const raw = resultData.raw || '';
+
+      // Map arifos_sense verdict to display class
+      const vClass = verdict === 'SEAL' ? 'seal' : verdict === 'HOLD' || govStatus === 'HOLD' ? 'hold' : verdict === 'VOID' || govStatus === 'VOID' ? 'void' : govStatus === 'PAUSE' ? 'hold' : '';
+
+      let html = '<div class="verdict-label" style="margin-bottom:10px">Constitutional Analysis Result</div>';
+      html += '<div class="verdict-badge ' + vClass + '" style="margin-bottom:10px">' + verdict + (govStatus && govStatus !== verdict ? ' / ' + govStatus : '') + '</div>';
+      if (riskClass) html += '<div style="margin-top:8px"><span class="verdict-label">Risk class</span>  <code style="color:var(--accent)">' + riskClass + '</code></div>';
+      if (execStatus) html += '<div><span class="verdict-label">Execution</span>  <code>' + execStatus + '</code></div>';
+      if (stage) html += '<div><span class="verdict-label">Stage</span>  <code style="color:var(--accent)">' + stage + '</code></div>';
+      if (confidence !== undefined && confidence !== null) html += '<div style="margin-top:8px"><span class="verdict-label">Confidence (Ω)</span>  <code style="color:var(--seal-green)">' + (typeof confidence === 'number' ? confidence.toFixed(3) : confidence) + '</code></div>';
+      if (uncertainty !== undefined && uncertainty !== null) html += '<div><span class="verdict-label">Uncertainty (σ)</span>  <code style="color:var(--caution)">' + (typeof uncertainty === 'number' ? uncertainty.toFixed(3) : uncertainty) + '</code></div>';
+      if (blocked.length > 0) html += '<div style="margin-top:8px"><span class="verdict-label">Blocked tools</span>  <code style="color:var(--danger)">' + blocked.slice(0, 5).join(', ') + '</code></div>';
+      if (allowed.length > 0) html += '<div><span class="verdict-label">Allowed next</span>  <code style="color:var(--seal-green)">' + allowed.slice(0, 5).join(', ') + '</code></div>';
+      if (govStatus === 'PAUSE' || verdict === 'SABAR') {
+        html += '<div style="margin-top:8px;font-size:0.78rem;color:var(--caution)">Governance requires evidence grounding before proceeding. SABAR pause active.</div>';
+      }
+      html += '<div style="margin-top:10px;font-size:0.72rem;color:var(--text-muted)">arifos_sense v' + (resultData.version || '2.0') + ' · dry_run=true · ' + (new Date()).toISOString().split('T')[0] + '</div>';
+      out.innerHTML = html;
+    } catch (e) {
+      out.innerHTML = '<span class="verdict-label">Error</span>  <span style="color:var(--danger)">' + escapeHtml(e.message || String(e)) + '</span><div style="margin-top:6px;font-size:0.72rem;color:var(--text-muted)">Ensure arifOS MCP is reachable at ' + (API || '/') + '/mcp</div>';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L12 2L7 12L9 7L2 7Z" fill="currentColor"/></svg> Run Constitutional Analysis';
+      out.classList.add('visible');
+    }
   }
 
   // ─── Init ──────────────────────────────────────────
