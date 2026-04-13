@@ -76,7 +76,7 @@
       "type": "function",
       "function": {
         "name": "arifos_kernel",
-        "description": "444_KERNEL: Unified KERNEL rCore — Primary metabolic conductor. INPUT → ORCHESTRATE → OUTPUT pipeline. Orchestrates query classification, tool selection, governance enforcement, and continuity state management.",
+        "description": "444_KERNEL: Unified KERNEL rCore \u2014 Primary metabolic conductor. INPUT \u2192 ORCHESTRATE \u2192 OUTPUT pipeline. Orchestrates query classification, tool selection, governance enforcement, and continuity state management.",
         "parameters": {
           "type": "object",
           "properties": {}
@@ -152,7 +152,7 @@
     {
       "type": "function",
       "function": {
-        "name": "arifos_vps_monitor",
+        "name": "arifos_health",
         "description": "Retrieve CPU, Memory, ZRAM, and Disk utilization with hardened read-only telemetry access.",
         "parameters": {
           "type": "object",

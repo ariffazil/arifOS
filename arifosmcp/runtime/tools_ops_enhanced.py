@@ -125,7 +125,7 @@ SUBSTITUTION_REGISTRY = {
         "floors": ["F4", "F5"],
         "tokens_saved_per_call": 600,
     },
-    "arifos_vps_monitor": {
+    "arifos_health": {
         "replaces": [
             "Infrastructure monitoring MCPs",
         ],

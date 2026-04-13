@@ -242,7 +242,7 @@ AAA_TOOL_ALIASES = {
     "arifos_memory": "arifos_memory",
     "arifos_vault": "arifos_vault",
     "arifos_forge": "arifos_forge",
-    "arifos_vps_monitor": "arifos_vps_monitor",
+    "arifos_health": "arifos_health",
 }
 
 AAA_TOOL_STAGE_MAP = {
@@ -268,7 +268,7 @@ AAA_TOOL_STAGE_MAP = {
     "arifos_memory": "555_MEMORY",
     "arifos_vault": "999_VAULT",
     "arifos_forge": "010_FORGE",
-    "arifos_vps_monitor": "111_SENSE",
+    "arifos_health": "111_SENSE",
 }
 
 TRINITY_BY_TOOL = {
@@ -294,7 +294,7 @@ TRINITY_BY_TOOL = {
     "arifos_memory": "Ω",
     "arifos_vault": "Ψ",
     "arifos_forge": "Δ",
-    "arifos_vps_monitor": "Δ",
+    "arifos_health": "Δ",
 }
 
 AAA_TOOL_LAW_BINDINGS = {
@@ -320,7 +320,7 @@ AAA_TOOL_LAW_BINDINGS = {
     "arifos_memory": ["F2", "F10", "F11"],
     "arifos_vault": ["F1", "F13"],
     "arifos_forge": ["F1", "F2", "F7", "F13"],
-    "arifos_vps_monitor": ["F4", "F12"],
+    "arifos_health": ["F4", "F12"],
 }
 
 # Missing names identified from contracts_v2.py
