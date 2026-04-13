@@ -1,9 +1,9 @@
 # 000 — The State of Intelligence
 ## arifOS Kernel Foundations · Constitutional Law · 13 Floors
 
-**Version:** v2026.03.24-UNIFIED  
+**Version:** v2026.4.13-CANONICAL  
 **Authority:** Muhammad Arif bin Fazil (888_JUDGE)  
-**Status:** SOVEREIGNLY_SEALED  
+**Status:** SOVEREIGNLY_SEALED (999_SEAL)  
 **Source:** Mirrored from APEX (SOUL layer) → arifOS MIND canon  
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
@@ -104,6 +104,18 @@ If ANY dial = 0 → G = 0. No shortcuts.
 
 W³ = W_theory × W_constitution × W_manifesto ≥ 0.95
 ```
+
+---
+
+## 5-Resource Canonical Model (The Five Surfaces)
+
+As of v2026.4.13, arifOS consolidates all fragmented resources into exactly **5 Canonical Resource URIs**. These are the *only* authorized interfaces for accessing system doctrine and vitals:
+
+1. `arifos://doctrine` — Eternal Law (Ψ) | Constitutional Floors & Doctrine
+2. `arifos://vitals` — Living Pulse (Ω) | Real-time G-score, ΔS, and system metrics
+3. `arifos://schema` — Complete Blueprint (Δ) | Tool, Prompt, and Resource catalog
+4. `arifos://session/{id}` — Ephemeral Consciousness | Active session state and context
+5. `arifos://forge` — Execution audit bridge | Result streams and execution logs
 
 ---
 

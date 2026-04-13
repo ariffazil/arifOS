@@ -12,7 +12,7 @@
 
 > **DITEMPA BUKAN DIBERI** — *Forged, Not Given* [ΔΩΨ | ARIF]
 >
-> **VERSION:** 2026.03.28-SEALED | **STATUS:** SOVEREIGNLY SEALED | **AUTHORITY:** 888_JUDGE
+> **VERSION:** 2026.4.13-SEALED | **STATUS:** SOVEREIGNLY SEALED | **AUTHORITY:** 888_JUDGE
 
 ---
 
@@ -95,20 +95,10 @@ graph LR
 ```mermaid
 graph TB
     A["server.py<br/>Universal Entry"] --> B{"FastMCP Version?"}
-    B -->|"2.x"| C["HORIZON.py<br/>Proxy Mode<br/>8 tools"]
-    B -->|"3.x"| D["runtime/server.py<br/>Full Kernel<br/>11 tools"]
-    
-    style A fill:#1a1a2e,color:#fff
-    style C fill:#16213e,color:#fff
-    style D fill:#0f3460,color:#fff
-```
-
-### Server Modes
-
 | Mode | Tools | Features | Entrypoint |
 |------|-------|----------|------------|
-| **Horizon (Cloud)** | 8 | Proxied to VPS | `HORIZON.py` |
-| **VPS (Sovereign)** | 12 | Full kernel, local Ollama | `runtime/server.py` |
+| **Unified (SoT)** | 17+ | Full kernel, 5-Resources, 6-Substrates | `server.py` |
+| **Inspector (Test)** | ALL | Conformance testing, benchmark | `evals/deploy_gate.py` |
 
 ---
 
@@ -128,20 +118,28 @@ graph TB
 
 ### Tool Reference Table
 
-| Tool | Band | Stage | Constitutional Role | Modes |
-|------|------|-------|-------------------|-------|
-| `init_anchor` | 000_INIT | 000 | Session anchoring, Ω₀, philosophy | init, state, status, revoke, refresh |
-| `arifOS_kernel` | 444_ROUT | 444 | Primary metabolic orchestration | kernel, status |
-| `apex_soul` | 888_JUDGE | 888 | Sovereign verdict and defense | judge, rules, validate, armor, probe |
-| `vault_ledger` | 999_SEAL | 999 | Immutable ledger (Merkle chain) | seal, verify, resolve |
-| `agi_mind` | 333_MIND | 333 | Constitutional reasoning and synthesis | reason, reflect, forge |
-| `asi_heart` | 666_HEART | 666 | Safety critique, impact simulation | critique, simulate |
-| `engineering_memory` | 555_MEM | 555 | Governed engineering and context | engineer, write, vector_query |
-| `physics_reality` | 111_SENSE | 111 | Environmental grounding and time | search, ingest, atlas, time |
-| `math_estimator` | 444_ROUT | 444 | Thermodynamic health and vitals | cost, health, vitals |
-| `code_engine` | M-3_EXEC | M-3 | Sandboxed execution and observation | fs, process, net, replay |
-| `architect_registry` | M-4_ARCH | M-4 | Tool discovery and schema catalog | list, read, register |
-| `compat_probe` | M-5_COMPAT | M-5 | Interoperability and enum audit | audit, probe, ping |
+| Tool | Band | Stage | Constitutional Role |
+|------|------|-------|-------------------|
+| `init_anchor` | 000_INIT | 000 | Session anchoring and philosophy |
+| `arifos_kernel` | 444_ROUT | 444 | Metabolic orchestration |
+| `apex_soul` | 888_JUDGE | 888 | Sovereign verdict and defense |
+| `vault_ledger` | 999_SEAL | 999 | Immutable vault ledger |
+| `agi_mind` | 333_MIND | 333 | Constitutional reasoning |
+| `asi_heart` | 666_HEART | 666 | Safety critique and impact |
+| `engineering_memory` | 555_MEM | 555 | Context bridge |
+| `physics_reality` | 111_SENSE | 111 | Reality grounding |
+| `math_estimator` | 444_ROUT | 444 | Thermodynamic vitals |
+| `code_engine` | M-3_EXEC | M-3 | Sandboxed execution |
+
+### 5-Resource Canonical Registry (Standardized v2)
+
+| Resource URI | Role | Backed By |
+|--------------|------|-----------|
+| `arifos://doctrine` | Eternal Law (Ψ) | `000/000_CONSTITUTION.md` |
+| `arifos://vitals` | Living Pulse (Ω) | `metabolic_monitor.py` |
+| `arifos://schema` | Blueprint (Δ) | `resource_specs.py` |
+| `arifos://session/{id}` | Ephemeral Self | Redis Session Context |
+| `arifos://forge` | Execution Bridge | `vault_ledger.py` |
 
 ---
 

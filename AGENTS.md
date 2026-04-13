@@ -2,11 +2,16 @@
 
 > **CANONICAL SOURCE OF TRUTH FOR arifOS: THIS REPOSITORY (`ariffazil/arifOS`)**
 >
-> **RUNTIME SURFACE TRUTH: Live `/health` and `/tools` endpoints on deployed server(s)**
+> **RUNTIME SURFACE TRUTH: Live `/health`, `/tools`, and Canonical Resources**
 >
-> - Doctrine, Floors (F1–F13), AGENTS.md, pyproject.toml, canonical tools, architecture, and canonical index spec live ONLY here.
-> - Runtime truth (what tools are available right now) is determined by the live `/tools` and `/health` endpoints on the deployed MCP server.
-> - If documentation disagrees with runtime: doctrine conflict → arifOS repo wins; runtime surface conflict → live `/health` + `/tools` wins.
+> - Doctrine, Floors (F1–F13), AGENTS.md, pyproject.toml, canonical tools, architecture, and canonical resource spec live ONLY here.
+> - Runtime truth is determined by the live endpoints and the exactly **5 Canonical Resources**:
+>   1. `arifos://doctrine` (Eternal Law — Ψ)
+>   2. `arifos://vitals` (Living Pulse — Ω)
+>   3. `arifos://schema` (Complete Blueprint — Δ)
+>   4. `arifos://session/{id}` (Ephemeral Instance)
+>   5. `arifos://forge` (Execution Bridge)
+> - If documentation disagrees with runtime: doctrine conflict → arifOS repo wins; runtime surface conflict → live endpoints/resources win.
 
 ---
 
@@ -15,14 +20,14 @@
 | Location | Purpose | SoT Level |
 |----------|---------|-----------|
 | **Root** (`README.md`, `AGENTS.md`, `pyproject.toml`) | Primary SoT — law, narrative, manifest | **PRIMARY** |
-| **`core/`** | Governance kernel, floors F1-F13, judgment engine | **PRIMARY** |
 | **`000/`** | Constitutional law, K000 theory, Agent Doctrine | **PRIMARY** |
-| **`config/`** | Canonical schemas, `/health` SoT fields | **PRIMARY** |
+| **`000/ROOT/`** | The 9-Organ Canon (re-indexed K000-K999) | **PRIMARY** |
+| **`000/FLOORS/`** | The 13 Constitutional Floors (re-indexed F01-F13) | **PRIMARY** |
+| **`core/`** | Governance kernel, decision logic, pipeline | **PRIMARY** |
 | **`arifosmcp/`** | Runtime shell — MCP server, HTTP transport | **RUNTIME** |
-| **`docs/deployment/`** | Deployment artifacts, scripts, configs | **OPERATIONAL** |
-| **`docs/reports/`** | Audit reports, test results, analysis | **OPERATIONAL** |
-| **`docs/runbooks/`** | Runbooks, process docs, living docs | **OPERATIONAL** |
-| **`docs/releases/`** | Release notes, version announcements | **OPERATIONAL** |
+| **`arifosmcp/apps/`** | Reactive constitutional surfaces (Judge, Vault, etc.) | **RUNTIME** |
+| **`config/`** | Canonical schemas, `/health` SoT fields | **PRIMARY** |
+| **`docs/`** | Deployment, release notes, and runbooks | **OPERATIONAL** |
 | **`.claude/`, `.cursor/`, `.gemini/`** | IDE/agent integration scaffolds | **INTEGRATION** |
 
 Full structure: [`docs/REPO_STRUCTURE.md`](docs/REPO_STRUCTURE.md)
