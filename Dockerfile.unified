@@ -1,0 +1,58 @@
+# ── arifOS Unified Production Stack ─────────────────────────────────────
+# Version: 2026.04.13-UNIFIED
+# ────────────────────────────────────────────────────────────────────────
+
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS runtime
+
+# Set environment
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PORT=8080 \
+    HOST=0.0.0.0
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install python dependencies using uv
+# We use --no-root-vouchers for faster builds if applicable, but standard sync is fine
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-install-project --no-dev
+
+# Copy project source
+COPY . .
+
+# Install the project itself
+RUN uv sync --frozen --no-dev
+
+# Setup persistent directories
+RUN mkdir -p telemetry data memory static/dashboard VAULT999
+
+# Create non-root user
+RUN groupadd -g 1000 arifos && \
+    useradd -u 1000 -g arifos -m -s /bin/bash arifos && \
+    chown -R arifos:arifos /app
+
+USER arifos
+
+# Expose canonical MCP port
+EXPOSE 8080
+
+# Production Healthcheck
+HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -fsS http://localhost:8080/health || exit 1
+
+# Metadata Labels
+LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifos-unified"
+LABEL io.modelcontextprotocol.server.version="2026.04.13-UNIFIED"
+
+# Run the unified server entrypoint
+# We use 'uv run' to ensure the synced environment is used
+CMD ["uv", "run", "python", "-m", "arifosmcp.runtime.server"]

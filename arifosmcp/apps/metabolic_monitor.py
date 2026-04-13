@@ -80,25 +80,28 @@ def _safe(fn: Any, default: Any) -> Any:
 
 
 def _live_floor_status() -> list[dict[str, Any]]:
-    """Pull live floor status from the governance layer; return defaults."""
-    return _safe(
-        lambda: (
-            lambda floors: [
-                {
-                    "id": f["id"],
-                    "name": f["name"],
-                    "stability": float(getattr(f, "stability", 0.95)),
-                    "status": str(getattr(f, "status", "PASS")),
-                }
-                for f in floors
-            ]
-        )(
-            __import__(
-                "arifosmcp.runtime.governance", fromlist=["get_floor_status"]
-            ).get_floor_status()
-        ),
-        [{"id": f["id"], "name": f["name"], "stability": 0.95, "status": "PASS"} for f in FLOORS],
-    )
+    """Pull live floor status from the governance layer; fall back to defaults."""
+    try:
+        from arifosmcp.runtime.rest_routes import _build_governance_status_payload
+
+        status = _build_governance_status_payload()
+        floors_raw: dict[str, float] = status.get("floors", {})
+        result = []
+        for f in FLOORS:
+            fid = f["id"]
+            score = float(floors_raw.get(fid, 0.95))
+            result.append({
+                "id": fid,
+                "name": f["name"],
+                "stability": score,
+                "status": "PASS" if score >= 0.90 else ("STRAIN" if score >= 0.70 else "FAIL"),
+            })
+        return result
+    except Exception:
+        return [
+            {"id": f["id"], "name": f["name"], "stability": 0.95, "status": "PASS"}
+            for f in FLOORS
+        ]
 
 
 def _live_metabolics() -> dict[str, float]:

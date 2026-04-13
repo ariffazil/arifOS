@@ -527,69 +527,57 @@ TOOLS: tuple[ToolSpec, ...] = (
         },
         default_tier="small",
     ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 15. arifos.forge_bridge — AF-FORGE Governance Bridge
-    # ─────────────────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------------------
+    # 15. arifos.probe -- System Health Probe
+    # -------------------------------------------------------------------------
     ToolSpec(
-        name="arifos_forge_bridge",
-        stage="FORGE_010",
-        purpose="Route task through AF-FORGE TypeScript constitutional engine (F3/F6/F9 gates)",
-        layer="GOVERNANCE",
-        description=(
-            "Proxy task to AF-FORGE HTTP bridge (port 7071). "
-            "AF-FORGE runs F3 InputClarity → F6 HarmDignity → F9 Injection checks before any LLM call. "
-            "Returns SABAR (F3 blocked), VOID (F6/F9 blocked), or governed agent output. "
-            "Use for tasks requiring TypeScript-side constitutional validation or AF-FORGE agent execution."
-        ),
-        trinity="Δ/Ψ",
-        floors=("F3", "F6", "F9", "F13"),
+        name="arifos_probe",
+        stage="111",
+        purpose="Probe system status or component health",
+        layer="MACHINE",
+        description="Probe system status or component health (system, memory, vault, etc.).",
+        trinity="Δ",
+        floors=("F4", "F12"),
         input_schema={
             "type": "object",
-            "required": ["task"],
             "properties": {
-                "task": {"type": "string", "minLength": 3, "maxLength": 10000, "description": "Task to evaluate or execute"},
-                "mode": {
-                    "type": "string",
-                    "enum": ["check_governance", "run", "health"],
-                    "default": "check_governance",
-                    "description": "check_governance=F3/F6/F9 verdict only | run=full agent execution | health=floor status",
-                },
-                "agent_mode": {
-                    "type": "string",
-                    "enum": ["internal_mode", "external_safe_mode"],
-                    "default": "external_safe_mode",
-                },
+                "target": {"type": "string", "default": "system", "description": "Component to probe"},
+                "probe_type": {"type": "string", "enum": ["status", "health", "metrics"], "default": "status"},
+                "timeout_ms": {"type": "integer", "default": 5000},
             },
         },
-        outputs={
-            "check_governance": {
-                "overall": "PASS | BLOCK",
-                "blocked": "boolean",
-                "floors": {
-                    "F3_InputClarity": {"verdict": "SABAR | PASS"},
-                    "F6_HarmDignity": {"verdict": "VOID | PASS"},
-                    "F9_Injection": {"verdict": "VOID | PASS"},
-                },
-            },
-            "run": {
-                "finalText": "string",
-                "turnCount": "integer",
-                "blocked": "boolean",
-            },
-            "health": {
-                "status": "healthy",
-                "constitutional_floors": {"implemented": "integer", "total": 13, "coverage": "string"},
-            },
-        },
-        visibility="internal",
-        default_tier="medium",
-        readonly=True,
+        default_tier="low",
         read_only_hint=True,
         destructive_hint=False,
-        open_world_hint=True,
+        open_world_hint=False,
         idempotent_hint=True,
     ),
-    # ─────────────────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------------------
+    # 16. arifos.diag_substrate -- Substrate Protocol Conformance
+    # -------------------------------------------------------------------------
+    ToolSpec(
+        name="arifos_diag_substrate",
+        stage="911",
+        purpose="Run substrate protocol conformance check",
+        layer="EXECUTION",
+        description="Maintainer: Run substrate protocol conformance check.",
+        trinity="Ψ",
+        floors=("F11",),
+        input_schema={
+            "type": "object",
+            "properties": {
+                "session_id": {"type": "string"},
+            },
+        },
+        default_tier="low",
+        read_only_hint=True,
+        destructive_hint=False,
+        open_world_hint=False,
+        idempotent_hint=True,
+    ),
+    # -------------------------------------------------------------------------
+    # 17. arifos.git_commit -- Governed Repository Mutation (Substrate)
+    # -------------------------------------------------------------------------
     # 16. arifos.git_commit — Governed Repository Mutation (Substrate)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(

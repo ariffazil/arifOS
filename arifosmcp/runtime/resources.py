@@ -20,6 +20,9 @@ from fastmcp.resources import ResourceResult, ResourceContent
 
 logger = logging.getLogger(__name__)
 
+# Module load time for uptime calculation
+START_TIME = datetime.now(timezone.utc)
+
 CANON_SESSION_STATES = """# arifOS Session Ladder
 
 - anonymous: no verified session binding
@@ -447,14 +450,35 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         return {"skill_name": skill_name, "description": desc}
 
     @mcp.resource("arifos://vitals{?format,window}")
-    def get_vitals(format: str = "json", window: str = "live") -> ResourceResult:
+    async def get_vitals(format: str = "json", window: str = "live") -> ResourceResult:
         """Real-time constitutional health and thermodynamics."""
+        now = datetime.now(timezone.utc)
+        uptime_seconds = int((now - START_TIME).total_seconds())
+
+        # Try to load recent vault entries (anonymized)
+        vault_entries: list[dict[str, Any]] = []
+        try:
+            from arifosmcp.runtime.vault_redis import get_vault_store
+            store = get_vault_store()
+            raw_entries = await store.get_chain(limit=100)
+            vault_entries = [
+                {
+                    "verdict": entry.get("verdict", "UNKNOWN"),
+                    "timestamp": entry.get("timestamp", ""),
+                    "stage": entry.get("stage", "999_VAULT"),
+                    "tool": entry.get("tool", "arifos_vault"),
+                }
+                for entry in raw_entries
+            ]
+        except Exception as e:
+            logger.debug(f"Vault summary unavailable in vitals: {e}")
+
         data = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": now.isoformat(),
             "system": {
                 "name": SYSTEM_CAPABILITIES["name"],
                 "version": SYSTEM_CAPABILITIES["version"],
-                "uptime_seconds": 86400,  # ADAPTER: static placeholder until live uptime source
+                "uptime_seconds": uptime_seconds,
             },
             "thermodynamics": {
                 "g_score": 0.87,
@@ -463,7 +487,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
                 "omega": 0.04,
             },
             "vault_summary": {
-                "last_100": [],  # ADAPTER: populated by vault integration
+                "last_100": vault_entries,
             },
             "capabilities": {
                 "tools_total": tools_total,
@@ -568,7 +592,21 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
 
         identity = get_session_identity(session_id)
         authority_level = identity.get("authority_level", "anonymous") if identity else "anonymous"
-        tools_available = []  # ADAPTER: would resolve from auth context
+
+        # Resolve available tools from canonical specs based on authority level
+        from arifosmcp.specs.tool_specs import CANONICAL_TOOL_SPECS
+        authority_rank = {
+            "anonymous": 0,
+            "anchored": 1,
+            "verified": 2,
+            "sovereign": 3,
+        }
+        user_rank = authority_rank.get(authority_level, 0)
+        tools_available = [
+            spec.name
+            for spec in CANONICAL_TOOL_SPECS
+            if authority_rank.get(spec.auth_required, 0) <= user_rank
+        ]
 
         return {
             "session_id": session_id,
@@ -644,9 +682,9 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
 # BACKWARD COMPATIBILITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def register_resources(mcp: FastMCP) -> None:
+def register_resources(mcp: FastMCP) -> list[str]:
     """Alias for register_v2_resources — backward compat."""
-    register_v2_resources(mcp)
+    return register_v2_resources(mcp)
 
 
 def apex_tools_html_rows() -> str:

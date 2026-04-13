@@ -144,7 +144,7 @@ mcp = FastMCP(
 
 Golden path: init → sense → mind → heart → judge → vault
 
-Canonical tools: arifos_init, arifos_sense, arifos_mind, arifos_route,
+Canonical tools: arifos_init, arifos_sense, arifos_mind, arifos_kernel,
 arifos_memory, arifos_heart, arifos_ops, arifos_judge, arifos_vault,
 arifos_forge, arifos_health, arifos_reply, arifos_fetch, etc.
 
@@ -213,6 +213,24 @@ try:
         logger.info("MCP Apps: VaultApp (999_VAULT ledger) registered")
     except Exception as _vault_err:
         logger.warning(f"VaultApp unavailable: {_vault_err}")
+
+    # Register InitApp — 000 Session Anchoring Surface (F1 Amanah: irreversible)
+    try:
+        from arifosmcp.apps.init_app import _register as _register_init
+
+        _register_init(mcp)
+        logger.info("MCP Apps: InitApp (000_INIT anchor) registered")
+    except Exception as _init_err:
+        logger.warning(f"InitApp unavailable: {_init_err}")
+
+    # Register ForgeApp — Double-Gated Execution Surface (F13 Sovereign)
+    try:
+        from arifosmcp.apps.forge_app import _register as _register_forge
+
+        _register_forge(mcp)
+        logger.info("MCP Apps: ForgeApp (FORGE double-gate) registered")
+    except Exception as _forge_err:
+        logger.warning(f"ForgeApp unavailable: {_forge_err}")
 
     # Register Approval provider — maps to 888_HOLD constitutional trigger
     try:
@@ -307,7 +325,7 @@ async def _build_gateway_metadata() -> dict:
         "arifos_init",
         "arifos_sense",
         "arifos_mind",
-        "arifos_route",
+        "arifos_kernel",
         "arifos_ops",
         "arifos_memory",
         "arifos_health",
@@ -419,7 +437,7 @@ try:
     router_visible_tools = {
         name
         for name in tool_registry.keys()
-        if not name.startswith("arifos_vps_") and name != "arifos_route"
+        if not name.startswith("arifos_vps_") and name != "arifos_kernel"
     }
 
     registered_endpoints = {
@@ -440,7 +458,7 @@ try:
         trinity_map=TRINITY_BY_TOOL,
         law_bindings=AAA_TOOL_LAW_BINDINGS,
         router_visible_tools=router_visible_tools,
-        policy_version=get_build_info().get("version", "2026.04.11"),
+        policy_version=get_build_info().get("version", "2026.04.13"),
         protocol_version=get_build_info().get("protocol_version", "2025-03-26"),
         registered_endpoints=registered_endpoints,
         entropy_guard_active=True,

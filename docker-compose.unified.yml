@@ -1,0 +1,125 @@
+# ── arifOS Unified Trinity Stack ──────────────────────────────────────────
+# HARDENED PRODUCTION CONFIGURATION
+# Version: 2026.04.13-UNIFIED
+# ─────────────────────────────────────────────────────────────────────────
+
+services:
+  traefik:
+    image: traefik:v3.6.9
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=arifbfazil@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/arifos/traefik/acme.json:/letsencrypt/acme.json
+    networks:
+      - arifos_unified_net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: arifos_vault
+      POSTGRES_USER: arifos_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - /opt/arifos/data/postgres:/var/lib/postgresql/data
+    networks:
+      - arifos_unified_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arifos_admin -d arifos_vault"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: redis-server --save 60 1 --maxmemory 96mb --maxmemory-policy allkeys-lru
+    volumes:
+      - /opt/arifos/data/redis:/data
+    networks:
+      - arifos_unified_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__LOG_LEVEL=WARN
+    volumes:
+      - /opt/arifos/data/qdrant:/qdrant/storage
+    networks:
+      - arifos_unified_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 15s
+      timeout: 5s
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - /opt/arifos/data/ollama:/root/.ollama
+    networks:
+      - arifos_unified_net
+    restart: unless-stopped
+
+  arifos_unified:
+    build:
+      context: .
+      dockerfile: Dockerfile.unified
+    image: arifos/arifos:unified
+    container_name: arifos_unified
+    env_file: .env
+    environment:
+      - VPS_MODE=1
+      - ARIFOS_DEPLOYMENT=vps
+      - OLLAMA_URL=http://ollama:11434
+      - QDRANT_URL=http://qdrant:6333
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://arifos_admin:${POSTGRES_PASSWORD}@postgres:5432/arifos_vault
+    volumes:
+      # Persistent data folders only — no root source mount for production!
+      - /opt/arifos/data/core:/app/data:rw
+      - /opt/arifos/telemetry:/app/telemetry:rw
+      - /opt/arifos/vault:/app/VAULT999:rw
+    networks:
+      - arifos_unified_net
+    ports:
+      - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.arifos.rule=Host(`arifosmcp.arif-fazil.com`)"
+      - "traefik.http.routers.arifos.entrypoints=websecure"
+      - "traefik.http.routers.arifos.tls.certresolver=letsencrypt"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+
+networks:
+  arifos_unified_net:
+    name: arifos_unified_net
+    driver: bridge

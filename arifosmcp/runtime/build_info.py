@@ -32,19 +32,19 @@ def get_build_info() -> dict[str, Any]:
         build metadata (commit, branch), and status.
     """
     commit = _git_sha_short()
-    app_version = os.environ.get("ARIFOS_APP_VERSION", "2026.04.11")
+    app_version = os.environ.get("ARIFOS_APP_VERSION", "2026.4.13")
     return {
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,
         "server_version": app_version,
-        "update_summary": "Enforced single Source-of-Truth architecture and aligned runtime endpoints. This eliminates doctrine fragmentation and ensures live server status is the undisputed authority for system capabilities.",
+        "update_summary": "5-Resource Canonical Consolidation. Enforced single Source-of-Truth architecture, consolidated 20+ fragmented resources into 5 canonical URIs (doctrine, vitals, schema, session, forge), and eliminated identity confusion.",
 
         # MCP protocol compatibility
         "protocol_version": "2025-03-26",
         "supported_protocol_versions": ["2025-03-26", "2024-11-05"],
 
         # Governance layer
-        "governance_version": "registry-1.2.0",
+        "governance_version": "registry-1.3.0",
         "policy_version": "arifOS.constitution.v1",
         "floors_version": "2026.04",
         "floors_active": 13,
@@ -60,11 +60,11 @@ def get_build_info() -> dict[str, Any]:
             "built_at": datetime.now(timezone.utc).isoformat(),
             "branch": "main",
         },
-        "release_tag": "v2026.04.11",
+        "release_tag": "v2026.4.13",
 
         # Status
         "status": "FORGED",
-        "forge_date": "2026-04-11",
+        "forge_date": "2026-04-13",
 
         # Display helpers
         "display": {
