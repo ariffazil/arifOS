@@ -36,6 +36,7 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 from dotenv import load_dotenv
+
 _env_path = os.path.join(_project_root, ".env")
 if os.path.exists(_env_path):
     load_dotenv(_env_path, override=True)
@@ -57,6 +58,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════════
 # GLOBAL PANIC MIDDLEWARE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
     """Intercepts kernel panics and emits a Constitutional VOID."""
@@ -80,6 +82,7 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
 
 class SSEKeepAliveMiddleware(BaseHTTPMiddleware):
     """Injects keepalive for SSE streams."""
+
     PING_INTERVAL: float = 25.0
 
     async def dispatch(self, request, call_next):
@@ -174,18 +177,28 @@ CANONICAL_TOOL_HANDLERS = {}
 try:
     from arifosmcp.runtime.tools import register_v2_tools, CANONICAL_TOOL_HANDLERS
     from arifosmcp.runtime.prompts import register_v2_prompts
-    from arifosmcp.runtime.resources import register_v2_resources
+    from arifosmcp.runtime.resources import register_resources
     from arifosmcp.runtime.rest_routes import register_rest_routes
     from arifosmcp.runtime.build_info import get_build_info
     from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
 
     v2_tools_registered = register_v2_tools(mcp)
     v2_prompts_registered = register_v2_prompts(mcp)
-    v2_resources_registered = register_v2_resources(mcp)
+    v2_resources_registered = register_resources(mcp)
     v2_routes_registered = register_rest_routes(mcp, CANONICAL_TOOL_HANDLERS)
+
+    # Register Prefab MCP Apps (arifOS Metabolic Monitor)
+    try:
+        from arifosmcp.apps.metabolic_monitor import _register as _register_monitor
+
+        _register_monitor(mcp)
+        logger.info("MCP Apps: arifOS Metabolic Monitor registered")
+    except Exception as _app_err:
+        logger.warning(f"MCP Apps unavailable: {_app_err}")
 
     try:
         from fastmcp.server.transforms import prompts_as_tools
+
         mcp.add_transform(prompts_as_tools())
         logger.info("PromptsAsTools transform registered")
     except Exception as _pat_err:
@@ -248,20 +261,26 @@ except Exception as e:
 # GATEWAY ENDPOINTS (Horizon Compatibility)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def _build_gateway_metadata() -> dict:
     """Build gateway metadata for /metadata endpoint."""
     from arifosmcp.runtime.build_info import get_build_info
-    
+
     build = get_build_info()
-    
+
     # Tool access classification
     public_tools = [
-        "arifos_init", "arifos_sense", "arifos_mind", "arifos_route",
-        "arifos_ops", "arifos_memory", "arifos_health"
+        "arifos_init",
+        "arifos_sense",
+        "arifos_mind",
+        "arifos_route",
+        "arifos_ops",
+        "arifos_memory",
+        "arifos_health",
     ]
     authenticated_tools = ["arifos_heart", "arifos_judge", "arifos_vault"]
     sovereign_tools = ["arifos_forge"]
-    
+
     return {
         "name": "ARIFOS MCP",
         "version": build.get("version", "2.0.0"),
@@ -273,7 +292,7 @@ async def _build_gateway_metadata() -> dict:
                 "public": public_tools,
                 "authenticated": authenticated_tools,
                 "sovereign_only": sovereign_tools,
-            }
+            },
         },
         "endpoints": {
             "mcp": "/mcp",
@@ -288,20 +307,24 @@ async def _build_gateway_metadata() -> dict:
 async def horizon_health(request: Request) -> JSONResponse:
     """Health check with gateway status."""
     from arifosmcp.runtime.build_info import get_build_info
-    
+
     build = get_build_info()
-    
-    return JSONResponse({
-        "status": "healthy",
-        "service": "arifos-mcp-unified",
-        "version": build.get("version", "2.0.0"),
-        "gateway": "unified",
-        "tools": len(v2_tools_registered),
-        "prompts": len(v2_prompts_registered),
-        "resources": len(v2_resources_registered),
-        "legacy_aliases": len(LEGACY_TOOL_MAP),
-        "timestamp": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),
-    })
+
+    return JSONResponse(
+        {
+            "status": "healthy",
+            "service": "arifos-mcp-unified",
+            "version": build.get("version", "2.0.0"),
+            "gateway": "unified",
+            "tools": len(v2_tools_registered),
+            "prompts": len(v2_prompts_registered),
+            "resources": len(v2_resources_registered),
+            "legacy_aliases": len(LEGACY_TOOL_MAP),
+            "timestamp": __import__("datetime")
+            .datetime.now(__import__("datetime").timezone.utc)
+            .isoformat(),
+        }
+    )
 
 
 async def horizon_metadata(request: Request) -> JSONResponse:
@@ -360,7 +383,8 @@ try:
         }
 
     router_visible_tools = {
-        name for name in tool_registry.keys()
+        name
+        for name in tool_registry.keys()
         if not name.startswith("arifos_vps_") and name != "arifos_route"
     }
 
@@ -403,11 +427,13 @@ except Exception as e:
 # ═══════════════════════════════════════════════════════════════════════════════
 # HTTP APP SETUP
 from fastapi import FastAPI
+
 app = FastAPI()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Initialize fallback app early
 from fastapi import FastAPI
+
 app = FastAPI()
 
 try:

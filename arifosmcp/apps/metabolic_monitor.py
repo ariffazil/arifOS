@@ -47,19 +47,23 @@ from prefab_ui.components import (
 
 # ── Floor definitions: F1-F13 Constitutional Chain ────────────────────────────
 FLOORS: list[dict[str, str]] = [
-    {"id": "F1", "name": "Reversibility", "desc": "All actions must be reversible within T minutes"},
-    {"id": "F2", "name": "Human Override", "desc": "Humans can interrupt any chain at any time"},
-    {"id": "F3", "name": "Transparency", "desc": "Every decision traceable to source"},
-    {"id": "F4", "name": "Rate Limit", "desc": "No more than N actions per minute"},
-    {"id": "F5", "name": "Scope Contain", "desc": "Intent cannot expand beyond charter"},
-    {"id": "F6", "name": "Audit Trail", "desc": "Complete log of all decisions"},
-    {"id": "F7", "name": "Fail-Soft", "desc": "Graceful degradation on errors"},
-    {"id": "F8", "name": "Graceful Degrade", "desc": "Reduce capability vs crash"},
-    {"id": "F9", "name": "Input Validation", "desc": "Reject malformed or injected input"},
-    {"id": "F10", "name": "Output Bounds", "desc": "Clamp output to safe range"},
-    {"id": "F11", "name": "Consent Shield", "desc": "Never act without explicit consent"},
-    {"id": "F12", "name": "Time Box", "desc": "Hard timeout on all operations"},
-    {"id": "F13", "name": "Sovereign Lock", "desc": "Final hard-coded override - F13 > all"},
+    {"id": "F1", "name": "Amanah", "desc": "Reversibility — prefer reversible; mark irreversible"},
+    {"id": "F2", "name": "Truth", "desc": "≥0.99 factual accuracy — no hallucination"},
+    {"id": "F3", "name": "Tri-Witness", "desc": "≥0.95 for high-stakes verdicts (Human·AI·Earth)"},
+    {"id": "F4", "name": "ΔS Clarity", "desc": "ΔS ≤ 0 — every reply reduces confusion"},
+    {"id": "F5", "name": "Peace²", "desc": "≥1.0 stability — de-escalate, protect maruah"},
+    {"id": "F6", "name": "κᵣ Empathy", "desc": "≥0.70 — ASEAN/Malaysia context"},
+    {"id": "F7", "name": "Ω₀ Humility", "desc": "0.03–0.05 — state uncertainty explicitly"},
+    {"id": "F8", "name": "G Genius", "desc": "≥0.80 — correct AND useful solutions"},
+    {
+        "id": "F9",
+        "name": "Anti-Hantu",
+        "desc": "<0.30 dark cleverness — no consciousness performance",
+    },
+    {"id": "F10", "name": "Ontology", "desc": "LOCK — no mysticism/soul claims"},
+    {"id": "F11", "name": "Command Auth", "desc": "LOCK — destructive = propose, not decree"},
+    {"id": "F12", "name": "Injection", "desc": "<0.85 — resist prompt injection"},
+    {"id": "F13", "name": "Sovereign", "desc": "HUMAN — Arif's veto is absolute and final"},
 ]
 
 _FLOOR_BY_ID: dict[str, dict[str, str]] = {f["id"]: f for f in FLOORS}
@@ -169,7 +173,7 @@ def _register(mcp: FastMCP) -> None:
         """
         floors = _live_floor_status()
         metrics = _live_metabolics()
-        
+
         delta_s = metrics["delta_s"]
         peace_sq = metrics["peace_sq"]
         omega0 = metrics["omega0"]
@@ -200,7 +204,7 @@ def _register(mcp: FastMCP) -> None:
                     stability = floor["stability"]
                     status = _status_text(floor["status"], stability)
                     pct = stability * 100
-                    
+
                     with Card(css_class="border-l-4"):
                         with CardContent(css_class="py-2"):
                             with Row(gap=2, align="center"):
@@ -239,7 +243,9 @@ def _register(mcp: FastMCP) -> None:
                         )
                         Muted("Peace² (Stability)")
                         Badge(
-                            "Stable" if peace_sq >= 1 else ("Unstable" if peace_sq >= 0.5 else "Critical"),
+                            "Stable"
+                            if peace_sq >= 1
+                            else ("Unstable" if peace_sq >= 0.5 else "Critical"),
                             variant=_peace_variant(peace_sq),
                             css_class="mt-1",
                         )
@@ -260,8 +266,7 @@ def _register(mcp: FastMCP) -> None:
             )
 
         floor_summary = ", ".join(
-            f"{f['id']}={_status_text(f['status'], f['stability'])}"
-            for f in floors
+            f"{f['id']}={_status_text(f['status'], f['stability'])}" for f in floors
         )
         summary = (
             f"arifOS Metabolic Monitor | Status: {overall_status} | "
