@@ -434,6 +434,12 @@ F3 InputClarity + F6 HarmDignity + F9 Injection gates are live in AgentEngine.
 # PROMPT REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Legacy shim for backward compatibility
+def register_prompts(mcp: FastMCP) -> list[str]:
+    """Legacy prompt registration shim — delegates to register_v2_prompts."""
+    return register_v2_prompts(mcp)
+
+
 def register_v2_prompts(mcp: FastMCP) -> list[str]:
     """Register all v2 prompts on the MCP instance."""
     registered = []

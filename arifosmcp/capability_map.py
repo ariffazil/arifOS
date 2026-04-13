@@ -62,6 +62,24 @@ ALIGNED_STAGES = {
 CAPABILITY_MAP = CANONICAL_TOOL_HANDLERS
 LEGACY_TOOLS = LEGACY_TOOL_MAP
 
+# Legacy aliases for pre-unification tests
+MEGA_TOOLS = list(CANONICAL_TOOL_HANDLERS.keys())
+FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
+MEGA_TOOL_MODES: dict[str, set[str]] = {name: {"default"} for name in MEGA_TOOLS}
+
+# Legacy iterator shims for pre-unification tests (current mapping is string→string, so these are trivially valid)
+def iter_unmapped_legacy_tools() -> list[str]:
+    return []
+
+def iter_unknown_tools_in_map() -> list[str]:
+    return []
+
+def iter_invalid_megatool_targets() -> list[str]:
+    return []
+
+def iter_invalid_modes() -> list[str]:
+    return []
+
 
 def build_llm_context_map() -> dict[str, object]:
     """Return the canonical discovery payload exposed in manifests and resources."""

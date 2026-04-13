@@ -9,6 +9,7 @@ Modes: init, revoke, refresh, state, status, probe
 
 from __future__ import annotations
 
+import json
 import time
 import uuid
 from datetime import datetime, timezone
@@ -532,7 +533,7 @@ async def init_anchor(
                 # ── New constitutional handshake fields ──────────────────
                 duration_ms=_duration_ms,
                 mode=mode,
-                intent=payload.get("intent"),
+                intent=json.dumps(payload.get("intent")) if isinstance(payload.get("intent"), dict) else payload.get("intent"),
                 anchor_state=_anchor_state,
                 anchor_scope=_anchor_scope,
                 policy=_policy_block,
