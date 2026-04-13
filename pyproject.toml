@@ -194,7 +194,7 @@ observability = [
 ]
 viz = [
     "matplotlib>=3.8.0",
-    "pandas>=2.1.0",
+    "pandas>=3.0.2",
 ]
 evals = [
     "pyyaml>=6.0.0",
@@ -217,7 +217,7 @@ all = [
     "prometheus-client>=0.19.0",
     # "chromadb>=0.5.0",  # Removed: legacy only; Qdrant is the active vector store
     "matplotlib>=3.8.0",
-    "pandas>=2.1.0",
+    "pandas>=3.0.2",
 ]
 
 [project.urls]
