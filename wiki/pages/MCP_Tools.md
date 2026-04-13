@@ -55,6 +55,11 @@ The current registry target is a clean **10-tool public canon**, but the repo ru
 | `arifos_reply` | internal composite/orchestrator still defined | `arifosmcp/runtime/tool_specs.py`, `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/server.py` |
 | `arifos_vps_monitor` | legacy/internal telemetry surface still referenced | `arifosmcp/runtime/tool_specs.py`, `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/resources.py` |
 | `arifos_route` | compatibility alias / old 444 symbol still referenced | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/kernel_runtime.py`, `arifosmcp/runtime/server.py` |
+| `arifos_repo_read` | Git bridge for reading repository state | `arifosmcp/runtime/tools.py`, `arifosmcp/integrations/git_bridge.py` |
+| `arifos_repo_seal` | Git bridge for sealing commits and state | `arifosmcp/runtime/tools.py`, `arifosmcp/integrations/git_bridge.py` |
+| `arifos_health` | System health endpoint for readiness checks | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/server.py` |
+| `arifos_fetch` | Grounding bridge for external content retrieval | `arifosmcp/runtime/tools.py`, `arifosmcp/tools/fetch_tool.py` |
+| `arifos_forge_bridge`| Internal bridge to delegated execution substrate | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/forge_bridge.py` |
 | dotted `arifos.*` names | legacy alias surface still active | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/kernel_router.py`, `arifosmcp/runtime/server.py` |
 
 ## Current Contrast
