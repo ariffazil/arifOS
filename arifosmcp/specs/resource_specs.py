@@ -2,7 +2,7 @@
 arifOS MCP Resource Specifications
 ═══════════════════════════════════════════════════════════════════════════════
 
-9 read-only context resources.
+5 canonical read-only context resources.
 
 Resources are live context surfaces, not executable actions.
 They provide:
@@ -46,78 +46,64 @@ class ResourceSpec:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 5 CANONICAL RESOURCES (CONSOLIDATED)
+# 5 CANONICAL RESOURCES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
-    # 1. arifos://doctrine — The Eternal Law (Ψ Sovereignty)
     ResourceSpec(
         uri="arifos://doctrine",
         name="arifOS Doctrine",
         description=(
-            "The Eternal Law: Immutable constitutional substrate. "
-            "Includes F1-F13 floor definitions, Verdict schemas (SEAL/VOID), "
-            "Gödel Lock specification, and the Foundational 000/ROOT doctrine."
+            "Immutable constitutional substrate. F1-F13 floors, verdict schema, Gödel Lock, agent skills manifest. "
+            "Sub-resources: arifos://doctrine/floor/{floor_id}, arifos://doctrine/skill/{skill_name}"
         ),
         mime_type="application/json",
         dynamic=False,
         auth_required="anonymous",
     ),
-    
-    # 2. arifos://vitals — The Living Pulse (Ω Stability)
     ResourceSpec(
         uri="arifos://vitals",
         name="arifOS Vitals",
         description=(
-            "The Living Pulse: Real-time thermodynamic state (G-score, ΔS, Ψ). "
-            "Includes versioning, health status, capacity metrics, and a "
-            "recent vault summary of anonymized verdicts."
+            "Real-time constitutional health and thermodynamics. "
+            "Query: ?format=json|markdown|widget&window=live|1h|24h"
         ),
         mime_type="application/json",
         dynamic=True,
         auth_required="anonymous",
     ),
-    
-    # 3. arifos://schema — The Complete Blueprint (Δ Discernment)
     ResourceSpec(
         uri="arifos://schema",
-        name="arifOS Schema Blueprint",
+        name="arifOS Schema",
         description=(
-            "The Complete Blueprint: All structural intelligence in one stable prefix. "
-            "Includes Master schema, Tool context packets, Trinity definitions, "
-            "Routing guides, and AGI Reply Protocol v3 schemas."
+            "Complete structural blueprint. "
+            "Query: ?section=all|master|tools|trinity|stages|reply|index&tool_id={id}"
         ),
         mime_type="application/json",
         dynamic=False,
         auth_required="anonymous",
     ),
-    
-    # 4. arifos://session — The Ephemeral Self (Consciousness)
     ResourceSpec(
         uri="arifos://session/{session_id}",
-        name="arifOS Session context",
+        name="arifOS Session",
         description=(
-            "The Ephemeral Self: Session-bound runtime context. "
-            "Includes authority level, available tools, active floors, "
-            "and the Reply context-pack delta state."
+            "Ephemeral per-session state and task dashboard. "
+            "Query: ?depth=surface|engineer|architect&compress=true|false"
         ),
         mime_type="application/json",
         is_template=True,
         dynamic=True,
         auth_required="anchored",
     ),
-    
-    # 5. arifos://forge — The Execution Bridge (Work/Energy)
     ResourceSpec(
         uri="arifos://forge",
-        name="arifOS Forge Operational",
+        name="arifOS Forge",
         description=(
-            "The Execution Bridge: Operational bridge from governance to build. "
-            "Includes AF-FORGE context, execution manifests, tool contracts, "
-            "and widget definitions."
+            "Execution bridge and deployment topology. "
+            "Query: ?context=all|engine|deployment|widgets&platform=claude|cursor|opencode|chatgpt"
         ),
         mime_type="application/json",
-        dynamic=True,
+        dynamic=False,
         auth_required="anonymous",
     ),
 )

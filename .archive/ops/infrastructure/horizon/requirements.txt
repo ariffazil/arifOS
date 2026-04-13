@@ -1,3 +1,0 @@
-# Minimal requirements for Horizon compatibility
-# Horizon provides fastmcp==2.12.3 automatically
-httpx>=0.25.0
