@@ -32,10 +32,28 @@
   ],
   "resources": [
     {
-      "uri": "ui://arifos/vault-seal-widget.html",
-      "mime_type": "text/html;profile=mcp-app",
-      "name": "Vault Seal Widget",
-      "description": "Constitutional health visualization widget for ChatGPT Apps"
+      "uri": "arifos://doctrine",
+      "mime_type": "application/json",
+      "name": "arifOS Doctrine",
+      "description": "Immutable constitutional substrate"
+    },
+    {
+      "uri": "arifos://vitals",
+      "mime_type": "application/json",
+      "name": "arifOS Vitals",
+      "description": "Real-time constitutional health"
+    },
+    {
+      "uri": "arifos://schema",
+      "mime_type": "application/json",
+      "name": "arifOS Schema",
+      "description": "Complete structural blueprint"
+    },
+    {
+      "uri": "arifos://forge",
+      "mime_type": "application/json",
+      "name": "arifOS Forge",
+      "description": "Execution bridge and deployment topology"
     }
   ],
   "capabilities": {

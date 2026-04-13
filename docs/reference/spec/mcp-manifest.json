@@ -1305,33 +1305,33 @@
       "mimeType": "application/json"
     },
     {
-      "uri": "arifos://governance/floors",
-      "name": "Constitutional Doctrine",
-      "description": "Immutable thresholds and legal doctrine for the 13 Floors.",
+      "uri": "arifos://doctrine",
+      "name": "arifOS Doctrine",
+      "description": "Immutable constitutional substrate. F1-F13 floors, verdict schema, Gödel Lock, agent skills manifest.",
       "mimeType": "application/json"
     },
     {
-      "uri": "arifos://status/vitals",
-      "name": "System Vitals",
-      "description": "Real-time thermodynamic and metabolic health of the kernel.",
+      "uri": "arifos://vitals",
+      "name": "arifOS Vitals",
+      "description": "Real-time constitutional health and thermodynamics.",
       "mimeType": "application/json"
     },
     {
-      "uri": "arifos://bootstrap/guide",
-      "name": "Bootstrap Guide",
-      "description": "Step-by-step sequence for establishing a governed session.",
+      "uri": "arifos://schema",
+      "name": "arifOS Schema",
+      "description": "Complete structural blueprint: master schema, tools, Trinity, reply protocol.",
       "mimeType": "application/json"
     },
     {
-      "uri": "arifos://agents/skills",
-      "name": "Agent Skills",
-      "description": "Canonical registry of AI agent competencies and behaviors.",
+      "uri": "arifos://session/{session_id}",
+      "name": "arifOS Session",
+      "description": "Ephemeral per-session state and task dashboard.",
       "mimeType": "application/json"
     },
     {
-      "uri": "arifos://caller/state",
-      "name": "Caller State",
-      "description": "Current session identity, authority level, and available next actions.",
+      "uri": "arifos://forge",
+      "name": "arifOS Forge",
+      "description": "Execution bridge and deployment topology.",
       "mimeType": "application/json"
     }
   ],

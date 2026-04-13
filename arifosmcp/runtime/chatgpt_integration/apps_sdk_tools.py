@@ -19,7 +19,7 @@ from arifosmcp.runtime.rest_routes import _build_governance_status_payload
 
 logger = logging.getLogger(__name__)
 
-VAULT_WIDGET_URI = "ui://arifos/vault-seal-widget.html"
+VAULT_WIDGET_URI = "https://mcp.af-forge.io/widget/vault-seal"
 
 # Standalone widget HTML file (served via /ui/ static route)
 _WIDGET_FILE = pathlib.Path(__file__).parent.parent / "widgets" / "vault_seal_widget.html"

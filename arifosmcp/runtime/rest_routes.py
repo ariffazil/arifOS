@@ -2123,8 +2123,11 @@ endpoint: {base}/mcp
 
 ## Resources
 - canon://states: Session state ladder
-- arifos://governance/floors: Constitutional floor definitions
-- arifos://system/capabilities: System capability manifest
+- arifos://doctrine: Immutable constitutional substrate
+- arifos://vitals: Real-time constitutional health
+- arifos://schema: Complete structural blueprint
+- arifos://session/{session_id}: Ephemeral per-session state
+- arifos://forge: Execution bridge and deployment topology
 
 ## Endpoints
 GET {base}/health — Health check

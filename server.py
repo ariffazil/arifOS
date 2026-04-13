@@ -196,6 +196,22 @@ try:
     except Exception as _app_err:
         logger.warning(f"MCP Apps unavailable: {_app_err}")
 
+    # Register Approval provider — maps to 888_HOLD constitutional trigger
+    try:
+        from fastmcp.apps.approval import Approval
+
+        mcp.add_provider(Approval(
+            name="Constitutional Gate",
+            title="888_HOLD — Human Confirmation Required",
+            approve_text="Authorize",
+            reject_text="Reject",
+            approve_variant="default",
+            reject_variant="destructive",
+        ))
+        logger.info("MCP Apps: Approval provider (888_HOLD gate) registered")
+    except Exception as _approval_err:
+        logger.warning(f"Approval provider unavailable: {_approval_err}")
+
     try:
         from fastmcp.server.transforms import prompts_as_tools
 

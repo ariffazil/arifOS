@@ -98,35 +98,45 @@ class TestResourceSpecs:
     """Verify resource registry integrity."""
     
     def test_resource_count(self):
-        """Should have exactly 9 canonical resources."""
-        assert len(CANONICAL_RESOURCE_SPECS) == 9
+        """Should have exactly 5 canonical resources."""
+        assert len(CANONICAL_RESOURCE_SPECS) == 5
     
     def test_resource_uris_unique(self):
         """All resource URIs must be unique."""
         assert len(RESOURCE_URIS) == len(set(RESOURCE_URIS))
     
     def test_resource_uris_follow_pattern(self):
-        """Resource URIs should follow arifos://, ui://, or https:// patterns."""
+        """Resource URIs should follow arifos:// pattern."""
         for uri in RESOURCE_URIS:
-            assert uri.startswith(("arifos://", "ui://", "https://")), f"Invalid URI: {uri}"
+            assert uri.startswith("arifos://"), f"Invalid URI: {uri}"
     
     def test_resource_lookup(self):
         """Should be able to lookup resources by URI."""
-        spec = get_resource_spec("arifos://governance/floors")
+        spec = get_resource_spec("arifos://doctrine")
         assert spec is not None
-        assert "Floors" in spec.name
+        assert "Doctrine" in spec.name
     
     def test_template_resources_marked(self):
         """Template resources should have is_template=True."""
         template_uris = [
-            "arifos://sessions/{session_id}/vitals",
-            "arifos://tools/{tool_name}",
-            "arifos://floors/{floor_id}/doctrine",
+            "arifos://session/{session_id}",
         ]
         for uri in template_uris:
             spec = get_resource_spec(uri)
             assert spec is not None, f"Missing template: {uri}"
             assert spec.is_template, f"Should be template: {uri}"
+
+    def test_doctrine_has_subresources(self):
+        assert get_resource_spec("arifos://doctrine") is not None
+
+    def test_vitals_is_dynamic(self):
+        spec = get_resource_spec("arifos://vitals")
+        assert spec.dynamic is True
+
+    def test_session_requires_auth(self):
+        spec = get_resource_spec("arifos://session/{session_id}")
+        assert spec.auth_required == "anchored"
+        assert spec.is_template is True
 
 
 class TestPromptSpecs:
@@ -194,8 +204,8 @@ class TestChatGPTSubset:
         assert "violations" in result
     
     def test_chatgpt_resource_count(self):
-        """Should expose 6 resources to ChatGPT."""
-        assert len(CHATGPT_RESOURCE_URIS) == 6
+        """Should expose 4 resources to ChatGPT."""
+        assert len(CHATGPT_RESOURCE_URIS) == 4
     
     def test_chatgpt_prompt_count(self):
         """Should expose 4 prompts to ChatGPT."""

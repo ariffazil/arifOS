@@ -40,12 +40,10 @@ CHATGPT_TOOL_NAMES: tuple[str, ...] = (
 
 # Resources exposed to ChatGPT
 CHATGPT_RESOURCE_URIS: tuple[str, ...] = (
-    "arifos://bootstrap",
-    "arifos://governance/floors",
-    "arifos://status/vitals",
-    "arifos://agents/skills",
-    "arifos://vault/recent",
-    "ui://arifos/vault-seal-widget.html",
+    "arifos://doctrine",
+    "arifos://vitals",
+    "arifos://schema",
+    "arifos://forge",
 )
 
 # Prompts exposed to ChatGPT
