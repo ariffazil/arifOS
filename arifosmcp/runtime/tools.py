@@ -1418,11 +1418,23 @@ async def arifos_reply(
     )
 
 
-# arifos_diag_substrate defined once below — do not duplicate
 # ═══════════════════════════════════════════════════════════════════════════════
 # UNIVERSAL NAMING: All tool names use underscores for cross-platform compatibility
 # Legacy dot-names (arifos.init) are supported via LEGACY_ALIASES mapping
 # ═══════════════════════════════════════════════════════════════════════════════
+
+async def arifos_diag_substrate(session_id: str | None = None) -> Any:
+    """Maintainer: Run substrate protocol conformance check."""
+    from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict
+    
+    verdict = await run_protocol_conformance_test()
+    return _RE(
+        ok=verdict == Verdict.SEAL,
+        tool="arifos.diag_substrate",
+        verdict=verdict,
+        payload={"message": f"Substrate conformance result: {verdict}"}
+    )
 
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # Canonical underscore names (Universal Compatible)
@@ -1663,59 +1675,3 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
     logger.info(f"Registered {len(registered)} v2 tools: {registered}")
     return registered
 
-
-__all__ = [
-    "CANONICAL_TOOL_HANDLERS",
-    "V2_TOOL_HANDLERS",
-    "register_v2_tools",
-    "arifos_init",
-    "arifos_sense",
-    "arifos_mind",
-    "arifos_kernel",
-    "arifos_heart",
-    "arifos_ops",
-    "arifos_judge",
-    "arifos_memory",
-    "arifos_vault",
-    "init_v2",
-    "sense_v2",
-    "mind_v2",
-    "route_v2",
-    "memory_v2",
-    "heart_v2",
-    "ops_v2",
-    "judge_v2",
-    "vault_v2",
-    "forge_v2",
-    # Legacy exports
-    "init_anchor",
-    "arifos_kernel",  # was arifOS_kernel
-    "apex_soul",
-    "vault_ledger",
-    "math_estimator",
-    "physics_reality",
-    "engineering_memory",
-    "asi_heart",
-    "agi_mind",
-    "architect_registry",
-    "check_vital",
-    "system_health",
-    "_normalize_session_id",
-    "_resolve_caller_context",
-    "_resolve_caller_state",
-    "_wrap_call",
-    "select_governed_philosophy",
-]
-
-async def arifos_diag_substrate(session_id: str | None = None) -> Any:
-    """Maintainer: Run substrate protocol conformance check."""
-    from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
-    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict
-    
-    verdict = await run_protocol_conformance_test()
-    return _RE(
-        ok=verdict == Verdict.SEAL,
-        tool="arifos.diag_substrate",
-        verdict=verdict,
-        payload={"message": f"Substrate conformance result: {verdict}"}
-    )
