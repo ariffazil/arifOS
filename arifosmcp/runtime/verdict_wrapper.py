@@ -99,9 +99,9 @@ def forge_verdict(
     if stage == "999_VAULT":
         art_status = ArtifactStatus.SEALED if code == VerdictCode.SEAL else ArtifactStatus.REJECTED
     elif stage == "777_FORGE":
-        art_status = ArtifactStatus.RELEASE_READY if code == VerdictCode.SEAL else ArtifactStatus.GENERATED
+        art_status = ArtifactStatus.STAGED if code == VerdictCode.SEAL else ArtifactStatus.REJECTED
     else:
-        art_status = ArtifactStatus.GENERATED
+        art_status = ArtifactStatus.USABLE
 
     # 5. Build the V2.0.0 Unified Envelope
     # This matches the ResponseEnvelope contract used by all transports
