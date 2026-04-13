@@ -60,7 +60,7 @@ THRESHOLDS = {
     "F4_CLARITY": 0.0,
     "F5_PEACE": 1.0,
     "F6_EMPATHY": 0.70,
-    "F7_HUMIDITY": (0.03, 0.05),
+    "F7_HUMILITY": (0.03, 0.05),
     "F8_GENIUS": 0.80,
     "F9_ANTI_HANTU": 0.30,
     "F10_ONTOLOGY": 1.00,
@@ -163,7 +163,7 @@ class ConstitutionalFloors:
         f7_result = self._check_f7_humility(parameters)
         self.results.append(f7_result)
         if not f7_result.passed:
-            violations.append(f"{f7_result.floor_id}_HUMIDITY")
+            violations.append(f"{f7_result.floor_id}_HUMILITY")
 
         f8_result = self._check_f8_governance(action, parameters)
         self.results.append(f8_result)
@@ -385,7 +385,7 @@ class ConstitutionalFloors:
         )
 
     def _check_f7_humility(self, parameters: dict[str, Any]) -> FloorResult:
-        threshold_min, threshold_max = THRESHOLDS["F7_HUMIDITY"]
+        threshold_min, threshold_max = THRESHOLDS["F7_HUMILITY"]
 
         query = parameters.get("query", "") or parameters.get("prompt", "")
 
