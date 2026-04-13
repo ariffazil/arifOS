@@ -198,7 +198,7 @@ viz = [
 ]
 evals = [
     "pyyaml>=6.0.0",
-    "aiohttp>=3.9.0",
+    "aiohttp>=3.13.5",
 ]
 all = [
     "pyyaml>=6.0.0",
