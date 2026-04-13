@@ -958,7 +958,8 @@ async def _run_sequential_thinking(
 
 
 async def arifos_kernel(
-    request: str,
+    request: str | None = None,
+    query: str | None = None,
     mode: str = "kernel",
     session_id: str | None = None,
     risk_tier: str = "medium",
@@ -968,9 +969,11 @@ async def arifos_kernel(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Route request to correct metabolic lane."""
+    # Horizon Unification: Support both 'request' and 'query'
+    target_query = query or request or ""
     envelope = await _mega_arifos_kernel(
         mode=mode,
-        payload={"query": request},
+        payload={"query": target_query},
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
@@ -982,7 +985,8 @@ async def arifos_kernel(
 
 
 async def arifos_heart(
-    content: str,
+    content: str | None = None,
+    query: str | None = None,
     mode: str = "critique",
     session_id: str | None = None,
     risk_tier: str = "medium",
@@ -990,10 +994,12 @@ async def arifos_heart(
     debug: bool = False,
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
+    # Horizon Unification: Support both 'content' and 'query'
+    target_content = query or content or ""
     # ── ASI Heart: Safety, dignity, and adversarial critique ──────────────
     from arifosmcp.runtime.arifos_runtime_envelope import heart_stage, mind_stage, sense_stage
 
-    sensed = sense_stage(content)
+    sensed = sense_stage(target_content)
     hypotheses = mind_stage(sensed)
     risk_trace = heart_stage(hypotheses)
     critique_packet = {
@@ -1038,7 +1044,8 @@ async def arifos_heart(
 
 
 async def arifos_ops(
-    action: str = "",
+    action: str | None = None,
+    query: str | None = None,
     mode: str = "cost",
     session_id: str | None = None,
     risk_tier: str = "medium",
@@ -1047,9 +1054,11 @@ async def arifos_ops(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Calculate operation costs and thermodynamics."""
+    # Horizon Unification: Support both 'action' and 'query'
+    target_action = query or action or ""
     envelope = await _mega_math_estimator(
         mode=mode,
-        payload={"action": action},
+        payload={"action": target_action},
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
@@ -1060,7 +1069,8 @@ async def arifos_ops(
 
 
 async def arifos_judge(
-    candidate_action: str,
+    candidate_action: str | None = None,
+    query: str | None = None,
     risk_tier: str = "medium",
     telemetry: dict[str, Any] | None = None,
     session_id: str | None = None,
@@ -1069,10 +1079,12 @@ async def arifos_judge(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Final constitutional verdict evaluation."""
+    # Horizon Unification: Support both 'candidate_action' and 'query'
+    target_candidate = query or candidate_action or ""
     envelope = await _mega_apex_judge(
         mode="judge",
         payload={
-            "candidate": candidate_action,
+            "candidate": target_candidate,
             "risk_tier": risk_tier,
             "telemetry": telemetry,
         },

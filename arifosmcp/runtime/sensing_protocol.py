@@ -2013,6 +2013,15 @@ def compute_routing(
             requires_live_verification=tc.temporal_dependency,
         )
 
+    # NEW: has_evidence + uncertainty HIGH/EXTREME → MIND (with caution)
+    # This prevents trigger-happy HOLD when we actually have data to work with.
+    if has_evidence:
+        return RoutingDecision(
+            next_stage=RoutingTarget.MIND,
+            route_reason="Evidence gathered but uncertainty remains high — proceed with epistemic caution.",
+            requires_live_verification=True,
+        )
+
     if tc.truth_class == TruthClass.CONTESTED_FRAMEWORK:
         return RoutingDecision(
             next_stage=RoutingTarget.HEART,
@@ -2065,7 +2074,7 @@ def compute_verdict(
 
     if classified and grounded and bounded and handoff_safe:
         return "SEAL"
-    if classified and grounded:
+    if grounded:
         return "SABAR"
     return "HOLD"
 

@@ -174,9 +174,9 @@ TOOLS: tuple[ToolSpec, ...] = (
         floors=("F4", "F11"),
         input_schema={
             "type": "object",
-            "required": ["request"],
+            "required": ["query"],
             "properties": {
-                "request": {"type": "string", "minLength": 1, "description": "Request to route"},
+                "query": {"type": "string", "minLength": 1, "description": "Request to route"},
                 "mode": {"type": "string", "enum": ["kernel", "status"], "default": "kernel"},
                 "session_id": {"type": "string"},
             },
@@ -195,9 +195,9 @@ TOOLS: tuple[ToolSpec, ...] = (
         floors=("F5", "F6", "F9"),
         input_schema={
             "type": "object",
-            "required": ["content"],
+            "required": ["query"],
             "properties": {
-                "content": {"type": "string", "description": "Content or proposal to critique"},
+                "query": {"type": "string", "description": "Content or proposal to critique"},
                 "mode": {"type": "string", "enum": ["critique", "simulate"], "default": "critique"},
                 "session_id": {"type": "string"},
             },
@@ -216,9 +216,9 @@ TOOLS: tuple[ToolSpec, ...] = (
         floors=("F4", "F5"),
         input_schema={
             "type": "object",
-            "required": ["action"],
+            "required": ["query"],
             "properties": {
-                "action": {"type": "string", "description": "Action to estimate costs for"},
+                "query": {"type": "string", "description": "Action to estimate costs for"},
                 "mode": {
                     "type": "string",
                     "enum": ["cost", "health", "vitals", "entropy"],
@@ -241,9 +241,9 @@ TOOLS: tuple[ToolSpec, ...] = (
         floors=("F1", "F2", "F3", "F9", "F10", "F12", "F13"),
         input_schema={
             "type": "object",
-            "required": ["candidate_action", "risk_tier"],
+            "required": ["query", "risk_tier"],
             "properties": {
-                "candidate_action": {"type": "string", "description": "Action to judge"},
+                "query": {"type": "string", "description": "Action to judge"},
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],

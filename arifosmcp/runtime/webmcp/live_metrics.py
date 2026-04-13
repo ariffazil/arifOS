@@ -20,7 +20,12 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-import psutil
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    psutil = None
 
 
 @dataclass
@@ -152,6 +157,9 @@ class LiveMetricsCollector:
 
     async def get_machine_metrics(self) -> MachineMetrics:
         """Collect VPS machine metrics."""
+        if not PSUTIL_AVAILABLE:
+            return MachineMetrics(cpu_percent=0.0, system_status="DEGRADED: psutil unavailable")
+
         try:
             # CPU metrics
             cpu_percent = psutil.cpu_percent(interval=0.1)
