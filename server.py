@@ -205,6 +205,15 @@ try:
     except Exception as _judge_err:
         logger.warning(f"JudgeApp unavailable: {_judge_err}")
 
+    # Register VaultApp — 999 Immutable Ledger Surface (F1 Amanah: read-only)
+    try:
+        from arifosmcp.apps.vault_app import _register as _register_vault
+
+        _register_vault(mcp)
+        logger.info("MCP Apps: VaultApp (999_VAULT ledger) registered")
+    except Exception as _vault_err:
+        logger.warning(f"VaultApp unavailable: {_vault_err}")
+
     # Register Approval provider — maps to 888_HOLD constitutional trigger
     try:
         from fastmcp.apps.approval import Approval
