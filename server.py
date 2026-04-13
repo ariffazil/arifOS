@@ -196,6 +196,15 @@ try:
     except Exception as _app_err:
         logger.warning(f"MCP Apps unavailable: {_app_err}")
 
+    # Register JudgeApp — 888 Constitutional Verdict Surface (F13 Sovereign gate)
+    try:
+        from arifosmcp.apps.judge_app import _register as _register_judge
+
+        _register_judge(mcp)
+        logger.info("MCP Apps: JudgeApp (888_JUDGE surface) registered")
+    except Exception as _judge_err:
+        logger.warning(f"JudgeApp unavailable: {_judge_err}")
+
     # Register Approval provider — maps to 888_HOLD constitutional trigger
     try:
         from fastmcp.apps.approval import Approval
