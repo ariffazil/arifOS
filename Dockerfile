@@ -35,6 +35,9 @@ RUN python -m pip install --upgrade pip && \
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
 RUN pip install --no-cache-dir itsdangerous fastapi uvicorn redis python-multipart psutil
 
+# Remove pip-installed arifosmcp from site-packages to avoid conflict with /usr/src/app source
+RUN rm -rf /usr/local/lib/python3.12/site-packages/arifosmcp*
+
 # BGE-M3 model is served by Ollama (ollama_engine container).
 # No local HuggingFace model baking required — eliminates ~750MB torch + ~570MB model from image.
 
@@ -74,9 +77,8 @@ COPY --from=build /usr/local /usr/local
 COPY . .
 
 # Setup dirs, fix ownership
-RUN mkdir -p telemetry data VAULT999 memory static/dashboard && \
-    mkdir -p /ms-playwright && \
-    chown -R arifos:arifos /usr/src/app /ms-playwright
+RUN mkdir -p telemetry data memory static/dashboard && rm -rf VAULT999 && mkdir -p VAULT999
+RUN mkdir -p /ms-playwright && chown -R arifos:arifos /usr/src/app /ms-playwright
 
 # Install Playwright browser deterministically
 #RUN python -m playwright install --with-deps chromium && \

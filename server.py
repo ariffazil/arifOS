@@ -163,6 +163,14 @@ def create_aaa_mcp_server() -> FastMCP:
 # REGISTER CANONICAL TOOLS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Default version flags to prevent NameError in case of import failure
+IS_FASTMCP_2 = False
+IS_FASTMCP_3 = False
+v2_tools_registered = []
+v2_prompts_registered = []
+v2_resources_registered = []
+CANONICAL_TOOL_HANDLERS = {}
+
 try:
     from arifosmcp.runtime.tools import register_v2_tools, CANONICAL_TOOL_HANDLERS
     from arifosmcp.runtime.prompts import register_v2_prompts
@@ -394,7 +402,13 @@ except Exception as e:
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HTTP APP SETUP
+from fastapi import FastAPI
+app = FastAPI()
 # ═══════════════════════════════════════════════════════════════════════════════
+
+# Initialize fallback app early
+from fastapi import FastAPI
+app = FastAPI()
 
 try:
     if IS_FASTMCP_3:
@@ -407,8 +421,8 @@ try:
         except AttributeError:
             app = mcp._mcp_server.app
     else:
-        from fastapi import FastAPI
-        app = FastAPI()
+        # Already initialized above
+        pass
 
     # Add middleware
     app.add_middleware(GlobalPanicMiddleware)
@@ -428,7 +442,7 @@ try:
 
 except Exception as e:
     logger.error(f"Failed to setup HTTP app: {e}")
-    app = None
+    # app = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
