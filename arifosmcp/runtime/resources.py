@@ -608,6 +608,8 @@ def manifest_resources() -> list[dict]:
         {"uri": "arifos://system/capabilities", "name": "System Capabilities"},
         {"uri": "arifos://schema/master", "name": "Master Schema"},
         {"uri": "arifos://schema/tools", "name": "Tool Schemas"},
+        {"uri": "arifos://ecosystem/context-v1", "name": "Ecosystem Context — arifOS Constellation"},
+        {"uri": "arifos://ecosystem/geox", "name": "GEOX Platform Integration"},
     ]
 
 

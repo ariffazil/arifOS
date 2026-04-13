@@ -1,0 +1,324 @@
+/**
+ * arifOS Shared Theme CSS
+ * Source: https://arifosmcp.arif-fazil.com/arifos-theme.css
+ * Version: 2026.04.13
+ *
+ * Import this in any site to align with the arifOS MCP visual language:
+ *   <link rel="stylesheet" href="https://arifosmcp.arif-fazil.com/arifos-theme.css">
+ *
+ * Includes:
+ *   - CSS custom properties (dark/light themes)
+ *   - Islamic geometric SVG hero pattern
+ *   - Vitality ring + SEAL badge
+ *   - Shared typography
+ */
+
+/* ═══════════════════════════════════════════
+   CSS CUSTOM PROPERTIES
+═══════════════════════════════════════════ */
+:root {
+  --arif-bg: #0C0E12;
+  --arif-bg-card: #13151A;
+  --arif-bg-secondary: #0F1117;
+  --arif-border: #1C1F27;
+  --arif-border-subtle: #252830;
+  --arif-text: #E8E8F0;
+  --arif-text-secondary: #9CA3AF;
+  --arif-text-muted: #6B7280;
+  --arif-accent: #00B4A0;
+  --arif-accent-dim: rgba(0,180,160,0.12);
+  --arif-accent-border: rgba(0,180,160,0.3);
+  --arif-seal: #3DBE8A;
+  --arif-caution: #F0B757;
+  --arif-danger: #E05252;
+  --arif-font-sans: 'Inter', system-ui, sans-serif;
+  --arif-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --arif-radius: 8px;
+  --arif-transition: 150ms ease;
+}
+
+[data-theme="light"] {
+  --arif-bg: #F5F4F1;
+  --arif-bg-card: #ECEAE5;
+  --arif-bg-secondary: #E5E3DD;
+  --arif-border: #D1CEC7;
+  --arif-border-subtle: #E0DDD7;
+  --arif-text: #1C1F27;
+  --arif-text-secondary: #4B5563;
+  --arif-text-muted: #9CA3AF;
+}
+
+/* ═══════════════════════════════════════════
+   GEOMETRIC HERO PATTERN
+   Use: <div class="arif-geo-bg">…content…</div>
+═══════════════════════════════════════════ */
+.arif-geo-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .arif-geo-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(0,180,160,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0,180,160,0.03) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%2300B4A0' stroke-width='0.3' opacity='0.15'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z'/%3E%3Cpath d='M30 10L50 30L30 50L10 30Z'/%3E%3Cpath d='M30 20L40 30L30 40L20 30Z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.arif-geo-bg > * { position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════
+   VITALITY RING + SEAL BADGE
+   HTML: <div class="arif-seal-widget" id="arif-seal"></div>
+   JS:   fetch('/health') → updateSeal(data)
+═══════════════════════════════════════════ */
+.arif-seal-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arif-seal-ring {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.arif-seal-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.arif-seal-ring-bg {
+  fill: none;
+  stroke: var(--arif-border);
+  stroke-width: 4;
+}
+
+.arif-seal-ring-fill {
+  fill: none;
+  stroke: var(--arif-seal);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 138.2; /* 2 * π * 22 */
+  stroke-dashoffset: 138.2;
+  transition: stroke-dashoffset 1s ease;
+}
+
+.arif-seal-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--arif-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--arif-seal);
+  transform: rotate(0deg);
+}
+
+.arif-seal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-family: var(--arif-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid;
+}
+
+.arif-seal-badge.seal {
+  background: rgba(61,190,138,0.12);
+  color: var(--arif-seal);
+  border-color: rgba(61,190,138,0.3);
+}
+
+.arif-seal-badge.hold {
+  background: rgba(240,183,87,0.12);
+  color: var(--arif-caution);
+  border-color: rgba(240,183,87,0.3);
+}
+
+.arif-seal-badge.void {
+  background: rgba(224,82,82,0.12);
+  color: var(--arif-danger);
+  border-color: rgba(224,82,82,0.3);
+}
+
+.arif-seal-badge.offline {
+  background: rgba(107,114,128,0.12);
+  color: var(--arif-text-muted);
+  border-color: var(--arif-border);
+}
+
+/* Vitality ring scale for small sizes */
+.arif-seal-ring.sm { width: 28px; height: 28px; }
+.arif-seal-ring.sm .arif-seal-ring-bg,
+.arif-seal-ring.sm .arif-seal-ring-fill { stroke-width: 3; }
+.arif-seal-ring.sm .arif-seal-ring-fill { stroke-dasharray: 86.4; stroke-dashoffset: 86.4; }
+.arif-seal-ring.sm .arif-seal-num { font-size: 0.6rem; }
+
+/* ═══════════════════════════════════════════
+   SHARED TYPOGRAPHY HELPERS
+═══════════════════════════════════════════ */
+.arif-mono {
+  font-family: var(--arif-font-mono);
+}
+
+.arif-accent {
+  color: var(--arif-accent);
+}
+
+.arif-seal-text {
+  color: var(--arif-seal);
+}
+
+.arif-caution-text {
+  color: var(--arif-caution);
+}
+
+.arif-danger-text {
+  color: var(--arif-danger);
+}
+
+/* ═══════════════════════════════════════════
+   ΔΩΨ TRINITY SYMBOL
+   Use: <span class="arif-dps">ΔΩΨ</span>
+═══════════════════════════════════════════ */
+.arif-dps {
+  font-family: var(--arif-font-mono);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--arif-accent);
+}
+
+.arif-dps-gold {
+  color: #D4A843;
+}
+
+/* ═══════════════════════════════════════════
+   FLOOR BADGE
+   Use: <span class="arif-floor-badge" data-floor="F2">F2</span>
+═══════════════════════════════════════════ */
+.arif-floor-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--arif-font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--arif-accent-dim);
+  color: var(--arif-accent);
+  border: 1px solid var(--arif-accent-border);
+}
+
+.arif-floor-badge.F13 {
+  background: rgba(240,183,87,0.1);
+  color: var(--arif-caution);
+  border-color: rgba(240,183,87,0.25);
+}
+
+.arif-floor-badge.F1 {
+  background: rgba(61,190,138,0.1);
+  color: var(--arif-seal);
+  border-color: rgba(61,190,138,0.25);
+}
+
+/* ═══════════════════════════════════════════
+   SHARED BUTTON STYLES
+═══════════════════════════════════════════ */
+.arif-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--arif-radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--arif-transition);
+  border: none;
+  text-decoration: none;
+  font-family: var(--arif-font-sans);
+}
+
+.arif-btn-primary {
+  background: var(--arif-accent);
+  color: #fff;
+}
+
+.arif-btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.arif-btn-secondary {
+  background: var(--arif-bg-secondary);
+  color: var(--arif-text);
+  border: 1px solid var(--arif-border);
+}
+
+.arif-btn-secondary:hover {
+  border-color: var(--arif-accent);
+  color: var(--arif-accent);
+}
+
+/* ═══════════════════════════════════════════
+   VITAGEN INTEGRATION JS
+   Include once per page; auto-binds .arif-seal-widget
+═══════════════════════════════════════════ */
+/*
+(function() {
+  var sealEl = document.getElementById('arif-seal');
+  if (!sealEl) return;
+
+  function updateSeal(d) {
+    if (!d || d.status === 'offline') {
+      sealEl.innerHTML = '<span class="arif-seal-badge offline">OFFLINE</span>';
+      return;
+    }
+    var vit = d.thermodynamic?.vitality_index ?? null;
+    var verd = d.thermodynamic?.verdict || d.verdict || 'SEAL';
+    var vClass = verd === 'SEAL' ? 'seal' : verd === 'HOLD' ? 'hold' : verd === 'VOID' ? 'void' : 'seal';
+    var circ = 2 * Math.PI * 22;
+    var offset = circ * (1 - (vit !== null ? vit : 0.82));
+    var vitDisplay = vit !== null ? (typeof vit === 'number' ? vit.toFixed(2) : vit) : '—';
+
+    sealEl.innerHTML =
+      '<div class="arif-seal-ring">' +
+        '<svg viewBox="0 0 44 44">' +
+          '<circle class="arif-seal-ring-bg" cx="22" cy="22" r="22"/>' +
+          '<circle class="arif-seal-ring-fill" cx="22" cy="22" r="22"' +
+            ' style="stroke-dashoffset:' + offset + '"/>' +
+        '</svg>' +
+        '<span class="arif-seal-num">' + vitDisplay + '</span>' +
+      '</div>' +
+      '<span class="arif-seal-badge ' + vClass + '">' + verd + '</span>';
+  }
+
+  // Try to fetch vitality from current host or arifOS MCP
+  var apiBase = window.ARIFOS_API || (window.location.protocol === 'https:'
+    ? 'https://arifosmcp.arif-fazil.com'
+    : 'http://localhost:8080');
+
+  fetch(apiBase + '/health')
+    .then(function(r) { return r.json(); })
+    .then(updateSeal)
+    .catch(function() {
+      var existing = sealEl.querySelector('.arif-seal-badge');
+      if (!existing) sealEl.innerHTML = '<span class="arif-seal-badge offline">OFFLINE</span>';
+    });
+})();
+*/
