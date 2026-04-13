@@ -55,6 +55,7 @@ from arifosmcp.runtime.megaTools import (
 from arifosmcp.tools.fetch_tool import arifos_fetch
 from arifosmcp.integrations.memory_bridge import arifos_memory_query as arifos_memory
 from arifosmcp.integrations.git_bridge import arifos_repo_read, arifos_repo_seal
+from arifosmcp.integrations import git_bridge
 from arifosmcp.integrations.everything_probe import everything_probe
 
 logger = logging.getLogger(__name__)
@@ -1492,6 +1493,7 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos_repo_read": arifos_repo_read,
     "arifos_repo_seal": arifos_repo_seal,
     "arifos_probe": arifos_probe,
+    "arifos_diag_substrate": arifos_diag_substrate,
     # "arifos_forge_bridge": arifos_forge_bridge,  # TODO: Implement
     # Legacy internal aliases
     "arifos_route": arifos_kernel,
@@ -1515,6 +1517,7 @@ LEGACY_TOOL_ALIASES: dict[str, str] = {
     "arifos.repo_read": "arifos_repo_read",
     "arifos.repo_seal": "arifos_repo_seal",
     "arifos.probe": "arifos_probe",
+    "arifos.diag_substrate": "arifos_diag_substrate",
     # "arifos.forge_bridge": "arifos_forge_bridge",  # TODO: Implement
 }
 
