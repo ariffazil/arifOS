@@ -160,7 +160,7 @@ class ConstitutionalFloors:
         f6_result = self._check_f6_empathy(action, tool_name)
         self.results.append(f6_result)
 
-        f7_result = self._check_f7_humidity(parameters)
+        f7_result = self._check_f7_humility(parameters)
         self.results.append(f7_result)
         if not f7_result.passed:
             violations.append(f"{f7_result.floor_id}_HUMIDITY")
