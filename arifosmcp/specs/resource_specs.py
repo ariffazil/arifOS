@@ -46,142 +46,78 @@ class ResourceSpec:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 9 CANONICAL RESOURCES
+# 5 CANONICAL RESOURCES (CONSOLIDATED)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
-    # ═══ SYSTEM ENTRY ═══
-    
+    # 1. arifos://doctrine — The Eternal Law (Ψ Sovereignty)
     ResourceSpec(
-        uri="arifos://bootstrap",
-        name="arifOS Bootstrap",
+        uri="arifos://doctrine",
+        name="arifOS Doctrine",
         description=(
-            "Getting started guide for arifOS. "
-            "Startup path, canonical sequence, first session walkthrough. "
-            "Read this first if you're new to the system."
+            "The Eternal Law: Immutable constitutional substrate. "
+            "Includes F1-F13 floor definitions, Verdict schemas (SEAL/VOID), "
+            "Gödel Lock specification, and the Foundational 000/ROOT doctrine."
         ),
         mime_type="application/json",
         dynamic=False,
         auth_required="anonymous",
     ),
     
-    # ═══ GOVERNANCE ═══
-    
+    # 2. arifos://vitals — The Living Pulse (Ω Stability)
     ResourceSpec(
-        uri="arifos://governance/floors",
-        name="arifOS Floors",
-        description=(
-            "Constitutional F1-F13 thresholds and doctrine. "
-            "Immutable legal and physical criteria for all evaluations. "
-            "Includes floor descriptions, thresholds, and enforcement rules."
-        ),
-        mime_type="application/json",
-        dynamic=False,
-        auth_required="anonymous",
-    ),
-    
-    ResourceSpec(
-        uri="arifos://floors/{floor_id}/doctrine",
-        name="arifOS Floor Doctrine",
-        description=(
-            "Detailed doctrine for a specific constitutional floor. "
-            "Replace {floor_id} with F1, F2, ..., F13."
-        ),
-        mime_type="application/json",
-        is_template=True,
-        dynamic=False,
-        auth_required="anonymous",
-    ),
-    
-    # ═══ SYSTEM STATUS ═══
-    
-    ResourceSpec(
-        uri="arifos://status/vitals",
+        uri="arifos://vitals",
         name="arifOS Vitals",
         description=(
-            "Current system health and deployment info. "
-            "Real-time thermodynamic metrics: G-score, entropy, capacity. "
-            "Versions, git SHA, uptime. Changes frequently."
+            "The Living Pulse: Real-time thermodynamic state (G-score, ΔS, Ψ). "
+            "Includes versioning, health status, capacity metrics, and a "
+            "recent vault summary of anonymized verdicts."
         ),
         mime_type="application/json",
         dynamic=True,
         auth_required="anonymous",
     ),
     
-    # ═══ SESSION-SPECIFIC ═══
-    
+    # 3. arifos://schema — The Complete Blueprint (Δ Discernment)
     ResourceSpec(
-        uri="arifos://sessions/{session_id}/vitals",
-        name="arifOS Session Vitals",
+        uri="arifos://schema",
+        name="arifOS Schema Blueprint",
         description=(
-            "Real-time telemetry for a specific governed session. "
-            "Replace {session_id} with your session ID. "
-            "Includes authority level, available tools, constitutional metrics."
+            "The Complete Blueprint: All structural intelligence in one stable prefix. "
+            "Includes Master schema, Tool context packets, Trinity definitions, "
+            "Routing guides, and AGI Reply Protocol v3 schemas."
+        ),
+        mime_type="application/json",
+        dynamic=False,
+        auth_required="anonymous",
+    ),
+    
+    # 4. arifos://session — The Ephemeral Self (Consciousness)
+    ResourceSpec(
+        uri="arifos://session/{session_id}",
+        name="arifOS Session context",
+        description=(
+            "The Ephemeral Self: Session-bound runtime context. "
+            "Includes authority level, available tools, active floors, "
+            "and the Reply context-pack delta state."
         ),
         mime_type="application/json",
         is_template=True,
         dynamic=True,
-        auth_required="anchored",  # Must have a session
+        auth_required="anchored",
     ),
     
-    # ═══ CAPABILITIES ═══
-    
+    # 5. arifos://forge — The Execution Bridge (Work/Energy)
     ResourceSpec(
-        uri="arifos://agents/skills",
-        name="arifOS Skills",
+        uri="arifos://forge",
+        name="arifOS Forge Operational",
         description=(
-            "Consolidated guide for AI agents. "
-            "Skills, behaviors, best practices, constitutional alignment. "
-            "How agents should use arifOS tools and resources."
-        ),
-        mime_type="application/json",
-        dynamic=False,
-        auth_required="anonymous",
-    ),
-    
-    # ═══ TOOL SPECIFICATIONS ═══
-    
-    ResourceSpec(
-        uri="arifos://tools/{tool_name}",
-        name="arifOS Tool Spec",
-        description=(
-            "Detailed contract for a specific tool. "
-            "Replace {tool_name} with: init_session_anchor, judge_verdict, etc. "
-            "Includes inputs, outputs, auth requirements, examples."
-        ),
-        mime_type="application/json",
-        is_template=True,
-        dynamic=False,
-        auth_required="anonymous",
-    ),
-    
-    # ═══ VAULT (READ-ONLY) ═══
-    
-    ResourceSpec(
-        uri="arifos://vault/recent",
-        name="arifOS Vault Recent",
-        description=(
-            "Read-only summary of recent vault verdicts. "
-            "Last 100 entries with verdicts, timestamps, anonymized metrics. "
-            "For audit and transparency. No sensitive data."
+            "The Execution Bridge: Operational bridge from governance to build. "
+            "Includes AF-FORGE context, execution manifests, tool contracts, "
+            "and widget definitions."
         ),
         mime_type="application/json",
         dynamic=True,
-        auth_required="anonymous",
-    ),
-    
-    # ═══ CHATGPT WIDGET ═══
-    
-    ResourceSpec(
-        uri="https://mcp.af-forge.io/widget/vault-seal",
-        name="Vault Seal Widget",
-        description=(
-            "ChatGPT Apps SDK widget for displaying constitutional health. "
-            "Served from https://mcp.af-forge.io with CSP headers. "
-            "Shows telemetry, verdict, and attestation status."
-        ),
-        mime_type="text/html",
-        dynamic=False,
         auth_required="anonymous",
     ),
 )
