@@ -1,45 +1,44 @@
 """
-arifosmcp/runtime/server.py — DEPRECATED
+arifosmcp/runtime/server.py — Runtime Entry Point
 
-This file is now a redirect to the unified server at the project root.
-Use `from server import mcp, LEGACY_TOOL_MAP` instead.
-
-For backward compatibility, this module re-exports from the root server.
+This module re-exports from the root server.py which contains the unified
+FastMCP server with all REST routes (/health, /tools, /mcp) registered.
 """
 
 import sys
 import os
 
-# Get the project root (two levels up from this file)
+# Get the project root (three levels up from this file: runtime -> arifosmcp -> project_root)
 _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Remove the current directory from path to avoid circular import
-_current_dir = os.path.dirname(os.path.abspath(__file__))
-if _current_dir in sys.path:
-    sys.path.remove(_current_dir)
-
-# Remove the runtime directory from path
-_runtime_dir = os.path.dirname(_current_dir)
-if _runtime_dir in sys.path:
-    sys.path.remove(_runtime_dir)
-
-# Remove arifosmcp directory if present
-_arifosmcp_dir = os.path.dirname(_runtime_dir)
-if _arifosmcp_dir in sys.path:
-    sys.path.remove(_arifosmcp_dir)
-
-# Add project root at the beginning
+# Add project root at the beginning of sys.path if not already present
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-# Now import from the root server.py
-from fastapi import FastAPI
-app = FastAPI()
-# from server import mcp, create_aaa_mcp_server, app, LEGACY_TOOL_MAP
+# Import from the root server.py after setting up the path
+# This imports the already-initialized FastMCP instance with all routes
+try:
+    from server import mcp, app, LEGACY_TOOL_MAP, create_aaa_mcp_server
+except ImportError as e:
+    # Fallback: if import fails, create minimal app for health check
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.error(f"Failed to import from root server.py: {e}")
+    
+    from fastapi import FastAPI
+    app = FastAPI()
+    
+    @app.get("/health")
+    async def fallback_health():
+        return {"status": "degraded", "error": f"Import failed: {e}"}
+    
+    mcp = None
+    LEGACY_TOOL_MAP = {}
+    create_aaa_mcp_server = None
 
 __all__ = ["mcp", "create_aaa_mcp_server", "app", "LEGACY_TOOL_MAP"]
 
-# If this file is run directly, run the main server
+# If this file is run directly, run the main server from root
 if __name__ == "__main__":
     import runpy
     _server_path = os.path.join(_project_root, "server.py")

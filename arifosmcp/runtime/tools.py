@@ -61,6 +61,39 @@ logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# STUB: arifos_probe — System probe tool (placeholder)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def arifos_probe(
+    target: str = "system",
+    probe_type: str = "status",
+    timeout_ms: int = 5000,
+) -> dict[str, Any]:
+    """Probe system status or component health.
+    
+    Args:
+        target: Component to probe (system, memory, vault, etc.)
+        probe_type: Type of probe (status, health, metrics)
+        timeout_ms: Probe timeout in milliseconds
+        
+    Returns:
+        Probe results with status and metrics
+    """
+    return {
+        "ok": True,
+        "tool": "arifos_probe",
+        "target": target,
+        "probe_type": probe_type,
+        "status": "operational",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "metrics": {
+            "response_ms": 0,
+            "healthy": True,
+        },
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # INTERNAL HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
