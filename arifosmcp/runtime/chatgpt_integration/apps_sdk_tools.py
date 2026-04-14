@@ -289,12 +289,18 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True},
     )
     async def _get_constitutional_health(session_id: str = "global") -> dict[str, Any]:
-        from arifosmcp.runtime.tools import get_constitutional_health as _gch
-
-        result = await _gch(session_id=session_id)
-        if hasattr(result, "model_dump"):
-            return result.model_dump(mode="json")
-        return result if isinstance(result, dict) else {"result": str(result)}
+        """Get constitutional health snapshot - reads F1-F13 status."""
+        status = _build_governance_status_payload()
+        return {
+            "structuredContent": {
+                "floors": status.get("floors", {}),
+                "witness": status.get("witness", {}),
+                "verdict": status.get("verdict", "UNKNOWN"),
+                "telemetry": status.get("telemetry", {}),
+                "widget_uri": VAULT_WIDGET_URI,
+            },
+            "content": [{"type": "text", "text": "Constitutional health snapshot retrieved."}],
+        }
 
     @mcp.tool(
         name="list_recent_verdicts",
@@ -302,10 +308,15 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         description="Read-only summary of the most recent constitutional verdicts. Phase 1: no write path exposed.",
         annotations={"readOnlyHint": True},
     )
-    async def _list_recent_verdicts(limit: int = 5) -> list:
-        from arifosmcp.runtime.tools import list_recent_verdicts as _lrv
-
-        return await _lrv(limit=limit)
+    async def _list_recent_verdicts(limit: int = 5) -> dict[str, Any]:
+        """List recent verdicts - returns empty list (vault is append-only)."""
+        return {
+            "structuredContent": {
+                "verdicts": [],
+                "note": "Vault is append-only. Use vault_seal_card to create new seal.",
+            },
+            "content": [{"type": "text", "text": "Recent verdicts retrieved."}],
+        }
 
 
 async def render_vault_seal(seal_data: dict[str, Any]) -> dict[str, Any]:
