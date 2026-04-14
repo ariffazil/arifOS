@@ -1,0 +1,134 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "arifOS.context_packet.gateway",
+    "context_packet_version": "1.0.0",
+    "tool_id": "arifos.gateway",
+    "stage": "888_OMEGA",
+    "stage_order": 8,
+    "desc": "Orthogonality guard",
+    "trinity": "Ω",
+    "trinity_name": "Stability",
+    "uri": "/arifOS/runtime/gateway",
+    "backing_tool": "gateway",
+    "role": "guard",
+    "role_description": "Orthogonality supervisor for AGI||ASI lanes across organs",
+    "modes": [
+        "guard",
+        "audit",
+        "correlate"
+    ],
+    "default_mode": "guard",
+    "purpose": "Enforce Ω_ortho >= 0.95 by monitoring tool correlation and organ overlap across arifOS, WEALTH, and GEOX. Prevents physics collapse, governance collapse, and ontology collapse.",
+    "when_to_use": [
+        "Before sealing a multi-organ execution plan",
+        "Suspected tool overlap or redundancy across arifOS/WEALTH/GEOX",
+        "AGI||ASI lane supervision is required",
+        "Need to validate that no two tools answer the same question",
+        "Post-execution orthogonality audit"
+    ],
+    "when_not_to_use": [
+        "Do not use as a replacement for arifos.judge - gateway is advisory/pre-gate",
+        "Do not use when only one organ is involved - orthogonality is trivially satisfied",
+        "Do not use to bypass constitutional floors"
+    ],
+    "not_job": [
+        "Not a constitutional verdict issuer - only arifos.judge emits SEAL/VOID",
+        "Not a decision maker - returns HOLD recommendation, not enforcement",
+        "Not a real-time monitor - evaluates traces, not live streams"
+    ],
+    "inputs": {
+        "mode": {
+            "type": "string",
+            "enum": [
+                "guard",
+                "audit",
+                "correlate"
+            ],
+            "description": "guard: evaluate trace for orthogonality, audit: retrospective review, correlate: compute cross-tool correlation matrix"
+        },
+        "required_payload": {
+            "session_id": "string - Session to evaluate"
+        },
+        "optional_payload": {
+            "tool_trace": "object[] - Ordered list of tool calls and outputs",
+            "correlation_threshold": "number - Default 0.95"
+        }
+    },
+    "outputs": {
+        "primary": "orthogonality_report",
+        "shape": {
+            "omega_ortho": "number - Computed orthogonality score 0.0-1.0",
+            "correlation_threshold": "number - Threshold used for evaluation",
+            "organs_seen": "string[] - Distinct organs detected in trace",
+            "violations": "object[] - Detected overlap or forbidden redundancy",
+            "verdict_hint": "string - SEAL or HOLD recommendation"
+        }
+    },
+    "state_behavior": {
+        "reads_state": true,
+        "writes_state": false,
+        "external_side_effects": false,
+        "read_only": true
+    },
+    "authority_model": {
+        "advisory_only": true,
+        "governance_authority": false,
+        "cannot_override": true
+    },
+    "context_contract": {
+        "consumes": [
+            "tool execution trace",
+            "organ labels",
+            "session context"
+        ],
+        "emits": [
+            "orthogonality score",
+            "violation report",
+            "HOLD recommendation"
+        ]
+    },
+    "routing_hints": {
+        "upstream": [
+            "arifos.ops",
+            "arifos.mind"
+        ],
+        "downstream": [
+            "arifos.judge"
+        ],
+        "typical_flow": [
+            "777_OPS \u2192 888_OMEGA \u2192 888_JUDGE"
+        ]
+    },
+    "governance_requirements": {
+        "risk_tier": "high",
+        "dry_run_allowed": true,
+        "read_only": true
+    },
+    "chatgpt_guidance": {
+        "plain_english": "Use this to verify that arifOS, WEALTH, and GEOX tools are not overlapping or duplicating each other's work. It ensures the 33-tool matrix stays orthogonal.",
+        "key_phrases": [
+            "are these tools redundant",
+            "check orthogonality",
+            "overlap between organs",
+            "AGI ASI lane supervision",
+            "omega ortho"
+        ],
+        "ask_before_use_if": [
+            "multiple organs are involved in a plan",
+            "there is risk of tool duplication"
+        ],
+        "do_not_assume": [
+            "gateway can override judge - it cannot",
+            "low correlation means safe execution - still needs judge",
+            "gateway replaces constitutional floors - it supplements them"
+        ],
+        "ideal_prompt_shape": {
+            "mode": "guard",
+            "session_id": "sess_abc123",
+            "tool_trace": [
+                {"tool": "geox_petrophysics", "output_summary": "Vsh and Sw"},
+                {"tool": "wealth_npv_reward", "output_summary": "NPV estimate"}
+            ]
+        }
+    }
+}

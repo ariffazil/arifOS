@@ -12,14 +12,14 @@ CANONICAL_TOOL_HANDLERS = {
     "arifos_init": "arifos_init",
     "arifos_sense": "arifos_sense",
     "arifos_mind": "arifos_mind",
-    "arifos_route": "arifos_kernel",
+    "arifos_kernel": "arifos_kernel",
     "arifos_heart": "arifos_heart",
     "arifos_ops": "arifos_ops",
     "arifos_judge": "arifos_judge",
     "arifos_memory": "arifos_memory",
     "arifos_vault": "arifos_vault",
     "arifos_forge": "arifos_forge",
-    "arifos_health": "arifos_health",
+    "arifos_gateway": "arifos_gateway",
 }
 
 # Substrate Capability Families
@@ -47,6 +47,7 @@ LEGACY_TOOL_MAP = {
     "arifos.memory": "arifos_memory",
     "arifos.vault": "arifos_vault",
     "arifos.forge": "arifos_forge",
+    "arifos.gateway": "arifos_gateway",
     "arifos.health": "arifos_health",
     "init_anchor": "arifos_init",
     "physics_reality": "arifos_sense",

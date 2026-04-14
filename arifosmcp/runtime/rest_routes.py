@@ -74,7 +74,7 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
         "text": "query",
         "context": "context",
     },
-    "arifos_route": {
+    "arifos_kernel": {
         "intent": "request",
         "query": "request",
         "input": "request",

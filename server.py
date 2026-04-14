@@ -10,8 +10,8 @@ Single canonical server for ALL arifOS deployments:
 - WebMCP web-facing gateway
 
 Features:
-- 12 canonical core tools (init, sense, mind, heart, kernel, reply,
-  judge, vault, forge, health, fetch, probe)
+- 11 canonical public tools (init, sense, mind, heart, kernel,
+  judge, vault, forge, gateway, ops, memory)
 - 40+ legacy aliases unified into a single registry
 - Gateway metadata endpoints (/metadata, /health)
 - VPS proxy capability for sovereign tools
@@ -149,10 +149,11 @@ mcp = FastMCP(
 
 Golden path: init → sense → mind → heart → judge → vault
 Public FastMCP surface (11 tools):
-  Governance : arifos_init | arifos_judge | arifos_vault
-  Intelligence: arifos_sense | arifos_mind | arifos_route | arifos_heart | arifos_memory
+  Governance : arifos_init | arifos_kernel | arifos_judge | arifos_vault
+  Intelligence: arifos_sense | arifos_mind | arifos_heart | arifos_memory
   Execution : arifos_forge
-  Observability: arifos_ops | arifos_health
+  Orthogonality: arifos_gateway
+  Observability: arifos_ops
 
 FAIL-CLOSED: Identity anchoring (arifos_init) is required for all reasoning.
 DITEMPA, BUKAN DIBERI — Forged, Not Given

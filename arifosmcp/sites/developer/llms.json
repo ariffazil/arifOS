@@ -19,7 +19,7 @@
     "github": "https://github.com/ariffazil/arifosmcp",
     "license": "AGPL-3.0-only",
     "python_requires": ">=3.12",
-    "description": "arifOS Constitutional Intelligence Kernel — MCP Runtime. 13 floors, 12 tools, MGI 3-layer envelope."
+    "description": "arifOS Constitutional Intelligence Kernel — MCP Runtime. 13 floors, 11 tools, MGI 3-layer envelope."
   },
 
   "endpoints": {
@@ -255,7 +255,7 @@
       "example": "from mcp import ClientSession\nasync with ClientSession('https://arifosmcp.arif-fazil.com/mcp') as session:\n    result = await session.call_tool('init_anchor_state', {'declared_name': 'MyApp'})"
     },
     "tool_profiles": {
-      "public": "Default — all 12 tools",
+      "public": "Default — all 11 tools",
       "copilot": "Copilot Studio safe — 6 flat-schema tools, no legacy aliases",
       "chatgpt": "ChatGPT/OpenAI compatible",
       "full": "All tools + phase2 tools (internal/VPS)"

@@ -172,7 +172,7 @@ def _build_dispatch_map() -> dict[str, Callable[..., Awaitable[Any]]]:
         "arifos_init": _dispatch_init,
         "arifos_sense": _dispatch_sense,
         "arifos_mind": _dispatch_mind,
-        "arifos_route": _dispatch_route,
+        "arifos_kernel": _dispatch_route,
         "arifos_memory": _dispatch_memory,
         "arifos_heart": _dispatch_heart,
         "arifos_ops": _dispatch_ops,
@@ -222,7 +222,7 @@ def get_tool_handler(tool_name: str) -> Callable[..., Awaitable[Any]] | None:
 
 _IDENTITY_GATED_TOOLS = frozenset([
     "arifos_mind", "arifos_sense", "arifos_memory", "arifos_heart",
-    "arifos_ops", "arifos_judge", "arifos_vault", "arifos_forge", "arifos_route"
+    "arifos_ops", "arifos_judge", "arifos_vault", "arifos_forge", "arifos_kernel"
 ])
 
 def _get_fail_closed_result(tool_name: str, reason: str, session_id: str | None = None) -> dict[str, Any]:

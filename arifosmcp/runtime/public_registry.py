@@ -20,7 +20,7 @@ DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
 # Clean public surface: keep internal handler names private where needed.
 PUBLIC_TOOL_ALIASES = {
-    "arifos_kernel": "arifos_route",
+    "arifos_route": "arifos_kernel",
 }
 PUBLIC_TOOL_EXCLUSIONS = set()
 

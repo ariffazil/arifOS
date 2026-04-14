@@ -186,7 +186,7 @@ def _resolve_caller_state(
 
     MEGA_TOOLS = [
         "arifos_init",
-        "arifos_route",
+        "arifos_kernel",
         "arifos_judge",
         "arifos_vault",
         "arifos_mind",
@@ -195,6 +195,7 @@ def _resolve_caller_state(
         "arifos_sense",
         "arifos_ops",
         "arifos_forge",
+        "arifos_gateway",
         "arifos_health",
     ]
 
@@ -202,7 +203,7 @@ def _resolve_caller_state(
         "anonymous": {
             "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifos_route": "Requires anchored session. Run arifos_init first.",
+                "arifos_kernel": "Requires anchored session. Run arifos_init first.",
                 "arifos_mind": "Requires anchored session.",
                 "arifos_memory": "Requires anchored session and high-tier auth.",
                 "arifos_vault": "Requires anchored session and high-tier auth.",
@@ -211,7 +212,7 @@ def _resolve_caller_state(
         "claimed": {
             "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifos_route": "Elevate to verified identity for full kernel access.",
+                "arifos_kernel": "Elevate to verified identity for full kernel access.",
                 "arifos_memory": "Requires verified identity.",
                 "arifos_vault": "Requires verified identity.",
             },

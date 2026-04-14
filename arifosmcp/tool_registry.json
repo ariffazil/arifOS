@@ -152,11 +152,39 @@
     {
       "type": "function",
       "function": {
-        "name": "arifos_health",
-        "description": "Retrieve CPU, Memory, ZRAM, and Disk utilization with hardened read-only telemetry access.",
+        "name": "arifos_gateway",
+        "description": "Orthogonality guard (\u03a9_ortho >= 0.95) supervising AGI||ASI lanes across arifOS, WEALTH, and GEOX organs. Modes: guard, audit, correlate.",
         "parameters": {
           "type": "object",
-          "properties": {}
+          "properties": {
+            "session_id": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "guard",
+                "audit",
+                "correlate"
+              ],
+              "default": "guard"
+            },
+            "tool_trace": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "description": "Ordered list of tool calls and outputs to evaluate for orthogonality."
+            },
+            "correlation_threshold": {
+              "type": "number",
+              "default": 0.95,
+              "description": "Maximum allowed correlation before HOLD is recommended."
+            }
+          },
+          "required": [
+            "session_id"
+          ]
         }
       }
     }

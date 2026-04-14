@@ -371,7 +371,7 @@ def validate_router_visibility(
     # Auxiliary tools should NOT be in router set (unless explicitly enabled)
     leaked_aux = AUXILIARY_TOOLS.intersection(router_visible_tools)
     for aux_tool in leaked_aux:
-        # vps_monitor is OK to be visible, route is deprecated
+        # arifos_kernel is canonical; arifos.route is deprecated alias
         if aux_tool == "arifos.route":
             _require(
                 False,

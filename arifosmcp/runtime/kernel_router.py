@@ -266,7 +266,7 @@ class HardenedKernelRouter:
                         )
                 # ── end ToM wiring ──────────────────────────────────────────
             return await handler(query=str(payload.get("query") or query), **extra_args, **common_args)
-        if tool_name in ("arifos.kernel", "arifos_kernel", "arifos_route"):
+        if tool_name in ("arifos.kernel", "arifos_kernel"):
             return await handler(request=str(payload.get("query") or query), **common_args)
         if tool_name in ("arifos.heart", "arifos_heart"):
             return await handler(content=str(payload.get("content") or payload.get("query") or query), **common_args)

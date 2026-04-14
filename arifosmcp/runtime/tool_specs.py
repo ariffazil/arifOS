@@ -162,7 +162,7 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "context": {"type": "string"},
                 "mode": {
                     "type": "string",
-                    "enum": ["reason", "sequential", "step", "branch", "merge", "review"],
+                    "enum": ["reason", "sequential", "step", "branch", "merge", "review", "reflect"],
                     "default": "reason",
                 },
                 "session_id": {"type": "string"},
@@ -348,7 +348,48 @@ TOOLS: tuple[ToolSpec, ...] = (
         },
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 11. arifos_reply — AGI Reply Protocol
+    # 11. arifos_gateway — Orthogonality Guard (The 11th Public Tool)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="arifos_gateway",
+        stage="888-Ω",
+        purpose="Orthogonality guard — AGI||ASI lane supervisor (Ω_ortho >= 0.95)",
+        layer="GOVERNANCE",
+        visibility="public",
+        description=(
+            "Orthogonality Guard — The 11th Public Tool. Supervises AGI||ASI lanes to enforce "
+            "Ω_ortho >= 0.95. Computes correlation across tool outputs and model traces; if "
+            "correlation exceeds threshold or ontology overlap is detected, returns 888_HOLD. "
+            "Prevents physics collapse, governance collapse, and ontology collapse across "
+            "arifOS, WEALTH, and GEOX organs."
+        ),
+        trinity="Ω",
+        floors=("F3", "F4", "F9", "F11", "F13"),
+        input_schema={
+            "type": "object",
+            "required": ["session_id"],
+            "properties": {
+                "session_id": {"type": "string"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["guard", "audit", "correlate"],
+                    "default": "guard",
+                },
+                "tool_trace": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Ordered list of tool calls and outputs to evaluate for orthogonality.",
+                },
+                "correlation_threshold": {
+                    "type": "number",
+                    "default": 0.95,
+                    "description": "Maximum allowed correlation before HOLD is recommended.",
+                },
+            },
+        },
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 12. arifos_reply — AGI Reply Protocol
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_reply",
@@ -376,15 +417,15 @@ TOOLS: tuple[ToolSpec, ...] = (
         },
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 12. arifos_health — System Vitals
+    # 12. arifos_health — System Vitals (folded into arifos_ops; now internal)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_health",
         stage="111",
         purpose="Arifos health — Retrieve CPU, Memory, ZRAM, and Disk",
         layer="MACHINE",
-        visibility="public",
-        description="Retrieve CPU, Memory, ZRAM, and Disk utilization. F12-hardened read-only access.",
+        visibility="internal",
+        description="Retrieve CPU, Memory, ZRAM, and Disk utilization. F12-hardened read-only access. Folded into arifos_ops(mode='health'|'vitals').",
         trinity="Δ",
         floors=("F4", "F12"),
         input_schema={

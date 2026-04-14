@@ -230,20 +230,20 @@ AAA_PUBLIC_TOOLS = [
     "arifos_init",
     "arifos_sense",
     "arifos_mind",
-    "arifos_route",
+    "arifos_kernel",
     "arifos_heart",
     "arifos_ops",
     "arifos_judge",
     "arifos_memory",
     "arifos_vault",
     "arifos_forge",
-    "arifos_health",
+    "arifos_gateway",
 ]
 
 AAA_TOOL_ALIASES = {
     "init_anchor": "arifos.init",
     "arifos_kernel": "arifos.kernel",
-    "arifos_route": "arifos.route",
+    "arifos_route": "arifos.kernel",
     "apex_soul": "arifos.judge",
     "apex_judge": "arifos.judge",
     "vault_ledger": "arifos.vault",
@@ -256,7 +256,7 @@ AAA_TOOL_ALIASES = {
     # v2 underscored aliases
     "arifos_init": "arifos_init",
     "arifos_kernel": "arifos_kernel",
-    "arifos_route": "arifos_route",
+    "arifos_route": "arifos_kernel",
     "arifos_sense": "arifos_sense",
     "arifos_mind": "arifos_mind",
     "arifos_heart": "arifos_heart",
@@ -265,6 +265,7 @@ AAA_TOOL_ALIASES = {
     "arifos_memory": "arifos_memory",
     "arifos_vault": "arifos_vault",
     "arifos_forge": "arifos_forge",
+    "arifos_gateway": "arifos_gateway",
     "arifos_health": "arifos_health",
 }
 
@@ -285,13 +286,13 @@ AAA_TOOL_STAGE_MAP = {
     "arifos_sense": "111_SENSE",
     "arifos_mind": "333_MIND",
     "arifos_kernel": "444_ROUTER",
-    "arifos_route": "444_ROUTER",
     "arifos_heart": "666_HEART",
     "arifos_ops": "777_OPS",
     "arifos_judge": "888_JUDGE",
     "arifos_memory": "555_MEMORY",
     "arifos_vault": "999_VAULT",
     "arifos_forge": "010_FORGE",
+    "arifos_gateway": "888_OMEGA",
     "arifos_health": "111_SENSE",
 }
 
@@ -312,13 +313,13 @@ TRINITY_BY_TOOL = {
     "arifos_sense": "Δ",
     "arifos_mind": "Δ",
     "arifos_kernel": "Δ/Ψ",
-    "arifos_route": "Δ/Ψ",
     "arifos_heart": "Ω",
     "arifos_ops": "Δ",
     "arifos_judge": "Ψ",
     "arifos_memory": "Ω",
     "arifos_vault": "Ψ",
     "arifos_forge": "Δ",
+    "arifos_gateway": "Ω",
     "arifos_health": "Δ",
 }
 
@@ -339,13 +340,13 @@ AAA_TOOL_LAW_BINDINGS = {
     "arifos_sense": ["F2", "F3", "F4", "F10"],
     "arifos_mind": ["F2", "F4", "F7", "F8"],
     "arifos_kernel": ["F4", "F11"],
-    "arifos_route": ["F4", "F11"],
     "arifos_heart": ["F5", "F6", "F9"],
     "arifos_ops": ["F4", "F5"],
     "arifos_judge": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
     "arifos_memory": ["F2", "F10", "F11"],
     "arifos_vault": ["F1", "F13"],
     "arifos_forge": ["F1", "F2", "F7", "F13"],
+    "arifos_gateway": ["F3", "F4", "F9", "F11", "F13"],
     "arifos_health": ["F4", "F12"],
 }
 
@@ -355,13 +356,13 @@ DOMAIN_PAYLOAD_GATES = {
     "arifos_sense": {"required": ["query"]},
     "arifos_mind": {"required": ["query"]},
     "arifos_kernel": {"required": ["query"]},
-    "arifos_route": {"required": ["query"]},
     "arifos_heart": {"required": ["query"]},
     "arifos_ops": {"required": ["query"]},
     "arifos_judge": {"required": ["query", "risk_tier"]},
     "arifos_memory": {"required": ["query"]},
     "arifos_vault": {"required": ["verdict"]},
     "arifos_forge": {"required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"]},
+    "arifos_gateway": {"required": ["session_id"]},
     "arifos_health": {"required": []},
 }
 LAW_13_CATALOG = {
@@ -379,32 +380,32 @@ LAW_13_CATALOG = {
     "F12": "Injection defense",
     "F13": "Sovereign ratification",
 }
-READ_ONLY_TOOLS = ["arifos_sense", "arifos_mind", "arifos_route", "arifos_ops", "arifos_health"]
+READ_ONLY_TOOLS = ["arifos_sense", "arifos_mind", "arifos_kernel", "arifos_ops", "arifos_gateway", "arifos_health"]
 REQUIRES_SESSION = [
     "arifos_sense",
     "arifos_mind",
     "arifos_kernel",
-    "arifos_route",
     "arifos_heart",
     "arifos_ops",
     "arifos_judge",
     "arifos_memory",
     "arifos_vault",
     "arifos_forge",
+    "arifos_gateway",
     "arifos_health",
 ]
 TOOL_MODES = {
     "arifos_init": {"init", "refresh", "state", "status", "probe", "revoke"},
     "arifos_sense": {"governed", "search", "ingest", "compass", "atlas", "time"},
-    "arifos_mind": {"reason", "sequential", "step", "branch", "merge", "review"},
+    "arifos_mind": {"reason", "sequential", "step", "branch", "merge", "review", "reflect"},
     "arifos_kernel": {"kernel", "status"},
-    "arifos_route": {"kernel", "status"},
     "arifos_heart": {"critique", "simulate"},
     "arifos_ops": {"cost", "health", "vitals", "entropy"},
     "arifos_judge": {"judge"},
     "arifos_memory": {"vector_query", "vector_store", "engineer", "query"},
     "arifos_vault": {"seal"},
     "arifos_forge": {"execute"},
+    "arifos_gateway": {"guard", "audit", "correlate"},
     "arifos_health": {"health"},
 }
 
@@ -636,8 +637,7 @@ def public_tool_input_contracts() -> dict[str, Any]:
 
     contracts: dict[str, Any] = {}
     for spec in PUBLIC_TOOL_SPECS:
-        public_name = "arifos_route" if spec.name == "arifos_kernel" else spec.name
-        contracts[public_name] = spec.input_schema
+        contracts[spec.name] = spec.input_schema
     return contracts
 
 

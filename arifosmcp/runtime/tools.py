@@ -1325,6 +1325,95 @@ async def arifos_vault(
     return seal_runtime_envelope(envelope, "arifos_vault")
 
 
+async def arifos_gateway(
+    session_id: str,
+    mode: str = "guard",
+    tool_trace: list[dict[str, Any]] | None = None,
+    correlation_threshold: float = 0.95,
+    platform: str = "unknown",
+) -> RuntimeEnvelope:
+    """Orthogonality guard — AGI||ASI lane supervisor (Ω_ortho >= 0.95)."""
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict
+
+    trace = tool_trace or []
+    violations: list[dict[str, Any]] = []
+
+    # Forbidden overlap heuristics by organ ownership
+    FORBIDDEN_MAP: dict[str, list[str]] = {
+        "arifos": ["npv", "irr", "dscr", "las", "petrophysics", "stratigraphy", "seismic"],
+        "wealth": ["las", "petrophysics", "stratigraphy", "seismic", "verdict", "seal", "vault"],
+        "geox": ["npv", "irr", "dscr", "verdict", "seal", "vault", "constitutional"],
+    }
+
+    # Simple structural orthogonality audit
+    organs_seen: set[str] = set()
+    for step in trace:
+        tool_name = step.get("tool", "")
+        output_summary = str(step.get("output_summary", "")).lower()
+        tool_lower = tool_name.lower()
+
+        organ: str | None = None
+        if tool_lower.startswith("arifos_"):
+            organ = "arifos"
+        elif tool_lower.startswith("wealth_"):
+            organ = "wealth"
+        elif tool_lower.startswith("geox_"):
+            organ = "geox"
+
+        if organ:
+            organs_seen.add(organ)
+            # Detect forbidden keyword leakage
+            for forbidden_word in FORBIDDEN_MAP.get(organ, []):
+                if forbidden_word in output_summary or forbidden_word in tool_lower:
+                    violations.append({
+                        "step": step,
+                        "reason": "forbidden_overlap",
+                        "detail": f"{organ} tool '{tool_name}' touched forbidden domain keyword '{forbidden_word}'",
+                    })
+
+    # Correlation proxy: diversity of organs determines orthogonality
+    omega_ortho = 1.0
+    if len(trace) > 0:
+        organ_counts: dict[str, int] = {}
+        for step in trace:
+            t = step.get("tool", "")
+            o = "arifos" if t.startswith("arifos_") else ("wealth" if t.startswith("wealth_") else ("geox" if t.startswith("geox_") else "other"))
+            organ_counts[o] = organ_counts.get(o, 0) + 1
+        max_ratio = max(organ_counts.values(), default=0) / len(trace)
+        denom = 1.0 - correlation_threshold
+        if denom <= 0:
+            omega_ortho = 1.0 if max_ratio < correlation_threshold else 0.0
+        else:
+            omega_ortho = 1.0 - max(0.0, max_ratio - correlation_threshold) / denom
+        omega_ortho = max(0.0, min(1.0, omega_ortho))
+
+    if omega_ortho < correlation_threshold or violations:
+        verdict = Verdict.HOLD
+        status = RuntimeStatus.PAUSE
+    else:
+        verdict = Verdict.SEAL
+        status = RuntimeStatus.SUCCESS
+
+    envelope = RE(
+        ok=verdict == Verdict.SEAL,
+        tool="arifos_gateway",
+        canonical_tool_name="arifos_gateway",
+        stage="888_OMEGA",
+        verdict=verdict,
+        status=status,
+        payload={
+            "mode": mode,
+            "omega_ortho": round(omega_ortho, 4),
+            "correlation_threshold": correlation_threshold,
+            "organs_seen": sorted(organs_seen),
+            "violations": violations,
+            "trace_length": len(trace),
+        },
+    )
+    _stamp_platform(envelope, platform)
+    return seal_runtime_envelope(envelope, "arifos_gateway")
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # V2 TOOL HANDLER REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1560,22 +1649,232 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
         payload={"message": f"Substrate conformance result: {verdict}"}
     )
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PUBLIC SURFACE WRAPPERS — Clean signatures matching ToolSpec.input_schema
+# Prevents FastMCP schema-generation faults from wide internal signatures.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def _arifos_init_public(
+    actor_id: str | None = None,
+    intent: str | None = None,
+    declared_name: str | None = None,
+    session_id: str | None = None,
+    risk_tier: str = "medium",
+    platform: str = "unknown",
+    mode: str = "init",
+) -> RuntimeEnvelope:
+    return await arifos_init(
+        actor_id=actor_id,
+        intent=intent,
+        declared_name=declared_name,
+        session_id=session_id,
+        risk_tier=risk_tier,
+        platform=platform,
+        mode=mode,
+    )
+
+
+async def _arifos_sense_public(
+    query: str,
+    mode: str = "governed",
+    session_id: str | None = None,
+    dry_run: bool = True,
+) -> RuntimeEnvelope:
+    return await arifos_sense(
+        query=query,
+        mode=mode,
+        session_id=session_id,
+        dry_run=dry_run,
+    )
+
+
+async def _arifos_mind_reflect(
+    query: str = "",
+    context: str | None = None,
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    """Lightweight feedback-learning mode: compare predictions vs outcomes."""
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict
+    import json
+
+    predictions: list[float] = []
+    outcomes: list[float] = []
+    try:
+        ctx = json.loads(context or "{}")
+        predictions = [float(x) for x in ctx.get("predictions", [])]
+        outcomes = [float(x) for x in ctx.get("outcomes", [])]
+    except Exception:
+        pass
+
+    mae = 0.0
+    calibration_gap = 0.0
+    n = min(len(predictions), len(outcomes))
+    if n > 0:
+        errors = [abs(predictions[i] - outcomes[i]) for i in range(n)]
+        mae = sum(errors) / n
+        calibration_gap = sum(predictions[i] - outcomes[i] for i in range(n)) / n
+
+    return RE(
+        ok=True,
+        tool="arifos_mind",
+        canonical_tool_name="arifos_mind",
+        stage="333_MIND",
+        verdict=Verdict.SEAL,
+        status=RuntimeStatus.SUCCESS,
+        payload={
+            "mode": "reflect",
+            "sample_count": n,
+            "mae": round(mae, 4),
+            "calibration_gap": round(calibration_gap, 4),
+            "recommendation": (
+                "Confidence thresholds may be too low" if calibration_gap < -0.1
+                else "Confidence thresholds may be too high" if calibration_gap > 0.1
+                else "Calibration appears well-aligned"
+            ),
+        },
+        session_id=session_id,
+    )
+
+
+async def _arifos_mind_public(
+    query: str = "",
+    context: str | None = None,
+    mode: str = "reason",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    if mode == "reflect":
+        return await _arifos_mind_reflect(query=query, context=context, session_id=session_id)
+    return await arifos_mind(
+        query=query,
+        context=context,
+        mode=mode,
+        session_id=session_id,
+    )
+
+
+async def _arifos_kernel_public(
+    query: str = "",
+    mode: str = "kernel",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    return await arifos_kernel(
+        query=query,
+        mode=mode,
+        session_id=session_id,
+    )
+
+
+async def _arifos_heart_public(
+    query: str = "",
+    mode: str = "critique",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    return await arifos_heart(
+        query=query,
+        mode=mode,
+        session_id=session_id,
+    )
+
+
+async def _arifos_ops_public(
+    query: str = "",
+    mode: str = "cost",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    return await arifos_ops(
+        query=query,
+        mode=mode,
+        session_id=session_id,
+    )
+
+
+async def _arifos_judge_public(
+    query: str = "",
+    risk_tier: str = "medium",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    return await arifos_judge(
+        query=query,
+        risk_tier=risk_tier,
+        session_id=session_id,
+    )
+
+
+async def _arifos_memory_public(
+    query: str = "",
+    mode: str = "vector_query",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    return await arifos_memory(
+        query=query,
+        mode=mode,
+        session_id=session_id,
+    )
+
+
+async def _arifos_vault_public(
+    verdict: str,
+    evidence: str | None = None,
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    return await arifos_vault(
+        verdict=verdict,
+        evidence=evidence,
+        session_id=session_id,
+    )
+
+
+async def _arifos_forge_public(
+    action: str,
+    payload: dict[str, Any],
+    session_id: str,
+    judge_verdict: str,
+    judge_g_star: float,
+    dry_run: bool = True,
+) -> RuntimeEnvelope:
+    return await arifos_forge(
+        action=action,
+        payload=payload,
+        session_id=session_id,
+        judge_verdict=judge_verdict,
+        judge_g_star=judge_g_star,
+        dry_run=dry_run,
+    )
+
+
+async def _arifos_gateway_public(
+    session_id: str,
+    mode: str = "guard",
+    tool_trace: list[dict[str, Any]] | None = None,
+    correlation_threshold: float = 0.95,
+) -> RuntimeEnvelope:
+    return await arifos_gateway(
+        session_id=session_id,
+        mode=mode,
+        tool_trace=tool_trace,
+        correlation_threshold=correlation_threshold,
+    )
+
+
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # ═══════════════════════════════════════════════════════════════════════
-    # CANONICAL CORE (12 tools) — Phase 1 Surface Compression
+    # CANONICAL CORE (11 public tools) — Phase 1 Surface Compression
     # ═══════════════════════════════════════════════════════════════════════
     # Governance
-    "arifos_init": arifos_init,
-    "arifos_judge": arifos_judge,
-    "arifos_vault": arifos_vault,
+    "arifos_init": _arifos_init_public,
+    "arifos_judge": _arifos_judge_public,
+    "arifos_vault": _arifos_vault_public,
     # Intelligence
-    "arifos_sense": arifos_sense,
-    "arifos_mind": arifos_mind,
-    "arifos_heart": arifos_heart,
+    "arifos_sense": _arifos_sense_public,
+    "arifos_mind": _arifos_mind_public,
+    "arifos_heart": _arifos_heart_public,
     "arifos_reply": arifos_reply,
-    "arifos_kernel": arifos_kernel,
+    "arifos_kernel": _arifos_kernel_public,
     # Execution
-    "arifos_forge": arifos_forge,
+    "arifos_forge": _arifos_forge_public,
+    # Orthogonality / Governance
+    "arifos_gateway": _arifos_gateway_public,
     # Observability / Domain
     "arifos_health": arifos_health,
     "arifos_fetch": arifos_fetch,
@@ -1584,8 +1883,8 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # Extended (non-core but dispatchable)
     "arifos_repo_read": arifos_repo_read,
     "arifos_repo_seal": arifos_repo_seal,
-    "arifos_ops": arifos_ops,
-    "arifos_memory": arifos_memory,
+    "arifos_ops": _arifos_ops_public,
+    "arifos_memory": _arifos_memory_public,
 }
 
 LEGACY_TOOL_ALIASES: dict[str, str] = {
@@ -1600,6 +1899,7 @@ LEGACY_TOOL_ALIASES: dict[str, str] = {
     "arifos.memory": "arifos_memory",
     "arifos.vault": "arifos_vault",
     "arifos.forge": "arifos_forge",
+    "arifos.gateway": "arifos_gateway",
     "arifos.reply": "arifos_reply",
     "arifos.health": "arifos_health",
     "arifos.fetch": "arifos_fetch",
@@ -1720,6 +2020,7 @@ architect_registry = arifos_init
 check_vital = arifos_health
 system_health = arifos_health
 forge = arifos_forge
+orthogonality_guard = arifos_gateway
 
 # Legacy wrapper with distinct behavior (tool-name fix)
 async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
@@ -1934,7 +2235,7 @@ def register_v2_tools(mcp: FastMCP, *, include_legacy_compat: bool = False) -> l
             idempotentHint=spec.idempotent_hint,
         )
 
-        public_name = "arifos_route" if spec.name == "arifos_kernel" else spec.name
+        public_name = spec.name
 
         # 1. Register canonical public name
         ft_dotted = FunctionTool.from_function(

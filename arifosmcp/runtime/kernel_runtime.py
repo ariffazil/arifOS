@@ -156,7 +156,7 @@ class ContractRegistry:
                 side_effect_class=SideEffectClass.WRITE_SAFE,
                 reversibility_class=ReversibilityClass.FULL,
                 allowed_predecessors=set(),  # Genesis
-                allowed_successors={"arifos_sense", "arifos_route"},
+                allowed_successors={"arifos_sense", "arifos_kernel"},
                 proof_requirements=["session_binding"]
             ),
             
@@ -193,7 +193,7 @@ class ContractRegistry:
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
                 allowed_predecessors={"arifos_init"},
-                allowed_successors={"arifos_mind", "arifos_route"},
+                allowed_successors={"arifos_mind", "arifos_kernel"},
                 proof_requirements=["grounding_check", "uncertainty_attached"]
             ),
             
@@ -231,13 +231,13 @@ class ContractRegistry:
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
                 allowed_predecessors={"arifos_sense", "arifos_init"},
-                allowed_successors={"arifos_route"},
+                allowed_successors={"arifos_kernel"},
                 proof_requirements=["reasoning_trace", "confidence_attached"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos_route": ToolContract(
-                name="arifos_route",
+            "arifos_kernel": ToolContract(
+                name="arifos_kernel",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -304,7 +304,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos_route"},
+                allowed_predecessors={"arifos_kernel"},
                 allowed_successors={"arifos_heart", "arifos_judge"},
                 proof_requirements=["calculation_method", "uncertainty_attached"]
             ),
@@ -339,7 +339,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos_route", "arifos_ops"},
+                allowed_predecessors={"arifos_kernel", "arifos_ops"},
                 allowed_successors={"arifos_judge"},
                 proof_requirements=["value_alignment_check"]
             ),
@@ -375,7 +375,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos_route", "arifos_ops", "arifos_heart"},
+                allowed_predecessors={"arifos_kernel", "arifos_ops", "arifos_heart"},
                 allowed_successors={"arifos_vault", "arifos_forge"},
                 proof_requirements=["tri_witness_verification", "floor_check_all"]
             ),
@@ -494,6 +494,42 @@ class ContractRegistry:
             ),
             
             # ═════════════════════════════════════════════════════════════════
+            "arifos_gateway": ToolContract(
+                name="arifos_gateway",
+                contract_version="0.1.0",
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "session_id": {"type": "string"},
+                        "mode": {"type": "string", "enum": ["guard", "audit", "correlate"]},
+                        "tool_trace": {"type": "array", "items": {"type": "object"}},
+                        "correlation_threshold": {"type": "number"}
+                    },
+                    "required": ["session_id"]
+                },
+                output_schema={
+                    "type": "object",
+                    "properties": {
+                        "omega_ortho": {"type": "number"},
+                        "correlation_threshold": {"type": "number"},
+                        "organs_seen": {"type": "array", "items": {"type": "string"}},
+                        "violations": {"type": "array", "items": {"type": "object"}},
+                        "verdict_hint": {"type": "string"}
+                    }
+                },
+                floors_enforced=["F3", "F4", "F9", "F11", "F13"],
+                physics={
+                    "entropy": {"max_delta": 0.0, "target": "measure_only"},
+                    "uncertainty": {"band": "measured", "omega_range": [0.0, 1.0]}
+                },
+                risk_level=RiskLevel.HIGH,
+                side_effect_class=SideEffectClass.READ,
+                reversibility_class=ReversibilityClass.FULL,
+                allowed_predecessors={"arifos_init", "arifos_ops", "arifos_mind"},
+                allowed_successors={"arifos_judge"},
+                proof_requirements=["trace_evidence"]
+            ),
+            # ═════════════════════════════════════════════════════════════════
             "arifos_health": ToolContract(
                 name="arifos_health",
                 contract_version="0.2.0",
@@ -585,16 +621,17 @@ class MetabolicRouter:
     
     # Canonical metabolic flow
     METABOLIC_DAG: Dict[str, Set[str]] = {
-        "arifos_init": {"arifos_sense", "arifos_route"},
-        "arifos_sense": {"arifos_mind", "arifos_route"},
-        "arifos_mind": {"arifos_route"},
-        "arifos_route": {"arifos_ops", "arifos_heart", "arifos_judge"},
+        "arifos_init": {"arifos_sense", "arifos_kernel"},
+        "arifos_sense": {"arifos_mind", "arifos_kernel"},
+        "arifos_mind": {"arifos_kernel"},
+        "arifos_kernel": {"arifos_ops", "arifos_heart", "arifos_judge"},
         "arifos_ops": {"arifos_heart", "arifos_judge"},
         "arifos_heart": {"arifos_judge"},
         "arifos_judge": {"arifos_vault", "arifos_forge"},
         "arifos_vault": set(),  # Terminal
         "arifos_forge": set(),  # Terminal
         "arifos_memory": set(),  # Parallel
+        "arifos_gateway": {"arifos_judge"},  # Pre-judge orthogonality check
         "arifos_health": set(),  # Parallel
     }
     
