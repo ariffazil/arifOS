@@ -214,11 +214,11 @@ class KernelCore:
             elif tool_name == "arifos_mind":
                 kwargs["context"] = context.get("payload", {}).get("context")
 
-            # Invoke
-            result = await handler(**kwargs)
+            # PHASE 17 REBUILD: Use Fail-Closed Dispatcher
+            from arifosmcp.runtime.tools_hardened_dispatch import dispatch_with_fail_closed
+            
+            result = await dispatch_with_fail_closed(tool_name, kwargs)
 
-            if hasattr(result, "__dict__"):
-                return result.__dict__
             return result or {"ok": True}
 
         except Exception as e:
@@ -259,6 +259,36 @@ class KernelCore:
                 session_id=session_id,
                 payload=tool_result,
             )
+
+        # ── Philosophy Injection (Horizon Atlas) ──
+        try:
+            from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
+            
+            # Extract metrics from envelope/payload
+            metrics = getattr(envelope, "metrics", None)
+            pl = envelope.payload if isinstance(envelope.payload, dict) else {}
+            
+            scores = AtlasScores(
+                delta_s=float(pl.get("delta_s", getattr(metrics.telemetry, "ds", -0.01) if metrics else -0.01)),
+                g_score=float(pl.get("truth_score", getattr(metrics.telemetry, "confidence", 0.85) if metrics else 0.85)),
+                omega_score=float(pl.get("omega_score", 0.04)), # Humility band
+                lyapunov_sign="stable",
+                verdict=str(envelope.verdict),
+                session_stage=str(envelope.stage),
+            )
+            
+            phi = select_atlas_philosophy(scores, session_id=session_id)
+            if isinstance(envelope.payload, dict):
+                envelope.payload["philosophy"] = phi
+                
+            # Update detail with primary quote
+            quote = phi.get("primary_quote", {}).get("quote")
+            author = phi.get("primary_quote", {}).get("author", "Unknown")
+            if quote:
+                base_detail = envelope.detail or ""
+                envelope.detail = f"{base_detail}\n\n\"{quote}\" — {author}"
+        except Exception as phil_err:
+            logger.debug(f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}")
 
         # Seal with continuity
         sealed = seal_runtime_envelope(

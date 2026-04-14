@@ -433,6 +433,132 @@ class _LazyDispatchMap(dict):  # type: ignore[type-arg]
 HARDENED_DISPATCH_MAP: dict[str, Callable[..., Awaitable[Any]]] = _LazyDispatchMap()
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# FAIL-CLOSED DISPATCH (PR-17 REBUILD)
+# Zero-loophole: any request missing identity, schema, or operating outside
+# the explicit call graph is instantly VOID. Silent fallbacks to ANONYMOUS
+# are impossible.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_IDENTITY_GATED_TOOLS = frozenset(
+    [
+        "arifos_mind",
+        "arifos_sense",
+        "arifos_memory",
+        "arifos_heart",
+        "arifos_ops",
+        "arifos_judge",
+        "arifos_vault",
+        "arifos_forge",
+        "arifos_route",
+    ]
+)
+
+
+def _get_fail_closed_result(
+    tool_name: str,
+    reason: str,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Return a structured VOID fail-closed response."""
+    return {
+        "ok": False,
+        "verdict": "VOID",
+        "tool": tool_name,
+        "stage": "FAIL_CLOSED",
+        "error": reason,
+        "error_code": "FAIL_CLOSED_IDENTITY",
+        "session_id": session_id,
+        "fail_closed": True,
+    }
+
+
+async def dispatch_with_fail_closed(
+    tool_name: str,
+    kwargs: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Fail-closed dispatch wrapper for PR-17.
+
+    Enforces:
+    1. Tool must exist in HARDENED_DISPATCH_MAP (no silent fallback)
+    2. Identity check: ANONYMOUS or EXPIRED identity → VOID on gated tools
+    3. Schema presence: payload must not be entirely empty on write/execute tools
+
+    Exceptions:
+    - arifos_init: bootstrap tool — identity check exempt
+    - Read-class tools: relaxed schema check
+    """
+    handler = HARDENED_DISPATCH_MAP.get(tool_name)
+
+    # FAIL-CLOSED GATE 1: Unknown tool → VOID
+    if handler is None:
+        return _get_fail_closed_result(
+            tool_name,
+            f"Tool '{tool_name}' not found in canonical registry. "
+            f"Rejecting unknown tool — fail-closed mode active.",
+            session_id=kwargs.get("session_id"),
+        )
+
+    session_id = kwargs.get("session_id")
+
+    # FAIL-CLOSED GATE 2: Identity check for gated tools
+    if tool_name in _IDENTITY_GATED_TOOLS:
+        try:
+            from arifosmcp.runtime.sessions import get_session_identity
+
+            identity = get_session_identity(session_id) if session_id else None
+            if identity is None:
+                return _get_fail_closed_result(
+                    tool_name,
+                    f"FAIL_CLOSED: No identity found for session '{session_id}'. "
+                    f"Tool '{tool_name}' requires a BOUND identity. "
+                    f"Call arifos_init first.",
+                    session_id=session_id,
+                )
+
+            identity_actor = identity.get("actor_id", "anonymous")
+            if identity_actor == "anonymous":
+                return _get_fail_closed_result(
+                    tool_name,
+                    f"FAIL_CLOSED: ANONYMOUS identity cannot call '{tool_name}'.",
+                    session_id=session_id,
+                )
+
+        except Exception as e:
+            return _get_fail_closed_result(
+                tool_name,
+                f"FAIL_CLOSED: Identity validation error: {e}.",
+                session_id=session_id,
+            )
+
+    # FAIL-CLOSED GATE 3: Schema presence check for write/execute tools
+    write_execute_tools = frozenset(["arifos_forge", "arifos_vault"])
+    if tool_name in write_execute_tools:
+        payload = kwargs.get("payload") or {}
+        if not payload and not any(k in kwargs for k in ("action", "verdict")):
+            return _get_fail_closed_result(
+                tool_name,
+                f"FAIL_CLOSED: Missing payload/parameters for write/execute tool '{tool_name}'.",
+                session_id=session_id,
+            )
+
+    # All gates passed — invoke the handler
+    try:
+        result = await handler(**kwargs)
+        if hasattr(result, "__dict__"):
+            return result.__dict__
+        return result or {"ok": True}
+    except Exception as e:
+        return {
+            "ok": False,
+            "verdict": "VOID",
+            "tool": tool_name,
+            "error": str(e),
+            "fail_closed": True,
+        }
+
+
 def get_tool_handler(tool_name: str) -> Callable[..., Awaitable[Any]] | None:
     """Get the hardened handler for a canonical tool name."""
     return HARDENED_DISPATCH_MAP.get(tool_name)
