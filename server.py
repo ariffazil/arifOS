@@ -80,6 +80,21 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
             )
 
 
+class CSPMiddleware(BaseHTTPMiddleware):
+    """Inject CSP headers for MCP Apps iframe compatibility."""
+
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "frame-ancestors https://chat.openai.com https://*.openai.com https://claude.ai https://gemini.google.com; "
+            "connect-src 'self' https://arifosmcp.arif-fazil.com https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline'"
+        )
+        return response
+
+
 class SSEKeepAliveMiddleware(BaseHTTPMiddleware):
     """Injects keepalive for SSE streams."""
 
@@ -504,6 +519,7 @@ try:
 
     # Add middleware
     app.add_middleware(GlobalPanicMiddleware)
+    app.add_middleware(CSPMiddleware)
     app.add_middleware(SSEKeepAliveMiddleware)
     app.add_middleware(
         CORSMiddleware,
