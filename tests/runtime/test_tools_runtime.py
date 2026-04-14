@@ -103,3 +103,22 @@ async def test_arifos_memory_basic():
         )
         result = await arifos_memory(query="test query", dry_run=True)
         assert result.ok is True
+
+
+@pytest.mark.asyncio
+async def test_arifos_forge_dry_run_includes_rollback_plan():
+    """Forge should emit rollback metadata for delegated execution."""
+    result = await arifos_forge(
+        action="compute",
+        payload={"task": "noop"},
+        session_id="sess-forge-001",
+        judge_verdict="SEAL",
+        judge_g_star=0.91,
+        dry_run=True,
+    )
+
+    assert result["ok"] is True
+    rollback = result["payload"]["rollback"]
+    assert rollback["rollback_supported"] is True
+    assert rollback["checkpoint_id"].startswith("cp-sess-forge-001-")
+    assert result["payload"]["manifest"]["constraints"]["rollback_plan"]["checkpoint_id"] == rollback["checkpoint_id"]

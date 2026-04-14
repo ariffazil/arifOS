@@ -1192,7 +1192,7 @@ async def arifos_health(
                     detail=f"F12_BLOCKED: Action '{action}' not permitted.",
                     user_model=_user_model,
                 ),
-                "arifos.vps_monitor",
+                "arifos_health",
             )
 
         if dry_run:
@@ -1207,7 +1207,7 @@ async def arifos_health(
                     payload={"mode": "dry_run", "action": action},
                     user_model=_user_model,
                 ),
-                "arifos.vps_monitor",
+                "arifos_health",
             )
 
         return seal_runtime_envelope(
@@ -1221,7 +1221,7 @@ async def arifos_health(
                 payload={"output": output, "success": True},
                 user_model=_user_model,
             ),
-            "arifos.vps_monitor",
+            "arifos_health",
         )
     except Exception as e:
         return seal_runtime_envelope(
@@ -1235,7 +1235,7 @@ async def arifos_health(
                 detail=str(e),
                 user_model=_user_model,
             ),
-            "arifos.vps_monitor",
+            "arifos_health",
         )
 
 
@@ -1497,31 +1497,35 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
     )
 
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
-    # Canonical underscore names (Universal Compatible)
+    # ═══════════════════════════════════════════════════════════════════════
+    # CANONICAL CORE (12 tools) — Phase 1 Surface Compression
+    # ═══════════════════════════════════════════════════════════════════════
+    # Governance
     "arifos_init": arifos_init,
+    "arifos_judge": arifos_judge,
+    "arifos_vault": arifos_vault,
+    # Intelligence
     "arifos_sense": arifos_sense,
     "arifos_mind": arifos_mind,
-    "arifos_kernel": arifos_kernel,
     "arifos_heart": arifos_heart,
-    "arifos_ops": arifos_ops,
-    "arifos_judge": arifos_judge,
-    "arifos_memory": arifos_memory,
-    "arifos_vault": arifos_vault,
-    "arifos_forge": arifos_forge,
     "arifos_reply": arifos_reply,
+    "arifos_kernel": arifos_kernel,
+    # Execution
+    "arifos_forge": arifos_forge,
+    # Observability / Domain
     "arifos_health": arifos_health,
     "arifos_fetch": arifos_fetch,
-    "arifos_repo_read": arifos_repo_read,
-    "arifos_repo_seal": arifos_repo_seal,
     "arifos_probe": arifos_probe,
     "arifos_diag_substrate": arifos_diag_substrate,
-    # "arifos_forge_bridge": arifos_forge_bridge,  # TODO: Implement
-    # Legacy internal aliases
-    "arifos_route": arifos_kernel,
+    # Extended (non-core but dispatchable)
+    "arifos_repo_read": arifos_repo_read,
+    "arifos_repo_seal": arifos_repo_seal,
+    "arifos_ops": arifos_ops,
+    "arifos_memory": arifos_memory,
 }
 
-# Legacy dot-name aliases for backwards compatibility (NON-BREAKING MIGRATION)
 LEGACY_TOOL_ALIASES: dict[str, str] = {
+    # ── Dot-name legacy aliases ────────────────────────────────────────────
     "arifos.init": "arifos_init",
     "arifos.sense": "arifos_sense",
     "arifos.mind": "arifos_mind",
@@ -1539,13 +1543,39 @@ LEGACY_TOOL_ALIASES: dict[str, str] = {
     "arifos.repo_seal": "arifos_repo_seal",
     "arifos.probe": "arifos_probe",
     "arifos.diag_substrate": "arifos_diag_substrate",
-    # "arifos.forge_bridge": "arifos_forge_bridge",  # TODO: Implement
-}
-
-LEGACY_COMPAT_TOOL_HANDLERS: dict[str, Any] = {
-    "agi_reason": arifos_mind,
-    "reality_compass": arifos_sense,
-    "vault_seal": arifos_vault,
+    # ── v2 naming aliases ──────────────────────────────────────────────────
+    "init_v2": "arifos_init",
+    "sense_v2": "arifos_sense",
+    "mind_v2": "arifos_mind",
+    "route_v2": "arifos_kernel",
+    "memory_v2": "arifos_memory",
+    "heart_v2": "arifos_heart",
+    "ops_v2": "arifos_ops",
+    "judge_v2": "arifos_judge",
+    "vault_v2": "arifos_vault",
+    "forge_v2": "arifos_forge",
+    # ── Horizon / mythic aliases ───────────────────────────────────────────
+    "arifos_route": "arifos_kernel",
+    "init_anchor": "arifos_init",
+    "apex_soul": "arifos_judge",
+    "vault_ledger": "arifos_vault",
+    "math_estimator": "arifos_ops",
+    "physics_reality": "arifos_sense",
+    "engineering_memory": "arifos_memory",
+    "asi_heart": "arifos_heart",
+    "agi_mind": "arifos_mind",
+    "architect_registry": "arifos_init",
+    "check_vital": "arifos_health",
+    "system_health": "arifos_health",
+    "forge": "arifos_forge",
+    # ── Legacy shim aliases ────────────────────────────────────────────────
+    "audit_rules": "arifos_judge",
+    "verify_vault_ledger": "arifos_vault",
+    "seal_vault_commit": "arifos_vault",
+    "metabolic_loop_router": "arifos_judge",
+    "agi_reason": "arifos_mind",
+    "reality_compass": "arifos_sense",
+    "vault_seal": "arifos_vault",
 }
 
 
@@ -1590,8 +1620,13 @@ def normalize_tool_name(name: str) -> str:
     return LEGACY_TOOL_ALIASES.get(name, name)
 
 
-# Backward-compatible aliases for older runtime imports.
-arifos_route = arifos_kernel # [P1 FIX] Preserve canonical route symbol
+# ═══════════════════════════════════════════════════════════════════════════════
+# PYTHON-LEVEL IMPORT ALIASES (preserved for backward compatibility)
+# These remain so direct imports from tests and legacy callers do not break.
+# Routing resolution is centralized in LEGACY_TOOL_ALIASES above.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# v2 aliases
 init_v2 = arifos_init
 sense_v2 = arifos_sense
 mind_v2 = arifos_mind
@@ -1602,19 +1637,9 @@ ops_v2 = arifos_ops
 judge_v2 = arifos_judge
 vault_v2 = arifos_vault
 forge_v2 = arifos_forge
-V2_TOOL_HANDLERS = CANONICAL_TOOL_HANDLERS
 
-# Legacy Horizon/v1 aliases for tests
-async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
-    """Legacy alias for arifos_init that preserves the init_anchor tool name."""
-    envelope = await arifos_init(*args, **kwargs)
-    if hasattr(envelope, "tool"):
-        envelope.tool = "init_anchor"
-    if hasattr(envelope, "canonical_tool_name"):
-        envelope.canonical_tool_name = "init_anchor"
-    return envelope
-
-arifos_kernel = arifos_kernel  # backward compat alias
+# Horizon / mythic aliases
+arifos_route = arifos_kernel
 apex_soul = arifos_judge
 vault_ledger = arifos_vault
 math_estimator = arifos_ops
@@ -1626,6 +1651,16 @@ architect_registry = arifos_init
 check_vital = arifos_health
 system_health = arifos_health
 forge = arifos_forge
+
+# Legacy wrapper with distinct behavior (tool-name fix)
+async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    """Legacy alias for arifos_init that preserves the init_anchor tool name."""
+    envelope = await arifos_init(*args, **kwargs)
+    if hasattr(envelope, "tool"):
+        envelope.tool = "init_anchor"
+    if hasattr(envelope, "canonical_tool_name"):
+        envelope.canonical_tool_name = "init_anchor"
+    return envelope
 
 # Legacy shims for backward compatibility with pre-unification tests
 async def audit_rules(session_id: str | None = None, query: str = "validate") -> RuntimeEnvelope:

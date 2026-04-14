@@ -31,20 +31,40 @@ class RollbackEngine:
 
     def __init__(self):
         self._checkpoints: dict[str, list[GovernanceKernel]] = {}
+        self._checkpoint_meta: dict[str, list[dict[str, Any]]] = {}
         self._max_history = 5
 
-    def create_checkpoint(self, session_id: str, kernel: GovernanceKernel):
+    def create_checkpoint(self, session_id: str, kernel: GovernanceKernel) -> str:
         """Save a snapshot of the current governance state."""
         if session_id not in self._checkpoints:
             self._checkpoints[session_id] = []
+        if session_id not in self._checkpoint_meta:
+            self._checkpoint_meta[session_id] = []
 
         # Perform deep copy to ensure isolation
         snapshot = copy.deepcopy(kernel)
+        checkpoint_id = f"cp-{session_id}-{int(time.time() * 1000)}-{len(self._checkpoints[session_id])}"
         self._checkpoints[session_id].append(snapshot)
+        self._checkpoint_meta[session_id].append(
+            {
+                "checkpoint_id": checkpoint_id,
+                "session_id": session_id,
+                "created_at": str(time.time()),
+            }
+        )
 
         # Keep only the last N checkpoints
         if len(self._checkpoints[session_id]) > self._max_history:
             self._checkpoints[session_id].pop(0)
+            self._checkpoint_meta[session_id].pop(0)
+        return checkpoint_id
+
+    def latest_checkpoint(self, session_id: str) -> dict[str, Any] | None:
+        """Return metadata for the most recent checkpoint, if any."""
+        meta = self._checkpoint_meta.get(session_id) or []
+        if not meta:
+            return None
+        return dict(meta[-1])
 
     def rollback(self, session_id: str) -> GovernanceKernel | None:
         """
@@ -58,11 +78,15 @@ class RollbackEngine:
         # The last checkpoint is the current failing state, so take the one before it
         if len(self._checkpoints[session_id]) >= 2:
             self._checkpoints[session_id].pop()  # Remove current bad state
+            if self._checkpoint_meta.get(session_id):
+                self._checkpoint_meta[session_id].pop()
             healthy_state = self._checkpoints[session_id][-1]
             logger.info(f"Session {session_id} rolled back to previous checkpoint.")
             return copy.deepcopy(healthy_state)
 
-        return None
+        healthy_state = self._checkpoints[session_id][-1]
+        logger.info(f"Session {session_id} rolled back to last available checkpoint.")
+        return copy.deepcopy(healthy_state)
 
 
 # Global singleton

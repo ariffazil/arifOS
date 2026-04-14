@@ -16,6 +16,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Awaitable, Callable
 
+from core.governance_kernel import GovernanceKernel
+from core.recovery.rollback_engine import rollback_engine
+
 logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -208,6 +211,11 @@ class _LazyDispatchMap(dict):
 
 HARDENED_DISPATCH_MAP: dict[str, Callable[..., Awaitable[Any]]] = _LazyDispatchMap()
 
+
+def get_tool_handler(tool_name: str) -> Callable[..., Awaitable[Any]] | None:
+    """Compatibility lookup for kernel_core and older routing paths."""
+    return HARDENED_DISPATCH_MAP.get(tool_name)
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # FAIL-CLOSED WRAPPER (PR-17 REBUILD)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -249,6 +257,13 @@ async def dispatch_with_fail_closed(tool_name: str, kwargs: dict[str, Any]) -> d
 
     # EXECUTION
     try:
+        if tool_name == "arifos_forge" and session_id:
+            kernel = GovernanceKernel(session_id=session_id)
+            kernel.record_event(
+                "action",
+                {"tool": tool_name, "reversible": False, "payload_keys": sorted(kwargs.keys())},
+            )
+            rollback_engine.create_checkpoint(session_id, kernel)
         result = await handler(**kwargs)
         if hasattr(result, "to_dict"):
             return result.to_dict(compact=True)
@@ -258,6 +273,8 @@ async def dispatch_with_fail_closed(tool_name: str, kwargs: dict[str, Any]) -> d
             return result.__dict__
         return result or {"ok": True}
     except Exception as e:
+        if tool_name == "arifos_forge" and session_id:
+            rollback_engine.rollback(session_id)
         logger.error(f"FAIL_CLOSED: Handler exception in {tool_name}: {e}")
         return _get_fail_closed_result(tool_name, f"INTERNAL_ERROR: {str(e)}", session_id)
 
