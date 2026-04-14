@@ -938,24 +938,26 @@ arifOS is built upon **10 Governance + Observability Tools** + **1 Execution Bri
 
 These tools govern the cognitive layer. Every tool requires **Theory of Mind (ToM)** fields in the payload — the LLM must externalize its mental model.
 
+**Naming note:** the live FastMCP public surface uses **underscore names** such as `arifos_init` and `arifos_route`. Older dotted forms in historical docs/examples should be treated as legacy notation, not the authoritative public action names.
+
 | Tool | Stage | Function | ToM Required | Key Output |
 |------|-------|----------|--------------|------------|
-| `arifos.init` | 000_INIT | Session anchoring | `declared_intent`, `confidence_self_estimate`, `context_assumptions` | Session + Philosophy |
-| `arifos.sense` | 111_SENSE | Reality grounding | `claim`, `evidence_type`, `source_confidence`, `bias_assessment` | Grounded status |
-| `arifos.mind` | 333_MIND | Structured reasoning | `problem_statement`, `alternative_hypotheses` (min 2), `second_order_effects` | Consistency check |
-| `arifos.route` | 444_ROUTER | Lane selection | `intent_model`, `ambiguity_level`, `inferred_user_goals` | Execution path |
-| `arifos.heart` | 666_HEART | Safety & human modeling | `target_audience`, `potential_harm_vectors`, `vulnerability_risk`, `consent_assessment` | Risk assessment |
-| `arifos.ops` | 444_OPS | Operational cost | `complexity_estimate`, `irreversibility`, `rollback_plan` | Feasibility |
-| `arifos.judge` | 888_JUDGE | Constitutional verdict | `logical_consistency`, `self_critique`, `uncertainty_quantified` | **Verdict (SEAL/HOLD/VOID)** |
-| `arifos.memory` | 777_MEMORY | Context recall | `query_vector`, `recall_confidence`, `context_assumptions` | Retrieved entries |
-| `arifos.vault` | 999_VAULT | Immutable seal | `verdict`, `hash_of_input`, `irreversibility_acknowledged` | Ledger entry |
-| `arifos.health` | 111_HEALTH | Runtime telemetry & environment checks | `action`, `system_scope`, `safety_context` | Observability status |
+| `arifos_init` | 000_INIT | Session anchoring | `declared_intent`, `confidence_self_estimate`, `context_assumptions` | Session + Philosophy |
+| `arifos_sense` | 111_SENSE | Reality grounding | `claim`, `evidence_type`, `source_confidence`, `bias_assessment` | Grounded status |
+| `arifos_mind` | 333_MIND | Structured reasoning | `problem_statement`, `alternative_hypotheses` (min 2), `second_order_effects` | Consistency check |
+| `arifos_route` | 444_ROUTER | Lane selection | `intent_model`, `ambiguity_level`, `inferred_user_goals` | Execution path |
+| `arifos_heart` | 666_HEART | Safety & human modeling | `target_audience`, `potential_harm_vectors`, `vulnerability_risk`, `consent_assessment` | Risk assessment |
+| `arifos_ops` | 444_OPS | Operational cost | `complexity_estimate`, `irreversibility`, `rollback_plan` | Feasibility |
+| `arifos_judge` | 888_JUDGE | Constitutional verdict | `logical_consistency`, `self_critique`, `uncertainty_quantified` | **Verdict (SEAL/HOLD/VOID)** |
+| `arifos_memory` | 777_MEMORY | Context recall | `query_vector`, `recall_confidence`, `context_assumptions` | Retrieved entries |
+| `arifos_vault` | 999_VAULT | Immutable seal | `verdict`, `hash_of_input`, `irreversibility_acknowledged` | Ledger entry |
+| `arifos_health` | 111_HEALTH | Runtime telemetry & environment checks | `action`, `system_scope`, `safety_context` | Observability status |
 
 ### The 1 Execution Bridge (Action Layer)
 
 | Tool | Layer | Function | Gate | Key Output |
 |------|-------|----------|------|------------|
-| `arifos.forge` | Execution | Delegated action bridge | Requires `judge` verdict="SEAL" | Signed manifest + receipt hash |
+| `arifos_forge` | Execution | Delegated action bridge | Requires `judge` verdict="SEAL" | Signed manifest + receipt hash |
 
 **Separation of Powers:**
 - ✅ **10 Governance + Observability Tools** think, validate, inspect — but never execute directly

@@ -329,7 +329,9 @@ async def render_vault_seal(seal_data: dict[str, Any]) -> dict[str, Any]:
 
 
 __all__ = [
+    "ARIFOS_WIDGET_DOMAIN",
     "VAULT_WIDGET_URI",
+    "RESOURCE_MIME_TYPE",
     "_build_vault_seal_structured_content",
     "register_chatgpt_app_tools",
     "vault_seal_widget_html",

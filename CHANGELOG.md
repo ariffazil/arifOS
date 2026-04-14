@@ -26,6 +26,7 @@ All notable changes to arifOS MCP are documented in this file.
 - Restored active legacy registration aliases for `agi_reason`, `reality_compass`, and `vault_seal`.
 - `arifos_route` is now a real public wrapper again, accepting route-facing fields (`context`, `auth_context`, `actor_id`) and preserving philosophy metadata expected by metabolic regression callers.
 - `PhilosophyState` now includes backward-compatible `stage` and `.get()` access patterns.
+- Split registration paths so backward-compat aliases remain available to legacy/test callers, while the actual FastMCP server registers only the 11 public tools.
 
 ## [2026.04.11-SEAL-UNIFIED] - 999_SEAL Unification & Hardened Deployment
 

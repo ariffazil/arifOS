@@ -174,7 +174,7 @@ try:
     import arifosmcp.runtime.tools as _tools_mod
     _tools_mod.CANONICAL_TOOL_HANDLERS = HARDENED_HANDLERS
 
-    v2_tools_registered = register_v2_tools(mcp)
+    v2_tools_registered = register_v2_tools(mcp, include_legacy_compat=False)
     v2_prompts_registered = register_v2_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 

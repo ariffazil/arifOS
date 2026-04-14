@@ -1819,7 +1819,7 @@ FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
 # Legacy registration shim — redirects to v2 registration
 def register_tools(mcp: Any) -> list[str]:
     """Legacy tool registration shim."""
-    return register_v2_tools(mcp)
+    return register_v2_tools(mcp, include_legacy_compat=True)
 
 
 def _normalize_session_id(session_id: str | None) -> str:
@@ -1913,14 +1913,14 @@ def _create_signature_matched_alias(name: str, original_fn: Any) -> Any:
     return alias_fn
 
 
-def register_v2_tools(mcp: FastMCP) -> list[str]:
+def register_v2_tools(mcp: FastMCP, *, include_legacy_compat: bool = False) -> list[str]:
     """Register all v2 tools on the MCP instance with MCP v2 tool annotations."""
     from fastmcp.tools.function_tool import FunctionTool, ToolAnnotations
 
-    from arifosmcp.runtime.tool_specs import V2_TOOLS
+    from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
 
     registered = []
-    for spec in V2_TOOLS:
+    for spec in PUBLIC_TOOL_SPECS:
         handler = CANONICAL_TOOL_HANDLERS.get(spec.name)
         if not handler:
             logger.warning(f"No handler for v2 tool: {spec.name}")
@@ -1934,41 +1934,29 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
             idempotentHint=spec.idempotent_hint,
         )
 
-        # 1. Register canonical dotted name (primary surface for v2)
+        public_name = "arifos_route" if spec.name == "arifos_kernel" else spec.name
+
+        # 1. Register canonical public name
         ft_dotted = FunctionTool.from_function(
             handler,
-            name=spec.name,
+            name=public_name,
             description=spec.description,
             annotations=annotations,
         )
         ft_dotted.parameters = dict(spec.input_schema)
         mcp.add_tool(ft_dotted)
-        registered.append(spec.name)
+        registered.append(public_name)
 
-        # 2. Register underscored alias ONLY for public tools
-        if spec.visibility == "public":
-            underscored_name = spec.name.replace(".", "_")
-            if underscored_name != spec.name:
-                alias_handler = _create_signature_matched_alias(underscored_name, handler)
-                ft_u = FunctionTool.from_function(
-                    alias_handler,
-                    name=underscored_name,
-                    description=f"Alias for {spec.name}. {spec.description}",
-                    annotations=annotations,
-                )
-                ft_u.parameters = dict(spec.input_schema)
-                mcp.add_tool(ft_u)
-                registered.append(underscored_name)
-
-    for legacy_name, handler in LEGACY_COMPAT_TOOL_HANDLERS.items():
-        alias_handler = _create_signature_matched_alias(legacy_name, handler)
-        ft_legacy = FunctionTool.from_function(
-            alias_handler,
-            name=legacy_name,
-            description=f"Legacy compatibility alias for {handler.__name__}.",
-        )
-        mcp.add_tool(ft_legacy)
-        registered.append(legacy_name)
+    if include_legacy_compat:
+        for legacy_name, handler in LEGACY_COMPAT_TOOL_HANDLERS.items():
+            alias_handler = _create_signature_matched_alias(legacy_name, handler)
+            ft_legacy = FunctionTool.from_function(
+                alias_handler,
+                name=legacy_name,
+                description=f"Legacy compatibility alias for {handler.__name__}.",
+            )
+            mcp.add_tool(ft_legacy)
+            registered.append(legacy_name)
 
     logger.info(f"Registered {len(registered)} v2 tools: {registered}")
     return registered
