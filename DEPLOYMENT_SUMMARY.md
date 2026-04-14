@@ -8,6 +8,8 @@
 ## 🚀 Phase 1 Deployment Status (2026-04-14)
 
 ### Code Changes Pushed to `main`
+- **Commit**: `1f6d4bf8` on `main` (latest)
+- **Server Alias Suppression**: Legacy aliases are NO LONGER registered as separate `mcp.tool()` entries. They remain resolvable at dispatch time, but are hidden from tool discovery.
 - **Commit**: `2fd8cf95` on `main`
 - **Phase 1 Surface Compression**: Unified 40+ legacy aliases into single `LEGACY_TOOL_ALIASES` registry
 - **Canonical Core**: 12 tools (init, sense, mind, heart, kernel, reply, judge, vault, forge, health, fetch, probe)
