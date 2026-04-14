@@ -2,6 +2,31 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [2026.04.14-KERNEL-RUNTIME-HARDENING] - Public Surface, Contracts, and Route Control Plane Aligned
+
+### 🔧 RUNTIME: 11-Tool Public Surface Restored
+
+- **Canonical public registry** is now aligned to the 11-tool runtime surface instead of leaking legacy/public drift.
+- **Internal `arifos_kernel` is exposed publicly as `arifos_route`**, preserving a stable public router contract while keeping the internal handler name private to runtime wiring.
+- **`arifos_health`** now seals with its canonical public identity instead of leaking the legacy `arifos.vps_monitor` name.
+
+### 🧾 CONTRACTS: Runtime Compatibility Stubs Replaced
+
+- Replaced placeholder contract shims with executable runtime contract structures in `arifosmcp/runtime/contracts.py`.
+- Restored compatibility fields used by older callers and tests, including trace/budget helpers and public contract verification.
+
+### 🛡️ CONTROL PLANE: Authority, Dispatch, and Rollback Hardened
+
+- Fixed the authority scope typo between minted and enforced kernel execution scopes.
+- Restored `get_tool_handler()` for hardened dispatch compatibility with `kernel_core`.
+- Added rollback checkpoint metadata and recovery wiring for forge/dispatch paths so execution receipts carry reversible control metadata where available.
+
+### ♻️ COMPATIBILITY: Legacy Callers Preserved
+
+- Restored active legacy registration aliases for `agi_reason`, `reality_compass`, and `vault_seal`.
+- `arifos_route` is now a real public wrapper again, accepting route-facing fields (`context`, `auth_context`, `actor_id`) and preserving philosophy metadata expected by metabolic regression callers.
+- `PhilosophyState` now includes backward-compatible `stage` and `.get()` access patterns.
+
 ## [2026.04.11-SEAL-UNIFIED] - 999_SEAL Unification & Hardened Deployment
 
 ### 🏛️ ARCHITECTURE: Single Source-of-Truth Aligned

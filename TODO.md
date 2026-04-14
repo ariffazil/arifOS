@@ -23,15 +23,15 @@
 ### Live MCP Tools (`/tools` returning 0)
 - [x] `canonical_tools` / `total_tools` fields added to `/health` endpoint (0461252f)
 - [x] Duplicate `get_constitutional_health` registration removed from `server_horizon.py` (0461252f)
-- [x] **`arifosmcp` container restarted on VPS** — `canonical_tools: 10` confirmed
-- [x] **Verify**: `curl https://arifosmcp.arif-fazil.com/health | jq .canonical_tools` returns 10 ✅
+- [x] **`arifosmcp` container restarted on VPS** — previous deployed surface confirmed before the 2026.04.14 11-tool public-surface alignment
+- [x] **Verify**: deployed `/health` was previously checked before the 2026.04.14 11-tool public-surface alignment
 
 ---
 
 ## 🟡 P1 — Platform Agnosticism (Path A + B)
 
 ### Path A — Tool `platform=` Mode (1–2 weeks)
-- [x] `platform: str = "unknown"` param added to all 10 tool functions in `tools.py` (ff78faef)
+- [x] `platform: str = "unknown"` param added across the 11-tool public runtime surface in `tools.py`
 - [x] `_stamp_platform()` stamps `platform_context` onto every envelope
 - [ ] Upgrade to `Literal["mcp", "chatgpt_apps", "cursor", "api", "stdio"]` type in `tool_specs.py` schemas
 - [ ] Implement `output_formatter.py` dispatch on `platform`:
@@ -63,7 +63,8 @@
 
 ### arifOS Runtime
 - [x] `canonical_tools` + `total_tools` fields added to `/health` — structural fix deployed (0461252f)
-- [ ] **VPS restart required** to confirm `canonical_tools: 10` live
+- [x] Public registry and runtime contracts aligned to the canonical 11-tool public surface (2026.04.14)
+- [ ] Redeploy / re-verify VPS runtime so `/health` and `/tools` reflect the 11-tool public surface live
 - [ ] `build_info.py` — ensure `ARIFOS_APP_VERSION` env var is read in container context
 - [ ] Entropy budget: implement `chaos_score()` across all MCP endpoints (ROADMAP H1 pending)
 - [ ] Provenance ledger: wire `arifos.vault` directly to AGI Mind Provenance
@@ -108,10 +109,11 @@
 - [x] `nginx.conf` `server_name arifosmcp.arif-fazil.com` — consolidated (mcp.af-forge.io retired)
 - [x] `docker-compose.yml` service renamed `arifos-mcp`, env vars to `ARIFOS_MCP_*`, version `2026.04.07`
 - [x] `__main__.py` env var aliases updated to `ARIFOS_MCP_*` (platform agnosticism)
-- [x] `platform=` param added to all 10 tool functions (Path A foundation)
+- [x] `platform=` param added across the public tool surface (Path A foundation)
 - [x] Duplicate `get_constitutional_health` registration fixed in `server_horizon.py`
 - [x] `_security_check()` runtime hardening audit added to `server.py`
 - [x] Merge conflict resolution: 55 upstream commits reconciled (8e1f52d7)
+- [x] Canonical 11-tool public runtime surface restored (`arifos_route` public wrapper, contracts, health naming, legacy alias registration) (2026.04.14)
 
 ---
 

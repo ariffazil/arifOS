@@ -146,16 +146,58 @@ def vault_seal_widget_html() -> str:
 
 
 def register_chatgpt_app_tools(mcp: FastMCP) -> None:
+    """
+    Register arifOS ChatGPT App tools with full widget support.
+
+    Implements OpenAI ChatGPT Apps SDK specification:
+    - Widget resource with text/html;profile=mcp-app MIME type
+    - _meta.ui.domain (required for app submission)
+    - _meta.ui.csp for sandbox security
+    - _meta.ui.prefersBorder, _meta.ui.prefersExpanded
+
+    Ref: https://developers.openai.com/apps-sdk/build/state-management
+    """
+
     @mcp.resource(
         VAULT_WIDGET_URI,
         name="arifOS Vault Seal Widget",
-        mime_type="text/html",
+        mime_type=RESOURCE_MIME_TYPE,
         meta={
             "openai/widgetDescription": "Displays constitutional seal telemetry and witness alignment.",
         },
     )
     def vault_seal_widget_resource() -> str:
-        return vault_seal_widget_html()
+        """Return widget HTML with full MCP Apps UI bridge support."""
+        html = vault_seal_widget_html()
+        return html
+
+    def _build_widget_template() -> dict[str, Any]:
+        """Build the widget template response with full ChatGPT Apps SDK metadata."""
+        return {
+            "contents": [
+                {
+                    "uri": VAULT_WIDGET_URI,
+                    "mimeType": RESOURCE_MIME_TYPE,
+                    "text": vault_seal_widget_html(),
+                    "_meta": {
+                        "ui": {
+                            "prefersBorder": True,
+                            "domain": ARIFOS_WIDGET_DOMAIN,
+                            "csp": {
+                                "connectDomains": [
+                                    "https://arifosmcp.arif-fazil.com",
+                                    "https://arif-fazil.com",
+                                ],
+                                "resourceDomains": [
+                                    "https://*.oaistatic.com",
+                                ],
+                            },
+                        },
+                        "openai/widgetDescription": "arifOS constitutional seal — displays F1-F13 floor status, verdict, and tri-witness consensus.",
+                    },
+                }
+            ],
+        }
 
     @mcp.tool(
         name="vault_seal_card",
@@ -198,11 +240,16 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         name="render_vault_seal",
         title="Render Vault Seal Widget",
         description=(
-            "Render the arifOS constitutional health check widget from structured seal data."
+            "Render the arifOS constitutional health check widget from structured seal data. "
+            "Sets _meta.ui.domain for ChatGPT sandbox rendering under domain.web-sandbox.oaiusercontent.com"
         ),
         annotations={"readOnlyHint": True},
         meta={
-            "ui": {"resourceUri": VAULT_WIDGET_URI, "visibility": "user"},
+            "ui": {
+                "resourceUri": VAULT_WIDGET_URI,
+                "visibility": "user",
+                "domain": ARIFOS_WIDGET_DOMAIN,
+            },
             "openai/outputTemplate": VAULT_WIDGET_URI,
             "openai/toolInvocation/invoking": "Rendering constitutional health check...",
             "openai/toolInvocation/invoked": "Constitutional health check displayed.",
@@ -222,7 +269,16 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
                     "resourceUri": VAULT_WIDGET_URI,
                     "prefersBorder": True,
                     "prefersExpanded": seal_data.get("verdict") != "SEAL",
-                }
+                    "domain": ARIFOS_WIDGET_DOMAIN,
+                    "csp": {
+                        "connectDomains": [
+                            "https://arifosmcp.arif-fazil.com",
+                        ],
+                        "resourceDomains": [
+                            "https://*.oaistatic.com",
+                        ],
+                    },
+                },
             },
         }
 

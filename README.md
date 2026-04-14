@@ -19,7 +19,7 @@ SEAL: SEAL_20260413_RESOURCE_CONSOLIDATION
 SOURCE_REPO: https://github.com/ariffazil/arifOS
 CANONICAL_INDEX: arifos://schema
 
-ARCHITECTURE: 10 Canonical Tools + 5 Canonical Resources + 6 MCP Substrates
+ARCHITECTURE: 11 Public Tools + 5 Canonical Resources + 6 MCP Substrates
 PHILOSOPHY: 83 quotes, G★ bands, deterministic selection
 ToM: Required structured fields for all governance tools
 KERNEL: Unified rCore (INPUT → ORCHESTRATE → OUTPUT)
@@ -37,8 +37,8 @@ TESTING: 5-Resource Validation + Deployment Gates
 ### Primary MCP Server
 | Endpoint | Status | Purpose |
 |----------|--------|---------|
-| [arifosmcp.arif-fazil.com/health](https://arifosmcp.arif-fazil.com/health) | ✅ LIVE | Health check — returns 17+ tools, v2026.4.13 |
-| [arifosmcp.arif-fazil.com/tools](https://arifosmcp.arif-fazil.com/tools) | ✅ LIVE | Tool registry — 17 canonical tools with underscores |
+| [arifosmcp.arif-fazil.com/health](https://arifosmcp.arif-fazil.com/health) | ✅ LIVE | Health check — runtime truth for the currently deployed surface |
+| [arifosmcp.arif-fazil.com/tools](https://arifosmcp.arif-fazil.com/tools) | ✅ LIVE | Tool registry — verify live surface against the repo's 11-tool public contract |
 | [arifosmcp.arif-fazil.com/mcp](https://arifosmcp.arif-fazil.com/mcp) | ✅ LIVE | MCP endpoint — Streamable HTTP transport |
 
 ### Canonical Resources (Standardized v2)
@@ -930,11 +930,11 @@ VERDICT_VOID = 999     # Ethical violation
 
 ---
 
-## Tool Ecosystem: The 9+1 Constitutional Architecture
+## Tool Ecosystem: The 10+1 Constitutional Architecture
 
-arifOS is built upon **9 Governance Tools** + **1 Execution Bridge** — a complete metabolic pipeline from intent to action, all under constitutional supervision.
+arifOS is built upon **10 Governance + Observability Tools** + **1 Execution Bridge** — a complete metabolic pipeline from intent to action, all under constitutional supervision.
 
-### The 9 Governance Tools (Thinking & Validation)
+### The 10 Governance + Observability Tools
 
 These tools govern the cognitive layer. Every tool requires **Theory of Mind (ToM)** fields in the payload — the LLM must externalize its mental model.
 
@@ -949,6 +949,7 @@ These tools govern the cognitive layer. Every tool requires **Theory of Mind (To
 | `arifos.judge` | 888_JUDGE | Constitutional verdict | `logical_consistency`, `self_critique`, `uncertainty_quantified` | **Verdict (SEAL/HOLD/VOID)** |
 | `arifos.memory` | 777_MEMORY | Context recall | `query_vector`, `recall_confidence`, `context_assumptions` | Retrieved entries |
 | `arifos.vault` | 999_VAULT | Immutable seal | `verdict`, `hash_of_input`, `irreversibility_acknowledged` | Ledger entry |
+| `arifos.health` | 111_HEALTH | Runtime telemetry & environment checks | `action`, `system_scope`, `safety_context` | Observability status |
 
 ### The 1 Execution Bridge (Action Layer)
 
@@ -957,7 +958,7 @@ These tools govern the cognitive layer. Every tool requires **Theory of Mind (To
 | `arifos.forge` | Execution | Delegated action bridge | Requires `judge` verdict="SEAL" | Signed manifest + receipt hash |
 
 **Separation of Powers:**
-- ✅ **9 Governance Tools** think, validate, reason — but never execute directly
+- ✅ **10 Governance + Observability Tools** think, validate, inspect — but never execute directly
 - ✅ **1 Execution Bridge** (`forge`) only acts after `judge` returns SEAL
 - ✅ **AF-FORGE Substrate** (TypeScript runtime) performs actual work
 
@@ -2089,11 +2090,11 @@ Reason with alternatives and second-order effects.
 
 ---
 
-#### `arifos.kernel` / `arifos.route` — Unified KERNEL rCore (444_KERNEL)
+#### `arifos_route` / internal `arifos_kernel` — Unified KERNEL rCore (444_KERNEL)
 
-**444_KERNEL**: The Unified KERNEL rCore — Primary metabolic conductor with INPUT → ORCHESTRATE → OUTPUT pipeline.
+**444_KERNEL**: The Unified KERNEL rCore — primary metabolic conductor with INPUT → ORCHESTRATE → OUTPUT pipeline.
 
-`arifos.route` is deprecated (alias for `arifos.kernel`).
+`arifos_route` is the public routing contract. `arifos_kernel` remains the internal runtime handler wired behind that public surface.
 
 **Architecture**:
 ```

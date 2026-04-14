@@ -10,8 +10,9 @@ Single canonical server for ALL arifOS deployments:
 - WebMCP web-facing gateway
 
 Features:
-- 17 canonical tools (arifos_init, arifos_sense, etc.)
-- 10 legacy tool aliases (init_anchor, apex_soul, etc.)
+- 12 canonical core tools (init, sense, mind, heart, kernel, reply,
+  judge, vault, forge, health, fetch, probe)
+- 40+ legacy aliases unified into a single registry
 - Gateway metadata endpoints (/metadata, /health)
 - VPS proxy capability for sovereign tools
 - Constitutional governance (F1-F13)
@@ -140,9 +141,11 @@ mcp = FastMCP(
     instructions="""Constitutional AI orchestration kernel — SEALED v2026.4.14.
 
 Golden path: init → sense → mind → heart → judge → vault
-Canonical tools: arifos_init, arifos_sense, arifos_mind, arifos_kernel,
-arifos_memory, arifos_heart, arifos_ops, arifos_judge, arifos_vault,
-arifos_forge, arifos_health.
+Canonical core (12 tools):
+  Governance : arifos_init | arifos_judge | arifos_vault
+  Intelligence: arifos_sense | arifos_mind | arifos_heart | arifos_reply | arifos_kernel
+  Execution : arifos_forge
+  Observability: arifos_health | arifos_fetch | arifos_probe
 
 FAIL-CLOSED: Identity anchoring (arifos_init) is required for all reasoning.
 DITEMPA, BUKAN DIBERI — Forged, Not Given
@@ -206,24 +209,14 @@ except Exception as e:
 # LEGACY TOOL ALIASES (Horizon Compatibility)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-LEGACY_TOOL_MAP: dict[str, str] = {
-    "init_anchor": "arifos_init",
-    "apex_soul": "arifos_judge",
-    "agi_mind": "arifos_mind",
-    "asi_heart": "arifos_heart",
-    "physics_reality": "arifos_sense",
-    "math_estimator": "arifos_ops",
-    "architect_registry": "arifos_init",
-    "vault_ledger": "arifos_vault",
-    "engineering_memory": "arifos_memory",
-    "code_engine": "arifos_forge",
-    "arifOS_kernel": "arifos_kernel",
-}
-
 def _register_legacy_aliases():
     """Register legacy tool names as aliases, routing through hardened dispatch."""
-    for legacy_name, canonical_name in LEGACY_TOOL_MAP.items():
-        # Alias always goes through hardened dispatch
+    from arifosmcp.runtime.tools import LEGACY_TOOL_ALIASES
+
+    for legacy_name, canonical_name in LEGACY_TOOL_ALIASES.items():
+        # Skip dot-name aliases — those are resolved at dispatch time
+        if "." in legacy_name:
+            continue
         handler = _wrap_hardened_dispatch(canonical_name, lambda: None)
         try:
             mcp.tool(name=legacy_name)(handler)
@@ -279,7 +272,7 @@ register_rest_routes(app, HARDENED_HANDLERS, prefix="/api")
 # EXPORT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-__all__ = ["mcp", "app", "LEGACY_TOOL_MAP"]
+__all__ = ["mcp", "app"]
 
 if __name__ == "__main__":
     import asyncio
