@@ -15,6 +15,14 @@
   5. `arifos://forge` (Execution Bridge — Work/Energy)
 - **Horizon Unification**: Standardized tool parameters to use canonical `query` across kernel, heart, ops, and judge tools for cross-platform parity (ChatGPT/Claude).
 - **Impact**: Unified the server entry points, eliminated identity confusion between health/vitals, and synchronized the Trinity (ΔΩΨ) mapping with live runtime surfaces.
+
+### 2026.04.14 — The Great Un-Chaos (Horizon Restoration)
+
+- **Objective**: Purge a 33-commit divergence on GitHub `main` containing unrequested "Planes" complexity and automated PR bloat.
+- **Achievement**: Forced-reset GitHub `main` to the local 2026.4.13 Seal state.
+- **Hardening**: Selectively preserved `CSPMiddleware` in `server.py` to support ChatGPT/Claude iframe widgets without the baggage of the Plane architecture.
+- **Impact**: Restored local as the absolute Source of Truth; eliminated ~100 redundant wiki files and 15+ unvetted "Plane" modules.
+
 ### 2026.04.11 — FastMCP App Suite Activation
 - **Objective**: Move arifOS from a "headless" toolset to a "body-interactive" app environment.
 - **Achievement**: Launched JudgeApp, VaultApp, InitApp, and ForgeApp using `prefab-ui` and FastMCP Apps.

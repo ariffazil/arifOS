@@ -25,7 +25,7 @@ import logging
 import os
 import sys
 import traceback
-from typing import Any, Optional
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENVIRONMENT SETUP
@@ -50,7 +50,7 @@ import fastmcp
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse, Response, HTMLResponse
+from starlette.responses import JSONResponse, Response
 from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
