@@ -1,8 +1,13 @@
 """
 ChatGPT Apps-style tools and widget resources for arifOS.
 
-This keeps governance logic in arifOS while exposing a thin Apps-compatible
-surface: one data tool, one render tool, and one widget resource.
+Implements OpenAI ChatGPT Apps SDK specification:
+- text/html;profile=mcp-app MIME type for widget templates
+- _meta.ui.domain (required for app submission)
+- _meta.ui.csp for sandbox security
+- structuredContent + content + _meta response pattern
+
+Ref: https://developers.openai.com/apps-sdk/build/state-management
 """
 
 from __future__ import annotations
@@ -19,7 +24,9 @@ from arifosmcp.runtime.rest_routes import _build_governance_status_payload
 
 logger = logging.getLogger(__name__)
 
-VAULT_WIDGET_URI = "https://mcp.af-forge.io/widget/vault-seal"
+ARIFOS_WIDGET_DOMAIN = "https://arifosmcp.arif-fazil.com"
+VAULT_WIDGET_URI = f"{ARIFOS_WIDGET_DOMAIN}/widget/vault-seal"
+RESOURCE_MIME_TYPE = "text/html;profile=mcp-app"
 
 # Standalone widget HTML file (served via /ui/ static route)
 _WIDGET_FILE = pathlib.Path(__file__).parent.parent / "widgets" / "vault_seal_widget.html"
@@ -137,6 +144,7 @@ def vault_seal_widget_html() -> str:
         "</script></body></html>"
     )
 
+
 def register_chatgpt_app_tools(mcp: FastMCP) -> None:
     @mcp.resource(
         VAULT_WIDGET_URI,
@@ -226,6 +234,7 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
     )
     async def _get_constitutional_health(session_id: str = "global") -> dict[str, Any]:
         from arifosmcp.runtime.tools import get_constitutional_health as _gch
+
         result = await _gch(session_id=session_id)
         if hasattr(result, "model_dump"):
             return result.model_dump(mode="json")
@@ -239,6 +248,7 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
     )
     async def _list_recent_verdicts(limit: int = 5) -> list:
         from arifosmcp.runtime.tools import list_recent_verdicts as _lrv
+
         return await _lrv(limit=limit)
 
 

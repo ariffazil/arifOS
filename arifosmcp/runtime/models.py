@@ -63,6 +63,7 @@ class PhilosophyState(BaseModel):
     archetype_primary: str = Field(..., description="Primary archetype family")
     archetype_secondary: str | None = None
     quote: str | None = None
+    stage: str | None = None
 
     # Causal Deltas (Applied at runtime)
     confidence_cap: float = 1.0
@@ -70,6 +71,9 @@ class PhilosophyState(BaseModel):
     grounding_floor_offset: float = 0.0
     execution_bias: int = 0  # -2 to +2
     posture: str = "PARTIAL"  # Baseline posture matching the zone
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return getattr(self, key, default)
 
 
 class ArifOSError(FastMCPError):

@@ -17,6 +17,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 from typing import Any
+from uuid import uuid4
 
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 
@@ -963,8 +964,11 @@ async def _run_sequential_thinking(
 async def arifos_kernel(
     request: str | None = None,
     query: str | None = None,
+    context: str | None = None,
     mode: str = "kernel",
     session_id: str | None = None,
+    auth_context: dict[str, Any] | None = None,
+    actor_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
     allow_execution: bool = False,
@@ -976,7 +980,12 @@ async def arifos_kernel(
     target_query = query or request or ""
     envelope = await _mega_arifos_kernel(
         mode=mode,
-        payload={"query": target_query},
+        payload={
+            "query": target_query,
+            "context": context,
+            "auth_context": auth_context,
+            "actor_id": actor_id,
+        },
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
@@ -985,6 +994,61 @@ async def arifos_kernel(
     )
     _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos_kernel")
+
+
+async def arifos_route(
+    request: str | None = None,
+    query: str | None = None,
+    context: str | None = None,
+    mode: str = "kernel",
+    session_id: str | None = None,
+    auth_context: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    allow_execution: bool = False,
+    debug: bool = False,
+    platform: str = "unknown",
+) -> RuntimeEnvelope:
+    """Public routing wrapper for the internal kernel lane."""
+    effective_session_id = session_id
+    effective_auth_context = auth_context
+
+    if dry_run and not allow_execution and not effective_auth_context:
+        effective_session_id = effective_session_id or f"route-{uuid4().hex}"
+        init_envelope = await arifos_init(
+            mode="init",
+            declared_name=actor_id or "arifos-route",
+            actor_id=actor_id or "arifos-route",
+            session_id=effective_session_id,
+            risk_tier="low" if risk_tier == "medium" else risk_tier,
+            dry_run=True,
+            debug=debug,
+            platform=platform,
+        )
+        effective_auth_context = getattr(init_envelope, "auth_context", None)
+
+    envelope = await arifos_kernel(
+        request=request,
+        query=query,
+        context=context,
+        mode=mode,
+        session_id=effective_session_id,
+        auth_context=effective_auth_context,
+        actor_id=actor_id,
+        risk_tier=risk_tier,
+        dry_run=dry_run,
+        allow_execution=allow_execution,
+        debug=debug,
+        platform=platform,
+    )
+    if getattr(envelope, "philosophy", None) is None:
+        from arifosmcp.runtime.philosophy_registry import inject_philosophy
+
+        philosophy = inject_philosophy(envelope)
+        if philosophy is not None:
+            envelope.philosophy = philosophy.model_copy(update={"stage": envelope.stage})
+    return seal_runtime_envelope(envelope, "arifos_route")
 
 
 async def arifos_heart(
@@ -1578,6 +1642,12 @@ LEGACY_TOOL_ALIASES: dict[str, str] = {
     "vault_seal": "arifos_vault",
 }
 
+LEGACY_COMPAT_TOOL_HANDLERS: dict[str, Any] = {
+    legacy_name: CANONICAL_TOOL_HANDLERS[canonical_name]
+    for legacy_name, canonical_name in LEGACY_TOOL_ALIASES.items()
+    if legacy_name in {"agi_reason", "reality_compass", "vault_seal"}
+}
+
 
 def get_tool_handler(name: str) -> Any:
     """Get tool handler by name, supporting legacy dot-names.
@@ -1630,7 +1700,7 @@ def normalize_tool_name(name: str) -> str:
 init_v2 = arifos_init
 sense_v2 = arifos_sense
 mind_v2 = arifos_mind
-route_v2 = arifos_kernel
+route_v2 = arifos_route
 memory_v2 = arifos_memory
 heart_v2 = arifos_heart
 ops_v2 = arifos_ops
@@ -1639,7 +1709,6 @@ vault_v2 = arifos_vault
 forge_v2 = arifos_forge
 
 # Horizon / mythic aliases
-arifos_route = arifos_kernel
 apex_soul = arifos_judge
 vault_ledger = arifos_vault
 math_estimator = arifos_ops
