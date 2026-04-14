@@ -221,19 +221,13 @@ except Exception as e:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _register_legacy_aliases():
-    """Register legacy tool names as aliases, routing through hardened dispatch."""
-    from arifosmcp.runtime.tools import LEGACY_TOOL_ALIASES
-
-    for legacy_name, canonical_name in LEGACY_TOOL_ALIASES.items():
-        # Skip dot-name aliases — those are resolved at dispatch time
-        if "." in legacy_name:
-            continue
-        handler = _wrap_hardened_dispatch(canonical_name, lambda: None)
-        try:
-            mcp.tool(name=legacy_name)(handler)
-            logger.debug(f"Registered legacy alias: {legacy_name} → {canonical_name}")
-        except Exception as e:
-            logger.warning(f"Failed to register legacy alias {legacy_name}: {e}")
+    """
+    Legacy aliases are NO LONGER registered as separate MCP tools.
+    They remain resolvable at the dispatch layer via LEGACY_TOOL_ALIASES
+    and get_tool_handler(), but are hidden from tool discovery to reduce
+    surface entropy (Phase 1 Compression).
+    """
+    logger.info("Legacy alias registration skipped — canonical surface only.")
 
 def _register_debug_tools() -> None:
     @mcp.tool(name="echo")
