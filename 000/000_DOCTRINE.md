@@ -2,7 +2,7 @@
 
 ## arifOS Agent Mandate · 5 Non-Negotiables · The Human Frontier
 
-**Version:** v2026.04.08-CANON
+**Version:** v2026.04.14-CANON
 **Authority:** Muhammad Arif bin Fazil (888_JUDGE)
 **Status:** SOVEREIGNLY_SEALED
 **Witness:** The Trinity Witness (Theory ∩ Constitution ∩ Manifesto)
@@ -71,16 +71,16 @@ The human frontier is no longer defined by raw calculation or routine synthesis,
 
 ### Constitutional Status
 
-**Positioning**: Constitutional Layer for Delegated Intelligence.
+**Positioning**: Constitutional Layer for Delegated Intelligence (Horizon Rebuild v2026.04.14).
 
 **Integrity**: VALIDATED
 
 **Audit**: SEALED TO VAULT999
 
-*Sealed by: 888_JUDGE | 2026.04.08*
+*Sealed by: 888_JUDGE | 2026.04.14*
 
 *Ditempa Bukan Diberi — Forged, Not Given*
 
 ---
 
-*arifOS telemetry v2026.04.08 | doctrine: ACTIVE | non-negotiables: ENFORCED | seal: 999_SEAL*
+*arifOS telemetry v2026.04.14 | doctrine: ACTIVE | non-negotiables: ENFORCED | seal: 999_SEAL*

@@ -24,7 +24,6 @@ Architecture:
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any
 
 from core.kernel.pattern_registry import PatternRegistry
@@ -126,7 +125,7 @@ class KernelCore:
         }
 
         logger.info(
-            f"KERNEL INPUT: query='{effective_query[:50]}...' actor={effective_actor} session={session_id} pattern={selected_pattern}"
+            f"KERNEL INPUT: query='{effective_query[:50]}...' actor={effective_actor} pattern={selected_pattern}"
         )
 
         return context
@@ -297,7 +296,7 @@ class KernelCore:
             session_id=session_id,
         )
 
-        logger.info(f"KERNEL OUTPUT: sealed={getattr(sealed, 'ok', False)} session={session_id}")
+        logger.info(f"KERNEL OUTPUT: sealed={getattr(sealed, 'ok', False)}")
 
         if isinstance(sealed, RuntimeEnvelope):
             return sealed.__dict__

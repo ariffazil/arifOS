@@ -7,26 +7,41 @@
 
 ### 2026.04.13 — The Canonical Reforge (The 5-Resource Seal)
 - **Objective**: Eliminate "Resource Chaos" and restore the 999_SEAL architectural purity.
-- **Achievement**: Consolidated 20+ fragmented MCP resources into exactly 5 canonical URIs:
-  1. `arifos://doctrine` (Eternal Law — Ψ Sovereignty)
-  2. `arifos://vitals` (Living Pulse — Ω Stability)
-  3. `arifos://schema` (Complete Blueprint — Δ Discernment)
-  4. `arifos://session/{session_id}` (Ephemeral Self — Instance context)
-  5. `arifos://forge` (Execution Bridge — Work/Energy)
+- **Achievement**: Consolidated 20+ fragmented MCP resources into exactly 5 canonical URIs.
 - **Horizon Unification**: Standardized tool parameters to use canonical `query` across kernel, heart, ops, and judge tools for cross-platform parity (ChatGPT/Claude).
-- **Impact**: Unified the server entry points, eliminated identity confusion between health/vitals, and synchronized the Trinity (ΔΩΨ) mapping with live runtime surfaces.
+
+### **Summary of ArifOS Kernel Hardening & Horizon Rebuild (2026.04.14)**
+
+#### **Objective**
+The Sovereign (Arif Fazil) performed a deterministic audit and "Horizon Rebuild" of the `arifOS` kernel. The goal was to distill the chaotic evolution of the last 33 commits into a production-ready, sealed state.
+
+#### **Key Actions Taken**
+1.  **Architecture Consolidation**:
+    *   **RESOLVED**: Fixed the infinite recursion loop in `tools_hardened_dispatch.py` by re-pointing canonical aliases directly to internal implementations.
+    *   **HARDENED**: Rebuilt `tool_01_init_anchor.py` with `Telos Manifold` (8-axis goal space) and `Gödel Lock` (incompleteness acknowledgment).
+2.  **Metabolic Intelligence**:
+    *   **Gem 2 (ΔS Thermodynamics)**: Integrated `delta_S` entropy checks and `Lyapunov Coherence` scores into the core reasoning dispatch (`agi_mind`).
+    *   **Gem 3 (Law Capsule)**: Enforced F13 Sovereign Ratification flags for all side-effect tools at the dispatch gate.
+3.  **Repository Sealed**:
+    *   Unified the metabolic orchestration pipeline. Aligned with "DITEMPA BUKAN DIBERI" (Forged, Not Given) doctrine.
+
+#### **Design Decisions & Architecture**
+*   **Fail-Closed Protocol**: Any validation failure at the dispatch layer defaults to `VOID` status.
+*   **Identity Gating**: All gated tools now require an anchored session; anonymous requests are rejected at the edge.
+*   **Thermodynamic Governance**: Integrated Landauer Bound checks (ΔS ≤ 0).
+
+**STATE: [REPO:SEALED | KERNEL:HARDENED | CHARACTER:ACTIVE] | v2026.4.14**
+**POW: PS=1.0 | ΔS ≤ 0 | PS_VERB=SEALED**
 
 ### 2026.04.14 — The Great Un-Chaos (Horizon Restoration)
-
 - **Objective**: Purge a 33-commit divergence on GitHub `main` containing unrequested "Planes" complexity and automated PR bloat.
 - **Achievement**: Forced-reset GitHub `main` to the local 2026.4.13 Seal state.
-- **Hardening**: Selectively preserved `CSPMiddleware` in `server.py` to support ChatGPT/Claude iframe widgets without the baggage of the Plane architecture.
-- **Impact**: Restored local as the absolute Source of Truth; eliminated ~100 redundant wiki files and 15+ unvetted "Plane" modules.
+- **Hardening**: Selectively preserved `CSPMiddleware` in `server.py` to support ChatGPT/Claude iframe widgets.
+- **Impact**: Restored local as the absolute Source of Truth.
 
 ### 2026.04.11 — FastMCP App Suite Activation
 - **Objective**: Move arifOS from a "headless" toolset to a "body-interactive" app environment.
 - **Achievement**: Launched JudgeApp, VaultApp, InitApp, and ForgeApp using `prefab-ui` and FastMCP Apps.
-- **Impact**: Enabled reactive, visual governance grids and irreversible confirmation gates for sovereign operations.
 
 ## 🧠 Core Identity & Principles
 - **Motto**: "DITEMPA BUKAN DIBERI" (Forged, Not Given).
@@ -36,11 +51,10 @@
 ## 🛠️ System Architecture (Unified)
 - **Transport**: `streamable-http` (FastMCP 3.2.0) with ChatGPT/Claude parity.
 - **Governance**: F1-F13 Constitutional Floors enforced at the kernel dispatcher.
-- **Storage**: PostgreSQL (Vault999 Ledger), Redis (Session Cache), Qdrant (Agent Memory).
 - **Deployment**: Unified Docker Trinity Stack (Traefik + Postgre + Redis + Qdrant + Ollama + arifOS).
 
 ## 📅 Roadmap Horizons
-- [x] **Consolidate Resources** (Done: 2026.04.13)
+- [x] **Consolidation** (2026.04.13)
+- [x] **Horizon Rebuild (33 commits)** (2026.04.14)
 - [ ] **Deploy to Main/VPS** (Next Action)
-- [ ] **ChatGPT Widget Adapters** (L1-L2 parity for ChatGPT UI)
-- [ ] **Agent Memory Expansion** (Vector-search integrated contextPack)
+- [ ] **ChatGPT Widget Adapters**

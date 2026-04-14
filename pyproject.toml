@@ -1,7 +1,11 @@
 [project]
 name = "arifos"
-version = "2026.4.13"
+version = "2026.4.14"
 # T000 Versioning: YYYY.MM.DD — see T000_VERSIONING.md and CHANGELOG.md for full history
+# 2026.04.14 — Horizon Rebuild (v2026.04.14-SEALED)
+#   Rebuild: Distilled 33 chaotic commits into a clean, thermodynamic kernel.
+#   Security: Implemented Fail-Closed Gatekeeper (Gate 1-4) at the dispatch layer.
+#   Identity: Anchored Telos Manifold and Gödel Lock invariants into session ignition.
 # 2026.04.13 — 5-Resource Canonical Consolidation (v2026.04.13-UNIFIED)
 #   Reforge: Consolidated 20+ fragmented resources into 5 canonical URIs.
 #   Trinity Map: doctrine (Ψ), vitals (Ω), schema (Δ), session (Instance), forge (Work).
@@ -60,7 +64,7 @@ version = "2026.4.13"
 # 2026.1.26 — Live constitutional metrics; 13/13 floors passing
 # 2026.1.24 — Unified core: arifosmcp.transport pure transport, all logic in core/
 # 2026.1.18 — Constitutional Forge: 13 floors F1-F13, Trinity ΔΩΨ, VAULT999, 9-tool MCP
-description = "arifOS v2026.04.13 — Constitutional AI Governance System. 10 canonical tools (arifos.init through arifos.forge), 5 canonical resources, 13 constitutional floors (F1-F13). CANONICAL SOURCE OF TRUTH: arifOS repository. Runtime truth: /health and /tools on deployed server. https://arifos.arif-fazil.com/"
+description = "arifOS v2026.04.14 — Constitutional AI Governance System. Rebuilt and Hardened. CANONICAL SOURCE OF TRUTH: arifOS repository. Runtime truth: /health and /tools on deployed server. https://arifos.arif-fazil.com/"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"

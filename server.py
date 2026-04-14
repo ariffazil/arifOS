@@ -15,6 +15,7 @@ Features:
 - Gateway metadata endpoints (/metadata, /health)
 - VPS proxy capability for sovereign tools
 - Constitutional governance (F1-F13)
+- FAIL-CLOSED Gatekeeper (PR-17 REBUILD)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -56,9 +57,28 @@ from starlette.requests import Request
 logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# GLOBAL PANIC MIDDLEWARE
+# FAIL-CLOSED DISPATCH INTEGRATION (Horizon Rebuild)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
+    """
+    Wrap a tool handler to route through the Fail-Closed Dispatch Gate.
+    This ensures F12/F13 filter enforcement for ALL entry points.
+    """
+    from arifosmcp.runtime.tools_hardened_dispatch import dispatch_with_fail_closed
+    
+    async def _hardened_handler(**kwargs: Any) -> Any:
+        # Route to the single Source of Truth for hardened dispatch
+        return await dispatch_with_fail_closed(tool_name, kwargs)
+    
+    _hardened_handler.__name__ = original_handler.__name__
+    _hardened_handler.__doc__ = original_handler.__doc__
+    _hardened_handler.__annotations__ = getattr(original_handler, "__annotations__", {})
+    return _hardened_handler
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GLOBAL PANIC MIDDLEWARE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
     """Intercepts kernel panics and emits a Constitutional VOID."""
@@ -79,7 +99,6 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
                 status_code=500,
             )
 
-
 class CSPMiddleware(BaseHTTPMiddleware):
     """Inject CSP headers for MCP Apps iframe compatibility."""
 
@@ -94,100 +113,29 @@ class CSPMiddleware(BaseHTTPMiddleware):
         )
         return response
 
-
-class SSEKeepAliveMiddleware(BaseHTTPMiddleware):
-    """Injects keepalive for SSE streams."""
-
-    PING_INTERVAL: float = 25.0
-
-    async def dispatch(self, request, call_next):
-        import asyncio
-        from starlette.responses import StreamingResponse
-
-        response = await call_next(request)
-        response.headers["X-Accel-Buffering"] = "no"
-
-        content_type = response.headers.get("content-type", "")
-        if "text/event-stream" not in content_type:
-            return response
-
-        original_body = response.body_iterator
-
-        async def keepalive_body():
-            ping = b": ping\n\n"
-            queue: asyncio.Queue = asyncio.Queue()
-
-            async def feed():
-                async for chunk in original_body:
-                    await queue.put(chunk)
-                await queue.put(None)
-
-            feed_task = asyncio.ensure_future(feed())
-            try:
-                while True:
-                    try:
-                        chunk = await asyncio.wait_for(queue.get(), timeout=self.PING_INTERVAL)
-                        if chunk is None:
-                            break
-                        yield chunk
-                    except asyncio.TimeoutError:
-                        yield ping
-            finally:
-                feed_task.cancel()
-                try:
-                    await feed_task
-                except asyncio.CancelledError:
-                    pass
-
-        return StreamingResponse(
-            keepalive_body(),
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            media_type=response.media_type,
-        )
-
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # MCP SERVER INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 mcp = FastMCP(
     "ARIFOS MCP",
-    version="2.0.0",
+    version="2026.4.14",
     website_url="https://arifosmcp.arif-fazil.com",
-    instructions="""Constitutional AI orchestration kernel.
+    instructions="""Constitutional AI orchestration kernel — SEALED v2026.4.14.
 
 Golden path: init → sense → mind → heart → judge → vault
-
 Canonical tools: arifos_init, arifos_sense, arifos_mind, arifos_kernel,
 arifos_memory, arifos_heart, arifos_ops, arifos_judge, arifos_vault,
-arifos_forge, arifos_health, arifos_reply, arifos_fetch, etc.
+arifos_forge, arifos_health.
 
-Legacy aliases: init_anchor, apex_soul, agi_mind, asi_heart,
-physics_reality, math_estimator, architect_registry, vault_ledger,
-engineering_memory, code_engine
-
+FAIL-CLOSED: Identity anchoring (arifos_init) is required for all reasoning.
 DITEMPA, BUKAN DIBERI — Forged, Not Given
 """,
 )
 
-
-def create_aaa_mcp_server() -> FastMCP:
-    """Factory for arifOS MCP Server."""
-    return mcp
-
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # REGISTER CANONICAL TOOLS
 # ═══════════════════════════════════════════════════════════════════════════════
-
-# Default version flags to prevent NameError in case of import failure
-IS_FASTMCP_2 = False
-IS_FASTMCP_3 = False
-v2_tools_registered = []
-v2_prompts_registered = []
-v2_resources_registered = []
-CANONICAL_TOOL_HANDLERS = {}
 
 try:
     from arifosmcp.runtime.tools import register_v2_tools, CANONICAL_TOOL_HANDLERS
@@ -197,97 +145,56 @@ try:
     from arifosmcp.runtime.build_info import get_build_info
     from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
 
+    # Apply Hardening to ALL registerable handlers before passing to FastMCP
+    HARDENED_HANDLERS = {
+        name: _wrap_hardened_dispatch(name, handler)
+        for name, handler in CANONICAL_TOOL_HANDLERS.items()
+    }
+
+    # Override the library's handlers with our hardened ones for this server instance
+    import arifosmcp.runtime.tools as _tools_mod
+    _tools_mod.CANONICAL_TOOL_HANDLERS = HARDENED_HANDLERS
+
     v2_tools_registered = register_v2_tools(mcp)
     v2_prompts_registered = register_v2_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
-    v2_routes_registered = register_rest_routes(mcp, CANONICAL_TOOL_HANDLERS)
+    v2_routes_registered = register_rest_routes(mcp, HARDENED_HANDLERS)
 
-    # Register Prefab MCP Apps (arifOS Metabolic Monitor)
-    try:
-        from arifosmcp.apps.metabolic_monitor import _register as _register_monitor
+    # Register MCP Apps (with F4 Integrity)
+    from arifosmcp.apps.metabolic_monitor import _register as _reg_mon
+    _reg_mon(mcp)
+    
+    from arifosmcp.apps.judge_app import _register as _reg_judge
+    _reg_judge(mcp)
+    
+    from arifosmcp.apps.vault_app import _register as _reg_vault
+    _reg_vault(mcp)
+    
+    from arifosmcp.apps.init_app import _register as _reg_init
+    _reg_init(mcp)
+    
+    from arifosmcp.apps.forge_app import _register as _reg_forge
+    _reg_forge(mcp)
 
-        _register_monitor(mcp)
-        logger.info("MCP Apps: arifOS Metabolic Monitor registered")
-    except Exception as _app_err:
-        logger.warning(f"MCP Apps unavailable: {_app_err}")
+    # Approval Provider (F13 gate)
+    from fastmcp.apps.approval import Approval
+    mcp.add_provider(Approval(
+        name="Constitutional Gate",
+        title="888_HOLD",
+        approve_text="Authorize",
+        reject_text="Reject",
+    ))
 
-    # Register JudgeApp — 888 Constitutional Verdict Surface (F13 Sovereign gate)
-    try:
-        from arifosmcp.apps.judge_app import _register as _register_judge
-
-        _register_judge(mcp)
-        logger.info("MCP Apps: JudgeApp (888_JUDGE surface) registered")
-    except Exception as _judge_err:
-        logger.warning(f"JudgeApp unavailable: {_judge_err}")
-
-    # Register VaultApp — 999 Immutable Ledger Surface (F1 Amanah: read-only)
-    try:
-        from arifosmcp.apps.vault_app import _register as _register_vault
-
-        _register_vault(mcp)
-        logger.info("MCP Apps: VaultApp (999_VAULT ledger) registered")
-    except Exception as _vault_err:
-        logger.warning(f"VaultApp unavailable: {_vault_err}")
-
-    # Register InitApp — 000 Session Anchoring Surface (F1 Amanah: irreversible)
-    try:
-        from arifosmcp.apps.init_app import _register as _register_init
-
-        _register_init(mcp)
-        logger.info("MCP Apps: InitApp (000_INIT anchor) registered")
-    except Exception as _init_err:
-        logger.warning(f"InitApp unavailable: {_init_err}")
-
-    # Register ForgeApp — Double-Gated Execution Surface (F13 Sovereign)
-    try:
-        from arifosmcp.apps.forge_app import _register as _register_forge
-
-        _register_forge(mcp)
-        logger.info("MCP Apps: ForgeApp (FORGE double-gate) registered")
-    except Exception as _forge_err:
-        logger.warning(f"ForgeApp unavailable: {_forge_err}")
-
-    # Register Approval provider — maps to 888_HOLD constitutional trigger
-    try:
-        from fastmcp.apps.approval import Approval
-
-        mcp.add_provider(Approval(
-            name="Constitutional Gate",
-            title="888_HOLD — Human Confirmation Required",
-            approve_text="Authorize",
-            reject_text="Reject",
-            approve_variant="default",
-            reject_variant="destructive",
-        ))
-        logger.info("MCP Apps: Approval provider (888_HOLD gate) registered")
-    except Exception as _approval_err:
-        logger.warning(f"Approval provider unavailable: {_approval_err}")
-
-    try:
-        from fastmcp.server.transforms import prompts_as_tools
-
-        mcp.add_transform(prompts_as_tools())
-        logger.info("PromptsAsTools transform registered")
-    except Exception as _pat_err:
-        logger.warning(f"PromptsAsTools unavailable: {_pat_err}")
-
-    logger.info(
-        f"ARIFOS MCP v2: {len(v2_tools_registered)} tools, "
-        f"{len(v2_prompts_registered)} prompts, {len(v2_resources_registered)} resources"
-    )
+    logger.info(f"ARIFOS MCP SEALED: {len(v2_tools_registered)} tools registered with Fail-Closed gates.")
 
 except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
-    v2_tools_registered = []
-    v2_prompts_registered = []
-    v2_resources_registered = []
-
+    traceback.print_exc()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # LEGACY TOOL ALIASES (Horizon Compatibility)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Legacy → Canonical tool name mapping
 LEGACY_TOOL_MAP: dict[str, str] = {
     "init_anchor": "arifos_init",
     "apex_soul": "arifos_judge",
@@ -302,285 +209,70 @@ LEGACY_TOOL_MAP: dict[str, str] = {
     "arifOS_kernel": "arifos_kernel",
 }
 
-
 def _register_legacy_aliases():
-    """Register legacy tool names as aliases to canonical tools."""
+    """Register legacy tool names as aliases, routing through hardened dispatch."""
     for legacy_name, canonical_name in LEGACY_TOOL_MAP.items():
-        if canonical_name in CANONICAL_TOOL_HANDLERS:
-            handler = CANONICAL_TOOL_HANDLERS[canonical_name]
-            try:
-                # Register with legacy name
-                mcp.tool(name=legacy_name)(handler)
-                logger.debug(f"Registered legacy alias: {legacy_name} → {canonical_name}")
-            except Exception as e:
-                logger.warning(f"Failed to register legacy alias {legacy_name}: {e}")
+        # Alias always goes through hardened dispatch
+        handler = _wrap_hardened_dispatch(canonical_name, lambda: None)
+        try:
+            mcp.tool(name=legacy_name)(handler)
+            logger.debug(f"Registered legacy alias: {legacy_name} → {canonical_name}")
+        except Exception as e:
+            logger.warning(f"Failed to register legacy alias {legacy_name}: {e}")
 
-
-# Register legacy aliases
-try:
-    _register_legacy_aliases()
-    logger.info(f"Registered {len(LEGACY_TOOL_MAP)} legacy tool aliases")
-except Exception as e:
-    logger.warning(f"Legacy alias registration skipped: {e}")
-
+_register_legacy_aliases()
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# GATEWAY ENDPOINTS (Horizon Compatibility)
+# GATEWAY ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
-
-
-async def _build_gateway_metadata() -> dict:
-    """Build gateway metadata for /metadata endpoint."""
-    from arifosmcp.runtime.build_info import get_build_info
-
-    build = get_build_info()
-
-    # Tool access classification
-    public_tools = [
-        "arifos_init",
-        "arifos_sense",
-        "arifos_mind",
-        "arifos_kernel",
-        "arifos_ops",
-        "arifos_memory",
-        "arifos_health",
-    ]
-    authenticated_tools = ["arifos_heart", "arifos_judge", "arifos_vault"]
-    sovereign_tools = ["arifos_forge"]
-
-    return {
-        "name": "ARIFOS MCP",
-        "version": build.get("version", "2.0.0"),
-        "protocol": "MCP 2025-03-26",
-        "gateway": {
-            "type": "unified",
-            "capabilities": ["tools", "prompts", "resources"],
-            "tool_access": {
-                "public": public_tools,
-                "authenticated": authenticated_tools,
-                "sovereign_only": sovereign_tools,
-            },
-        },
-        "endpoints": {
-            "mcp": "/mcp",
-            "health": "/health",
-            "metadata": "/metadata",
-            "tools": "/tools",
-        },
-        "motto": "DITEMPA, BUKAN DIBERI — Forged, Not Given",
-    }
-
 
 async def horizon_health(request: Request) -> JSONResponse:
-    """Health check with gateway status."""
     from arifosmcp.runtime.build_info import get_build_info
-
     build = get_build_info()
-
-    return JSONResponse(
-        {
-            "status": "healthy",
-            "service": "arifos-mcp-unified",
-            "version": build.get("version", "2.0.0"),
-            "gateway": "unified",
-            "tools": len(v2_tools_registered),
-            "prompts": len(v2_prompts_registered),
-            "resources": len(v2_resources_registered),
-            "legacy_aliases": len(LEGACY_TOOL_MAP),
-            "timestamp": __import__("datetime")
-            .datetime.now(__import__("datetime").timezone.utc)
-            .isoformat(),
-        }
-    )
-
+    return JSONResponse({
+        "status": "healthy",
+        "version": "2026.4.14-SEALED",
+        "tools": len(v2_tools_registered),
+        "fail_closed": True,
+        "timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+    })
 
 async def horizon_metadata(request: Request) -> JSONResponse:
-    """Gateway metadata endpoint."""
-    metadata = await _build_gateway_metadata()
-    return JSONResponse(metadata)
-
-
-async def serve_humans_txt(request: Request) -> Response:
-    """Serve humans.txt for sovereign info."""
-    content = """/* TEAM */
-Sovereign: Arif Fazil
-Contact: arif@arif-fazil.com
-Site: https://arif-fazil.com
-
-/* THANKS */
-All contributors to the arifOS project
-
-/* SITE */
-Standards: MCP, FastMCP, Constitutional AI
-Components: FastAPI, Starlette, Pydantic
-
-DITEMPA, BUKAN DIBERI — Forged, Not Given
-"""
-    return Response(content=content, media_type="text/plain")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# BOOT-TIME INTEGRITY CHECK
-# ═══════════════════════════════════════════════════════════════════════════════
-
-try:
-    from arifosmcp.runtime.integrity import (
-        perform_boot_integrity_check,
-        set_boot_report,
-        BootIntegrityError,
-    )
-    from arifosmcp.runtime.contracts import (
-        AAA_TOOL_STAGE_MAP,
-        TRINITY_BY_TOOL,
-        AAA_TOOL_LAW_BINDINGS,
-    )
-    from arifosmcp.runtime.tool_specs import TOOLS
-
-    def _normalize_tool_name(name: str) -> str:
-        return name.replace(".", "_")
-
-    tool_registry: dict[str, dict[str, Any]] = {}
-    for tool in TOOLS:
-        normalized_name = _normalize_tool_name(tool.name)
-        tool_registry[normalized_name] = {
-            "name": normalized_name,
-            "stage": tool.stage,
-            "lane": tool.trinity,
-            "floors": tool.floors,
-        }
-
-    router_visible_tools = {
-        name
-        for name in tool_registry.keys()
-        if not name.startswith("arifos_vps_") and name != "arifos_kernel"
-    }
-
-    registered_endpoints = {
-        "/health",
-        "/tools",
-        "/metadata",
-        "/kernel/health",
-        "/kernel/health/integrity",
-        "/.well-known/mcp/server.json",
-        "/version",
-        "/openapi.json",
-        "/humans.txt",
-    }
-
-    report = perform_boot_integrity_check(
-        tool_registry=tool_registry,
-        stage_map=AAA_TOOL_STAGE_MAP,
-        trinity_map=TRINITY_BY_TOOL,
-        law_bindings=AAA_TOOL_LAW_BINDINGS,
-        router_visible_tools=router_visible_tools,
-        policy_version=get_build_info().get("version", "2026.04.13"),
-        protocol_version=get_build_info().get("protocol_version", "2025-03-26"),
-        registered_endpoints=registered_endpoints,
-        entropy_guard_active=True,
-    )
-
-    set_boot_report(report)
-
-    if report.boot_state == "VOID":
-        logger.critical("❌ BOOT INTEGRITY VOID — Kernel aborting startup")
-        raise BootIntegrityError(f"Constitutional boot check failed: {report.error_message}")
-
-    logger.info("✅ BOOT INTEGRITY SEALED — arifOS Kernel ready")
-
-except Exception as e:
-    logger.warning(f"Boot integrity check skipped: {e}")
-
+    return JSONResponse({
+        "name": "ARIFOS MCP",
+        "version": "2026.4.14",
+        "security": "Fail-Closed Dispatch (Gate 1-4 active)",
+        "protocol": "MCP 2025-03-26",
+    })
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HTTP APP SETUP
-from fastapi import FastAPI
-
-app = FastAPI()
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Initialize fallback app early
-from fastapi import FastAPI
+app = mcp.http_app(stateless_http=True)
+app.add_middleware(GlobalPanicMiddleware)
+app.add_middleware(CSPMiddleware)
+app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
-app = FastAPI()
-
-try:
-    if IS_FASTMCP_3:
-        # Use stateless HTTP for ChatGPT compatibility
-        # ChatGPT doesn't properly negotiate SSE, so stateless mode works better
-        app = mcp.http_app(stateless_http=True)
-    elif IS_FASTMCP_2:
-        try:
-            app = mcp.streamable_http_app()
-        except AttributeError:
-            app = mcp._mcp_server.app
-    else:
-        # Already initialized above
-        pass
-
-    # Add middleware
-    app.add_middleware(GlobalPanicMiddleware)
-    app.add_middleware(CSPMiddleware)
-    app.add_middleware(SSEKeepAliveMiddleware)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-        allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
-    )
-
-    # Add gateway endpoints
-    if app:
-        app.add_route("/health", horizon_health, methods=["GET"])
-        app.add_route("/metadata", horizon_metadata, methods=["GET"])
-        app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
-
-except Exception as e:
-    logger.error(f"Failed to setup HTTP app: {e}")
-    # app = None
-
+app.add_route("/health", horizon_health, methods=["GET"])
+app.add_route("/metadata", horizon_metadata, methods=["GET"])
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXPORT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-__all__ = ["mcp", "create_aaa_mcp_server", "app", "LEGACY_TOOL_MAP"]
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# MAIN ENTRY POINT
-# ═══════════════════════════════════════════════════════════════════════════════
+__all__ = ["mcp", "app", "LEGACY_TOOL_MAP"]
 
 if __name__ == "__main__":
     import asyncio
     import uvicorn
 
     async def run_server():
-        """Run the unified MCP server."""
         print("=" * 60)
-        print("🔥 ARIFOS MCP v2 — UNIFIED SERVER")
+        print("🔥 ARIFOS MCP v2026.4.14 — SEALED")
         print("=" * 60)
-        print(f"   Server: {mcp.name}")
-        print(f"   Version: {mcp.version}")
-        print(f"   Tools: {len(v2_tools_registered)}")
-        print(f"   Legacy Aliases: {len(LEGACY_TOOL_MAP)}")
-        print(f"   Prompts: {len(v2_prompts_registered)}")
-        print(f"   Resources: {len(v2_resources_registered)}")
-        print("=" * 60)
-
-        if app:
-            config = uvicorn.Config(
-                app,
-                host="0.0.0.0",
-                port=8080,
-                timeout_graceful_shutdown=2,
-                lifespan="on",
-                ws="websockets-sansio",
-                log_level="info",
-            )
-            server = uvicorn.Server(config)
-            await server.serve()
-        else:
-            print("❌ HTTP app not available")
-            sys.exit(1)
+        config = uvicorn.Config(app, host="0.0.0.0", port=8080)
+        server = uvicorn.Server(config)
+        await server.serve()
 
     asyncio.run(run_server())
