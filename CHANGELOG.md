@@ -20,6 +20,7 @@ All notable changes to arifOS MCP are documented in this file.
 - Fixed the authority scope typo between minted and enforced kernel execution scopes.
 - Restored `get_tool_handler()` for hardened dispatch compatibility with `kernel_core`.
 - Added rollback checkpoint metadata and recovery wiring for forge/dispatch paths so execution receipts carry reversible control metadata where available.
+- Root `server.py` now defaults to a **strict public bootstrap**: legacy aliases, debug tools, and the approval provider are opt-in instead of being exposed by default on the public FastMCP connector.
 
 ### ♻️ COMPATIBILITY: Legacy Callers Preserved
 

@@ -57,6 +57,13 @@ from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # FAIL-CLOSED DISPATCH INTEGRATION (Horizon Rebuild)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -141,11 +148,11 @@ mcp = FastMCP(
     instructions="""Constitutional AI orchestration kernel — SEALED v2026.4.14.
 
 Golden path: init → sense → mind → heart → judge → vault
-Canonical core (12 tools):
+Public FastMCP surface (11 tools):
   Governance : arifos_init | arifos_judge | arifos_vault
-  Intelligence: arifos_sense | arifos_mind | arifos_heart | arifos_reply | arifos_kernel
+  Intelligence: arifos_sense | arifos_mind | arifos_route | arifos_heart | arifos_memory
   Execution : arifos_forge
-  Observability: arifos_health | arifos_fetch | arifos_probe
+  Observability: arifos_ops | arifos_health
 
 FAIL-CLOSED: Identity anchoring (arifos_init) is required for all reasoning.
 DITEMPA, BUKAN DIBERI — Forged, Not Given
@@ -187,17 +194,21 @@ try:
     logger.info(f"Successfully registered {len(registered_apps)} constitutional apps")
 
     # Approval Provider (F13 gate)
-    try:
-        from fastmcp.apps.approval import Approval
-        mcp.add_provider(Approval(
-            name="Constitutional Gate",
-            title="888_HOLD",
-            approve_text="Authorize",
-            reject_text="Reject",
-        ))
-        logger.info("F13 Approval provider active")
-    except (ImportError, ModuleNotFoundError):
-        logger.warning("F13 Approval provider unavailable (FastMCP version mismatch)")
+    if _env_flag("ARIFOS_ENABLE_APPROVAL_PROVIDER", default=False):
+        try:
+            from fastmcp.apps.approval import Approval
+
+            mcp.add_provider(
+                Approval(
+                    name="Constitutional Gate",
+                    title="888_HOLD",
+                    approve_text="Authorize",
+                    reject_text="Reject",
+                )
+            )
+            logger.info("F13 Approval provider active")
+        except (ImportError, ModuleNotFoundError):
+            logger.warning("F13 Approval provider unavailable (FastMCP version mismatch)")
 
     logger.info(f"ARIFOS MCP SEALED: {len(v2_tools_registered)} tools registered with Fail-Closed gates.")
 
@@ -224,12 +235,18 @@ def _register_legacy_aliases():
         except Exception as e:
             logger.warning(f"Failed to register legacy alias {legacy_name}: {e}")
 
-@mcp.tool(name="echo")
-async def echo(message: str) -> str:
-    """Diagnostic tool that echoes the input message."""
-    return f"ECHO: {message}"
+def _register_debug_tools() -> None:
+    @mcp.tool(name="echo")
+    async def echo(message: str) -> str:
+        """Diagnostic tool that echoes the input message."""
+        return f"ECHO: {message}"
 
-_register_legacy_aliases()
+
+if _env_flag("ARIFOS_ENABLE_SERVER_LEGACY_ALIASES", default=False):
+    _register_legacy_aliases()
+
+if _env_flag("ARIFOS_ENABLE_DEBUG_TOOLS", default=False):
+    _register_debug_tools()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GATEWAY ENDPOINTS

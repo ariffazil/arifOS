@@ -1,5 +1,52 @@
 # arifOS MCP Inspector Testing & Deployment Summary
 
+> **Date**: 2026-04-14  
+> **Status**: PHASE 1 COMPRESSED — PENDING FASTMCP REDEPLOY  
+> **Authority**: 000_THEORY, 888_APEX  
+> **DITEMPA BUKAN DIBERI**
+
+## 🚀 Phase 1 Deployment Status (2026-04-14)
+
+### Code Changes Pushed to `main`
+- **Commit**: `2fd8cf95` on `main`
+- **Phase 1 Surface Compression**: Unified 40+ legacy aliases into single `LEGACY_TOOL_ALIASES` registry
+- **Canonical Core**: 12 tools (init, sense, mind, heart, kernel, reply, judge, vault, forge, health, fetch, probe)
+- **Server Sync**: `server.py` now reads aliases from unified runtime registry; duplicate `LEGACY_TOOL_MAP` removed
+- **ChatGPT SDK Cleanup**: Removed phantom tool references (`get_constitutional_health`, `list_recent_verdicts`)
+
+### Auto-Deployment Targets
+| Target | Trigger | Status |
+|--------|---------|--------|
+| VPS Docker (Staging) | Push to `main` via `deploy-automated.yml` | ✅ Triggered |
+| VPS Docker (Production) | Manual workflow dispatch or release | ⏸️ Pending approval |
+| GitHub Pages (Hub) | Push to `main` paths | ✅ Auto if paths match |
+| MCP Registry | Release published | ⏸️ Not triggered |
+
+### Manual Step Required: FastMCP Cloud App
+The FastMCP app at `https://arifOS.fastmcp.app/mcp` **does not auto-redeploy from GitHub pushes**.
+You must manually trigger redeploy in the FastMCP dashboard:
+
+1. Go to [FastMCP Dashboard](https://www.fastmcp.com/)
+2. Select project **"arifOS"**
+3. Click **"Redeploy"** or **"Sync from GitHub"**
+4. Wait for build (~1-2 min)
+5. Verify the tool list shows the **12 canonical core** + aliases, not ~27 separate tools
+
+### Expected Post-Deploy Tool Surface
+```
+Canonical Core (12):
+  arifos_init, arifos_sense, arifos_mind, arifos_heart,
+  arifos_kernel, arifos_reply, arifos_judge, arifos_vault,
+  arifos_forge, arifos_health, arifos_fetch, arifos_probe
+
+Legacy Aliases (still functional but routed through canonical handlers):
+  init_anchor, apex_soul, agi_mind, asi_heart, physics_reality,
+  math_estimator, architect_registry, vault_ledger, engineering_memory,
+  check_vital, system_health, forge, arifos_route, etc.
+```
+
+---
+
 > **Date**: 2026-04-11  
 > **Status**: READY FOR DEPLOYMENT  
 > **Authority**: 000_THEORY, 888_APEX  

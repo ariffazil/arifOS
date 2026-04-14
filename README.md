@@ -41,6 +41,8 @@ TESTING: 5-Resource Validation + Deployment Gates
 | [arifosmcp.arif-fazil.com/tools](https://arifosmcp.arif-fazil.com/tools) | ✅ LIVE | Tool registry — verify live surface against the repo's 11-tool public contract |
 | [arifosmcp.arif-fazil.com/mcp](https://arifosmcp.arif-fazil.com/mcp) | ✅ LIVE | MCP endpoint — Streamable HTTP transport |
 
+If connector discovery shows **more than 11 public tools**, that indicates **deployment drift** from the repo's intended FastMCP surface, not the canonical public contract.
+
 ### Canonical Resources (Standardized v2)
 | URI | Purpose |
 |-----|---------|

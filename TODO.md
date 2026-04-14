@@ -64,6 +64,7 @@
 ### arifOS Runtime
 - [x] `canonical_tools` + `total_tools` fields added to `/health` — structural fix deployed (0461252f)
 - [x] Public registry and runtime contracts aligned to the canonical 11-tool public surface (2026.04.14)
+- [x] Root server bootstrap tightened so local/server discovery lists only the 11 public tools by default (2026.04.14)
 - [ ] Redeploy / re-verify live FastMCP runtime so connector discovery reflects only the 11 public tools
 - [ ] `build_info.py` — ensure `ARIFOS_APP_VERSION` env var is read in container context
 - [ ] Entropy budget: implement `chaos_score()` across all MCP endpoints (ROADMAP H1 pending)
