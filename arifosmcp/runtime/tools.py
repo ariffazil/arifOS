@@ -21,7 +21,8 @@ from uuid import uuid4
 
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 
-from arifosmcp.runtime.models import RuntimeEnvelope
+from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus
+from core.shared.types import Verdict
 # Philosophy injection removed from tools - happens centrally in _wrap_call()
 # to ensure ONLY G★ determines band, never tool identity
 from fastmcp import FastMCP
@@ -1857,6 +1858,161 @@ async def _arifos_gateway_public(
     )
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# WEALTH ORGAN — Capital Engine (Ψ lane)
+# Plain-English scoring for O&G and Malaysia-market instruments.
+# No jargon in output. Designed for human-readable morning brief output.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+async def wealth_brent_score(
+    ticker: str = "",
+    brent_price: float = 0.0,
+    scenario: str = "base",
+    dscr_ratio: float | None = None,
+    position_size_pct: float = 0.0,
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    """
+    Score an O&G or Malaysia-market ticker against current Brent price scenario.
+    Plain English output — no jargon. Human-readable signal for the morning brief.
+
+    Scenarios:
+      base  = talks resume, $90-100/bbl range
+      bull  = blockade holds, $100-115
+      bear  = deal done fast, $75-90
+
+    Key Malaysia thresholds:
+      Brent $95  = Malaysia fiscal comfort zone (Petronas domestic economics hold)
+      Brent $90  = crisis threshold (Petronas cuts output investment)
+      Brent $100 = geopolitical fear line (unsustainable without physical disruption)
+    """
+    brent = float(brent_price)
+    scenario = scenario.lower().strip() if scenario else "base"
+    dscr = float(dscr_ratio) if dscr_ratio is not None else None
+    pos = float(position_size_pct) if position_size_pct else 0.0
+
+    # ── Signal decision matrix ────────────────────────────────────────────────
+    if scenario == "bull":
+        if brent >= 105:
+            signal = "HOLD"
+            reason = (
+                f"Oil above $105 ({brent:.1f}). Geopolitical risk premium is real "
+                f"but unverified — history says these spikes fade in 24-48 hours. "
+                f"Take partial profit if you have a position. Don't add new money."
+            )
+        elif brent >= 100:
+            signal = "HOLD"
+            reason = (
+                f"$100 is the fear line. Market is testing whether the Hormuz "
+                f"blockade actually holds. Stay defensively positioned. "
+                f"If you need to be in O&G, PETGAS is the safest name."
+            )
+        else:
+            signal = "BUY"
+            reason = (
+                f"Oil at ${brent:.1f}. Bull scenario running. "
+                f"O&G names on Bursa haven't fully caught up to the spike. "
+                f"Look at Dayang and Hibiscus — both have Brent sensitivity above $95."
+            )
+    elif scenario == "bear":
+        signal = "SELL"
+        reason = (
+            f"US-Iran deal done. Oil at ${brent:.1f}. "
+            f"The fear premium evaporates within 48 hours of a confirmed agreement. "
+            f"Exit O&G positions unless you have a multi-year view. "
+            f"Rotate to consumer staples, utilities, or hold more gold."
+        )
+    else:  # base
+        if brent >= 100:
+            signal = "HOLD"
+            reason = (
+                f"Oil at ${brent:.1f} and talks are still happening. "
+                f"Market is betting on a deal, not a crisis. Stay in cash. "
+                f"Don't chase O&G here — wait for confirmation either way."
+            )
+        elif brent >= 95:
+            signal = "HOLD"
+            reason = (
+                f"Brent at ${brent:.1f} — Malaysia's comfort zone. "
+                f"Petronas economics hold but there's no upside catalyst right now. "
+                f"Stand by. No new O&G positions until $95 breaks either direction."
+            )
+        elif brent >= 90:
+            signal = "CAUTION"
+            reason = (
+                f"Brent at ${brent:.1f} — approaching the danger level for Malaysia. "
+                f"$90 is where Petronas starts cutting maintenance spend. "
+                f"Tighten stops on Dayang and Dialog if you hold them. "
+                f"Below $90, the fiscal pain for Malaysia is real."
+            )
+        else:
+            signal = "SELL"
+            reason = (
+                f"Brent below $90. Crisis mode. "
+                f"Petronas cannot sustain domestic output economics at this price. "
+                f"Exit all O&G positions now. Move to defensive names — "
+                f"utilities, consumer staples, or just hold gold."
+            )
+
+    # DSCR overlay — if provided and weak, downgrade to SELL
+    if dscr is not None and dscr < 1.5:
+        signal = "SELL"
+        reason = (
+            f"Debt service ratio {dscr:.1f}x — below the safety floor. "
+            f"The counterparty can't comfortably service debt regardless of oil price. "
+            f"This is the exit signal. Don't wait for Brent to save it."
+        )
+
+    # Position size warning
+    warning = ""
+    if pos > 20:
+        warning = (
+            f" [Position is {pos:.0f}% of your portfolio — above the 20% single-sector "
+            f"safety rule. Consider trimming if this is a short-term position.]"
+        )
+
+    return RuntimeEnvelope(
+        ok=True,
+        tool="wealth_brent_score",
+        canonical_tool_name="wealth_brent_score",
+        stage="WEALTH_01",
+        verdict=Verdict.SEAL,
+        status=RuntimeStatus.SUCCESS,
+        payload={
+            "ticker": ticker.upper(),
+            "brent_price": brent,
+            "scenario": scenario,
+            "signal": signal,
+            "signal_raw": signal,
+            "reason": reason + warning if warning else reason,
+            "brent_floor_malaysia": 90.0,
+            "brent_comfort_malaysia": 95.0,
+            "brent_fear_line": 100.0,
+            "dscr_tightened": dscr is not None and dscr < 1.5,
+            "position_warning": pos > 20,
+        },
+        session_id=session_id or str(uuid4()),
+    )
+
+
+async def _wealth_brent_score_public(
+    ticker: str = "",
+    brent_price: float = 0.0,
+    scenario: str = "base",
+    dscr_ratio: float | None = None,
+    position_size_pct: float = 0.0,
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
+    return await wealth_brent_score(
+        ticker=ticker,
+        brent_price=brent_price,
+        scenario=scenario,
+        dscr_ratio=dscr_ratio,
+        position_size_pct=position_size_pct,
+        session_id=session_id,
+    )
+
+
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # ═══════════════════════════════════════════════════════════════════════
     # CANONICAL CORE (11 public tools) — Phase 1 Surface Compression
@@ -1885,6 +2041,8 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos_repo_seal": arifos_repo_seal,
     "arifos_ops": _arifos_ops_public,
     "arifos_memory": _arifos_memory_public,
+    # WEALTH Organ (Capital Engine)
+    "wealth_brent_score": _wealth_brent_score_public,
 }
 
 LEGACY_TOOL_ALIASES: dict[str, str] = {
@@ -2037,7 +2195,9 @@ async def audit_rules(session_id: str | None = None, query: str = "validate") ->
     """888_JUDGE: Rule and policy audit (legacy shim)."""
     return RuntimeEnvelope(
         ok=True,
-        status=RuntimeStatus.SEAL,
+        tool="audit_rules",
+        stage="888_JUDGE",
+        status=RuntimeStatus.SUCCESS,
         verdict=Verdict.SEAL,
         payload={
             "tool_contract_table": {},
@@ -2049,11 +2209,25 @@ async def audit_rules(session_id: str | None = None, query: str = "validate") ->
 
 async def verify_vault_ledger(session_id: str | None = None) -> RuntimeEnvelope:
     """Verify vault ledger integrity (legacy shim)."""
-    return RuntimeEnvelope(ok=True, status=RuntimeStatus.SEAL, verdict=Verdict.SEAL, payload={"verified": True})
+    return RuntimeEnvelope(
+        ok=True,
+        tool="verify_vault_ledger",
+        stage="999_VAULT",
+        status=RuntimeStatus.SUCCESS,
+        verdict=Verdict.SEAL,
+        payload={"verified": True},
+    )
 
 async def seal_vault_commit(session_id: str | None = None, payload: dict | None = None) -> RuntimeEnvelope:
     """Seal a vault commit (legacy shim)."""
-    return RuntimeEnvelope(ok=True, status=RuntimeStatus.SEAL, verdict=Verdict.SEAL, payload={"sealed": True})
+    return RuntimeEnvelope(
+        ok=True,
+        tool="seal_vault_commit",
+        stage="999_VAULT",
+        status=RuntimeStatus.SUCCESS,
+        verdict=Verdict.SEAL,
+        payload={"sealed": True},
+    )
 
 async def metabolic_loop_router(
     query: str,

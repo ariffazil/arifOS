@@ -603,6 +603,62 @@ TOOLS: tuple[ToolSpec, ...] = (
         input_schema={"type": "object", "properties": {"action": {"type": "string"}}},
     ),
     # ─────────────────────────────────────────────────────────────────────────
+    # WEALTH ORGAN — Capital Engine (Ψ lane)
+    # ─────────────────────────────────────────────────────────────────────────
+    ToolSpec(
+        name="wealth_brent_score",
+        stage="WEALTH_01",
+        purpose="Score O&G tickers against Brent price — plain English signal",
+        role="Capital scoring for Malaysian O&G instruments",
+        layer="INTELLIGENCE",
+        description=(
+            "Score a Bursa O&G or Malaysia-market ticker against current Brent price. "
+            "Returns a plain-English signal (BUY/HOLD/SELL/CAUTION) with a one-sentence reason "
+            "a human can act on. No jargon, no architecture language. "
+            "Designed as the WEALTH organ's first output tool for the morning brief pipeline. "
+            "Thresholds are Malaysia-specific: $95 comfort, $90 crisis, $100 fear line."
+        ),
+        trinity="Ψ",
+        floors=("F4", "F9"),
+        input_schema={
+            "type": "object",
+            "required": ["ticker", "brent_price", "scenario"],
+            "properties": {
+                "ticker": {
+                    "type": "string",
+                    "description": "Bursa ticker code, e.g. DAYANG, PETGAS, DIALOG, VELESTO"
+                },
+                "brent_price": {
+                    "type": "number",
+                    "description": "Current Brent crude price in USD/barrel"
+                },
+                "scenario": {
+                    "type": "string",
+                    "enum": ["base", "bull", "bear"],
+                    "description": "base=talks resume $90-100; bull=blockade holds $100-115; bear=deal done $75-90"
+                },
+                "dscr_ratio": {
+                    "type": "number",
+                    "description": "Optional: counterparty debt service coverage ratio. Below 1.5 triggers automatic SELL."
+                },
+                "position_size_pct": {
+                    "type": "number",
+                    "description": "Optional: position size as % of portfolio. Above 20% triggers a warning."
+                },
+                "session_id": {"type": "string"},
+            },
+        },
+        default_tier="small",
+        readonly=True,
+        outputs={
+            "signal": {"type": "string", "enum": ["BUY", "HOLD", "SELL", "CAUTION"]},
+            "reason": {"type": "string", "description": "Plain English, human-readable action reason"},
+            "brent_floor_malaysia": {"type": "number"},
+            "brent_comfort_malaysia": {"type": "number"},
+            "brent_fear_line": {"type": "number"},
+        },
+    ),
+    # ─────────────────────────────────────────────────────────────────────────
     # 22. Metabolic Monitor (APP)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
