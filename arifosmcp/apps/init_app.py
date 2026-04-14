@@ -45,12 +45,9 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
-    Metric,
     Muted,
     Ring,
     Row,
-    Select,
-    SelectOption,
     Separator,
     Text,
 )
@@ -59,7 +56,7 @@ from prefab_ui.rx import RESULT, STATE
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-init_app = FastMCP("InitApp")
+init_app = FastMCP("InitApp", domain="arifos.fastmcp.app")
 
 
 @init_app.tool()

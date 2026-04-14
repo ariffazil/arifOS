@@ -48,7 +48,6 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
-    Metric,
     Muted,
     Ring,
     Row,
@@ -100,7 +99,7 @@ _PHILOSOPHY: dict[str, str] = {
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-judge_app = FastMCP("JudgeApp")
+judge_app = FastMCP("JudgeApp", domain="arifos.fastmcp.app")
 
 
 @judge_app.tool()
@@ -370,11 +369,19 @@ def judge_surface(
         # ── Floor Summary Metric ─────────────────────────────────────────────
         with If(judged_rx):
             with Row(gap=3):
-                Metric(
-                    label="Floors Passed",
-                    value=STATE["floors_pass_count"],
-                    suffix=f" / 13",
+                # Using a generic Text instead of Metric if Metric was causing issues,
+                # but let's try to keep it if it's there.
+                Text(
+                    "Floors Passed: ",
+                    css_class="text-sm font-semibold",
                 )
+                Badge(
+                    STATE["floors_pass_count"].then(
+                        STATE["floors_pass_count"], "0"
+                    ),
+                    variant="outline",
+                )
+                Text(" / 13", css_class="text-sm")
 
         # ── Philosophy (Reactive) ────────────────────────────────────────────
         Muted(

@@ -63,6 +63,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="000",
         purpose="Architect registry — Start governed session",
         layer="GOVERNANCE",
+        visibility="public",
         description=(
             "Initialize constitutional session with identity binding and telemetry seed. "
             "Modes: init/probe/state/status (safe read modes) | revoke requires human_approval. "
@@ -106,6 +107,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="111",
         purpose="Physics reality — Constitutional Reality Sensing",
         layer="MACHINE",
+        visibility="public",
         description=(
             "Ground query in physical reality via the 8-stage constitutional sensing protocol: "
             "PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF. "
@@ -137,6 +139,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="333",
         purpose="Agi mind — Structured reasoning with typed cognitive pipeline",
         layer="INTELLIGENCE",
+        visibility="public",
         description=(
             "Structured reasoning with typed cognitive pipeline. Modes: "
             "- 'reason' (default): Standard AGI pipeline (sense → mind → heart → judge) "
@@ -174,6 +177,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="444",
         purpose="Arifos kernel — Route request to metabolic lane",
         layer="GOVERNANCE",
+        visibility="public",
         description="Route request to correct metabolic lane or tool family based on risk and task type.",
         trinity="Δ/Ψ",
         floors=("F4", "F11"),
@@ -195,6 +199,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="666",
         purpose="Arifos heart — Risk simulation and ethical critique",
         layer="INTELLIGENCE",
+        visibility="public",
         description="Red-team proposal for ethical risks. Simulate consequences, evaluate against F5, F6, F9.",
         trinity="Ω",
         floors=("F5", "F6", "F9"),
@@ -216,6 +221,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="777",
         purpose="Math estimator — Calculate costs and thermodynamics",
         layer="MACHINE",
+        visibility="public",
         description="Calculate operation costs, thermodynamics, capacity, and timing with entropy analysis.",
         trinity="Δ",
         floors=("F4", "F5"),
@@ -241,6 +247,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="888",
         purpose="Apex soul — Final constitutional verdict evaluation",
         layer="GOVERNANCE",
+        visibility="public",
         description="Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD.",
         trinity="Ψ",
         floors=("F1", "F2", "F3", "F9", "F10", "F12", "F13"),
@@ -266,6 +273,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="555",
         purpose="Engineering memory — Governed context recall",
         layer="INTELLIGENCE",
+        visibility="public",
         description="Retrieve governed memory and engineering context from vector store.",
         trinity="Ω",
         floors=("F2", "F10", "F11"),
@@ -291,6 +299,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="999",
         purpose="Vault ledger — Immutable verdict record",
         layer="GOVERNANCE",
+        visibility="public",
         description="Append immutable verdict record to Merkle-hashed ledger.",
         trinity="Ψ",
         floors=("F1", "F13"),
@@ -315,6 +324,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="010",
         purpose="Code engine — Delegated Execution Bridge (The 10th Tool)",
         layer="EXECUTION",
+        visibility="public",
         description=(
             "Delegated Execution Bridge — The 10th Tool. This tool does NOT execute directly. It: "
             "1. Validates judge verdict is SEAL 2. Constructs signed execution manifest "
@@ -355,7 +365,6 @@ TOOLS: tuple[ToolSpec, ...] = (
         ),
         trinity="ALL",
         floors=("F1", "F2", "F3", "F4", "F7", "F9", "F11", "F13"),
-        visibility="public",
         input_schema={
             "type": "object",
             "required": ["query", "session_id"],
@@ -374,6 +383,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         stage="111",
         purpose="Arifos health — Retrieve CPU, Memory, ZRAM, and Disk",
         layer="MACHINE",
+        visibility="public",
         description="Retrieve CPU, Memory, ZRAM, and Disk utilization. F12-hardened read-only access.",
         trinity="Δ",
         floors=("F4", "F12"),
@@ -399,7 +409,6 @@ TOOLS: tuple[ToolSpec, ...] = (
         ),
         trinity="Δ",
         floors=("F2", "F9", "F11"),
-        visibility="public",
         input_schema={
             "type": "object",
             "required": ["url"],

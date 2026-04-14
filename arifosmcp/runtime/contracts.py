@@ -10,10 +10,13 @@ Aligned with SPEC.md: Functional naming, canonical fields, and strict typing.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field as dataclass_field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal
+from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -35,6 +38,12 @@ class RiskTier(str, Enum):
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
+
+    @classmethod
+    def _missing_(cls, value: object) -> "RiskTier" | None:
+        if isinstance(value, str) and value.lower() == "sovereign":
+            return cls.CRITICAL
+        return None
 
 
 class SessionState(str, Enum):
@@ -217,11 +226,24 @@ AAA_CANONICAL_TOOLS = [
     "execute_vps_task",
 ]
 
-AAA_PUBLIC_TOOLS = AAA_CANONICAL_TOOLS
+AAA_PUBLIC_TOOLS = [
+    "arifos_init",
+    "arifos_sense",
+    "arifos_mind",
+    "arifos_route",
+    "arifos_heart",
+    "arifos_ops",
+    "arifos_judge",
+    "arifos_memory",
+    "arifos_vault",
+    "arifos_forge",
+    "arifos_health",
+]
 
 AAA_TOOL_ALIASES = {
     "init_anchor": "arifos.init",
     "arifos_kernel": "arifos.kernel",
+    "arifos_route": "arifos.route",
     "apex_soul": "arifos.judge",
     "apex_judge": "arifos.judge",
     "vault_ledger": "arifos.vault",
@@ -234,6 +256,7 @@ AAA_TOOL_ALIASES = {
     # v2 underscored aliases
     "arifos_init": "arifos_init",
     "arifos_kernel": "arifos_kernel",
+    "arifos_route": "arifos_route",
     "arifos_sense": "arifos_sense",
     "arifos_mind": "arifos_mind",
     "arifos_heart": "arifos_heart",
@@ -262,6 +285,7 @@ AAA_TOOL_STAGE_MAP = {
     "arifos_sense": "111_SENSE",
     "arifos_mind": "333_MIND",
     "arifos_kernel": "444_ROUTER",
+    "arifos_route": "444_ROUTER",
     "arifos_heart": "666_HEART",
     "arifos_ops": "777_OPS",
     "arifos_judge": "888_JUDGE",
@@ -288,6 +312,7 @@ TRINITY_BY_TOOL = {
     "arifos_sense": "Δ",
     "arifos_mind": "Δ",
     "arifos_kernel": "Δ/Ψ",
+    "arifos_route": "Δ/Ψ",
     "arifos_heart": "Ω",
     "arifos_ops": "Δ",
     "arifos_judge": "Ψ",
@@ -314,6 +339,7 @@ AAA_TOOL_LAW_BINDINGS = {
     "arifos_sense": ["F2", "F3", "F4", "F10"],
     "arifos_mind": ["F2", "F4", "F7", "F8"],
     "arifos_kernel": ["F4", "F11"],
+    "arifos_route": ["F4", "F11"],
     "arifos_heart": ["F5", "F6", "F9"],
     "arifos_ops": ["F4", "F5"],
     "arifos_judge": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
@@ -323,22 +349,202 @@ AAA_TOOL_LAW_BINDINGS = {
     "arifos_health": ["F4", "F12"],
 }
 
-# Missing names identified from contracts_v2.py
-DOMAIN_PAYLOAD_GATES = {}
-LAW_13_CATALOG = {}
-READ_ONLY_TOOLS = ["get_tool_registry", "sense_reality", "estimate_ops"]
-REQUIRES_SESSION = AAA_CANONICAL_TOOLS
-TOOL_MODES = {}
+# Executable contract metadata
+DOMAIN_PAYLOAD_GATES = {
+    "arifos_init": {"required": ["actor_id", "intent"]},
+    "arifos_sense": {"required": ["query"]},
+    "arifos_mind": {"required": ["query"]},
+    "arifos_kernel": {"required": ["query"]},
+    "arifos_route": {"required": ["query"]},
+    "arifos_heart": {"required": ["query"]},
+    "arifos_ops": {"required": ["query"]},
+    "arifos_judge": {"required": ["query", "risk_tier"]},
+    "arifos_memory": {"required": ["query"]},
+    "arifos_vault": {"required": ["verdict"]},
+    "arifos_forge": {"required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"]},
+    "arifos_health": {"required": []},
+}
+LAW_13_CATALOG = {
+    "F1": "Reversibility before irreversible action",
+    "F2": "Truth over fabrication",
+    "F3": "Tri-witness grounding",
+    "F4": "Entropy discipline",
+    "F5": "Safety and stability",
+    "F6": "Care and dignity",
+    "F7": "Humility under uncertainty",
+    "F8": "Governance integrity",
+    "F9": "Anti-deception / anti-hantu",
+    "F10": "Boundary integrity",
+    "F11": "Audit continuity",
+    "F12": "Injection defense",
+    "F13": "Sovereign ratification",
+}
+READ_ONLY_TOOLS = ["arifos_sense", "arifos_mind", "arifos_route", "arifos_ops", "arifos_health"]
+REQUIRES_SESSION = [
+    "arifos_sense",
+    "arifos_mind",
+    "arifos_kernel",
+    "arifos_route",
+    "arifos_heart",
+    "arifos_ops",
+    "arifos_judge",
+    "arifos_memory",
+    "arifos_vault",
+    "arifos_forge",
+    "arifos_health",
+]
+TOOL_MODES = {
+    "arifos_init": {"init", "refresh", "state", "status", "probe", "revoke"},
+    "arifos_sense": {"governed", "search", "ingest", "compass", "atlas", "time"},
+    "arifos_mind": {"reason", "sequential", "step", "branch", "merge", "review"},
+    "arifos_kernel": {"kernel", "status"},
+    "arifos_route": {"kernel", "status"},
+    "arifos_heart": {"critique", "simulate"},
+    "arifos_ops": {"cost", "health", "vitals", "entropy"},
+    "arifos_judge": {"judge"},
+    "arifos_memory": {"vector_query", "vector_store", "engineer", "query"},
+    "arifos_vault": {"seal"},
+    "arifos_forge": {"execute"},
+    "arifos_health": {"health"},
+}
 
-# Legacy class aliases for compatibility
-ToolEnvelope = TelemetryEnvelope
-ToolStatus = Literal["SUCCESS", "FAILURE", "VOID", "HOLD"]
+# Runtime helper contracts
+class ToolStatus(str, Enum):
+    OK = "OK"
+    WARNING = "WARNING"
+    HOLD = "HOLD"
+    SABAR = "SABAR"
+    ERROR = "ERROR"
+    VOID = "VOID"
+
+
 OutputPolicy = Literal["redact", "mask", "raw"]
 VerdictScope = Literal["session", "global", "resource"]
-HumanDecisionMarker = Any
-SessionClass = Literal["public", "authenticated", "sovereign"]
-TraceContext = Any
-EntropyBudget = Any
+
+
+class HumanDecisionMarker(str, Enum):
+    MACHINE_RECOMMENDATION_ONLY = "machine_recommendation_only"
+    HUMAN_APPROVAL_BOUND = "human_approval_bound"
+    HUMAN_CONFIRMATION_REQUIRED = "human_confirmation_required"
+    ESCALATED = "escalated"
+    SEALED = "sealed"
+
+
+class SessionClass(str, Enum):
+    OBSERVE = "observe"
+    ADVISE = "advise"
+    EXECUTE = "execute"
+    SOVEREIGN = "sovereign"
+    PUBLIC = "public"
+    AUTHENTICATED = "authenticated"
+
+
+@dataclass
+class TraceContext:
+    stage: str
+    session_id: str
+    trace_id: str = dataclass_field(default_factory=lambda: f"trace-{uuid4().hex[:12]}")
+    parent_trace_id: str | None = None
+    policy_version: str = "v2026.04"
+    timestamp: str = dataclass_field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    @property
+    def stage_id(self) -> str:
+        return self.stage
+
+
+@dataclass
+class EntropyBudget:
+    ambiguity_score: float = 0.0
+    delta_s: float = 0.0
+    confidence: float = 1.0
+    assumptions: list[str] = dataclass_field(default_factory=list)
+    blast_radius: str = "minimal"
+    contradictions: int = 0
+
+    @property
+    def is_stable(self) -> bool:
+        return self.delta_s <= 0.0 and self.confidence >= 0.6
+
+    @property
+    def assumptions_made(self) -> list[str]:
+        return self.assumptions
+
+    @property
+    def blast_radius_estimate(self) -> str:
+        return self.blast_radius
+
+
+class ToolEnvelope(BaseModel):
+    status: ToolStatus
+    tool: str
+    session_id: str
+    risk_tier: RiskTier = RiskTier.MEDIUM
+    confidence: float = 1.0
+    trace: TraceContext | None = None
+    entropy: EntropyBudget | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+    authority: Any = None
+    caller_state: str | None = None
+    auth_context: dict[str, Any] | None = None
+    allowed_next_tools: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="allow")
+
+    @property
+    def inputs_hash(self) -> str:
+        payload = {
+            "tool": self.tool,
+            "session_id": self.session_id,
+            "risk_tier": self.risk_tier.value if isinstance(self.risk_tier, Enum) else self.risk_tier,
+        }
+        return f"sha256:{hash(str(payload)) & 0xffffffff:08x}"
+
+    @property
+    def outputs_hash(self) -> str:
+        return f"sha256:{hash(str(self.payload)) & 0xffffffff:08x}"
+
+    @property
+    def human_decision(self) -> HumanDecisionMarker:
+        explicit = self.__pydantic_extra__.get("human_decision") if self.__pydantic_extra__ else None
+        if explicit is not None:
+            return explicit
+        if self.status in {ToolStatus.HOLD, ToolStatus.VOID}:
+            return HumanDecisionMarker.HUMAN_CONFIRMATION_REQUIRED
+        if self.risk_tier in {RiskTier.HIGH, RiskTier.CRITICAL}:
+            return HumanDecisionMarker.HUMAN_APPROVAL_BOUND
+        return HumanDecisionMarker.MACHINE_RECOMMENDATION_ONLY
+
+    @property
+    def requires_human(self) -> bool:
+        return self.human_decision in {
+            HumanDecisionMarker.HUMAN_APPROVAL_BOUND,
+            HumanDecisionMarker.HUMAN_CONFIRMATION_REQUIRED,
+            HumanDecisionMarker.ESCALATED,
+        }
+
+
+@dataclass
+class ValidationResult:
+    valid: bool
+    reason: str = ""
+    stage: str = "FAIL_CLOSED"
+
+    def to_envelope(
+        self,
+        tool: str,
+        session_id: str,
+        trace: TraceContext | None = None,
+    ) -> ToolEnvelope:
+        return ToolEnvelope(
+            status=ToolStatus.ERROR,
+            tool=tool,
+            session_id=session_id,
+            trace=trace,
+            confidence=0.0,
+            payload={"error": self.reason, "valid": self.valid},
+        )
 
 # Utils
 def make_telemetry_seed(session_id: str) -> TelemetryEnvelope:
@@ -367,14 +573,109 @@ def compute_psi_le(telemetry: TelemetryEnvelope) -> float:
     psi = math.pow(truth * entropy * peace * witness, 0.25)
     return round(psi + 1.0, 3)
 
-def calculate_entropy_budget(*args, **kwargs): return 0.0
-def check_domain_gate(*args, **kwargs): return True
-def determine_human_marker(*args, **kwargs): return None
-def generate_trace_context(*args, **kwargs): return {}
-def public_tool_input_contracts(): return {}
-def require_session(fn): return fn
-def validate_fail_closed(*args, **kwargs): return True
-def verify_contract(*args, **kwargs): return True
+
+def calculate_entropy_budget(
+    ambiguity_score: float = 0.0,
+    delta_s: float | None = None,
+    confidence: float = 1.0,
+    assumptions: list[str] | None = None,
+    blast_radius: str = "minimal",
+    *args: Any,
+    **kwargs: Any,
+) -> EntropyBudget:
+    if not isinstance(assumptions, list):
+        assumptions = []
+    if isinstance(confidence, (int, float)) and confidence > 1.0:
+        confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
+    elif confidence is None:
+        confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
+    elif kwargs.get("confidence") is None and float(confidence) == 1.0:
+        confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
+    if delta_s is None:
+        delta_s = kwargs.get("delta_s")
+    if delta_s is None:
+        delta_s = max(-1.0, min(1.0, float(ambiguity_score) - float(confidence)))
+    assumptions = list(assumptions or kwargs.get("assumptions") or [])
+    blast_radius = str(kwargs.get("blast_radius", blast_radius))
+    return EntropyBudget(
+        ambiguity_score=float(ambiguity_score),
+        delta_s=float(delta_s),
+        confidence=float(confidence),
+        assumptions=assumptions,
+        blast_radius=blast_radius,
+        contradictions=int(kwargs.get("contradictions", 0)),
+    )
+
+
+def check_domain_gate(tool_name: str, payload: dict[str, Any] | None = None) -> bool:
+    gate = DOMAIN_PAYLOAD_GATES.get(tool_name, {})
+    required = gate.get("required", [])
+    payload = payload or {}
+    return all(key in payload for key in required)
+
+
+def determine_human_marker(risk_tier: RiskTier | str, human_approval: bool = False) -> str | None:
+    tier = risk_tier.value if isinstance(risk_tier, RiskTier) else str(risk_tier).lower()
+    if human_approval:
+        return "HUMAN_APPROVED"
+    if tier in {"high", "critical"}:
+        return "HUMAN_REQUIRED"
+    return None
+
+
+def generate_trace_context(stage: str, session_id: str, parent_trace_id: str | None = None) -> TraceContext:
+    return TraceContext(
+        stage=stage,
+        session_id=session_id,
+        parent_trace_id=parent_trace_id or stage,
+    )
+
+
+def public_tool_input_contracts() -> dict[str, Any]:
+    from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
+
+    contracts: dict[str, Any] = {}
+    for spec in PUBLIC_TOOL_SPECS:
+        public_name = "arifos_route" if spec.name == "arifos_kernel" else spec.name
+        contracts[public_name] = spec.input_schema
+    return contracts
+
+
+def require_session(fn):
+    return fn
+
+
+def validate_fail_closed(*args: Any, **kwargs: Any) -> ValidationResult:
+    tool = str(kwargs.get("tool", "unknown"))
+    risk_tier = kwargs.get("risk_tier", RiskTier.MEDIUM)
+    try:
+        RiskTier(risk_tier.lower() if isinstance(risk_tier, str) else risk_tier.value)
+    except Exception:
+        return ValidationResult(valid=False, reason=f"Invalid risk_tier for {tool}")
+    return ValidationResult(valid=True)
+
+
+def verify_contract(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    public_tools = set(AAA_PUBLIC_TOOLS)
+    checks = {
+        "stage_map_complete": public_tools.issubset(AAA_TOOL_STAGE_MAP.keys()),
+        "trinity_map_complete": public_tools.issubset(TRINITY_BY_TOOL.keys()),
+        "law_bindings_complete": public_tools.issubset(AAA_TOOL_LAW_BINDINGS.keys()),
+        "tool_modes_complete": public_tools.issubset(TOOL_MODES.keys()),
+        "session_requirements_cover_public_non_init": public_tools.difference({"arifos_init"}).issubset(REQUIRES_SESSION),
+    }
+    missing = {
+        "stage": sorted(public_tools.difference(AAA_TOOL_STAGE_MAP.keys())),
+        "trinity": sorted(public_tools.difference(TRINITY_BY_TOOL.keys())),
+        "law": sorted(public_tools.difference(AAA_TOOL_LAW_BINDINGS.keys())),
+        "modes": sorted(public_tools.difference(TOOL_MODES.keys())),
+    }
+    return {
+        "ok": all(checks.values()),
+        "checks": checks,
+        "public_tools": sorted(public_tools),
+        "missing": missing,
+    }
 
 class EvidenceBundle(BaseModel):
     bundle_id: str

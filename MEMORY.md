@@ -39,9 +39,10 @@ The Sovereign (Arif Fazil) performed a deterministic audit and "Horizon Rebuild"
 - **Hardening**: Selectively preserved `CSPMiddleware` in `server.py` to support ChatGPT/Claude iframe widgets.
 - **Impact**: Restored local as the absolute Source of Truth.
 
-### 2026.04.11 — FastMCP App Suite Activation
+### 2026.04 activation — Body-Interactive App Suite
 - **Objective**: Move arifOS from a "headless" toolset to a "body-interactive" app environment.
 - **Achievement**: Launched JudgeApp, VaultApp, InitApp, and ForgeApp using `prefab-ui` and FastMCP Apps.
+- **Widget Domain Fixed**: Resolved the OpenAI Apps SDK domain configuration error by patching the `fastmcp` library to support `domain` whitelisting for all constitutional surfaces (v2026.4.14-SEALED).
 
 ## 🧠 Core Identity & Principles
 - **Motto**: "DITEMPA BUKAN DIBERI" (Forged, Not Given).
@@ -56,5 +57,6 @@ The Sovereign (Arif Fazil) performed a deterministic audit and "Horizon Rebuild"
 ## 📅 Roadmap Horizons
 - [x] **Consolidation** (2026.04.13)
 - [x] **Horizon Rebuild (33 commits)** (2026.04.14)
+- [x] **Widget Domain Fixed** (2026.04.14)
 - [ ] **Deploy to Main/VPS** (Next Action)
 - [ ] **ChatGPT Widget Adapters**

@@ -30,6 +30,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastmcp import FastMCP
+from fastmcp.apps.config import PrefabAppConfig
 from fastmcp.tools import ToolResult
 from prefab_ui.components import (
     Badge,
@@ -167,7 +168,7 @@ def _delta_s_variant(ds: float) -> str:
 
 def _register(mcp: FastMCP) -> None:
 
-    @mcp.tool(app=True)
+    @mcp.tool(app=PrefabAppConfig(domain="arifos.fastmcp.app"))
     def monitor_metabolism(session_id: str = "global") -> ToolResult:
         """
         Open the arifOS Metabolic Monitor — a real-time dashboard showing the

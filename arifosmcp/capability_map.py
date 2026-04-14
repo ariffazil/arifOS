@@ -12,14 +12,14 @@ CANONICAL_TOOL_HANDLERS = {
     "arifos_init": "arifos_init",
     "arifos_sense": "arifos_sense",
     "arifos_mind": "arifos_mind",
+    "arifos_route": "arifos_kernel",
     "arifos_heart": "arifos_heart",
+    "arifos_ops": "arifos_ops",
     "arifos_judge": "arifos_judge",
     "arifos_memory": "arifos_memory",
     "arifos_vault": "arifos_vault",
-    "arifos_math": "arifos_math",
-    "arifos_kernel": "arifos_kernel",
-    "arifos_code": "arifos_code",
-    "arifos_architect": "arifos_architect",
+    "arifos_forge": "arifos_forge",
+    "arifos_health": "arifos_health",
 }
 
 # Substrate Capability Families
@@ -39,12 +39,28 @@ LEGACY_TOOL_MAP = {
     "arifos.init": "arifos_init",
     "arifos.sense": "arifos_sense",
     "arifos.mind": "arifos_mind",
+    "arifos.kernel": "arifos_kernel",
+    "arifos.route": "arifos_kernel",
     "arifos.heart": "arifos_heart",
+    "arifos.ops": "arifos_ops",
     "arifos.judge": "arifos_judge",
     "arifos.memory": "arifos_memory",
     "arifos.vault": "arifos_vault",
-    "arifos.math": "arifos_math",
-    "arifos.kernel": "arifos_kernel",
+    "arifos.forge": "arifos_forge",
+    "arifos.health": "arifos_health",
+    "init_anchor": "arifos_init",
+    "physics_reality": "arifos_sense",
+    "reality_compass": "arifos_sense",
+    "agi_mind": "arifos_mind",
+    "agi_reason": "arifos_mind",
+    "asi_heart": "arifos_heart",
+    "math_estimator": "arifos_ops",
+    "apex_soul": "arifos_judge",
+    "vault_ledger": "arifos_vault",
+    "vault_seal": "arifos_vault",
+    "code_engine": "arifos_forge",
+    "vps_monitor": "arifos_health",
+    "architect_registry": "arifos_init",
 }
 
 # Metadata and routing
@@ -59,7 +75,7 @@ ALIGNED_STAGES = {
 }
 
 # Legacy aliases for tests
-CAPABILITY_MAP = CANONICAL_TOOL_HANDLERS
+CAPABILITY_MAP = {**CANONICAL_TOOL_HANDLERS, **LEGACY_TOOL_MAP}
 LEGACY_TOOLS = LEGACY_TOOL_MAP
 
 # Legacy aliases for pre-unification tests

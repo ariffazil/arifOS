@@ -131,6 +131,7 @@ async def init(
             math=math_dials or MathDials(),
             code=CodeState(session_id="VOID"),
             governance=gov,
+            floors_failed=["F12"],
         )
 
     _, authority = verify_auth(gov.actor_id, auth_token, kwargs.get("human_approval", False))

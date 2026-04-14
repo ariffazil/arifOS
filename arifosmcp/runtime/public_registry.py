@@ -18,8 +18,10 @@ ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
-# Clean surface: All tools use functional names. No aliases in public registry.
-PUBLIC_TOOL_ALIASES = {}
+# Clean public surface: keep internal handler names private where needed.
+PUBLIC_TOOL_ALIASES = {
+    "arifos_kernel": "arifos_route",
+}
 PUBLIC_TOOL_EXCLUSIONS = set()
 
 
@@ -36,17 +38,25 @@ def _transform_public_tool_spec(spec: ToolSpec) -> ToolSpec | None:
     return ToolSpec(
         name=public_name,
         stage=spec.stage,
+        purpose=spec.purpose,
         role=spec.role,
         layer=spec.layer,
         description=spec.description,
         trinity=spec.trinity,
         floors=spec.floors,
         input_schema=spec.input_schema,
+        visibility="public",
+        default_tier=spec.default_tier,
         default_budget_tier=spec.default_budget_tier,
         min_budget_tier=spec.min_budget_tier,
         max_budget_tier=spec.max_budget_tier,
         overflow_policy=spec.overflow_policy,
         readonly=spec.readonly,
+        outputs=spec.outputs,
+        read_only_hint=spec.read_only_hint,
+        destructive_hint=spec.destructive_hint,
+        open_world_hint=spec.open_world_hint,
+        idempotent_hint=spec.idempotent_hint,
     )
 
 

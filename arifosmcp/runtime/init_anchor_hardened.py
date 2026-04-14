@@ -203,7 +203,7 @@ class HardenedInitAnchor:
         if session_class in (SessionClass.EXECUTE, SessionClass.OBSERVE, SessionClass.ADVISE):
             scopes.extend(
                 [
-                    "arifOS_kernel:execute_limited",
+                    "arifos_kernel:execute_limited",
                     "physics_reality:search",
                     "physics_reality:ingest",
                     "agi_mind:reason",

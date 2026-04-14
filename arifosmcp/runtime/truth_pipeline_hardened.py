@@ -155,6 +155,7 @@ class EvidenceBundle:
         return {
             "bundle_id": self.bundle_id,
             "query": self.query,
+            "claim_type": "fact" if self.observed_facts else "hypothesis",
             "jurisdiction": self.jurisdiction,
             "locale": self.locale,
             "observed_facts": [f.to_dict() for f in self.observed_facts],
@@ -252,6 +253,35 @@ class ClaimGraph:
 class HardenedRealityCompass:
     """Hardened reality_compass with typed EvidenceBundle and Multimodal Manifold projection."""
 
+    async def search(
+        self,
+        query: str,
+        is_temporal: bool = False,
+        strips: list[dict[str, Any]] | None = None,
+        jurisdiction: str = "global",
+        locale: str = "en",
+        freshness_required: float = 0.5,
+        require_quotes: bool = True,
+        auth_context: dict | None = None,
+        risk_tier: str = "medium",
+        session_id: str | None = None,
+        trace: TraceContext | None = None,
+    ) -> ToolEnvelope:
+        """Backward-compatible alias for ingest()."""
+        return await self.ingest(
+            query=query,
+            is_temporal=is_temporal,
+            strips=strips,
+            jurisdiction=jurisdiction,
+            locale=locale,
+            freshness_required=freshness_required,
+            require_quotes=require_quotes,
+            auth_context=auth_context,
+            risk_tier=risk_tier,
+            session_id=session_id,
+            trace=trace,
+        )
+
     async def ingest(
         self,
         query: str,
@@ -341,6 +371,23 @@ class HardenedRealityCompass:
 
 class HardenedRealityAtlas:
     """Hardened reality_atlas with claim graphing."""
+
+    async def merge(
+        self,
+        evidence_bundles: list[dict],
+        auth_context: dict | None = None,
+        risk_tier: str = "medium",
+        session_id: str | None = None,
+        trace: TraceContext | None = None,
+    ) -> ToolEnvelope:
+        """Backward-compatible alias for map_claims()."""
+        return await self.map_claims(
+            evidence_bundles=evidence_bundles,
+            auth_context=auth_context,
+            risk_tier=risk_tier,
+            session_id=session_id,
+            trace=trace,
+        )
 
     async def map_claims(
         self,

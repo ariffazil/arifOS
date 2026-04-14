@@ -93,7 +93,7 @@ def _ts_human(ts: Any) -> str:
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-vault_app = FastMCP("VaultApp")
+vault_app = FastMCP("VaultApp", domain="arifos.fastmcp.app")
 
 
 @vault_app.tool()
@@ -166,13 +166,13 @@ def get_vault_data() -> dict[str, Any]:
         )
         seal_card = _build_vault_seal_structured_content()
     except Exception:
+        import datetime
         import uuid
-        import datetime as _dt
         seal_card = {
             "seal_id": f"seal_{uuid.uuid4().hex[:16]}",
             "verdict": "SEAL",
-            "timestamp": _dt.datetime.now(
-                _dt.timezone.utc
+            "timestamp": datetime.datetime.now(
+                datetime.timezone.utc
             ).isoformat(),
             "floors": {
                 "tau_truth": 0.99,

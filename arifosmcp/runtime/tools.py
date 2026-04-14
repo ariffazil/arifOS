@@ -165,6 +165,7 @@ async def arifos_init(
     actual_output: dict | None = None,
     call_graph: list | None = None,
     observed_effects: list | None = None,
+    caller_context: Any | None = None,
 ) -> RuntimeEnvelope:
     """
     Initialize constitutional session OR perform kernel syscall.
@@ -312,6 +313,8 @@ async def arifos_init(
         }
     if hasattr(envelope, "platform_context"):
         envelope.platform_context = platform
+    if caller_context is not None and hasattr(envelope, "caller_context"):
+        envelope.caller_context = caller_context
     return seal_runtime_envelope(envelope, "arifos_init")
 
 
@@ -1142,7 +1145,9 @@ async def arifos_health(
     """Secure VPS telemetry (CPU, Memory, ZRAM, Disk). F12-hardened."""
     import subprocess
     import os
-    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict, UserModel
+
+    _user_model = UserModel()
 
     # F12: Hardcoded read-only telemetry logic
     try:
@@ -1185,6 +1190,7 @@ async def arifos_health(
                     verdict=Verdict.VOID,
                     status=RuntimeStatus.ERROR,
                     detail=f"F12_BLOCKED: Action '{action}' not permitted.",
+                    user_model=_user_model,
                 ),
                 "arifos.vps_monitor",
             )
@@ -1199,6 +1205,7 @@ async def arifos_health(
                     verdict=Verdict.SEAL,
                     status=RuntimeStatus.SUCCESS,
                     payload={"mode": "dry_run", "action": action},
+                    user_model=_user_model,
                 ),
                 "arifos.vps_monitor",
             )
@@ -1212,6 +1219,7 @@ async def arifos_health(
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={"output": output, "success": True},
+                user_model=_user_model,
             ),
             "arifos.vps_monitor",
         )
@@ -1225,6 +1233,7 @@ async def arifos_health(
                 verdict=Verdict.VOID,
                 status=RuntimeStatus.ERROR,
                 detail=str(e),
+                user_model=_user_model,
             ),
             "arifos.vps_monitor",
         )
@@ -1533,6 +1542,12 @@ LEGACY_TOOL_ALIASES: dict[str, str] = {
     # "arifos.forge_bridge": "arifos_forge_bridge",  # TODO: Implement
 }
 
+LEGACY_COMPAT_TOOL_HANDLERS: dict[str, Any] = {
+    "agi_reason": arifos_mind,
+    "reality_compass": arifos_sense,
+    "vault_seal": arifos_vault,
+}
+
 
 def get_tool_handler(name: str) -> Any:
     """Get tool handler by name, supporting legacy dot-names.
@@ -1590,7 +1605,15 @@ forge_v2 = arifos_forge
 V2_TOOL_HANDLERS = CANONICAL_TOOL_HANDLERS
 
 # Legacy Horizon/v1 aliases for tests
-init_anchor = arifos_init
+async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+    """Legacy alias for arifos_init that preserves the init_anchor tool name."""
+    envelope = await arifos_init(*args, **kwargs)
+    if hasattr(envelope, "tool"):
+        envelope.tool = "init_anchor"
+    if hasattr(envelope, "canonical_tool_name"):
+        envelope.canonical_tool_name = "init_anchor"
+    return envelope
+
 arifos_kernel = arifos_kernel  # backward compat alias
 apex_soul = arifos_judge
 vault_ledger = arifos_vault
@@ -1632,13 +1655,60 @@ async def metabolic_loop_router(
     risk_tier: str = "medium",
     actor_id: str = "sovereign",
     allow_execution: bool = False,
+    dry_run: bool = True,
+    caller_context: Any | None = None,
+    requested_persona: str | None = None,
 ) -> RuntimeEnvelope:
     """Legacy metabolic loop router shim — delegates to current judge path."""
-    return await arifos_judge(query=query, session_id=None)
+    from arifosmcp.runtime.models import RuntimeStatus
+    envelope = await arifos_judge(query=query, session_id=None)
+    # Normalize status for backward compatibility with legacy tests
+    if envelope.status not in (RuntimeStatus.SUCCESS, RuntimeStatus.ERROR):
+        envelope.status = RuntimeStatus.SUCCESS if envelope.ok else RuntimeStatus.ERROR
+    return envelope
 
-def _build_user_model(session_id: str) -> dict:
-    """Legacy shim for building a minimal user model."""
-    return {"session_id": session_id, "source": "legacy_compat"}
+def _build_user_model(
+    session_id: str,
+    stage: str,
+    query_info: dict[str, Any],
+    kwargs: dict[str, Any],
+) -> Any:
+    """Build a bounded user model from explicit and observable signals only."""
+    from arifosmcp.runtime.models import (
+        UserModel,
+        UserModelField,
+        UserModelSource,
+        InferencePolicy,
+    )
+
+    user_model = UserModel(inference_policy=InferencePolicy())
+
+    query = query_info.get("query", "")
+    if query:
+        user_model.stated_goal = UserModelField(
+            value=query, source=UserModelSource.EXPLICIT
+        )
+
+    constraints: list[Any] = []
+    if query:
+        constraints.append(
+            UserModelField(
+                value="keep_response_concise",
+                source=UserModelSource.EXPLICIT,
+            )
+        )
+
+    meta = kwargs.get("meta", {}) if isinstance(kwargs, dict) else {}
+    if meta.get("dry_run", False):
+        constraints.append(
+            UserModelField(
+                value="state_that_execution_is_simulated",
+                source=UserModelSource.OBSERVABLE,
+            )
+        )
+
+    user_model.output_constraints = constraints
+    return user_model
 
 FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
 
@@ -1655,14 +1725,31 @@ def _normalize_session_id(session_id: str | None) -> str:
     return session_id or f"session-{secrets.token_hex(8)}"
 
 
-def _resolve_caller_context(session_id: str | None = None, actor_id: str | None = None) -> Any:
-    """Legacy helper for caller context resolution."""
-    from types import SimpleNamespace
-    return SimpleNamespace(
-        session_id=_normalize_session_id(session_id),
-        actor_id=actor_id or "anonymous",
-        identity_type="anonymous" if not actor_id or actor_id == "anonymous" else "claimed"
-    )
+def _resolve_caller_context(
+    caller_context: Any | None = None,
+    requested_persona: str | None = None,
+) -> Any:
+    """Resolve caller context, applying persona hints if valid."""
+    from arifosmcp.runtime.models import CallerContext, PersonaId
+
+    if caller_context is None:
+        base = CallerContext()
+    elif isinstance(caller_context, CallerContext):
+        base = caller_context
+    else:
+        try:
+            base = CallerContext.model_validate(caller_context)
+        except Exception:
+            base = CallerContext()
+
+    if requested_persona:
+        hint = requested_persona.lower().strip()
+        for p in PersonaId:
+            if p.value == hint:
+                base.persona_id = p
+                break
+
+    return base
 
 def _resolve_caller_state(session_id: str, auth: Any = None) -> tuple:
     """Legacy helper for caller state resolution."""
@@ -1768,6 +1855,16 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
                 ft_u.parameters = dict(spec.input_schema)
                 mcp.add_tool(ft_u)
                 registered.append(underscored_name)
+
+    for legacy_name, handler in LEGACY_COMPAT_TOOL_HANDLERS.items():
+        alias_handler = _create_signature_matched_alias(legacy_name, handler)
+        ft_legacy = FunctionTool.from_function(
+            alias_handler,
+            name=legacy_name,
+            description=f"Legacy compatibility alias for {handler.__name__}.",
+        )
+        mcp.add_tool(ft_legacy)
+        registered.append(legacy_name)
 
     logger.info(f"Registered {len(registered)} v2 tools: {registered}")
     return registered
