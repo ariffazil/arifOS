@@ -124,7 +124,13 @@ async def init(
     inj_score = _guard.scan(intent.query)
     if inj_score >= 0.7:
         return InitOutput(
-            session_id="VOID", verdict=Verdict.VOID, error_message="F12: Injection detected."
+            session_id="VOID",
+            verdict=Verdict.VOID,
+            error_message="F12: Injection detected.",
+            intent=intent,
+            math=math_dials or MathDials(),
+            code=CodeState(session_id="VOID"),
+            governance=gov,
         )
 
     _, authority = verify_auth(gov.actor_id, auth_token, kwargs.get("human_approval", False))
@@ -135,11 +141,20 @@ async def init(
             session_id="HOLD",
             verdict=Verdict.HOLD,
             error_message="F13: Sovereign override required.",
+            intent=intent,
+            math=math_dials or MathDials(),
+            code=CodeState(session_id="HOLD"),
+            governance=gov,
         )
 
+    session_id = session_id or secrets.token_hex(16)
     return InitOutput(
-        session_id=session_id or secrets.token_hex(16),
+        session_id=session_id,
         verdict=Verdict.SEAL,
+        intent=intent,
+        math=math_dials or MathDials(),
+        physics=PhysicsState(),
+        code=CodeState(session_id=session_id),
         governance=gov,
         auth_verified=(authority in {AuthorityLevel.SOVEREIGN, AuthorityLevel.SYSTEM}),
         tri_witness={"human": 1.0, "ai": 1.0, "earth": 1.0},

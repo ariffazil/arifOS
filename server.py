@@ -63,18 +63,34 @@ logger = logging.getLogger(__name__)
 def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     """
     Wrap a tool handler to route through the Fail-Closed Dispatch Gate.
-    This ensures F12/F13 filter enforcement for ALL entry points.
+    Preserves exact signature via __signature__ to satisfy FastMCP
+    introspection without resorting to runtime exec().
     """
     from arifosmcp.runtime.tools_hardened_dispatch import dispatch_with_fail_closed
-    
-    async def _hardened_handler(**kwargs: Any) -> Any:
-        # Route to the single Source of Truth for hardened dispatch
-        return await dispatch_with_fail_closed(tool_name, kwargs)
-    
-    _hardened_handler.__name__ = original_handler.__name__
-    _hardened_handler.__doc__ = original_handler.__doc__
-    _hardened_handler.__annotations__ = getattr(original_handler, "__annotations__", {})
-    return _hardened_handler
+    import inspect
+    import functools
+    import typing
+
+    try:
+        sig = inspect.signature(original_handler)
+    except Exception:
+        async def fallback_handler(**kwargs):
+            return await dispatch_with_fail_closed(tool_name, kwargs)
+        return fallback_handler
+
+    @functools.wraps(original_handler)
+    async def wrapper(*args, **kwargs):
+        bound = sig.bind(*args, **kwargs)
+        bound.apply_defaults()
+        return await dispatch_with_fail_closed(tool_name, dict(bound.arguments))
+
+    wrapper.__signature__ = sig
+    try:
+        wrapper.__annotations__ = typing.get_type_hints(original_handler)
+    except Exception:
+        wrapper.__annotations__ = getattr(original_handler, "__annotations__", {})
+
+    return wrapper
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GLOBAL PANIC MIDDLEWARE
@@ -133,9 +149,9 @@ DITEMPA, BUKAN DIBERI — Forged, Not Given
 """,
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# REGISTER CANONICAL TOOLS
-# ═══════════════════════════════════════════════════════════════════════════════
+v2_tools_registered = []
+v2_prompts_registered = []
+v2_resources_registered = []
 
 try:
     from arifosmcp.runtime.tools import register_v2_tools, CANONICAL_TOOL_HANDLERS
@@ -158,32 +174,27 @@ try:
     v2_tools_registered = register_v2_tools(mcp)
     v2_prompts_registered = register_v2_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
+
+    # Register REST routes AFTER tool registration so tool_registry is populated
     v2_routes_registered = register_rest_routes(mcp, HARDENED_HANDLERS)
 
     # Register MCP Apps (with F4 Integrity)
-    from arifosmcp.apps.metabolic_monitor import _register as _reg_mon
-    _reg_mon(mcp)
-    
-    from arifosmcp.apps.judge_app import _register as _reg_judge
-    _reg_judge(mcp)
-    
-    from arifosmcp.apps.vault_app import _register as _reg_vault
-    _reg_vault(mcp)
-    
-    from arifosmcp.apps.init_app import _register as _reg_init
-    _reg_init(mcp)
-    
-    from arifosmcp.apps.forge_app import _register as _reg_forge
-    _reg_forge(mcp)
+    from arifosmcp.apps import register_all_apps
+    registered_apps = register_all_apps(mcp)
+    logger.info(f"Successfully registered {len(registered_apps)} constitutional apps")
 
     # Approval Provider (F13 gate)
-    from fastmcp.apps.approval import Approval
-    mcp.add_provider(Approval(
-        name="Constitutional Gate",
-        title="888_HOLD",
-        approve_text="Authorize",
-        reject_text="Reject",
-    ))
+    try:
+        from fastmcp.apps.approval import Approval
+        mcp.add_provider(Approval(
+            name="Constitutional Gate",
+            title="888_HOLD",
+            approve_text="Authorize",
+            reject_text="Reject",
+        ))
+        logger.info("F13 Approval provider active")
+    except (ImportError, ModuleNotFoundError):
+        logger.warning("F13 Approval provider unavailable (FastMCP version mismatch)")
 
     logger.info(f"ARIFOS MCP SEALED: {len(v2_tools_registered)} tools registered with Fail-Closed gates.")
 
@@ -220,6 +231,11 @@ def _register_legacy_aliases():
         except Exception as e:
             logger.warning(f"Failed to register legacy alias {legacy_name}: {e}")
 
+@mcp.tool(name="echo")
+async def echo(message: str) -> str:
+    """Diagnostic tool that echoes the input message."""
+    return f"ECHO: {message}"
+
 _register_legacy_aliases()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -254,8 +270,10 @@ app.add_middleware(GlobalPanicMiddleware)
 app.add_middleware(CSPMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
-app.add_route("/health", horizon_health, methods=["GET"])
-app.add_route("/metadata", horizon_metadata, methods=["GET"])
+# Ensure REST routes from arifosmcp are actually bound to this app instance
+# Using /api prefix to avoid FastMCP's internal /tools reservation
+from arifosmcp.runtime.rest_routes import register_rest_routes
+register_rest_routes(app, HARDENED_HANDLERS, prefix="/api")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXPORT
@@ -271,7 +289,22 @@ if __name__ == "__main__":
         print("=" * 60)
         print("🔥 ARIFOS MCP v2026.4.14 — SEALED")
         print("=" * 60)
-        config = uvicorn.Config(app, host="0.0.0.0", port=8080)
+        
+        # Resolve host and port from CLI or ENV
+        host = "0.0.0.0"
+        port = int(os.getenv("PORT", 8080))
+        
+        if "--host" in sys.argv:
+            idx = sys.argv.index("--host")
+            if idx + 1 < len(sys.argv):
+                host = sys.argv[idx + 1]
+        
+        if "--port" in sys.argv:
+            idx = sys.argv.index("--port")
+            if idx + 1 < len(sys.argv):
+                port = int(sys.argv[idx + 1])
+
+        config = uvicorn.Config(app, host=host, port=port)
         server = uvicorn.Server(config)
         await server.serve()
 

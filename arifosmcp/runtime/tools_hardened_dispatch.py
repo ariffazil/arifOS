@@ -250,8 +250,12 @@ async def dispatch_with_fail_closed(tool_name: str, kwargs: dict[str, Any]) -> d
     # EXECUTION
     try:
         result = await handler(**kwargs)
-        if hasattr(result, "model_dump"): return result.model_dump()
-        if hasattr(result, "__dict__"): return result.__dict__
+        if hasattr(result, "to_dict"):
+            return result.to_dict(compact=True)
+        if hasattr(result, "model_dump"):
+            return result.model_dump(mode="json")
+        if hasattr(result, "__dict__"):
+            return result.__dict__
         return result or {"ok": True}
     except Exception as e:
         logger.error(f"FAIL_CLOSED: Handler exception in {tool_name}: {e}")

@@ -1115,20 +1115,44 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
     }
 
 
-def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
+def register_rest_routes(
+    mcp: Any,
+    tool_registry: dict[str, Callable],
+    prefix: str = "",
+) -> None:
     """Register REST endpoints as custom routes on the FastMCP instance.
 
     Args:
-        mcp: The FastMCP server instance.
+        mcp: The FastMCP server instance or Starlette App.
         tool_registry: Mapping of canonical tool names to async callables.
+        prefix: Optional URL prefix for all routes (e.g., "/api").
     """
-    # FastMCP 2.x/3.x compatibility: use custom_route if available, else route
-    if HAS_CUSTOM_ROUTE:
-        route = mcp.custom_route
-    elif HAS_ROUTE:
-        route = mcp.route
-    else:
-        raise RuntimeError("FastMCP instance has no custom_route or route method")
+    # Force prefix to start with / and not end with / if provided
+    active_prefix = prefix.rstrip("/")
+    if active_prefix and not active_prefix.startswith("/"):
+        active_prefix = f"/{active_prefix}"
+
+    # Flexible route registration for FastMCP or Starlette app
+    def route(path: str, methods: list[str]):
+        # Apply prefix to path
+        full_path = active_prefix + path
+        if full_path == "":
+            full_path = "/"
+        
+        def decorator(handler: Callable):
+            # Starlette app.add_route
+            if hasattr(mcp, "add_route"):
+                mcp.add_route(full_path, handler, methods=methods or ["GET"])
+            # FastMCP mcp.custom_route
+            elif hasattr(mcp, "custom_route"):
+                mcp.custom_route(full_path, methods=methods)(handler)
+            # FastMCP mcp.route (deprecated fallback)
+            elif hasattr(mcp, "route"):
+                mcp.route(full_path, methods=methods)(handler)
+            else:
+                logger.warning(f"Failed to register route {full_path}: {mcp} has no route method")
+            return handler
+        return decorator
 
     @route("/", methods=["GET"])
     async def root(request: Request) -> Response:
@@ -1293,6 +1317,11 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     async def openapi_json(request: Request) -> Response:
         schema = _openapi_schema(_public_base_url(request))
         return JSONResponse(schema)
+
+    @route("/tools/{tool_name:path}/call", methods=["POST"])
+    async def call_tool_rest_v2(request: Request) -> Response:
+        """Alias for /tools/{tool_name} for MCP-over-REST protocol compliance."""
+        return await call_tool_rest(request)
 
     @route("/tools/{tool_name:path}", methods=["POST"])
     async def call_tool_rest(request: Request) -> Response:
@@ -2126,7 +2155,7 @@ endpoint: {base}/mcp
 - arifos://doctrine: Immutable constitutional substrate
 - arifos://vitals: Real-time constitutional health
 - arifos://schema: Complete structural blueprint
-- arifos://session/{session_id}: Ephemeral per-session state
+- arifos://session/{{session_id}}: Ephemeral per-session state
 - arifos://forge: Execution bridge and deployment topology
 
 ## Endpoints

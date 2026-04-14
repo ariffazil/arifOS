@@ -36,7 +36,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from fastmcp import FastMCP, FastMCPApp
+from fastmcp import FastMCP
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -93,7 +93,7 @@ def _ts_human(ts: Any) -> str:
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-vault_app = FastMCPApp("VaultApp")
+vault_app = FastMCP("VaultApp")
 
 
 @vault_app.tool()

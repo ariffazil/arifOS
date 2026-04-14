@@ -522,7 +522,7 @@ class BaseOrganOutput(BaseModel):
 class Intent(BaseModel):
     """G in APEX-G: Human goal and task details."""
 
-    query: str = Field(..., min_length=1)
+    query: str = Field(default="unknown", min_length=1)
     task_type: str = "unknown"
     domain: str = "general"
     desired_output: str = "text"
@@ -553,7 +553,7 @@ class PhysicsState(BaseModel):
 class CodeState(BaseModel):
     """C in APEX-G: Runtime pipeline stage."""
 
-    session_id: str
+    session_id: str = "unknown"
     stage: Literal["000", "111", "222", "333", "444", "555", "666", "777", "888", "889", "999"] = "000"
     lane: Literal["PHATIC", "SOFT", "HARD", "REFUSE", "UNKNOWN"] = "UNKNOWN"
     runtime_mode: Literal["init", "draft", "review", "judge", "seal"] = "init"
@@ -787,11 +787,11 @@ class InitOutput(BaseOrganOutput):
     """Output from arifosmcp.core_init (APEX-G Session Ignition)."""
 
     banner: str = "DITEMPA, BUKAN DIBERI 🔨"
-    intent: Intent
-    math: MathDials
-    physics: PhysicsState
-    code: CodeState
-    governance: GovernanceMetadata
+    intent: Intent = Field(default_factory=Intent)
+    math: MathDials = Field(default_factory=MathDials)
+    physics: PhysicsState = Field(default_factory=PhysicsState)
+    code: CodeState = Field(default_factory=CodeState)
+    governance: GovernanceMetadata = Field(default_factory=GovernanceMetadata)
     floors: dict[str, str] = Field(default_factory=dict)
     prev_vault_hash: str = "0x" + "0" * 64
 

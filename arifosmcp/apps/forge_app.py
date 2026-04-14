@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastmcp import FastMCP, FastMCPApp
+from fastmcp import FastMCP
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -57,7 +57,7 @@ from prefab_ui.rx import RESULT, STATE
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-forge_app = FastMCPApp("ForgeApp")
+forge_app = FastMCP("ForgeApp")
 
 
 @forge_app.tool()

@@ -106,6 +106,9 @@ class KernelCore:
         # Pattern selection
         selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
 
+        adaptive_depth = self._compute_adaptive_depth(
+            effective_query, risk_tier, payload
+        )
         context = {
             "payload": payload,
             "query": effective_query,
@@ -117,6 +120,7 @@ class KernelCore:
             "intent": intent,
             "auth_context": auth_context or {},
             "selected_pattern": selected_pattern,
+            "adaptive_depth": adaptive_depth,
             "kernel_primitives": {
                 "planner": self.planner,
                 "tool_registry": self.tool_registry,
@@ -125,7 +129,8 @@ class KernelCore:
         }
 
         logger.info(
-            f"KERNEL INPUT: query='{effective_query[:50]}...' actor={effective_actor} pattern={selected_pattern}"
+            f"KERNEL INPUT: query='{effective_query[:50]}...' actor={effective_actor} "
+            f"pattern={selected_pattern} depth={adaptive_depth}"
         )
 
         return context
@@ -133,6 +138,22 @@ class KernelCore:
     # ═══════════════════════════════════════════════════════════════════════════
     # ORCHESTRATE Stage — Classification, Routing, Governance
     # ═══════════════════════════════════════════════════════════════════════════
+
+    def _compute_adaptive_depth(
+        self, query: str, risk_tier: str, payload: dict[str, Any]
+    ) -> str:
+        """Compute pipeline depth: fast | standard | deep."""
+        q = query.lower()
+        destructive_signals = {
+            "delete", "remove", "forge", "execute", "write",
+            "modify", "deploy", "seal", "wipe", "drop",
+        }
+        has_destructive = any(s in q for s in destructive_signals)
+        if risk_tier == "low" and not has_destructive and not payload.get("allow_execution"):
+            return "fast"
+        if risk_tier in ("high", "critical") or has_destructive or payload.get("allow_execution"):
+            return "deep"
+        return "standard"
 
     async def orchestrate_stage(self, context: dict[str, Any]) -> dict[str, Any]:
         """
@@ -146,6 +167,7 @@ class KernelCore:
         query = context.get("query", "")
         actor_id = context.get("actor_id", "anonymous")
         session_id = context.get("session_id")
+        adaptive_depth = context.get("adaptive_depth", "standard")
 
         # Classify query
         routing_result = await classify_and_route(
@@ -157,6 +179,24 @@ class KernelCore:
 
         # Extract tool to invoke
         tool_name = routing_result.get("tool_name", "arifos_mind")
+
+        # Adaptive stage skipping: fast path bypasses heart/judge for read-only low-risk
+        if adaptive_depth == "fast" and tool_name in ("arifos_heart", "arifos_judge"):
+            logger.info(
+                f"KERNEL ORCHESTRATE: adaptive skip {tool_name} due to fast-path"
+            )
+            return {
+                "ok": True,
+                "tool_name": tool_name,
+                "tool_result": {
+                    "ok": True,
+                    "skipped": True,
+                    "reason": "fast_path",
+                    "verdict": "SEAL",
+                },
+                "routing_result": routing_result,
+                "context": context,
+            }
 
         # Get handler
         handler = get_tool_handler(tool_name)
@@ -259,6 +299,18 @@ class KernelCore:
                 payload=tool_result,
             )
 
+        # ── OutputEnvelope limits: cap payload lists and truncate verbose strings ──
+        if isinstance(envelope.payload, dict):
+            pl = envelope.payload
+            for key in ("facts", "uncertainties", "options"):
+                if key in pl and isinstance(pl[key], list):
+                    pl[key] = pl[key][:3]
+            envelope.payload = pl
+        if envelope.detail and len(envelope.detail) > 500:
+            envelope.detail = envelope.detail[:497] + "..."
+        if envelope.hint and len(envelope.hint) > 300:
+            envelope.hint = envelope.hint[:297] + "..."
+
         # ── Philosophy Injection (Horizon Atlas) ──
         try:
             from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
@@ -299,7 +351,7 @@ class KernelCore:
         logger.info(f"KERNEL OUTPUT: sealed={getattr(sealed, 'ok', False)}")
 
         if isinstance(sealed, RuntimeEnvelope):
-            return sealed.__dict__
+            return sealed.to_dict(compact=True)
         return sealed
 
     # ═══════════════════════════════════════════════════════════════════════════

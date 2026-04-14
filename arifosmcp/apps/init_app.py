@@ -31,7 +31,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from fastmcp import FastMCP, FastMCPApp
+from fastmcp import FastMCP
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -59,7 +59,7 @@ from prefab_ui.rx import RESULT, STATE
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-init_app = FastMCPApp("InitApp")
+init_app = FastMCP("InitApp")
 
 
 @init_app.tool()

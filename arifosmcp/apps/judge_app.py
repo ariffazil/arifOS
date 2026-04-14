@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastmcp import FastMCP, FastMCPApp
+from fastmcp import FastMCP
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -100,7 +100,7 @@ _PHILOSOPHY: dict[str, str] = {
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-judge_app = FastMCPApp("JudgeApp")
+judge_app = FastMCP("JudgeApp")
 
 
 @judge_app.tool()

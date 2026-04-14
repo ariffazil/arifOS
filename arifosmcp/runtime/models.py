@@ -903,10 +903,6 @@ class RuntimeEnvelope(BaseModel):
             "Psychological inference is disallowed by policy."
         ),
     )
-    philosophy: dict[str, Any] | None = Field(
-        default=None,
-        description="Optional governed quote layer selected by APEX-G.",
-    )
     debug: dict[str, Any] | None = None
     contract_version: str | None = Field(
         default=None,
@@ -936,18 +932,177 @@ class RuntimeEnvelope(BaseModel):
         default=None,
         description="Tagged diagnostics for hard guardrails, advisory signals, and symbolic metrics.",
     )
+    delta_mode: bool = Field(
+        default=False,
+        description="When True, to_dict() emits compact token-efficient serialization.",
+    )
+
     model_config = ConfigDict(extra="allow")
 
     def __getitem__(self, item: str) -> Any:
         return getattr(self, item)
 
-    def to_dict(self) -> dict:
+    def to_dict(
+        self,
+        compact: bool = False,
+        delta_against: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if compact or self.delta_mode:
+            return self.to_operational_dict(delta_against=delta_against)
         res = self.model_dump(mode="json")
         if self.verdict_detail:
             res["verdict"] = self.verdict_detail.code.value
         elif isinstance(self.verdict, Verdict):
             res["verdict"] = self.verdict.value
         return res
+
+    def to_operational_dict(
+        self, delta_against: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Compact, token-efficient serialization for tool-to-tool transmission."""
+        data = self.model_dump(mode="json", exclude_none=True)
+
+        def _prune(obj: Any) -> Any:
+            if isinstance(obj, dict):
+                pruned = {k: _prune(v) for k, v in obj.items() if v is not None}
+                cleaned: dict[str, Any] = {}
+                for k, v in pruned.items():
+                    if isinstance(v, list) and not v:
+                        continue
+                    if isinstance(v, dict) and not v:
+                        continue
+                    cleaned[k] = v
+                return cleaned
+            if isinstance(obj, list):
+                return [_prune(item) for item in obj]
+            return obj
+
+        data = _prune(data)
+
+        key_map = {
+            "ok": "ok",
+            "tool": "t",
+            "version": "v",
+            "execution_status": "es",
+            "governance_status": "gs",
+            "continuation_status": "cs",
+            "canonical_tool_name": "ct",
+            "risk_class": "rc",
+            "requires_auth": "ra",
+            "requires_human": "rh",
+            "recoverable": "r",
+            "next_action": "na",
+            "sabar_step": "ss",
+            "state_transition": "st",
+            "code": "c",
+            "detail": "d",
+            "hint": "h",
+            "retryable": "ry",
+            "rollback_available": "rb",
+            "degraded_reason": "dr",
+            "timestamp": "ts",
+            "trace_id": "tid",
+            "duration_ms": "dm",
+            "platform_context": "pc",
+            "mode": "m",
+            "intent": "i",
+            "anchor_state": "as",
+            "anchor_scope": "asc",
+            "policy": "pol",
+            "system": "sys",
+            "next_allowed_modes": "nam",
+            "caller_state": "cs2",
+            "allowed_next_tools": "ant",
+            "blocked_tools": "bt",
+            "diagnostics_only": "do",
+            "session_id": "sid",
+            "stage": "s",
+            "verdict": "vd",
+            "verdict_detail": "vdd",
+            "verdict_scope": "vs",
+            "machine_status": "ms",
+            "machine_issue": "mi",
+            "intelligence_stage": "ist",
+            "intelligence_state": "is",
+            "metrics": "mt",
+            "trace": "tr",
+            "authority": "a",
+            "philosophy": "ph",
+            "payload": "p",
+            "errors": "e",
+            "meta": "me",
+            "auth_context": "ac",
+            "caller_context": "cc",
+            "user_model": "um",
+            "debug": "dbg",
+            "contract_version": "cv",
+            "operator_summary": "os",
+            "state": "sta",
+            "state_origin": "so",
+            "transitions": "txn",
+            "handoff": "ho",
+            "diagnostics": "diag",
+        }
+
+        compact = {key_map.get(k, k): v for k, v in data.items()}
+
+        # Compress metrics basis to GovFlags string, remove verbose basis
+        if "mt" in compact and isinstance(compact["mt"], dict):
+            mt = compact["mt"]
+            tele = mt.get("telemetry", {})
+            if tele:
+                gf = (
+                    f"S{tele.get('ds', 0):.1f}:"
+                    f"P{tele.get('peace2', 1.0):.1f}:"
+                    f"K{tele.get('kappa_r') or 0:.1f}:"
+                    f"G{tele.get('G_star', 0):.1f}:"
+                    f"H{tele.get('shadow', 0):.1f}:"
+                    f"C{tele.get('confidence', 0):.1f}:"
+                    f"V.{tele.get('verdict', 'UNK')}"
+                )
+                mt["gf"] = gf
+            mt.pop("basis", None)
+            if not mt.get("internal"):
+                mt.pop("internal", None)
+            tele_map = {
+                "ds": "s",
+                "peace2": "p",
+                "kappa_r": "k",
+                "G_star": "g",
+                "echo_debt": "ed",
+                "shadow": "sh",
+                "confidence": "c",
+                "psi_le": "psi",
+                "verdict": "v",
+                "token_usage": "tu",
+                "requested_max_tokens": "rmt",
+                "actual_output_tokens": "aot",
+                "input_tokens": "it",
+                "truncated": "tr",
+                "overflow_policy": "op",
+                "budget_tier": "bt",
+                "escalated_from_tier": "eft",
+                "phase_token_usage": "ptu",
+            }
+            if "telemetry" in mt:
+                mt["tele"] = {tele_map.get(k, k): v for k, v in mt["telemetry"].items()}
+                mt.pop("telemetry", None)
+            if "witness" in mt:
+                mt["w"] = mt.pop("witness")
+
+        # Delta mode: only return changed fields vs baseline
+        if delta_against:
+            delta: dict[str, Any] = {}
+            for k, v in compact.items():
+                baseline = delta_against.get(k)
+                if v != baseline:
+                    delta[k] = v
+            for critical in ("t", "s", "vd", "sid"):
+                if critical in compact and critical not in delta:
+                    delta[critical] = compact[critical]
+            return delta
+
+        return compact
 
 
 # Rebuild models after all forward references are resolved

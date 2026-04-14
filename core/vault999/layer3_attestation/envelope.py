@@ -127,10 +127,30 @@ class ExecutionEnvelope:
             return False
     
     def _load_authority_key(self, authority: str) -> nacl.signing.VerifyKey:
-        """Load public key for authority from registry."""
-        # In production: query KMS or key registry
-        # For now: mock
-        key_hex = "mock_key"
+        """Load public key for authority from environment or registry file."""
+        import os
+
+        env_var = f"ARIFOS_{authority.upper()}_PUBLIC_KEY"
+        key_hex = os.getenv(env_var)
+        if not key_hex:
+            registry_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "..",
+                "..",
+                "..",
+                "..",
+                ".arifos",
+                "keys",
+                f"{authority.lower()}.pub",
+            )
+            if os.path.exists(registry_path):
+                with open(registry_path, "r") as f:
+                    key_hex = f.read().strip()
+        if not key_hex or len(key_hex) != 64:
+            raise RuntimeError(
+                f"No valid public key found for authority {authority}. "
+                f"Set {env_var} or create registry key file."
+            )
         return nacl.signing.VerifyKey(bytes.fromhex(key_hex))
     
     def to_dict(self) -> dict[str, Any]:
@@ -295,10 +315,35 @@ class ExecutionAttestor:
             }
     
     async def _kms_sign(self, payload: bytes, authority: str) -> str:
-        """Request signature from KMS."""
-        # Integration with AWS KMS, GCP Cloud KMS, or HashiCorp Vault
-        # This ensures private keys never leave secure enclave
-        return "mock_kms_signature"
+        """Request signature from KMS or fall back to HMAC with explicit dev warning."""
+        import os
+        import hmac
+        import hashlib
+
+        if self.kms_endpoint:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.kms_endpoint,
+                    json={"payload": payload.hex(), "authority": authority},
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status != 200:
+                        raise RuntimeError(f"KMS signing failed: {resp.status}")
+                    data = await resp.json()
+                    return data["signature"]
+
+        secret = os.getenv("ARIFOS_KMS_SECRET")
+        if not secret:
+            raise RuntimeError(
+                "No KMS endpoint configured and ARIFOS_KMS_SECRET not set. "
+                "Cannot sign execution envelope."
+            )
+        logger.warning(
+            "_kms_sign using HMAC dev fallback — "
+            "private key is derived from environment, not a secure enclave"
+        )
+        return hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
     
     def _verify_authority_chain(self, authority: str) -> bool:
         """Verify authority is valid or has valid delegation."""

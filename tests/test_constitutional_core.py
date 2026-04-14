@@ -451,12 +451,10 @@ class TestGovernanceKernel:
     def test_kernel_state_and_property_share_genius_measurement(self):
         from core.governance_kernel import GovernanceKernel
 
-        kernel = GovernanceKernel(
-            session_id="g-sync",
-            reversibility_score=0.82,
-            safety_omega=0.03,
-            current_energy=0.76,
-        )
+        kernel = GovernanceKernel(session_id="g-sync")
+        # Seed events so floor metrics are non-trivial
+        kernel.record_event("success", {"content": "ok", "reversible": True})
+        kernel.record_event("success", {"content": "ok2", "reversible": True})
 
         assert kernel.get_current_state()["genius"] == kernel.genius_score
 

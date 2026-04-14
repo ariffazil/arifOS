@@ -19,13 +19,18 @@ class ToolSpec:
     name: str  # arifos_{verb} format
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
-    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"]
-    description: str
-    trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"]
-    floors: tuple[str, ...]  # F1-F13 that apply
-    input_schema: dict[str, Any]
+    role: str = "" # Role-based purpose (alias for purpose)
+    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = "MACHINE"
+    description: str = ""
+    trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"] = "ALL"
+    floors: tuple[str, ...] = field(default_factory=tuple)  # F1-F13 that apply
+    input_schema: dict[str, Any] = field(default_factory=dict)
     visibility: Literal["public", "internal"] = "internal"
     default_tier: str = "medium"
+    default_budget_tier: str = "medium" # Alias
+    min_budget_tier: str = "small"
+    max_budget_tier: str = "large"
+    overflow_policy: str = "truncate"
     readonly: bool = True
     outputs: dict[str, Any] = field(default_factory=dict)
     # MCP v2 tool annotations
@@ -33,6 +38,16 @@ class ToolSpec:
     destructive_hint: bool = False
     open_world_hint: bool = True
     idempotent_hint: bool = False
+
+@dataclass(frozen=True)
+class ResourceSpec:
+    """Canonical resource specification."""
+    uri: str
+    name: str
+    description: str
+    mime_type: str = "application/json"
+    is_template: bool = False
+    visibility: Literal["public", "internal"] = "internal"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -578,6 +593,44 @@ LEGACY_NAME_MAP: dict[str, str] = {
     "vps_monitor": "arifos_health",
 }
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# RESOURCES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+RESOURCES: tuple[ResourceSpec, ...] = (
+    ResourceSpec(
+        uri="arifos://doctrine",
+        name="Constitutional Doctrine",
+        description="The eternal law of arifOS (Ψ).",
+        visibility="public"
+    ),
+    ResourceSpec(
+        uri="arifos://vitals",
+        name="System Vitals",
+        description="Real-time metabolic telemetry (Ω).",
+        visibility="public"
+    ),
+    ResourceSpec(
+        uri="arifos://schema",
+        name="Complete Blueprint",
+        description="Technical schema and ABI definitions (Δ).",
+        visibility="public"
+    ),
+    ResourceSpec(
+        uri="arifos://session/{id}",
+        name="Ephemeral Instance",
+        description="Active session state and governance context.",
+        is_template=True,
+        visibility="public"
+    ),
+    ResourceSpec(
+        uri="arifos://forge",
+        name="Execution Bridge",
+        description="Signed execution manifests and receipts.",
+        visibility="public"
+    ),
+)
+
 def normalize_tool_name(name: str) -> str:
     """Normalize tool name (dots to underscores) for arifOS v2."""
     if name.startswith("arifos."):
@@ -599,4 +652,16 @@ def tool_names() -> tuple[str, ...]:
 V2_TOOLS = TOOLS
 V2_TOOL_NAMES = TOOL_NAMES
 PUBLIC_TOOL_SPECS = [t for t in TOOLS if t.visibility == "public"]
-__all__ = ["ToolSpec", "TOOLS", "TOOL_NAMES", "get_tool_spec", "tool_names"]
+PUBLIC_RESOURCE_SPECS = [r for r in RESOURCES if r.visibility == "public"]
+
+__all__ = [
+    "ToolSpec", 
+    "ResourceSpec",
+    "TOOLS", 
+    "RESOURCES",
+    "TOOL_NAMES", 
+    "get_tool_spec", 
+    "tool_names",
+    "PUBLIC_TOOL_SPECS",
+    "PUBLIC_RESOURCE_SPECS"
+]

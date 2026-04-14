@@ -406,7 +406,7 @@ class ConstitutionalAgent(ABC):
             "merkle_leaf": receipt.merkle_leaf,
             "merkle_root_before": receipt.merkle_root_before,
             "merkle_root_after": receipt.merkle_root_after,
-            "zkpc_proof": receipt.zkpc_proof,
+            "auth_proof": receipt.auth_proof,
             "tri_witness_score": receipt.tri_witness_score,
             "timestamp": receipt.timestamp,
             "ttl_seconds": receipt.ttl_seconds,
