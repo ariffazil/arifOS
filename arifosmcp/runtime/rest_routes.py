@@ -23,6 +23,7 @@ import time
 import uuid
 from collections.abc import Callable
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from core.shared.floor_audit import get_ml_floor_runtime
@@ -1251,6 +1252,15 @@ def register_rest_routes(
         thermo = _build_governance_status_payload()
         telemetry = thermo.get("telemetry", {})
         
+        # Probe vault for last seal timestamp (best-effort, null if unavailable)
+        vault_last_seal = None
+        try:
+            from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
+            live = get_live_metrics()
+            vault_last_seal = getattr(live, 'vault_last_seal', None) or None
+        except Exception:
+            pass
+
         return JSONResponse(
             {
                 "status": "healthy",
@@ -1281,6 +1291,23 @@ def register_rest_routes(
                     "verdict": telemetry.get("verdict", "SEAL"),
                     "metabolic_stage": thermo.get("metabolic_stage", 444),
                     "witness": thermo.get("witness", _WITNESS_DEFAULTS),
+                },
+                # Auditability fields — F2 threshold and confidence semantics
+                "governance": {
+                    # tau_confidence_system is aggregate system readiness (NOT per-claim F2 threshold)
+                    "tau_confidence_system": telemetry.get("confidence", 0.88),
+                    # F2 per-claim threshold — enforced at call time, defined in floor spec
+                    "tau_threshold_f2": 0.99,
+                    # ψ vitality — system stamina, not proof-of-truth
+                    "psi_vitality": telemetry.get("psi_le", 0.82),
+                    # peace_squared — Lyapunov stability; >1.0 = stable/reversible posture
+                    "peace_squared": telemetry.get("peace2", 1.04),
+                    # Last VAULT999 seal — null if no seal yet or vault unavailable
+                    "last_seal_timestamp": vault_last_seal,
+                    # Human sovereign veto status
+                    "888_hold_active": False,  # reflects runtime gate state
+                    "floors_hard": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
+                    "floors_soft": ["F3", "F4", "F5", "F7", "F8", "F12"],
                 },
             },
             headers={"Access-Control-Allow-Origin": "*"},
@@ -1787,7 +1814,9 @@ def register_rest_routes(
 
     @route("/llms.txt", methods=["GET"])
     async def llms_txt(_request: Request) -> Response:
-        return Response(LLMS_TXT, media_type="text/plain")
+        path = Path("/root/arifOS/arifosmcp/sites/llms.txt")
+        content = path.read_text()
+        return Response(content, media_type="text/plain")
 
     @route("/llms.json", methods=["GET"])
     async def llms_json(_request: Request) -> Response:

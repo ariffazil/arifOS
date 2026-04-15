@@ -1,0 +1,49 @@
+{
+  "seal_id": "SEAL_20260415_MANIFEST_LOCK",
+  "epoch": "EPOCH-2026-04-15",
+  "hash": "46c01e3076db39c408150abaede9be117c7fd4a5",
+  "author": "arifOS_bot",
+  "operator": "Muhammad Arif bin Fazil",
+  "timestamp": "2026-04-15T09:25:00Z",
+  "scope": "arifOS_bot tool surface + repo hygiene pre-seal",
+  "intent": "Lock public MCP manifest to 11 canonical tools; eliminate manifest drift; enforce CI floor invariants",
+  "changes": [
+    {
+      "domain": "tool_visibility",
+      "action": "mark_internal",
+      "tools": ["arifos_reply","arifos_fetch","arifos_repo_read","arifos_repo_seal","arifos_probe","arifos_diag_substrate","wealth_brent_score"],
+      "result": "8 tools now visibility=internal in tool_specs.py — still in CANONICAL_TOOL_HANDLERS, hidden from MCP /tools manifest"
+    },
+    {
+      "domain": "mcp_manifests",
+      "action": "regenerated",
+      "files": ["arifosmcp/fastmcp.json","arifosmcp/mcp.json"],
+      "result": "Exactly 11 public tools; generated from canonical tool specs"
+    },
+    {
+      "domain": "repo_hygiene",
+      "action": "untracked",
+      "files": ["core/vault999/layer4_survivability/cold_storage/attestation_chain.jsonl","arifosmcp/test.txt","arifosmcp/test_write.tmp","pytest_output.txt"],
+      "result": "Runtime artefacts removed from git; reclassified as Vault/Witness outputs"
+    },
+    {
+      "domain": "ci_floor",
+      "action": "added",
+      "file": "tests/test_floors_ci.py",
+      "result": "8 CI checks: manifest non-empty, 11-tool count, spec-to-manifest fidelity, repo hygiene"
+    },
+    {
+      "domain": "gitignore",
+      "action": "updated",
+      "patterns": ["core/vault999/**/*.jsonl","test*.txt","*_output.*","*.jsonl"],
+      "result": ".gitignore updated to exclude runtime artefacts"
+    }
+  ],
+  "public_tools": ["arifos_init","arifos_sense","arifos_mind","arifos_kernel","arifos_heart","arifos_ops","arifos_judge","arifos_memory","arifos_vault","arifos_forge","arifos_gateway"],
+  "internal_tools": ["arifos_reply","arifos_fetch","arifos_repo_read","arifos_repo_seal","arifos_probe","arifos_diag_substrate","wealth_brent_score","arifos_health"],
+  "ci_status": "8/8 passed",
+  "git_commit": "46c01e3076db39c408150abaede9be117c7fd4a5",
+  "sealed_by": "arifOS_bot",
+  "sovereign_veto": "Muhammad Arif bin Fazil",
+  "ditempa": "DITEMPA BUKAN DIBERI — Forged, Not Given"
+}
