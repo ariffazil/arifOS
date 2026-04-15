@@ -1,0 +1,61 @@
+{
+  "schema": "mcp",
+  "version": "2026.4.13-UNIFIED",
+  "protocolVersion": "2025-03-26",
+  "name": "arifOS MCP",
+  "description": "Constitutional MCP gateway \u2014 arifOS + GEOX + WEALTH trinity. 11 public canonical tools, 13 floors, human veto.",
+  "tools": [
+    {
+      "name": "arifos_init",
+      "description": "Initialize constitutional session with identity binding and telemetry seed. Modes: init/probe/state/status (safe read mo"
+    },
+    {
+      "name": "arifos_sense",
+      "description": "Ground query in physical reality via the 8-stage constitutional sensing protocol: PARSE \u2192 CLASSIFY \u2192 DECIDE \u2192 PLAN \u2192 RET"
+    },
+    {
+      "name": "arifos_mind",
+      "description": "Multi-source synthesis and structured first-principles reasoning with uncertainty bands."
+    },
+    {
+      "name": "arifos_kernel",
+      "description": "Route request to correct metabolic lane or tool family based on risk and task type."
+    },
+    {
+      "name": "arifos_heart",
+      "description": "Red-team proposal for ethical risks. Simulate consequences, evaluate against F5, F6, F9."
+    },
+    {
+      "name": "arifos_ops",
+      "description": "Calculate operation costs, thermodynamics, capacity, and timing with entropy analysis."
+    },
+    {
+      "name": "arifos_judge",
+      "description": "Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD."
+    },
+    {
+      "name": "arifos_memory",
+      "description": "Retrieve governed memory and engineering context from vector store."
+    },
+    {
+      "name": "arifos_vault",
+      "description": "Append immutable verdict record to Merkle-hashed ledger."
+    },
+    {
+      "name": "arifos_forge",
+      "description": "Issue signed execution manifest to AF-FORGE substrate. Requires judge SEAL. Preserves separation of powers."
+    },
+    {
+      "name": "arifos_gateway",
+      "description": ""
+    }
+  ],
+  "public_tool_count": 11,
+  "constitutional_floors": true,
+  "floors_count": 13,
+  "organs": [
+    "arifOS",
+    "GEOX",
+    "WEALTH"
+  ]
+}

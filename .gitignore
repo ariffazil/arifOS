@@ -111,3 +111,22 @@ eigent/
 secrets/*.secret
 secrets/
 .coverage
+
+
+# Test artefacts — runtime outputs, not source
+test.txt
+test_write.tmp
+pytest_output.txt
+eval_results.json
+eval_results.txt
+*.tmp
+*_output.*
+
+# Vault / Witness runtime outputs (NOT source)
+core/vault999/**/*.jsonl
+*.jsonl
+
+# Test / eval runtime outputs
+pytest_output.txt
+eval_results.*
+*_output.*

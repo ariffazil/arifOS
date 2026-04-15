@@ -392,6 +392,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 12. arifos_reply — AGI Reply Protocol
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
+        visibility="internal",
         name="arifos_reply",
         stage="000-999",
         purpose="Arifos reply — Agi Reply Protocol v3",
@@ -439,6 +440,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 13. arifos_fetch — Guarded Fetch
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
+        visibility="internal",
         name="arifos_fetch",
         stage="111",
         purpose="Arifos fetch — URL content retrieval via mcp_fetch",
@@ -463,6 +465,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 14. arifos_repo_read — Git Status
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
+        visibility="internal",
         name="arifos_repo_read",
         stage="911",
         purpose="Arifos repo read — Git status, diffs, and log",
@@ -479,6 +482,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 15. arifos_repo_seal — Git Commit
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
+        visibility="internal",
         name="arifos_repo_seal",
         stage="999",
         purpose="Arifos repo seal — Mutate governed repo state",
@@ -503,6 +507,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 16. arifos_probe — Health Probe
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
+        visibility="internal",
         name="arifos_probe",
         stage="111",
         purpose="Arifos probe — Component health diagnostic",
@@ -521,6 +526,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 17. arifos_diag_substrate — Conformance Check
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
+        visibility="internal",
         name="arifos_diag_substrate",
         stage="911",
         purpose="Arifos diag substrate — Protocol conformance check",
@@ -606,6 +612,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # WEALTH ORGAN — Capital Engine (Ψ lane)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
+        visibility="internal",
         name="wealth_brent_score",
         stage="WEALTH_01",
         purpose="Score O&G tickers against Brent price — plain English signal",
