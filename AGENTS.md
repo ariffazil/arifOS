@@ -12,6 +12,8 @@
 >   4. `arifos://session/{id}` (Ephemeral Instance)
 >   5. `arifos://forge` (Execution Bridge)
 > - If documentation disagrees with runtime: doctrine conflict → arifOS repo wins; runtime surface conflict → live endpoints/resources win.
+>
+> **AF-FORGE BOUNDARY CONTRACT:** arifOS is the constitutional law (F1–F13). AF-FORGE is the TypeScript execution runtime. The interface between them is versioned via the `runtime_contract` field in `arifos://forge`. Hardcoded source-file paths to AF-FORGE internals are prohibited in arifOS resources; they drift. Always query the live bridge or the MCP resource for current runtime capabilities.
 
 ---
 

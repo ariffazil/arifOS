@@ -245,33 +245,35 @@ AF_FORGE_CONTEXT: dict[str, Any] = {
     ),
     "bridge_endpoint": "http://localhost:7071",
     "mcp_stdio_cmd": ["node", "af-forge/dist/src/mcp/server.js"],
+    "runtime_contract": {
+        "api_version": "0.1.0",
+        "min_compatible_af_forge": "0.1.0",
+        "governance_surface": "HTTP bridge + MCP stdio",
+        "canonical_source": "af-forge repository (TypeScript runtime)",
+        "note": "Do not hardcode source file paths here; they drift. Use the live bridge contract instead.",
+    },
     "governance_floors_implemented": {
         "F3_InputClarity": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/governance/f3InputClarity.ts",
             "gate": "SABAR — empty, <3 chars, or ambiguous repetition",
             "enforced_in": "AgentEngine.run() before LLM",
         },
         "F6_HarmDignity": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/governance/f6HarmDignity.ts",
             "gate": "VOID — 11 regex patterns (rm -rf, exploit, bypass auth, steal, inject, fork bomb)",
             "enforced_in": "AgentEngine.run() after F3",
         },
         "F9_Injection": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/governance/f9Injection.ts",
             "gate": "VOID — 10 regex patterns (ignore-instructions, bypass-policy, do-not-log, reveal-secrets, DAN)",
             "enforced_in": "AgentEngine.run() after F6",
         },
         "F13_Sovereign": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/approval/ApprovalBoundary.ts",
             "gate": "888_HOLD — blocks until human approval, never auto-approved",
         },
         "F7_Confidence": {
             "status": "PARTIAL",
-            "file": "af-forge/src/policy/confidence.ts",
             "gate": "Heuristic bands (VERY_HIGH/HIGH/MODERATE/LOW) — hard AgentEngine gate pending LLM API",
         },
         "summary": "11/13 floors implemented, 2 partial (F4 entropy metric, F8 grounding link)",

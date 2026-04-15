@@ -90,6 +90,66 @@ import requests
 AF_FORGE_ENABLED = os.getenv("AF_FORGE_ENABLED", "false").lower() == "true"
 AF_FORGE_ENDPOINT = os.getenv("AF_FORGE_ENDPOINT", "http://localhost:7071/sense")
 AF_FORGE_TIMEOUT = float(os.getenv("AF_FORGE_TIMEOUT_SECONDS", "2.0"))
+AF_FORGE_API_VERSION = "0.1.0"
+MIN_COMPATIBLE_AF_FORGE = "0.1.0"
+
+_contract_checked = False
+_contract_valid = False
+_contract_failure_reason = None
+
+
+def _check_contract():
+    """Validate runtime contract against AF-FORGE /contract endpoint."""
+    global _contract_checked, _contract_valid, _contract_failure_reason
+    if _contract_checked:
+        return _contract_valid
+
+    if not AF_FORGE_ENABLED:
+        _contract_checked = True
+        _contract_valid = False
+        _contract_failure_reason = "AF_FORGE_DISABLED"
+        return False
+
+    try:
+        contract_url = AF_FORGE_ENDPOINT.replace("/sense", "/contract")
+        resp = requests.get(contract_url, timeout=1.0)
+        resp.raise_for_status()
+        data = resp.json()
+
+        if not data.get("ok"):
+            _contract_failure_reason = "contract_endpoint_not_ok"
+            _contract_checked = True
+            _contract_valid = False
+            return False
+
+        af_api_version = data.get("api_version", "unknown")
+        af_min_client = data.get("min_compatible_client", "unknown")
+
+        if af_min_client != "unknown" and AF_FORGE_API_VERSION < af_min_client:
+            _contract_failure_reason = f"version_incompatible:client={AF_FORGE_API_VERSION} requires_af>={af_min_client}"
+            _contract_checked = True
+            _contract_valid = False
+            print(f"[AF-FORGE] CONTRACT MISMATCH: client v{AF_FORGE_API_VERSION} < AF-FORGE min {af_min_client}", flush=True)
+            return False
+
+        if af_api_version != "unknown" and af_api_version < MIN_COMPATIBLE_AF_FORGE:
+            _contract_failure_reason = f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_AF_FORGE}"
+            _contract_checked = True
+            _contract_valid = False
+            print(f"[AF-FORGE] CONTRACT MISMATCH: AF-FORGE v{af_api_version} < required {MIN_COMPATIBLE_AF_FORGE}", flush=True)
+            return False
+
+        _contract_checked = True
+        _contract_valid = True
+        _contract_failure_reason = None
+        return True
+
+    except Exception as e:
+        _contract_failure_reason = f"contract_check_error:{e}"
+        _contract_checked = True
+        _contract_valid = False
+        print(f"[AF-FORGE] Contract check error: {e}", flush=True)
+        return False
 
 
 def _call_af_forge_sense(
@@ -99,6 +159,43 @@ def _call_af_forge_sense(
     """Call AF-FORGE Sense endpoint. Returns None on failure or if disabled."""
     if not AF_FORGE_ENABLED:
         return None
+
+    if not _check_contract():
+        print(f"[AF-FORGE] Bridge call blocked by contract failure: {_contract_failure_reason}", flush=True)
+        return {
+            "ok": True,
+            "sense": {
+                "mode_used": "lite",
+                "escalation_reason": "contract_failure",
+                "evidence_count": 0,
+                "evidence_quality": 0.0,
+                "uncertainty_band": "high",
+                "recommended_next_stage": "hold",
+                "contradiction_flags": ["bridge_contract_mismatch"],
+                "query_complexity_score": 0.0,
+                "risk_indicators": ["bridge_contract_mismatch"],
+            },
+            "judge": {
+                "verdict": "HOLD",
+                "reason": f"AF-FORGE bridge contract failure: {_contract_failure_reason}",
+                "confidence": {
+                    "value": 0.0,
+                    "is_estimate": True,
+                    "evidence_count": 0,
+                    "agreement_score": 0.0,
+                    "contradiction_penalty": 1.0,
+                    "uncertainty_hint": 1.0,
+                },
+                "floors_triggered": ["F13"],
+                "human_review_required": True,
+            },
+            "context": {
+                "source": "af-forge",
+                "version": AF_FORGE_API_VERSION,
+                "epoch": "2026-04-15",
+                "contract_failure": _contract_failure_reason,
+            },
+        }
     
     # Extract prompt from input
     if isinstance(raw_input, dict):
@@ -108,13 +205,13 @@ def _call_af_forge_sense(
     
     try:
         payload = {
-            "version": "1",
+            "version": AF_FORGE_API_VERSION,
             "session_id": session_id or "anon",
             "prompt": prompt,
             "context": {
                 "source": "mcp-python",
                 "tool": "sense",
-                "epoch": "2026-04-08",
+                "epoch": "2026-04-15",
             },
         }
         
