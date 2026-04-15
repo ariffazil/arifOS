@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.context_packet.v1",
+  "title": "arifOS Tool Context Packet",
+  "description": "Semantic identity and usage guidance for arifOS tools. Gives AI agents full operational context.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["context_packet_version", "tool_id", "stage", "trinity", "purpose"],
+  "properties": {
+    "context_packet_version": {
+      "type": "string",
+      "description": "Schema version of this packet"
+    },
+    "tool_id": {
+      "type": "string",
+      "description": "Canonical tool identifier"
+    },
+    "stage": {
+      "type": "string",
+      "description": "Governance stage"
+    },
+    "stage_order": {
+      "type": "integer",
+      "description": "Position in pipeline"
+    },
+    "desc": {
+      "type": "string",
+      "description": "Short description"
+    },
+    "trinity": {
+      "type": "string",
+      "enum": ["Δ", "Ψ", "Ω"],
+      "description": "Trinity lane"
+    },
+    "trinity_name": {
+      "type": "string",
+      "enum": ["Discernment", "Sovereignty", "Stability"]
+    },
+    "uri": {
+      "type": "string",
+      "description": "Transport endpoint"
+    },
+    "backing_tool": {
+      "type": "string",
+      "description": "Internal implementation"
+    },
+    "role": {
+      "type": "string",
+      "description": "Functional role"
+    },
+    "role_description": {
+      "type": "string"
+    },
+    "modes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "default_mode": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string",
+      "description": "What this tool is for"
+    },
+    "when_to_use": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Appropriate use cases"
+    },
+    "when_not_to_use": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Inappropriate use cases"
+    },
+    "not_job": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Capabilities this tool does NOT have"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input specification"
+    },
+    "outputs": {
+      "type": "object",
+      "description": "Output specification"
+    },
+    "state_behavior": {
+      "type": "object",
+      "properties": {
+        "reads_state": { "type": "boolean" },
+        "writes_state": { "type": "boolean" },
+        "external_side_effects": { "type": "boolean" },
+        "immutable": { "type": "boolean" },
+        "append_only": { "type": "boolean" },
+        "requires_attestation": { "type": "boolean" }
+      }
+    },
+    "authority_model": {
+      "type": "object",
+      "description": "Decision authority",
+      "properties": {
+        "advisory_only": { "type": "boolean" },
+        "render_verdicts": { "type": "boolean" },
+        "can_block": { "type": "boolean" },
+        "can_approve": { "type": "boolean" },
+        "requires_seal": { "type": "boolean" },
+        "requires_attestation": { "type": "boolean" }
+      }
+    },
+    "context_contract": {
+      "type": "object",
+      "properties": {
+        "consumes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "emits": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "routing_hints": {
+      "type": "object",
+      "properties": {
+        "upstream": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "downstream": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "mandatory_before": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "typical_flow": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "governance_requirements": {
+      "type": "object",
+      "properties": {
+        "risk_tier": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "dry_run_allowed": { "type": "boolean" },
+        "read_only": { "type": "boolean" },
+        "immutable": { "type": "boolean" }
+      }
+    },
+    "chatgpt_guidance": {
+      "type": "object",
+      "description": "AI-specific usage guidance",
+      "properties": {
+        "plain_english": {
+          "type": "string",
+          "description": "Simple explanation"
+        },
+        "key_phrases": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ask_before_use_if": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "do_not_assume": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ideal_prompt_shape": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

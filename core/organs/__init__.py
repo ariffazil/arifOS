@@ -25,6 +25,7 @@ from . import _1_agi as mind
 from . import _2_asi as heart
 from . import _3_apex as soul
 from . import _4_vault as memory
+from . import _5_wealth as wealth_organ
 
 # Unified interfaces
 # Actions for direct use
@@ -41,6 +42,7 @@ from ._1_agi import agi, reason, sense, think
 from ._2_asi import align, asi, empathize
 from ._3_apex import apex, forge, judge, sync
 from ._4_vault import SealRecord, seal, vault
+from ._5_wealth import wealth, calculate_npv, analyze_cost_benefit
 
 # Humanized aliases
 anchor = init
@@ -58,6 +60,7 @@ __all__ = [
     "asi",
     "apex",
     "vault",
+    "wealth",
     # Humanized aliases
     "anchor",
     "feel",
@@ -75,6 +78,9 @@ __all__ = [
     "judge",  # Stage 888
     "seal",  # Stage 999
     "vault",  # Unified vault interface
+    "wealth", # Economic Organ
+    "calculate_npv",
+    "analyze_cost_benefit",
     # Types
     "InitOutput",
     "AuthorityLevel",

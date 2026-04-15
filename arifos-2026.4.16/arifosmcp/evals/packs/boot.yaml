@@ -1,0 +1,17 @@
+pack: boot
+description: Basic server and environment health
+
+tests:
+  - id: boot-001
+    name: environment variables load
+    severity: P0
+    expect:
+      ARIFOS_ENV_present: true
+
+  - id: boot-002
+    name: substrate reachability
+    severity: P0
+    expect:
+      mcp_time_up: true
+      mcp_git_up: true
+      mcp_fetch_up: true

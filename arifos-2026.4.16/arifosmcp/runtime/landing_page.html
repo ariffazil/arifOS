@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>arifOS MCP — Constitutional AI Governance Runtime</title>
+  <meta name="description" content="Production constitutional AI gateway. Enforces 13 floors on every AI action. MCP-native tools, resources, prompts. 888_HOLD for irreversible decisions. Immutable audit trail.">
+  <meta name="theme-color" content="#0C0E12">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════
+       TOKENS
+    ═══════════════════════════════════════════ */
+    :root {
+      /* Dark (default) */
+      --bg: #0C0E12;
+      --bg-card: #13151A;
+      --bg-elevated: #1A1D24;
+      --border: #252830;
+      --border-subtle: #1C1F27;
+      --text-primary: #E8E6E1;
+      --text-secondary: #8B8D91;
+      --text-muted: #555760;
+      --accent: #00B4A0;
+      --accent-dim: rgba(0,180,160,0.12);
+      --accent-hover: #00CCC0;
+      --seal-green: #3DBE8A;
+      --seal-green-dim: rgba(61,190,138,0.12);
+      --caution: #F5A623;
+      --danger: #E05252;
+      --code-bg: #0F1117;
+      --code-border: #2A2D38;
+
+      /* Typography */
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+      /* Spacing */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+      --space-16: 64px;
+      --space-20: 80px;
+      --space-24: 96px;
+
+      /* Radii */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+
+      /* Transitions */
+      --transition: 150ms ease;
+    }
+
+    [data-theme="light"] {
+      --bg: #F5F4F1;
+      --bg-card: #FFFFFF;
+      --bg-elevated: #EFEEEB;
+      --border: #D8D5CF;
+      --border-subtle: #E8E5DF;
+      --text-primary: #1A1C20;
+      --text-secondary: #5C5E66;
+      --text-muted: #9A9CA3;
+      --accent-dim: rgba(0,150,136,0.10);
+      --seal-green-dim: rgba(40,140,100,0.10);
+      --code-bg: #EFEFEC;
+      --code-border: #D0CCC4;
+    }
+
+    /* ═══════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    ::selection { background: var(--accent); color: #fff; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    code, pre {
+      font-family: var(--font-mono);
+      font-size: 0.875em;
+    }
+
+    img, svg { display: block; max-width: 100%; }
+
+    /* ═══════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════ */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 var(--space-6);
+    }
+
+    .section {
+      padding: var(--space-20) 0;
+    }
+
+    .section + .section {
+      border-top: 1px solid var(--border);
+    }
+
+    /* ═══════════════════════════════════════════
+       NAV
+    ═══════════════════════════════════════════ */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(12,14,18,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+
+    [data-theme="light"] nav {
+      background: rgba(245,244,241,0.85);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .nav-logo .logo-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #fff;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      transition: color var(--transition);
+    }
+
+    .nav-links a:hover { color: var(--text-primary); }
+
+    .theme-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════ */
+    .hero {
+      padding: var(--space-20) 0 var(--space-16);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-12);
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: var(--space-4);
+    }
+
+    .hero-eyebrow .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: var(--space-5);
+      color: var(--text-primary);
+    }
+
+    .hero h1 .accent { color: var(--accent); }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: var(--space-8);
+      max-width: 520px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-6);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 10px var(--space-5);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: none;
+      text-decoration: none;
+      font-family: var(--font-sans);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .hero-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Proof Panel */
+    .proof-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .proof-header {
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      padding: var(--space-3) var(--space-5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .proof-header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .proof-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--seal-green);
+    }
+
+    .status-dot.degraded { background: var(--caution); }
+    .status-dot.offline { background: var(--danger); }
+
+    .proof-body { padding: var(--space-5); }
+
+    .proof-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.8rem;
+    }
+
+    .proof-row:last-child { border-bottom: none; }
+
+    .proof-row .key {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding-top: 2px;
+    }
+
+    .proof-row .val {
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-all;
+    }
+
+    .proof-row .val.accent { color: var(--accent); }
+    .proof-row .val.seal { color: var(--seal-green); }
+
+    .proof-verdict {
+      margin-top: var(--space-4);
+      background: var(--seal-green-dim);
+      border: 1px solid rgba(61,190,138,0.25);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .verdict-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--seal-green);
+      font-weight: 600;
+    }
+
+    .verdict-val {
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+
+    /* ═══════════════════════════════════════════
+       TRUST STRIP
+    ═══════════════════════════════════════════ */
+    .trust-strip {
+      padding: var(--space-8) 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .trust-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      justify-content: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-secondary);
+      transition: all var(--transition);
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .chip .chip-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════
+       THREE PILLARS
+    ═══════════════════════════════════════════ */
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+      margin-top: var(--space-10);
+    }
+
+    .pillar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+    }
+
+    .pillar-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--accent-dim);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: var(--space-5);
+    }
+
+    .pillar h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+      letter-spacing: -0.01em;
+    }
+
+    .pillar p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    .pillar .pillar-tag {
+      display: inline-block;
+      margin-top: var(--space-4);
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════
+       LIFECYCLE
+    ═══════════════════════════════════════════ */
+    .section-label {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: var(--space-3);
+    }
+
+    .section-title {
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin-bottom: var(--space-4);
+      line-height: 1.2;
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: var(--space-10);
+    }
+
+    .lifecycle-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: var(--space-4);
+      margin-bottom: var(--space-8);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .lifecycle-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+
+    .lifecycle-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .lifecycle-arrow {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      padding: 0 var(--space-2);
+      flex-shrink: 0;
+    }
+
+    .lifecycle-state {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+    }
+
+    .lifecycle-state-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-5);
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-3);
+    }
+
+    .state-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .state-sym {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--accent);
+      width: 24px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .state-info { flex: 1; }
+
+    .state-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .state-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ═══════════════════════════════════════════
+       PROTOCOL SURFACE
+    ═══════════════════════════════════════════ */
+    .protocol-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+      margin-top: var(--space-10);
+    }
+
+    .protocol-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .protocol-card-header {
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      padding: var(--space-5) var(--space-6);
+    }
+
+    .protocol-card-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: var(--space-1);
+      letter-spacing: -0.01em;
+    }
+
+    .protocol-card-header p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .protocol-card-body { padding: var(--space-5) var(--space-6); }
+
+    .endpoint-list { list-style: none; }
+
+    .endpoint-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .endpoint-item:last-child { border-bottom: none; }
+
+    .method-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .method-GET { background: rgba(0,180,160,0.15); color: var(--accent); }
+    .method-POST { background: rgba(61,190,138,0.15); color: var(--seal-green); }
+
+    .endpoint-path {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+
+    .endpoint-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      line-height: 1.5;
+    }
+
+    .protocol-note {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      background: var(--accent-dim);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0,180,160,0.2);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════════
+       TOOLS
+    ═══════════════════════════════════════════ */
+    .tools-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-6);
+    }
+
+    .tools-count-badge {
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 4px 12px;
+      border-radius: 100px;
+      border: 1px solid rgba(0,180,160,0.25);
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-3);
+    }
+
+    .tool-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      transition: border-color var(--transition);
+    }
+
+    .tool-card:hover { border-color: var(--accent); }
+
+    .tool-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+
+    .tool-name {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .tool-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════
+       FLOORS
+    ═══════════════════════════════════════════ */
+    .floors-intro {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      line-height: 1.7;
+      margin-bottom: var(--space-8);
+    }
+
+    /* ═══════════════════════════════════════════
+       FLOORS — table layout (upgraded from cards)
+    ═══════════════════════════════════════════ */
+    .floors-table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      margin-top: var(--space-6);
+    }
+    .floors-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .floors-table thead {
+      background: var(--bg-secondary);
+      border-bottom: 2px solid var(--border);
+    }
+    .floors-table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .floors-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
+    }
+    .floors-table tr:last-child td { border-bottom: none; }
+    .floors-table tbody tr {
+      transition: background var(--transition);
+    }
+    .floors-table tbody tr:hover {
+      background: var(--bg-secondary);
+    }
+    .floor-cell-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .floor-cell-name {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .floor-cell-arabic {
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    .floor-cell-desc {
+      color: var(--text-secondary);
+      line-height: 1.45;
+      min-width: 200px;
+    }
+    .floor-cell-trigger {
+      font-size: 0.75rem;
+      color: var(--caution);
+      white-space: nowrap;
+    }
+    .floors-legend {
+      margin-top: var(--space-3);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════════
+       GEOMETRIC PATTERNS (dark theme hero)
+    ═══════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      overflow: hidden;
+    }
+    [data-theme="dark"] .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(0,180,160,0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0,180,160,0.03) 0%, transparent 40%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%2300B4A0' stroke-width='0.3' opacity='0.15'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z'/%3E%3Cpath d='M30 10L50 30L30 50L10 30Z'/%3E%3Cpath d='M30 20L40 30L30 40L20 30Z'/%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+    [data-theme="dark"] .hero > .container { position: relative; z-index: 1; }
+    [data-theme="dark"] .hero-grid { position: relative; z-index: 1; }
+
+    /* ═══════════════════════════════════════════
+       TRY-IT-NOW FORM
+    ═══════════════════════════════════════════ */
+    .demo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      margin-top: var(--space-6);
+    }
+    .demo-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+    .demo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,180,160,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(0,180,160,0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .demo-form { display: flex; flex-direction: column; gap: var(--space-4); }
+    .demo-row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+    .demo-field { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
+    .demo-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .demo-input, .demo-select, .demo-textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      font-size: 0.875rem;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      transition: border-color var(--transition);
+      width: 100%;
+    }
+    .demo-textarea { resize: vertical; min-height: 80px; }
+    .demo-input:focus, .demo-select:focus, .demo-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .demo-submit {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      align-self: flex-start;
+      font-family: var(--font-sans);
+    }
+    .demo-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .demo-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .demo-output {
+      margin-top: var(--space-4);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+    }
+    .demo-output.visible { display: block; }
+    .demo-output .verdict-seal { color: var(--seal-green); font-weight: 700; }
+    .demo-output .verdict-hold { color: var(--caution); font-weight: 700; }
+    .demo-output .verdict-void { color: var(--danger); font-weight: 700; }
+    .demo-output .verdict-label { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ═══════════════════════════════════════════
+       CAPABILITY NOTE (honesty section)
+    ═══════════════════════════════════════════ */
+    .capability-note {
+      background: rgba(0,180,160,0.05);
+      border: 1px solid rgba(0,180,160,0.2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5) var(--space-6);
+      margin-top: var(--space-6);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .capability-note strong { color: var(--accent); }
+
+    /* ═══════════════════════════════════════════
+       ENHANCED PROOF PANEL (vitality + verdict)
+    ═══════════════════════════════════════════ */
+    .proof-panel .vitality-ring {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 0;
+    }
+    .vitality-svg { width: 56px; height: 56px; }
+    .vitality-num {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--seal-green);
+      font-family: var(--font-mono);
+    }
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .verdict-badge.seal {
+      background: rgba(61,190,138,0.15);
+      color: var(--seal-green);
+      border: 1px solid rgba(61,190,138,0.35);
+    }
+    .verdict-badge.hold {
+      background: rgba(240,183,87,0.15);
+      color: var(--caution);
+      border: 1px solid rgba(240,183,87,0.35);
+    }
+    .verdict-badge.void {
+      background: rgba(224,82,82,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(224,82,82,0.35);
+    }
+    .proof-verdict { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
+    .verdict-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .proof-panel .proof-verdict { display: flex !important; }
+
+    /* ═══════════════════════════════════════════
+       PLATFORM COMPARISON TABLE
+    ═══════════════════════════════════════════ */
+    .compare-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      font-size: 0.82rem;
+      margin-top: var(--space-6);
+    }
+    .compare-header, .compare-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 1.2fr;
+      gap: 1px;
+    }
+    .compare-header {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .compare-row {
+      border-top: 1px solid var(--border);
+    }
+    .compare-row:nth-child(even) {
+      background: var(--bg-secondary);
+    }
+    .compare-col {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+    }
+    .compare-feature {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .compare-col-arif {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .compare-check::before {
+      content: '✓ ';
+    }
+    .compare-na {
+      color: var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════════
+       GLOSSARY
+    ═══════════════════════════════════════════ */
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+    }
+    .glossary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .glossary-term {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .glossary-def {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ═══════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: var(--space-10) 0;
+      margin-top: var(--space-8);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-8);
+      align-items: start;
+    }
+
+    .footer-left {}
+
+    .footer-tagline {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: var(--space-3);
+      line-height: 1.6;
+      max-width: 380px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: var(--space-5);
+      list-style: none;
+      margin-top: var(--space-5);
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      transition: color var(--transition);
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    .footer-right {
+      text-align: right;
+    }
+
+    .footer-symbol {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin-bottom: var(--space-2);
+    }
+
+    .footer-version {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .proof-panel {
+        margin-top: var(--space-6);
+      }
+
+      .pillars {
+        grid-template-columns: 1fr;
+      }
+
+      .protocol-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-right {
+        text-align: left;
+      }
+
+      .nav-links { display: none; }
+
+      .lifecycle-flow {
+        justify-content: flex-start;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+       LOADING / SKELETON
+    ═══════════════════════════════════════════ */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-card) 50%, var(--bg-elevated) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+      border-radius: var(--radius-sm);
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .loading { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.8rem; }
+
+    /* ═══════════════════════════════════════════
+       COPY BTN
+    ═══════════════════════════════════════════ */
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      transition: all var(--transition);
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .copy-btn.copied {
+      border-color: var(--seal-green);
+      color: var(--seal-green);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════ -->
+<nav>
+  <div class="container">
+    <div class="nav-logo">
+      <div class="logo-mark">ΔΩΨ</div>
+      arifOS MCP
+    </div>
+    <ul class="nav-links">
+      <li><a href="#lifecycle">Lifecycle</a></li>
+      <li><a href="#protocol">Protocol</a></li>
+      <li><a href="#tools">Tools</a></li>
+      <li><a href="#floors">Governance</a></li>
+    </ul>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span id="theme-icon">☾</span>
+      <span id="theme-label">dark</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <span class="dot"></span>
+          Constitutional AI Gateway
+        </div>
+        <h1>Runtime governance<br>for every <span class="accent">AI action</span>.</h1>
+        <p class="hero-sub">
+          arifOS MCP is a self-hosted constitutional runtime. Every tool call, every resource access, every prompt execution is checked against 13 governing floors — with immutable audit, human veto, and structured verdicts.
+        </p>
+        <div class="hero-ctas">
+          <a href="#protocol" class="btn btn-primary">Connect via MCP</a>
+          <a href="/.well-known/mcp/server.json" class="btn btn-secondary">View Manifest</a>
+        </div>
+        <p class="hero-meta">Self-hostable · Human-sovereign · Protocol-native</p>
+      </div>
+
+      <div class="proof-panel" id="proof-panel">
+        <div class="proof-header">
+          <div class="proof-header-left">
+            <span>🔱</span> Service Registry
+          </div>
+          <div class="proof-status">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text" class="loading">—</span>
+          </div>
+        </div>
+        <div class="proof-body">
+          <div class="proof-row">
+            <span class="key">service</span>
+            <span class="val" id="pv-service" class="loading">—</span>
+          </div>
+          <div class="proof-row">
+            <span class="key">version</span>
+            <span class="val accent" id="pv-version" class="loading">—</span>
+          </div>
+          <div class="proof-row">
+            <span class="key">transport</span>
+            <span class="val" id="pv-transport" class="loading">—</span>
+          </div>
+          <div class="proof-row">
+            <span class="key">protocol</span>
+            <span class="val" id="pv-protocol" class="loading">—</span>
+          </div>
+          <div class="proof-row">
+            <span class="key">mcp_endpoint</span>
+            <span class="val" id="pv-mcp-ep" class="loading">—</span>
+          </div>
+          <div class="proof-row">
+            <span class="key">health_endpoint</span>
+            <span class="val" id="pv-health-ep" class="loading">—</span>
+          </div>
+          <div class="proof-row">
+            <span class="key">tools_endpoint</span>
+            <span class="val" id="pv-tools-ep" class="loading">—</span>
+          </div>
+          <div class="proof-row">
+            <span class="key">tool_count</span>
+            <span class="val accent" id="pv-tool-count" class="loading">—</span>
+          </div>
+        </div>
+        <div class="proof-verdict" id="proof-verdict" style="display:none;flex-direction:column;gap:8px;align-items:flex-start;">
+          <div class="vitality-ring">
+            <svg class="vitality-svg" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="28" cy="28" r="24" stroke="var(--border)" stroke-width="4" fill="none"/>
+              <circle id="vit-ring" cx="28" cy="28" r="24" stroke="var(--seal-green)" stroke-width="4" fill="none"
+                stroke-dasharray="150.8" stroke-dashoffset="150.8"
+                stroke-linecap="round" transform="rotate(-90 28 28)"/>
+            </svg>
+            <span class="vitality-num" id="pv-vitality">—</span>
+          </div>
+          <div>
+            <div class="verdict-label">System Verdict</div>
+            <div class="verdict-badge seal" id="pv-verdict">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     TRUST STRIP
+═══════════════════════════════════════════ -->
+<div class="trust-strip">
+  <div class="container">
+    <div class="trust-chips" id="trust-chips">
+      <span class="chip loading" id="chip-count">— tools</span>
+      <span class="chip"><span class="chip-dot"></span>13 constitutional floors</span>
+      <span class="chip"><span class="chip-dot"></span>MCP JSON-RPC</span>
+      <span class="chip"><span class="chip-dot"></span>WebMCP</span>
+      <span class="chip"><span class="chip-dot"></span>A2A protocol</span>
+      <span class="chip"><span class="chip-dot"></span>888_HOLD veto</span>
+      <span class="chip"><span class="chip-dot"></span>VAULT audit</span>
+      <span class="chip"><span class="chip-dot"></span>Human sovereign</span>
+      <span class="chip"><span class="chip-dot"></span>Discovery manifest</span>
+      <span class="chip"><span class="chip-dot"></span>llms.txt</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     WHAT IT IS — THREE PILLARS
+═══════════════════════════════════════════ -->
+<section class="section" id="about">
+  <div class="container">
+    <p class="section-label">What it is</p>
+    <h2 class="section-title">Govern. Pause. Seal.</h2>
+    <p class="section-sub">
+      Every AI action in arifOS passes through three constitutional stages — enforced in sequence, recorded in full.
+    </p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon">⚖</div>
+        <h3>Govern</h3>
+        <p>Every request is parsed, classified, and run through the 13 constitutional floors before any tool executes. Claims are grounded. Identity is verified. The system never acts on unverified premises.</p>
+        <span class="pillar-tag">F1–F13 enforced per action</span>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">⏸</div>
+        <h3>Pause</h3>
+        <p>Actions tagged as irreversible — deploys, commits, governance changes, state modifications — trigger 888_HOLD. No execution proceeds until a human sovereign reviews and approves. The veto is always real.</p>
+        <span class="pillar-tag">888_HOLD — human veto gate</span>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🔏</div>
+        <h3>Seal</h3>
+        <p>Every completed action — approved, paused, or rejected — is written to the VAULT audit ledger with a constitutional verdict, timestamp, and actor identity. The record is immutable. The trace is complete.</p>
+        <span class="pillar-tag">VAULT — immutable verdict ledger</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     LIVE DEMO — TRY IT NOW
+═══════════════════════════════════════════ -->
+<section class="section" id="demo">
+  <div class="container">
+    <p class="section-label">Live demo</p>
+    <h2 class="section-title">Try it now — dry-run mode</h2>
+    <p class="section-sub">Query arifos_sense in constitutional analysis mode. This calls the live MCP endpoint — no account, no key, no friction.</p>
+
+    <div class="demo-card">
+      <div class="demo-header">
+        <span class="demo-badge">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="5" r="2" fill="currentColor"/></svg>
+          arifos_sense · dry-run
+        </span>
+        <span style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono)">POST /mcp · JSON-RPC 2.0</span>
+      </div>
+      <div class="demo-form" id="demo-form">
+        <div class="demo-row">
+          <div class="demo-field" style="flex:2">
+            <label for="demo-query">Query / Claim to Analyse</label>
+            <textarea class="demo-textarea" id="demo-query" placeholder="e.g. The Malaysian Basin has excellent source rock maturity at 3000m depth">The Malaysian Basin has excellent source rock maturity at 3000m depth</textarea>
+          </div>
+        </div>
+        <div class="demo-row">
+          <div class="demo-field">
+            <label for="demo-risk">Risk Tier</label>
+            <select class="demo-select" id="demo-risk">
+              <option value="low">Low — advisory only</option>
+              <option value="medium" selected>Medium — standard check</option>
+              <option value="high">High — full floor review</option>
+            </select>
+          </div>
+          <div class="demo-field">
+            <label for="demo-context">Context (optional)</label>
+            <input class="demo-input" id="demo-context" placeholder="e.g. exploration well planning">
+          </div>
+        </div>
+        <div>
+          <button class="demo-submit" id="demo-submit" onclick="runDemo()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L12 2L7 12L9 7L2 7Z" fill="currentColor"/></svg>
+            Run Constitutional Analysis
+          </button>
+        </div>
+        <div class="demo-output" id="demo-output"></div>
+      </div>
+    </div>
+
+    <div class="capability-note">
+      <strong>Offline core · optional extensions:</strong> Constitutional governance (13 floors, 888_HOLD, VAULT999 ledger) runs fully offline in the arifOS runtime. Optional Postgres, Redis, and Qdrant providers can be enabled for full session persistence, vector memory, and distributed cache — all without compromising the governance layer.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     REQUEST LIFECYCLE
+═══════════════════════════════════════════ -->
+<section class="section" id="compare">
+  <div class="container">
+    <p class="section-label">Why arifOS</p>
+    <h2 class="section-title">Platform comparison</h2>
+    <p class="section-sub">arifOS is the only platform that combines live MCP agent protocol, cryptographic human-in-the-loop, and a tamper-proof immutable audit ledger — self-hosted, no vendor lock-in.</p>
+
+    <div class="compare-table">
+      <div class="compare-header">
+        <div class="compare-col">Feature</div>
+        <div class="compare-col compare-col-arif">🔱 arifOS</div>
+        <div class="compare-col">NeMo<br>Guardrails</div>
+        <div class="compare-col">Prime AI</div>
+        <div class="compare-col">IBM<br>WatsonX.gov</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-col compare-feature">Constitutional governance</div>
+        <div class="compare-col compare-col-arif compare-check">✓ 13 floors</div>
+        <div class="compare-col">~ Rules only</div>
+        <div class="compare-col">~ Policy engine</div>
+        <div class="compare-col">~ Pipeline checks</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-col compare-feature">MCP agent protocol</div>
+        <div class="compare-col compare-col-arif compare-check">✓ Native</div>
+        <div class="compare-col compare-na">—</div>
+        <div class="compare-col compare-na">—</div>
+        <div class="compare-col compare-na">—</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-col compare-feature">Cryptographic HITL (888_HOLD)</div>
+        <div class="compare-col compare-col-arif compare-check">✓</div>
+        <div class="compare-col compare-na">—</div>
+        <div class="compare-col">~ Approvals</div>
+        <div class="compare-col">~ Workflow</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-col compare-feature">Immutable audit ledger (VAULT999)</div>
+        <div class="compare-col compare-col-arif compare-check">✓ SHA-256</div>
+        <div class="compare-col compare-na">—</div>
+        <div class="compare-col">~ Logging</div>
+        <div class="compare-col">~ Reporting</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-col compare-feature">Self-hosted</div>
+        <div class="compare-col compare-col-arif compare-check">✓ Docker</div>
+        <div class="compare-col compare-na">—</div>
+        <div class="compare-col">SaaS only</div>
+        <div class="compare-col">Enterprise SaaS</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-col compare-feature">Open source</div>
+        <div class="compare-col compare-col-arif">AGPL-3.0</div>
+        <div class="compare-col">Apache 2.0</div>
+        <div class="compare-col">Proprietary</div>
+        <div class="compare-col">Proprietary</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="lifecycle">
+  <div class="container">
+    <p class="section-label">Architectural flow</p>
+    <h2 class="section-title">8-stage governance pipeline</h2>
+    <p class="section-sub">
+      Every inbound request passes through eight ordered stages. Each stage may emit a verdict — SEAL, HOLD, PARTIAL, or VOID — that propagates forward or halts execution.
+    </p>
+
+    <div class="lifecycle-flow" role="list" aria-label="Governance pipeline stages">
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">PARSE</div>
+      </div>
+      <div class="lifecycle-arrow" aria-hidden="true">→</div>
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">CLASSIFY</div>
+      </div>
+      <div class="lifecycle-arrow" aria-hidden="true">→</div>
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">DECIDE</div>
+      </div>
+      <div class="lifecycle-arrow" aria-hidden="true">→</div>
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">PLAN</div>
+      </div>
+      <div class="lifecycle-arrow" aria-hidden="true">→</div>
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">SENSE</div>
+      </div>
+      <div class="lifecycle-arrow" aria-hidden="true">→</div>
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">NORMALIZE</div>
+      </div>
+      <div class="lifecycle-arrow" aria-hidden="true">→</div>
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">GATE</div>
+      </div>
+      <div class="lifecycle-arrow" aria-hidden="true">→</div>
+      <div class="lifecycle-step" role="listitem">
+        <div class="lifecycle-box">HANDOFF</div>
+      </div>
+    </div>
+
+    <div class="lifecycle-state">
+      <div class="lifecycle-state-title">Runtime state fields</div>
+      <div class="state-grid">
+        <div class="state-item">
+          <span class="state-sym">G</span>
+          <div class="state-info">
+            <div class="state-name">Grounding</div>
+            <div class="state-desc">Evidence fidelity — is the claim anchored in verifiable data?</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-sym">τ</span>
+          <div class="state-info">
+            <div class="state-name">Truth score</div>
+            <div class="state-desc">0.0–1.0. Below 0.99 triggers F2 block on factual claims.</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-sym">σ</span>
+          <div class="state-info">
+            <div class="state-name">Signal strength</div>
+            <div class="state-desc">Clarity of intent. Noise or ambiguity elevates HOLD risk.</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-sym">C</span>
+          <div class="state-info">
+            <div class="state-name">Confidence Ω₀</div>
+            <div class="state-desc">Model confidence. High C + low τ → F7 Gödel Lock trigger.</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-sym">ΔS</span>
+          <div class="state-info">
+            <div class="state-name">Entropy delta</div>
+            <div class="state-desc">Landauer cost. High dS blocks Forge (F4). Indicates system heat.</div>
+          </div>
+        </div>
+        <div class="state-item">
+          <span class="state-sym">κ</span>
+          <div class="state-info">
+            <div class="state-name">Peace² index</div>
+            <div class="state-desc">Lyapunov stability. Below threshold blocks Execute (F5).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     PROTOCOL SURFACE
+═══════════════════════════════════════════ -->
+<section class="section" id="protocol">
+  <div class="container">
+    <p class="section-label">Agent connectivity</p>
+    <h2 class="section-title">Protocol surface</h2>
+    <p class="section-sub">
+      arifOS MCP exposes governed tools, resources, and prompts over MCP — plus a WebMCP interface for browser-native and headless clients.
+    </p>
+
+    <div class="protocol-grid">
+      <!-- MCP -->
+      <div class="protocol-card">
+        <div class="protocol-card-header">
+          <h3>MCP — JSON-RPC Gateway</h3>
+          <p>Full Model Context Protocol with constitutional enforcement on every call.</p>
+        </div>
+        <div class="protocol-card-body">
+          <ul class="endpoint-list">
+            <li class="endpoint-item">
+              <span class="method-badge method-POST">POST</span>
+              <div>
+                <div class="endpoint-path">/mcp</div>
+                <div class="endpoint-desc">JSON-RPC 2.0 transport. Initialize lifecycle, tools/list, tools/call, resources/list, prompts/list.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/health</div>
+                <div class="endpoint-desc">Live health, verdict, vitality index, tool count, platform metadata.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/tools</div>
+                <div class="endpoint-desc">Full tool schemas with parameter definitions and descriptions.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/resources</div>
+                <div class="endpoint-desc">Governed resource manifest — schemas, context packs, profiles.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/prompts</div>
+                <div class="endpoint-desc">Constitutional prompt library — AAA chain, routing policy, connectors.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/version</div>
+                <div class="endpoint-desc">Release version, git SHA, build time, source commit.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/.well-known/mcp/server.json</div>
+                <div class="endpoint-desc">MCP discovery manifest for auto-configuration by compatible clients.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- WebMCP -->
+      <div class="protocol-card">
+        <div class="protocol-card-header">
+          <h3>WebMCP — Browser SDK</h3>
+          <p>Web-facing governed interface: browser-native tool invocation, SDK manifest, and console surface.</p>
+        </div>
+        <div class="protocol-card-body">
+          <ul class="endpoint-list">
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/.well-known/webmcp</div>
+                <div class="endpoint-desc">WebMCP discovery document — protocol version, endpoints, SDK links.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/webmcp</div>
+                <div class="endpoint-desc">Interactive governed console — browser-accessible tool playground.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/webmcp/sdk.js</div>
+                <div class="endpoint-desc">Browser SDK — drop-in script for web apps to connect to arifOS MCP.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/webmcp/tools.json</div>
+                <div class="endpoint-desc">Machine-readable tool registry for SDK consumers.</div>
+              </div>
+            </li>
+            <li class="endpoint-item">
+              <span class="method-badge method-GET">GET</span>
+              <div>
+                <div class="endpoint-path">/llms.txt</div>
+                <div class="endpoint-desc">Machine-readable documentation for LLMs and AI agents consuming this service.</div>
+              </div>
+            </li>
+          </ul>
+
+          <div class="protocol-note">
+            <strong>WebMCP</strong> is the browser-native extension of MCP. It enables web applications to connect directly to arifOS MCP without a native client — governed tool calls, real-time streaming, and SSE fallback for agents that don't support HTTP/2.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     TOOLS
+═══════════════════════════════════════════ -->
+<section class="section" id="tools">
+  <div class="container">
+    <div class="tools-header">
+      <div>
+        <p class="section-label">Canonical tools</p>
+        <h2 class="section-title">17 governed tools</h2>
+      </div>
+      <span class="tools-count-badge" id="tools-count-badge">— loaded</span>
+    </div>
+
+    <div style="overflow-x:auto;margin-bottom:var(--space-6)">
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <thead style="background:var(--bg-secondary);border-bottom:2px solid var(--border)">
+          <tr>
+            <th style="padding:10px 14px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600">Tool</th>
+            <th style="padding:10px 14px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600">Role</th>
+            <th style="padding:10px 14px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600">What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border-subtle)">
+            <td style="padding:11px 14px;font-family:var(--font-mono);color:var(--accent);font-weight:600;white-space:nowrap">arifos_sense</td>
+            <td style="padding:11px 14px;color:var(--text-secondary);white-space:nowrap">Constitutional analysis</td>
+            <td style="padding:11px 14px;color:var(--text-secondary)">Parses input through 13-floor filter. Returns truth score τ, confidence Ω₀, floor violations, and SEAL / HOLD / VOID verdict. Core judgment engine.</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-subtle);background:var(--bg-secondary)">
+            <td style="padding:11px 14px;font-family:var(--font-mono);color:var(--accent);font-weight:600;white-space:nowrap">arifos_judge</td>
+            <td style="padding:11px 14px;color:var(--text-secondary);white-space:nowrap">Verdict &amp; sealing</td>
+            <td style="padding:11px 14px;color:var(--text-secondary)">Issues final constitutional verdict. Commits SEAL actions to VAULT999 ledger. Triggers 888_HOLD for irreversible actions. Returns tamper-proof hash chain.</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-subtle)">
+            <td style="padding:11px 14px;font-family:var(--font-mono);color:var(--accent);font-weight:600;white-space:nowrap">arifos_init</td>
+            <td style="padding:11px 14px;color:var(--text-secondary);white-space:nowrap">Session bootstrap</td>
+            <td style="padding:11px 14px;color:var(--text-secondary)">Initializes a governed session. Loads constitutional context, philosophical corpus, floor thresholds, and human sovereign config. Sets G (governance state).</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-subtle);background:var(--bg-secondary)">
+            <td style="padding:11px 14px;font-family:var(--font-mono);color:var(--accent);font-weight:600;white-space:nowrap">arifos_reply</td>
+            <td style="padding:11px 14px;color:var(--text-secondary);white-space:nowrap">AAA orchestration</td>
+            <td style="padding:11px 14px;color:var(--text-secondary)">Full AGI Reply Protocol v3 orchestrator. Coordinates sense → judge → vault flow with compression, depth control, and risk-tier routing. Crown jewel of the tool suite.</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-subtle)">
+            <td style="padding:11px 14px;font-family:var(--font-mono);color:var(--accent);font-weight:600;white-space:nowrap">arifos_vault</td>
+            <td style="padding:11px 14px;color:var(--text-secondary);white-space:nowrap">Immutable audit ledger</td>
+            <td style="padding:11px 14px;color:var(--text-secondary)">VAULT999 write interface. Append-only SHA-256 chain for all SEAL-verdict actions. Supports timestamp, session ID, floor chain hash, and Merkle root verification.</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 14px;font-family:var(--font-mono);color:var(--accent);font-weight:600;white-space:nowrap">arifos_hold</td>
+            <td style="padding:11px 14px;color:var(--text-secondary);white-space:nowrap">Human veto gate</td>
+            <td style="padding:11px 14px;color:var(--text-secondary)">888_HOLD interface. Queries pending irreversible actions awaiting human sovereign ratification. Returns hold_id, action summary, risk level, and floor violations for review.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tools-grid" id="tools-grid">
+      <div class="tool-card skeleton" style="height:80px"></div>
+      <div class="tool-card skeleton" style="height:80px"></div>
+      <div class="tool-card skeleton" style="height:80px"></div>
+      <div class="tool-card skeleton" style="height:80px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CONSTITUTIONAL FLOORS
+═══════════════════════════════════════════ -->
+<section class="section" id="floors">
+  <div class="container">
+    <p class="section-label">Governance model</p>
+    <h2 class="section-title">13 constitutional floors</h2>
+    <p class="floors-intro">
+      Every AI action is tested against all 13 floors in real-time. A single floor failure triggers a HOLD verdict — execution pauses until a human sovereign reviews. No floor is advisory. No exception is silent.
+    </p>
+
+    <div class="floors-table-wrap">
+      <table class="floors-table">
+        <thead>
+          <tr>
+            <th>Floor</th>
+            <th>Name</th>
+            <th>Arabic</th>
+            <th>Description</th>
+            <th>HOLD trigger</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="floor-cell-num">F1</td>
+            <td class="floor-cell-name">Amanah — Trust</td>
+            <td class="floor-cell-arabic">الأمانة</td>
+            <td class="floor-cell-desc">No irreversible action without VAULT999 seal. No execution before audit trail initialized.</td>
+            <td class="floor-cell-trigger">Irreversible action without VAULT999 hash</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F2</td>
+            <td class="floor-cell-name">Haqq — Truth</td>
+            <td class="floor-cell-arabic">الحق</td>
+            <td class="floor-cell-desc">No ungrounded factual claims. τ (truth score) must be ≥ 0.99 for domain statements.</td>
+            <td class="floor-cell-trigger">τ (truth score) &lt; 0.99 on domain claim</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F3</td>
+            <td class="floor-cell-name">Hikmah — Wisdom</td>
+            <td class="floor-cell-arabic">الحكمة</td>
+            <td class="floor-cell-desc">Logical consistency required. Proportional response. No catastrophic escalation.</td>
+            <td class="floor-cell-trigger">Catastrophic escalation · logical contradiction</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F4</td>
+            <td class="floor-cell-name">Sabr — Patience</td>
+            <td class="floor-cell-arabic">الصبر</td>
+            <td class="floor-cell-desc">No premature action. Full context must be loaded before execution gates clear.</td>
+            <td class="floor-cell-trigger">Premature execution · context not loaded</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F5</td>
+            <td class="floor-cell-name">Rahmah — Compassion</td>
+            <td class="floor-cell-arabic">الرحمة</td>
+            <td class="floor-cell-desc">Peace-orientation scored in every output. High ΔS entropy cost blocks Forge.</td>
+            <td class="floor-cell-trigger">ΔS entropy cost too high · peace violation</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F6</td>
+            <td class="floor-cell-name">Adl — Justice</td>
+            <td class="floor-cell-arabic">العدل</td>
+            <td class="floor-cell-desc">Fair treatment across all actors and contexts. No special pleading.</td>
+            <td class="floor-cell-trigger">Special pleading · unfair treatment detected</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F7</td>
+            <td class="floor-cell-name">Gödel Lock — Humility</td>
+            <td class="floor-cell-arabic">تلازم غودل</td>
+            <td class="floor-cell-desc">No false omniscience. Bounded confidence only. High Ω₀ with low τ triggers HOLD.</td>
+            <td class="floor-cell-trigger">Ω₀ high + τ low · false omniscience claim</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F8</td>
+            <td class="floor-cell-name">Ilm — Knowledge</td>
+            <td class="floor-cell-arabic">العلم</td>
+            <td class="floor-cell-desc">Source-traced evidence required for all factual claims. No hearsay as fact.</td>
+            <td class="floor-cell-trigger">Unverified claim · hearsay presented as fact</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F9</td>
+            <td class="floor-cell-name">Anti-Hantu — No Deception</td>
+            <td class="floor-cell-arabic">مكافحة الخداع</td>
+            <td class="floor-cell-desc">Prohibits manipulation, false identity claims, and misleading framing.</td>
+            <td class="floor-cell-trigger">Manipulation · identity fraud · misleading framing</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F10</td>
+            <td class="floor-cell-name">Ontology — Self-model</td>
+            <td class="floor-cell-arabic">أنطولوجيا</td>
+            <td class="floor-cell-desc">No contradictory self-models. No identity fraud. Agent must be self-consistent.</td>
+            <td class="floor-cell-trigger">Contradictory self-model · identity inconsistency</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F11</td>
+            <td class="floor-cell-name">Wala — Loyalty</td>
+            <td class="floor-cell-arabic">الولاء</td>
+            <td class="floor-cell-desc">Alignment to principal hierarchy. No defection from declared governance chain.</td>
+            <td class="floor-cell-trigger">Governance chain defection · unauthorized override</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F12</td>
+            <td class="floor-cell-name">Curiosity — Open Inquiry</td>
+            <td class="floor-cell-arabic">الفضول</td>
+            <td class="floor-cell-desc">Epistemic openness. No premature closure. Revisit assumptions when evidence shifts.</td>
+            <td class="floor-cell-trigger">Premature epistemic closure · evidence ignored</td>
+          </tr>
+          <tr>
+            <td class="floor-cell-num">F13</td>
+            <td class="floor-cell-name">Sovereign — Human Authority</td>
+            <td class="floor-cell-arabic">السيادة</td>
+            <td class="floor-cell-desc">888_HOLD blocks irreversible actions. Human holds final veto. Always.</td>
+            <td class="floor-cell-trigger">888_HOLD: irreversible action awaiting human ratification</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="floors-legend">τ = truth score · Ω₀ = prior confidence · ΔS = entropy cost · VAULT999 = immutable SHA-256 audit ledger · 888_HOLD = cryptographic human veto gate</p>
+  </div>
+</section>
+
+<section class="section" id="glossary">
+  <div class="container">
+    <p class="section-label">Reference</p>
+    <h2 class="section-title">Glossary</h2>
+    <div class="glossary-grid">
+      <div class="glossary-item"><span class="glossary-term">MCP</span><span class="glossary-def">Model Context Protocol — JSON-RPC 2.0 standard for AI tool/resource/prompt discovery. The protocol arifOS exposes at POST /mcp.</span></div>
+      <div class="glossary-item"><span class="glossary-term">WebMCP</span><span class="glossary-def">Browser-native MCP variant. Drop-in JS SDK at /webmcp/sdk.js. Enables web apps to call arifOS tools directly from browser JavaScript.</span></div>
+      <div class="glossary-item"><span class="glossary-term">888_HOLD</span><span class="glossary-def">arifOS human-veto gate. Any action tagged irreversible triggers a HOLD — requiring explicit human sovereign approval before execution proceeds.</span></div>
+      <div class="glossary-item"><span class="glossary-term">VAULT999</span><span class="glossary-def">SHA-256–based immutable audit ledger. Every SEAL-verdict action is committed with timestamp, session ID, and floor chain hash. Tamper-evident, append-only.</span></div>
+      <div class="glossary-item"><span class="glossary-term">ΔΩΨ</span><span class="glossary-def">arifOS trinity symbol: Discernment (Δ), Empathy (Ω), Authority (Ψ). The philosophical calibration layer behind every governance decision.</span></div>
+      <div class="glossary-item"><span class="glossary-term">F1–F13</span><span class="glossary-def">13 constitutional floors. Each is a hard constraint on AI behavior (Amanah/Trust → Sovereign/Human). Any single floor failure triggers HOLD.</span></div>
+      <div class="glossary-item"><span class="glossary-term">HITL</span><span class="glossary-def">Human-in-the-Loop. Cryptographically enforced, not advisory. The 888_HOLD system ensures no irreversible action bypasses human review.</span></div>
+      <div class="glossary-item"><span class="glossary-term">SEAL / HOLD / VOID</span><span class="glossary-def">arifOS verdicts. SEAL = safe to proceed. HOLD = pause for review. VOID = do not proceed. Every action gets exactly one verdict.</span></div>
+      <div class="glossary-item"><span class="glossary-term">A2A</span><span class="glossary-def">Agent-to-Agent protocol. arifOS exposes GET/POST /a2a/ endpoints for multi-agent coordination with shared constitutional context.</span></div>
+      <div class="glossary-item"><span class="glossary-term">GEOX</span><span class="glossary-def">Grounded Earth Model. The physics-first reasoning layer applied to any claims touching geology, materials, or the physical Earth.</span></div>
+      <div class="glossary-item"><span class="glossary-term">arifOS runtime</span><span class="glossary-def">The FastMCP server process at the core of arifOS MCP. Serves MCP JSON-RPC at :8080/mcp, health at :8080/health, tools, prompts, and resources.</span></div>
+      <div class="glossary-item"><span class="glossary-term">DITEMPA BUKAN DIBERI</span><span class="glossary-def">"Forged, not given." arifOS guiding principle: genuine capability is earned through discipline and evidence, not style or assertion.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     QUICK START
+═══════════════════════════════════════════ -->
+<section class="section" id="quickstart" style="padding-top:0">
+  <div class="container">
+    <p class="section-label">Self-host in 2 minutes</p>
+    <h2 class="section-title">Run your own constitutional gateway</h2>
+    <p class="section-sub">arifOS MCP is self-contained. One Docker command, full constitutional governance, MCP-compatible.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);margin-top:var(--space-6);align-items:start">
+      <div>
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:var(--space-6)">
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)">
+            <span style="background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">1</span>
+            <span style="font-weight:600">Pull &amp; run</span>
+          </div>
+          <pre style="background:#0F1117;border-radius:8px;padding:var(--space-4);font-family:var(--font-mono);font-size:0.8rem;color:#e8e8f0;overflow-x:auto;margin:0;line-height:1.6">docker run -d \
+  --name arifosmcp \
+  -p 8080:8080 \
+  arifos/arifosmcp:latest</pre>
+        </div>
+
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:var(--space-6);margin-top:var(--space-4)">
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)">
+            <span style="background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">2</span>
+            <span style="font-weight:600">Connect any MCP client</span>
+          </div>
+          <pre style="background:#0F1117;border-radius:8px;padding:var(--space-4);font-family:var(--font-mono);font-size:0.8rem;color:#e8e8f0;overflow-x:auto;margin:0;line-height:1.6"># Claude Desktop, Cursor, etc.
+# Server URL:
+https://your-host:8080/mcp
+
+# Or add to config:
+{
+  "mcpServers": {
+    "arifOS": {
+      "url": "https://your-host:8080/mcp"
+    }
+  }
+}</pre>
+        </div>
+
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:var(--space-6);margin-top:var(--space-4)">
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)">
+            <span style="background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">3</span>
+            <span style="font-weight:600">Verify</span>
+          </div>
+          <pre style="background:#0F1117;border-radius:8px;padding:var(--space-4);font-family:var(--font-mono);font-size:0.8rem;color:#e8e8f0;overflow-x:auto;margin:0;line-height:1.6">curl https://your-host:8080/health
+# Returns: vitality, verdict, tool count,
+#          thermodynamic metrics, capability map</pre>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div style="border:1px solid var(--border);border-radius:10px;padding:var(--space-4)">
+            <div style="font-weight:600;margin-bottom:6px">🔱 What's included</div>
+            <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:var(--text-secondary);line-height:1.8">
+              <li>17 governed tools (sense, judge, vault, reply…)</li>
+              <li>13 constitutional floors — F1 Amanah → F13 Sovereign</li>
+              <li>888_HOLD human veto gate</li>
+              <li>VAULT999 immutable audit ledger</li>
+              <li>MCP + WebMCP protocol endpoints</li>
+              <li>Philosophical corpus (50 wisdom anchors)</li>
+            </ul>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:var(--space-4)">
+            <div style="font-weight:600;margin-bottom:6px">⚡ Optional extras</div>
+            <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:var(--text-secondary);line-height:1.8">
+              <li>Postgres — session persistence</li>
+              <li>Redis — rate limiting &amp; pub/sub</li>
+              <li>Qdrant — vector memory</li>
+            </ul>
+          </div>
+          <div style="border:1px solid rgba(0,180,160,0.3);border-radius:10px;padding:var(--space-4);background:rgba(0,180,160,0.05)">
+            <div style="font-weight:600;margin-bottom:6px;color:var(--accent)">📜 AGPL-3.0 — Forged, not given.</div>
+            <div style="font-size:0.82rem;color:var(--text-secondary)">Self-host. Self-govern. No vendor lock-in.</div>
+            <a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:var(--accent);color:#fff;border-radius:6px;padding:6px 14px;font-size:0.78rem;font-weight:600;text-decoration:none">
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CONSTELLATION
+═══════════════════════════════════════════ -->
+<section class="section" id="constellation" style="padding-top:0">
+  <div class="container">
+    <p class="section-label">arifOS ecosystem</p>
+    <h2 class="section-title">Part of the constellation</h2>
+    <p class="section-sub">arifOS MCP is the constitutional kernel powering sovereign AI systems — self-hosted, human-sovereign, auditable.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-4);margin-top:var(--space-6)">
+      <a href="https://arif-fazil.com" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">👤</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">Arif Fazil</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Field Geoscientist & AI Constitutionalist · Personal hub</div>
+      </a>
+      <a href="https://geox.arif-fazil.com" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">🌏</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">GEOX</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Earth Intelligence Platform — terrain, hazard, subsurface reasoning governed by arifOS F1–F13</div>
+      </a>
+      <a href="https://arifos.arif-fazil.com" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">🔱</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">arifOS Core</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Constitutional governance kernel — the stack powering this gateway</div>
+      </a>
+      <a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener" style="display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);text-decoration:none;transition:border-color 0.2s">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">⚙</div>
+        <div style="font-weight:600;color:var(--text-primary);margin-bottom:4px">Open Source</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">AGPL-3.0 · Self-hostable · MIT-like philosophy · Pull requests welcome</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-left">
+        <div class="nav-logo">
+          <div class="logo-mark">ΔΩΨ</div>
+          arifOS MCP
+        </div>
+        <p class="footer-tagline">
+          Constitutional AI governance runtime. Enforces 13 floors on every action. Self-hosted, human-sovereign, auditable.
+        </p>
+        <ul class="footer-links">
+          <li><a href="/health">Health</a></li>
+          <li><a href="/tools">Tools</a></li>
+          <li><a href="/prompts">Prompts</a></li>
+          <li><a href="/resources">Resources</a></li>
+          <li><a href="/.well-known/mcp/server.json">Manifest</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/llms-full.txt">llms-full.txt</a></li>
+          <li><a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/ariffazil/arifOS/blob/main/LICENSE" target="_blank" rel="noopener">AGPL-3.0</a></li>
+        </ul>
+      </div>
+      <div class="footer-right">
+        <div class="footer-symbol">ΔΩΨ</div>
+        <div class="footer-version" id="footer-version">v—</div>
+        <div class="footer-version">DITEMPA BUKAN DIBERI</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════ -->
+<script>
+  // ─── Theme ───────────────────────────────────────────
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-label').textContent = isDark ? 'light' : 'dark';
+    document.getElementById('theme-icon').textContent = isDark ? '☀' : '☾';
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  }
+
+  // Restore theme preference
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('theme-label').textContent = savedTheme === 'dark' ? 'light' : 'dark';
+  document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀' : '☾';
+
+  // ─── Copy to clipboard ──────────────────────────────
+  function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'copy';
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  }
+
+  // ─── Load Health ────────────────────────────────────
+  const API = '';
+
+  async function loadHealth() {
+    try {
+      const res = await fetch(`${API}/health`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json();
+
+      // Status
+      const isHealthy = d.status === 'healthy';
+      const dot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      dot.className = 'status-dot' + (isHealthy ? '' : ' degraded');
+      statusText.textContent = d.status || 'unknown';
+      statusText.style.color = isHealthy ? 'var(--seal-green)' : 'var(--caution)';
+
+      // Service info
+      document.getElementById('pv-service').textContent = d.service || '—';
+      document.getElementById('pv-version').textContent = d.version || '—';
+      document.getElementById('pv-transport').textContent = d.transport || '—';
+      document.getElementById('pv-protocol').textContent = (d.protocol_version || d.protocol_version) || '—';
+      document.getElementById('pv-mcp-ep').textContent = d.mcp_endpoint || '—';
+      document.getElementById('pv-health-ep').textContent = d.health_endpoint || '—';
+      document.getElementById('pv-tools-ep').textContent = d.tools_endpoint || '—';
+      document.getElementById('pv-tool-count').textContent = (d.tools_loaded || d.tool_count || '—') + ' tools';
+
+      // Footer
+      document.getElementById('footer-version').textContent = 'v' + (d.version || '—');
+
+      // Verdict + vitality ring
+      const verdict = d.thermodynamic?.verdict || d.verdict;
+      const vit = d.thermodynamic?.vitality_index;
+      if (verdict) {
+        document.getElementById('proof-verdict').style.display = 'flex';
+        const vClass = verdict === 'SEAL' ? 'seal' : verdict === 'HOLD' ? 'hold' : verdict === 'VOID' ? 'void' : '';
+        const vBadge = document.getElementById('pv-verdict');
+        vBadge.textContent = verdict;
+        vBadge.className = 'verdict-badge ' + vClass;
+      }
+      if (vit !== undefined && vit !== null) {
+        document.getElementById('pv-vitality').textContent = typeof vit === 'number' ? vit.toFixed(2) : vit;
+        const ring = document.getElementById('vit-ring');
+        if (ring) {
+          const circumference = 2 * Math.PI * 24; // r=24
+          const offset = circumference * (1 - (typeof vit === 'number' ? vit : 0));
+          ring.style.strokeDashoffset = offset;
+        }
+      }
+
+      // Trust chips
+      const tc = d.tools_loaded || d.tool_count;
+      const chipCount = document.getElementById('chip-count');
+      if (tc) {
+        chipCount.textContent = tc + ' tools';
+        chipCount.classList.remove('loading');
+      }
+      const badgeCount = document.getElementById('tools-count-badge');
+      if (tc) {
+        badgeCount.textContent = tc + ' loaded';
+      }
+
+      return d;
+    } catch (e) {
+      // Fallback: mark offline
+      const dot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      dot.className = 'status-dot offline';
+      statusText.textContent = 'offline';
+      statusText.style.color = 'var(--danger)';
+      return null;
+    }
+  }
+
+  // ─── Load Tools ─────────────────────────────────────
+  async function loadTools() {
+    try {
+      const res = await fetch(`${API}/tools`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json();
+      const tools = d.tools || [];
+      renderTools(tools);
+      return tools;
+    } catch (e) {
+      document.getElementById('tools-grid').innerHTML =
+        '<p class="loading">Failed to load tools — server unreachable.</p>';
+      return [];
+    }
+  }
+
+  function renderTools(tools) {
+    const grid = document.getElementById('tools-grid');
+    if (!tools || tools.length === 0) {
+      grid.innerHTML = '<p class="loading">No tools available.</p>';
+      return;
+    }
+
+    grid.innerHTML = tools.map(tool => {
+      const name = escapeHtml(tool.name || '?');
+      const desc = escapeHtml((tool.description || 'No description').substring(0, 100));
+      const hasParams = tool.parameters?.properties && Object.keys(tool.parameters.properties).length > 0;
+      const params = hasParams ? Object.keys(tool.parameters.properties).slice(0, 3).join(', ') : null;
+
+      return `
+        <div class="tool-card">
+          <div class="tool-card-header">
+            <code class="tool-name">${name}</code>
+            <button class="copy-btn" onclick="copyToClipboard('${name}', this)">copy</button>
+          </div>
+          <p class="tool-desc">${desc}${desc.length >= 100 ? '…' : ''}</p>
+          ${params ? `<p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px;font-family:var(--font-mono)">params: ${params}</p>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // ─── Try-It-Now: arifos_sense dry-run ─────────────
+  async function runDemo() {
+    const btn = document.getElementById('demo-submit');
+    const out = document.getElementById('demo-output');
+    const query = document.getElementById('demo-query').value.trim();
+    const risk = document.getElementById('demo-risk').value;
+    const context = document.getElementById('demo-context').value.trim();
+
+    if (!query) {
+      out.innerHTML = '<span class="verdict-label">Error</span> Query cannot be empty.';
+      out.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Analysing through 13 floors...';
+    out.classList.remove('visible');
+    out.innerHTML = '<span class="verdict-label">Running arifos_sense constitutional analysis…</span>';
+    out.classList.add('visible');
+
+    try {
+      const payload = {
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+          name: 'arifos_sense',
+          arguments: {
+            query: query,
+            risk_tier: risk
+          }
+        },
+        id: 1
+      };
+
+      const res = await fetch(API + '/mcp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/event-stream'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      // SSE stream — read until we get a JSON data event
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let done = false;
+      let resultData = null;
+
+      while (!done) {
+        const { value, done: d } = await reader.read();
+        done = d;
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+          // Process complete lines
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('data:')) {
+              try {
+                const jsonStr = trimmed.substring(5).trim();
+                const parsed = JSON.parse(jsonStr);
+                if (parsed.result) {
+                  const contentText = parsed.result.content && parsed.result.content[0] && parsed.result.content[0].text;
+                  if (contentText) {
+                    try { resultData = JSON.parse(contentText); } catch { resultData = { raw: contentText }; }
+                  }
+                }
+                if (parsed.error) throw new Error(parsed.error.message || JSON.stringify(parsed.error));
+              } catch (e) {
+                if (e.message) throw e;
+              }
+            }
+          }
+        }
+      }
+
+      if (!resultData) throw new Error('No result received from arifos_sense.');
+
+      // Parse arifos_sense response
+      const verdict = resultData.verdict || resultData.governance_status || 'SEAL';
+      const govStatus = resultData.governance_status || '';
+      const riskClass = resultData.risk_class || '';
+      const execStatus = resultData.execution_status || '';
+      const intel = resultData.intelligence_state || {};
+      const confidence = intel.confidence;
+      const uncertainty = intel.uncertainty_score;
+      const stage = resultData.stage || '';
+      const blocked = resultData.blocked_tools || [];
+      const allowed = resultData.allowed_next_tools || [];
+      const raw = resultData.raw || '';
+
+      // Map arifos_sense verdict to display class
+      const vClass = verdict === 'SEAL' ? 'seal' : verdict === 'HOLD' || govStatus === 'HOLD' ? 'hold' : verdict === 'VOID' || govStatus === 'VOID' ? 'void' : govStatus === 'PAUSE' ? 'hold' : '';
+
+      let html = '<div class="verdict-label" style="margin-bottom:10px">Constitutional Analysis Result</div>';
+      html += '<div class="verdict-badge ' + vClass + '" style="margin-bottom:10px">' + verdict + (govStatus && govStatus !== verdict ? ' / ' + govStatus : '') + '</div>';
+      if (riskClass) html += '<div style="margin-top:8px"><span class="verdict-label">Risk class</span>  <code style="color:var(--accent)">' + riskClass + '</code></div>';
+      if (execStatus) html += '<div><span class="verdict-label">Execution</span>  <code>' + execStatus + '</code></div>';
+      if (stage) html += '<div><span class="verdict-label">Stage</span>  <code style="color:var(--accent)">' + stage + '</code></div>';
+      if (confidence !== undefined && confidence !== null) html += '<div style="margin-top:8px"><span class="verdict-label">Confidence (Ω)</span>  <code style="color:var(--seal-green)">' + (typeof confidence === 'number' ? confidence.toFixed(3) : confidence) + '</code></div>';
+      if (uncertainty !== undefined && uncertainty !== null) html += '<div><span class="verdict-label">Uncertainty (σ)</span>  <code style="color:var(--caution)">' + (typeof uncertainty === 'number' ? uncertainty.toFixed(3) : uncertainty) + '</code></div>';
+      if (blocked.length > 0) html += '<div style="margin-top:8px"><span class="verdict-label">Blocked tools</span>  <code style="color:var(--danger)">' + blocked.slice(0, 5).join(', ') + '</code></div>';
+      if (allowed.length > 0) html += '<div><span class="verdict-label">Allowed next</span>  <code style="color:var(--seal-green)">' + allowed.slice(0, 5).join(', ') + '</code></div>';
+      if (govStatus === 'PAUSE' || verdict === 'SABAR') {
+        html += '<div style="margin-top:8px;font-size:0.78rem;color:var(--caution)">Governance requires evidence grounding before proceeding. SABAR pause active.</div>';
+      }
+      html += '<div style="margin-top:10px;font-size:0.72rem;color:var(--text-muted)">arifos_sense v' + (resultData.version || '2.0') + ' · dry_run=true · ' + (new Date()).toISOString().split('T')[0] + '</div>';
+      out.innerHTML = html;
+    } catch (e) {
+      out.innerHTML = '<span class="verdict-label">Error</span>  <span style="color:var(--danger)">' + escapeHtml(e.message || String(e)) + '</span><div style="margin-top:6px;font-size:0.72rem;color:var(--text-muted)">Ensure arifOS MCP is reachable at ' + (API || '/') + '/mcp</div>';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L12 2L7 12L9 7L2 7Z" fill="currentColor"/></svg> Run Constitutional Analysis';
+      out.classList.add('visible');
+    }
+  }
+
+  // ─── Init ──────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    loadHealth();
+    loadTools();
+  });
+</script>
+</body>
+</html>

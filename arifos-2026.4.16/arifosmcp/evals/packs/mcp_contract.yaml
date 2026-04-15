@@ -1,0 +1,47 @@
+pack: mcp_contract
+description: MCP protocol handshake and capability discovery
+
+targets:
+  - transport: stdio
+    required: true
+  - transport: http
+    required: true
+
+tests:
+  - id: contract-init-001
+    name: initialize handshake succeeds
+    severity: P0
+    expect:
+      initialized: true
+
+  - id: contract-tools-001
+    name: tools list available
+    severity: P0
+    expect:
+      tools_min_count: 1
+
+  - id: contract-resources-001
+    name: resources list works when supported
+    severity: P1
+    expect:
+      resources_list_ok: true
+
+  - id: contract-prompts-001
+    name: prompts list works when supported
+    severity: P1
+    expect:
+      prompts_list_ok: true
+
+  - id: contract-transport-001
+    name: stdio transport roundtrip
+    severity: P0
+    transport: stdio
+    expect:
+      roundtrip_ok: true
+
+  - id: contract-transport-002
+    name: streamable http roundtrip
+    severity: P0
+    transport: http
+    expect:
+      roundtrip_ok: true

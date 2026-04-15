@@ -37,6 +37,7 @@ _APP_MODULES: list[tuple[str, str]] = [
     ("arifosmcp.apps.vault_app",         "VaultApp (999_VAULT)"),
     ("arifosmcp.apps.init_app",          "InitApp (000_INIT)"),
     ("arifosmcp.apps.forge_app",         "ForgeApp (FORGE Double-Gate)"),
+    ("arifosmcp.apps.wealth_app",        "WealthApp (@WEALTH Economist)"),
 ]
 
 

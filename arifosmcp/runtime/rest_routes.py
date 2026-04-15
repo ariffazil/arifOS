@@ -46,7 +46,7 @@ from arifosmcp.runtime.resources import apex_tools_markdown_table
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
 from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
-from .fastmcp_version import HAS_CUSTOM_ROUTE, HAS_ROUTE
+from .fastmcp_version import HAS_CUSTOM_ROUTE
 
 BUILD_INFO = get_build_info()
 BUILD_VERSION = BUILD_INFO["server_version"]
@@ -176,7 +176,7 @@ def _representative_floor_score(floor_id: str) -> float:
     return threshold * 0.5
 
 
-def _canonical_floor_defaults() -> dict[dict, float]:
+def _canonical_floor_defaults() -> dict[str, float]:
     return {fid: _representative_floor_score(fid) for fid in FLOOR_SPEC_KEYS}
 
 
@@ -955,6 +955,24 @@ def _normalize_tool_name(raw_name: str) -> str:
     return (raw_name or "").strip().strip("/")
 
 
+def _rest_error(
+    message: str,
+    status_code: int = 500,
+    request_id: str | None = None,
+    tool: str | None = None,
+) -> JSONResponse:
+    """Generic error envelope to prevent metadata leakage."""
+    payload: dict[str, Any] = {"error": message}
+    if request_id:
+        payload["request_id"] = request_id
+    if tool:
+        payload["tool"] = tool
+    
+    # In production, we don't return raw 'e' or 'exc' strings.
+    # We return the safe 'message' provided.
+    return JSONResponse(payload, status_code=status_code)
+
+
 def _public_base_url(request: Request) -> str:
     explicit = os.getenv("ARIFOS_PUBLIC_BASE_URL", "").strip().rstrip("/")
     if explicit:
@@ -1180,13 +1198,13 @@ def register_rest_routes(
         )
 
     # Load AAA landing page HTML
-    AAA_LANDING_HTML_PATH = "/usr/src/app/static/aaa-landing/index.html"
-    AAA_LANDING_HTML = ""
+    aaa_landing_html_path = "/usr/src/app/static/aaa-landing/index.html"
+    aaa_landing_html = ""
     try:
-        with open(AAA_LANDING_HTML_PATH) as f:
-            AAA_LANDING_HTML = f.read()
+        with open(aaa_landing_html_path) as f:
+            aaa_landing_html = f.read()
     except Exception:
-        AAA_LANDING_HTML = """<!DOCTYPE html>
+        aaa_landing_html = """<!DOCTYPE html>
 <html><head><title>arifOS MCP</title></head>
 <body><h1>arifOS Intelligence Kernel</h1>
 <p>MCP Endpoint: https://aaa.arif-fazil.com/mcp</p>
@@ -1198,7 +1216,7 @@ def register_rest_routes(
         """AAA MCP landing page — serves HTML to browsers, API info to MCP clients."""
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
-            return HTMLResponse(AAA_LANDING_HTML, headers={"Cache-Control": "max-age=60"})
+            return HTMLResponse(aaa_landing_html, headers={"Cache-Control": "max-age=60"})
         # For MCP clients requesting JSON
         return JSONResponse(
             {
@@ -1378,9 +1396,12 @@ def register_rest_routes(
 
             result = await tool_fn(**filtered)
         except Exception as exc:
-            return JSONResponse(
-                {"error": str(exc), "tool": incoming_name, "request_id": request_id},
+            logger.exception(f"Tool call failed: {incoming_name}")
+            return _rest_error(
+                "Tool execution failed",
                 status_code=500,
+                request_id=request_id,
+                tool=incoming_name,
             )
 
         latency_ms = (time.time() - start_time) * 1000
@@ -1551,12 +1572,9 @@ def register_rest_routes(
                 payload,
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
-        except Exception as exc:
+        except Exception:
             logger.exception("governance_status endpoint failed")
-            return JSONResponse(
-                {"error": "governance_status_failed", "detail": str(exc)},
-                status_code=500,
-            )
+            return _rest_error("Failed to retrieve governance status", status_code=500)
 
     @route("/status", methods=["GET"])
     async def status_page(request: Request) -> Response:
@@ -1620,12 +1638,9 @@ def register_rest_routes(
                 },
                 headers={"Access-Control-Allow-Origin": "*"},
             )
-        except Exception as exc:
+        except Exception:
             logger.exception("governance_history endpoint failed")
-            return JSONResponse(
-                {"error": "governance_history_failed", "detail": str(exc)},
-                status_code=500,
-            )
+            return _rest_error("Failed to retrieve governance history", status_code=500)
 
     # ═══════════════════════════════════════════════════════
     # CHECKPOINT REST COMPATIBILITY — OpenAPI / action-style integration
@@ -1744,10 +1759,11 @@ def register_rest_routes(
                 }
             )
 
-        except Exception as exc:
+        except Exception:
             logger.exception("checkpoint_endpoint failed")
-            return JSONResponse(
-                {"error": str(exc), "verdict": "HOLD", "issue": "RUNTIME_FAILURE"}, status_code=500
+            return _rest_error(
+                "Constitutional checkpoint failed",
+                status_code=500,
             )
 
     @route("/openapi.yaml", methods=["GET"])
@@ -1826,7 +1842,7 @@ def register_rest_routes(
     # ── Vault-Seal Widget (ChatGPT Apps SDK) ────────────────────────────────────
     # Served at /widget/vault-seal with frame-ancestors CSP so ChatGPT can embed.
     # Consolidates the mcp.af-forge.io standalone stack into arifosmcp.arif-fazil.com.
-    _WIDGET_CSP = (
+    widget_csp = (
         "default-src 'none'; "
         "script-src 'self' 'unsafe-inline'; "
         "style-src 'self' 'unsafe-inline'; "
@@ -1835,8 +1851,8 @@ def register_rest_routes(
         "frame-ancestors https://chat.openai.com https://chatgpt.com; "
         "connect-src 'self';"
     )
-    _WIDGET_HEADERS = {
-        "Content-Security-Policy": _WIDGET_CSP,
+    widget_headers = {
+        "Content-Security-Policy": widget_csp,
         "X-Frame-Options": "ALLOW-FROM https://chat.openai.com",
         "Access-Control-Allow-Origin": "https://chat.openai.com",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -1859,12 +1875,12 @@ def register_rest_routes(
     async def vault_seal_widget(request: Request) -> Response:
         """Vault-Seal widget for ChatGPT Apps SDK iframe embedding."""
         if request.method == "OPTIONS":
-            return Response(status_code=204, headers=_WIDGET_HEADERS)
+            return Response(status_code=204, headers=widget_headers)
         if not os.path.exists(_widget_file):
             return Response("Widget not found", status_code=404)
         with open(_widget_file, "r", encoding="utf-8") as fh:
             html = fh.read()
-        return HTMLResponse(html, headers=_WIDGET_HEADERS)
+        return HTMLResponse(html, headers=widget_headers)
 
     @route("/widget/", methods=["GET"])
     async def widget_index(request: Request) -> Response:
@@ -1895,7 +1911,7 @@ def register_rest_routes(
                 "description": "Governed context objects exposed to MCP clients."
             })
         except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+            return _rest_error(f"Failed to list resources: {str(e)}", status_code=500)
 
     @route("/resources/{uri:path}", methods=["GET"])
     async def read_resource(request: Request, uri: str) -> Response:
@@ -1906,8 +1922,8 @@ def register_rest_routes(
             if not content:
                 return JSONResponse({"error": f"Resource not found: {uri}"}, status_code=404)
             return JSONResponse({"uri": uri, "content": content})
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("Resource retrieval failed", status_code=500)
 
     # ── Prompts ───────────────────────────────────────────────────────────────
     @route("/prompts", methods=["GET"])
@@ -1929,8 +1945,8 @@ def register_rest_routes(
                 "count": len(prompts_list),
                 "description": "Reusable governed task templates. MCP prompt protocol supported."
             })
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("Failed to list prompts", status_code=500)
 
     @route("/prompts/{prompt_name:path}", methods=["GET"])
     async def get_prompt(request: Request, prompt_name: str) -> Response:
@@ -1945,8 +1961,8 @@ def register_rest_routes(
                         "arguments": getattr(p, 'arguments', []) or []
                     })
             return JSONResponse({"error": f"Prompt not found: {prompt_name}"}, status_code=404)
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("Failed to retrieve prompt", status_code=500)
 
     # ── A2A ─────────────────────────────────────────────────────────────────
     @route("/a2a/health", methods=["GET"])
@@ -1976,8 +1992,8 @@ def register_rest_routes(
             )
             task = await a2a.task_manager.create_task(req)
             return JSONResponse({"task_id": task.id, "status": task.state.value if hasattr(task.state, 'value') else str(task.state)})
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("A2A task creation failed", status_code=500)
 
     @route("/a2a/status/{task_id}", methods=["GET"])
     async def a2a_status(request: Request) -> Response:
@@ -1990,8 +2006,8 @@ def register_rest_routes(
             if not task:
                 return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
             return JSONResponse({"task_id": task.id, "status": task.state.value if hasattr(task.state, 'value') else str(task.state)})
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("Failed to retrieve task status", status_code=500)
 
     @route("/a2a/subscribe/{task_id}", methods=["GET"])
     async def a2a_subscribe(request: Request) -> Response:
@@ -2007,8 +2023,8 @@ def register_rest_routes(
                 yield "data: {\"status\":\"subscribed\"}\n\n"
             from starlette.responses import StreamingResponse
             return StreamingResponse(event_generator(), media_type="text/event-stream")
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("A2A subscription failed", status_code=500)
 
     # ── WebMCP ───────────────────────────────────────────────────────────────
     @route("/.well-known/webmcp", methods=["GET"])
@@ -2016,7 +2032,7 @@ def register_rest_routes(
         """WebMCP discovery document."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
-            webmcp_app = create_webmcp_app(mcp)
+            create_webmcp_app(mcp)
             base = _public_base_url(request)
             return JSONResponse({
                 "site": {
@@ -2032,8 +2048,8 @@ def register_rest_routes(
                 },
                 "description": "Browser-native governed interface for arifOS MCP."
             })
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("WebMCP discovery failed", status_code=500)
 
     @route("/webmcp", methods=["GET"])
     async def webmcp_console(request: Request) -> Response:
@@ -2075,7 +2091,7 @@ init();
         """Browser SDK — drop-in script for web apps."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
-            webmcp_app = create_webmcp_app(mcp)
+            create_webmcp_app(mcp)
             base = _public_base_url(request)
             sdk = f"""// arifOS WebMCP SDK v2026.04.11
 (function(w){{
@@ -2098,8 +2114,8 @@ init();
 """
             from starlette.responses import Response
             return Response(content=sdk, media_type="application/javascript")
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("WebMCP SDK load failed", status_code=500)
 
     @route("/webmcp/tools.json", methods=["GET"])
     async def webmcp_tools(request: Request) -> Response:

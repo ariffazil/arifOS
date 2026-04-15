@@ -79,8 +79,9 @@ async def physics_reality(
         )
 
     payload = dict(payload or {})
-    # Ensure validated query is in payload (physics_reality uses "input" field per convention)
-    payload["input"] = effective_query
+    # Ensure validated query is in payload (physics_reality uses "query" field)
+    payload["query"] = effective_query
+    payload["input"] = effective_query  # Keep for backward compatibility during transition
 
     if caller_context:
         payload.setdefault("caller_context", caller_context)

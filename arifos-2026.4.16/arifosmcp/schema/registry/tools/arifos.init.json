@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.context_packet.init",
+  "context_packet_version": "1.0.0",
+  "tool_id": "arifos.init",
+  "stage": "000_INIT",
+  "stage_order": 0,
+  "desc": "Session establishment",
+  "trinity": "Ψ",
+  "trinity_name": "Sovereignty",
+  "uri": "/arifOS/runtime/init_anchor",
+  "backing_tool": "init_anchor",
+  "role": "bootstrap",
+  "role_description": "Session initialization and actor binding",
+  "modes": ["init", "revoke", "refresh", "state", "status"],
+  "default_mode": "init",
+  "purpose": "Establish session continuity, verify identity, initialize governance context, and bind the actor to a constitutional contract for the session lifetime.",
+  "when_to_use": [
+    "Starting any new conversation or task sequence",
+    "Need to establish identity and accountability",
+    "Beginning a governed workflow",
+    "Need to check session state or refresh continuity",
+    "Re-establishing context after interruption"
+  ],
+  "when_not_to_use": [
+    "Do not use mid-task for unrelated operations - use refresh instead",
+    "Do not use to bypass existing session governance",
+    "Do not treat as a general-purpose status check - use arifos.route for that"
+  ],
+  "not_job": [
+    "Not a memory retrieval system",
+    "Not a reasoning engine",
+    "Not a safety evaluator",
+    "Not an execution mechanism"
+  ],
+  "inputs": {
+    "mode": {
+      "type": "string",
+      "enum": ["init", "revoke", "refresh", "state", "status"],
+      "description": "Operation mode for session management"
+    },
+    "required_payload": {
+      "declared_intent": "string - What the actor intends to accomplish",
+      "confidence_self_estimate": "number 0.0-1.0 - Actor's confidence in their understanding",
+      "context_assumptions": "string[] - Assumptions being made about context"
+    },
+    "optional_payload": {
+      "actor_metadata": "object - Additional identity verification",
+      "preferred_language": "string - Language code (default: en-MY)"
+    }
+  },
+  "outputs": {
+    "primary": "session_context",
+    "shape": {
+      "session_id": "string - Unique session identifier",
+      "actor_binding": "object - Verified actor identity",
+      "continuity_contract": "object - Governance terms for session",
+      "initialized_at": "timestamp",
+      "expires_at": "timestamp",
+      "status": "string - active|pending|expired"
+    }
+  },
+  "state_behavior": {
+    "reads_state": true,
+    "writes_state": true,
+    "creates_session": true,
+    "external_side_effects": false
+  },
+  "authority_model": {
+    "advisory_only": false,
+    "creates_authority": true,
+    "requires_human_confirmation": false,
+    "cannot_override_constitution": true
+  },
+  "context_contract": {
+    "consumes": [
+      "actor identity claims",
+      "declared intent",
+      "environment context"
+    ],
+    "emits": [
+      "session context",
+      "continuity contract",
+      "governance bindings",
+      "telemetry baseline"
+    ]
+  },
+  "routing_hints": {
+    "upstream": [],
+    "downstream": ["arifos.sense", "arifos.route", "arifos.memory"],
+    "typical_flow": ["000_INIT → 444_ROUTER → (111_SENSE | 333_MIND | 555_MEMORY)"]
+  },
+  "governance_requirements": {
+    "risk_tier": "low",
+    "dry_run_allowed": true,
+    "required_context": ["actor_identity"],
+    "emits_telemetry": true
+  },
+  "chatgpt_guidance": {
+    "plain_english": "Use this to start any governed session. It creates the container that holds all your later tool calls accountable.",
+    "key_phrases": ["start session", "begin conversation", "initialize", "new task"],
+    "ask_before_use_if": [
+      "you're unsure if a session already exists",
+      "the user wants to change identity mid-conversation"
+    ],
+    "do_not_assume": [
+      "sessions are permanent",
+      "any actor can bind to any session",
+      "initialization is just ceremonial - it has real governance effects"
+    ],
+    "ideal_prompt_shape": {
+      "declared_intent": "I need to analyze the security implications of X",
+      "confidence_self_estimate": 0.8,
+      "context_assumptions": ["User has authority to ask about X", "X is within scope"]
+    }
+  },
+  "example_calls": [
+    {
+      "description": "Initialize new session",
+      "payload": {
+        "mode": "init",
+        "declared_intent": "Review codebase for security vulnerabilities",
+        "confidence_self_estimate": 0.85,
+        "context_assumptions": ["Code is in /project", "Review is authorized"]
+      }
+    }
+  ]
+}

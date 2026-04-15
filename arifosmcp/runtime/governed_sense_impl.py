@@ -24,7 +24,6 @@ Version: 2.0.0 — CANONICAL
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
 from typing import Any
 
 from .sensing_protocol import (
@@ -39,7 +38,6 @@ from .sensing_protocol import (
     EntropyState,
     EurekaState,
     EvidenceItem,
-    EvidenceRank,
     ExplorationState,
     InputSpec,
     InputSummary,
@@ -60,16 +58,17 @@ from .sensing_protocol import (
     TruthClass,
     TruthClassification,
     UncertaintyLevel,
+    SensingMode,
     # Complex dataclasses
     ActorSpec,
     AmbiguityModel,
     BudgetSpec,
     ConflictModel,
-    ConflictPolicy,
-    CorroborationSpec,
+    # ConflictPolicy, removed unused
+    # CorroborationSpec, removed unused
     EvidencePlan,
     ExtractedClaim,
-    FreshnessRequirement,
+    # FreshnessRequirement, removed unused
     HandoffSpec,
     IntelligenceState,
     RoutingDecision,
@@ -96,6 +95,17 @@ MIN_COMPATIBLE_AF_FORGE = "0.1.0"
 _contract_checked = False
 _contract_valid = False
 _contract_failure_reason = None
+
+
+def _check_nested_depth(obj: Any, current_depth: int = 0, max_depth: int = 10) -> bool:
+    """Check if an object exceeds maximum nested depth to prevent parsing-based vulnerabilities."""
+    if current_depth > max_depth:
+        return False
+    if isinstance(obj, dict):
+        return all(_check_nested_depth(v, current_depth + 1, max_depth) for v in obj.values())
+    if isinstance(obj, list):
+        return all(_check_nested_depth(v, current_depth + 1, max_depth) for v in obj)
+    return True
 
 
 def _check_contract():
@@ -126,17 +136,28 @@ def _check_contract():
         af_min_client = data.get("min_compatible_client", "unknown")
 
         if af_min_client != "unknown" and AF_FORGE_API_VERSION < af_min_client:
-            _contract_failure_reason = f"version_incompatible:client={AF_FORGE_API_VERSION} requires_af>={af_min_client}"
+            _contract_failure_reason = (
+                f"version_incompatible:client={AF_FORGE_API_VERSION} requires_af>={af_min_client}"
+            )
             _contract_checked = True
             _contract_valid = False
-            print(f"[AF-FORGE] CONTRACT MISMATCH: client v{AF_FORGE_API_VERSION} < AF-FORGE min {af_min_client}", flush=True)
+            print(
+                f"[AF-FORGE] CONTRACT MISMATCH: client v{AF_FORGE_API_VERSION} "
+                f"< AF-FORGE min {af_min_client}",
+                flush=True,
+            )
             return False
 
         if af_api_version != "unknown" and af_api_version < MIN_COMPATIBLE_AF_FORGE:
-            _contract_failure_reason = f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_AF_FORGE}"
+            _contract_failure_reason = (
+                f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_AF_FORGE}"
+            )
             _contract_checked = True
             _contract_valid = False
-            print(f"[AF-FORGE] CONTRACT MISMATCH: AF-FORGE v{af_api_version} < required {MIN_COMPATIBLE_AF_FORGE}", flush=True)
+            print(
+                f"[AF-FORGE] CONTRACT MISMATCH: AF-FORGE v{af_api_version} < required {MIN_COMPATIBLE_AF_FORGE}",
+                flush=True,
+            )
             return False
 
         _contract_checked = True
@@ -765,9 +786,15 @@ async def execute_sensing(
         fetch_top_k=sense_input.budget.fetch_top_k,
     )
     
+    # Execute retrieval with timeout budget
+    timeout_ms = sense_input.budget.budget_ms or 15000
+    
     bundle = await reality_handler.handle_compass(
         bundle_input,
-        {"session_id": session_id or "governed_sense"},
+        {
+            "session_id": session_id or "governed_sense",
+            "timeout_ms": timeout_ms,
+        },
     )
     
     # Convert to EvidenceItems
@@ -1127,6 +1154,8 @@ def build_intelligence_state(
     uncertainty: UncertaintyBand,
     items: list[EvidenceItem],
     findings: NormalizedFindings,
+    ambiguity: AmbiguityModel,
+    conflict: ConflictModel,
 ) -> IntelligenceState:
     """Build the full intelligence state for the RuntimeEnvelope."""
     
@@ -1246,6 +1275,12 @@ async def governed_sense_v2(
         tuple of (SensePacket, IntelligenceState) for full constitutional alignment.
     """
     # ═══════════════════════════════════════════════════════════════════════════
+    # DEPTH & TIMEOUT SENTINEL
+    # ═══════════════════════════════════════════════════════════════════════════
+    if not _check_nested_depth(raw_input, max_depth=10):
+        raise ValueError("Constitutional Violation: Input depth exceeds safe limits (max_depth=10).")
+
+    # ═══════════════════════════════════════════════════════════════════════════
     # STAGE 1: PARSE
     # ═══════════════════════════════════════════════════════════════════════════
     sense_input = parse_input(raw_input)
@@ -1259,12 +1294,12 @@ async def governed_sense_v2(
     # ═══════════════════════════════════════════════════════════════════════════
     af_result = _call_af_forge_sense(raw_input, session_id)
     if af_result is not None:
-        print(f"[AF-FORGE] Using TS governance layer", flush=True)
+        print("[AF-FORGE] Using TS governance layer", flush=True)
         sense = af_result.get("sense", {})
         
         # Check for 888_HOLD
         if sense.get("recommended_next_stage") == "hold":
-            print(f"[AF-FORGE] 888_HOLD triggered: {sense.get("escalation_reason")}", flush=True)
+            print(f"[AF-FORGE] 888_HOLD triggered: {sense.get('escalation_reason')}", flush=True)
         
         # Map to Python packet format and return
         return _map_af_forge_to_python_result(af_result, raw_input)
@@ -1323,7 +1358,7 @@ async def governed_sense_v2(
     
     # Build intelligence state
     intelligence_state = build_intelligence_state(
-        sense_input, truth_classification, uncertainty, items, findings
+        sense_input, truth_classification, uncertainty, items, findings, ambiguity, conflict
     )
     
     # Build canonical SensePacket

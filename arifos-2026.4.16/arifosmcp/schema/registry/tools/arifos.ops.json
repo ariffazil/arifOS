@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.context_packet.ops",
+  "context_packet_version": "1.0.0",
+  "tool_id": "arifos.ops",
+  "stage": "777_OPS",
+  "stage_order": 6,
+  "desc": "Cost estimation",
+  "trinity": "Ω",
+  "trinity_name": "Stability",
+  "uri": "/arifOS/runtime/math_estimator",
+  "backing_tool": "math_estimator",
+  "role": "operations",
+  "role_description": "Cost estimation and thermodynamic vitals",
+  "modes": ["cost", "health", "vitals", "entropy"],
+  "default_mode": "cost",
+  "purpose": "Estimate cost, system burden, entropy, capacity, or runtime health. The thermodynamic consciousness - ensuring sustainable operation.",
+  "when_to_use": [
+    "Before resource-intensive operations",
+    "Need cost estimate for actions",
+    "Checking system health or capacity",
+    "Evaluating entropy/technical debt",
+    "Resource planning and budgeting",
+    "Before judge for resource-sensitive decisions"
+  ],
+  "when_not_to_use": [
+    "Do not use for safety evaluation - that's arifos.heart",
+    "Do not use for final decisions - estimates only",
+    "Do not use when cost is irrelevant",
+    "Do not use as real-time monitoring - periodic only"
+  ],
+  "not_job": [
+    "Not a safety validator",
+    "Not a decision maker",
+    "Not a real-time monitor",
+    "Not a resource allocator - estimates only"
+  ],
+  "inputs": {
+    "mode": {
+      "type": "string",
+      "enum": ["cost", "health", "vitals", "entropy"],
+      "description": "cost: estimate resources, health: system status, vitals: quick check, entropy: technical debt"
+    },
+    "required_payload": {
+      "action": "string - What to estimate"
+    },
+    "optional_payload": {
+      "scale": "string - Expected load",
+      "constraints": "object - Limits",
+      "priority": "string - urgency level"
+    }
+  },
+  "outputs": {
+    "primary": "cost_estimate",
+    "shape": {
+      "estimated_cost": "object - Resource projections",
+      "confidence": "number - 0.0-1.0",
+      "health_metrics": "object - System vitals",
+      "entropy_score": "number - Technical debt",
+      "recommendations": "string[] - Optimization suggestions"
+    }
+  },
+  "state_behavior": {
+    "reads_state": true,
+    "writes_state": false,
+    "external_side_effects": false,
+    "read_only": true
+  },
+  "authority_model": {
+    "advisory_only": true,
+    "estimation_authority": true,
+    "cannot_override": true
+  },
+  "context_contract": {
+    "consumes": [
+      "action specification",
+      "current load",
+      "historical costs",
+      "capacity limits"
+    ],
+    "emits": [
+      "cost estimates",
+      "health metrics",
+      "entropy assessment",
+      "optimization hints"
+    ]
+  },
+  "routing_hints": {
+    "upstream": ["arifos.mind", "arifos.route"],
+    "downstream": ["arifos.judge"],
+    "typical_flow": ["333_MIND → 777_OPS → 888_JUDGE"]
+  },
+  "governance_requirements": {
+    "risk_tier": "low",
+    "dry_run_allowed": true,
+    "read_only": true
+  },
+  "chatgpt_guidance": {
+    "plain_english": "Use this to check 'can we afford this?' before acting. It estimates cost and system health to prevent resource exhaustion.",
+    "key_phrases": ["how much will this cost", "system health", "capacity", "can we afford", "resource usage"],
+    "ask_before_use_if": [
+      "the operation might be expensive",
+      "system load is a concern"
+    ],
+    "do_not_assume": [
+      "estimates are exact - they're projections",
+      "low cost means safe - check heart for safety",
+      "current health predicts future capacity"
+    ],
+    "ideal_prompt_shape": {
+      "mode": "cost",
+      "action": "Process 1M records through ML pipeline",
+      "scale": "1M records",
+      "priority": "batch"
+    }
+  }
+}

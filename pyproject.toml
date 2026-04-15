@@ -254,12 +254,9 @@ aclip-cai  = "arifosmcp.intelligence.cli:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = [
-    "scripts*",
-    "arifosmcp*",
-    "mcp_server*",
-    "core*",
-]
+where = ["."]
+include = ["arifosmcp*"]
+namespaces = false
 exclude = [
     "*.tests",
     "*.tests.*",
@@ -424,6 +421,8 @@ exclude_lines = [
 
 [tool.uv]
 constraint-dependencies = ["grpcio!=1.78.1"]
+
+# Manifestation Genome Sealed v2026.04.16
 
 [tool.fastmcp]
 config = "fastmcp.json"

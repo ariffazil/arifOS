@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.context_packet.vault",
+  "context_packet_version": "1.0.0",
+  "tool_id": "arifos.vault",
+  "stage": "999_VAULT",
+  "stage_order": 8,
+  "desc": "The Seal",
+  "trinity": "Ψ",
+  "trinity_name": "Sovereignty",
+  "uri": "/arifOS/runtime/vault_ledger",
+  "backing_tool": "vault_ledger",
+  "role": "ledger",
+  "role_description": "Immutable verdict logging and integrity verification",
+  "modes": ["seal", "verify"],
+  "default_mode": "seal",
+  "purpose": "Seal final governed records into immutable ledger with hash verification and audit integrity. What happened, preserved forever with proof.",
+  "when_to_use": [
+    "After judge renders SEAL verdict",
+    "Need immutable record of decisions",
+    "Before forge execution (audit trail)",
+    "After forge execution (result logging)",
+    "Need to verify integrity of past records",
+    "Compliance and audit requirements"
+  ],
+  "when_not_to_use": [
+    "Do not use for mutable data - that's arifos.memory",
+    "Do not use before judgment - premature",
+    "Do not use for draft or tentative records",
+    "Do not assume sealing is reversible - it is not"
+  ],
+  "not_job": [
+    "Not a general database",
+    "Not a search engine - memory does that",
+    "Not a decision maker - judge does that",
+    "Not an execution mechanism - forge does that"
+  ],
+  "inputs": {
+    "mode": {
+      "type": "string",
+      "enum": ["seal", "verify"],
+      "description": "seal: append record, verify: check integrity"
+    },
+    "required_payload": {
+      "verdict": "object - The verdict to seal",
+      "session_id": "string - Session context"
+    },
+    "optional_payload": {
+      "metadata": "object - Additional provenance",
+      "chain_hash": "string - Link to previous"
+    }
+  },
+  "outputs": {
+    "primary": "seal_record",
+    "shape": {
+      "record_id": "string - Unique seal ID",
+      "integrity_hash": "string - SHA-256 proof",
+      "timestamp": "timestamp - When sealed",
+      "chain_position": "number - Position in ledger",
+      "verification_proof": "object - For audits"
+    }
+  },
+  "state_behavior": {
+    "reads_state": true,
+    "writes_state": true,
+    "append_only": true,
+    "immutable": true,
+    "external_side_effects": false
+  },
+  "authority_model": {
+    "advisory_only": false,
+    "preserves_truth": true,
+    "cannot_modify": true,
+    "audit_authority": true
+  },
+  "context_contract": {
+    "consumes": [
+      "verdict",
+      "session context",
+      "execution results",
+      "telemetry"
+    ],
+    "emits": [
+      "seal record",
+      "integrity proof",
+      "audit hash",
+      "chain linkage"
+    ]
+  },
+  "routing_hints": {
+    "upstream": ["arifos.judge", "arifos.forge"],
+    "downstream": [],
+    "terminal": true,
+    "typical_flow": ["888_JUDGE → 999_VAULT", "FORGE_010 → 999_VAULT"]
+  },
+  "governance_requirements": {
+    "risk_tier": "critical",
+    "dry_run_allowed": true,
+    "append_only": true,
+    "immutable": true
+  },
+  "chatgpt_guidance": {
+    "plain_english": "Use this to preserve what happened forever. It's an immutable ledger - once sealed, it cannot change. This is for final records, not working memory.",
+    "key_phrases": ["seal this", "record permanently", "immutable log", "audit trail", "verify integrity"],
+    "ask_before_use_if": [
+      "you're sealing something that might need changing later",
+      "you're unsure if this is a final record"
+    ],
+    "do_not_assume": [
+      "sealed records can be edited - they cannot",
+      "vault is for quick retrieval - use memory for that",
+      "everything needs sealing - only final verdicts and results"
+    ],
+    "ideal_prompt_shape": {
+      "mode": "seal",
+      "verdict": {
+        "tool": "arifos.judge",
+        "verdict": "SEAL",
+        "rationale": "Action meets constitutional requirements",
+        "session_id": "sess_xxx"
+      },
+      "session_id": "sess_xxx"
+    }
+  }
+}

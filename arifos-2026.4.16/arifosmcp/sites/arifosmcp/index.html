@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS MCP — Constitutional AI Gateway</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --bg-card: #111113;
+            --border: #2a2a30;
+            --text: #e5e5e5;
+            --text-secondary: #888;
+            --gold: #D4A853;
+            --cyan: #00D4AA;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            line-height: 1.6;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        .header { border-bottom: 1px solid var(--border); padding-bottom: 40px; margin-bottom: 40px; }
+        .section { margin-bottom: 60px; }
+        h1 { font-size: 32px; margin-bottom: 16px; font-weight: 600; }
+        h2 { font-size: 20px; color: var(--text); margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); padding: 32px; border-radius: 12px; }
+        .stats { display: flex; gap: 40px; margin-top: 20px; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 36px; font-weight: bold; color: var(--gold); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; }
+        code { background: #1a1a1f; padding: 4px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; color: var(--gold); font-size: 13px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
+        .badge-stable { background: #166534; color: #dcfce7; }
+        .badge-planned { background: #374151; color: #d1d5db; }
+        .badge-docs { background: #1e40af; color: #dbeafe; }
+        .footer { margin-top: 100px; padding-top: 40px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-secondary); display: flex; justify-content: space-between; }
+        .floor-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .floor-table td, .floor-table th { padding: 12px; border: 1px solid var(--border); text-align: left; }
+        .floor-table th { background: #1a1a1f; color: var(--gold); font-size: 12px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Constitutional tools, prompts, and resources for reality-aligned AI.</h1>
+        <p>Connect your host to /mcp, inspect capabilities, enforce floors, and route high-risk decisions through human approval.</p>
+    </div>
+
+    <div class="section">
+        <h2>Live Operational Status</h2>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value">17</div>
+                <div class="stat-label">Tools Active</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">7</div>
+                <div class="stat-label">Prompts Active</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">16</div>
+                <div class="stat-label">Resources Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Protocol Surfaces</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>MCP <span class="badge badge-stable">STABLE</span></h3>
+                <p>Model Context Protocol. Native tool bridging for Claude, Cursor, and ChatGPT Apps SDK.</p>
+                <code>POST https://arifosmcp.arif-fazil.com/mcp</code>
+            </div>
+            <div class="card">
+                <h3>WebMCP <span class="badge badge-docs">DOCUMENTATION</span></h3>
+                <p>Browser-native governance interface specification and architectural roadmap.</p>
+                <a href="/webmcp">View Specification →</a>
+            </div>
+            <div class="card">
+                <h3>A2A <span class="badge badge-planned">PLANNED</span></h3>
+                <p>Agent-to-Agent protocol for tri-witness consensus and multi-agent coordination.</p>
+                <span style="color: var(--text-secondary); font-size: 13px;">Phase 4 Deployment Pending</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Canonical Primitives</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>🔧 Tools</h3>
+                <p>Structured actions returning JSON. Tools are model-controlled and logged to VAULT999.</p>
+                <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <code>arifos_init</code> <code>arifos_sense</code> <code>arifos_mind</code> <code>arifos_route</code> <code>arifos_ops</code> <code>arifos_memory</code> <code>arifos_heart</code> <code>arifos_judge</code> <code>arifos_vault</code> <code>arifos_forge</code>
+                </div>
+            </div>
+            <div class="card">
+                <h3>📋 Prompts</h3>
+                <p>Pre-built reasoning chains and constitutional workflows under arifOS governance.</p>
+                <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <code>run_111_think</code> <code>run_777_reason</code> <code>run_888_audit</code> <code>forge_verdict</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>13 Constitutional Floors</h2>
+        <table class="floor-table">
+            <thead>
+                <tr><th>Floor</th><th>Name</th><th>Enforcement</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>F1</td><td>Amanah</td><td>No irreversible action without VAULT999 SEAL</td></tr>
+                <tr><td>F2</td><td>Truth</td><td>No ungrounded claims (&tau; &ge; 0.99)</td></tr>
+                <tr><td>F9</td><td>Anti-Hantu</td><td>No deception/manipulation (AI is symbolic)</td></tr>
+                <tr><td>F13</td><td>Sovereign</td><td>Human holds final authority (888_HOLD)</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <div>© 2026 ARIF FAZIL — arifOS v2026.04.07-SEAL</div>
+        <div class="mono">DITEMPA BUKAN DIBERI — Forged, Not Given</div>
+    </div>
+</body>
+</html>
