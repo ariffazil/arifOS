@@ -23,6 +23,7 @@ from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus
 from core.shared.types import Verdict
+
 # Philosophy injection removed from tools - happens centrally in _wrap_call()
 # to ensure ONLY G★ determines band, never tool identity
 from fastmcp import FastMCP
@@ -67,18 +68,19 @@ logger = logging.getLogger(__name__)
 # STUB: arifos_probe — System probe tool (placeholder)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def arifos_probe(
     target: str = "system",
     probe_type: str = "status",
     timeout_ms: int = 5000,
 ) -> dict[str, Any]:
     """Probe system status or component health.
-    
+
     Args:
         target: Component to probe (system, memory, vault, etc.)
         probe_type: Type of probe (status, health, metrics)
         timeout_ms: Probe timeout in milliseconds
-        
+
     Returns:
         Probe results with status and metrics
     """
@@ -192,6 +194,7 @@ async def arifos_init(
     _scan_intent = intent
     if isinstance(_scan_intent, dict):
         import json
+
         _scan_intent = json.dumps(_scan_intent)
     _injection_score, _threats = _guard._scan_text(_scan_intent)
     if _injection_score >= 0.85:
@@ -290,10 +293,44 @@ async def arifos_init(
     # ═══════════════════════════════════════════════════════════════════════════════
     # STANDARD INIT BRANCH
     # ═══════════════════════════════════════════════════════════════════════════════
+    # INTENT VECTOR PROFILING — Human Niat tracking
+    # ═══════════════════════════════════════════════════════════════════════════════
+    _intent_lower = (intent or "").lower()
+    intent_vector = {
+        "short_term": bool(
+            any(w in _intent_lower for w in ["now", "immediately", "today", "quick"])
+        ),
+        "long_term": bool(
+            any(w in _intent_lower for w in ["plan", "future", "strategy", "goal", "vision"])
+        ),
+        "exploratory": bool(
+            any(
+                w in _intent_lower
+                for w in ["explore", "understand", "learn", "what is", "how does"]
+            )
+        ),
+        "strategic": bool(
+            any(w in _intent_lower for w in ["compete", "win", "advantage", "leverage", "position"])
+        ),
+        "defensive": bool(
+            any(
+                w in _intent_lower
+                for w in ["protect", "avoid", "prevent", "stop", "block", "security"]
+            )
+        ),
+    }
+    _init_payload = {
+        "actor_id": actor_id,
+        "intent": intent,
+        "declared_name": declared_name,
+        "intent_vector": intent_vector,
+    }
+
+    # ═══════════════════════════════════════════════════════════════════════════════
     effective_mode = mode if mode in ("probe", "revoke", "refresh", "state", "status") else "init"
     envelope = await _mega_init_anchor(
         mode=effective_mode,
-        payload={"actor_id": actor_id, "intent": intent, "declared_name": declared_name},
+        payload=_init_payload,
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
@@ -361,6 +398,7 @@ async def arifos_sense(
     if mode == "governed":
         from arifosmcp.runtime.models import RuntimeEnvelope as _RE
         from arifosmcp.runtime.models import RuntimeStatus, Verdict
+
         try:
             from arifosmcp.runtime.sensing_protocol import (
                 TimeScope,
@@ -370,8 +408,12 @@ async def arifos_sense(
                 governed_sense as _governed_sense,
             )
         except ImportError as _ie:
-            logger.warning("sensing_protocol import failed (%s) — falling back to legacy sense", _ie)
-            return await _sense_legacy(query, "search", session_id, risk_tier, dry_run, debug, platform)
+            logger.warning(
+                "sensing_protocol import failed (%s) — falling back to legacy sense", _ie
+            )
+            return await _sense_legacy(
+                query, "search", session_id, risk_tier, dry_run, debug, platform
+            )
 
         # Build SenseInput — use extended fields if provided, otherwise auto-normalize
         if query_frame or intent or policy or budget or actor:
@@ -444,6 +486,30 @@ async def arifos_sense(
         is_dict["retrieval_lane"] = sense_packet.evidence_plan.retrieval_lane
         is_dict["evidence_count"] = len(sense_packet.evidence_items)
         is_dict["routing"] = sense_packet.routing.to_dict()
+        # ── AFFECTIVE SIGNAL DETECTION (human intent layer) ──────────────────
+        # Lightweight linguistic markers for urgency, confidence, volatility
+        _urgency = "low"
+        _confidence = "medium"
+        _volatility = "low"
+        _q_lower = query.lower()
+        if any(w in _q_lower for w in ["urgent", "asap", "immediately", "emergency", "critical"]):
+            _urgency = "high"
+        elif any(w in _q_lower for w in ["soon", "need", "important"]):
+            _urgency = "medium"
+        if "!" in query or "!!" in query:
+            _volatility = "medium" if _urgency == "high" else "low"
+        if query.isupper() or sum(1 for c in query if c.isupper()) > len(query) * 0.4:
+            _volatility = "high"
+            _urgency = "high"
+        if any(w in _q_lower for w in ["?", "what if", "uncertain", "maybe"]):
+            _confidence = "low"
+        elif any(w in _q_lower for w in ["definitely", "certain", "sure", "know"]):
+            _confidence = "high"
+        affective_signal = {
+            "urgency": _urgency,
+            "confidence": _confidence,
+            "volatility": _volatility,
+        }
 
         envelope = _RE(
             ok=ok,
@@ -464,8 +530,10 @@ async def arifos_sense(
                 "routing": sense_packet.routing.to_dict(),
                 "handoff": sense_packet.handoff.to_dict(),
                 "evidence_count": len(sense_packet.evidence_items),
+                "affective_signal": affective_signal,
             },
         )
+        is_dict["affective_signal"] = affective_signal
         if debug:
             envelope.debug = {
                 "intel_state_full": intel_state.to_dict(),
@@ -481,8 +549,6 @@ async def arifos_sense(
 
     # ── legacy modes: delegate to physics_reality ─────────────────────────────
     return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug, platform)
-
-
 
 
 async def _sense_legacy(
@@ -536,20 +602,20 @@ async def arifos_mind(
     - "branch": Create a reasoning branch from a step
     - "merge": Synthesize insights across branches
     - "review": Review/export a thinking session
-    
-    Sequential thinking enforces F1-F13 at each step, replacing external 
+
+    Sequential thinking enforces F1-F13 at each step, replacing external
     Sequential Thinking MCP with native constitutional governance.
 
-    Runs the constitutional AGI pipeline producing a narrow decision_packet 
+    Runs the constitutional AGI pipeline producing a narrow decision_packet
     for the operator and a full audit_packet for the vault.
     """
     from arifosmcp.runtime.sessions import _normalize_session_id, get_session_identity
-    
+
     # Normalize session
     session_id = _normalize_session_id(session_id)
     identity = get_session_identity(session_id) or {}
     actor_id = identity.get("actor_id", "anonymous")
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # SEQUENTIAL THINKING MODE (005-IMPLEMENTATION-SEQUENTIAL)
     # ═══════════════════════════════════════════════════════════════════════
@@ -570,7 +636,7 @@ async def arifos_mind(
             alternative_reasoning=alternative_reasoning,
             branch_ids=branch_ids,
         )
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # STANDARD REASONING MODE (existing implementation)
     # ═══════════════════════════════════════════════════════════════════════
@@ -586,7 +652,7 @@ async def arifos_mind(
         intelligence_type="statistical",
         grounding_status="human-mediated",
         actor_id=actor_id,
-        verified_actor_id=identity.get("verified_actor_id")
+        verified_actor_id=identity.get("verified_actor_id"),
     )
 
     # ── Typed pipeline: sense → mind → heart → judge ─────────────────────
@@ -616,13 +682,9 @@ async def arifos_mind(
 
     # ── Seal and inject typed packets into intelligence_state ─────────────
     sealed = seal_runtime_envelope(
-        envelope, 
-        "arifos_mind", 
-        input_payload={
-            "query": query, 
-            "session_id": session_id,
-            "actor_id": actor_id
-        }
+        envelope,
+        "arifos_mind",
+        input_payload={"query": query, "session_id": session_id, "actor_id": actor_id},
     )
 
     # ── Visibility Injection: Surface reasoning to top-level ────────────────
@@ -713,6 +775,7 @@ async def arifos_mind(
 # SEQUENTIAL THINKING IMPLEMENTATION (005-IMPLEMENTATION-SEQUENTIAL)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def _run_sequential_thinking(
     mode: str,
     query: str,
@@ -731,16 +794,16 @@ async def _run_sequential_thinking(
 ) -> RuntimeEnvelope:
     """
     Run sequential thinking with constitutional governance.
-    
+
     This is the native arifOS replacement for Sequential Thinking MCP,
     enforcing F1-F13 at every step.
     """
     from arifosmcp.runtime.thinking import ThinkingSessionManager, THINKING_TEMPLATES
     from arifosmcp.runtime.thinking.templates import auto_select_template
     from arifosmcp.runtime.models import RuntimeEnvelope as _RE, RuntimeStatus, Verdict
-    
+
     manager = ThinkingSessionManager()
-    
+
     # ═══════════════════════════════════════════════════════════════════════════
     # MODE: SEQUENTIAL - Start a new thinking session
     # ═══════════════════════════════════════════════════════════════════════════
@@ -748,17 +811,21 @@ async def _run_sequential_thinking(
         # Auto-select template if not provided
         if not template:
             template = auto_select_template(query)
-        
+
         # ── INITIAL KNOWLEDGE ACQUISITION (Substrate Bridge) ─────────────
         # Query memory for existing entities related to the problem
         mem_context = ""
         try:
             from arifosmcp.integrations.memory_bridge import arifos_memory_query
-            mem_report = await arifos_memory_query(query=query, actor_id=actor_id, session_id=session_id)
+
+            mem_report = await arifos_memory_query(
+                query=query, actor_id=actor_id, session_id=session_id
+            )
             if mem_report.ok:
                 entities = mem_report.payload.get("entities", [])
                 if entities:
                     from arifosmcp.integrations.memory_bridge import KGEntity
+
                     # Re-map to objects for formatting if needed, or format directly
                     mem_context = "\n## Knowledge Graph Context\n"
                     for e in entities:
@@ -772,11 +839,16 @@ async def _run_sequential_thinking(
         # Start session
         thinking_session = manager.start_session(
             problem=query,
-            context={"context": context, "kg_entities_found": len(entities) if 'entities' in locals() else 0} if context else None,
+            context={
+                "context": context,
+                "kg_entities_found": len(entities) if "entities" in locals() else 0,
+            }
+            if context
+            else None,
             template=template,
-            arifos_session_id=session_id
+            arifos_session_id=session_id,
         )
-        
+
         # If template provided, auto-generate initial steps
         if template and template in THINKING_TEMPLATES:
             tmpl = THINKING_TEMPLATES[template]
@@ -785,12 +857,12 @@ async def _run_sequential_thinking(
                 step = manager.add_step(
                     session_id=thinking_session.session_id,
                     step_type=tmpl.step_types[i],
-                    content=f"[Step {i+1}: {step_prompt}]\n\nAnalyzing: {query[:100]}..."
+                    content=f"[Step {i + 1}: {step_prompt}]\n\nAnalyzing: {query[:100]}...",
                 )
                 # F2 check - stop on VOID
                 if step.constitutional_verdict == "VOID":
                     break
-        
+
         return _RE(
             ok=True,
             tool="arifos_mind",
@@ -805,11 +877,13 @@ async def _run_sequential_thinking(
                 "problem": query,
                 "steps_count": len(thinking_session.steps),
                 "quality_score": thinking_session.quality_score,
-                "constitutional_verdicts": [s.constitutional_verdict for s in thinking_session.steps],
+                "constitutional_verdicts": [
+                    s.constitutional_verdict for s in thinking_session.steps
+                ],
             },
             session_id=session_id,
         )
-    
+
     # ═══════════════════════════════════════════════════════════════════════════
     # MODE: STEP - Add a step to existing session
     # ═══════════════════════════════════════════════════════════════════════════
@@ -823,13 +897,13 @@ async def _run_sequential_thinking(
                 status=RuntimeStatus.ERROR,
                 payload={"error": "thinking_session_id required for mode='step'"},
             )
-        
+
         step = manager.add_step(
             session_id=thinking_session_id,
             step_type=step_type or "analysis",
             content=step_content or query,
         )
-        
+
         return _RE(
             ok=True,
             tool="arifos_mind",
@@ -846,7 +920,7 @@ async def _run_sequential_thinking(
             },
             session_id=session_id,
         )
-    
+
     # ═══════════════════════════════════════════════════════════════════════════
     # MODE: BRANCH - Create a reasoning branch
     # ═══════════════════════════════════════════════════════════════════════════
@@ -860,13 +934,13 @@ async def _run_sequential_thinking(
                 status=RuntimeStatus.ERROR,
                 payload={"error": "thinking_session_id and from_step required for mode='branch'"},
             )
-        
+
         branch_id = manager.branch_session(
             session_id=thinking_session_id,
             from_step=from_step,
             alternative_reasoning=alternative_reasoning or query,
         )
-        
+
         return _RE(
             ok=True,
             tool="arifos_mind",
@@ -880,7 +954,7 @@ async def _run_sequential_thinking(
             },
             session_id=session_id,
         )
-    
+
     # ═══════════════════════════════════════════════════════════════════════════
     # MODE: MERGE - Synthesize branches
     # ═══════════════════════════════════════════════════════════════════════════
@@ -894,12 +968,12 @@ async def _run_sequential_thinking(
                 status=RuntimeStatus.ERROR,
                 payload={"error": "thinking_session_id required for mode='merge'"},
             )
-        
+
         conclusion = manager.merge_insights(
             session_id=thinking_session_id,
             branch_ids=branch_ids or [],
         )
-        
+
         return _RE(
             ok=True,
             tool="arifos_mind",
@@ -914,7 +988,7 @@ async def _run_sequential_thinking(
             },
             session_id=session_id,
         )
-    
+
     # ═══════════════════════════════════════════════════════════════════════════
     # MODE: REVIEW - Export/review session
     # ═══════════════════════════════════════════════════════════════════════════
@@ -928,14 +1002,11 @@ async def _run_sequential_thinking(
                 status=RuntimeStatus.ERROR,
                 payload={"error": "thinking_session_id required for mode='review'"},
             )
-        
-        exported = manager.export_session(
-            session_id=thinking_session_id,
-            format_type="json"
-        )
-        
+
+        exported = manager.export_session(session_id=thinking_session_id, format_type="json")
+
         thinking_session = manager.get_session(thinking_session_id)
-        
+
         return _RE(
             ok=True,
             tool="arifos_mind",
@@ -946,11 +1017,15 @@ async def _run_sequential_thinking(
                 "mode": "review",
                 "session": exported,
                 "quality_score": thinking_session.quality_score if thinking_session else 0,
-                "constitutional_verdicts": [s.constitutional_verdict for s in thinking_session.steps] if thinking_session else [],
+                "constitutional_verdicts": [
+                    s.constitutional_verdict for s in thinking_session.steps
+                ]
+                if thinking_session
+                else [],
             },
             session_id=session_id,
         )
-    
+
     # Unknown mode
     return _RE(
         ok=False,
@@ -1061,10 +1136,11 @@ async def arifos_heart(
     dry_run: bool = True,
     debug: bool = False,
     platform: str = "unknown",
+    background_scan: bool = False,
 ) -> RuntimeEnvelope:
     # Horizon Unification: Support both 'content' and 'query'
     target_content = query or content or ""
-    # ── ASI Heart: Safety, dignity, and adversarial critique ──────────────
+    # ── ASI Heart: Safety, dignity, and adversarial critique ─────────────────────
     from arifosmcp.runtime.arifos_runtime_envelope import heart_stage, mind_stage, sense_stage
 
     sensed = sense_stage(target_content)
@@ -1076,6 +1152,29 @@ async def arifos_heart(
         "hypotheses": [h.claim for h in hypotheses[:3]],
         "next_step": "Address the highest-risk consequence before execution.",
     }
+
+    # ── BACKGROUND ETHICAL SCAN MODE ──────────────────────────────────────────
+    # Enables lightweight continuous monitoring without full critique overhead
+    ethical_markers = {
+        "manipulation_risk": False,
+        "authority_escalation": False,
+        "dignity_concern": False,
+    }
+    if background_scan or mode == "scan":
+        _t_lower = target_content.lower()
+        ethical_markers = {
+            "manipulation_risk": bool(
+                any(w in _t_lower for w in ["bypass", "override", "exploit", "jailbreak"])
+            ),
+            "authority_escalation": bool(
+                any(w in _t_lower for w in ["elevate", "admin", "sudo", "root"])
+            ),
+            "dignity_concern": bool(
+                any(w in _t_lower for w in ["manipulate", "coerce", "deceive", "exploit trust"])
+            ),
+        }
+        critique_packet["background_scan"] = True
+        critique_packet["ethical_markers"] = ethical_markers
 
     envelope = await _mega_asi_heart(
         mode=mode,
@@ -1105,6 +1204,8 @@ async def arifos_heart(
                 "ethical_critique": payload.get("critique", critique_packet["summary"]),
                 "hypotheses": critique_packet["hypotheses"],
             }
+            if background_scan or mode == "scan":
+                intel["ethical_markers"] = ethical_markers
             sealed.intelligence_state = intel
             sealed.platform_context = platform
 
@@ -1366,11 +1467,13 @@ async def arifos_gateway(
             # Detect forbidden keyword leakage
             for forbidden_word in FORBIDDEN_MAP.get(organ, []):
                 if forbidden_word in output_summary or forbidden_word in tool_lower:
-                    violations.append({
-                        "step": step,
-                        "reason": "forbidden_overlap",
-                        "detail": f"{organ} tool '{tool_name}' touched forbidden domain keyword '{forbidden_word}'",
-                    })
+                    violations.append(
+                        {
+                            "step": step,
+                            "reason": "forbidden_overlap",
+                            "detail": f"{organ} tool '{tool_name}' touched forbidden domain keyword '{forbidden_word}'",
+                        }
+                    )
 
     # Correlation proxy: diversity of organs determines orthogonality
     omega_ortho = 1.0
@@ -1378,7 +1481,15 @@ async def arifos_gateway(
         organ_counts: dict[str, int] = {}
         for step in trace:
             t = step.get("tool", "")
-            o = "arifos" if t.startswith("arifos_") else ("wealth" if t.startswith("wealth_") else ("geox" if t.startswith("geox_") else "other"))
+            o = (
+                "arifos"
+                if t.startswith("arifos_")
+                else (
+                    "wealth"
+                    if t.startswith("wealth_")
+                    else ("geox" if t.startswith("geox_") else "other")
+                )
+            )
             organ_counts[o] = organ_counts.get(o, 0) + 1
         max_ratio = max(organ_counts.values(), default=0) / len(trace)
         denom = 1.0 - correlation_threshold
@@ -1421,6 +1532,7 @@ async def arifos_gateway(
 
 # Import the 10th tool (Delegated Execution Bridge)
 from arifosmcp.runtime.tools_forge import arifos_forge
+
 
 async def arifos_reply(
     query: str,
@@ -1492,7 +1604,9 @@ async def arifos_reply(
     floors_triggered: list[str] = []
     try:
         critique_content = direct_answer[0] if direct_answer else query
-        heart_env = await arifos_heart(content=critique_content, mode="critique", session_id=_session)
+        heart_env = await arifos_heart(
+            content=critique_content, mode="critique", session_id=_session
+        )
         if isinstance(heart_env, dict):
             heart_result = heart_env.get("payload", {}) or {}
             floors_triggered = heart_result.get("floor_flags", [])
@@ -1537,7 +1651,9 @@ async def arifos_reply(
         try:
             evidence_summary = "; ".join(reasoning_snapshot[:2]) if reasoning_snapshot else query
             vault_env = await arifos_vault(
-                verdict=judge_verdict_str if judge_verdict_str in ("SEAL", "PARTIAL", "VOID", "HOLD") else "HOLD",
+                verdict=judge_verdict_str
+                if judge_verdict_str in ("SEAL", "PARTIAL", "VOID", "HOLD")
+                else "HOLD",
                 evidence=evidence_summary,
                 session_id=_session,
                 risk_tier=risk_tier,
@@ -1549,8 +1665,10 @@ async def arifos_reply(
 
     # ── Build reply envelope payload ──────────────────────────────────────────
     _verdict_token_map = {
-        "SEAL": "CLAIM", "PARTIAL": "PLAUSIBLE",
-        "HOLD": "888 HOLD", "VOID": "UNKNOWN",
+        "SEAL": "CLAIM",
+        "PARTIAL": "PLAUSIBLE",
+        "HOLD": "888 HOLD",
+        "VOID": "UNKNOWN",
     }
     verdict_token = _verdict_token_map.get(judge_verdict_str, "UNKNOWN")
     verdict_statement = (
@@ -1589,7 +1707,9 @@ async def arifos_reply(
         "tau": tau,
         "tau_source": tau_source,
         "floors_triggered": floors_triggered,
-        "floors_passed": [f for f in ["F1","F2","F4","F7","F9","F11","F13"] if f not in floors_triggered],
+        "floors_passed": [
+            f for f in ["F1", "F2", "F4", "F7", "F9", "F11", "F13"] if f not in floors_triggered
+        ],
         "direct_answer": direct_answer,
         "reasoning_snapshot": reasoning_snapshot,
         "action_output": mind_result.get("action_output"),
@@ -1607,11 +1727,19 @@ async def arifos_reply(
         "to": _actor,
         "cc": _cc,
         "vault_ref": vault_ref,
-        "consulted_tools": ["arifos_memory", "arifos_sense", "arifos_mind", "arifos_heart", "arifos_ops", "arifos_judge"],
+        "consulted_tools": [
+            "arifos_memory",
+            "arifos_sense",
+            "arifos_mind",
+            "arifos_heart",
+            "arifos_ops",
+            "arifos_judge",
+        ],
         "informed_agents": _cc,
     }
 
     from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict as V
+
     _verdict_map = {"SEAL": V.SEAL, "PARTIAL": V.PROVISIONAL, "HOLD": V.HOLD, "VOID": V.VOID}
     return seal_runtime_envelope(
         RE(
@@ -1620,7 +1748,9 @@ async def arifos_reply(
             canonical_tool_name="arifos_reply",
             stage="000-999",
             verdict=_verdict_map.get(judge_verdict_str, V.HOLD),
-            status=RuntimeStatus.SUCCESS if judge_verdict_str in ("SEAL", "PARTIAL") else RuntimeStatus.HOLD,
+            status=RuntimeStatus.SUCCESS
+            if judge_verdict_str in ("SEAL", "PARTIAL")
+            else RuntimeStatus.HOLD,
             payload=payload,
             hint=title,
             detail=verdict_statement,
@@ -1631,23 +1761,23 @@ async def arifos_reply(
     )
 
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # UNIVERSAL NAMING: All tool names use underscores for cross-platform compatibility
 # Legacy dot-names (arifos.init) are supported via LEGACY_ALIASES mapping
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def arifos_diag_substrate(session_id: str | None = None) -> Any:
     """Maintainer: Run substrate protocol conformance check."""
     from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
     from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict
-    
+
     verdict = await run_protocol_conformance_test()
     return _RE(
         ok=verdict == Verdict.SEAL,
         tool="arifos.diag_substrate",
         verdict=verdict,
-        payload={"message": f"Substrate conformance result: {verdict}"}
+        payload={"message": f"Substrate conformance result: {verdict}"},
     )
 
 
@@ -1655,6 +1785,7 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
 # PUBLIC SURFACE WRAPPERS — Clean signatures matching ToolSpec.input_schema
 # Prevents FastMCP schema-generation faults from wide internal signatures.
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def _arifos_init_public(
     actor_id: str | None = None,
@@ -1729,8 +1860,10 @@ async def _arifos_mind_reflect(
             "mae": round(mae, 4),
             "calibration_gap": round(calibration_gap, 4),
             "recommendation": (
-                "Confidence thresholds may be too low" if calibration_gap < -0.1
-                else "Confidence thresholds may be too high" if calibration_gap > 0.1
+                "Confidence thresholds may be too low"
+                if calibration_gap < -0.1
+                else "Confidence thresholds may be too high"
+                if calibration_gap > 0.1
                 else "Calibration appears well-aligned"
             ),
         },
@@ -1863,6 +1996,7 @@ async def _arifos_gateway_public(
 # Plain-English scoring for O&G and Malaysia-market instruments.
 # No jargon in output. Designed for human-readable morning brief output.
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def wealth_brent_score(
     ticker: str = "",
@@ -2109,13 +2243,13 @@ LEGACY_COMPAT_TOOL_HANDLERS: dict[str, Any] = {
 
 def get_tool_handler(name: str) -> Any:
     """Get tool handler by name, supporting legacy dot-names.
-    
+
     Args:
         name: Tool name (canonical underscore or legacy dot format)
-        
+
     Returns:
         Tool handler function or None
-        
+
     Example:
         >>> get_tool_handler("arifos_init")  # Canonical
         <function arifos_init>
@@ -2125,21 +2259,21 @@ def get_tool_handler(name: str) -> Any:
     # Direct lookup (fast path for canonical names)
     if name in CANONICAL_TOOL_HANDLERS:
         return CANONICAL_TOOL_HANDLERS[name]
-    
+
     # Legacy alias lookup (slow path for backwards compatibility)
     canonical_name = LEGACY_TOOL_ALIASES.get(name)
     if canonical_name:
         return CANONICAL_TOOL_HANDLERS.get(canonical_name)
-    
+
     return None
 
 
 def normalize_tool_name(name: str) -> str:
     """Normalize tool name to canonical underscore format.
-    
+
     Args:
         name: Tool name (any format)
-        
+
     Returns:
         Canonical underscore name or original if not recognized
     """
@@ -2180,6 +2314,7 @@ system_health = arifos_health
 forge = arifos_forge
 orthogonality_guard = arifos_gateway
 
+
 # Legacy wrapper with distinct behavior (tool-name fix)
 async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
     """Legacy alias for arifos_init that preserves the init_anchor tool name."""
@@ -2189,6 +2324,7 @@ async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
     if hasattr(envelope, "canonical_tool_name"):
         envelope.canonical_tool_name = "init_anchor"
     return envelope
+
 
 # Legacy shims for backward compatibility with pre-unification tests
 async def audit_rules(session_id: str | None = None, query: str = "validate") -> RuntimeEnvelope:
@@ -2207,6 +2343,7 @@ async def audit_rules(session_id: str | None = None, query: str = "validate") ->
         },
     )
 
+
 async def verify_vault_ledger(session_id: str | None = None) -> RuntimeEnvelope:
     """Verify vault ledger integrity (legacy shim)."""
     return RuntimeEnvelope(
@@ -2218,7 +2355,10 @@ async def verify_vault_ledger(session_id: str | None = None) -> RuntimeEnvelope:
         payload={"verified": True},
     )
 
-async def seal_vault_commit(session_id: str | None = None, payload: dict | None = None) -> RuntimeEnvelope:
+
+async def seal_vault_commit(
+    session_id: str | None = None, payload: dict | None = None
+) -> RuntimeEnvelope:
     """Seal a vault commit (legacy shim)."""
     return RuntimeEnvelope(
         ok=True,
@@ -2228,6 +2368,7 @@ async def seal_vault_commit(session_id: str | None = None, payload: dict | None 
         verdict=Verdict.SEAL,
         payload={"sealed": True},
     )
+
 
 async def metabolic_loop_router(
     query: str,
@@ -2240,11 +2381,13 @@ async def metabolic_loop_router(
 ) -> RuntimeEnvelope:
     """Legacy metabolic loop router shim — delegates to current judge path."""
     from arifosmcp.runtime.models import RuntimeStatus
+
     envelope = await arifos_judge(query=query, session_id=None)
     # Normalize status for backward compatibility with legacy tests
     if envelope.status not in (RuntimeStatus.SUCCESS, RuntimeStatus.ERROR):
         envelope.status = RuntimeStatus.SUCCESS if envelope.ok else RuntimeStatus.ERROR
     return envelope
+
 
 def _build_user_model(
     session_id: str,
@@ -2264,9 +2407,7 @@ def _build_user_model(
 
     query = query_info.get("query", "")
     if query:
-        user_model.stated_goal = UserModelField(
-            value=query, source=UserModelSource.EXPLICIT
-        )
+        user_model.stated_goal = UserModelField(value=query, source=UserModelSource.EXPLICIT)
 
     constraints: list[Any] = []
     if query:
@@ -2289,7 +2430,9 @@ def _build_user_model(
     user_model.output_constraints = constraints
     return user_model
 
+
 FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
+
 
 # Legacy registration shim — redirects to v2 registration
 def register_tools(mcp: Any) -> list[str]:
@@ -2330,13 +2473,13 @@ def _resolve_caller_context(
 
     return base
 
+
 def _resolve_caller_state(session_id: str, auth: Any = None) -> tuple:
     """Legacy helper for caller state resolution."""
     state = "anonymous"
     if auth and hasattr(auth, "claim_status"):
         state = auth.claim_status
     return state, [{"tool": "init_anchor"}], False
-
 
 
 def _wrap_call(func):
@@ -2355,31 +2498,33 @@ def _create_signature_matched_alias(name: str, original_fn: Any) -> Any:
     Required because FastMCP deduplicates tools sharing the same function identity.
     """
     import inspect
+
     sig = inspect.signature(original_fn)
-    
+
     # Build params list (e.g. "query, context=None")
     params = []
     for param in sig.parameters.values():
         params.append(str(param))
     params_str = ", ".join(params)
-    
+
     # Build call args (e.g. "query=query, context=context")
     args = []
     for p in sig.parameters.values():
         args.append(f"{p.name}={p.name}")
     args_str = ", ".join(args)
-    
+
     # Use exec to create a clean function with specific signature
     # (Avoids *args/**kwargs which FastMCP rejects)
     namespace = {"_orig": original_fn}
     code = f"async def {name}({params_str}): return await _orig({args_str})"
     exec(code, namespace)
-    
+
     alias_fn = namespace[name]
     alias_fn.__doc__ = original_fn.__doc__
 
     # Copy actual type objects to avoid NameErrors during string evaluation in Pydantic/FastMCP
     import typing
+
     try:
         alias_fn.__annotations__ = typing.get_type_hints(original_fn)
     except Exception:
@@ -2435,5 +2580,3 @@ def register_v2_tools(mcp: FastMCP, *, include_legacy_compat: bool = False) -> l
 
     logger.info(f"Registered {len(registered)} v2 tools: {registered}")
     return registered
-
-
