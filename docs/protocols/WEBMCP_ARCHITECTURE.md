@@ -63,7 +63,7 @@ Every HTTP request to WebMCP passes through the **13 Constitutional Floors (F1-F
 │  │       ↓                                                          │   │
 │  │   333_MIND  →  AGI Reasoning (F4, F7, F8)                       │   │
 │  │       ↓                                                          │   │
-│  │   666_HEART →  ASI Ethics (F5, F6, F9)                          │   │
+│  │   666_HEART →  Heart Ethics / RASA (F5, F6, F9)                 │   │
 │  │       ↓                                                          │   │
 │  │   888_JUDGE →  APEX Verdict (F1, F3, F10-F13)                   │   │
 │  │       ↓                                                          │   │

@@ -31,9 +31,14 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
-from fastmcp import FastMCP
+from fastmcp import FastMCP, FastMCPApp
+
+from arifosmcp.apps.surface_utils import envelope_error, normalize_state, safe_get
+
+logger = logging.getLogger(__name__)
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -48,6 +53,7 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
+    Metric,
     Muted,
     Ring,
     Row,
@@ -74,15 +80,34 @@ _FLOOR_NAMES: dict[str, str] = {
 }
 
 _FLOOR_ORDER = [
-    "F1", "F2", "F3", "F4", "F5", "F6", "F7",
-    "F8", "F9", "F10", "F11", "F12", "F13",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9",
+    "F10",
+    "F11",
+    "F12",
+    "F13",
 ]
 
 _FLOOR_TYPE: dict[str, str] = {
-    "F1": "hard", "F2": "hard", "F3": "mirror",
-    "F4": "hard", "F5": "soft", "F6": "soft",
-    "F7": "hard", "F8": "mirror", "F9": "hard",
-    "F10": "wall", "F11": "wall", "F12": "wall",
+    "F1": "hard",
+    "F2": "hard",
+    "F3": "mirror",
+    "F4": "hard",
+    "F5": "soft",
+    "F6": "soft",
+    "F7": "hard",
+    "F8": "mirror",
+    "F9": "hard",
+    "F10": "wall",
+    "F11": "wall",
+    "F12": "wall",
     "F13": "veto",
 }
 
@@ -99,26 +124,33 @@ _PHILOSOPHY: dict[str, str] = {
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-judge_app = FastMCP("JudgeApp", domain="arifos.fastmcp.app")
+judge_app = FastMCPApp("JudgeApp")
 
 
 @judge_app.tool()
 async def execute_judge(
     candidate_action: str,
     risk_tier: str = "medium",
+    session_id: str | None = None,
 ) -> dict[str, Any]:
     """
     Run constitutional verdict evaluation on a candidate action.
     Returns structured Floor results, W³ witness scores, and verdict.
     """
+    logger.info(f"execute_judge called: session_id={session_id}, state_type={type(STATE).__name__}")
     try:
         from arifosmcp.runtime.tools import arifos_judge
+
+        if not session_id:
+            session_id = safe_get(STATE, "session_id")
+
         envelope = await arifos_judge(
             candidate_action=candidate_action,
             risk_tier=risk_tier,
             dry_run=True,
+            session_id=session_id,
         )
-        env_dict = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
+        env_dict = normalize_state(envelope)
 
         policy = env_dict.get("policy") or {}
         floors_checked: list[str] = policy.get("floors_checked", list(_FLOOR_NAMES.keys()))
@@ -140,16 +172,49 @@ async def execute_judge(
                 status_label = "BREACH" if ftype in ("wall", "veto") else "FAIL"
             else:
                 status_label = "PASS"
-            floor_rows.append({
-                "id": fid,
-                "name": _FLOOR_NAMES[fid],
-                "type": ftype.upper(),
-                "status": status_label,
-                "failed": failed,
-            })
+            floor_rows.append(
+                {
+                    "id": fid,
+                    "name": _FLOOR_NAMES[fid],
+                    "type": ftype.upper(),
+                    "status": status_label,
+                    "failed": failed,
+                }
+            )
 
-        # Philosophy selection
+        # Philosophy selection — fully wired to unified wisdom registry
         philosophy = _PHILOSOPHY.get(verdict, _PHILOSOPHY["pending"])
+        try:
+            from arifosmcp.runtime.philosophy import select_wisdom_quote
+
+            # Map verdict to surface + shadow profile for intentional dramaturgy
+            _verdict_profile: dict[str, dict[str, str | None]] = {
+                "SEAL": {"surface": "judge", "tone": "firm", "shadow_profile": None},
+                "HOLD": {"surface": "hold", "tone": "severe", "shadow_profile": "restraint"},
+                "PARTIAL": {
+                    "surface": "partial",
+                    "tone": "reflective",
+                    "shadow_profile": "paradox",
+                },
+                "VOID": {"surface": "void", "tone": "severe", "shadow_profile": "shadow"},
+                "SABAR": {"surface": "sabar", "tone": "calm", "shadow_profile": "humility"},
+                "pending": {"surface": "anchor", "tone": "calm", "shadow_profile": None},
+            }
+            profile = _verdict_profile.get(verdict, _verdict_profile["pending"])
+            wisdom = select_wisdom_quote(
+                surface=str(profile["surface"]),
+                tone=str(profile["tone"]) if profile["tone"] else None,
+                verdict=verdict,
+                risk_tier=risk_tier,
+                shadow_profile=str(profile["shadow_profile"])
+                if profile["shadow_profile"]
+                else None,
+                session_id=env_dict.get("trace_id"),
+            )
+            if wisdom and wisdom.get("quote"):
+                philosophy = wisdom["quote"]
+        except Exception:
+            pass
 
         return {
             "verdict": verdict,
@@ -168,32 +233,13 @@ async def execute_judge(
         }
 
     except Exception as exc:
-        # Build fallback floor rows with all failed
-        floor_rows = [
-            {
-                "id": fid,
-                "name": _FLOOR_NAMES[fid],
-                "type": _FLOOR_TYPE.get(fid, "hard").upper(),
-                "status": "FAIL",
-                "failed": True,
-            }
-            for fid in _FLOOR_ORDER
-        ]
-        return {
-            "verdict": "VOID",
-            "floors_checked": [],
-            "floors_failed": list(_FLOOR_NAMES.keys()),
-            "floor_rows": floor_rows,
-            "w3_human": 0.0,
-            "w3_ai": 0.0,
-            "w3_earth": 0.0,
-            "philosophy": f"Judge unavailable: {exc}",
-            "requires_human": True,
-            "sabar_step": f"Judge unavailable: {exc}",
-            "trace_id": None,
-            "floors_pass_count": 0,
-            "floors_total_count": 13,
-        }
+        logger.warning(f"execute_judge failed: {exc}")
+        return envelope_error(
+            tool_name="execute_judge",
+            stage="888_JUDGE",
+            verdict="VOID",
+            detail=f"execute_judge failed: {exc}",
+        )
 
 
 @judge_app.ui(title="888 Constitutional Judge")
@@ -241,22 +287,22 @@ def judge_surface(
         execute_judge,
         args={"candidate_action": candidate_action, "risk_tier": risk_tier},
         on_success=[
-            SetState("verdict",            RESULT["verdict"]),
-            SetState("floors_checked",     RESULT["floors_checked"]),
-            SetState("floors_failed",      RESULT["floors_failed"]),
-            SetState("floor_rows",         RESULT["floor_rows"]),
-            SetState("w3_human",           RESULT["w3_human"]),
-            SetState("w3_ai",              RESULT["w3_ai"]),
-            SetState("w3_earth",           RESULT["w3_earth"]),
-            SetState("philosophy",         RESULT["philosophy"]),
-            SetState("requires_human",     RESULT["requires_human"]),
-            SetState("sabar_step",         RESULT["sabar_step"]),
-            SetState("floors_pass_count",  RESULT["floors_pass_count"]),
+            SetState("verdict", RESULT["verdict"]),
+            SetState("floors_checked", RESULT["floors_checked"]),
+            SetState("floors_failed", RESULT["floors_failed"]),
+            SetState("floor_rows", RESULT["floor_rows"]),
+            SetState("w3_human", RESULT["w3_human"]),
+            SetState("w3_ai", RESULT["w3_ai"]),
+            SetState("w3_earth", RESULT["w3_earth"]),
+            SetState("philosophy", RESULT["philosophy"]),
+            SetState("requires_human", RESULT["requires_human"]),
+            SetState("sabar_step", RESULT["sabar_step"]),
+            SetState("floors_pass_count", RESULT["floors_pass_count"]),
             SetState("floors_total_count", RESULT["floors_total_count"]),
-            SetState("judged",             True),
+            SetState("judged", True),
             ShowToast("Constitutional judgment complete", variant="success"),
         ],
-        on_error=ShowToast("Judge tool error — 888_HOLD", variant="destructive"),
+        on_error=ShowToast("Judge tool error — 888_HOLD", variant="error"),
     )
 
     # ── Reactive state references ────────────────────────────────────────────
@@ -269,7 +315,6 @@ def judge_surface(
     judged_rx = STATE["judged"]
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-
         # ── Header ──────────────────────────────────────────────────────────
         with Row(gap=3, align="center"):
             Heading("888 Constitutional Judge")
@@ -294,13 +339,13 @@ def judge_surface(
         with Column(gap=1):
             with ForEach(floor_rows_rx):
                 from prefab_ui.rx import ITEM
+
                 with Card(css_class="border-l-2"):
                     with CardContent(css_class="py-2 px-3"):
                         with Row(gap=2, align="center"):
                             Text(
                                 ITEM["id"],
-                                css_class="font-mono text-xs font-bold w-8 "
-                                          "text-muted-foreground",
+                                css_class="font-mono text-xs font-bold w-8 text-muted-foreground",
                             )
                             Text(ITEM["name"], css_class="text-sm w-28")
                             Badge(
@@ -311,9 +356,7 @@ def judge_surface(
                             # Reactive status badge — updates from RESULT
                             Badge(
                                 ITEM["status"],
-                                variant=ITEM["failed"].then(
-                                    "destructive", "success"
-                                ),
+                                variant=ITEM["failed"].then("destructive", "success"),
                                 css_class="ml-auto w-16 text-center",
                             )
 
@@ -369,19 +412,11 @@ def judge_surface(
         # ── Floor Summary Metric ─────────────────────────────────────────────
         with If(judged_rx):
             with Row(gap=3):
-                # Using a generic Text instead of Metric if Metric was causing issues,
-                # but let's try to keep it if it's there.
-                Text(
-                    "Floors Passed: ",
-                    css_class="text-sm font-semibold",
+                Metric(
+                    label="Floors Passed",
+                    value=STATE["floors_pass_count"],
+                    suffix=f" / 13",
                 )
-                Badge(
-                    STATE["floors_pass_count"].then(
-                        STATE["floors_pass_count"], "0"
-                    ),
-                    variant="outline",
-                )
-                Text(" / 13", css_class="text-sm")
 
         # ── Philosophy (Reactive) ────────────────────────────────────────────
         Muted(

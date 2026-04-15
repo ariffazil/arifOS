@@ -28,10 +28,15 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from fastmcp import FastMCP
+from fastmcp import FastMCP, FastMCPApp
+
+from arifosmcp.apps.surface_utils import envelope_error, normalize_state
+
+logger = logging.getLogger(__name__)
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -45,9 +50,12 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
+    Metric,
     Muted,
     Ring,
     Row,
+    Select,
+    SelectOption,
     Separator,
     Text,
 )
@@ -56,7 +64,7 @@ from prefab_ui.rx import RESULT, STATE
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-init_app = FastMCP("InitApp", domain="arifos.fastmcp.app")
+init_app = FastMCPApp("InitApp")
 
 
 @init_app.tool()
@@ -70,19 +78,24 @@ async def anchor_session(
     """
     try:
         from arifosmcp.runtime.tools import arifos_init
+
         envelope = await arifos_init(
             declared_intent=declared_intent or "General session",
         )
-        env_dict = (
-            envelope.model_dump()
-            if hasattr(envelope, "model_dump")
-            else dict(envelope)
-        )
+        env_dict = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
 
         session_id = env_dict.get("session_id", "—")
         epoch = env_dict.get("epoch", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
         omega0 = float(env_dict.get("telemetry", {}).get("omega_0", 0.04))
         aligned = env_dict.get("ok", True)
+
+        # ── Wisdom quote for anchor surface ───────────────────────────────────
+        try:
+            from arifosmcp.runtime.philosophy import select_wisdom_quote
+
+            _wisdom = select_wisdom_quote("anchor")
+        except Exception:
+            _wisdom = None
 
         return {
             "session_id": session_id,
@@ -93,19 +106,17 @@ async def anchor_session(
             "aligned": aligned,
             "anchored": True,
             "trace_id": env_dict.get("trace_id", "—"),
+            "wisdom": _wisdom,
         }
 
     except Exception as exc:
-        return {
-            "session_id": "—",
-            "epoch": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-            "mode": mode,
-            "declared_intent": declared_intent or "General session",
-            "omega0": 0.04,
-            "aligned": False,
-            "anchored": False,
-            "trace_id": f"error: {exc}",
-        }
+        logger.warning(f"anchor_session failed: {exc}")
+        return envelope_error(
+            tool_name="anchor_session",
+            stage="000_INIT",
+            verdict="VOID",
+            detail=f"anchor_session failed: {exc}",
+        )
 
 
 @init_app.ui(title="000 Session Anchor")
@@ -137,17 +148,17 @@ def init_surface(
             "mode": "standard",
         },
         on_success=[
-            SetState("session_id",       RESULT["session_id"]),
-            SetState("epoch",            RESULT["epoch"]),
-            SetState("mode",             RESULT["mode"]),
-            SetState("declared_intent",  RESULT["declared_intent"]),
-            SetState("omega0",           RESULT["omega0"]),
-            SetState("aligned",          RESULT["aligned"]),
-            SetState("anchored",         RESULT["anchored"]),
-            SetState("trace_id",         RESULT["trace_id"]),
+            SetState("session_id", RESULT["session_id"]),
+            SetState("epoch", RESULT["epoch"]),
+            SetState("mode", RESULT["mode"]),
+            SetState("declared_intent", RESULT["declared_intent"]),
+            SetState("omega0", RESULT["omega0"]),
+            SetState("aligned", RESULT["aligned"]),
+            SetState("anchored", RESULT["anchored"]),
+            SetState("trace_id", RESULT["trace_id"]),
             ShowToast("Session anchored — 000_INIT sealed", variant="success"),
         ],
-        on_error=ShowToast("Session anchor failed", variant="destructive"),
+        on_error=ShowToast("Session anchor failed", variant="error"),
     )
 
     # ── Reactive bindings ────────────────────────────────────────────────────
@@ -156,7 +167,6 @@ def init_surface(
     omega0_rx = STATE["omega0"]
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-
         # ── Header ──────────────────────────────────────────────────────────
         with Row(gap=3, align="center"):
             Heading("000 Session Anchor")
@@ -168,6 +178,19 @@ def init_surface(
 
         Muted("Constitutional session anchoring · DITEMPA BUKAN DIBERI")
         Separator()
+
+        # ── Wisdom strip ─────────────────────────────────────────────────────
+        try:
+            from arifosmcp.runtime.philosophy import select_wisdom_quote
+
+            _wisdom = select_wisdom_quote("anchor")
+            if _wisdom and _wisdom.get("quote"):
+                Muted(
+                    f'"{_wisdom["quote"]}" — {_wisdom["author"]}',
+                    css_class="text-xs italic border-l-2 pl-3 border-muted-foreground/30",
+                )
+        except Exception:
+            pass
 
         # ── Epoch + Intent ──────────────────────────────────────────────────
         with Card():
@@ -254,8 +277,7 @@ def init_surface(
         Alert(
             title="F1 Amanah — Irreversible",
             description=(
-                "Session anchoring is a commitment. "
-                "Once sealed, this session cannot be undone."
+                "Session anchoring is a commitment. Once sealed, this session cannot be undone."
             ),
             variant="warning",
         )

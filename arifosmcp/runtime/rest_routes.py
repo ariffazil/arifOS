@@ -751,7 +751,7 @@ python -m arifosmcp.runtime stdio</code></pre>
     <tr><td>F4</td><td>ΔS Clarity</td><td>≤ 0</td><td>Entropy reduction</td></tr>
     <tr><td>F5</td><td>Peace²</td><td>≥ 1.0</td><td>Stability</td></tr>
     <tr><td>F6</td><td>Empathy</td><td>≥ 0.70</td><td>Weakest stakeholder</td></tr>
-    <tr><td>F7</td><td>Humility</td><td>0.03-0.20</td><td>Uncertainty</td></tr>
+    <tr><td>F7</td><td>Humility</td><td>0.03-0.05</td><td>Uncertainty</td></tr>
     <tr><td>F8</td><td>Genius</td><td>≥ 0.80</td><td>Coherence</td></tr>
     <tr><td>F9</td><td>Anti-Hantu</td><td>&lt; 0.30</td><td>No dark patterns</td></tr>
     <tr><td>F10</td><td>Ontology</td><td>LOCK</td><td>No consciousness claims</td></tr>

@@ -32,7 +32,7 @@ The **Metabolic Loop** is the 9-stage execution path that every request in arifO
 4. **333_MIND (AGI)**: Structured reasoning and constitutional filtering.
 5. **444_KERNEL (Kernel)**: Unified metabolic conductor — INPUT → ORCHESTRATE → OUTPUT pipeline.
 6. **555_MEM (Engineer)**: Context retrieval and memory management.
-7. **666_HEART (ASI)**: Safety critique and empathy assessment.
+7. **666_HEART (RASA)**: Safety critique and empathy assessment. (Note: ASI as pipeline band label is F10 ontology violation — use HEART or RASA.)
 8. **777_OPS (Thermo)**: Resource estimation and cost analysis.
 9. **888_JUDGE (APEX)**: Final constitutional verdict.
 10. **999_SEAL (Vault)**: Immutable audit log and ledger entry.
