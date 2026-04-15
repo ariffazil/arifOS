@@ -44,25 +44,29 @@ wealth_app = FastMCP("WealthApp", domain="arifos.fastmcp.app")
 async def perform_economic_audit(
     initial_cost: float,
     annual_benefit: float,
-    years: int
+    years: int,
+    ebitda: float = 120000.0,
+    debt_service: float = 100000.0
 ) -> dict[str, Any]:
     """
     Perform a constitutional economic audit.
     """
     try:
-        from core.organs import analyze_cost_benefit
-        res = analyze_cost_benefit(
-            initial_cost=initial_cost,
-            annual_benefit=annual_benefit,
-            years=years
-        )
+        from core.organs import wealth
+        flows = [annual_benefit] * years
+        
+        npv_res = wealth(operation="npv_reward", initial_investment=initial_cost, cash_flows=flows)
+        irr_res = wealth(operation="irr_yield", initial_investment=initial_cost, cash_flows=flows)
+        dscr_res = wealth(operation="dscr_leverage", ebitda=ebitda, debt_service=debt_service)
+
         return {
             "success": True,
-            "npv": res.npv,
-            "roi": res.roi,
-            "verdict": res.verdict,
-            "recommendation": res.recommendation,
-            "floors": res.floor_alignment
+            "npv": npv_res.primary_result["npv"],
+            "irr": irr_res.primary_result["irr"],
+            "dscr": dscr_res.primary_result["dscr"],
+            "verdict": npv_res.verdict,
+            "signal": npv_res.allocation_signal,
+            "audited": True
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -75,26 +79,28 @@ def wealth_dashboard_surface() -> PrefabApp:
     """
     initial_state: dict[str, Any] = {
         "npv": 0.0,
-        "roi": 0.0,
+        "irr": 0.0,
+        "dscr": 0.0,
         "verdict": "PENDING",
-        "recommendation": "Awaiting audit input",
-        "floors": {},
+        "signal": "INSUFFICIENT",
         "audited": False
     }
 
     on_audit = CallTool(
         perform_economic_audit,
         args={
-            "initial_cost": 1000.0,
-            "annual_benefit": 250.0,
-            "years": 5
+            "initial_cost": 10000.0,
+            "annual_benefit": 2500.0,
+            "years": 5,
+            "ebitda": 150000.0,
+            "debt_service": 100000.0
         },
         on_success=[
             SetState("npv",             RESULT["npv"]),
-            SetState("roi",             RESULT["roi"]),
+            SetState("irr",             RESULT["irr"]),
+            SetState("dscr",            RESULT["dscr"]),
             SetState("verdict",         RESULT["verdict"]),
-            SetState("recommendation",  RESULT["recommendation"]),
-            SetState("floors",          RESULT["floors"]),
+            SetState("signal",          RESULT["signal"]),
             SetState("audited",         True),
             ShowToast("Economic audit sealed", variant="success"),
         ],
@@ -122,52 +128,39 @@ def wealth_dashboard_surface() -> PrefabApp:
                     Metric(label="NPV", value=STATE["npv"])
             with Card():
                 with CardContent(css_class="py-3 text-center"):
-                    Metric(label="ROI %", value=STATE["roi"])
+                    Metric(label="IRR", value=STATE["irr"])
             with Card():
                 with CardContent(css_class="py-3 text-center"):
-                    Badge(
-                        STATE["verdict"],
-                        variant=STATE["verdict"].then("success", "destructive"),
-                        css_class="mt-4"
-                    )
+                    Metric(label="DSCR", value=STATE["dscr"])
 
         Separator()
 
-        # ── Recommendation ──────────────────────────────────────────────────
+        # ── Signal & Verdict ────────────────────────────────────────────────
         with If(STATE["audited"]):
-            Alert(
-                title=STATE["verdict"].then("Investment Recommended", "Investment Warning"),
-                description=STATE["recommendation"],
-                variant=STATE["verdict"].then("default", "warning"),
-            )
+            with Row(gap=4, align="center"):
+                Badge(
+                    STATE["verdict"],
+                    variant=STATE["verdict"].then("success", "destructive"),
+                    css_class="font-mono"
+                )
+                Text(STATE["signal"], css_class="font-bold uppercase tracking-widest")
         
         # ── Audit Controls ──────────────────────────────────────────────────
         with Card():
             with CardContent(css_class="py-4"):
-                Text("Simulate Investment (Demo Defaults)", css_class="font-semibold mb-2")
-                Muted("Initial: $1000 | Benefit: $250 | 5 Years", css_class="mb-4")
+                Text("Simulate Project (Demo)", css_class="font-semibold mb-2")
+                Muted("Asset: Production Line | Value: $10,000", css_class="text-xs mb-4")
                 Button(
-                    "Perform Economic Audit",
+                    "Calculate Dimension Scores",
                     on_click=on_audit,
                     variant="default",
                     css_class="w-full",
                 )
 
         Separator()
+        Muted("Source: ariffazil/WEALTH v1.4.0", css_class="text-xs text-center")
 
-        # ── Floors ──────────────────────────────────────────────────────────
-        Muted("Constitutional Alignment", css_class="text-xs uppercase tracking-wider")
-        with Card(css_class="bg-muted/30"):
-            with CardContent(css_class="py-3"):
-                with Grid(columns=2, gap=2):
-                    # In a real app, I would iterate over STATE["floors"]
-                    # For now, let's show placeholders until audited
-                    with Row(gap=2, align="center"):
-                        Badge("F1", variant="outline")
-                        Text("Amanah (Stewardship)")
-                    with Row(gap=2, align="center"):
-                        Badge("F2", variant="outline")
-                        Text("Truth (Thermodynamics)")
+    return PrefabApp(view=view, state=initial_state)
 
     return PrefabApp(view=view, state=initial_state)
 
