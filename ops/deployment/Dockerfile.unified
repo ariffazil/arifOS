@@ -18,18 +18,16 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean --auto-remove -y
 
-# Install python dependencies using uv
-# We use --no-root-vouchers for faster builds if applicable, but standard sync is fine
+# Copy dependency manifests first (best caching)
 COPY pyproject.toml uv.lock ./
+# Pre-install dependencies only — cached layer survives source changes
 RUN uv sync --frozen --no-install-project --no-dev
 
-# Copy project source
+# Copy source and install project + dependencies in ONE sync
 COPY . .
-
-# Install the project itself
 RUN uv sync --frozen --no-dev
 
 # Setup persistent directories
