@@ -69,7 +69,7 @@ version = "2026.04.16"
 # 2026.1.26 — Live constitutional metrics; 13/13 floors passing
 # 2026.1.24 — Unified core: arifosmcp.transport pure transport, all logic in core/
 # 2026.1.18 — Constitutional Forge: 13 floors F1-F13, Trinity ΔΩΨ, VAULT999, 9-tool MCP
-description = "arifOS v2026.04.14 — Constitutional AI Governance System. Phase 1 Surface Compression: 12 canonical tools, 40+ unified aliases. CANONICAL SOURCE OF TRUTH: arifOS repository. Runtime truth: /health and /tools on deployed server. https://arifos.arif-fazil.com/"
+description = "arifOS v2026.04.16 — Constitutional AI Governance System. Integrated WEALTH valuation kernel and GEOX earth witness organ. CANONICAL SOURCE OF TRUTH: arifOS repository. Runtime truth: /health and /tools on deployed server. https://arifos.arif-fazil.com/"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"
