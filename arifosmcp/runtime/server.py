@@ -17,26 +17,26 @@ if _project_root not in sys.path:
 
 # Import from the root server.py after setting up the path
 # This imports the already-initialized FastMCP instance with all routes
+_import_error_msg: str | None = None
 try:
-    from server import mcp, app, LEGACY_TOOL_MAP, create_aaa_mcp_server
+    from server import mcp, app
 except ImportError as e:
+    _import_error_msg = str(e)
     # Fallback: if import fails, create minimal app for health check
     import logging
     logger = logging.getLogger(__name__)
     logger.error(f"Failed to import from root server.py: {e}")
-    
+
     from fastapi import FastAPI
     app = FastAPI()
-    
+
     @app.get("/health")
     async def fallback_health():
-        return {"status": "degraded", "error": f"Import failed: {e}"}
-    
-    mcp = None
-    LEGACY_TOOL_MAP = {}
-    create_aaa_mcp_server = None
+        return {"status": "degraded", "error": f"Import failed: {_import_error_msg}"}
 
-__all__ = ["mcp", "create_aaa_mcp_server", "app", "LEGACY_TOOL_MAP"]
+    mcp = None
+
+__all__ = ["mcp", "app"]
 
 # If this file is run directly, run the main server from root
 if __name__ == "__main__":

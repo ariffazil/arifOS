@@ -864,6 +864,12 @@ Domain: AAA / AGENTS·API·AI·APPS
 | F12 | Injection | < 0.85 | Adversarial defense |
 | F13 | Sovereign | HUMAN | Human veto |
 
+## Canonical MCP Context
+
+- LLM Context Resource: `arifos://mcp/context`
+- Continuity Contract: `0.1.0`
+- Core Tools: `init_anchor`, `agi_reason`, `search_reality`, `agentzero_engineer`, `arifos_kernel`, `apex_judge`
+
 ## Resources
 
 - Medium: https://medium.com/p/i-accidentally-built-an-intelligence-kernel-for-ai-57832a1fead1
@@ -1504,7 +1510,8 @@ def register_rest_routes(
 
     @route("/discovery", methods=["GET"])
     async def discovery_alias(request: Request) -> Response:
-        payload = build_server_json(_public_base_url(request))
+        from arifosmcp.runtime.public_registry import build_mcp_discovery_json
+        payload = build_mcp_discovery_json(_public_base_url(request))
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         return JSONResponse(payload)
@@ -1942,41 +1949,61 @@ def register_rest_routes(
             return JSONResponse({"error": str(e)}, status_code=500)
 
     # ── A2A ─────────────────────────────────────────────────────────────────
+    @route("/a2a/health", methods=["GET"])
+    async def a2a_health(request: Request) -> Response:
+        """A2A health check."""
+        return JSONResponse({"status": "healthy", "protocol": "A2A"})
+
     @route("/a2a/task", methods=["POST"])
     async def a2a_task(request: Request) -> Response:
         """Submit A2A task for agent-to-agent coordination."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
+            from arifosmcp.runtime.a2a.models import SubmitTaskRequest, TaskMessage
             a2a = create_a2a_server(mcp)
             body = await request.json()
-            task = await a2a.task_manager.create_task(body)
-            return JSONResponse({"task_id": task.id, "status": task.status.value if hasattr(task.status, 'value') else str(task.status)})
+            messages = [
+                TaskMessage(role=m.get("role", "user"), content=m.get("content", ""))
+                for m in body.get("messages", [])
+            ]
+            req = SubmitTaskRequest(
+                client_agent_id=body.get("client_agent_id", "anonymous"),
+                messages=messages,
+                session_id=body.get("session_id"),
+                skill_id=body.get("skill_id"),
+                parameters=body.get("parameters", {}),
+                status_callback_url=body.get("status_callback_url"),
+            )
+            task = await a2a.task_manager.create_task(req)
+            return JSONResponse({"task_id": task.id, "status": task.state.value if hasattr(task.state, 'value') else str(task.state)})
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @route("/a2a/status/{task_id}", methods=["GET"])
-    async def a2a_status(request: Request, task_id: str) -> Response:
+    async def a2a_status(request: Request) -> Response:
         """Get A2A task status."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
             a2a = create_a2a_server(mcp)
+            task_id = request.path_params.get("task_id", "")
             task = await a2a.task_manager.get_task(task_id)
             if not task:
                 return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
-            return JSONResponse({"task_id": task.id, "status": task.status.value if hasattr(task.status, 'value') else str(task.status)})
+            return JSONResponse({"task_id": task.id, "status": task.state.value if hasattr(task.state, 'value') else str(task.state)})
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @route("/a2a/subscribe/{task_id}", methods=["GET"])
-    async def a2a_subscribe(request: Request, task_id: str) -> Response:
+    async def a2a_subscribe(request: Request) -> Response:
         """SSE subscribe to A2A task updates."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
             a2a = create_a2a_server(mcp)
+            task_id = request.path_params.get("task_id", "")
             async def event_generator():
                 task = await a2a.task_manager.get_task(task_id)
                 if task:
-                    yield f"data: {task.status.value if hasattr(task.status, 'value') else 'running'}\n\n"
+                    yield f"data: {task.state.value if hasattr(task.state, 'value') else 'running'}\n\n"
                 yield "data: {\"status\":\"subscribed\"}\n\n"
             from starlette.responses import StreamingResponse
             return StreamingResponse(event_generator(), media_type="text/event-stream")
@@ -1992,6 +2019,10 @@ def register_rest_routes(
             webmcp_app = create_webmcp_app(mcp)
             base = _public_base_url(request)
             return JSONResponse({
+                "site": {
+                    "version": BUILD_VERSION,
+                    "name": "arifOS WebMCP",
+                },
                 "webmcp_version": "1.0",
                 "endpoints": {
                     "console": f"{base}/webmcp",
@@ -2088,6 +2119,7 @@ init();
             session_id = f"webmcp-{uuid.uuid4().hex[:12]}"
             return JSONResponse({
                 "session_id": session_id,
+                "verdict": "SEAL",
                 "human_approval": body.get("human_approval", False),
                 "protocol_version": "1.0"
             })

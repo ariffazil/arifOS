@@ -276,9 +276,8 @@ app.add_middleware(CSPMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 # Ensure REST routes from arifosmcp are actually bound to this app instance
-# Using /api prefix to avoid FastMCP's internal /tools reservation
 from arifosmcp.runtime.rest_routes import register_rest_routes
-register_rest_routes(app, HARDENED_HANDLERS, prefix="/api")
+register_rest_routes(app, HARDENED_HANDLERS, prefix="")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXPORT

@@ -69,11 +69,11 @@ class A2ATaskManager:
         # Initialize constitutional session via MCP
         session_id = None
         try:
-            # Call init_anchor to establish governed session
+            # Call arifos_init to establish governed session
             init_result = await self._call_mcp_tool(
-                "init_anchor",
+                "arifos_init",
                 {
-                    "query": query or "A2A task submission",
+                    "intent": query or "A2A task submission",
                     "actor_id": request.client_agent_id,
                 }
             )
@@ -152,13 +152,14 @@ class A2ATaskManager:
             await self._update_task_state(task_id, TaskState.WORKING, "Running constitutional critique...")
             
             critique_result = await self._call_mcp_tool(
-                "asi_critique",
+                "arifos_heart",
                 {
-                    "plan": {
+                    "mode": "critique",
+                    "query": json.dumps({
                         "action": task.skill_id or "general_execution",
                         "parameters": task.parameters,
                         "query": query,
-                    },
+                    }),
                     "session_id": task.session_id,
                 }
             )
@@ -167,11 +168,10 @@ class A2ATaskManager:
             await self._update_task_state(task_id, TaskState.WORKING, "Awaiting APEX judgment...")
             
             judge_result = await self._call_mcp_tool(
-                "apex_judge",
+                "arifos_judge",
                 {
-                    "query": query,
+                    "query": json.dumps({"original_query": query, "critique_result": critique_result}),
                     "session_id": task.session_id,
-                    "critique_result": critique_result,
                 }
             )
             
@@ -437,9 +437,9 @@ class A2AServer:
             
             # Step 1: Initialize constitutional anchor
             init_result = await self.task_manager._call_mcp_tool(
-                "init_anchor",
+                "arifos_init",
                 {
-                    "query": query,
+                    "intent": query,
                     "actor_id": actor_id,
                 }
             )
@@ -552,6 +552,11 @@ class A2AServer:
             }
 
 
+_a2a_server_singleton: A2AServer | None = None
+
 def create_a2a_server(mcp_server: Any) -> A2AServer:
-    """Factory function to create A2A server."""
-    return A2AServer(mcp_server)
+    """Factory function to create A2A server (singleton per process)."""
+    global _a2a_server_singleton
+    if _a2a_server_singleton is None:
+        _a2a_server_singleton = A2AServer(mcp_server)
+    return _a2a_server_singleton

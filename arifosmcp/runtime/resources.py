@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 # Module load time for uptime calculation
 START_TIME = datetime.now(timezone.utc)
 
+# Resource content accessors for stdio/inline resource reads
+_resource_content_functions: dict[str, Any] = {}
+
 CANON_SESSION_STATES = """# arifOS Session Ladder
 
 - anonymous: no verified session binding
@@ -668,6 +671,21 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
 
         return result
 
+    @mcp.resource("arifos://mcp/context")
+    def get_mcp_context() -> dict[str, Any]:
+        """Full LLM context map for canonical tool surface and continuity guidance."""
+        from arifosmcp.capability_map import build_llm_context_map
+        return build_llm_context_map()
+
+    # Populate inline resource content accessors for stdio compatibility
+    _resource_content_functions.update({
+        "arifos://doctrine": lambda: json.dumps(get_doctrine()),
+        "arifos://vitals": lambda: json.dumps({"note": "vitals resource requires async read"}),
+        "arifos://schema": lambda: json.dumps(get_schema()),
+        "arifos://forge": lambda: json.dumps(get_forge()),
+        "arifos://mcp/context": lambda: json.dumps(get_mcp_context()),
+    })
+
     registered = [
         "arifos://doctrine",
         "arifos://doctrine/floor/{floor_id}",
@@ -677,6 +695,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         "arifos://schema/tool/{tool_id}",
         "arifos://session/{session_id}",
         "arifos://forge",
+        "arifos://mcp/context",
     ]
     logger.info(f"Registered {len(registered)} v2 resources.")
     return registered

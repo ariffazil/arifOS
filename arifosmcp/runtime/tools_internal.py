@@ -1699,7 +1699,21 @@ async def architect_registry_dispatch_impl(
 ) -> RuntimeEnvelope:
     """Hardened architect registry dispatch."""
     session_id = payload.get("session_id")
-    
+
+    if mode == "context":
+        from arifosmcp.capability_map import build_llm_context_map
+        return RuntimeEnvelope(
+            ok=True,
+            tool="architect_registry",
+            stage=Stage.INIT_000.value,
+            verdict=Verdict.SEAL,
+            payload={
+                "context": build_llm_context_map(),
+                "resource_uri": "arifos://mcp/context",
+            },
+            session_id=session_id,
+        )
+
     try:
         return await _wrap_call("architect_registry", Stage.INIT_000, session_id, payload, ctx)
     except Exception as e:
