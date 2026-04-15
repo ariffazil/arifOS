@@ -1292,22 +1292,28 @@ def register_rest_routes(
                     "metabolic_stage": thermo.get("metabolic_stage", 444),
                     "witness": thermo.get("witness", _WITNESS_DEFAULTS),
                 },
+
                 # Auditability fields — F2 threshold and confidence semantics
+                # All values below are live from governance kernel when available.
+                # Fields marked _source are null when vault/telemetry is unavailable.
                 "governance": {
-                    # tau_confidence_system is aggregate system readiness (NOT per-claim F2 threshold)
-                    "tau_confidence_system": telemetry.get("confidence", 0.88),
+                    # tau_confidence_system: aggregate system readiness from kernel (NOT per-claim F2 threshold)
+                    # Null if governance kernel is unavailable
+                    "tau_confidence_system": telemetry.get("confidence"),
                     # F2 per-claim threshold — enforced at call time, defined in floor spec
                     "tau_threshold_f2": 0.99,
-                    # ψ vitality — system stamina, not proof-of-truth
-                    "psi_vitality": telemetry.get("psi_le", 0.82),
-                    # peace_squared — Lyapunov stability; >1.0 = stable/reversible posture
-                    "peace_squared": telemetry.get("peace2", 1.04),
+                    # ψ vitality: system stamina from kernel; null if kernel unavailable
+                    "psi_vitality": telemetry.get("psi_le"),
+                    # peace_squared: Lyapunov stability from kernel; null if kernel unavailable
+                    "peace_squared": telemetry.get("peace2"),
                     # Last VAULT999 seal — null if no seal yet or vault unavailable
                     "last_seal_timestamp": vault_last_seal,
-                    # Human sovereign veto status
-                    "888_hold_active": False,  # reflects runtime gate state
-                    "floors_hard": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
-                    "floors_soft": ["F3", "F4", "F5", "F7", "F8", "F12"],
+                    # Hard/soft floor classification: DOCTRINAL INTERPRETATION ONLY.
+                    # Not verified against runtime enforcement mode. May not reflect
+                    # actual per-floor enforcement behavior. Verify against floor spec
+                    # at https://github.com/ariffazil/arifOS before treating as fact.
+                    "floors_hard_doctrinal": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
+                    "floors_soft_doctrinal": ["F3", "F4", "F5", "F7", "F8", "F12"],
                 },
             },
             headers={"Access-Control-Allow-Origin": "*"},
@@ -1327,6 +1333,53 @@ def register_rest_routes(
         update_prometheus_metrics()
 
         return _Resp(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    @route("/metrics/json", methods=["GET"])
+    async def metrics_json(request: Request) -> JSONResponse:
+        """JSON telemetry summary — machine-readable alternative to Prometheus text.
+        
+        Returns the same core telemetry as /health but in a flat key-value map
+        optimised for dashboards and alerting pipelines.
+        
+        All values are null when the underlying substrate is unavailable.
+        No fabricated values. No defaults that could be mistaken for live readings.
+        """
+        thermo = _build_governance_status_payload()
+        telemetry = thermo.get("telemetry", {})
+
+        vault_last_seal = None
+        try:
+            from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
+            live = get_live_metrics()
+            vault_last_seal = getattr(live, 'vault_last_seal', None) or None
+        except Exception:
+            pass
+
+        return JSONResponse(
+            {
+                # Core gauges — null if kernel telemetry unavailable
+                "entropy_delta": telemetry.get("dS"),
+                "peace_squared": telemetry.get("peace2"),
+                "vitality_index": telemetry.get("psi_le"),
+                "echo_debt": telemetry.get("echoDebt"),
+                "shadow": telemetry.get("shadow"),
+                "confidence": telemetry.get("confidence"),
+                "kappa_r": telemetry.get("kappa_r"),
+                "verdict": telemetry.get("verdict"),
+                "metabolic_stage": thermo.get("metabolic_stage"),
+                # Witness ratios — null if kernel unavailable
+                "witness_human": thermo.get("witness", {}).get("human"),
+                "witness_ai": thermo.get("witness", {}).get("ai"),
+                "witness_earth": thermo.get("witness", {}).get("earth"),
+                # Auditability
+                "last_seal_timestamp": vault_last_seal,
+                "tau_threshold_f2": 0.99,  # constant: F2 floor spec threshold
+                # Freshness metadata
+                "telemetry_source": "live" if telemetry.get("confidence") is not None else "unavailable",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
 
     @route("/version", methods=["GET"])
     async def version(request: Request) -> Response:
