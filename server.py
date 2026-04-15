@@ -73,24 +73,42 @@ def _env_flag(name: str, default: bool = False) -> bool:
 
 def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     """
-    Wrap a tool handler to route through the Fail-Closed Dispatch Gate.
+    Wrap a tool handler and normalize its result for the HTTP MCP surface.
     """
     import inspect
     import functools
+
+    async def _invoke_original(arguments: dict[str, Any]) -> Any:
+        result = original_handler(**arguments)
+        if inspect.isawaitable(result):
+            result = await result
+
+        if result.__class__.__name__ == "RuntimeEnvelope":
+            from arifosmcp.runtime.output_formatter import format_output
+
+            platform = arguments.get("platform", "mcp")
+            if hasattr(result, "platform_context"):
+                result.platform_context = platform
+            return format_output(
+                result,
+                {"verbose": False, "debug": bool(arguments.get("debug", False))},
+            )
+        if hasattr(result, "model_dump"):
+            return result.model_dump(mode="json")
+        return result
 
     try:
         sig = inspect.signature(original_handler)
     except Exception:
         async def fallback_handler(**kwargs):
-            return await kernel.dispatch_with_fail_closed(tool_name, kwargs)
+            return await _invoke_original(kwargs)
         return fallback_handler
 
     @functools.wraps(original_handler)
     async def wrapper(*args, **kwargs):
         bound = sig.bind(*args, **kwargs)
         bound.apply_defaults()
-        # Route through the canonical kernel instance
-        return await kernel.dispatch_with_fail_closed(tool_name, dict(bound.arguments))
+        return await _invoke_original(dict(bound.arguments))
 
     wrapper.__signature__ = sig
     return wrapper

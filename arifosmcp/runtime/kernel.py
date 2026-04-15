@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Literal
+import inspect
 from arifosmcp.runtime.DNA import FLOORS, VERSION, OMEGA_BAND
 
 # --- Thermodynamics & Physics Stubs ---
@@ -47,10 +48,37 @@ class ConstitutionalKernel:
 
     async def dispatch_with_fail_closed(self, tool_name: str, arguments: dict):
         """Fail-Closed Dispatch Gateway (F12/F13)."""
-        # Logic migrated from tools_hardened_dispatch
+        from arifosmcp.runtime.output_formatter import format_output
+        from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, LEGACY_TOOL_ALIASES
+
         print(f"KERNEL: Dispatching {tool_name} through Fail-Closed Gates...")
-        # Placeholder for actual floor logic - in production this calls F1-F13
-        return {"status": "dispatched", "tool": tool_name, "audit": "PASS"}
+
+        canonical_name = LEGACY_TOOL_ALIASES.get(tool_name, tool_name)
+        handler = FINAL_TOOL_IMPLEMENTATIONS.get(canonical_name)
+        if handler is None:
+            return {
+                "tool": canonical_name,
+                "stage": "444_ROUTER",
+                "status": "error",
+                "summary": f"No canonical handler registered for {tool_name}.",
+                "result": {"error": "TOOL_NOT_FOUND", "requested_tool": tool_name},
+            }
+
+        result = handler(**arguments)
+        if inspect.isawaitable(result):
+            result = await result
+
+        if result.__class__.__name__ == "RuntimeEnvelope":
+            platform = arguments.get("platform", "mcp")
+            if hasattr(result, "platform_context"):
+                result.platform_context = platform
+            return format_output(
+                result,
+                {"verbose": False, "debug": bool(arguments.get("debug", False))},
+            )
+        if hasattr(result, "model_dump"):
+            return result.model_dump(mode="json")
+        return result
 
     async def get_constitutional_context(self, session_id: str, actor_id: str) -> str:
         """Grounding prompt for Agentic reasoning (K_FORGE §I)."""
