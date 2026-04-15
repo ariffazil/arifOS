@@ -1,0 +1,18 @@
+pack: rollback
+description: Reversibility proof
+
+tests:
+  - id: rollback-001
+    severity: P0
+    expect:
+      previous_image_available: true
+
+  - id: rollback-002
+    severity: P0
+    expect:
+      compose_config_restorable: true
+
+  - id: rollback-003
+    severity: P0
+    expect:
+      rollback_dry_run_ok: true

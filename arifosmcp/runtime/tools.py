@@ -149,6 +149,13 @@ def _stamp_platform(envelope: Any, platform: str) -> None:
         envelope.policy = {"platform_context": platform}
 
 
+def _public_output_options(platform: str, debug: bool) -> dict[str, Any] | None:
+    """Return formatter options for external/public transport surfaces."""
+    if platform in {"chatgpt_apps", "api", "stdio", "mcp", "agi_reply"}:
+        return {"verbose": False, "debug": debug}
+    return None
+
+
 async def arifos_init(
     actor_id: str | None = None,
     intent: str | None = None,
@@ -170,7 +177,7 @@ async def arifos_init(
     call_graph: list | None = None,
     observed_effects: list | None = None,
     caller_context: Any | None = None,
-) -> RuntimeEnvelope:
+ ) -> RuntimeEnvelope | dict[str, Any]:
     """
     Initialize constitutional session OR perform kernel syscall.
     """
@@ -206,6 +213,7 @@ async def arifos_init(
         return seal_runtime_envelope(
             _make_f12_block_envelope(_injection_score, _threats, session_id),
             "arifos_init",
+            output_options=_public_output_options(platform, debug),
         )
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -288,7 +296,11 @@ async def arifos_init(
             payload={"mode": mode, "syscall_result": result, "kernel_version": "0.2.0"},
             policy={"floors_checked": ["F11", "F12"], "syscall": mode, "reason": syscall_reason},
         )
-        return seal_runtime_envelope(envelope, "arifos_init")
+        return seal_runtime_envelope(
+            envelope,
+            "arifos_init",
+            output_options=_public_output_options(platform, debug),
+        )
 
     # ═══════════════════════════════════════════════════════════════════════════════
     # STANDARD INIT BRANCH
@@ -354,7 +366,11 @@ async def arifos_init(
         envelope.platform_context = platform
     if caller_context is not None and hasattr(envelope, "caller_context"):
         envelope.caller_context = caller_context
-    return seal_runtime_envelope(envelope, "arifos_init")
+    return seal_runtime_envelope(
+        envelope,
+        "arifos_init",
+        output_options=_public_output_options(platform, debug),
+    )
 
 
 async def arifos_sense(

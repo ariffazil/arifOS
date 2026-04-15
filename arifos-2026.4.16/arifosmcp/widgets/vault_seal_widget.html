@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS Vault Seal Widget</title>
+    <style>
+        :root {
+            --arif-primary: #00d4aa;
+            --arif-secondary: #1a1a2e;
+            --arif-accent: #ff6b35;
+            --arif-text: #e0e0e0;
+            --arif-bg: #0f0f1a;
+            --seal-green: #00ff88;
+            --seal-yellow: #ffcc00;
+            --seal-red: #ff4444;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--arif-bg);
+            color: var(--arif-text);
+            padding: 16px;
+            min-height: 100vh;
+        }
+        
+        .widget-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, var(--arif-secondary) 0%, #16213e 100%);
+            border-radius: 12px;
+            border: 1px solid var(--arif-primary);
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 212, 170, 0.15);
+        }
+        
+        .widget-header {
+            background: linear-gradient(90deg, var(--arif-primary), #00b894);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .widget-header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--arif-bg);
+        }
+        
+        .seal-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .seal-status.seal {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--seal-green);
+        }
+        
+        .seal-status.partial {
+            background: rgba(255, 204, 0, 0.2);
+            color: var(--seal-yellow);
+        }
+        
+        .seal-status.void {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--seal-red);
+        }
+        
+        .seal-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        .widget-body {
+            padding: 16px;
+        }
+        
+        .floor-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .floor-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .floor-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .floor-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+        
+        .floor-value.pass { color: var(--seal-green); }
+        .floor-value.warn { color: var(--seal-yellow); }
+        .floor-value.fail { color: var(--seal-red); }
+        
+        .witness-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        
+        .witness-label {
+            color: #888;
+            font-size: 13px;
+        }
+        
+        .witness-value {
+            font-weight: 600;
+        }
+        
+        .timestamp {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin-top: 16px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--arif-primary);
+        }
+        
+        .loading::after {
+            content: '⚙️';
+            display: block;
+            font-size: 32px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--seal-red);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--seal-red);
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <h1>🔐 arifOS Vault Seal</h1>
+            <span id="seal-status" class="seal-status">LOADING</span>
+        </div>
+        <div id="widget-body" class="widget-body">
+            <div class="loading">Initializing constitutional seal...</div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * arifOS Vault Seal Widget
+         * Implements MCP Apps UI bridge for ChatGPT widget rendering.
+         * 
+         * Listens for ui/notifications/tool-result messages from ChatGPT
+         * and renders the structuredContent from arifOS constitutional seal.
+         */
+        
+        const WIDGET_DOMAIN = 'https://arifosmcp.arif-fazil.com';
+        
+        // State management for widget
+        let currentSeal = null;
+        
+        /**
+         * Update widget UI with seal data from structuredContent
+         */
+        function renderSeal(data) {
+            const body = document.getElementById('widget-body');
+            const status = document.getElementById('seal-status');
+            
+            if (!data || !data.summary) {
+                body.innerHTML = '<div class="error">No seal data received</div>';
+                return;
+            }
+            
+            // Update seal status badge
+            const verdict = data.verdict || 'UNKNOWN';
+            status.className = 'seal-status ' + verdict.toLowerCase();
+            status.textContent = verdict;
+            
+            // Build floor grid
+            const floors = data.floors || {};
+            const truthScore = floors.tau_truth || 0;
+            const humility = floors.omega_0 || 0;
+            const care = floors.kappa_r || 0;
+            const peace2 = floors.peace2 || 0;
+            
+            body.innerHTML = `
+                <div class="floor-grid">
+                    <div class="floor-item">
+                        <div class="floor-label">Truth</div>
+                        <div class="floor-value ${getFloorClass(truthScore)}">${formatScore(truthScore)}</div>
+                    </div>
+                    <div class="floor-item">
+                        <div class="floor-label">Humility</div>
+                        <div class="floor-value ${getFloorClass(humility, 0.04)}">${formatScore(humility)}</div>
+                    </div>
+                    <div class="floor-item">
+                        <div class="floor-label">Care</div>
+                        <div class="floor-value ${getFloorClass(care)}">${formatScore(care)}</div>
+                    </div>
+                    <div class="floor-item">
+                        <div class="floor-label">Peace²</div>
+                        <div class="floor-value ${getFloorClass(peace2, 1.0)}">${formatScore(peace2)}</div>
+                    </div>
+                </div>
+                
+                <div class="witness-row">
+                    <span class="witness-label">Tri-Witness</span>
+                    <span class="witness-value">${formatScore(floors.tri_witness || 0)}</span>
+                </div>
+                
+                <div class="witness-row">
+                    <span class="witness-label">Amanah Lock</span>
+                    <span class="witness-value" style="color: ${floors.amanah_lock ? 'var(--seal-green)' : 'var(--seal-red)'}">${floors.amanah_lock ? 'ON' : 'OFF'}</span>
+                </div>
+                
+                <div class="timestamp">
+                    SEAL ID: ${data.seal_id || 'N/A'}<br>
+                    ${data.timestamp || new Date().toISOString()}
+                </div>
+            `;
+            
+            currentSeal = data;
+        }
+        
+        function getFloorClass(value, threshold = 0.7) {
+            if (value >= threshold) return 'pass';
+            if (value >= threshold * 0.7) return 'warn';
+            return 'fail';
+        }
+        
+        function formatScore(value) {
+            if (typeof value !== 'number') return '—';
+            return (value * 100).toFixed(0) + '%';
+        }
+        
+        /**
+         * MCP Apps UI bridge - listen for tool results via postMessage
+         * 
+         * Ref: https://developers.openai.com/apps-sdk/build/state-management
+         */
+        window.addEventListener('message', (event) => {
+            // Security: only accept messages from parent (ChatGPT iframe)
+            if (event.source !== window.parent) return;
+            
+            const message = event.data;
+            if (!message || message.jsonrpc !== '2.0') return;
+            
+            // Handle tool result notifications
+            if (message.method === 'ui/notifications/tool-result') {
+                handleToolResult(message.params);
+            }
+        }, { passive: true });
+        
+        function handleToolResult(params) {
+            console.log('[arifOS Widget] Received tool result:', params);
+            
+            const structuredContent = params?.structuredContent;
+            
+            if (structuredContent) {
+                if (structuredContent.summary) {
+                    // Full seal data from vault_seal_card or render_vault_seal
+                    renderSeal(structuredContent);
+                } else if (structuredContent.verdict) {
+                    // Direct verdict data
+                    renderSeal(structuredContent);
+                } else {
+                    // Raw data
+                    renderSeal({ summary: structuredContent, verdict: 'SEAL', floors: structuredContent });
+                }
+            } else {
+                document.getElementById('widget-body').innerHTML = 
+                    '<div class="error">No structuredContent in response</div>';
+            }
+        }
+        
+        // Request initial state if available
+        // Note: ChatGPT sends tool results via postMessage, we just listen
+        console.log('[arifOS Widget] Initialized - waiting for tool result...');
+        
+        // Fallback: if no message received in 5s, show placeholder
+        setTimeout(() => {
+            if (!currentSeal) {
+                document.getElementById('widget-body').innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: var(--arif-primary); margin-bottom: 8px;">🔐 Constitutional Seal</p>
+                        <p style="font-size: 12px; color: #888;">Waiting for seal data...</p>
+                        <p style="font-size: 11px; color: #555; margin-top: 12px;">
+                            Connect via ChatGPT MCP to load live data.
+                        </p>
+                    </div>
+                `;
+                document.getElementById('seal-status').textContent = 'WAITING';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

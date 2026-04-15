@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.context_packet.mind",
+  "context_packet_version": "1.0.0",
+  "tool_id": "arifos.mind",
+  "stage": "333_MIND",
+  "stage_order": 2,
+  "desc": "Structured reasoning",
+  "trinity": "Δ",
+  "trinity_name": "Discernment",
+  "uri": "/arifOS/runtime/agi_mind",
+  "backing_tool": "agi_mind",
+  "role": "reasoning",
+  "role_description": "Synthesis, reflection, and structured cognition",
+  "modes": ["reason", "reflect", "forge"],
+  "default_mode": "reason",
+  "purpose": "Perform structured reasoning, synthesis across sources, reflective analysis, and design-forging. Creates candidate solutions and action plans for downstream evaluation.",
+  "when_to_use": [
+    "Need structured reasoning on complex problems",
+    "Synthesizing multiple sources or perspectives",
+    "Designing architectures or solutions",
+    "Reflective comparison of approaches",
+    "Need to break down complex tasks",
+    "Generating candidate actions for evaluation"
+  ],
+  "when_not_to_use": [
+    "Do not use for final authority decisions - output is advisory",
+    "Do not use as memory store - use arifos.memory",
+    "Do not use for direct execution - use arifos.forge only after judgment",
+    "Do not use for safety evaluation - that's arifos.heart's job",
+    "Do not use without grounded context - sense first, then reason"
+  ],
+  "not_job": [
+    "Not an authority - recommendations need judgment",
+    "Not a memory system",
+    "Not a safety validator",
+    "Not an execution mechanism",
+    "Not a source of absolute truth"
+  ],
+  "inputs": {
+    "mode": {
+      "type": "string",
+      "enum": ["reason", "reflect", "forge"],
+      "description": "reason: analyze/synthesize, reflect: introspect/compare, forge: design/create"
+    },
+    "required_payload": {
+      "query": "string - The reasoning task",
+      "context": "string - Relevant context and constraints",
+      "alternative_hypotheses": "string[] - Alternative interpretations to consider"
+    },
+    "optional_payload": {
+      "reasoning_depth": "string - superficial|standard|deep",
+      "output_format": "string - Preferred output structure"
+    }
+  },
+  "outputs": {
+    "primary": "reasoned_synthesis",
+    "shape": {
+      "summary": "string - Concise reasoning result",
+      "findings": "string[] - Key discoveries",
+      "reasoning_chain": "object[] - Steps of reasoning",
+      "candidate_actions": "object[] - Proposed actions for evaluation",
+      "risks": "string[] - Identified concerns",
+      "confidence": "number - 0.0-1.0",
+      "requires_judgment": "boolean - Needs arifos.judge"
+    }
+  },
+  "state_behavior": {
+    "reads_state": true,
+    "writes_state": false,
+    "external_side_effects": false,
+    "pure_function": true
+  },
+  "authority_model": {
+    "advisory_only": true,
+    "produces_candidates": true,
+    "requires_human_confirmation_for_consequences": true,
+    "cannot_override_constitution": true
+  },
+  "context_contract": {
+    "consumes": [
+      "session context",
+      "task intent",
+      "retrieved memory",
+      "grounded evidence",
+      "governance constraints"
+    ],
+    "emits": [
+      "structured reasoning",
+      "candidate actions",
+      "risk indicators",
+      "telemetry hints for judge"
+    ]
+  },
+  "routing_hints": {
+    "upstream": ["arifos.init", "arifos.sense", "arifos.memory"],
+    "downstream": ["arifos.heart", "arifos.ops", "arifos.judge"],
+    "typical_flow": ["111_SENSE → 333_MIND → 666_HEART → 888_JUDGE"]
+  },
+  "governance_requirements": {
+    "risk_tier": "medium",
+    "dry_run_allowed": true,
+    "produces_candidates": true
+  },
+  "chatgpt_guidance": {
+    "plain_english": "Use this for thinking work - analysis, synthesis, design. Its output is a candidate that needs safety review and judgment before action.",
+    "key_phrases": ["analyze", "synthesize", "compare", "design", "reason about", "structure"],
+    "ask_before_use_if": [
+      "the task has safety implications",
+      "you're ready to act immediately - you probably need heart/judge first"
+    ],
+    "do_not_assume": [
+      "mind's output is safe - it hasn't been stress-tested",
+      "mind's output is optimal - heart may find issues",
+      "you can skip to execution - judgment is required"
+    ],
+    "ideal_prompt_shape": {
+      "mode": "reason",
+      "query": "What are the architectural tradeoffs between REST and GraphQL for this API?",
+      "context": "Building a real-time collaboration platform...",
+      "alternative_hypotheses": ["GraphQL is always better", "REST is simpler and sufficient"]
+    }
+  }
+}

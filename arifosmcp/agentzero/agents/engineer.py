@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import subprocess
 from typing import Any
 
@@ -521,7 +522,7 @@ class EngineerAgent(ConstitutionalAgent):
                 capture_output=True,
                 text=True,
                 timeout=self.sandbox_config["max_execution_time"],
-                cwd="/tmp/sandbox"  # Restricted directory
+                cwd=os.path.join(os.environ.get("TEMP", "/tmp"), "sandbox")
             )
             
             return {
@@ -544,7 +545,7 @@ class EngineerAgent(ConstitutionalAgent):
                 capture_output=True,
                 text=True,
                 timeout=self.sandbox_config["max_execution_time"],
-                cwd="/tmp/sandbox"
+                cwd=os.path.join(os.environ.get("TEMP", "/tmp"), "sandbox")
             )
             
             return {

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.context_packet.judge",
+  "context_packet_version": "1.0.0",
+  "tool_id": "arifos.judge",
+  "stage": "888_JUDGE",
+  "stage_order": 7,
+  "desc": "Constitutional verdict",
+  "trinity": "Ψ",
+  "trinity_name": "Sovereignty",
+  "uri": "/arifOS/runtime/apex_soul",
+  "backing_tool": "apex_soul",
+  "role": "judgment",
+  "role_description": "Constitutional verdict engine",
+  "modes": ["judge", "rules", "validate", "hold"],
+  "default_mode": "judge",
+  "purpose": "Apply constitutional gate to candidate action and return verdict (SEAL, HOLD, VOID). The authority layer - what sovereign decisions look like.",
+  "when_to_use": [
+    "Final decision before any action",
+    "After heart and ops have reviewed",
+    "Need constitutional validation",
+    "Determining if action is permitted",
+    "Checking compliance with rules",
+    "Resolving conflicts or ambiguities"
+  ],
+  "when_not_to_use": [
+    "Do not use for information retrieval",
+    "Do not use for reasoning - that's arifos.mind",
+    "Do not use for safety critique - that's arifos.heart",
+    "Do not skip for any consequential action - mandatory",
+    "Do not override without human approval"
+  ],
+  "not_job": [
+    "Not an executor - verdict only",
+    "Not a creative thinker - applies rules",
+    "Not a safety evaluator - uses heart's input",
+    "Not a cost estimator - uses ops' input"
+  ],
+  "inputs": {
+    "mode": {
+      "type": "string",
+      "enum": ["judge", "rules", "validate", "hold"],
+      "description": "judge: render verdict, rules: list applicable, validate: check compliance, hold: request pause"
+    },
+    "required_payload": {
+      "candidate_action": "object - What is being proposed",
+      "telemetry": "object - Heart, ops, and context data",
+      "risk_tier": "string - low|medium|high|critical"
+    },
+    "optional_payload": {
+      "context": "string - Additional situation",
+      "precedents": "string[] - Similar past cases"
+    }
+  },
+  "outputs": {
+    "primary": "verdict",
+    "shape": {
+      "verdict": "string - SEAL|HOLD|VOID",
+      "symbol": "string - ◉|⊘|⦻",
+      "rationale": "string - Reasoning",
+      "conditions": "string[] - If SEAL, any conditions",
+      "appeal_process": "string - If HOLD, how to proceed"
+    }
+  },
+  "state_behavior": {
+    "reads_state": true,
+    "writes_state": false,
+    "external_side_effects": false,
+    "authoritative": true
+  },
+  "authority_model": {
+    "advisory_only": false,
+    "render_verdicts": true,
+    "can_block": true,
+    "can_approve": true,
+    "human_can_override_HOLD": true,
+    "human_cannot_override_VOID": true
+  },
+  "context_contract": {
+    "consumes": [
+      "candidate action",
+      "risk tier",
+      "telemetry from heart",
+      "telemetry from ops",
+      "constitutional rules",
+      "session context"
+    ],
+    "emits": [
+      "verdict",
+      "rationale",
+      "conditions",
+      "audit record"
+    ]
+  },
+  "routing_hints": {
+    "upstream": ["arifos.heart", "arifos.ops", "arifos.mind"],
+    "downstream": ["arifos.vault", "arifos.forge"],
+    "mandatory_before": ["FORGE_010"],
+    "typical_flow": ["666_HEART → 888_JUDGE → (999_VAULT | FORGE_010)"]
+  },
+  "governance_requirements": {
+    "risk_tier": "critical",
+    "dry_run_allowed": true,
+    "produces_binding_verdicts": true
+  },
+  "chatgpt_guidance": {
+    "plain_english": "Use this for the FINAL DECISION before any action. It says YES (SEAL), MAYBE (HOLD), or NO (VOID). Never skip this for important actions.",
+    "key_phrases": ["should we do this", "is this allowed", "get approval", "constitutional check", "final decision"],
+    "ask_before_use_if": [
+      "you're unsure if action is constitutional",
+      "heart raised concerns you need resolved"
+    ],
+    "do_not_assume": [
+      "SEAL means perfect safety - it means constitutional",
+      "you can bypass judge in emergencies - you cannot",
+      "HOLD is temporary denial - it's a pause for human review"
+    ],
+    "ideal_prompt_shape": {
+      "mode": "judge",
+      "candidate_action": {
+        "type": "deploy_change",
+        "target": "production",
+        "description": "Update authentication middleware"
+      },
+      "telemetry": {
+        "heart_assessment": {"safety_score": 0.92, "concerns": []},
+        "ops_estimate": {"cost_tier": "medium"}
+      },
+      "risk_tier": "high"
+    }
+  }
+}

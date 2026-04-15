@@ -1,10 +1,48 @@
 # arifOS TODO — Active Work Queue
 
-**Version:** 2026.04.07-TIER1-SEALED
+**Version:** 2026.4.13-SEALED
 **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)
 **SoT:** This file tracks active engineering work. ROADMAP.md owns horizon strategy.
+**Seal ID:** SEAL-20260415-001
+**Sealed Commits:** a9d2899, 74057cc, 157ed39, b6a207d
 
 > 888_HOLD items require explicit sovereign approval before execution.
+
+---
+
+## ✅ SEALED This Session (2026.04.15)
+
+### Fixes
+- [x] **output_formatter.py** — Add required `tool` field to chatgpt_apps platform output
+- [x] **integrity.py** — Update `REQUIRED_POLICY_VERSION` to `2026.4.13`
+- [x] **integrity.py** — Skip router visibility check at boot (runtime invariant)
+
+### New Features
+- [x] **arifos_init** — Add `intent_vector` profiling (short_term, long_term, exploratory, strategic, defensive)
+- [x] **arifos_sense** — Add `affective_signal` detection (urgency, confidence, volatility)
+- [x] **arifos_heart** — Add `background_scan` parameter for lightweight ethical monitoring
+
+### Optimization
+- [x] **pyproject.toml** — ML deps moved to optional `ml` extras
+- [x] **Dockerfile.unified** — Build optimization applied
+
+---
+
+## 🔲 Post-Seal TODO
+
+### High Priority
+- [ ] Docker rebuild with all fixes baked in
+- [ ] Router visibility validation moved to runtime (not boot-time)
+- [ ] Verify new features via MCP call (not just /health)
+
+### Medium Priority
+- [ ] Add regression tests for output_formatter schema
+- [ ] Update .dockerignore for main Dockerfile
+- [ ] Run full MCP inspector tool test
+
+---
+
+## 🔴 P0 — Blockers (Ship This Week)
 
 ---
 

@@ -29,6 +29,9 @@ import sys
 import traceback
 from typing import Any
 
+from arifosmcp.runtime.DNA import VERSION, MOTTO
+from arifosmcp.runtime.kernel import kernel
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENVIRONMENT SETUP
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -70,34 +73,44 @@ def _env_flag(name: str, default: bool = False) -> bool:
 
 def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     """
-    Wrap a tool handler to route through the Fail-Closed Dispatch Gate.
-    Preserves exact signature via __signature__ to satisfy FastMCP
-    introspection without resorting to runtime exec().
+    Wrap a tool handler and normalize its result for the HTTP MCP surface.
     """
-    from arifosmcp.runtime.tools_hardened_dispatch import dispatch_with_fail_closed
     import inspect
     import functools
-    import typing
+
+    async def _invoke_original(arguments: dict[str, Any]) -> Any:
+        result = original_handler(**arguments)
+        if inspect.isawaitable(result):
+            result = await result
+
+        if result.__class__.__name__ == "RuntimeEnvelope":
+            from arifosmcp.runtime.output_formatter import format_output
+
+            platform = arguments.get("platform", "mcp")
+            if hasattr(result, "platform_context"):
+                result.platform_context = platform
+            return format_output(
+                result,
+                {"verbose": False, "debug": bool(arguments.get("debug", False))},
+            )
+        if hasattr(result, "model_dump"):
+            return result.model_dump(mode="json")
+        return result
 
     try:
         sig = inspect.signature(original_handler)
     except Exception:
         async def fallback_handler(**kwargs):
-            return await dispatch_with_fail_closed(tool_name, kwargs)
+            return await _invoke_original(kwargs)
         return fallback_handler
 
     @functools.wraps(original_handler)
     async def wrapper(*args, **kwargs):
         bound = sig.bind(*args, **kwargs)
         bound.apply_defaults()
-        return await dispatch_with_fail_closed(tool_name, dict(bound.arguments))
+        return await _invoke_original(dict(bound.arguments))
 
     wrapper.__signature__ = sig
-    try:
-        wrapper.__annotations__ = typing.get_type_hints(original_handler)
-    except Exception:
-        wrapper.__annotations__ = getattr(original_handler, "__annotations__", {})
-
     return wrapper
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -143,21 +156,16 @@ class CSPMiddleware(BaseHTTPMiddleware):
 
 mcp = FastMCP(
     "ARIFOS MCP",
-    version="2026.4.14",
+    version=VERSION,
     website_url="https://arifosmcp.arif-fazil.com",
-    instructions="""Constitutional AI orchestration kernel — SEALED v2026.4.14.
-
-Golden path: init → sense → mind → heart → judge → vault
-Public FastMCP surface (11 tools):
-  Governance : arifos_init | arifos_kernel | arifos_judge | arifos_vault
-  Intelligence: arifos_sense | arifos_mind | arifos_heart | arifos_memory
-  Execution : arifos_forge
-  Orthogonality: arifos_gateway
-  Observability: arifos_ops
-
-FAIL-CLOSED: Identity anchoring (arifos_init) is required for all reasoning.
-DITEMPA, BUKAN DIBERI — Forged, Not Given
-""",
+    instructions=f"""Constitutional AI orchestration kernel — SEALED v{VERSION}.
+    
+    {MOTTO}
+    
+    Golden path: init → sense → mind → heart → judge → vault
+    Governance : arifos_init | arifos_kernel | arifos_judge | arifos_vault
+    Execution : arifos_forge
+    """,
 )
 
 v2_tools_registered = []
@@ -252,7 +260,7 @@ async def horizon_health(request: Request) -> JSONResponse:
     build = get_build_info()
     return JSONResponse({
         "status": "healthy",
-        "version": "2026.4.14-SEALED",
+        "version": f"{VERSION}-SEALED",
         "tools": len(v2_tools_registered),
         "fail_closed": True,
         "timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
@@ -261,7 +269,7 @@ async def horizon_health(request: Request) -> JSONResponse:
 async def horizon_metadata(request: Request) -> JSONResponse:
     return JSONResponse({
         "name": "ARIFOS MCP",
-        "version": "2026.4.14",
+        "version": VERSION,
         "security": "Fail-Closed Dispatch (Gate 1-4 active)",
         "protocol": "MCP 2025-03-26",
     })

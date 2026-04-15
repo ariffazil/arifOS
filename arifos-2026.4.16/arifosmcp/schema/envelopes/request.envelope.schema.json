@@ -1,0 +1,269 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifosmcp.arif-fazil.com/schema/envelopes/request.envelope.schema.json",
+  "title": "arifOS Universal Request Envelope",
+  "description": "Shared request envelope for all arifOS tool calls. Wraps all tool-specific payloads in a unified governance shell.",
+  "version": "arifOS.request.v1",
+  "type": "object",
+  "required": ["tool", "session", "telemetry"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "description": "Canonical tool identifier",
+      "enum": [
+        "arifos.init",
+        "arifos.sense",
+        "arifos.mind",
+        "arifos.route",
+        "arifos.memory",
+        "arifos.heart",
+        "arifos.ops",
+        "arifos.judge",
+        "arifos.vault",
+        "arifos.forge"
+      ]
+    },
+    "stage": {
+      "type": "string",
+      "description": "Explicit stage designation for this request",
+      "enum": [
+        "000_INIT",
+        "111_SENSE",
+        "333_MIND",
+        "444_ROUTER",
+        "555_MEMORY",
+        "666_HEART",
+        "777_OPS",
+        "888_JUDGE",
+        "999_VAULT",
+        "FORGE_010"
+      ]
+    },
+    "mode": {
+      "type": "string",
+      "description": "Operation mode — varies by tool, see tool manifest"
+    },
+    "session": {
+      "type": "object",
+      "description": "Session identity and continuity context",
+      "required": ["session_id"],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Unique session identifier",
+          "pattern": "^sess_[0-9]{8}_[0-9]+$"
+        },
+        "actor_id": {
+          "type": "string",
+          "description": "Authenticated actor identifier"
+        },
+        "declared_name": {
+          "type": "string",
+          "description": "Human-readable actor name"
+        },
+        "conversation_id": {
+          "type": "string",
+          "description": "Parent conversation identifier"
+        },
+        "turn_id": {
+          "type": "string",
+          "description": "Current turn within conversation"
+        },
+        "established_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of session establishment"
+        }
+      }
+    },
+    "intent": {
+      "type": "object",
+      "description": "Human intent and task context",
+      "properties": {
+        "task": {
+          "type": "string",
+          "description": "High-level task description"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Domain classification",
+          "examples": ["arifOS.core", "engineering", "research", "operations"]
+        },
+        "human_goal": {
+          "type": "string",
+          "description": "What the human wants to achieve"
+        },
+        "requires_human_decision": {
+          "type": "boolean",
+          "description": "Whether this requires explicit human approval",
+          "default": false
+        },
+        "consequence_level": {
+          "type": "string",
+          "enum": ["none", "low", "medium", "high", "critical"],
+          "description": "Estimated consequence level",
+          "default": "low"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "description": "Governance constraints and policy context",
+      "properties": {
+        "risk_tier": {
+          "type": "string",
+          "enum": ["minimal", "low", "medium", "high", "critical"],
+          "description": "Risk classification",
+          "default": "low"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "If true, simulate without side effects",
+          "default": false
+        },
+        "allow_execution": {
+          "type": "boolean",
+          "description": "Explicit permission for execution",
+          "default": false
+        },
+        "policy_version": {
+          "type": "string",
+          "description": "Constitution version to apply",
+          "default": "arifOS.constitution.v1"
+        },
+        "authority": {
+          "type": "string",
+          "enum": ["advisory_only", "requires_confirmation", "delegated", "full"],
+          "description": "Authority level granted",
+          "default": "advisory_only"
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Additional governance constraints"
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "description": "Operational context from previous stages",
+      "properties": {
+        "stage_history": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Previous stages in this workflow"
+        },
+        "memory_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "References to relevant memory entries"
+        },
+        "vault_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "References to vault-sealed records"
+        },
+        "preceding_verdict": {
+          "type": "string",
+          "description": "Verdict from arifos.judge if applicable"
+        },
+        "upstream_results": {
+          "type": "object",
+          "description": "Results from upstream tool calls"
+        }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "description": "Tool-specific payload — see individual tool schemas"
+    },
+    "telemetry": {
+      "type": "object",
+      "description": "Request telemetry and tracing",
+      "required": ["request_id", "timestamp"],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "description": "Unique request identifier"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of request"
+        },
+        "caller_context": {
+          "type": "object",
+          "properties": {
+            "channel": {
+              "type": "string",
+              "examples": ["chatgpt", "api", "cli", "web"]
+            },
+            "surface": {
+              "type": "string",
+              "examples": ["api_tool", "web_interface", "direct_call"]
+            },
+            "client_version": {
+              "type": "string"
+            }
+          }
+        },
+        "debug": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "tool": "arifos.mind",
+      "stage": "333_MIND",
+      "mode": "forge",
+      "session": {
+        "session_id": "sess_20260406_001",
+        "actor_id": "ARIF",
+        "declared_name": "ARIF",
+        "conversation_id": "conv_abc123",
+        "turn_id": "turn_019"
+      },
+      "intent": {
+        "task": "Forge unified schema for arifOS tools",
+        "domain": "arifOS.core",
+        "human_goal": "Expose semantic tool context to ChatGPT",
+        "requires_human_decision": true,
+        "consequence_level": "medium"
+      },
+      "governance": {
+        "risk_tier": "medium",
+        "dry_run": true,
+        "allow_execution": false,
+        "policy_version": "arifOS.constitution.v1",
+        "authority": "advisory_only"
+      },
+      "context": {
+        "stage_history": ["000_INIT", "111_SENSE"],
+        "memory_refs": ["mem_001", "mem_009"],
+        "vault_refs": [],
+        "constraints": [
+          "No silent rule changes",
+          "Human is final judge",
+          "Need full semantic exposure"
+        ]
+      },
+      "payload": {
+        "query": "Design the schema",
+        "context": "Existing stage map plus trinity labels",
+        "session_id": "sess_20260406_001"
+      },
+      "telemetry": {
+        "request_id": "req_001",
+        "timestamp": "2026-04-06T00:00:00Z",
+        "caller_context": {
+          "channel": "chatgpt",
+          "surface": "api_tool"
+        },
+        "debug": true
+      }
+    }
+  ]
+}

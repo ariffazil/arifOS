@@ -68,17 +68,12 @@ def format_output(
     # 1. chatgpt_apps — widget-renderable JSON
     if platform == "chatgpt_apps":
         clean = _build_base_output(envelope)
-        res = clean.model_dump(exclude_none=True)
-        res["render_hint"] = "widget"
-        res["platform"] = "chatgpt_apps"
-        res["tool"] = envelope.canonical_tool_name or envelope.tool or "unknown"
-        if "status" not in res:
-            res["status"] = "ok" if envelope.ok else "error"
-        required_fields = ["tool", "stage", "status", "result"]
-        for f in required_fields:
-            if f not in res:
-                raise ValueError(f"Missing required MCP field: {f}")
-        return res
+        return _build_transport_envelope(
+            envelope,
+            clean.model_dump(exclude_none=True),
+            platform="chatgpt_apps",
+            render_hint="widget",
+        )
 
     # 2. api — flat JSON, no MCP envelope
     if platform == "api":
@@ -115,14 +110,18 @@ def format_output(
 
     # Add system view if verbose
     if verbose and not debug:
-        return build_system_view(
-            base=clean,
-            kernel_version=_extract_kernel_version(envelope),
-            adapter="mcp",
-            env=_extract_env(envelope),
-            authority=_extract_authority(envelope),
-            operational_status=_extract_operational_status(envelope),
-            proof_status=_extract_proof_status(envelope),
+        return _build_transport_envelope(
+            envelope,
+            build_system_view(
+                base=clean,
+                kernel_version=_extract_kernel_version(envelope),
+                adapter="mcp",
+                env=_extract_env(envelope),
+                authority=_extract_authority(envelope),
+                operational_status=_extract_operational_status(envelope),
+                proof_status=_extract_proof_status(envelope),
+            ),
+            platform="mcp",
         )
 
     # Add forensic view if debug
@@ -136,25 +135,85 @@ def format_output(
             operational_status=_extract_operational_status(envelope),
             proof_status=_extract_proof_status(envelope),
         )
-        return build_forensic_view(
-            base=CleanOutput(**base_dict),
-            caller_state=envelope.caller_state,
-            allowed_next_tools=list(envelope.allowed_next_tools)
-            if envelope.allowed_next_tools
-            else [],
-            blocked_tools=envelope.blocked_tools if envelope.blocked_tools else [],
-            raw_payload=envelope.payload if isinstance(envelope.payload, dict) else None,
-            trace=envelope.trace,
-            telemetry=envelope.metrics.model_dump() if envelope.metrics else None,
-            continuity=envelope.payload.get("continuity")
-            if isinstance(envelope.payload, dict)
-            else None,
-            handoff=envelope.handoff,
-            diagnostics=envelope.diagnostics,
+        return _build_transport_envelope(
+            envelope,
+            build_forensic_view(
+                base=CleanOutput(**base_dict),
+                caller_state=envelope.caller_state,
+                allowed_next_tools=list(envelope.allowed_next_tools)
+                if envelope.allowed_next_tools
+                else [],
+                blocked_tools=envelope.blocked_tools if envelope.blocked_tools else [],
+                raw_payload=envelope.payload if isinstance(envelope.payload, dict) else None,
+                trace=envelope.trace,
+                telemetry=envelope.metrics.model_dump() if envelope.metrics else None,
+                continuity=envelope.payload.get("continuity")
+                if isinstance(envelope.payload, dict)
+                else None,
+                handoff=envelope.handoff,
+                diagnostics=envelope.diagnostics,
+            ),
+            platform="mcp",
         )
 
     # Return minimal operator view
-    return clean.model_dump(exclude_none=True)
+    return _build_transport_envelope(
+        envelope,
+        clean.model_dump(exclude_none=True),
+        platform="mcp",
+    )
+
+
+def _build_transport_envelope(
+    envelope: RuntimeEnvelope,
+    payload: dict[str, Any],
+    *,
+    platform: str | None = None,
+    render_hint: str | None = None,
+) -> dict[str, Any]:
+    """Wrap formatted output in the required transport envelope without dropping clean blocks."""
+    tool = envelope.canonical_tool_name or envelope.tool or "unknown"
+    verdict = _map_verdict(envelope.verdict)
+    allowed_next_tools = list(getattr(envelope, "allowed_next_tools", []) or [])
+    next_step = (
+        payload.get("human_language", {}).get("next_step")
+        if isinstance(payload.get("human_language"), dict)
+        else None
+    )
+    wrapped = {
+        "tool": tool,
+        "stage": envelope.stage,
+        "status": _map_transport_status(envelope, verdict),
+        "summary": (
+            payload.get("human_language", {}).get("summary")
+            if isinstance(payload.get("human_language"), dict)
+            else _build_summary(envelope)
+        ),
+        "result": payload,
+        "governance": {
+            "risk_tier": envelope.risk_class.value if envelope.risk_class else "low",
+            "verdict": verdict,
+            "requires_human_confirmation": verdict == "HOLD",
+            "candidate_action": next_step,
+            "conditions": allowed_next_tools,
+        },
+        "context_out": {
+            "memory_write_candidates": [],
+            "vault_seal_candidate": verdict == "SEAL",
+            "next_recommended_tools": allowed_next_tools,
+            "stage_progression": allowed_next_tools,
+        },
+    }
+    wrapped.update(payload)
+    if platform:
+        wrapped["platform"] = platform
+    if render_hint:
+        wrapped["render_hint"] = render_hint
+    required_fields = ["tool", "stage", "status", "result"]
+    for field in required_fields:
+        if field not in wrapped:
+            raise ValueError(f"Missing required MCP field: {field}")
+    return wrapped
 
 
 def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
@@ -403,7 +462,7 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
     verified = envelope.authority.claim_status == "verified" if envelope.authority else False
     risk = envelope.risk_class.value if envelope.risk_class else "low"
     platform = envelope.platform_context or "unknown"
-    tool = envelope.canonical_tool_name or envelope.tool
+    tool = envelope.canonical_tool_name or envelope.tool or "unknown"
 
     return CleanOutput(
         human_language=HumanLanguageBlock(
@@ -487,6 +546,18 @@ def _map_verdict(verdict: Verdict | str | None) -> str:
     if isinstance(verdict, Verdict):
         return verdict_map.get(verdict, "VOID")
     return verdict_map.get(verdict, "VOID")
+
+
+def _map_transport_status(envelope: RuntimeEnvelope, verdict: str) -> str:
+    """Map internal envelope state to the public response-envelope status enum."""
+    execution_status = _map_status(envelope.status)
+    if verdict == "VOID":
+        return "void"
+    if verdict == "HOLD" or execution_status == "HOLD":
+        return "hold"
+    if execution_status == "ERROR" or not envelope.ok:
+        return "error"
+    return "ok"
 
 
 def _build_summary(envelope: RuntimeEnvelope) -> str:

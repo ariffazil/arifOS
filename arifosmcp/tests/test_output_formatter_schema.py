@@ -42,11 +42,21 @@ class MockEnvelope:
         self.metrics = MockMetrics()
         self.payload = {"test": "payload"}
         self.operator_summary = {}
+        self.next_action = {}
+        self.session_id = "test-session"
         self.state = {}
         self.state_origin = {}
         self.transitions = []
         self.diagnostics = {}
         self.verdict_detail = MockVerdictDetail()
+        self.allowed_next_tools = []
+        self.blocked_tools = []
+        self.caller_state = None
+        self.retryable = False
+
+
+class MockLevel:
+    value = "operator"
 
 
 class MockAuthority:
@@ -56,12 +66,13 @@ class MockAuthority:
     approval_scope = []
 
 
-class MockLevel:
-    value = "operator"
-
-
 class MockRiskClass:
     value = "medium"
+
+
+class MockWitness:
+    ai = 0.0
+    earth = 0.0
 
 
 class MockMetrics:
@@ -72,11 +83,6 @@ class MockMetrics:
     telemetry = MockTelemetry()
     witness = MockWitness()
     tokens_used = 100
-
-
-class MockWitness:
-    ai = 0.0
-    earth = 0.0
 
 
 class MockVerdictDetail:

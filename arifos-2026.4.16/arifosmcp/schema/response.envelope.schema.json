@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.response.v1",
+  "title": "arifOS Unified Response Envelope",
+  "description": "Standardized output wrapper for all arifOS tool responses. Provides result structure, governance signals, and routing hints.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["tool", "stage", "status", "result"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "description": "Tool that was invoked"
+    },
+    "stage": {
+      "type": "string",
+      "description": "Stage that produced this response"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "error", "hold", "void", "pending"],
+      "description": "Execution status"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable result summary"
+    },
+    "result": {
+      "type": "object",
+      "description": "Tool-specific output data"
+    },
+    "governance": {
+      "type": "object",
+      "description": "Governance signals and constraints",
+      "properties": {
+        "risk_tier": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["SEAL", "HOLD", "VOID", null]
+        },
+        "requires_human_confirmation": {
+          "type": "boolean"
+        },
+        "candidate_action": {
+          "type": "string",
+          "description": "Proposed action for next stage"
+        },
+        "conditions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Conditions if SEAL"
+        }
+      }
+    },
+    "context_out": {
+      "type": "object",
+      "description": "Context updates for downstream stages",
+      "properties": {
+        "memory_write_candidates": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "vault_seal_candidate": {
+          "type": "boolean"
+        },
+        "next_recommended_tools": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "stage_progression": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Valid next stages"
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "properties": {
+        "request_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "latency_ms": { "type": "number" },
+        "tokens_used": { "type": "number" },
+        "compute_units": { "type": "number" }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" },
+          "stage": { "type": "string" },
+          "recoverable": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

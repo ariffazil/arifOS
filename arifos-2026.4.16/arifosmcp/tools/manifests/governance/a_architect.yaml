@@ -1,0 +1,19 @@
+name: a_architect
+type: mega-tool
+authority: A-ARCHITECT (Delta)
+description: |
+  Architectural guidance tool — Ask A-ARCHITECT for system design,
+  API contracts, technology decisions, and structural integrity checks.
+  Wraps the A-ARCHITECT agent role as a queryable tool.
+floors:
+  - F1: AMANAH (Purpose — does this serve constitutional mission?)
+  - F2: SIDDIQ (Clarity — are boundaries clear?)
+  - F4: CLARITY (Transparency — can others audit this?)
+  - F7: HUMILITY (Humility — is complexity justified?)
+  - F9: TAQWA (Sovereignty — does this preserve human authority?)
+  - F13: KHILAFAH (Consent — does this survive human veto?)
+risk_tier: P1
+parameters:
+  query: string
+  context: object
+  mode: string

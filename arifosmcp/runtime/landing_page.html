@@ -261,8 +261,19 @@
       font-size: 1.05rem;
       color: var(--text-secondary);
       line-height: 1.7;
-      margin-bottom: var(--space-8);
+      margin-bottom: var(--space-4);
       max-width: 520px;
+    }
+
+    .hero-membrane {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: var(--space-6);
+      max-width: 520px;
+      border-left: 2px solid var(--accent-dim, rgba(0,180,160,0.12));
+      padding-left: var(--space-4);
+      font-family: var(--font-mono);
     }
 
     .hero-ctas {
@@ -863,6 +874,37 @@
       color: var(--text-muted);
     }
 
+    .metric-clarification {
+      margin-top: var(--space-6);
+      padding: var(--space-5);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .metric-clarification-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: var(--space-3);
+    }
+
+    .metric-clarification-body {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    .metric-clarification-body p {
+      margin-bottom: var(--space-3);
+    }
+
+    .metric-clarification-body p:last-child {
+      margin-bottom: 0;
+    }
+
     /* ═══════════════════════════════════════════
        GEOMETRIC PATTERNS (dark theme hero)
     ═══════════════════════════════════════════ */
@@ -1296,6 +1338,9 @@
         <p class="hero-sub">
           arifOS MCP is a self-hosted constitutional runtime. Every tool call, every resource access, every prompt execution is checked against 13 governing floors — with immutable audit, human veto, and structured verdicts.
         </p>
+        <p class="hero-membrane">
+          This gateway is the <strong>constitutional membrane</strong> for ΔΩΨ operations. Δ arifOS is the constitutional core. Φ GEOX and Ψ WEALTH operate as domain jurisdictions under the membrane. Only arifOS may emit final SEAL, CAUTION, HOLD, or VOID verdicts.
+        </p>
         <div class="hero-ctas">
           <a href="#protocol" class="btn btn-primary">Connect via MCP</a>
           <a href="/.well-known/mcp/server.json" class="btn btn-secondary">View Manifest</a>
@@ -1377,7 +1422,7 @@
       <span class="chip"><span class="chip-dot"></span>13 constitutional floors</span>
       <span class="chip"><span class="chip-dot"></span>MCP JSON-RPC</span>
       <span class="chip"><span class="chip-dot"></span>WebMCP</span>
-      <span class="chip"><span class="chip-dot"></span>A2A protocol</span>
+      <span class="chip"><span class="chip-dot"></span>A2A (planned)</span>
       <span class="chip"><span class="chip-dot"></span>888_HOLD veto</span>
       <span class="chip"><span class="chip-dot"></span>VAULT audit</span>
       <span class="chip"><span class="chip-dot"></span>Human sovereign</span>
@@ -1625,6 +1670,14 @@
             <div class="state-desc">Lyapunov stability. Below threshold blocks Execute (F5).</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="metric-clarification">
+      <div class="metric-clarification-title">On metrics and thresholds</div>
+      <div class="metric-clarification-body">
+        <p><strong>System confidence (τ from /health) ≠ per-claim F2 truth threshold.</strong> The value reported in service health (/health → thermodynamic.confidence) is aggregate system readiness — a proxy for operational stability. F2 still enforces τ ≥ 0.99 for any individual claim emitted beyond this membrane. These are related but distinct measures.</p>
+        <p>Peace² &gt; 1.0 indicates stable, reversible posture. Vitality (Ψ) is system stamina, not proof-of-truth. No metric on this page certifies individual claim accuracy.</p>
       </div>
     </div>
   </div>
@@ -1940,7 +1993,7 @@
         </tbody>
       </table>
     </div>
-    <p class="floors-legend">τ = truth score · Ω₀ = prior confidence · ΔS = entropy cost · VAULT999 = immutable SHA-256 audit ledger · 888_HOLD = cryptographic human veto gate</p>
+    <p class="floors-legend">τ = truth score · Ω₀ = prior confidence · ΔS = entropy cost · VAULT999 = immutable SHA-256 audit ledger · 888_HOLD = cryptographic human veto gate · Hard floors: F1,F2,F6,F9,F10,F11,F13 (fail-closed) · Soft floors: F3,F4,F5,F7,F8,F12 (escalate to HOLD/888_HOLD) · Hard/soft classification is doctrinal interpretation — verify against floor spec</p>
   </div>
 </section>
 
@@ -1957,7 +2010,7 @@
       <div class="glossary-item"><span class="glossary-term">F1–F13</span><span class="glossary-def">13 constitutional floors. Each is a hard constraint on AI behavior (Amanah/Trust → Sovereign/Human). Any single floor failure triggers HOLD.</span></div>
       <div class="glossary-item"><span class="glossary-term">HITL</span><span class="glossary-def">Human-in-the-Loop. Cryptographically enforced, not advisory. The 888_HOLD system ensures no irreversible action bypasses human review.</span></div>
       <div class="glossary-item"><span class="glossary-term">SEAL / HOLD / VOID</span><span class="glossary-def">arifOS verdicts. SEAL = safe to proceed. HOLD = pause for review. VOID = do not proceed. Every action gets exactly one verdict.</span></div>
-      <div class="glossary-item"><span class="glossary-term">A2A</span><span class="glossary-def">Agent-to-Agent protocol. arifOS exposes GET/POST /a2a/ endpoints for multi-agent coordination with shared constitutional context.</span></div>
+      <div class="glossary-item"><span class="glossary-term">A2A</span><span class="glossary-def">Agent-to-Agent protocol (PLANNED). arifOS exposes /a2a/ endpoints for future multi-agent coordination with shared constitutional context. Not yet active.</span></div>
       <div class="glossary-item"><span class="glossary-term">GEOX</span><span class="glossary-def">Grounded Earth Model. The physics-first reasoning layer applied to any claims touching geology, materials, or the physical Earth.</span></div>
       <div class="glossary-item"><span class="glossary-term">arifOS runtime</span><span class="glossary-def">The FastMCP server process at the core of arifOS MCP. Serves MCP JSON-RPC at :8080/mcp, health at :8080/health, tools, prompts, and resources.</span></div>
       <div class="glossary-item"><span class="glossary-term">DITEMPA BUKAN DIBERI</span><span class="glossary-def">"Forged, not given." arifOS guiding principle: genuine capability is earned through discipline and evidence, not style or assertion.</span></div>

@@ -1,0 +1,12 @@
+recursive-include spec *.json *.yaml *.md
+recursive-include arifosmcp *.py *.json *.yaml *.md *.html *.css *.js *.txt
+recursive-include core *.py *.json *.yaml *.md
+recursive-include scripts *.py *.json *.yaml *.md *.sh *.ps1
+include requirements.txt
+include Dockerfile
+include CONSTITUTION.md
+include README.md
+include LICENSE
+include pyproject.toml
+include uv.lock
+include fastmcp.json

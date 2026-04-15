@@ -1,12 +1,26 @@
-recursive-include spec *.json *.yaml *.md
-recursive-include arifosmcp *.py *.json *.yaml *.md *.html *.css *.js *.txt
-recursive-include core *.py *.json *.yaml *.md
-recursive-include scripts *.py *.json *.yaml *.md *.sh *.ps1
-include requirements.txt
-include Dockerfile
-include CONSTITUTION.md
+# arifOS Manifestation Policy (v2026.4.16)
+# Ditempa Bukan Diberi.
+
+# Include core logic
+recursive-include arifosmcp *.py *.json *.html *.css
+include pyproject.toml
 include README.md
 include LICENSE
-include pyproject.toml
-include uv.lock
-include fastmcp.json
+include program.md
+
+# Prune Metabolic Shadows
+recursive-exclude arifosmcp/__pycache__ *
+recursive-exclude tests *
+recursive-exclude docs *
+recursive-exclude .archive *
+recursive-exclude VAULT999/STAGING *
+recursive-exclude arifosmcp/.venv *
+
+# Prune Tool Build Bloat
+exclude .env
+exclude .env.example
+exclude Makefile
+exclude uv.lock
+exclude MANIFEST.in
+exclude *.txt
+exclude *.json

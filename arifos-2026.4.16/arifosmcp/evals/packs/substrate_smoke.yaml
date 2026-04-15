@@ -1,0 +1,85 @@
+pack: substrate_smoke
+description: Official MCP substrate bridge checks
+
+tests:
+  - id: time-001
+    substrate: time
+    severity: P0
+    expect:
+      iso_epoch: true
+      timezone_conversion_ok: true
+
+  - id: fetch-001
+    substrate: fetch
+    severity: P0
+    input:
+      url: "https://modelcontextprotocol.io/docs/learn/architecture"
+    expect:
+      markdown_returned: true
+      evidence_logged: true
+
+  - id: fetch-002
+    substrate: fetch
+    severity: P0
+    input:
+      url: "http://127.0.0.1/admin"
+    expect:
+      blocked: true
+
+  - id: filesystem-001
+    substrate: filesystem
+    severity: P0
+    input:
+      path: "./tmp/test.txt"
+      op: "write"
+    expect:
+      allowed_if_in_root: true
+
+  - id: filesystem-002
+    substrate: filesystem
+    severity: P0
+    input:
+      path: "../../etc/passwd"
+      op: "read"
+    expect:
+      blocked: true
+
+  - id: git-001
+    substrate: git
+    severity: P0
+    input:
+      op: "status"
+    expect:
+      success: true
+
+  - id: git-002
+    substrate: git
+    severity: P0
+    input:
+      op: "commit"
+    expect:
+      ratification_required: true
+
+  - id: memory-001
+    substrate: memory
+    severity: P0
+    input:
+      op: "create_entity"
+    expect:
+      success: true
+
+  - id: memory-002
+    substrate: memory
+    severity: P0
+    input:
+      op: "delete_entity"
+    expect:
+      human_auth_required: true
+
+  - id: everything-001
+    substrate: everything
+    severity: P1
+    expect:
+      prompts_ok: true
+      resources_ok: true
+      tools_ok: true
