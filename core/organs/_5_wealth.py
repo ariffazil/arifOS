@@ -110,6 +110,24 @@ def calculate_npv(initial: float, flows: List[float], rate: float, terminal: flo
         "flags": [] if math.isfinite(npv) else ["INVALID_NPV"]
     }
 
+
+def analyze_cost_benefit(
+    initial_investment: float,
+    cash_flows: List[float],
+    discount_rate: float,
+    terminal_value: float = 0,
+) -> Dict[str, Any]:
+    """Compatibility wrapper for legacy imports expecting a plain analysis helper."""
+    npv_result = calculate_npv(initial_investment, cash_flows, discount_rate, terminal_value)
+    return {
+        "initial_investment": initial_investment,
+        "cash_flows": cash_flows,
+        "discount_rate": discount_rate,
+        "terminal_value": terminal_value,
+        **npv_result,
+        "is_positive": bool(npv_result.get("npv", 0) and npv_result["npv"] > 0),
+    }
+
 def calculate_irr(initial: float, flows: List[float]) -> Dict[str, Any]:
     """Basic IRR approximation using bisection."""
     series = build_cashflow_series(initial, flows)
@@ -170,4 +188,4 @@ async def wealth(operation: str = "npv_reward", **kwargs: Any) -> Any:
         )
     return {"error": f"Unknown operation: {operation}"}
 
-__all__ = ["wealth", "wealth_npv_reward", "calculate_npv"]
+__all__ = ["wealth", "wealth_npv_reward", "calculate_npv", "analyze_cost_benefit"]
