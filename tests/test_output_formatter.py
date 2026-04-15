@@ -7,9 +7,9 @@ from arifosmcp.runtime.models import (
     RuntimeEnvelope,
     RuntimeStatus,
     Verdict,
-    VerdictCode,
     VerdictDetail,
 )
+from arifosmcp.contracts.verdicts import GovernanceStatus
 from arifosmcp.runtime.output_formatter import format_output
 
 
@@ -22,7 +22,7 @@ def _build_envelope() -> RuntimeEnvelope:
         status=RuntimeStatus.SUCCESS,
         verdict=Verdict.SEAL,
         verdict_detail=VerdictDetail(
-            code=VerdictCode.SEAL,
+            code=GovernanceStatus.APPROVED,
             reason_code="OK_ALL_PASS",
             message="Routing is allowed within the current governed scope.",
         ),
