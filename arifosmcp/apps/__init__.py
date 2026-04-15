@@ -38,6 +38,7 @@ _APP_MODULES: list[tuple[str, str]] = [
     ("arifosmcp.apps.init_app",          "InitApp (000_INIT)"),
     ("arifosmcp.apps.forge_app",         "ForgeApp (FORGE Double-Gate)"),
     ("arifosmcp.apps.wealth_app",        "WealthApp (@WEALTH Economist)"),
+    ("arifosmcp.apps.geox_app",          "GeoxApp (@GEOX Earth Witness)"),
 ]
 
 

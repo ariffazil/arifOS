@@ -26,6 +26,7 @@ from . import _2_asi as heart
 from . import _3_apex as soul
 from . import _4_vault as memory
 from . import _5_wealth as wealth_organ
+from . import _6_geox as geox_organ
 
 # Unified interfaces
 # Actions for direct use
@@ -43,6 +44,7 @@ from ._2_asi import align, asi, empathize
 from ._3_apex import apex, forge, judge, sync
 from ._4_vault import SealRecord, seal, vault
 from ._5_wealth import wealth, calculate_npv, analyze_cost_benefit
+from ._6_geox import geox, verify_geospatial, evaluate_prospect
 
 # Humanized aliases
 anchor = init
@@ -61,6 +63,7 @@ __all__ = [
     "apex",
     "vault",
     "wealth",
+    "geox",
     # Humanized aliases
     "anchor",
     "feel",
@@ -79,8 +82,11 @@ __all__ = [
     "seal",  # Stage 999
     "vault",  # Unified vault interface
     "wealth", # Economic Organ
+    "geox",   # Earth Witness Organ
     "calculate_npv",
     "analyze_cost_benefit",
+    "verify_geospatial",
+    "evaluate_prospect",
     # Types
     "InitOutput",
     "AuthorityLevel",

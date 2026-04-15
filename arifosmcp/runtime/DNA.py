@@ -7,7 +7,7 @@ from typing import Final, List, Tuple
 
 # --- VERSIONING ---
 VERSION: Final[str] = "2026.04.16"
-CODENAME: Final[str] = "REFORGE_WEALTH"
+CODENAME: Final[str] = "REFORGE_EARTH_WITNESS"
 
 # --- F7 HUMILITY BAND (OMNIPRESENT) ---
 OMEGA_BAND: Final[Tuple[float, float]] = (0.03, 0.05)
