@@ -177,7 +177,7 @@ async def arifos_init(
     call_graph: list | None = None,
     observed_effects: list | None = None,
     caller_context: Any | None = None,
- ) -> RuntimeEnvelope | dict[str, Any]:
+) -> RuntimeEnvelope | dict[str, Any]:
     """
     Initialize constitutional session OR perform kernel syscall.
     """
@@ -366,6 +366,40 @@ async def arifos_init(
         envelope.platform_context = platform
     if caller_context is not None and hasattr(envelope, "caller_context"):
         envelope.caller_context = caller_context
+# ── Log init to vault (arif-chatgpt sessions land here) ──
+    try:
+        import asyncio
+        from arifosmcp.runtime.vault_postgres import PostgresVaultStore
+        _vs = PostgresVaultStore()
+        _sid = session_id or f"arif-chatgpt-{datetime.now().strftime('%Y%m%d')}"
+        _verdict = str(envelope.verdict) if hasattr(envelope, "verdict") else "SEAL"
+        _ms = getattr(envelope, "duration_ms", 0) or 0
+
+        async def _vault_log():
+            await _vs.log_tool_call(
+                session_id=_sid,
+                run_id=_sid,
+                tool_name="arifos_init",
+                organ="PSI",
+                input_summary=f"actor={actor_id} intent={intent[:80]}",
+                output_summary=f"verdict={_verdict}",
+                verdict=_verdict,
+                duration_ms=_ms,
+            )
+
+        asyncio.create_task(_vault_log())
+    except Exception:
+        pass  # never fail a tool call due to vault logging
+
+    return seal_runtime_envelope(
+        envelope,
+        "arifos_init",
+        output_options=_public_output_options(platform, debug),
+    )
+        )
+    except Exception:
+        pass  # never fail a tool call due to vault logging
+
     return seal_runtime_envelope(
         envelope,
         "arifos_init",
