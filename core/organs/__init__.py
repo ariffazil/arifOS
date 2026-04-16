@@ -1,35 +1,15 @@
 """
 core/organs/__init__.py — Organ Exports (Unified)
-
-RUKUN AGI 5-Organ Kernel:
-    init    → Stage 000 (Gate)
-    mind    → The Mind (Stages 111-333)
-    heart   → The Heart (Stages 555-666)
-    soul    → The Soul (Stages 444 -> 777 EUREKA FORGE -> 888 APEX JUDGE)
-    memory  → The Memory (Stage 999)
-
-Usage:
-    from core.organs import init, mind, heart, soul, memory
-    from core.organs import init, sense, think, reason, empathize, align, sync, forge, judge, seal
-
-Humanized aliases:
-    anchor (init), feel (empathize)
-
-DITEMPA BUKAN DIBERI — Forged, Not Given
+Simplified for SabarLoop Ignition v2026.04.16
 """
 
-# Canonical modules (no legacy underscore names in public surface)
 from core.shared.types import InitOutput
 
 from . import _1_agi as mind
 from . import _2_asi as heart
 from . import _3_apex as soul
 from . import _4_vault as memory
-from . import _5_wealth as wealth_organ
-from . import _6_geox as geox_organ
 
-# Unified interfaces
-# Actions for direct use
 from ._0_init import (
     AuthorityLevel,
     get_authority_name,
@@ -51,12 +31,10 @@ anchor = init
 feel = empathize
 
 __all__ = [
-    # Organ modules
     "mind",
     "heart",
     "soul",
     "memory",
-    # Unified interfaces
     "init",
     "agi",
     "asi",

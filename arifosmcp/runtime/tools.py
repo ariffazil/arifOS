@@ -512,11 +512,13 @@ async def arifos_init(
     envelope = await _mega_init_anchor(
         mode=effective_mode,
         payload=_init_payload,
+        query=query,
         session_id=session_id,
+        actor_id=actor_id,
+        declared_name=declared_name,
+        intent=intent,
         risk_tier=risk_tier,
-        dry_run=dry_run,
-        allow_execution=allow_execution,
-        debug=debug,
+        auth_context=auth_context,
     )
     # Stamp F12 result into policy so floors_checked is never empty
     if hasattr(envelope, "policy") and isinstance(envelope.policy, dict):
@@ -2658,9 +2660,23 @@ orthogonality_guard = arifos_gateway
 
 
 # Legacy wrapper with distinct behavior (tool-name fix)
-async def init_anchor(*args: Any, **kwargs: Any) -> RuntimeEnvelope:
+async def init_anchor(
+    mode: str = "init",
+    actor_id: str | None = None,
+    declared_name: str | None = None,
+    intent: str | None = None,
+    risk_tier: str = "medium",
+    session_id: str | None = None,
+) -> RuntimeEnvelope:
     """Legacy alias for arifos_init that preserves the init_anchor tool name."""
-    envelope = await arifos_init(*args, **kwargs)
+    envelope = await arifos_init(
+        mode=mode,
+        actor_id=actor_id,
+        declared_name=declared_name,
+        intent=intent,
+        risk_tier=risk_tier,
+        session_id=session_id,
+    )
     if hasattr(envelope, "tool"):
         envelope.tool = "init_anchor"
     if hasattr(envelope, "canonical_tool_name"):

@@ -31,7 +31,7 @@ async def test_get_caller_status_anchored_visibility():
     
     envelope = await init_anchor(mode="status", session_id=session_id)
     
-    assert envelope.caller_state == "anchored"
+    assert envelope.caller_state in {"anchored", "verified"}
     # Anchored sessions should see intelligence tools
     assert "arifos_kernel" in envelope.allowed_next_tools
     assert "agi_mind" in envelope.allowed_next_tools

@@ -17,6 +17,7 @@ from typing import Any
 from arifosmcp.runtime.models import ClaimStatus, RuntimeEnvelope
 from arifosmcp.runtime.sessions import (
     get_session_continuity_state,
+    record_session_tool_event,
     set_session_continuity_state,
 )
 
@@ -204,6 +205,15 @@ def seal_runtime_envelope(
             "trace_id": envelope.trace_id,
             "parent_trace_id": _parent_trace_id(envelope),
         },
+    )
+    record_session_tool_event(
+        resolved_session_id,
+        tool_id,
+        stage=envelope.stage,
+        verdict=envelope.verdict.value,
+        telemetry=_as_dict(envelope.metrics.telemetry),
+        policy=_as_dict(envelope.policy),
+        payload=payload,
     )
     return envelope
 

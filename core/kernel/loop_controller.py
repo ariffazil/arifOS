@@ -16,12 +16,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from core.kernel.planner import Plan, Planner, Task
-
+# arifOS Core Imports
+from core.shared.types import Verdict, PhysicsState, MathDials, CodeState
+from core.shared.verdict_contract import normalize_verdict
 # We assume the organs expose async interfaces as described in _0_init.py etc.
 from core.organs import _0_init, _1_agi, _2_asi, _3_apex, _4_vault
-
-# arifOS Core Imports
-from core.shared.types import Verdict
 
 logger = logging.getLogger("arifOS.SabarLoop")
 
@@ -179,7 +178,7 @@ class SabarLoopController:
             
             # 444-666: HEART (ASI Alignment & Empathy)
             asi_out = await _2_asi.asi(
-                thought_content=agi_out.final_answer,
+                thought_content=agi_out.answer.summary,
                 session_id=session_id
             )
 
@@ -187,7 +186,7 @@ class SabarLoopController:
             # We map the multi-stage outputs to the Apex Judge
             apex_out = await _3_apex.apex(
                 query=task.description,
-                reason_summary=agi_out.final_answer,
+                reason_summary=agi_out.answer.summary,
                 session_id=session_id,
                 # Additional context for the judge
                 agi_metrics=agi_out.metrics,
@@ -195,26 +194,31 @@ class SabarLoopController:
             )
 
             # Extract entropy delta from AGI metrics (Shannon Entropy)
-            entropy_delta = agi_out.metrics.delta_s if hasattr(agi_out.metrics, 'delta_s') else 0.01
+            # agi_out is an AgiOutput object, apex_out is a dict
+            entropy_delta = agi_out.metrics.delta_s if hasattr(agi_out, 'metrics') and hasattr(agi_out.metrics, 'delta_s') else 0.01
 
             # 999: VAULT (Immutable Audit)
+            # _4_vault.vault returns a dict in this environment
+            apex_verdict = apex_out.get("verdict", Verdict.VOID)
+            
             await _4_vault.vault(
                 session_id=session_id,
-                verdict=apex_out.verdict,
+                summary=f"Metabolic loop iteration {self.current_iteration} for task: {task.description[:50]}",
+                verdict=apex_verdict,
                 evidence=f"Loop Iteration {self.current_iteration} for Task {task.id}",
                 payload={
                     "task": task.description,
                     "agi": agi_out.model_dump() if hasattr(agi_out, 'model_dump') else str(agi_out),
                     "asi": asi_out.model_dump() if hasattr(asi_out, 'model_dump') else str(asi_out),
-                    "apex": apex_out.model_dump() if hasattr(apex_out, 'model_dump') else str(apex_out)
+                    "apex": apex_out
                 }
             )
 
             return LoopStepResult(
                 task_id=task.id,
-                verdict=normalize_verdict(apex_out.verdict),
+                verdict=normalize_verdict(888, apex_verdict),
                 entropy_delta=entropy_delta,
-                message=apex_out.reasoning or "Task processed through apex."
+                message=apex_out.get("reasoning", "Task processed through apex.")
             )
 
         except Exception as e:

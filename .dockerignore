@@ -22,7 +22,8 @@ tests
 Dockerfile*
 .dockerignore
 Makefile
-requirements*.txt
+# requirements*.txt (temporarily allowed for v2.0 build)
+!requirements.txt
 setup.py
 build/
 dist/

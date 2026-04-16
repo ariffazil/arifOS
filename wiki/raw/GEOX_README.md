@@ -1,7 +1,10 @@
 # GEOX — Earth Witness & Inverse Modelling Supervisor
 
-> **Version:** v0.4.3 · **Status:** 🔐 SEALED ✅  
+> **Version:** v0.5.0 · **Status:** 🔐 SEALED ✅
 > **Motto:** *DITEMPA BUKAN DIBERI* — Forged, not given.
+> **MCP Server:** FastMCP v3.2.4 · HTTP/:8000 · SSE
+> **Git:** `04c64e3` (fix: MCP namespace import fix, 2026-04-16)
+> **Last Updated:** 2026-04-16
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -664,13 +667,15 @@ See [GEOX_SUCCESS_CRITERIA.md](GEOX_SUCCESS_CRITERIA.md) for full details.
 
 ## Roadmap
 
-### Current: v0.4.3 (SEALED)
+### Current: v0.5.0 (SEALED)
 
-- ✅ FastMCP server with stdio/HTTP transports
-- ✅ 5 core tools with interactive Prefab UI
-- ✅ F1-F13 floor enforcement
+- ✅ FastMCP server with stdio/HTTP transports (HTTP on port 8000)
+- ✅ 7 core tools with 3-layer taxonomy (geox_*, arifos_*, internal)
+- ✅ F1-F13 floor enforcement (AA grade)
 - ✅ 999_VAULT integration
-- ⚠️ Visualization: stubbed (awaiting cigvis integration)
+- ✅ `mcp/` namespace (reverted from `geox_mcp/` to fix import shadow)
+- ✅ FastMCP Cloud deployment (`geoxarifos`) on AWS ECR
+- ✅ GEOX A2A Gateway running on port 3002
 
 ### Next: v0.5.0 (FORGE-3)
 
@@ -740,6 +745,6 @@ Sovereign Architect, arifOS & GEOX
 
 ---
 
-*Version: v0.4.3*  
+*Version: v0.5.0*  
 *Status: SEALED ✅*  
-*Last Updated: 2026-04-01*
+*Last Updated: 2026-04-16*

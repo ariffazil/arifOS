@@ -76,12 +76,14 @@ openclaw.json
 *.swo
 
 # Logs
+*.log
 logs/*.log
 logs/backup.log
 !logs/audit.jsonl
 
 # OpenClaw internals
 .openclaw/
+.arifos/
 
 # build
 bin/

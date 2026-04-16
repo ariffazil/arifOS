@@ -15,7 +15,7 @@ tags:
 sources:
 - GEOX_README.md
 - GEOX_MANIFESTO.md
-last_sync: '2026-04-10'
+last_sync: '2026-04-16'
 confidence: 1.0
 ---
 

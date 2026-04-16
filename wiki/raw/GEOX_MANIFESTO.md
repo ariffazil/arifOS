@@ -278,3 +278,4 @@ You also need:
 *Intelligence is forged, not given.*
 
 All operations governed by 13 Constitutional Floors (F1-F13).
+Last sync: 2026-04-16 (MCP namespace fix: `geox.geox_mcp` → `geox.mcp`)
