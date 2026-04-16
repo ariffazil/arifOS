@@ -38,7 +38,7 @@ from prefab_ui.rx import RESULT, STATE
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-wealth_app = FastMCP("WealthApp", domain="arifos.fastmcp.app")
+wealth_app = FastMCP("WealthApp")
 
 @wealth_app.tool()
 async def perform_economic_audit(

@@ -49,6 +49,7 @@ async def asi_heart(
         payload.setdefault("auth_context", auth_context)
     if query:
         payload.setdefault("query", query)
+        payload.setdefault("content", query)  # asi_heart_dispatch_impl reads payload["content"]
     if session_id:
         payload.setdefault("session_id", session_id)
     if actor_id:

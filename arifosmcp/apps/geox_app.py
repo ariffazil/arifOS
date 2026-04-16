@@ -39,7 +39,7 @@ from prefab_ui.rx import RESULT, STATE
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-geox_app = FastMCP("GeoxApp", domain="arifos.fastmcp.app")
+geox_app = FastMCP("GeoxApp")
 
 @geox_app.tool()
 async def verify_location(lat: float, lon: float) -> dict[str, Any]:

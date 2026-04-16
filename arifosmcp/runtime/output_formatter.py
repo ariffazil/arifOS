@@ -437,7 +437,7 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
     """Build minimal operator view from RuntimeEnvelope."""
 
     # Map status
-    status = _map_status(envelope.status)
+    status = _map_status(getattr(envelope, "status", None) or getattr(envelope, "execution_status", None))
 
     # Map verdict
     verdict = _map_verdict(envelope.verdict)
@@ -550,7 +550,7 @@ def _map_verdict(verdict: Verdict | str | None) -> str:
 
 def _map_transport_status(envelope: RuntimeEnvelope, verdict: str) -> str:
     """Map internal envelope state to the public response-envelope status enum."""
-    execution_status = _map_status(envelope.status)
+    execution_status = _map_status(getattr(envelope, "status", None) or getattr(envelope, "execution_status", None))
     if verdict == "VOID":
         return "void"
     if verdict == "HOLD" or execution_status == "HOLD":

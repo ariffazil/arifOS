@@ -57,7 +57,7 @@ from prefab_ui.rx import RESULT, STATE
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-forge_app = FastMCP("ForgeApp", domain="arifos.fastmcp.app")
+forge_app = FastMCP("ForgeApp")
 
 
 @forge_app.tool()

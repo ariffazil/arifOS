@@ -1543,7 +1543,7 @@ async def arifos_gateway(
 
     if omega_ortho < correlation_threshold or violations:
         verdict = Verdict.HOLD
-        status = RuntimeStatus.PAUSE
+        status = RuntimeStatus.HOLD
     else:
         verdict = Verdict.SEAL
         status = RuntimeStatus.SUCCESS
@@ -2426,8 +2426,9 @@ async def metabolic_loop_router(
 
     envelope = await arifos_judge(query=query, session_id=None)
     # Normalize status for backward compatibility with legacy tests
-    if envelope.status not in (RuntimeStatus.SUCCESS, RuntimeStatus.ERROR):
-        envelope.status = RuntimeStatus.SUCCESS if envelope.ok else RuntimeStatus.ERROR
+    _es = getattr(envelope, "execution_status", None) or getattr(envelope, "status", None)
+    if _es not in (RuntimeStatus.SUCCESS, RuntimeStatus.ERROR):
+        envelope.execution_status = RuntimeStatus.SUCCESS if envelope.ok else RuntimeStatus.ERROR
     return envelope
 
 
