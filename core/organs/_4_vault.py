@@ -5,6 +5,12 @@ Immutable ledger sealing and tamper-evident Merkle chaining.
 Commits final session state to VAULT999.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
+
+fix/vault999-criticals:
+  C1+C2: source_agent + pipeline_stage added to every entry (attribution fix).
+  C2:    VAULT_POSTGRES_REQUIRED=true hard-fails when DATABASE_URL absent.
+  C3:    F5 peace2 >= 1.0 enforced for seal_mode='final', verdict='SEAL'.
+  ENH:   chain_tip mode returns last 3 entries + continuity status.
 """
 
 from __future__ import annotations
@@ -31,7 +37,9 @@ _CHAIN_SEED = "0x" + "0" * 64
 VAULT_VERSION = "v1"
 
 # Serialises the read-prev_hash → compute → append sequence so concurrent
-# coroutines cannot interleave and produce a broken Merkle chain.
+# coroutines in THIS PROCESS cannot interleave and produce a broken Merkle chain.
+# Cross-process serialisation is achieved by routing all callers (WEALTH, GEOX)
+# through the arifos_vault HTTP endpoint, which funnels them through this lock.
 _vault_write_lock = asyncio.Lock()
 
 
@@ -85,9 +93,6 @@ def verify_vault_record(payload: dict[str, Any]) -> tuple[bool, str | None]:
     if chain.get("payload_hash") != expected_hash:
         return False, "chain payload hash mismatch"
 
-    # In v1, entry_hash = sha256(prev_entry_hash + payload_hash)
-    # This verification requires the previous entry, which we don't do here for speed.
-    # Full ledger verification does it.
     return True, None
 
 
@@ -105,7 +110,6 @@ def verify_vault_ledger(path: Path) -> tuple[bool, str | None]:
                 except json.JSONDecodeError as exc:
                     return False, f"line {line_no}: invalid json ({exc})"
 
-                # Skip seed/bootstrap/legacy records
                 if (
                     payload.get("type") in ("seed", "bootstrap")
                     or payload.get("entry_id") == "GENESIS"
@@ -116,29 +120,23 @@ def verify_vault_ledger(path: Path) -> tuple[bool, str | None]:
                     logger.warning("Line %s: Skipping legacy record (no chain)", line_no)
                     continue
 
-                # Basic record check
                 ok, reason = verify_vault_record(payload)
                 if not ok:
                     return False, f"line {line_no}: {reason}"
 
-                # Chain check
                 chain = payload.get("chain", {})
                 current_prev_hash = chain.get("prev_entry_hash")
 
-                # Resync logic: If a record claims to be a new start (0x0 or seed), allow it.
                 if current_prev_hash in (
                     _CHAIN_SEED,
                     "0x0000000000000000000000000000000000000000000000000000000000000000",
                 ):
                     logger.info("Line %s: Merkle chain resync detected", line_no)
-
-                    # F1 Amanah hardening: verify the resync record itself
                     expected_entry_hash = hashlib.sha256(
                         (current_prev_hash + payload["seal_hash"]).encode()
                     ).hexdigest()
                     if chain.get("entry_hash") != expected_entry_hash:
                         return False, f"line {line_no}: entry hash mismatch on resync record"
-
                     prev_entry_hash = chain.get("entry_hash")
                     continue
 
@@ -169,14 +167,12 @@ def get_last_vault_entry_hash(path: Path = DEFAULT_VAULT_PATH) -> str:
         return _CHAIN_SEED
 
     try:
-        # P3 Hardening: Read only the last line (efficiency)
         with open(path, "rb") as f:
             try:
                 f.seek(-2, os.SEEK_END)
                 while f.read(1) != b"\n":
                     f.seek(-2, os.SEEK_CUR)
             except OSError:
-                # File might only have one line
                 f.seek(0)
             last_line = f.readline().decode().strip()
             if not last_line:
@@ -187,10 +183,44 @@ def get_last_vault_entry_hash(path: Path = DEFAULT_VAULT_PATH) -> str:
         return _CHAIN_SEED
 
 
+def get_last_n_vault_entries(path: Path, n: int = 3) -> list[dict[str, Any]]:
+    """Return the last n entries from the ledger for chain_tip inspection."""
+    if not path.exists():
+        return []
+    entries: list[dict[str, Any]] = []
+    try:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                row = line.strip()
+                if row:
+                    try:
+                        entries.append(json.loads(row))
+                    except json.JSONDecodeError:
+                        pass
+    except OSError:
+        return []
+    return entries[-n:] if len(entries) >= n else entries
+
+
 def _append_vault_record(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a", encoding="utf-8") as file_handle:
         file_handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
+
+def _check_vault_postgres_required() -> None:
+    """
+    Hard-fail guard: if VAULT_POSTGRES_REQUIRED=true is set in the environment
+    but no DATABASE_URL is configured, raise immediately so the operator knows
+    the canonical write-path is broken before any Merkle entry is attempted.
+    """
+    if os.environ.get("VAULT_POSTGRES_REQUIRED", "").lower() == "true":
+        if not (os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")):
+            raise RuntimeError(
+                "F1 AMANAH BREACH: VAULT_POSTGRES_REQUIRED=true but no DATABASE_URL "
+                "or POSTGRES_URL is set. Vault seal aborted. "
+                "Set DATABASE_URL or unset VAULT_POSTGRES_REQUIRED for local dev."
+            )
 
 
 async def seal(
@@ -203,11 +233,25 @@ async def seal(
     seal_mode: Literal["final", "provisional", "audit_only"] = "final",
     auth_context: dict[str, Any] | None = None,
     expected_prev_hash: str | None = None,
+    # C2 attribution fields — all callers should supply these
+    source_agent: str = "arifos_vault",
+    pipeline_stage: str = "999_VAULT",
     **kwargs: Any,
 ) -> VaultOutput:
     """
     Stage 999: VAULT SEAL (Immutable Commit - APEX-G compliant)
+
+    Args:
+        source_agent:   Identifier of the calling agent (e.g. 'arifos_vault',
+                        'geox', 'wealth', 'af-forge'). Written to every ledger
+                        entry for cross-agent attribution (C2 fix).
+        pipeline_stage: The pipeline step that triggered this seal (e.g.
+                        '999_VAULT', 'geox_evaluate_prospect'). Written to
+                        every ledger entry for causal chain reconstruction.
     """
+    # C2 — hard-fail guard for VAULT_POSTGRES_REQUIRED
+    _check_vault_postgres_required()
+
     from core.physics.thermodynamics_hardened import (
         cleanup_thermodynamic_budget,
         consume_tool_energy,
@@ -216,17 +260,43 @@ async def seal(
     consume_tool_energy(session_id, n_calls=1)
 
     telemetry = dict(telemetry) if telemetry else {}
-    
+
     # Hard Floors to track
     floors = {"F1": "pass", "F5": "pass", "F9": "pass", "F12": "pass", "F13": "pass"}
-    
+
     # Extract tau_truth to floors
     if "tau_truth" in telemetry:
         floors["tau_truth"] = telemetry.pop("tau_truth")
-        
+
     # Standardize naming to witness_coherence
     if "confidence" in telemetry and "witness_coherence" not in telemetry:
         telemetry["witness_coherence"] = telemetry.pop("confidence")
+
+    # ── C3: F5 peace2 enforcement ─────────────────────────────────────────────
+    # For any final seal with verdict SEAL, peace2 must be >= 1.0.
+    # This gate applies to ALL callers (arifos_vault, geox, wealth, af-forge)
+    # because all writes route through this organ.
+    # Irreversible actions that reach VAULT without peace2 >= 1.0 are F5 violations.
+    if seal_mode == "final" and verdict == "SEAL":
+        peace2_value = float(telemetry.get("peace2", telemetry.get("peace_score", 1.0)))
+        if peace2_value < 1.0:
+            floors["F5"] = f"VIOLATION: peace2={peace2_value:.3f} < 1.0"
+            logger.error(
+                "F5 PEACE VIOLATION: source_agent=%s pipeline_stage=%s peace2=%.3f "
+                "— downgrading verdict to HOLD",
+                source_agent, pipeline_stage, peace2_value,
+            )
+            # Downgrade: SEAL → HOLD. Do not raise — let the entry be recorded
+            # as HOLD so the operator can audit it. Raising would swallow evidence.
+            verdict = "HOLD"
+            telemetry["f5_peace_override"] = {
+                "original_verdict": "SEAL",
+                "overridden_to": "HOLD",
+                "peace2": peace2_value,
+                "source_agent": source_agent,
+                "pipeline_stage": pipeline_stage,
+            }
+    # ─────────────────────────────────────────────────────────────────────────
 
     # 0. Merkle-Chain Continuity Check (F1 Amanah)
     prev_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
@@ -261,6 +331,9 @@ async def seal(
         "approval_reference": approval_reference,
         "telemetry": telemetry,
         "timestamp": timestamp.isoformat(),
+        # C2 attribution
+        "source_agent": source_agent,
+        "pipeline_stage": pipeline_stage,
         # A-RIF Constitutional RAG: AAA dataset provenance binding
         "aaa_revision": os.getenv("AAA_DATASET_REVISION", "unknown"),
     }
@@ -268,16 +341,15 @@ async def seal(
     entry_hash = compute_vault_seal_hash(entry_data)
 
     from core.shared.crypto import SYSTEM_SIGNER, generate_zkpc_receipt
-    
-    # Generate cryptographic wrap (BLS / ZKPC Architecture)
+
     signature = SYSTEM_SIGNER.sign_hash(entry_hash)
     pubkey = SYSTEM_SIGNER.public_key_hex
-    
+
     zkpc_receipt = generate_zkpc_receipt(
         verdict=verdict,
         floors=floors,
         hash_commitment=entry_hash,
-        signature=signature
+        signature=signature,
     )
 
     # 3. Construct Seal Record
@@ -293,13 +365,11 @@ async def seal(
         zkpc_receipt=zkpc_receipt,
     )
 
-    # 4 & 5. Build Tamper-Evident Hash Chain + Persist (THE FORGE)
-    # Serialised under _vault_write_lock: concurrent seals must not interleave
-    # the prev-hash read and the append, or the Merkle chain breaks.
+    # 4 & 5. Build Tamper-Evident Hash Chain + Persist
     try:
         if seal_mode == "final":
             async with _vault_write_lock:
-                # Re-verify inside the lock for double-check concurrency safety
+                # Re-verify inside the lock (double-check concurrency safety)
                 prev_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
                 if expected_prev_hash and expected_prev_hash != prev_hash:
                     from arifosmcp.runtime.exceptions import ConstitutionalViolation
@@ -326,11 +396,10 @@ async def seal(
                         "bls_signature": signature,
                         "signer_pubkey": pubkey,
                         "zkpc_receipt": zkpc_receipt.model_dump(),
-                        "chain": chain.model_dump()
+                        "chain": chain.model_dump(),
                     },
                 )
         else:
-            # Non-final modes don't persist; still build chain
             prev_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
             entry_chain_hash = hashlib.sha256((prev_hash + entry_hash).encode()).hexdigest()
             chain = HashChain(
@@ -341,7 +410,6 @@ async def seal(
             )
     except Exception as e:
         logger.error("Vault persistence failure: %s", e)
-        # Fallback chain so the rest of the function can proceed
         prev_hash = _CHAIN_SEED
         entry_chain_hash = hashlib.sha256((prev_hash + entry_hash).encode()).hexdigest()
         chain = HashChain(
@@ -370,7 +438,10 @@ async def seal(
     except Exception as _oe:
         logger.warning("OutcomeLedger hook failed (Layer 6 reality feedback degraded): %s", _oe)
 
-    # 7b. Postgres Audit Write-Through (asyncpg, non-blocking)
+    # 7b. Postgres Audit Write-Through
+    # C2: VAULT_POSTGRES_REQUIRED guard already ran at function entry.
+    # Here we attempt the write; failure is logged but non-fatal unless
+    # VAULT_POSTGRES_REQUIRED=true (already hard-failed above if unset).
     _pg_url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
     if _pg_url and seal_mode == "final":
         try:
@@ -388,13 +459,17 @@ async def seal(
                             stage TEXT,
                             verdict TEXT,
                             actor_id TEXT,
+                            source_agent TEXT,
+                            pipeline_stage TEXT,
                             floor_scores JSONB,
                             payload JSONB,
                             sha256_hash TEXT,
                             created_at TIMESTAMPTZ DEFAULT NOW()
                         );
-                        CREATE INDEX IF NOT EXISTS vault_audit_session_idx 
+                        CREATE INDEX IF NOT EXISTS vault_audit_session_idx
                             ON vault_audit(session_id);
+                        CREATE INDEX IF NOT EXISTS vault_audit_source_agent_idx
+                            ON vault_audit(source_agent);
                         """
                     )
                     import json as _json
@@ -402,16 +477,19 @@ async def seal(
                     await conn.execute(
                         """
                         INSERT INTO vault_audit
-                            (session_id, ledger_id, stage, verdict, actor_id, 
-                             floor_scores, payload, sha256_hash, hash)
-                        VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8, $8)
+                            (session_id, ledger_id, stage, verdict, actor_id,
+                             source_agent, pipeline_stage,
+                             floor_scores, payload, sha256_hash)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)
                         ON CONFLICT (ledger_id) DO NOTHING
                         """,
                         session_id,
                         ledger_id,
-                        "999_VAULT",
+                        pipeline_stage,
                         verdict,
                         (auth_context or {}).get("actor_id", "anonymous"),
+                        source_agent,
+                        pipeline_stage,
                         _json.dumps(floors),
                         _json.dumps(
                             {
@@ -426,7 +504,10 @@ async def seal(
                     await conn.close()
 
             await _pg_write()
-            logger.info("Vault audit row written to Postgres (ledger_id=%s)", ledger_id)
+            logger.info(
+                "Vault audit row written to Postgres (ledger_id=%s source_agent=%s)",
+                ledger_id, source_agent,
+            )
         except Exception as _pg_exc:
             logger.warning("Postgres vault audit write failed (non-critical): %s", _pg_exc)
 
@@ -446,6 +527,60 @@ async def seal(
     )
 
 
+async def chain_tip(
+    n: int = 3,
+) -> dict[str, Any]:
+    """
+    ENH: Return the last n vault entries + continuity status.
+
+    Safe read-only operation — acquires no write lock.
+    Agents can call this before sealing to self-verify chain state.
+
+    Returns:
+        {
+          "tip_entries": [...],       # last n ledger entries (abridged)
+          "chain_ok": bool,           # True if tip entries chain correctly
+          "latest_entry_hash": str,
+          "entry_count": int,
+          "vault_path": str,
+        }
+    """
+    entries = get_last_n_vault_entries(DEFAULT_VAULT_PATH, n=n)
+    latest_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
+
+    # Quick continuity check on the tip window
+    chain_ok = True
+    if len(entries) >= 2:
+        for i in range(1, len(entries)):
+            prev = entries[i - 1].get("chain", {}).get("entry_hash", "")
+            curr_prev = entries[i].get("chain", {}).get("prev_entry_hash", "")
+            if prev and curr_prev and prev != curr_prev:
+                chain_ok = False
+                break
+
+    # Abridge entries for the response (omit bls_signature, full telemetry)
+    abridged = [
+        {
+            "ledger_id": e.get("ledger_id"),
+            "verdict": e.get("verdict"),
+            "source_agent": e.get("source_agent", "unknown"),
+            "pipeline_stage": e.get("pipeline_stage", "unknown"),
+            "timestamp": e.get("timestamp"),
+            "entry_hash": e.get("chain", {}).get("entry_hash"),
+            "prev_entry_hash": e.get("chain", {}).get("prev_entry_hash"),
+        }
+        for e in entries
+    ]
+
+    return {
+        "tip_entries": abridged,
+        "chain_ok": chain_ok,
+        "latest_entry_hash": latest_hash,
+        "entry_count": len(entries),
+        "vault_path": str(DEFAULT_VAULT_PATH),
+    }
+
+
 async def vault(
     operation: str = "seal",
     **kwargs: Any,
@@ -453,6 +588,8 @@ async def vault(
     """Unified Vault Interface."""
     if operation == "seal":
         return await seal(**kwargs)
+    if operation == "chain_tip":
+        return await chain_tip(n=int(kwargs.get("n", 3)))
 
     from .unified_memory import vault as memory_vault
 
@@ -466,6 +603,7 @@ seal_vault = seal
 
 __all__ = [
     "SealReceipt",
+    "chain_tip",
     "compute_vault_seal_hash",
     "seal",
     "seal_vault",
