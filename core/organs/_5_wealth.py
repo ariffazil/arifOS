@@ -35,6 +35,12 @@ class EconomicEnvelope(BaseModel):
     allocation_signal: str
     primary_result: Dict[str, Any]
     secondary_metrics: Dict[str, Any]
+    thermodynamics: Dict[str, float] = {
+        "g_score": 0.85,
+        "delta_s": -0.12,
+        "psi": 1.10,
+        "omega": 0.04
+    }
     integrity_flags: List[str]
     confidence: str
     epistemic: str

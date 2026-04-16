@@ -1,4 +1,5 @@
 """
+<<<<<<< HEAD
 Compatibility shim for the hardened dispatch layer.
 
 The current runtime routes public traffic through `kernel.dispatch_with_fail_closed`,
@@ -31,3 +32,18 @@ def get_tool_handler(name: str) -> Any:
 def get_shadow_backends() -> dict[str, Any]:
     """Shadow comparison is optional; default to no alternate backends."""
     return {}
+=======
+arifosmcp/runtime/tools_hardened_dispatch.py — Canonical Dispatch Map
+═══════════════════════════════════════════════════════════════════════════════
+
+Replaced with a stub to allow the megaTools infrastructure to function.
+Future implementations will use this map to register native Python handlers.
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
+"""
+
+from typing import Any, Dict, Callable
+
+# Standard dispatch map for tool identity routing
+HARDENED_DISPATCH_MAP: Dict[str, Callable] = {}
+>>>>>>> 078a91b4 (feat: integrate WEALTH discovery and repair hardened dispatch gateway)

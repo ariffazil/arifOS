@@ -237,7 +237,16 @@ def main() -> None:
 
     _bootstrap_environment()
 
-    mode = (sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")).lower()
+    # P0 FIX: Robust mode detection
+    mode = os.getenv("AAA_MCP_TRANSPORT", "stdio")
+    if "--mode" in sys.argv:
+        idx = sys.argv.index("--mode")
+        if idx + 1 < len(sys.argv):
+            mode = sys.argv[idx + 1]
+    elif len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+        mode = sys.argv[1]
+    
+    mode = mode.lower()
     os.environ["AAA_MCP_TRANSPORT"] = mode
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8080"))

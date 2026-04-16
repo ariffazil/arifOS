@@ -55,6 +55,7 @@ from arifosmcp.runtime.megaTools import (
 from arifosmcp.runtime.megaTools import (
     vault_ledger as _mega_vault_ledger,
 )
+from arifosmcp.runtime.megaTools import wealth_valuation as _mega_wealth
 from arifosmcp.tools.fetch_tool import arifos_fetch
 from arifosmcp.integrations.memory_bridge import arifos_memory_query as arifos_memory
 from arifosmcp.integrations.git_bridge import arifos_repo_read, arifos_repo_seal
@@ -2219,6 +2220,9 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos_memory": _arifos_memory_public,
     # WEALTH Organ (Capital Engine)
     "wealth_brent_score": _wealth_brent_score_public,
+    "wealth_npv_reward": _mega_wealth.wealth_npv_reward_handler,
+    "wealth_irr_yield": _mega_wealth.wealth_irr_yield_handler,
+    "wealth_dscr_leverage": _mega_wealth.wealth_dscr_leverage_handler,
 }
 
 LEGACY_TOOL_ALIASES: dict[str, str] = {

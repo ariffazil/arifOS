@@ -36,7 +36,11 @@ except ImportError as e:
 
     mcp = None
 
-__all__ = ["mcp", "app"]
+def create_aaa_mcp_server():
+    """Factory function for __main__.py compatibility."""
+    return mcp
+
+__all__ = ["mcp", "app", "create_aaa_mcp_server"]
 
 # If this file is run directly, run the main server from root
 if __name__ == "__main__":

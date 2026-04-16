@@ -43,7 +43,7 @@ from ._1_agi import agi, reason, sense, think
 from ._2_asi import align, asi, empathize
 from ._3_apex import apex, forge, judge, sync
 from ._4_vault import SealRecord, seal, vault
-from ._5_wealth import wealth, calculate_npv, analyze_cost_benefit
+from ._5_wealth import wealth, calculate_npv
 from ._6_geox import geox, verify_geospatial, evaluate_prospect
 
 # Humanized aliases
@@ -84,7 +84,6 @@ __all__ = [
     "wealth", # Economic Organ
     "geox",   # Earth Witness Organ
     "calculate_npv",
-    "analyze_cost_benefit",
     "verify_geospatial",
     "evaluate_prospect",
     # Types

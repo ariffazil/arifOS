@@ -612,7 +612,64 @@ TOOLS: tuple[ToolSpec, ...] = (
     # WEALTH ORGAN — Capital Engine (Ψ lane)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        visibility="internal",
+        name="wealth_npv_reward",
+        stage="WEALTH",
+        purpose="Compute NPV, Terminal Value, and EAA",
+        layer="INTELLIGENCE",
+        visibility="public",
+        description="High-precision Net Present Value calculation with thermodynamic confidence bands.",
+        trinity="Ψ",
+        floors=("F4", "F8"),
+        input_schema={
+            "type": "object",
+            "required": ["initial_investment", "cash_flows", "discount_rate"],
+            "properties": {
+                "initial_investment": {"type": "number"},
+                "cash_flows": {"type": "array", "items": {"type": "number"}},
+                "discount_rate": {"type": "number", "default": 0.1},
+                "terminal_value": {"type": "number", "default": 0},
+                "epistemic": {"type": "string", "enum": ["CLAIM", "ESTIMATE", "HYPOTHESIS"], "default": "CLAIM"},
+            },
+        },
+    ),
+    ToolSpec(
+        name="wealth_irr_yield",
+        stage="WEALTH",
+        purpose="Compute Yield (IRR/MIRR)",
+        layer="INTELLIGENCE",
+        visibility="public",
+        description="Compute Internal Rate of Return and Modified IRR for capital energy evaluation.",
+        trinity="Ψ",
+        floors=("F4", "F8"),
+        input_schema={
+            "type": "object",
+            "required": ["initial_investment", "cash_flows"],
+            "properties": {
+                "initial_investment": {"type": "number"},
+                "cash_flows": {"type": "array", "items": {"type": "number"}},
+            },
+        },
+    ),
+    ToolSpec(
+        name="wealth_dscr_leverage",
+        stage="WEALTH",
+        purpose="Compute Leverage (DSCR)",
+        layer="INTELLIGENCE",
+        visibility="public",
+        description="Compute Debt Service Coverage Ratio to evaluate structural survival load.",
+        trinity="Ψ",
+        floors=("F4", "F11"),
+        input_schema={
+            "type": "object",
+            "required": ["ebitda", "debt_service"],
+            "properties": {
+                "ebitda": {"type": "number"},
+                "debt_service": {"type": "number"},
+            },
+        },
+    ),
+    ToolSpec(
+        visibility="public",
         name="wealth_brent_score",
         stage="WEALTH_01",
         purpose="Score O&G tickers against Brent price — plain English signal",
@@ -620,10 +677,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         layer="INTELLIGENCE",
         description=(
             "Score a Bursa O&G or Malaysia-market ticker against current Brent price. "
-            "Returns a plain-English signal (BUY/HOLD/SELL/CAUTION) with a one-sentence reason "
-            "a human can act on. No jargon, no architecture language. "
-            "Designed as the WEALTH organ's first output tool for the morning brief pipeline. "
-            "Thresholds are Malaysia-specific: $95 comfort, $90 crisis, $100 fear line."
+            "Returns a plain-English signal (BUY/HOLD/SELL/CAUTION) with a one-sentence reason."
         ),
         trinity="Ψ",
         floors=("F4", "F9"),
@@ -631,38 +685,11 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["ticker", "brent_price", "scenario"],
             "properties": {
-                "ticker": {
-                    "type": "string",
-                    "description": "Bursa ticker code, e.g. DAYANG, PETGAS, DIALOG, VELESTO"
-                },
-                "brent_price": {
-                    "type": "number",
-                    "description": "Current Brent crude price in USD/barrel"
-                },
-                "scenario": {
-                    "type": "string",
-                    "enum": ["base", "bull", "bear"],
-                    "description": "base=talks resume $90-100; bull=blockade holds $100-115; bear=deal done $75-90"
-                },
-                "dscr_ratio": {
-                    "type": "number",
-                    "description": "Optional: counterparty debt service coverage ratio. Below 1.5 triggers automatic SELL."
-                },
-                "position_size_pct": {
-                    "type": "number",
-                    "description": "Optional: position size as % of portfolio. Above 20% triggers a warning."
-                },
+                "ticker": {"type": "string"},
+                "brent_price": {"type": "number"},
+                "scenario": {"type": "string", "enum": ["base", "bull", "bear"]},
                 "session_id": {"type": "string"},
             },
-        },
-        default_tier="small",
-        readonly=True,
-        outputs={
-            "signal": {"type": "string", "enum": ["BUY", "HOLD", "SELL", "CAUTION"]},
-            "reason": {"type": "string", "description": "Plain English, human-readable action reason"},
-            "brent_floor_malaysia": {"type": "number"},
-            "brent_comfort_malaysia": {"type": "number"},
-            "brent_fear_line": {"type": "number"},
         },
     ),
     # ─────────────────────────────────────────────────────────────────────────

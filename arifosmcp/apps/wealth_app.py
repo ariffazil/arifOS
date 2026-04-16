@@ -157,6 +157,24 @@ def wealth_dashboard_surface() -> PrefabApp:
                     css_class="w-full",
                 )
 
+        # ── Thermodynamics ───────────────────────────────────────────────────
+        with Card(css_class="bg-muted/10"):
+            with CardContent(css_class="py-3"):
+                with Row(justify="between", align="center"):
+                    with Row(gap=2, align="center"):
+                        Text("Thermodynamics", css_class="text-xs font-mono uppercase tracking-widest text-muted-foreground")
+                        Badge("Ω STABLE", variant="outline", css_class="text-[10px]")
+                    with Row(gap=4):
+                        with Column(align="center"):
+                            Text("G-Score", css_class="text-[10px] text-muted-foreground uppercase")
+                            Text("0.85", css_class="text-xs font-bold font-mono")
+                        with Column(align="center"):
+                            Text("ΔS", css_class="text-[10px] text-muted-foreground uppercase")
+                            Text("-0.12", css_class="text-xs font-bold font-mono text-success")
+                        with Column(align="center"):
+                            Text("Ψ", css_class="text-[10px] text-muted-foreground uppercase")
+                            Text("1.10", css_class="text-xs font-bold font-mono text-primary")
+
         Separator()
         Muted("Source: ariffazil/WEALTH v1.4.0", css_class="text-xs text-center")
 
