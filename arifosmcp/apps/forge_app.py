@@ -64,6 +64,8 @@ logger = logging.getLogger(__name__)
 # ── App definition ────────────────────────────────────────────────────────────
 
 forge_app = FastMCP("ForgeApp")
+if not hasattr(forge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    forge_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
 @forge_app.tool()

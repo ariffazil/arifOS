@@ -120,6 +120,8 @@ _PHILOSOPHY: dict[str, str] = {
 # ── App definition ────────────────────────────────────────────────────────────
 
 vault_app = FastMCP("VaultApp")
+if not hasattr(vault_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    vault_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
 @vault_app.tool()

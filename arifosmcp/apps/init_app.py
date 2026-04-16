@@ -90,6 +90,8 @@ _PHILOSOPHY: dict[str, str] = {
 # ── App definition ────────────────────────────────────────────────────────────
 
 init_app = FastMCP("InitApp")
+if not hasattr(init_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    init_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
 @init_app.tool()

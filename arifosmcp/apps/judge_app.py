@@ -177,6 +177,8 @@ _PHILOSOPHY: dict[str, str] = {
 # ── App definition ────────────────────────────────────────────────────────────
 
 judge_app = FastMCP("JudgeApp")
+if not hasattr(judge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    judge_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
 @judge_app.tool()

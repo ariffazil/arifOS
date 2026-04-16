@@ -81,51 +81,71 @@ def _safe(fn: Any, default: Any) -> Any:
         return default
 
 
-def _live_floor_status() -> list[dict[str, Any]]:
-    """Pull live floor status from the governance layer; fall back to defaults."""
-    try:
-        from arifosmcp.runtime.rest_routes import _build_governance_status_payload
+def _unknown_floors() -> list[dict[str, Any]]:
+    return [
+        {"id": f["id"], "name": f["name"], "stability": 0.5, "status": "UNKNOWN"}
+        for f in FLOORS
+    ]
 
-        status = _build_governance_status_payload()
-        floors_raw: dict[str, float] = status.get("floors", {})
+
+def _live_floor_status(session_id: str) -> list[dict[str, Any]]:
+    """Pull live floor status from session continuity; return UNKNOWN when no session state exists."""
+    try:
+        from arifosmcp.runtime.sessions import get_session_runtime_state
+
+        state = get_session_runtime_state(session_id)
+        if not state:
+            return _unknown_floors()
+
+        live = (((state.get("activity") or {}).get("floors")) or {})
         result = []
         for f in FLOORS:
             fid = f["id"]
-            score = float(floors_raw.get(fid, 0.95))
-            result.append({
-                "id": fid,
-                "name": f["name"],
-                "stability": score,
-                "status": "PASS" if score >= 0.90 else ("STRAIN" if score >= 0.70 else "FAIL"),
-            })
+            floor_state = live.get(fid) or {}
+            stability = float(floor_state.get("stability", 0.95 if state else 0.5))
+            status = floor_state.get("status") or ("PASS" if stability >= 0.90 else ("STRAIN" if stability >= 0.70 else "FAIL"))
+            result.append(
+                {
+                    "id": fid,
+                    "name": f["name"],
+                    "stability": stability,
+                    "status": status,
+                }
+            )
         return result
     except Exception:
-        return [
-            {"id": f["id"], "name": f["name"], "stability": 0.95, "status": "PASS"}
-            for f in FLOORS
-        ]
+        return _unknown_floors()
 
 
-def _live_metabolics() -> dict[str, float]:
-    """Pull thermodynamic metrics from the physics layer."""
-    return _safe(
-        lambda: (
-            lambda r: {
-                "delta_s": float(getattr(r, "delta_s", 0.0)),
-                "peace_sq": float(getattr(r, "peace_sq", 1.0)),
-                "omega0": float(getattr(r, "omega0", 0.0)),
+def _live_metabolics(session_id: str) -> dict[str, float | str]:
+    """Pull per-session telemetry from the live session store instead of static physics defaults."""
+    try:
+        from arifosmcp.runtime.sessions import get_session_runtime_state
+
+        state = get_session_runtime_state(session_id)
+        if not state:
+            return {
+                "delta_s": 0.0,
+                "peace_sq": 0.0,
+                "omega0": 0.0,
+                "status": "UNKNOWN",
             }
-        )(
-            __import__(
-                "core.physics.thermodynamics_hardened", fromlist=["get_thermodynamic_report"]
-            ).get_thermodynamic_report()
-        ),
-        {
+
+        activity = state.get("activity") or {}
+        vitals = activity.get("last_ops_vitals") or {}
+        return {
+            "delta_s": float(vitals.get("delta_s", activity.get("entropy_delta", 0.0)) or 0.0),
+            "peace_sq": float(vitals.get("peace_sq", 0.0) or 0.0),
+            "omega0": float(vitals.get("omega0", 0.0) or 0.0),
+            "status": "LIVE",
+        }
+    except Exception:
+        return {
             "delta_s": 0.0,
-            "peace_sq": 1.0,
+            "peace_sq": 0.0,
             "omega0": 0.0,
-        },
-    )
+            "status": "UNKNOWN",
+        }
 
 
 def _stability_variant(stability: float) -> str:
@@ -138,6 +158,8 @@ def _stability_variant(stability: float) -> str:
 
 
 def _status_text(status: str, stability: float) -> str:
+    if status == "UNKNOWN":
+        return "UNKNOWN"
     if stability >= 0.90:
         return "PASS"
     elif stability >= 0.70:
@@ -169,6 +191,11 @@ def _delta_s_variant(ds: float) -> str:
 
 # ── Operator interpretation (CHANGE-01) ───────────────────────────────────────
 _STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
+    "UNKNOWN": {
+        "badge": "UNKNOWN",
+        "posture": "No active session telemetry. Run arifos_init and governed tools to populate live state.",
+        "variant": "secondary",
+    },
     "OPERATIONAL": {
         "badge": "SEALED",
         "posture": "All floors passing. Safe for consequential action.",
@@ -249,15 +276,17 @@ def _register(mcp: FastMCP) -> None:
         health of all 13 Constitutional Floors (F1-F13), plus thermodynamic
         metrics: ΔS (entropy change), Peace² (stability), and Ω₀ (baseline).
         """
-        floors = _live_floor_status()
-        metrics = _live_metabolics()
+        floors = _live_floor_status(session_id)
+        metrics = _live_metabolics(session_id)
 
         delta_s = metrics["delta_s"]
         peace_sq = metrics["peace_sq"]
         omega0 = metrics["omega0"]
 
         avg_stability = sum(f["stability"] for f in floors) / len(floors)
-        if peace_sq >= 1.0 and avg_stability >= 0.90:
+        if metrics.get("status") == "UNKNOWN":
+            overall_status = "UNKNOWN"
+        elif peace_sq >= 1.0 and avg_stability >= 0.90:
             overall_status = "OPERATIONAL"
         elif peace_sq >= 0.5 and avg_stability >= 0.70:
             overall_status = "DEGRADED"

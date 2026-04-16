@@ -40,6 +40,8 @@ from pydantic import Field
 # ── App definition ────────────────────────────────────────────────────────────
 
 wealth_app = FastMCP("WealthApp")
+if not hasattr(wealth_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    wealth_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 @wealth_app.tool()
 async def perform_economic_audit(
