@@ -27,6 +27,7 @@ async def agi_mind(
     mode: str | None = None,
     payload: dict[str, Any] | None = None,
     query: str | None = None,
+    context: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
     declared_name: str | None = None,
@@ -49,6 +50,8 @@ async def agi_mind(
     payload = dict(payload or {})
     if raw_input:
         payload.setdefault("query", raw_input)
+    if context:
+        payload.setdefault("context", context)
     if caller_context:
         payload.setdefault("caller_context", caller_context)
     if auth_context:

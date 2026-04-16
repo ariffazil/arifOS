@@ -19,6 +19,7 @@ from arifosmcp.runtime.models import RuntimeEnvelope
 
 async def arifos_kernel(
     query: str | None = None,
+    mode: str | None = None,
     payload: dict[str, Any] | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,

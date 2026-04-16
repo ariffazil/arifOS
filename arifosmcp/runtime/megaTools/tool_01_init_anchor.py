@@ -191,6 +191,7 @@ async def init_anchor(
     model_soul: dict[str, Any] | None = None,
     deployment_id: str | None = None,
     session_class: str = "execute",
+    platform: str = "unknown",
     **kwargs: Any,
 ) -> RuntimeEnvelope:
     """
@@ -206,6 +207,8 @@ async def init_anchor(
 
     # Input Normalization
     resolved_payload = dict(payload or {})
+    if platform:
+        resolved_payload.setdefault("platform", platform)
     _dn = (declared_name or actor_id or resolved_payload.get("actor_id") or "anonymous")
     _intent = (intent or query or resolved_payload.get("query") or f"Init {_dn}")
     _session_id = (session_id or resolved_payload.get("session_id") or f"sess-{secrets.token_hex(8)}")

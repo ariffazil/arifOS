@@ -111,7 +111,7 @@ async def anchor_session(
         from arifosmcp.runtime.tools import arifos_init
 
         envelope = await arifos_init(
-            declared_intent=declared_intent or "General session",
+            intent=declared_intent or "General session",
         )
         env_dict = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
 
