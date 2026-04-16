@@ -68,7 +68,6 @@ async def arifos_kernel(
         use_memory=use_memory,
         use_heart=use_heart,
         debug=debug,
-        **kwargs,
     )
 
     # Return as RuntimeEnvelope if needed
