@@ -1222,7 +1222,7 @@ async def arifos_heart(
 
     envelope = await _mega_asi_heart(
         mode=mode,
-        payload={"content": content, "critique_packet": critique_packet},
+        payload={"content": target_content, "critique_packet": critique_packet},
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
