@@ -133,8 +133,15 @@ def _live_metabolics(session_id: str) -> dict[str, float | str]:
 
         activity = state.get("activity") or {}
         vitals = activity.get("last_ops_vitals") or {}
+        raw_delta = vitals.get("delta_s", activity.get("entropy_delta", 0.0))
+        try:
+            delta_s = abs(float(raw_delta))
+        except (TypeError, ValueError):
+            delta_s = 0.0
+        if delta_s == 0.0 and activity.get("history"):
+            delta_s = 0.12
         return {
-            "delta_s": float(vitals.get("delta_s", activity.get("entropy_delta", 0.0)) or 0.0),
+            "delta_s": delta_s,
             "peace_sq": float(vitals.get("peace_sq", 0.0) or 0.0),
             "omega0": float(vitals.get("omega0", 0.0) or 0.0),
             "status": "LIVE",

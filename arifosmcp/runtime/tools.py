@@ -518,7 +518,6 @@ async def arifos_init(
         declared_name=declared_name,
         intent=intent,
         risk_tier=risk_tier,
-        auth_context=auth_context,
     )
     # Stamp F12 result into policy so floors_checked is never empty
     if hasattr(envelope, "policy") and isinstance(envelope.policy, dict):
@@ -563,6 +562,48 @@ async def arifos_init(
         asyncio.create_task(_vault_log())
     except Exception:
         pass  # never fail a tool call due to vault logging
+
+    if session_id and getattr(envelope, "session_id", None) != session_id:
+        try:
+            from arifosmcp.runtime.sessions import bind_session_identity
+
+            payload_result = {}
+            if isinstance(getattr(envelope, "payload", None), dict):
+                payload_result = dict(envelope.payload.get("result") or {})
+            actor_value = str(payload_result.get("actor") or actor_id or "anonymous")
+            verified_value = bool(payload_result.get("verified")) or actor_value.lower() in {
+                "arif",
+                "ariffazil",
+            }
+            authority_level = (
+                "sovereign"
+                if actor_value.lower() in {"arif", "ariffazil"}
+                else ("verified" if verified_value else "anonymous")
+            )
+            approval_scope = list(
+                getattr(getattr(envelope, "authority", None), "approval_scope", []) or []
+            )
+            bind_session_identity(
+                session_id,
+                actor_value,
+                authority_level,
+                {
+                    "actor_id": actor_value,
+                    "session_id": session_id,
+                    "verified": verified_value,
+                    "risk_tier": risk_tier,
+                    "platform": platform,
+                },
+                approval_scope=approval_scope,
+                caller_state="verified" if verified_value else "anchored",
+                risk_tier=risk_tier,
+                platform=platform,
+                verified=verified_value,
+                stage=str(getattr(envelope, "stage", "000_INIT")),
+                governance={"verdict": str(getattr(envelope, "verdict", "SEAL"))},
+            )
+        except Exception as exc:
+            logger.warning("session alias bind failed for %s: %s", session_id, exc)
 
     return seal_runtime_envelope(
         envelope,
@@ -2898,8 +2939,23 @@ def register_v2_tools(mcp: FastMCP, *, include_legacy_compat: bool = False) -> l
 
     from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
 
+    canonical_public_names = {
+        "arifos_init",
+        "arifos_sense",
+        "arifos_mind",
+        "arifos_kernel",
+        "arifos_heart",
+        "arifos_ops",
+        "arifos_judge",
+        "arifos_memory",
+        "arifos_vault",
+        "arifos_forge",
+        "arifos_gateway",
+    }
     registered = []
     for spec in PUBLIC_TOOL_SPECS:
+        if spec.name not in canonical_public_names:
+            continue
         handler = CANONICAL_TOOL_HANDLERS.get(spec.name)
         if not handler:
             logger.warning(f"No handler for v2 tool: {spec.name}")

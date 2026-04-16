@@ -19,8 +19,8 @@ from ._0_init import (
     validate_token,
     verify_auth,
 )
-from ._1_agi import agi, reason, sense, think
-from ._2_asi import align, asi, empathize
+from ._1_agi import agi
+from ._2_asi import asi, align, empathize
 from ._3_apex import apex, forge, judge, sync
 from ._4_vault import SealRecord, seal, vault
 from ._5_wealth import calculate_npv, wealth
