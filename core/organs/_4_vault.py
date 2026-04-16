@@ -438,78 +438,128 @@ async def seal(
     except Exception as _oe:
         logger.warning("OutcomeLedger hook failed (Layer 6 reality feedback degraded): %s", _oe)
 
-    # 7b. Postgres Audit Write-Through
+    # 7b. Postgres Audit Write-Through (999 SQL Schema)
     # C2: VAULT_POSTGRES_REQUIRED guard already ran at function entry.
-    # Here we attempt the write; failure is logged but non-fatal unless
-    # VAULT_POSTGRES_REQUIRED=true (already hard-failed above if unset).
     _pg_url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
     if _pg_url and seal_mode == "final":
         try:
             import asyncpg
+            import json as _json
 
             async def _pg_write():
                 conn = await asyncpg.connect(_pg_url)
                 try:
+                    # 1. Ensure 999 Schema exists
                     await conn.execute(
                         """
-                        CREATE TABLE IF NOT EXISTS vault_audit (
+                        CREATE TABLE IF NOT EXISTS vault_events (
                             id SERIAL PRIMARY KEY,
-                            session_id TEXT NOT NULL,
-                            ledger_id TEXT UNIQUE,
-                            stage TEXT,
-                            verdict TEXT,
-                            actor_id TEXT,
-                            source_agent TEXT,
-                            pipeline_stage TEXT,
-                            floor_scores JSONB,
+                            event_id UUID DEFAULT gen_random_uuid(),
+                            event_type VARCHAR(64) NOT NULL,
+                            session_id VARCHAR(128) NOT NULL,
+                            actor_id VARCHAR(128),
+                            stage VARCHAR(16),
+                            verdict VARCHAR(32),
                             payload JSONB,
-                            sha256_hash TEXT,
+                            risk_tier VARCHAR(16),
+                            merkle_leaf VARCHAR(64),
+                            prev_hash VARCHAR(64),
+                            chain_hash VARCHAR(64),
+                            signature TEXT,
+                            signed_by TEXT,
+                            sealed_at TIMESTAMPTZ DEFAULT NOW(),
                             created_at TIMESTAMPTZ DEFAULT NOW()
                         );
-                        CREATE INDEX IF NOT EXISTS vault_audit_session_idx
-                            ON vault_audit(session_id);
-                        CREATE INDEX IF NOT EXISTS vault_audit_source_agent_idx
-                            ON vault_audit(source_agent);
+                        CREATE TABLE IF NOT EXISTS vault_seals (
+                            id SERIAL PRIMARY KEY,
+                            tree_size INT,
+                            merkle_root VARCHAR(64),
+                            prev_root VARCHAR(64),
+                            first_event_id INT,
+                            last_event_id INT,
+                            signature TEXT,
+                            signed_by TEXT DEFAULT '888_AUDITOR',
+                            sealed_at TIMESTAMPTZ DEFAULT NOW()
+                        );
+                        CREATE INDEX IF NOT EXISTS idx_vault_events_session ON vault_events(session_id);
+                        CREATE INDEX IF NOT EXISTS idx_vault_events_stage_verdict ON vault_events(stage, verdict);
+                        CREATE INDEX IF NOT EXISTS idx_vault_events_sealed_at ON vault_events(sealed_at DESC);
                         """
                     )
-                    import json as _json
 
-                    await conn.execute(
+                    # 2. Insert into vault_events
+                    row = await conn.fetchrow(
                         """
-                        INSERT INTO vault_audit
-                            (session_id, ledger_id, stage, verdict, actor_id,
-                             source_agent, pipeline_stage,
-                             floor_scores, payload, sha256_hash)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)
-                        ON CONFLICT (ledger_id) DO NOTHING
+                        INSERT INTO vault_events (
+                            event_type, session_id, actor_id,
+                            stage, verdict, payload, risk_tier,
+                            merkle_leaf, prev_hash, chain_hash,
+                            signature, signed_by
+                        ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12)
+                        RETURNING id
                         """,
+                        "SEAL",
                         session_id,
-                        ledger_id,
+                        (auth_context or {}).get("actor_id", "anonymous"),
                         pipeline_stage,
                         verdict,
-                        (auth_context or {}).get("actor_id", "anonymous"),
-                        source_agent,
-                        pipeline_stage,
-                        _json.dumps(floors),
-                        _json.dumps(
-                            {
-                                "summary": summary,
-                                "approved_by": approved_by,
-                                "telemetry": telemetry or {},
-                            }
-                        ),
-                        entry_hash,
+                        _json.dumps({
+                            "summary": summary,
+                            "telemetry": telemetry or {},
+                            "floors": floors
+                        }),
+                        kwargs.get("risk_tier", "medium"),
+                        entry_hash,           # merkle_leaf
+                        prev_hash,            # prev_hash
+                        entry_chain_hash,     # chain_hash
+                        zkpc_receipt.signature if hasattr(zkpc_receipt, "signature") else signature,
+                        pubkey                # signed_by
                     )
+
+                    # 3. Check if batch seal (vault_seals) is warranted
+                    # Constitutional Trigger: Every 72 events or Phoenix-72 cycle
+                    event_count = await conn.fetchval("SELECT count(*) FROM vault_events")
+                    if event_count % 72 == 0:
+                        last_seal = await conn.fetchrow("SELECT * FROM vault_seals ORDER BY id DESC LIMIT 1")
+                        first_id = (last_seal['last_event_id'] + 1) if last_seal else 1
+                        last_id = row['id']
+                        
+                        # Compute simple root hash for the batch
+                        batch_hashes = await conn.fetch(
+                            "SELECT merkle_leaf FROM vault_events WHERE id BETWEEN $1 AND $2 ORDER BY id",
+                            first_id, last_id
+                        )
+                        combined = "".join([r['merkle_leaf'] for r in batch_hashes])
+                        merkle_root = hashlib.sha256(combined.encode()).hexdigest()
+                        
+                        await conn.execute(
+                            """
+                            INSERT INTO vault_seals (
+                                tree_size, merkle_root, prev_root,
+                                first_event_id, last_event_id,
+                                signature, signed_by
+                            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                            """,
+                            len(batch_hashes),
+                            merkle_root,
+                            last_seal['merkle_root'] if last_seal else _CHAIN_SEED,
+                            first_id,
+                            last_id,
+                            signature, # Batch signature
+                            "888_AUDITOR"
+                        )
+                        logger.info("Vault-999 Checkpoint: Merkle Root %s anchored", merkle_root[:16])
+
                 finally:
                     await conn.close()
 
             await _pg_write()
             logger.info(
-                "Vault audit row written to Postgres (ledger_id=%s source_agent=%s)",
-                ledger_id, source_agent,
+                "Vault event written to 999 SQL (ledger_id=%s session_id=%s)",
+                ledger_id, session_id,
             )
         except Exception as _pg_exc:
-            logger.warning("Postgres vault audit write failed (non-critical): %s", _pg_exc)
+            logger.warning("Postgres 999 SQL write failed (non-critical): %s", _pg_exc)
 
     # 8. Construct Output
     return VaultOutput(

@@ -157,6 +157,174 @@ def _public_output_options(platform: str, debug: bool) -> dict[str, Any] | None:
     return None
 
 
+_TOOL_STAGE_MAP = {
+    "arifos_init": "000_INIT",
+    "arifos_sense": "111_SENSE",
+    "arifos_mind": "333_MIND",
+    "arifos_kernel": "444_ROUTER",
+    "arifos_memory": "555_MEMORY",
+    "arifos_heart": "666_HEART",
+    "arifos_ops": "777_FORGE",
+    "arifos_judge": "888_JUDGE",
+    "arifos_gateway": "888_OMEGA",
+    "arifos_vault": "999_VAULT",
+    "arifos_forge": "010_FORGE",
+}
+_READ_ONLY_DIAGNOSTIC_MODES = {"status", "probe", "state"}
+
+
+def _load_public_session_context(session_id: str | None) -> dict[str, Any] | None:
+    if not session_id:
+        return None
+    from arifosmcp.runtime.sessions import get_session_identity
+
+    identity = get_session_identity(session_id)
+    if not identity:
+        return None
+    actor_id = str(identity.get("actor_id") or "anonymous")
+    verified = bool(identity.get("verified"))
+    risk_tier = str(identity.get("risk_tier") or "medium")
+    auth_context = dict(identity.get("auth_context") or {})
+    auth_context.setdefault("actor_id", actor_id)
+    auth_context.setdefault("session_id", session_id)
+    auth_context["verified"] = verified
+    auth_context.setdefault("risk_tier", risk_tier)
+    return {
+        "session_id": session_id,
+        "actor_id": actor_id,
+        "verified": verified,
+        "risk_tier": risk_tier,
+        "platform": str(identity.get("platform") or "mcp"),
+        "caller_state": str(identity.get("caller_state") or ("verified" if verified else "anchored")),
+        "auth_context": auth_context,
+    }
+
+
+def _session_gate_envelope(
+    tool_name: str,
+    session_id: str | None,
+    *,
+    degraded: bool = False,
+    mode: str | None = None,
+) -> RuntimeEnvelope:
+    from arifosmcp.runtime.models import CanonicalAuthority, ClaimStatus, RiskClass
+
+    detail = (
+        "Diagnostic mode is available without a verified session, but the result is degraded."
+        if degraded
+        else "Session not found or expired. Re-run arifos_init before invoking governed tools."
+    )
+    hint = (
+        "Run arifos_init(actor_id='ARIF', intent='resume session') to restore authority."
+    )
+    verdict = Verdict.PARTIAL if degraded else Verdict.SABAR
+    status = RuntimeStatus.DEGRADED if degraded else RuntimeStatus.SABAR
+    payload = {
+        "result": {
+            "session_id": session_id or "global",
+            "actor": "anonymous",
+            "verified": False,
+            "risk": "low",
+            "mode": mode,
+            "status": "degraded" if degraded else "missing_session",
+        }
+    }
+    return RuntimeEnvelope(
+        ok=degraded,
+        tool=tool_name,
+        canonical_tool_name=tool_name,
+        stage=_TOOL_STAGE_MAP.get(tool_name, "000_INIT"),
+        status=status,
+        verdict=verdict,
+        session_id=session_id or "global",
+        caller_state="anonymous",
+        diagnostics_only=degraded,
+        authority=CanonicalAuthority(
+            actor_id="anonymous",
+            claim_status=ClaimStatus.ANONYMOUS,
+        ),
+        risk_class=RiskClass.LOW,
+        allowed_next_tools=["arifos_init", "init_anchor"],
+        next_allowed_modes=["init", "status", "probe", "state"],
+        detail=detail,
+        hint=hint,
+        retryable=True,
+        next_action={
+            "tool": "arifos_init",
+            "mode": "init",
+            "required_payload": ["actor_id", "intent"],
+        },
+        payload=payload,
+    )
+
+
+def _inject_session_snapshot(envelope: RuntimeEnvelope, session_ctx: dict[str, Any]) -> RuntimeEnvelope:
+    from arifosmcp.runtime.models import ClaimStatus, RiskClass
+
+    envelope.caller_state = session_ctx["caller_state"]
+    envelope.session_id = session_ctx["session_id"]
+    envelope.authority.actor_id = session_ctx["actor_id"]
+    envelope.authority.claim_status = (
+        ClaimStatus.VERIFIED if session_ctx["verified"] else ClaimStatus.ANCHORED
+    )
+    envelope.authority.auth_state = "verified" if session_ctx["verified"] else "anchored"
+    envelope.risk_class = RiskClass(session_ctx["risk_tier"])
+    payload = dict(envelope.payload or {})
+    result = dict(payload.get("result") or {})
+    result.update(
+        {
+            "session_id": session_ctx["session_id"],
+            "actor": session_ctx["actor_id"],
+            "verified": session_ctx["verified"],
+            "risk": session_ctx["risk_tier"],
+            "platform": session_ctx["platform"],
+            "authority_source": "session_store",
+        }
+    )
+    payload["result"] = result
+    envelope.payload = payload
+    return envelope
+
+
+def _kernel_status_snapshot(session_ctx: dict[str, Any]) -> RuntimeEnvelope:
+    from arifosmcp.runtime.models import CanonicalAuthority, ClaimStatus, RiskClass
+    from arifosmcp.runtime.sessions import get_session_runtime_state
+
+    state = get_session_runtime_state(session_ctx["session_id"]) or {}
+    activity = state.get("activity") or {}
+    result = {
+        "session_id": session_ctx["session_id"],
+        "actor": session_ctx["actor_id"],
+        "verified": session_ctx["verified"],
+        "risk": session_ctx["risk_tier"],
+        "platform": session_ctx["platform"],
+        "authority_source": "session_store",
+        "last_tool": activity.get("last_tool"),
+        "last_stage": activity.get("last_stage"),
+        "tool_call_count": activity.get("tool_call_count", 0),
+    }
+    return RuntimeEnvelope(
+        ok=True,
+        tool="arifos_kernel",
+        canonical_tool_name="arifos_kernel",
+        stage="444_ROUTER",
+        status=RuntimeStatus.SUCCESS if session_ctx["verified"] else RuntimeStatus.DEGRADED,
+        verdict=Verdict.SEAL if session_ctx["verified"] else Verdict.PARTIAL,
+        session_id=session_ctx["session_id"],
+        caller_state=session_ctx["caller_state"],
+        diagnostics_only=True,
+        authority=CanonicalAuthority(
+            actor_id=session_ctx["actor_id"],
+            claim_status=ClaimStatus.VERIFIED if session_ctx["verified"] else ClaimStatus.ANCHORED,
+            auth_state="verified" if session_ctx["verified"] else "anchored",
+        ),
+        risk_class=RiskClass(session_ctx["risk_tier"]),
+        allowed_next_tools=["arifos_ops", "arifos_mind", "arifos_judge", "arifos_forge"],
+        next_allowed_modes=["status", "probe", "state", "kernel"],
+        payload={"result": result},
+    )
+
+
 async def arifos_init(
     actor_id: str | None = None,
     intent: str | None = None,
@@ -1871,13 +2039,21 @@ async def _arifos_sense_public(
     mode: Annotated[str, "The sensing mode (governed, search, atlas)"] = "governed",
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
     dry_run: Annotated[bool, "If True, simulates sensing without fetching results"] = True,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_sense(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_sense", session_id, mode=mode)
+    envelope = await arifos_sense(
         query=query,
         mode=mode,
         session_id=session_id,
         dry_run=dry_run,
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_mind_reflect(
@@ -1937,87 +2113,167 @@ async def _arifos_mind_public(
     context: Annotated[str | None, "Additional context or history"] = None,
     mode: Annotated[str, "Reasoning mode (reason, sequential, step)"] = "reason",
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    dry_run: Annotated[bool, "If True, simulates reasoning without side effects"] = True,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_mind", session_id, mode=mode)
     if mode == "reflect":
-        return await _arifos_mind_reflect(query=query, context=context, session_id=session_id)
-    return await arifos_mind(
+        envelope = await _arifos_mind_reflect(query=query, context=context, session_id=session_id)
+        return _inject_session_snapshot(envelope, session_ctx)
+    envelope = await arifos_mind(
         query=query,
         context=context,
         mode=mode,
         session_id=session_id,
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
+        dry_run=dry_run,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_kernel_public(
     query: Annotated[str, "The metabolic routing query"] = "",
     mode: Annotated[str, "The routing mode (kernel, status)"] = "kernel",
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    dry_run: Annotated[bool, "If True, simulates routing without execution"] = True,
+    allow_execution: Annotated[bool, "If True, allows the kernel to dispatch execution"] = False,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_kernel(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope(
+            "arifos_kernel",
+            session_id,
+            degraded=mode in _READ_ONLY_DIAGNOSTIC_MODES,
+            mode=mode,
+        )
+    if mode in _READ_ONLY_DIAGNOSTIC_MODES:
+        return _kernel_status_snapshot(session_ctx)
+    envelope = await arifos_kernel(
         query=query,
         mode=mode,
         session_id=session_id,
+        actor_id=session_ctx["actor_id"],
+        auth_context=session_ctx["auth_context"],
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
+        dry_run=dry_run,
+        allow_execution=allow_execution,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_heart_public(
     query: Annotated[str, "The content to critique or simulate"],
     mode: Annotated[str, "The safety mode (critique, simulate)"] = "critique",
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    dry_run: Annotated[bool, "If True, simulates critique without side effects"] = True,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_heart(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_heart", session_id, mode=mode)
+    envelope = await arifos_heart(
         query=query,
         mode=mode,
         session_id=session_id,
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
+        dry_run=dry_run,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_ops_public(
     query: Annotated[str, "The operation or calculation to perform"] = "",
     mode: Annotated[str, "The operation mode (cost, health, vitals, entropy)"] = "cost",
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    dry_run: Annotated[bool, "If True, simulates ops analysis without side effects"] = True,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_ops(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_ops", session_id, mode=mode)
+    envelope = await arifos_ops(
         query=query,
         mode=mode,
         session_id=session_id,
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
+        dry_run=dry_run,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_judge_public(
     query: Annotated[str, "The candidate action or proposal to judge"],
     risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    dry_run: Annotated[bool, "If True, simulates judgment without side effects"] = True,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_judge(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_judge", session_id)
+    envelope = await arifos_judge(
         query=query,
-        risk_tier=risk_tier,
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
         session_id=session_id,
+        dry_run=dry_run,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_memory_public(
     query: Annotated[str, "The memory retrieval query"],
     mode: Annotated[str, "The retrieval mode (vector_query, engineer)"] = "vector_query",
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    dry_run: Annotated[bool, "If True, simulates memory retrieval without side effects"] = True,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_memory(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_memory", session_id, mode=mode)
+    envelope = await arifos_memory(
         query=query,
         mode=mode,
         session_id=session_id,
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
+        dry_run=dry_run,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_vault_public(
     verdict: Annotated[str, "The constitutional verdict to ledger (SEAL, HOLD, VOID)"],
     evidence: Annotated[str | None, "Supporting evidence or reasoning summary"] = None,
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    dry_run: Annotated[bool, "If True, simulates ledgering without persistence"] = True,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_vault(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_vault", session_id)
+    envelope = await arifos_vault(
         verdict=verdict,
         evidence=evidence,
         session_id=session_id,
+        risk_tier=session_ctx["risk_tier"] or risk_tier,
+        dry_run=dry_run,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_forge_public(
@@ -2027,15 +2283,21 @@ async def _arifos_forge_public(
     judge_verdict: Annotated[str, "The required SEAL verdict from arifos_judge"],
     judge_g_star: Annotated[float, "The epistemic confidence score (G*) from arifos_judge"],
     dry_run: Annotated[bool, "If True, simulates execution and returns manifest"] = True,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_forge(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_forge", session_id)
+    envelope = await arifos_forge(
         action=action,
         payload=payload,
         session_id=session_id,
         judge_verdict=judge_verdict,
         judge_g_star=judge_g_star,
         dry_run=dry_run,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 async def _arifos_gateway_public(
@@ -2043,13 +2305,19 @@ async def _arifos_gateway_public(
     mode: Annotated[str, "The guard mode (guard, audit, correlate)"] = "guard",
     tool_trace: Annotated[list[dict[str, Any]] | None, "Tool execution trace for orthogonality check"] = None,
     correlation_threshold: Annotated[float, "Threshold for correlation detection (0-1)"] = 0.95,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
-    return await arifos_gateway(
+    session_ctx = _load_public_session_context(session_id)
+    if session_ctx is None:
+        return _session_gate_envelope("arifos_gateway", session_id, mode=mode)
+    envelope = await arifos_gateway(
         session_id=session_id,
         mode=mode,
         tool_trace=tool_trace,
         correlation_threshold=correlation_threshold,
+        platform=platform,
     )
+    return _inject_session_snapshot(envelope, session_ctx)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2209,34 +2477,44 @@ async def _wealth_brent_score_public(
 
 
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
-    # ═══════════════════════════════════════════════════════════════════════
-    # CANONICAL CORE (11 public tools) — Phase 1 Surface Compression
-    # ═══════════════════════════════════════════════════════════════════════
-    # Governance
-    "arifos_init": _arifos_init_public,
-    "arifos_judge": _arifos_judge_public,
-    "arifos_vault": _arifos_vault_public,
-    # Intelligence
-    "arifos_sense": _arifos_sense_public,
-    "arifos_mind": _arifos_mind_public,
-    "arifos_heart": _arifos_heart_public,
-    "arifos_reply": arifos_reply,
-    "arifos_kernel": _arifos_kernel_public,
-    # Execution
+    # ══════════════════════════════════════════════════════════════════════════
+    # 11 CANONICAL TOOLS — TIERED IDENTITY SYSTEM
+    # ══════════════════════════════════════════════════════════════════════════
+    # Tier 00 — IDENTITY / VAULT
+    "arifos_init": _mega_init_anchor,
+    "arifos_vault": _mega_vault_ledger,
+    
+    # Tier 01 — PERCEPTION
+    "arifos_sense": _mega_physics_reality,
+    
+    # Tier 04 — RISK
+    "arifos_heart": _mega_asi_heart,
+    
+    # Tier 05 — EXECUTION
     "arifos_forge": _arifos_forge_public,
-    # Orthogonality / Governance
-    "arifos_gateway": _arifos_gateway_public,
-    # Observability / Domain
-    "arifos_health": arifos_health,
+    
+    # Tier 07 — REFLECTION
+    "arifos_mind": _mega_agi_mind,
+    
+    # KERNEL & JUDGMENT
+    "arifos_judge": _mega_apex_judge,
+    "arifos_kernel": _mega_arifos_kernel,
+    
+    # UTILITIES / OBSERVE
+    "arifos_ops": _mega_math_estimator,
+    "arifos_memory": _mega_engineering_memory,
     "arifos_fetch": arifos_fetch,
+    
+    # ══════════════════════════════════════════════════════════════════════════
+    # Extended / Auxiliary
+    # ══════════════════════════════════════════════════════════════════════════
+    "arifos_reply": arifos_reply,
+    "arifos_gateway": _arifos_gateway_public,
+    "arifos_health": arifos_health,
     "arifos_probe": arifos_probe,
     "arifos_diag_substrate": arifos_diag_substrate,
-    # Extended (non-core but dispatchable)
     "arifos_repo_read": arifos_repo_read,
     "arifos_repo_seal": arifos_repo_seal,
-    "arifos_ops": _arifos_ops_public,
-    "arifos_memory": _arifos_memory_public,
-    # WEALTH Organ (Capital Engine)
     "wealth_brent_score": _wealth_brent_score_public,
     "wealth_npv_reward": _mega_wealth.wealth_npv_reward_handler,
     "wealth_irr_yield": _mega_wealth.wealth_irr_yield_handler,
