@@ -366,10 +366,11 @@ async def arifos_init(
         envelope.platform_context = platform
     if caller_context is not None and hasattr(envelope, "caller_context"):
         envelope.caller_context = caller_context
-# ── Log init to vault (arif-chatgpt sessions land here) ──
+    # ── Log init to vault (arif-chatgpt sessions land here) ──
     try:
         import asyncio
         from arifosmcp.runtime.vault_postgres import PostgresVaultStore
+
         _vs = PostgresVaultStore()
         _sid = session_id or f"arif-chatgpt-{datetime.now().strftime('%Y%m%d')}"
         _verdict = str(envelope.verdict) if hasattr(envelope, "verdict") else "SEAL"
@@ -388,15 +389,6 @@ async def arifos_init(
             )
 
         asyncio.create_task(_vault_log())
-    except Exception:
-        pass  # never fail a tool call due to vault logging
-
-    return seal_runtime_envelope(
-        envelope,
-        "arifos_init",
-        output_options=_public_output_options(platform, debug),
-    )
-        )
     except Exception:
         pass  # never fail a tool call due to vault logging
 
