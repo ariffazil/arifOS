@@ -91,9 +91,34 @@ def _ts_human(ts: Any) -> str:
         return str(ts)[:16]
 
 
+# ── Operator interpretation (CHANGE-01) ───────────────────────────────────────
+_STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
+    "HEALTHY": {
+        "badge": "SEALED",
+        "posture": "All floors passing. Safe for consequential action.",
+        "variant": "success",
+    },
+    "DEGRADED": {
+        "badge": "DEGRADED",
+        "posture": "Core governance alive. Trust posture degraded. Use for inspection only.",
+        "variant": "warning",
+    },
+    "pending": {
+        "badge": "PENDING",
+        "posture": "Awaiting constitutional evaluation...",
+        "variant": "secondary",
+    },
+}
+
+_PHILOSOPHY: dict[str, str] = {
+    "SEAL": "DITEMPA, BUKAN DIBERI.",
+    "pending": "Awaiting constitutional evaluation...",
+}
+
+
 # ── App definition ────────────────────────────────────────────────────────────
 
-vault_app = FastMCP("VaultApp", domain="arifos.fastmcp.app")
+vault_app = FastMCP("VaultApp")
 
 
 @vault_app.tool()
@@ -241,14 +266,30 @@ def vault_ledger_surface() -> PrefabApp:
 
     with Column(gap=5, css_class="p-5 max-w-3xl") as view:
 
-        # ── Header ──────────────────────────────────────────────────────────
-        with Row(gap=3, align="center"):
-            Heading("999 Vault Ledger")
-            Badge(
-                "F1 Amanah · Append-Only",
-                variant="secondary",
-                css_class="text-xs font-mono",
-            )
+        # ── Operator Interpretation Banner (CHANGE-01) ────────────────────
+        with Card(css_class="border-2 border-primary/20"):
+            with CardContent(css_class="py-4 px-6"):
+                with Row(gap=4, align="center"):
+                    Badge(
+                        STATE["loaded"].then(
+                            _STATUS_INTERPRETATIONS["HEALTHY"]["badge"],
+                            _STATUS_INTERPRETATIONS["pending"]["badge"]
+                        ),
+                        variant=STATE["loaded"].then(
+                            _STATUS_INTERPRETATIONS["HEALTHY"]["variant"],
+                            _STATUS_INTERPRETATIONS["pending"]["variant"]
+                        ),
+                        css_class="font-mono text-lg py-1 px-3 h-auto",
+                    )
+                    with Column(gap=0):
+                        Heading("arifOS Metabolic Monitor", size="sm")
+                        Text(
+                            STATE["loaded"].then(
+                                _STATUS_INTERPRETATIONS["HEALTHY"]["posture"],
+                                _STATUS_INTERPRETATIONS["pending"]["posture"]
+                            ),
+                            css_class="text-sm font-medium",
+                        )
 
         Muted("Immutable constitutional verdict ledger · DITEMPA BUKAN DIBERI")
         Separator()
@@ -368,16 +409,28 @@ def vault_ledger_surface() -> PrefabApp:
 
         # ── Load action (F1: no mutation controls) ───────────────────────────
         Button(
-            "Load Ledger",
+            "Synchronize Vault Ledger",
             on_click=on_load,
             variant="outline",
-            css_class="w-full",
+            css_class="w-full h-10 font-bold",
         )
 
+        # ── Philosophy Footer (CHANGE-05) ─────────────────────────────────
         Muted(
-            "Read-only · F1 Amanah · No edit or delete capability",
-            css_class="text-xs text-center text-muted-foreground",
+            _PHILOSOPHY["SEAL"],
+            css_class="text-xs italic text-center text-muted-foreground/50 mt-4",
         )
+        
+        # ── Sovereign Footer (CHANGE-06) ──────────────────────────────────
+        with Column(gap=1, align="center", css_class="mt-2"):
+            Muted(
+                "Human architect retains sovereign veto. F13 is always alive.",
+                css_class="text-[10px] uppercase tracking-widest font-bold text-primary/40",
+            )
+            Muted(
+                "arifOS Metabolic Monitor · DITEMPA BUKAN DIBERI",
+                css_class="text-[9px] text-muted-foreground/60",
+            )
 
     return PrefabApp(view=view, state=initial_state)
 

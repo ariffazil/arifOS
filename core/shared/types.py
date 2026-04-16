@@ -503,6 +503,7 @@ class BaseOrganOutput(BaseModel):
     session_id: str
     verdict: Verdict = Verdict.SEAL
     status: Literal["SUCCESS", "ERROR", "SABAR", "READY", "TRANSIENT"] = "SUCCESS"
+    human_language: str = ""  # Operator-centric explanation (CHANGE-01)
     violations: list[str] = Field(default_factory=list)
     error_message: str | None = None
     timestamp: datetime = Field(default_factory=datetime.now)

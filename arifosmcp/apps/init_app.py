@@ -50,13 +50,39 @@ from prefab_ui.components import (
     Row,
     Separator,
     Text,
+    ForEach,
 )
 from prefab_ui.rx import RESULT, STATE
 
 
+# ── Operator interpretation (CHANGE-01) ───────────────────────────────────────
+_STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
+    "ALIGNED": {
+        "badge": "SEALED",
+        "posture": "All floors passing. Safe for consequential action.",
+        "variant": "success",
+    },
+    "UNALIGNED": {
+        "badge": "BLOCKED",
+        "posture": "Hard floor violated. No consequential action permitted. Human required.",
+        "variant": "destructive",
+    },
+    "pending": {
+        "badge": "PENDING",
+        "posture": "Awaiting constitutional evaluation...",
+        "variant": "secondary",
+    },
+}
+
+_PHILOSOPHY: dict[str, str] = {
+    "SEAL": "DITEMPA, BUKAN DIBERI.",
+    "pending": "Awaiting constitutional evaluation...",
+}
+
+
 # ── App definition ────────────────────────────────────────────────────────────
 
-init_app = FastMCP("InitApp", domain="arifos.fastmcp.app")
+init_app = FastMCP("InitApp")
 
 
 @init_app.tool()
@@ -83,6 +109,13 @@ async def anchor_session(
         epoch = env_dict.get("epoch", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
         omega0 = float(env_dict.get("telemetry", {}).get("omega_0", 0.04))
         aligned = env_dict.get("ok", True)
+        
+        # Next actions (CHANGE-04)
+        next_actions = []
+        if aligned:
+            next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
+        else:
+            next_actions.append("Identity incomplete or intent unclear. Refine declaration.")
 
         return {
             "session_id": session_id,
@@ -93,6 +126,8 @@ async def anchor_session(
             "aligned": aligned,
             "anchored": True,
             "trace_id": env_dict.get("trace_id", "—"),
+            "next_actions": next_actions,
+            "philosophy": _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"],
         }
 
     except Exception as exc:
@@ -105,6 +140,8 @@ async def anchor_session(
             "aligned": False,
             "anchored": False,
             "trace_id": f"error: {exc}",
+            "next_actions": ["Repair floor state or obtain human veto override."],
+            "philosophy": _PHILOSOPHY["pending"],
         }
 
 
@@ -128,6 +165,8 @@ def init_surface(
         "aligned": False,
         "anchored": False,
         "trace_id": "—",
+        "next_actions": ["Awaiting constitutional evaluation..."],
+        "philosophy": _PHILOSOPHY["pending"],
     }
 
     on_anchor = CallTool(
@@ -145,6 +184,8 @@ def init_surface(
             SetState("aligned",          RESULT["aligned"]),
             SetState("anchored",         RESULT["anchored"]),
             SetState("trace_id",         RESULT["trace_id"]),
+            SetState("next_actions",     RESULT["next_actions"]),
+            SetState("philosophy",       RESULT["philosophy"]),
             ShowToast("Session anchored — 000_INIT sealed", variant="success"),
         ],
         on_error=ShowToast("Session anchor failed", variant="destructive"),
@@ -157,14 +198,30 @@ def init_surface(
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
 
-        # ── Header ──────────────────────────────────────────────────────────
-        with Row(gap=3, align="center"):
-            Heading("000 Session Anchor")
-            Badge(
-                "F1 Amanah",
-                variant="secondary",
-                css_class="font-mono text-xs",
-            )
+        # ── Operator Interpretation Banner (CHANGE-01) ────────────────────
+        with Card(css_class="border-2 border-primary/20"):
+            with CardContent(css_class="py-4 px-6"):
+                with Row(gap=4, align="center"):
+                    Badge(
+                        anchored_rx.then(
+                            aligned_rx.then(_STATUS_INTERPRETATIONS["ALIGNED"]["badge"], _STATUS_INTERPRETATIONS["UNALIGNED"]["badge"]),
+                            _STATUS_INTERPRETATIONS["pending"]["badge"]
+                        ),
+                        variant=anchored_rx.then(
+                            aligned_rx.then(_STATUS_INTERPRETATIONS["ALIGNED"]["variant"], _STATUS_INTERPRETATIONS["UNALIGNED"]["variant"]),
+                            _STATUS_INTERPRETATIONS["pending"]["variant"]
+                        ),
+                        css_class="font-mono text-lg py-1 px-3 h-auto",
+                    )
+                    with Column(gap=0):
+                        Heading("arifOS Metabolic Monitor", size="sm")
+                        Text(
+                            anchored_rx.then(
+                                aligned_rx.then(_STATUS_INTERPRETATIONS["ALIGNED"]["posture"], _STATUS_INTERPRETATIONS["UNALIGNED"]["posture"]),
+                                _STATUS_INTERPRETATIONS["pending"]["posture"]
+                            ),
+                            css_class="text-sm font-medium",
+                        )
 
         Muted("Constitutional session anchoring · DITEMPA BUKAN DIBERI")
         Separator()
@@ -192,9 +249,9 @@ def init_surface(
 
         Separator()
 
-        # ── Constitutional Alignment ────────────────────────────────────────
+        # ── Constitutional Alignment (CHANGE-03) ────────────────────────────
         Muted(
-            "Constitutional Alignment",
+            "Metabolic Alignment",
             css_class="text-xs uppercase tracking-wider",
         )
 
@@ -209,7 +266,7 @@ def init_surface(
                         variant="success",
                         size="sm",
                     )
-                    Muted("Ω₀ Humility", css_class="mt-1 text-xs")
+                    Muted("Baseline (Ω₀)", css_class="mt-1 text-[10px]")
 
             # Alignment status
             with Card():
@@ -217,9 +274,9 @@ def init_surface(
                     Badge(
                         aligned_rx.then("● ALIGNED", "○ UNALIGNED"),
                         variant=aligned_rx.then("success", "destructive"),
-                        css_class="font-mono",
+                        css_class="font-mono text-xs",
                     )
-                    Muted("Alignment", css_class="mt-2 text-xs")
+                    Muted("Alignment", css_class="mt-2 text-[10px]")
 
             # Session status
             with Card():
@@ -227,11 +284,24 @@ def init_surface(
                     Badge(
                         anchored_rx.then("ANCHORED", "PENDING"),
                         variant=anchored_rx.then("success", "secondary"),
-                        css_class="font-mono",
+                        css_class="font-mono text-xs",
                     )
-                    Muted("Session", css_class="mt-2 text-xs")
+                    Muted("Session", css_class="mt-2 text-[10px]")
 
         Separator()
+
+        # ── Recommended Next Actions (CHANGE-04) ──────────────────────────
+        with If(anchored_rx):
+            with Column(gap=3):
+                Muted("What to do now", css_class="text-xs uppercase tracking-wider")
+                with Card(css_class="bg-primary/5"):
+                    with CardContent(css_class="py-4"):
+                        with ForEach(STATE["next_actions"]):
+                            from prefab_ui.rx import ITEM as ACTION
+                            with Row(gap=3, align="center", css_class="py-1"):
+                                Badge("ACTION", variant="secondary", css_class="text-[9px] h-4 font-bold")
+                                Text(ACTION, css_class="text-sm font-medium")
+            Separator()
 
         # ── Post-anchor details ─────────────────────────────────────────────
         with If(anchored_rx):
@@ -241,37 +311,51 @@ def init_surface(
                         Muted("Session ID:", css_class="text-xs")
                         Text(
                             STATE["session_id"],
-                            css_class="text-xs font-mono",
+                            css_class="text-xs font-mono text-primary/70",
                         )
                     with Row(gap=3):
                         Muted("Trace:", css_class="text-xs")
                         Text(
                             STATE["trace_id"],
-                            css_class="text-xs font-mono",
+                            css_class="text-xs font-mono text-primary/70",
                         )
+            Separator()
 
         # ── Actions ─────────────────────────────────────────────────────────
-        Alert(
-            title="F1 Amanah — Irreversible",
-            description=(
-                "Session anchoring is a commitment. "
-                "Once sealed, this session cannot be undone."
-            ),
-            variant="warning",
-        )
+        with If(anchored_rx.map(lambda x: not x)):
+            with Column(gap=4):
+                Alert(
+                    title="F1 Amanah — Irreversible",
+                    description=(
+                        "Session anchoring is a commitment. "
+                        "Once sealed, this session cannot be undone."
+                    ),
+                    variant="warning",
+                )
 
-        Button(
-            "Anchor Session",
-            on_click=on_anchor,
-            variant="default",
-            css_class="w-full",
-        )
+                Button(
+                    "Anchor Constitutional Session",
+                    on_click=on_anchor,
+                    variant="default",
+                    css_class="w-full h-12 font-bold",
+                )
 
-        Separator()
+        # ── Philosophy Footer (CHANGE-05) ─────────────────────────────────
         Muted(
-            "arifOS · 000_INIT · Constitutional Session Anchoring",
-            css_class="text-xs text-center",
+            STATE["philosophy"],
+            css_class="text-xs italic text-center text-muted-foreground/50",
         )
+        
+        # ── Sovereign Footer (CHANGE-06) ──────────────────────────────────
+        with Column(gap=1, align="center", css_class="mt-4"):
+            Muted(
+                "Human architect retains sovereign veto. F13 is always alive.",
+                css_class="text-[10px] uppercase tracking-widest font-bold text-primary/40",
+            )
+            Muted(
+                "arifOS Metabolic Monitor · DITEMPA BUKAN DIBERI",
+                css_class="text-[9px] text-muted-foreground/60",
+            )
 
     return PrefabApp(view=view, state=initial_state)
 

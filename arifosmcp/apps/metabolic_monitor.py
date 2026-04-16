@@ -166,6 +166,77 @@ def _delta_s_variant(ds: float) -> str:
 # ── App registration ──────────────────────────────────────────────────────────
 
 
+# ── Operator interpretation (CHANGE-01) ───────────────────────────────────────
+_STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
+    "OPERATIONAL": {
+        "badge": "SEALED",
+        "posture": "All floors passing. Safe for consequential action.",
+        "variant": "success",
+    },
+    "DEGRADED": {
+        "badge": "DEGRADED",
+        "posture": "Core governance alive. Trust posture degraded. Use for inspection only.",
+        "variant": "warning",
+    },
+    "CRITICAL": {
+        "badge": "BLOCKED",
+        "posture": "Hard floor violated. No consequential action permitted. Human required.",
+        "variant": "destructive",
+    },
+}
+
+_HUMAN_MEANINGS: dict[str, str] = {
+    "F1": "Can this be undone? If FAIL: rollback path missing.",
+    "F2": "Is this grounded? If FAIL: claims unverifiable.",
+    "F3": "Do theory, law, and intent agree? If FAIL: divergence detected.",
+    "F4": "Is this reducing confusion? If FAIL: entropy increasing.",
+    "F5": "Is this non-destructive? If FAIL: value or trust at risk.",
+    "F6": "Is the human heard? If FAIL: underlying intent may be missed.",
+    "F7": "Are uncertainties surfaced? If FAIL: confidence overstated.",
+    "F8": "Is systemic health maintained? If FAIL: subsystem under load.",
+    "F9": "No manipulation or dark patterns? If FAIL: interaction suspect.",
+    "F10": "No consciousness claims? If FAIL: ontology violated.",
+    "F11": "Is everything logged? If FAIL: action not traceable.",
+    "F12": "Is the prompt safe? If FAIL: override pressure detected.",
+    "F13": "Is human veto intact? If FAIL: sovereign authority at risk.",
+}
+
+_PHILOSOPHY: dict[str, str] = {
+    "SEAL": "DITEMPA, BUKAN DIBERI.",
+    "G_HIGH": "What gets measured gets managed. — Drucker",
+    "G_MID_HIGH": "Build less, build right. — arifOS",
+    "G_MID": "Nearly all men can stand adversity... — Lincoln",
+    "G_MID_LOW": "The concept of truth cannot be defined within... — Tarski",
+    "G_LOW": "The only principle that does not inhibit progress... — Feyerabend",
+}
+
+
+def _derive_next_actions(floors: list[dict], peace_sq: float) -> list[str]:
+    actions = []
+    failed_ids = [f["id"] for f in floors if f["status"] == "FAIL"]
+    strain_ids = [f["id"] for f in floors if f["status"] == "STRAIN"]
+
+    if "F4" in failed_ids:
+        actions.append("Simplify prompt chain. Remove conflicting meta-instructions.")
+    if "F1" in failed_ids:
+        actions.append("Identify and map rollback path before proceeding.")
+    if "F12" in failed_ids:
+        actions.append("Inspect for prompt injection or override-style instructions.")
+    if peace_sq < 1.0:
+        actions.append("System instability detected. Reduce tool call frequency.")
+    
+    if not actions:
+        if not failed_ids and not strain_ids:
+            actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
+        else:
+            actions.append("Monitor strained floors. Repair before next high-stakes action.")
+    
+    return actions
+
+
+# ── App registration ──────────────────────────────────────────────────────────
+
+
 def _register(mcp: FastMCP) -> None:
 
     @mcp.tool(app=PrefabAppConfig(domain="arifos.fastmcp.app"))
@@ -185,96 +256,142 @@ def _register(mcp: FastMCP) -> None:
         avg_stability = sum(f["stability"] for f in floors) / len(floors)
         if peace_sq >= 1.0 and avg_stability >= 0.90:
             overall_status = "OPERATIONAL"
-            overall_variant = "success"
         elif peace_sq >= 0.5 and avg_stability >= 0.70:
             overall_status = "DEGRADED"
-            overall_variant = "warning"
         else:
             overall_status = "CRITICAL"
-            overall_variant = "destructive"
+        
+        interpretation = _STATUS_INTERPRETATIONS.get(overall_status)
+        next_actions = _derive_next_actions(floors, peace_sq)
+
+        # G-score proxy for philosophy
+        g_score = avg_stability * min(1.0, peace_sq)
+        if overall_status == "OPERATIONAL":
+            philosophy = _PHILOSOPHY["SEAL"]
+        elif g_score >= 0.80:
+            philosophy = _PHILOSOPHY["G_HIGH"]
+        elif g_score >= 0.60:
+            philosophy = _PHILOSOPHY["G_MID_HIGH"]
+        else:
+            philosophy = _PHILOSOPHY["G_LOW"]
 
         with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-            with Row(gap=3, align="center"):
-                Heading("🧠 arifOS Metabolic Monitor")
-                Badge(f"● {overall_status}", variant=overall_variant)
+            # ── Operator Interpretation Banner (CHANGE-01) ────────────────────
+            with Card(css_class="border-2 border-primary/20"):
+                with CardContent(css_class="py-4 px-6"):
+                    with Row(gap=4, align="center"):
+                        Badge(
+                            interpretation["badge"],
+                            variant=interpretation["variant"],
+                            css_class="font-mono text-lg py-1 px-3 h-auto",
+                        )
+                        with Column(gap=0):
+                            Heading("arifOS Metabolic Monitor", size="sm")
+                            Text(interpretation["posture"], css_class="text-sm font-medium")
 
             Muted("Constitutional Health Dashboard • F1-F13 Floor Status")
             Separator()
 
-            with Column(gap=3):
+            # ── Floor Grid (CHANGE-02) ────────────────────────────────────────
+            with Column(gap=2):
                 for floor in floors:
                     f_id = floor["id"]
                     f_name = floor["name"]
                     stability = floor["stability"]
                     status = _status_text(floor["status"], stability)
-                    pct = stability * 100
+                    meaning = _HUMAN_MEANINGS.get(f_id, "")
 
-                    with Card(css_class="border-l-4"):
-                        with CardContent(css_class="py-2"):
-                            with Row(gap=2, align="center"):
-                                Text(
-                                    f"{f_id} {f_name}",
-                                    css_class="font-semibold text-sm w-40",
-                                )
-                                Progress(value=pct, css_class="flex-1 h-2")
+                    with Card(css_class=f"border-l-4 { 'border-destructive' if status == 'FAIL' else '' }"):
+                        with CardContent(css_class="py-2 px-3"):
+                            with Row(gap=4, align="start"):
+                                with Column(gap=0, css_class="w-8"):
+                                    Text(f_id, css_class="font-mono text-xs font-bold text-muted-foreground")
+                                
+                                with Column(gap=0, css_class="w-32"):
+                                    Text(f_name, css_class="text-sm font-medium")
+                                    Progress(value=stability*100, css_class="h-1.5 mt-1")
+                                
+                                with Column(gap=0, css_class="flex-1"):
+                                    Muted(meaning, css_class="text-xs italic leading-tight")
+                                
                                 Badge(
                                     status,
                                     variant=_stability_variant(stability),
-                                    css_class="w-16",
+                                    css_class="w-16 text-center text-[10px]",
                                 )
 
             Separator()
 
+            # ── Telemetry Metrics (CHANGE-03) ─────────────────────────────────
             with Grid(columns=3, gap=3):
                 with Card():
                     with CardContent(css_class="py-3 text-center"):
                         Text(
                             f"{delta_s:+.2f}",
-                            css_class=f"text-2xl font-bold font-mono {_delta_s_variant(delta_s)}",
+                            css_class=f"text-xl font-bold font-mono",
                         )
-                        Muted("ΔS (Entropy)")
+                        Muted("Entropy trend (ΔS)", css_class="text-[10px]")
                         Badge(
-                            "Clear" if delta_s <= 0 else ("Noisy" if delta_s < 0.1 else "Degraded"),
+                            "stable" if delta_s <= 0 else "increasing confusion",
                             variant=_delta_s_variant(delta_s),
-                            css_class="mt-1",
+                            css_class="text-[8px] h-3 px-1 mt-1",
                         )
 
                 with Card():
                     with CardContent(css_class="py-3 text-center"):
                         Text(
                             f"{peace_sq:.2f}",
-                            css_class=f"text-2xl font-bold font-mono {_peace_variant(peace_sq)}",
+                            css_class=f"text-xl font-bold font-mono",
                         )
-                        Muted("Peace² (Stability)")
+                        Muted("Stability index (Peace²)", css_class="text-[10px]")
                         Badge(
-                            "Stable"
-                            if peace_sq >= 1
-                            else ("Unstable" if peace_sq >= 0.5 else "Critical"),
+                            "stable" if peace_sq >= 1 else "destabilized",
                             variant=_peace_variant(peace_sq),
-                            css_class="mt-1",
+                            css_class="text-[8px] h-3 px-1 mt-1",
                         )
 
                 with Card():
                     with CardContent(css_class="py-3 text-center"):
                         Text(
                             f"{omega0:.2f}",
-                            css_class="text-2xl font-bold font-mono text-muted-foreground",
+                            css_class="text-xl font-bold font-mono text-muted-foreground",
                         )
-                        Muted("Ω₀ (Baseline)")
-                        Badge("Nominal", variant="secondary", css_class="mt-1")
+                        Muted("Baseline (Ω₀)", css_class="text-[10px]")
+                        Badge("nominal", variant="secondary", css_class="text-[8px] h-3 px-1 mt-1")
 
             Separator()
-            Muted(
-                "arifOS · Constitutional AGI Governance · DITEMPA BUKAN DIBERI",
-                css_class="text-xs text-center",
-            )
 
-        floor_summary = ", ".join(
-            f"{f['id']}={_status_text(f['status'], f['stability'])}" for f in floors
-        )
+            # ── Recommended Next Actions (CHANGE-04) ──────────────────────────
+            with Column(gap=3):
+                Muted("What to do now", css_class="text-xs uppercase tracking-wider")
+                with Card(css_class="bg-primary/5"):
+                    with CardContent(css_class="py-4"):
+                        for action in next_actions:
+                            with Row(gap=3, align="center", css_class="py-1"):
+                                Badge("ACTION", variant="secondary", css_class="text-[9px] h-4 font-bold")
+                                Text(action, css_class="text-sm font-medium")
+
+            Separator()
+
+            # ── Philosophy Footer (CHANGE-05) ─────────────────────────────────
+            Muted(
+                philosophy,
+                css_class="text-xs italic text-center text-muted-foreground/50",
+            )
+            
+            # ── Sovereign Footer (CHANGE-06) ──────────────────────────────────
+            with Column(gap=1, align="center", css_class="mt-4"):
+                Muted(
+                    "Human architect retains sovereign veto. F13 is always alive.",
+                    css_class="text-[10px] uppercase tracking-widest font-bold text-primary/40",
+                )
+                Muted(
+                    "arifOS Metabolic Monitor · DITEMPA BUKAN DIBERI",
+                    css_class="text-[9px] text-muted-foreground/60",
+                )
+
         summary = (
             f"arifOS Metabolic Monitor | Status: {overall_status} | "
-            f"ΔS={delta_s:+.2f} | Peace²={peace_sq:.2f} | Ω₀={omega0:.2f} | "
-            f"Floors: [{floor_summary}]"
+            f"ΔS={delta_s:+.2f} | Peace²={peace_sq:.2f} | Actions: {len(next_actions)}"
         )
         return ToolResult(content=summary, structured_content=view)
