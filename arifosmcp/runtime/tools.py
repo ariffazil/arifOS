@@ -2972,18 +2972,22 @@ def register_v2_tools(mcp: FastMCP, *, include_legacy_compat: bool = False) -> l
         public_name = spec.name
 
         # 1. Register canonical public name
-        ft_dotted = FunctionTool.from_function(
-            handler,
-            name=public_name,
-            description=spec.description,
-            annotations=annotations,
-            version=spec.version,
-            timeout=spec.timeout,
-        )
-        ft_dotted.parameters = dict(spec.input_schema)
-        mcp.add_tool(ft_dotted)
-        registered.append(public_name)
-    
+        try:
+            ft_dotted = FunctionTool.from_function(
+                handler,
+                name=public_name,
+                description=spec.description,
+                annotations=annotations,
+                version=spec.version,
+                timeout=spec.timeout,
+            )
+            ft_dotted.parameters = dict(spec.input_schema)
+            mcp.add_tool(ft_dotted)
+            registered.append(public_name)
+        except Exception as e:
+            logger.error(f"Failed to register tool {public_name}: {e}")
+            raise e
+
     # ... (legacy compat)
     if include_legacy_compat:
         for legacy_name, handler in LEGACY_COMPAT_TOOL_HANDLERS.items():
