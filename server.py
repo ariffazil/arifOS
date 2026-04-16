@@ -60,6 +60,46 @@ from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# VAULT999 — CONSTITUTIONAL TABLE STORE
+# ═══════════════════════════════════════════════════════════════════════════════
+# Global singleton for constitutional table writes (arifos.sessions, tool_calls, telemetry)
+# Loads F1-F13 from vault at startup, opens live session, logs all tool executions.
+
+vault_store = None  # type: PostgresVaultStore | None
+CONSTITUTION_CACHE: dict[str, Any] = {}
+ACTIVE_SESSION_ID: str | None = None
+
+
+def _get_vault_store():
+    """Lazy init of PostgresVaultStore using DATABASE_URL env var."""
+    global vault_store
+    if vault_store is None:
+        from arifosmcp.runtime.vault_postgres import PostgresVaultStore
+        vault_store = PostgresVaultStore()
+    return vault_store
+
+
+async def _constitutional_startup():
+    """Called at server startup: load F1-F13 + open live session."""
+    global CONSTITUTION_CACHE, ACTIVE_SESSION_ID
+    store = _get_vault_store()
+    try:
+        CONSTITUTION_CACHE = await store.load_constitution()
+        print(f"[VAULT] Constitution loaded: {len(CONSTITUTION_CACHE)} floors")
+    except Exception as e:
+        print(f"[VAULT] Constitution load failed: {e}")
+    try:
+        agent_id = os.environ.get("ARIFOS_AGENT_ID", "arifos-unified")
+        ACTIVE_SESSION_ID = await store.open_session(
+            agent_id=agent_id,
+            declared_intent="arifos-unified operational session",
+            risk_tier="LOW",
+        )
+        print(f"[VAULT] Session: {ACTIVE_SESSION_ID}")
+    except Exception as e:
+        print(f"[VAULT] Session open failed: {e}")
+
 
 def _env_flag(name: str, default: bool = False) -> bool:
     value = os.getenv(name)
@@ -79,9 +119,34 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     import functools
 
     async def _invoke_original(arguments: dict[str, Any]) -> Any:
+        import time
+        t0 = time.monotonic()
         result = original_handler(**arguments)
         if inspect.isawaitable(result):
             result = await result
+        ms = int((time.monotonic() - t0) * 1000)
+
+        # ── Constitutional tool call logging (non-blocking) ──
+        try:
+            vs = _get_vault_store()
+            sid = os.environ.get("ARIFOS_AGENT_ID", "arifos-unified")
+            verdict_str = "SEAL"
+            if hasattr(result, "verdict"):
+                verdict_str = str(getattr(result, "verdict", "SEAL"))
+            elif hasattr(result, "ok"):
+                verdict_str = "SEAL" if getattr(result, "ok", False) else "HOLD"
+            vs.log_tool_call(
+                session_id=ACTIVE_SESSION_ID,
+                run_id=ACTIVE_SESSION_ID,
+                tool_name=tool_name,
+                organ="PSI",
+                input_summary=str(arguments)[:200],
+                output_summary=str(result)[:200],
+                verdict=verdict_str,
+                duration_ms=ms,
+            )
+        except Exception:
+            pass  # never fail a tool call due to logging
 
         if result.__class__.__name__ == "RuntimeEnvelope":
             from arifosmcp.runtime.output_formatter import format_output
@@ -287,6 +352,13 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"])
 from arifosmcp.runtime.rest_routes import register_rest_routes
 register_rest_routes(app, HARDENED_HANDLERS, prefix="")
 
+# ── Constitutional startup (runs on module load, not just __main__) ──
+import asyncio
+try:
+    asyncio.get_event_loop().run_until_complete(_constitutional_startup())
+except RuntimeError:
+    asyncio.get_event_loop().create_task(_constitutional_startup())
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXPORT
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -301,6 +373,9 @@ if __name__ == "__main__":
         print("=" * 60)
         print("🔥 ARIFOS MCP v2026.4.14 — SEALED")
         print("=" * 60)
+        
+        # ── Constitutional startup: load constitution + open session ──
+        await _constitutional_startup()
         
         # Resolve host and port from CLI or ENV
         host = "0.0.0.0"
