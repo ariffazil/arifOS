@@ -15,7 +15,7 @@ class FloorViolation(BaseModel):
 
 
 class FloorResult(BaseModel):
-    pass: bool
+    passed: bool
     verdict: str
     floors_checked: List[str]
     violations: List[FloorViolation]
