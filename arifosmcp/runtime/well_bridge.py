@@ -105,3 +105,42 @@ def inject_biological_context(governance_state: Dict[str, Any]) -> Dict[str, Any
                  )
     
     return governance_state
+
+def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
+    """
+    Signal cognitive pressure/load to WELL.
+    Directly updates state.json if server is not available.
+    """
+    if not WELL_STATE_PATH.exists():
+        return False
+    
+    try:
+        with open(WELL_STATE_PATH, "r") as f:
+            state = json.load(f)
+        
+        metrics = state.get("metrics", {})
+        cog = dict(metrics.get("cognitive", {"clarity": 10, "decision_fatigue": 0}))
+        
+        # Increment fatigue
+        old_fatigue = cog.get("decision_fatigue", 0)
+        new_fatigue = min(10.0, old_fatigue + load_delta)
+        cog["decision_fatigue"] = new_fatigue
+        metrics["cognitive"] = cog
+        
+        # W6 Logic (Sync with server logic)
+        violations = state.get("floors_violated", [])
+        if load_delta > 2.0 and "W6_METABOLIC_PAUSE" not in violations:
+            violations.append("W6_METABOLIC_PAUSE")
+            
+        state["metrics"] = metrics
+        # Note: We don't recompute score here to keep the bridge lightweight;
+        # the score will be recomputed next time WELL server is used or state is loaded.
+        # But for UI accuracy, a quick estimation is better:
+        state["well_score"] = max(0, state.get("well_score", 50) - (load_delta * 2))
+        state["floors_violated"] = violations
+        
+        with open(WELL_STATE_PATH, "w") as f:
+            json.dump(state, f, indent=2)
+        return True
+    except Exception:
+        return False

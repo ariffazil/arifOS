@@ -226,8 +226,22 @@ class GovernanceKernel:
 
         # --- WELL Bridge Integration (Biological Substrate) ---
         try:
-            from arifosmcp.runtime.well_bridge import inject_biological_context
+            from arifosmcp.runtime.well_bridge import inject_biological_context, signal_cognitive_pressure
+            
+            # 1. Signal pressure (Cognitive Load from this call)
+            # Baseline pressure per governance evaluation: 0.1
+            signal_cognitive_pressure(load_delta=0.1, source="governance_kernel")
+            
+            # 2. Inject context (includes W6 pause check)
             res = inject_biological_context(res)
+            
+            # 3. Enforce W6 Metabolic Pause: Hard-downgrade to HOLD if W6 is violated
+            if "W6_METABOLIC_PAUSE" in res.get("violations", []):
+                res["verdict"] = "HOLD"
+                res["message"] = (
+                    res.get("message", "") + 
+                    " [W6-PAUSE] Metabolic Pause active. High-frequency intent loop detected. Rest required."
+                )
         except ImportError:
             pass
 
