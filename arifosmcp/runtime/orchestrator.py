@@ -114,11 +114,11 @@ def handle_stage_failure(
 ) -> RuntimeEnvelope:
     """
     Generate standardized failure envelope for a stage.
-    
+
     Ensures F4 (Clarity): All failures have deterministic, documented semantics.
     """
     handler = STAGE_FAILURE_HANDLERS.get(stage_id, STAGE_FAILURE_HANDLERS[Stage.INIT_000.value])
-    
+
     error_details = {
         "stage": stage_id,
         "error_code": handler["error_code"],
@@ -126,24 +126,26 @@ def handle_stage_failure(
         "action": handler["action"],
         "recoverable": handler["recoverable"],
     }
-    
+
     if original_error:
         error_details["original_error"] = str(original_error)
-    
+
     if context:
         error_details["context"] = context
-    
+
     return RuntimeEnvelope(
         tool="arifos_kernel",
         session_id=session_id,
         stage=stage_id,
         verdict=handler["verdict"],
         status=handler["status"],
-        errors=[CanonicalError(
-            code=handler["error_code"],
-            message=handler["description"],
-            stage=stage_id,
-        )],
+        errors=[
+            CanonicalError(
+                code=handler["error_code"],
+                message=handler["description"],
+                stage=stage_id,
+            )
+        ],
         payload={
             "failure_handler": handler["action"],
             "recoverable": handler["recoverable"],
@@ -307,21 +309,21 @@ async def run_stage(
     risk_tier: str = "medium",
 ) -> RuntimeEnvelope:
     """Execute one routed stage for the metabolic loop.
-    
+
     Includes deterministic failure handling per F4 (Clarity).
     All stage failures are caught and mapped to standardized responses.
     """
     from arifosmcp.runtime.tools import (
         agi_asi_forge_handler,
-        agi_reason,
-        agi_reflect,
+        arifos_mind as agi_reason,
+        arifos_memory as agi_reflect,
         apex_judge,
         asi_critique,
         asi_simulate,
         init_anchor,
         vault_seal,
     )
-    
+
     try:
         verdict_history = verdicts
         pns_trace = trace.setdefault("pns", {})
@@ -364,6 +366,7 @@ async def run_stage(
             c_ctx = None
             if session_id:
                 from arifosmcp.runtime.sessions import get_session_identity
+
                 ident = get_session_identity(session_id)
                 if ident:
                     c_ctx = ident.get("constitutional_context")
@@ -440,7 +443,8 @@ async def run_stage(
             elif Verdict.SABAR in verdict_history:
                 candidate = Verdict.SABAR
 
-            return await apex_judge(candidate=candidate,
+            return await apex_judge(
+                candidate=candidate,
                 candidate_output=query,
                 session_id=session_id,
                 redteam=red_res.model_dump() if red_res else None,
@@ -450,16 +454,16 @@ async def run_stage(
         # 8. VAULT·SEAL (999) - FORBIDDEN ZONE
         if stage_id == Stage.VAULT_999.value:
             last_verdict = verdict_history[-1] if verdict_history else Verdict.SABAR
-            
+
             # QSP-333: Quantum Sabar Protocol - Byzantine Witness Check
             # In a live system, this would ping W1 (Human) and W3 (Earth) heartbeats.
             # Here we simulate a blackout if risk is high and dry_run is false.
             is_blackout = (risk_tier in ("high", "critical")) and (not dry_run)
-            
+
             decision_payload = {
                 "verdict": last_verdict.value,
                 "witness_blackout": is_blackout,
-                "protocol": "QSP-333" if is_blackout else "STANDARD"
+                "protocol": "QSP-333" if is_blackout else "STANDARD",
             }
 
             return await vault_seal(
@@ -469,7 +473,6 @@ async def run_stage(
                 ctx=None,  # type: ignore
             )
 
-
     except Exception as e:
         # F4: Deterministic failure handling
         return handle_stage_failure(
@@ -478,7 +481,7 @@ async def run_stage(
             session_id=session_id,
             context={"query": query[:100] if query else None},  # Truncate for safety
         )
-    
+
     return RuntimeEnvelope(
         tool="arifos_kernel",
         session_id=session_id,
@@ -512,17 +515,17 @@ async def metabolic_loop(
 
     if dry_run:
         from arifosmcp.runtime.models import AuthContext
-        
+
         _actual_session = session_id or "dry-run-session"
         _actual_actor = actor_id or "anonymous"
-        
+
         ctx = AuthContext(
             session_id=_actual_session,
             actor_id=_actual_actor,
             authority_level="declared",
             approval_scope=["*"],
         )
-        
+
         return {
             "ok": True,
             "tool": tool_name,
@@ -530,11 +533,7 @@ async def metabolic_loop(
             "stage": "444_ROUTER",
             "verdict": "SEAL",
             "status": "DRY_RUN",
-            "authority": {
-                "actor_id": _actual_actor,
-                "level": "declared",
-                "auth_state": "verified"
-            },
+            "authority": {"actor_id": _actual_actor, "level": "declared", "auth_state": "verified"},
             "auth_context": ctx,
             "dry_run": True,
             "meta": {"dry_run": True},
@@ -628,6 +627,7 @@ async def metabolic_loop(
         # Early exit if initialization was not successful and we are not in dry_run
         if init_res.verdict != Verdict.SEAL and not dry_run:
             import sys
+
             print(f"DEBUG: Early exit. Init verdict: {init_res.verdict}", file=sys.stderr)
             # We return the initialization failure directly
             out = init_res.model_dump(mode="json")
@@ -700,12 +700,16 @@ async def metabolic_loop(
                         actor_id=actor_id,
                         risk_tier=risk_tier,
                     )
-                    return stage_res.model_dump(mode="json") if hasattr(stage_res, "model_dump") else {"verdict": "SEAL"}
+                    return (
+                        stage_res.model_dump(mode="json")
+                        if hasattr(stage_res, "model_dump")
+                        else {"verdict": "SEAL"}
+                    )
 
                 dag_result = await dag_exec.execute(dag_node_executor)
                 logger.info(
-                    f"[DAG] Completed {dag_result.get('completed',0)}/{dag_result.get('total_nodes',0)} nodes "
-                    f" halted_at={dag_result.get('halted_at_node','none')}"
+                    f"[DAG] Completed {dag_result.get('completed', 0)}/{dag_result.get('total_nodes', 0)} nodes "
+                    f" halted_at={dag_result.get('halted_at_node', 'none')}"
                 )
             except Exception as e:
                 logger.warning(f"[DAG] Executor error, falling back to sequential: {e}")
@@ -714,7 +718,7 @@ async def metabolic_loop(
         # ── Sequential stage execution (fallback or for simple plans) ────────────
         reality_summary = {"status": "SKIPPED", "required": False, "score": 0.0}
         verdict_history: list[Verdict] = [init_res.verdict]
-        
+
         # P0: Cumulative payload preservation (Fix: Wire kernel to agi_mind output)
         cumulative_payload = init_res.payload.copy() if init_res.payload else {}
         policy_res: RuntimeEnvelope = init_res
@@ -757,7 +761,7 @@ async def metabolic_loop(
                     cumulative_payload["answer"] = res.payload.get("answer")
                     cumulative_payload["thought"] = res.payload.get("thought")
                     cumulative_payload["steps"] = res.payload.get("steps")
-                
+
                 # Merge the rest
                 cumulative_payload.update(res.payload)
 
@@ -797,8 +801,12 @@ async def metabolic_loop(
             sources = len(pns_trace["PNS_SEARCH"].get("payload", {}).get("results", []))
 
         # Wire G★ to actual content scoring
-        actual_content = str(cumulative_payload.get("answer", "")) + str(cumulative_payload.get("thought", ""))
-        actual_tokens = max(10, len(actual_content) // 4)  # rough token estimate (1 word/token ≈ 4 chars)
+        actual_content = str(cumulative_payload.get("answer", "")) + str(
+            cumulative_payload.get("thought", "")
+        )
+        actual_tokens = max(
+            10, len(actual_content) // 4
+        )  # rough token estimate (1 word/token ≈ 4 chars)
         actual_options = 1
         if "steps" in cumulative_payload and isinstance(cumulative_payload["steps"], list):
             actual_options = len(cumulative_payload["steps"])

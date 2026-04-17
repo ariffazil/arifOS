@@ -54,6 +54,8 @@ def _select_leaf_tool(query: str, query_class: QueryClass, context: dict[str, An
 
     if requested_mode in {"status", "probe", "state"}:
         return "arifos_ops"
+    if query_class == QueryClass.INFORMATIONAL:
+        return "arifos_mind"
 
     if any(kw in query_lower for kw in ["judge", "verdict", "approve", "hold", "seal check"]):
         return "arifos_judge"
