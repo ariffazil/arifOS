@@ -94,7 +94,7 @@ if not hasattr(init_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op 
     init_app.ui = lambda *args, **kwargs: lambda fn: fn
 
 
-@init_app.tool()
+@init_app.tool(name="arifos_anchor_session", tags={"public", "init"})
 async def anchor_session(
     declared_intent: Annotated[
         str, Field(description="The goal or purpose of the session. F1 Amanah commitment.")

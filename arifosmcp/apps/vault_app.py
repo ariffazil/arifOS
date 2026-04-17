@@ -124,7 +124,7 @@ if not hasattr(vault_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op
     vault_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
-@vault_app.tool()
+@vault_app.tool(name="arifos_get_vault_data", tags={"public", "vault"})
 def get_vault_data() -> ToolResult:
     """
     Read VAULT999 ledger and build current BLS seal card.

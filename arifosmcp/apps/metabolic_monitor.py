@@ -274,7 +274,7 @@ def _derive_next_actions(floors: list[dict], peace_sq: float) -> list[str]:
 
 def _register(mcp: FastMCP) -> None:
 
-    @mcp.tool(app=PrefabAppConfig(domain="arifos.fastmcp.app"))
+    @mcp.tool(name="arifos_monitor_metabolism", app=PrefabAppConfig(domain="arifos.fastmcp.app"), tags={"public", "meta"})
     def monitor_metabolism(
         session_id: Annotated[str, Field(description="Active arifOS session ID")] = "global"
     ) -> ToolResult:

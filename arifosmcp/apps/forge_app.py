@@ -74,7 +74,7 @@ def _resolve_forge_action(candidate_action: str) -> str:
     return "contract"
 
 
-@forge_app.tool()
+@forge_app.tool(name="arifos_forge_judge_check", tags={"hold", "internal", "forge"})
 async def forge_judge_check(
     candidate_action: str,
     risk_tier: str = "medium",
@@ -133,7 +133,7 @@ async def forge_judge_check(
         )
 
 
-@forge_app.tool()
+@forge_app.tool(name="arifos_forge_execute", tags={"public", "forge"})
 async def forge_execute(
     candidate_action: str,
     risk_tier: str = "medium",

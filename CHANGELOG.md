@@ -2,6 +2,28 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [Unreleased] - 2026-04-17 — Registry Canonicalisation + Namespace Boundary
+
+### Changed
+- `arifosmcp/tool_registry.json` — deprecated. Replaced with redirect pointer to `tool_registry_v2.json` (99-tool T00–T07 tier architecture, EPOCH-2026-04-16).
+- `arifos_route` removed from registry — routing is fully handled by `arifos_kernel` (T00_06). No live callers exist.
+
+### Added
+- `arifosmcp/TOOL_NAMESPACING.md` — documents `arifos_*` public API layer vs internal axis substrate (`P_/T_/V_/G_/E_/M_`). Option A architecture proposed, pending 888-A sovereign confirmation from Arif.
+
+### Mapped (documentation only — server fix pending Day 2)
+8 compound tools in live session mapped to canonical `arifos_` names and axis equivalents:
+- `anchor_session` → `arifos_anchor_session` / `E09_session_anchor` (LIVE)
+- `forge_execute` → `arifos_forge_execute` / `E03_forge_execute` (LIVE)
+- `get_vault_data` → `arifos_get_vault_data` / `P11_vault_ledger_reader` (LIVE)
+- `monitor_metabolism` → `arifos_monitor_metabolism` / `M11_metabolic_monitor` (LIVE)
+- `execute_judge` → `arifos_execute_judge` / `G06_execute_judge` (**HOLD** — not to be exposed until judge guard wired)
+- `forge_judge_check` → `arifos_forge_judge_check` / `E02_forge_judge_check` (**HOLD**)
+- `perform_economic_audit` → `arifos_perform_economic_audit` / `T11_economic_audit_calculator` (**HOLD**)
+- `verify_location` → `arifos_verify_location` / `P09_geospatial_verifier` (**HOLD**)
+
+
+
 ## [2026.04.14-KERNEL-RUNTIME-HARDENING] - Public Surface, Contracts, and Route Control Plane Aligned
 
 ### 🔧 RUNTIME: 11-Tool Public Surface Restored

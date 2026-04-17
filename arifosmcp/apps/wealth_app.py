@@ -43,7 +43,7 @@ wealth_app = FastMCP("WealthApp")
 if not hasattr(wealth_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     wealth_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
-@wealth_app.tool()
+@wealth_app.tool(name="arifos_perform_economic_audit", tags={"hold", "internal", "wealth"})
 async def perform_economic_audit(
     initial_cost: Annotated[float, Field(description="Initial investment amount")],
     annual_benefit: Annotated[float, Field(description="Expected annual cash flow")],

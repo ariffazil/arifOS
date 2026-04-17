@@ -181,7 +181,7 @@ if not hasattr(judge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op
     judge_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
-@judge_app.tool()
+@judge_app.tool(name="arifos_execute_judge", tags={"hold", "internal", "governance"})
 async def execute_judge(
     candidate_action: Annotated[str, Field(description="The action or proposal to evaluate")],
     risk_tier: Annotated[str, Field(description="Risk level: low, medium, high, critical")] = "medium",
