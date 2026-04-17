@@ -16,8 +16,10 @@ import base64
 import hmac
 import hashlib
 import json
+import logging
 import os
 import re
+import tempfile
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -25,6 +27,8 @@ from threading import RLock
 from typing import Any
 
 from core.shared.types import ActorIdentity
+
+logger = logging.getLogger(__name__)
 
 # Global Session Registry (In-memory fallback for stateless bridge)
 _ACTOR_IDENTITIES: dict[str, ActorIdentity] = {}
@@ -34,13 +38,45 @@ _SESSION_CONTINUITY_STATE: dict[str, dict[str, Any]] = {}
 _STORE_LOCK = RLock()
 _STORE_LOADED = False
 
-_SESSION_STORE_PATH = Path(
-    os.getenv(
-        "ARIFOS_SESSION_STORE_PATH",
-        str(Path(__file__).resolve().parents[2] / ".arifos" / "runtime_sessions.json"),
-    )
-)
 _SESSION_TTL_SECONDS = max(300, int(os.getenv("ARIFOS_SESSION_TTL_SECONDS", "86400")))
+
+
+def _is_store_parent_writable(path: Path) -> bool:
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=path, delete=True):
+            pass
+        return True
+    except OSError:
+        return False
+
+
+def _default_session_store_path() -> Path:
+    explicit = os.getenv("ARIFOS_SESSION_STORE_PATH")
+    if explicit:
+        return Path(explicit)
+
+    repo_state = Path(__file__).resolve().parents[2] / ".arifos" / "runtime_sessions.json"
+    xdg_state = (
+        Path(
+            os.getenv(
+                "XDG_STATE_HOME",
+                str(Path.home() / ".local" / "state"),
+            )
+        )
+        / "arifos"
+        / "runtime_sessions.json"
+    )
+    tmp_state = Path("/tmp") / "arifos" / "runtime_sessions.json"
+
+    for candidate in (repo_state, xdg_state, tmp_state):
+        if _is_store_parent_writable(candidate.parent):
+            return candidate
+
+    return tmp_state
+
+
+_SESSION_STORE_PATH = _default_session_store_path()
 
 
 # ── Signed Session Token Logic (H2 Persistence) ────────────────────────────
@@ -127,6 +163,7 @@ def _session_store_payload() -> dict[str, Any]:
 
 
 def _persist_store() -> None:
+    global _SESSION_STORE_PATH
     try:
         _SESSION_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = _SESSION_STORE_PATH.with_suffix(".tmp")
@@ -134,8 +171,20 @@ def _persist_store() -> None:
             json.dumps(_session_store_payload(), indent=2, sort_keys=True), encoding="utf-8"
         )
         tmp_path.replace(_SESSION_STORE_PATH)
-    except Exception:
-        pass
+    except OSError as exc:
+        global _SESSION_STORE_PATH
+        fallback_path = Path("/tmp") / "arifos" / "runtime_sessions.json"
+        if _SESSION_STORE_PATH != fallback_path and _is_store_parent_writable(fallback_path.parent):
+            logger.warning(
+                "Session store path %s unavailable (%s); falling back to %s",
+                _SESSION_STORE_PATH,
+                exc,
+                fallback_path,
+            )
+            _SESSION_STORE_PATH = fallback_path
+            _persist_store()
+            return
+        logger.warning("Session store persistence failed at %s: %s", _SESSION_STORE_PATH, exc)
 
 
 def _load_store() -> None:
@@ -259,6 +308,15 @@ def _resolve_session_id(provided_id: str | None) -> str | None:
     return _ACTIVE_SESSION_ID
 
 
+def _resolve_lookup_session_id(session_id: str | None) -> str | None:
+    if session_id is None:
+        return _resolve_session_id(None)
+    normalized = str(session_id).strip()
+    if normalized in {"", "global"}:
+        return _resolve_session_id(None)
+    return normalized
+
+
 def set_active_session(session_id: str) -> None:
     """Update the global pointer for the last active session."""
     global _ACTIVE_SESSION_ID
@@ -378,7 +436,10 @@ def get_session_identity(session_id: str) -> dict[str, Any] | None:
 
     Returns None if the session has not been anchored via init_anchor.
     """
-    return _ensure_active_record(session_id)
+    resolved_session_id = _resolve_lookup_session_id(session_id)
+    if not resolved_session_id:
+        return None
+    return _ensure_active_record(resolved_session_id)
 
 
 def clear_session_identity(session_id: str) -> None:
@@ -402,13 +463,14 @@ def list_active_sessions_count() -> int:
 
 def get_session_continuity_state(session_id: str | None) -> dict[str, Any] | None:
     """Return canonical continuity state for a session if present."""
-    if not session_id:
+    resolved_session_id = _resolve_lookup_session_id(session_id)
+    if not resolved_session_id:
         return None
     _load_store()
-    if _is_session_expired(_SESSION_IDENTITY.get(session_id)):
-        clear_session_identity(session_id)
+    if _is_session_expired(_SESSION_IDENTITY.get(resolved_session_id)):
+        clear_session_identity(resolved_session_id)
         return None
-    return _SESSION_CONTINUITY_STATE.get(session_id)
+    return _SESSION_CONTINUITY_STATE.get(resolved_session_id)
 
 
 def set_session_continuity_state(session_id: str, state: dict[str, Any]) -> None:
@@ -527,14 +589,15 @@ def record_session_tool_event(
 
 def get_session_runtime_state(session_id: str | None) -> dict[str, Any] | None:
     """Return merged identity, continuity, and live activity for a session."""
-    if not session_id:
+    resolved_session_id = _resolve_lookup_session_id(session_id)
+    if not resolved_session_id:
         return None
-    record = _ensure_active_record(session_id)
+    record = _ensure_active_record(resolved_session_id)
     if record is None:
         return None
     return {
         "identity": record,
-        "continuity": _SESSION_CONTINUITY_STATE.get(session_id),
+        "continuity": _SESSION_CONTINUITY_STATE.get(resolved_session_id),
         "activity": record.get("activity") or {},
         "governance": record.get("governance") or {},
     }

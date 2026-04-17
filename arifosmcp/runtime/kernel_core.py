@@ -142,23 +142,69 @@ class KernelCore:
         # 1. Shadow-arifOS Audit (F9)
         audit_results = self.shadow_defense.run_full_audit(context)
         if any(r.is_shadow for r in audit_results):
-            return {
-                "ok": False,
-                "verdict": SealType.VOID,
-                "error": f"SHADOW_DETECTED: {audit_results[0].description}"
-            }
+            return self._router_error(
+                code="SHADOW_DETECTED",
+                summary=audit_results[0].description,
+                context=context,
+                route_intent={"query": query},
+                dependency_failure_point="shadow_defense",
+                retryable=False,
+            )
 
         # 2. DAG Verification
-        routing_result = await classify_and_route(query=query, actor_id=actor_id, session_id=session_id, context=context)
+        try:
+            routing_result = await classify_and_route(
+                query=query,
+                actor_id=actor_id,
+                session_id=session_id,
+                context=context,
+            )
+        except Exception as exc:
+            return self._router_error(
+                code="ROUTER_CLASSIFICATION_ERROR",
+                summary="Routing classification failed.",
+                context=context,
+                dependency_failure_point="classify_and_route",
+                retryable=True,
+                exception=exc,
+            )
         tool_name = routing_result.get("tool_name", "arifos_mind")
         
         dag_ok, dag_error = self.verify_dag(tool_name, session_id, context)
         if not dag_ok:
-            return {"ok": False, "verdict": SealType.VOID, "error": dag_error}
+            return self._router_error(
+                code="DAG_VIOLATION",
+                summary=dag_error,
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="verify_dag",
+                retryable=False,
+            )
 
         # 3. Invoke Tool
         handler = get_tool_handler(tool_name) or get_tool_handler("arifos_mind")
+        if handler is None:
+            return self._router_error(
+                code="TOOL_HANDLER_MISSING",
+                summary=f"No handler registered for {tool_name}.",
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="tool_registry",
+                retryable=True,
+            )
         tool_result = await self._invoke_with_governance(handler=handler, tool_name=tool_name, context=context)
+        if not tool_result.get("ok", True):
+            return self._router_error(
+                code=str(tool_result.get("error_code") or "ROUTER_DOWNSTREAM_ERROR"),
+                summary=str(tool_result.get("error") or "Downstream tool execution failed."),
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="dispatch_with_fail_closed",
+                retryable=bool(tool_result.get("retryable", True)),
+            )
 
         # ── WELL Cognitive Pressure Signal ───────────────────────────
         try:
@@ -173,6 +219,45 @@ class KernelCore:
             "tool_result": tool_result,
             "routing_result": routing_result,
             "context": context,
+        }
+
+    def _router_error(
+        self,
+        *,
+        code: str,
+        summary: str,
+        context: dict[str, Any],
+        resolved_lane: str | None = None,
+        route_intent: dict[str, Any] | None = None,
+        dependency_failure_point: str | None = None,
+        retryable: bool = True,
+        exception: Exception | None = None,
+    ) -> dict[str, Any]:
+        auth_context = dict(context.get("auth_context") or {})
+        session_id = context.get("session_id")
+        return {
+            "ok": False,
+            "tool": "arifos_kernel",
+            "stage": "444_ROUTER",
+            "status": "error",
+            "error": code,
+            "summary": summary,
+            "retryable": retryable,
+            "route_intent": route_intent or {
+                "query": context.get("query"),
+                "intent": context.get("intent"),
+            },
+            "resolved_lane": resolved_lane,
+            "session_presence": bool(session_id),
+            "session_id": session_id,
+            "identity_auth_status": {
+                "actor_id": context.get("actor_id", "anonymous"),
+                "verified": bool(auth_context.get("verified")),
+                "auth_state": auth_context.get("auth_state") or ("verified" if auth_context.get("verified") else "anonymous"),
+            },
+            "dependency_failure_point": dependency_failure_point,
+            "stack_error_code": code,
+            "detail": str(exception) if exception else summary,
         }
 
     async def _invoke_with_governance(self, handler: Any, tool_name: str, context: dict[str, Any]) -> dict[str, Any]:

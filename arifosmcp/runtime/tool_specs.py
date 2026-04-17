@@ -2,7 +2,7 @@
 arifosmcp/runtime/tool_specs.py — arifOS MCP Canonical Tool Specifications
 ═══════════════════════════════════════════════════════════════════════════════
 
-17 sovereign tools + 5 metabolic surfaces. 
+17 sovereign tools + 5 metabolic surfaces.
 Clean naming: arifos_{verb} for tools, {noun}_surface for apps.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -19,7 +19,7 @@ class ToolSpec:
     name: str  # arifos_{verb} format
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
-    role: str = "" # Role-based purpose (alias for purpose)
+    role: str = ""  # Role-based purpose (alias for purpose)
     layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = "MACHINE"
     description: str = ""
     trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"] = "ALL"
@@ -27,7 +27,7 @@ class ToolSpec:
     input_schema: dict[str, Any] = field(default_factory=dict)
     visibility: Literal["public", "internal"] = "internal"
     default_tier: str = "medium"
-    default_budget_tier: str = "medium" # Alias
+    default_budget_tier: str = "medium"  # Alias
     min_budget_tier: str = "small"
     max_budget_tier: str = "large"
     overflow_policy: str = "truncate"
@@ -41,9 +41,11 @@ class ToolSpec:
     idempotent_hint: bool = False
     timeout: float = 30.0
 
+
 @dataclass(frozen=True)
 class ResourceSpec:
     """Canonical resource specification."""
+
     uri: str
     name: str
     description: str
@@ -166,7 +168,15 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "context": {"type": "string"},
                 "mode": {
                     "type": "string",
-                    "enum": ["reason", "sequential", "step", "branch", "merge", "review", "reflect"],
+                    "enum": [
+                        "reason",
+                        "sequential",
+                        "step",
+                        "branch",
+                        "merge",
+                        "review",
+                        "reflect",
+                    ],
                     "default": "reason",
                 },
                 "session_id": {"type": "string"},
@@ -189,9 +199,19 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string"},
+                "query": {"type": "string", "description": "Primary query string (alias: request)"},
+                "request": {
+                    "type": "string",
+                    "description": "Alternative query string for backward compatibility",
+                },
                 "mode": {"type": "string", "enum": ["kernel", "status"], "default": "kernel"},
                 "session_id": {"type": "string"},
+                "actor_id": {"type": "string"},
+                "risk_tier": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "default": "medium",
+                },
             },
         },
     ),
@@ -421,7 +441,11 @@ TOOLS: tuple[ToolSpec, ...] = (
             "properties": {
                 "query": {"type": "string"},
                 "session_id": {"type": "string"},
-                "recipient": {"type": "string", "enum": ["human", "agent", "auto"], "default": "auto"},
+                "recipient": {
+                    "type": "string",
+                    "enum": ["human", "agent", "auto"],
+                    "default": "auto",
+                },
             },
         },
     ),
@@ -637,7 +661,11 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "cash_flows": {"type": "array", "items": {"type": "number"}},
                 "discount_rate": {"type": "number", "default": 0.1},
                 "terminal_value": {"type": "number", "default": 0},
-                "epistemic": {"type": "string", "enum": ["CLAIM", "ESTIMATE", "HYPOTHESIS"], "default": "CLAIM"},
+                "epistemic": {
+                    "type": "string",
+                    "enum": ["CLAIM", "ESTIMATE", "HYPOTHESIS"],
+                    "default": "CLAIM",
+                },
             },
         },
     ),
@@ -751,40 +779,42 @@ RESOURCES: tuple[ResourceSpec, ...] = (
         uri="arifos://doctrine",
         name="Constitutional Doctrine",
         description="The eternal law of arifOS (Ψ).",
-        visibility="public"
+        visibility="public",
     ),
     ResourceSpec(
         uri="arifos://vitals",
         name="System Vitals",
         description="Real-time metabolic telemetry (Ω).",
-        visibility="public"
+        visibility="public",
     ),
     ResourceSpec(
         uri="arifos://schema",
         name="Complete Blueprint",
         description="Technical schema and ABI definitions (Δ).",
-        visibility="public"
+        visibility="public",
     ),
     ResourceSpec(
         uri="arifos://session/{id}",
         name="Ephemeral Instance",
         description="Active session state and governance context.",
         is_template=True,
-        visibility="public"
+        visibility="public",
     ),
     ResourceSpec(
         uri="arifos://forge",
         name="Execution Bridge",
         description="Signed execution manifests and receipts.",
-        visibility="public"
+        visibility="public",
     ),
 )
+
 
 def normalize_tool_name(name: str) -> str:
     """Normalize tool name (dots to underscores) for arifOS v2."""
     if name.startswith("arifos."):
         return name.replace(".", "_")
     return name
+
 
 def get_tool_spec(name: str) -> ToolSpec | None:
     """Get tool spec by name."""
@@ -793,9 +823,11 @@ def get_tool_spec(name: str) -> ToolSpec | None:
             return spec
     return None
 
+
 def tool_names() -> tuple[str, ...]:
     """Return all canonical tool names."""
     return tuple(t.name for t in TOOLS)
+
 
 # Compact compatibility exports
 V2_TOOLS = TOOLS
@@ -804,13 +836,13 @@ PUBLIC_TOOL_SPECS = [t for t in TOOLS if t.visibility == "public"]
 PUBLIC_RESOURCE_SPECS = [r for r in RESOURCES if r.visibility == "public"]
 
 __all__ = [
-    "ToolSpec", 
+    "ToolSpec",
     "ResourceSpec",
-    "TOOLS", 
+    "TOOLS",
     "RESOURCES",
-    "TOOL_NAMES", 
-    "get_tool_spec", 
+    "TOOL_NAMES",
+    "get_tool_spec",
     "tool_names",
     "PUBLIC_TOOL_SPECS",
-    "PUBLIC_RESOURCE_SPECS"
+    "PUBLIC_RESOURCE_SPECS",
 ]

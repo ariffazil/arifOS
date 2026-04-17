@@ -94,6 +94,34 @@ class GovernanceEnforcer:
         
         # Default to informational (safest for direct model response)
         return QueryClass.INFORMATIONAL
+
+
+def _select_leaf_tool(query: str, query_class: QueryClass, context: dict[str, Any] | None = None) -> str:
+    """Resolve a non-recursive organ for governed kernel routing."""
+    context = context or {}
+    requested_mode = str(context.get("mode") or "").lower()
+    query_lower = query.lower()
+
+    if requested_mode in {"status", "probe", "state"}:
+        return "arifos_ops"
+
+    if any(kw in query_lower for kw in ["judge", "verdict", "approve", "hold", "seal check"]):
+        return "arifos_judge"
+    if any(kw in query_lower for kw in ["forge", "execute", "deploy", "run", "ship"]):
+        return "arifos_forge"
+    if any(kw in query_lower for kw in ["vault", "ledger", "seal", "receipt"]):
+        return "arifos_vault"
+    if any(kw in query_lower for kw in ["memory", "remember", "recall", "context"]):
+        return "arifos_memory"
+    if any(kw in query_lower for kw in ["risk", "harm", "safety", "heart"]):
+        return "arifos_heart"
+    if any(kw in query_lower for kw in ["cost", "ops", "health", "telemetry", "status", "monitor"]):
+        return "arifos_ops"
+    if any(kw in query_lower for kw in ["sense", "ground", "verify", "reality", "fetch"]):
+        return "arifos_sense"
+    if query_class == QueryClass.CRITICAL:
+        return "arifos_judge"
+    return "arifos_mind"
     
     def evaluate_tool_verdict(
         self,
@@ -335,15 +363,19 @@ async def classify_and_route(
     enforcer = get_enforcer()
     query_class = enforcer.classify_query(query, context)
     
-    # Informational queries don't require tools
+    # Informational queries don't require tools; governed queries must resolve to a leaf organ.
     requires_tool = query_class != QueryClass.INFORMATIONAL
-    
-    # Return dict format expected by kernel_core.orchestrate_stage
+    tool_name = _select_leaf_tool(query, query_class, context)
+
     return {
         "ok": True,
-        "tool_name": "arifos_mind" if not requires_tool else "arifos_kernel",
+        "tool_name": tool_name,
         "query_class": query_class.value,
         "requires_tool": requires_tool,
+        "route_intent": {
+            "query_class": query_class.value,
+            "requested_mode": context.get("mode") if context else None,
+        },
     }
 
 
