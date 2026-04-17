@@ -582,8 +582,9 @@ See [`CHANGELOG.md`](./CHANGELOG.md) for full history.
 | Δ SOUL | [ariffazil/arifOS](https://github.com/ariffazil/arifOS) | Constitutional kernel, doctrine, Floors | ✅ LIVE |
 | Ω MIND | [ariffazil/arifosmcp](https://github.com/ariffazil/arifosmcp) | MCP server — tool execution | ✅ LIVE |
 | Ψ BODY | [ariffazil/GEOX](https://github.com/ariffazil/GEOX) | Earth Plane — spatial intelligence | ✅ LIVE |
+| **A-FORGE** | [ariffazil/A-FORGE](https://github.com/ariffazil/A-FORGE) | Execution Adapter — TypeScript runtime | ✅ LIVE |
 
-### 🌐 Trinity Live Links
+### Trinity + A-FORGE Live Links
 
 | Domain | Realm | Status |
 |---|---|---|
