@@ -78,6 +78,14 @@ async def test_arifos_judge_basic():
     assert result.ok is True
     assert result.verdict.value == "SEAL"
 
+
+@pytest.mark.asyncio
+async def test_arifos_judge_accepts_debug_kwarg():
+    """Regression: arifos_judge should not fail when debug is passed through wrappers."""
+    result = await arifos_judge(candidate_action="SEAL", dry_run=True, debug=True)
+    assert result.ok is True
+    assert result.verdict.value == "SEAL"
+
 @pytest.mark.asyncio
 async def test_arifos_vault_basic():
     """Test arifos_vault sealing."""

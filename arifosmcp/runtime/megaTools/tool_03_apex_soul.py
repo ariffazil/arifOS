@@ -24,7 +24,9 @@ async def apex_judge(
     risk_tier: str = "medium",
     session_id: str | None = None,
     dry_run: bool = True,
+    debug: bool = False,
     ctx: Any | None = None,
+    **kwargs: Any,
 ) -> RuntimeEnvelope:
     resolved_payload = dict(payload or {})
     if proposal:
@@ -38,6 +40,9 @@ async def apex_judge(
     if session_id:
         resolved_payload.setdefault("session_id", session_id)
     resolved_payload.setdefault("dry_run", dry_run)
+    resolved_payload.setdefault("debug", debug)
+    if kwargs:
+        resolved_payload.update(kwargs)
 
     if "apex_judge" in HARDENED_DISPATCH_MAP:
         res = await HARDENED_DISPATCH_MAP["apex_judge"](mode=mode, payload=resolved_payload)

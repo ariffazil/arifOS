@@ -172,7 +172,6 @@ def _persist_store() -> None:
         )
         tmp_path.replace(_SESSION_STORE_PATH)
     except OSError as exc:
-        global _SESSION_STORE_PATH
         fallback_path = Path("/tmp") / "arifos" / "runtime_sessions.json"
         if _SESSION_STORE_PATH != fallback_path and _is_store_parent_writable(fallback_path.parent):
             logger.warning(

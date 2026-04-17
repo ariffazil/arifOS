@@ -3,7 +3,7 @@ import pytest
 from fastmcp import FastMCP
 
 from arifosmcp.apps.metabolic_monitor import _live_floor_status, _live_metabolics
-from arifosmcp.runtime.sessions import clear_session_identity
+from arifosmcp.runtime.sessions import clear_session_identity, get_session_runtime_state
 from arifosmcp.runtime.tools import (
     _arifos_kernel_public,
     _arifos_ops_public,
@@ -96,3 +96,25 @@ async def test_metabolic_monitor_reads_live_session_state():
     assert metrics["status"] == "LIVE"
     assert metrics["delta_s"] > 0
     assert any(floor["status"] in {"PASS", "FAIL", "STRAIN"} for floor in floors)
+
+
+@pytest.mark.asyncio
+async def test_global_monitor_uses_active_session_state():
+    session_id = "sess-fastmcp-monitor-active-001"
+    clear_session_identity(session_id)
+
+    await _arifos_init_public(
+        actor_id="ARIF",
+        intent="test active session monitor",
+        session_id=session_id,
+        mode="init",
+        platform="mcp",
+    )
+    await _arifos_ops_public(query="health", mode="health", session_id=session_id)
+
+    runtime_state = get_session_runtime_state("global")
+    metrics = _live_metabolics("global")
+
+    assert runtime_state is not None
+    assert runtime_state["identity"]["actor_id"] == "ARIF"
+    assert metrics["status"] == "LIVE"
