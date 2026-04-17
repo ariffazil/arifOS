@@ -98,6 +98,8 @@ class G02LayeredRouter:
         self,
         caller_axis: Axis | None,
         target_axis: Axis,
+        judge_verdict: str | None = None,
+        judge_state_hash: str | None = None,
     ) -> tuple[bool, str]:
         """
         Verify caller is allowed to call target axis per CALL_GRAPH rules.
@@ -105,12 +107,21 @@ class G02LayeredRouter:
         Returns (allowed, reason).
         """
         if caller_axis is None:
-            # External caller — must be G (entry point)
+            # External caller — kernel is the G-axis delegate
             if target_axis == Axis.E:
-                return False, "E-axis unreachable from external. Route through G02 first."
+                # E-axis reachable ONLY if G05 has issued a valid SEAL
+                if judge_verdict == "SEAL" and judge_state_hash and len(judge_state_hash) == 64:
+                    return (
+                        True,
+                        "E-axis authorized: G05 SEAL verdict present from prior arifos_judge",
+                    )
+                return (
+                    False,
+                    "E-axis blocked: requires G05 SEAL verdict from arifos_judge first. Route through arifos_judge.",
+                )
             if target_axis == Axis.M:
                 return False, "M-axis not directly accessible. Use G02."
-            return True, "External caller routed to non-E axis."
+            return True, "External caller routed to non-E/M axis."
 
         # Caller is authenticated axis
         allowed_targets = CALL_GRAPH.get(caller_axis, frozenset())
@@ -221,7 +232,12 @@ class G02LayeredRouter:
         caller_axis = context.caller_axis
 
         # Layer 2: Call graph enforcement
-        allowed, reason = self.enforce_call_graph(caller_axis, target_axis)
+        allowed, reason = self.enforce_call_graph(
+            caller_axis,
+            target_axis,
+            judge_verdict=context.judge_verdict,
+            judge_state_hash=context.judge_state_hash,
+        )
         self._trace.append(f"L2:call_graph→{'ALLOWED' if allowed else 'BLOCKED'}: {reason}")
 
         if not allowed:

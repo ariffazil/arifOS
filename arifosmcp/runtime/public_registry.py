@@ -8,11 +8,7 @@ from typing import Any
 import tomllib
 
 from .prompts import V2_PROMPT_SPECS
-from .tool_specs import (
-    PUBLIC_RESOURCE_SPECS,
-    PUBLIC_TOOL_SPECS,
-    ToolSpec,
-)
+from .tool_specs import PUBLIC_RESOURCE_SPECS, ToolSpec, get_tool_spec
 
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
@@ -20,9 +16,21 @@ DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
 # Clean public surface: keep internal handler names private where needed.
 PUBLIC_TOOL_ALIASES = {
-    "arifos_route": "arifos_kernel",
+    "arifos_kernel": "arifos_route",
 }
-PUBLIC_TOOL_EXCLUSIONS = set()
+CANONICAL_PUBLIC_SOURCE_NAMES = (
+    "arifos_init",
+    "arifos_sense",
+    "arifos_mind",
+    "arifos_kernel",
+    "arifos_heart",
+    "arifos_ops",
+    "arifos_judge",
+    "arifos_memory",
+    "arifos_vault",
+    "arifos_forge",
+    "arifos_health",
+)
 
 
 def _public_spec_name(name: str) -> str:
@@ -30,8 +38,6 @@ def _public_spec_name(name: str) -> str:
 
 
 def _transform_public_tool_spec(spec: ToolSpec) -> ToolSpec | None:
-    if spec.name in PUBLIC_TOOL_EXCLUSIONS:
-        return None
     public_name = _public_spec_name(spec.name)
     if public_name == spec.name:
         return spec
@@ -62,8 +68,7 @@ def _transform_public_tool_spec(spec: ToolSpec) -> ToolSpec | None:
 
 # Canonical public tool contract derived from tool_specs.py
 CANONICAL_PUBLIC_TOOLS = frozenset(
-    _public_spec_name(spec.name)
-    for spec in PUBLIC_TOOL_SPECS
+    _public_spec_name(name) for name in CANONICAL_PUBLIC_SOURCE_NAMES
 )
 EXPECTED_TOOL_COUNT = 11
 
@@ -104,11 +109,15 @@ def public_tool_names() -> tuple[str, ...]:
 
 def public_tool_specs() -> tuple[ToolSpec, ...]:
     """Return all public tool specifications."""
-    return tuple(
-        transformed
-        for spec in PUBLIC_TOOL_SPECS
-        if (transformed := _transform_public_tool_spec(spec)) is not None
-    )
+    specs = []
+    for source_name in CANONICAL_PUBLIC_SOURCE_NAMES:
+        spec = get_tool_spec(source_name)
+        if spec is None:
+            continue
+        transformed = _transform_public_tool_spec(spec)
+        if transformed is not None:
+            specs.append(transformed)
+    return tuple(specs)
 
 
 def public_tool_spec_by_name() -> dict[str, ToolSpec]:
@@ -116,6 +125,7 @@ def public_tool_spec_by_name() -> dict[str, ToolSpec]:
     return {spec.name: spec for spec in public_tool_specs()}
 
 
+PUBLIC_TOOL_SPECS = public_tool_specs()
 PUBLIC_PROMPT_SPECS = tuple(
     SimpleNamespace(
         name=spec["name"],

@@ -1882,9 +1882,7 @@ def register_rest_routes(
 
     @route("/llms.txt", methods=["GET"])
     async def llms_txt(_request: Request) -> Response:
-        path = Path("/root/arifOS/arifosmcp/sites/llms.txt")
-        content = path.read_text()
-        return Response(content, media_type="text/plain")
+        return Response(LLMS_TXT, media_type="text/plain")
 
     @route("/llms.json", methods=["GET"])
     async def llms_json(_request: Request) -> Response:
@@ -2216,6 +2214,10 @@ def register_rest_routes(
                 {
                     "task_id": task.id,
                     "status": task.state.value if hasattr(task.state, "value") else str(task.state),
+                    "task": {
+                        "id": task.id,
+                        "status": task.state.value if hasattr(task.state, "value") else str(task.state),
+                    },
                 }
             )
         except Exception:

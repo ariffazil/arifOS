@@ -2110,16 +2110,15 @@ async def _arifos_mind_reflect(
     from arifosmcp.runtime.models import RuntimeEnvelope as RE
     from arifosmcp.runtime.models import RuntimeStatus, Verdict
 
+    context = _normalize_context_text(context)
     predictions: list[float] = []
     outcomes: list[float] = []
     try:
         ctx = json.loads(context or "{}")
         predictions = [float(x) for x in ctx.get("predictions", [])]
-    context = _normalize_context_text(context)
         outcomes = [float(x) for x in ctx.get("outcomes", [])]
     except Exception:
         pass
-    context = _normalize_context_text(context)
 
     mae = 0.0
     calibration_gap = 0.0
@@ -2157,10 +2156,11 @@ async def _arifos_mind_public(
     query: Annotated[str, "The reasoning query or prompt"] = "",
     context: Annotated[str | None, "Additional context or history"] = None,
     mode: Annotated[str, "Reasoning mode (reason, sequential, step)"] = "reason",
+    actor_id: Annotated[str | None, "Active arifOS identity"] = None,
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
     risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
     dry_run: Annotated[bool, "If True, simulates reasoning without side effects"] = True,
-    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown", (Harden G02 public routing)
 ) -> RuntimeEnvelope:
     context = _normalize_context_text(context)
     session_ctx = _load_public_session_context(session_id)
@@ -2177,6 +2177,7 @@ async def _arifos_mind_public(
         session_id=session_id,
         risk_tier=session_ctx["risk_tier"] or risk_tier,
         dry_run=dry_run,
+        debug=debug,
         platform=platform,
     )
     return _inject_session_snapshot(envelope, session_ctx)

@@ -26,6 +26,7 @@ from arifosmcp.runtime.sessions import get_session_continuity_state
 
 logger = logging.getLogger(__name__)
 
+
 class KernelCore:
     """
     Unified KERNEL rCore that orchestrates the metabolic pipeline.
@@ -34,7 +35,7 @@ class KernelCore:
     def __init__(self):
         self._tool_handlers: dict[str, Any] = {}
         self._governance_enabled: bool = True
-        
+
         self.pattern_registry = PatternRegistry()
         self.pattern_selector = PatternSelector(self.pattern_registry)
         self.planner = Planner()
@@ -59,12 +60,18 @@ class KernelCore:
         payload = dict(payload or {})
         payload.update(kwargs)
 
-        if query: payload.setdefault("query", query)
-        if session_id: payload.setdefault("session_id", session_id)
-        if actor_id: payload.setdefault("actor_id", actor_id)
-        if intent: payload.setdefault("intent", intent)
-        if auth_context: payload.setdefault("auth_context", auth_context)
-        if caller_context: payload.setdefault("caller_context", caller_context)
+        if query:
+            payload.setdefault("query", query)
+        if session_id:
+            payload.setdefault("session_id", session_id)
+        if actor_id:
+            payload.setdefault("actor_id", actor_id)
+        if intent:
+            payload.setdefault("intent", intent)
+        if auth_context:
+            payload.setdefault("auth_context", auth_context)
+        if caller_context:
+            payload.setdefault("caller_context", caller_context)
 
         effective_query = payload.get("query") or query or ""
         
@@ -83,7 +90,7 @@ class KernelCore:
 
         selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
         adaptive_depth = self._compute_adaptive_depth(effective_query, risk_tier, payload)
-        
+
         context = {
             "payload": payload,
             "query": effective_query,
@@ -100,35 +107,84 @@ class KernelCore:
                 "planner": self.planner,
                 "tool_registry": self.tool_registry,
                 "role_registry": self.role_registry,
-            }
+            },
         }
         return context
 
     def _compute_adaptive_depth(self, query: str, risk_tier: str, payload: dict[str, Any]) -> str:
         q = query.lower()
-        destructive_signals = {"delete", "remove", "forge", "execute", "write", "modify", "deploy", "seal", "wipe", "drop"}
+        destructive_signals = {
+            "delete",
+            "remove",
+            "forge",
+            "execute",
+            "write",
+            "modify",
+            "deploy",
+            "seal",
+            "wipe",
+            "drop",
+        }
         has_destructive = any(s in q for s in destructive_signals)
         if risk_tier == "low" and not has_destructive and not payload.get("allow_execution"):
             return "fast"
         return "deep" if (risk_tier in ("high", "critical") or has_destructive) else "standard"
 
-    def verify_dag(self, tool_name: str, session_id: str, context: Dict[str, Any]) -> Tuple[bool, str]:
+    def _get_session_state(self, session_id: str | None) -> dict[str, Any]:
+        """Fetch session continuity state for G02 RouteContext population."""
+        try:
+            from arifosmcp.runtime.sessions import get_session_continuity_state
+
+            return get_session_continuity_state(session_id) or {}
+        except Exception:
+            return {}
+
+    def _update_session_judge_state(
+        self, session_id: str | None, verdict: str, state_hash: str | None
+    ) -> None:
+        """Store arifos_judge verdict in session continuity state for E-axis gate."""
+        if not session_id:
+            return
+        try:
+            from arifosmcp.runtime.sessions import (
+                set_session_continuity_state,
+                get_session_continuity_state,
+            )
+
+            current = get_session_continuity_state(session_id) or {}
+            current["judge_verdict"] = verdict
+            if state_hash:
+                current["judge_state_hash"] = state_hash
+            set_session_continuity_state(session_id, current)
+            logger.info(f"[G02] Judge verdict stored: session={session_id[:20]}, verdict={verdict}")
+        except Exception as e:
+            logger.warning(f"[G02] Failed to persist judge verdict: {e}")
+
+    def verify_dag(
+        self, tool_name: str, session_id: str, context: Dict[str, Any]
+    ) -> Tuple[bool, str]:
         """
         Enforces arifOS v2.0 DAG ordering and Omega gates.
         """
         state = get_session_continuity_state(session_id) or {}
         completed_stages = state.get("completed_stages", [])
-        
+
         # Rule 1: No Stage 777 (Forge/Execution) without Stage 666 (Heart/Risk)
         if "forge" in tool_name or "execute" in tool_name:
             if 666 not in completed_stages:
-                return False, "DAG_VIOLATION: Stage 777 (Forge) requires Stage 666 (Heart) completion."
-            
+                return (
+                    False,
+                    "DAG_VIOLATION: Stage 777 (Forge) requires Stage 666 (Heart) completion.",
+                )
+
             # Omega Gate: Ω ≥ 0.95
             omega = context.get("metrics", {}).get("omega_ortho", 1.0)
             if omega < 0.95:
-                return False, f"GATE_LOCKED: Ω={omega} < 0.95. Lane independence insufficient for execution."
-        
+                return (
+                    False,
+                    f"GATE_LOCKED: Ω={omega} < 0.95. Lane independence insufficient for execution.",
+                )
+
         return True, "OK"
 
     async def orchestrate_stage(self, context: dict[str, Any]) -> dict[str, Any]:
@@ -138,7 +194,7 @@ class KernelCore:
         query = context.get("query", "")
         actor_id = context.get("actor_id", "anonymous")
         session_id = context.get("session_id", "global")
-        
+
         # 1. Shadow-arifOS Audit (F9)
         audit_results = self.shadow_defense.run_full_audit(context)
         if any(r.is_shadow for r in audit_results):
@@ -169,7 +225,7 @@ class KernelCore:
                 exception=exc,
             )
         tool_name = routing_result.get("tool_name", "arifos_mind")
-        
+
         dag_ok, dag_error = self.verify_dag(tool_name, session_id, context)
         if not dag_ok:
             return self._router_error(
@@ -181,6 +237,69 @@ class KernelCore:
                 dependency_failure_point="verify_dag",
                 retryable=False,
             )
+
+        # ── G02 Layered Router ─────────────────────────────────────────────────
+        # Layer 3 constitutional enforcement: axis classification, call graph,
+        # and E-axis SEAL precondition. Every tool call passes through here.
+        try:
+            from arifosmcp.runtime.agent_registry import RouteContext, RiskTier, Axis
+            from arifosmcp.runtime.g02_router import get_router
+
+            router = get_router()
+            session_state = self._get_session_state(session_id)
+
+            # Build RouteContext from session + context
+            risk_tier_str = context.get("risk_tier", "medium")
+            try:
+                risk_tier = RiskTier(risk_tier_str)
+            except ValueError:
+                risk_tier = RiskTier.MEDIUM
+
+            route_ctx = RouteContext(
+                session_id=session_id,
+                actor_id=context.get("actor_id"),
+                risk_tier=risk_tier,
+                caller_axis=None,  # External caller — kernel is the entry point
+                judge_verdict=session_state.get("judge_verdict"),
+                judge_state_hash=session_state.get("judge_state_hash"),
+                well_readiness=session_state.get("well_readiness", 1.0),
+                trace=[],
+            )
+
+            g02_result = router.route(
+                request={"tool_name": tool_name, "query": query},
+                context=route_ctx,
+            )
+
+            if not g02_result.ok:
+                logger.warning(
+                    f"[G02] Blocked: {tool_name} → {g02_result.verdict} | {g02_result.blocked_reason}"
+                )
+                return self._router_error(
+                    code=f"G02_{g02_result.verdict}",
+                    summary=g02_result.blocked_reason or f"G02 blocked {tool_name}",
+                    context=context,
+                    resolved_lane=tool_name,
+                    route_intent=routing_result.get("route_intent"),
+                    dependency_failure_point="g02_router",
+                    retryable=(g02_result.verdict == "HOLD"),
+                )
+
+            # Annotate context with G02 result for downstream tools
+            context["g02_axis"] = g02_result.target_axis
+            context["g02_operation_class"] = g02_result.operation_class
+            context["g02_verdict"] = g02_result.verdict
+
+            logger.info(
+                f"[G02] Allowed: {tool_name} → {g02_result.target_axis.value}/{g02_result.operation_class.value}"
+            )
+
+        except ImportError:
+            # G02 not available — degrade gracefully (old runtime)
+            logger.warning("[G02] Router not available, skipping enforcement")
+        except Exception as exc:
+            logger.error(f"[G02] Router error: {exc}")
+            # Non-fatal — don't block tool execution on router errors
 
         # 3. Invoke Tool
         handler = get_tool_handler(tool_name) or get_tool_handler("arifos_mind")
@@ -194,7 +313,21 @@ class KernelCore:
                 dependency_failure_point="tool_registry",
                 retryable=True,
             )
-        tool_result = await self._invoke_with_governance(handler=handler, tool_name=tool_name, context=context)
+        tool_result = await self._invoke_with_governance(
+            handler=handler, tool_name=tool_name, context=context
+        )
+
+        # ── Persist judge verdict to session continuity state ─────────────────
+        # After arifos_judge runs, store verdict + state_hash so subsequent
+        # E-axis calls (arifos_forge) can satisfy G02 Layer 3 precondition.
+        if tool_name == "arifos_judge" and tool_result.get("ok"):
+            self._update_session_judge_state(
+                session_id=context.get("session_id"),
+                verdict=tool_result.get("verdict")
+                or tool_result.get("payload", {}).get("verdict", "HOLD"),
+                state_hash=tool_result.get("payload", {}).get("state_hash"),
+            )
+
         if not tool_result.get("ok", True):
             return self._router_error(
                 code=str(tool_result.get("error_code") or "ROUTER_DOWNSTREAM_ERROR"),
@@ -209,6 +342,7 @@ class KernelCore:
         # ── WELL Cognitive Pressure Signal ───────────────────────────
         try:
             from arifosmcp.runtime.well_bridge import signal_cognitive_pressure
+
             signal_cognitive_pressure(load_delta=0.1, source=tool_name)
         except Exception:
             pass  # non-fatal
@@ -243,7 +377,8 @@ class KernelCore:
             "error": code,
             "summary": summary,
             "retryable": retryable,
-            "route_intent": route_intent or {
+            "route_intent": route_intent
+            or {
                 "query": context.get("query"),
                 "intent": context.get("intent"),
             },
@@ -253,14 +388,17 @@ class KernelCore:
             "identity_auth_status": {
                 "actor_id": context.get("actor_id", "anonymous"),
                 "verified": bool(auth_context.get("verified")),
-                "auth_state": auth_context.get("auth_state") or ("verified" if auth_context.get("verified") else "anonymous"),
+                "auth_state": auth_context.get("auth_state")
+                or ("verified" if auth_context.get("verified") else "anonymous"),
             },
             "dependency_failure_point": dependency_failure_point,
             "stack_error_code": code,
             "detail": str(exception) if exception else summary,
         }
 
-    async def _invoke_with_governance(self, handler: Any, tool_name: str, context: dict[str, Any]) -> dict[str, Any]:
+    async def _invoke_with_governance(
+        self, handler: Any, tool_name: str, context: dict[str, Any]
+    ) -> dict[str, Any]:
         try:
             kwargs = {
                 "query": context.get("query"),
@@ -273,16 +411,32 @@ class KernelCore:
             if tool_name == "arifos_init":
                 kwargs["actor_id"] = context.get("actor_id")
                 kwargs["intent"] = context.get("intent")
-            
+
+            # E-axis tools (forge, vault_seal, memory) require G05 SEAL verdict
+            g02_axis = context.get("g02_axis")
+            if g02_axis and g02_axis.value == "E":
+                session_state = self._get_session_state(context.get("session_id"))
+                kwargs["judge_verdict"] = session_state.get("judge_verdict") or context.get(
+                    "g02_verdict"
+                )
+                kwargs["judge_state_hash"] = session_state.get("judge_state_hash")
+
             from arifosmcp.runtime.tools_hardened_dispatch import dispatch_with_fail_closed
+
             return await dispatch_with_fail_closed(tool_name, kwargs)
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    async def output_stage(self, tool_result: dict[str, Any], tool_name: str, context: dict[str, Any], routing_result: dict[str, Any]) -> dict[str, Any]:
+    async def output_stage(
+        self,
+        tool_result: dict[str, Any],
+        tool_name: str,
+        context: dict[str, Any],
+        routing_result: dict[str, Any],
+    ) -> dict[str, Any]:
         from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
         from arifosmcp.runtime.models import RuntimeEnvelope
-        
+
         session_id = context.get("session_id")
 
         # Build envelope from tool result
@@ -352,18 +506,19 @@ class KernelCore:
         except Exception as phil_err:
             logger.debug(f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}")
 
-        # Seal with continuity
+        # Seal with continuity (Harden G02 public routing)
         sealed = seal_runtime_envelope(envelope=envelope, tool_id=tool_name, session_id=session_id)
-        
+
         # ── Health Band Injection ──
         if isinstance(sealed, RuntimeEnvelope):
             from arifosmcp.runtime.telemetry_bands import TelemetryBands
+
             metrics_dict = {
                 "ds": getattr(sealed.metrics.telemetry, "ds", 0.0),
                 "peace2": getattr(sealed.metrics.telemetry, "peace2", 1.0),
                 "omega": getattr(sealed.metrics.telemetry, "omega_ortho", 1.0),
-                "w3": getattr(sealed.metrics.witness, "ai", 0.95), # Simplification for now
-                "shadow": getattr(sealed.metrics.telemetry, "shadow", 0.0)
+                "w3": getattr(sealed.metrics.witness, "ai", 0.95),  # Simplification for now
+                "shadow": getattr(sealed.metrics.telemetry, "shadow", 0.0),
             }
             payload = dict(sealed.payload or {})
             payload["health_bands"] = TelemetryBands.compute_all_bands(metrics_dict)
@@ -378,32 +533,44 @@ class KernelCore:
         context = await self.input_stage(query=query, session_id=session_id, actor_id=actor_id, intent=intent, 
                                           auth_context=auth_context, risk_tier=risk_tier, dry_run=dry_run, 
                                           allow_execution=allow_execution, caller_context=caller_context, 
-                                          payload=payload, platform=platform, **kwargs)
+                                          payload=payload, platform=platform, **kwargs) (Harden G02 public routing)
 
         orchestrate_result = await self.orchestrate_stage(context)
         if not orchestrate_result.get("ok"):
             return orchestrate_result
 
-        final_result = await self.output_stage(orchestrate_result.get("tool_result", {}), orchestrate_result.get("tool_name"), 
-                                               context, orchestrate_result.get("routing_result", {}))
-        
+        final_result = await self.output_stage(
+            orchestrate_result.get("tool_result", {}),
+            orchestrate_result.get("tool_name"),
+            context,
+            orchestrate_result.get("routing_result", {}),
+        )
+
         verdict = final_result.get("verdict", "SABAR")
-        final_result["kernel_status"] = "READY" if verdict == "SEAL" else ("BLOCKED" if verdict == "VOID" else "HOLD")
+        final_result["kernel_status"] = (
+            "READY" if verdict == "SEAL" else ("BLOCKED" if verdict == "VOID" else "HOLD")
+        )
 
         # ── WELL Biological Context Injection ────────────────────────
         try:
             from arifosmcp.runtime.well_bridge import inject_biological_context
+
             final_result = inject_biological_context(final_result)
         except Exception:
             pass  # WELL offline is non-fatal — W0 sovereignty invariant
 
         return final_result
 
+
 _kernel_core: KernelCore | None = None
+
+
 def get_kernel_core() -> KernelCore:
     global _kernel_core
-    if _kernel_core is None: _kernel_core = KernelCore()
+    if _kernel_core is None:
+        _kernel_core = KernelCore()
     return _kernel_core
+
 
 async def kernel_execute(**kwargs: Any) -> dict[str, Any]:
     return await get_kernel_core().execute(**kwargs)
