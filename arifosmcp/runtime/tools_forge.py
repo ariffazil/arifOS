@@ -4,7 +4,7 @@ arifosmcp/runtime/tools_forge.py — The 10th Tool: Delegated Execution Bridge
 Constitutional Separation of Powers:
   • 9 Tools = Governance (Legislature + Judiciary)
   • arifos.forge = Execution Bridge (Executive Delegation)
-  • AF-FORGE = External Substrate (Actual Execution)
+  • A-FORGE = External Substrate (Actual Execution)
 
 DITEMPA, BUKAN DIBERI — Forged, Not Given
 """
@@ -30,7 +30,7 @@ RuntimeEnvelope = dict[str, Any]
 
 class ExecutionManifest:
     """
-    Signed execution request for AF-FORGE substrate.
+    Signed execution request for A-FORGE substrate.
     
     Structure:
         manifest_id: SHA256 hash of canonical JSON
@@ -126,7 +126,7 @@ async def arifos_forge(
     constraints: dict[str, Any] | None = None,
     ttl_seconds: int = 300,
     dry_run: bool = True,
-    af_forge_endpoint: str | None = None,
+    a_forge_endpoint: str | None = None,
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """
@@ -135,7 +135,7 @@ async def arifos_forge(
     This tool does NOT execute directly. It:
         1. Validates judge verdict is SEAL
         2. Constructs signed execution manifest
-        3. Dispatches to AF-FORGE substrate
+        3. Dispatches to A-FORGE substrate
         4. Returns execution receipt
     
     Constitutional Guarantee:
@@ -153,7 +153,7 @@ async def arifos_forge(
         constraints: Resource limits for execution
         ttl_seconds: Manifest validity window
         dry_run: If True, generate manifest but don't dispatch
-        af_forge_endpoint: Target substrate (default from config)
+        a_forge_endpoint: Target substrate (default from config)
     
     Returns:
         RuntimeEnvelope with:
@@ -246,15 +246,15 @@ async def arifos_forge(
         return result
     
     # ─────────────────────────────────────────────────────────────────────────
-    # DISPATCH TO AF-FORGE SUBSTRATE
+    # DISPATCH TO A-FORGE SUBSTRATE
     # ─────────────────────────────────────────────────────────────────────────
-    # In production: HTTP POST to AF-FORGE endpoint with manifest
+    # In production: HTTP POST to A-FORGE endpoint with manifest
     # For now: Simulate dispatch and return receipt hash
     
     try:
-        receipt_hash = _simulate_af_forge_dispatch(
+        receipt_hash = _simulate_a_forge_dispatch(
             manifest=manifest,
-            endpoint=af_forge_endpoint or "https://forge.af-forge.io/v1/execute",
+            endpoint=a_forge_endpoint or "https://forge.a-forge.io/v1/execute",
         )
     except Exception as exc:
         rollback_engine.rollback(session_id)
@@ -266,14 +266,14 @@ async def arifos_forge(
         return _forge_error(
             session_id=session_id,
             code="FORGE_DISPATCH_FAILED",
-            message=f"Dispatch to AF-FORGE failed: {exc}",
+            message=f"Dispatch to A-FORGE failed: {exc}",
             judge_verdict=judge_verdict,
             rollback=rollback_context,
         )
 
     outcome_ledger.resolve_outcome(
         manifest.manifest_id,
-        actual_outcome="execution delegated to AF-FORGE",
+        actual_outcome="execution delegated to A-FORGE",
         harm_detected=False,
     )
     
@@ -282,7 +282,7 @@ async def arifos_forge(
         manifest=manifest,
         status="DISPATCHED",
         receipt_hash=receipt_hash,
-        note="Execution delegated to AF-FORGE substrate. Receipt logged to vault.",
+        note="Execution delegated to A-FORGE substrate. Receipt logged to vault.",
         rollback=rollback_context,
     )
     if isinstance(result, dict):
@@ -392,12 +392,12 @@ def _prepare_rollback_context(
     }
 
 
-def _simulate_af_forge_dispatch(
+def _simulate_a_forge_dispatch(
     manifest: ExecutionManifest,
     endpoint: str,
 ) -> str:
     """
-    Simulate AF-FORGE dispatch receipt.
+    Simulate A-FORGE dispatch receipt.
     
     In production:
         1. POST manifest to endpoint

@@ -3,7 +3,7 @@
 **Seal ID:** EUREKA-SEAL-v2026.04.07  
 **Authority:** Muhammad Arif bin Fazil (888_JUDGE)  
 **Timestamp:** 2026-04-07T18:15:00Z  
-**Epoch:** Post-P0 AF-FORGE Integration  
+**Epoch:** Post-P0 A-FORGE Integration  
 **Type:** CONSTITUTIONAL_WISDOM_EXTRACTION
 
 ---
@@ -270,14 +270,14 @@ Tool declared → Tool registered → Tool callable
 
 ---
 
-### 3. The AF-FORGE Bridge (`5f41c9a`)
+### 3. The A-FORGE Bridge (`5f41c9a`)
 
-**Problem:** Python MCP governance vs TypeScript AF-FORGE engine — integration gap.
+**Problem:** Python MCP governance vs TypeScript A-FORGE engine — integration gap.
 
 **Eureka Solution:** HTTP JSON bridge with graceful fallback.
 
 ```
-Python MCP → AF-FORGE Bridge (HTTP) → TypeScript Engine
+Python MCP → A-FORGE Bridge (HTTP) → TypeScript Engine
     ↓                ↓                        ↓
 Fallback          2s timeout              Sense Lite/Deep
 enabled           → fallback              F7 Confidence Proxy
@@ -455,7 +455,7 @@ v55:        SEAL_v55_2026-01-31_EUREKA_KIMI.md
     ↓
 Unification: KERNEL_UNIFICATION_SEAL_v2026.03.20
     ↓
-P0 Bridge:  5f41c9a (AF-FORGE Integration)
+P0 Bridge:  5f41c9a (A-FORGE Integration)
     ↓
 This Seal:  EUREKA_INSIGHTS_SEAL_v2026.04.07.md
     ↓

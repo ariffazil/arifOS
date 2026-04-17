@@ -360,7 +360,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         description=(
             "Delegated Execution Bridge — The 10th Tool. This tool does NOT execute directly. It: "
             "1. Validates judge verdict is SEAL 2. Constructs signed execution manifest "
-            "3. Dispatches to AF-FORGE substrate 4. Returns execution receipt. "
+            "3. Dispatches to A-FORGE substrate 4. Returns execution receipt. "
             "Constitutional Guarantee: • No execution without judge SEAL • No self-authorization "
             "• All actions logged to vault • Separation of powers preserved."
         ),

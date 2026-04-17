@@ -235,8 +235,8 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
     },
 }
 
-AF_FORGE_CONTEXT: dict[str, Any] = {
-    "name": "AF-FORGE",
+A_FORGE_CONTEXT: dict[str, Any] = {
+    "name": "A-FORGE",
     "version": "0.1.0",
     "description": (
         "Constitutional Event-Sourced Agent Runtime. "
@@ -244,12 +244,12 @@ AF_FORGE_CONTEXT: dict[str, Any] = {
         "and 888_HOLD human sovereignty gates."
     ),
     "bridge_endpoint": "http://localhost:7071",
-    "mcp_stdio_cmd": ["node", "af-forge/dist/src/mcp/server.js"],
+    "mcp_stdio_cmd": ["node", "a-forge/dist/src/mcp/server.js"],
     "runtime_contract": {
         "api_version": "0.1.0",
-        "min_compatible_af_forge": "0.1.0",
+        "min_compatible_a_forge": "0.1.0",
         "governance_surface": "HTTP bridge + MCP stdio",
-        "canonical_source": "af-forge repository (TypeScript runtime)",
+        "canonical_source": "a-forge repository (TypeScript runtime)",
         "note": "Do not hardcode source file paths here; they drift. Use the live bridge contract instead.",
     },
     "governance_floors_implemented": {
@@ -287,9 +287,9 @@ AF_FORGE_CONTEXT: dict[str, Any] = {
         "forge://governance/floors": "F1–F13 constitutional floor definitions",
     },
     "deployment": {
-        "http_bridge": "docker-compose up af-forge-bridge  (port 7071)",
-        "stdio_mcp": "node af-forge/dist/src/mcp/server.js",
-        "launcher": ".github/mcp/start-af-forge-stdio.sh [--build]",
+        "http_bridge": "docker-compose up a-forge-bridge  (port 7071)",
+        "stdio_mcp": "node a-forge/dist/src/mcp/server.js",
+        "launcher": ".github/mcp/start-a-forge-stdio.sh [--build]",
         "platforms": ["Claude Desktop (.mcp.json)", "Cursor (.cursor/mcp.json)", "OpenCode (.opencode.json)", "Smithery (smithery.yaml)"],
     },
     "test_status": {
@@ -404,7 +404,7 @@ def _get_platform_config(platform: str) -> dict[str, Any]:
         "claude": {"config_file": ".mcp.json", "transport": "stdio"},
         "cursor": {"config_file": ".cursor/mcp.json", "transport": "stdio"},
         "opencode": {"config_file": ".opencode.json", "transport": "stdio"},
-        "chatgpt": {"config_file": "config/apps-sdk/arifos-af-forge.json", "transport": "streamable-http"},
+        "chatgpt": {"config_file": "config/apps-sdk/arifos-a-forge.json", "transport": "streamable-http"},
     }
     return configs.get(platform.lower(), {})
 
@@ -519,7 +519,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
                     ResourceContent(content=json.dumps(data), mime_type="application/json"),
                     ResourceContent(content=md, mime_type="text/markdown"),
                     ResourceContent(
-                        content="![Vault Seal](https://mcp.af-forge.io/widget/vault-seal)",
+                        content="![Vault Seal](https://mcp.a-forge.io/widget/vault-seal)",
                         mime_type="text/markdown",
                     ),
                 ]
@@ -646,19 +646,19 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         result: dict[str, Any] = {}
 
         if context in ("all", "engine"):
-            result["af_forge"] = {
-                "name": AF_FORGE_CONTEXT["name"],
-                "version": AF_FORGE_CONTEXT["version"],
-                "bridge_endpoint": AF_FORGE_CONTEXT["bridge_endpoint"],
-                "governance_floors_implemented": AF_FORGE_CONTEXT["governance_floors_implemented"],
-                "test_status": AF_FORGE_CONTEXT["test_status"],
-                "golden_path": AF_FORGE_CONTEXT["golden_path"],
+            result["a_forge"] = {
+                "name": A_FORGE_CONTEXT["name"],
+                "version": A_FORGE_CONTEXT["version"],
+                "bridge_endpoint": A_FORGE_CONTEXT["bridge_endpoint"],
+                "governance_floors_implemented": A_FORGE_CONTEXT["governance_floors_implemented"],
+                "test_status": A_FORGE_CONTEXT["test_status"],
+                "golden_path": A_FORGE_CONTEXT["golden_path"],
             }
 
         if context in ("all", "deployment"):
             result["deployment"] = {
-                "platforms": AF_FORGE_CONTEXT["deployment"]["platforms"],
-                "launcher": AF_FORGE_CONTEXT["deployment"]["launcher"],
+                "platforms": A_FORGE_CONTEXT["deployment"]["platforms"],
+                "launcher": A_FORGE_CONTEXT["deployment"]["launcher"],
             }
             if platform:
                 result["deployment"]["platform_view"] = _get_platform_config(platform)
@@ -666,7 +666,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         if context in ("all", "widgets"):
             result["widgets"] = {
                 "vault_seal": {
-                    "uri": "https://mcp.af-forge.io/widget/vault-seal",
+                    "uri": "https://mcp.a-forge.io/widget/vault-seal",
                     "mime_type": "text/html",
                 }
             }
@@ -731,7 +731,7 @@ def manifest_resources() -> list[dict[str, str]]:
         {"uri": "arifos://vitals", "name": "System Vitals"},
         {"uri": "arifos://schema", "name": "Master Schema"},
         {"uri": "arifos://session/{session_id}", "name": "Session Context"},
-        {"uri": "arifos://forge", "name": "AF-FORGE Bridge"},
+        {"uri": "arifos://forge", "name": "A-FORGE Bridge"},
     ]
 
 

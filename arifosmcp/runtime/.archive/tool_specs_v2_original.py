@@ -271,9 +271,9 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
     ToolSpecV2(
         name="arifos.forge",
         stage="010",
-        purpose="Delegated execution to AF-FORGE substrate",
+        purpose="Delegated execution to A-FORGE substrate",
         layer="EXECUTION",
-        description="Issue signed execution manifest to AF-FORGE substrate. Requires judge SEAL. Preserves separation of powers.",
+        description="Issue signed execution manifest to A-FORGE substrate. Requires judge SEAL. Preserves separation of powers.",
         trinity="Δ",
         floors=("F1", "F2", "F7", "F13"),
         input_schema={
@@ -287,7 +287,7 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
                 "judge_g_star": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "G★ score at time of verdict"},
                 "constraints": {"type": "object", "description": "Resource limits (cpu, memory, timeout)"},
                 "dry_run": {"type": "boolean", "default": True, "description": "Generate manifest without dispatch"},
-                "af_forge_endpoint": {"type": "string", "description": "Target substrate endpoint"},
+                "a_forge_endpoint": {"type": "string", "description": "Target substrate endpoint"},
             },
         },
     ),

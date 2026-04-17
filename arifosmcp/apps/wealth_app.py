@@ -92,8 +92,9 @@ async def perform_economic_audit(
         )
     except Exception as e:
         return ToolResult(
-            is_error=True,
-            content=[{"type": "text", "text": f"Economic audit failed: {e}"}],
+            content=f"Economic audit failed: {e}",
+            structured_content={"success": False, "error": str(e)},
+            meta={"is_error": True},
         )
 
 @wealth_app.ui(title="@WEALTH Optimizer")

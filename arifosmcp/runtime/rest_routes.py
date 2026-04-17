@@ -1991,7 +1991,7 @@ def register_rest_routes(
     # Serve the APEX Sovereign Dashboard v2.1 at /dashboard/
     # ── Vault-Seal Widget (ChatGPT Apps SDK) ────────────────────────────────────
     # Served at /widget/vault-seal with frame-ancestors CSP so ChatGPT can embed.
-    # Consolidates the mcp.af-forge.io standalone stack into arifosmcp.arif-fazil.com.
+    # Consolidates the mcp.a-forge.io standalone stack into arifosmcp.arif-fazil.com.
     widget_csp = (
         "default-src 'none'; "
         "script-src 'self' 'unsafe-inline'; "
@@ -2121,13 +2121,13 @@ def register_rest_routes(
                     ],
                 },
                 {
-                    "name": "af-forge.govern",
-                    "description": "AF-FORGE governance check prompt",
+                    "name": "a-forge.govern",
+                    "description": "A-FORGE governance check prompt",
                     "params": ["task", "mode"],
                 },
                 {
-                    "name": "af-forge.deploy",
-                    "description": "AF-FORGE deployment prompt",
+                    "name": "a-forge.deploy",
+                    "description": "A-FORGE deployment prompt",
                     "params": ["target"],
                 },
             ]

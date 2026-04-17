@@ -25,7 +25,7 @@ confidence: 0.95
 
 # Tool: arifos_vps_monitor
 
-**arifos_vps_monitor** is the host telemetry surface for the AF-FORGE machine layer.
+**arifos_vps_monitor** is the host telemetry surface for the A-FORGE machine layer.
 
 Its job is simple: show the machine as it is, in read-only form, so governance can reason about real thermodynamic limits before action.
 
@@ -75,7 +75,7 @@ If the system needs to change the machine, that should happen through the execut
 
 ## Operational value
 
-For AF-FORGE, this tool is especially useful when deciding whether to:
+For A-FORGE, this tool is especially useful when deciding whether to:
 - start or stop heavy services
 - add more agent concurrency
 - run large embedding or indexing jobs

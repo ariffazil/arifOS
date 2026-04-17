@@ -49,11 +49,11 @@
 ## 🔴 P0 — Blockers (Ship This Week)
 
 ### ChatGPT Apps SDK Deployment (Path D)
-- [x] `widget-csp.conf` — was MISSING, now created (`deployments/af-forge/widget-csp.conf`)
-- [x] **nginx.conf**: `server_name` updated to `arifosmcp.arif-fazil.com` — consolidated, `mcp.af-forge.io` retired (2026.04.07)
+- [x] `widget-csp.conf` — was MISSING, now created (`deployments/a-forge/widget-csp.conf`)
+- [x] **nginx.conf**: `server_name` updated to `arifosmcp.arif-fazil.com` — consolidated, `mcp.a-forge.io` retired (2026.04.07)
 - [x] **DNS-ready**: `arifosmcp.arif-fazil.com` already live via Traefik + Cloudflare
 - [x] **DNS**: No action needed — domain consolidated to `arifosmcp.arif-fazil.com`
-- [x] **TLS**: Cert extracted from Traefik `acme.json` → `deployments/af-forge/ssl/` (expires 2026-06-03); HTTPS block uncommented
+- [x] **TLS**: Cert extracted from Traefik `acme.json` → `deployments/a-forge/ssl/` (expires 2026-06-03); HTTPS block uncommented
 - [x] **widget route**: `GET /widget/vault-seal` live on `arifosmcp.arif-fazil.com` with `frame-ancestors` CSP (served from Python app)
 - [x] **Verify**: `curl -I https://arifosmcp.arif-fazil.com/widget/vault-seal` returns 200 with CSP header
 - [ ] **Vault999 volume backup**: Add `restic` or `borgbackup` cron before Phase 2 write-path opens (F11/F13 gate)
@@ -95,7 +95,7 @@
 ### Docker / Deployment
 - [x] `ARIFOS_APP_VERSION` in `docker-compose.yml` updated to `2026.04.07` (2026.04.07)
 - [x] `arifosmcp/Dockerfile` lean multi-stage build created (6cb52348)
-- [ ] `deployments/af-forge/Dockerfile` — verify multi-stage build is correct for VPS
+- [ ] `deployments/a-forge/Dockerfile` — verify multi-stage build is correct for VPS
 - [ ] Add `vault999-data` volume backup strategy (restic daily snapshot)
 - [ ] Document `deploy.sh` usage — currently undocumented
 
@@ -142,10 +142,10 @@
 - [x] Lean `arifosmcp/Dockerfile` created
 - [x] CHANGELOG.md, arifos.yml, AGENTS.md sealed
 - [x] GitHub release `v2026.04.07` created with semantic notes
-- [x] `af-forge/GEMINI.md` + `ALIGNMENT.md` updated to canonical `arifos.*` names
+- [x] `a-forge/GEMINI.md` + `ALIGNMENT.md` updated to canonical `arifos.*` names
 - [x] `waw/skills/.../verification-runbooks.md` updated to `arifos.init`
 - [x] `widget-csp.conf` created (deployment blocker fixed)
-- [x] `nginx.conf` `server_name arifosmcp.arif-fazil.com` — consolidated (mcp.af-forge.io retired)
+- [x] `nginx.conf` `server_name arifosmcp.arif-fazil.com` — consolidated (mcp.a-forge.io retired)
 - [x] `docker-compose.yml` service renamed `arifos-mcp`, env vars to `ARIFOS_MCP_*`, version `2026.04.07`
 - [x] `__main__.py` env var aliases updated to `ARIFOS_MCP_*` (platform agnosticism)
 - [x] `platform=` param added across the public tool surface (Path A foundation)

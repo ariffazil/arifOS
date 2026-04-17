@@ -65,7 +65,7 @@ The same token should not silently mean different things across different layers
 At minimum, name scope should be clear across:
 - **arifOS**: governance, runtime, tools, floors
 - **GEOX**: Earth-domain theory, physics, materials, tools
-- **AF-FORGE**: infrastructure, services, deployment, recovery
+- **A-FORGE**: infrastructure, services, deployment, recovery
 
 ### 4. Truth source must be declared
 For every canonical name, there should be a declared truth source:
@@ -88,13 +88,13 @@ If a rename is needed:
 |------|-----------------------|
 | **arifOS** | canonical governance terms, runtime tools, floors, verdict language |
 | **GEOX** | canonical Earth-domain concepts, theory, material and physics naming |
-| **AF-FORGE** | canonical machine, service, component, and operator naming |
+| **A-FORGE** | canonical machine, service, component, and operator naming |
 
 ## Practical examples
 
 ### Good
 - canonical runtime tool name in arifOS, transport aliases mapped explicitly
-- canonical container/service name in AF-FORGE, current running drift logged as alias/drift
+- canonical container/service name in A-FORGE, current running drift logged as alias/drift
 - canonical Earth-state term in GEOX, derived variables not mislabeled as base canon
 
 ### Bad
@@ -115,7 +115,7 @@ If those answers are not immediate, naming drift is already happening.
 
 ## Federation rule
 
-Across arifOS, GEOX, and AF-FORGE:
+Across arifOS, GEOX, and A-FORGE:
 - **one thing -> one canonical name**
 - **many surfaces -> many aliases if needed**
 - **one truth source -> always declared**

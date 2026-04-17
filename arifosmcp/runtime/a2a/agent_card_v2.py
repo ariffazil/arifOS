@@ -142,7 +142,7 @@ class ArifOSAgentCard(BaseModel):
         "event-sourced metabolism, and VAULT999 cryptographic sealing. "
         "A2A connects minds. MCP connects hands. arifOS governs both."
     )
-    url: str = "http://af-forge-arifos-mcp:8080"
+    url: str = "http://a-forge-arifos-mcp:8080"
     external_url: str = "https://arifosmcp.arif-fazil.com"
     version: str = "2026.04.17-V2"
     protocol_version: str = "A2A/1.0"

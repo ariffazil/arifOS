@@ -6,7 +6,7 @@ arifosmcp/runtime/tools_v2.py — arifOS MCP v2 Sovereign Core Implementation
 The 10th Tool (arifos.forge) is the Delegated Execution Bridge:
   • Requires judge verdict = SEAL
   • Issues signed execution manifest
-  • Dispatches to AF-FORGE substrate
+  • Dispatches to A-FORGE substrate
   • Preserves separation of powers
 
 DITEMPA BUKAN DIBERI — Forged, Not Given

@@ -11,7 +11,7 @@ tags:
 - federation
 - arifos
 - geox
-- af-forge
+- a-forge
 - navigation
 sources:
 - GEOX.md
@@ -28,7 +28,7 @@ This is the gateway page for the three-wiki system.
 If arifOS is the constitutional core, the full knowledge system still has three distinct organs:
 - **arifOS** for governance and runtime law
 - **GEOX** for Earth-domain grounding
-- **AF-FORGE** for VPS infrastructure and operational machine reality
+- **A-FORGE** for VPS infrastructure and operational machine reality
 
 ## One system, three roles
 
@@ -36,12 +36,12 @@ If arifOS is the constitutional core, the full knowledge system still has three 
 |------|------|--------------------------|
 | **arifOS** | constitutional/runtime core | what is allowed, how the system is governed |
 | **GEOX** | Earth witness | what is physically true in geoscience |
-| **AF-FORGE** | infrastructure forge | what is running, how it is wired, and how to operate it |
+| **A-FORGE** | infrastructure forge | what is running, how it is wired, and how to operate it |
 
 ## Mental model
 
 ```text
-AF-FORGE -> machine, services, deployment, recovery
+A-FORGE -> machine, services, deployment, recovery
 arifOS   -> governance, floors, verdicts, execution boundaries
 GEOX     -> Earth truth, physics, basin/domain reasoning
 ```
@@ -60,22 +60,22 @@ They are one federated stack.
 - the issue is geological, physical, spatial, or subsurface
 - the answer must be grounded in Earth materials, wells, basins, or seismic interpretation
 
-### Jump to AF-FORGE when
+### Jump to A-FORGE when
 - the issue is VPS state, containers, ports, services, topology, deploys, logs, or recovery
 - the question is operational rather than constitutional or domain-scientific
 
 ## Federation routes
 
 - arifOS -> GEOX through [[GEOX]] and deployment/integration pages
-- arifOS -> AF-FORGE through [[arifos_forge]] and [[Concept_Deployment_Architecture]]
+- arifOS -> A-FORGE through [[arifos_forge]] and [[Concept_Deployment_Architecture]]
 - GEOX -> arifOS through floor/governance dependence
-- AF-FORGE -> arifOS through execution/governance boundaries
-- AF-FORGE -> GEOX through the live VPS component topology
+- A-FORGE -> arifOS through execution/governance boundaries
+- A-FORGE -> GEOX through the live VPS component topology
 
 ## Practical rule
 
 When a task crosses all three, use this order:
-1. **AF-FORGE** for machine reality
+1. **A-FORGE** for machine reality
 2. **arifOS** for governance/verdict boundaries
 3. **GEOX** for Earth-domain truth
 

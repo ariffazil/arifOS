@@ -70,9 +70,9 @@ docker exec postgres psql -U arifos_admin -d arifos_vault \
 ARIF-Perplexity   APEX   perplexity-sonnet-4.6
 GEOX-Agent       AGI    arifos-unified
 WEALTH-Agent     AGI    arifos-unified
-AUDITOR-Agent    APEX   af-forge
-VALIDATOR-Agent  ASI    af-forge
-ENGINEER-Agent   AGI    af-forge
+AUDITOR-Agent    APEX   a-forge
+VALIDATOR-Agent  ASI    a-forge
+ENGINEER-Agent   AGI    a-forge
 AAA-Agent        ASI    arifos-unified
 ARCHIVIST-Agent  AGI    arifos-unified
 NOTIFIER-Agent   TOOL   arifos-unified

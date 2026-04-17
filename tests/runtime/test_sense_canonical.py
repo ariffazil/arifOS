@@ -233,7 +233,7 @@ def test_sense_packet_fields_complete():
 
 def test_arifos_sense_governed_mode():
     """arifos_sense(mode='governed') must return a structured RuntimeEnvelope."""
-    from arifosmcp.runtime.tools_v2 import arifos_sense
+    from arifosmcp.runtime.tools import arifos_sense
 
     envelope = asyncio.run(arifos_sense(
         query="What is the speed of light?",
@@ -255,7 +255,7 @@ def test_arifos_sense_governed_mode():
 
 def test_arifos_sense_legacy_mode_backward_compat():
     """arifos_sense(mode='search') must still work via legacy path."""
-    from arifosmcp.runtime.tools_v2 import arifos_sense
+    from arifosmcp.runtime.tools import arifos_sense
 
     # Should not raise — legacy path must still function
     try:

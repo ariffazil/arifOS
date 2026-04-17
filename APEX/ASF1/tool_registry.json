@@ -214,7 +214,7 @@
         "git_status",
         "bridge"
       ],
-      "description": "Execution bridge to AF-FORGE substrate (after SEAL)",
+      "description": "Execution bridge to A-FORGE substrate (after SEAL)",
       "note": "Git operations and forge_bridge absorbed as modes"
     },
     "arifos_gateway": {

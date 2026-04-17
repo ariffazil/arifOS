@@ -100,7 +100,7 @@ aaf5969 fix(evals): extract verdict from verdict_detail.code
 cef71cb DUAL TRANSPORT: arifOS MCP SSE + HTTP dual seal
 8375136 feat(runtime): MCP server v2 with unified transport
 c1b04cb core/floors.py: wire F3/F5/F8 into evaluate()
-e978a17 feat(mcp): wire AF-FORGE into arifOS schema
+e978a17 feat(mcp): wire A-FORGE into arifOS schema
 ```
 
 ---

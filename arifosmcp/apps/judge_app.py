@@ -340,28 +340,23 @@ async def execute_judge(
             for fid in _FLOOR_ORDER
         ]
         return ToolResult(
-            is_error=True,
-            content=[
-                {"type": "text", "text": f"Judge unavailable: {exc}"},
-                {
-                    "type": "json",
-                    "json": {
-                        "verdict": "VOID",
-                        "floors_checked": [],
-                        "floors_failed": list(_FLOOR_NAMES.keys()),
-                        "floor_rows": floor_rows,
-                        "w3_human": 0.0,
-                        "w3_ai": 0.0,
-                        "w3_earth": 0.0,
-                        "philosophy": f"Judge unavailable: {exc}",
-                        "requires_human": True,
-                        "sabar_step": f"Judge unavailable: {exc}",
-                        "trace_id": None,
-                        "floors_pass_count": 0,
-                        "floors_total_count": 13,
-                    },
-                },
-            ],
+            content=f"Judge unavailable: {exc}",
+            structured_content={
+                "verdict": "VOID",
+                "floors_checked": [],
+                "floors_failed": list(_FLOOR_NAMES.keys()),
+                "floor_rows": floor_rows,
+                "w3_human": 0.0,
+                "w3_ai": 0.0,
+                "w3_earth": 0.0,
+                "philosophy": f"Judge unavailable: {exc}",
+                "requires_human": True,
+                "sabar_step": f"Judge unavailable: {exc}",
+                "trace_id": None,
+                "floors_pass_count": 0,
+                "floors_total_count": 13,
+            },
+            meta={"is_error": True},
         )
 
 

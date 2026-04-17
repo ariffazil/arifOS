@@ -132,7 +132,7 @@ Goal: Hardware-Anchored Sovereignty.
 
 ## Open Questions
 
-- When will DNS/TLS be resolved for `mcp.af-forge.io`? (Path D blocker)
+- When will DNS/TLS be resolved for `mcp.a-forge.io`? (Path D blocker)
 - What triggers the B→C transition decision?
 - How is `platform=` dispatch implemented at the tool level (Path A remaining work)?
 

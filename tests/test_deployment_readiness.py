@@ -2,7 +2,7 @@
 """
 arifOS MCP v2 — Deployment Readiness Check
 
-Run this before deploying to AF-FORGE to verify all components are ready.
+Run this before deploying to A-FORGE to verify all components are ready.
 """
 
 import asyncio
@@ -163,7 +163,7 @@ async def main():
     
     if passed == total:
         print("\n" + "=" * 70)
-        print("🚀 READY FOR AF-FORGE DEPLOYMENT")
+        print("🚀 READY FOR A-FORGE DEPLOYMENT")
         print("=" * 70)
         return 0
     else:

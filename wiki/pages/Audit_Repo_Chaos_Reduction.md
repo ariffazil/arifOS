@@ -147,7 +147,7 @@ confidence: 0.9
 | `docs/HTA_ALIGNMENT_SUMMARY.md` (8KB) | operational | keep | HTA alignment work. Likely still relevant. |
 | `docs/HTA_WEBSITE_ALIGNMENT_QUICKSTART.md` (7KB) | operational | keep | HTA quickstart. |
 | `docs/LSP_ACP_INTEGRATION.md` (5KB) | historical | archive | LSP/ACP integration doc — check if this work was completed/superseded. |
-| `docs/P0_AF_FORGE_INTEGRATION.md` (6.5KB) | historical | archive | P0 AF Forge integration plan. TODO.md shows AF Forge integration was completed. |
+| `docs/P0_A_FORGE_INTEGRATION.md` (6.5KB) | historical | archive | P0 AF Forge integration plan. TODO.md shows AF Forge integration was completed. |
 | `docs/SPEC_SOVEREIGN_11.md` (5.7KB) | historical | archive | Sovereign v11 spec. Old versioning scheme (v11 = pre-2026.03). |
 | `docs/TOOL_FINDER.md` (4.7KB) | operational | keep | Tool finder reference. |
 | `docs/others.md` (19KB) | unknown | hold-for-human | Unusual filename. 19KB of unknown content. Needs human review. |
@@ -236,7 +236,7 @@ confidence: 0.9
 | `docs/deploy/DEPLOYMENT_READINESS.md` (2.9KB) | operational | keep | Readiness checklist. |
 | `docs/deploy/EUREKA_DEPLOYMENT_WISDOM.md` (3.6KB) | operational | keep | Deployment wisdom distillation. Unique. |
 | `docs/deployment/DEPLOY_CONFIG.md` (1.4KB) | operational | keep | Deploy config reference. |
-| `docs/deployment/DEPLOYMENT_AF_FORGE.md` (3.9KB) | historical | archive | AF Forge deployment plan. Work completed per TODO.md. |
+| `docs/deployment/DEPLOYMENT_A_FORGE.md` (3.9KB) | historical | archive | AF Forge deployment plan. Work completed per TODO.md. |
 | `docs/deployment/DEPLOYMENT_CONTRAST_ANALYSIS.md` (11KB) | historical | archive | Deployment contrast analysis. Historical. |
 | `docs/deployment/DEPLOYMENT_READINESS_REPORT.md` (8.5KB) | historical | archive | Readiness report — snapshot from past sprint. |
 | `docs/deployment/DEPLOYMENT_V2_PLAN.md` (8KB) | historical | archive | V2 deployment plan. Superseded. |
@@ -536,7 +536,7 @@ archive/
 │   ├── 2026-03-XX/         # March sprint artifacts
 │   │   ├── plans/          # docs/plans/*.md
 │   │   ├── audits/         # docs/audits/*.md
-│   │   ├── deployment/     # docs/deployment/DEPLOYMENT_*,  DEPLOY_AF_FORGE, CONTRAST
+│   │   ├── deployment/     # docs/deployment/DEPLOYMENT_*,  DEPLOY_A_FORGE, CONTRAST
 │   │   ├── reports/        # docs/reports/COVERAGE*, E2E*, EXTERNAL_VALIDATION, STAGE_ANALYSIS
 │   │   └── superpowers/    # docs/superpowers/specs/*.md
 │   ├── 2026-03-10-migration/   # docs/archive/home_migration_20260310/*.md

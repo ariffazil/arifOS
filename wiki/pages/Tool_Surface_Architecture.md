@@ -52,7 +52,7 @@ That makes this page a **contrast architecture** page, not a seal page.
 | `arifos_ops` | 777 | MACHINE | Thermodynamic estimation |
 | `arifos_judge` | 888 | GOVERNANCE | Final constitutional verdict |
 | `arifos_vault` | 999 | GOVERNANCE | Immutable audit ledger |
-| `arifos_forge` | 010 | EXECUTION | AF-FORGE execution bridge |
+| `arifos_forge` | 010 | EXECUTION | A-FORGE execution bridge |
 
 Everything outside this 10-tool public set should be classified explicitly as:
 

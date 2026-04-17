@@ -8,7 +8,7 @@ import json
 import urllib.request
 from datetime import datetime
 
-MCP_BASE_URL = "https://mcp.af-forge.io"
+MCP_BASE_URL = "https://mcp.a-forge.io"
 
 def fetch_data():
     """Fetch health and build data from MCP server"""

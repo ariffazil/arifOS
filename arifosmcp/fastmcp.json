@@ -387,7 +387,7 @@
     },
     {
       "name": "arifos_forge",
-      "description": "Issue signed execution manifest to AF-FORGE substrate. Requires judge SEAL. Preserves separation of powers.",
+      "description": "Issue signed execution manifest to A-FORGE substrate. Requires judge SEAL. Preserves separation of powers.",
       "inputSchema": {
         "type": "object",
         "required": [
@@ -439,7 +439,7 @@
             "default": true,
             "description": "Generate manifest without dispatch"
           },
-          "af_forge_endpoint": {
+          "a_forge_endpoint": {
             "type": "string",
             "description": "Target substrate endpoint"
           }

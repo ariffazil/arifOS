@@ -48,7 +48,7 @@
 - [x] **Unified Quote Corpus:** 50 core constitutional quotes (5 per tool) with full schema mapping.
 - [x] **Constitutional MCP Tools:** `get_constitutional_health`, `render_vault_seal`, `list_recent_verdicts` wired into arifosmcp.
 - [x] **ChatGPT Apps Bridge:** MCP Apps-ready widget `ui://arifos/vault-seal-widget.html` + `/chatgpt/widgets/vault-seal.html` preview.
-- [x] **AF-FORGE MCP Deployment Skeleton:** Dockerfile, compose, Nginx, `/health` + `/build` + `/ready` routes.
+- [x] **A-FORGE MCP Deployment Skeleton:** Dockerfile, compose, Nginx, `/health` + `/build` + `/ready` routes.
 
 ### ⏳ PENDING
 
@@ -106,8 +106,8 @@
 | Machine-Verifiable Schemas | ✅ | Explicit thresholds |
 | Red-Team Stage (666_HEART) | ✅ | Adversarial critique |
 | Constitutional MCP Tools | ✅ | `get_constitutional_health` + widget |
-| AF-FORGE Docker Stack | ✅ | Dual transport, `/health` `/build` `/mcp` |
-| Apps SDK Manifest | ✅ | `config/apps-sdk/arifos-af-forge.json` |
+| A-FORGE Docker Stack | ✅ | Dual transport, `/health` `/build` `/mcp` |
+| Apps SDK Manifest | ✅ | `config/apps-sdk/arifos-a-forge.json` |
 | MCP Tool Discovery & Widget Preview | ✅ | `tools/list`, widget HTML bridged |
 | Governed Sensing Protocol v2.0 | ✅ | 8-stage sensing with IntelligenceState |
 | Truth Classification System | ✅ | 7 truth classes, 7 evidence ranks |
@@ -122,7 +122,7 @@
 3. **psi_LE Formalization** — Publish metric with examples, put into MCP telemetry.
 4. **Qdrant AAA Indexing** — Wire AAA canon into cross-agent RAG.
 5. **Mode Audit (42 Modes)** — Schema parity check + fix drift.
-6. **Latency & Load Benchmarks** — Baseline AF-FORGE under realistic ChatGPT + internal load.
+6. **Latency & Load Benchmarks** — Baseline A-FORGE under realistic ChatGPT + internal load.
 7. **API Key Rotation** — Rotate external keys, document process.
 8. **Second Adapter** — Simple REST or Anthropic MCP adapter proving platform-agnostic design.
 

@@ -115,7 +115,7 @@ arifos.judge (Constitutional verdict)
   ↓
   IF verdict == "SEAL":
     → arifos.forge (Execution bridge)
-      → AF-FORGE Substrate (spawn, write, send)
+      → A-FORGE Substrate (spawn, write, send)
     → arifos.vault (Immutable receipt)
   
   IF verdict == "VOID":

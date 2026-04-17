@@ -4,7 +4,7 @@
 name: metabolic-trinity
 description: |
   The master manual for interacting with the 4 core arifOS organs: 
-  @WELL (Human), @WEALTH (Economic), @GEOX (Physical), and AF-FORGE (Agentic).
+  @WELL (Human), @WEALTH (Economic), @GEOX (Physical), and A-FORGE (Agentic).
   Teaches agents the Birth-to-Seal lifecycle with biological feedback.
 
   Load with: /skill:metabolic-trinity
@@ -19,7 +19,7 @@ description: |
 | **@WELL** | Substrate | *Body is the Mirror* | `well_readiness` |
 | **@WEALTH** | Capital | *Wealth is Organized Energy*| `calculate_npv` |
 | **@GEOX** | Earth | *The Earth Does Not Lie* | `verify_location` |
-| **AF-FORGE** | Action | *Execution is Alignment* | `arifos_forge` |
+| **A-FORGE** | Action | *Execution is Alignment* | `arifos_forge` |
 
 ## Core Workflow: The Metabolic Cycle
 
@@ -36,7 +36,7 @@ Every agent interaction MUST follow this 6-step grounding cycle:
     *   **Goal:** Ensure the task is physically possible and economically sound.
 
 3.  **PLANNING (333_EXPLORE)**
-    *   Generate a metabolic plan using `AF-FORGE`.
+    *   Generate a metabolic plan using `A-FORGE`.
     *   **Mandate:** Present at least 3 trade-off options.
 
 4.  **FEEDBACK (777_REASON)**

@@ -65,9 +65,9 @@ Fix the missing deployment blockers and ship the existing ChatGPT Apps SDK integ
 
 **Blocker status (2026.04.07-TIER1-SEALED):**
 - ✅ `widget-csp.conf` — created and committed
-- ✅ `nginx.conf` — `server_name mcp.af-forge.io` confirmed correct in all server blocks
+- ✅ `nginx.conf` — `server_name mcp.a-forge.io` confirmed correct in all server blocks
 - ✅ `docker-compose.yml` — service renamed `arifos-mcp`, `ARIFOS_MCP_*` env vars, v2026.04.07
-- ⏳ DNS — A record pointing `mcp.af-forge.io` → VPS IP (human action required)
+- ⏳ DNS — A record pointing `mcp.a-forge.io` → VPS IP (human action required)
 - ⏳ TLS — certbot run on VPS after DNS resolves (888_HOLD)
 - ⏳ Widget wiring — `vault-seal-widget.html` static path verified; live tool connection pending TLS
 
@@ -218,7 +218,7 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 | Machine-Verifiable Schemas | ✅ Enforced | Explicit thresholds |
 | Red-Team Stage (666_HEART) | ✅ Operational | Adversarial critique |
 | Constitutional MCP Tools | ✅ Wired | `get_constitutional_health` |
-| ChatGPT Apps Manifest | ✅ Manifest | `config/apps-sdk/arifos-af-forge.json` |
+| ChatGPT Apps Manifest | ✅ Manifest | `config/apps-sdk/arifos-a-forge.json` |
 | Governed Sensing Protocol | ✅ Canonical | `governed_sense_v2` with 8 stages |
 | Truth Classification | ✅ 7 Classes | Absolute → Unknown taxonomy |
 | Constitutional Quotes | ✅ 50 Core | 5 per tool, v2.1.0 schema |

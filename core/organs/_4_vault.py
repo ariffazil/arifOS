@@ -264,7 +264,7 @@ async def seal(
 
     Args:
         source_agent:   Identifier of the calling agent (e.g. 'arifos_vault',
-                        'geox', 'wealth', 'af-forge'). Written to every ledger
+                        'geox', 'wealth', 'a-forge'). Written to every ledger
                         entry for cross-agent attribution (C2 fix).
         pipeline_stage: The pipeline step that triggered this seal (e.g.
                         '999_VAULT', 'geox_evaluate_prospect'). Written to
@@ -295,7 +295,7 @@ async def seal(
 
     # ── C3: F5 peace2 enforcement ─────────────────────────────────────────────
     # For any final seal with verdict SEAL, peace2 must be >= 1.0.
-    # This gate applies to ALL callers (arifos_vault, geox, wealth, af-forge)
+    # This gate applies to ALL callers (arifos_vault, geox, wealth, a-forge)
     # because all writes route through this organ.
     # Irreversible actions that reach VAULT without peace2 >= 1.0 are F5 violations.
     if seal_mode == "final" and verdict == "SEAL":

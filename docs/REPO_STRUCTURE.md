@@ -53,11 +53,11 @@ Deployment artifacts, scripts, and environment configurations.
 
 | File | Purpose |
 |------|---------|
-| `DEPLOYMENT_AF_FORGE.md` | AF.FORGE deployment specification |
+| `DEPLOYMENT_A_FORGE.md` | AF.FORGE deployment specification |
 | `DEPLOYMENT_CONTRAST_ANALYSIS.md` | Deployment comparison analysis |
 | `DEPLOYMENT_READINESS_REPORT.md` | Pre-deployment checklist |
 | `DEPLOYMENT_V2_PLAN.md` | Version 2 deployment roadmap |
-| `DEPLOY_CHART_AF_FORGE.sh` | Deployment automation script |
+| `DEPLOY_CHART_A_FORGE.sh` | Deployment automation script |
 | `DEPLOY_FAST.sh` | Quick deployment script |
 | `DEPLOY_CONFIG.md` | Deployment configuration reference |
 

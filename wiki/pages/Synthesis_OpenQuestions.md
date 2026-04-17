@@ -38,7 +38,7 @@ confidence: 0.98
 
 | Item | Source | Status |
 |------|--------|--------|
-| DNS A record: `mcp.af-forge.io` → VPS IP | [[Roadmap]] Path D | Human action required |
+| DNS A record: `mcp.a-forge.io` → VPS IP | [[Roadmap]] Path D | Human action required |
 | TLS certbot run on VPS | [[Roadmap]] Path D | 888_HOLD — after DNS resolves |
 | `vault-seal-widget.html` live tool connection | [[Roadmap]] Path D | Pending TLS |
 

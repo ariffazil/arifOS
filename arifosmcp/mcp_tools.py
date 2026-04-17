@@ -68,7 +68,8 @@ def create_perception_mcp() -> FastMCP:
     from pathlib import Path
     import json, datetime
 
-    WELL_STATE_PATH = Path("/root/WELL/state.json")
+    import os
+    WELL_STATE_PATH = Path(os.getenv("WELL_STATE_PATH", "/root/WELL/state.json"))
 
     def _load_well_state() -> dict[str, Any]:
         if not WELL_STATE_PATH.exists():

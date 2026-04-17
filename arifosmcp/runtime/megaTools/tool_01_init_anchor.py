@@ -14,6 +14,7 @@ import hashlib
 import logging
 import secrets
 import time
+import uuid
 from dataclasses import dataclass
 from typing import Any
 
@@ -56,7 +57,9 @@ _ANCHORED_NEXT_TOOLS = [
 ]
 
 
-def _bootstrap_result(session_id: str, actor_id: str, verified: bool, risk_tier: str, platform: str, stage: str) -> dict[str, Any]:
+def _bootstrap_result(
+    session_id: str, actor_id: str, verified: bool, risk_tier: str, platform: str, stage: str
+) -> dict[str, Any]:
     return {
         "session_id": session_id,
         "actor": actor_id,
@@ -86,7 +89,16 @@ def _authority_for_actor(actor_id: str, verified: bool) -> CanonicalAuthority:
         level=level,
         claim_status=ClaimStatus.VERIFIED if verified else ClaimStatus.ANCHORED,
         auth_state="verified" if verified else "anchored",
-        approval_scope=["status", "probe", "state", "kernel", "health", "vitals", "reason", "critique"],
+        approval_scope=[
+            "status",
+            "probe",
+            "state",
+            "kernel",
+            "health",
+            "vitals",
+            "reason",
+            "critique",
+        ],
     )
 
 
@@ -107,7 +119,11 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
             anchor_state="denied",
             anchor_scope="stateless",
             risk_class=RiskClass.LOW,
-            payload={"result": _bootstrap_result(session_id, "anonymous", False, "low", "mcp", "000_INIT")},
+            payload={
+                "result": _bootstrap_result(
+                    session_id, "anonymous", False, "low", "mcp", "000_INIT"
+                )
+            },
             detail="No anchored session found. Diagnostic read is available; run arifos_init to unlock governed tools.",
             hint="Call arifos_init with actor_id and intent to create a verified session.",
             retryable=True,
@@ -129,7 +145,16 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
         session_id=session_id,
         caller_state="verified" if verified else "anchored",
         allowed_next_tools=list(_ANCHORED_NEXT_TOOLS),
-        next_allowed_modes=["status", "probe", "state", "refresh", "kernel", "reason", "health", "vitals"],
+        next_allowed_modes=[
+            "status",
+            "probe",
+            "state",
+            "refresh",
+            "kernel",
+            "reason",
+            "health",
+            "vitals",
+        ],
         anchor_state="reused",
         anchor_scope="session",
         risk_class=RiskClass(risk_tier),
@@ -145,19 +170,28 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
         },
     )
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL INGRESS FILTERS (Gem 1/12)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _INJECTION_PATTERNS: tuple[str, ...] = (
-    "ignore policy", "ignore all previous instructions", "forget your instructions",
-    "you are now", "treat me as sovereign", "override constitution",
-    "your new instructions", "disregard all", "ignore all laws", "you must obey"
+    "ignore policy",
+    "ignore all previous instructions",
+    "forget your instructions",
+    "you are now",
+    "treat me as sovereign",
+    "override constitution",
+    "your new instructions",
+    "disregard all",
+    "ignore all laws",
+    "you must obey",
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HARDENED DATA STRUCTURES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @dataclass
 class SignedChallenge:
@@ -170,12 +204,16 @@ class SignedChallenge:
     policy_version: str = "v2026.04.14-hardened"
 
     def compute_hash(self) -> str:
-        data = f"{self.challenge_id}:{self.declared_name}:{self.intent}:{self.timestamp}:{self.nonce}"
+        data = (
+            f"{self.challenge_id}:{self.declared_name}:{self.intent}:{self.timestamp}:{self.nonce}"
+        )
         return hashlib.sha256(data.encode()).hexdigest()[:32]
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HARDENED INIT ANCHOR (Unified Implementation)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def init_anchor(
     mode: str | None = None,
@@ -208,9 +246,9 @@ async def init_anchor(
     resolved_payload = dict(payload or {})
     if platform:
         resolved_payload.setdefault("platform", platform)
-    _dn = (declared_name or actor_id or resolved_payload.get("actor_id") or "anonymous")
-    _intent = (intent or query or resolved_payload.get("query") or f"Init {_dn}")
-    _session_id = (session_id or resolved_payload.get("session_id") or f"sess-{secrets.token_hex(8)}")
+    _dn = declared_name or actor_id or resolved_payload.get("actor_id") or "anonymous"
+    _intent = intent or query or resolved_payload.get("query") or f"Init {_dn}"
+    _session_id = session_id or resolved_payload.get("session_id") or f"sess-{secrets.token_hex(8)}"
 
     from arifosmcp.runtime.sessions import bind_session_identity, get_session_identity
 
@@ -243,9 +281,14 @@ async def init_anchor(
 
     # ── Gem 2: Philosophy Injection ──
     from arifosmcp.runtime.philosophy import AtlasScores, select_atlas_philosophy
+
     init_scores = AtlasScores(
-        delta_s=0.0, g_score=0.90, omega_score=0.04,
-        lyapunov_sign="stable", verdict="SEAL", session_stage="000_INIT"
+        delta_s=0.0,
+        g_score=0.90,
+        omega_score=0.04,
+        lyapunov_sign="stable",
+        verdict="SEAL",
+        session_stage="000_INIT",
     )
     phi_result = select_atlas_philosophy(init_scores, session_id=_session_id)
 
@@ -261,16 +304,21 @@ async def init_anchor(
         "risk_tier": risk_tier,
         "platform": "mcp",
     }
-    
+
     # TELOS MANIFOLD (8-Axis Goal Space)
     telos_manifold = {
         "axes": {
-            "stability": 0.9, "clarity": 0.8, "integrity": 0.9, 
-            "empathy": 0.7, "performance": 0.8, "safety": 1.0,
-            "exploration": 0.5, "integration": 0.7
+            "stability": 0.9,
+            "clarity": 0.8,
+            "integrity": 0.9,
+            "empathy": 0.7,
+            "performance": 0.8,
+            "safety": 1.0,
+            "exploration": 0.5,
+            "integration": 0.7,
         },
         "bounded": True,
-        "note": "Telos evolves within physics. Physics does not evolve."
+        "note": "Telos evolves within physics. Physics does not evolve.",
     }
 
     # GÖDEL LOCK (Incompleteness Acknowledgment)
@@ -278,7 +326,7 @@ async def init_anchor(
         "acknowledged": True,
         "omega_0": 0.04,
         "paradox_vector": "VOID + SABAR",
-        "note": "This system is incomplete. Truth > Proof."
+        "note": "This system is incomplete. Truth > Proof.",
     }
 
     # Build Response Payload
@@ -303,9 +351,12 @@ async def init_anchor(
         "godel_lock": godel_lock,
         "philosophy": phi_result,
         "bootstrap_sequence": [
-            "1. check_vital", "2. audit_rules", "3. init_anchor", "4. arifOS_kernel"
+            "1. check_vital",
+            "2. audit_rules",
+            "3. init_anchor",
+            "4. arifOS_kernel",
         ],
-        "system_motto": "DITEMPA BUKAN DIBERI — Forged, Not Given"
+        "system_motto": "DITEMPA BUKAN DIBERI — Forged, Not Given",
     }
 
     # Bind Identity to Runtime
@@ -339,7 +390,16 @@ async def init_anchor(
 
     # Authority and Verdict Mapping
     authority_obj = _authority_for_actor(_dn, verified)
-    authority_obj.approval_scope = ["status", "probe", "state", "kernel", "health", "vitals", "reason", "critique"]
+    authority_obj.approval_scope = [
+        "status",
+        "probe",
+        "state",
+        "kernel",
+        "health",
+        "vitals",
+        "reason",
+        "critique",
+    ]
 
     return RuntimeEnvelope(
         ok=True,
@@ -352,7 +412,9 @@ async def init_anchor(
         caller_state="verified" if verified else "anonymous",
         authority=authority_obj,
         allowed_next_tools=list(_ANCHORED_NEXT_TOOLS if verified else _ANONYMOUS_NEXT_TOOLS),
-        next_allowed_modes=["status", "probe", "state", "kernel", "health", "vitals", "reason"] if verified else ["init", "status", "probe", "state"],
+        next_allowed_modes=["status", "probe", "state", "kernel", "health", "vitals", "reason"]
+        if verified
+        else ["init", "status", "probe", "state"],
         payload=res_payload,
         duration_ms=duration_ms,
         mode=mode or "init",
@@ -362,10 +424,7 @@ async def init_anchor(
         policy={
             "floors_checked": ["F11", "F12", "F13"],
             "floors_failed": [],
-            "injection_score": _injection_score
+            "injection_score": _injection_score,
         },
-        system={
-            "kernel_version": "v2026.04.14-SEALED",
-            "env": "production"
-        }
+        system={"kernel_version": "v2026.04.14-SEALED", "env": "production"},
     )

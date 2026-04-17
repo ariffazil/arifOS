@@ -616,7 +616,7 @@ arifOS operates on **verifiable trust**: open source, immutable logs, explicit c
 ---
 
 ### AAA Federation Adapter
-*Note:* The **af-forge** repository officially serves as the **Execution Adapter** for arifOS. It houses the `AAA-Agent` (Intent Routing), `ARCHIVIST-Agent` (Canon/Vault Persistence), and `NOTIFIER-Agent` (Human Loop Escalation).
+*Note:* The **a-forge** repository officially serves as the **Execution Adapter** for arifOS. It houses the `AAA-Agent` (Intent Routing), `ARCHIVIST-Agent` (Canon/Vault Persistence), and `NOTIFIER-Agent` (Human Loop Escalation).
 
 ---
 

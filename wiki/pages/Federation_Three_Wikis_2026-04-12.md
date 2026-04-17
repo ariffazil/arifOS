@@ -12,7 +12,7 @@ The arifOS ecosystem maintains three canonical wikis, each serving a distinct pu
 |------|--------|------|----------|
 | **arifOS** | The MIND | Constitutional governance, MCP substrate, Floors F1-F13 | `/root/arifOS/wiki/` |
 | **GEOX** | The BODY | Spatial intelligence, geoscience, Earth Witness | `/root/arifOS/geox/wiki/` |
-| **AF-FORGE** | The SOUL | VPS infrastructure, operations, deployment rituals | `/root/af-forge/wiki/` |
+| **A-FORGE** | The SOUL | VPS infrastructure, operations, deployment rituals | `/root/a-forge/wiki/` |
 
 ---
 
@@ -23,7 +23,7 @@ The arifOS ecosystem maintains three canonical wikis, each serving a distinct pu
 1. **Repository Synchronization**
    - arifOS: `af5e70d` — Session seal committed
    - GEOX: `d528aa1` — Anti-chaos restructure + GEOX APPS
-   - AF-FORGE: Wiki updated with session status
+   - A-FORGE: Wiki updated with session status
 
 2. **Anti-Chaos Restructure (GEOX)**
    - Created `contracts/` — Single source of truth
@@ -57,9 +57,9 @@ The arifOS ecosystem maintains three canonical wikis, each serving a distinct pu
 - [[../../geox/docs/REPO_CONSTITUTION.md]] — Repository constitution
 - [[../../geox/CLEANUP_SUMMARY.md]] — Tool consolidation summary
 
-### From AF-FORGE
-- [[../../../af-forge/wiki/80_FEDERATION/Three_Wikis_Map]] — Role separation
-- [[../../../af-forge/wiki/20_BLUEPRINTS/Stack_Components]] — VPS topology
+### From A-FORGE
+- [[../../../a-forge/wiki/80_FEDERATION/Three_Wikis_Map]] — Role separation
+- [[../../../a-forge/wiki/20_BLUEPRINTS/Stack_Components]] — VPS topology
 
 ---
 
@@ -76,8 +76,8 @@ The arifOS ecosystem maintains three canonical wikis, each serving a distinct pu
 │   │   └── execution_plane/  # VPS calculations
 │   └── SESSION_SEAL_2026-04-12.md
 │
-└── af-forge/                  # AF-FORGE repository (SOUL)
-    └── wiki/                  # AF-FORGE wiki
+└── a-forge/                  # A-FORGE repository (SOUL)
+    └── wiki/                  # A-FORGE wiki
 ```
 
 ---
@@ -98,7 +98,7 @@ The arifOS ecosystem maintains three canonical wikis, each serving a distinct pu
 ### Start Here
 1. **arifOS Wiki**: [[index]] — Constitutional governance
 2. **GEOX Wiki**: [[../../geox/wiki/index]] — Spatial intelligence
-3. **AF-FORGE Wiki**: [[../../../af-forge/wiki/index]] — VPS operations
+3. **A-FORGE Wiki**: [[../../../a-forge/wiki/index]] — VPS operations
 
 ### Session Artifacts
 - [[raw/SESSION_SEAL_2026-04-12]] — Complete session record

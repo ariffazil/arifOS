@@ -72,7 +72,7 @@ telegram: @AGI_ASI_bot
 
 ### EXECUTION (Δ Mind)
 
-- `arifos_forge` — Signed manifest bridge to AF-FORGE (010)
+- `arifos_forge` — Signed manifest bridge to A-FORGE (010)
 
 ---
 

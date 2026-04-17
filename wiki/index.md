@@ -7,12 +7,12 @@
 > **Current State**: 
 > - arifOS: Main @ `af5e70d` — Session sealed
 > - GEOX: Submodule @ `d528aa1` — Anti-chaos architecture + GEOX APPS
-> - AF-FORGE: Operational
+> - A-FORGE: Operational
 > - All wikis synchronized
 
 ## 🏛️ Foundations
 - [[SCHEMA]] (Wiki Constitution)
-- [[Federation_Three_Wikis]] (Gateway to arifOS, GEOX, and AF-FORGE as one system)
+- [[Federation_Three_Wikis]] (Gateway to arifOS, GEOX, and A-FORGE as one system)
 - [[Naming_Canon]] (Why naming must have one truth source, one canonical label, and explicit aliases)
 - [[What-is-arifOS]] (Core Concept & Philosophy)
 - [[Floors]] (The 13 Constitutional Floors F1-F13)
@@ -68,7 +68,7 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 | `mcp_fetch` | ❌ missing | ✅ |
 | `mcp_everything` | ❌ missing | ✅ |
 
-- Repo state: `arifOS@8b44fc9` merged, `AF-FORGE@1d3699bd4` aligned
+- Repo state: `arifOS@8b44fc9` merged, `A-FORGE@1d3699bd4` aligned
 - Operational verdict: **rebuild required**
 - Audit page: [[Audit_999_SEAL_Runtime_Contrast]]
 
@@ -122,4 +122,4 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 ---
 
 > [!NOTE]
-> **Ω-Wiki Status**: Session sealed 2026-04-12. Anti-chaos restructure implemented across arifOS, GEOX, and AF-FORGE. All systems operational.
+> **Ω-Wiki Status**: Session sealed 2026-04-12. Anti-chaos restructure implemented across arifOS, GEOX, and A-FORGE. All systems operational.

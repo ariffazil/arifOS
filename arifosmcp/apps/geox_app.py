@@ -79,8 +79,9 @@ async def verify_location(
         )
     except Exception as e:
         return ToolResult(
-            is_error=True,
-            content=[{"type": "text", "text": f"Geospatial verification failed: {e}"}],
+            content=f"Geospatial verification failed: {e}",
+            structured_content={"success": False, "error": str(e)},
+            meta={"is_error": True},
         )
 
 @geox_app.ui(title="@GEOX Earth Witness")

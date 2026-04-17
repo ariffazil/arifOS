@@ -152,7 +152,7 @@ All tools use `arifos_{tool}` format:
 - `arifosmcp/runtime/tools_hardened_dispatch.py` — replaced with 8-line stub (`HARDENED_DISPATCH_MAP = {}`)
 - `arifosmcp/runtime/server_compat.py`, `cross_protocol_bridge.py`, `phase2_tools.py`, `dispatcher.py`
 - `arifosmcp/tools/governance/`, `intelligence/`, `reality/`, `execution/` — parallel Phase-3 implementations, never wired
-- Repo root: `build/` (compiled artifacts), `deployments/` (af-forge Docker), `ops/` (91 infra scripts)
+- Repo root: `build/` (compiled artifacts), `deployments/` (a-forge Docker), `ops/` (91 infra scripts)
 
 ---
 
@@ -170,13 +170,13 @@ All tools use `arifos_{tool}` format:
   - `render_vault_seal` — Widget render tool with HTTPS resource URI
   - `list_recent_verdicts` — Vault audit log (last 100 entries)
 
-- **Widget:** `https://mcp.af-forge.io/widget/vault-seal`
+- **Widget:** `https://mcp.a-forge.io/widget/vault-seal`
   - CSP-compliant with `frame-ancestors https://chat.openai.com`
   - Displays: Truth Score, Humility Level, Entropy Delta, Harmony Ratio, Reality Index, Witness Strength
 
 - **888_HOLD Compliance:** Phase 1 is read-only — no vault write or VPS execution in ChatGPT path
 
-> **Deployment:** AF-FORGE VPS ready. OpenAI App Store submission prepared.
+> **Deployment:** A-FORGE VPS ready. OpenAI App Store submission prepared.
 
 ## [2026.04.05-ARCHIVE-SURGERY] - core/ → arifosmcp/ Migration Complete
 

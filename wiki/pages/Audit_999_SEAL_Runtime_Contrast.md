@@ -35,7 +35,7 @@ This audit captures the distinction between **merged 999_SEAL capability** and *
 | Repository | Commit | State |
 |------------|--------|-------|
 | `arifOS` | `8b44fc9` | ✅ merged and pushed |
-| `AF-FORGE` | `1d3699bd4` | ✅ aligned |
+| `A-FORGE` | `1d3699bd4` | ✅ aligned |
 
 ## Core Verdict
 

@@ -250,7 +250,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
 
     # ── τ score — ONE canonical source, in priority order ────────────────────
     # 1. payload.tau (explicitly computed by judge from reasoning atoms)
-    # 2. metrics.tau (AF-FORGE F7 proxy attached post-completion)
+    # 2. metrics.tau (A-FORGE F7 proxy attached post-completion)
     # 3. fallback 0.5 (no atoms available — mark as tau_source="fallback")
     # Do NOT read from metrics.confidence — that is a separate signal.
     tau_source = "fallback"

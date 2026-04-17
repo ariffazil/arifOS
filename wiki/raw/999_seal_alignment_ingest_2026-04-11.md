@@ -11,7 +11,7 @@
 | Repository | Commit | Status |
 |------------|--------|--------|
 | `arifOS` | `8b44fc9` | Merged and pushed |
-| `AF-FORGE` | `1d3699bd4` | Aligned |
+| `A-FORGE` | `1d3699bd4` | Aligned |
 
 ## Key Finding
 

@@ -91,7 +91,7 @@ _PHILOSOPHY: dict[str, str] = {
 
 init_app = FastMCP("InitApp")
 if not hasattr(init_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
-    init_app.ui = lambda *args, **kwargs: (lambda fn: fn)
+    init_app.ui = lambda *args, **kwargs: lambda fn: fn
 
 
 @init_app.tool()
@@ -119,7 +119,7 @@ async def anchor_session(
         epoch = env_dict.get("epoch", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
         omega0 = float(env_dict.get("telemetry", {}).get("omega_0", 0.04))
         aligned = env_dict.get("ok", True)
-        
+
         # Next actions (CHANGE-04)
         next_actions = []
         if aligned:
@@ -130,57 +130,51 @@ async def anchor_session(
         # ── Wisdom quote for anchor surface (Logic from forge-ssct-sync) ──────
         try:
             from arifosmcp.runtime.philosophy import select_wisdom_quote
+
             _wisdom_res = select_wisdom_quote("anchor")
-            _philosophy_text = f'"{_wisdom_res["quote"]}" — {_wisdom_res["author"]}' if _wisdom_res else _PHILOSOPHY["SEAL"]
+            _philosophy_text = (
+                f'"{_wisdom_res["quote"]}" — {_wisdom_res["author"]}'
+                if _wisdom_res
+                else _PHILOSOPHY["SEAL"]
+            )
         except Exception:
             _philosophy_text = _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"]
 
         return ToolResult(
-            content=[
-                {
-                    "type": "text",
-                    "text": f"Session anchored successfully: {session_id} (Epoch: {epoch})",
-                },
-                {
-                    "type": "json",
-                    "json": {
-                        "session_id": session_id,
-                        "epoch": epoch,
-                        "mode": mode,
-                        "declared_intent": declared_intent or "General session",
-                        "omega0": omega0,
-                        "aligned": aligned,
-                        "anchored": True,
-                        "trace_id": env_dict.get("trace_id", "—"),
-                        "next_actions": next_actions,
-                        "philosophy": _philosophy_text,
-                    },
-                },
-            ]
+            content=f"Session anchored successfully: {session_id} (Epoch: {epoch})",
+            structured_content={
+                "session_id": session_id,
+                "epoch": epoch,
+                "mode": mode,
+                "declared_intent": declared_intent or "General session",
+                "omega0": omega0,
+                "aligned": aligned,
+                "anchored": True,
+                "trace_id": env_dict.get("trace_id", "—"),
+                "next_actions": next_actions,
+                "philosophy": _philosophy_text,
+            },
         )
 
     except Exception as exc:
         logger.warning(f"anchor_session failed: {exc}")
         return ToolResult(
-            is_error=True,
-            content=[
-                {"type": "text", "text": f"Session anchor failed: {exc}"},
-                {
-                    "type": "json",
-                    "json": {
-                        "session_id": "—",
-                        "epoch": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-                        "mode": mode,
-                        "declared_intent": declared_intent or "General session",
-                        "omega0": 0.04,
-                        "aligned": False,
-                        "anchored": False,
-                        "trace_id": f"error: {exc}",
-                        "next_actions": ["Repair floor state or obtain human veto override."],
-                        "philosophy": _PHILOSOPHY["pending"],
-                    },
-                },
-            ],
+            content=f"Session anchor failed: {exc}",
+            structured_content={
+                "session_id": "—",
+                "epoch": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                "mode": mode,
+                "declared_intent": declared_intent or "General session",
+                "omega0": 0.04,
+                "aligned": False,
+                "anchored": False,
+                "trace_id": f"error: {exc}",
+                "next_actions": ["Repair floor state or obtain human veto override."],
+                "philosophy": _PHILOSOPHY["pending"],
+                "_error": True,
+                "_error_message": str(exc),
+            },
+            meta={"is_error": True},
         )
 
 
@@ -215,16 +209,16 @@ def init_surface(
             "mode": "standard",
         },
         on_success=[
-            SetState("session_id",       RESULT["session_id"]),
-            SetState("epoch",            RESULT["epoch"]),
-            SetState("mode",             RESULT["mode"]),
-            SetState("declared_intent",  RESULT["declared_intent"]),
-            SetState("omega0",           RESULT["omega0"]),
-            SetState("aligned",          RESULT["aligned"]),
-            SetState("anchored",         RESULT["anchored"]),
-            SetState("trace_id",         RESULT["trace_id"]),
-            SetState("next_actions",     RESULT["next_actions"]),
-            SetState("philosophy",       RESULT["philosophy"]),
+            SetState("session_id", RESULT["session_id"]),
+            SetState("epoch", RESULT["epoch"]),
+            SetState("mode", RESULT["mode"]),
+            SetState("declared_intent", RESULT["declared_intent"]),
+            SetState("omega0", RESULT["omega0"]),
+            SetState("aligned", RESULT["aligned"]),
+            SetState("anchored", RESULT["anchored"]),
+            SetState("trace_id", RESULT["trace_id"]),
+            SetState("next_actions", RESULT["next_actions"]),
+            SetState("philosophy", RESULT["philosophy"]),
             ShowToast("Session anchored — 000_INIT sealed", variant="success"),
         ],
         on_error=ShowToast("Session anchor failed", variant="error"),
@@ -236,19 +230,24 @@ def init_surface(
     omega0_rx = STATE["omega0"]
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-
         # ── Operator Interpretation Banner (CHANGE-01) ────────────────────
         with Card(css_class="border-2 border-primary/20"):
             with CardContent(css_class="py-4 px-6"):
                 with Row(gap=4, align="center"):
                     Badge(
                         anchored_rx.then(
-                            aligned_rx.then(_STATUS_INTERPRETATIONS["ALIGNED"]["badge"], _STATUS_INTERPRETATIONS["UNALIGNED"]["badge"]),
-                            _STATUS_INTERPRETATIONS["pending"]["badge"]
+                            aligned_rx.then(
+                                _STATUS_INTERPRETATIONS["ALIGNED"]["badge"],
+                                _STATUS_INTERPRETATIONS["UNALIGNED"]["badge"],
+                            ),
+                            _STATUS_INTERPRETATIONS["pending"]["badge"],
                         ),
                         variant=anchored_rx.then(
-                            aligned_rx.then(_STATUS_INTERPRETATIONS["ALIGNED"]["variant"], _STATUS_INTERPRETATIONS["UNALIGNED"]["variant"]),
-                            _STATUS_INTERPRETATIONS["pending"]["variant"]
+                            aligned_rx.then(
+                                _STATUS_INTERPRETATIONS["ALIGNED"]["variant"],
+                                _STATUS_INTERPRETATIONS["UNALIGNED"]["variant"],
+                            ),
+                            _STATUS_INTERPRETATIONS["pending"]["variant"],
                         ),
                         css_class="font-mono text-lg py-1 px-3 h-auto",
                     )
@@ -256,8 +255,11 @@ def init_surface(
                         Heading("arifOS Metabolic Monitor", size="sm")
                         Text(
                             anchored_rx.then(
-                                aligned_rx.then(_STATUS_INTERPRETATIONS["ALIGNED"]["posture"], _STATUS_INTERPRETATIONS["UNALIGNED"]["posture"]),
-                                _STATUS_INTERPRETATIONS["pending"]["posture"]
+                                aligned_rx.then(
+                                    _STATUS_INTERPRETATIONS["ALIGNED"]["posture"],
+                                    _STATUS_INTERPRETATIONS["UNALIGNED"]["posture"],
+                                ),
+                                _STATUS_INTERPRETATIONS["pending"]["posture"],
                             ),
                             css_class="text-sm font-medium",
                         )
@@ -350,8 +352,13 @@ def init_surface(
                     with CardContent(css_class="py-4"):
                         with ForEach(STATE["next_actions"]):
                             from prefab_ui.rx import ITEM as ACTION
+
                             with Row(gap=3, align="center", css_class="py-1"):
-                                Badge("ACTION", variant="secondary", css_class="text-[9px] h-4 font-bold")
+                                Badge(
+                                    "ACTION",
+                                    variant="secondary",
+                                    css_class="text-[9px] h-4 font-bold",
+                                )
                                 Text(ACTION, css_class="text-sm font-medium")
             Separator()
 
@@ -396,7 +403,7 @@ def init_surface(
             STATE["philosophy"],
             css_class="text-xs italic text-center text-muted-foreground/50",
         )
-        
+
         # ── Sovereign Footer (CHANGE-06) ──────────────────────────────────
         with Column(gap=1, align="center", css_class="mt-4"):
             Muted(

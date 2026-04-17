@@ -45,7 +45,7 @@ Thanks to:
 - Traefik (reverse proxy)
 
 /* Deployment */
-- AF-FORGE VPS
+- A-FORGE VPS
 - Architecture: Civilizational Regulator
 - Version: 2.0.0
 - Registry: 1.2.0 (84 quotes)

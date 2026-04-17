@@ -16,10 +16,10 @@ sudo cp -r /root/arifOS/static/dashboard/* /var/www/arifosmcp/
 npx wrangler pages deploy static/dashboard --project-name=arifosmcp
 ```
 
-**CORS Required:** The dashboard fetches from `https://mcp.af-forge.io`. Add CORS headers:
+**CORS Required:** The dashboard fetches from `https://mcp.a-forge.io`. Add CORS headers:
 
 ```nginx
-# In Nginx config for mcp.af-forge.io
+# In Nginx config for mcp.a-forge.io
 location /health {
     add_header Access-Control-Allow-Origin "https://arifosmcp.arif-fazil.com" always;
     add_header Access-Control-Allow-Methods "GET" always;
@@ -41,10 +41,10 @@ from starlette.staticfiles import StaticFiles
 app.mount("/", StaticFiles(directory="static/dashboard", html=True), name="dashboard")
 ```
 
-Then access at `https://mcp.af-forge.io/`
+Then access at `https://mcp.a-forge.io/`
 
 ### Option 3: Docker Compose (Full Stack)
-Update `deployments/af-forge/docker-compose.yml`:
+Update `deployments/a-forge/docker-compose.yml`:
 
 ```yaml
 services:

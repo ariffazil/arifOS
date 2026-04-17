@@ -437,7 +437,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description=(
             "System-level execution on sovereign VPS. "
             "Returns 888_HOLD redirect for unverified sessions. "
-            "Actual execution only on AF-FORGE VPS."
+            "Actual execution only on A-FORGE VPS."
         ),
         input_schema=_build_input_schema(
             properties={

@@ -6,7 +6,7 @@ arifosmcp/runtime/tools.py — arifOS MCP Sovereign Core — 11 Canonical Tools
 The execution bridge `arifos_forge` issues delegated manifests:
   • Requires judge verdict = SEAL
   • Issues signed execution manifest
-  • Dispatches to AF-FORGE substrate
+  • Dispatches to A-FORGE substrate
   • Preserves separation of powers
 
 DITEMPA BUKAN DIBERI — Forged, Not Given

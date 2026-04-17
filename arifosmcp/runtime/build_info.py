@@ -18,7 +18,7 @@ def _git_sha_short() -> str:
         return subprocess.check_output(
             ["git", "rev-parse", "--short", "HEAD"],
             stderr=subprocess.DEVNULL,
-            cwd="C:/ariffazil/arifOS",
+            cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         ).decode().strip()
     except Exception:
         return "909c4ca"  # v2026.04.07 release SHA

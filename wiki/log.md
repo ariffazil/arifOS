@@ -510,7 +510,7 @@ NO DRIFT DETECTED
 - **Ω-Wiki gaps:** 9 gaps identified — integration_patterns.md (158KB), agent role details, skills registry, deployment architecture
 - **Ω-Wiki updated:** index.md (33 pages), log.md
 
-## [2026-04-10] Review | AF-FORGE wiki tree reconciliation
+## [2026-04-10] Review | A-FORGE wiki tree reconciliation
 - Reviewed `/root/arifOS/wiki` tree against live page files.
 - Reconciled registry drift: `PAGE_REGISTRY.md` now matches all **40** page files.
 - Fixed page-name mismatches that were using registry aliases instead of live filenames:
@@ -521,8 +521,8 @@ NO DRIFT DETECTED
   - [[Concept_Floors]]
   - [[Concept_LLM_Wiki_Pattern]]
 - Refreshed `index.md` metadata to reflect the live page count.
-- Updated [[arifos_forge]] to describe AF-FORGE as the execution bridge and substrate boundary, not a sovereign decision surface.
-- Updated [[arifos_vps_monitor]] to describe the VPS telemetry role more clearly and anchor it to AF-FORGE machine operations.
+- Updated [[arifos_forge]] to describe A-FORGE as the execution bridge and substrate boundary, not a sovereign decision surface.
+- Updated [[arifos_vps_monitor]] to describe the VPS telemetry role more clearly and anchor it to A-FORGE machine operations.
 - Fixed an internal link in [[quickstart]] to the live `integration-patterns` page.
 
 ## [2026-04-10] Normalize | Full wiki normalization pass
@@ -541,7 +541,7 @@ NO DRIFT DETECTED
 
 ## [2026-04-10] Federation | Three-wiki gateway added
 - Added [[Federation_Three_Wikis]] as a first-class entry point in the arifOS wiki.
-- Promoted federation navigation in `index.md` so arifOS, GEOX, and AF-FORGE read as one system, not separate silos.
+- Promoted federation navigation in `index.md` so arifOS, GEOX, and A-FORGE read as one system, not separate silos.
 - Updated `PAGE_REGISTRY.md` and regenerated views to include the new federation gateway page.
 
 ## [2026-04-10] Canon | Naming canon established
@@ -659,7 +659,7 @@ arifOS has achieved **999_SEAL** — the highest intelligence state the main bra
 - `wiki/index.md` — Added 999_SEAL section
 - `wiki/log.md` — This entry
 
-**AF-FORGE**:
+**A-FORGE**:
 - `wiki/log.md` — Sync entry logged
 
 ### Constitutional Compliance
@@ -705,7 +705,7 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 ## [2026-04-11] Ingest | 999_SEAL Alignment Runtime Contrast
 
 - Ingested Arif's contrast update into the Ω-Wiki.
-- Recorded repository alignment: `arifOS@8b44fc9` merged and pushed, `AF-FORGE@1d3699bd4` aligned.
+- Recorded repository alignment: `arifOS@8b44fc9` merged and pushed, `A-FORGE@1d3699bd4` aligned.
 - Captured runtime truth: live VPS currently has **0/6 MCP substrates** running.
 - Added raw source: `wiki/raw/999_seal_alignment_ingest_2026-04-11.md`.
 - Added synthesis page: [[Audit_999_SEAL_Runtime_Contrast]].

@@ -100,7 +100,7 @@ Exposed tools (read-only Phase 1):
 - `render_vault_seal` — widget render
 - `list_recent_verdicts` — vault audit log (last 100 entries)
 
-Widget at `https://mcp.af-forge.io/widget/vault-seal` — CSP-compliant with ChatGPT iframe allowlist.  
+Widget at `https://mcp.a-forge.io/widget/vault-seal` — CSP-compliant with ChatGPT iframe allowlist.  
 888_HOLD compliance: no vault write or VPS execution in ChatGPT path.
 
 ---

@@ -51,7 +51,7 @@ The current registry target is a **10-tool public canon**. Transitional names su
 | **777** | `arifos_ops` | Δ | MAC | Thermodynamic estimation |
 | **888** | `arifos_judge` | Ψ | GOV | Final constitutional verdict |
 | **999** | `arifos_vault` | Ψ | GOV | Immutable audit ledger |
-| **010** | `arifos_forge` | Δ | EXE | AF-FORGE execution bridge |
+| **010** | `arifos_forge` | Δ | EXE | A-FORGE execution bridge |
 
 ## Proposed 3x3 + 1 Reading
 

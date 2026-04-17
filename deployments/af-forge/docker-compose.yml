@@ -1,8 +1,8 @@
-# arifOS MCP — AF-FORGE Docker Compose Stack
+# arifOS MCP — A-FORGE Docker Compose Stack
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # Usage:
-#   cd deployments/af-forge
+#   cd deployments/a-forge
 #   export ARIFOS_BUILD_SHA=$(git rev-parse --short HEAD)
 #   export ARIFOS_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 #   docker compose up -d --build
@@ -15,12 +15,12 @@ services:
   arifos-mcp:
     build:
       context: ../..
-      dockerfile: deployments/af-forge/Dockerfile
+      dockerfile: deployments/a-forge/Dockerfile
       args:
         ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
         ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
         ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.07}
-    image: arifos-mcp:af-forge
+    image: arifos-mcp:a-forge
     container_name: arifos-mcp
     restart: unless-stopped
     

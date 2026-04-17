@@ -14,7 +14,7 @@ tags:
 - forge
 - shell
 - manifest
-- af-forge
+- a-forge
 sources:
 - tool_specs.py
 - capability_map.py
@@ -26,7 +26,7 @@ confidence: 0.95
 
 # Tool: arifos_forge
 
-**arifos_forge** is the execution bridge between the constitutional kernel and the AF-FORGE runtime substrate.
+**arifos_forge** is the execution bridge between the constitutional kernel and the A-FORGE runtime substrate.
 
 It exists to do one thing cleanly: convert a governed decision into machine action without letting execution logic become sovereign.
 
@@ -44,7 +44,7 @@ This is the point where reasoning stops being only symbolic and starts touching 
 
 ## Why it matters
 
-AF-FORGE is not the constitution itself.
+A-FORGE is not the constitution itself.
 It is the **actuation layer**.
 
 That distinction is the whole safety boundary:
@@ -88,9 +88,9 @@ That means:
 This is the anti-bypass rule that prevents prompt-to-execution jumps.
 No matter how good a plan sounds, execution authority does not emerge from confidence alone.
 
-## AF-FORGE practical note
+## A-FORGE practical note
 
-In deployment language, AF-FORGE is the substrate where governed actions meet real services: containers, ingress, workers, automations, and remote compute.
+In deployment language, A-FORGE is the substrate where governed actions meet real services: containers, ingress, workers, automations, and remote compute.
 
 That substrate may evolve, but the invariant should stay the same:
 **execution remains downstream of verdict.**

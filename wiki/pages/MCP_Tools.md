@@ -44,7 +44,7 @@ The current registry target is a clean **10-tool public canon**, but the repo ru
 | `arifos_ops` | 777 | MACHINE | Cost, thermodynamic, & capacity estimation. |
 | `arifos_judge` | 888 | GOVERNANCE | Final constitutional verdict engine. |
 | `arifos_vault` | 999 | GOVERNANCE | Immutable verdict logging to VAULT999. |
-| `arifos_forge` | 010 | EXECUTION | Delegated execution to AF-FORGE substrate. |
+| `arifos_forge` | 010 | EXECUTION | Delegated execution to A-FORGE substrate. |
 
 **Source of target truth**: `APEX/ASF1/tool_registry.json`
 
