@@ -174,7 +174,6 @@ async def anchor_session(
                 "_error": True,
                 "_error_message": str(exc),
             },
-            meta={"is_error": True},
         )
 
 
