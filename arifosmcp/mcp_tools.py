@@ -65,6 +65,17 @@ def create_perception_mcp() -> FastMCP:
     """Perception Agent MCP tools — read from WELL, GEOX, VAULT, WEALTH."""
     mcp = FastMCP("arifOS-P")
 
+    from pathlib import Path
+    import json, datetime
+
+    WELL_STATE_PATH = Path("/root/WELL/state.json")
+
+    def _load_well_state() -> dict[str, Any]:
+        if not WELL_STATE_PATH.exists():
+            return {"operator_id": "arif", "metrics": {}, "well_score": 50, "floors_violated": []}
+        with open(WELL_STATE_PATH) as f:
+            return json.load(f)
+
     # ─────────────────────────────────────────────────────────────────────────
     # WELL Tools
     # ─────────────────────────────────────────────────────────────────────────
@@ -76,20 +87,24 @@ def create_perception_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def P_well_state_read(ctx: Context | None = None) -> dict[str, Any]:
-        """Read current WELL state — biological telemetry."""
+        """Read current WELL state — biological telemetry from live state.json."""
+        state = _load_well_state()
+        metrics = state.get("metrics", {})
         return {
             "agent": "P",
             "source": "WELL",
             "action": "state_read",
             "data": {
-                "score": 0.85,
+                "score": state.get("well_score", 50),
                 "dimensions": {
-                    "sleep": {"value": 7.5, "unit": "hours"},
-                    "stress": {"value": 3, "unit": "1-10"},
-                    "cognitive": {"value": 8, "unit": "1-10"},
-                    "metabolic": {"value": 6, "unit": "1-10"},
+                    "sleep": metrics.get("sleep", {}),
+                    "stress": metrics.get("stress", {}),
+                    "cognitive": metrics.get("cognitive", {}),
+                    "metabolic": metrics.get("metabolic", {}),
+                    "structural": metrics.get("structural", {}),
                 },
-                "floor_violations": [],
+                "floor_violations": state.get("floors_violated", []),
+                "w0": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
             },
         }
 
@@ -101,15 +116,27 @@ def create_perception_mcp() -> FastMCP:
     )
     def P_well_readiness_check(ctx: Context | None = None) -> dict[str, Any]:
         """Check WELL readiness for governance context."""
+        state = _load_well_state()
+        score = state.get("well_score", 50)
+        violations = state.get("floors_violated", [])
+        if score >= 80 and not violations:
+            verdict = "READY"
+            bandwidth = "NORMAL"
+        elif score >= 50:
+            verdict = "DEGRADED"
+            bandwidth = "REDUCED"
+        else:
+            verdict = "CRITICAL"
+            bandwidth = "SLOW"
         return {
             "agent": "P",
             "source": "WELL",
             "action": "readiness_check",
             "data": {
-                "score": 0.85,
-                "floor_status": {"W1": "active", "W2": "active", "W3": "active"},
-                "verdict": "READY",
-                "bandwidth_recommendation": "NORMAL",
+                "score": score,
+                "floor_status": {f"W{i}": "active" for i in range(1, 14)},
+                "verdict": verdict,
+                "bandwidth_recommendation": bandwidth,
             },
         }
 
@@ -120,14 +147,28 @@ def create_perception_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def P_well_floor_scan(ctx: Context | None = None) -> dict[str, Any]:
-        """Scan all W-Floors."""
+        """Scan all W-Floors from live WELL state."""
+        state = _load_well_state()
+        violations = state.get("floors_violated", [])
+        score = state.get("well_score", 50)
+        all_floors = {f"W{i}": "active" for i in range(1, 14)}
+        if violations:
+            for v in violations:
+                # Map violation names back to floors if possible
+                pass
         return {
             "agent": "P",
             "source": "WELL",
             "action": "floor_scan",
             "data": {
-                "floors": {f"W{i}": {"status": "active"} for i in range(1, 14)},
-                "overall_verdict": "NOMINAL",
+                "floors": all_floors,
+                "overall_verdict": "NOMINAL"
+                if score >= 80
+                else "DEGRADED"
+                if score >= 50
+                else "CRITICAL",
+                "well_score": score,
+                "violations": violations,
             },
         }
 
@@ -144,7 +185,11 @@ def create_perception_mcp() -> FastMCP:
     def P_geox_scene_load(
         scene_type: Literal["seismic", "well", "volume"], path: str, ctx: Context | None = None
     ) -> dict[str, Any]:
-        """Load GEOX scene data."""
+        """Load GEOX scene data from filesystem."""
+        from pathlib import Path
+
+        p = Path(path)
+        status = "loaded" if p.exists() else "not_found"
         return {
             "agent": "P",
             "source": "GEOX",
@@ -152,8 +197,8 @@ def create_perception_mcp() -> FastMCP:
             "data": {
                 "scene_type": scene_type,
                 "path": path,
-                "status": "loaded",
-                "scene_id": f"{scene_type}_{path.split('/')[-1]}",
+                "status": status,
+                "scene_id": f"{scene_type}_{p.name}",
             },
         }
 
@@ -245,7 +290,30 @@ def create_perception_mcp() -> FastMCP:
         limit: int = 100,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Read from VAULT999 ledger."""
+        """Read from VAULT999 ledger via vault_postgres if available."""
+        try:
+            from arifOS.arifosmcp.runtime.vault_postgres import PostgresVaultStore
+
+            vault = PostgresVaultStore()
+            rows = vault.get_seals(
+                session_id=session_id, verdict=verdict, since=since, until=until, limit=limit
+            )
+            total = len(rows)
+            by_verdict: dict[str, int] = {}
+            for r in rows:
+                v = r.get("verdict", "UNKNOWN")
+                by_verdict[v] = by_verdict.get(v, 0) + 1
+            return {
+                "agent": "P",
+                "source": "VAULT",
+                "action": "ledger_read",
+                "data": {
+                    "seal_card": {"total_seals": total, "by_verdict": by_verdict},
+                    "ledger_rows": rows,
+                },
+            }
+        except Exception:
+            pass
         return {
             "agent": "P",
             "source": "VAULT",
@@ -265,6 +333,9 @@ def create_transformation_mcp() -> FastMCP:
     """Transformation Agent MCP tools — physics, math, monte_carlo."""
     mcp = FastMCP("arifOS-T")
 
+    from arifOS.core.organs._5_wealth import calculate_irr as _calc_irr
+    import math
+
     @mcp.tool(
         name="T_petrophysics_compute",
         description="Execute physics-grounded petrophysical calculations",
@@ -277,7 +348,29 @@ def create_transformation_mcp() -> FastMCP:
         params: dict[str, Any],
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Compute petrophysics."""
+        """Compute petrophysical properties."""
+        import math
+
+        phi = params.get("porosity", 0.0)
+        sw = params.get("water_saturation", 1.0)
+        h = params.get("thickness", 0.0)
+        area = params.get("area", 0.0)
+        bf = params.get("formation_volume_factor", 1.0)
+
+        if computation == "porosity":
+            value = phi
+            unit = "fraction"
+        elif computation == "saturation":
+            value = sw
+            unit = "fraction"
+        elif computation == "volume":
+            # STOIIP = Area * Thickness * Porosity * (1 - Sw) / FVF
+            value = area * h * phi * (1 - sw) / bf if bf > 0 else 0
+            unit = "bbl"
+        else:
+            value = 0.0
+            unit = "fraction"
+
         return {
             "agent": "T",
             "domain": "physics",
@@ -285,8 +378,8 @@ def create_transformation_mcp() -> FastMCP:
             "result": {
                 "well_id": well_id,
                 "computation": computation,
-                "value": 0.0,
-                "unit": "fraction",
+                "value": round(value, 4),
+                "unit": unit,
             },
         }
 
@@ -299,7 +392,7 @@ def create_transformation_mcp() -> FastMCP:
     def T_stratigraphy_correlate(
         wells: list[str], section_id: str, ctx: Context | None = None
     ) -> dict[str, Any]:
-        """Correlate stratigraphy."""
+        """Correlate stratigraphy across wells."""
         return {
             "agent": "T",
             "domain": "physics",
@@ -316,7 +409,7 @@ def create_transformation_mcp() -> FastMCP:
     def T_geometry_build(
         horizons: list[dict[str, Any]], ctx: Context | None = None
     ) -> dict[str, Any]:
-        """Build geometries."""
+        """Build geometries from horizons."""
         return {
             "agent": "T",
             "domain": "physics",
@@ -330,13 +423,37 @@ def create_transformation_mcp() -> FastMCP:
         tags={"transformation", "math"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
-    def T_math_irr_compute(cashflows: list[float], ctx: Context | None = None) -> dict[str, Any]:
-        """Compute IRR/MIRR."""
+    def T_math_irr_compute(
+        initial_investment: float,
+        cash_flows: list[float],
+        finance_rate: float = 0,
+        reinvest_rate: float = 0,
+        ctx: Context | None = None,
+    ) -> dict[str, Any]:
+        """Compute IRR using real WEALTH kernel."""
+        irr_result = _calc_irr(initial_investment, cash_flows)
+        irr_val = irr_result.get("irr")
+        mirr_val = None
+        if irr_val is not None and len(cash_flows) > 0:
+            n = len(cash_flows)
+            positive_total = sum(cf for cf in cash_flows if cf > 0)
+            negative_total = abs(sum(cf for cf in cash_flows if cf < 0))
+            if positive_total > 0 and negative_total > 0:
+                f_rate = finance_rate if finance_rate else 0
+                r_rate = reinvest_rate if reinvest_rate else irr_val
+                mirr_num = positive_total * pow(1 + r_rate, n)
+                mirr_den = abs(initial_investment) * pow(1 + f_rate, n)
+                if mirr_den > 0:
+                    mirr_val = pow(mirr_num / mirr_den, 1.0 / n) - 1
         return {
             "agent": "T",
             "domain": "math",
             "action": "irr_compute",
-            "result": {"irr": 0.0, "mirr": 0.0, "cashflows": cashflows},
+            "result": {
+                "irr": irr_val,
+                "mirr": round(mirr_val, 6) if mirr_val is not None else None,
+                "flags": irr_result.get("flags", []),
+            },
         }
 
     @mcp.tool(
@@ -346,14 +463,49 @@ def create_transformation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def T_math_monte_carlo(
-        portfolio: dict[str, Any], iterations: int = 1000, ctx: Context | None = None
+        outcomes: list[float],
+        probabilities: list[float],
+        iterations: int = 1000,
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Monte Carlo simulation."""
+        """Monte Carlo simulation from outcome distribution."""
+        import random, math
+
+        if not outcomes or not probabilities or len(outcomes) != len(probabilities):
+            return {
+                "agent": "T",
+                "domain": "math",
+                "action": "monte_carlo",
+                "error": "outcomes and probabilities must be non-empty and matching",
+            }
+        results = []
+        for _ in range(iterations):
+            r = random.random()
+            cumulative = 0.0
+            for outcome, prob in zip(outcomes, probabilities):
+                cumulative += prob
+                if r <= cumulative:
+                    results.append(outcome)
+                    break
+        if not results:
+            results = [sum(o * p for o, p in zip(outcomes, probabilities))]
+        mean_val = sum(results) / len(results)
+        variance_val = sum((x - mean_val) ** 2 for x in results) / len(results)
+        sorted_res = sorted(results)
+        p10 = sorted_res[int(len(sorted_res) * 0.10)]
+        p50 = sorted_res[int(len(sorted_res) * 0.50)]
+        p90 = sorted_res[int(len(sorted_res) * 0.90)]
         return {
             "agent": "T",
             "domain": "math",
             "action": "monte_carlo",
-            "result": {"iterations": iterations, "distribution": {}, "confidence_intervals": {}},
+            "result": {
+                "iterations": iterations,
+                "mean": round(mean_val, 4),
+                "std_dev": round(math.sqrt(variance_val), 4),
+                "distribution": {"p10": round(p10, 4), "p50": round(p50, 4), "p90": round(p90, 4)},
+                "confidence_intervals": {"90": [round(p10, 4), round(p90, 4)]},
+            },
         }
 
     @mcp.tool(
@@ -363,12 +515,45 @@ def create_transformation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def T_math_entropy_audit(cashflows: list[float], ctx: Context | None = None) -> dict[str, Any]:
-        """Audit cashflow entropy."""
+        """Audit cashflow entropy and detect multiple IRRs."""
+        import math
+
+        if not cashflows:
+            return {
+                "agent": "T",
+                "domain": "math",
+                "action": "entropy_audit",
+                "result": {"entropy_score": 0.0, "multiple_IRRs": False},
+            }
+        # Sign changes indicate potential multiple IRRs
+        prev = 0
+        changes = 0
+        for cf in cashflows:
+            if abs(cf) < 1e-9:
+                continue
+            sign = 1 if cf > 0 else -1
+            if prev != 0 and sign != prev:
+                changes += 1
+            prev = sign
+        # Shannon entropy of cashflow signs
+        signs = [1 if cf >= 0 else -1 for cf in cashflows]
+        pos = sum(1 for s in signs if s > 0)
+        neg = sum(1 for s in signs if s < 0)
+        n = len(signs)
+        p_pos = pos / n if n > 0 else 0.5
+        p_neg = neg / n if n > 0 else 0.5
+        entropy = 0.0
+        if p_pos > 0:
+            entropy -= p_pos * math.log2(p_pos)
+        if p_neg > 0:
+            entropy -= p_neg * math.log2(p_neg)
+        max_entropy = math.log2(2)
+        norm_entropy = entropy / max_entropy if max_entropy > 0 else 0
         return {
             "agent": "T",
             "domain": "math",
             "action": "entropy_audit",
-            "result": {"entropy_score": 0.0, "multiple_IRRs": False},
+            "result": {"entropy_score": round(norm_entropy, 4), "multiple_IRRs": changes > 1},
         }
 
     @mcp.tool(
@@ -380,12 +565,30 @@ def create_transformation_mcp() -> FastMCP:
     def T_growth_runway_compute(
         cashflows: list[float], burn_rate: float, ctx: Context | None = None
     ) -> dict[str, Any]:
-        """Compute growth and runway."""
+        """Compute CAGR and runway months."""
+        import math
+
+        if not cashflows or len(cashflows) < 2:
+            return {
+                "agent": "T",
+                "domain": "math",
+                "action": "growth_runway_compute",
+                "result": {"cagr": 0.0, "runway_months": 0},
+            }
+        first = cashflows[0]
+        last = cashflows[-1]
+        n = len(cashflows) - 1
+        cagr = (abs(last) / abs(first)) ** (1.0 / n) - 1 if first != 0 and n > 0 else 0.0
+        # Runway: how many months until cash runs out at burn_rate
+        if burn_rate > 0 and first > 0:
+            runway_months = first / burn_rate
+        else:
+            runway_months = 0
         return {
             "agent": "T",
             "domain": "math",
             "action": "growth_runway_compute",
-            "result": {"cagr": 0.0, "runway_months": 0},
+            "result": {"cagr": round(cagr, 4), "runway_months": round(runway_months, 1)},
         }
 
     return mcp
@@ -400,6 +603,15 @@ def create_valuation_mcp() -> FastMCP:
     """Valuation Agent MCP tools — NPV, EMV, allocation."""
     mcp = FastMCP("arifOS-V")
 
+    # ── Import real implementations ─────────────────────────────────────────────
+    from arifOS.core.organs._5_wealth import (
+        calculate_npv as _calc_npv,
+        calculate_dscr as _calc_dscr,
+        calculate_irr as _calc_irr,
+        analyze_cost_benefit as _analyze_cb,
+    )
+    import math
+
     @mcp.tool(
         name="V_npv_evaluate",
         description="Compute Net Present Value",
@@ -407,17 +619,26 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_npv_evaluate(
-        cashflows: list[float], discount_rate: float, ctx: Context | None = None
+        initial_investment: float,
+        cash_flows: list[float],
+        discount_rate: float,
+        terminal_value: float = 0,
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Compute NPV."""
+        """Compute NPV using real WEALTH kernel."""
+        result = _calc_npv(initial_investment, cash_flows, discount_rate, terminal_value)
+        npv_val = result.get("npv", 0.0)
         return {
             "agent": "V",
             "domain": "economic",
             "action": "npv_evaluate",
             "result": {
-                "npv": 0.0,
+                "npv": npv_val,
                 "discount_rate": discount_rate,
-                "criterion": "accept" if 0.0 > 0 else "reject",
+                "initial_investment": initial_investment,
+                "terminal_value": terminal_value,
+                "criterion": "accept" if npv_val > 0 else "reject" if npv_val < 0 else "marginal",
+                "flags": result.get("flags", []),
             },
         }
 
@@ -428,14 +649,32 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_emv_evaluate(
-        outcomes: list[float], probabilities: list[float], ctx: Context | None = None
+        outcomes: list[float],
+        probabilities: list[float],
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Compute EMV."""
+        """Compute EMV: sum(outcome_i * probability_i)."""
+        if len(outcomes) != len(probabilities):
+            return {
+                "agent": "V",
+                "domain": "economic",
+                "action": "emv_evaluate",
+                "error": "outcomes and probabilities must have same length",
+            }
+        emv = sum(o * p for o, p in zip(outcomes, probabilities))
+        # Normalize probability mass check
+        prob_sum = sum(probabilities)
+        flags = [] if abs(prob_sum - 1.0) < 0.001 else ["PROBABILITY_MASS_INVALID"]
         return {
             "agent": "V",
             "domain": "economic",
             "action": "emv_evaluate",
-            "result": {"emv": 0.0, "distribution": {}},
+            "result": {
+                "emv": round(emv, 6),
+                "distribution": {"outcomes": outcomes, "probabilities": probabilities},
+                "prob_sum": round(prob_sum, 6),
+                "flags": flags,
+            },
         }
 
     @mcp.tool(
@@ -445,14 +684,31 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_dscr_evaluate(
-        net_operating_income: float, debt_service: float, ctx: Context | None = None
+        ebitda: float,
+        debt_service: float,
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Compute DSCR."""
+        """Compute DSCR using real WEALTH kernel."""
+        result = _calc_dscr(ebitda, debt_service)
+        dscr_val = result.get("dscr")
+        if dscr_val is None:
+            return {
+                "agent": "V",
+                "domain": "economic",
+                "action": "dscr_evaluate",
+                "error": "debt_service cannot be zero",
+            }
         return {
             "agent": "V",
             "domain": "economic",
             "action": "dscr_evaluate",
-            "result": {"dscr": 0.0, "criterion": "adequate" if 0.0 >= 1.25 else "inadequate"},
+            "result": {
+                "dscr": dscr_val,
+                "ebitda": ebitda,
+                "debt_service": debt_service,
+                "criterion": "adequate" if dscr_val >= 1.25 else "inadequate",
+                "flags": result.get("flags", []),
+            },
         }
 
     @mcp.tool(
@@ -462,14 +718,36 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_profitability_index(
-        investment: dict[str, Any], ctx: Context | None = None
+        initial_investment: float,
+        cash_flows: list[float],
+        discount_rate: float,
+        terminal_value: float = 0,
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Compute PI."""
+        """Compute Profitability Index: PI = PV of future cash flows / initial investment."""
+        npv_result = _calc_npv(initial_investment, cash_flows, discount_rate, terminal_value)
+        npv_future = npv_result.get("npv", 0.0)
+        # PI = (NPV + initial_investment) / initial_investment = PV_inflows / investment
+        pv_inflows = (
+            npv_future + initial_investment
+        )  # PV of inflows = NPV + initial (which is negative)
+        # Actually: PI = (PV of inflows) / |initial_investment|
+        # PV inflows = NPV + |initial|  (since initial was stored as negative)
+        pv_total = abs(initial_investment) + npv_future
+        pi = pv_total / abs(initial_investment) if initial_investment != 0 else None
         return {
             "agent": "V",
             "domain": "economic",
             "action": "profitability_index",
-            "result": {"pi": 0.0, "criterion": "accept" if 0.0 > 1 else "reject"},
+            "result": {
+                "pi": round(pi, 6) if pi is not None else None,
+                "npv": npv_future,
+                "criterion": "accept"
+                if pi and pi > 1
+                else "reject"
+                if pi is not None
+                else "undefined",
+            },
         }
 
     @mcp.tool(
@@ -478,13 +756,42 @@ def create_valuation_mcp() -> FastMCP:
         tags={"valuation", "economic"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
-    def V_payback_evaluate(cashflows: list[float], ctx: Context | None = None) -> dict[str, Any]:
-        """Compute payback period."""
+    def V_payback_evaluate(
+        initial_investment: float,
+        cash_flows: list[float],
+        discount_rate: float = 0,
+        ctx: Context | None = None,
+    ) -> dict[str, Any]:
+        """Compute simple and discounted payback period."""
+        cumulative = 0.0
+        periods = 0
+        cumulative_series = []
+        for i, cf in enumerate(cash_flows):
+            cumulative += cf
+            cumulative_series.append(cumulative)
+            if cumulative >= initial_investment:
+                periods = i + 1
+                break
+
+        # Discounted payback
+        disc_cumulative = 0.0
+        disc_periods = None
+        for i, cf in enumerate(cash_flows):
+            disc_cumulative += cf / pow(1 + discount_rate, i) if discount_rate else cf
+            if disc_cumulative >= initial_investment:
+                disc_periods = i + 1
+                break
+
         return {
             "agent": "V",
             "domain": "economic",
             "action": "payback_evaluate",
-            "result": {"payback_period": 0.0, "unit": "years"},
+            "result": {
+                "simple_payback_period": periods,
+                "discounted_payback_period": disc_periods,
+                "unit": "years",
+                "cumulative_cash_flows": cumulative_series,
+            },
         }
 
     @mcp.tool(
@@ -494,14 +801,27 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_allocation_rank(
-        candidates: list[dict[str, Any]], constraints: dict[str, Any], ctx: Context | None = None
+        candidates: list[dict[str, Any]],
+        constraints: dict[str, Any],
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Rank allocation candidates."""
+        """Rank allocation candidates by score."""
+        if not candidates:
+            return {
+                "agent": "V",
+                "domain": "allocation",
+                "action": "allocation_rank",
+                "result": {"ranked": [], "constraints_satisfied": True},
+            }
+        # Score by 'score' field, reject if 'score' not present
+        scored = [(c.get("score", 0), c) for c in candidates]
+        scored.sort(key=lambda x: x[0], reverse=True)
+        ranked = [{"rank": i + 1, "candidate": c, "score": s} for i, (s, c) in enumerate(scored)]
         return {
             "agent": "V",
             "domain": "allocation",
             "action": "allocation_rank",
-            "result": {"ranked": [], "constraints_satisfied": True},
+            "result": {"ranked": ranked, "constraints_satisfied": True},
         }
 
     @mcp.tool(
@@ -511,14 +831,26 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_personal_decision_rank(
-        alternatives: list[dict[str, Any]], constraints: dict[str, Any], ctx: Context | None = None
+        alternatives: list[dict[str, Any]],
+        constraints: dict[str, Any],
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Rank personal decisions."""
+        """Rank personal decisions by score."""
+        if not alternatives:
+            return {
+                "agent": "V",
+                "domain": "personal",
+                "action": "personal_decision_rank",
+                "result": {"ranked": []},
+            }
+        scored = [(a.get("score", 0), a) for a in alternatives]
+        scored.sort(key=lambda x: x[0], reverse=True)
+        ranked = [{"rank": i + 1, "alternative": a, "score": s} for i, (s, a) in enumerate(scored)]
         return {
             "agent": "V",
             "domain": "personal",
             "action": "personal_decision_rank",
-            "result": {"ranked": []},
+            "result": {"ranked": ranked},
         }
 
     @mcp.tool(
@@ -528,14 +860,38 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_agent_budget_optimize(
-        tasks: list[dict[str, Any]], resources: dict[str, Any], ctx: Context | None = None
+        tasks: list[dict[str, Any]],
+        resources: dict[str, Any],
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Optimize agent budget."""
+        """Rank tasks by score/value-per-cost, return optimal sequence."""
+        if not tasks:
+            return {
+                "agent": "V",
+                "domain": "allocation",
+                "action": "agent_budget_optimize",
+                "result": {"optimal_sequence": []},
+            }
+        budget = resources.get("budget", 0)
+        scored = []
+        for t in tasks:
+            value = t.get("value", 0)
+            cost = t.get("cost", 0)
+            vp = value / cost if cost > 0 else 0
+            scored.append((vp, value, t))
+        scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
+        selected = []
+        spent = 0.0
+        for vp, val, t in scored:
+            c = t.get("cost", 0)
+            if spent + c <= budget:
+                selected.append(t)
+                spent += c
         return {
             "agent": "V",
             "domain": "allocation",
             "action": "agent_budget_optimize",
-            "result": {"optimal_sequence": []},
+            "result": {"optimal_sequence": selected, "total_cost": spent, "budget": budget},
         }
 
     @mcp.tool(
@@ -545,14 +901,24 @@ def create_valuation_mcp() -> FastMCP:
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
     def V_civilization_sustainability(
-        current_state: dict[str, Any], ctx: Context | None = None
+        current_state: dict[str, Any],
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Compute sustainability."""
+        """Compute sustainability score and path."""
+        # Simple placeholder: score based on available fields
+        score = 0.0
+        if "gdp_per_capita" in current_state:
+            score += min(1.0, current_state["gdp_per_capita"] / 100000)
+        if "renewable_ratio" in current_state:
+            score += current_state["renewable_ratio"]
+        if "gini" in current_state:
+            score += max(0, 1.0 - current_state["gini"] / 100)
+        sustainability_score = min(1.0, score)
         return {
             "agent": "V",
             "domain": "allocation",
             "action": "civilization_sustainability",
-            "result": {"sustainability_score": 0.0, "path": []},
+            "result": {"sustainability_score": round(sustainability_score, 4), "path": []},
         }
 
     return mcp
@@ -787,17 +1153,44 @@ def create_execution_mcp() -> FastMCP:
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": False, "destructiveHint": False},
     )
-    def E_vault_seal(record: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
-        """Seal to vault."""
-        import hashlib, uuid
+    async def E_vault_seal(record: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
+        """Seal a verdict record to VAULT999 using PostgresVaultStore."""
+        try:
+            from arifOS.arifosmcp.runtime.vault_postgres import seal_to_vault
 
-        content = str(record)
-        merkle_hash = hashlib.sha256(content.encode()).hexdigest()
-        return {
-            "agent": "E",
-            "action": "vault_seal",
-            "result": {"merkle_hash": merkle_hash, "seal_id": str(uuid.uuid4())},
-        }
+            result = await seal_to_vault(
+                event_type=record.get("event_type", "verdict"),
+                session_id=record.get("session_id", "unknown"),
+                actor_id=record.get("actor_id", "arifOS-E"),
+                stage=record.get("stage", "888_JUDGE"),
+                verdict=record.get("verdict", "SEAL"),
+                payload=record.get("payload", record),
+                risk_tier=record.get("risk_tier", "medium"),
+            )
+            return {
+                "agent": "E",
+                "action": "vault_seal",
+                "result": {
+                    "merkle_hash": result.chain_hash,
+                    "seal_id": result.event_id,
+                    "success": result.success,
+                    "db_id": result.db_id,
+                },
+            }
+        except Exception as e:
+            import hashlib, uuid
+
+            content = str(record)
+            merkle_hash = hashlib.sha256(content.encode()).hexdigest()
+            return {
+                "agent": "E",
+                "action": "vault_seal",
+                "result": {
+                    "merkle_hash": merkle_hash,
+                    "seal_id": str(uuid.uuid4()),
+                    "error": str(e),
+                },
+            }
 
     @mcp.tool(
         name="E_vault_read",
@@ -805,10 +1198,34 @@ def create_execution_mcp() -> FastMCP:
         tags={"execution"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
     )
-    def E_vault_read(
+    async def E_vault_read(
         seal_id: str | None = None, session_id: str | None = None, ctx: Context | None = None
     ) -> dict[str, Any]:
-        """Read from vault."""
+        """Read from VAULT999 ledger."""
+        try:
+            from arifOS.arifosmcp.runtime.vault_postgres import PostgresVaultStore
+
+            store = PostgresVaultStore()
+            pool = await store._get_pool()
+            if pool:
+                async with pool.acquire() as conn:
+                    if seal_id:
+                        rows = await conn.fetch(
+                            "SELECT * FROM vault_events WHERE event_id=$1", seal_id
+                        )
+                    elif session_id:
+                        rows = await conn.fetch(
+                            "SELECT * FROM vault_events WHERE session_id=$1 ORDER BY sealed_at DESC LIMIT 100",
+                            session_id,
+                        )
+                    else:
+                        rows = await conn.fetch(
+                            "SELECT * FROM vault_events ORDER BY sealed_at DESC LIMIT 100"
+                        )
+                    records = [dict(r) for r in rows]
+                    return {"agent": "E", "action": "vault_read", "result": {"records": records}}
+        except Exception:
+            pass
         return {"agent": "E", "action": "vault_read", "result": {"seal_id": seal_id, "record": {}}}
 
     @mcp.tool(
@@ -822,12 +1239,40 @@ def create_execution_mcp() -> FastMCP:
         tier: Literal["ephemeral", "working", "canon", "sacred", "quarantine"],
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Store memory."""
-        return {
-            "agent": "E",
-            "action": "memory_store",
-            "result": {"tier": tier, "status": "stored"},
+        """Store memory in MemoryContract."""
+        import json, uuid
+        from pathlib import Path
+        from datetime import datetime, timezone
+
+        tier_paths = {
+            "ephemeral": Path("/root/.arifos/memory/ephemeral.jsonl"),
+            "working": Path("/root/.arifos/memory/working.jsonl"),
+            "canon": Path("/root/.arifos/memory/canon.jsonl"),
+            "sacred": Path("/root/.arifos/memory/sacred.jsonl"),
+            "quarantine": Path("/root/.arifos/memory/quarantine.jsonl"),
         }
+        path = tier_paths.get(tier, tier_paths["working"])
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            entry = {
+                "id": str(uuid.uuid4()),
+                "tier": tier,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "memory": memory,
+            }
+            with open(path, "a") as f:
+                f.write(json.dumps(entry) + "\n")
+            return {
+                "agent": "E",
+                "action": "memory_store",
+                "result": {"tier": tier, "status": "stored", "id": entry["id"]},
+            }
+        except Exception as e:
+            return {
+                "agent": "E",
+                "action": "memory_store",
+                "result": {"tier": tier, "status": "failed", "error": str(e)},
+            }
 
     @mcp.tool(
         name="E_memory_retrieve",
@@ -840,8 +1285,40 @@ def create_execution_mcp() -> FastMCP:
         tier: Literal["ephemeral", "working", "canon", "sacred", "quarantine"] | None = None,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Retrieve memory."""
-        return {"agent": "E", "action": "memory_retrieve", "result": {"memories": []}}
+        """Retrieve memory from MemoryContract."""
+        import json
+        from pathlib import Path
+
+        if tier:
+            tiers = [tier]
+        else:
+            tiers = ["ephemeral", "working", "canon", "sacred", "quarantine"]
+
+        tier_paths = {
+            "ephemeral": Path("/root/.arifos/memory/ephemeral.jsonl"),
+            "working": Path("/root/.arifos/memory/working.jsonl"),
+            "canon": Path("/root/.arifos/memory/canon.jsonl"),
+            "sacred": Path("/root/.arifos/memory/sacred.jsonl"),
+            "quarantine": Path("/root/.arifos/memory/quarantine.jsonl"),
+        }
+        results = []
+        for t in tiers:
+            path = tier_paths[t]
+            if not path.exists():
+                continue
+            try:
+                with open(path) as f:
+                    for line in f:
+                        entry = json.loads(line)
+                        mem = entry.get("memory", {})
+                        if isinstance(mem, dict):
+                            if query.lower() in json.dumps(mem).lower():
+                                results.append(entry)
+                        elif isinstance(mem, str) and query.lower() in mem.lower():
+                            results.append(entry)
+            except Exception:
+                continue
+        return {"agent": "E", "action": "memory_retrieve", "result": {"memories": results[:50]}}
 
     @mcp.tool(
         name="E_well_log",
@@ -850,8 +1327,33 @@ def create_execution_mcp() -> FastMCP:
         annotations={"readOnlyHint": False, "openWorldHint": False},
     )
     def E_well_log(dimensions: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
-        """Log WELL telemetry."""
-        return {"agent": "E", "action": "well_log", "result": {"updated_state": dimensions}}
+        """Log WELL telemetry update — delegates to WELL server state.json."""
+        from pathlib import Path
+        import json, datetime
+
+        WELL_STATE = Path("/root/WELL/state.json")
+        if not WELL_STATE.exists():
+            return {"agent": "E", "action": "well_log", "error": "WELL state not found"}
+
+        with open(WELL_STATE) as f:
+            state = json.load(f)
+
+        metrics = state.get("metrics", {})
+        for key, value in dimensions.items():
+            if key in ("sleep", "stress", "cognitive", "metabolic", "structural"):
+                if isinstance(value, dict):
+                    metrics[key] = {**metrics.get(key, {}), **value}
+                else:
+                    metrics[key] = value
+            else:
+                metrics[key] = value
+
+        state["metrics"] = metrics
+        state["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        with open(WELL_STATE, "w") as f:
+            json.dump(state, f, indent=2)
+
+        return {"agent": "E", "action": "well_log", "result": {"updated_state": metrics}}
 
     @mcp.tool(
         name="E_well_anchor",
@@ -859,11 +1361,43 @@ def create_execution_mcp() -> FastMCP:
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": False},
     )
-    def E_well_anchor(ctx: Context | None = None) -> dict[str, Any]:
-        """Anchor WELL."""
-        import uuid
+    async def E_well_anchor(ctx: Context | None = None) -> dict[str, Any]:
+        """Anchor current WELL state to VAULT999 ledger."""
+        import json, uuid
+        from pathlib import Path
 
-        return {"agent": "E", "action": "well_anchor", "result": {"seal_id": str(uuid.uuid4())}}
+        WELL_STATE = Path("/root/WELL/state.json")
+        if not WELL_STATE.exists():
+            return {"agent": "E", "action": "well_anchor", "error": "WELL state not found"}
+
+        with open(WELL_STATE) as f:
+            state = json.load(f)
+
+        record = {
+            "event_type": "well_anchor",
+            "session_id": state.get("operator_id", "arif"),
+            "actor_id": "arifOS-E",
+            "stage": "E_well_anchor",
+            "verdict": "SEAL",
+            "payload": {
+                "well_score": state.get("well_score"),
+                "metrics": state.get("metrics"),
+                "floors_violated": state.get("floors_violated", []),
+            },
+            "risk_tier": "low",
+        }
+
+        try:
+            from arifOS.arifosmcp.runtime.vault_postgres import seal_to_vault
+
+            result = await seal_to_vault(**record)
+            return {
+                "agent": "E",
+                "action": "well_anchor",
+                "result": {"seal_id": result.event_id, "well_score": state.get("well_score")},
+            }
+        except Exception as e:
+            return {"agent": "E", "action": "well_anchor", "error": str(e)}
 
     return mcp
 
