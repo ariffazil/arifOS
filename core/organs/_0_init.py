@@ -145,6 +145,14 @@ async def init(
         )
 
     session_id = session_id or secrets.token_hex(16)
+
+    # --- Metabolic Loop Grounding (F1 Continuity) ---
+    try:
+        from ._4_vault import get_last_vault_entry_hash
+        prev_hash = get_last_vault_entry_hash()
+    except Exception:
+        prev_hash = "0x" + "0" * 64
+
     return InitOutput(
         session_id=session_id,
         verdict=Verdict.SEAL,
@@ -155,6 +163,7 @@ async def init(
         governance=gov,
         auth_verified=(authority in {AuthorityLevel.SOVEREIGN, AuthorityLevel.SYSTEM}),
         tri_witness={"human": 1.0, "ai": 1.0, "earth": 1.0},
+        prev_vault_hash=prev_hash,
     )
 
 
