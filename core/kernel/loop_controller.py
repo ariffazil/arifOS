@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from core.kernel.planner import Plan, Planner, Task
+from core.kernel.substrate_assert import substrate_assert, emit_substrate_assert_event
 # arifOS Core Imports
 from core.shared.types import Verdict, PhysicsState, MathDials, CodeState
 from core.shared.verdict_contract import normalize_verdict
@@ -152,8 +153,36 @@ class SabarLoopController:
         Connects the static Judge to the dynamic Execution Forge.
         """
         session_id = plan.id # Use plan ID as the metabolic session anchor
-        
+
         try:
+            # 000.SUBSTRATE_ASSERT: Pre-INIT bootstrap gate
+            # Run before ANY constitutional activity to verify substrate legibility.
+            # HARD_STOP if critical failures. 888_HOLD if degraded. PROCEED if FIT.
+            assert_result = await substrate_assert(session_id=session_id)
+            await emit_substrate_assert_event(assert_result)
+
+            if assert_result.pipeline_gate == "HARD_STOP":
+                logger.critical(
+                    "SUBSTRATE_ASSERT HARD_STOP: %s | legibility=%s | codes=%s",
+                    assert_result.status, assert_result.legibility_state, assert_result.failure_codes
+                )
+                return LoopStepResult(
+                    task_id=task.id,
+                    verdict=Verdict.VOID,
+                    message=f"SUBSTRATE_ASSERT FAIL_FATAL: {assert_result.failure_codes}"
+                )
+
+            if assert_result.pipeline_gate == "888_HOLD":
+                logger.warning(
+                    "SUBSTRATE_ASSERT 888_HOLD: %s | legibility=%s | codes=%s",
+                    assert_result.status, assert_result.legibility_state, assert_result.failure_codes
+                )
+                return LoopStepResult(
+                    task_id=task.id,
+                    verdict=Verdict.HOLD,
+                    message=f"SUBSTRATE_ASSERT DEGRADED: {assert_result.failure_codes}"
+                )
+
             # 000: INIT (Airlock & Authority)
             init_out = await _0_init.init(
                 query=task.description,
