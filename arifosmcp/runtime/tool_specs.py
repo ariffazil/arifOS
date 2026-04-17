@@ -169,7 +169,7 @@ TOOLS: tuple[ToolSpec, ...] = (
                     "oneOf": [
                         {"type": "string"},
                         {"type": "object"},
-                        {"type": "array", "items": {}},
+                        {"type": "array", "items": {"type": "string"}},
                     ]
                 },
                 "mode": {
