@@ -57,6 +57,34 @@ Tags by axis:
 
 
 # =============================================================================
+# GOVERNANCE METADATA HELPER
+# =============================================================================
+
+def _gov(
+    role: str,
+    risk: str,
+    ledger: str,
+    floors: list[str],
+    *,
+    requires_judge: bool = False,
+    requires_human: bool = False,
+    reversible: str = "reversible",
+    mutability: str = "read",
+) -> dict:
+    """Return constitutional governance metadata dict for meta= param."""
+    return {
+        "constitutional_role": role,
+        "risk_tier": risk,
+        "requires_judge": requires_judge,
+        "requires_human_confirm": requires_human,
+        "reversibility": reversible,
+        "mutability": mutability,
+        "ledger_class": ledger,
+        "floor_anchors": floors,
+    }
+
+
+# =============================================================================
 # PERCEPTION TOOLS (P) — Read reality only
 # =============================================================================
 
@@ -86,6 +114,7 @@ def create_perception_mcp() -> FastMCP:
         description="Read current WELL biological telemetry snapshot",
         tags={"perception", "well"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F2","F8"],mutability="read"),
     )
     def P_well_state_read(ctx: Context | None = None) -> dict[str, Any]:
         """Read current WELL state — biological telemetry from live state.json."""
@@ -114,6 +143,7 @@ def create_perception_mcp() -> FastMCP:
         description="Check biological readiness verdict for arifOS JUDGE",
         tags={"perception", "well"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F2","F8"],mutability="read"),
     )
     def P_well_readiness_check(ctx: Context | None = None) -> dict[str, Any]:
         """Check WELL readiness for governance context."""
@@ -146,6 +176,7 @@ def create_perception_mcp() -> FastMCP:
         description="Scan W-Floor status across all dimensions",
         tags={"perception", "well"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F2","F8"],mutability="read"),
     )
     def P_well_floor_scan(ctx: Context | None = None) -> dict[str, Any]:
         """Scan all W-Floors from live WELL state."""
@@ -182,6 +213,7 @@ def create_perception_mcp() -> FastMCP:
         description="Load seismic, well, or volume data into witness context",
         tags={"perception", "geox"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F2"],mutability="read"),
     )
     def P_geox_scene_load(
         scene_type: Literal["seismic", "well", "volume"], path: str, ctx: Context | None = None
@@ -208,6 +240,7 @@ def create_perception_mcp() -> FastMCP:
         description="Query GEOX skill registry by keyword or domain",
         tags={"perception", "geox"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F2","F11"],mutability="read"),
     )
     def P_geox_skills_query(
         query: str, domain: str | None = None, ctx: Context | None = None
@@ -229,6 +262,7 @@ def create_perception_mcp() -> FastMCP:
         description="Fetch cross-source macro/energy/carbon snapshot",
         tags={"perception", "wealth"},
         annotations={"readOnlyHint": True, "openWorldHint": True},
+        meta=_gov("sense","low","observation",["F2","F6"],mutability="read"),
     )
     def P_wealth_snapshot_fetch(geography: str, ctx: Context | None = None) -> dict[str, Any]:
         """Fetch macro snapshot from WEALTH."""
@@ -244,6 +278,7 @@ def create_perception_mcp() -> FastMCP:
         description="Fetch live data series from open public source",
         tags={"perception", "wealth"},
         annotations={"readOnlyHint": True, "openWorldHint": True},
+        meta=_gov("sense","low","observation",["F2","F6"],mutability="read"),
     )
     def P_wealth_series_fetch(
         source: str, series_id: str, ctx: Context | None = None
@@ -261,6 +296,7 @@ def create_perception_mcp() -> FastMCP:
         description="Fetch specific vintage of series (FRED/ALFRED)",
         tags={"perception", "wealth"},
         annotations={"readOnlyHint": True, "openWorldHint": True},
+        meta=_gov("sense","low","observation",["F2","F6","F7"],mutability="read"),
     )
     def P_wealth_vintage_fetch(
         series_id: str, vintage_date: str, ctx: Context | None = None
@@ -282,6 +318,7 @@ def create_perception_mcp() -> FastMCP:
         description="Read VAULT999 ledger, build BLS seal card",
         tags={"perception", "vault"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F2","F11"],mutability="read"),
     )
     def P_vault_ledger_read(
         session_id: str | None = None,
@@ -342,6 +379,7 @@ def create_transformation_mcp() -> FastMCP:
         description="Execute physics-grounded petrophysical calculations",
         tags={"transformation", "physics"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F2","F4","F7"],mutability="transform"),
     )
     def T_petrophysics_compute(
         well_id: str,
@@ -389,6 +427,7 @@ def create_transformation_mcp() -> FastMCP:
         description="Correlate stratigraphic units across multiple wells",
         tags={"transformation", "physics"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F2","F7","F8"],mutability="transform"),
     )
     def T_stratigraphy_correlate(
         wells: list[str], section_id: str, ctx: Context | None = None
@@ -406,6 +445,7 @@ def create_transformation_mcp() -> FastMCP:
         description="Build architectural geometries from interpreted horizons",
         tags={"transformation", "physics"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F2","F8"],mutability="transform"),
     )
     def T_geometry_build(
         horizons: list[dict[str, Any]], ctx: Context | None = None
@@ -423,6 +463,7 @@ def create_transformation_mcp() -> FastMCP:
         description="Compute Internal Rate of Return and Modified IRR",
         tags={"transformation", "math"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6","F7"],mutability="transform"),
     )
     def T_math_irr_compute(
         initial_investment: float,
@@ -462,6 +503,7 @@ def create_transformation_mcp() -> FastMCP:
         description="Stochastic forecast with probability-weighted outcomes",
         tags={"transformation", "math"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6","F7","F8"],mutability="transform"),
     )
     def T_math_monte_carlo(
         outcomes: list[float],
@@ -514,6 +556,7 @@ def create_transformation_mcp() -> FastMCP:
         description="Audit cash flows for noise and multiple IRRs",
         tags={"transformation", "math"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F4","F6"],mutability="transform"),
     )
     def T_math_entropy_audit(cashflows: list[float], ctx: Context | None = None) -> dict[str, Any]:
         """Audit cashflow entropy and detect multiple IRRs."""
@@ -562,6 +605,7 @@ def create_transformation_mcp() -> FastMCP:
         description="Compute compound growth rate and runway",
         tags={"transformation", "math"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6"],mutability="transform"),
     )
     def T_growth_runway_compute(
         cashflows: list[float], burn_rate: float, ctx: Context | None = None
@@ -618,6 +662,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Compute Net Present Value",
         tags={"valuation", "economic"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6","F7"],mutability="transform"),
     )
     def V_npv_evaluate(
         initial_investment: float,
@@ -648,6 +693,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Compute Expected Monetary Value",
         tags={"valuation", "economic"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6","F7"],mutability="transform"),
     )
     def V_emv_evaluate(
         outcomes: list[float],
@@ -683,6 +729,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Compute Debt Service Coverage Ratio",
         tags={"valuation", "economic"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6"],mutability="transform"),
     )
     def V_dscr_evaluate(
         ebitda: float,
@@ -717,6 +764,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Compute Profitability Index",
         tags={"valuation", "economic"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6"],mutability="transform"),
     )
     def V_profitability_index(
         initial_investment: float,
@@ -756,6 +804,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Compute Payback Period",
         tags={"valuation", "economic"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","low","inference",["F6"],mutability="transform"),
     )
     def V_payback_evaluate(
         initial_investment: float,
@@ -800,6 +849,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Rank alternatives under constraints",
         tags={"valuation", "allocation"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","medium","inference",["F6","F8"],mutability="transform"),
     )
     def V_allocation_rank(
         candidates: list[dict[str, Any]],
@@ -830,6 +880,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Rank personal alternatives under constraints",
         tags={"valuation", "personal"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","medium","inference",["F6","F10"],mutability="transform"),
     )
     def V_personal_decision_rank(
         alternatives: list[dict[str, Any]],
@@ -859,6 +910,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Optimal action sequence under resource constraints",
         tags={"valuation", "allocation"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","medium","inference",["F6","F11"],mutability="transform"),
     )
     def V_agent_budget_optimize(
         tasks: list[dict[str, Any]],
@@ -900,6 +952,7 @@ def create_valuation_mcp() -> FastMCP:
         description="Long-term civilization sustainability path",
         tags={"valuation", "allocation"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","medium","inference",["F6","F8"],mutability="transform"),
     )
     def V_civilization_sustainability(
         current_state: dict[str, Any],
@@ -939,6 +992,7 @@ def create_governance_mcp() -> FastMCP:
         description="Initialize constitutional session with identity binding",
         tags={"governance"},
         annotations={"readOnlyHint": False, "openWorldHint": False},
+        meta=_gov("judge","medium","verdict",["F11","F13"],mutability="write"),
     )
     def G_session_init(
         intent: str,
@@ -965,6 +1019,7 @@ def create_governance_mcp() -> FastMCP:
         description="Route request to correct metabolic lane based on risk",
         tags={"governance"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("judge","medium","verdict",["F1","F8","F13"],mutability="write"),
     )
     def G_kernel_route(
         task: dict[str, Any],
@@ -988,6 +1043,7 @@ def create_governance_mcp() -> FastMCP:
         description="Structured reasoning with typed cognitive pipeline",
         tags={"governance"},
         annotations={"readOnlyHint": True, "openWorldHint": True},
+        meta=_gov("mind","low","inference",["F7","F8"],mutability="transform"),
     )
     def G_mind_reason(
         prompt: str,
@@ -1012,6 +1068,7 @@ def create_governance_mcp() -> FastMCP:
         description="Red-team proposal: simulate consequences, evaluate F5/F6/F9",
         tags={"governance"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("heart","high","verdict",["F1","F3","F6","F9","F10"],mutability="write"),
     )
     def G_ethical_heart(
         candidate_action: dict[str, Any], context: dict[str, Any], ctx: Context | None = None
@@ -1035,6 +1092,7 @@ def create_governance_mcp() -> FastMCP:
         description="Final constitutional verdict: SEAL, PARTIAL, VOID, HOLD",
         tags={"governance"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("judge","high","verdict",["F1","F3","F8","F13"],requires_judge=True,mutability="write"),
     )
     def G_judge_verdict(
         candidate_action: dict[str, Any], dry_run: bool = False, ctx: Context | None = None
@@ -1056,6 +1114,7 @@ def create_governance_mcp() -> FastMCP:
         description="Enforce Ω_ortho >= 0.95 across tool outputs",
         tags={"governance"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("gateway","high","verdict",["F5","F8"],requires_judge=True,mutability="write"),
     )
     def G_orthogonality_guard(
         tool_outputs: list[Any], model_traces: list[Any], ctx: Context | None = None
@@ -1072,6 +1131,7 @@ def create_governance_mcp() -> FastMCP:
         description="Check if action requires 888_HOLD human approval",
         tags={"governance"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("judge","high","verdict",["F13"],requires_judge=True,requires_human=True,mutability="write"),
     )
     def G_hold_authority(action: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
         """Check HOLD requirement."""
@@ -1086,6 +1146,7 @@ def create_governance_mcp() -> FastMCP:
         description="Audit proposal against configurable policy constraints",
         tags={"governance"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("judge","high","verdict",["F6","F10","F13"],requires_judge=True,mutability="write"),
     )
     def G_policy_audit(
         proposal: dict[str, Any], policy: dict[str, Any], ctx: Context | None = None
@@ -1114,6 +1175,7 @@ def create_execution_mcp() -> FastMCP:
         description="Delegated Execution Bridge — validates SEAL, constructs manifest",
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False},
+        meta=_gov("forge","high","execution",["F1","F5","F13"],requires_judge=True,mutability="write"),
     )
     def E_forge_bridge(
         plan: dict[str, Any],
@@ -1139,9 +1201,23 @@ def create_execution_mcp() -> FastMCP:
         description="Execute forge after gates pass",
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False},
+        meta=_gov("forge","critical","execution",["F1","F5","F13"],requires_judge=True,requires_human=True,reversible="irreversible",mutability="execute"),
     )
-    def E_forge_execute(plan: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
-        """Execute forge."""
+    def E_forge_execute(
+        plan: dict[str, Any],
+        human_approved: bool = False,
+        ctx: Context | None = None,
+    ) -> dict[str, Any]:
+        """Execute forge. Requires human_approved=True (F13 Sovereign Veto) and prior SEAL verdict."""
+        # 888-B guard: F13 Sovereign Veto — human must explicitly approve
+        if not human_approved:
+            return {
+                "agent": "E",
+                "action": "forge_execute",
+                "error": "888_HOLD — F13 Sovereign Veto required. Set human_approved=True to proceed.",
+                "requires_human_confirm": True,
+                "floor": "F13",
+            }
         return {
             "agent": "E",
             "action": "forge_execute",
@@ -1153,6 +1229,7 @@ def create_execution_mcp() -> FastMCP:
         description="Append immutable verdict record to Merkle-hashed ledger",
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": False, "destructiveHint": False},
+        meta=_gov("vault","medium","execution",["F1","F11","F12"],reversible="limited",mutability="write"),
     )
     async def E_vault_seal(record: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
         """Seal a verdict record to VAULT999 using PostgresVaultStore."""
@@ -1198,6 +1275,7 @@ def create_execution_mcp() -> FastMCP:
         description="Read from VAULT999 ledger",
         tags={"execution"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("vault","low","observation",["F11"],mutability="read"),
     )
     async def E_vault_read(
         seal_id: str | None = None, session_id: str | None = None, ctx: Context | None = None
@@ -1234,6 +1312,7 @@ def create_execution_mcp() -> FastMCP:
         description="Store memory in MemoryContract (5-tier governed)",
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": False, "destructiveHint": False},
+        meta=_gov("vault","low","artifact",["F11"],mutability="write"),
     )
     def E_memory_store(
         memory: dict[str, Any],
@@ -1280,6 +1359,7 @@ def create_execution_mcp() -> FastMCP:
         description="Retrieve from MemoryContract",
         tags={"execution"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("vault","low","observation",["F11"],mutability="read"),
     )
     def E_memory_retrieve(
         query: str,
@@ -1326,6 +1406,7 @@ def create_execution_mcp() -> FastMCP:
         description="Log biological telemetry update",
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": False},
+        meta=_gov("forge","low","execution",["F12"],reversible="limited",mutability="write"),
     )
     def E_well_log(dimensions: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
         """Log WELL telemetry update — delegates to WELL server state.json."""
@@ -1361,6 +1442,7 @@ def create_execution_mcp() -> FastMCP:
         description="Anchor WELL state to VAULT999",
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": False},
+        meta=_gov("vault","medium","execution",["F1","F11","F12"],reversible="limited",mutability="write"),
     )
     async def E_well_anchor(ctx: Context | None = None) -> dict[str, Any]:
         """Anchor current WELL state to VAULT999 ledger."""
@@ -1417,6 +1499,7 @@ def create_meta_mcp() -> FastMCP:
         description="Get current Ω_ortho status and correlation matrix",
         tags={"meta"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("gateway","low","observation",["F5","F8"],mutability="read"),
     )
     def M_omega_status(ctx: Context | None = None) -> dict[str, Any]:
         """Get Ω_ortho status."""
@@ -1442,6 +1525,7 @@ def create_meta_mcp() -> FastMCP:
         description="Search available skills by keyword/domain",
         tags={"meta"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F11"],mutability="read"),
     )
     def M_skill_discovery(
         query: str, domain: str | None = None, ctx: Context | None = None
@@ -1458,6 +1542,7 @@ def create_meta_mcp() -> FastMCP:
         description="Get detailed metadata for specific skill",
         tags={"meta"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F11"],mutability="read"),
     )
     def M_skill_metadata(skill_id: str, ctx: Context | None = None) -> dict[str, Any]:
         """Get skill metadata."""
@@ -1472,6 +1557,7 @@ def create_meta_mcp() -> FastMCP:
         description="Real-time F1-F13 + ΔS + Peace² + Ω₀ dashboard",
         tags={"meta"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("sense","low","observation",["F12"],mutability="read"),
     )
     def M_metabolic_monitor(
         metrics: list[str] | None = None, ctx: Context | None = None
@@ -1491,6 +1577,7 @@ def create_meta_mcp() -> FastMCP:
         description="Synthesize causal scene for JUDGE from spatial elements",
         tags={"meta"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","medium","inference",["F2","F3","F8"],mutability="transform"),
     )
     def M_cross_evidence_synthesize(scene_id: str, ctx: Context | None = None) -> dict[str, Any]:
         """Synthesize evidence."""
@@ -1505,6 +1592,7 @@ def create_meta_mcp() -> FastMCP:
         description="Multi-agent allocation via LP, Shapley, Nash",
         tags={"meta"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
+        meta=_gov("mind","medium","inference",["F8","F9"],mutability="transform"),
     )
     def M_game_theory_solve(
         agents: list[dict[str, Any]], payoff_matrix: dict[str, Any], ctx: Context | None = None
