@@ -1,0 +1,52 @@
+name: arifos_vault
+canonical: true
+type: mega-tool
+authority: VAULT_KEEPER
+description: >
+  Immutable Merkle-hashed ledger for constitutional verdict records.
+  Modes: append (write verdict record), read (query ledger with filters).
+  F1 Amanah: appends are irreversible once sealed.
+  F13 Sovereign: read mode enables chain verification without session.
+floors:
+  - F1: AMANAH (Irreversibility — sealed records cannot be amended)
+  - F13: SOVEREIGN (Human Arif ratification for critical entries)
+risk_tier: P1
+modes:
+  - append
+  - read
+session_required: false
+vault_on_seal: true
+reversible: false
+parameters:
+  verdict:
+    type: string
+    enum: [SEAL, PARTIAL, VOID, HOLD]
+    required: false
+    description: Constitutional verdict to append (append mode only)
+  evidence:
+    type: string
+    required: false
+    description: Supporting evidence, reasoning chain, or audit trail
+  session_id:
+    type: string
+    required: false
+  mode:
+    type: string
+    enum: [append, read]
+    default: append
+  limit:
+    type: integer
+    default: 20
+    description: Maximum entries to return (read mode)
+  since:
+    type: string
+    required: false
+    description: ISO-8601 timestamp — entries sealed after this time (read mode)
+  until:
+    type: string
+    required: false
+    description: ISO-8601 timestamp — entries sealed before this time (read mode)
+  verdict_filter:
+    type: string
+    required: false
+    description: Filter by verdict type (read mode)

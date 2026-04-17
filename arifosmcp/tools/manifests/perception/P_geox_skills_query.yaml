@@ -1,0 +1,29 @@
+name: P_geox_skills_query
+canonical: true
+type: perception-tool
+authority: GEOX_ORACLE
+description: >
+  Query GEOX skill registry by keyword or domain.
+  Registry results are cached with TTL — avoids repeated registry lookup per call.
+floors:
+  - F2: TRUTH
+  - F11: COMMAND_AUTH
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  query:
+    type: string
+    required: true
+    description: Search query for GEOX skill registry
+  domain:
+    type: string
+    required: false
+    description: Optional domain filter
+response_schema:
+  data:
+    query: string
+    domain: string
+    skills: array

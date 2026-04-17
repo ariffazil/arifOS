@@ -1,0 +1,52 @@
+name: arifos_init
+canonical: true
+type: mega-tool
+authority: ANCHOR_SOVEREIGN
+description: >
+  Initialize a constitutional session with identity binding and telemetry seed.
+  Modes: init (new session), refresh (extend), state (query), status (health check), probe (diagnostic).
+  F1 Amanah: session creation is an irreversible commitment.
+floors:
+  - F1: AMANAH (Reversibility — session creation is irreversible)
+  - F11: COMMAND_AUTH (Audit logging)
+  - F12: INJECTION (Web injection guard on intent field)
+  - F13: SOVEREIGN (Human Arif holds final authority)
+risk_tier: P1
+modes:
+  - init
+  - refresh
+  - state
+  - status
+  - probe
+session_required: true
+vault_on_seal: false
+reversible: false
+parameters:
+  actor_id:
+    type: string
+    required: true
+    description: Identity of the actor initiating the session
+  intent:
+    type: string
+    required: true
+    description: Primary intent or purpose of this session (F1 Amanah commitment)
+  declared_name:
+    type: string
+    required: false
+    description: Human-readable name for this session
+  session_id:
+    type: string
+    required: false
+    description: Existing session ID to refresh or operate on
+  risk_tier:
+    type: string
+    enum: [low, medium, high, critical]
+    default: medium
+  platform:
+    type: string
+    enum: [mcp, chatgpt_apps, cursor, api, stdio, unknown]
+    default: unknown
+  mode:
+    type: string
+    enum: [init, refresh, state, status, probe]
+    default: init

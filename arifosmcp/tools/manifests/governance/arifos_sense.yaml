@@ -1,0 +1,42 @@
+name: arifos_sense
+canonical: true
+type: mega-tool
+authority: PHYSICS_REality
+description: >
+  Ground query in physical reality via the 8-stage constitutional sensing protocol:
+  PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF.
+  Modes: governed (full pipeline), search (live web), ingest (store), compass (heading),
+  atlas (geospatial), time (temporal), location (geospatial verification).
+floors:
+  - F2: TRUTH (Factual accuracy ≥0.99)
+  - F3: TRI_WITNESS (≥0.95 for high-stakes)
+  - F4: CLARITY (ΔS ≤ 0 — reduce confusion)
+  - F10: ONTOLOGY (No mysticism/soul claims)
+risk_tier: P2
+modes:
+  - governed
+  - search
+  - ingest
+  - compass
+  - atlas
+  - time
+  - location
+session_required: true
+vault_on_seal: false
+reversible: true
+parameters:
+  query:
+    type: string
+    required: true
+    description: Natural language query to ground in physical reality
+  mode:
+    type: string
+    enum: [governed, search, ingest, compass, atlas, time, location]
+    default: governed
+  session_id:
+    type: string
+    required: false
+    description: Active arifOS session ID
+  dry_run:
+    type: boolean
+    default: true

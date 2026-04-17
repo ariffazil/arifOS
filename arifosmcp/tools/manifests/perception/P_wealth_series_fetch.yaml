@@ -1,0 +1,33 @@
+name: P_wealth_series_fetch
+canonical: true
+type: perception-tool
+authority: WEALTH_ORACLE
+description: >
+  Fetch live data series from open public source.
+  Returns unit and frequency with every series response — consumers must not infer these.
+  Fast, stateless, no Floor overhead.
+floors:
+  - F2: TRUTH
+  - F6: EMPATHY
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  source:
+    type: string
+    required: true
+    description: Data source identifier
+  series_id:
+    type: string
+    required: true
+    description: Series identifier within the source
+response_schema:
+  data:
+    source: string
+    series_id: string
+    series: array
+    metadata:
+      unit: string
+      frequency: string

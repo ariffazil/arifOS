@@ -1,0 +1,28 @@
+name: P_wealth_snapshot_fetch
+canonical: true
+type: perception-tool
+authority: WEALTH_ORACLE
+description: >
+  Fetch cross-source macro/energy/carbon snapshot.
+  Adds staleness_flag when source data is >24h old — UNKNOWN otherwise.
+  Fast, stateless, no Floor overhead.
+floors:
+  - F2: TRUTH
+  - F6: EMPATHY (ASEAN/Malaysia economic context)
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  geography:
+    type: string
+    required: true
+    description: Geographic region for macro snapshot
+response_schema:
+  data:
+    geography: string
+    macro: object
+    energy: object
+    carbon: object
+    staleness_flag: string

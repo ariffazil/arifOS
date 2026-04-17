@@ -1,0 +1,37 @@
+name: arifos_ops
+canonical: true
+type: mega-tool
+authority: CALCULATOR
+description: >
+  Quantitative estimation and constitutional metrics engine.
+  Computes thermodynamic costs (Landauer gate), coherence (Lyapunov stability),
+  Shannon entropy, ΔS (entropy delta), and constitutional floor health.
+  Modes: cost (Landauer estimate), health (system gauge), vitals (metabolic telemetry),
+  entropy (information-theoretic), economic_audit (WELL thermodynamic),
+  metabolism (F1-F13 metabolic dashboard).
+floors:
+  - F4: CLARITY (ΔS ≤ 0 — every reply reduces confusion)
+  - F5: PEACE (Entropy management)
+risk_tier: P2
+modes:
+  - cost
+  - health
+  - vitals
+  - entropy
+  - economic_audit
+  - metabolism
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  query:
+    type: string
+    required: false
+    description: Query or task to estimate thermodynamic cost for
+  mode:
+    type: string
+    enum: [cost, health, vitals, entropy, economic_audit, metabolism]
+    default: cost
+  session_id:
+    type: string
+    required: false

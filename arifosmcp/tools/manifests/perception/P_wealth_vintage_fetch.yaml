@@ -1,0 +1,32 @@
+name: P_wealth_vintage_fetch
+canonical: true
+type: perception-tool
+authority: WEALTH_ORACLE
+description: >
+  Fetch specific vintage of series (FRED/ALFRED).
+  ALFRED vintages without revision_count are incomplete — this oracle surfaces it.
+  Fast, stateless, no Floor overhead.
+floors:
+  - F2: TRUTH
+  - F6: EMPATHY
+  - F7: HUMILITY (Uncertainty band on vintage data)
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  series_id:
+    type: string
+    required: true
+    description: FRED/ALFRED series identifier
+  vintage_date:
+    type: string
+    required: true
+    description: Vintage date in ISO format
+response_schema:
+  data:
+    series_id: string
+    vintage_date: string
+    series: array
+    revision_count: number

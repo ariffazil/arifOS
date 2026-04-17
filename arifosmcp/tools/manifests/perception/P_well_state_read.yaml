@@ -1,0 +1,27 @@
+name: P_well_state_read
+canonical: true
+type: perception-tool
+authority: WELL_ORACLE
+description: >
+  Read current WELL biological telemetry snapshot.
+  Returns live metrics: sleep, stress, cognitive, metabolic, structural dimensions,
+  plus floor violations and operator veto status. Fast, stateless, no Floor overhead.
+floors:
+  - F2: TRUTH (Accurate telemetry)
+  - F8: GENIUS (Accurate self-assessment)
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+response_schema:
+  data:
+    score: number
+    dimensions:
+      sleep: object
+      stress: object
+      cognitive: object
+      metabolic: object
+      structural: object
+    floor_violations: array
+    w0: string

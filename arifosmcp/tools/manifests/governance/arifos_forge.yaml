@@ -1,0 +1,57 @@
+name: arifos_forge
+canonical: true
+type: mega-tool
+authority: CODE_ENGINE
+description: >
+  Delegated Execution Bridge — The 10th Tool.
+  This tool does NOT execute directly. It:
+  1. Validates judge verdict is SEAL (F1 gate — enforced in handler, not alias)
+  2. Constructs signed execution manifest
+  3. Dispatches to A-FORGE substrate
+  4. Returns execution receipt
+  Constitutional Guarantee: No execution without judge SEAL, no self-authorization,
+  all actions logged to vault, separation of powers preserved.
+floors:
+  - F1: AMANAH (Reversibility — prefer reversible)
+  - F2: TRUTH (Manifest validation)
+  - F7: HUMILITY (G* confidence scoring)
+  - F13: SOVEREIGN (No machine may execute alone — human ratification required)
+risk_tier: P1
+modes:
+  - shell
+  - api_call
+  - contract
+  - compute
+session_required: true
+vault_on_seal: true
+reversible: true
+parameters:
+  action:
+    type: string
+    enum: [shell, api_call, contract, compute]
+    required: true
+    description: Type of execution action
+  payload:
+    type: object
+    required: true
+    description: Structured payload — format varies by action type
+  session_id:
+    type: string
+    required: true
+    description: Must have prior arifos_judge SEAL verdict
+  judge_verdict:
+    type: string
+    enum: [SEAL]
+    required: true
+    description: Must be SEAL — Gate 1 constitutional checkpoint
+  judge_g_star:
+    type: number
+    required: true
+    description: G* confidence score from arifos_judge SEAL verdict
+  judge_state_hash:
+    type: string
+    required: false
+  dry_run:
+    type: boolean
+    default: true
+    description: If true, returns manifest without dispatching to A-FORGE

@@ -1,0 +1,38 @@
+name: arifos_memory
+canonical: true
+type: mega-tool
+authority: MEMORY_KEEPER
+description: >
+  Governed memory recall from vector store. Modes: vector_query (semantic search),
+  vector_store (store new memory with content-hash deduplication), engineer (engineering context),
+  query (exact-match).
+  Session-scoped retrieval maintains continuity across session epochs.
+floors:
+  - F2: TRUTH (Accurate recall)
+  - F10: ONTOLOGY (No mysticism/soul claims in stored memories)
+  - F11: COMMAND_AUTH (Audit trail of all memory operations)
+risk_tier: P2
+modes:
+  - vector_query
+  - vector_store
+  - engineer
+  - query
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  query:
+    type: string
+    required: true
+    description: Semantic query string for memory search
+  mode:
+    type: string
+    enum: [vector_query, vector_store, engineer, query]
+    default: vector_query
+  session_id:
+    type: string
+    required: false
+  content:
+    type: string
+    required: false
+    description: Content to store (mode=vector_store)

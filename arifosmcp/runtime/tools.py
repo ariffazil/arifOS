@@ -651,6 +651,66 @@ async def arifos_sense(
             "arifos_sense",
         )
 
+    # ── location mode: geospatial verification inline ──────────────────────────
+    if mode == "location":
+        from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+        from arifosmcp.runtime.models import RuntimeStatus, Verdict
+        import re
+
+        lat_match = re.search(r"lat[i]?[t]?\s*[:=]?\s*([-+]?\d+\.?\d*)", query, re.IGNORECASE)
+        lon_match = re.search(r"lon[g]?\s*[:=]?\s*([-+]?\d+\.?\d*)", query, re.IGNORECASE)
+
+        if not lat_match or not lon_match:
+            return seal_runtime_envelope(
+                _RE(
+                    ok=False,
+                    tool="arifos_sense",
+                    canonical_tool_name="arifos_sense",
+                    stage="111_SENSE",
+                    status=RuntimeStatus.ERROR,
+                    verdict=Verdict.VOID,
+                    detail="location mode requires lat and lon in query (e.g., 'lat=3.139 lon=101.687')",
+                    session_id=session_id,
+                ),
+                "arifos_sense",
+            )
+
+        lat = float(lat_match.group(1))
+        lon = float(lon_match.group(1))
+
+        try:
+            from core.organs import verify_geospatial
+            geo = verify_geospatial(lat, lon)
+        except Exception as e:
+            return seal_runtime_envelope(
+                _RE(
+                    ok=False,
+                    tool="arifos_sense",
+                    canonical_tool_name="arifos_sense",
+                    stage="111_SENSE",
+                    status=RuntimeStatus.ERROR,
+                    verdict=Verdict.VOID,
+                    detail=f"Geospatial verification failed: {e}",
+                    session_id=session_id,
+                ),
+                "arifos_sense",
+            )
+
+        return seal_runtime_envelope(
+            _RE(
+                ok=geo["valid"],
+                tool="arifos_sense",
+                canonical_tool_name="arifos_sense",
+                stage="111_SENSE",
+                status=RuntimeStatus.SUCCESS if geo["valid"] else RuntimeStatus.ERROR,
+                verdict=Verdict.SEAL if geo["valid"] else Verdict.VOID,
+                detail=f"Location verified: {geo['jurisdiction']} — CRS: {geo['crs']}",
+                session_id=session_id,
+                payload=geo,
+            ),
+            "arifos_sense",
+        )
+
     # ── governed mode: full constitutional protocol ────────────────────────────
     if mode == "governed":
         from arifosmcp.runtime.models import RuntimeEnvelope as _RE
