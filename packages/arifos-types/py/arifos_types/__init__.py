@@ -6,7 +6,7 @@ Version: 0.1.0
 
 from arifos_types.epistemic import EpistemicTag, isValidEpistemicTag, canUpgradeTag
 from arifos_types.verdict import Verdict, VerdictStatus, isTerminalVerdict, requiresHumanReview
-from arifos_types.telemetry import TelemetryPayload, PipelineStage, Witness, DEFAULT_TELEMETRY, createTelemetryHash
+from arifos_types.telemetry import TelemetryPayload, Witness, DEFAULT_TELEMETRY, createTelemetryHash
 from arifos_types.agent_message import (
     AgentMessage,
     MessageType,

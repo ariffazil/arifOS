@@ -12,6 +12,7 @@ Endpoints:
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import uuid
 from contextlib import asynccontextmanager
@@ -140,17 +141,33 @@ async def seal(entry: VaultEntry):
         await conn.execute(
             """
             INSERT INTO arifosmcp_vault_seals
-              (seal_id, prev_hash, agent_id, action, payload, confidence, epoch)
+              (seal_id, prev_hash, agent_id, action, payload, confidence, epoch,
+               session_id, domain, tool, verdict, ac_risk, claim_tag,
+               payload_hash, chain_hash, floor_violations, epistemic,
+               witness_human, witness_ai, witness_earth)
             VALUES
-              ($1, $2, $3, $4, $5, $6, $7)
+              ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
             """,
             seal_id,
             prev_hash,
             f"{entry.domain}/{entry.witness_ai}",
             f"{entry.tool}:{entry.verdict}",
-            payload_for_hash,
+            json.dumps(payload_for_hash),
             1.0 - entry.ac_risk,
             epoch,
+            entry.session_id,
+            entry.domain,
+            entry.tool,
+            entry.verdict,
+            entry.ac_risk,
+            entry.claim_tag,
+            compute_payload_hash(payload_for_hash),
+            chain_hash,
+            entry.floor_violations or [],
+            entry.epistemic,
+            entry.witness_human,
+            entry.witness_ai,
+            entry.witness_earth,
         )
 
     return ChainedEntry(
@@ -185,7 +202,7 @@ async def get_session(session_id: str):
             SELECT
               agent_id, action, payload, confidence, epoch, prev_hash, seal_id
             FROM arifosmcp_vault_seals
-            WHERE payload->>'session_id' = $1
+            WHERE session_id = $1
             ORDER BY id ASC
             """,
             session_id,
@@ -199,7 +216,7 @@ async def get_session(session_id: str):
     chain_integrity = True
 
     for row in rows:
-        payload = dict(row["payload"])
+        payload = json.loads(row["payload"])
         payload_hash = compute_payload_hash(payload)
         chain_hash = compute_chain_hash(row["prev_hash"], payload_hash)
 
