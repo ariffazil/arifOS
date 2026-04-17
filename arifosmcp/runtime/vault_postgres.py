@@ -122,7 +122,7 @@ class PostgresVaultStore:
             vault_path: Filesystem path for JSONL mirror. Defaults to VAULT999_PATH.
         """
         self.dsn = dsn or os.environ.get(
-            "DATABASE_URL", "postgresql://arifos_admin:arifos_vault@localhost:5432/arifos_vault"
+            "DATABASE_URL", "postgresql://arifos_admin:ArifPostgresVault2026%21@postgres:5432/arifos_vault"
         )
         self.vault_path = vault_path or VAULT999_PATH
         self._pool: asyncpg.Pool | None = None
