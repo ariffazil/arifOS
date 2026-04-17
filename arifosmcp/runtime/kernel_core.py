@@ -353,12 +353,6 @@ class KernelCore:
             logger.debug(f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}")
 
         # Seal with continuity
-        sealed = seal_runtime_envelope(
-            envelope=envelope,
-            tool_id=tool_name,
-            session_id=session_id,
-        )
-        
         sealed = seal_runtime_envelope(envelope=envelope, tool_id=tool_name, session_id=session_id)
         
         # ── Health Band Injection ──

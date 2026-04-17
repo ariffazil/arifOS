@@ -61,7 +61,7 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
     "arifos_init": {"intent": "intent", "goal": "intent", "task": "intent"},
     "arifos_sense": {
         "query": "input",
-        "content": "input", 
+        "content": "input",
         "text": "input",
         "input": "input",
         "mode": "mode",
@@ -130,19 +130,19 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
 
 def _normalize_parameters(tool_name: str, body: dict[str, Any]) -> dict[str, Any]:
     """Normalize parameter names for tool compatibility.
-    
+
     Handles Horizon/ChatGPT-style parameter names (intent, content, etc.)
     and maps them to canonical parameter names expected by tool functions.
     """
     canonical_name = TOOL_ALIASES.get(tool_name, tool_name)
     aliases = PARAMETER_ALIASES.get(canonical_name, {})
-    
+
     normalized: dict[str, Any] = {}
     for key, value in body.items():
         # Map alias to canonical param name if defined
         canonical_param = aliases.get(key, key)
         normalized[canonical_param] = value
-    
+
     return normalized
 
 
@@ -356,7 +356,11 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
     floor_html = "".join(
         '<div class="floor {}"><strong>{}</strong><span>{:.3f}</span></div>'.format(
-            "pass" if _floor_passes(floor_id, float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0)))) else "fail",
+            "pass"
+            if _floor_passes(
+                floor_id, float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0)))
+            )
+            else "fail",
             floor_id,
             float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0))),
         )
@@ -623,7 +627,7 @@ def _generate_mega_tool_cards() -> str:
               </div>
             </div>
             """
-        html += '</div></div>'
+        html += "</div></div>"
     return html
 
 
@@ -631,7 +635,7 @@ def _generate_mega_tool_cards() -> str:
 def _load_welcome_html() -> str:
     """Load and populate the landing page HTML template."""
     import os
-    
+
     # Try multiple paths for different deployment contexts
     possible_paths = [
         "/usr/src/app/runtime/landing_page.html",
@@ -639,17 +643,17 @@ def _load_welcome_html() -> str:
         "/root/ariffazil/arifOS/arifosmcp/runtime/landing_page.html",
         os.path.join(os.path.dirname(__file__), "landing_page.html"),
     ]
-    
+
     html_content = ""
     for path in possible_paths:
         if os.path.exists(path):
             try:
-                with open(path) as f:
+                with open(path, "r") as f:
                     html_content = f.read()
                 break
             except Exception:
                 continue
-    
+
     if not html_content:
         # Fallback minimal HTML
         html_content = """<!DOCTYPE html>
@@ -658,13 +662,14 @@ def _load_welcome_html() -> str:
 <p>Endpoint: <code>https://arifosmcp.arif-fazil.com/mcp</code></p>
 <p><strong>DITEMPA BUKAN DIBERI</strong> — Forged, not given.</p>
 </body></html>"""
-    
+
     # Replace placeholders
     html_content = html_content.replace("__BUILD_VERSION__", BUILD_VERSION)
     html_content = html_content.replace("__BUILD_COMMIT__", BUILD_INFO["build"]["commit_short"])
     html_content = html_content.replace("__BUILD_TIME__", BUILD_INFO["build"]["built_at"])
-    
+
     return html_content
+
 
 WELCOME_HTML = _load_welcome_html()
 
@@ -967,7 +972,7 @@ def _rest_error(
         payload["request_id"] = request_id
     if tool:
         payload["tool"] = tool
-    
+
     # In production, we don't return raw 'e' or 'exc' strings.
     # We return the safe 'message' provided.
     return JSONResponse(payload, status_code=status_code)
@@ -1162,7 +1167,7 @@ def register_rest_routes(
         full_path = active_prefix + path
         if full_path == "":
             full_path = "/"
-        
+
         def decorator(handler: Callable):
             # Starlette app.add_route
             if hasattr(mcp, "add_route"):
@@ -1176,6 +1181,7 @@ def register_rest_routes(
             else:
                 logger.warning(f"Failed to register route {full_path}: {mcp} has no route method")
             return handler
+
         return decorator
 
     @route("/", methods=["GET"])
@@ -1244,19 +1250,20 @@ def register_rest_routes(
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
         """Health check with SoT linkage — ties runtime back to canonical arifOS repository.
-        
+
         Returns thermodynamic truth data (Space, Time, Energy) for preservation verification.
         """
         # Get thermodynamic state for Energy dimension
         thermo = _build_governance_status_payload()
         telemetry = thermo.get("telemetry", {})
-        
+
         # Probe vault for last seal timestamp (best-effort, null if unavailable)
         vault_last_seal = None
         try:
             from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
+
             live = get_live_metrics()
-            vault_last_seal = getattr(live, 'vault_last_seal', None) or None
+            vault_last_seal = getattr(live, "vault_last_seal", None) or None
         except Exception:
             pass
 
@@ -1291,7 +1298,6 @@ def register_rest_routes(
                     "metabolic_stage": thermo.get("metabolic_stage", 444),
                     "witness": thermo.get("witness", _WITNESS_DEFAULTS),
                 },
-
                 # Auditability fields — F2 threshold and confidence semantics
                 # All values below are live from governance kernel when available.
                 # Fields marked _source are null when vault/telemetry is unavailable.
@@ -1336,10 +1342,10 @@ def register_rest_routes(
     @route("/metrics/json", methods=["GET"])
     async def metrics_json(request: Request) -> JSONResponse:
         """JSON telemetry summary — machine-readable alternative to Prometheus text.
-        
+
         Returns the same core telemetry as /health but in a flat key-value map
         optimised for dashboards and alerting pipelines.
-        
+
         All values are null when the underlying substrate is unavailable.
         No fabricated values. No defaults that could be mistaken for live readings.
         """
@@ -1349,8 +1355,9 @@ def register_rest_routes(
         vault_last_seal = None
         try:
             from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
+
             live = get_live_metrics()
-            vault_last_seal = getattr(live, 'vault_last_seal', None) or None
+            vault_last_seal = getattr(live, "vault_last_seal", None) or None
         except Exception:
             pass
 
@@ -1374,7 +1381,9 @@ def register_rest_routes(
                 "last_seal_timestamp": vault_last_seal,
                 "tau_threshold_f2": 0.99,  # constant: F2 floor spec threshold
                 # Freshness metadata
-                "telemetry_source": "live" if telemetry.get("confidence") is not None else "unavailable",
+                "telemetry_source": "live"
+                if telemetry.get("confidence") is not None
+                else "unavailable",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             },
             headers={"Access-Control-Allow-Origin": "*"},
@@ -1456,7 +1465,7 @@ def register_rest_routes(
         try:
             # Normalize parameter names for Horizon/ChatGPT compatibility
             normalized = _normalize_parameters(canonical_name, body)
-            
+
             # Filter to only valid parameters
             sig = inspect.signature(tool_fn)
             has_kwargs = any(
@@ -1527,32 +1536,36 @@ def register_rest_routes(
     async def oauth_discovery(request: Request) -> Response:
         """OAuth 2.1 Authorization Server Metadata (RFC 8414)."""
         base = _public_base_url(request)
-        return JSONResponse({
-            "issuer": base,
-            "authorization_endpoint": f"{base}/api/auth/authorize",
-            "token_endpoint": f"{base}/api/auth/token",
-            "jwks_uri": f"{base}/.well-known/jwks.json",
-            "response_types_supported": ["code"],
-            "grant_types_supported": ["authorization_code", "refresh_token"],
-            "code_challenge_methods_supported": ["S256"],
-            "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"]
-        })
+        return JSONResponse(
+            {
+                "issuer": base,
+                "authorization_endpoint": f"{base}/api/auth/authorize",
+                "token_endpoint": f"{base}/api/auth/token",
+                "jwks_uri": f"{base}/.well-known/jwks.json",
+                "response_types_supported": ["code"],
+                "grant_types_supported": ["authorization_code", "refresh_token"],
+                "code_challenge_methods_supported": ["S256"],
+                "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"],
+            }
+        )
 
     @route("/.well-known/jwks.json", methods=["GET"])
     async def jwks_discovery(request: Request) -> Response:
         """JSON Web Key Set (JWKS) for cryptographic verification."""
-        return JSONResponse({
-            "keys": [
-                {
-                    "kty": "RSA",
-                    "use": "sig",
-                    "kid": "arifos-genesis-key",
-                    "n": "v55-MGI-TRINITY-SEALED",
-                    "e": "AQAB",
-                    "alg": "RS256"
-                }
-            ]
-        })
+        return JSONResponse(
+            {
+                "keys": [
+                    {
+                        "kty": "RSA",
+                        "use": "sig",
+                        "kid": "arifos-genesis-key",
+                        "n": "v55-MGI-TRINITY-SEALED",
+                        "e": "AQAB",
+                        "alg": "RS256",
+                    }
+                ]
+            }
+        )
 
     @route("/api/auth/authorize", methods=["GET"])
     async def oauth_authorize(request: Request) -> Response:
@@ -1560,7 +1573,7 @@ def register_rest_routes(
         return HTMLResponse(f"""
             <html><body>
                 <h1>arifOS Authorization</h1>
-                <p>Allow <b>{request.query_params.get('client_id', 'Unknown Client')}</b> to access MCP tools?</p>
+                <p>Allow <b>{request.query_params.get("client_id", "Unknown Client")}</b> to access MCP tools?</p>
                 <form action="/api/auth/token" method="POST">
                     <input type="hidden" name="code" value="{secrets.token_hex(16)}">
                     <button type="submit">Approve (SEAL)</button>
@@ -1571,12 +1584,14 @@ def register_rest_routes(
     @route("/api/auth/token", methods=["POST"])
     async def oauth_token(request: Request) -> Response:
         """Mock OAuth 2.1 Token endpoint."""
-        return JSONResponse({
-            "access_token": f"mcp_{secrets.token_hex(32)}",
-            "token_type": "Bearer",
-            "expires_in": 3600,
-            "scope": "mcp:full"
-        })
+        return JSONResponse(
+            {
+                "access_token": f"mcp_{secrets.token_hex(32)}",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+                "scope": "mcp:full",
+            }
+        )
 
     @route("/.well-known/agent.json", methods=["GET"])
     async def agent_well_known(request: Request) -> Response:
@@ -1611,6 +1626,7 @@ def register_rest_routes(
     @route("/discovery", methods=["GET"])
     async def discovery_alias(request: Request) -> Response:
         from arifosmcp.runtime.public_registry import build_mcp_discovery_json
+
         payload = build_mcp_discovery_json(_public_base_url(request))
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
@@ -1688,10 +1704,10 @@ def register_rest_routes(
                     from .vault_sqlite import VaultSQLite
                 except ImportError:
                     VaultSQLite = None  # type: ignore
-                
+
                 if VaultSQLite is None:
                     raise ImportError("VaultSQLite not available")
-                
+
                 vault = VaultSQLite()
                 raw = vault.query_recent(limit=limit) if hasattr(vault, "query_recent") else []
                 for entry in raw:
@@ -1875,49 +1891,107 @@ def register_rest_routes(
         return JSONResponse(LLMS_JSON, headers={"Access-Control-Allow-Origin": "*"})
 
     @route("/.well-known/agent-card.json", methods=["GET"])
-    async def agent_card(_request: Request) -> Response:
-        """A2A Agent Card — discovery endpoint for agent-to-agent protocol."""
-        payload = {
-            "name": "arifOS — AGENTS·API·AI·APPS",
-            "description": "The AAA Surface Layer of arifOS. Agents (autonomous actors), API (structured interfaces), AI (governed intelligence), and Apps (executable tools). Built on MCP with 13 constitutional floors ensuring every action is true, safe, and human-aligned. DITEMPA BUKAN DIBERI.",
-            "supportedInterfaces": [
-                {
-                    "url": "https://aaa.arif-fazil.com/mcp",
-                    "protocolBinding": "MCP",
-                    "protocolVersion": "2025-03-26",
-                    "transport": "StreamableHTTP"
-                }
-            ],
-            "provider": {
-                "name": "Arif Fazil",
-                "url": "https://arif-fazil.com",
-                "role": "ARIF — Human Sovereign Architect"
-            },
-            "version": BUILD_VERSION,
-            "capabilities": {
-                "streaming": True,
-                "governance": True,
-                "humanInTheLoop": True,
-                "constitutionalFloors": 13,
-                "trinity": ["AGI", "ASI", "APEX"]
-            },
-            "skills": [
-                "constitutional-audit",
-                "governed-reasoning",
-                "reality-search",
-                "safe-execution",
-                "metabolic-loop",
-                "tri-witness-consensus"
-            ],
-            "architecture": {
-                "layer": "AAA",
-                "fullName": "AGENTS·API·AI·APPS",
-                "trinityRuntime": "https://arifos.arif-fazil.com",
-                "theoryDocs": "https://apex.arif-fazil.com",
-                "humanSovereign": "https://arif-fazil.com"
-            }
+    async def agent_card_v2(_request: Request) -> Response:
+        """arifOS Agent Card v2.0 — full 6-axis skill registry (23 agents across P/T/V/G/E/M)."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
+
+        card = get_arifOS_agent_card()
+        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
+
+    @route("/agent-card", methods=["GET"])
+    async def agent_card_summary(_request: Request) -> Response:
+        """Compact summary for quick discovery."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_axos_summary
+
+        return JSONResponse(get_axos_summary())
+
+    @route("/agent-card/skills", methods=["GET"])
+    async def agent_card_skills(_request: Request) -> Response:
+        """All 23 skills across 6 axes."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
+
+        card = get_arifOS_agent_card()
+        by_axis = {
+            ax: [s.model_dump() for s in card.skills if s.axis == ax]
+            for ax in ["P", "T", "V", "G", "E", "M"]
         }
-        return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
+        return JSONResponse(
+            {
+                "total": len(card.skills),
+                "by_axis": by_axis,
+                "entry_point": card.routing["entry_point"],
+            }
+        )
+
+    @route("/meta/omega", methods=["GET"])
+    async def meta_omega(_request: Request) -> Response:
+        """Current Ω_ortho from M01 Correlation Auditor."""
+        from arifosmcp.runtime.a2a.seal_verifier import get_seal_verifier
+
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.get_orthogonality().model_dump(), default=str))
+        )
+
+    @route("/meta/omega/violations", methods=["GET"])
+    async def meta_omega_violations(_request: Request) -> Response:
+        """Detailed Ω_ortho violations."""
+        from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+
+        auditor = get_auditor()
+        report = auditor.compute_orthogonality()
+        return JSONResponse(
+            {
+                "omega_ortho": report.omega_ortho,
+                "threshold": auditor.threshold,
+                "violations": report.violations,
+                "agents_in_scope": report.agents_in_scope,
+            }
+        )
+
+    @route("/well/state", methods=["GET"])
+    async def well_state(_request: Request) -> Response:
+        """Current WELL operator state."""
+        from arifosmcp.runtime.a2a.seal_verifier import get_seal_verifier
+
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.get_well_state().model_dump(), default=str))
+        )
+
+    @route("/seal/verify", methods=["POST"])
+    async def seal_verify_post(_request: Request) -> Response:
+        """Verify a SEAL verdict is valid and vault-anchored."""
+        from arifosmcp.runtime.a2a.seal_verifier import (
+            A2ASealVerifier,
+            SealVerificationRequest,
+            get_seal_verifier,
+        )
+
+        body = await _request.json()
+        req = SealVerificationRequest(**body)
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.verify_seal(req).model_dump(), default=str))
+        )
+
+    @route("/seal/verify/{session_id}", methods=["GET"])
+    async def seal_verify_get(_request: Request) -> Response:
+        """Verify SEAL by session ID (GET variant)."""
+        from arifosmcp.runtime.a2a.seal_verifier import (
+            A2ASealVerifier,
+            SealVerificationRequest,
+            get_seal_verifier,
+        )
+
+        session_id = _request.path_params.get("session_id", "")
+        verdict = _request.query_params.get("verdict", "SEAL")
+        state_hash = _request.query_params.get("state_hash")
+        req = SealVerificationRequest(session_id=session_id, verdict=verdict, state_hash=state_hash)
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.verify_seal(req).model_dump(), default=str))
+        )
 
     # Serve the APEX Sovereign Dashboard v2.1 at /dashboard/
     # ── Vault-Seal Widget (ChatGPT Apps SDK) ────────────────────────────────────
@@ -1950,7 +2024,9 @@ def register_rest_routes(
     )
     # Fallback: same repo root at /usr/src/project via project symlink
     if not os.path.exists(_widget_file):
-        _widget_file = os.path.join("/usr/src/project", "static", "widgets", "vault-seal-widget.html")
+        _widget_file = os.path.join(
+            "/usr/src/project", "static", "widgets", "vault-seal-widget.html"
+        )
 
     @route("/widget/vault-seal", methods=["GET", "OPTIONS"])
     async def vault_seal_widget(request: Request) -> Response:
@@ -1967,6 +2043,7 @@ def register_rest_routes(
     async def widget_index(request: Request) -> Response:
         """Redirect /widget/ to the vault-seal widget."""
         from starlette.responses import RedirectResponse
+
         return RedirectResponse(url="/widget/vault-seal", status_code=302)
 
     dashboard_dir = os.path.join(
@@ -1985,12 +2062,15 @@ def register_rest_routes(
         """List MCP resources — governed context objects."""
         try:
             from arifosmcp.runtime.resources import manifest_resources
+
             resources = manifest_resources()
-            return JSONResponse({
-                "resources": resources,
-                "count": len(resources),
-                "description": "Governed context objects exposed to MCP clients."
-            })
+            return JSONResponse(
+                {
+                    "resources": resources,
+                    "count": len(resources),
+                    "description": "Governed context objects exposed to MCP clients.",
+                }
+            )
         except Exception as e:
             return _rest_error(f"Failed to list resources: {str(e)}", status_code=500)
 
@@ -1999,6 +2079,7 @@ def register_rest_routes(
         """Read a specific resource by URI."""
         try:
             from arifosmcp.runtime.resources import read_resource_content
+
             content = await read_resource_content(uri)
             if not content:
                 return JSONResponse({"error": f"Resource not found: {uri}"}, status_code=404)
@@ -2011,20 +2092,59 @@ def register_rest_routes(
     async def list_prompts(request: Request) -> Response:
         """List MCP prompts — constitutional task templates."""
         try:
-            prompts_list = [
-                {"name": "constitutional.analysis", "description": "Analyze claims against 13 constitutional floors", "params": ["query", "risk_tier", "context"]},
-                {"name": "governance.audit", "description": "Audit content against governance standards", "params": ["content", "standard"]},
-                {"name": "execution.planning", "description": "Plan task execution with constitutional constraints", "params": ["task", "constraints"]},
-                {"name": "minimal.response", "description": "Generate minimal response with token budget", "params": ["query", "max_tokens"]},
-                {"name": "reply_protocol_v3", "description": "AGI Reply Protocol v3 orchestration", "params": ["query", "recipient", "depth", "compression", "risk_tier", "prior_state"]},
-                {"name": "af-forge.govern", "description": "AF-FORGE governance check prompt", "params": ["task", "mode"]},
-                {"name": "af-forge.deploy", "description": "AF-FORGE deployment prompt", "params": ["target"]},
+<<<<<<< HEAD
+=======
+            from arifosmcp.runtime.prompts import register_v2_prompts
+
+                {
+                    "name": "constitutional.analysis",
+                    "params": ["query", "risk_tier", "context"],
+                },
+                {
+                    "name": "governance.audit",
+                    "description": "Audit content against governance standards",
+                    "params": ["content", "standard"],
+                },
+                {
+                    "name": "execution.planning",
+                    "description": "Plan task execution with constitutional constraints",
+                    "params": ["task", "constraints"],
+                },
+                {
+                    "name": "minimal.response",
+                    "description": "Generate minimal response with token budget",
+                    "params": ["query", "max_tokens"],
+                },
+                {
+                    "name": "reply_protocol_v3",
+                    "description": "AGI Reply Protocol v3 orchestration",
+                    "params": [
+                        "query",
+                        "recipient",
+                        "depth",
+                        "compression",
+                        "risk_tier",
+                        "prior_state",
+                    ],
+                },
+                {
+                    "name": "af-forge.govern",
+                    "description": "AF-FORGE governance check prompt",
+                    "params": ["task", "mode"],
+                },
+                {
+                    "name": "af-forge.deploy",
+                    "description": "AF-FORGE deployment prompt",
+                    "params": ["target"],
+                },
             ]
-            return JSONResponse({
-                "prompts": prompts_list,
-                "count": len(prompts_list),
-                "description": "Reusable governed task templates. MCP prompt protocol supported."
-            })
+            return JSONResponse(
+                {
+                    "prompts": prompts_list,
+                    "count": len(prompts_list),
+                    "description": "Reusable governed task templates. MCP prompt protocol supported.",
+                }
+            )
         except Exception:
             return _rest_error("Failed to list prompts", status_code=500)
 
@@ -2035,11 +2155,13 @@ def register_rest_routes(
             mcp_prompts = await mcp.list_prompts()
             for p in mcp_prompts:
                 if p.name == prompt_name or p.name == f"arifos.{prompt_name}":
-                    return JSONResponse({
-                        "name": p.name,
-                        "description": p.description or "",
-                        "arguments": getattr(p, 'arguments', []) or []
-                    })
+                    return JSONResponse(
+                        {
+                            "name": p.name,
+                            "description": p.description or "",
+                            "arguments": getattr(p, "arguments", []) or [],
+                        }
+                    )
             return JSONResponse({"error": f"Prompt not found: {prompt_name}"}, status_code=404)
         except Exception:
             return _rest_error("Failed to retrieve prompt", status_code=500)
@@ -2055,14 +2177,14 @@ def register_rest_routes(
         """Submit A2A task for agent-to-agent coordination."""
         try:
             from arifosmcp.runtime.a2a.models import SubmitTaskRequest, TaskMessage
+<<<<<<< HEAD
             from arifosmcp.runtime.a2a.server import create_a2a_server
+=======
+
+>>>>>>> 22a3a2c (A2A Agent Card v2 + Seal Verification endpoints wired into REST API)
             a2a = create_a2a_server(mcp)
             body = await request.json()
-            messages = [
                 TaskMessage(role=m.get("role", "user"), content=m.get("content", ""))
-                for m in body.get("messages", [])
-            ]
-            req = SubmitTaskRequest(
                 client_agent_id=body.get("client_agent_id", "anonymous"),
                 messages=messages,
                 session_id=body.get("session_id"),
@@ -2071,7 +2193,12 @@ def register_rest_routes(
                 status_callback_url=body.get("status_callback_url"),
             )
             task = await a2a.task_manager.create_task(req)
-            return JSONResponse({"task_id": task.id, "status": task.state.value if hasattr(task.state, 'value') else str(task.state)})
+            return JSONResponse(
+                {
+                    "task_id": task.id,
+                    "status": task.state.value if hasattr(task.state, "value") else str(task.state),
+                }
+            )
         except Exception:
             return _rest_error("A2A task creation failed", status_code=500)
 
@@ -2080,12 +2207,18 @@ def register_rest_routes(
         """Get A2A task status."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
+
             a2a = create_a2a_server(mcp)
             task_id = request.path_params.get("task_id", "")
             task = await a2a.task_manager.get_task(task_id)
             if not task:
                 return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
-            return JSONResponse({"task_id": task.id, "status": task.state.value if hasattr(task.state, 'value') else str(task.state)})
+            return JSONResponse(
+                {
+                    "task_id": task.id,
+                    "status": task.state.value if hasattr(task.state, "value") else str(task.state),
+                }
+            )
         except Exception:
             return _rest_error("Failed to retrieve task status", status_code=500)
 
@@ -2094,14 +2227,18 @@ def register_rest_routes(
         """SSE subscribe to A2A task updates."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
+
             a2a = create_a2a_server(mcp)
             task_id = request.path_params.get("task_id", "")
+
             async def event_generator():
                 task = await a2a.task_manager.get_task(task_id)
                 if task:
                     yield f"data: {task.state.value if hasattr(task.state, 'value') else 'running'}\n\n"
-                yield "data: {\"status\":\"subscribed\"}\n\n"
+                yield 'data: {"status":"subscribed"}\n\n'
+
             from starlette.responses import StreamingResponse
+
             return StreamingResponse(event_generator(), media_type="text/event-stream")
         except Exception:
             return _rest_error("A2A subscription failed", status_code=500)
@@ -2112,22 +2249,25 @@ def register_rest_routes(
         """WebMCP discovery document."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
+
             create_webmcp_app(mcp)
             base = _public_base_url(request)
-            return JSONResponse({
-                "site": {
-                    "version": BUILD_VERSION,
-                    "name": "arifOS WebMCP",
-                },
-                "webmcp_version": "1.0",
-                "endpoints": {
-                    "console": f"{base}/webmcp",
-                    "sdk": f"{base}/webmcp/sdk.js",
-                    "tools": f"{base}/webmcp/tools.json",
-                    "init": f"{base}/webmcp/init"
-                },
-                "description": "Browser-native governed interface for arifOS MCP."
-            })
+            return JSONResponse(
+                {
+                    "site": {
+                        "version": BUILD_VERSION,
+                        "name": "arifOS WebMCP",
+                    },
+                    "webmcp_version": "1.0",
+                    "endpoints": {
+                        "console": f"{base}/webmcp",
+                        "sdk": f"{base}/webmcp/sdk.js",
+                        "tools": f"{base}/webmcp/tools.json",
+                        "init": f"{base}/webmcp/init",
+                    },
+                    "description": "Browser-native governed interface for arifOS MCP.",
+                }
+            )
         except Exception:
             return _rest_error("WebMCP discovery failed", status_code=500)
 
@@ -2136,6 +2276,7 @@ def register_rest_routes(
         """WebMCP interactive console — browser-accessible tool playground."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
+
             webmcp_app = create_webmcp_app(mcp)
             base = _public_base_url(request)
             html = f"""<!DOCTYPE html>
@@ -2171,6 +2312,7 @@ init();
         """Browser SDK — drop-in script for web apps."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
+
             create_webmcp_app(mcp)
             base = _public_base_url(request)
             sdk = f"""// arifOS WebMCP SDK v2026.04.11
@@ -2193,6 +2335,7 @@ init();
 }})(window);
 """
             from starlette.responses import Response
+
             return Response(content=sdk, media_type="application/javascript")
         except Exception:
             return _rest_error("WebMCP SDK load failed", status_code=500)
@@ -2213,12 +2356,14 @@ init();
         try:
             body = await request.json()
             session_id = f"webmcp-{uuid.uuid4().hex[:12]}"
-            return JSONResponse({
-                "session_id": session_id,
-                "verdict": "SEAL",
-                "human_approval": body.get("human_approval", False),
-                "protocol_version": "1.0"
-            })
+            return JSONResponse(
+                {
+                    "session_id": session_id,
+                    "verdict": "SEAL",
+                    "human_approval": body.get("human_approval", False),
+                    "protocol_version": "1.0",
+                }
+            )
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -2231,22 +2376,27 @@ init();
             action = body.get("action", "")
             context = body.get("context", "")
             from core.shared.floors import FLOOR_SPEC_KEYS, get_floor_spec
+
             results = []
             for fid in FLOOR_SPEC_KEYS:
                 spec = get_floor_spec(fid)
-                results.append({
-                    "floor": fid,
-                    "name": spec.get("name", fid) if spec else fid,
-                    "verdict": "PASS",
-                    "note": "heuristic mode — ML floors not active"
-                })
+                results.append(
+                    {
+                        "floor": fid,
+                        "name": spec.get("name", fid) if spec else fid,
+                        "verdict": "PASS",
+                        "note": "heuristic mode — ML floors not active",
+                    }
+                )
             verdict = "SEAL" if all(r["verdict"] == "PASS" for r in results) else "HOLD"
-            return JSONResponse({
-                "action": action,
-                "verdict": verdict,
-                "floors_tested": len(results),
-                "results": results
-            })
+            return JSONResponse(
+                {
+                    "action": action,
+                    "verdict": verdict,
+                    "floors_tested": len(results),
+                    "results": results,
+                }
+            )
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -2296,7 +2446,7 @@ GET {base}/.well-known/agent.json — Agent card
 GET {base}/llms.txt — This document
 """
             from starlette.responses import Response
+
             return Response(content=content, media_type="text/plain")
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
-

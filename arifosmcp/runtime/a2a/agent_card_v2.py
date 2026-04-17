@@ -573,8 +573,8 @@ def get_axos_summary() -> dict[str, Any]:
         "version": card.version,
         "total_agents": card.total_agents,
         "axes": card.axes,
-        "entry_point": card.routing.entry_point,
-        "motto": card.constitutional.motto,
-        "trinity": card.constitutional.trinity,
+        "entry_point": card.routing["entry_point"],
+        "motto": card.constitutional["motto"],
+        "trinity": card.constitutional["trinity"],
         "well_known_path": card.well_known_path,
     }
