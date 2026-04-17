@@ -371,10 +371,11 @@ class KernelCore:
                 "w3": getattr(sealed.metrics.witness, "ai", 0.95), # Simplification for now
                 "shadow": getattr(sealed.metrics.telemetry, "shadow", 0.0)
             }
-            sealed.metrics.meta["health_bands"] = TelemetryBands.compute_all_bands(metrics_dict)
+            payload = dict(sealed.payload or {})
+            payload["health_bands"] = TelemetryBands.compute_all_bands(metrics_dict)
+            sealed.payload = payload
             return sealed.to_dict(compact=True)
         return sealed
-
     async def execute(self, query: str | None = None, session_id: str | None = None, actor_id: str | None = None, 
                       intent: str | None = None, auth_context: dict | None = None, risk_tier: str = "medium", 
                       dry_run: bool = True, allow_execution: bool = False, caller_context: dict | None = None, 
