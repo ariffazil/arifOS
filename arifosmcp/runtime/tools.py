@@ -195,7 +195,9 @@ def _load_public_session_context(session_id: str | None) -> dict[str, Any] | Non
         "verified": verified,
         "risk_tier": risk_tier,
         "platform": str(identity.get("platform") or "mcp"),
-        "caller_state": str(identity.get("caller_state") or ("verified" if verified else "anchored")),
+        "caller_state": str(
+            identity.get("caller_state") or ("verified" if verified else "anchored")
+        ),
         "auth_context": auth_context,
     }
 
@@ -214,9 +216,7 @@ def _session_gate_envelope(
         if degraded
         else "Session not found or expired. Re-run arifos_init before invoking governed tools."
     )
-    hint = (
-        "Run arifos_init(actor_id='ARIF', intent='resume session') to restore authority."
-    )
+    hint = "Run arifos_init(actor_id='ARIF', intent='resume session') to restore authority."
     verdict = Verdict.PARTIAL if degraded else Verdict.SABAR
     status = RuntimeStatus.DEGRADED if degraded else RuntimeStatus.SABAR
     payload = {
@@ -258,7 +258,9 @@ def _session_gate_envelope(
     )
 
 
-def _inject_session_snapshot(envelope: RuntimeEnvelope, session_ctx: dict[str, Any]) -> RuntimeEnvelope:
+def _inject_session_snapshot(
+    envelope: RuntimeEnvelope, session_ctx: dict[str, Any]
+) -> RuntimeEnvelope:
     from arifosmcp.runtime.models import ClaimStatus, RiskClass
 
     envelope.caller_state = session_ctx["caller_state"]
@@ -1672,13 +1674,19 @@ async def arifos_vault(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Append immutable verdict to ledger."""
-    envelope = await _mega_vault_ledger(
+    from arifosmcp.runtime.tools_internal import vault_ledger_dispatch_impl
+
+    class FakeCtx:
+        request_id = f"vault-{id(verdict)}"
+        agent_id = "arifos_vault"
+
+    envelope = await vault_ledger_dispatch_impl(
         mode="seal",
-        payload={"verdict": verdict, "evidence": evidence},
-        session_id=session_id,
+        payload={"verdict": verdict, "evidence": evidence or "", "session_id": session_id},
+        auth_context={"actor": "arifos_vault", "verified": False, "claim_status": "anchored"},
         risk_tier=risk_tier,
         dry_run=dry_run,
-        debug=debug,
+        ctx=FakeCtx(),
     )
     _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos_vault")
@@ -2044,9 +2052,15 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
         stage="000_INIT",
         session_id=session_id,
         verdict=verdict,
+<<<<<<< HEAD
         execution_status=(
             ExecutionStatus.SUCCESS if verdict == Verdict.SEAL else ExecutionStatus.ERROR
         ),
+=======
+        execution_status=ExecutionStatus.SUCCESS
+        if verdict == Verdict.SEAL
+        else ExecutionStatus.ERROR,
+>>>>>>> f97f0af (fix: arifos_vault calls vault_ledger_dispatch_impl directly to bypass megaTool parameter mismatch)
         payload={"message": f"Substrate conformance result: {verdict}"},
     )
 
@@ -2533,28 +2547,26 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # Tier 00 — IDENTITY / VAULT
     "arifos_init": _mega_init_anchor,
     "arifos_vault": _mega_vault_ledger,
-    
     # Tier 01 — PERCEPTION
     "arifos_sense": _mega_physics_reality,
-    
     # Tier 04 — RISK
     "arifos_heart": _mega_asi_heart,
-    
     # Tier 05 — EXECUTION
     "arifos_forge": _arifos_forge_public,
-    
     # Tier 07 — REFLECTION
+<<<<<<< HEAD
     "arifos_mind": _mega_agi_mind,
     
+=======
+    "arifos_mind": _arifos_mind_public,
+>>>>>>> f97f0af (fix: arifos_vault calls vault_ledger_dispatch_impl directly to bypass megaTool parameter mismatch)
     # KERNEL & JUDGMENT
     "arifos_judge": _mega_apex_judge,
     "arifos_kernel": _mega_arifos_kernel,
-    
     # UTILITIES / OBSERVE
     "arifos_ops": _mega_math_estimator,
     "arifos_memory": _mega_engineering_memory,
     "arifos_fetch": arifos_fetch,
-    
     # ══════════════════════════════════════════════════════════════════════════
     # Extended / Auxiliary
     # ══════════════════════════════════════════════════════════════════════════
