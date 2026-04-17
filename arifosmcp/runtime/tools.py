@@ -2546,7 +2546,7 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # ══════════════════════════════════════════════════════════════════════════
     # Tier 00 — IDENTITY / VAULT
     "arifos_init": _mega_init_anchor,
-    "arifos_vault": _mega_vault_ledger,
+    "arifos_vault": arifos_vault,  # tools.py version with correct HTTP→dispatch translation
     # Tier 01 — PERCEPTION
     "arifos_sense": _mega_physics_reality,
     # Tier 04 — RISK
