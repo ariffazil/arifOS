@@ -304,6 +304,29 @@ services:
     # NOT for production metabolic paths.
     # ─────────────────────────────────────────────────────────────
 
+  vault-service:
+    build:
+      context: ./vault-service
+      dockerfile: Dockerfile
+    container_name: vault-service
+    init: true
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-arifos_vault}
+      PORT: "8100"
+    networks:
+      - arifos_core_network
+    ports:
+      - "8100:8100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8100/health | grep -q 'healthy' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
 
 volumes:
 
