@@ -1,0 +1,27 @@
+[project]
+name = "arifos-types"
+version = "0.1.0"
+description = "Shared Python types for arifOS ecosystem — constitutional governance OS"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "AGPL-3.0-only"}
+authors = [{name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com"}]
+keywords = ["arifos", "constitutional-ai", "governance", "geoscience", "wealth"]
+dependencies = ["pydantic>=2.0"]
+
+[project.urls]
+Homepage = "https://github.com/ariffazil/arifOS"
+Repository = "https://github.com/ariffazil/arifOS"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["arifos_types*"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+ignore_missing_imports = true
