@@ -101,7 +101,19 @@ class KernelCore:
             payload.setdefault("caller_context", caller_context)
 
         effective_query = payload.get("query") or query or ""
-        effective_actor = str(payload.get("actor_id") or actor_id or "anonymous").strip().lower()
+        
+        # ── Identity Resolution (F11 Hardening) ──
+        from arifosmcp.runtime.sessions import get_session_identity
+        
+        _bound_actor = None
+        if session_id and session_id != "global":
+            _identity = get_session_identity(session_id)
+            if _identity:
+                _bound_actor = _identity.get("actor_id")
+        
+        effective_actor = (
+            _bound_actor or payload.get("actor_id") or actor_id or "anonymous"
+        ).strip().lower()
 
         # Pattern selection
         selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
@@ -319,10 +331,21 @@ class KernelCore:
             metrics = getattr(envelope, "metrics", None)
             pl = envelope.payload if isinstance(envelope.payload, dict) else {}
             
+            delta_s = float(
+                pl.get("delta_s", getattr(metrics.telemetry, "ds", -0.01) if metrics else -0.01)
+            )
+            g_score = float(
+                pl.get(
+                    "truth_score",
+                    getattr(metrics.telemetry, "confidence", 0.85) if metrics else 0.85
+                )
+            )
+            omega_score = float(pl.get("omega_score", 0.04))
+
             scores = AtlasScores(
-                delta_s=float(pl.get("delta_s", getattr(metrics.telemetry, "ds", -0.01) if metrics else -0.01)),
-                g_score=float(pl.get("truth_score", getattr(metrics.telemetry, "confidence", 0.85) if metrics else 0.85)),
-                omega_score=float(pl.get("omega_score", 0.04)), # Humility band
+                delta_s=delta_s,
+                g_score=g_score,
+                omega_score=omega_score,
                 lyapunov_sign="stable",
                 verdict=str(envelope.verdict),
                 session_stage=str(envelope.stage),

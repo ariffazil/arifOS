@@ -258,7 +258,7 @@ This separation ensures the **Constitution** remains constant even as **Technolo
 - **Entropy:** ΔS measured orthogonally (each dimension independent)
 - **Quantum:** Superposition of reasoning states until 333 measurement
 
-**Fractal Code (ASI 555-666):**
+**Fractal Code (ASI Heart 555–666):**
 - **Shape:** Self-similar patterns at all scales (stakeholder → weakest → individual)
 - **Empathy:** Theory of Mind recursively applied (I model you modeling me...)
 - **Scale-invariance:** Same empathy principles apply to individual/group/society
@@ -509,7 +509,7 @@ Requirement: All 3 votes = 1 (SEAL) for final SEAL verdict
 
 **Checkpoints:**
 1. Receive Delta bundle from AGI 333
-2. Receive Omega bundle from ASI 666 (parallel execution)
+2. Receive Omega bundle from ASI Heart (stage 666) (parallel execution)
 3. **Trinity vote aggregation:**
    - If AGI vote = VOID → Cannot SEAL
    - If ASI vote = VOID → Cannot SEAL
@@ -844,7 +844,7 @@ Result: No hallucination. No false certainty. Safety preserved.
 
 ## §5 INTER-STAGE HANDOFFS
 
-### 5.1 Delta Bundle (AGI 333 → ASI 555 + APEX 444)
+### 5.1 Delta Bundle (AGI 333 → ASI Heart 555 + APEX 444)
 
 **Structure:**
 ```json
@@ -873,11 +873,11 @@ Result: No hallucination. No false certainty. Safety preserved.
 ```
 
 **Handoff Protocol:**
-- AGI completes 333 → Passes Delta to both 555 (ASI) and 444 (APEX) in parallel
+- AGI completes 333 → Passes Delta to both 555 (ASI Heart) and 444 (APEX) in parallel
 - ASI uses Delta for safety validation (555→666)
 - APEX uses Delta for trinity aggregation (444)
 
-### 5.2 Omega Bundle (ASI 666 → APEX 444)
+### 5.2 Omega Bundle (ASI Heart 666 → APEX 444)
 
 **Structure:**
 ```json

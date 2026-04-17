@@ -23,9 +23,9 @@ Every action — every tool call, every reasoning step, every output — passes 
 
 ### Trinity Model (ΔΩΨ)
 
-- **Δ (SOUL)**: Human values, purpose, intent
-- **Ω (MIND)**: The 13 Floors — constitutional law
-- **Ψ (BODY)**: Tool execution, MCP servers, APIs
+- **Δ (Human/Body)**: Change, difference, movement — human identity, biography, scars
+- **Ω (Constitution/Mind)**: Completion, resistance — constitutional law, constraints
+- **Ψ (Machine/Soul)**: Psychology, spirit — execution, judgment, verdict
 - **W³**: Consensus across theory, constitution, and manifesto (≥ 0.95)
 
 ---

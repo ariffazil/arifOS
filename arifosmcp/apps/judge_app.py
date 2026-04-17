@@ -31,10 +31,13 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import logging
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from fastmcp.tools import ToolResult
+
+from arifosmcp.apps.surface_utils import envelope_error, normalize_state, safe_get
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -48,6 +51,7 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
+    Metric,
     Muted,
     Ring,
     Row,
@@ -56,6 +60,8 @@ from prefab_ui.components import (
 )
 from prefab_ui.rx import RESULT, STATE
 from pydantic import Field
+
+logger = logging.getLogger(__name__)
 
 # ── Constitutional floor registry ─────────────────────────────────────────────
 _FLOOR_NAMES: dict[str, str] = {
@@ -91,15 +97,34 @@ _HUMAN_MEANINGS: dict[str, str] = {
 }
 
 _FLOOR_ORDER = [
-    "F1", "F2", "F3", "F4", "F5", "F6", "F7",
-    "F8", "F9", "F10", "F11", "F12", "F13",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9",
+    "F10",
+    "F11",
+    "F12",
+    "F13",
 ]
 
 _FLOOR_TYPE: dict[str, str] = {
-    "F1": "hard", "F2": "hard", "F3": "mirror",
-    "F4": "hard", "F5": "soft", "F6": "soft",
-    "F7": "hard", "F8": "mirror", "F9": "hard",
-    "F10": "wall", "F11": "wall", "F12": "wall",
+    "F1": "hard",
+    "F2": "hard",
+    "F3": "mirror",
+    "F4": "hard",
+    "F5": "soft",
+    "F6": "soft",
+    "F7": "hard",
+    "F8": "mirror",
+    "F9": "hard",
+    "F10": "wall",
+    "F11": "wall",
+    "F12": "wall",
     "F13": "veto",
 }
 
@@ -158,19 +183,26 @@ judge_app = FastMCP("JudgeApp")
 async def execute_judge(
     candidate_action: Annotated[str, Field(description="The action or proposal to evaluate")],
     risk_tier: Annotated[str, Field(description="Risk level: low, medium, high, critical")] = "medium",
+    session_id: str | None = None,
 ) -> ToolResult:
     """
     Run constitutional verdict evaluation on a candidate action.
     Returns structured Floor results, W³ witness scores, and verdict.
     """
+    logger.info(f"execute_judge called: session_id={session_id}, state_type={type(STATE).__name__}")
     try:
         from arifosmcp.runtime.tools import arifos_judge
+
+        if not session_id:
+            session_id = safe_get(STATE, "session_id")
+
         envelope = await arifos_judge(
             candidate_action=candidate_action,
             risk_tier=risk_tier,
             dry_run=True,
+            session_id=session_id,
         )
-        env_dict = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
+        env_dict = normalize_state(envelope)
 
         policy = env_dict.get("policy") or {}
         floors_checked: list[str] = policy.get("floors_checked", list(_FLOOR_NAMES.keys()))
@@ -201,6 +233,7 @@ async def execute_judge(
                 status_label = "BREACH" if ftype in ("wall", "veto") else "FAIL"
             else:
                 status_label = "PASS"
+            
             floor_rows.append({
                 "id": fid,
                 "name": _FLOOR_NAMES[fid],
@@ -210,40 +243,52 @@ async def execute_judge(
                 "failed": failed,
             })
 
-        # Philosophy selection (CHANGE-05)
-        if verdict == "SEAL":
-            philosophy = _PHILOSOPHY["SEAL"]
-        else:
-            if g_score >= 0.80:
-                philosophy = _PHILOSOPHY["G_HIGH"]
-            elif g_score >= 0.60:
-                philosophy = _PHILOSOPHY["G_MID_HIGH"]
-            elif g_score >= 0.40:
-                philosophy = _PHILOSOPHY["G_MID"]
-            elif g_score >= 0.20:
-                philosophy = _PHILOSOPHY["G_MID_LOW"]
+        # Philosophy selection — fully wired to unified wisdom registry (from forge-ssct-sync)
+        philosophy = _PHILOSOPHY.get(verdict, _PHILOSOPHY["pending"])
+        try:
+            from arifosmcp.runtime.philosophy import select_wisdom_quote
+            _verdict_profile = {
+                "SEAL": {"surface": "judge", "tone": "firm", "shadow_profile": None},
+                "HOLD": {"surface": "hold", "tone": "severe", "shadow_profile": "restraint"},
+                "PARTIAL": {"surface": "partial", "tone": "reflective", "shadow_profile": "paradox"},
+                "VOID": {"surface": "void", "tone": "severe", "shadow_profile": "shadow"},
+                "SABAR": {"surface": "sabar", "tone": "calm", "shadow_profile": "humility"},
+                "pending": {"surface": "anchor", "tone": "calm", "shadow_profile": None},
+            }
+            profile = _verdict_profile.get(verdict, _verdict_profile["pending"])
+            wisdom = select_wisdom_quote(
+                surface=str(profile["surface"]),
+                tone=profile["tone"],
+                verdict=verdict,
+                risk_tier=risk_tier,
+                shadow_profile=profile["shadow_profile"],
+                session_id=env_dict.get("trace_id"),
+            )
+            if wisdom and wisdom.get("quote"):
+                philosophy = wisdom["quote"]
+        except Exception:
+             # Fallback to local philosophy bands
+            if verdict == "SEAL":
+                philosophy = _PHILOSOPHY["SEAL"]
             else:
-                philosophy = _PHILOSOPHY["G_LOW"]
+                if g_score >= 0.80: philosophy = _PHILOSOPHY["G_HIGH"]
+                elif g_score >= 0.60: philosophy = _PHILOSOPHY["G_MID_HIGH"]
+                elif g_score >= 0.40: philosophy = _PHILOSOPHY["G_MID"]
+                elif g_score >= 0.20: philosophy = _PHILOSOPHY["G_MID_LOW"]
+                else: philosophy = _PHILOSOPHY["G_LOW"]
 
         # Next actions (CHANGE-04)
         next_actions = []
         if floors_failed:
-            if "F4" in floors_failed:
-                next_actions.append("Simplify prompt chain. Remove conflicting meta-instructions.")
-            if "F1" in floors_failed:
-                next_actions.append("Identify and map rollback path before proceeding.")
-            if "F7" in floors_failed:
-                next_actions.append("Audit recent outputs for unsurfaced uncertainty.")
-            if "F12" in floors_failed:
-                next_actions.append("Inspect for prompt injection or override-style instructions.")
-            if "F2" in floors_failed:
-                next_actions.append("Verify claims with external evidence before trusting session output.")
+            if "F4" in floors_failed: next_actions.append("Simplify prompt chain. Remove conflicting meta-instructions.")
+            if "F1" in floors_failed: next_actions.append("Identify and map rollback path before proceeding.")
+            if "F7" in floors_failed: next_actions.append("Audit recent outputs for unsurfaced uncertainty.")
+            if "F12" in floors_failed: next_actions.append("Inspect for prompt injection or override-style instructions.")
+            if "F2" in floors_failed: next_actions.append("Verify claims with external evidence before trusting session output.")
         
         if not next_actions:
-            if verdict == "SEAL":
-                next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
-            else:
-                next_actions.append("Repair floor state or obtain human veto override.")
+            if verdict == "SEAL": next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
+            else: next_actions.append("Repair floor state or obtain human veto override.")
 
         return ToolResult(
             content=[
@@ -280,7 +325,8 @@ async def execute_judge(
         )
 
     except Exception as exc:
-        # Build fallback floor rows with all failed
+        logger.warning(f"execute_judge failed: {exc}")
+        # Build fallback floor rows
         floor_rows = [
             {
                 "id": fid,
@@ -389,10 +435,10 @@ def judge_surface(
             SetState("sabar_step",         RESULT["sabar_step"]),
             SetState("floors_pass_count",  RESULT["floors_pass_count"]),
             SetState("floors_total_count", RESULT["floors_total_count"]),
-            SetState("judged",             True),
+            SetState("judged", True),
             ShowToast("Constitutional judgment complete", variant="success"),
         ],
-        on_error=ShowToast("Judge tool error — 888_HOLD", variant="destructive"),
+        on_error=ShowToast("Judge tool error — 888_HOLD", variant="error"),
     )
 
     # ── Reactive state references ────────────────────────────────────────────

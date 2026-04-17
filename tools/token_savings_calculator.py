@@ -28,7 +28,7 @@ class ThermodynamicState:
     sigma: float  # Uncertainty (entropy measure, 0-1)
     C: float  # Coherence (work quality, 0-1)
     delta_s: float  # Entropy change (negative = reducing disorder)
-    omega_0: float  # Humility (baseline uncertainty, 0.03-0.20)
+    omega_0: float  # Humility (baseline uncertainty, 0.03-0.05)
     
     def energy_efficiency(self) -> float:
         """Calculate energy efficiency: useful work / energy input."""

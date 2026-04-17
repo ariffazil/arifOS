@@ -10,7 +10,7 @@
 
 Define the mathematical calculation of epistemic uncertainty (Ω₀) and its enforcement as a constitutional constraint. Ensures the system maintains appropriate humility—neither overconfident (Godellock) nor paralyzed.
 
-**F7 (Humility):** Ω₀ ∈ [0.03, 0.15] — The Goldilocks Band.
+**F7 (Humility):** Ω₀ ∈ [0.03, 0.05] — The Goldilocks Band. (Per SURFACE_SYNC.md SSCT: [0.03–0.15] is non-canonical.)
 
 ---
 
@@ -351,7 +351,7 @@ For model/tool implementers:
 
 - [ ] Calculate Ω₀ for every response
 - [ ] Return Ω₀ in verdict metrics
-- [ ] Enforce [0.03, 0.15] band
+- [ ] Enforce [0.03, 0.05] band (per F07_HUMILITY.md canonical)
 - [ ] VOID on Godellock (Ω₀ < 0.03)
 - [ ] SABAR on Paralysis (Ω₀ > 0.15)
 - [ ] Inject uncertainty when needed

@@ -28,6 +28,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
@@ -47,14 +48,19 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
+    Metric,
     Muted,
     Ring,
     Row,
+    Select,
+    SelectOption,
     Separator,
     Text,
 )
 from prefab_ui.rx import RESULT, STATE
 from pydantic import Field
+
+logger = logging.getLogger(__name__)
 
 # ── Operator interpretation (CHANGE-01) ───────────────────────────────────────
 _STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
@@ -101,14 +107,11 @@ async def anchor_session(
     """
     try:
         from arifosmcp.runtime.tools import arifos_init
+
         envelope = await arifos_init(
             declared_intent=declared_intent or "General session",
         )
-        env_dict = (
-            envelope.model_dump()
-            if hasattr(envelope, "model_dump")
-            else dict(envelope)
-        )
+        env_dict = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
 
         session_id = env_dict.get("session_id", "—")
         epoch = env_dict.get("epoch", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
@@ -121,6 +124,14 @@ async def anchor_session(
             next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
         else:
             next_actions.append("Identity incomplete or intent unclear. Refine declaration.")
+
+        # ── Wisdom quote for anchor surface (Logic from forge-ssct-sync) ──────
+        try:
+            from arifosmcp.runtime.philosophy import select_wisdom_quote
+            _wisdom_res = select_wisdom_quote("anchor")
+            _philosophy_text = f'"{_wisdom_res["quote"]}" — {_wisdom_res["author"]}' if _wisdom_res else _PHILOSOPHY["SEAL"]
+        except Exception:
+            _philosophy_text = _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"]
 
         return ToolResult(
             content=[
@@ -140,13 +151,14 @@ async def anchor_session(
                         "anchored": True,
                         "trace_id": env_dict.get("trace_id", "—"),
                         "next_actions": next_actions,
-                        "philosophy": _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"],
+                        "philosophy": _philosophy_text,
                     },
                 },
             ]
         )
 
     except Exception as exc:
+        logger.warning(f"anchor_session failed: {exc}")
         return ToolResult(
             is_error=True,
             content=[
@@ -213,7 +225,7 @@ def init_surface(
             SetState("philosophy",       RESULT["philosophy"]),
             ShowToast("Session anchored — 000_INIT sealed", variant="success"),
         ],
-        on_error=ShowToast("Session anchor failed", variant="destructive"),
+        on_error=ShowToast("Session anchor failed", variant="error"),
     )
 
     # ── Reactive bindings ────────────────────────────────────────────────────
@@ -250,6 +262,19 @@ def init_surface(
 
         Muted("Constitutional session anchoring · DITEMPA BUKAN DIBERI")
         Separator()
+
+        # ── Wisdom strip ─────────────────────────────────────────────────────
+        try:
+            from arifosmcp.runtime.philosophy import select_wisdom_quote
+
+            _wisdom = select_wisdom_quote("anchor")
+            if _wisdom and _wisdom.get("quote"):
+                Muted(
+                    f'"{_wisdom["quote"]}" — {_wisdom["author"]}',
+                    css_class="text-xs italic border-l-2 pl-3 border-muted-foreground/30",
+                )
+        except Exception:
+            pass
 
         # ── Epoch + Intent ──────────────────────────────────────────────────
         with Card():
@@ -352,8 +377,7 @@ def init_surface(
                 Alert(
                     title="F1 Amanah — Irreversible",
                     description=(
-                        "Session anchoring is a commitment. "
-                        "Once sealed, this session cannot be undone."
+                        "Session anchoring is a commitment. Once sealed, this session cannot be undone."
                     ),
                     variant="warning",
                 )
