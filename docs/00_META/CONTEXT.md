@@ -1,5 +1,10 @@
 # CONTEXT.md — Shared Agent Context
-> **Last updated: 2026-03-13 by Gemini CLI (gemini-2.0-flash)**
+> **⚠️ DEPRECATED — Update to current state needed. Last updated: 2026-03-13 by Gemini CLI (gemini-2.0-flash)**
+>
+> **IMPORTANT**: The live MCP endpoint has migrated from `arifosmcp.arif-fazil.com` to **`mcp.arif-fazil.com`** (20-tool surface, v2026.4.13+). The old endpoint `arifosmcp.arif-fazil.com` is stale and should not be used.
+>
+> **20-tool surface**: 11 canonical + 9 P_* oracles. See `SKILL_arifOS_horizon.md` for the canonical tool reference.
+>
 > This file is the single source of truth about the owner, projects, and infrastructure.
 > All AI agents (Claude Code, kimi-cli, opencode, gemini, codex, aider) must read this before working.
 
@@ -53,7 +58,7 @@ GitHub: `ariffazil` | Website: https://arif-fazil.com
 ### 3. arifosmcp
 - **What**: The live production MCP server — the running implementation of arifOS
 - **GitHub**: https://github.com/ariffazil/arifosmcp
-- **Live endpoint**: https://arifosmcp.arif-fazil.com/mcp
+- **Live endpoint**: https://mcp.arif-fazil.com/mcp (⚠️ `arifosmcp.arif-fazil.com` is stale — do not use)
 - **Current version**: `2026.03.13-FORGED` (git: `1af6d53b`)
 - **PyPI**: `arifosmcp`
 - **VPS path**: `/root/arifosmcp/`
@@ -142,7 +147,7 @@ All 12 containers running. **All healthy.** AgentZero initialized.
 | Layer | Name | URL | Hosting |
 |-------|------|-----|---------|
 | Law | arifOS docs | arifos.arif-fazil.com | GitHub Pages |
-| Brain | arifosmcp server | arifosmcp.arif-fazil.com | VPS (live) |
+| Brain | arifosmcp server | **mcp.arif-fazil.com** (canonical, 20 tools) | VPS (live) |
 | Soul | APEX Theory | apex.arif-fazil.com | Cloudflare Pages |
 | Eye | Monitoring | monitor.arifosmcp.arif-fazil.com | Grafana on VPS |
 

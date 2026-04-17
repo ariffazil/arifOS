@@ -4,6 +4,10 @@ This document provides the operational context for AI agents working within the 
 
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
+> ⚠️ **DEPRECATED ENDPOINT**: `arifosmcp.arif-fazil.com` is stale (11 tools, v2026.04.07). Use **`mcp.arif-fazil.com`** (20 tools, v2026.4.13).
+>
+> ⚠️ **DEPRECATED TOOL NAMES** (do not use): `arifos_anchor_session` → `arifos_init` | `arifos_execute_judge` → `arifos_judge` | `arifos_forge_execute` → `arifos_forge(dry_run=False)` | `arifos_perform_economic_audit` → `arifos_ops(mode="economic_audit")` | `arifos_verify_location` → `arifos_sense(mode="location")` | `arifos_monitor_metabolism` → `arifos_ops(mode="metabolism")` | `arifos_get_vault_data` → `arifos_vault(mode="read")`
+
 ---
 
 ## 🏛️ Project Overview
