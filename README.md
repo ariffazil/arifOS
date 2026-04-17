@@ -9,7 +9,7 @@
 > **Runtime truth (what's running now):** Live `/health` and `/tools` on deployed server — see `/.well-known/mcp/server.json` and `/.well-known/agent.json`
 
 ```
-VERSION:            2026.4.16
+VERSION:            2026.04.16
 STATUS:             OPERATIONAL — 999_SEAL ACHIEVED 🔒
 AUTHORITY:         888_APEX
 CONSTITUTION:      arifosmcp/specs/resource_specs.py + K-indexed Organ Canon
@@ -19,7 +19,7 @@ SEAL:              SEAL_20260413_RESOURCE_CONSOLIDATION
 SOURCE_REPO:       https://github.com/ariffazil/arifOS
 CANONICAL_INDEX:   arifos://schema
 
-ARCHITECTURE:      11 Public Tools + 5 Canonical Resources + 6 MCP Substrates
+ARCHITECTURE:      11 Governance Tools + 4 Capital Tools + 5 Canonical Resources + 6 Substrates
 KERNEL:            Unified rCore (INPUT → ORCHESTRATE → OUTPUT)
 MCP_SUBSTRATES:    Time, Filesystem, Git, Memory, Fetch, Everything
 DEPLOYMENT:       VPS Unified Stack (Postgres + Redis + Qdrant + Ollama + Traefik)
@@ -382,7 +382,6 @@ arifOS/
 ├── arifosmcp/                        # MCP server implementation
 │   ├── specs/resource_specs.py       # K-indexed resource canon
 │   └── evals/mcp_inspector_test.py   # Integration test suite
-├── arifos-2026.4.16/                 # Versioned snapshot
 ├── APEX/                             # Apex docs — prompts, protocols
 │   ├── PRODUCTION_PROMPT_PACK_v1.md
 │   └── ASF1_COMMUNICATION_PROTOCOL.md
@@ -608,7 +607,7 @@ arifOS operates on **verifiable trust**: open source, immutable logs, explicit c
 
 ---
 
-*Version: 2026.4.16 · Kernel: ΔΩΨ-ARIF-888 · Seal: SEAL_20260413_RESOURCE_CONSOLIDATION · Readiness: 100/100 · Status: OPERATIONAL*
+*Version: 2026.04.16 · Kernel: ΔΩΨ-ARIF-888 · Seal: SEAL_20260413_RESOURCE_CONSOLIDATION · Readiness: 100/100 · Status: OPERATIONAL*
 
 ---
 
