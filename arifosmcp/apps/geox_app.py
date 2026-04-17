@@ -7,7 +7,7 @@ arifOS GeoxApp — The Earth Witness Surface (@GEOX)
 Implements the geospatial/subsurface organ interface as a FastMCPApp:
 
   @app.ui()   geox_map_surface  — entry; renders geospatial verify card + 3D Earth link
-  @app.tool() verify_location    — backend; calls core.organs.geox
+  @app.tool() arifos_verify_location (HOLD) — backend; calls core.organs.geox
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

@@ -739,7 +739,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     # 22. Metabolic Monitor (APP)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="monitor_metabolism",
+        name="arifos_monitor_metabolism",
         stage="111",
         purpose="Monitor metabolism — Real-time health dashboard",
         layer="SURFACE",

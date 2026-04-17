@@ -7,7 +7,7 @@ arifOS VaultApp — FastMCP Immutable Ledger Surface (999_VAULT)
 Implements the immutable verdict ledger as a FastMCPApp:
 
   @app.ui()   vault_ledger_surface  — entry; renders seal card + ledger table
-  @app.tool() get_vault_data        — backend; reads VAULT999/outcomes.jsonl
+  @app.tool() arifos_get_vault_data — backend; reads VAULT999/outcomes.jsonl
                                       + builds BLS seal card
 
 F1 Amanah enforced: append-only display, no edit/delete controls anywhere.

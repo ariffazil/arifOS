@@ -163,7 +163,7 @@ All defined in `arifosmcp.runtime/server.py` with `@mcp.tool()` decorators.
 
 | Tool (UX Verb)     | Lane    | Stage   | Floors          | Purpose                               |
 | ------------------ | ------- | ------- | --------------- | ------------------------------------- |
-| `anchor_session`   | Δ Delta | 000     | F11, F12, F13   | Session ignition & injection defense  |
+| `arifos_anchor_session` | Δ Delta | 000     | F11, F12, F13   | Session ignition & injection defense  |
 | `reason_mind`      | Δ Delta | 333     | F2, F4, F7, F8  | AGI cognition                         |
 | `vector_memory`    | Ω Omega | 555     | F4, F7, F13     | Associative memory traces             |
 | `simulate_heart`   | Ω Omega | 666     | F4, F5, F6      | Stakeholder impact & care constraints |

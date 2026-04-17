@@ -193,7 +193,7 @@ flowchart TD
     class V000,S999,A888 sovereign
 ```
 
-The registry (`arifosmcp/tool_registry.json`) is the **Single Source of Constitutional Truth (SSCT)**. Its SHA-256 hash is verified at every boot and committed to `VAULT999/seals/GENESIS_SEAL.json`. Unauthorized drift triggers automatic HOLD.
+The registry (`arifosmcp/tool_registry_v2.json`) is the **canonical 99-tool registry**; `tool_registry.json` is deprecated. Its SHA-256 hash is verified at every boot and committed to `VAULT999/seals/GENESIS_SEAL.json`. Unauthorized drift triggers automatic HOLD.
 
 ---
 
@@ -252,9 +252,9 @@ Each stage runs a hardened production prompt from the **Production Prompt Pack v
 
 ---
 
-## Tool Ecosystem — 11 Public Tools
+## Tool Ecosystem — 28 Public Tools
 
-arifOS exposes **10 Governance + Observability tools** + **1 Execution Bridge** under the FastMCP public surface. All use underscore naming (`arifos_init`, `arifos_route`, etc.).
+arifOS exposes **28 live tools** under the FastMCP public surface. All use underscore naming (`arifos_init`, `arifos_kernel`, etc.).
 
 Every governance tool requires **Theory of Mind (ToM)** structured fields — forcing the LLM to externalize its mental model before any action.
 
@@ -263,7 +263,7 @@ Every governance tool requires **Theory of Mind (ToM)** structured fields — fo
 | `arifos_init` | 000_INIT | Session anchoring | Session ID, ANCHORED status, philosophy |
 | `arifos_sense` | 111_SENSE | Reality grounding | Grounded status, entropy delta |
 | `arifos_mind` | 333_MIND | Structured reasoning | Consistency check, decision vector |
-| `arifos_route` | 444_KERNEL | Risk routing, lane selection | Execution path, escalation flag |
+| `arifos_kernel` | 444_KERNEL | Metabolic conductor and route dispatcher | Execution path, escalation flag |
 | `arifos_heart` | 666_HEART | Safety & human modeling | Risk assessment, harm vectors |
 | `arifos_ops` | 444_OPS | Operational cost, feasibility | Resource estimate, rollback plan |
 | `arifos_judge` | 888_JUDGE | Constitutional verdict | **SEAL / HOLD / VOID** |
@@ -551,7 +551,7 @@ Every response envelope includes:
 Amendments follow a data-driven process — **no runtime code modification required** for tool changes:
 
 ```
-Modify tool_registry.json
+Modify tool_registry_v2.json
     → Validate schema integrity
     → Compute new registry hash
     → 888_APEX issues SEAL verdict

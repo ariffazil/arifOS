@@ -7,7 +7,7 @@ arifOS WealthApp — The Economist Surface (@WEALTH)
 Implements the economic organ interface as a FastMCPApp:
 
   @app.ui()   wealth_dashboard_surface  — entry; renders economic metrics + analysis tool
-  @app.tool() perform_economic_audit    — backend; calls core.organs.wealth
+  @app.tool() arifos_perform_economic_audit (HOLD) — backend; calls core.organs.wealth
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

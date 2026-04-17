@@ -141,7 +141,7 @@ You **MUST** trigger an `888_HOLD` and await human confirmation for any high-sta
 
 ### Public MCP Surface (Sovereign Federation Hub)
 The **Federation Hub (`arifosmcp.transport` / `arifosmcp.intelligence`)** exposes the arifOS Intelligence Kernel through 13 canonical system calls:
-- `anchor_session` (000 - Airlock)
+- `arifos_anchor_session` (000 - Airlock)
 - `reason_mind` (111-444 - Mind)
 - `vector_memory` (555 - Subconscious)
 - `simulate_heart` (555-666 - Empathy)

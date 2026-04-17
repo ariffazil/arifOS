@@ -7,7 +7,7 @@ arifOS ForgeApp — Double-Gated Execution Surface (FORGE)
 Implements the forge execution surface as a FastMCPApp:
 
   @app.ui()   forge_surface      — entry; shows action, judge verdict, approval gate
-  @app.tool() forge_execute      — backend; calls arifos_forge with F13 guard
+  @app.tool() arifos_forge_execute — backend; calls arifos_forge with F13 guard
 
 Double-gate architecture:
   Gate 1: 888_JUDGE must return SEAL (constitutional verdict)

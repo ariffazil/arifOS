@@ -7,7 +7,7 @@ arifOS InitApp — Session Anchoring Surface (000_INIT)
 Implements the session anchoring surface as a FastMCPApp:
 
   @app.ui()   init_surface      — entry; shows epoch, intent, mode selector
-  @app.tool() anchor_session    — backend; calls arifos_init, returns session data
+  @app.tool() arifos_anchor_session — backend; calls arifos_init, returns session data
 
 UI anatomy:
   ┌── 000 Session Anchor ─────────────────────────────────────────────┐

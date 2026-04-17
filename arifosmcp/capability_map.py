@@ -1,13 +1,13 @@
 """
 arifosmcp/capability_map.py --- Canonical Tool Registry & Capability Matrix
 
-This module defines the canonical 11-tool metabolic surface and maps 
+This module defines the canonical 28-tool constitutional surface and maps
 the legacy arifos.tool names to the new arifos_tool underscored convention.
 """
 
 from __future__ import annotations
 
-# Canonical 11-tool metabolic mapping
+# Canonical 28-tool constitutional mapping
 CANONICAL_TOOL_HANDLERS = {
     "arifos_init": "arifos_init",
     "arifos_sense": "arifos_sense",
@@ -106,7 +106,7 @@ def build_llm_context_map() -> dict[str, object]:
             "init_anchor": "arifos_init",
             "evidence_sense": "arifos_sense",
             "agi_mind": "arifos_mind",
-            "route_meta": "arifos_route",
+            "route_meta": "arifos_kernel",
             "memory_recall": "arifos_memory",
             "asi_heart": "arifos_heart",
             "ops_metrics": "arifos_ops",

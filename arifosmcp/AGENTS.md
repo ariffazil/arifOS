@@ -54,7 +54,7 @@ telegram: @AGI_ASI_bot
 ### GOVERNANCE (Ψ Soul)
 
 - `arifos_init` — Constitutional session ignition (000)
-- `arifos_route` — Metabolic lane routing (444)
+- `arifos_kernel` — Metabolic conductor and route dispatcher (444)
 - `arifos_judge` — Sovereign verdict rendering (888)
 - `arifos_vault` — Immutable Merkle-hashed recording (999)
 

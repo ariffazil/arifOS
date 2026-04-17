@@ -7,7 +7,7 @@ arifOS JudgeApp — FastMCP Constitutional Verdict Surface (888_JUDGE)
 Implements the constitutional verdict surface as a FastMCPApp:
 
   @app.ui()  judge_surface     — entry point; renders full verdict UI
-  @app.tool() execute_judge    — backend; calls arifos_judge, returns structured data
+  @app.tool() arifos_execute_judge (HOLD) — backend; calls arifos_judge, returns structured data
 
 UI anatomy (REACTIVE — all badges/values update after judge runs):
   ┌── Header: candidate action + risk tier ────────────────────────┐
