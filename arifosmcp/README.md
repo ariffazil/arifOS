@@ -21,9 +21,10 @@
 ### Live Services
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **MCP Endpoint** | https://arifosmcp.arif-fazil.com/mcp | Main API |
-| **Health + Tools** | https://arifosmcp.arif-fazil.com/health | Capability map |
-| **Tool Explorer** | https://arifosmcp.arif-fazil.com/tools | Interactive browser |
+| **MCP Endpoint** | https://mcp.arif-fazil.com/mcp | Main API (20 tools, v2026.4.13+) |
+| **Health + Tools** | https://mcp.arif-fazil.com/health | Capability map |
+| **Tool Explorer** | https://mcp.arif-fazil.com/tools | Interactive browser |
+| ⚠️ **Stale (do not use)** | `arifosmcp.arif-fazil.com/*` | Redirects to `mcp.arif-fazil.com` (11 tools, v2026.04.07) |
 
 ### GitHub Repositories
 | Repo | URL |
