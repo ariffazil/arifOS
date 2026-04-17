@@ -1,0 +1,46 @@
+{
+  "mcpServers": {
+    "arifos-p": {
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.run", "--agent", "P"],
+      "env": {},
+      "description": "Perception Agent — Reads reality from WELL, GEOX, VAULT, WEALTH"
+    },
+    "arifos-t": {
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.run", "--agent", "T"],
+      "env": {},
+      "description": "Transformation Agent — Physics, math, monte_carlo computation"
+    },
+    "arifos-v": {
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.run", "--agent", "V"],
+      "env": {},
+      "description": "Valuation Agent — NPV, EMV, allocation ranking"
+    },
+    "arifos-g": {
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.run", "--agent", "G"],
+      "env": {},
+      "description": "Governance Agent — Route, reason, judge, enforce ethics"
+    },
+    "arifos-e": {
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.run", "--agent", "E"],
+      "env": {},
+      "description": "Execution Agent — Forge, vault, memory mutation"
+    },
+    "arifos-m": {
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.run", "--agent", "M"],
+      "env": {},
+      "description": "Meta Agent — Omega monitoring, skill discovery"
+    },
+    "arifos-unified": {
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.run", "--agents", "P,T,V,G,E,M"],
+      "env": {},
+      "description": "Unified arifOS MCP — All 6 agents in one server"
+    }
+  }
+}
