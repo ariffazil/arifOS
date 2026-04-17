@@ -374,10 +374,8 @@ async def run_stage(
             return await agi_reason(
                 query=query,
                 session_id=session_id,
-                pns_search=search_res.model_dump() if search_res else None,
                 ctx=None,  # type: ignore
                 auth_context=auth_ctx,
-                constitutional_context=c_ctx,
             )
 
         # 3. AGI·REFLECT (555) - Sensory (Feeds PNS·VISION)
@@ -395,7 +393,6 @@ async def run_stage(
             return await agi_reflect(
                 topic=query,
                 session_id=session_id,
-                pns_vision=vision_res.model_dump() if vision_res else None,
                 ctx=None,  # type: ignore
             )
 
