@@ -1,12 +1,13 @@
 -- ============================================================
--- arifOS Schema v1.0 — Initial Migration
+-- arifOS Schema v1.0 — Initial Migration (HARDENED)
 -- ============================================================
 
--- VAULT999: Immutable seal ledger
--- append-only enforced via trigger below
+-- 1. VAULT999: Immutable seal ledger (MerkleV3 Support)
 CREATE TABLE IF NOT EXISTS arifosmcp_vault_seals (
   id            BIGSERIAL PRIMARY KEY,
+  record_id     UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   seal_id       TEXT NOT NULL UNIQUE,
+  prev_hash     TEXT NOT NULL, -- MerkleV3 requirement
   agent_id      TEXT NOT NULL,
   action        TEXT NOT NULL,
   payload       JSONB NOT NULL DEFAULT '{}',
@@ -15,41 +16,75 @@ CREATE TABLE IF NOT EXISTS arifosmcp_vault_seals (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- WELL state: persistent agent/session state
--- replaces /root/WELL/state.json
-CREATE TABLE IF NOT EXISTS arifosmcp_well_states (
+-- 2. SESSIONS: Unified session state
+CREATE TABLE IF NOT EXISTS arifosmcp_sessions (
   id            BIGSERIAL PRIMARY KEY,
-  agent_id      TEXT NOT NULL,
-  state_key     TEXT NOT NULL,
-  state_value   JSONB NOT NULL DEFAULT '{}',
+  session_id    TEXT NOT NULL UNIQUE,
+  actor_id      TEXT NOT NULL,
+  status        TEXT DEFAULT 'active',
+  risk_tier     TEXT DEFAULT 'medium',
+  verdict       TEXT DEFAULT 'PENDING',
+  telemetry     JSONB NOT NULL DEFAULT '{}',
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(agent_id, state_key)
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Tool call audit log
+-- 3. TOOL CALLS: Enhanced Audit Log
 CREATE TABLE IF NOT EXISTS arifosmcp_tool_calls (
-  id            BIGSERIAL PRIMARY KEY,
-  tool_name     TEXT NOT NULL,
-  agent_id      TEXT,
-  input_hash    TEXT,
-  result_code   TEXT,
-  duration_ms   INTEGER,
-  epoch         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id              BIGSERIAL PRIMARY KEY,
+  organ           TEXT NOT NULL, -- arifOS, GEOX, WEALTH
+  session_id      TEXT,
+  tool_name       TEXT NOT NULL,
+  agent_id        TEXT,
+  input_hash      TEXT,
+  verdict         TEXT,
+  floor_triggered TEXT,
+  duration_ms     INTEGER,
+  epoch           TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Canon records: governance decisions, F13 votes, holds
+-- 4. CANON RECORDS: Governance, ADRs, and Votes
 CREATE TABLE IF NOT EXISTS arifosmcp_canon_records (
   id            BIGSERIAL PRIMARY KEY,
-  record_type   TEXT NOT NULL,
-  reference_id  TEXT,
+  record_type   TEXT NOT NULL, -- ADR, F13_VOTE, POLICY
+  reference_id  TEXT, -- ADR link
   body          JSONB NOT NULL DEFAULT '{}',
   verdict       TEXT,
   witness       JSONB,
+  sealed_by     TEXT,
   epoch         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- WEALTH vault: transaction ledger
+-- 5. FLOOR RULES: Constitutional Constraints
+CREATE TABLE IF NOT EXISTS arifosmcp_floor_rules (
+  id            BIGSERIAL PRIMARY KEY,
+  floor_code    TEXT NOT NULL UNIQUE, -- F1, F2...
+  rule_name     TEXT NOT NULL,
+  constraint_definition JSONB NOT NULL DEFAULT '{}',
+  is_active     BOOLEAN DEFAULT TRUE,
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 6. AGENT TELEMETRY: Performance Metrics
+CREATE TABLE IF NOT EXISTS arifosmcp_agent_telemetry (
+  id            BIGSERIAL PRIMARY KEY,
+  agent_id      TEXT NOT NULL,
+  metric_name   TEXT NOT NULL,
+  value         NUMERIC,
+  tags          JSONB,
+  epoch         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 7. DAILY ROOTS: Daily Merkle Anchors
+CREATE TABLE IF NOT EXISTS arifosmcp_daily_roots (
+  id            BIGSERIAL PRIMARY KEY,
+  root_hash     TEXT NOT NULL UNIQUE,
+  sealed_day    DATE NOT NULL UNIQUE DEFAULT CURRENT_DATE,
+  event_count   INTEGER,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 8. WEALTH: Transaction Ledger
 CREATE TABLE IF NOT EXISTS wealth_transactions (
   id            BIGSERIAL PRIMARY KEY,
   tx_type       TEXT NOT NULL,
@@ -60,8 +95,8 @@ CREATE TABLE IF NOT EXISTS wealth_transactions (
   epoch         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- WEALTH snapshots: portfolio state at point in time
-CREATE TABLE IF NOT EXISTS wealth_portfolio_snapshots (
+-- 9. PORTFOLIO SNAPSHOTS
+CREATE TABLE IF NOT EXISTS arifosmcp_portfolio_snapshots (
   id            BIGSERIAL PRIMARY KEY,
   snapshot_ts   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   holdings      JSONB NOT NULL DEFAULT '{}',
@@ -69,9 +104,18 @@ CREATE TABLE IF NOT EXISTS wealth_portfolio_snapshots (
   currency      TEXT DEFAULT 'MYR'
 );
 
+-- 10. APPROVAL TICKETS: F13 Sovereign Veto
+CREATE TABLE IF NOT EXISTS arifosmcp_approval_tickets (
+  id            BIGSERIAL PRIMARY KEY,
+  ticket_id     TEXT NOT NULL UNIQUE,
+  action_plan   JSONB NOT NULL,
+  human_verdict TEXT DEFAULT 'PENDING', -- APPROVED, REJECTED
+  requested_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  resolved_at   TIMESTAMPTZ
+);
+
 -- ============================================================
 -- Append-only enforcement on vault_seals
--- CLAIM: immutability is NOT automatic — this trigger enforces it
 -- ============================================================
 CREATE OR REPLACE FUNCTION enforce_vault_seal_immutability()
 RETURNS TRIGGER AS $$
@@ -84,8 +128,7 @@ CREATE TRIGGER no_vault_seal_mutation
   BEFORE UPDATE OR DELETE ON arifosmcp_vault_seals
   FOR EACH ROW EXECUTE FUNCTION enforce_vault_seal_immutability();
 
--- Indexes for common query patterns
-CREATE INDEX IF NOT EXISTS idx_well_states_agent ON arifosmcp_well_states(agent_id);
-CREATE INDEX IF NOT EXISTS idx_vault_seals_agent ON arifosmcp_vault_seals(agent_id);
-CREATE INDEX IF NOT EXISTS idx_tool_calls_epoch ON arifosmcp_tool_calls(epoch DESC);
-CREATE INDEX IF NOT EXISTS idx_canon_records_type ON arifosmcp_canon_records(record_type);
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_v3_prev_hash ON arifosmcp_vault_seals(prev_hash);
+CREATE INDEX IF NOT EXISTS idx_tool_calls_organ ON arifosmcp_tool_calls(organ);
+CREATE INDEX IF NOT EXISTS idx_sessions_actor ON arifosmcp_sessions(actor_id);
