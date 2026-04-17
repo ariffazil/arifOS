@@ -23,6 +23,23 @@ from enum import Enum
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
+import os
+import sys
+import inspect
+from pathlib import Path
+from .memory_engine import MemoryEngine
+
+# Add arifOS root to path for core imports
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+from core.shared.governed_tool import governed_tool
+
+# Global Memory Engine instance
+memory_engine = MemoryEngine(
+    postgres_url=os.getenv("ARIFOS_VAULT_URL", os.getenv("DATABASE_URL")),
+    qdrant_url=os.getenv("QDRANT_URL", "http://qdrant:6333"),
+    ollama_url=os.getenv("OLLAMA_EMBEDDING_URL", "http://A-FORGE-ollama:11434"),
+    embedding_model=os.getenv("EMBEDDING_MODEL", "bge-m3"),
+)
 
 # =============================================================================
 # AXIS DEFINITIONS
@@ -561,6 +578,18 @@ class E11_MemoryStoreOutput(TypedDict):
     store_result: dict[str, Any]
 
 
+# E03 — Unified Memory (canonical interface, delegates to MemoryEngine)
+# Single entry point for all memory operations: store / retrieve / forget
+class E03_MemoryInput(TypedDict):
+    operation: Literal["store", "retrieve", "forget"]
+    memory: dict[str, Any]
+    tier: Literal["ephemeral", "working", "canon", "sacred", "quarantine"]
+
+
+class E03_MemoryOutput(TypedDict):
+    result: dict[str, Any]
+
+
 # Meta Contracts (M01-M11)
 class M01_MemoryRetrieverInput(TypedDict):
     query: str
@@ -688,6 +717,40 @@ def _stub_execution(agent_id: str, input_data: Any) -> Any:
 def _stub_meta(agent_id: str, input_data: Any) -> Any:
     """Stub for Meta agents — replace with actual implementation."""
     return {"status": "stub", "agent": agent_id, "input": input_data}
+
+
+async def _handler_e11_memory_store(agent_id: str, input_data: Any) -> Any:
+    """E11 Memory Store implementation."""
+    memory = input_data.get("memory", {})
+    tier = input_data.get("tier", "working")
+    result = await memory_engine.execute("store", memory, tier)
+    return {"store_result": result}
+
+
+async def _handler_e03_memory(agent_id: str, input_data: Any) -> Any:
+    """E03 Unified Memory — canonical store/retrieve/forget interface.
+
+    Single entry point for all MemoryContract operations.
+    Delegates to MemoryEngine which handles dual-write to Postgres + Qdrant.
+
+    Supported operations:
+      - store: Write memory to postgres first, Qdrant async (fire-and-forget)
+      - retrieve: Semantic search via BGE-M3 embeddings + Qdrant
+      - forget: Soft-delete in postgres, move to quarantine in Qdrant (888_HOLD for sacred)
+    """
+    operation = input_data.get("operation", "retrieve")
+    memory = input_data.get("memory", {})
+    tier = input_data.get("tier", "working")
+    result = await memory_engine.execute(operation, memory, tier)
+    return {"result": result}
+
+
+async def _handler_m01_memory_retriever(agent_id: str, input_data: Any) -> Any:
+    """M01 Memory Retriever implementation."""
+    query = input_data.get("query", "")
+    tier = input_data.get("tier")
+    result = await memory_engine.execute("retrieve", {"query": query}, tier)
+    return result
 
 
 # =============================================================================
@@ -1141,10 +1204,18 @@ EXECUTION_TOOLS: list[tuple[str, str, list[str], callable, type, type]] = [
         E10_VaultSealerOutput,
     ),
     (
+        "E03_memory",
+        "Unified memory: store/retrieve/forget via MemoryContract (BGE-M3 + Qdrant + Postgres dual-write)",
+        ["execution", "public"],
+        _handler_e03_memory,
+        E03_MemoryInput,
+        E03_MemoryOutput,
+    ),
+    (
         "E11_memory_store",
         "Store memory in MemoryContract (5-tier governed)",
         ["execution", "public"],
-        _stub_execution,
+        _handler_e11_memory_store,
         E11_MemoryStoreInput,
         E11_MemoryStoreOutput,
     ),
@@ -1155,7 +1226,7 @@ META_TOOLS: list[tuple[str, str, list[str], callable, type, type]] = [
         "M01_memory_retriever",
         "Query memories from MemoryContract across tiers",
         ["meta", "public"],
-        _stub_meta,
+        _handler_m01_memory_retriever,
         M01_MemoryRetrieverInput,
         M01_MemoryRetrieverOutput,
     ),
@@ -1299,15 +1370,14 @@ def _register_tool(
     """Register a single tool with FastMCP."""
     tags_set = set(tags)
 
-    def wrapped_handler(**kwargs) -> dict[str, Any]:
+    @governed_tool
+    async def governed_wrapped_handler(**kwargs):
+        if inspect.iscoroutinefunction(handler):
+            return await handler(name, kwargs)
         return handler(name, kwargs)
 
-    mcp.add_tool(
-        wrapped_handler,
-        name=name,
-        description=description,
-        tags=tags_set,
-    )
+    # In FastMCP 3.x, we should use the decorator or set the name explicitly
+    mcp.tool(name=name, description=description, tags=tags_set)(governed_wrapped_handler)
 
 
 # =============================================================================
