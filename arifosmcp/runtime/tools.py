@@ -2160,11 +2160,11 @@ async def _arifos_mind_public(
     session_id: Annotated[str | None, "Active arifOS session ID"] = None,
     risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
     dry_run: Annotated[bool, "If True, simulates reasoning without side effects"] = True,
-    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown", (Harden G02 public routing)
+    debug: Annotated[bool, "If True, enables additional public routing diagnostics"] = False,
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
     context = _normalize_context_text(context)
     session_ctx = _load_public_session_context(session_id)
-    context = _normalize_context_text(context)
     if session_ctx is None:
         return _session_gate_envelope("arifos_mind", session_id, mode=mode)
     if mode == "reflect":

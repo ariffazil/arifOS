@@ -400,8 +400,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 # Ensure REST routes from arifosmcp are actually bound to this app instance
 from arifosmcp.runtime.rest_routes import register_rest_routes
-
-register_rest_routes(app, HARDENED_HANDLERS, prefix="")
+register_rest_routes(mcp, HARDENED_HANDLERS, prefix="")
 
 # ── Constitutional startup (runs on module load, not just __main__) ──
 import asyncio
