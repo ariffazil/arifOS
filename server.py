@@ -276,6 +276,30 @@ try:
     registered_apps = register_all_apps(mcp)
     logger.info(f"Successfully registered {len(registered_apps)} constitutional apps")
 
+    # Mount 6-axis MCP tools (P/T/V/G/E/M) from mcp_tools.py
+    try:
+        from arifosmcp.mcp_tools import (
+            create_perception_mcp, create_transformation_mcp,
+            create_valuation_mcp, create_governance_mcp,
+            create_execution_mcp, create_meta_mcp,
+        )
+        _agent_factories = {
+            "P": create_perception_mcp,
+            "T": create_transformation_mcp,
+            "V": create_valuation_mcp,
+            "G": create_governance_mcp,
+            "E": create_execution_mcp,
+            "M": create_meta_mcp,
+        }
+        for _axis, _factory in _agent_factories.items():
+            _agent_mcp = _factory()
+            mcp.mount(_agent_mcp, namespace=_axis)
+            logger.info(f"  [{_axis}] mounted 6-axis MCP namespace")
+        logger.info("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
+        print("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
+    except Exception as _e:
+        logger.warning(f"6-axis MCP tools unavailable: {_e}")
+
     # Approval Provider (F13 gate)
     if _env_flag("ARIFOS_ENABLE_APPROVAL_PROVIDER", default=False):
         try:
