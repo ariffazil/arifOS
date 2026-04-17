@@ -193,7 +193,7 @@ class GovernanceKernel:
         else:
             verdict = "SEAL"
 
-        return {
+        res = {
             "session_id": self.session_id,
             "floors": {
                 "tau_truth": round(tau_truth, 4),
@@ -223,6 +223,15 @@ class GovernanceKernel:
             "verdict": verdict,
             "temporal_contract": self.temporal_contract,
         }
+
+        # --- WELL Bridge Integration (Biological Substrate) ---
+        try:
+            from arifosmcp.runtime.well_bridge import inject_biological_context
+            res = inject_biological_context(res)
+        except ImportError:
+            pass
+
+        return res
 
     def _derive_stage(self, qdf: float, opts: dict) -> int:
         if opts.get("human_required") or opts.get("allow_execution"):

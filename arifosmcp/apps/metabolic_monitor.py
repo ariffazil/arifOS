@@ -314,6 +314,13 @@ def _register(mcp: FastMCP) -> None:
         else:
             philosophy = _PHILOSOPHY["G_LOW"]
 
+        # --- WELL Biological Context ---
+        try:
+            from arifosmcp.runtime.well_bridge import get_biological_readiness
+            well = get_biological_readiness()
+        except ImportError:
+            well = {"ok": False, "verdict": "UNKNOWN", "well_score": 0.0}
+
         with Column(gap=5, css_class="p-5 max-w-2xl") as view:
             # ── Operator Interpretation Banner (CHANGE-01) ────────────────────
             with Card(css_class="border-2 border-primary/20"):
@@ -327,6 +334,20 @@ def _register(mcp: FastMCP) -> None:
                         with Column(gap=0):
                             Heading("arifOS Metabolic Monitor", size="sm")
                             Text(interpretation["posture"], css_class="text-sm font-medium")
+
+            # --- WELL Biological Status Section ---
+            if well.get("ok"):
+                with Card(css_class="border-2 border-green-500/20 bg-green-500/5"):
+                    with CardContent(css_class="py-2 px-4"):
+                        with Row(gap=4, align="center"):
+                            Badge(
+                                f"WELL: {well['well_score']:.1f}",
+                                variant="outline",
+                                css_class="font-mono font-bold",
+                            )
+                            Text(f"Biological Substrate: {well['verdict']}", css_class="text-xs font-bold uppercase")
+                            if well.get("violations"):
+                                Badge("FLOOR VIOLATED", variant="destructive", css_class="text-[8px] h-4")
 
             Muted("Constitutional Health Dashboard • F1-F13 Floor Status")
             Separator()
