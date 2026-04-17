@@ -30,6 +30,16 @@ from enum import Enum
 from fastmcp import FastMCP, Context
 from pydantic import BaseModel, Field
 
+import os
+from .memory_engine import MemoryEngine
+
+# Global Memory Engine instance
+memory_engine = MemoryEngine(
+    postgres_url=os.getenv("ARIFOS_VAULT_URL", os.getenv("DATABASE_URL")),
+    qdrant_url=os.getenv("QDRANT_URL", "http://qdrant:6333"),
+    ollama_url=os.getenv("OLLAMA_EMBEDDING_URL", "http://A-FORGE-ollama:11434"),
+    embedding_model=os.getenv("EMBEDDING_MODEL", "bge-m3")
+)
 
 # =============================================================================
 # TOOL NAMING CONVENTION
@@ -1309,44 +1319,20 @@ def create_execution_mcp() -> FastMCP:
 
     @mcp.tool(
         name="E_memory_store",
-        description="Store memory in MemoryContract (5-tier governed)",
+        description="Store memory in MemoryContract (5-tier governed, semantic BGE+Qdrant)",
         tags={"execution"},
         annotations={"readOnlyHint": False, "openWorldHint": False, "destructiveHint": False},
         meta=_gov("vault","low","artifact",["F11"],mutability="write"),
     )
-    def E_memory_store(
+    async def E_memory_store(
         memory: dict[str, Any],
         tier: Literal["ephemeral", "working", "canon", "sacred", "quarantine"],
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Store memory in MemoryContract."""
-        import json, uuid
-        from pathlib import Path
-        from datetime import datetime, timezone
-
-        tier_paths = {
-            "ephemeral": Path("/root/.arifos/memory/ephemeral.jsonl"),
-            "working": Path("/root/.arifos/memory/working.jsonl"),
-            "canon": Path("/root/.arifos/memory/canon.jsonl"),
-            "sacred": Path("/root/.arifos/memory/sacred.jsonl"),
-            "quarantine": Path("/root/.arifos/memory/quarantine.jsonl"),
-        }
-        path = tier_paths.get(tier, tier_paths["working"])
+        """Store memory in MemoryEngine."""
         try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            entry = {
-                "id": str(uuid.uuid4()),
-                "tier": tier,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "memory": memory,
-            }
-            with open(path, "a") as f:
-                f.write(json.dumps(entry) + "\n")
-            return {
-                "agent": "E",
-                "action": "memory_store",
-                "result": {"tier": tier, "status": "stored", "id": entry["id"]},
-            }
+            result = await memory_engine.execute("store", memory, tier)
+            return {"agent": "E", "action": "memory_store", "result": result}
         except Exception as e:
             return {
                 "agent": "E",
@@ -1356,50 +1342,23 @@ def create_execution_mcp() -> FastMCP:
 
     @mcp.tool(
         name="E_memory_retrieve",
-        description="Retrieve from MemoryContract",
+        description="Retrieve from MemoryContract (semantic search)",
         tags={"execution"},
         annotations={"readOnlyHint": True, "openWorldHint": False},
         meta=_gov("vault","low","observation",["F11"],mutability="read"),
     )
-    def E_memory_retrieve(
+    async def E_memory_retrieve(
         query: str,
         tier: Literal["ephemeral", "working", "canon", "sacred", "quarantine"] | None = None,
+        limit: int = 5,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Retrieve memory from MemoryContract."""
-        import json
-        from pathlib import Path
-
-        if tier:
-            tiers = [tier]
-        else:
-            tiers = ["ephemeral", "working", "canon", "sacred", "quarantine"]
-
-        tier_paths = {
-            "ephemeral": Path("/root/.arifos/memory/ephemeral.jsonl"),
-            "working": Path("/root/.arifos/memory/working.jsonl"),
-            "canon": Path("/root/.arifos/memory/canon.jsonl"),
-            "sacred": Path("/root/.arifos/memory/sacred.jsonl"),
-            "quarantine": Path("/root/.arifos/memory/quarantine.jsonl"),
-        }
-        results = []
-        for t in tiers:
-            path = tier_paths[t]
-            if not path.exists():
-                continue
-            try:
-                with open(path) as f:
-                    for line in f:
-                        entry = json.loads(line)
-                        mem = entry.get("memory", {})
-                        if isinstance(mem, dict):
-                            if query.lower() in json.dumps(mem).lower():
-                                results.append(entry)
-                        elif isinstance(mem, str) and query.lower() in mem.lower():
-                            results.append(entry)
-            except Exception:
-                continue
-        return {"agent": "E", "action": "memory_retrieve", "result": {"memories": results[:50]}}
+        """Retrieve memory from MemoryEngine."""
+        try:
+            result = await memory_engine.execute("retrieve", {"query": query, "limit": limit}, tier)
+            return {"agent": "E", "action": "memory_retrieve", "result": result}
+        except Exception as e:
+            return {"agent": "E", "action": "memory_retrieve", "result": {"memories": [], "error": str(e)}}
 
     @mcp.tool(
         name="E_well_log",

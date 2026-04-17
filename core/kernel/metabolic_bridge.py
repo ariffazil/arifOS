@@ -1,21 +1,31 @@
 import os
 import json
 import asyncio
+import httpx
 from datetime import datetime
 from uuid import uuid4
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
-# Mocking ollama_client and other dependencies if not available globally
-# In a real scenario, these would be imported from the arifOS core
-try:
-    from arifosmcp.core.intelligence.ollama import ollama_client
-except ImportError:
-    # Placeholder for the client if import fails
-    class MockOllama:
-        async def generate(self, model, prompt, format=None):
-            return {"response": "{}"}
-    ollama_client = MockOllama()
+class OllamaClient:
+    def __init__(self, base_url: str = None):
+        self.base_url = base_url or os.getenv("OLLAMA_URL", "http://ollama:11434")
+
+    async def generate(self, model: str, prompt: str, format: str = None) -> Dict[str, Any]:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            payload = {
+                "model": model,
+                "prompt": prompt,
+                "stream": False
+            }
+            if format == "json":
+                payload["format"] = "json"
+            
+            response = await client.post(f"{self.base_url}/api/generate", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+ollama_client = OllamaClient()
 
 # Canonical Floor Definitions
 ALL_FLOORS = [f"F{i}" for i in range(1, 14)]
@@ -82,6 +92,21 @@ Output schema:
             format="json"
         )
         parsed = json.loads(response["response"])
+        
+        # Ensure all required fields are present in parsed
+        required_fields = {
+            "intent": "unknown",
+            "action_type": "unknown",
+            "parameters": {},
+            "confidence": 0.0,
+            "tier": "governance",
+            "irreversible": False,
+            "requires_human": False
+        }
+        for field_name, default_value in required_fields.items():
+            if field_name not in parsed:
+                parsed[field_name] = default_value
+                
     except Exception as e:
         # F8 Fail-closed: extraction failure is a VOID
         parsed = {
