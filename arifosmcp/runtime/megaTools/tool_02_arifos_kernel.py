@@ -38,7 +38,6 @@ async def arifos_kernel(
     ctx: Any | None = None,
     use_memory: bool = True,
     use_heart: bool = True,
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
     """
     KERNEL rCore entry point.

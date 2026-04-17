@@ -192,7 +192,6 @@ async def init_anchor(
     deployment_id: str | None = None,
     session_class: str = "execute",
     platform: str = "unknown",
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
     """
     Unified 000_INIT: Authority lifecycle and bootstrap anchor.
