@@ -32,12 +32,13 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
-from typing import Annotated, Any
+from typing import Any
 
 from fastmcp import FastMCP
-from fastmcp.tools import ToolResult
 
 from arifosmcp.apps.surface_utils import envelope_error, envelope_pause, normalize_state, safe_get
+
+logger = logging.getLogger(__name__)
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -57,27 +58,28 @@ from prefab_ui.components import (
     Text,
 )
 from prefab_ui.rx import RESULT, STATE
-from pydantic import Field
 
-logger = logging.getLogger(__name__)
 
 # ── App definition ────────────────────────────────────────────────────────────
 
 forge_app = FastMCP("ForgeApp")
 if not hasattr(forge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
-    forge_app.ui = lambda *args, **kwargs: (lambda fn: fn)
+    forge_app.ui = lambda *args, **kwargs: lambda fn: fn
+
+
+def _resolve_forge_action(candidate_action: str) -> str:
+    candidate = (candidate_action or "").strip().lower()
+    if candidate in {"shell", "api_call", "contract", "compute", "container", "vm"}:
+        return candidate
+    return "contract"
 
 
 @forge_app.tool()
 async def forge_judge_check(
-    candidate_action: Annotated[
-        str, Field(description="The action to evaluate before forging")
-    ],
-    risk_tier: Annotated[
-        str, Field(description="Risk level: low, medium, high, critical")
-    ] = "medium",
+    candidate_action: str,
+    risk_tier: str = "medium",
     session_id: str | None = None,
-) -> ToolResult:
+) -> dict[str, Any]:
     """
     Pre-forge constitutional check — runs 888_JUDGE dry_run.
     Returns verdict for Gate 1 evaluation.
@@ -100,63 +102,46 @@ async def forge_judge_check(
         env_dict = normalize_state(envelope)
 
         verdict = env_dict.get("verdict") or ("SEAL" if env_dict.get("ok") else "VOID")
+        if hasattr(verdict, "value"):
+            verdict = verdict.value
         floors_failed = (env_dict.get("policy") or {}).get("floors_failed", [])
 
-        # ── Wisdom quote for judge gate (Logic from forge-ssct-sync) ──────────
+        # ── Wisdom quote for judge gate ──────────────────────────────────────
         try:
             from arifosmcp.runtime.philosophy import select_wisdom_quote
-            _wisdom_res = select_wisdom_quote("judge")
-            _wisdom_text = f'"{_wisdom_res["quote"]}" — {_wisdom_res["author"]}' if _wisdom_res else None
-        except Exception:
-            _wisdom_text = None
 
-        return ToolResult(
-            content=[
-                {
-                    "type": "text",
-                    "text": (
-                        f"Pre-forge judge check: {verdict} "
-                        f"(Trace: {env_dict.get('trace_id', '—')})"
-                    ),
-                },
-                {
-                    "type": "json",
-                    "json": {
-                        "gate1_verdict": verdict,
-                        "gate1_ok": verdict == "SEAL",
-                        "floors_failed": floors_failed,
-                        "floors_failed_count": len(floors_failed),
-                        "trace_id": env_dict.get("trace_id", "—"),
-                        "wisdom": _wisdom_text,
-                    },
-                },
-            ]
-        )
+            _wisdom = select_wisdom_quote("judge")
+        except Exception:
+            _wisdom = None
+
+        return {
+            "gate1_verdict": verdict,
+            "gate1_ok": verdict == "SEAL",
+            "floors_failed": floors_failed,
+            "floors_failed_count": len(floors_failed),
+            "trace_id": env_dict.get("trace_id", "—"),
+            "wisdom": _wisdom,
+        }
 
     except Exception as exc:
         logger.warning(f"forge_judge_check failed: {exc}")
-        return ToolResult(
-            is_error=True,
-            content=[
-                 {"type": "text", "text": f"forge_judge_check failed: {exc}"}
-            ]
+        return envelope_error(
+            tool_name="forge_judge_check",
+            stage="888_JUDGE",
+            verdict="VOID",
+            detail=f"forge_judge_check failed: {exc}",
         )
 
 
 @forge_app.tool()
 async def forge_execute(
-    candidate_action: Annotated[
-        str,
-        Field(description="The action to execute (requires judge SEAL and human approval)"),
-    ],
-    risk_tier: Annotated[
-        str, Field(description="Risk level: low, medium, high, critical")
-    ] = "medium",
+    candidate_action: str,
+    risk_tier: str = "medium",
     session_id: str | None = None,
     judge_verdict: str = "VOID",
     judge_g_star: float = 0.0,
     judge_state_hash: str = "",
-) -> ToolResult:
+) -> dict[str, Any]:
     """
     Execute forge after both gates pass.
     Gate 1 (888_JUDGE SEAL) is re-verified here.
@@ -166,7 +151,7 @@ async def forge_execute(
     """
     logger.info(f"forge_execute called: session_id={session_id}, state_type={type(STATE).__name__}")
     try:
-        from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+        from arifosmcp.runtime.tools import get_tool_handler
 
         if not session_id:
             session_id = safe_get(STATE, "session_id")
@@ -177,22 +162,33 @@ async def forge_execute(
         gate2_approved = safe_get(STATE, "gate2_approved", False)
 
         if not gate1_ok:
-            return ToolResult(
-                content=[{"type": "text", "text": f"Gate 1 not passed: verdict={gate1_verdict}. Run judge first."}]
+            return envelope_pause(
+                tool_name="forge_execute",
+                stage="FORGE_555",
+                detail=f"Gate 1 not passed: verdict={gate1_verdict}. Run judge first.",
+                session_id=session_id,
             )
 
         if not gate2_approved:
-             return ToolResult(
-                content=[{"type": "text", "text": "Gate 2 not passed: human has not approved. F13 Sovereign veto."}]
+            return envelope_pause(
+                tool_name="forge_execute",
+                stage="FORGE_555",
+                detail="Gate 2 not passed: human has not approved. F13 Sovereign veto.",
+                session_id=session_id,
             )
 
-        # Use the hardened dispatch map to call forge (handles correct signature)
-        handler = HARDENED_DISPATCH_MAP.get("arifos_forge")
+        handler = get_tool_handler("arifos_forge")
         if not handler:
-            return ToolResult(is_error=True, content=[{"type": "text", "text": "arifos_forge not found in dispatch map"}])
+            return envelope_error(
+                tool_name="forge_execute",
+                stage="FORGE_555",
+                verdict="VOID",
+                detail="arifos_forge not found in dispatch map",
+                session_id=session_id,
+            )
 
         envelope = await handler(
-            action=candidate_action,
+            action=_resolve_forge_action(candidate_action),
             payload={"candidate_action": candidate_action, "risk_tier": risk_tier},
             session_id=session_id or "global",
             judge_verdict=gate1_verdict,
@@ -204,39 +200,31 @@ async def forge_execute(
         env_dict = normalize_state(envelope)
 
         verdict = env_dict.get("verdict", "VOID")
-        
+        if hasattr(verdict, "value"):
+            verdict = verdict.value
         try:
             from arifosmcp.runtime.philosophy import select_wisdom_quote
-            _wisdom_res = select_wisdom_quote("forge")
-            _wisdom_text = f'"{_wisdom_res["quote"]}" — {_wisdom_res["author"]}' if _wisdom_res else None
-        except Exception:
-            _wisdom_text = None
 
-        return ToolResult(
-            content=[
-                {
-                    "type": "text",
-                    "text": (
-                        f"Forge execution complete: {verdict} "
-                        f"(OK: {env_dict.get('ok', False)})"
-                    ),
-                },
-                {
-                    "type": "json",
-                    "json": {
-                        "forge_verdict": verdict,
-                        "forge_ok": env_dict.get("ok", False),
-                        "result": env_dict.get("result", "—"),
-                        "trace_id": env_dict.get("trace_id", "—"),
-                        "wisdom": _wisdom_text,
-                    },
-                },
-            ]
-        )
+            _wisdom = select_wisdom_quote("forge")
+        except Exception:
+            _wisdom = None
+
+        return {
+            "forge_verdict": verdict,
+            "forge_ok": env_dict.get("ok", False),
+            "result": env_dict.get("result", "—"),
+            "trace_id": env_dict.get("trace_id", "—"),
+            "wisdom": _wisdom,
+        }
 
     except Exception as exc:
         logger.warning(f"forge_execute failed: {exc}")
-        return ToolResult(is_error=True, content=[{"type": "text", "text": f"forge_execute failed: {exc}"}])
+        return envelope_error(
+            tool_name="forge_execute",
+            stage="FORGE_555",
+            verdict="VOID",
+            detail=f"forge_execute failed: {exc}",
+        )
 
 
 @forge_app.ui(title="Forge — Double-Gated Execution")

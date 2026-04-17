@@ -2330,6 +2330,7 @@ async def _arifos_forge_public(
     session_id: Annotated[str, "Active arifOS session ID"],
     judge_verdict: Annotated[str, "The required SEAL verdict from arifos_judge"],
     judge_g_star: Annotated[float, "The epistemic confidence score (G*) from arifos_judge"],
+    judge_state_hash: Annotated[str, "Optional hash of the judge state used to authorize forge"] = "",
     dry_run: Annotated[bool, "If True, simulates execution and returns manifest"] = True,
     platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
@@ -2342,6 +2343,7 @@ async def _arifos_forge_public(
         session_id=session_id,
         judge_verdict=judge_verdict,
         judge_g_star=judge_g_star,
+        judge_state_hash=judge_state_hash,
         dry_run=dry_run,
         platform=platform,
     )
