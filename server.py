@@ -277,6 +277,8 @@ try:
     logger.info(f"Successfully registered {len(registered_apps)} constitutional apps")
 
     # Mount 6-axis MCP tools (P/T/V/G/E/M) from mcp_tools.py
+    # Axis feature flags: set ARIFOS_ENABLE_{P|T|V|G|E|M}_AXIS=false to gate an axis
+    _axis_enabled = lambda axis: os.getenv(f"ARIFOS_ENABLE_{axis}_AXIS", "true").lower() != "false"
     try:
         from arifosmcp.mcp_tools import (
             create_perception_mcp, create_transformation_mcp,
@@ -292,6 +294,9 @@ try:
             "M": create_meta_mcp,
         }
         for _axis, _factory in _agent_factories.items():
+            if not _axis_enabled(_axis):
+                logger.info(f"  [{_axis}] axis DISABLED via ARIFOS_ENABLE_{_axis}_AXIS=false")
+                continue
             _agent_mcp = _factory()
             mcp.mount(_agent_mcp, namespace=None)
             logger.info(f"  [{_axis}] 6-axis MCP agent mounted (namespaced by prefix letter)")
