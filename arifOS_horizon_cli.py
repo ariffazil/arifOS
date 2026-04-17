@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
 """
 arifOS Horizon MCP CLI
-Generated from live server: https://arifOS.fastmcp.app/mcp
+Generated from live server: https://mcp.arif-fazil.com/mcp
 Auth: Bearer token (set FASTMCP_API_KEY env or --token flag)
+
+11 canonical tools + 9 P_* oracles (20 total surface).
+Deprecated aliases removed — use mode params on canonical tools instead:
+  arifos_anchor_session     → arifos_init(mode="init")
+  arifos_execute_judge      → arifos_judge
+  arifos_forge_judge_check  → arifos_judge(dry_run=True)
+  arifos_forge_execute      → arifos_forge(dry_run=False)
+  arifos_perform_economic_audit → arifos_ops(mode="economic_audit")
+  arifos_verify_location    → arifos_sense(mode="location")
+  arifos_monitor_metabolism → arifos_ops(mode="metabolism")
+  arifos_get_vault_data    → arifos_vault(mode="read")
 """
 import sys, os, json, asyncio
 from pathlib import Path
@@ -13,187 +24,168 @@ if not TOKEN:
     sys.stderr.write("ERROR: Set FASTMCP_API_KEY or MCP_API_KEY\n")
     sys.exit(1)
 
-URL = "https://arifOS.fastmcp.app/mcp"
+URL = "https://mcp.arif-fazil.com/mcp"
 
 # ── Client bootstrap ──────────────────────────────────────────────────────────
 from fastmcp import Client
 from fastmcp.client.auth import BearerAuth
 
+
 async def get_client():
     return Client(URL, auth=BearerAuth(token=TOKEN))
 
-# ── Tool wrappers ──────────────────────────────────────────────────────────────
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 11 CANONICAL TOOLS
+# ═══════════════════════════════════════════════════════════════════════════════
 
 async def call_arifos_init(**kwargs):
-    """Initialize constitutional session with identity binding and telemetry seed"""
+    """Initialize constitutional session. Modes: init, refresh, state, status, probe."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_init", kwargs)
 
+
 async def call_arifos_sense(**kwargs):
-    """Ground query in physical reality via the 8-stage constitutional sensing protocol"""
+    """Ground in physical reality. Modes: governed, search, ingest, compass, atlas, time, location."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_sense", kwargs)
 
+
 async def call_arifos_mind(**kwargs):
-    """Structured reasoning with typed cognitive pipeline"""
+    """Structured reasoning. Modes: reason, sequential, step, branch, merge, review, reflect."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_mind", kwargs)
 
+
 async def call_arifos_kernel(**kwargs):
-    """Route request to correct metabolic lane or tool family"""
+    """Route to correct metabolic lane. Modes: kernel, status."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_kernel", kwargs)
 
+
 async def call_arifos_heart(**kwargs):
-    """Red-team proposal for ethical risks"""
+    """Ethical critique and consequence simulation. Modes: critique, simulate."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_heart", kwargs)
 
+
 async def call_arifos_ops(**kwargs):
-    """Calculate operation costs, thermodynamics, capacity, and timing"""
+    """Thermodynamic and operational cost estimation. Modes: cost, health, vitals, entropy, economic_audit, metabolism."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_ops", kwargs)
 
+
 async def call_arifos_judge(**kwargs):
-    """Final constitutional verdict evaluation"""
+    """Final constitutional verdict. Outputs: SEAL, PARTIAL, VOID, HOLD."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_judge", kwargs)
 
+
 async def call_arifos_memory(**kwargs):
-    """Retrieve governed memory and engineering context"""
+    """Governed memory recall. Modes: vector_query, vector_store, engineer, query."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_memory", kwargs)
 
+
 async def call_arifos_vault(**kwargs):
-    """Append immutable verdict record to Merkle-hashed ledger"""
+    """Append/read immutable ledger. Modes: append (default), read."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_vault", kwargs)
 
+
 async def call_arifos_forge(**kwargs):
-    """Delegated Execution Bridge — judge-validated action executor"""
+    """Delegated Execution Bridge — requires arifos_judge SEAL verdict first."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_forge", kwargs)
 
+
 async def call_arifos_gateway(**kwargs):
-    """Orthogonality Guard — supervises AGI||ASI lanes"""
+    """Orthogonality Guard. Modes: guard, audit, correlate."""
     client = await get_client()
     async with client:
         return await client.call_tool("arifos_gateway", kwargs)
 
-async def call_arifos_monitor_metabolism(**kwargs):
-    """Real-time dashboard of 13 Constitutional Floors"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_monitor_metabolism", kwargs)
 
-async def call_arifos_execute_judge(**kwargs):
-    """Run constitutional verdict evaluation on a candidate action"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_execute_judge", kwargs)
-
-async def call_arifos_get_vault_data(**kwargs):
-    """Read VAULT999 ledger and build current BLS seal card"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_get_vault_data", kwargs)
-
-async def call_arifos_anchor_session(**kwargs):
-    """Anchor a new arifOS session"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_anchor_session", kwargs)
-
-async def call_arifos_forge_judge_check(**kwargs):
-    """Pre-forge constitutional check — runs 888_JUDGE dry_run"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_forge_judge_check", kwargs)
-
-async def call_arifos_forge_execute(**kwargs):
-    """Execute forge after both gates pass"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_forge_execute", kwargs)
-
-async def call_arifos_perform_economic_audit(**kwargs):
-    """Perform a constitutional economic audit"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_perform_economic_audit", kwargs)
-
-async def call_arifos_verify_location(**kwargs):
-    """Verify a geospatial location against constitutional Earth Witness"""
-    client = await get_client()
-    async with client:
-        return await client.call_tool("arifos_verify_location", kwargs)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 9 P_* ORACLES — Domain perception interfaces
+# ═══════════════════════════════════════════════════════════════════════════════
 
 async def call_P_well_state_read(**kwargs):
-    """Read current WELL biological telemetry snapshot"""
+    """WELL biological telemetry snapshot."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_well_state_read", kwargs)
 
+
 async def call_P_well_readiness_check(**kwargs):
-    """Check biological readiness verdict for arifOS JUDGE"""
+    """Biological readiness verdict for arifos_judge."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_well_readiness_check", kwargs)
 
+
 async def call_P_well_floor_scan(**kwargs):
-    """Scan W-Floor status across all dimensions"""
+    """W-Floor status scan across all dimensions."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_well_floor_scan", kwargs)
 
+
 async def call_P_geox_scene_load(**kwargs):
-    """Load seismic, well, or volume data into witness context"""
+    """Load seismic, well, or volume data into witness context."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_geox_scene_load", kwargs)
 
+
 async def call_P_geox_skills_query(**kwargs):
-    """Query GEOX skill registry by keyword or domain"""
+    """Query GEOX skill registry by keyword or domain."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_geox_skills_query", kwargs)
 
+
 async def call_P_wealth_snapshot_fetch(**kwargs):
-    """Fetch cross-source macro/energy/carbon snapshot"""
+    """Cross-source macro/energy/carbon snapshot."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_wealth_snapshot_fetch", kwargs)
 
+
 async def call_P_wealth_series_fetch(**kwargs):
-    """Fetch live data series from open public source"""
+    """Live data series from open public source."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_wealth_series_fetch", kwargs)
 
+
 async def call_P_wealth_vintage_fetch(**kwargs):
-    """Fetch specific vintage of series (FRED/ALFRED)"""
+    """Specific vintage of series (FRED/ALFRED)."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_wealth_vintage_fetch", kwargs)
 
+
 async def call_P_vault_ledger_read(**kwargs):
-    """Read VAULT999 ledger, build BLS seal card"""
+    """VAULT999 ledger read — returns BLS seal card and entries."""
     client = await get_client()
     async with client:
         return await client.call_tool("P_vault_ledger_read", kwargs)
 
+
 # ── CLI dispatcher ────────────────────────────────────────────────────────────
 COMMANDS = {
+    # 11 canonical
     "arifos_init": call_arifos_init,
     "arifos_sense": call_arifos_sense,
     "arifos_mind": call_arifos_mind,
@@ -205,14 +197,7 @@ COMMANDS = {
     "arifos_vault": call_arifos_vault,
     "arifos_forge": call_arifos_forge,
     "arifos_gateway": call_arifos_gateway,
-    "arifos_monitor_metabolism": call_arifos_monitor_metabolism,
-    "arifos_execute_judge": call_arifos_execute_judge,
-    "arifos_get_vault_data": call_arifos_get_vault_data,
-    "arifos_anchor_session": call_arifos_anchor_session,
-    "arifos_forge_judge_check": call_arifos_forge_judge_check,
-    "arifos_forge_execute": call_arifos_forge_execute,
-    "arifos_perform_economic_audit": call_arifos_perform_economic_audit,
-    "arifos_verify_location": call_arifos_verify_location,
+    # 9 P_* oracles
     "P_well_state_read": call_P_well_state_read,
     "P_well_readiness_check": call_P_well_readiness_check,
     "P_well_floor_scan": call_P_well_floor_scan,
@@ -224,14 +209,29 @@ COMMANDS = {
     "P_vault_ledger_read": call_P_vault_ledger_read,
 }
 
+
 def main():
     if len(sys.argv) < 2:
-        print("arifOS Horizon CLI")
+        print("arifOS Horizon CLI — 20 tools (11 canonical + 9 P* oracles)")
         print("Usage: python arifOS_horizon_cli.py <tool> [args...]")
-        print('print("Example: python arifOS_horizon_cli.py arifos_judge query=\"test\" risk_tier=low")')
         print()
-        print("Tools:")
-        for name in sorted(COMMANDS.keys()):
+        print("Canonical tools:")
+        canonical = [
+            "arifos_init", "arifos_sense", "arifos_mind", "arifos_kernel",
+            "arifos_heart", "arifos_ops", "arifos_judge", "arifos_memory",
+            "arifos_vault", "arifos_forge", "arifos_gateway",
+        ]
+        for name in canonical:
+            print(f"  {name}")
+        print()
+        print("P_* Oracles:")
+        oracles = [
+            "P_well_state_read", "P_well_readiness_check", "P_well_floor_scan",
+            "P_geox_scene_load", "P_geox_skills_query",
+            "P_wealth_snapshot_fetch", "P_wealth_series_fetch", "P_wealth_vintage_fetch",
+            "P_vault_ledger_read",
+        ]
+        for name in oracles:
             print(f"  {name}")
         sys.exit(1)
 
@@ -240,27 +240,34 @@ def main():
         sys.stderr.write(f"Unknown tool: {tool}\n")
         sys.exit(1)
 
-    # Parse remaining args as kwargs: key=value
     kwargs = {}
     for arg in sys.argv[2:]:
         if "=" in arg:
             k, v = arg.split("=", 1)
-            # Auto-convert types
-            if v.lower() == "true": v = True
-            elif v.lower() == "false": v = False
-            elif v.lower() == "null": v = None
-            elif v.startswith("[") or v.startswith("{"): 
-                try: v = json.loads(v)
-                except: pass
+            if v.lower() == "true":
+                v = True
+            elif v.lower() == "false":
+                v = False
+            elif v.lower() == "null":
+                v = None
+            elif v.startswith("[") or v.startswith("{"):
+                try:
+                    v = json.loads(v)
+                except Exception:
+                    pass
             else:
-                try: v = int(v)
-                except:
-                    try: v = float(v)
-                    except: pass
+                try:
+                    v = int(v)
+                except Exception:
+                    try:
+                        v = float(v)
+                    except Exception:
+                        pass
             kwargs[k.strip()] = v
 
     result = asyncio.run(COMMANDS[tool](**kwargs))
     print(json.dumps(result, indent=2, default=str))
+
 
 if __name__ == "__main__":
     main()

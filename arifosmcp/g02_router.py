@@ -16,7 +16,7 @@ Philosophy:
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from dataclasses import dataclass
 from enum import Enum
 from pydantic import BaseModel, Field
@@ -265,7 +265,7 @@ def create_router_mcp() -> FastMCP:
         caller_agent: str,
         target_agent: str,
         input_data: dict[str, Any],
-        correlation_context: list[Any] | None = None,
+        correlation_context: Annotated[list[Any] | None, Field(description="Recent agent outputs for correlation check")] = None,
     ) -> dict[str, Any]:
         """
         G02 Kernel Router — Mandatory hub for all cross-axis calls.

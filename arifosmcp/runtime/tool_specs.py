@@ -1,8 +1,8 @@
 """
 arifosmcp/runtime/tool_specs.py — arifOS MCP Canonical Tool Specifications
-═══════════════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════════════════════
 
-17 sovereign tools + 5 metabolic surfaces.
+11 canonical tools.
 Clean naming: arifos_{verb} for tools, {noun}_surface for apps.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -54,9 +54,9 @@ class ResourceSpec:
     visibility: Literal["public", "internal"] = "internal"
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════
 # HORIZON 33: CANONICAL TOOL SUITE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 TOOLS: tuple[ToolSpec, ...] = (
     # ─────────────────────────────────────────────────────────────────────────
@@ -327,7 +327,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         floors=("F4", "F5"),
         input_schema={
             "type": "object",
-            "required": ["query"],
+            "required": [],
             "properties": {
                 "query": {
                     "type": "string",
@@ -337,9 +337,9 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["cost", "health", "vitals", "entropy"],
+                    "enum": ["cost", "health", "vitals", "entropy", "economic_audit", "metabolism"],
                     "default": "cost",
-                    "description": "cost=Landauer gate cost estimate, health=system health gauge, vitals=metabolic telemetry, entropy=information-theoretic entropy analysis.",
+                    "description": "cost=Landauer gate cost estimate, health=system health gauge, vitals=metabolic telemetry, entropy=information-theoretic entropy analysis, economic_audit=WELL economic thermodynamic audit, metabolism=F1-F13 metabolic dashboard.",
                 },
                 "session_id": {
                     "type": "string",
@@ -426,28 +426,51 @@ TOOLS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos_vault",
         stage="999",
-        purpose="Vault ledger — Immutable verdict record",
+        purpose="Vault ledger — Immutable verdict record (append or read)",
         layer="GOVERNANCE",
         visibility="public",
-        description="Append immutable verdict record to Merkle-hashed ledger.",
+        description="Append immutable verdict record to Merkle-hashed ledger (mode=append), or query the ledger (mode=read).",
         trinity="Ψ",
         floors=("F1", "F13"),
         input_schema={
             "type": "object",
-            "required": ["verdict"],
+            "required": [],
             "properties": {
                 "verdict": {
                     "type": "string",
                     "enum": ["SEAL", "PARTIAL", "VOID", "HOLD"],
-                    "description": "Constitutional verdict to append to the immutable Merkle-hashed ledger.",
+                    "description": "Constitutional verdict to append (mode=append). Ignored in read mode.",
                 },
                 "evidence": {
                     "type": "string",
-                    "description": "Supporting evidence, reasoning chain, or audit trail for this verdict.",
+                    "description": "Supporting evidence, reasoning chain, or audit trail for this verdict (mode=append).",
                 },
                 "session_id": {
                     "type": "string",
-                    "description": "Session ID this verdict pertains to. Links the ledger entry to a constitutional session.",
+                    "description": "Session ID this verdict pertains to. Also used as a filter in read mode.",
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": ["append", "read"],
+                    "default": "append",
+                    "description": "append=write a verdict record to the ledger; read=query the ledger with optional filters.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Maximum number of ledger entries to return (read mode only).",
+                },
+                "since": {
+                    "type": "string",
+                    "description": "ISO-8601 timestamp — return entries sealed after this time (read mode only).",
+                },
+                "until": {
+                    "type": "string",
+                    "description": "ISO-8601 timestamp — return entries sealed before this time (read mode only).",
+                },
+                "verdict_filter": {
+                    "type": "string",
+                    "description": "Filter by verdict type: APPROVED, PARTIAL, PAUSE, VOID, HOLD (read mode only).",
                 },
             },
         },
@@ -554,384 +577,12 @@ TOOLS: tuple[ToolSpec, ...] = (
             },
         },
     ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 12. arifos_reply — AGI Reply Protocol
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        visibility="internal",
-        name="arifos_reply",
-        stage="000-999",
-        purpose="Arifos reply — Agi Reply Protocol v3",
-        layer="GOVERNANCE",
-        description=(
-            "Composite orchestrator for AGI Reply Protocol v3. "
-            "Internally runs: memory → sense → mind → heart → ops → judge → [vault/forge]. "
-            "Emits AgiReplyEnvelopeHuman (recipient=human) or AgiReplyEnvelopeAgent (recipient=agent). "
-            "Every output includes: TO/CC/TITLE/KEY_CONTEXT header, RACI block, computed τ, "
-            "constitutional floor tags, SEAL signoff. 888 HOLD blocks forge. "
-            "F1/F13 triggers require human:arif ratification."
-        ),
-        trinity="ALL",
-        floors=("F1", "F2", "F3", "F4", "F7", "F9", "F11", "F13"),
-        input_schema={
-            "type": "object",
-            "required": ["query", "session_id"],
-            "properties": {
-                "query": {"type": "string"},
-                "session_id": {"type": "string"},
-                "recipient": {
-                    "type": "string",
-                    "enum": ["human", "agent", "auto"],
-                    "default": "auto",
-                },
-            },
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 12. arifos_health — System Vitals (folded into arifos_ops; now internal)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="arifos_health",
-        stage="111",
-        purpose="Arifos health — Retrieve CPU, Memory, ZRAM, and Disk",
-        layer="MACHINE",
-        visibility="internal",
-        description="Retrieve CPU, Memory, ZRAM, and Disk utilization. F12-hardened read-only access. Folded into arifos_ops(mode='health'|'vitals').",
-        trinity="Δ",
-        floors=("F4", "F12"),
-        input_schema={
-            "type": "object",
-            "properties": {
-                "session_id": {"type": "string"},
-            },
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 13. arifos_fetch — Guarded Fetch
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        visibility="internal",
-        name="arifos_fetch",
-        stage="111",
-        purpose="Arifos fetch — URL content retrieval via mcp_fetch",
-        layer="MACHINE",
-        description=(
-            "Retrieve raw content from a URL via mcp_fetch substrate. "
-            "Applies F9 Anti-Hantu constitutional filtering to redact spiritual cosplay "
-            "or hallucinatory consciousness claims in the source content."
-        ),
-        trinity="Δ",
-        floors=("F2", "F9", "F11"),
-        input_schema={
-            "type": "object",
-            "required": ["url"],
-            "properties": {
-                "url": {"type": "string"},
-                "session_id": {"type": "string"},
-            },
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 14. arifos_repo_read — Git Status
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        visibility="internal",
-        name="arifos_repo_read",
-        stage="911",
-        purpose="Arifos repo read — Git status, diffs, and log",
-        layer="EXECUTION",
-        description="Check git status, diffs, and log with constitutional path whitelisting.",
-        trinity="Ψ",
-        floors=("F11",),
-        input_schema={
-            "type": "object",
-            "properties": {"path": {"type": "string", "default": "./"}},
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 15. arifos_repo_seal — Git Commit
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        visibility="internal",
-        name="arifos_repo_seal",
-        stage="999",
-        purpose="Arifos repo seal — Mutate governed repo state",
-        layer="EXECUTION",
-        description=(
-            "Add and commit changes to the repository. REQUIRES F13 human ratification. "
-            "Enforces F11 audit logging of all substrate mutations."
-        ),
-        trinity="Ψ",
-        floors=("F11", "F13"),
-        input_schema={
-            "type": "object",
-            "required": ["message"],
-            "properties": {
-                "message": {"type": "string"},
-                "files": {"type": "array", "items": {"type": "string"}},
-            },
-        },
-        read_only_hint=False,
-        destructive_hint=True,
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 16. arifos_probe — Health Probe
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        visibility="internal",
-        name="arifos_probe",
-        stage="111",
-        purpose="Arifos probe — Component health diagnostic",
-        layer="MACHINE",
-        description="Probe system status or component health (system, memory, vault, etc.).",
-        trinity="Δ",
-        floors=("F4", "F12"),
-        input_schema={
-            "type": "object",
-            "properties": {
-                "target": {"type": "string", "default": "system"},
-            },
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 17. arifos_diag_substrate — Conformance Check
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        visibility="internal",
-        name="arifos_diag_substrate",
-        stage="911",
-        purpose="Arifos diag substrate — Protocol conformance check",
-        layer="EXECUTION",
-        description="Maintainer: Run substrate protocol conformance check.",
-        trinity="Ψ",
-        floors=("F11",),
-        input_schema={
-            "type": "object",
-            "properties": {"session_id": {"type": "string"}},
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 18. Judge Surface (APP)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="judge_surface",
-        stage="888",
-        purpose="Judge surface — Constitutional Verdict UI",
-        layer="SURFACE",
-        description=(
-            "Open the arifOS Constitutional Verdict Surface. "
-            "Evaluates a candidate action against all 13 constitutional floors. "
-            "Human SEAL or REJECT required before any forge execution (F13 Sovereign)."
-        ),
-        trinity="Ψ",
-        floors=("F1", "F13"),
-        input_schema={
-            "type": "object",
-            "properties": {"candidate_action": {"type": "string"}},
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 19. Vault Surface (APP)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="vault_ledger_surface",
-        stage="911",
-        purpose="Vault ledger surface — Immutable Vault UI",
-        layer="SURFACE",
-        description=(
-            "Open the arifOS Immutable Vault Ledger. Shows the live BLS constitutional "
-            "seal card and all VAULT999 ledger entries. F1 Amanah."
-        ),
-        trinity="Ψ",
-        floors=("F1", "F11"),
-        input_schema={"type": "object", "properties": {}},
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 20. Init Surface (APP)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="init_surface",
-        stage="000",
-        purpose="Init surface — Session Anchoring UI",
-        layer="SURFACE",
-        description=(
-            "Open the arifOS Session Anchoring Surface. Declares intent, selects mode, "
-            "and anchors the constitutional session. F1 Amanah — session creation is irreversible commitment."
-        ),
-        trinity="Ψ",
-        floors=("F1", "F11"),
-        input_schema={"type": "object", "properties": {"intent": {"type": "string"}}},
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 21. Forge Surface (APP)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="forge_surface",
-        stage="010",
-        purpose="Forge surface — Execution surface with double-gate",
-        layer="SURFACE",
-        description=(
-            "Open the arifOS Forge Execution Surface with double-gate architecture. "
-            "Gate 1: 888_JUDGE must SEAL. Gate 2: Human must APPROVE. "
-            "F13 Sovereign Veto: no machine may cross this line alone."
-        ),
-        trinity="Δ",
-        floors=("F1", "F13"),
-        input_schema={"type": "object", "properties": {"action": {"type": "string"}}},
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # WEALTH ORGAN — Capital Engine (Ψ lane)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="wealth_npv_reward",
-        stage="WEALTH",
-        purpose="Compute NPV, Terminal Value, and EAA",
-        layer="INTELLIGENCE",
-        visibility="public",
-        description="High-precision Net Present Value calculation with thermodynamic confidence bands.",
-        trinity="Ψ",
-        floors=("F4", "F8"),
-        input_schema={
-            "type": "object",
-            "required": ["initial_investment", "cash_flows", "discount_rate"],
-            "properties": {
-                "initial_investment": {
-                    "type": "number",
-                    "description": "Initial capital outlay (negative number, e.g., -1000000 for $1M investment).",
-                },
-                "cash_flows": {
-                    "type": "array",
-                    "items": {"type": "number"},
-                    "description": "Annual cash flows as an array of numbers. Positive=inflow, negative=outflow.",
-                },
-                "discount_rate": {
-                    "type": "number",
-                    "default": 0.1,
-                    "description": "Annual discount rate (e.g., 0.10 for 10%). Used to compute present value.",
-                },
-                "terminal_value": {
-                    "type": "number",
-                    "default": 0,
-                    "description": "Residual asset value at end of projection period. Defaults to 0.",
-                },
-                "epistemic": {
-                    "type": "string",
-                    "enum": ["CLAIM", "ESTIMATE", "HYPOTHESIS"],
-                    "default": "CLAIM",
-                    "description": "Epistemic confidence tier: CLAIM=best-guess, ESTIMATE=analysis-supported, HYPOTHESIS=scenario-modeled.",
-                },
-            },
-        },
-    ),
-    ToolSpec(
-        name="wealth_irr_yield",
-        stage="WEALTH",
-        purpose="Compute Yield (IRR/MIRR)",
-        layer="INTELLIGENCE",
-        visibility="public",
-        description="Compute Internal Rate of Return and Modified IRR for capital energy evaluation.",
-        trinity="Ψ",
-        floors=("F4", "F8"),
-        input_schema={
-            "type": "object",
-            "required": ["initial_investment", "cash_flows"],
-            "properties": {
-                "initial_investment": {
-                    "type": "number",
-                    "description": "Initial capital outlay (negative number).",
-                },
-                "cash_flows": {
-                    "type": "array",
-                    "items": {"type": "number"},
-                    "description": "Annual cash flows. Positive=inflow, negative=outflow.",
-                },
-            },
-        },
-    ),
-    ToolSpec(
-        name="wealth_dscr_leverage",
-        stage="WEALTH",
-        purpose="Compute Leverage (DSCR)",
-        layer="INTELLIGENCE",
-        visibility="public",
-        description="Compute Debt Service Coverage Ratio to evaluate structural survival load.",
-        trinity="Ψ",
-        floors=("F4", "F11"),
-        input_schema={
-            "type": "object",
-            "required": ["ebitda", "debt_service"],
-            "properties": {
-                "ebitda": {
-                    "type": "number",
-                    "description": "Earnings Before Interest, Taxes, Depreciation, and Amortization (annualized).",
-                },
-                "debt_service": {
-                    "type": "number",
-                    "description": "Total annual debt service obligations (principal + interest payments).",
-                },
-            },
-        },
-    ),
-    ToolSpec(
-        visibility="public",
-        name="wealth_brent_score",
-        stage="WEALTH_01",
-        purpose="Score O&G tickers against Brent price — plain English signal",
-        role="Capital scoring for Malaysian O&G instruments",
-        layer="INTELLIGENCE",
-        description=(
-            "Score a Bursa O&G or Malaysia-market ticker against current Brent price. "
-            "Returns a plain-English signal (BUY/HOLD/SELL/CAUTION) with a one-sentence reason."
-        ),
-        trinity="Ψ",
-        floors=("F4", "F9"),
-        input_schema={
-            "type": "object",
-            "required": ["ticker", "brent_price", "scenario"],
-            "properties": {
-                "ticker": {
-                    "type": "string",
-                    "description": "Stock ticker symbol (e.g., PETRONAS Bursa code or international equivalent).",
-                },
-                "brent_price": {
-                    "type": "number",
-                    "description": "Current Brent crude oil price in USD per barrel.",
-                },
-                "scenario": {
-                    "type": "string",
-                    "enum": ["base", "bull", "bear"],
-                    "description": "Price scenario: base=consensus forecast, bull=upside case, bear=downside case.",
-                },
-                "session_id": {
-                    "type": "string",
-                    "description": "Active session ID for wealth context.",
-                },
-            },
-        },
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 22. Metabolic Monitor (APP)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="arifos_monitor_metabolism",
-        stage="111",
-        purpose="Monitor metabolism — Real-time health dashboard",
-        layer="SURFACE",
-        description=(
-            "Open the arifOS Metabolic Monitor — a real-time dashboard showing the health "
-            "of all 13 Constitutional Floors (F1-F13), plus thermodynamic metrics: "
-            "ΔS (entropy change), Peace² (stability), and Ω₀ (baseline)."
-        ),
-        trinity="Δ",
-        floors=("F4", "F12"),
-        input_schema={"type": "object", "properties": {}},
-    ),
 )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════
 # METADATA & UTILITIES
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 TOOL_NAMES = frozenset(t.name for t in TOOLS)
 TOOL_COUNT = len(TOOLS)
@@ -947,12 +598,11 @@ LEGACY_NAME_MAP: dict[str, str] = {
     "vault_ledger": "arifos_vault",
     "architect_registry": "arifos_init",
     "code_engine": "arifos_forge",
-    "vps_monitor": "arifos_health",
 }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════
 # RESOURCES
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 RESOURCES: tuple[ResourceSpec, ...] = (
     ResourceSpec(

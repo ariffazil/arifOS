@@ -1482,6 +1482,75 @@ async def arifos_ops(
     """Calculate operation costs and thermodynamics."""
     # Horizon Unification: Support both 'action' and 'query'
     target_action = query or action or ""
+
+    if mode == "economic_audit":
+        from arifosmcp.runtime.models import RuntimeStatus
+        import json as _json
+
+        try:
+            with open("/root/WELL/state.json") as f:
+                well = _json.load(f)
+        except Exception:
+            well = {}
+
+        well_score = well.get("well_score", 0.0)
+        kappa_r = well_score * 0.001
+        thermodynamic_cost = kappa_r * 1.5e-23 * 1e9
+
+        payload = {
+            "mode": "economic_audit",
+            "well_score": well_score,
+            "kappa_r": kappa_r,
+            "thermodynamic_cost_joules": thermodynamic_cost,
+            "session_id": session_id,
+            "verdict": "SEAL",
+        }
+        envelope = RuntimeEnvelope(
+            ok=True,
+            tool="arifos_ops",
+            session_id=session_id,
+            stage="777",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload=payload,
+        )
+        _stamp_platform(envelope, platform)
+        return seal_runtime_envelope(envelope, "arifos_ops")
+
+    if mode == "metabolism":
+        from arifosmcp.runtime.models import RuntimeStatus
+        import json as _json
+
+        try:
+            with open("/root/WELL/state.json") as f:
+                state = _json.load(f)
+        except Exception:
+            state = {}
+
+        metrics = state.get("metrics", {})
+        floors_violated = state.get("floors_violated", [])
+        well_score = state.get("well_score", 0.0)
+
+        payload = {
+            "mode": "metabolism",
+            "well_score": well_score,
+            "metrics": metrics,
+            "floors_violated": floors_violated,
+            "chain_status": "operational",
+            "session_id": session_id,
+        }
+        envelope = RuntimeEnvelope(
+            ok=True,
+            tool="arifos_ops",
+            session_id=session_id,
+            stage="777",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload=payload,
+        )
+        _stamp_platform(envelope, platform)
+        return seal_runtime_envelope(envelope, "arifos_ops")
+
     envelope = await _mega_math_estimator(
         mode=mode,
         payload={"action": target_action},
@@ -1708,20 +1777,73 @@ async def arifos_health(
 
 
 async def arifos_vault(
-    verdict: str,
+    verdict: str | None = None,
     evidence: str | None = None,
     session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
     debug: bool = False,
     platform: str = "unknown",
+    mode: Literal["append", "read"] = "append",
+    limit: int = 20,
+    since: str | None = None,
+    until: str | None = None,
+    verdict_filter: str | None = None,
 ) -> RuntimeEnvelope:
-    """Append immutable verdict to ledger."""
+    """Append immutable verdict to ledger (append) or read from it (read)."""
     from arifosmcp.runtime.tools_internal import vault_ledger_dispatch_impl
+    from arifosmcp.runtime.models import RuntimeStatus
 
     class FakeCtx:
-        request_id = f"vault-{id(verdict)}"
+        request_id = f"vault-{id(verdict) if verdict else 'read'}"
         agent_id = "arifos_vault"
+
+    if mode == "read":
+        try:
+            from build.lib.core.organs.vault.vault_organ import get_vault_organ
+            from build.lib.core.organs.vault.types import Verdict as VaultVerdict
+        except ImportError:
+            from core.organs.vault.vault_organ import get_vault_organ
+            from core.organs.vault.types import Verdict as VaultVerdict
+
+        organ = get_vault_organ()
+        entries = list(organ._entries.values())
+
+        if session_id:
+            entries = [e for e in entries if e.lineage.session_id == session_id]
+
+        if verdict_filter:
+            try:
+                vverdict = VaultVerdict(verdict_filter)
+                entries = [e for e in entries if e.verdict == vverdict]
+            except ValueError:
+                pass
+
+        if since:
+            since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
+            entries = [e for e in entries if e.sealed_at >= since_dt]
+        if until:
+            until_dt = datetime.fromisoformat(until.replace("Z", "+00:00"))
+            entries = [e for e in entries if e.sealed_at <= until_dt]
+
+        entries = sorted(entries, key=lambda e: e.sealed_at, reverse=True)[:limit]
+
+        payload = {
+            "entries": [e.to_dict() for e in entries],
+            "count": len(entries),
+            "chain_status": organ.chain_status(),
+        }
+        envelope = RuntimeEnvelope(
+            ok=True,
+            tool="arifos_vault",
+            session_id=session_id,
+            stage="999",
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+            payload=payload,
+        )
+        _stamp_platform(envelope, platform)
+        return seal_runtime_envelope(envelope, "arifos_vault")
 
     envelope = await vault_ledger_dispatch_impl(
         mode="seal",

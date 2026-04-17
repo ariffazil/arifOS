@@ -61,16 +61,4 @@ _axis_enabled = lambda axis: os.getenv(f"ARIFOS_ENABLE_{axis}_AXIS", "true").low
 
 ---
 
-## Note on HOLD Tool Exposure
-
-Tools tagged `{"hold", "internal"}` are registered in the MCP server but excluded from public discovery. They cannot be called by external agents unless the caller explicitly knows the tool name AND the tool's internal guards pass.
-
-Current HOLD tools:
-- `arifos_execute_judge` — awaiting judge-guard wiring
-- `arifos_forge_judge_check` — pre-forge check, internal only
-- `arifos_perform_economic_audit` — F6/F10 floor wiring pending
-- `arifos_verify_location` — F2/F11 location verification pending
-
----
-
 *DITEMPA BUKAN DIBERI — Forged, Not Given*

@@ -23,7 +23,7 @@ A2A handles inter-agent routing (separate concern).
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from dataclasses import dataclass
 from enum import Enum
 
@@ -253,7 +253,7 @@ def create_perception_mcp() -> FastMCP:
         meta=_gov("sense","low","observation",["F2","F11"],mutability="read"),
     )
     def P_geox_skills_query(
-        query: str, domain: str | None = None, ctx: Context | None = None
+        query: Annotated[str, Field(description="Search query for GEOX skill registry.")], domain: Annotated[str | None, Field(description="Optional domain filter for skill search.")] = None, ctx: Context | None = None
     ) -> dict[str, Any]:
         """Query GEOX skills registry."""
         return {
@@ -331,11 +331,11 @@ def create_perception_mcp() -> FastMCP:
         meta=_gov("sense","low","observation",["F2","F11"],mutability="read"),
     )
     def P_vault_ledger_read(
-        session_id: str | None = None,
-        verdict: str | None = None,
-        since: str | None = None,
-        until: str | None = None,
-        limit: int = 100,
+        session_id: Annotated[str | None, Field(description="Session ID to filter ledger entries.")] = None,
+        verdict: Annotated[str | None, Field(description="Verdict type to filter: SEAL, PARTIAL, VOID, HOLD.")] = None,
+        since: Annotated[str | None, Field(description="Start timestamp in ISO format.")] = None,
+        until: Annotated[str | None, Field(description="End timestamp in ISO format.")] = None,
+        limit: Annotated[int, Field(description="Maximum number of records to return.")] = 100,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
         """Read from VAULT999 ledger via vault_postgres if available."""
@@ -478,8 +478,8 @@ def create_transformation_mcp() -> FastMCP:
     def T_math_irr_compute(
         initial_investment: float,
         cash_flows: list[float],
-        finance_rate: float = 0,
-        reinvest_rate: float = 0,
+        finance_rate: Annotated[float, Field(description="Finance rate for IRR calculation (decimal, e.g., 0.10 for 10%).")] = 0,
+        reinvest_rate: Annotated[float, Field(description="Reinvest rate for MIRR calculation (decimal).")] = 0,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
         """Compute IRR using real WEALTH kernel."""
@@ -518,7 +518,7 @@ def create_transformation_mcp() -> FastMCP:
     def T_math_monte_carlo(
         outcomes: list[float],
         probabilities: list[float],
-        iterations: int = 1000,
+        iterations: Annotated[int, Field(description="Number of Monte Carlo simulation iterations.")] = 1000,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
         """Monte Carlo simulation from outcome distribution."""
@@ -678,7 +678,7 @@ def create_valuation_mcp() -> FastMCP:
         initial_investment: float,
         cash_flows: list[float],
         discount_rate: float,
-        terminal_value: float = 0,
+        terminal_value: Annotated[float, Field(description="Residual asset value at end of projection period.")] = 0,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
         """Compute NPV using real WEALTH kernel."""
@@ -780,7 +780,7 @@ def create_valuation_mcp() -> FastMCP:
         initial_investment: float,
         cash_flows: list[float],
         discount_rate: float,
-        terminal_value: float = 0,
+        terminal_value: Annotated[float, Field(description="Residual asset value at end of projection period.")] = 0,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
         """Compute Profitability Index: PI = PV of future cash flows / initial investment."""
@@ -819,7 +819,7 @@ def create_valuation_mcp() -> FastMCP:
     def V_payback_evaluate(
         initial_investment: float,
         cash_flows: list[float],
-        discount_rate: float = 0,
+        discount_rate: Annotated[float, Field(description="Annual discount rate as decimal (e.g., 0.10 for 10%).")] = 0,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
         """Compute simple and discounted payback period."""
@@ -989,376 +989,19 @@ def create_valuation_mcp() -> FastMCP:
 
 
 # =============================================================================
-# GOVERNANCE TOOLS (G) — Constraint and legitimacy
-# =============================================================================
-
-
-def create_governance_mcp() -> FastMCP:
-    """Governance Agent MCP tools — init, route, judge, ethics, hold."""
-    mcp = FastMCP("arifOS-G")
-
-    @mcp.tool(
-        name="G_session_init",
-        description="Initialize constitutional session with identity binding",
-        tags={"governance"},
-        annotations={"readOnlyHint": False, "openWorldHint": False},
-        meta=_gov("judge","medium","verdict",["F11","F13"],mutability="write"),
-    )
-    def G_session_init(
-        intent: str,
-        mode: Literal["init", "probe", "state", "status"] = "init",
-        ctx: Context | None = None,
-    ) -> dict[str, Any]:
-        """Initialize session."""
-        import uuid
-
-        return {
-            "agent": "G",
-            "action": "session_init",
-            "result": {
-                "session_id": str(uuid.uuid4()),
-                "epoch": 0,
-                "alignment": "NOMINAL",
-                "intent": intent,
-                "mode": mode,
-            },
-        }
-
-    @mcp.tool(
-        name="G_kernel_route",
-        description="Route request to correct metabolic lane based on risk",
-        tags={"governance"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("judge","medium","verdict",["F1","F8","F13"],mutability="write"),
-    )
-    def G_kernel_route(
-        task: dict[str, Any],
-        risk_level: Literal["low", "medium", "high", "critical"],
-        ctx: Context | None = None,
-    ) -> dict[str, Any]:
-        """Route to correct lane."""
-        lane_map = {"low": "P-lane", "medium": "T-lane", "high": "V-lane", "critical": "G-lane"}
-        return {
-            "agent": "G",
-            "action": "kernel_route",
-            "result": {
-                "lane": lane_map.get(risk_level, "P-lane"),
-                "target_agent": "P",
-                "risk_level": risk_level,
-            },
-        }
-
-    @mcp.tool(
-        name="G_mind_reason",
-        description="Structured reasoning with typed cognitive pipeline",
-        tags={"governance"},
-        annotations={"readOnlyHint": True, "openWorldHint": True},
-        meta=_gov("mind","low","inference",["F7","F8"],mutability="transform"),
-    )
-    def G_mind_reason(
-        prompt: str,
-        mode: Literal["reason", "sequential", "step", "branch", "merge"] = "reason",
-        session_id: str | None = None,
-        ctx: Context | None = None,
-    ) -> dict[str, Any]:
-        """Constitutional reasoning."""
-        return {
-            "agent": "G",
-            "action": "mind_reason",
-            "result": {
-                "reasoning_packet": {},
-                "audit_packet": {},
-                "mode": mode,
-                "session_id": session_id,
-            },
-        }
-
-    @mcp.tool(
-        name="G_ethical_heart",
-        description="Red-team proposal: simulate consequences, evaluate F5/F6/F9",
-        tags={"governance"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("heart","high","verdict",["F1","F3","F6","F9","F10"],mutability="write"),
-    )
-    def G_ethical_heart(
-        candidate_action: dict[str, Any], context: dict[str, Any], ctx: Context | None = None
-    ) -> dict[str, Any]:
-        """Ethical evaluation."""
-        return {
-            "agent": "G",
-            "action": "ethical_heart",
-            "result": {
-                "ethical_assessment": {
-                    "F5_continuity": "PASS",
-                    "F6_harm_dignity": "PASS",
-                    "F9_injection": "PASS",
-                },
-                "verdict": "ETHICAL",
-            },
-        }
-
-    @mcp.tool(
-        name="G_judge_verdict",
-        description="Final constitutional verdict: SEAL, PARTIAL, VOID, HOLD",
-        tags={"governance"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("judge","high","verdict",["F1","F3","F8","F13"],requires_judge=True,mutability="write"),
-    )
-    def G_judge_verdict(
-        candidate_action: dict[str, Any], dry_run: bool = False, ctx: Context | None = None
-    ) -> dict[str, Any]:
-        """Constitutional judgment."""
-        return {
-            "agent": "G",
-            "action": "judge_verdict",
-            "result": {
-                "verdict": "SEAL",
-                "floor_results": {f"F{i}": "PASS" for i in range(1, 14)},
-                "w3_scores": {},
-                "dry_run": dry_run,
-            },
-        }
-
-    @mcp.tool(
-        name="G_orthogonality_guard",
-        description="Enforce Ω_ortho >= 0.95 across tool outputs",
-        tags={"governance"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("gateway","high","verdict",["F5","F8"],requires_judge=True,mutability="write"),
-    )
-    def G_orthogonality_guard(
-        tool_outputs: list[Any], model_traces: list[Any], ctx: Context | None = None
-    ) -> dict[str, Any]:
-        """Check orthogonality."""
-        return {
-            "agent": "G",
-            "action": "orthogonality_guard",
-            "result": {"omega_ortho": 1.0, "verdict": "PASS", "threshold": 0.95},
-        }
-
-    @mcp.tool(
-        name="G_hold_authority",
-        description="Check if action requires 888_HOLD human approval",
-        tags={"governance"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("judge","high","verdict",["F13"],requires_judge=True,requires_human=True,mutability="write"),
-    )
-    def G_hold_authority(action: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
-        """Check HOLD requirement."""
-        return {
-            "agent": "G",
-            "action": "hold_authority",
-            "result": {"requires_hold": False, "reason": "low_risk_action"},
-        }
-
-    @mcp.tool(
-        name="G_policy_audit",
-        description="Audit proposal against configurable policy constraints",
-        tags={"governance"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("judge","high","verdict",["F6","F10","F13"],requires_judge=True,mutability="write"),
-    )
-    def G_policy_audit(
-        proposal: dict[str, Any], policy: dict[str, Any], ctx: Context | None = None
-    ) -> dict[str, Any]:
-        """Policy audit."""
-        return {
-            "agent": "G",
-            "action": "policy_audit",
-            "result": {"audit_result": "COMPLIANT", "violations": []},
-        }
-
-    return mcp
-
-
-# =============================================================================
 # EXECUTION TOOLS (E) — State mutation only
 # =============================================================================
 
 
+def create_governance_mcp() -> FastMCP:
+    """Governance Agent MCP tools — STUB (delegated to arifOS canonical tools)."""
+    mcp = FastMCP("arifOS-G")
+    return mcp
+
+
 def create_execution_mcp() -> FastMCP:
-    """Execution Agent MCP tools — forge, vault, memory."""
+    """Execution Agent MCP tools — WELL mutation and WELL→VAULT cross-system."""
     mcp = FastMCP("arifOS-E")
-
-    @mcp.tool(
-        name="E_forge_bridge",
-        description="Delegated Execution Bridge — validates SEAL, constructs manifest",
-        tags={"execution"},
-        annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False},
-        meta=_gov("forge","high","execution",["F1","F5","F13"],requires_judge=True,mutability="write"),
-    )
-    def E_forge_bridge(
-        plan: dict[str, Any],
-        verdict: Literal["SEAL", "PARTIAL", "VOID", "HOLD"],
-        ctx: Context | None = None,
-    ) -> dict[str, Any]:
-        """Forge execution bridge."""
-        if verdict != "SEAL":
-            return {
-                "agent": "E",
-                "action": "forge_bridge",
-                "error": f"Cannot forge with verdict {verdict}",
-                "requires_human_approval": True,
-            }
-        return {
-            "agent": "E",
-            "action": "forge_bridge",
-            "result": {"manifest": plan, "execution_receipt": {"id": "stub_receipt"}},
-        }
-
-    @mcp.tool(
-        name="E_forge_execute",
-        description="Execute forge after gates pass",
-        tags={"execution"},
-        annotations={"readOnlyHint": False, "openWorldHint": True, "destructiveHint": False},
-        meta=_gov("forge","critical","execution",["F1","F5","F13"],requires_judge=True,requires_human=True,reversible="irreversible",mutability="execute"),
-    )
-    def E_forge_execute(
-        plan: dict[str, Any],
-        human_approved: bool = False,
-        ctx: Context | None = None,
-    ) -> dict[str, Any]:
-        """Execute forge. Requires human_approved=True (F13 Sovereign Veto) and prior SEAL verdict."""
-        # 888-B guard: F13 Sovereign Veto — human must explicitly approve
-        if not human_approved:
-            return {
-                "agent": "E",
-                "action": "forge_execute",
-                "error": "888_HOLD — F13 Sovereign Veto required. Set human_approved=True to proceed.",
-                "requires_human_confirm": True,
-                "floor": "F13",
-            }
-        return {
-            "agent": "E",
-            "action": "forge_execute",
-            "result": {"execution_result": "SUCCESS", "plan_id": plan.get("id", "unknown")},
-        }
-
-    @mcp.tool(
-        name="E_vault_seal",
-        description="Append immutable verdict record to Merkle-hashed ledger",
-        tags={"execution"},
-        annotations={"readOnlyHint": False, "openWorldHint": False, "destructiveHint": False},
-        meta=_gov("vault","medium","execution",["F1","F11","F12"],reversible="limited",mutability="write"),
-    )
-    async def E_vault_seal(record: dict[str, Any], ctx: Context | None = None) -> dict[str, Any]:
-        """Seal a verdict record to VAULT999 using PostgresVaultStore."""
-        try:
-            from arifOS.arifosmcp.runtime.vault_postgres import seal_to_vault
-
-            result = await seal_to_vault(
-                event_type=record.get("event_type", "verdict"),
-                session_id=record.get("session_id", "unknown"),
-                actor_id=record.get("actor_id", "arifOS-E"),
-                stage=record.get("stage", "888_JUDGE"),
-                verdict=record.get("verdict", "SEAL"),
-                payload=record.get("payload", record),
-                risk_tier=record.get("risk_tier", "medium"),
-            )
-            return {
-                "agent": "E",
-                "action": "vault_seal",
-                "result": {
-                    "merkle_hash": result.chain_hash,
-                    "seal_id": result.event_id,
-                    "success": result.success,
-                    "db_id": result.db_id,
-                },
-            }
-        except Exception as e:
-            import hashlib, uuid
-
-            content = str(record)
-            merkle_hash = hashlib.sha256(content.encode()).hexdigest()
-            return {
-                "agent": "E",
-                "action": "vault_seal",
-                "result": {
-                    "merkle_hash": merkle_hash,
-                    "seal_id": str(uuid.uuid4()),
-                    "error": str(e),
-                },
-            }
-
-    @mcp.tool(
-        name="E_vault_read",
-        description="Read from VAULT999 ledger",
-        tags={"execution"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("vault","low","observation",["F11"],mutability="read"),
-    )
-    async def E_vault_read(
-        seal_id: str | None = None, session_id: str | None = None, ctx: Context | None = None
-    ) -> dict[str, Any]:
-        """Read from VAULT999 ledger."""
-        try:
-            from arifOS.arifosmcp.runtime.vault_postgres import PostgresVaultStore
-
-            store = PostgresVaultStore()
-            pool = await store._get_pool()
-            if pool:
-                async with pool.acquire() as conn:
-                    if seal_id:
-                        rows = await conn.fetch(
-                            "SELECT * FROM vault_events WHERE event_id=$1", seal_id
-                        )
-                    elif session_id:
-                        rows = await conn.fetch(
-                            "SELECT * FROM vault_events WHERE session_id=$1 ORDER BY sealed_at DESC LIMIT 100",
-                            session_id,
-                        )
-                    else:
-                        rows = await conn.fetch(
-                            "SELECT * FROM vault_events ORDER BY sealed_at DESC LIMIT 100"
-                        )
-                    records = [dict(r) for r in rows]
-                    return {"agent": "E", "action": "vault_read", "result": {"records": records}}
-        except Exception:
-            pass
-        return {"agent": "E", "action": "vault_read", "result": {"seal_id": seal_id, "record": {}}}
-
-    @mcp.tool(
-        name="E_memory_store",
-        description="Store memory in MemoryContract (5-tier governed, semantic BGE+Qdrant)",
-        tags={"execution"},
-        annotations={"readOnlyHint": False, "openWorldHint": False, "destructiveHint": False},
-        meta=_gov("vault","low","artifact",["F11"],mutability="write"),
-    )
-    async def E_memory_store(
-        memory: dict[str, Any],
-        tier: Literal["ephemeral", "working", "canon", "sacred", "quarantine"],
-        ctx: Context | None = None,
-    ) -> dict[str, Any]:
-        """Store memory in MemoryEngine."""
-        try:
-            result = await memory_engine.execute("store", memory, tier)
-            return {"agent": "E", "action": "memory_store", "result": result}
-        except Exception as e:
-            return {
-                "agent": "E",
-                "action": "memory_store",
-                "result": {"tier": tier, "status": "failed", "error": str(e)},
-            }
-
-    @mcp.tool(
-        name="E_memory_retrieve",
-        description="Retrieve from MemoryContract (semantic search)",
-        tags={"execution"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("vault","low","observation",["F11"],mutability="read"),
-    )
-    async def E_memory_retrieve(
-        query: str,
-        tier: Literal["ephemeral", "working", "canon", "sacred", "quarantine"] | None = None,
-        limit: int = 5,
-        ctx: Context | None = None,
-    ) -> dict[str, Any]:
-        """Retrieve memory from MemoryEngine."""
-        try:
-            result = await memory_engine.execute("retrieve", {"query": query, "limit": limit}, tier)
-            return {"agent": "E", "action": "memory_retrieve", "result": result}
-        except Exception as e:
-            return {"agent": "E", "action": "memory_retrieve", "result": {"memories": [], "error": str(e)}}
 
     @mcp.tool(
         name="E_well_log",
@@ -1454,32 +1097,6 @@ def create_meta_mcp() -> FastMCP:
     mcp = FastMCP("arifOS-M")
 
     @mcp.tool(
-        name="M_omega_status",
-        description="Get current Ω_ortho status and correlation matrix",
-        tags={"meta"},
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta=_gov("gateway","low","observation",["F5","F8"],mutability="read"),
-    )
-    def M_omega_status(ctx: Context | None = None) -> dict[str, Any]:
-        """Get Ω_ortho status."""
-        return {
-            "agent": "M",
-            "action": "omega_status",
-            "result": {
-                "omega_ortho": 1.0,
-                "threshold": 0.95,
-                "matrix": {
-                    "P": {"T": 1, "G": 1},
-                    "T": {"V": 1, "M": 1},
-                    "V": {"G": 1},
-                    "G": {"E": 1, "M": 1},
-                    "E": {},
-                    "M": {"P": 1, "G": 1},
-                },
-            },
-        }
-
-    @mcp.tool(
         name="M_skill_discovery",
         description="Search available skills by keyword/domain",
         tags={"meta"},
@@ -1487,7 +1104,7 @@ def create_meta_mcp() -> FastMCP:
         meta=_gov("sense","low","observation",["F11"],mutability="read"),
     )
     def M_skill_discovery(
-        query: str, domain: str | None = None, ctx: Context | None = None
+        query: Annotated[str, Field(description="Search query for skill registry.")], domain: Annotated[str | None, Field(description="Optional domain filter for skill search.")] = None, ctx: Context | None = None
     ) -> dict[str, Any]:
         """Discover skills."""
         return {
@@ -1519,7 +1136,7 @@ def create_meta_mcp() -> FastMCP:
         meta=_gov("sense","low","observation",["F12"],mutability="read"),
     )
     def M_metabolic_monitor(
-        metrics: list[str] | None = None, ctx: Context | None = None
+        metrics: Annotated[list[str] | None, Field(description="List of specific metrics to retrieve (e.g., ['delta_S', 'peace_squared']). If None, returns all.")] = None, ctx: Context | None = None
     ) -> dict[str, Any]:
         """Monitor metabolism."""
         return {

@@ -185,7 +185,7 @@ if not hasattr(judge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op
 async def execute_judge(
     candidate_action: Annotated[str, Field(description="The action or proposal to evaluate")],
     risk_tier: Annotated[str, Field(description="Risk level: low, medium, high, critical")] = "medium",
-    session_id: str | None = None,
+    session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
 ) -> ToolResult:
     """
     Run constitutional verdict evaluation on a candidate action.

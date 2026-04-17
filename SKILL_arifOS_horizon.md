@@ -1,107 +1,89 @@
 # arifOS Horizon MCP — SKILL.md
 
-> Constitutional AI orchestration kernel deployed at **https://arifOS.fastmcp.app/mcp**
+> Constitutional AI orchestration kernel deployed at **https://mcp.arif-fazil.com/mcp**
 > Auth: `FASTMCP_API_KEY` or `MCP_API_KEY` env var (Bearer token)
+
+## 20-Tool Surface — 11 Canonical + 9 P_* Oracles
+
+### Tool Call Order (Constitutionally Enforced)
+
+```
+000 arifos_init        ← MUST be first — session_id anchors everything
+111 arifos_sense       ← ground in reality before reasoning
+333 arifos_mind        ← reason only after sensing
+666 arifos_heart       ← ethics check before judge
+888 arifos_judge       ← verdict only after heart passes
+999 arifos_vault       ← seal only after judge SEAL
+    arifos_forge       ← execute only after vault SEAL
+```
+
+Skipping steps is a Floor violation.
 
 ## Quick Start
 
 ```bash
-# Set key
 export FASTMCP_API_KEY="your-key"
 
-# Call a tool
-python arifOS_horizon_cli.py arifos_get_vault_data
-python arifOS_horizon_cli.py arifos_judge query="test action" risk_tier=low
-python arifOS_horizon_cli.py arifos_verify_location lat=4.2105 lon=101.9758
-```
-
-## Full Tool Reference (28 tools)
-
-### GOVERNANCE (Ψ Soul — 11 tools)
-
-| Tool | Description | Required Params |
-|------|-------------|-----------------|
-| `arifos_init` | Initialize constitutional session with identity binding | `actor_id`, `intent` |
-| `arifos_sense` | Ground query in physical reality via 8-stage sensing protocol | `query` |
-| `arifos_mind` | Structured reasoning with typed cognitive pipeline | `query` |
-| `arifos_kernel` | Route request to correct metabolic lane or tool family | `query` |
-| `arifos_heart` | Red-team proposal for ethical risks (F5/F6/F9) | `query` |
-| `arifos_ops` | Calculate operation costs, thermodynamics, capacity | `query` |
-| `arifos_judge` | Final constitutional verdict evaluation (SEAL/PARTIAL/VOID/HOLD) | `query`, `risk_tier` |
-| `arifos_memory` | Retrieve governed memory from vector store | `query` |
-| `arifos_vault` | Append immutable verdict record to Merkle-hashed ledger | `verdict` |
-| `arifos_forge` | Delegated Execution Bridge — judge-validated executor | `action`, `payload`, `session_id`, `judge_verdict`, `judge_g_star` |
-| `arifos_gateway` | Orthogonality Guard — supervises AGI\|\|ASI lanes | `session_id` |
-
-### SECONDARY GOVERNANCE (6 tools)
-
-| Tool | Description | Required Params |
-|------|-------------|-----------------|
-| `arifos_monitor_metabolism` | Real-time dashboard of 13 Constitutional Floors | — |
-| `arifos_execute_judge` | Run constitutional verdict evaluation | `candidate_action` |
-| `arifos_get_vault_data` | Read VAULT999 ledger and build BLS seal card | — |
-| `arifos_anchor_session` | Anchor a new arifOS session | — |
-| `arifos_forge_judge_check` | Pre-forge constitutional check (888_JUDGE dry_run) | `candidate_action` |
-| `arifos_forge_execute` | Execute forge after both gates pass | `candidate_action` |
-
-### P-AXIS — Perception (WELL/GEOX/WEALTH) (8 tools)
-
-| Tool | Description | Required Params |
-|------|-------------|-----------------|
-| `P_well_state_read` | Read current WELL biological telemetry snapshot | — |
-| `P_well_readiness_check` | Check biological readiness verdict for arifOS JUDGE | — |
-| `P_well_floor_scan` | Scan W-Floor status across all dimensions | — |
-| `P_geox_scene_load` | Load seismic, well, or volume data into witness context | `scene_type`, `path` |
-| `P_geox_skills_query` | Query GEOX skill registry by keyword or domain | `query` |
-| `P_wealth_snapshot_fetch` | Fetch cross-source macro/energy/carbon snapshot | `geography` |
-| `P_wealth_series_fetch` | Fetch live data series from open public source | `source`, `series_id` |
-| `P_wealth_vintage_fetch` | Fetch specific vintage of series (FRED/ALFRED) | `series_id`, `vintage_date` |
-
-### ECONOMIC AUDIT
-
-| Tool | Description | Required Params |
-|------|-------------|-----------------|
-| `arifos_perform_economic_audit` | Perform a constitutional economic audit | `initial_cost`, `annual_benefit`, `years` |
-
-### LOCATION
-
-| Tool | Description | Required Params |
-|------|-------------|-----------------|
-| `arifos_verify_location` | Verify geospatial location against constitutional Earth Witness | `lat`, `lon` |
-
-### VAULT LEDGER
-
-| Tool | Description | Required Params |
-|------|-------------|-----------------|
-| `P_vault_ledger_read` | Read VAULT999 ledger, build BLS seal card | — |
-
-## Example Invocations
-
-```bash
-# Initialize a session
+# Initialize session
 python arifOS_horizon_cli.py arifos_init actor_id=arif-mcp intent="test session" risk_tier=low
 
-# Run constitutional judgment
+# Constitutional judgment
 python arifOS_horizon_cli.py arifos_judge query="deploy to production" risk_tier=high
 
-# Verify a location (Malaysia)
-python arifOS_horizon_cli.py arifos_verify_location lat=4.2105 lon=101.9758
-
-# Read vault data
-python arifOS_horizon_cli.py arifos_get_vault_data
-
-# Economic audit
-python arifOS_horizon_cli.py arifos_perform_economic_audit initial_cost=100000 annual_benefit=30000 years=5
-
-# Query memory
-python arifOS_horizon_cli.py arifos_memory query="previous decisions" mode=vector_query
-
-# Monitor metabolism
-python arifOS_horizon_cli.py arifos_monitor_metabolism
-
 # Read vault ledger
-python arifOS_horizon_cli.py P_vault_ledger_read limit=10
+python arifOS_horizon_cli.py arifos_vault mode=read limit=10
+
+# Economic audit (merged mode — no longer a separate tool)
+python arifOS_horizon_cli.py arifos_ops mode=economic_audit session_id=YOUR_SESSION
+
+# Monitor metabolism (merged mode — no longer a separate tool)
+python arifOS_horizon_cli.py arifos_ops mode=metabolism session_id=YOUR_SESSION
 ```
+
+## 11 Canonical Tools
+
+| Tool | Description | Required Params | Modes |
+|------|-------------|-----------------|-------|
+| `arifos_init` | Initialize constitutional session | `actor_id`, `intent` | `init`, `refresh`, `state`, `status`, `probe` |
+| `arifos_sense` | Ground query in physical reality | `query` | `governed`, `search`, `ingest`, `compass`, `atlas`, `time`, `location` |
+| `arifos_mind` | Structured reasoning | `query` | `reason`, `sequential`, `step`, `branch`, `merge`, `review`, `reflect` |
+| `arifos_kernel` | Route to metabolic lane | `query` | `kernel`, `status` |
+| `arifos_heart` | Ethical critique and simulation | `query` | `critique`, `simulate` |
+| `arifos_ops` | Thermodynamic and cost estimation | `query` | `cost`, `health`, `vitals`, `entropy`, `economic_audit`, `metabolism` |
+| `arifos_judge` | Final constitutional verdict | `query`, `risk_tier` | — |
+| `arifos_memory` | Governed memory recall | `query` | `vector_query`, `vector_store`, `engineer`, `query` |
+| `arifos_vault` | Append/read immutable ledger | — | `append`, `read` |
+| `arifos_forge` | Delegated execution bridge | `action`, `payload`, `session_id`, `judge_verdict`, `judge_g_star` | — |
+| `arifos_gateway` | Orthogonality Guard (Ω_ortho ≥ 0.95) | `session_id` | `guard`, `audit`, `correlate` |
+
+## 9 P_* Oracles (Perception — No Floor Overhead)
+
+| Oracle | Description | Required Params |
+|--------|-------------|-----------------|
+| `P_well_state_read` | WELL biological telemetry snapshot | — |
+| `P_well_readiness_check` | Biological readiness verdict for arifos_judge | — |
+| `P_well_floor_scan` | W-Floor status scan across all dimensions | — |
+| `P_geox_scene_load` | Load seismic, well, or volume data | `scene_type`, `path` |
+| `P_geox_skills_query` | Query GEOX skill registry | `query` |
+| `P_wealth_snapshot_fetch` | Macro/energy/carbon snapshot | `geography` |
+| `P_wealth_series_fetch` | Live time-series data | `source`, `series_id` |
+| `P_wealth_vintage_fetch` | Vintage series (FRED/ALFRED) | `series_id`, `vintage_date` |
+| `P_vault_ledger_read` | VAULT999 ledger read | — |
+
+## Deprecated Aliases (Do Not Use)
+
+These tools are deprecated and will be removed. Use the canonical mode params instead:
+
+| Deprecated | Use Instead |
+|------------|------------|
+| `arifos_anchor_session` | `arifos_init(mode="init")` |
+| `arifos_execute_judge` | `arifos_judge` |
+| `arifos_forge_judge_check` | `arifos_judge(dry_run=True)` |
+| `arifos_forge_execute` | `arifos_forge(dry_run=False)` |
+| `arifos_perform_economic_audit` | `arifos_ops(mode="economic_audit")` |
+| `arifos_verify_location` | `arifos_sense(mode="location")` |
+| `arifos_monitor_metabolism` | `arifos_ops(mode="metabolism")` |
+| `arifos_get_vault_data` | `arifos_vault(mode="read")` |
 
 ## Constitutional Verdict Types
 
@@ -112,9 +94,15 @@ python arifOS_horizon_cli.py P_vault_ledger_read limit=10
 | `VOID` | Constitutional violation — action blocked |
 | `HOLD` | High-stakes — requires human approval (888_HOLD) |
 
+## Protocol Rules
+
+- **MCP** — stateless capability execution (call → result)
+- **A2A** — stateful agent orchestration (negotiate → delegate → verify)
+- Never call `arifos_judge` via A2A or `mission:propose` via MCP
+
 ## Notes
 
 - All tool calls are logged to VAULT999 with BLS signatures
 - `arifos_forge` requires a prior `arifos_judge` SEAL verdict before execution
-- P-axis tools (P_*) interface with WELL (wellbeing), GEOX (geospatial), and WEALTH (economic) oracles
-- Location verification uses the constitutional Earth Witness protocol
+- `arifos_gateway` enforces Ω_ortho ≥ 0.95 across tool outputs — if it returns HOLD, diversify the query approach before retrying
+- P_* oracles are fast, stateless perception interfaces — do not route domain queries through governance tools

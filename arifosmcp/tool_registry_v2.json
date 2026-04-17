@@ -108,21 +108,6 @@
       ]
     },
     {
-      "tool_id": "T00_02",
-      "tier": "T00",
-      "stage": "000_INIT",
-      "name": "arifos_anchor_session",
-      "description": "Bind session to agent identity and epoch. Establishes temporal continuity.",
-      "pipeline_stage": "000_INIT",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "LIVE",
-      "floor_gates": [
-        "F11",
-        "F13"
-      ]
-    },
-    {
       "tool_id": "T00_03",
       "tier": "T00",
       "stage": "000_INIT",
@@ -149,20 +134,6 @@
       "floor_gates": [
         "F11",
         "F12"
-      ]
-    },
-    {
-      "tool_id": "T00_05",
-      "tier": "T00",
-      "stage": "000_INIT",
-      "name": "arifos_get_vault_data",
-      "description": "Read prior vault records. Query Merkle chain for historical evidence.",
-      "pipeline_stage": "000_INIT",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "LIVE",
-      "floor_gates": [
-        "F11"
       ]
     },
     {
@@ -215,36 +186,6 @@
       ]
     },
     {
-      "tool_id": "T00_09",
-      "tier": "T00",
-      "stage": "888_JUDGE",
-      "name": "arifos_execute_judge",
-      "description": "Enforce judgment verdict downstream. Routes SEAL to 999, HOLD to human, VOID to abort.",
-      "pipeline_stage": "888_JUDGE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F13"
-      ]
-    },
-    {
-      "tool_id": "T00_10",
-      "tier": "T00",
-      "stage": "888_JUDGE",
-      "name": "arifos_forge_judge_check",
-      "description": "Pre-execution judge confirmation \u2014 final check before forge. \u03bar < 0.40 triggers sentinel.",
-      "pipeline_stage": "888_JUDGE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F1",
-        "F3",
-        "F13"
-      ]
-    },
-    {
       "tool_id": "T00_11",
       "tier": "T00",
       "stage": "888_JUDGE",
@@ -276,21 +217,6 @@
       ]
     },
     {
-      "tool_id": "T00_13",
-      "tier": "T00",
-      "stage": "000_INIT",
-      "name": "arifos_verify_location",
-      "description": "Geospatial identity verification \u2014 Lambda-2 anchor. Verifies physical location claim.",
-      "pipeline_stage": "000_INIT",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F2",
-        "F11"
-      ]
-    },
-    {
       "tool_id": "T00_14",
       "tier": "T00",
       "stage": "444_KERNEL",
@@ -303,22 +229,6 @@
       "floor_gates": [
         "F11",
         "F12"
-      ]
-    },
-    {
-      "tool_id": "T00_15",
-      "tier": "T00",
-      "stage": "888_JUDGE",
-      "name": "arifos_perform_economic_audit",
-      "description": "Constitutional economic audit. Audits capital decisions against F6 Peace\u00b2 and F10 Amanah.",
-      "pipeline_stage": "888_JUDGE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F6",
-        "F10",
-        "F13"
       ]
     },
     {
@@ -1053,20 +963,6 @@
       ]
     },
     {
-      "tool_id": "T04_65",
-      "tier": "T04",
-      "stage": "666_HEART",
-      "name": "arifos_monitor_metabolism",
-      "description": "Systemic health monitor \u2014 passive, always running (Lambda-7). F12 CONTINUITY enforcement.",
-      "pipeline_stage": "666_HEART",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "LIVE",
-      "floor_gates": [
-        "F12"
-      ]
-    },
-    {
       "tool_id": "T04_66",
       "tier": "T04",
       "stage": "666_HEART",
@@ -1157,20 +1053,6 @@
       "floor_gates": [
         "F5",
         "F13"
-      ]
-    },
-    {
-      "tool_id": "T05_72",
-      "tier": "T05",
-      "stage": "777_FORGE",
-      "name": "arifos_forge_execute",
-      "description": "Forge execution dispatcher. Routes SEALed actions to substrate.",
-      "pipeline_stage": "777_FORGE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "LIVE",
-      "floor_gates": [
-        "F5"
       ]
     },
     {

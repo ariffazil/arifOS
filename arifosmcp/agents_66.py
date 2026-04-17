@@ -430,15 +430,6 @@ class G05_FinalJudgeOutput(TypedDict):
     w3_scores: dict[str, float]
 
 
-class G06_ExecuteJudgeInput(TypedDict):
-    candidate_action: dict[str, Any]
-    dry_run: bool
-
-
-class G06_ExecuteJudgeOutput(TypedDict):
-    verdict: Literal["SEAL", "PARTIAL", "VOID", "HOLD"]
-
-
 class G07_WealthFloorCheckerInput(TypedDict):
     proposal: dict[str, Any]
 
@@ -493,22 +484,6 @@ class E01_ForgeBridgeInput(TypedDict):
 class E01_ForgeBridgeOutput(TypedDict):
     manifest: dict[str, Any]
     execution_receipt: dict[str, Any]
-
-
-class E02_ForgeJudgeCheckInput(TypedDict):
-    candidate_action: dict[str, Any]
-
-
-class E02_ForgeJudgeCheckOutput(TypedDict):
-    verdict: Literal["SEAL", "PARTIAL", "VOID", "HOLD"]
-
-
-class E03_ForgeExecuteInput(TypedDict):
-    plan: dict[str, Any]
-
-
-class E03_ForgeExecuteOutput(TypedDict):
-    execution_result: dict[str, Any]
 
 
 class E04_WealthTransactionRecorderInput(TypedDict):
@@ -1073,14 +1048,6 @@ GOVERNANCE_TOOLS: list[tuple[str, str, list[str], callable, type, type]] = [
         G05_FinalJudgeOutput,
     ),
     (
-        "G06_execute_judge",
-        "Run constitutional verdict evaluation (dry-run for Gate 1)",
-        ["governance", "public"],
-        _stub_governance,
-        G06_ExecuteJudgeInput,
-        G06_ExecuteJudgeOutput,
-    ),
-    (
         "G07_wealth_floor_checker",
         "Evaluate F1-F13 constitutional floors for wealth proposal",
         ["governance", "public"],
@@ -1130,22 +1097,6 @@ EXECUTION_TOOLS: list[tuple[str, str, list[str], callable, type, type]] = [
         _stub_execution,
         E01_ForgeBridgeInput,
         E01_ForgeBridgeOutput,
-    ),
-    (
-        "E02_forge_judge_check",
-        "Pre-forge constitutional check — runs 888_JUDGE dry-run",
-        ["execution", "public"],
-        _stub_execution,
-        E02_ForgeJudgeCheckInput,
-        E02_ForgeJudgeCheckOutput,
-    ),
-    (
-        "E03_forge_execute",
-        "Execute forge after both gates pass",
-        ["execution", "public"],
-        _stub_execution,
-        E03_ForgeExecuteInput,
-        E03_ForgeExecuteOutput,
     ),
     (
         "E04_wealth_transaction_recorder",

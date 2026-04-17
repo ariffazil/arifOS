@@ -193,7 +193,7 @@ ARIFOS_AGENT_CARD = A2AAgentCard(
         ),
         A2AAgentSkill(
             id="arifos_forge",
-            name="arifos_forge_execute",
+            name="arifos_forge",
             description="Execute action plan (requires SEAL verdict)",
             input_schema={
                 "type": "object",

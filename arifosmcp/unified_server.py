@@ -151,7 +151,6 @@ G02  kernel_router                 — MANDATORY HUB (see g02_router.py)
 G03  constitutional_mind           — Structured reasoning pipeline
 G04  ethical_heart                — F5/F6/F9 ethical simulation
 G05  final_judge                  — SEAL/PARTIAL/VOID/HOLD
-G06  execute_judge                — Constitutional verdict (dry-run)
 G07  wealth_floor_checker          — F1-F13 for wealth proposals
 G08  well_floor_authority          — W-Floor status
 G09  orthogonality_guard          — Ω_ortho >= 0.95 enforcement
@@ -161,8 +160,6 @@ G11  hold_authority               — 888_HOLD check
 EXECUTION AXIS (E01-E11)
 ------------------------
 E01  forge_bridge                 — Execution manifest builder
-E02  forge_judge_check            — Pre-forge dry-run
-E03  forge_execute                — Post-gate execution
 E04  wealth_transaction_recorder   — Transaction to VAULT999
 E05  portfolio_snapshot_recorder  — Portfolio snapshot to VAULT999
 E06  well_log_writer              — Telemetry update
