@@ -2092,12 +2092,10 @@ def register_rest_routes(
     async def list_prompts(request: Request) -> Response:
         """List MCP prompts — constitutional task templates."""
         try:
-<<<<<<< HEAD
-=======
-            from arifosmcp.runtime.prompts import register_v2_prompts
-
+            prompts_list = [
                 {
                     "name": "constitutional.analysis",
+                    "description": "Analyze claims against 13 constitutional floors",
                     "params": ["query", "risk_tier", "context"],
                 },
                 {
@@ -2176,15 +2174,16 @@ def register_rest_routes(
     async def a2a_task(request: Request) -> Response:
         """Submit A2A task for agent-to-agent coordination."""
         try:
-            from arifosmcp.runtime.a2a.models import SubmitTaskRequest, TaskMessage
-<<<<<<< HEAD
             from arifosmcp.runtime.a2a.server import create_a2a_server
-=======
+            from arifosmcp.runtime.a2a.models import SubmitTaskRequest, TaskMessage
 
->>>>>>> 22a3a2c (A2A Agent Card v2 + Seal Verification endpoints wired into REST API)
             a2a = create_a2a_server(mcp)
             body = await request.json()
+            messages = [
                 TaskMessage(role=m.get("role", "user"), content=m.get("content", ""))
+                for m in body.get("messages", [])
+            ]
+            req = SubmitTaskRequest(
                 client_agent_id=body.get("client_agent_id", "anonymous"),
                 messages=messages,
                 session_id=body.get("session_id"),

@@ -165,7 +165,13 @@ TOOLS: tuple[ToolSpec, ...] = (
             "required": ["query"],
             "properties": {
                 "query": {"type": "string"},
-                "context": {"type": "string"},
+                "context": {
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "object"},
+                        {"type": "array"},
+                    ]
+                },
                 "mode": {
                     "type": "string",
                     "enum": [

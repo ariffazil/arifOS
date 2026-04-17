@@ -5,6 +5,8 @@ from fastmcp import FastMCP
 from arifosmcp.apps.metabolic_monitor import _live_floor_status, _live_metabolics
 from arifosmcp.runtime.sessions import clear_session_identity, get_session_runtime_state
 from arifosmcp.runtime.tools import (
+    CANONICAL_TOOL_HANDLERS,
+    _arifos_mind_public,
     _arifos_kernel_public,
     _arifos_ops_public,
     _arifos_init_public,
@@ -73,6 +75,35 @@ def test_register_v2_tools_exposes_all_11_canonical_tools():
         "arifos_gateway",
     }
     assert set(registered) == expected
+
+
+@pytest.mark.asyncio
+async def test_registered_arifos_mind_uses_public_wrapper_and_accepts_structured_context():
+    session_id = "sess-fastmcp-mind-public-001"
+    clear_session_identity(session_id)
+
+    await _arifos_init_public(
+        actor_id="ARIF",
+        intent="test public mind wrapper",
+        session_id=session_id,
+        mode="init",
+        platform="mcp",
+    )
+
+    handler = CANONICAL_TOOL_HANDLERS["arifos_mind"]
+    assert handler is _arifos_mind_public
+
+    env = await handler(
+        query="diagnose the current system state",
+        context={"source": "external-chatgpt", "step": "plan"},
+        session_id=session_id,
+        mode="reason",
+        platform="mcp",
+    )
+
+    assert env.tool == "arifos_mind"
+    assert env.payload["result"]["actor"] == "ARIF"
+    assert env.payload["result"]["verified"] is True
 
 
 @pytest.mark.asyncio

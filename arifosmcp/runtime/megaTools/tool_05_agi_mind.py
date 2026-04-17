@@ -9,6 +9,7 @@ Modes: reason, reflect, forge
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 # FastMCP 2.x/3.x compatibility
@@ -27,7 +28,7 @@ async def agi_mind(
     mode: str | None = None,
     payload: dict[str, Any] | None = None,
     query: str | None = None,
-    context: str | None = None,
+    context: Any | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
     declared_name: str | None = None,
@@ -47,6 +48,11 @@ async def agi_mind(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
+    if context is not None and not isinstance(context, str):
+        try:
+            context = json.dumps(context, ensure_ascii=False, sort_keys=True)
+        except Exception:
+            context = str(context)
     payload = dict(payload or {})
     if raw_input:
         payload.setdefault("query", raw_input)

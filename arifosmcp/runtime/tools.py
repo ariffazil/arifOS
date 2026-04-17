@@ -2115,9 +2115,11 @@ async def _arifos_mind_reflect(
     try:
         ctx = json.loads(context or "{}")
         predictions = [float(x) for x in ctx.get("predictions", [])]
+    context = _normalize_context_text(context)
         outcomes = [float(x) for x in ctx.get("outcomes", [])]
     except Exception:
         pass
+    context = _normalize_context_text(context)
 
     mae = 0.0
     calibration_gap = 0.0
@@ -2160,7 +2162,9 @@ async def _arifos_mind_public(
     dry_run: Annotated[bool, "If True, simulates reasoning without side effects"] = True,
     platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
 ) -> RuntimeEnvelope:
+    context = _normalize_context_text(context)
     session_ctx = _load_public_session_context(session_id)
+    context = _normalize_context_text(context)
     if session_ctx is None:
         return _session_gate_envelope("arifos_mind", session_id, mode=mode)
     if mode == "reflect":
