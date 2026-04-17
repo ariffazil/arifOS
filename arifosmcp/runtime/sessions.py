@@ -42,6 +42,7 @@ _SESSION_STORE_PATH = Path(
 )
 _SESSION_TTL_SECONDS = max(300, int(os.getenv("ARIFOS_SESSION_TTL_SECONDS", "86400")))
 
+
 # ── Signed Session Token Logic (H2 Persistence) ────────────────────────────
 def _get_signing_secret() -> bytes:
     """Retrieve secret key for session signing."""
@@ -57,6 +58,7 @@ def _get_signing_secret() -> bytes:
             secret = "fallback-ephemeral-secret"
     return secret.encode()
 
+
 def _sign_session_payload(payload: dict[str, Any]) -> str:
     """Generate a signed base64 token for distributed continuity."""
     dump = json.dumps(payload, sort_keys=True, separators=(",", ":"))
@@ -64,25 +66,29 @@ def _sign_session_payload(payload: dict[str, Any]) -> str:
     sig = hmac.new(_get_signing_secret(), b64_payload.encode(), hashlib.sha256).hexdigest()[:16]
     return f"{b64_payload}.{sig}"
 
+
 def _verify_session_token(token: str) -> dict[str, Any] | None:
     """Verify and decode a signed session token."""
     try:
         if "." not in token:
             return None
         b64_payload, sig = token.split(".", 1)
-        expected_sig = hmac.new(_get_signing_secret(), b64_payload.encode(), hashlib.sha256).hexdigest()[:16]
+        expected_sig = hmac.new(
+            _get_signing_secret(), b64_payload.encode(), hashlib.sha256
+        ).hexdigest()[:16]
         if not hmac.compare_digest(sig, expected_sig):
             return None
-        
+
         # Add padding back
         missing_padding = len(b64_payload) % 4
         if missing_padding:
             b64_payload += "=" * (4 - missing_padding)
-            
+
         decoded = base64.urlsafe_b64decode(b64_payload).decode()
         return json.loads(decoded)
     except Exception:
         return None
+
 
 # ── Sovereign Identity Map ─────────────────────────────────────────────────
 # Explicit verified identities only — no guessable aliases
@@ -121,10 +127,15 @@ def _session_store_payload() -> dict[str, Any]:
 
 
 def _persist_store() -> None:
-    _SESSION_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = _SESSION_STORE_PATH.with_suffix(".tmp")
-    tmp_path.write_text(json.dumps(_session_store_payload(), indent=2, sort_keys=True), encoding="utf-8")
-    tmp_path.replace(_SESSION_STORE_PATH)
+    try:
+        _SESSION_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = _SESSION_STORE_PATH.with_suffix(".tmp")
+        tmp_path.write_text(
+            json.dumps(_session_store_payload(), indent=2, sort_keys=True), encoding="utf-8"
+        )
+        tmp_path.replace(_SESSION_STORE_PATH)
+    except Exception:
+        pass
 
 
 def _load_store() -> None:
@@ -191,7 +202,7 @@ def _is_session_expired(record: dict[str, Any] | None) -> bool:
 def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
     _load_store()
     record = _SESSION_IDENTITY.get(session_id)
-    
+
     # H2: Token recovery for distributed environments (stateless fallback)
     if record is None and session_id.startswith("sid_"):
         try:
@@ -208,7 +219,9 @@ def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
                         "authority_level": recovered.get("lvl", "low"),
                         "verified": recovered.get("v", False),
                         "recovered_from_token": True,
-                        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat(),
+                        "expires_at": (
+                            datetime.now(timezone.utc) + timedelta(minutes=30)
+                        ).isoformat(),
                     }
                     # Cache it locally
                     with _STORE_LOCK:
@@ -277,7 +290,7 @@ def bind_session_identity(
 
     This is the canonical write: after this call, get_session_identity(session_id)
     will return the stored identity instead of anonymous defaults.
-    
+
     If sign=True, returns a new signed session ID encoding the identity payload.
     """
     _load_store()
@@ -286,9 +299,10 @@ def bind_session_identity(
     verified_flag = bool(
         verified
         if verified is not None
-        else auth_context.get("verified") or authority_level in {"verified", "sovereign", "operator"}
+        else auth_context.get("verified")
+        or authority_level in {"verified", "sovereign", "operator"}
     )
-    
+
     # H2: Distributed continuity signing
     actual_session_id = session_id
     if sign:
@@ -296,7 +310,7 @@ def bind_session_identity(
             "aid": actor_id,
             "lvl": authority_level,
             "v": verified_flag,
-            "exp": int((now + timedelta(hours=24)).timestamp())
+            "exp": int((now + timedelta(hours=24)).timestamp()),
         }
         signed_token = _sign_session_payload(token_payload)
         # Preserve original UUID prefix if possible
@@ -338,7 +352,8 @@ def bind_session_identity(
         "updated_at": now.isoformat(),
         "last_seen_at": now.isoformat(),
         "expires_at": (now + timedelta(seconds=_SESSION_TTL_SECONDS)).isoformat(),
-        "activity": existing.get("activity") or {
+        "activity": existing.get("activity")
+        or {
             "tool_call_count": 0,
             "entropy_delta": 0.0,
             "last_tool": None,
@@ -353,7 +368,7 @@ def bind_session_identity(
     set_active_session(actual_session_id)
     with _STORE_LOCK:
         _persist_store()
-    
+
     return actual_session_id
 
 
@@ -492,7 +507,9 @@ def record_session_tool_event(
         session_id,
         {
             "stage": stage or record.get("stage") or "000_INIT",
-            "governance": {"verdict": verdict or _deep_get(record, "governance", "verdict") or "SEAL"},
+            "governance": {
+                "verdict": verdict or _deep_get(record, "governance", "verdict") or "SEAL"
+            },
             "activity": {
                 "tool_call_count": tool_call_count,
                 "entropy_delta": entropy_delta,

@@ -25,7 +25,6 @@ async def apex_judge(
     session_id: str | None = None,
     dry_run: bool = True,
     ctx: Any | None = None,
-    **kwargs: Any,
 ) -> RuntimeEnvelope:
     resolved_payload = dict(payload or {})
     if proposal:
@@ -39,14 +38,13 @@ async def apex_judge(
     if session_id:
         resolved_payload.setdefault("session_id", session_id)
     resolved_payload.setdefault("dry_run", dry_run)
-    resolved_payload.update(kwargs)
 
     if "apex_judge" in HARDENED_DISPATCH_MAP:
         res = await HARDENED_DISPATCH_MAP["apex_judge"](mode=mode, payload=resolved_payload)
         if isinstance(res, dict):
             ok = res.get("ok", True)
             _payload = res.get("payload", res) if isinstance(res.get("payload"), dict) else res
-            
+
             # ─── V2 FLATTENING ───
             if mode == "rules" and ok:
                 # Move diagnostic fields to top level of payload for TestAuditRulesBootstrap
@@ -89,11 +87,12 @@ async def apex_judge(
 
     # Fallback if dispatcher missing
     from arifosmcp.runtime.tools_internal import apex_judge_dispatch_impl
+
     return await apex_judge_dispatch_impl(
         mode=mode,
         payload=resolved_payload,
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx  # Context injected by FastMCP framework,
+        ctx=ctx,  # Context injected by FastMCP framework,
     )
