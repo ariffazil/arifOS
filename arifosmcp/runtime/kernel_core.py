@@ -533,7 +533,7 @@ class KernelCore:
         context = await self.input_stage(query=query, session_id=session_id, actor_id=actor_id, intent=intent, 
                                           auth_context=auth_context, risk_tier=risk_tier, dry_run=dry_run, 
                                           allow_execution=allow_execution, caller_context=caller_context, 
-                                          payload=payload, platform=platform, **kwargs) (Harden G02 public routing)
+                                          payload=payload, platform=platform, **kwargs)
 
         orchestrate_result = await self.orchestrate_stage(context)
         if not orchestrate_result.get("ok"):

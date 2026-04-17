@@ -2052,15 +2052,9 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
         stage="000_INIT",
         session_id=session_id,
         verdict=verdict,
-<<<<<<< HEAD
         execution_status=(
             ExecutionStatus.SUCCESS if verdict == Verdict.SEAL else ExecutionStatus.ERROR
         ),
-=======
-        execution_status=ExecutionStatus.SUCCESS
-        if verdict == Verdict.SEAL
-        else ExecutionStatus.ERROR,
->>>>>>> f97f0af (fix: arifos_vault calls vault_ledger_dispatch_impl directly to bypass megaTool parameter mismatch)
         payload={"message": f"Substrate conformance result: {verdict}"},
     )
 
@@ -2554,12 +2548,7 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # Tier 05 — EXECUTION
     "arifos_forge": _arifos_forge_public,
     # Tier 07 — REFLECTION
-<<<<<<< HEAD
-    "arifos_mind": _mega_agi_mind,
-    
-=======
     "arifos_mind": _arifos_mind_public,
->>>>>>> f97f0af (fix: arifos_vault calls vault_ledger_dispatch_impl directly to bypass megaTool parameter mismatch)
     # KERNEL & JUDGMENT
     "arifos_judge": _mega_apex_judge,
     "arifos_kernel": _mega_arifos_kernel,
