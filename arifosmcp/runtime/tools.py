@@ -2838,14 +2838,7 @@ def _build_user_model(
     return user_model
 
 
-FINAL_TOOL_IMPLEMENTATIONS: dict[str, Any] = {
-    **CANONICAL_TOOL_HANDLERS,
-    "vault_ledger": _mega_vault_ledger,
-    "verify_vault_ledger": _mega_vault_ledger,
-    "vault_seal": _mega_vault_ledger,
-    "agi_reason": LEGACY_COMPAT_TOOL_HANDLERS.get("agi_reason"),
-    "reality_compass": LEGACY_COMPAT_TOOL_HANDLERS.get("reality_compass"),
-}
+FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
 
 
 # Legacy registration shim — redirects to v2 registration
