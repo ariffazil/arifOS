@@ -79,25 +79,46 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["actor_id", "intent"],
             "properties": {
-                "actor_id": {"type": "string", "minLength": 2, "maxLength": 64},
-                "intent": {"type": "string", "minLength": 1, "maxLength": 20000},
-                "declared_name": {"type": "string", "maxLength": 64},
-                "session_id": {"type": "string", "minLength": 8, "maxLength": 128},
+                "actor_id": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 64,
+                    "description": "Identity of the actor initiating this session. Must be unique per operator.",
+                },
+                "intent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20000,
+                    "description": "Primary intent or purpose of this session. F1 Amanah commitment.",
+                },
+                "declared_name": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "description": "Optional human-readable name for this session declaration.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "description": "Existing session ID to refresh or operate on. If omitted, a new session is created.",
+                },
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],
                     "default": "medium",
+                    "description": "Risk classification level for this session's operations.",
                 },
                 "platform": {
                     "type": "string",
                     "enum": ["mcp", "chatgpt_apps", "cursor", "api", "stdio", "unknown"],
                     "default": "unknown",
+                    "description": "Platform context from which this session originates.",
                 },
                 "mode": {
                     "type": "string",
                     "enum": ["init", "refresh", "state", "status", "probe"],
                     "default": "init",
-                    "description": "Session operation mode. probe=diagnostic compatibility check.",
+                    "description": "Session operation mode. probe=diagnostic compatibility check. init=new session, refresh=extend existing, state=query current state, status=lightweight health check.",
                 },
             },
         },
@@ -126,14 +147,27 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Natural language query to ground in physical reality via the 8-stage sensing protocol.",
+                },
                 "mode": {
                     "type": "string",
                     "enum": ["governed", "search", "ingest", "compass", "atlas", "time"],
                     "default": "governed",
+                    "description": "Sensing mode: governed=full constitutional pipeline, search=live web retrieval, ingest=store observation, compass=directional heading, atlas=geospatial grounding, time=temporal context.",
                 },
-                "session_id": {"type": "string"},
-                "dry_run": {"type": "boolean", "default": True},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active arifOS session ID. Links this sensing operation to a declared constitutional session.",
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "If True, runs the sensing protocol without persisting results or triggering downstream effects.",
+                },
             },
         },
     ),
@@ -164,13 +198,15 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000,
+                    "description": "Primary query or proposition to reason about. Must be a factual claim, decision, or question.",
+                },
                 "context": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {"type": "object"},
-                        {"type": "array", "items": {"type": "string"}},
-                    ]
+                    "type": "string",
+                    "description": "Supporting context for the reasoning task. Can be a string narrative, structured JSON object, or array of context strings.",
                 },
                 "mode": {
                     "type": "string",
@@ -184,8 +220,12 @@ TOOLS: tuple[ToolSpec, ...] = (
                         "reflect",
                     ],
                     "default": "reason",
+                    "description": "Reasoning mode: reason=standard AGI pipeline, sequential=multi-step constitutional chain, step=add a step to existing session, branch=fork a reasoning path, merge=synthesize branches, review=export reasoning, reflect=self-critique.",
                 },
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID. Required for sequential/step/branch/merge modes to maintain reasoning continuity.",
+                },
             },
         },
     ),
@@ -205,18 +245,35 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string", "description": "Primary query string (alias: request)"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Primary query string to route to the correct metabolic lane or tool family.",
+                },
                 "request": {
                     "type": "string",
-                    "description": "Alternative query string for backward compatibility",
+                    "description": "Alternative query string for backward compatibility with legacy tool aliases.",
                 },
-                "mode": {"type": "string", "enum": ["kernel", "status"], "default": "kernel"},
-                "session_id": {"type": "string"},
-                "actor_id": {"type": "string"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["kernel", "status"],
+                    "default": "kernel",
+                    "description": "kernel=route to metabolic lane, status=return current routing decision without executing.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for routing context.",
+                },
+                "actor_id": {
+                    "type": "string",
+                    "description": "Identity of the requesting actor for authorization checks.",
+                },
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],
                     "default": "medium",
+                    "description": "Risk tier for this routing decision. Affects which lanes are accessible.",
                 },
             },
         },
@@ -237,9 +294,22 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string"},
-                "mode": {"type": "string", "enum": ["critique", "simulate"], "default": "critique"},
-                "session_id": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Action, proposal, or policy to ethically evaluate. Must be a concrete statement of intent.",
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": ["critique", "simulate"],
+                    "default": "critique",
+                    "description": "critique=identify risks and violations against F5/F6/F9, simulate=predict downstream consequences.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for constitutional context.",
+                },
             },
         },
     ),
@@ -259,13 +329,22 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "Query or task to estimate thermodynamic and operational cost for.",
+                },
                 "mode": {
                     "type": "string",
                     "enum": ["cost", "health", "vitals", "entropy"],
                     "default": "cost",
+                    "description": "cost=Landauer gate cost estimate, health=system health gauge, vitals=metabolic telemetry, entropy=information-theoretic entropy analysis.",
                 },
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for context-aware cost estimation.",
+                },
             },
         },
     ),
@@ -285,16 +364,26 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query", "risk_tier"],
             "properties": {
-                "query": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Action, decision, or statement to render constitutional verdict on.",
+                },
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],
                     "default": "medium",
+                    "description": "Risk classification: low=minimal impact, medium=moderate scope, high=significant consequences, critical=irreversible or large-scale harm.",
                 },
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID linking this verdict to a declared constitutional session.",
+                },
             },
         },
         read_only_hint=False,
+        idempotent_hint=False,
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 8. arifos_memory — Engineering Memory
@@ -312,13 +401,22 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "Semantic query string to search governed memory and engineering context.",
+                },
                 "mode": {
                     "type": "string",
                     "enum": ["vector_query", "vector_store", "engineer", "query"],
                     "default": "vector_query",
+                    "description": "vector_query=semantic search, vector_store=store new memory, engineer=engineering context retrieval, query=exact-match query.",
                 },
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for session-scoped memory retrieval.",
+                },
             },
         },
     ),
@@ -341,12 +439,20 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "verdict": {
                     "type": "string",
                     "enum": ["SEAL", "PARTIAL", "VOID", "HOLD"],
+                    "description": "Constitutional verdict to append to the immutable Merkle-hashed ledger.",
                 },
-                "evidence": {"type": "string"},
-                "session_id": {"type": "string"},
+                "evidence": {
+                    "type": "string",
+                    "description": "Supporting evidence, reasoning chain, or audit trail for this verdict.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID this verdict pertains to. Links the ledger entry to a constitutional session.",
+                },
             },
         },
         read_only_hint=False,
+        idempotent_hint=True,
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 10. arifos_forge — Code Engine (Execution Bridge)
@@ -370,16 +476,38 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"],
             "properties": {
-                "action": {"type": "string", "enum": ["shell", "api_call", "contract", "compute"]},
-                "payload": {"type": "object"},
-                "session_id": {"type": "string"},
-                "judge_verdict": {"type": "string", "enum": ["SEAL"]},
-                "judge_g_star": {"type": "number"},
-                "dry_run": {"type": "boolean", "default": True},
+                "action": {
+                    "type": "string",
+                    "enum": ["shell", "api_call", "contract", "compute"],
+                    "description": "Type of execution action: shell=command execution, api_call=REST/GraphQL call, contract=smart contract invocation, compute=distributed computation.",
+                },
+                "payload": {
+                    "type": "object",
+                    "description": "Structured execution payload. Format varies by action type: shell takes {command, timeout_ms}, api_call takes {method, url, headers, body}, etc.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID. Must have a prior arifos_judge SEAL verdict attached.",
+                },
+                "judge_verdict": {
+                    "type": "string",
+                    "enum": ["SEAL"],
+                    "description": "Must be SEAL. Any other verdict blocks execution. This is the Gate 1 constitutional checkpoint.",
+                },
+                "judge_g_star": {
+                    "type": "number",
+                    "description": "Judge G* confidence score from the arifos_judge SEAL verdict. Used for thermodynamic cost accounting.",
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "If True, constructs the execution manifest and returns the receipt without dispatching to A-FORGE substrate.",
+                },
             },
         },
         read_only_hint=False,
         destructive_hint=True,
+        idempotent_hint=False,
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 11. arifos_gateway — Orthogonality Guard (The 11th Public Tool)
@@ -403,21 +531,25 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["session_id"],
             "properties": {
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID to evaluate for AGI||ASI orthogonality.",
+                },
                 "mode": {
                     "type": "string",
                     "enum": ["guard", "audit", "correlate"],
                     "default": "guard",
+                    "description": "guard=full orthogonality check and HOLD recommendation, audit=read-only orthogonality report, correlate=compute pairwise tool output correlation matrix.",
                 },
                 "tool_trace": {
                     "type": "array",
                     "items": {"type": "object"},
-                    "description": "Ordered list of tool calls and outputs to evaluate for orthogonality.",
+                    "description": "Ordered list of tool call records to evaluate. Each record should have 'name', 'input', and 'output' fields.",
                 },
                 "correlation_threshold": {
                     "type": "number",
                     "default": 0.95,
-                    "description": "Maximum allowed correlation before HOLD is recommended.",
+                    "description": "Maximum allowed correlation coefficient before 888_HOLD is recommended. Range: 0.0 to 1.0.",
                 },
             },
         },
@@ -663,14 +795,30 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["initial_investment", "cash_flows", "discount_rate"],
             "properties": {
-                "initial_investment": {"type": "number"},
-                "cash_flows": {"type": "array", "items": {"type": "number"}},
-                "discount_rate": {"type": "number", "default": 0.1},
-                "terminal_value": {"type": "number", "default": 0},
+                "initial_investment": {
+                    "type": "number",
+                    "description": "Initial capital outlay (negative number, e.g., -1000000 for $1M investment).",
+                },
+                "cash_flows": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "Annual cash flows as an array of numbers. Positive=inflow, negative=outflow.",
+                },
+                "discount_rate": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Annual discount rate (e.g., 0.10 for 10%). Used to compute present value.",
+                },
+                "terminal_value": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Residual asset value at end of projection period. Defaults to 0.",
+                },
                 "epistemic": {
                     "type": "string",
                     "enum": ["CLAIM", "ESTIMATE", "HYPOTHESIS"],
                     "default": "CLAIM",
+                    "description": "Epistemic confidence tier: CLAIM=best-guess, ESTIMATE=analysis-supported, HYPOTHESIS=scenario-modeled.",
                 },
             },
         },
@@ -688,8 +836,15 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["initial_investment", "cash_flows"],
             "properties": {
-                "initial_investment": {"type": "number"},
-                "cash_flows": {"type": "array", "items": {"type": "number"}},
+                "initial_investment": {
+                    "type": "number",
+                    "description": "Initial capital outlay (negative number).",
+                },
+                "cash_flows": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "Annual cash flows. Positive=inflow, negative=outflow.",
+                },
             },
         },
     ),
@@ -706,8 +861,14 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["ebitda", "debt_service"],
             "properties": {
-                "ebitda": {"type": "number"},
-                "debt_service": {"type": "number"},
+                "ebitda": {
+                    "type": "number",
+                    "description": "Earnings Before Interest, Taxes, Depreciation, and Amortization (annualized).",
+                },
+                "debt_service": {
+                    "type": "number",
+                    "description": "Total annual debt service obligations (principal + interest payments).",
+                },
             },
         },
     ),
@@ -728,10 +889,23 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["ticker", "brent_price", "scenario"],
             "properties": {
-                "ticker": {"type": "string"},
-                "brent_price": {"type": "number"},
-                "scenario": {"type": "string", "enum": ["base", "bull", "bear"]},
-                "session_id": {"type": "string"},
+                "ticker": {
+                    "type": "string",
+                    "description": "Stock ticker symbol (e.g., PETRONAS Bursa code or international equivalent).",
+                },
+                "brent_price": {
+                    "type": "number",
+                    "description": "Current Brent crude oil price in USD per barrel.",
+                },
+                "scenario": {
+                    "type": "string",
+                    "enum": ["base", "bull", "bear"],
+                    "description": "Price scenario: base=consensus forecast, bull=upside case, bear=downside case.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for wealth context.",
+                },
             },
         },
     ),
