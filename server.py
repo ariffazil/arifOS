@@ -404,37 +404,10 @@ app.add_middleware(CSPMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 # Ensure REST routes from arifosmcp are actually bound to this app instance
+# HARDENED_HANDLERS is only defined if the try block (line 251) succeeded
 from arifosmcp.runtime.rest_routes import register_rest_routes
-register_rest_routes(mcp, HARDENED_HANDLERS, prefix="")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# DISCOVERY LAYER — Static discovery files for AI crawlers and A2A agents
-# ═══════════════════════════════════════════════════════════════════════════════
-
-from starlette.staticfiles import StaticFiles
-from starlette.responses import PlainTextResponse, JSONResponse, FileResponse
-
-_static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
-
-@app.get("/robots.txt")
-async def robots_txt():
-    return PlainTextResponse(open(os.path.join(_static_dir, "robots.txt")).read())
-
-@app.get("/llms.txt")
-async def llms_txt():
-    return PlainTextResponse(open(os.path.join(_static_dir, "llms.txt")).read())
-
-@app.get("/wells.json")
-async def wells_json():
-    return FileResponse(os.path.join(_static_dir, "wells.json"))
-
-@app.get("/.well-known/agent.json")
-async def well_known_agent():
-    return FileResponse(os.path.join(_static_dir, ".well-known", "agent.json"))
-
-@app.get("/.well-known/arifos.json")
-async def well_known_arifos():
-    return FileResponse(os.path.join(_static_dir, ".well-known", "arifos.json"))
+if "HARDENED_HANDLERS" in globals():
+    register_rest_routes(mcp, HARDENED_HANDLERS, prefix="")
 
 # ── Constitutional startup (runs on module load, not just __main__) ──
 import asyncio

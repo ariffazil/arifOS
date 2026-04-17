@@ -34,7 +34,7 @@ from core.shared.floors import (
     get_floor_threshold,
 )
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from starlette.staticfiles import StaticFiles
 
 from arifosmcp.runtime.public_registry import (
@@ -2399,6 +2399,55 @@ init();
             )
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── Discovery Static Files ────────────────────────────────────────────────
+    # WELD-006: Serve actual static files from /static/ for AI crawler discovery
+    # These use mcp.custom_route() so they work during fastmcp inspect in Cloud build
+    _static_dir = os.path.join(os.path.dirname(__file__), "..", "..", "static")
+
+    @route("/robots.txt", methods=["GET"])
+    async def static_robots_txt(request: Request) -> Response:
+        """Discovery: robots.txt from static/ (not inline constant)."""
+        from starlette.responses import PlainTextResponse
+        _path = os.path.join(_static_dir, "robots.txt")
+        if os.path.exists(_path):
+            with open(_path) as f:
+                return PlainTextResponse(f.read())
+        return PlainTextResponse("User-agent: *\nAllow: /\n")
+
+    @route("/llms.txt", methods=["GET"])
+    async def static_llms_txt(request: Request) -> Response:
+        """Discovery: llms.txt from static/ (not inline LLMS_TXT constant)."""
+        from starlette.responses import PlainTextResponse
+        _path = os.path.join(_static_dir, "llms.txt")
+        if os.path.exists(_path):
+            with open(_path) as f:
+                return PlainTextResponse(f.read())
+        return PlainTextResponse("")
+
+    @route("/wells.json", methods=["GET"])
+    async def static_wells_json(request: Request) -> Response:
+        """Discovery: constellation manifest from static/wells.json."""
+        _path = os.path.join(_static_dir, "wells.json")
+        if os.path.exists(_path):
+            return FileResponse(_path)
+        return JSONResponse({"error": "wells.json not found"}, status_code=404)
+
+    @route("/.well-known/agent.json", methods=["GET"])
+    async def static_well_known_agent(request: Request) -> Response:
+        """Discovery: A2A agent manifest from static/.well-known/agent.json."""
+        _path = os.path.join(_static_dir, ".well-known", "agent.json")
+        if os.path.exists(_path):
+            return FileResponse(_path)
+        return JSONResponse({"error": "agent.json not found"}, status_code=404)
+
+    @route("/.well-known/arifos.json", methods=["GET"])
+    async def static_well_known_arifos(request: Request) -> Response:
+        """Discovery: arifOS node manifest from static/.well-known/arifos.json."""
+        _path = os.path.join(_static_dir, ".well-known", "arifos.json")
+        if os.path.exists(_path):
+            return FileResponse(_path)
+        return JSONResponse({"error": "arifos.json not found"}, status_code=404)
 
     # ── llms-full.txt ────────────────────────────────────────────────────────
     @route("/llms-full.txt", methods=["GET"])
