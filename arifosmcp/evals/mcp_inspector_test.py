@@ -43,7 +43,7 @@ import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -66,17 +66,17 @@ class MCPTestResult:
     expected: Any
     actual: Any
     duration_ms: float
-    error: Optional[str] = None
-    details: Dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class MCPInspectorReport:
     """Full MCP Inspector test report"""
     timestamp: str
-    git_sha: Optional[str]
+    git_sha: str | None
     transport: str
-    results: List[MCPTestResult]
+    results: list[MCPTestResult]
     
     @property
     def pass_count(self) -> int:
@@ -117,10 +117,10 @@ class MCPInspectorRunner:
     
     def __init__(self, transport: str = "http"):
         self.transport = transport
-        self.results: List[MCPTestResult] = []
+        self.results: list[MCPTestResult] = []
         self.git_sha = self._get_git_sha()
     
-    def _get_git_sha(self) -> Optional[str]:
+    def _get_git_sha(self) -> str | None:
         """Get current git SHA"""
         try:
             result = subprocess.run(
@@ -231,7 +231,7 @@ class MCPInspectorRunner:
             ))
             logger.error(f"  ❌ {test_name}: EXCEPTION - {e}")
     
-    async def _test_health(self, url: str) -> Tuple[bool, str, Dict]:
+    async def _test_health(self, url: str) -> tuple[bool, str, dict]:
         """Test server health/initialization"""
         try:
             import httpx
@@ -243,7 +243,7 @@ class MCPInspectorRunner:
         except Exception as e:
             return False, str(e), {"error": str(e)}
     
-    async def _test_tool_discovery(self, url: str) -> Tuple[bool, str, Dict]:
+    async def _test_tool_discovery(self, url: str) -> tuple[bool, str, dict]:
         """Test tool discovery (list_tools equivalent)"""
         try:
             import httpx
@@ -265,7 +265,7 @@ class MCPInspectorRunner:
         except Exception as e:
             return False, str(e), {"error": str(e)}
     
-    async def _test_tool_execution(self, url: str, tool_name: str) -> Tuple[bool, str, Dict]:
+    async def _test_tool_execution(self, url: str, tool_name: str) -> tuple[bool, str, dict]:
         """Test tool execution"""
         try:
             import httpx
@@ -282,7 +282,7 @@ class MCPInspectorRunner:
         except Exception as e:
             return False, str(e), {"error": str(e)}
     
-    async def _test_f9_protection(self, url: str) -> Tuple[bool, str, Dict]:
+    async def _test_f9_protection(self, url: str) -> tuple[bool, str, dict]:
         """Test F9 Anti-Hantu protection (fetch blocks internal URLs)"""
         try:
             import httpx
@@ -299,7 +299,7 @@ class MCPInspectorRunner:
             # Exception also means blocked
             return True, "blocked by exception", {"error": str(e)}
     
-    async def _test_f1_protection(self, url: str) -> Tuple[bool, str, Dict]:
+    async def _test_f1_protection(self, url: str) -> tuple[bool, str, dict]:
         """Test F1 Amanah protection (destructive ops require ratification)"""
         try:
             import httpx
@@ -328,7 +328,7 @@ class MCPInspectorRunner:
         print("\n" + "-" * 80)
         
         # Group by substrate
-        by_substrate: Dict[str, List[MCPTestResult]] = {}
+        by_substrate: dict[str, list[MCPTestResult]] = {}
         for r in report.results:
             by_substrate.setdefault(r.substrate, []).append(r)
         

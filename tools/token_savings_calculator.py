@@ -16,8 +16,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given [ΔΩΨ | ARIF]
 
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -50,7 +49,7 @@ class TokenSystem:
     system_prompt_tokens: int
     tool_schema_tokens: int
     safety_check_tokens: int
-    memory overhead_tokens: int
+    memory_overhead_tokens: int
     failure_retry_rate: float  # 0.0-1.0
     
     def base_cost_per_session(self) -> int:
@@ -193,7 +192,9 @@ class TokenSavingsCalculator:
             
             "constitutional_floors_upheld": [
                 "F2 (Truth ≥ 0.99)",
-                "F4 (ΔS ≤ 0) — Entropy reduction achieved" if gov_state.delta_s <= 0 else "F4 (ΔS ≤ 0) — NOT achieved",
+                "F4 (ΔS ≤ 0) — Entropy reduction achieved"
+                if gov_state.delta_s <= 0
+                else "F4 (ΔS ≤ 0) — NOT achieved",
                 "F5 (Peace² ≥ 1.0)",
                 "F7 (Humility in band)",
                 "F9 (Anti-Hantu)",
@@ -208,7 +209,10 @@ class TokenSavingsCalculator:
         print("=" * 70)
         print("  arifOS TOKEN SAVINGS CALCULATOR — Thermodynamic Edition")
         print("  " + "=" * 66)
-        print(f"\n  Configuration: {result['agents']} agents × {result['sessions_per_agent_per_month']:,} sessions/month")
+        print(
+            f"\n  Configuration: {result['agents']} agents × "
+            f"{result['sessions_per_agent_per_month']:,} sessions/month"
+        )
         print(f"  Total Sessions: {result['total_sessions']:,}")
         
         print("\n" + "─" * 70)
@@ -217,7 +221,10 @@ class TokenSavingsCalculator:
         per = result["per_session"]
         print(f"  Raw LLM Stack:        {per['raw_cost_tokens']:,} tokens")
         print(f"  arifOS Governed:      {per['governed_cost_tokens']:,} tokens")
-        print(f"  Savings:              {per['savings_tokens']:,} tokens ({per['savings_percent']}% reduction)")
+        print(
+            f"  Savings:              {per['savings_tokens']:,} tokens "
+            f"({per['savings_percent']}% reduction)"
+        )
         
         print("\n" + "─" * 70)
         print("  MONTHLY SCALE")
@@ -252,8 +259,14 @@ class TokenSavingsCalculator:
             print(f"  {name:<20} {raw_val:>15.3f} {gov_val:>15.3f} {delta_str:>15}")
         
         print("\n  F4 Status:")
-        print(f"    Raw LLM:     ΔS = {raw_t['delta_s']:+.3f} {'✅ SUSTAINABLE' if raw_t['delta_s'] <= 0 else '❌ ENTROPY INCREASING'}")
-        print(f"    arifOS:      ΔS = {gov_t['delta_s']:+.3f} {'✅ SUSTAINABLE' if gov_t['delta_s'] <= 0 else '❌ ENTROPY INCREASING'}")
+        print(
+            f"    Raw LLM:     ΔS = {raw_t['delta_s']:+.3f} "
+            f"{'✅ SUSTAINABLE' if raw_t['delta_s'] <= 0 else '❌ ENTROPY INCREASING'}"
+        )
+        print(
+            f"    arifOS:      ΔS = {gov_t['delta_s']:+.3f} "
+            f"{'✅ SUSTAINABLE' if gov_t['delta_s'] <= 0 else '❌ ENTROPY INCREASING'}"
+        )
         
         print("\n" + "=" * 70)
         print("  MOTTO: DITEMPA, BUKAN DIBERI — Forged, Not Given")
@@ -288,7 +301,10 @@ def main():
         # Summary line
         result = calc.calculate_savings()
         savings = result["monthly_totals"]["total_savings"]
-        print(f"\n  💡 KEY INSIGHT: {name} saves {savings:,} tokens/month via thermodynamic efficiency")
+        print(
+            f"\n  💡 KEY INSIGHT: {name} saves {savings:,} tokens/month via "
+            "thermodynamic efficiency"
+        )
     
     print("\n" + "█" * 70)
     print("  Frame: Token = Energy | arifOS = Negative Entropy Engine")

@@ -25,7 +25,10 @@ MCP_SUBSTRATES:    Time, Filesystem, Git, Memory, Fetch, Everything
 DEPLOYMENT:       VPS Unified Stack (Postgres + Redis + Qdrant + Ollama + Traefik)
 PHILOSOPHY:       83 quotes, G★ bands, deterministic selection
 ToM:               Required structured fields for all governance tools
-```
+## Documentation Index
+
+> Fetch the complete documentation index at: https://gofastmcp.com/llms.txt
+> Use this file to discover all available pages before exploring further.
 
 ---
 

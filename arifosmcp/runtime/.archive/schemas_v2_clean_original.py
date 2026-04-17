@@ -19,11 +19,9 @@ Version: 2026.04.06-v0.2
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # INPUT SCHEMAS

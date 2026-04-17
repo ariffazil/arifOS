@@ -15,11 +15,12 @@ import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
+
+import nacl.encoding
 
 # Ed25519 for signatures
 import nacl.signing
-import nacl.encoding
 
 
 class ExecutionStatus(Enum):
@@ -49,7 +50,7 @@ class ExecutionEnvelope:
     
     # Authorization
     authority: str              # Who is authorizing (888_JUDGE, AGENT_X)
-    delegated_from: Optional[str] = None  # If delegated, original authority
+    delegated_from: str | None = None  # If delegated, original authority
     
     # Temporal constraints
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -59,8 +60,8 @@ class ExecutionEnvelope:
     nonce: str = field(default_factory=lambda: secrets.token_hex(16))
     
     # Signature (filled after creation)
-    signature: Optional[str] = None
-    public_key: Optional[str] = None
+    signature: str | None = None
+    public_key: str | None = None
     
     # Status tracking
     status: ExecutionStatus = ExecutionStatus.PENDING
@@ -87,7 +88,7 @@ class ExecutionEnvelope:
         """Compute hash of envelope (for reference/logging)."""
         return hashlib.sha256(self.canonical_payload()).hexdigest()[:32]
     
-    def sign(self, signing_key: nacl.signing.SigningKey) -> "ExecutionEnvelope":
+    def sign(self, signing_key: nacl.signing.SigningKey) -> ExecutionEnvelope:
         """Sign the envelope with Ed25519."""
         signature = signing_key.sign(self.canonical_payload())
         self.signature = signature.signature.hex()
@@ -95,7 +96,7 @@ class ExecutionEnvelope:
         self.status = ExecutionStatus.SIGNED
         return self
     
-    def verify(self, public_key: Optional[nacl.signing.VerifyKey] = None) -> bool:
+    def verify(self, public_key: nacl.signing.VerifyKey | None = None) -> bool:
         """
         Verify envelope signature.
         
@@ -144,7 +145,7 @@ class ExecutionEnvelope:
                 f"{authority.lower()}.pub",
             )
             if os.path.exists(registry_path):
-                with open(registry_path, "r") as f:
+                with open(registry_path) as f:
                     key_hex = f.read().strip()
         if not key_hex or len(key_hex) != 64:
             raise RuntimeError(
@@ -219,7 +220,7 @@ class ExecutionAttestor:
     The attestor communicates with the key storage to sign envelopes.
     """
     
-    def __init__(self, kms_endpoint: Optional[str] = None):
+    def __init__(self, kms_endpoint: str | None = None):
         self.kms_endpoint = kms_endpoint
         self.nonce_registry = NonceRegistry()
         self._delegation_chain: dict[str, str] = {}  # agent -> delegator
@@ -316,9 +317,9 @@ class ExecutionAttestor:
     
     async def _kms_sign(self, payload: bytes, authority: str) -> str:
         """Request signature from KMS or fall back to HMAC with explicit dev warning."""
-        import os
-        import hmac
         import hashlib
+        import hmac
+        import os
 
         if self.kms_endpoint:
             import aiohttp

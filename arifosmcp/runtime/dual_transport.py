@@ -10,10 +10,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import sys
 
 import uvicorn
-from fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +24,7 @@ async def run_dual_transport() -> None:
     )
 
     # Import the app factory and MCP instance
-    from arifosmcp.runtime.server import mcp, app, sse_app
+    from arifosmcp.runtime.server import app, sse_app
 
     http_config = uvicorn.Config(
         app,

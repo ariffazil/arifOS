@@ -1,7 +1,8 @@
 # arifOS Enterprise Prompts v2
 from __future__ import annotations
-from typing import Any
+
 from fastmcp import FastMCP
+
 
 def register_prompts(mcp: FastMCP) -> None:
     """Register structured task templates (contracts)."""

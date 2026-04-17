@@ -29,7 +29,6 @@ from arifosmcp.runtime.contracts import (
     ToolStatus,
     TraceContext,
     VerdictScope,
-    
     calculate_entropy_budget,
     check_domain_gate,
     determine_human_marker,

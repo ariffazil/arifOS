@@ -12,8 +12,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
-from arifosmcp.runtime.optional_deps import redis
 from cryptography.fernet import Fernet
+
+from arifosmcp.runtime.optional_deps import redis
 
 
 class RedisVaultStore:

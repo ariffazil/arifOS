@@ -69,7 +69,7 @@ def _build_vault_seal_structured_content(
     chain_hash = ""
     seal_id = f"seal_{uuid.uuid4().hex[:16]}"  # fallback
     try:
-        from core.shared.bls_vault import BLSVaultSigner, JUROR_IDS
+        from core.shared.bls_vault import JUROR_IDS, BLSVaultSigner
 
         bls_payload = {
             "verdict": verdict,

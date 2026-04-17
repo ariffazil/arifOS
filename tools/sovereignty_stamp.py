@@ -13,16 +13,15 @@ Exit codes:
 """
 
 import argparse
-import hashlib
 import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 
 # BLS signatures for sovereignty attestation
 try:
-    from blspy import G1Element, G2Element, PrivateKey, AugSchemeMPL
+    from blspy import AugSchemeMPL, G1Element, G2Element, PrivateKey
     BLS_AVAILABLE = True
 except ImportError:
     BLS_AVAILABLE = False
@@ -42,12 +41,12 @@ class SovereigntyStampGenerator:
         4: "Absolute"
     }
     
-    def __init__(self, signing_key: Optional[bytes] = None):
+    def __init__(self, signing_key: bytes | None = None):
         self.signing_key = signing_key
         self.tests_passed = 0
         self.tests_failed = 0
     
-    def generate(self, config: Dict[str, Any], target_level: int = 3) -> Dict[str, Any]:
+    def generate(self, config: dict[str, Any], target_level: int = 3) -> dict[str, Any]:
         """
         Generate sovereignty stamp from deployment configuration.
         
@@ -101,7 +100,7 @@ class SovereigntyStampGenerator:
         
         return stamp
     
-    def _test_identity_root(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _test_identity_root(self, config: dict[str, Any]) -> dict[str, Any]:
         """Test if identity is self-sovereign."""
         identity = config.get("identity", {})
         root_type = identity.get("root_type")
@@ -119,7 +118,7 @@ class SovereigntyStampGenerator:
             
         return result
     
-    def _test_local_llm(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _test_local_llm(self, config: dict[str, Any]) -> dict[str, Any]:
         """Test if local LLM is available."""
         llm_config = config.get("infrastructure", {}).get("llm", {})
         provider_chain = llm_config.get("provider_chain", [])
@@ -143,7 +142,7 @@ class SovereigntyStampGenerator:
             
         return result
     
-    def _test_local_storage(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _test_local_storage(self, config: dict[str, Any]) -> dict[str, Any]:
         """Test if local storage is available."""
         storage_config = config.get("infrastructure", {}).get("storage", {})
         backends = storage_config.get("backends", [])
@@ -167,7 +166,7 @@ class SovereigntyStampGenerator:
             
         return result
     
-    def _test_air_gap(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _test_air_gap(self, config: dict[str, Any]) -> dict[str, Any]:
         """Test if air-gapped operation is possible."""
         llm_config = config.get("infrastructure", {}).get("llm", {})
         air_gap_capable = llm_config.get("air_gapped_capable", False)
@@ -185,7 +184,7 @@ class SovereigntyStampGenerator:
             
         return result
     
-    def _test_core_purity(self) -> Dict[str, Any]:
+    def _test_core_purity(self) -> dict[str, Any]:
         """Test that core has no vendor imports."""
         forbidden_imports = [
             "azure", "boto3", "google.cloud", "openai", 
@@ -220,7 +219,7 @@ class SovereigntyStampGenerator:
             
         return result
     
-    def _test_constitutional_enforcement(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _test_constitutional_enforcement(self, config: dict[str, Any]) -> dict[str, Any]:
         """Test that F1-F13 enforcement is inline."""
         constitution = config.get("constitution", {})
         enforcement_mode = constitution.get("enforcement_mode", "permissive")
@@ -238,7 +237,7 @@ class SovereigntyStampGenerator:
             
         return result
     
-    def _calculate_level(self, tests: Dict[str, Any]) -> int:
+    def _calculate_level(self, tests: dict[str, Any]) -> int:
         """Calculate sovereignty level from test results."""
         score = sum(t.get("score", 0) for t in tests.values())
         
@@ -254,7 +253,7 @@ class SovereigntyStampGenerator:
         else:
             return 0  # Captive
     
-    def _sign_stamp(self, stamp: Dict[str, Any]) -> str:
+    def _sign_stamp(self, stamp: dict[str, Any]) -> str:
         """Sign stamp with BLS signature."""
         if not BLS_AVAILABLE or not self.signing_key:
             return None
@@ -269,7 +268,7 @@ class SovereigntyStampGenerator:
         
         return bytes(signature).hex()
     
-    def verify(self, stamp: Dict[str, Any], public_key: bytes) -> bool:
+    def verify(self, stamp: dict[str, Any], public_key: bytes) -> bool:
         """Verify stamp signature."""
         if not BLS_AVAILABLE:
             return False
@@ -289,7 +288,7 @@ class SovereigntyStampGenerator:
             return False
 
 
-def format_stamp_output(stamp: Dict[str, Any]) -> str:
+def format_stamp_output(stamp: dict[str, Any]) -> str:
     """Format stamp for human-readable output."""
     lines = [
         "╔══════════════════════════════════════════════════════════════╗",

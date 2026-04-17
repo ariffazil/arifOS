@@ -14,7 +14,6 @@ from typing import Any
 from arifosmcp.runtime.models import RuntimeEnvelope
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import vault_ledger_dispatch_impl
-from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 
 async def vault_ledger(

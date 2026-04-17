@@ -3,7 +3,7 @@ code-refactor skill handler
 F8 wisdom-guided code refactoring.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class CodeRefactorSkill:
@@ -17,10 +17,10 @@ class CodeRefactorSkill:
         return a * p * x * (e ** 2)
     
     async def execute(
-        self, action: str, params: Dict, session_id: str,
-        dry_run: bool = True, reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, action: str, params: dict, session_id: str,
+        dry_run: bool = True, reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         handlers = {
             "propose_refactor": self._propose_refactor,
             "apply_refactor": self._apply_refactor,
@@ -30,8 +30,8 @@ class CodeRefactorSkill:
             return {"verdict": "VOID", "reason": f"Unknown action: {action}"}
         return await handler(params, dry_run, reality_bridge, checkpoint)
     
-    async def _propose_refactor(self, params: Dict, dry_run: bool,
-                                reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _propose_refactor(self, params: dict, dry_run: bool,
+                                reality_bridge: Any | None, checkpoint: str | None) -> dict:
         code = params.get("code", "")
         goal = params.get("goal", "")
         
@@ -51,8 +51,8 @@ class CodeRefactorSkill:
             "checkpoint": checkpoint
         }
     
-    async def _apply_refactor(self, params: Dict, dry_run: bool,
-                              reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _apply_refactor(self, params: dict, dry_run: bool,
+                              reality_bridge: Any | None, checkpoint: str | None) -> dict:
         file_path = params.get("file_path", "")
         
         if dry_run:
@@ -67,9 +67,9 @@ class CodeRefactorSkill:
 skill = CodeRefactorSkill()
 
 
-async def execute(action: str, params: Dict, session_id: str,
-                  dry_run: bool = True, reality_bridge: Optional[Any] = None,
-                  checkpoint: Optional[str] = None) -> Dict[str, Any]:
+async def execute(action: str, params: dict, session_id: str,
+                  dry_run: bool = True, reality_bridge: Any | None = None,
+                  checkpoint: str | None = None) -> dict[str, Any]:
     skill = CodeRefactorSkill()
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 

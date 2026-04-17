@@ -4,8 +4,9 @@ Multi-source research with F2 truth verification.
 Wired to Reality Bridge for real search execution.
 """
 
-from typing import Any, Dict, List, Optional
-from core.intelligence import compute_w3, calculate_omega_zero
+from typing import Any
+
+from core.intelligence import calculate_omega_zero, compute_w3
 
 
 class DeepResearchSkill:
@@ -22,12 +23,12 @@ class DeepResearchSkill:
     async def execute(
         self,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         session_id: str,
         dry_run: bool = True,
-        reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         """Execute research action with F2 verification."""
         handlers = {
             "web_search": self._web_search,
@@ -42,11 +43,11 @@ class DeepResearchSkill:
     
     async def _web_search(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Execute web search with F2 verification."""
         query = params.get("query", "")
         
@@ -100,11 +101,11 @@ class DeepResearchSkill:
     
     async def _verify_facts(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Verify facts against multiple sources."""
         facts = params.get("facts", [])
         
@@ -126,7 +127,7 @@ class DeepResearchSkill:
             "checkpoint": checkpoint
         }
     
-    def _cross_reference(self, results: List[Dict]) -> Dict:
+    def _cross_reference(self, results: list[dict]) -> dict:
         """F2: Cross-reference sources for consistency."""
         facts = []
         for r in results:
@@ -141,12 +142,12 @@ skill = DeepResearchSkill("default")
 
 async def execute(
     action: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     session_id: str,
     dry_run: bool = True,
-    reality_bridge: Optional[Any] = None,
-    checkpoint: Optional[str] = None
-) -> Dict[str, Any]:
+    reality_bridge: Any | None = None,
+    checkpoint: str | None = None
+) -> dict[str, Any]:
     """Main entry point."""
     skill = DeepResearchSkill(session_id, dry_run)
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)

@@ -10,11 +10,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
-from typing import Any, Dict, Callable
+
+from typing import Any
 
 # Standard dispatch map for tool identity routing
 # Used to register native Python handlers for megaTools and kernel organs.
-HARDENED_DISPATCH_MAP: Dict[str, Any] = {}
+HARDENED_DISPATCH_MAP: dict[str, Any] = {}
 
 
 async def dispatch_with_fail_closed(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:

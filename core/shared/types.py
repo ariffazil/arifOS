@@ -12,7 +12,7 @@ License: AGPL-3.0-only
 DITEMPA BUKAN DIBERI 💎🔥🧠
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, Optional
 
@@ -302,7 +302,7 @@ class OracleAttestation(BaseModel):
     evidence_hash: str = Field(..., description="SHA-256 of what was attested")
     source_uri: str | None = Field(default=None, description="Declared source URI")
     attested_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="When the attestation was made"
     )
     signature: str | None = Field(
@@ -476,7 +476,7 @@ class TemporalContract(BaseModel):
     Breaks LLM statelessness by anchoring data to a verified wall-clock.
     """
 
-    observed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    observed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     request_latency_ms: float = Field(
         default=0.0, description="Actual physical latency for effort check"
     )

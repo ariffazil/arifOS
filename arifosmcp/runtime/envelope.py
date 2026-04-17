@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Literal, List, Optional
 import uuid
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 # --- 1. Internal Cognitive State Models ---
 
@@ -8,10 +9,10 @@ class Hypothesis(BaseModel):
     id: str = Field(default_factory=lambda: f"H-{uuid.uuid4().hex[:4]}")
     claim: str
     confidence: float = Field(ge=0.0, le=1.0)
-    evidence_for: List[str] = []
-    evidence_against: List[str] = []
+    evidence_for: list[str] = []
+    evidence_against: list[str] = []
     falsifier: str
-    disconfirming_test: Optional[str] = None
+    disconfirming_test: str | None = None
 
 class Provenance(BaseModel):
     intelligence_type: Literal["statistical", "embodied", "hybrid"] = "statistical"
@@ -23,12 +24,12 @@ class Provenance(BaseModel):
 
 class MindState(BaseModel):
     objective: str
-    facts: List[str] = []
-    assumptions: List[str] = []
-    unknowns: List[str] = []
-    hypotheses: List[Hypothesis] = []
-    risks: List[str] = []
-    contradictions: List[str] = []
+    facts: list[str] = []
+    assumptions: list[str] = []
+    unknowns: list[str] = []
+    hypotheses: list[Hypothesis] = []
+    risks: list[str] = []
+    contradictions: list[str] = []
     decision_required: bool = False
     provenance: Provenance
 
@@ -37,9 +38,9 @@ class MindState(BaseModel):
 class OutputEnvelope(BaseModel):
     status: Literal["OK", "PARTIAL", "HOLD", "ERROR"]
     summary: str
-    key_facts: List[str] = Field(max_length=3)
-    key_uncertainties: List[str] = Field(max_length=3)
-    options: List[str] = Field(max_length=3)
+    key_facts: list[str] = Field(max_length=3)
+    key_uncertainties: list[str] = Field(max_length=3)
+    options: list[str] = Field(max_length=3)
     next_step: str
     human_decision_required: bool
     provenance: Provenance
@@ -56,7 +57,7 @@ def sense(raw_input: str) -> dict:
         "unknowns": ["Context depth", "Specific resource limits"]
     }
 
-def mind(sense_packet: dict) -> List[Hypothesis]:
+def mind(sense_packet: dict) -> list[Hypothesis]:
     """Grounded facts -> Hypotheses (min 2, with falsifiers)."""
     return [
         Hypothesis(
@@ -75,14 +76,14 @@ def mind(sense_packet: dict) -> List[Hypothesis]:
         )
     ]
 
-def heart(hypotheses: List[Hypothesis]) -> List[str]:
+def heart(hypotheses: list[Hypothesis]) -> list[str]:
     """Simulate consequences (no value assignment)."""
     risks = []
     for h in hypotheses:
         risks.append(f"Risk for {h.claim}: {h.falsifier}")
     return risks
 
-def judge(state: MindState) -> tuple[str, List[str]]:
+def judge(state: MindState) -> tuple[str, list[str]]:
     """Constitutional gate (F1-F13)."""
     violations = []
     

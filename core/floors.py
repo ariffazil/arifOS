@@ -9,14 +9,15 @@ Status: Constitutional Law (IMPLEMENTATION)
 """
 
 from __future__ import annotations
-from enum import Enum
-from typing import Any, Optional
-from dataclasses import dataclass, field
-import hashlib
+
 import re
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 # Import canonical Verdict from single source of truth
-from core.shared.types import Verdict, VerdictScope
+from core.shared.types import Verdict
+
 
 # Local enums (specific to floor evaluation, not shared)
 class FloorLevel(Enum):
@@ -125,7 +126,7 @@ class ConstitutionalFloors:
         tool_name: str,
         parameters: dict[str, Any],
         actor_id: str,
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         human_intent: float = 0.5,
         environment_safety: float = 0.5,
     ) -> GovernanceResult:
@@ -203,7 +204,7 @@ class ConstitutionalFloors:
             message = f"Violations: {', '.join(violations)}"
         elif risk_tier == RiskTier.CRITICAL:
             verdict = Verdict.HOLD
-            message = f"Critical risk tier requires approval"
+            message = "Critical risk tier requires approval"
         else:
             verdict = Verdict.SEAL
             message = "All constitutional floors passed"
@@ -518,7 +519,7 @@ class ConstitutionalFloors:
         )
 
     def _check_f11_command_auth(
-        self, session_id: Optional[str], actor_id: str
+        self, session_id: str | None, actor_id: str
     ) -> FloorResult:
         threshold = THRESHOLDS["F11_COMMAND_AUTH"]
 
@@ -665,7 +666,7 @@ def evaluate_tool_call(
     tool_name: str,
     parameters: dict[str, Any],
     actor_id: str,
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
 ) -> GovernanceResult:
     floors = ConstitutionalFloors()
     return floors.evaluate(

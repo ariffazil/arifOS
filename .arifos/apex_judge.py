@@ -18,10 +18,12 @@ Usage:
 
 import json
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 ARIFOS_ROOT = Path(__file__).parent.parent
+
+from datetime import UTC
 
 import metrics
 
@@ -37,9 +39,9 @@ class ApexVerdict:
 
 
 def get_timestamp():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def estimate_accuracy() -> float:

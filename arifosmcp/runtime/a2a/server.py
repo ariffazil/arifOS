@@ -20,11 +20,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
+
 from arifosmcp.runtime.build_info import get_build_info
 from arifosmcp.runtime.mcp_utils import call_mcp_tool
 from arifosmcp.runtime.optional_deps import aiofiles
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse
 
 from .models import (
     AgentCard,

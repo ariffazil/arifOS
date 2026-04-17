@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 
 def _shannon_entropy(text: str) -> float:

@@ -9,15 +9,17 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Any, List, Optional
-from core.organs._5_wealth import wealth_npv_reward, wealth_irr_yield, wealth_dscr_leverage
+from typing import Any
+
+from core.organs._5_wealth import wealth_dscr_leverage, wealth_irr_yield, wealth_npv_reward
 
 logger = logging.getLogger(__name__)
 
 async def wealth_npv_reward_handler(
     initial_investment: float,
-    cash_flows: List[float],
+    cash_flows: list[float],
     discount_rate: float,
     terminal_value: float = 0,
     epistemic: str = "CLAIM",
@@ -35,7 +37,7 @@ async def wealth_npv_reward_handler(
 
 async def wealth_irr_yield_handler(
     initial_investment: float,
-    cash_flows: List[float],
+    cash_flows: list[float],
     session_id: str | None = None
 ) -> dict[str, Any]:
     """Handler for wealth_irr_yield tool."""

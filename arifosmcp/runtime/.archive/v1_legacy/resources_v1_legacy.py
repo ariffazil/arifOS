@@ -1,7 +1,10 @@
 # arifOS Enterprise Resources v2
 from __future__ import annotations
+
 import json
+
 from fastmcp import FastMCP
+
 
 def register_resources(mcp: FastMCP) -> None:
     """Register read-only contextual data (constitution) and schema registry."""

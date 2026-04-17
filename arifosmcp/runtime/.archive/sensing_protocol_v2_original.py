@@ -1579,7 +1579,7 @@ def compute_uncertainty_band(
         ),
         narrative_note=(
             f"σ={sigma:.2f} — "
-            + (f"conflict detected; " if conflict.detected else "")
+            + ("conflict detected; " if conflict.detected else "")
             + (f"staleness risk={temporal.staleness_risk.value}; " if temporal.staleness_risk != StalenessRisk.NONE else "")
             + f"{len(items)} evidence item(s)"
         ),

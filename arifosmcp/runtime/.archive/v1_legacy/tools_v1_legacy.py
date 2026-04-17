@@ -1,45 +1,48 @@
 # arifOS Functional Tool Surface v2.5 — ToM-Aligned (SAME SIGNATURES)
 from __future__ import annotations
+
 import hashlib
 import logging
-from arifosmcp.runtime.envelope import run_agi_mind, MindState, OutputEnvelope, Provenance
-from typing import Any, Optional
+from typing import Any
 
-from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
-from arifosmcp.runtime.megaTools import (
-    agi_mind as _mega_agi_mind,
-    apex_judge as _mega_apex_judge,
-    architect_registry as _mega_architect_registry,
-    arifOS_kernel as _mega_arifOS_kernel,
-    asi_heart as _mega_asi_heart,
-    code_engine as _mega_code_engine,
-    engineering_memory as _mega_engineering_memory,
-    init_anchor as _mega_init_anchor,
-    math_estimator as _mega_math_estimator,
-    physics_reality as _mega_physics_reality,
-    vault_ledger as _mega_vault_ledger,
-)
+from arifosmcp.runtime.envelope import run_agi_mind
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.philosophy_registry import (
     PHILOSOPHY_REGISTRY,
-    PhilosophyQuote,
-    get_quote_by_g_star,
 )
-from fastmcp import FastMCP
+from arifosmcp.runtime.tools_v2 import (
+    arifos_forge as _v2_forge,
+)
+from arifosmcp.runtime.tools_v2 import (
+    arifos_heart as _v2_heart,
+)
 
 # Import v2 handlers with clean signatures and envelope sealing
 from arifosmcp.runtime.tools_v2 import (
     arifos_init as _v2_init,
-    arifos_sense as _v2_sense,
-    arifos_mind as _v2_mind,
-    arifos_route as _v2_route,
-    arifos_heart as _v2_heart,
-    arifos_ops as _v2_ops,
-    arifos_judge as _v2_judge,
-    arifos_memory as _v2_memory,
-    arifos_vault as _v2_vault,
-    arifos_forge as _v2_forge,
 )
+from arifosmcp.runtime.tools_v2 import (
+    arifos_judge as _v2_judge,
+)
+from arifosmcp.runtime.tools_v2 import (
+    arifos_memory as _v2_memory,
+)
+from arifosmcp.runtime.tools_v2 import (
+    arifos_mind as _v2_mind,
+)
+from arifosmcp.runtime.tools_v2 import (
+    arifos_ops as _v2_ops,
+)
+from arifosmcp.runtime.tools_v2 import (
+    arifos_route as _v2_route,
+)
+from arifosmcp.runtime.tools_v2 import (
+    arifos_sense as _v2_sense,
+)
+from arifosmcp.runtime.tools_v2 import (
+    arifos_vault as _v2_vault,
+)
+from fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
 
@@ -228,7 +231,7 @@ def get_alignment_label(g_star: float) -> str:
 async def init_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -237,7 +240,6 @@ async def init_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract input
     raw_input = str(payload)
@@ -272,7 +274,7 @@ async def init_v2(
 async def sense_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -320,7 +322,7 @@ async def sense_v2(
 async def mind_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -329,7 +331,6 @@ async def mind_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract query/problem
     raw_input = payload.get("problem_statement") or payload.get("query") or str(payload)
@@ -365,7 +366,7 @@ async def mind_v2(
 async def heart_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -374,7 +375,6 @@ async def heart_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract input
     raw_input = str(payload)
@@ -409,7 +409,7 @@ async def heart_v2(
 async def ops_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -418,7 +418,6 @@ async def ops_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract input
     raw_input = str(payload)
@@ -453,7 +452,7 @@ async def ops_v2(
 async def route_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -462,7 +461,6 @@ async def route_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract input
     raw_input = str(payload)
@@ -497,7 +495,7 @@ async def route_v2(
 async def judge_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -506,7 +504,6 @@ async def judge_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract input
     raw_input = str(payload)
@@ -541,7 +538,7 @@ async def judge_v2(
 async def memory_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -550,7 +547,6 @@ async def memory_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract input
     raw_input = str(payload)
@@ -585,7 +581,7 @@ async def memory_v2(
 async def vault_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:
@@ -594,7 +590,6 @@ async def vault_v2(
     Refactored to Unified Intelligence Envelope (Internal Richness -> External Compression).
     """
     from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-    from arifosmcp.runtime.envelope import run_agi_mind
     
     # Extract input
     raw_input = str(payload)
@@ -635,8 +630,8 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {}
 
 def register_tools(mcp: FastMCP) -> None:
     """Register core tools (v2) and ToM-integrated tools (v3)."""
-    from fastmcp.tools.function_tool import FunctionTool
     from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
+    from fastmcp.tools.function_tool import FunctionTool
 
     # Register v2 tools
     for spec in PUBLIC_TOOL_SPECS:
@@ -738,11 +733,10 @@ async def list_recent_verdicts(limit: int = 5) -> dict[str, Any]:
 import hmac
 import os
 import secrets
-from typing import Optional
 
 # Execution signing key — loaded from environment (Docker secret or env var)
 # In production, this should be loaded from HashiCorp Vault, AWS KMS, or Docker secrets
-_FORGE_SIGNING_KEY: Optional[bytes] = None
+_FORGE_SIGNING_KEY: bytes | None = None
 
 def _get_signing_key() -> bytes:
     """Get or generate execution signing key."""
@@ -819,7 +813,7 @@ def verify_execution_envelope(
 async def forge_v2(
     mode: str,
     payload: dict[str, Any],
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
 ) -> RuntimeEnvelope:

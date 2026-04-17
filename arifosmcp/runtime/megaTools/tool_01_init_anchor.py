@@ -11,22 +11,19 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import hashlib
-import json
+import logging
 import secrets
 import time
-import uuid
-import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from typing import Any
 
 from arifosmcp.runtime.models import (
-    AuthorityLevel, 
-    CanonicalAuthority, 
-    ClaimStatus, 
-    RuntimeEnvelope, 
-    RuntimeStatus, 
-    Verdict
+    AuthorityLevel,
+    CanonicalAuthority,
+    ClaimStatus,
+    RuntimeEnvelope,
+    RuntimeStatus,
+    Verdict,
 )
 
 logger = logging.getLogger(__name__)
@@ -102,7 +99,7 @@ async def init_anchor(
     _injection_score = min(1.0, round(_hits / max(len(_INJECTION_PATTERNS), 1), 3))
 
     # ── Gem 2: Philosophy Injection ──
-    from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
+    from arifosmcp.runtime.philosophy import AtlasScores, select_atlas_philosophy
     init_scores = AtlasScores(
         delta_s=0.0, g_score=0.90, omega_score=0.04,
         lyapunov_sign="stable", verdict="SEAL", session_stage="000_INIT"

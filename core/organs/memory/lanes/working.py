@@ -15,9 +15,8 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Optional
 
-from ..types import MemoryRecord, MemoryType, Source, Scope, Governance, Time, RetentionClass
+from ..types import Governance, MemoryRecord, MemoryType, RetentionClass, Scope, Source, Time
 
 
 @dataclass
@@ -104,7 +103,7 @@ class WorkingMemoryLane:
         active.sort(key=lambda m: m.time.updated_at or m.time.created_at, reverse=True)
         return active
     
-    def get_task(self) -> Optional[str]:
+    def get_task(self) -> str | None:
         """Get current active task if any."""
         for mem in self.get_active():
             if "task" in mem.title.lower():

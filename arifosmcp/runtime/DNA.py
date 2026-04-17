@@ -3,18 +3,18 @@ arifosmcp/runtime/DNA.py — The arifOS Genome (v2026.04)
 IMMUTABLE CONSTITUTIONAL CONSTANTS.
 """
 
-from typing import Final, List, Tuple
+from typing import Final
 
 # --- VERSIONING ---
 VERSION: Final[str] = "2026.04.16"
 CODENAME: Final[str] = "REFORGE_EARTH_WITNESS"
 
 # --- F7 HUMILITY BAND (OMNIPRESENT) ---
-OMEGA_BAND: Final[Tuple[float, float]] = (0.03, 0.05)
+OMEGA_BAND: Final[tuple[float, float]] = (0.03, 0.05)
 OMEGA_CENTER: Final[float] = 0.04
 
 # --- THE 13 CONSTITUTIONAL FLOORS ---
-FLOORS: Final[List[str]] = [
+FLOORS: Final[list[str]] = [
     "F1_AMANAH",      # Reversibility
     "F2_TRUTH",       # Thermodynamic Cost
     "F3_JUSTICE",     # Proportionality
@@ -35,7 +35,7 @@ DENSITY_TARGET: Final[float] = 300.0  # LOC / File
 MAX_ENTROPY_DRIFT: Final[float] = 0.15 # Max ΔS before SABAR trigger
 
 # --- TELOS DEFAULTS ---
-TELOS_AXES: Final[List[str]] = [
+TELOS_AXES: Final[list[str]] = [
     "performance", "understanding", "stability", "harmony",
     "exploration", "preservation", "agency", "integration"
 ]

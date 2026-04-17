@@ -19,6 +19,8 @@ import logging
 import uuid
 from typing import Any
 
+from fastmcp import Context
+
 from arifosmcp.agentzero.agents.base import FloorScore
 from arifosmcp.agentzero.agents.base import Verdict as AZVerdict
 
@@ -37,7 +39,6 @@ from arifosmcp.runtime.models import (
     Stage,
     Verdict,
 )
-from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class VaultRecordType(Enum):
@@ -58,7 +58,7 @@ class Integrity:
     """Cryptographic integrity proofs."""
     prev_hash: str
     record_hash: str
-    merkle_root: Optional[str] = None
+    merkle_root: str | None = None
 
 
 @dataclass
@@ -66,7 +66,7 @@ class VaultLineage:
     """Lineage tracking for vault entries."""
     session_id: str
     derived_from: list[str] = field(default_factory=list)
-    supersedes: Optional[str] = None
+    supersedes: str | None = None
 
 
 @dataclass
@@ -82,7 +82,7 @@ class VerificationGrade:
     evidence_hash_valid: bool = False
     policy_version_match: bool = False
     superseded: bool = False
-    superseded_by: Optional[str] = None
+    superseded_by: str | None = None
     
     @property
     def fully_valid(self) -> bool:
@@ -140,7 +140,7 @@ class VaultEntry:
     sealed_at: datetime = field(default_factory=datetime.utcnow)
     
     # Integrity
-    integrity: Optional[Integrity] = None
+    integrity: Integrity | None = None
     
     # Lineage
     lineage: VaultLineage = field(default_factory=lambda: VaultLineage(session_id=""))
@@ -213,7 +213,7 @@ class SealReceipt:
     """Receipt for a successful vault seal."""
     vault_id: str
     record_hash: str
-    merkle_root: Optional[str]
+    merkle_root: str | None
     timestamp: datetime
     immutable: bool = True
 

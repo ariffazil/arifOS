@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+
 try:
     import psutil
     PSUTIL_AVAILABLE = True

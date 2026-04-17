@@ -13,8 +13,8 @@ Memory is for use. Vault is for proof.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+from .types import SealReceipt, VaultEntry, VerifyReport
 from .vault_organ import VaultOrgan, get_vault_organ
-from .types import VaultEntry, SealReceipt, VerifyReport
 
 __all__ = [
     "VaultOrgan",

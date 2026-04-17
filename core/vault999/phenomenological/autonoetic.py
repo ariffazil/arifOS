@@ -10,11 +10,10 @@ the feeling that "I experienced this" rather than just "this happened."
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Optional
-import hashlib
-import json
+from typing import Any
 
 
 @dataclass
@@ -223,7 +222,7 @@ class AutonoeticMemorySystem:
         self,
         target_time: datetime,
         tolerance: timedelta = timedelta(hours=1),
-    ) -> Optional[AutonoeticMarker]:
+    ) -> AutonoeticMarker | None:
         """
         "Travel" to a past moment and re-experience it autonoetically.
         

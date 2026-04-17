@@ -47,7 +47,6 @@ from arifosmcp.runtime.resources import apex_tools_markdown_table
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
 from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
-from .fastmcp_version import HAS_CUSTOM_ROUTE
 
 BUILD_INFO = get_build_info()
 BUILD_VERSION = BUILD_INFO["server_version"]
@@ -645,7 +644,7 @@ def _load_welcome_html() -> str:
     for path in possible_paths:
         if os.path.exists(path):
             try:
-                with open(path, 'r') as f:
+                with open(path) as f:
                     html_content = f.read()
                 break
             except Exception:
@@ -1475,7 +1474,7 @@ def register_rest_routes(
                 filtered = {k: v for k, v in normalized.items() if k in valid_params}
 
             result = await tool_fn(**filtered)
-        except Exception as exc:
+        except Exception:
             logger.exception(f"Tool call failed: {incoming_name}")
             return _rest_error(
                 "Tool execution failed",
@@ -1960,7 +1959,7 @@ def register_rest_routes(
             return Response(status_code=204, headers=widget_headers)
         if not os.path.exists(_widget_file):
             return Response("Widget not found", status_code=404)
-        with open(_widget_file, "r", encoding="utf-8") as fh:
+        with open(_widget_file, encoding="utf-8") as fh:
             html = fh.read()
         return HTMLResponse(html, headers=widget_headers)
 
@@ -2012,7 +2011,6 @@ def register_rest_routes(
     async def list_prompts(request: Request) -> Response:
         """List MCP prompts — constitutional task templates."""
         try:
-            from arifosmcp.runtime.prompts import register_v2_prompts
             prompts_list = [
                 {"name": "constitutional.analysis", "description": "Analyze claims against 13 constitutional floors", "params": ["query", "risk_tier", "context"]},
                 {"name": "governance.audit", "description": "Audit content against governance standards", "params": ["content", "standard"]},
@@ -2056,8 +2054,8 @@ def register_rest_routes(
     async def a2a_task(request: Request) -> Response:
         """Submit A2A task for agent-to-agent coordination."""
         try:
-            from arifosmcp.runtime.a2a.server import create_a2a_server
             from arifosmcp.runtime.a2a.models import SubmitTaskRequest, TaskMessage
+            from arifosmcp.runtime.a2a.server import create_a2a_server
             a2a = create_a2a_server(mcp)
             body = await request.json()
             messages = [

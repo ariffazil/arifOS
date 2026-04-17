@@ -205,12 +205,13 @@ async def forge(
 
     Survival must not become the telos — it is a boundary condition.
     """
-    from core.physics.thermodynamics_hardened import consume_tool_energy
     from arifosmcp.intelligence.tools.thermo_estimator import (
         coherence_score,
         landauer_limit,
         shannon_entropy,
     )
+
+    from core.physics.thermodynamics_hardened import consume_tool_energy
 
     consume_tool_energy(session_id, n_calls=1)
 

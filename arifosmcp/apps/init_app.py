@@ -29,9 +29,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -42,6 +43,7 @@ from prefab_ui.components import (
     Card,
     CardContent,
     Column,
+    ForEach,
     Grid,
     Heading,
     If,
@@ -50,10 +52,9 @@ from prefab_ui.components import (
     Row,
     Separator,
     Text,
-    ForEach,
 )
 from prefab_ui.rx import RESULT, STATE
-
+from pydantic import Field
 
 # ── Operator interpretation (CHANGE-01) ───────────────────────────────────────
 _STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
@@ -87,9 +88,13 @@ init_app = FastMCP("InitApp")
 
 @init_app.tool()
 async def anchor_session(
-    declared_intent: str = "",
-    mode: str = "standard",
-) -> dict[str, Any]:
+    declared_intent: Annotated[
+        str, Field(description="The goal or purpose of the session. F1 Amanah commitment.")
+    ] = "",
+    mode: Annotated[
+        str, Field(description="Session mode: standard, diagnostic, or sovereign")
+    ] = "standard",
+) -> ToolResult:
     """
     Anchor a new arifOS session. Calls arifos_init with the declared intent
     and returns session metadata including epoch, session_id, and alignment.
@@ -117,32 +122,52 @@ async def anchor_session(
         else:
             next_actions.append("Identity incomplete or intent unclear. Refine declaration.")
 
-        return {
-            "session_id": session_id,
-            "epoch": epoch,
-            "mode": mode,
-            "declared_intent": declared_intent or "General session",
-            "omega0": omega0,
-            "aligned": aligned,
-            "anchored": True,
-            "trace_id": env_dict.get("trace_id", "—"),
-            "next_actions": next_actions,
-            "philosophy": _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"],
-        }
+        return ToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"Session anchored successfully: {session_id} (Epoch: {epoch})",
+                },
+                {
+                    "type": "json",
+                    "json": {
+                        "session_id": session_id,
+                        "epoch": epoch,
+                        "mode": mode,
+                        "declared_intent": declared_intent or "General session",
+                        "omega0": omega0,
+                        "aligned": aligned,
+                        "anchored": True,
+                        "trace_id": env_dict.get("trace_id", "—"),
+                        "next_actions": next_actions,
+                        "philosophy": _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"],
+                    },
+                },
+            ]
+        )
 
     except Exception as exc:
-        return {
-            "session_id": "—",
-            "epoch": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-            "mode": mode,
-            "declared_intent": declared_intent or "General session",
-            "omega0": 0.04,
-            "aligned": False,
-            "anchored": False,
-            "trace_id": f"error: {exc}",
-            "next_actions": ["Repair floor state or obtain human veto override."],
-            "philosophy": _PHILOSOPHY["pending"],
-        }
+        return ToolResult(
+            is_error=True,
+            content=[
+                {"type": "text", "text": f"Session anchor failed: {exc}"},
+                {
+                    "type": "json",
+                    "json": {
+                        "session_id": "—",
+                        "epoch": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                        "mode": mode,
+                        "declared_intent": declared_intent or "General session",
+                        "omega0": 0.04,
+                        "aligned": False,
+                        "anchored": False,
+                        "trace_id": f"error: {exc}",
+                        "next_actions": ["Repair floor state or obtain human veto override."],
+                        "philosophy": _PHILOSOPHY["pending"],
+                    },
+                },
+            ],
+        )
 
 
 @init_app.ui(title="000 Session Anchor")

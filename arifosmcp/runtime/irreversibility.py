@@ -12,10 +12,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 from arifosmcp.runtime.substrate_policy import (
-    AAA_SUBSTRATE_POLICY,
     RiskTier,
     SubstrateClass,
     get_policy,

@@ -8,14 +8,14 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Import the real Qdrant backend
 from arifosmcp.memory.vector_memory_qdrant import (
+    _QDRANT_COLLECTION,
+    _ensure_collection,
     _generate_embedding,
     _get_qdrant_client,
-    _ensure_collection,
-    _QDRANT_COLLECTION
 )
 
 logger = logging.getLogger(__name__)
@@ -36,16 +36,16 @@ class MemoryArea(Enum):
 @dataclass
 class MemoryEntry:
     content: str
-    id: Optional[str] = None
+    id: str | None = None
     area: MemoryArea = MemoryArea.MAIN
     project_id: str = "default"
     source: str = "unknown"
     source_agent: str = "unknown"
     timestamp: datetime = field(default_factory=datetime.now)
     score: float = 1.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "content": self.content,
@@ -72,10 +72,11 @@ class ConstitutionalMemoryStore:
     async def initialize_project(self, project_id: str) -> bool:
         return True
 
-    async def store(self, content: str, **kwargs) -> Tuple[bool, Optional[str], Optional[str]]:
+    async def store(self, content: str, **kwargs) -> tuple[bool, str | None, str | None]:
         """Store a new memory entry in Qdrant."""
-        from qdrant_client.models import PointStruct
         import uuid
+
+        from qdrant_client.models import PointStruct
         
         client = _get_qdrant_client()
         vector = _generate_embedding(content)
@@ -94,7 +95,7 @@ class ConstitutionalMemoryStore:
         )
         return True, memory_id, None
 
-    async def vector_query(self, query: str, limit: int = 5, **kwargs) -> List[MemoryEntry]:
+    async def vector_query(self, query: str, limit: int = 5, **kwargs) -> list[MemoryEntry]:
         """Query Qdrant for similar memory entries."""
         client = _get_qdrant_client()
         vector = _generate_embedding(query)
@@ -115,12 +116,12 @@ class ConstitutionalMemoryStore:
             ))
         return entries
 
-    async def recall(self, **kwargs) -> List[MemoryEntry]:
+    async def recall(self, **kwargs) -> list[MemoryEntry]:
         # Alias for vector_query in this context
         query = kwargs.get("query") or kwargs.get("content")
         if not query:
             return []
         return await self.vector_query(query)
 
-    async def search(self, **kwargs) -> List[MemoryEntry]:
+    async def search(self, **kwargs) -> list[MemoryEntry]:
         return await self.recall(**kwargs)

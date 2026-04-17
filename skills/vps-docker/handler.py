@@ -3,7 +3,7 @@ arifOS Skill: vps-docker
 F1 Amanah - All operations reversible via checkpoint
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class VPSDockerSkill:
@@ -16,12 +16,12 @@ class VPSDockerSkill:
     async def execute(
         self,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         session_id: str,
         dry_run: bool = True,
-        reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         """
         Execute Docker action with F1 checkpoint.
         
@@ -50,11 +50,11 @@ class VPSDockerSkill:
     
     async def _check_status(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Check Docker container status."""
         container = params.get("container", "arifos-agent")
         
@@ -94,11 +94,11 @@ class VPSDockerSkill:
     
     async def _restart_container(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Restart Docker container."""
         container = params.get("container", "arifos-agent")
         
@@ -138,11 +138,11 @@ class VPSDockerSkill:
     
     async def _inspect_logs(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Inspect container logs."""
         container = params.get("container", "arifos-agent")
         tail = params.get("tail", 100)
@@ -187,12 +187,12 @@ skill = VPSDockerSkill()
 
 async def execute(
     action: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     session_id: str,
     dry_run: bool = True,
-    reality_bridge: Optional[Any] = None,
-    checkpoint: Optional[str] = None
-) -> Dict[str, Any]:
+    reality_bridge: Any | None = None,
+    checkpoint: str | None = None
+) -> dict[str, Any]:
     """Entry point for skill execution."""
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 

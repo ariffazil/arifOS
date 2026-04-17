@@ -16,7 +16,7 @@ import json
 import logging
 import time
 from dataclasses import asdict, dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class HandoffReceipt:
     auth_proof: str  # HMAC-based challenge-response proof (NOT zero-knowledge)
     merkle_leaf: str  # SHA-256 of this receipt
     merkle_root_before: str  # Vault root at handoff time
-    merkle_root_after: Optional[str] = None
+    merkle_root_after: str | None = None
     tri_witness_score: float = 0.0
     timestamp: float = field(default_factory=time.time)
     ttl_seconds: float = 300.0  # Receipt valid for 5 minutes

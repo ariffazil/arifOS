@@ -9,8 +9,8 @@ Usage:
 """
 
 import re
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # Configuration
 WIKI_ROOT = Path(__file__).parent.parent

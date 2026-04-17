@@ -14,8 +14,8 @@ from typing import Any, Literal
 
 from core.shared.types import (
     AsiOutput,
-    CritiqueResult,
     CritiqueFinding,
+    CritiqueResult,
     EthicalIssue,
     FloorScores,
     HeartAssessment,

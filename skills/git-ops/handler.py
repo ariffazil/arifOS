@@ -3,7 +3,7 @@ arifOS Skill: git-ops
 F1 Amanah - Git operations with worktree sandbox
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class GitOpsSkill:
@@ -16,12 +16,12 @@ class GitOpsSkill:
     async def execute(
         self,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         session_id: str,
         dry_run: bool = True,
-        reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         """Execute Git action with F1 checkpoint."""
         handlers = {
             "status": self._status,
@@ -40,11 +40,11 @@ class GitOpsSkill:
     
     async def _status(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Check git status."""
         path = params.get("path", ".")
         
@@ -80,11 +80,11 @@ class GitOpsSkill:
     
     async def _checkout_branch(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Checkout a branch."""
         branch = params.get("branch", "main")
         path = params.get("path", ".")
@@ -123,11 +123,11 @@ class GitOpsSkill:
     
     async def _commit(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Create a commit."""
         message = params.get("message", "arifOS automated commit")
         path = params.get("path", ".")
@@ -168,12 +168,12 @@ skill = GitOpsSkill()
 
 async def execute(
     action: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     session_id: str,
     dry_run: bool = True,
-    reality_bridge: Optional[Any] = None,
-    checkpoint: Optional[str] = None
-) -> Dict[str, Any]:
+    reality_bridge: Any | None = None,
+    checkpoint: str | None = None
+) -> dict[str, Any]:
     """Entry point for skill execution."""
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 

@@ -7,7 +7,7 @@ When user calls apex_judge with mode="gui", returns ChatGPT-renderable UI.
 """
 
 # Example: Tool with GUI mode
-from typing import Optional
+
 from fastmcp import FastMCP
 
 mcp = FastMCP("arifOS")
@@ -43,8 +43,8 @@ SAMPLE_DATA = {
 @mcp.tool()
 def apex_judge(
     action: str,
-    context: Optional[dict] = None,
-    mode: Optional[str] = None,  # "text" | "gui" | "telemetry"
+    context: dict | None = None,
+    mode: str | None = None,  # "text" | "gui" | "telemetry"
 ) -> dict:
     """
     Constitutional verdict on proposed action.

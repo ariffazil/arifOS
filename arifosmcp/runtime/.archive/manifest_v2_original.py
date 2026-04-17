@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS
 from arifosmcp.runtime.prompts_v2 import V2_PROMPT_SPECS
 from arifosmcp.runtime.resources_v2 import SYSTEM_CAPABILITIES
+from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS
 
 
 def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com") -> dict[str, Any]:

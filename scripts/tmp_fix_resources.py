@@ -1,4 +1,4 @@
-with open('arifosmcp/runtime/resources.py', 'r', encoding='utf-8') as f:
+with open('arifosmcp/runtime/resources.py', encoding='utf-8') as f:
     content = f.read()
 
 old = """def register_resources(mcp: FastMCP) -> None:

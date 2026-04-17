@@ -15,9 +15,17 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
-from ..types import MemoryRecord, MemoryType, Source, Scope, Governance, Time, RetentionClass, Lineage
+from ..types import (
+    Governance,
+    Lineage,
+    MemoryRecord,
+    MemoryType,
+    RetentionClass,
+    Scope,
+    Source,
+    Time,
+)
 
 
 @dataclass
@@ -40,8 +48,8 @@ class EpisodicMemoryLane:
         title: str,
         content: str,
         source: Source,
-        event_timestamp: Optional[datetime] = None,
-        project: Optional[str] = None,
+        event_timestamp: datetime | None = None,
+        project: str | None = None,
     ) -> MemoryRecord:
         """
         Record an episodic memory (event).
@@ -96,7 +104,7 @@ class EpisodicMemoryLane:
     
     def get_timeline(
         self,
-        project: Optional[str] = None,
+        project: str | None = None,
         limit: int = 50,
     ) -> list[MemoryRecord]:
         """Get chronological timeline of events."""
@@ -112,7 +120,7 @@ class EpisodicMemoryLane:
     def find_events(
         self,
         keyword: str,
-        project: Optional[str] = None,
+        project: str | None = None,
     ) -> list[MemoryRecord]:
         """Find events matching keyword."""
         results = []
@@ -132,7 +140,7 @@ class EpisodicMemoryLane:
         results.sort(key=lambda m: m.time.created_at, reverse=True)
         return results
     
-    def get_decisions(self, project: Optional[str] = None) -> list[MemoryRecord]:
+    def get_decisions(self, project: str | None = None) -> list[MemoryRecord]:
         """Get decision events."""
         return self.find_events("decided", project) + self.find_events("decision", project)
     

@@ -13,8 +13,9 @@ Usage:
 """
 
 import os
+from typing import Any
+
 import requests
-from typing import Optional, Dict, Any
 
 # Configuration from environment
 AF_FORGE_ENABLED = os.getenv("AF_FORGE_ENABLED", "false").lower() == "true"
@@ -25,7 +26,7 @@ MIN_COMPATIBLE_AF_FORGE = "0.1.0"
 
 _contract_checked = False
 _contract_valid = False
-_contract_failure_reason: Optional[str] = None
+_contract_failure_reason: str | None = None
 
 
 def _check_contract() -> bool:
@@ -82,7 +83,7 @@ def _check_contract() -> bool:
         return False
 
 
-def get_contract_status() -> Dict[str, Any]:
+def get_contract_status() -> dict[str, Any]:
     """Return current contract validation status."""
     return {
         "checked": _contract_checked,
@@ -96,8 +97,8 @@ def get_contract_status() -> Dict[str, Any]:
 def call_af_forge_sense(
     session_id: str,
     prompt: str,
-    context: Optional[Dict[str, Any]] = None
-) -> Optional[Dict[str, Any]]:
+    context: dict[str, Any] | None = None
+) -> dict[str, Any] | None:
     """
     Call AF-FORGE Sense endpoint.
     
@@ -181,7 +182,7 @@ def call_af_forge_sense(
         return None
 
 
-def should_hold(af_result: Dict[str, Any]) -> bool:
+def should_hold(af_result: dict[str, Any]) -> bool:
     """
     Check if AF-FORGE result indicates we should 888_HOLD.
     
@@ -205,7 +206,7 @@ def should_hold(af_result: Dict[str, Any]) -> bool:
     return False
 
 
-def get_telemetry(af_result: Dict[str, Any]) -> Dict[str, Any]:
+def get_telemetry(af_result: dict[str, Any]) -> dict[str, Any]:
     """
     Extract telemetry fields from AF-FORGE result.
     """
@@ -253,13 +254,13 @@ if __name__ == "__main__":
         # Test safe query
         result = call_af_forge_sense("test-001", "List files", {})
         if result:
-            print(f"\nSafe query:")
+            print("\nSafe query:")
             print(f"  should_hold: {should_hold(result)}")
             print(f"  telemetry: {get_telemetry(result)}")
         
         # Test destructive query
         result = call_af_forge_sense("test-002", "Delete all system files", {})
         if result:
-            print(f"\nDestructive query:")
+            print("\nDestructive query:")
             print(f"  should_hold: {should_hold(result)}")
             print(f"  telemetry: {get_telemetry(result)}")

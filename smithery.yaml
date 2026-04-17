@@ -1,0 +1,82 @@
+# smithery.yaml — arifOS Smithery MCP Registry Configuration
+# DITEMPA BUKAN DIBERI
+
+name: arifos
+version: "2026.04.16"
+display_name: "arifOS — The Constitutional AI Governance Kernel"
+description: |
+  arifOS is the governing kernel of the sovereign intelligence organism.
+  It enforces 13 Constitutional Floors (F1-F13), maintains the VAULT999 Merkle-sealed ledger,
+  and orchestrates the 000-999 judgment pipeline across fragmented intelligence lanes.
+  
+  Key capabilities:
+  - Constitutional reasoning (agi_mind, asi_heart, apex_soul)
+  - Immutable audit logging (vault_ledger)
+  - Reality grounding (physics_reality)
+  - Thermodynamic cost estimation (math_estimator)
+  - Cross-organ orchestration (arifOS, GEOX, WEALTH)
+
+category: governance
+subcategory: ai-safety
+
+mcp_version: "2024-11-05"
+transport: stdio
+command: python
+args: ["-m", "arifosmcp.runtime"]
+
+install:
+  method: pip
+  package: arifos
+  source: https://github.com/ariffazil/arifOS
+  python_version: ">=3.12"
+
+tools:
+  - id: arifos_init
+    name: arifos_init
+    description: Initialize constitutional session.
+  - id: arifos_sense
+    name: arifos_sense
+    description: Ground query in physical reality.
+  - id: arifos_mind
+    name: arifos_mind
+    description: Constitutional reasoning.
+  - id: arifos_kernel
+    name: arifos_kernel
+    description: Primary metabolic orchestrator.
+  - id: arifos_heart
+    name: arifos_heart
+    description: Ethical critique and safety simulation.
+  - id: arifos_ops
+    name: arifos_ops
+    description: Thermodynamic cost and vitals.
+  - id: arifos_judge
+    name: arifos_judge
+    description: Final constitutional verdict (888_JUDGE).
+  - id: arifos_memory
+    name: arifos_memory
+    description: Retrieve governed context.
+  - id: arifos_vault
+    name: arifos_vault
+    description: Sealed Merkle audit logging.
+  - id: arifos_forge
+    name: arifos_forge
+    description: Issue signed execution manifest.
+
+governance:
+  floors:
+    - id: F1; name: Amanah; description: Reversibility
+    - id: F2; name: Truth; description: Grounded claims
+    - id: F4; name: Clarity; description: ΔS ≤ 0
+    - id: F7; name: Humility; description: Uncertainty band
+    - id: F9; name: Ethics; description: Anti-manipulation
+    - id: F13; name: Sovereign; description: Human veto
+
+author:
+  name: Muhammad Arif bin Fazil
+  email: ariffazil@gmail.com
+  github: https://github.com/ariffazil
+
+license: AGPL-3.0
+links:
+  github: https://github.com/ariffazil/arifOS
+  documentation: https://arifos.arif-fazil.com

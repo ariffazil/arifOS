@@ -23,14 +23,25 @@ Version: 2.0.0 — CANONICAL
 
 from __future__ import annotations
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AF-FORGE BRIDGE INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════════
+import os
 import re
 from typing import Any
 
+import requests
+
 from .sensing_protocol import (
+    # Complex dataclasses
+    ActorSpec,
+    AmbiguityModel,
     # Enums
     AmbiguityType,
+    BudgetSpec,
     ClaimTarget,
     ClaimType,
+    ConflictModel,
     ConflictType,
     DecisionProximity,
     EntityRef,
@@ -38,52 +49,40 @@ from .sensing_protocol import (
     EntropyState,
     EurekaState,
     EvidenceItem,
+    # ConflictPolicy, removed unused
+    # CorroborationSpec, removed unused
+    EvidencePlan,
     ExplorationState,
+    ExtractedClaim,
+    # FreshnessRequirement, removed unused
+    HandoffSpec,
     InputSpec,
     InputSummary,
     InputType,
+    IntelligenceState,
     IntentSpec,
     NormalizedFindings,
     Polarity,
     PolicySpec,
     QueryFrame,
     ResolutionStatus,
+    RoutingDecision,
     RoutingTarget,
     SenseInput,
     SensePacket,
+    SensingMode,
     StalenessRisk,
+    StateUpdate,
     TaskType,
     TemporalGrounding,
     TimeScope,
     TruthClass,
     TruthClassification,
-    UncertaintyLevel,
-    SensingMode,
-    # Complex dataclasses
-    ActorSpec,
-    AmbiguityModel,
-    BudgetSpec,
-    ConflictModel,
-    # ConflictPolicy, removed unused
-    # CorroborationSpec, removed unused
-    EvidencePlan,
-    ExtractedClaim,
-    # FreshnessRequirement, removed unused
-    HandoffSpec,
-    IntelligenceState,
-    RoutingDecision,
-    StateUpdate,
     TruthVector,
     UncertaintyBand,
     UncertaintyBasis,
+    UncertaintyLevel,
 )
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# AF-FORGE BRIDGE INTEGRATION
-# ═══════════════════════════════════════════════════════════════════════════════
-
-import os
-import requests
 
 # AF-FORGE Bridge Configuration
 AF_FORGE_ENABLED = os.getenv("AF_FORGE_ENABLED", "false").lower() == "true"

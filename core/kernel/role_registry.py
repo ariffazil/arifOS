@@ -6,16 +6,18 @@ handoff protocols for multi-agent orchestration within arifOS.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
+
 from dataclasses import dataclass, field
+from typing import Any
+
 
 @dataclass
 class AgentRole:
     """Definition of an agent role and its permissions."""
     name: str
     description: str
-    permissions: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    permissions: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class AgentSession:
@@ -31,8 +33,8 @@ class AgentRoleRegistry:
     """
 
     def __init__(self):
-        self._roles: Dict[str, AgentRole] = {}
-        self._active_sessions: Dict[str, AgentSession] = {}
+        self._roles: dict[str, AgentRole] = {}
+        self._active_sessions: dict[str, AgentSession] = {}
         self._initialize_default_roles()
 
     def _initialize_default_roles(self):
@@ -58,7 +60,7 @@ class AgentRoleRegistry:
             permissions=["read", "deploy", "seal"]
         )
 
-    def register_role(self, name: str, description: str, permissions: List[str], metadata: Optional[Dict[str, Any]] = None):
+    def register_role(self, name: str, description: str, permissions: list[str], metadata: dict[str, Any] | None = None):
         """Register a new agent role."""
         self._roles[name] = AgentRole(
             name=name,
@@ -78,7 +80,7 @@ class AgentRoleRegistry:
             session_id=session_id
         )
 
-    def get_role(self, agent_id: str) -> Optional[AgentRole]:
+    def get_role(self, agent_id: str) -> AgentRole | None:
         """Retrieve the role assigned to an agent."""
         session = self._active_sessions.get(agent_id)
         if session:
@@ -98,6 +100,6 @@ class AgentRoleRegistry:
         # Return True to indicate successful handoff request.
         return True
 
-    def list_roles(self) -> List[str]:
+    def list_roles(self) -> list[str]:
         """List all registered agent role names."""
         return list(self._roles.keys())

@@ -27,7 +27,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from fastmcp.apps.config import PrefabAppConfig
@@ -45,6 +45,7 @@ from prefab_ui.components import (
     Separator,
     Text,
 )
+from pydantic import Field
 
 # ── Floor definitions: F1-F13 Constitutional Chain ────────────────────────────
 FLOORS: list[dict[str, str]] = [
@@ -240,7 +241,9 @@ def _derive_next_actions(floors: list[dict], peace_sq: float) -> list[str]:
 def _register(mcp: FastMCP) -> None:
 
     @mcp.tool(app=PrefabAppConfig(domain="arifos.fastmcp.app"))
-    def monitor_metabolism(session_id: str = "global") -> ToolResult:
+    def monitor_metabolism(
+        session_id: Annotated[str, Field(description="Active arifOS session ID")] = "global"
+    ) -> ToolResult:
         """
         Open the arifOS Metabolic Monitor — a real-time dashboard showing the
         health of all 13 Constitutional Floors (F1-F13), plus thermodynamic
@@ -301,11 +304,16 @@ def _register(mcp: FastMCP) -> None:
                     status = _status_text(floor["status"], stability)
                     meaning = _HUMAN_MEANINGS.get(f_id, "")
 
-                    with Card(css_class=f"border-l-4 { 'border-destructive' if status == 'FAIL' else '' }"):
+                    card_css = f"border-l-4 { 'border-destructive' if status == 'FAIL' else '' }"
+                    with Card(css_class=card_css):
                         with CardContent(css_class="py-2 px-3"):
                             with Row(gap=4, align="start"):
                                 with Column(gap=0, css_class="w-8"):
-                                    Text(f_id, css_class="font-mono text-xs font-bold text-muted-foreground")
+                                    Text(
+                                        f_id,
+                                        css_class="font-mono text-xs font-bold "
+                                        "text-muted-foreground",
+                                    )
                                 
                                 with Column(gap=0, css_class="w-32"):
                                     Text(f_name, css_class="text-sm font-medium")
@@ -328,7 +336,7 @@ def _register(mcp: FastMCP) -> None:
                     with CardContent(css_class="py-3 text-center"):
                         Text(
                             f"{delta_s:+.2f}",
-                            css_class=f"text-xl font-bold font-mono",
+                            css_class="text-xl font-bold font-mono",
                         )
                         Muted("Entropy trend (ΔS)", css_class="text-[10px]")
                         Badge(
@@ -341,7 +349,7 @@ def _register(mcp: FastMCP) -> None:
                     with CardContent(css_class="py-3 text-center"):
                         Text(
                             f"{peace_sq:.2f}",
-                            css_class=f"text-xl font-bold font-mono",
+                            css_class="text-xl font-bold font-mono",
                         )
                         Muted("Stability index (Peace²)", css_class="text-[10px]")
                         Badge(
@@ -368,7 +376,11 @@ def _register(mcp: FastMCP) -> None:
                     with CardContent(css_class="py-4"):
                         for action in next_actions:
                             with Row(gap=3, align="center", css_class="py-1"):
-                                Badge("ACTION", variant="secondary", css_class="text-[9px] h-4 font-bold")
+                                Badge(
+                                    "ACTION",
+                                    variant="secondary",
+                                    css_class="text-[9px] h-4 font-bold",
+                                )
                                 Text(action, css_class="text-sm font-medium")
 
             Separator()

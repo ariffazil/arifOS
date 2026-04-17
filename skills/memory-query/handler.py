@@ -3,8 +3,8 @@ memory-query skill handler
 F555 vector memory with freshness enforcement.
 """
 
-from typing import Any, Dict, Optional
 from datetime import datetime, timedelta
+from typing import Any
 
 
 class MemoryQuerySkill:
@@ -16,12 +16,12 @@ class MemoryQuerySkill:
     async def execute(
         self,
         action: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         session_id: str,
         dry_run: bool = True,
-        reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         """Execute memory action."""
         handlers = {
             "vector_search": self._vector_search,
@@ -36,11 +36,11 @@ class MemoryQuerySkill:
     
     async def _vector_search(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Search memory with F2 freshness check."""
         query = params.get("query", "")
         k = params.get("k", 5)
@@ -83,11 +83,11 @@ class MemoryQuerySkill:
     
     async def _store_memory(
         self,
-        params: Dict,
+        params: dict,
         dry_run: bool,
-        reality_bridge: Optional[Any],
-        checkpoint: Optional[str]
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None,
+        checkpoint: str | None
+    ) -> dict[str, Any]:
         """Store memory with timestamp."""
         key = params.get("key", "")
         value = params.get("value", {})
@@ -131,12 +131,12 @@ skill = MemoryQuerySkill()
 
 async def execute(
     action: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     session_id: str,
     dry_run: bool = True,
-    reality_bridge: Optional[Any] = None,
-    checkpoint: Optional[str] = None
-) -> Dict[str, Any]:
+    reality_bridge: Any | None = None,
+    checkpoint: str | None = None
+) -> dict[str, Any]:
     """Main entry point."""
     skill = MemoryQuerySkill()
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)

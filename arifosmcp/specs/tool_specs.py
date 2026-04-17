@@ -15,8 +15,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from arifosmcp.specs.contracts import RiskTier
-
 
 @dataclass(frozen=True)
 class ToolSpec:

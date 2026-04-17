@@ -4,9 +4,9 @@ F12 Security - Hardcoded Commands Only
 F4 Clarity - Structured Telemetry Output
 """
 
-import subprocess
 import logging
-from typing import Any, Dict, Optional
+import subprocess
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +26,12 @@ class VPSMonitorSkill:
     async def execute(
         self,
         action: str,
-        params: Dict[str, Any] = None,
+        params: dict[str, Any] = None,
         session_id: str = "global",
         dry_run: bool = True,
-        reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         """Execute telemetry action securely."""
         
         command = self._SAFE_COMMANDS.get(action)
@@ -86,12 +86,12 @@ skill = VPSMonitorSkill()
 
 async def execute(
     action: str,
-    params: Dict[str, Any] = None,
+    params: dict[str, Any] = None,
     session_id: str = "global",
     dry_run: bool = True,
-    reality_bridge: Optional[Any] = None,
-    checkpoint: Optional[str] = None
-) -> Dict[str, Any]:
+    reality_bridge: Any | None = None,
+    checkpoint: str | None = None
+) -> dict[str, Any]:
     """Entry point for OpenClaw skill execution."""
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 

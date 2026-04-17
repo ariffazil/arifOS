@@ -20,12 +20,10 @@ from typing import Any
 
 from arifosmcp.specs.contracts import (
     ConstitutionalHealthView,
-    TelemetryEnvelope,
     VerdictCode,
 )
-from arifosmcp.specs.resource_specs import CANONICAL_RESOURCE_SPECS, get_resource_spec
-from arifosmcp.specs.tool_specs import CANONICAL_TOOL_SPECS, get_tool_spec
-
+from arifosmcp.specs.resource_specs import get_resource_spec
+from arifosmcp.specs.tool_specs import get_tool_spec
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CHATGPT-SAFE SUBSETS

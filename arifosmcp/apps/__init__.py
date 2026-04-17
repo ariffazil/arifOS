@@ -42,7 +42,7 @@ _APP_MODULES: list[tuple[str, str]] = [
 ]
 
 
-def register_all_apps(mcp: "FastMCP") -> list[str]:
+def register_all_apps(mcp: FastMCP) -> list[str]:
     """
     Register all constitutional MCP apps onto the given FastMCP server.
     Returns list of successfully registered app labels.

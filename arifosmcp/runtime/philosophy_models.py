@@ -122,8 +122,8 @@ class PhilosophyRegistry(BaseModel):
     
     def get_stats(self) -> PhilosophyRegistryStats:
         """Compute registry statistics."""
-        from collections import Counter
         import math
+        from collections import Counter
         
         civ_counts = Counter(q.civilization for q in self.quotes)
         cat_counts = Counter(q.category for q in self.quotes)

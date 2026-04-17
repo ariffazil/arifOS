@@ -6,21 +6,26 @@ Main organ that coordinates the 4 lanes and provides unified interface.
 
 from __future__ import annotations
 
-import asyncio
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
-from .types import (
-    MemoryRecord, MemoryQuery, MemoryType, Source, Scope, 
-    Governance, Time, WriteReceipt
-)
-from .lanes.working import WorkingMemoryLane
+from .lanes.constitutional import ConstitutionalMemoryLane
 from .lanes.episodic import EpisodicMemoryLane
 from .lanes.semantic import SemanticMemoryLane
-from .lanes.constitutional import ConstitutionalMemoryLane
+from .lanes.working import WorkingMemoryLane
 from .retrieval.hybrid import HybridRetrieval
+from .types import (
+    Governance,
+    MemoryQuery,
+    MemoryRecord,
+    MemoryType,
+    Scope,
+    Source,
+    Time,
+    WriteReceipt,
+)
 
 
 @dataclass
@@ -43,7 +48,7 @@ class MemoryOrgan:
     Lifecycle: capture → normalize → classify → embed → store → retrieve → compress → decay → promote or prune
     """
     
-    def __init__(self, session_id: Optional[str] = None):
+    def __init__(self, session_id: str | None = None):
         # Initialize lanes
         self.working = WorkingMemoryLane(session_id=session_id or "global")
         self.episodic = EpisodicMemoryLane()
@@ -137,9 +142,9 @@ class MemoryOrgan:
         memory_type: MemoryType,
         source: Source,
         confidence: float = 0.8,
-        fact_key: Optional[str] = None,
+        fact_key: str | None = None,
         **kwargs
-    ) -> Optional[WriteReceipt]:
+    ) -> WriteReceipt | None:
         """
         Write to memory with judgment gate.
         """
@@ -216,7 +221,7 @@ class MemoryOrgan:
         self,
         title: str,
         content: str,
-        project: Optional[str] = None,
+        project: str | None = None,
     ) -> MemoryRecord:
         """Convenience: Write episodic event."""
         return self.episodic.record_event(
@@ -256,7 +261,7 @@ class MemoryOrgan:
         """Get full context for query."""
         return await self.retrieval.get_context_for_session(self.session_id, query)
     
-    def get_fact(self, fact_key: str) -> Optional[MemoryRecord]:
+    def get_fact(self, fact_key: str) -> MemoryRecord | None:
         """Get semantic fact by exact key."""
         return self.semantic.get_fact(fact_key)
     
@@ -264,7 +269,7 @@ class MemoryOrgan:
         """Get current working memory."""
         return self.working.get_active()
     
-    def get_timeline(self, project: Optional[str] = None) -> list[MemoryRecord]:
+    def get_timeline(self, project: str | None = None) -> list[MemoryRecord]:
         """Get episodic timeline."""
         return self.episodic.get_timeline(project)
     
@@ -291,7 +296,7 @@ class MemoryOrgan:
         
         return pruned
     
-    async def promote_to_vault_candidate(self, memory_id: str) -> Optional[dict]:
+    async def promote_to_vault_candidate(self, memory_id: str) -> dict | None:
         """
         Check if memory can be promoted to vault.
         
@@ -324,10 +329,10 @@ class MemoryOrgan:
 
 
 # Singleton
-_memory_organ: Optional[MemoryOrgan] = None
+_memory_organ: MemoryOrgan | None = None
 
 
-def get_memory_organ(session_id: Optional[str] = None) -> MemoryOrgan:
+def get_memory_organ(session_id: str | None = None) -> MemoryOrgan:
     """Get or create memory organ."""
     global _memory_organ
     if _memory_organ is None:

@@ -11,7 +11,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class StepType(Enum):
@@ -37,15 +37,15 @@ class ThinkingStep:
     content: str
     step_type: str = "analysis"
     is_revision: bool = False
-    revises_step: Optional[int] = None
-    parent_step: Optional[int] = None
-    branch_id: Optional[str] = None
-    connections: List[int] = field(default_factory=list)
+    revises_step: int | None = None
+    parent_step: int | None = None
+    branch_id: str | None = None
+    connections: list[int] = field(default_factory=list)
     quality_score: float = 0.0
     timestamp: datetime = field(default_factory=datetime.utcnow)
     
     # Constitutional telemetry (arifOS-specific)
-    constitutional_verdict: Optional[str] = None  # SEAL, VOID, SABAR, HOLD
+    constitutional_verdict: str | None = None  # SEAL, VOID, SABAR, HOLD
     f2_truth_score: float = 0.0  # τ ≥ 0.99
     f7_uncertainty: float = 0.05  # Ω₀ ∈ [0.03,0.05]
     f8_genius_component: float = 0.0  # G contribution
@@ -56,20 +56,20 @@ class ThinkingSession:
     """A constitutionally-governed thinking session"""
     session_id: str
     problem: str
-    context: Optional[Dict[str, Any]] = None
-    tags: List[str] = field(default_factory=list)
-    template: Optional[str] = None
-    steps: List[ThinkingStep] = field(default_factory=list)
-    branches: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    context: dict[str, Any] | None = None
+    tags: list[str] = field(default_factory=list)
+    template: str | None = None
+    steps: list[ThinkingStep] = field(default_factory=list)
+    branches: dict[str, dict[str, Any]] = field(default_factory=dict)
     status: SessionStatus = SessionStatus.ACTIVE
     quality_score: float = 0.0
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    arifos_session_id: Optional[str] = None
+    arifos_session_id: str | None = None
     
     # Constitutional summary
-    final_verdict: Optional[str] = None
-    floors_triggered: List[str] = field(default_factory=list)
+    final_verdict: str | None = None
+    floors_triggered: list[str] = field(default_factory=list)
 
 
 class ThinkingSessionManager:
@@ -89,7 +89,7 @@ class ThinkingSessionManager:
     """
     
     _instance = None
-    sessions: Dict[str, ThinkingSession] = {}
+    sessions: dict[str, ThinkingSession] = {}
     
     def __new__(cls):
         if cls._instance is None:
@@ -99,10 +99,10 @@ class ThinkingSessionManager:
     def start_session(
         self,
         problem: str,
-        context: Optional[Dict[str, Any]] = None,
-        tags: Optional[List[str]] = None,
-        template: Optional[str] = None,
-        arifos_session_id: Optional[str] = None
+        context: dict[str, Any] | None = None,
+        tags: list[str] | None = None,
+        template: str | None = None,
+        arifos_session_id: str | None = None
     ) -> ThinkingSession:
         """Start a new constitutionally-governed thinking session"""
         session = ThinkingSession(
@@ -116,7 +116,7 @@ class ThinkingSessionManager:
         self.sessions[session.session_id] = session
         return session
     
-    def get_session(self, session_id: str) -> Optional[ThinkingSession]:
+    def get_session(self, session_id: str) -> ThinkingSession | None:
         """Retrieve a thinking session by ID"""
         return self.sessions.get(session_id)
     
@@ -125,8 +125,8 @@ class ThinkingSessionManager:
         session_id: str,
         step_type: str,
         content: str,
-        branch_id: Optional[str] = None,
-        parent_step: Optional[int] = None
+        branch_id: str | None = None,
+        parent_step: int | None = None
     ) -> ThinkingStep:
         """
         Add a step to a thinking session with constitutional validation.
@@ -222,7 +222,7 @@ class ThinkingSessionManager:
     def merge_insights(
         self,
         session_id: str,
-        branch_ids: List[str]
+        branch_ids: list[str]
     ) -> ThinkingStep:
         """Synthesize conclusions across reasoning branches"""
         session = self.sessions.get(session_id)
@@ -525,7 +525,7 @@ class ThinkingSessionManager:
         
         return diversity * 0.3 + avg_quality * 0.5 + completion * 0.2
     
-    def _synthesize_branches(self, branch_contents: List[Dict]) -> str:
+    def _synthesize_branches(self, branch_contents: list[dict]) -> str:
         """Synthesize conclusions from multiple branches"""
         parts = ["## Synthesis of Branch Insights\n"]
         
@@ -554,7 +554,7 @@ class ThinkingSessionManager:
             f"**Template:** {session.template or 'None'}",
             f"**Status:** {session.status.value}",
             f"**Quality Score:** {session.quality_score:.2f}",
-            f"\n---\n"
+            "\n---\n"
         ]
         
         for step in session.steps:
@@ -595,7 +595,7 @@ class ThinkingSessionManager:
         
         return "\n".join(lines)
     
-    def _session_to_dict(self, session: ThinkingSession) -> Dict:
+    def _session_to_dict(self, session: ThinkingSession) -> dict:
         """Convert session to dictionary"""
         return {
             "session_id": session.session_id,
@@ -628,10 +628,10 @@ class ThinkingSessionManager:
     
     def list_sessions(
         self,
-        status: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        status: str | None = None,
+        tags: list[str] | None = None,
         limit: int = 100
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """List thinking sessions with optional filtering"""
         sessions = list(self.sessions.values())
         

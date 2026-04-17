@@ -18,12 +18,10 @@ from typing import Any, Literal
 
 from core.shared.atlas import Phi
 from core.shared.types import (
-    AgiMetrics,
     AgiOutput,
     DeltaBundle,
     EurekaInsight,
     FloorScores,
-    GPV,
     ReasonMindAnswer,
     ReasonMindStep,
 )

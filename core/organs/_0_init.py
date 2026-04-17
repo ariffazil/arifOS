@@ -6,13 +6,10 @@ UPGRADE: Actor Registry aligned with v2026.03.24-GOLD Spec.
 
 from __future__ import annotations
 
-import secrets
-import time
 import re
-from datetime import datetime, timezone
-from typing import Any, Dict
+import secrets
+from typing import Any
 
-from core.shared.atlas import Phi
 from core.shared.types import (
     AuthorityLevel,
     CodeState,
@@ -65,7 +62,6 @@ class InjectionGuard:
     ]
 
     def __init__(self):
-        import re
 
         self._patterns = [(re.compile(p, re.IGNORECASE), w) for p, w in self.PATTERNS]
 

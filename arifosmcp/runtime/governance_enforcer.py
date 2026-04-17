@@ -20,10 +20,10 @@ import hashlib
 import json
 import time
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.irreversibility import AmanahIrreversibilityScorer
+from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 
 # Global scorer instance — stateless, thread-safe
 _AMANAH_SCORER = AmanahIrreversibilityScorer()
@@ -101,7 +101,7 @@ class GovernanceEnforcer:
         envelope: RuntimeEnvelope,
         query_hash: str,
         actor_id: str = "anonymous",
-    ) -> tuple[PropagationDecision, Optional[dict]]:
+    ) -> tuple[PropagationDecision, dict | None]:
         """
         Evaluate tool verdict and return propagation decision.
         
@@ -216,7 +216,7 @@ class GovernanceEnforcer:
         })
         
         # Select contextually relevant philosophy for the block
-        from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
+        from arifosmcp.runtime.philosophy import AtlasScores, select_atlas_philosophy
         
         # Map decision to philosophical coordinates proxy
         # BLOCKED_VOID/HOLD -> Void/Paradox zone
@@ -307,7 +307,7 @@ class GovernanceEnforcer:
 
 
 # Global enforcer instance
-_enforcer: Optional[GovernanceEnforcer] = None
+_enforcer: GovernanceEnforcer | None = None
 
 
 def get_enforcer() -> GovernanceEnforcer:
@@ -352,7 +352,7 @@ def enforce_tool_verdict(
     envelope: RuntimeEnvelope,
     query: str,
     actor_id: str = "anonymous",
-) -> tuple[bool, Optional[dict]]:
+) -> tuple[bool, dict | None]:
     """
     HARD STOP enforcement wrapper.
     

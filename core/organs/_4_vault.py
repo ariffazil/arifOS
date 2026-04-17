@@ -21,7 +21,7 @@ import json
 import logging
 import os
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
@@ -321,7 +321,7 @@ async def seal(
     ledger_id = f"LGR-{secrets.token_hex(8).upper()}"
 
     # 2. Build canonical entry for hashing
-    timestamp = datetime.now(timezone.utc)
+    timestamp = datetime.now(UTC)
     entry_data = {
         "session_id": session_id,
         "ledger_id": ledger_id,

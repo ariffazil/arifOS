@@ -12,9 +12,10 @@ Implements the economic organ interface as a FastMCPApp:
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-from __future__ import annotations
-from typing import Any
+from typing import Annotated, Any
+
 from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -26,15 +27,15 @@ from prefab_ui.components import (
     Column,
     Grid,
     Heading,
+    If,
     Metric,
     Muted,
     Row,
     Separator,
     Text,
-    Alert,
-    If
 )
 from prefab_ui.rx import RESULT, STATE
+from pydantic import Field
 
 # ── App definition ────────────────────────────────────────────────────────────
 
@@ -42,12 +43,17 @@ wealth_app = FastMCP("WealthApp")
 
 @wealth_app.tool()
 async def perform_economic_audit(
-    initial_cost: float,
-    annual_benefit: float,
-    years: int,
-    ebitda: float = 120000.0,
-    debt_service: float = 100000.0
-) -> dict[str, Any]:
+    initial_cost: Annotated[float, Field(description="Initial investment amount")],
+    annual_benefit: Annotated[float, Field(description="Expected annual cash flow")],
+    years: Annotated[int, Field(description="Project duration in years")],
+    ebitda: Annotated[
+        float,
+        Field(description="Earnings Before Interest, Taxes, Depreciation, and Amortization"),
+    ] = 120000.0,
+    debt_service: Annotated[
+        float, Field(description="Total debt service obligations")
+    ] = 100000.0,
+) -> ToolResult:
     """
     Perform a constitutional economic audit.
     """
@@ -59,17 +65,34 @@ async def perform_economic_audit(
         irr_res = wealth(operation="irr_yield", initial_investment=initial_cost, cash_flows=flows)
         dscr_res = wealth(operation="dscr_leverage", ebitda=ebitda, debt_service=debt_service)
 
-        return {
-            "success": True,
-            "npv": npv_res.primary_result["npv"],
-            "irr": irr_res.primary_result["irr"],
-            "dscr": dscr_res.primary_result["dscr"],
-            "verdict": npv_res.verdict,
-            "signal": npv_res.allocation_signal,
-            "audited": True
-        }
+        return ToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": (
+                        f"Economic audit complete. Verdict: {npv_res.verdict} "
+                        f"(Signal: {npv_res.allocation_signal})"
+                    ),
+                },
+                {
+                    "type": "json",
+                    "json": {
+                        "success": True,
+                        "npv": npv_res.primary_result["npv"],
+                        "irr": irr_res.primary_result["irr"],
+                        "dscr": dscr_res.primary_result["dscr"],
+                        "verdict": npv_res.verdict,
+                        "signal": npv_res.allocation_signal,
+                        "audited": True,
+                    },
+                },
+            ]
+        )
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return ToolResult(
+            is_error=True,
+            content=[{"type": "text", "text": f"Economic audit failed: {e}"}],
+        )
 
 @wealth_app.ui(title="@WEALTH Optimizer")
 def wealth_dashboard_surface() -> PrefabApp:
@@ -162,7 +185,11 @@ def wealth_dashboard_surface() -> PrefabApp:
             with CardContent(css_class="py-3"):
                 with Row(justify="between", align="center"):
                     with Row(gap=2, align="center"):
-                        Text("Thermodynamics", css_class="text-xs font-mono uppercase tracking-widest text-muted-foreground")
+                        Text(
+                            "Thermodynamics",
+                            css_class="text-xs font-mono uppercase tracking-widest "
+                            "text-muted-foreground",
+                        )
                         Badge("Ω STABLE", variant="outline", css_class="text-[10px]")
                     with Row(gap=4):
                         with Column(align="center"):

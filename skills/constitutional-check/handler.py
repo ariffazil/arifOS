@@ -4,7 +4,8 @@ F3 Tri-Witness consensus evaluation.
 Wired to Reality Bridge for system state verification.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
+
 from core.intelligence import compute_w3
 
 
@@ -15,10 +16,10 @@ class ConstitutionalCheckSkill:
     FLOOR = "F3"
     
     async def execute(
-        self, action: str, params: Dict, session_id: str,
-        dry_run: bool = True, reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, action: str, params: dict, session_id: str,
+        dry_run: bool = True, reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         handlers = {
             "evaluate_proposal": self._evaluate_proposal,
             "verify_system_state": self._verify_system_state,
@@ -28,8 +29,8 @@ class ConstitutionalCheckSkill:
             return {"verdict": "VOID", "reason": f"Unknown action: {action}"}
         return await handler(params, dry_run, reality_bridge, checkpoint)
     
-    async def _evaluate_proposal(self, params: Dict, dry_run: bool,
-                                 reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _evaluate_proposal(self, params: dict, dry_run: bool,
+                                 reality_bridge: Any | None, checkpoint: str | None) -> dict:
         human = params.get("human_score", 0)
         ai = params.get("ai_score", 0)
         earth = params.get("earth_score", 0)
@@ -50,8 +51,8 @@ class ConstitutionalCheckSkill:
             "checkpoint": checkpoint
         }
     
-    async def _verify_system_state(self, params: Dict, dry_run: bool,
-                                   reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _verify_system_state(self, params: dict, dry_run: bool,
+                                   reality_bridge: Any | None, checkpoint: str | None) -> dict:
         component = params.get("component", "system")
         
         if dry_run:
@@ -83,9 +84,9 @@ class ConstitutionalCheckSkill:
 skill = ConstitutionalCheckSkill()
 
 
-async def execute(action: str, params: Dict, session_id: str,
-                  dry_run: bool = True, reality_bridge: Optional[Any] = None,
-                  checkpoint: Optional[str] = None) -> Dict[str, Any]:
+async def execute(action: str, params: dict, session_id: str,
+                  dry_run: bool = True, reality_bridge: Any | None = None,
+                  checkpoint: str | None = None) -> dict[str, Any]:
     skill = ConstitutionalCheckSkill()
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 

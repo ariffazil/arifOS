@@ -31,9 +31,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -53,7 +54,7 @@ from prefab_ui.components import (
     Text,
 )
 from prefab_ui.rx import RESULT, STATE
-
+from pydantic import Field
 
 # ── App definition ────────────────────────────────────────────────────────────
 
@@ -62,9 +63,13 @@ forge_app = FastMCP("ForgeApp")
 
 @forge_app.tool()
 async def forge_judge_check(
-    candidate_action: str,
-    risk_tier: str = "medium",
-) -> dict[str, Any]:
+    candidate_action: Annotated[
+        str, Field(description="The action to evaluate before forging")
+    ],
+    risk_tier: Annotated[
+        str, Field(description="Risk level: low, medium, high, critical")
+    ] = "medium",
+) -> ToolResult:
     """
     Pre-forge constitutional check — runs 888_JUDGE dry_run.
     Returns verdict for Gate 1 evaluation.
@@ -87,13 +92,27 @@ async def forge_judge_check(
         )
         floors_failed = (env_dict.get("policy") or {}).get("floors_failed", [])
 
-        return {
-            "gate1_verdict": verdict,
-            "gate1_ok": verdict == "SEAL",
-            "floors_failed": floors_failed,
-            "floors_failed_count": len(floors_failed),
-            "trace_id": env_dict.get("trace_id", "—"),
-        }
+        return ToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": (
+                        f"Pre-forge judge check: {verdict} "
+                        f"(Trace: {env_dict.get('trace_id', '—')})"
+                    ),
+                },
+                {
+                    "type": "json",
+                    "json": {
+                        "gate1_verdict": verdict,
+                        "gate1_ok": verdict == "SEAL",
+                        "floors_failed": floors_failed,
+                        "floors_failed_count": len(floors_failed),
+                        "trace_id": env_dict.get("trace_id", "—"),
+                    },
+                },
+            ]
+        )
 
     except Exception as exc:
         return {
@@ -107,9 +126,14 @@ async def forge_judge_check(
 
 @forge_app.tool()
 async def forge_execute(
-    candidate_action: str,
-    risk_tier: str = "medium",
-) -> dict[str, Any]:
+    candidate_action: Annotated[
+        str,
+        Field(description="The action to execute (requires judge SEAL and human approval)"),
+    ],
+    risk_tier: Annotated[
+        str, Field(description="Risk level: low, medium, high, critical")
+    ] = "medium",
+) -> ToolResult:
     """
     Execute forge after both gates pass.
     Gate 1 (888_JUDGE SEAL) is re-verified here.
@@ -130,12 +154,26 @@ async def forge_execute(
         )
 
         verdict = env_dict.get("verdict", "VOID")
-        return {
-            "forge_verdict": verdict,
-            "forge_ok": env_dict.get("ok", False),
-            "result": env_dict.get("result", "—"),
-            "trace_id": env_dict.get("trace_id", "—"),
-        }
+        return ToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": (
+                        f"Forge execution complete: {verdict} "
+                        f"(OK: {env_dict.get('ok', False)})"
+                    ),
+                },
+                {
+                    "type": "json",
+                    "json": {
+                        "forge_verdict": verdict,
+                        "forge_ok": env_dict.get("ok", False),
+                        "result": env_dict.get("result", "—"),
+                        "trace_id": env_dict.get("trace_id", "—"),
+                    },
+                },
+            ]
+        )
 
     except Exception as exc:
         return {

@@ -8,12 +8,17 @@ Validates:
 - Verification grades
 """
 
-import pytest
 from datetime import datetime
 
+import pytest
+
 from ..vault.types_v2 import (
-    VaultEntry, VaultRecordType, Verdict, Evidence, Governance,
-    Integrity, VaultLineage, VerificationGrade
+    Evidence,
+    Governance,
+    VaultEntry,
+    VaultRecordType,
+    Verdict,
+    VerificationGrade,
 )
 
 

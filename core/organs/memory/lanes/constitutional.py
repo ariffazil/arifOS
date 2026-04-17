@@ -14,12 +14,10 @@ Characteristics:
 
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
-from ..types import MemoryRecord, MemoryType, Source, Scope, Governance, Time, RetentionClass
+from ..types import Governance, MemoryRecord, MemoryType, RetentionClass, Scope, Source, Time
 
 
 @dataclass
@@ -145,7 +143,7 @@ class ConstitutionalMemoryLane:
         
         return record
     
-    def get_rule(self, rule_id: str) -> Optional[MemoryRecord]:
+    def get_rule(self, rule_id: str) -> MemoryRecord | None:
         """Get constitutional rule by ID."""
         memory_id = self._rule_index.get(rule_id)
         if memory_id:
@@ -190,7 +188,7 @@ class ConstitutionalMemoryLane:
         rule_id: str,
         new_content: str,
         amendment_authority: str,
-    ) -> Optional[MemoryRecord]:
+    ) -> MemoryRecord | None:
         """
         Amend a constitutional rule.
         

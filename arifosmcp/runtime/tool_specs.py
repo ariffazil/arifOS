@@ -33,11 +33,13 @@ class ToolSpec:
     overflow_policy: str = "truncate"
     readonly: bool = True
     outputs: dict[str, Any] = field(default_factory=dict)
-    # MCP v2 tool annotations
+    # FastMCP v3 / MCP v2 tool annotations
+    version: str = "2026.04.16"
     read_only_hint: bool = True
     destructive_hint: bool = False
     open_world_hint: bool = True
     idempotent_hint: bool = False
+    timeout: float = 30.0
 
 @dataclass(frozen=True)
 class ResourceSpec:
@@ -97,6 +99,8 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
             },
         },
+        read_only_hint=False,
+        idempotent_hint=True,
         default_tier="small",
     ),
     # ─────────────────────────────────────────────────────────────────────────
@@ -264,6 +268,7 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "session_id": {"type": "string"},
             },
         },
+        read_only_hint=False,
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 8. arifos_memory — Engineering Memory
@@ -315,6 +320,7 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "session_id": {"type": "string"},
             },
         },
+        read_only_hint=False,
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 10. arifos_forge — Code Engine (Execution Bridge)
@@ -346,6 +352,8 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "dry_run": {"type": "boolean", "default": True},
             },
         },
+        read_only_hint=False,
+        destructive_hint=True,
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 11. arifos_gateway — Orthogonality Guard (The 11th Public Tool)
@@ -501,7 +509,8 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "files": {"type": "array", "items": {"type": "string"}},
             },
         },
-        readonly=False,
+        read_only_hint=False,
+        destructive_hint=True,
     ),
     # ─────────────────────────────────────────────────────────────────────────
     # 16. arifos_probe — Health Probe

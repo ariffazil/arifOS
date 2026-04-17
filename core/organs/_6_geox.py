@@ -8,8 +8,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Any, List, Dict
+from typing import Any
+
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -20,7 +22,7 @@ class GeoxVerdict(BaseModel):
     physical_possibility: bool
     spatial_validity: bool
     recommendation: str
-    floor_alignment: Dict[str, str]
+    floor_alignment: dict[str, str]
 
 def verify_geospatial(lat: float, lon: float) -> dict[str, Any]:
     """Validate coordinates and return geospatial context."""
@@ -34,7 +36,7 @@ def verify_geospatial(lat: float, lon: float) -> dict[str, Any]:
         "jurisdiction": "Global/Unspecified" if valid else "INVALID"
     }
 
-def geox_feasibility_check(constraints: List[str]) -> bool:
+def geox_feasibility_check(constraints: list[str]) -> bool:
     """Check if claims are physically possible (Rock Mechanics/Thermodynamics)."""
     # Placeholder for actual stress-strain / thermal modelling
     return True

@@ -6,7 +6,6 @@ Each template maps to specific constitutional floors.
 """
 
 from dataclasses import dataclass
-from typing import List, Dict
 
 
 @dataclass
@@ -14,17 +13,17 @@ class ThinkingTemplate:
     """A constitutional thinking framework"""
     name: str
     description: str
-    steps: List[str]  # Step prompts
-    step_types: List[str]  # Corresponding step types
+    steps: list[str]  # Step prompts
+    step_types: list[str]  # Corresponding step types
     constitutional_floor: str  # Primary floor this enforces
-    use_cases: List[str]
+    use_cases: list[str]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTITUTIONAL THINKING TEMPLATES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-THINKING_TEMPLATES: Dict[str, ThinkingTemplate] = {
+THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
     
     # ═══════════════════════════════════════════════════════════════════════════
     # Scientific Method - F2 TRUTH focused
@@ -274,7 +273,7 @@ def get_template(name: str) -> ThinkingTemplate:
     return THINKING_TEMPLATES[name]
 
 
-def list_templates(floor: str = None, use_case: str = None) -> List[str]:
+def list_templates(floor: str = None, use_case: str = None) -> list[str]:
     """List available templates with optional filtering"""
     templates = list(THINKING_TEMPLATES.items())
     

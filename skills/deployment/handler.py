@@ -4,7 +4,7 @@ F11 authority-gated deployment.
 Wired to Reality Bridge for kubectl/docker deployment.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class DeploymentSkill:
@@ -14,10 +14,10 @@ class DeploymentSkill:
     FLOOR = "F11"
     
     async def execute(
-        self, action: str, params: Dict, session_id: str,
-        dry_run: bool = True, reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, action: str, params: dict, session_id: str,
+        dry_run: bool = True, reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         handlers = {
             "execute_deployment": self._execute_deployment,
             "rollback": self._rollback,
@@ -27,8 +27,8 @@ class DeploymentSkill:
             return {"verdict": "VOID", "reason": f"Unknown action: {action}"}
         return await handler(params, dry_run, reality_bridge, checkpoint)
     
-    async def _execute_deployment(self, params: Dict, dry_run: bool,
-                                  reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _execute_deployment(self, params: dict, dry_run: bool,
+                                  reality_bridge: Any | None, checkpoint: str | None) -> dict:
         environment = params.get("environment", "")
         operator = params.get("operator", "anonymous")
         approved = params.get("approved", False)
@@ -74,8 +74,8 @@ class DeploymentSkill:
         
         return {"verdict": "VOID", "error": "No reality bridge available"}
     
-    async def _rollback(self, params: Dict, dry_run: bool,
-                        reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _rollback(self, params: dict, dry_run: bool,
+                        reality_bridge: Any | None, checkpoint: str | None) -> dict:
         environment = params.get("environment", "")
         
         if dry_run:
@@ -102,9 +102,9 @@ class DeploymentSkill:
 skill = DeploymentSkill()
 
 
-async def execute(action: str, params: Dict, session_id: str,
-                  dry_run: bool = True, reality_bridge: Optional[Any] = None,
-                  checkpoint: Optional[str] = None) -> Dict[str, Any]:
+async def execute(action: str, params: dict, session_id: str,
+                  dry_run: bool = True, reality_bridge: Any | None = None,
+                  checkpoint: str | None = None) -> dict[str, Any]:
     skill = DeploymentSkill()
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 

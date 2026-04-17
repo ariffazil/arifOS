@@ -540,9 +540,9 @@ async def metabolic_loop(
             "meta": {"dry_run": True},
         }
 
-    from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
-
     from core.governance_kernel import route_pipeline
+
+    from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
 
     # Track if we're approaching timeout
     def _check_timeout() -> bool:
@@ -662,9 +662,9 @@ async def metabolic_loop(
         dag_result: dict[str, Any] | None = None
         if len(plan) >= 3:
             try:
+                from arifosmcp.agentzero.escalation.hold_state import HoldStateManager
                 from arifosmcp.runtime.dag_executor import ConstitutionalDAGExecutor
                 from arifosmcp.runtime.irreversibility import AmanahIrreversibilityScorer
-                from arifosmcp.agentzero.escalation.hold_state import HoldStateManager
 
                 scorer = AmanahIrreversibilityScorer()
                 hold_mgr = HoldStateManager()

@@ -9,14 +9,12 @@ Key principle: No single point of failure — not in code, not in humans, not in
 from __future__ import annotations
 
 import hashlib
-import json
 import os
-import shutil
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # For Shamir's Secret Sharing
 try:

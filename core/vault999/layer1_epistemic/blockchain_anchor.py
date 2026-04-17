@@ -15,7 +15,6 @@ import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 import aiohttp
 
@@ -39,12 +38,12 @@ class BlockchainAnchor:
     timestamp: datetime
     
     # Layer 2 (Polygon) anchor
-    polygon_tx_hash: Optional[str] = None
-    polygon_block_number: Optional[int] = None
+    polygon_tx_hash: str | None = None
+    polygon_block_number: int | None = None
     
     # Bitcoin anchor (OpenTimestamp)
-    opentimestamp_proof: Optional[str] = None
-    bitcoin_block_height: Optional[int] = None
+    opentimestamp_proof: str | None = None
+    bitcoin_block_height: int | None = None
     
     # Cloud replicas (for availability, not immutability)
     cloud_replicas: list[str] = None
@@ -94,7 +93,7 @@ class EpistemicAnchorClient:
             try:
                 proof = await self._anchor_to_opentimestamp(seal_hash)
                 anchor.opentimestamp_proof = proof
-                logger.info(f"Anchored to Bitcoin via OpenTimestamp")
+                logger.info("Anchored to Bitcoin via OpenTimestamp")
             except Exception as e:
                 logger.error(f"OpenTimestamp anchoring failed: {e}")
         
@@ -407,7 +406,7 @@ class EpistemicAnchorClient:
 
 
 # Singleton instance
-_anchor_client: Optional[EpistemicAnchorClient] = None
+_anchor_client: EpistemicAnchorClient | None = None
 
 
 def get_anchor_client() -> EpistemicAnchorClient:

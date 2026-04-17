@@ -21,7 +21,7 @@ Version: 2026.04.06-HARDENED
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from arifosmcp.runtime.belief_registry import update_belief
 from arifosmcp.runtime.governance_enforcer import (
@@ -48,7 +48,7 @@ class HardenedKernelRouter:
         self,
         query: str,
         actor_id: str = "anonymous",
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
@@ -184,7 +184,7 @@ class HardenedKernelRouter:
         tool_name: str,
         query: str,
         actor_id: str,
-        session_id: Optional[str],
+        session_id: str | None,
         context: dict[str, Any],
     ) -> RuntimeEnvelope:
         """Invoke tool with full ToM requirements."""
@@ -290,7 +290,7 @@ class HardenedKernelRouter:
 
 
 # Global router instance
-_router: Optional[HardenedKernelRouter] = None
+_router: HardenedKernelRouter | None = None
 
 
 def get_router() -> HardenedKernelRouter:
@@ -304,7 +304,7 @@ def get_router() -> HardenedKernelRouter:
 async def process_query(
     query: str,
     actor_id: str = "anonymous",
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """

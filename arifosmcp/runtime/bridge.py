@@ -14,12 +14,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from arifosmcp.runtime.contracts import REQUIRES_SESSION
-from pydantic import ValidationError
-
 from core.enforcement.auth_continuity import mint_auth_context, verify_auth_context_cached
 from core.organs import agi, apex, asi, init, vault
 from core.organs._4_vault import verify_vault_ledger
+from pydantic import ValidationError
+
+from arifosmcp.runtime.contracts import REQUIRES_SESSION
 
 from .models import ClaimStatus, Verdict
 
@@ -480,9 +480,9 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     Build the system vitals report for check_vital tool.
     Returns health status, thermodynamic budget, and capability map.
     """
-    from arifosmcp.runtime.sessions import get_session_identity
-
     from core.shared.floors import THRESHOLDS
+
+    from arifosmcp.runtime.sessions import get_session_identity
     try:
         from core.state.session_manager import session_manager
     except Exception:
@@ -588,10 +588,10 @@ async def call_kernel(
     session_id: str,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    from arifosmcp.runtime.models import CallerContext as _CallerContext
-
     from core.governance_kernel import get_governance_kernel
     from core.shared.types import GovernanceMetadata, Intent, MathDials, TemporalContract
+
+    from arifosmcp.runtime.models import CallerContext as _CallerContext
 
     canonical_name = tool_name or "unknown"
     claimed_actor_id = _resolve_claimed_actor_id(payload)

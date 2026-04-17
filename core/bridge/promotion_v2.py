@@ -14,10 +14,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
-from ..organs.memory.types_v2 import MemoryRecord, MemoryType, ConfidenceClass
-from ..organs.vault.types import VaultEntry, VaultRecordType, Verdict, Evidence, Governance, VaultLineage, SealReceipt
+from ..organs.memory.types_v2 import ConfidenceClass, MemoryRecord, MemoryType
+from ..organs.vault.types import (
+    Evidence,
+    Governance,
+    SealReceipt,
+    VaultEntry,
+    VaultLineage,
+    VaultRecordType,
+    Verdict,
+)
 
 
 class PromotionOutcome(Enum):
@@ -34,10 +41,10 @@ class PromotionResult:
     """Result of promotion attempt."""
     outcome: PromotionOutcome
     memory_id: str
-    vault_id: Optional[str] = None
-    seal_receipt: Optional[SealReceipt] = None
+    vault_id: str | None = None
+    seal_receipt: SealReceipt | None = None
     reason: str = ""
-    requires_action: Optional[str] = None  # What needs to happen next
+    requires_action: str | None = None  # What needs to happen next
 
 
 class PromotionBridge:
@@ -49,7 +56,7 @@ class PromotionBridge:
         self.memory = memory_organ
         self.vault = vault_organ
     
-    def classify_for_promotion(self, memory: MemoryRecord) -> tuple[bool, str, Optional[PromotionOutcome]]:
+    def classify_for_promotion(self, memory: MemoryRecord) -> tuple[bool, str, PromotionOutcome | None]:
         """
         Classify if a memory should be promoted to vault.
         

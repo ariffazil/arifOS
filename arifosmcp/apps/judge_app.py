@@ -31,14 +31,14 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
 from prefab_ui.components import (
-    Alert,
     Badge,
     Button,
     Card,
@@ -55,6 +55,7 @@ from prefab_ui.components import (
     Text,
 )
 from prefab_ui.rx import RESULT, STATE
+from pydantic import Field
 
 # ── Constitutional floor registry ─────────────────────────────────────────────
 _FLOOR_NAMES: dict[str, str] = {
@@ -155,9 +156,9 @@ judge_app = FastMCP("JudgeApp")
 
 @judge_app.tool()
 async def execute_judge(
-    candidate_action: str,
-    risk_tier: str = "medium",
-) -> dict[str, Any]:
+    candidate_action: Annotated[str, Field(description="The action or proposal to evaluate")],
+    risk_tier: Annotated[str, Field(description="Risk level: low, medium, high, critical")] = "medium",
+) -> ToolResult:
     """
     Run constitutional verdict evaluation on a candidate action.
     Returns structured Floor results, W³ witness scores, and verdict.
@@ -244,28 +245,39 @@ async def execute_judge(
             else:
                 next_actions.append("Repair floor state or obtain human veto override.")
 
-        return {
-            "verdict": verdict,
-            "floors_checked": floors_checked,
-            "floors_failed": floors_failed,
-            "floor_rows": floor_rows,
-            "w3_human": w3_human,
-            "w3_ai": w3_ai,
-            "w3_earth": w3_earth,
-            "ds": ds,
-            "peace2": peace2,
-            "kappa_r": kappa_r,
-            "shadow": shadow,
-            "confidence": confidence,
-            "witness_score": witness_score,
-            "next_actions": next_actions,
-            "philosophy": philosophy,
-            "requires_human": env_dict.get("requires_human", False),
-            "sabar_step": env_dict.get("sabar_step"),
-            "trace_id": env_dict.get("trace_id"),
-            "floors_pass_count": len(floors_checked) - len(floors_failed),
-            "floors_total_count": len(floors_checked),
-        }
+        return ToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"Judgment complete for action: {candidate_action[:50]}... Verdict: {verdict}",
+                },
+                {
+                    "type": "json",
+                    "json": {
+                        "verdict": verdict,
+                        "floors_checked": floors_checked,
+                        "floors_failed": floors_failed,
+                        "floor_rows": floor_rows,
+                        "w3_human": w3_human,
+                        "w3_ai": w3_ai,
+                        "w3_earth": w3_earth,
+                        "ds": ds,
+                        "peace2": peace2,
+                        "kappa_r": kappa_r,
+                        "shadow": shadow,
+                        "confidence": confidence,
+                        "witness_score": witness_score,
+                        "next_actions": next_actions,
+                        "philosophy": philosophy,
+                        "requires_human": env_dict.get("requires_human", False),
+                        "sabar_step": env_dict.get("sabar_step"),
+                        "trace_id": env_dict.get("trace_id"),
+                        "floors_pass_count": len(floors_checked) - len(floors_failed),
+                        "floors_total_count": len(floors_checked),
+                    },
+                },
+            ]
+        )
 
     except Exception as exc:
         # Build fallback floor rows with all failed
@@ -279,21 +291,30 @@ async def execute_judge(
             }
             for fid in _FLOOR_ORDER
         ]
-        return {
-            "verdict": "VOID",
-            "floors_checked": [],
-            "floors_failed": list(_FLOOR_NAMES.keys()),
-            "floor_rows": floor_rows,
-            "w3_human": 0.0,
-            "w3_ai": 0.0,
-            "w3_earth": 0.0,
-            "philosophy": f"Judge unavailable: {exc}",
-            "requires_human": True,
-            "sabar_step": f"Judge unavailable: {exc}",
-            "trace_id": None,
-            "floors_pass_count": 0,
-            "floors_total_count": 13,
-        }
+        return ToolResult(
+            is_error=True,
+            content=[
+                {"type": "text", "text": f"Judge unavailable: {exc}"},
+                {
+                    "type": "json",
+                    "json": {
+                        "verdict": "VOID",
+                        "floors_checked": [],
+                        "floors_failed": list(_FLOOR_NAMES.keys()),
+                        "floor_rows": floor_rows,
+                        "w3_human": 0.0,
+                        "w3_ai": 0.0,
+                        "w3_earth": 0.0,
+                        "philosophy": f"Judge unavailable: {exc}",
+                        "requires_human": True,
+                        "sabar_step": f"Judge unavailable: {exc}",
+                        "trace_id": None,
+                        "floors_pass_count": 0,
+                        "floors_total_count": 13,
+                    },
+                },
+            ],
+        )
 
 
 @judge_app.ui(title="888 Constitutional Judge")

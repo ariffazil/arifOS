@@ -7,7 +7,7 @@ Routes promotion bridge to v1 or v2 implementation.
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 # Determine backend version
 PROMOTION_BACKEND_VERSION = os.getenv("PROMOTION_BACKEND_VERSION", "v1")

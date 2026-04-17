@@ -29,8 +29,8 @@ from typing import Any
 from core.kernel.pattern_registry import PatternRegistry
 from core.kernel.pattern_selector import PatternSelector
 from core.kernel.planner import Planner
-from core.kernel.tool_registry import ToolContractRegistry
 from core.kernel.role_registry import AgentRoleRegistry
+from core.kernel.tool_registry import ToolContractRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -313,7 +313,7 @@ class KernelCore:
 
         # ── Philosophy Injection (Horizon Atlas) ──
         try:
-            from arifosmcp.runtime.philosophy import select_atlas_philosophy, AtlasScores
+            from arifosmcp.runtime.philosophy import AtlasScores, select_atlas_philosophy
             
             # Extract metrics from envelope/payload
             metrics = getattr(envelope, "metrics", None)

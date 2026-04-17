@@ -7,12 +7,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 import asyncio
 import json
+import os
+import sys
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any
-import sys
-import os
 
 # Add project root to path
 _project_root = os.path.dirname(os.path.abspath(__file__))
@@ -507,7 +507,7 @@ async def run_all_tests():
             status_icon = "PASS" if result.status == "PASS" else "FAIL"
             print(f"[{status_icon}] {result.latency_ms:.1f}ms")
         except asyncio.TimeoutError:
-            print(f"[TIMEOUT]")
+            print("[TIMEOUT]")
             results.append(
                 ToolResult(
                     tool=tool_name,

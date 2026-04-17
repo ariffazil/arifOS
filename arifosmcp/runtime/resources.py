@@ -14,9 +14,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from fastmcp import FastMCP, Context
+from fastmcp import Context, FastMCP
 from fastmcp.exceptions import ResourceError
-from fastmcp.resources import ResourceResult, ResourceContent
+from fastmcp.resources import ResourceContent, ResourceResult
 
 logger = logging.getLogger(__name__)
 
@@ -386,7 +386,7 @@ def _get_skills_manifest() -> dict[str, Any]:
 
 def _vitals_to_markdown(data: dict[str, Any]) -> str:
     """Convert vitals payload to markdown."""
-    md = f"# arifOS Vitals (Ω)\n\n"
+    md = "# arifOS Vitals (Ω)\n\n"
     md += f"**Status**: {data['system']['name']} {data['system']['version']}\n\n"
     md += "| Metric | Value |\n|---|---|\n"
     thermo = data.get("thermodynamics", {})
@@ -415,8 +415,8 @@ def _get_platform_config(platform: str) -> dict[str, Any]:
 
 def register_v2_resources(mcp: FastMCP) -> list[str]:
     """Register all v2 resources using arifos:// scheme."""
-    from arifosmcp.schema import get_registry
     from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.schema import get_registry
     try:
         from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
         tools_total = len(CANONICAL_TOOL_HANDLERS)

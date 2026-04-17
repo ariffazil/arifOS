@@ -12,9 +12,8 @@ Features:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
-from ..types_v2 import MemoryRecord, MemoryQuery, MemoryType, ConfidenceClass, ContestedStatus
+from ..types_v2 import ConfidenceClass, ContestedStatus, MemoryQuery, MemoryRecord, MemoryType
 
 
 @dataclass
@@ -321,7 +320,7 @@ class HybridRetrieval:
             },
         }
     
-    def resolve_conflict(self, memories: list[MemoryRecord]) -> Optional[MemoryRecord]:
+    def resolve_conflict(self, memories: list[MemoryRecord]) -> MemoryRecord | None:
         """
         Resolve conflicting memories.
         

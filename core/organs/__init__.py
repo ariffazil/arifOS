@@ -43,8 +43,8 @@ from ._1_agi import agi, reason, sense, think
 from ._2_asi import align, asi, empathize
 from ._3_apex import apex, forge, judge, sync
 from ._4_vault import SealRecord, seal, vault
-from ._5_wealth import wealth, calculate_npv
-from ._6_geox import geox, verify_geospatial, evaluate_prospect
+from ._5_wealth import calculate_npv, wealth
+from ._6_geox import evaluate_prospect, geox, verify_geospatial
 
 # Humanized aliases
 anchor = init

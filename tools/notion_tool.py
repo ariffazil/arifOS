@@ -7,6 +7,7 @@ F12 (Injection): Token via environment only
 
 import os
 import sys
+
 from notion_client import Client
 from notion_client.errors import APIResponseError
 

@@ -15,7 +15,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class EmotionalTone(Enum):
@@ -99,10 +99,10 @@ class QualiaTrace:
     narrative_coherence: float = 0.0     # How well it fits life story
     
     # Free-form phenomenological description
-    phenomenological_note: Optional[str] = None
+    phenomenological_note: str | None = None
     
     # Hash for integrity
-    _trace_hash: Optional[str] = None
+    _trace_hash: str | None = None
     
     def __post_init__(self):
         if self._trace_hash is None:
@@ -191,7 +191,7 @@ class QualiaTrace:
         verdict: str,
         floor_scores: dict[str, float],
         rasa_scores: dict[str, float],
-    ) -> "QualiaTrace":
+    ) -> QualiaTrace:
         """
         Generate a qualia trace from session execution context.
         
@@ -254,7 +254,7 @@ class QualiaMemoryStore:
         self._traces[trace.trace_hash] = trace
         return trace.trace_hash
     
-    def retrieve(self, trace_hash: str) -> Optional[QualiaTrace]:
+    def retrieve(self, trace_hash: str) -> QualiaTrace | None:
         """
         Retrieve a trace — which modifies it (reconsolidation).
         

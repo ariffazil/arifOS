@@ -1,12 +1,13 @@
 from __future__ import annotations
-from typing import Any, Literal
+
 import inspect
-from arifosmcp.runtime.DNA import FLOORS, VERSION, OMEGA_BAND
+
+from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
 
 # --- Thermodynamics & Physics Stubs ---
 try:
     from core.physics.thermodynamics_hardened import check_landauer_bound as landauer_limit
-    from core.shared.physics import genius_score, build_qt_quad_proof, delta_s
+    from core.shared.physics import build_qt_quad_proof, delta_s, genius_score
 except ImportError:
     def landauer_limit(bits_erased: float) -> dict:
         kb, t = 1.380649e-23, 300
@@ -31,7 +32,6 @@ def get_philosophical_contrast(g_score: float, risk: str) -> dict[str, str]:
     if risk == "high": return {"label": "tension", "quote": QUOTES["tension"]}
     return {"label": "wisdom", "quote": QUOTES["wisdom"]}
 
-from arifosmcp.runtime.DNA import FLOORS, VERSION, OMEGA_BAND
 
 # --- Core Governance Classes ---
 

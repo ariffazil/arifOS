@@ -9,8 +9,6 @@ Modes: audit, probe, ping
 
 from __future__ import annotations
 
-from typing import Any
-
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 
 

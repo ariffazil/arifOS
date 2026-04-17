@@ -12,14 +12,20 @@ Behavior:
 from __future__ import annotations
 
 import hashlib
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
 from ..types_v2 import (
-    MemoryRecord, MemoryType, Source, Scope, Governance, Time,
-    RetentionClass, DecayPolicy, ConfidenceClass, ContestedStatus
+    ConfidenceClass,
+    ContestedStatus,
+    DecayPolicy,
+    Governance,
+    MemoryRecord,
+    MemoryType,
+    RetentionClass,
+    Scope,
+    Source,
+    Time,
 )
 
 
@@ -30,7 +36,7 @@ class ConstitutionalVersion:
     amended_at: datetime
     amended_by: str
     amendment_reason: str
-    prev_version: Optional[str]
+    prev_version: str | None
     rule_hash: str  # Hash of rule content
 
 
@@ -177,7 +183,7 @@ class ConstitutionalMemoryLane:
         amendment_authority: str,
         amendment_reason: str,
         mirror_to_vault: bool = True,
-    ) -> Optional[MemoryRecord]:
+    ) -> MemoryRecord | None:
         """
         Amend a constitutional rule.
         
@@ -290,7 +296,7 @@ class ConstitutionalMemoryLane:
             # Fallback
             return f"v{v}.1"
     
-    def get_rule(self, rule_id: str) -> Optional[MemoryRecord]:
+    def get_rule(self, rule_id: str) -> MemoryRecord | None:
         """Get current version of constitutional rule."""
         memory_id = self._rule_index.get(rule_id)
         if memory_id:

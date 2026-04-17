@@ -5,8 +5,8 @@ This module re-exports from the root server.py which contains the unified
 FastMCP server with all REST routes (/health, /tools, /mcp) registered.
 """
 
-import sys
 import os
+import sys
 
 # Get the project root (three levels up from this file: runtime -> arifosmcp -> project_root)
 _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,7 +19,7 @@ if _project_root not in sys.path:
 # This imports the already-initialized FastMCP instance with all routes
 _import_error_msg: str | None = None
 try:
-    from server import mcp, app
+    from server import app, mcp
 except ImportError as e:
     _import_error_msg = str(e)
     # Fallback: if import fails, create minimal app for health check

@@ -302,7 +302,7 @@ target-version = ['py310', 'py311', 'py312']
 
 [tool.ruff]
 line-length = 100
-target-version = "2026.04.16"
+target-version = "py312"
 exclude = ["archive/**", "archive_local/**", "tests/**"]
 
 [tool.ruff.lint]
@@ -324,7 +324,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.mypy]
-python_version = "2026.04.16"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true

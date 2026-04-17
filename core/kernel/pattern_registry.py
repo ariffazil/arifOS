@@ -6,16 +6,18 @@ for selection and execution within the arifOS governed substrate.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
+
 from dataclasses import dataclass, field
+from typing import Any
+
 
 @dataclass
 class AgenticPattern:
     """Definition of an agentic execution pattern."""
     name: str
     description: str
-    schema: Dict[str, Any]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    schema: dict[str, Any]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class PatternRegistry:
     """
@@ -24,7 +26,7 @@ class PatternRegistry:
     """
 
     def __init__(self):
-        self._patterns: Dict[str, AgenticPattern] = {}
+        self._patterns: dict[str, AgenticPattern] = {}
         self._initialize_default_patterns()
 
     def _initialize_default_patterns(self):
@@ -54,7 +56,7 @@ class PatternRegistry:
             }
         )
 
-    def register_pattern(self, name: str, description: str, schema: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None):
+    def register_pattern(self, name: str, description: str, schema: dict[str, Any], metadata: dict[str, Any] | None = None):
         """Register a new agentic pattern."""
         self._patterns[name] = AgenticPattern(
             name=name,
@@ -63,14 +65,14 @@ class PatternRegistry:
             metadata=metadata or {}
         )
 
-    def get_pattern(self, name: str) -> Optional[AgenticPattern]:
+    def get_pattern(self, name: str) -> AgenticPattern | None:
         """Retrieve a pattern by name."""
         return self._patterns.get(name)
 
-    def list_patterns(self) -> List[str]:
+    def list_patterns(self) -> list[str]:
         """List all registered pattern names."""
         return list(self._patterns.keys())
 
-    def get_all_patterns(self) -> List[AgenticPattern]:
+    def get_all_patterns(self) -> list[AgenticPattern]:
         """Retrieve all registered pattern objects."""
         return list(self._patterns.values())

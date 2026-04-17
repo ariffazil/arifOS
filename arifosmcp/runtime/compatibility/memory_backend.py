@@ -7,7 +7,7 @@ Routes arifos.memory calls to v1 or v2 implementation.
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 # Determine backend version
 MEMORY_BACKEND_VERSION = os.getenv("MEMORY_BACKEND_VERSION", "v1")
@@ -89,7 +89,7 @@ class MemoryBackend:
 
 
 # Singleton instance
-_memory_backend: Optional[MemoryBackend] = None
+_memory_backend: MemoryBackend | None = None
 
 def get_memory_backend() -> MemoryBackend:
     """Get or create memory backend."""

@@ -37,6 +37,7 @@ from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -122,7 +123,7 @@ vault_app = FastMCP("VaultApp")
 
 
 @vault_app.tool()
-def get_vault_data() -> dict[str, Any]:
+def get_vault_data() -> ToolResult:
     """
     Read VAULT999 ledger and build current BLS seal card.
     Returns: seal card data + ledger rows. Read-only (F1 Amanah).
@@ -214,20 +215,38 @@ def get_vault_data() -> dict[str, Any]:
             "chain_hash": "",
         }
 
-    return {
-        "seal": seal_card,
-        "rows": table_rows,
-        "total_entries": len(rows),
-        "seal_count": seal_count,
-        "void_count": void_count,
-        "hold_count": hold_count,
-        "ledger_file": str(
-            next(
-                (f.name for f in [_SEALED_EVENTS, _OUTCOMES, _VAULT999_JSONL] if f.exists()),
-                "—",
-            )
-        ),
-    }
+    return ToolResult(
+        content=[
+            {
+                "type": "text",
+                "text": (
+                    f"Vault synchronization complete. {len(rows)} total entries found in "
+                    f"{table_rows[0].get('timestamp', '—') if table_rows else 'N/A'}."
+                ),
+            },
+            {
+                "type": "json",
+                "json": {
+                    "seal": seal_card,
+                    "rows": table_rows,
+                    "total_entries": len(rows),
+                    "seal_count": seal_count,
+                    "void_count": void_count,
+                    "hold_count": hold_count,
+                    "ledger_file": str(
+                        next(
+                            (
+                                f.name
+                                for f in [_SEALED_EVENTS, _OUTCOMES, _VAULT999_JSONL]
+                                if f.exists()
+                            ),
+                            "—",
+                        )
+                    ),
+                },
+            },
+        ]
+    )
 
 
 @vault_app.ui(title="999 Vault Ledger")

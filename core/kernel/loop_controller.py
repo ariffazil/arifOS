@@ -9,17 +9,19 @@ Status: Implementation (v2026.04.16-IGNITION)
 """
 
 from __future__ import annotations
-import logging
-import uuid
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
-import time
 
-# arifOS Core Imports
-from core.shared.types import Verdict, PhysicsState, MathDials, CodeState
-from core.kernel.planner import Plan, Task, Planner
+import logging
+import time
+from dataclasses import dataclass, field
+from typing import Any
+
+from core.kernel.planner import Plan, Planner, Task
+
 # We assume the organs expose async interfaces as described in _0_init.py etc.
 from core.organs import _0_init, _1_agi, _2_asi, _3_apex, _4_vault
+
+# arifOS Core Imports
+from core.shared.types import Verdict
 
 logger = logging.getLogger("arifOS.SabarLoop")
 
@@ -27,7 +29,7 @@ logger = logging.getLogger("arifOS.SabarLoop")
 class LoopStepResult:
     task_id: str
     verdict: Verdict
-    receipt: Optional[Dict[str, Any]] = None
+    receipt: dict[str, Any] | None = None
     entropy_delta: float = 0.0
     message: str = ""
     timestamp: float = field(default_factory=time.time)
@@ -38,7 +40,7 @@ class LoopRunResult:
     status: str  # COMPLETED, HALTED, SABAR_WAIT, FAILED, RUNNING
     iterations: int
     final_entropy: float
-    history: List[LoopStepResult] = field(default_factory=list)
+    history: list[LoopStepResult] = field(default_factory=list)
 
 class SabarLoopController:
     """
@@ -61,9 +63,9 @@ class SabarLoopController:
         self.budget_remaining = budget
         self.sabar_retry_limit = sabar_retry_limit
         
-        self.entropy_window: List[float] = []
+        self.entropy_window: list[float] = []
         self.current_iteration = 0
-        self.task_retries: Dict[str, int] = {}
+        self.task_retries: dict[str, int] = {}
 
     async def run(self, plan: Plan, planner: Planner) -> LoopRunResult:
         """

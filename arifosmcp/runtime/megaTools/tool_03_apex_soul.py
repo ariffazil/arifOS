@@ -13,7 +13,6 @@ from typing import Any
 
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
-from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 
 async def apex_judge(

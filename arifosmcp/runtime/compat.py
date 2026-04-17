@@ -15,7 +15,8 @@ Branch: refactor/v2.0-abi
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import fastmcp
 

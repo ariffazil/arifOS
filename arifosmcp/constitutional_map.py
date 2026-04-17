@@ -8,6 +8,7 @@ Ditempa Bukan Diberi.
 """
 from enum import Enum
 
+
 class Void000Mode(str, Enum):
     init = "init"
     epoch = "epoch"

@@ -21,7 +21,7 @@ def fetch_data():
     try:
         with urllib.request.urlopen(f"{MCP_BASE_URL}/build", timeout=5) as resp:
             build = json.loads(resp.read().decode())
-    except Exception as e:
+    except Exception:
         build = {"version": "unknown", "build_sha": "unknown", "tools_available": []}
     
     return health, build

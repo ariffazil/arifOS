@@ -6,7 +6,9 @@ Rule 7: Enforce stage boundaries in code.
 """
 
 from enum import Enum
+
 from pydantic import BaseModel, Field
+
 
 class KernelState(str, Enum):
     """The three canonical kernel states (Audit Fix 3)."""

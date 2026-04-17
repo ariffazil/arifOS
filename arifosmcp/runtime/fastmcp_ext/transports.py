@@ -423,12 +423,13 @@ class _HealthEndpointMiddleware:
             return
 
         if path == "/metrics" and method == "GET":
+            from starlette.responses import Response
+
             from arifosmcp.runtime.metrics import (
                 CONTENT_TYPE_LATEST,
                 generate_latest,
                 update_prometheus_metrics,
             )
-            from starlette.responses import Response
 
             update_prometheus_metrics()
 

@@ -10,14 +10,14 @@ Aligned with SPEC.md: Functional naming, canonical fields, and strict typing.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field as dataclass_field
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
+from pydantic import BaseModel, ConfigDict, Field
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENUMERATIONS
@@ -40,7 +40,7 @@ class RiskTier(str, Enum):
     CRITICAL = "critical"
 
     @classmethod
-    def _missing_(cls, value: object) -> "RiskTier" | None:
+    def _missing_(cls, value: object) -> RiskTier | None:
         if isinstance(value, str) and value.lower() == "sovereign":
             return cls.CRITICAL
         return None

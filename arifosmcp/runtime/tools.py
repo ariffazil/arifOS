@@ -16,18 +16,21 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import TYPE_CHECKING, Annotated, Any
 from uuid import uuid4
 
-from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
+if TYPE_CHECKING:
+    pass
 
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus
 from core.shared.types import Verdict
 
 # Philosophy injection removed from tools - happens centrally in _wrap_call()
 # to ensure ONLY G★ determines band, never tool identity
 from fastmcp import FastMCP
 
+from arifosmcp.integrations.git_bridge import arifos_repo_read, arifos_repo_seal
+from arifosmcp.integrations.memory_bridge import arifos_memory_query as arifos_memory
+from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 from arifosmcp.runtime.megaTools import (
     agi_mind as _mega_agi_mind,
 )
@@ -56,11 +59,8 @@ from arifosmcp.runtime.megaTools import (
     vault_ledger as _mega_vault_ledger,
 )
 from arifosmcp.runtime.megaTools import wealth_valuation as _mega_wealth
+from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus
 from arifosmcp.tools.fetch_tool import arifos_fetch
-from arifosmcp.integrations.memory_bridge import arifos_memory_query as arifos_memory
-from arifosmcp.integrations.git_bridge import arifos_repo_read, arifos_repo_seal
-from arifosmcp.integrations import git_bridge
-from arifosmcp.integrations.everything_probe import everything_probe
 
 logger = logging.getLogger(__name__)
 
@@ -283,8 +283,8 @@ async def arifos_init(
             syscall_reason = "KERNEL_EXCEPTION"
 
         # Build kernel syscall envelope
-        from arifosmcp.runtime.models import RuntimeStatus
         from arifosmcp.runtime.arifos_runtime_envelope import RuntimeEnvelope
+        from arifosmcp.runtime.models import RuntimeStatus
 
         envelope = RuntimeEnvelope(
             ok=syscall_verdict == "SEAL",
@@ -370,6 +370,7 @@ async def arifos_init(
     # ── Log init to vault (arif-chatgpt sessions land here) ──
     try:
         import asyncio
+
         from arifosmcp.runtime.vault_postgres import PostgresVaultStore
 
         _vs = PostgresVaultStore()
@@ -841,9 +842,10 @@ async def _run_sequential_thinking(
     This is the native arifOS replacement for Sequential Thinking MCP,
     enforcing F1-F13 at every step.
     """
-    from arifosmcp.runtime.thinking import ThinkingSessionManager, THINKING_TEMPLATES
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+    from arifosmcp.runtime.models import RuntimeStatus, Verdict
+    from arifosmcp.runtime.thinking import THINKING_TEMPLATES, ThinkingSessionManager
     from arifosmcp.runtime.thinking.templates import auto_select_template
-    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, RuntimeStatus, Verdict
 
     manager = ThinkingSessionManager()
 
@@ -867,7 +869,6 @@ async def _run_sequential_thinking(
             if mem_report.ok:
                 entities = mem_report.payload.get("entities", [])
                 if entities:
-                    from arifosmcp.integrations.memory_bridge import KGEntity
 
                     # Re-map to objects for formatting if needed, or format directly
                     mem_context = "\n## Knowledge Graph Context\n"
@@ -1352,29 +1353,31 @@ async def arifos_health(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Secure VPS telemetry (CPU, Memory, ZRAM, Disk). F12-hardened."""
-    import subprocess
     import os
-    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict, UserModel
+    import subprocess
+
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE
+    from arifosmcp.runtime.models import RuntimeStatus, UserModel, Verdict
 
     _user_model = UserModel()
 
     # F12: Hardcoded read-only telemetry logic
     try:
         if action == "get_telemetry":
-            with open("/proc/loadavg", "r") as f:
+            with open("/proc/loadavg") as f:
                 load = f.read().strip()
-            with open("/proc/meminfo", "r") as f:
+            with open("/proc/meminfo") as f:
                 # Get first few lines of meminfo for high clarity
                 mem = "\n".join([f.readline().strip() for _ in range(3)])
             output = f"Load: {load}\n{mem}"
         elif action == "get_zram_status":
             # zramctl might be missing, try to find zram in /sys
             if os.path.exists("/sys/block/zram0"):
-                with open("/sys/block/zram0/disksize", "r") as f:
+                with open("/sys/block/zram0/disksize") as f:
                     size = int(f.read().strip()) / (1024**2)
 
                 # mm_stat: [orig_data_size, compr_data_size, mem_used_total, ...]
-                with open("/sys/block/zram0/mm_stat", "r") as f:
+                with open("/sys/block/zram0/mm_stat") as f:
                     stats = f.read().split()
                     orig = int(stats[0]) / (1024**2)
                     compr = int(stats[1]) / (1024**2)
@@ -1478,7 +1481,8 @@ async def arifos_gateway(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Orthogonality guard — AGI||ASI lane supervisor (Ω_ortho >= 0.95)."""
-    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE
+    from arifosmcp.runtime.models import RuntimeStatus, Verdict
 
     trace = tool_trace or []
     violations: list[dict[str, Any]] = []
@@ -1781,7 +1785,9 @@ async def arifos_reply(
         "informed_agents": _cc,
     }
 
-    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict as V
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE
+    from arifosmcp.runtime.models import RuntimeStatus
+    from arifosmcp.runtime.models import Verdict as V
 
     _verdict_map = {"SEAL": V.SEAL, "PARTIAL": V.PROVISIONAL, "HOLD": V.HOLD, "VOID": V.VOID}
     return seal_runtime_envelope(
@@ -1813,7 +1819,8 @@ async def arifos_reply(
 async def arifos_diag_substrate(session_id: str | None = None) -> Any:
     """Maintainer: Run substrate protocol conformance check."""
     from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
-    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict
+    from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+    from arifosmcp.runtime.models import Verdict
 
     verdict = await run_protocol_conformance_test()
     return _RE(
@@ -1831,13 +1838,13 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
 
 
 async def _arifos_init_public(
-    actor_id: str | None = None,
-    intent: str | None = None,
-    declared_name: str | None = None,
-    session_id: str | None = None,
-    risk_tier: str = "medium",
-    platform: str = "unknown",
-    mode: str = "init",
+    actor_id: Annotated[str | None, "Unique identifier for the user/agent"] = None,
+    intent: Annotated[str | None, "Goal or purpose of the session"] = None,
+    declared_name: Annotated[str | None, "Human-readable name for the session"] = None,
+    session_id: Annotated[str | None, "ID of an existing session to resume"] = None,
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    platform: Annotated[str, "Deployment platform (mcp, stdio, etc.)"] = "unknown",
+    mode: Annotated[str, "Operation mode (init, status, probe)"] = "init",
 ) -> RuntimeEnvelope:
     return await arifos_init(
         actor_id=actor_id,
@@ -1851,10 +1858,10 @@ async def _arifos_init_public(
 
 
 async def _arifos_sense_public(
-    query: str,
-    mode: str = "governed",
-    session_id: str | None = None,
-    dry_run: bool = True,
+    query: Annotated[str, "The reality grounding query (fact, question, or claim)"],
+    mode: Annotated[str, "The sensing mode (governed, search, atlas)"] = "governed",
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
+    dry_run: Annotated[bool, "If True, simulates sensing without fetching results"] = True,
 ) -> RuntimeEnvelope:
     return await arifos_sense(
         query=query,
@@ -1870,8 +1877,10 @@ async def _arifos_mind_reflect(
     session_id: str | None = None,
 ) -> RuntimeEnvelope:
     """Lightweight feedback-learning mode: compare predictions vs outcomes."""
-    from arifosmcp.runtime.models import RuntimeEnvelope as RE, RuntimeStatus, Verdict
     import json
+
+    from arifosmcp.runtime.models import RuntimeEnvelope as RE
+    from arifosmcp.runtime.models import RuntimeStatus, Verdict
 
     predictions: list[float] = []
     outcomes: list[float] = []
@@ -1915,10 +1924,10 @@ async def _arifos_mind_reflect(
 
 
 async def _arifos_mind_public(
-    query: str = "",
-    context: str | None = None,
-    mode: str = "reason",
-    session_id: str | None = None,
+    query: Annotated[str, "The reasoning query or prompt"] = "",
+    context: Annotated[str | None, "Additional context or history"] = None,
+    mode: Annotated[str, "Reasoning mode (reason, sequential, step)"] = "reason",
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     if mode == "reflect":
         return await _arifos_mind_reflect(query=query, context=context, session_id=session_id)
@@ -1931,9 +1940,9 @@ async def _arifos_mind_public(
 
 
 async def _arifos_kernel_public(
-    query: str = "",
-    mode: str = "kernel",
-    session_id: str | None = None,
+    query: Annotated[str, "The metabolic routing query"] = "",
+    mode: Annotated[str, "The routing mode (kernel, status)"] = "kernel",
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     return await arifos_kernel(
         query=query,
@@ -1943,9 +1952,9 @@ async def _arifos_kernel_public(
 
 
 async def _arifos_heart_public(
-    query: str = "",
-    mode: str = "critique",
-    session_id: str | None = None,
+    query: Annotated[str, "The content to critique or simulate"],
+    mode: Annotated[str, "The safety mode (critique, simulate)"] = "critique",
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     return await arifos_heart(
         query=query,
@@ -1955,9 +1964,9 @@ async def _arifos_heart_public(
 
 
 async def _arifos_ops_public(
-    query: str = "",
-    mode: str = "cost",
-    session_id: str | None = None,
+    query: Annotated[str, "The operation or calculation to perform"] = "",
+    mode: Annotated[str, "The operation mode (cost, health, vitals, entropy)"] = "cost",
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     return await arifos_ops(
         query=query,
@@ -1967,9 +1976,9 @@ async def _arifos_ops_public(
 
 
 async def _arifos_judge_public(
-    query: str = "",
-    risk_tier: str = "medium",
-    session_id: str | None = None,
+    query: Annotated[str, "The candidate action or proposal to judge"],
+    risk_tier: Annotated[str, "The risk level (low, medium, high, critical)"] = "medium",
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     return await arifos_judge(
         query=query,
@@ -1979,9 +1988,9 @@ async def _arifos_judge_public(
 
 
 async def _arifos_memory_public(
-    query: str = "",
-    mode: str = "vector_query",
-    session_id: str | None = None,
+    query: Annotated[str, "The memory retrieval query"],
+    mode: Annotated[str, "The retrieval mode (vector_query, engineer)"] = "vector_query",
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     return await arifos_memory(
         query=query,
@@ -1991,9 +2000,9 @@ async def _arifos_memory_public(
 
 
 async def _arifos_vault_public(
-    verdict: str,
-    evidence: str | None = None,
-    session_id: str | None = None,
+    verdict: Annotated[str, "The constitutional verdict to ledger (SEAL, HOLD, VOID)"],
+    evidence: Annotated[str | None, "Supporting evidence or reasoning summary"] = None,
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     return await arifos_vault(
         verdict=verdict,
@@ -2003,12 +2012,12 @@ async def _arifos_vault_public(
 
 
 async def _arifos_forge_public(
-    action: str,
-    payload: dict[str, Any],
-    session_id: str,
-    judge_verdict: str,
-    judge_g_star: float,
-    dry_run: bool = True,
+    action: Annotated[str, "The execution action (shell, api_call)"],
+    payload: Annotated[dict[str, Any], "The execution payload/arguments"],
+    session_id: Annotated[str, "Active arifOS session ID"],
+    judge_verdict: Annotated[str, "The required SEAL verdict from arifos_judge"],
+    judge_g_star: Annotated[float, "The epistemic confidence score (G*) from arifos_judge"],
+    dry_run: Annotated[bool, "If True, simulates execution and returns manifest"] = True,
 ) -> RuntimeEnvelope:
     return await arifos_forge(
         action=action,
@@ -2021,10 +2030,10 @@ async def _arifos_forge_public(
 
 
 async def _arifos_gateway_public(
-    session_id: str,
-    mode: str = "guard",
-    tool_trace: list[dict[str, Any]] | None = None,
-    correlation_threshold: float = 0.95,
+    session_id: Annotated[str, "Active arifOS session ID"],
+    mode: Annotated[str, "The guard mode (guard, audit, correlate)"] = "guard",
+    tool_trace: Annotated[list[dict[str, Any]] | None, "Tool execution trace for orthogonality check"] = None,
+    correlation_threshold: Annotated[float, "Threshold for correlation detection (0-1)"] = 0.95,
 ) -> RuntimeEnvelope:
     return await arifos_gateway(
         session_id=session_id,
@@ -2080,9 +2089,9 @@ async def wealth_brent_score(
         elif brent >= 100:
             signal = "HOLD"
             reason = (
-                f"$100 is the fear line. Market is testing whether the Hormuz "
-                f"blockade actually holds. Stay defensively positioned. "
-                f"If you need to be in O&G, PETGAS is the safest name."
+                "$100 is the fear line. Market is testing whether the Hormuz "
+                "blockade actually holds. Stay defensively positioned. "
+                "If you need to be in O&G, PETGAS is the safest name."
             )
         else:
             signal = "BUY"
@@ -2125,10 +2134,10 @@ async def wealth_brent_score(
         else:
             signal = "SELL"
             reason = (
-                f"Brent below $90. Crisis mode. "
-                f"Petronas cannot sustain domestic output economics at this price. "
-                f"Exit all O&G positions now. Move to defensive names — "
-                f"utilities, consumer staples, or just hold gold."
+                "Brent below $90. Crisis mode. "
+                "Petronas cannot sustain domestic output economics at this price. "
+                "Exit all O&G positions now. Move to defensive names — "
+                "utilities, consumer staples, or just hold gold."
             )
 
     # DSCR overlay — if provided and weak, downgrade to SELL
@@ -2173,12 +2182,12 @@ async def wealth_brent_score(
 
 
 async def _wealth_brent_score_public(
-    ticker: str = "",
-    brent_price: float = 0.0,
-    scenario: str = "base",
-    dscr_ratio: float | None = None,
-    position_size_pct: float = 0.0,
-    session_id: str | None = None,
+    ticker: Annotated[str, "The Bursa Malaysia ticker (e.g. DAYANG, HIBISCS)"] = "",
+    brent_price: Annotated[float, "Current Brent Crude price in USD"] = 0.0,
+    scenario: Annotated[str, "Market scenario: 'base', 'bull', or 'bear'"] = "base",
+    dscr_ratio: Annotated[float | None, "Debt Service Coverage Ratio (if known)"] = None,
+    position_size_pct: Annotated[float, "Percentage of portfolio allocated to this position"] = 0.0,
+    session_id: Annotated[str | None, "Active arifOS session ID"] = None,
 ) -> RuntimeEnvelope:
     return await wealth_brent_score(
         ticker=ticker,
@@ -2444,10 +2453,10 @@ def _build_user_model(
 ) -> Any:
     """Build a bounded user model from explicit and observable signals only."""
     from arifosmcp.runtime.models import (
+        InferencePolicy,
         UserModel,
         UserModelField,
         UserModelSource,
-        InferencePolicy,
     )
 
     user_model = UserModel(inference_policy=InferencePolicy())
@@ -2609,11 +2618,14 @@ def register_v2_tools(mcp: FastMCP, *, include_legacy_compat: bool = False) -> l
             name=public_name,
             description=spec.description,
             annotations=annotations,
+            version=spec.version,
+            timeout=spec.timeout,
         )
         ft_dotted.parameters = dict(spec.input_schema)
         mcp.add_tool(ft_dotted)
         registered.append(public_name)
-
+    
+    # ... (legacy compat)
     if include_legacy_compat:
         for legacy_name, handler in LEGACY_COMPAT_TOOL_HANDLERS.items():
             alias_handler = _create_signature_matched_alias(legacy_name, handler)
@@ -2621,6 +2633,7 @@ def register_v2_tools(mcp: FastMCP, *, include_legacy_compat: bool = False) -> l
                 alias_handler,
                 name=legacy_name,
                 description=f"Legacy compatibility alias for {handler.__name__}.",
+                version=getattr(handler, "__version__", "2026.04.16"),
             )
             mcp.add_tool(ft_legacy)
             registered.append(legacy_name)

@@ -12,9 +12,10 @@ Implements the geospatial/subsurface organ interface as a FastMCPApp:
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-from __future__ import annotations
-from typing import Any
+from typing import Annotated, Any
+
 from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -26,39 +27,59 @@ from prefab_ui.components import (
     Column,
     Grid,
     Heading,
+    If,
+    Link,
     Metric,
     Muted,
     Row,
     Separator,
     Text,
-    Alert,
-    If,
-    Link
 )
 from prefab_ui.rx import RESULT, STATE
+from pydantic import Field
 
 # ── App definition ────────────────────────────────────────────────────────────
 
 geox_app = FastMCP("GeoxApp")
 
 @geox_app.tool()
-async def verify_location(lat: float, lon: float) -> dict[str, Any]:
+async def verify_location(
+    lat: Annotated[float, Field(description="Latitude in decimal degrees")],
+    lon: Annotated[float, Field(description="Longitude in decimal degrees")]
+) -> ToolResult:
     """
     Verify a geospatial location against the constitutional Earth Witness.
     """
     try:
         from core.organs import verify_geospatial
         res = verify_geospatial(lat, lon)
-        return {
-            "success": True,
-            "lat": res["lat"],
-            "lon": res["lon"],
-            "valid": res["valid"],
-            "jurisdiction": res["jurisdiction"],
-            "crs": res["crs"]
-        }
+        return ToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": (
+                        f"Location verified: {res['lat']}, {res['lon']} "
+                        f"({res['jurisdiction']}) - Valid: {res['valid']}"
+                    ),
+                },
+                {
+                    "type": "json",
+                    "json": {
+                        "success": True,
+                        "lat": res["lat"],
+                        "lon": res["lon"],
+                        "valid": res["valid"],
+                        "jurisdiction": res["jurisdiction"],
+                        "crs": res["crs"],
+                    },
+                },
+            ]
+        )
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return ToolResult(
+            is_error=True,
+            content=[{"type": "text", "text": f"Geospatial verification failed: {e}"}],
+        )
 
 @geox_app.ui(title="@GEOX Earth Witness")
 def geox_map_surface() -> PrefabApp:
@@ -144,7 +165,11 @@ def geox_map_surface() -> PrefabApp:
         Muted("Reality Substrates", css_class="text-xs uppercase tracking-wider")
         with Row(gap=3):
             Link("3D Earth (Cesium)", href="https://cesium.com", css_class="text-sm text-blue-500")
-            Link("Macrostrat Geology", href="https://macrostrat.org", css_class="text-sm text-blue-500")
+            Link(
+                "Macrostrat Geology",
+                href="https://macrostrat.org",
+                css_class="text-sm text-blue-500",
+            )
 
         Separator()
         Muted("arifOS · @GEOX · Earth Witness Protocol", css_class="text-xs text-center")

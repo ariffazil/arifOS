@@ -4,10 +4,9 @@ AUTOMATED ENTROPY REDUCTION & CONSTITUTIONAL AUDIT.
 """
 
 import os
-import sys
-import hashlib
-from typing import Dict, List
+
 from arifosmcp.runtime.DNA import DENSITY_TARGET, VERSION
+
 
 class MetabolicForge:
     def __init__(self, root_dir: str):
@@ -35,7 +34,7 @@ class MetabolicForge:
         self.audit_report["pruned"] = targets
         return targets
 
-    def calculate_density(self) -> Dict:
+    def calculate_density(self) -> dict:
         """Calculates Intelligence Density (LOC/File)."""
         loc, fcount = 0, 0
         for root, _, files in os.walk(self.root):
@@ -44,7 +43,7 @@ class MetabolicForge:
             for f in files:
                 if f.endswith((".py", ".js", ".html", ".css")):
                     fcount += 1
-                    with open(os.path.join(root, f), 'r', encoding='utf-8', errors='ignore') as file:
+                    with open(os.path.join(root, f), encoding='utf-8', errors='ignore') as file:
                         loc += len(file.readlines())
         
         density = round(loc / max(1, fcount), 2)

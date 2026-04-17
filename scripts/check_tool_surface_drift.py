@@ -13,11 +13,9 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL_SPECS_PATH = ROOT / "arifosmcp" / "runtime" / "tool_specs.py"

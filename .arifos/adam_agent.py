@@ -8,11 +8,10 @@ Usage:
 """
 
 import json
-import subprocess
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import UTC
 from pathlib import Path
-from typing import Optional
 
 ARIFOS_ROOT = Path(__file__).parent.parent
 SCOPED_DIRS = ["core/shared", "arifosmcp/runtime", "tests", "ARCH/DOCS"]
@@ -35,14 +34,14 @@ class AdamOutput:
 
 
 def get_timestamp():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def measure_readability(file_path: Path) -> float:
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
         lines = content.split("\n")
         code_lines = [l for l in lines if l.strip() and not l.strip().startswith("#")]

@@ -35,7 +35,7 @@ class SchemaRegistry:
         self._context_packet_schema: dict[str, Any] | None = None
         self._loaded = False
     
-    def load(self) -> "SchemaRegistry":
+    def load(self) -> SchemaRegistry:
         """Load all schema files."""
         if self._loaded:
             return self

@@ -224,7 +224,9 @@ def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[st
 
 def get_legacy_redirect(name: str) -> tuple[str, str] | None:
     """Redirect legacy tool names to the new mega-tool surface (tool, mode)."""
-    from arifosmcp.capability_map import CAPABILITY_MAP  # lazy — avoids circular import at module load
+    from arifosmcp.capability_map import (
+        CAPABILITY_MAP,  # lazy — avoids circular import at module load
+    )
     return CAPABILITY_MAP.get(name)
 
 

@@ -34,7 +34,6 @@ from arifosmcp.runtime.sessions import (
     clear_session_identity,
     get_session_identity,
 )
-
 from core.enforcement.auth_continuity import mint_auth_context
 
 # ═══════════════════════════════════════════════════════════════════════════════

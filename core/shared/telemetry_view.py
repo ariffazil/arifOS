@@ -7,8 +7,8 @@ This ensures the canonical record remains precise while the operational
 dashboard is intuitive.
 """
 
+from datetime import UTC, datetime
 from typing import Any
-from datetime import datetime, timezone
 
 # The canonical mapping dictionary from internal fields to human representation
 TELEMETRY_MAPPING = {
@@ -101,7 +101,7 @@ def build_human_view(raw_telemetry: dict[str, Any], raw_floors: dict[str, Any], 
     - `human`: Fully mapped checks, formatted status, and actionable summaries
     - `display_rules`: Frontend rendering bounds (especially for humility_band)
     """
-    date_now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    date_now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Combine internals to map against the dictionary
     combined = {**raw_telemetry, **raw_floors}

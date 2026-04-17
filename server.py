@@ -29,8 +29,7 @@ import sys
 import traceback
 from typing import Any
 
-from arifosmcp.runtime.DNA import VERSION, MOTTO
-from arifosmcp.runtime.kernel import kernel
+from arifosmcp.runtime.DNA import MOTTO, VERSION
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENVIRONMENT SETUP
@@ -51,12 +50,11 @@ os.environ["PYDANTIC_SETTINGS_DOTENV_FILES"] = ""
 # FASTMCP IMPORTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-import fastmcp
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse, Response
 from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -115,8 +113,8 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     """
     Wrap a tool handler and normalize its result for the HTTP MCP surface.
     """
-    import inspect
     import functools
+    import inspect
 
     async def _invoke_original(arguments: dict[str, Any]) -> Any:
         import time
@@ -238,12 +236,10 @@ v2_prompts_registered = []
 v2_resources_registered = []
 
 try:
-    from arifosmcp.runtime.tools import register_v2_tools, CANONICAL_TOOL_HANDLERS
     from arifosmcp.runtime.prompts import register_v2_prompts
     from arifosmcp.runtime.resources import register_resources
     from arifosmcp.runtime.rest_routes import register_rest_routes
-    from arifosmcp.runtime.build_info import get_build_info
-    from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_2, IS_FASTMCP_3
+    from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, register_v2_tools
 
     # Apply Hardening to ALL registerable handlers before passing to FastMCP
     HARDENED_HANDLERS = {
@@ -350,10 +346,12 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 # Ensure REST routes from arifosmcp are actually bound to this app instance
 from arifosmcp.runtime.rest_routes import register_rest_routes
+
 register_rest_routes(app, HARDENED_HANDLERS, prefix="")
 
 # ── Constitutional startup (runs on module load, not just __main__) ──
 import asyncio
+
 try:
     asyncio.get_event_loop().run_until_complete(_constitutional_startup())
 except RuntimeError:
@@ -367,6 +365,7 @@ __all__ = ["mcp", "app"]
 
 if __name__ == "__main__":
     import asyncio
+
     import uvicorn
 
     async def run_server():

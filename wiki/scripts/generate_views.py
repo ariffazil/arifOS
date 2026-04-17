@@ -17,13 +17,13 @@ Output:
     wiki/view/gaps.md (orphan detection)
 """
 
-import os
 import re
-import yaml
-from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict, List, Set, Optional, Any
+from pathlib import Path
+from typing import Any
+
+import yaml
 
 # Configuration
 WIKI_ROOT = Path(__file__).parent.parent
@@ -62,7 +62,7 @@ AUDIENCES = [
 ]
 
 
-def parse_frontmatter(content: str) -> Optional[Dict[str, Any]]:
+def parse_frontmatter(content: str) -> dict[str, Any] | None:
     """Extract YAML frontmatter from markdown content."""
     if not content.startswith("---"):
         return None
@@ -80,7 +80,7 @@ def parse_frontmatter(content: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def load_pages() -> List[Dict[str, Any]]:
+def load_pages() -> list[dict[str, Any]]:
     """Load all pages with their frontmatter."""
     pages = []
     
@@ -100,7 +100,7 @@ def load_pages() -> List[Dict[str, Any]]:
     return pages
 
 
-def compute_depended_by(pages: List[Dict]) -> None:
+def compute_depended_by(pages: list[dict]) -> None:
     """Compute reverse dependencies (depended_by) for each page."""
     # Build lookup
     page_map = {p["filename"]: p for p in pages}
@@ -119,7 +119,7 @@ def compute_depended_by(pages: List[Dict]) -> None:
                 page_map[clean_prereq]["depended_by"].append(page["filename"])
 
 
-def generate_start_here(pages: List[Dict]) -> str:
+def generate_start_here(pages: list[dict]) -> str:
     """Generate the 5-page (or more) beginner journey."""
     # Find root pages (no prerequisites)
     roots = [p for p in pages if not p.get("prerequisites")]
@@ -191,7 +191,7 @@ def generate_start_here(pages: List[Dict]) -> str:
     return "\n".join(lines)
 
 
-def get_description(page: Dict) -> str:
+def get_description(page: dict) -> str:
     """Extract short description from page content or frontmatter."""
     # Try to get from first paragraph after frontmatter
     filename = page["filename"]
@@ -218,7 +218,7 @@ def get_description(page: Dict) -> str:
     return "See page for details."
 
 
-def generate_tier_view(pages: List[Dict], tier: str) -> str:
+def generate_tier_view(pages: list[dict], tier: str) -> str:
     """Generate view for a specific tier."""
     tier_pages = [p for p in pages if p.get("tier") == tier]
     tier_pages.sort(key=lambda p: p.get("title", ""))
@@ -264,7 +264,7 @@ def generate_tier_view(pages: List[Dict], tier: str) -> str:
     return "\n".join(lines)
 
 
-def generate_strand_view(pages: List[Dict], strand: str) -> str:
+def generate_strand_view(pages: list[dict], strand: str) -> str:
     """Generate view for a specific strand."""
     strand_pages = [p for p in pages if strand in p.get("strand", [])]
     
@@ -313,7 +313,7 @@ def generate_strand_view(pages: List[Dict], strand: str) -> str:
     return "\n".join(lines)
 
 
-def generate_audience_view(pages: List[Dict], audience: str) -> str:
+def generate_audience_view(pages: list[dict], audience: str) -> str:
     """Generate view for a specific audience."""
     if audience == "all":
         audience_pages = pages  # All pages
@@ -367,7 +367,7 @@ def generate_audience_view(pages: List[Dict], audience: str) -> str:
     return "\n".join(lines)
 
 
-def generate_gaps_view(pages: List[Dict]) -> str:
+def generate_gaps_view(pages: list[dict]) -> str:
     """Generate view showing orphans and gaps."""
     # Find orphans (no depended_by)
     orphans = [p for p in pages if not p.get("depended_by") and p.get("tier") != "90_ENTITIES"]
@@ -449,12 +449,12 @@ def generate_gaps_view(pages: List[Dict]) -> str:
     return "\n".join(lines)
 
 
-def generate_path_to_page(pages: List[Dict], target: Dict) -> str:
+def generate_path_to_page(pages: list[dict], target: dict) -> str:
     """Generate prerequisite path to reach a specific page."""
     # BFS to find all paths
     page_map = {p["filename"]: p for p in pages}
     
-    def get_prereq_chain(page_name: str, visited: Set[str] = None) -> List[List[str]]:
+    def get_prereq_chain(page_name: str, visited: set[str] = None) -> list[list[str]]:
         if visited is None:
             visited = set()
         

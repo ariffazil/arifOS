@@ -3,7 +3,7 @@ recovery skill handler
 F5 stability-guaranteed recovery operations.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class RecoverySkill:
@@ -13,10 +13,10 @@ class RecoverySkill:
     FLOOR = "F5"
     
     async def execute(
-        self, action: str, params: Dict, session_id: str,
-        dry_run: bool = True, reality_bridge: Optional[Any] = None,
-        checkpoint: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, action: str, params: dict, session_id: str,
+        dry_run: bool = True, reality_bridge: Any | None = None,
+        checkpoint: str | None = None
+    ) -> dict[str, Any]:
         handlers = {
             "system_restore": self._system_restore,
             "verify_integrity": self._verify_integrity,
@@ -26,8 +26,8 @@ class RecoverySkill:
             return {"verdict": "VOID", "reason": f"Unknown action: {action}"}
         return await handler(params, dry_run, reality_bridge, checkpoint)
     
-    async def _system_restore(self, params: Dict, dry_run: bool,
-                              reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _system_restore(self, params: dict, dry_run: bool,
+                              reality_bridge: Any | None, checkpoint: str | None) -> dict:
         cp = params.get("checkpoint", "")
         
         # F5: Ensure Peace squared >= 1.0
@@ -58,8 +58,8 @@ class RecoverySkill:
         
         return {"verdict": "VOID", "error": "No reality bridge available"}
     
-    async def _verify_integrity(self, params: Dict, dry_run: bool,
-                                reality_bridge: Optional[Any], checkpoint: Optional[str]) -> Dict:
+    async def _verify_integrity(self, params: dict, dry_run: bool,
+                                reality_bridge: Any | None, checkpoint: str | None) -> dict:
         path = params.get("path", ".")
         
         if dry_run:
@@ -92,9 +92,9 @@ class RecoverySkill:
 skill = RecoverySkill()
 
 
-async def execute(action: str, params: Dict, session_id: str,
-                  dry_run: bool = True, reality_bridge: Optional[Any] = None,
-                  checkpoint: Optional[str] = None) -> Dict[str, Any]:
+async def execute(action: str, params: dict, session_id: str,
+                  dry_run: bool = True, reality_bridge: Any | None = None,
+                  checkpoint: str | None = None) -> dict[str, Any]:
     skill = RecoverySkill()
     return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 

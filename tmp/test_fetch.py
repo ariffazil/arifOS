@@ -1,8 +1,10 @@
 
 import asyncio
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
+
 from arifosmcp.tools.fetch_tool import arifos_fetch
+
 
 class TestFetchGovernance(unittest.IsolatedAsyncioTestCase):
     @patch("arifosmcp.integrations.substrate_bridge.bridge.fetch.call_tool")

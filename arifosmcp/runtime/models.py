@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from arifosmcp.runtime.fastmcp_version import AuthorizationError
+from core.shared.types import AuthorityLevel, Verdict, VerdictScope
 from fastmcp.exceptions import FastMCPError, ToolError
 from pydantic import BaseModel, ConfigDict, Field
 
-from core.shared.types import AuthorityLevel, Verdict, VerdictScope
+from arifosmcp.runtime.fastmcp_version import AuthorizationError
 
 
 class DeltaOmegaPsi(BaseModel):
@@ -740,10 +740,16 @@ class VerdictDetail(BaseModel):
     message: str = Field(..., description="Human readable explanation.")
 
 
-from arifosmcp.contracts.verdicts import ExecutionStatus, GovernanceStatus, ContinuationStatus, VerdictDetail
-from arifosmcp.contracts.identity import IdentityContext
 from arifosmcp.contracts.artifacts import Artifact, ArtifactStatus
 from arifosmcp.contracts.continuity import ContinuityState
+from arifosmcp.contracts.identity import IdentityContext
+from arifosmcp.contracts.verdicts import (
+    ContinuationStatus,
+    ExecutionStatus,
+    GovernanceStatus,
+    VerdictDetail,
+)
+
 
 class RuntimeEnvelope(BaseModel):
     ok: bool = True

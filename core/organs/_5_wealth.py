@@ -8,10 +8,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
-import math
+
 import logging
+import math
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -33,27 +35,27 @@ class EconomicEnvelope(BaseModel):
     dimension: str
     verdict: str
     allocation_signal: str
-    primary_result: Dict[str, Any]
-    secondary_metrics: Dict[str, Any]
-    thermodynamics: Dict[str, float] = {
+    primary_result: dict[str, Any]
+    secondary_metrics: dict[str, Any]
+    thermodynamics: dict[str, float] = {
         "g_score": 0.85,
         "delta_s": -0.12,
         "psi": 1.10,
         "omega": 0.04
     }
-    integrity_flags: List[str]
+    integrity_flags: list[str]
     confidence: str
     epistemic: str
     epoch: str
 
 # --- INTERNAL HELPERS ---
 
-def round_value(value: Optional[float], digits: int = 6) -> Optional[float]:
+def round_value(value: float | None, digits: int = 6) -> float | None:
     if value is None or not math.isfinite(value):
         return value
     return round(value, digits)
 
-def count_sign_changes(values: List[float]) -> int:
+def count_sign_changes(values: list[float]) -> int:
     prev = 0
     changes = 0
     for v in values:
@@ -64,33 +66,33 @@ def count_sign_changes(values: List[float]) -> int:
         prev = sign
     return changes
 
-def build_cashflow_series(initial: float, flows: List[float], terminal: float = 0) -> List[float]:
+def build_cashflow_series(initial: float, flows: list[float], terminal: float = 0) -> list[float]:
     series = [-abs(initial), *flows]
     if terminal and len(series) > 1:
         series[-1] += terminal
     return series
 
-def npv_from_series(series: List[float], rate: float) -> float:
+def npv_from_series(series: list[float], rate: float) -> float:
     total = 0.0
     for i, cf in enumerate(series):
         total += cf / pow(1 + rate, i)
     return total
 
-def derive_verdict(flags: List[str]) -> str:
+def derive_verdict(flags: list[str]) -> str:
     if any(f in INVALID_FLAGS for f in flags): return "VOID"
     if any(f in HOLD_FLAGS for f in flags): return "888-HOLD"
     if any(f in QUALIFY_FLAGS for f in flags): return "QUALIFY"
     return "SEAL"
 
-def derive_allocation_signal(tool: str, primary: Dict[str, Any], flags: List[str]) -> str:
+def derive_allocation_signal(tool: str, primary: dict[str, Any], flags: list[str]) -> str:
     if any(f in INVALID_FLAGS for f in flags): return "INSUFFICIENT_DATA"
     if tool == "wealth_npv_reward":
         val = primary.get("npv")
         return "ACCEPT" if val and val > 0 else "REJECT" if val and val < 0 else "MARGINAL"
     return "MARGINAL"
 
-def create_envelope(tool: str, dimension: str, primary: Dict[str, Any], 
-                   secondary: Dict[str, Any], flags: List[str], 
+def create_envelope(tool: str, dimension: str, primary: dict[str, Any], 
+                   secondary: dict[str, Any], flags: list[str], 
                    epistemic: str = "CLAIM") -> EconomicEnvelope:
     verdict = derive_verdict(flags)
     return EconomicEnvelope(
@@ -108,7 +110,7 @@ def create_envelope(tool: str, dimension: str, primary: Dict[str, Any],
 
 # --- CORE MEASUREMENTS ---
 
-def calculate_npv(initial: float, flows: List[float], rate: float, terminal: float = 0) -> Dict[str, Any]:
+def calculate_npv(initial: float, flows: list[float], rate: float, terminal: float = 0) -> dict[str, Any]:
     series = build_cashflow_series(initial, flows, terminal)
     npv = npv_from_series(series, rate)
     return {
@@ -119,10 +121,10 @@ def calculate_npv(initial: float, flows: List[float], rate: float, terminal: flo
 
 def analyze_cost_benefit(
     initial_investment: float,
-    cash_flows: List[float],
+    cash_flows: list[float],
     discount_rate: float,
     terminal_value: float = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compatibility wrapper for legacy imports expecting a plain analysis helper."""
     npv_result = calculate_npv(initial_investment, cash_flows, discount_rate, terminal_value)
     return {
@@ -134,7 +136,7 @@ def analyze_cost_benefit(
         "is_positive": bool(npv_result.get("npv", 0) and npv_result["npv"] > 0),
     }
 
-def calculate_irr(initial: float, flows: List[float]) -> Dict[str, Any]:
+def calculate_irr(initial: float, flows: list[float]) -> dict[str, Any]:
     """Basic IRR approximation using bisection."""
     series = build_cashflow_series(initial, flows)
     # Simple search for root between -0.9 and 1.0 (placeholder for full irr code)
@@ -146,14 +148,14 @@ def calculate_irr(initial: float, flows: List[float]) -> Dict[str, Any]:
         else: high = mid
     return {"irr": round_value(mid), "flags": []}
 
-def calculate_dscr(ebitda: float, debt_service: float) -> Dict[str, Any]:
+def calculate_dscr(ebitda: float, debt_service: float) -> dict[str, Any]:
     dscr = ebitda / debt_service if debt_service > 0 else None
     flags = ["LEVERAGE_DEFAULT"] if dscr and dscr < 1.0 else []
     return {"dscr": round_value(dscr), "flags": flags}
 
 # --- TOOL EXPORTS (THE FORGE) ---
 
-def wealth_npv_reward(initial_investment: float, cash_flows: List[float], discount_rate: float, 
+def wealth_npv_reward(initial_investment: float, cash_flows: list[float], discount_rate: float, 
                      terminal_value: float = 0, epistemic: str = "CLAIM") -> EconomicEnvelope:
     """Compute NPV, Terminal Value, and EAA. [Reward Dimension]"""
     m = calculate_npv(initial_investment, cash_flows, discount_rate, terminal_value)
@@ -163,7 +165,7 @@ def wealth_npv_reward(initial_investment: float, cash_flows: List[float], discou
         m["flags"], epistemic
     )
 
-def wealth_irr_yield(initial_investment: float, cash_flows: List[float]) -> EconomicEnvelope:
+def wealth_irr_yield(initial_investment: float, cash_flows: list[float]) -> EconomicEnvelope:
     """Compute Yield. [Energy Dimension]"""
     m = calculate_irr(initial_investment, cash_flows)
     return create_envelope("wealth_irr_yield", "Energy", {"irr": m["irr"]}, {}, m["flags"])
