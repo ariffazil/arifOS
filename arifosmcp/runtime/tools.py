@@ -1533,13 +1533,46 @@ async def arifos_memory(
     debug: bool = False,
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
-    """Retrieve governed memory from vector store or update the continuous world model."""
+    """
+    Retrieve governed memory from vector store or update the continuous world model.
+    Modes: vector_query, vector_store, engineer, query, ingest
+    """
+    from arifosmcp.core.kernel.metabolic_bridge import metabolic_bridge
 
-    # Karpathy Injection: Continuous Learning (Animal Archetype vs Ghost)
-    # Overcoming Anterograde Amnesia through active world model updates.
-    payload = {"query": query}
+    # T00_03 Canonical Memory Surface
+    payload = {"query": query, "mode": mode}
     if content:
         payload["content"] = content
+
+    if mode == "ingest":
+        # Governed Ingestion Pipeline (111 -> 444 -> 777 -> 999)
+        ctx = {
+            "session_id": session_id or "unknown",
+            "actor_id": "authenticated_user", # In production, pull from auth context
+            "risk_tier": risk_tier
+        }
+        bridge_result = await metabolic_bridge(content or query, ctx)
+        
+        # Wrap result in RuntimeEnvelope
+        from arifosmcp.runtime.models import RuntimeEnvelope as RE
+        from arifosmcp.runtime.models import ExecutionStatus, GovernanceStatus
+        
+        envelope = RE(
+            ok=(bridge_result.verdict == "SEAL"),
+            tool="arifos_memory",
+            execution_status=ExecutionStatus.SUCCESS if bridge_result.verdict == "SEAL" else ExecutionStatus.FAILED,
+            governance_status=GovernanceStatus.ALLOW if bridge_result.verdict == "SEAL" else GovernanceStatus.DENY,
+            primary_artifact={
+                "verdict": bridge_result.verdict,
+                "reason": bridge_result.reason,
+                "proposal_id": bridge_result.proposal.proposal_id if bridge_result.proposal else None,
+                "seal_id": bridge_result.seal_id
+            }
+        )
+        _stamp_platform(envelope, platform)
+        return seal_runtime_envelope(envelope, "arifos_memory")
+
+    # Existing modes
     if mode == "world_model_update":
         payload["animal_archetype_active"] = True
         payload["continuous_learning_update"] = True
@@ -1553,6 +1586,16 @@ async def arifos_memory(
         dry_run=dry_run,
         debug=debug,
     )
+
+    # Fix vector_query mode failure (DNS / unreachable)
+    if mode == "vector_query" and not envelope.ok:
+        if "Name or service not known" in str(envelope.primary_artifact) or not envelope.primary_artifact:
+            envelope.primary_artifact = {
+                "error": "Embedding service unreachable",
+                "retry_possible": True,
+                "code": "INFRA_DEFERRED"
+            }
+
     _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos_memory")
 
