@@ -500,6 +500,25 @@ class PostgresVaultStore:
         4. Write to PostgreSQL
         5. Mirror to filesystem (JSONL append)
         """
+        # R7 — warn if non-INIT event has no INIT ancestor for this session
+        if event.stage not in ("000_INIT", "000_init") and ASYNCpg_AVAILABLE:
+            try:
+                pool = await self._get_pool()
+                if pool:
+                    async with pool.acquire() as conn:
+                        row = await conn.fetchrow(
+                            "SELECT id FROM vault_events WHERE session_id=$1 AND stage='000_INIT' LIMIT 1",
+                            event.session_id,
+                        )
+                        if row is None:
+                            logger.warning(
+                                "R7_VIOLATION_WARN: stage=%s event for session %s has no 000_INIT ancestor. "
+                                "Call well_init/wealth_init/arifos_init first.",
+                                event.stage, event.session_id,
+                            )
+            except Exception:
+                pass  # non-fatal — chain integrity is the hard rule
+
         # Compute hashes
         event.merkle_leaf = self._compute_merkle_leaf(event)
         event.prev_hash = await self._get_last_chain_hash()

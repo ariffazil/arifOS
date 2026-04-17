@@ -75,7 +75,9 @@ class Policy(BaseModel):
 class BundleInput(BaseModel):
     type: Literal["query", "url"]
     value: str
-    mode: Literal["auto", "search", "fetch"] = "auto"
+    mode: Literal["auto", "search", "fetch", "governed", "ingest", "compass", "atlas", "time"] = (
+        "auto"
+    )
     top_k: int = 5
     fetch_top_k: int = 2
     render: Literal["auto", "never", "always"] = "auto"
