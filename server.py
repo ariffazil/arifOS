@@ -294,8 +294,7 @@ try:
         for _axis, _factory in _agent_factories.items():
             _agent_mcp = _factory()
             mcp.mount(_agent_mcp, namespace=None)
-            _agent_tools = await _agent_mcp.list_tools()
-            logger.info(f"  [{_axis}] {len(_agent_tools)} tools (no namespace — namespaced by prefix)")
+            logger.info(f"  [{_axis}] 6-axis MCP agent mounted (namespaced by prefix letter)")
         logger.info("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
         print("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
     except Exception as _e:
