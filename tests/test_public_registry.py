@@ -9,6 +9,7 @@ from arifosmcp.runtime.public_registry import (
     build_server_json,
     tool_names_for_profile,
 )
+from arifosmcp.runtime.tool_specs import get_tool_spec
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "docs" / "reference" / "spec"
@@ -65,3 +66,13 @@ def test_internal_server_json_declares_internal_capabilities() -> None:
     assert "arifos_judge" in tool_names
     assert "arifos_vault" in tool_names
     assert len(tool_names) == 11
+
+
+def test_arifos_mind_context_array_schema_declares_items() -> None:
+    spec = get_tool_spec("arifos_mind")
+    assert spec is not None
+
+    context_schema = spec.input_schema["properties"]["context"]
+    array_branch = next(branch for branch in context_schema["oneOf"] if branch.get("type") == "array")
+
+    assert "items" in array_branch
