@@ -20,7 +20,6 @@ except ImportError:
 CurrentContext = None  # Always defined — ctx injected by FastMCP framework at runtime
 
 from arifosmcp.runtime.models import RuntimeEnvelope, VerdictCode
-from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import agi_mind_dispatch_impl
 
 
@@ -48,6 +47,8 @@ async def agi_mind(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
+    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+
     if context is not None and not isinstance(context, str):
         try:
             context = json.dumps(context, ensure_ascii=False, sort_keys=True)
@@ -101,7 +102,7 @@ async def agi_mind(
             session_id=session_id,
             metrics=metrics,
             floors_checked=["F2", "F4", "F7", "F8"],
-            message=res_dict.get("note")
+            message=res_dict.get("note"),
         )
 
     resolved_payload = dict(payload or {})
@@ -113,17 +114,20 @@ async def agi_mind(
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
         ctx=ctx or (CurrentContext() if CurrentContext else None),
     )
-    
+
     # ─── V1.0 VERDICT FORGING (FALLBACK) ───
     if not hasattr(res, "verdict_detail") or not res.verdict_detail:
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
+
         return forge_verdict(
             tool_id="arifos_mind",
             canonical_tool_name="arifos_mind",
             stage=res.stage,
             payload=res.payload,
             session_id=session_id,
-            override_code=VerdictCode(res.verdict.value) if hasattr(res.verdict, "value") else VerdictCode.SABAR,
-            message=res.payload.get("note", "Fallback reasoning active.")
+            override_code=VerdictCode(res.verdict.value)
+            if hasattr(res.verdict, "value")
+            else VerdictCode.SABAR,
+            message=res.payload.get("note", "Fallback reasoning active."),
         )
     return res

@@ -30,7 +30,6 @@ from __future__ import annotations
 from typing import Any
 
 from arifosmcp.runtime.models import RuntimeEnvelope
-from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import physics_reality_dispatch_impl
 
 
@@ -54,6 +53,8 @@ async def physics_reality(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
+    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+
     # ═══════════════════════════════════════════════════════════════════════
     # PATCH (2026-04-06): Validate query to prevent empty string collapse
     # Empty query causes downstream Brave validation errors
@@ -130,5 +131,5 @@ async def physics_reality(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx  # Context injected by FastMCP framework,
+        ctx=ctx,  # Context injected by FastMCP framework,
     )

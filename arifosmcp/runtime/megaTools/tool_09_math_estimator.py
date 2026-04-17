@@ -12,7 +12,6 @@ from __future__ import annotations
 from typing import Any
 
 from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
-from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
 from arifosmcp.runtime.tools_internal import math_estimator_dispatch_impl
 
 
@@ -36,6 +35,8 @@ async def math_estimator(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
+    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+
     payload = dict(payload or {})
     if raw_input:
         payload.setdefault("query", raw_input)
@@ -62,7 +63,7 @@ async def math_estimator(
             auth_context=resolved_payload.get("auth_context", auth_context),
             risk_tier=resolved_payload.get("risk_tier", risk_tier),
             dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-            ctx=ctx  # Context injected by FastMCP framework,
+            ctx=ctx,  # Context injected by FastMCP framework,
         )
 
     if "math_estimator" in HARDENED_DISPATCH_MAP:
@@ -105,5 +106,5 @@ async def math_estimator(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx  # Context injected by FastMCP framework,
+        ctx=ctx,  # Context injected by FastMCP framework,
     )
