@@ -1,0 +1,73 @@
+{
+  "schema": "arifos-well-manifest/v1",
+  "sealed": true,
+  "epoch": "2026-04-18",
+  "architect": "Arif Fazil",
+  "version": "2026.4.13",
+  "nodes": {
+    "body": {
+      "name": "BODY — Identity",
+      "url": "https://arif-fazil.com",
+      "repo": "github.com/ariffazil/arif-sites",
+      "role": "identity anchor",
+      "status": "live",
+      "discovery": true
+    },
+    "soul": {
+      "name": "SOUL — Constitution",
+      "url": "https://apex.arif-fazil.com",
+      "repo": "github.com/ariffazil/arif-sites",
+      "role": "constitutional canon",
+      "status": "live",
+      "discovery": true
+    },
+    "docs": {
+      "name": "DOCS — Documentation",
+      "url": "https://arifos.arif-fazil.com",
+      "repo": "github.com/ariffazil/arif-sites",
+      "role": "technical documentation",
+      "status": "live",
+      "discovery": true
+    },
+    "mcp": {
+      "name": "MCP — Kernel",
+      "url": "https://mcp.arif-fazil.com",
+      "repo": "github.com/ariffazil/arifOS",
+      "role": "constitutional mcp kernel",
+      "status": "live",
+      "endpoint": "https://mcp.arif-fazil.com/mcp",
+      "transport": "streamable-http",
+      "tools": 22,
+      "vault": "configured",
+      "vector_memory": "configured",
+      "session_cache": "configured",
+      "discovery": true
+    },
+    "geox": {
+      "name": "GEOX — Earth Intelligence",
+      "url": "https://geox.arif-fazil.com",
+      "repo": "github.com/ariffazil/GEOX",
+      "role": "geological prospect evaluation",
+      "service": "http://72.62.71.199:8000",
+      "health": "{\"status\":\"ok\",\"seal\":\"DITEMPA BUKAN DIBERI\"}",
+      "status": "live",
+      "discovery": true
+    },
+    "waw": {
+      "name": "WAW — Wealth Governance",
+      "url": "https://waw.arif-fazil.com",
+      "repo": "github.com/ariffazil/waw",
+      "role": "wealth governance engine",
+      "service": "http://72.62.71.199:8010",
+      "status": "live",
+      "discovery": true
+    }
+  },
+  "discovery": {
+    "llms_txt": "https://arif-fazil.com/llms.txt",
+    "llms_json": "https://arif-fazil.com/llms.json",
+    "canonical": "https://arif-fazil.com/.well-known/arifos.json",
+    "agent_json": "https://arif-fazil.com/.well-known/agent.json",
+    "wells_json": "https://arif-fazil.com/wells.json"
+  }
+}
