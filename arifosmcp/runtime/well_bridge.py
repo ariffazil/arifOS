@@ -18,14 +18,19 @@ from typing import Any, Dict, Optional
 logger = logging.getLogger(__name__)
 
 # Topology: WELL State Path
-WELL_STATE_PATH = Path("/root/WELL/state.json")
+import os as _os
+WELL_STATE_PATH = Path(_os.environ.get("WELL_STATE_PATH", "/root/WELL/state.json"))
 
 def get_biological_readiness() -> Dict[str, Any]:
     """
     Read the current biological readiness from WELL state.
     Returns a structured readiness report for the Governance Kernel.
     """
-    if not WELL_STATE_PATH.exists():
+    try:
+        _exists = WELL_STATE_PATH.exists()
+    except (PermissionError, OSError):
+        _exists = False
+    if not _exists:
         return {
             "ok": False,
             "verdict": "UNKNOWN",
@@ -111,9 +116,12 @@ def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
     Signal cognitive pressure/load to WELL.
     Directly updates state.json if server is not available.
     """
-    if not WELL_STATE_PATH.exists():
+    try:
+        if not WELL_STATE_PATH.exists():
+            return False
+    except (PermissionError, OSError):
         return False
-    
+
     try:
         with open(WELL_STATE_PATH, "r") as f:
             state = json.load(f)

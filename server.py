@@ -293,6 +293,21 @@ try:
         except (ImportError, ModuleNotFoundError):
             logger.warning("F13 Approval provider unavailable (FastMCP version mismatch)")
 
+    # Skills Provider — expose skills/ dir relative to this server file
+    try:
+        from fastmcp.server.providers.skills import SkillsDirectoryProvider
+        from pathlib import Path as _Path
+
+        _server_dir = _Path(__file__).parent
+        skills_roots = [p for p in [_server_dir / "skills"] if p.exists()]
+        if skills_roots:
+            mcp.add_provider(SkillsDirectoryProvider(roots=skills_roots))
+            logger.info(f"Skills provider active: {[str(r) for r in skills_roots]}")
+        else:
+            logger.info("Skills provider: no skills/ directory found, skipping")
+    except (ImportError, Exception) as _e:
+        logger.warning(f"Skills provider unavailable: {_e}")
+
     logger.info(f"ARIFOS MCP SEALED: {len(v2_tools_registered)} tools registered with Fail-Closed gates.")
     logger.info("ARIFOS MCP tool manifest: %s", ", ".join(v2_tools_registered))
     print(f"ARIFOS MCP tool manifest: {', '.join(v2_tools_registered)}")
