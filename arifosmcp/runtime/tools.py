@@ -1819,7 +1819,11 @@ async def arifos_reply(
 async def arifos_diag_substrate(session_id: str | None = None) -> Any:
     """Maintainer: Run substrate protocol conformance check."""
     from arifosmcp.evals.everything_conformance_runner import run_protocol_conformance_test
-    from arifosmcp.runtime.models import RuntimeEnvelope as _RE, Verdict, RuntimeStatus, ExecutionStatus
+    from arifosmcp.runtime.models import (
+        ExecutionStatus,
+        RuntimeEnvelope as _RE,
+        Verdict,
+    )
 
     verdict = await run_protocol_conformance_test()
     return _RE(
@@ -1829,7 +1833,9 @@ async def arifos_diag_substrate(session_id: str | None = None) -> Any:
         stage="000_INIT",
         session_id=session_id,
         verdict=verdict,
-        execution_status=ExecutionStatus.SUCCESS if verdict == Verdict.SEAL else ExecutionStatus.ERROR,
+        execution_status=(
+            ExecutionStatus.SUCCESS if verdict == Verdict.SEAL else ExecutionStatus.ERROR
+        ),
         payload={"message": f"Substrate conformance result: {verdict}"},
     )
 

@@ -1,8 +1,13 @@
 [project]
 name = "arifos"
-version = "2026.04.16"
+version = "2026.04.17"
 # T000 Versioning: YYYY.MM.DD — see T000_VERSIONING.md and CHANGELOG.md for full history
-# 2026.04.14 — Phase 1 Surface Compression (v2026.04.14-COMPRESSED)
+# 2026.04.17 — Final Consolidation (v2026.04.17-FINAL)
+#   Unification: Resolved forge-ssct-sync drift; restored Double-Gate Forge security.
+#   UI: Integrated Metabolic Monitor across Judge, Forge, and Init surfaces.
+#   Identity: Fixed 'anonymous' fallback bug; ensured cross-tool identity continuity.
+#   Hardening: Purged redundant repository roots; achieves Clean State.
+# 2026.04.16 — Metabolic Consolidation (v2026.04.16)
 #   Refactor: Unified 40+ legacy aliases into single LEGACY_TOOL_ALIASES registry.
 #   Canonical core: 12 tools (init, sense, mind, heart, kernel, reply,
 #   judge, vault, forge, health, fetch, probe). All others are aliases.
