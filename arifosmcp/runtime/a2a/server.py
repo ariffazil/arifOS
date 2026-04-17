@@ -38,6 +38,15 @@ from .models import (
     TaskState,
     TaskStatusUpdate,
 )
+from .agent_card_v2 import ArifOSAgentCard, get_arifOS_agent_card, get_axos_summary
+from .seal_verifier import (
+    A2ASealVerifier,
+    get_seal_verifier,
+    OrthogonalityResponse,
+    SealVerificationRequest,
+    SealVerificationResponse,
+    WELLStateResponse,
+)
 
 # Cross-protocol 888_HOLD bridge
 logger = logging.getLogger(__name__)
@@ -49,24 +58,24 @@ def _utcnow() -> datetime:
 
 class A2ATaskManager:
     """Manages A2A task lifecycle with 888_HOLD cross-protocol broadcast."""
-    
+
     def __init__(self, mcp_server: Any):
         self.mcp = mcp_server
         self.tasks: dict[str, Task] = {}
         self._lock = asyncio.Lock()
         self._hold_bridge = None
-    
+
     async def create_task(self, request: SubmitTaskRequest) -> Task:
         """Create new task with constitutional initialization."""
         task_id = f"a2a-{uuid.uuid4().hex[:12]}"
-        
+
         # Extract query from messages
         query = ""
         for msg in request.messages:
             if msg.role == "user":
                 query = msg.content
                 break
-        
+
         # Initialize constitutional session via MCP
         session_id = None
         try:
@@ -76,14 +85,14 @@ class A2ATaskManager:
                 {
                     "intent": query or "A2A task submission",
                     "actor_id": request.client_agent_id,
-                }
+                },
             )
-            
+
             if init_result.get("verdict") == "SEAL":
                 session_id = init_result.get("session_id")
         except Exception as e:
             print(f"[A2A] Session init warning: {e}", file=sys.stderr)
-        
+
         task = Task(
             id=task_id,
             client_agent_id=request.client_agent_id,
@@ -93,108 +102,108 @@ class A2ATaskManager:
             parameters=request.parameters,
             status_callback_url=request.status_callback_url,
         )
-        
+
         async with self._lock:
             self.tasks[task_id] = task
-        
+
         # Start task execution in background
         asyncio.create_task(self._execute_task(task_id))
-        
+
         return task
-    
+
     async def get_task(self, task_id: str) -> Task | None:
         """Get task by ID."""
         async with self._lock:
             return self.tasks.get(task_id)
-    
+
     async def cancel_task(self, task_id: str) -> CancelTaskResponse:
         """Cancel a task."""
         async with self._lock:
             task = self.tasks.get(task_id)
             if not task:
-                return CancelTaskResponse(
-                    success=False,
-                    message=f"Task {task_id} not found"
-                )
-            
+                return CancelTaskResponse(success=False, message=f"Task {task_id} not found")
+
             if task.state in [TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELLED]:
                 return CancelTaskResponse(
-                    success=False,
-                    message=f"Task already in terminal state: {task.state}"
+                    success=False, message=f"Task already in terminal state: {task.state}"
                 )
-            
+
             task.state = TaskState.CANCELLED
             task.updated_at = _utcnow()
-            
-            return CancelTaskResponse(
-                success=True,
-                message="Task cancelled",
-                task=task
-            )
-    
+
+            return CancelTaskResponse(success=True, message="Task cancelled", task=task)
+
     async def _execute_task(self, task_id: str):
         """Execute task with constitutional governance."""
         task = await self.get_task(task_id)
         if not task:
             return
-        
+
         try:
             # Update to working state
-            await self._update_task_state(task_id, TaskState.WORKING, "Starting constitutional review...")
-            
+            await self._update_task_state(
+                task_id, TaskState.WORKING, "Starting constitutional review..."
+            )
+
             # Extract query
             query = ""
             for msg in task.messages:
                 if msg.role == "user":
                     query = msg.content
                     break
-            
+
             # Step 1: Constitutional Review (asi_critique)
-            await self._update_task_state(task_id, TaskState.WORKING, "Running constitutional critique...")
-            
+            await self._update_task_state(
+                task_id, TaskState.WORKING, "Running constitutional critique..."
+            )
+
             critique_result = await self._call_mcp_tool(
                 "arifos_heart",
                 {
                     "mode": "critique",
-                    "query": json.dumps({
-                        "action": task.skill_id or "general_execution",
-                        "parameters": task.parameters,
-                        "query": query,
-                    }),
+                    "query": json.dumps(
+                        {
+                            "action": task.skill_id or "general_execution",
+                            "parameters": task.parameters,
+                            "query": query,
+                        }
+                    ),
                     "session_id": task.session_id,
-                }
+                },
             )
-            
+
             # Step 2: APEX Judgment
             await self._update_task_state(task_id, TaskState.WORKING, "Awaiting APEX judgment...")
-            
+
             judge_result = await self._call_mcp_tool(
                 "arifos_judge",
                 {
-                    "query": json.dumps({"original_query": query, "critique_result": critique_result}),
+                    "query": json.dumps(
+                        {"original_query": query, "critique_result": critique_result}
+                    ),
                     "session_id": task.session_id,
-                }
+                },
             )
-            
+
             verdict = judge_result.get("verdict", "VOID")
             task.verdict = verdict
-            
+
             if verdict == "VOID":
                 task.state = TaskState.FAILED
                 task.error_message = "Constitutional violation detected"
                 task.violations = judge_result.get("violations", [])
-                
+
             elif verdict == "888_HOLD":
                 # ═══════════════════════════════════════════════════════════
                 # 888_HOLD CROSS-PROTOCOL HANDOFF
                 # ═══════════════════════════════════════════════════════════
-                
+
                 task.state = TaskState.INPUT_REQUIRED
-                
+
                 # Import and initialize cross-protocol bridge
                 try:
                     from arifosmcp.runtime.cross_protocol_bridge import HoldEvent, get_hold_bridge
-                    
+
                     # Create immutable hold event
                     hold_event = HoldEvent(
                         hold_id=f"HOLD-A2A-{task.id}",
@@ -206,7 +215,7 @@ class A2ATaskManager:
                         session_id=task.session_id or "unknown",
                         actor_id=task.client_agent_id,
                     )
-                    
+
                     # Build action payload for F1 hash
                     action_payload = {
                         "task_id": task.id,
@@ -215,75 +224,81 @@ class A2ATaskManager:
                         "query": query,
                         "parameters": task.parameters,
                     }
-                    
+
                     # PUBLISH to Redis → WebMCP WebSocket
                     bridge = await get_hold_bridge()
                     pre_hash = await bridge.publish_hold(hold_event, action_payload)
-                    
+
                     # Log to VAULT999 with pre-execution hash (F1 AMANAH)
                     await self._log_hold_to_vault(task, hold_event, pre_hash, action_payload)
-                    
+
                     # Update task with hold metadata
                     task.hold_id = hold_event.hold_id
                     task.pre_execution_hash = pre_hash
-                    
-                    task.messages.append(TaskMessage(
-                        role="system",
-                        content=(
-                            f"⏸️ 888_HOLD TRIGGERED\n"
-                            f"Hold ID: {hold_event.hold_id}\n"
-                            f"Pre-hash: {pre_hash[:16]}...\n"
-                            f"Review at: https://arifosmcp.arif-fazil.com/hold/{hold_event.hold_id}"
+
+                    task.messages.append(
+                        TaskMessage(
+                            role="system",
+                            content=(
+                                f"⏸️ 888_HOLD TRIGGERED\n"
+                                f"Hold ID: {hold_event.hold_id}\n"
+                                f"Pre-hash: {pre_hash[:16]}...\n"
+                                f"Review at: https://arifosmcp.arif-fazil.com/hold/{hold_event.hold_id}"
+                            ),
                         )
-                    ))
-                    
+                    )
+
                 except Exception as bridge_error:
                     logger.error(f"Failed to broadcast 888_HOLD: {bridge_error}")
                     # Fallback: still create hold but without broadcast
-                    task.messages.append(TaskMessage(
-                        role="system",
-                        content="Task requires human ratification (F13 Sovereign). Please approve via arifOS dashboard."
-                    ))
-                
+                    task.messages.append(
+                        TaskMessage(
+                            role="system",
+                            content="Task requires human ratification (F13 Sovereign). Please approve via arifOS dashboard.",
+                        )
+                    )
+
             elif verdict == "SEAL":
                 # Execute the actual task
                 await self._update_task_state(task_id, TaskState.WORKING, "Executing with SEAL...")
-                
+
                 execution_result = await self._call_mcp_tool(
                     "arifos_kernel",
                     {
                         "query": query,
                         "session_id": task.session_id,
                         "context": f"A2A task from {task.client_agent_id}",
-                    }
+                    },
                 )
-                
+
                 # Add result as artifact
-                task.artifacts.append(Artifact(
-                    name="execution_result",
-                    content_type="application/json",
-                    content=json.dumps(execution_result, indent=2),
-                ))
-                
+                task.artifacts.append(
+                    Artifact(
+                        name="execution_result",
+                        content_type="application/json",
+                        content=json.dumps(execution_result, indent=2),
+                    )
+                )
+
                 task.state = TaskState.COMPLETED
                 task.completed_at = _utcnow()
-                
+
             else:
                 task.state = TaskState.FAILED
                 task.error_message = f"Unexpected verdict: {verdict}"
-            
+
             task.updated_at = _utcnow()
-            
+
             # Send callback if configured
             if task.status_callback_url:
                 await self._send_callback(task)
-                
+
         except Exception as e:
             task.state = TaskState.FAILED
             task.error_message = str(e)
             task.updated_at = _utcnow()
             print(f"[A2A] Task execution error: {e}", file=sys.stderr)
-    
+
     async def _update_task_state(self, task_id: str, state: TaskState, message: str = None):
         """Update task state."""
         async with self._lock:
@@ -291,19 +306,16 @@ class A2ATaskManager:
                 self.tasks[task_id].state = state
                 self.tasks[task_id].updated_at = _utcnow()
                 if message:
-                    self.tasks[task_id].messages.append(TaskMessage(
-                        role="system",
-                        content=message
-                    ))
-    
+                    self.tasks[task_id].messages.append(TaskMessage(role="system", content=message))
+
     async def _call_mcp_tool(self, tool_name: str, params: dict[str, Any]) -> dict[str, Any]:
         """Call the MCP tool through the internal FastMCP kernel."""
         return await call_mcp_tool(self.mcp, tool_name, params)
-    
+
     async def _send_callback(self, task: Task):
         """Send status callback to client agent."""
         import httpx
-        
+
         try:
             async with httpx.AsyncClient() as client:
                 await client.post(
@@ -313,21 +325,21 @@ class A2ATaskManager:
                         "state": task.state,
                         "verdict": task.verdict,
                     },
-                    timeout=10.0
+                    timeout=10.0,
                 )
         except Exception as e:
             print(f"[A2A] Callback failed: {e}", file=sys.stderr)
-    
+
     async def _log_hold_to_vault(
-        self, 
-        task: Task, 
+        self,
+        task: Task,
         hold_event,
         pre_hash: str,
         action_payload: dict,
     ):
         """
         F1 AMANAH: Log pre-execution intent to VAULT999.
-        
+
         This ensures reversibility proof exists even if connection drops.
         """
         vault_entry = {
@@ -358,18 +370,18 @@ class A2ATaskManager:
             "verdict": "888_HOLD",
             "stage": "A2A_CROSS_PROTOCOL_HANDOFF",
         }
-        
+
         # Write to VAULT999 (async append to JSONL)
         vault_path = Path("VAULT999/a2a_holds.jsonl")
         vault_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         try:
             async with aiofiles.open(vault_path, "a") as f:
                 await f.write(json.dumps(vault_entry) + "\n")
             logger.info(f"[F1 AMANAH] 888_HOLD logged to VAULT999: {hold_event.hold_id}")
         except Exception as e:
             logger.error(f"[F1 AMANAH] Failed to log to VAULT999: {e}")
-    
+
     def get_all_tasks(self) -> list[Task]:
         """Get all tasks (for debugging)."""
         return list(self.tasks.values())
@@ -378,10 +390,10 @@ class A2ATaskManager:
 class A2AServer:
     """
     A2A Protocol Server with constitutional governance.
-    
+
     Implements Google's A2A specification with arifOS's 13-floor governance.
     """
-    
+
     def __init__(self, mcp_server: Any):
         self.mcp = mcp_server
         self.task_manager = A2ATaskManager(mcp_server)
@@ -392,27 +404,27 @@ class A2AServer:
             version=self.build_info["version"],
         )
         self._setup_routes()
-    
+
     def _setup_routes(self):
         """Setup A2A protocol routes."""
-        
+
         # Agent Card Discovery (/.well-known/agent.json)
         @self.app.get("/.well-known/agent.json")
         async def agent_card():
             """
             A2A Agent Card - Published for agent discovery.
-            
+
             Other agents discover arifOS capabilities via this endpoint.
             """
             card = AgentCard()
             return card.model_dump()
-        
+
         # Submit Task
         @self.app.post("/task")
         async def submit_task(request: SubmitTaskRequest):
             """
             Submit a new task to arifOS.
-            
+
             Task will be processed through constitutional governance (F1-F13).
             """
             task = await self.task_manager.create_task(request)
@@ -422,7 +434,7 @@ class A2AServer:
                 "session_id": task.session_id,
                 "message": "Task submitted for constitutional review",
             }
-        
+
         # Trinity Probe: Execute Task Synchronously
         @self.app.post("/execute")
         async def execute_task(request: Request):
@@ -435,18 +447,18 @@ class A2AServer:
             mode = data.get("mode", "governed_execution")
             auth_context = data.get("auth_context", {})
             actor_id = auth_context.get("actor_id", "anonymous")
-            
+
             # Step 1: Initialize constitutional anchor
             init_result = await self.task_manager._call_mcp_tool(
                 "arifos_init",
                 {
                     "intent": query,
                     "actor_id": actor_id,
-                }
+                },
             )
-            
+
             session_id = init_result.get("session_id", "global")
-            
+
             # Step 2: Execute full metabolic loop via arifos_kernel
             execution_result = await self.task_manager._call_mcp_tool(
                 "arifos_kernel",
@@ -455,9 +467,9 @@ class A2AServer:
                     "session_id": session_id,
                     "context": f"A2A direct-execution probe (actor={actor_id}, mode={mode})",
                     "allow_execution": True,
-                }
+                },
             )
-            
+
             return {
                 "ok": execution_result.get("ok", True),
                 "verdict": execution_result.get("verdict", "SEAL"),
@@ -468,9 +480,9 @@ class A2AServer:
                     "release": f"v{self.build_info['version']}",
                     "protocol": "A2A/Trinity-Probe",
                     "governance": "F1-F13 LOCK",
-                }
+                },
             }
-        
+
         # Get Task Status
         @self.app.get("/status/{task_id}")
         async def get_task(task_id: str):
@@ -479,57 +491,56 @@ class A2AServer:
             if not task:
                 raise HTTPException(status_code=404, detail="Task not found")
             return GetTaskResponse(task=task).model_dump()
-        
+
         # Cancel Task
         @self.app.post("/cancel/{task_id}")
         async def cancel_task(task_id: str):
             """Cancel a running or pending task."""
             result = await self.task_manager.cancel_task(task_id)
             return result.model_dump()
-        
+
         # Subscribe to Task Updates (SSE)
         @self.app.get("/subscribe/{task_id}")
         async def subscribe_task(task_id: str, request: Request):
             """
             Subscribe to real-time task updates via Server-Sent Events.
-            
+
             Stream updates as task progresses through constitutional review.
             """
+
             async def event_generator():
                 last_state = None
-                
+
                 while True:
                     task = await self.task_manager.get_task(task_id)
                     if not task:
                         yield f"event: error\ndata: {json.dumps({'error': 'Task not found'})}\n\n"
                         break
-                    
+
                     # Send update if state changed
                     if task.state != last_state:
                         last_state = task.state
                         update = TaskStatusUpdate(
-                            task_id=task_id,
-                            state=task.state,
-                            message=f"Task is now {task.state}"
+                            task_id=task_id, state=task.state, message=f"Task is now {task.state}"
                         )
                         yield f"event: status\ndata: {update.model_dump_json()}\n\n"
-                    
+
                     # End if terminal state
                     if task.state in [TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELLED]:
                         yield f"event: complete\ndata: {json.dumps({'task_id': task_id, 'state': task.state})}\n\n"
                         break
-                    
+
                     await asyncio.sleep(1)
-            
+
             return StreamingResponse(
                 event_generator(),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
                     "Connection": "keep-alive",
-                }
+                },
             )
-        
+
         # List all tasks (debug/admin)
         @self.app.get("/tasks")
         async def list_tasks():
@@ -537,9 +548,9 @@ class A2AServer:
             tasks = self.task_manager.get_all_tasks()
             return {
                 "count": len(tasks),
-                "tasks": [t.model_dump() for t in tasks[-10:]]  # Last 10
+                "tasks": [t.model_dump() for t in tasks[-10:]],  # Last 10
             }
-        
+
         # Health check
         @self.app.get("/health")
         async def health():
@@ -552,8 +563,83 @@ class A2AServer:
                 "motto": "Ditempa Bukan Diberi",
             }
 
+        # ── Agent Card v2.0 ────────────────────────────────────────────────────
+
+        @self.app.get("/.well-known/agent-card.json")
+        async def agent_card_v2():
+            """arifOS Agent Card v2.0 — full 6-axis skill registry."""
+            card = get_arifOS_agent_card()
+            return card.model_dump()
+
+        @self.app.get("/agent-card")
+        async def agent_card_summary():
+            """Compact summary for quick discovery."""
+            return get_axos_summary()
+
+        @self.app.get("/agent-card/skills")
+        async def agent_card_skills():
+            """All 23 skills across 6 axes."""
+            card = get_arifOS_agent_card()
+            return {
+                "total": len(card.skills),
+                "by_axis": {
+                    ax: [s.model_dump() for s in card.skills if s.axis == ax]
+                    for ax in ["P", "T", "V", "G", "E", "M"]
+                },
+                "entry_point": card.routing.entry_point,
+            }
+
+        # ── Seal Verification Endpoints ──────────────────────────────────────
+
+        @self.app.post("/seal/verify")
+        async def verify_seal(request: SealVerificationRequest):
+            """Verify a SEAL verdict is valid and vault-anchored."""
+            verifier = get_seal_verifier()
+            return verifier.verify_seal(request).model_dump()
+
+        @self.app.get("/seal/verify/{session_id}")
+        async def verify_seal_by_session(
+            session_id: str, verdict: str = "SEAL", state_hash: str | None = None
+        ):
+            """Verify SEAL by session ID (GET variant)."""
+            verifier = get_seal_verifier()
+            result = verifier.verify_seal(
+                SealVerificationRequest(
+                    session_id=session_id, verdict=verdict, state_hash=state_hash
+                )
+            )
+            return result.model_dump()
+
+        @self.app.get("/meta/omega")
+        async def orthogonality_status():
+            """Get current Ω_ortho from M01 Correlation Auditor."""
+            verifier = get_seal_verifier()
+            return verifier.get_orthogonality().model_dump()
+
+        @self.app.get("/meta/omega/violations")
+        async def orthogonality_violations():
+            """Get detailed Ω_ortho violations."""
+            from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+
+            auditor = get_auditor()
+            report = auditor.compute_orthogonality()
+            return {
+                "omega_ortho": report.omega_ortho,
+                "threshold": auditor.threshold,
+                "violations": report.violations,
+                "agents_in_scope": report.agents_in_scope,
+                "trace": report.trace,
+            }
+
+        @self.app.get("/well/state")
+        async def well_state():
+            """Get current WELL operator state."""
+            verifier = get_seal_verifier()
+            return verifier.get_well_state().model_dump()
+
 
 _a2a_server_singleton: A2AServer | None = None
+
 
 def create_a2a_server(mcp_server: Any) -> A2AServer:
     """Factory function to create A2A server (singleton per process)."""
