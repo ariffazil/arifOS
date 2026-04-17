@@ -160,6 +160,13 @@ class KernelCore:
         handler = get_tool_handler(tool_name) or get_tool_handler("arifos_mind")
         tool_result = await self._invoke_with_governance(handler=handler, tool_name=tool_name, context=context)
 
+        # ── WELL Cognitive Pressure Signal ───────────────────────────
+        try:
+            from arifosmcp.runtime.well_bridge import signal_cognitive_pressure
+            signal_cognitive_pressure(load_delta=0.1, source=tool_name)
+        except Exception:
+            pass  # non-fatal
+
         return {
             "ok": tool_result.get("ok", True),
             "tool_name": tool_name,
@@ -302,6 +309,14 @@ class KernelCore:
         
         verdict = final_result.get("verdict", "SABAR")
         final_result["kernel_status"] = "READY" if verdict == "SEAL" else ("BLOCKED" if verdict == "VOID" else "HOLD")
+
+        # ── WELL Biological Context Injection ────────────────────────
+        try:
+            from arifosmcp.runtime.well_bridge import inject_biological_context
+            final_result = inject_biological_context(final_result)
+        except Exception:
+            pass  # WELL offline is non-fatal — W0 sovereignty invariant
+
         return final_result
 
 _kernel_core: KernelCore | None = None
