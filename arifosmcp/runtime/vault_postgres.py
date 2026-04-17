@@ -76,6 +76,22 @@ class SupabaseVaultStore:
             except Exception as e:
                 logger.error(f"Supabase init error: {e}")
 
+    async def get_last_hash(self) -> str:
+        if not self.client: return "0" * 64
+        try:
+            # Query the dedicated chain_hash column for the most recent record
+            res = self.client.table("arifosmcp_vault_seals") \
+                .select("chain_hash") \
+                .order("created_at", desc=True) \
+                .limit(1) \
+                .maybe_single() \
+                .execute()
+            if res.data and res.data.get("chain_hash"):
+                return res.data["chain_hash"]
+        except Exception as e:
+            logger.warning(f"Error fetching last hash: {e}")
+        return "0" * 64
+
     async def seal(self, event: VaultEvent) -> bool:
         if not self.client: return False
         try:
@@ -86,6 +102,8 @@ class SupabaseVaultStore:
                 "payload": event.payload,
                 "confidence": 1.0, 
                 "epoch": event.sealed_at.isoformat(),
+                "prev_hash": event.prev_hash,
+                "chain_hash": event.chain_hash
             }
             self.client.table("arifosmcp_vault_seals").insert(data).execute()
             return True
@@ -120,23 +138,27 @@ class PostgresVaultStore:
         except Exception: return False
 
 class VaultManager:
-    """Orchestrates Dual-Write (Supabase + Local)."""
+    """Orchestrates Dual-Write (Supabase + Local). Singleton pattern recommended."""
     def __init__(self):
         self.supabase = SupabaseVaultStore()
         self.postgres = PostgresVaultStore()
         self.fs_path = VAULT_EVENTS_FILE
 
-    async def _get_last_hash(self) -> str:
-        return "0" * 64
-
     async def seal(self, event: VaultEvent) -> SealResult:
+        # 1. Real Chaining: Get previous hash from Cloud Primary
+        event.prev_hash = await self.supabase.get_last_hash()
+        
+        # 2. Compute Merkle Leaf and Chain Hash
         event.merkle_leaf = hashlib.sha256(json.dumps(event.payload, sort_keys=True).encode()).hexdigest()
-        prev = await self._get_last_hash()
-        event.chain_hash = hashlib.sha256((prev + event.merkle_leaf).encode()).hexdigest()
+        event.chain_hash = hashlib.sha256((event.prev_hash + event.merkle_leaf).encode()).hexdigest()
 
+        # 3. Supabase (Primary)
         sb_success = await self.supabase.seal(event)
+
+        # 4. Local Postgres (Witness)
         pg_success = await self.postgres.seal(event)
 
+        # 5. Filesystem (Witness)
         try:
             VAULT999_PATH.mkdir(parents=True, exist_ok=True)
             with open(self.fs_path, "a") as f:
@@ -156,6 +178,15 @@ class VaultManager:
             ledger_id=event.event_id if sb_success else "LOCAL"
         )
 
+# Module-level Singleton
+_vault_manager: VaultManager | None = None
+
+def get_vault_manager() -> VaultManager:
+    global _vault_manager
+    if _vault_manager is None:
+        _vault_manager = VaultManager()
+    return _vault_manager
+
 async def seal_to_vault(
     event_type: str,
     session_id: str,
@@ -165,7 +196,7 @@ async def seal_to_vault(
     payload: dict[str, Any] | None = None,
     risk_tier: str = "medium",
 ) -> SealResult:
-    mgr = VaultManager()
+    mgr = get_vault_manager()
     event = VaultEvent(
         event_type=event_type,
         session_id=session_id,
