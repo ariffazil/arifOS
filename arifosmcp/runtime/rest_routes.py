@@ -1398,27 +1398,24 @@ def register_rest_routes(
         if err := _auth_error_response(request):
             return err
 
-        # Only return tools in CORE_TOOL_REGISTRY (canonical 23 tools)
         mcp_tools = await mcp.list_tools()
         tool_list = []
         for tool in mcp_tools:
-            if tool.name in tool_registry:
-                entry = {
-                    "name": tool.name,
-                    "description": tool.description or "",
-                    "parameters": tool.parameters or {},
-                    "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
-                    "lane": TRINITY_BY_TOOL.get(tool.name),
+            entry = {
+                "name": tool.name,
+                "description": tool.description or "",
+                "parameters": tool.parameters or {},
+                "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
+                "lane": TRINITY_BY_TOOL.get(tool.name),
+            }
+            if tool.annotations:
+                entry["annotations"] = {
+                    "readOnlyHint": tool.annotations.readOnlyHint,
+                    "destructiveHint": tool.annotations.destructiveHint,
+                    "openWorldHint": tool.annotations.openWorldHint,
+                    "idempotentHint": tool.annotations.idempotentHint,
                 }
-                # Include MCP v2 tool annotations if available
-                if tool.annotations:
-                    entry["annotations"] = {
-                        "readOnlyHint": tool.annotations.readOnlyHint,
-                        "destructiveHint": tool.annotations.destructiveHint,
-                        "openWorldHint": tool.annotations.openWorldHint,
-                        "idempotentHint": tool.annotations.idempotentHint,
-                    }
-                tool_list.append(entry)
+            tool_list.append(entry)
         return JSONResponse({"tools": tool_list, "count": len(tool_list)})
 
     @route("/tools/", methods=["GET"])
@@ -2216,7 +2213,9 @@ def register_rest_routes(
                     "status": task.state.value if hasattr(task.state, "value") else str(task.state),
                     "task": {
                         "id": task.id,
-                        "status": task.state.value if hasattr(task.state, "value") else str(task.state),
+                        "status": task.state.value
+                        if hasattr(task.state, "value")
+                        else str(task.state),
                     },
                 }
             )
