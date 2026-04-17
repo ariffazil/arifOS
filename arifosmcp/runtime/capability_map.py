@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, Literal
 
 
 def _env_present(*names: str) -> bool:
@@ -82,6 +82,7 @@ def build_runtime_capability_map() -> dict[str, Any]:
         "openrouter": _configured("OPENROUTER_API_KEY"),
         "venice": _configured("VENICE_API_KEY"),
         "ollama_local": _url_configured("OLLAMA_URL"),
+        "minimax": _configured("MINIMAX_API_KEY"),
         "brave": _configured("BRAVE_API_KEY"),
         "jina": _configured("JINA_API_KEY"),
         "perplexity": _configured("PPLX_API_KEY", "PERPLEXITY_API_KEY"),
@@ -117,6 +118,7 @@ def build_runtime_capability_map() -> dict[str, Any]:
         providers["openrouter"],
         providers["venice"],
         providers["ollama_local"],
+        providers["minimax"],
     ]
     grounding_provider_states = [
         providers["brave"],
