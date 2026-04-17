@@ -447,6 +447,7 @@ async def seal(
             import json as _json
 
             async def _pg_write():
+                import uuid
                 conn = await asyncpg.connect(_pg_url)
                 try:
                     # 1. Ensure 999 Schema exists
@@ -454,7 +455,7 @@ async def seal(
                         """
                         CREATE TABLE IF NOT EXISTS vault_events (
                             id SERIAL PRIMARY KEY,
-                            event_id UUID DEFAULT gen_random_uuid(),
+                            event_id UUID NOT NULL,
                             event_type VARCHAR(64) NOT NULL,
                             session_id VARCHAR(128) NOT NULL,
                             actor_id VARCHAR(128),
@@ -488,16 +489,18 @@ async def seal(
                     )
 
                     # 2. Insert into vault_events
+                    new_event_id = uuid.uuid4()
                     row = await conn.fetchrow(
                         """
                         INSERT INTO vault_events (
-                            event_type, session_id, actor_id,
+                            event_id, event_type, session_id, actor_id,
                             stage, verdict, payload, risk_tier,
                             merkle_leaf, prev_hash, chain_hash,
                             signature, signed_by
-                        ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12)
+                        ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12, $13)
                         RETURNING id
                         """,
+                        new_event_id,
                         "SEAL",
                         session_id,
                         (auth_context or {}).get("actor_id", "anonymous"),

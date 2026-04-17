@@ -144,3 +144,45 @@ def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
         return True
     except Exception:
         return False
+
+async def anchor_well_to_vault(summary: str = "WELL Substrate Anchor", force: bool = False) -> Dict[str, Any]:
+    """
+    Anchor current WELL state to the arifOS VAULT999.
+    Provides immutable grounding for biological telemetry.
+    """
+    readiness = get_biological_readiness()
+    if not readiness["ok"] and not force:
+        return {"ok": False, "message": "Substrate offline. Anchor aborted."}
+    
+    try:
+        from core.organs._4_vault import seal
+        
+        # Build telemetry for the vault
+        telemetry = {
+            "well_score": readiness["well_score"],
+            "well_verdict": readiness["verdict"],
+            "well_bandwidth": readiness["bandwidth"],
+            "well_violations": readiness.get("violations", []),
+            "source": "WELL-Substrate"
+        }
+        
+        # Final seal of substrate state
+        res = await seal(
+            session_id="WELL-AUTO-SYNC",
+            summary=summary,
+            verdict="SEAL" if readiness["verdict"] in ("OPTIMAL", "FUNCTIONAL") else "HOLD",
+            telemetry=telemetry,
+            source_agent="well",
+            pipeline_stage="999_VAULT",
+            risk_tier="LOW"
+        )
+        
+        return {
+            "ok": True,
+            "vault_id": res.seal_record.ledger_id,
+            "hash": res.seal_record.hash,
+            "verdict": res.verdict
+        }
+    except Exception as e:
+        logger.error(f"VAULT ANCHOR FAILED: {e}")
+        return {"ok": False, "error": str(e)}
