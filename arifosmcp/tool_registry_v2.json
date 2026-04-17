@@ -127,7 +127,7 @@
       "tier": "T00",
       "stage": "000_INIT",
       "name": "arifos_arifos_memory",
-      "description": "Retrieve episodic and semantic memory from VAULT999.",
+      "description": "Governed retrieval and ingestion of episodic and semantic memory via Stage 444.",
       "pipeline_stage": "000_INIT",
       "irreversible": false,
       "requires_human": false,
