@@ -168,6 +168,9 @@ def get_last_vault_entry_hash(path: Path = DEFAULT_VAULT_PATH) -> str:
 
     try:
         with open(path, "rb") as f:
+            f.seek(0, 2)
+            if f.tell() == 0:
+                return _CHAIN_SEED
             try:
                 f.seek(-2, os.SEEK_END)
                 while f.read(1) != b"\n":
@@ -179,6 +182,24 @@ def get_last_vault_entry_hash(path: Path = DEFAULT_VAULT_PATH) -> str:
                 return _CHAIN_SEED
             data = json.loads(last_line)
             return data.get("chain", {}).get("entry_hash", _CHAIN_SEED)
+    except Exception:
+        return _CHAIN_SEED
+
+
+async def get_last_seal_root() -> str:
+    """Retrieve the last Merkle Root from the vault_seals PostgreSQL table."""
+    _pg_url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
+    if not _pg_url:
+        return _CHAIN_SEED
+    try:
+        import asyncpg
+
+        conn = await asyncpg.connect(_pg_url)
+        root = await conn.fetchval(
+            "SELECT merkle_root FROM vault_seals ORDER BY id DESC LIMIT 1"
+        )
+        await conn.close()
+        return root or _CHAIN_SEED
     except Exception:
         return _CHAIN_SEED
 

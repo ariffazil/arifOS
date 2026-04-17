@@ -147,11 +147,34 @@ async def init(
     session_id = session_id or secrets.token_hex(16)
 
     # --- Metabolic Loop Grounding (F1 Continuity) ---
+    # Every session is born anchored to the last verified Merkle Root from vault_seals.
+    # This prevents 'isolated bubble' sessions and enforces cross-time tamper evidence.
     try:
+        from ._4_vault import get_last_seal_root, seal
+        prev_hash = await get_last_seal_root()
+        
+        # Write birth certificate to VAULT999
+        # This is the 000_INIT session-open event.
+        await seal(
+            session_id=session_id,
+            summary=f"Session Ignition: {intent.query[:64]}...",
+            verdict="SEAL",
+            telemetry={
+                "actor_id": gov.actor_id,
+                "authority": authority.value,
+                "loop": "OPEN",
+                "grounding": "vault_seals"
+            },
+            source_agent="arifos_init",
+            pipeline_stage="000_INIT",
+            auth_context={"actor_id": gov.actor_id},
+            expected_prev_hash=prev_hash if prev_hash != ("0x" + "0" * 64) else None
+        )
+    except Exception as e:
+        # Fallback to local entry hash if seal_root retrieval fails
         from ._4_vault import get_last_vault_entry_hash
         prev_hash = get_last_vault_entry_hash()
-    except Exception:
-        prev_hash = "0x" + "0" * 64
+        print(f"DEBUG: Session ignition fallback to local hash: {e}")
 
     return InitOutput(
         session_id=session_id,
