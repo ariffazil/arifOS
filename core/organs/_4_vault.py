@@ -520,38 +520,44 @@ async def seal(
                     )
 
                     # 3. Check if batch seal (vault_seals) is warranted
-                    # Constitutional Trigger: Every 72 events or Phoenix-72 cycle
+                    # Constitutional Trigger: Every 5 events or Phoenix-72 cycle
+                    # (Reduced from 72 to 5 for bootstrap phase)
                     event_count = await conn.fetchval("SELECT count(*) FROM vault_events")
-                    if event_count % 72 == 0:
+                    if event_count >= 5:
+                        # Only seal if there are unsealed events
                         last_seal = await conn.fetchrow("SELECT * FROM vault_seals ORDER BY id DESC LIMIT 1")
                         first_id = (last_seal['last_event_id'] + 1) if last_seal else 1
                         last_id = row['id']
                         
-                        # Compute simple root hash for the batch
-                        batch_hashes = await conn.fetch(
-                            "SELECT merkle_leaf FROM vault_events WHERE id BETWEEN $1 AND $2 ORDER BY id",
-                            first_id, last_id
-                        )
-                        combined = "".join([r['merkle_leaf'] for r in batch_hashes])
-                        merkle_root = hashlib.sha256(combined.encode()).hexdigest()
-                        
-                        await conn.execute(
-                            """
-                            INSERT INTO vault_seals (
-                                tree_size, merkle_root, prev_root,
-                                first_event_id, last_event_id,
-                                signature, signed_by
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-                            """,
-                            len(batch_hashes),
-                            merkle_root,
-                            last_seal['merkle_root'] if last_seal else _CHAIN_SEED,
-                            first_id,
-                            last_id,
-                            signature, # Batch signature
-                            "888_AUDITOR"
-                        )
-                        logger.info("Vault-999 Checkpoint: Merkle Root %s anchored", merkle_root[:16])
+                        if last_id >= first_id:
+                            # Compute simple root hash for the batch
+                            batch_hashes = await conn.fetch(
+                                "SELECT merkle_leaf FROM vault_events WHERE id BETWEEN $1 AND $2 ORDER BY id",
+                                first_id, last_id
+                            )
+                            # Filter out empty leaves (from manual/failed entries)
+                            valid_hashes = [r['merkle_leaf'] for r in batch_hashes if r['merkle_leaf']]
+                            if valid_hashes:
+                                combined = "".join(valid_hashes)
+                                merkle_root = hashlib.sha256(combined.encode()).hexdigest()
+                                
+                                await conn.execute(
+                                    """
+                                    INSERT INTO vault_seals (
+                                        tree_size, merkle_root, prev_root,
+                                        first_event_id, last_event_id,
+                                        signature, signed_by
+                                    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                                    """,
+                                    len(valid_hashes),
+                                    merkle_root,
+                                    last_seal['merkle_root'] if last_seal else _CHAIN_SEED,
+                                    first_id,
+                                    last_id,
+                                    signature, # Batch signature
+                                    "888_AUDITOR"
+                                )
+                                logger.info("Vault-999 Checkpoint: Merkle Root %s anchored", merkle_root[:16])
 
                 finally:
                     await conn.close()
