@@ -14,10 +14,16 @@ Date: 2026-04-18
 import os
 import sys
 import json
-import hashlib
 import logging
 from datetime import datetime, timezone
 from typing import Optional
+
+try:
+    import blake3
+    _HAS_BLAKE3 = True
+except ImportError:
+    _HAS_BLAKE3 = False
+    import hashlib
 
 import asyncpg
 from fastapi import FastAPI, HTTPException, Header, Depends
@@ -101,12 +107,16 @@ def compute_seal_hash(agent_id: str, action: str, payload: dict, epoch: str,
         "cli_proposal_hash": cli_proposal_hash
     }
     canonical_json = json.dumps(canonical, separators=(",", ":"), sort_keys=True)
+    if _HAS_BLAKE3:
+        return blake3.blake3(canonical_json.encode("utf-8")).hexdigest(32)
     return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
 
 def compute_chain_hash(verdict: str, human_signature: str, ratified_at: str,
                        prev_seal_hash: Optional[str]) -> str:
-    """SHA256(verdict + human_signature + ratified_at + prev_seal_hash)"""
+    """BLAKE3(verdict + human_signature + ratified_at + prev_seal_hash). SHA-256 fallback."""
     chain_input = verdict + human_signature + ratified_at + (prev_seal_hash or "GENESIS")
+    if _HAS_BLAKE3:
+        return blake3.blake3(chain_input.encode("utf-8")).hexdigest(32)
     return hashlib.sha256(chain_input.encode("utf-8")).hexdigest()
 
 # ============================================================

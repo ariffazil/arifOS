@@ -83,12 +83,26 @@ async def lifespan(app: FastAPI):
 # ============================================================
 # HELPERS
 # ============================================================
+try:
+    import blake3
+    _HAS_BLAKE3 = True
+except ImportError:
+    _HAS_BLAKE3 = False
+    import hashlib
+
 def compute_payload_hash(data: dict) -> str:
+    """BLAKE3 of canonical JSON payload. SHA-256 fallback."""
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
+    if _HAS_BLAKE3:
+        return blake3.blake3(canonical.encode()).hexdigest(32)
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 def compute_chain_hash(prev_hash: str, payload_hash: str) -> str:
-    return hashlib.sha256(f"{prev_hash}{payload_hash}".encode()).hexdigest()
+    """BLAKE3(prev_hash + payload_hash). SHA-256 fallback."""
+    combined = f"{prev_hash}{payload_hash}"
+    if _HAS_BLAKE3:
+        return blake3.blake3(combined.encode()).hexdigest(32)
+    return hashlib.sha256(combined.encode()).hexdigest()
 
 async def get_last_seal(pool: asyncpg.Pool) -> dict | None:
     async with pool.acquire() as conn:
