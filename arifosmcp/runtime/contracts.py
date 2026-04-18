@@ -361,7 +361,7 @@ DOMAIN_PAYLOAD_GATES = {
     "arifos_judge": {"required": ["query", "risk_tier"]},
     "arifos_memory": {"required": ["query"]},
     "arifos_vault": {"required": ["verdict"]},
-    "arifos_forge": {"required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"]},
+    "arifos_forge": {"required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star", "judge_state_hash"]},
     "arifos_gateway": {"required": ["session_id"]},
     "arifos_health": {"required": []},
 }

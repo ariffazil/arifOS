@@ -497,7 +497,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         floors=("F1", "F2", "F7", "F13"),
         input_schema={
             "type": "object",
-            "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"],
+            "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star", "judge_state_hash"],
             "properties": {
                 "action": {
                     "type": "string",
@@ -520,6 +520,10 @@ TOOLS: tuple[ToolSpec, ...] = (
                 "judge_g_star": {
                     "type": "number",
                     "description": "Judge G* confidence score from the arifos_judge SEAL verdict. Used for thermodynamic cost accounting.",
+                },
+                "judge_state_hash": {
+                    "type": "string",
+                    "description": "Hash of the judge state used to authorize forge and preserve replay integrity.",
                 },
                 "dry_run": {
                     "type": "boolean",

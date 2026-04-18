@@ -19,10 +19,7 @@ from typing import Any
 
 from core.governance_kernel import GovernanceKernel
 from core.recovery.rollback_engine import outcome_ledger, rollback_engine
-
-# RuntimeEnvelope is a dict type for tool outputs
-RuntimeEnvelope = dict[str, Any]
-
+from arifosmcp.runtime.models import RuntimeEnvelope
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXECUTION MANIFEST SCHEMA
@@ -50,6 +47,7 @@ class ExecutionManifest:
         session_id: str,
         judge_verdict: str,
         judge_g_star: float,
+        judge_state_hash: str,
         action: str,
         payload: dict[str, Any],
         constraints: dict[str, Any] | None = None,
@@ -59,6 +57,7 @@ class ExecutionManifest:
         self.session_id = session_id
         self.judge_verdict = judge_verdict
         self.judge_g_star = judge_g_star
+        self.judge_state_hash = judge_state_hash
         self.autonomy_level = autonomy_level
         self.action = action
         self.payload = payload
@@ -80,6 +79,7 @@ class ExecutionManifest:
             "session_id": self.session_id,
             "judge_verdict": self.judge_verdict,
             "judge_g_star": round(self.judge_g_star, 4),
+            "judge_state_hash": self.judge_state_hash,
             "action": self.action,
             "payload": self.payload,
             "constraints": self.constraints,
@@ -103,6 +103,7 @@ class ExecutionManifest:
             "session_id": self.session_id,
             "judge_verdict": self.judge_verdict,
             "judge_g_star": self.judge_g_star,
+            "judge_state_hash": self.judge_state_hash,
             "action": self.action,
             "payload": self.payload,
             "constraints": self.constraints,
@@ -123,6 +124,7 @@ async def arifos_forge(
     session_id: str,
     judge_verdict: str,
     judge_g_star: float,
+    judge_state_hash: str,
     constraints: dict[str, Any] | None = None,
     ttl_seconds: int = 300,
     dry_run: bool = True,
@@ -150,6 +152,7 @@ async def arifos_forge(
         session_id: Source session ID
         judge_verdict: Must be "SEAL" (from arifos.judge)
         judge_g_star: G★ score at time of verdict
+        judge_state_hash: Integrity hash of the judge state that authorized forge
         constraints: Resource limits for execution
         ttl_seconds: Manifest validity window
         dry_run: If True, generate manifest but don't dispatch
@@ -207,6 +210,7 @@ async def arifos_forge(
         session_id=session_id,
         judge_verdict=judge_verdict,
         judge_g_star=judge_g_star,
+        judge_state_hash=judge_state_hash,
         action=action,
         payload=payload,
         constraints=rollback_context["constraints"],
@@ -298,27 +302,25 @@ def _forge_error(
     rollback: dict[str, Any] | None = None,
 ) -> RuntimeEnvelope:
     """Generate forge error envelope."""
-    return {
-        "ok": False,
-        "tool": "arifos.forge",
-        "canonical_tool_name": "arifos.forge",
-        "stage": "FORGE_010",
-        "session_id": session_id,
-        "verdict": "VOID",
-        "status": "ERROR",
-        "errors": [{
-            "code": code,
-            "message": message,
-            "stage": "FORGE_010",
-            "judge_verdict": judge_verdict,
-        }],
-        "payload": {
+    return RuntimeEnvelope(
+        ok=False,
+        tool="arifos_forge",
+        canonical_tool_name="arifos_forge",
+        stage="010_FORGE",
+        session_id=session_id,
+        verdict="VOID",
+        execution_status="ERROR",
+        detail=message,
+        code=code,
+        retryable=False,
+        payload={
             "error": message,
             "resolution": "Route through arifos_judge first to obtain SEAL verdict.",
             "rollback": rollback or {},
+            "judge_verdict": judge_verdict,
         },
-        "allowed_next_tools": ["arifos_judge", "arifos_init"],
-    }
+        allowed_next_tools=["arifos_judge", "arifos_init"],
+    )
 
 
 def _forge_success(
@@ -341,17 +343,18 @@ def _forge_success(
         payload["receipt_hash"] = receipt_hash
         payload["vault_log"] = f"vault://executions/{receipt_hash}"
 
-    return {
-        "ok": True,
-        "tool": "arifos.forge",
-        "canonical_tool_name": "arifos.forge",
-        "stage": "FORGE_010",
-        "session_id": session_id,
-        "verdict": "SEAL",
-        "status": "SUCCESS",
-        "payload": payload,
-        "allowed_next_tools": ["arifos_vault", "arifos_memory"],
-    }
+    return RuntimeEnvelope(
+        ok=True,
+        tool="arifos_forge",
+        canonical_tool_name="arifos_forge",
+        stage="010_FORGE",
+        session_id=session_id,
+        verdict="SEAL",
+        execution_status="SUCCESS",
+        governance_status="APPROVED",
+        payload=payload,
+        allowed_next_tools=["arifos_vault", "arifos_memory"],
+    )
 
 
 def _prepare_rollback_context(
