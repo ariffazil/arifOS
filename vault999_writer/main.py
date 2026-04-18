@@ -32,7 +32,7 @@ from pydantic import BaseModel, Field
 # ============================================================
 # CONFIGURATION
 # ============================================================
-VAULT999_DB = os.getenv("VAULT999_DB", "postgresql://arifos_admin:ArifPostgresVault2026!@72.62.71.199:5432/vault999")
+VAULT999_DB = os.getenv("VAULT999_DB", "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 logging.basicConfig(
@@ -138,38 +138,32 @@ class VaultDB:
             """)
             prev_seal_id = prev_row["id"] if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
+            from datetime import datetime, timezone
+            epoch_val = datetime.fromisoformat(req.epoch) if isinstance(req.epoch, str) else req.epoch
             prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
 
             # seal_hash = BLAKE3(prev_chain_hash | action | epoch | canonical(payload))
             seal_hash = compute_seal_hash(
-                prev_chain_hash, req.action, req.epoch, req.payload
+                prev_chain_hash, req.action, epoch_val, req.payload
             )
             # chain_hash = BLAKE3(prev_seal_hash | seal_hash)
             chain_hash = compute_chain_hash(
                 prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash
             )
 
-            # Insert
+            # Insert — actual vault_seals schema (no cooling_id, agent_id, etc.)
             row = await conn.fetchrow("""
                 INSERT INTO vault_seals (
                     seal_hash, chain_hash, prev_seal_id, 
-                    cooling_id, cli_proposal_hash, session_id,
-                    agent_id, action, payload, epoch,
-                    verdict, human_ratifier, human_signature, ratified_at,
-                    irreversibility_ack, irreversibility_class,
-                    provenance_tag, tags, metadata
+                    action, payload, verdict, epoch, witness
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                    $11, $12, $13, $14, $15, $16, 'human', $17, $18
+                    $1, $2, $3, $4, $5, $6, $7, $8
                 )
-                RETURNING id, seal_hash, chain_hash, ratified_at
+                RETURNING id, seal_hash, chain_hash, epoch
             """,
                 seal_hash, chain_hash, prev_seal_id,
-                req.cooling_id, req.cli_proposal_hash, req.session_id,
-                req.agent_id, req.action, json.dumps(req.payload), req.epoch,
-                req.verdict, req.human_ratifier, req.human_signature, req.ratified_at,
-                req.irreversibility_ack, req.irreversibility_class,
-                req.tags, json.dumps(req.metadata)
+                req.action, json.dumps(req.payload), req.verdict, epoch_val,
+                json.dumps({"human_ratifier": req.human_ratifier, "human_signature": req.human_signature, "agent_id": req.agent_id})
             )
             log.info(f"SEAL written: id={row['id']}, action={req.action}, seal_hash={seal_hash[:16]}")
             return dict(row)

@@ -13,6 +13,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from core.shared.mottos import (
@@ -631,13 +632,74 @@ async def vault_ledger_dispatch_impl(
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
     if mode == "seal":
-        return await _wrap_call(
-            "vault_seal",
-            Stage.VAULT_999,
-            session_id,
-            {"verdict": payload.get("verdict", "SABAR"), "evidence": payload.get("evidence", "")},
-            ctx,
-        )
+        # Route SEAL writes through vault999_writer (writer_service)
+        writer_url = os.environ.get("VAULT999_WRITER_URL", "http://vault999-writer:5001")
+        verdict = payload.get("verdict", "SEAL")
+        evidence = payload.get("evidence", "")
+        agent_id = "arifOS_bot"
+        human_signature = payload.get("human_signature", "") or ""
+        from datetime import datetime, timezone
+        now_iso = datetime.now(timezone.utc).isoformat()
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                r = await client.post(
+                    f"{writer_url}/seal",
+                    json={
+                        "agent_id": agent_id,
+                        "verdict": verdict,
+                        "action": payload.get("action", "VAULT999_MCP_SEAL"),
+                        "epoch": now_iso,
+                        "human_ratifier": payload.get("human_ratifier", "arif-fazil"),
+                        "ratified_at": now_iso,
+                        "payload": {
+                            "organ": payload.get("organ", "arifOS"),
+                            "session_id": session_id,
+                            "evidence": evidence,
+                            "source_agent": payload.get("source_agent", "arifOS_bot"),
+                            "pipeline_stage": payload.get("pipeline_stage", "999_VAULT"),
+                            "test": payload.get("test", False),
+                        },
+                        "human_signature": human_signature,
+                    },
+                )
+            if r.status_code in (200, 201):
+                data = r.json()
+                from arifosmcp.runtime.models import RuntimeStatus
+                return RuntimeEnvelope(
+                    ok=True,
+                    tool="vault_ledger",
+                    session_id=session_id,
+                    stage=Stage.VAULT_999.value,
+                    verdict=Verdict.SEAL,
+                    status=RuntimeStatus.SUCCESS,
+                    payload={
+                        "sealed": True,
+                        "ledger_id": data.get("id", "unknown"),
+                        "seal_hash": data.get("seal_hash", ""),
+                        "chain_hash": data.get("chain_hash", ""),
+                        "writer_response": data,
+                    },
+                )
+            else:
+                return _create_error_envelope(
+                    tool_name="vault_ledger",
+                    stage=Stage.VAULT_999.value,
+                    session_id=session_id,
+                    error_msg=f"vault999_writer failed: {r.status_code} {r.text}",
+                    error_code="WRITER_ERROR",
+                    verdict=Verdict.VOID,
+                )
+        except Exception as e:
+            logger.error(f"vault_ledger_dispatch_impl writer error: {e}")
+            return _create_error_envelope(
+                tool_name="vault_ledger",
+                stage=Stage.VAULT_999.value,
+                session_id=session_id,
+                error_msg=f"vault999_writer unreachable: {e}",
+                error_code="WRITER_UNAVAILABLE",
+                verdict=Verdict.VOID,
+            )
     elif mode == "verify":
         return await _wrap_call(
             "verify_vault_ledger",
