@@ -363,7 +363,7 @@ async def vault_status():
             "SELECT count(*) FROM cooling_queue WHERE status = 'awaiting_human'"
         )
         last_seal = await conn.fetchrow(
-            "SELECT id, action, verdict, epoch, chain_hash FROM vault_seals ORDER BY epoch DESC LIMIT 1"
+            "SELECT id, action, verdict, epoch, seal_hash, chain_hash FROM vault_seals ORDER BY epoch DESC LIMIT 1"
         )
         chain_info = await verify_chain(pool)
     
@@ -378,7 +378,7 @@ async def vault_status():
             "action": last_seal["action"] if last_seal else None,
             "verdict": last_seal["verdict"] if last_seal else None,
             "epoch": last_seal["epoch"].isoformat() if last_seal else None,
-            "chain_hash": last_seal["chain_hash"] if last_seal else None,
+            "seal_hash": last_seal.get("seal_hash") if last_seal else None,
             "chain_hash": last_seal["chain_hash"] if last_seal else None,
         } if last_seal else None,
         "append_only_enforced": True,  # confirmed by trigger
@@ -446,7 +446,7 @@ async def vault_audit(seal_id: str):
     
     return {
         "seal_id": str(s["id"]),
-        "chain_hash": s.get("chain_hash"),
+        "seal_hash": s.get("seal_hash"),
         "chain_hash": s.get("chain_hash"),
         "action": s.get("action"),
         "verdict": s.get("verdict"),
@@ -484,7 +484,7 @@ async def vault_receipt(seal_id: str):
     if s.get("prev_seal_id"):
         async with pool.acquire() as conn2:
             prev = await conn2.fetchrow(
-                "SELECT chain_hash, chain_hash FROM vault_seals WHERE id = $1",
+                "SELECT seal_hash, chain_hash FROM vault_seals WHERE id = $1",
                 s["prev_seal_id"],
             )
             if prev:
@@ -512,8 +512,9 @@ async def vault_receipt(seal_id: str):
         f"  Agent       : {p.get('agent_id', 'N/A')}",
         f"  Cooling ID  : {str(s.get('cooling_id')) if s.get('cooling_id') else 'N/A'}",
         "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-        f"  Seal Hash   : {s['chain_hash'][:32]}...",
-        f"  Chain Hash  : {s['chain_hash'][:32]}...",
+        f"  Seal Hash   : {(s.get('seal_hash') or 'N/A')[:32]}...",
+        f"  Chain Hash  : {(s.get('chain_hash') or 'N/A')[:32]}...",
+        f"  Organ       : {p.get('organ', 'N/A')}",
         f"  Prev Link   : {str(s['prev_seal_id']) if s.get('prev_seal_id') else 'GENESIS'}",
         "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
         f"  Chain Status: {'✅ INTACT' if chain_ok else '❌ BROKEN'}",
