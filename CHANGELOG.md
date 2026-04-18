@@ -7,6 +7,7 @@ All notable changes to arifOS MCP are documented in this file.
 ### Changed
 - `arifosmcp/tool_registry.json` — deprecated. Replaced with redirect pointer to `tool_registry_v2.json` (99-tool T00–T07 tier architecture, EPOCH-2026-04-16).
 - `arifos_route` removed from registry — routing is fully handled by `arifos_kernel` (T00_06). No live callers exist.
+- Quickstart and public onboarding docs now use `https://mcp.arif-fazil.com/mcp` as the single canonical MCP endpoint; `arifosmcp.arif-fazil.com` remains redirect-only.
 
 ### Added
 - `arifosmcp/TOOL_NAMESPACING.md` — documents `arifos_*` public API layer vs internal axis substrate (`P_/T_/V_/G_/E_/M_`). Option A architecture proposed, pending 888-A sovereign confirmation from Arif.

@@ -1,27 +1,17 @@
 {
   "schema_version": "v1",
-  "name_for_model": "arifOS",
-  "name_for_human": "arifOS Sovereign Hub",
-  "description_for_model": "Governance kernel for AI agents. Enforces 13 Constitutional Floors (Truth, Clarity, Humility, etc.). Use this to verify facts, simulate consequences, and ensure governed reasoning.",
-  "description_for_human": "The Sovereign AI Governance Hub for arifOS.",
+  "name_for_human": "arifOS MCP Gateway",
+  "name_for_model": "arifos_mcp",
+  "description_for_human": "arifOS constitutional AI governance tools — mind, sense, judge, vault, memory.",
+  "description_for_model": "Call arifOS constitutional tools: arifos_init, arifos_sense, arifos_mind, arifos_heart, arifos_judge, arifos_vault, arifos_memory, arifos_ops, arifos_kernel, arifos_forge, arifos_gateway.",
   "auth": {
     "type": "none"
   },
   "api": {
     "type": "openapi",
-    "url": "https://arifosmcp.arif-fazil.com/openapi.json"
+    "url": "https://mcp.arif-fazil.com/openapi.json"
   },
-  "logo_url": "https://arifosmcp.arif-fazil.com/static-sites/developer/assets/logo.png",
-  "contact_email": "arifbfazil@gmail.com",
-  "legal_info_url": "https://arifos.arif-fazil.com/legal",
-  "trinity_network": {
-    "human": "https://arif-fazil.com/",
-    "theory": "https://arifos.arif-fazil.com/",
-    "apps": "https://arifosmcp.arif-fazil.com/"
-  },
-  "governance": {
-    "protocol": "arifOS v2026.03.14",
-    "handshake_required": true,
-    "instructions": "Process all data through the 13 Constitutional Floors. Negative ΔS required."
-  }
+  "logo_url": "https://mcp.arif-fazil.com/logo.png",
+  "contact_email": "arif@arif-fazil.com",
+  "legal_info_url": "https://mcp.arif-fazil.com"
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>arifOS MCP — Constitutional AI Gateway</title>
     <meta name="description" content="Constitutional tools, prompts, and resources for reality-aligned AI. MCP endpoint at /mcp, health at /health, 13 constitutional floors enforced.">
-    <link rel="canonical" href="https://arifosmcp.arif-fazil.com/">
+    <link rel="canonical" href="https://mcp.arif-fazil.com/">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>Δ</text></svg>">
     <link rel="alternate" type="application/llm-fulltext" href="/llms.txt">
     <link rel="alternate" type="application/json" href="/.well-known/mcp/server.json">
@@ -298,7 +298,7 @@
                         <div class="endpoint-block">
                             <div style="margin-bottom: 12px;">
                                 <span class="method method-get">GET</span>
-                                <code>https://arifosmcp.arif-fazil.com</code>
+                                <code>https://mcp.arif-fazil.com</code>
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <span class="method method-post">POST</span>
@@ -329,13 +329,13 @@
                             <button class="tab" onclick="showTab(this, 'http')">Direct HTTP</button>
                         </div>
                         <pre id="sdk-example"><code>npx @anthropic/mcp install arifos \\
-  --url https://arifosmcp.arif-fazil.com/mcp
+  --url https://mcp.arif-fazil.com/mcp
 
 # Or add to claude_desktop_config.json:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifosmcp.arif-fazil.com/mcp"
+      "url": "https://mcp.arif-fazil.com/mcp"
     }
   }
 }</code></pre>
@@ -896,17 +896,17 @@
             
             const examples = {
                 claude: `<code>npx @anthropic/mcp install arifos \\
-  --url https://arifosmcp.arif-fazil.com/mcp
+  --url https://mcp.arif-fazil.com/mcp
 
 # Or add to claude_desktop_config.json:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifosmcp.arif-fazil.com/mcp"
+      "url": "https://mcp.arif-fazil.com/mcp"
     }
   }
 }`,
-                http: `<code>curl -X POST https://arifosmcp.arif-fazil.com/mcp \\
+                http: `<code>curl -X POST https://mcp.arif-fazil.com/mcp \\
   -H "Content-Type: application/json" \\
   -d '{
     "jsonrpc": "2.0",

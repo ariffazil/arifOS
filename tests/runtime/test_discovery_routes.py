@@ -23,6 +23,28 @@ def test_well_known_agent_reachable(client):
     assert "endpoints" in data
     assert data["name"] == "arifOS MCP Server"
 
+def test_ai_plugin_manifest_reachable(client):
+    """Test that /.well-known/ai-plugin.json is reachable for ChatGPT Apps discovery."""
+    response = client.get("/.well-known/ai-plugin.json")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["schema_version"] == "v1"
+    assert data["name_for_model"] == "arifos_mcp"
+    assert data["auth"]["type"] == "none"
+    assert data["api"]["url"].endswith("/openapi.json")
+
+
+def test_openapi_exposes_arifos_mind_query_schema(client):
+    """Test that OpenAPI advertises arifos_mind with query, not input."""
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+    data = response.json()
+    mind_path = data["paths"]["/tools/arifos_mind"]["post"]
+    schema = mind_path["requestBody"]["content"]["application/json"]["schema"]
+    assert schema["required"] == ["query"]
+    assert "query" in schema["properties"]
+    assert "input" not in schema["properties"]
+
 def test_llms_txt_reachable(client):
     """Test that /llms.txt is reachable (even if file doesn't exist, we test route registration)."""
     # Note: If the file doesn't exist in the test environment, this might be 404

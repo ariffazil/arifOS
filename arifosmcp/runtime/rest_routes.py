@@ -929,10 +929,10 @@ def _load_welcome_html() -> str:
 
     # Try multiple paths for different deployment contexts
     possible_paths = [
-        "/usr/src/app/runtime/landing_page.html",
-        "/usr/src/app/arifosmcp/runtime/landing_page.html",
-        "/root/ariffazil/arifOS/arifosmcp/runtime/landing_page.html",
         os.path.join(os.path.dirname(__file__), "landing_page.html"),
+        "/usr/src/app/arifosmcp/runtime/landing_page.html",
+        "/usr/src/app/runtime/landing_page.html",
+        "/root/ariffazil/arifOS/arifosmcp/runtime/landing_page.html",
     ]
 
     html_content = ""
@@ -950,7 +950,7 @@ def _load_welcome_html() -> str:
         html_content = """<!DOCTYPE html>
 <html><head><title>arifOS MCP</title></head>
 <body><h1>arifOS MCP Server 2.0.0</h1>
-<p>Endpoint: <code>https://arifosmcp.arif-fazil.com/mcp</code></p>
+<p>Endpoint: <code>https://mcp.arif-fazil.com/mcp</code></p>
 <p><strong>DITEMPA BUKAN DIBERI</strong> — Forged, not given.</p>
 </body></html>"""
 
@@ -1278,8 +1278,114 @@ def _public_base_url(request: Request) -> str:
     return f"{scheme}://{host}".rstrip("/")
 
 
-def _openapi_schema(base_url: str) -> dict[str, Any]:
-    return {
+def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
+    paths: dict[str, Any] = {
+        "/tools": {
+            "get": {
+                "operationId": "listTools",
+                "summary": "List public tools",
+                "description": "Returns the live REST-callable MCP tool surface and input schemas.",
+                "responses": {
+                    "200": {
+                        "description": "Available tools",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/ToolListResponse"}
+                            }
+                        },
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                },
+            }
+        }
+    }
+
+    for tool in tools:
+        tool_name = tool.name
+        request_schema = tool.parameters or {"type": "object", "properties": {}}
+        paths[f"/tools/{tool_name}"] = {
+            "post": {
+                "operationId": f"call_{tool_name}",
+                "summary": tool.description or f"Call {tool_name}",
+                "description": (
+                    f"Invoke the `{tool_name}` tool over the public REST compatibility surface."
+                ),
+                "requestBody": {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": request_schema,
+                        }
+                    },
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tool executed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {"$ref": "#/components/schemas/ToolInvocationResponse"},
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "tool": {"type": "string", "const": tool_name},
+                                                "canonical": {"type": "string", "const": tool_name},
+                                            },
+                                        },
+                                    ]
+                                }
+                            }
+                        },
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                    "404": {
+                        "description": "Tool not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                    "500": {
+                        "description": "Tool execution failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                },
+            }
+        }
+
+    return paths
+
+
+def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
+    schema = {
         "openapi": "3.1.0",
         "info": {
             "title": "arifOS REST API",
@@ -1287,7 +1393,8 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
             "description": (
                 "arifOS constitutional governance REST API. "
                 "MCP clients: connect to `POST /mcp`. "
-                "This REST surface provides checkpoint evaluation and health. "
+                "This REST surface provides health, checkpoint evaluation, and direct "
+                "REST tool invocation under `/tools/{tool_name}`. "
                 "Governance registry: 13 constitutional floors, F1-F13."
             ),
         },
@@ -1421,6 +1528,41 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
                     },
                     "required": ["status", "service", "version", "transport"],
                 },
+                "ToolListEntry": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "description": {"type": "string"},
+                        "parameters": {"type": "object"},
+                        "stage": {"type": ["string", "null"]},
+                        "lane": {"type": ["string", "null"]},
+                        "annotations": {"type": "object"},
+                    },
+                    "required": ["name", "description", "parameters"],
+                },
+                "ToolListResponse": {
+                    "type": "object",
+                    "properties": {
+                        "tools": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/ToolListEntry"},
+                        },
+                        "count": {"type": "integer"},
+                    },
+                    "required": ["tools", "count"],
+                },
+                "ToolInvocationResponse": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "const": "success"},
+                        "tool": {"type": "string"},
+                        "canonical": {"type": "string"},
+                        "request_id": {"type": "string"},
+                        "latency_ms": {"type": "number"},
+                        "result": {"type": "object"},
+                    },
+                    "required": ["status", "tool", "canonical", "request_id", "latency_ms", "result"],
+                },
                 "Error": {
                     "type": "object",
                     "properties": {
@@ -1433,6 +1575,8 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
             }
         },
     }
+    schema["paths"].update(_tool_openapi_paths(base_url, tools))
+    return schema
 
 
 def register_rest_routes(
@@ -1733,7 +1877,8 @@ def register_rest_routes(
 
     @route("/openapi.json", methods=["GET"])
     async def openapi_json(request: Request) -> Response:
-        schema = _openapi_schema(_public_base_url(request))
+        mcp_tools = await mcp.list_tools()
+        schema = _openapi_schema(_public_base_url(request), mcp_tools)
         return JSONResponse(schema)
 
     @route("/tools/{tool_name:path}/call", methods=["POST"])
@@ -2809,6 +2954,18 @@ init();
         if os.path.exists(_path):
             return FileResponse(_path)
         return JSONResponse({"error": "agent.json not found"}, status_code=404)
+
+    @route("/.well-known/ai-plugin.json", methods=["GET"])
+    async def static_well_known_ai_plugin(request: Request) -> Response:
+        """Discovery: ChatGPT Apps no-auth connector manifest."""
+        candidates = [
+            os.path.join(_static_dir, ".well-known", "ai-plugin.json"),
+            os.path.join(os.path.dirname(__file__), "..", "static", ".well-known", "ai-plugin.json"),
+        ]
+        for _path in candidates:
+            if os.path.exists(_path):
+                return FileResponse(_path, media_type="application/json")
+        return JSONResponse({"error": "ai-plugin.json not found"}, status_code=404)
 
     @route("/.well-known/arifos.json", methods=["GET"])
     async def static_well_known_arifos(request: Request) -> Response:

@@ -450,7 +450,7 @@ arifOS/
 ### Hosted (Evaluation Only)
 
 ```
-https://arifosmcp.arif-fazil.com/mcp
+https://mcp.arif-fazil.com/mcp
 ```
 
 For exploration and integration testing only. **Do not use for sensitive or production workloads** — data flows through infrastructure operated by the arifOS author.
