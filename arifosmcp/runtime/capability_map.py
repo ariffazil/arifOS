@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from importlib.util import find_spec
 from typing import Any, Literal
 
 
@@ -24,6 +25,10 @@ def _secret_file_present(*names: str) -> bool:
 
 def _env_truthy(name: str) -> bool:
     return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _module_available(name: str) -> bool:
+    return find_spec(name) is not None
 
 
 def _configured(*names: str) -> str:
@@ -88,6 +93,7 @@ def build_runtime_capability_map() -> dict[str, Any]:
         "perplexity": _configured("PPLX_API_KEY", "PERPLEXITY_API_KEY"),
         "firecrawl": _configured("FIRECRAWL_API_KEY"),
         "browserless": _configured("BROWSERLESS_TOKEN"),
+        "ddgs_local": "configured" if _module_available("ddgs") else "not_configured",
     }
 
     substrates = {
@@ -126,6 +132,7 @@ def build_runtime_capability_map() -> dict[str, Any]:
         providers["perplexity"],
         providers["firecrawl"],
         providers["browserless"],
+        providers["ddgs_local"],
     ]
 
     capabilities = {
