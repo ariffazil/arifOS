@@ -23,7 +23,7 @@ import asyncpg
 # ============================================================
 DB_DSN = os.getenv(
     "VAULT999_DB",
-    "postgresql://vault_writer_svc:VaultWriterSecret2026!@72.62.71.199:5432/arifos_vault"
+    "postgresql://vault_writer_svc:VaultWriterSecret2026!@72.62.71.199:5432/vault999"
 )
 TELEMETRY_SEQ = {"value": 0}
 

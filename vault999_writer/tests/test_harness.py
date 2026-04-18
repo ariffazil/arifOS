@@ -22,7 +22,7 @@ import asyncpg
 # ============================================================
 DB_DSN = os.getenv(
     "VAULT999_DB",
-    "postgresql://arifos_admin:ArifPostgresVault2026!@72.62.71.199:5432/arifos_vault"
+    "postgresql://arifos_admin:ArifPostgresVault2026!@72.62.71.199:5432/vault999"
 )
 
 TESTS_PASSED = 0
@@ -43,7 +43,7 @@ async def get_conn():
 async def get_vault_writer_conn():
     """Connect as vault_writer_svc"""
     return await asyncpg.connect(
-        "postgresql://vault_writer_svc:VaultWriterSecret2026!@72.62.71.199:5432/arifos_vault"
+        "postgresql://vault_writer_svc:VaultWriterSecret2026!@72.62.71.199:5432/vault999"
     )
 
 # ============================================================

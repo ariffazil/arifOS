@@ -37,7 +37,7 @@ from pydantic import BaseModel, Field
 # ============================================================
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/arifos_vault"
+    "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999"
 )
 VAULT_WRITER_URL = os.environ.get(
     "VAULT_WRITER_URL",
@@ -96,7 +96,7 @@ async def get_last_seal(pool: asyncpg.Pool) -> dict | None:
             """
             SELECT id, seal_hash, chain_hash
             FROM vault_seals
-            ORDER BY ratified_at DESC
+            ORDER BY epoch DESC
             LIMIT 1
             """
         )
@@ -107,9 +107,9 @@ async def verify_chain(pool: asyncpg.Pool) -> dict:
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT id, seal_hash, chain_hash, prev_seal_id, ratified_at, verdict
+            SELECT id, seal_hash, chain_hash, prev_seal_id, epoch, verdict
             FROM vault_seals
-            ORDER BY ratified_at ASC
+            ORDER BY epoch ASC
             """
         )
     if not rows:
@@ -358,36 +358,26 @@ async def vault_status():
     
     async with pool.acquire() as conn:
         total_seals = await conn.fetchval("SELECT count(*) FROM vault_seals")
-        total_witness = await conn.fetchval("SELECT count(*) FROM vault999_witness")
         total_reviews = await conn.fetchval("SELECT count(*) FROM human_reviews")
         pending = await conn.fetchval(
             "SELECT count(*) FROM cooling_queue WHERE status = 'awaiting_human'"
         )
         last_seal = await conn.fetchrow(
-            "SELECT id, action, verdict, ratified_at, seal_hash, chain_hash FROM vault_seals ORDER BY ratified_at DESC LIMIT 1"
-        )
-        migrated = await conn.fetchval(
-            "SELECT count(*) FROM vault_seals WHERE provenance_tag = 'migrated_legacy'"
-        )
-        human_direct = await conn.fetchval(
-            "SELECT count(*) FROM vault_seals WHERE provenance_tag = 'human'"
+            "SELECT id, action, verdict, epoch, seal_hash, chain_hash FROM vault_seals ORDER BY epoch DESC LIMIT 1"
         )
         chain_info = await verify_chain(pool)
     
     return {
         "vault_seals_total": total_seals,
-        "witness_records_total": total_witness,
         "human_reviews_total": total_reviews,
         "pending_holds": pending,
-        "migrated_legacy_count": migrated,
-        "human_direct_count": human_direct,
         "chain_integrity": "INTACT" if chain_info["INTACT"] else "BROKEN",
         "chain_gaps": chain_info["gaps"],
         "last_seal": {
             "id": str(last_seal["id"]) if last_seal else None,
             "action": last_seal["action"] if last_seal else None,
             "verdict": last_seal["verdict"] if last_seal else None,
-            "ratified_at": last_seal["ratified_at"].isoformat() if last_seal else None,
+            "epoch": last_seal["epoch"].isoformat() if last_seal else None,
             "seal_hash": last_seal["seal_hash"] if last_seal else None,
             "chain_hash": last_seal["chain_hash"] if last_seal else None,
         } if last_seal else None,
@@ -414,24 +404,8 @@ async def vault_audit(seal_id: str):
         
         s = dict(seal)
         
-        # Fetch witness (ledger_id = vault_seals id — same UUID)
-        witness_rows = await conn.fetch(
-            "SELECT * FROM vault999_witness WHERE ledger_id = $1 LIMIT 1",
-            uuid.UUID(seal_id),
-        )
-        witness = None
-        if witness_rows:
-            w = dict(witness_rows[0])
-            witness = {
-                "human_witness": w.get("human_witness"),
-                "ai_witness": w.get("ai_witness"),
-                "evidence_witness": w.get("evidence_witness"),
-                "w_score": w.get("w_score"),
-                "floors_triggered": w.get("floors_triggered"),
-                "kappa_r": w.get("kappa_r"),
-                "qdf": w.get("qdf"),
-                "peace2": w.get("peace2"),
-            }
+        # Witness is embedded in vault_seals.witness JSONB
+        witness = s.get("witness")
         
         # Fetch human review — linked via cooling_id on vault_seals
         cooling_id_val = s.get("cooling_id")
@@ -477,16 +451,8 @@ async def vault_audit(seal_id: str):
         "action": s.get("action"),
         "verdict": s.get("verdict"),
         "epoch": s.get("epoch").isoformat() if s.get("epoch") else None,
-        "ratified_at": s["ratified_at"].isoformat() if s.get("ratified_at") else None,
-        "human_ratifier": s.get("human_ratifier"),
-        "human_signature": s.get("human_signature"),
-        "provenance_tag": s.get("provenance_tag"),
-        "cooling_id": str(s["cooling_id"]) if s.get("cooling_id") else None,
-        "agent_id": s.get("agent_id"),
-        "payload": s.get("payload"),
-        "metadata": s.get("tags"),
-        "irreversibility_ack": s.get("irreversibility_ack", False),
         "witness": witness,
+        "payload": s.get("payload"),
         "chain": {
             "prev_seal_id": str(s["prev_seal_id"]) if s.get("prev_seal_id") else None,
             "prev_seal_hash": prev_seal_info["prev_seal_hash"] if prev_seal_info else None,
@@ -526,6 +492,12 @@ async def vault_receipt(seal_id: str):
                 chain_ok = True  # simplified — trigger already enforces append-only
     
     verdict_marker = "🟢 SEAL" if s["verdict"] == "SEAL" else "🔴 VOID"
+    p = s.get("payload")
+    if isinstance(p, str):
+        import json as _json
+        try: p = _json.loads(p)
+        except: p = {}
+    p = p or {}
     lines = [
         "=" * 56,
         "       VAULT999 — SEAL RECEIPT",
@@ -534,12 +506,11 @@ async def vault_receipt(seal_id: str):
         f"  Verdict     : {verdict_marker}",
         f"  Action      : {s['action']}",
         f"  Epoch       : {s['epoch'].isoformat() if s.get('epoch') else 'N/A'}",
-        f"  Ratified at : {s['ratified_at'].isoformat() if s.get('ratified_at') else 'N/A'}",
-        f"  Ratifier    : {s['human_ratifier']}",
-        f"  Signature   : {s['human_signature']}",
-        f"  Provenance  : {s['provenance_tag']}",
-        f"  Agent       : {s['agent_id']}",
-        f"  Cooling ID  : {str(s['cooling_id']) if s.get('cooling_id') else 'N/A'}",
+        f"  Ratifier    : {p.get('human_ratifier', 'N/A')}",
+        f"  Signature   : {p.get('signature', p.get('human_signature', 'N/A'))}",
+        f"  Provenance  : {p.get('provenance_tag', p.get('type', 'N/A'))}",
+        f"  Agent       : {p.get('agent_id', 'N/A')}",
+        f"  Cooling ID  : {str(s.get('cooling_id')) if s.get('cooling_id') else 'N/A'}",
         "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
         f"  Seal Hash   : {s['seal_hash'][:32]}...",
         f"  Chain Hash  : {s['chain_hash'][:32]}...",
