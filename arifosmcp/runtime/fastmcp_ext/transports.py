@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -14,6 +15,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+logger = logging.getLogger(__name__)
 
 
 def _env_truthy(name: str, default: bool = False) -> bool:
@@ -106,6 +109,77 @@ class AgnosticAcceptMiddleware:
         scope["headers"] = _ensure_json_accept_header(scope.get("headers", []))
 
         await self.app(scope, receive, send)
+
+
+def _decode_headers(scope: Scope) -> dict[str, str]:
+    return {
+        key.decode("latin-1").lower(): value.decode("latin-1")
+        for key, value in scope.get("headers", [])
+    }
+
+
+def _header_preview(value: str) -> str:
+    if not value:
+        return ""
+    if value.startswith("TEST_"):
+        return value
+    if len(value) <= 8:
+        return "***"
+    return f"{value[:4]}...{value[-4:]}"
+
+
+class SovereignIdentityMiddleware:
+    """Preserve sovereign auth headers across HTTP/WebSocket transport boundaries."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope.get("type") not in {"http", "websocket"}:
+            await self.app(scope, receive, send)
+            return
+
+        headers = _decode_headers(scope)
+        sovereign_sig = headers.get("x-arifos-sovereign-sig", "").strip()
+        authorization = headers.get("authorization", "").strip()
+        derived_subject = headers.get("x-arifos-user-id", "").strip()
+
+        if not derived_subject:
+            if sovereign_sig:
+                derived_subject = "sovereign"
+            elif authorization:
+                derived_subject = "authorized"
+
+        if sovereign_sig or authorization:
+            scope["arifos_sovereign_status"] = "888_JUDGE_ACTIVE"
+            scope["arifos_sovereign_subject"] = derived_subject or "anonymous"
+
+            normalized_headers = list(scope.get("headers", []))
+            if derived_subject and "x-arifos-user-id" not in headers:
+                normalized_headers.append((b"x-arifos-user-id", derived_subject.encode("latin-1")))
+            scope["headers"] = normalized_headers
+
+            logger.info(
+                "F13 sovereign auth observed subject=%s sig=%s authorization=%s path=%s",
+                derived_subject or "anonymous",
+                _header_preview(sovereign_sig),
+                "present" if authorization else "absent",
+                scope.get("path", ""),
+            )
+
+        async def send_with_sovereign_header(message: Message) -> None:
+            if (
+                message.get("type") == "http.response.start"
+                and scope.get("arifos_sovereign_status")
+            ):
+                headers = MutableHeaders(scope=message)
+                headers["X-Arifos-Sovereign-Status"] = str(scope["arifos_sovereign_status"])
+                headers["X-Arifos-Sovereign-Subject"] = str(
+                    scope.get("arifos_sovereign_subject", "anonymous")
+                )
+            await send(message)
+
+        await self.app(scope, receive, send_with_sovereign_header)
 
 
 class BearerAuthMiddleware:
@@ -212,15 +286,14 @@ class InMemoryRateLimitMiddleware:
 
     @staticmethod
     def _client_key(scope: Scope) -> str:
-        headers = {
-            key.decode("latin-1").lower(): value.decode("latin-1")
-            for key, value in scope.get("headers", [])
-        }
+        headers = _decode_headers(scope)
         forwarded = headers.get("x-forwarded-for", "").split(",")[0].strip()
         client = scope.get("client")
         ip = forwarded or (client[0] if client else "unknown")
         subject = (
-            headers.get("mcp-session-id")
+            headers.get("x-arifos-sovereign-sig")
+            or headers.get("authorization")
+            or headers.get("mcp-session-id")
             or headers.get("openai/subject")
             or headers.get("x-arifos-user-id")
             or "anon"
@@ -315,6 +388,7 @@ def _build_http_middleware() -> list[Middleware]:
 
     # Add default Accept header for universal compatibility (must be first)
     middleware.append(Middleware(AgnosticAcceptMiddleware))
+    middleware.append(Middleware(SovereignIdentityMiddleware))
 
     # Catch arifOS errors early
     middleware.append(Middleware(ConstitutionalErrorMiddleware))
@@ -351,8 +425,14 @@ def _build_http_middleware() -> list[Middleware]:
                     "x-api-key",
                     # arifOS identity
                     "X-Arifos-User-Id",
+                    "X-Arifos-Sovereign-Sig",
                 ],
-                expose_headers=["MCP-Session-Id", "MCP-Protocol-Version"],
+                expose_headers=[
+                    "MCP-Session-Id",
+                    "MCP-Protocol-Version",
+                    "X-Arifos-Sovereign-Status",
+                    "X-Arifos-Sovereign-Subject",
+                ],
                 allow_credentials=False,
             )
         )

@@ -28,6 +28,9 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import os
+import socket
+import subprocess
+import time
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
@@ -87,16 +90,61 @@ def _fetch_live_health() -> dict[str, Any]:
     capability_map, governance state, and server identity.
     Falls back to empty dict on any error so the monitor degrades gracefully.
     """
+    started = time.perf_counter()
     try:
         import httpx
         # Use a short timeout so a unresponsive health endpoint doesn't block the tool
         with httpx.Client(timeout=3.0) as client:
+            status_response = client.get("http://localhost:8080/api/status")
+            if status_response.status_code == 200:
+                payload = status_response.json()
+                payload["_latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
+                return payload
             r = client.get("http://localhost:8080/health")
             if r.status_code == 200:
-                return r.json()
+                payload = r.json()
+                payload["_latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
+                return payload
     except Exception:
         pass
     return {}
+
+
+def _running_container_snapshot() -> tuple[int, bool]:
+    try:
+        result = subprocess.run(
+            ["docker", "ps", "--format", "{{.Names}}\t{{.Status}}"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except Exception:
+        return 0, False
+
+    running = 0
+    mcp_up = False
+    for line in result.stdout.splitlines():
+        if not line.strip():
+            continue
+        name, _, status = line.partition("\t")
+        if "Up" in status:
+            running += 1
+        if name == "A-FORGE-arifos-mcp" and "Up" in status:
+            mcp_up = True
+    return running, mcp_up
+
+
+def _port_open(port: int) -> bool:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.5)
+    try:
+        sock.connect(("127.0.0.1", port))
+        return True
+    except OSError:
+        return False
+    finally:
+        sock.close()
 
 
 # ── Traffic-light mapping ──────────────────────────────────────────────────────
@@ -224,6 +272,116 @@ _STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
     "CRITICAL":   {"badge": "BLOCKED",  "posture": "Hard floor violated. No consequential action permitted. Human required.",              "variant": "destructive"},
 }
 
+_SIGNAL_VARIANTS = {
+    "positive": "success",
+    "neutral": "warning",
+    "negative": "destructive",
+}
+
+
+def _derive_signal_matrix(
+    health: dict[str, Any],
+    floors: list[dict[str, Any]],
+) -> list[dict[str, str]]:
+    thermo = health.get("thermodynamic") or {}
+    gov = health.get("governance") or {}
+    caps = (health.get("capability_map") or {}).get("capabilities") or {}
+    latency_ms = float(health.get("_latency_ms") or 0.0)
+    running_containers, mcp_up = _running_container_snapshot()
+    port_3099_open = _port_open(3099)
+    verdict = str(thermo.get("verdict") or "UNKNOWN").upper()
+    confidence = float(thermo.get("confidence") or 0.0)
+    entropy_delta = float(thermo.get("entropy_delta") or 0.0)
+    stage = int(thermo.get("metabolic_stage") or 0)
+    continuity_enabled = caps.get("governed_continuity") == "enabled"
+    all_floors_verified = all(f["status"] in {"PASS", "STRAIN"} for f in floors)
+    shadow = float(thermo.get("shadow") or 0.0)
+
+    if not mcp_up or not port_3099_open:
+        delta = {
+            "axis": "DELTA",
+            "title": "Infrastructure",
+            "label": "LEBUR (MELTED)",
+            "variant": "negative",
+            "detail": "MCP container is down or port 3099 is blocked.",
+        }
+    elif health.get("version") != health.get("release_tag") or latency_ms > 500:
+        delta = {
+            "axis": "DELTA",
+            "title": "Infrastructure",
+            "label": "RETAK (CRACKED)",
+            "variant": "neutral",
+            "detail": "Version drift detected or live latency exceeds 500 ms.",
+        }
+    elif running_containers >= 21 and entropy_delta < 0:
+        delta = {
+            "axis": "DELTA",
+            "title": "Infrastructure",
+            "label": "KUKUH (SOLID)",
+            "variant": "positive",
+            "detail": f"All {running_containers} containers are up and entropy is cooling.",
+        }
+    else:
+        delta = {
+            "axis": "DELTA",
+            "title": "Infrastructure",
+            "label": "RETAK (CRACKED)",
+            "variant": "neutral",
+            "detail": "Runtime is up, but the machine layer is not yet fully solid.",
+        }
+
+    if shadow >= 0.3 or verdict == "VOID":
+        psi = {
+            "axis": "PSI",
+            "title": "Compliance",
+            "label": "KHIANAT (BREACHED)",
+            "variant": "negative",
+            "detail": "A hard floor is violated or anti-hantu protection is triggered.",
+        }
+    elif continuity_enabled and all_floors_verified and verdict == "SEAL" and confidence >= 0.99:
+        psi = {
+            "axis": "PSI",
+            "title": "Compliance",
+            "label": "AMANAH (TRUSTED)",
+            "variant": "positive",
+            "detail": "Continuity is persistent and constitutional floors are holding.",
+        }
+    else:
+        psi = {
+            "axis": "PSI",
+            "title": "Compliance",
+            "label": "GANTUNG (PENDING)",
+            "variant": "neutral",
+            "detail": f"Governance is active, but the system is still holding at stage {stage}.",
+        }
+
+    if verdict == "SEAL" and confidence >= 0.99:
+        omega = {
+            "axis": "OMEGA",
+            "title": "Reasoning",
+            "label": "BIJAKSANA (WISE)",
+            "variant": "positive",
+            "detail": "Reasoning is sealed with machine-grounded confidence.",
+        }
+    elif confidence > 0:
+        omega = {
+            "axis": "OMEGA",
+            "title": "Reasoning",
+            "label": "BIJAK (SMART)",
+            "variant": "neutral",
+            "detail": "Reasoning is functioning, but confidence is below the 0.99 seal threshold.",
+        }
+    else:
+        omega = {
+            "axis": "OMEGA",
+            "title": "Reasoning",
+            "label": "SESAT (MISALIGNED)",
+            "variant": "negative",
+            "detail": "Reasoning is broken or returning no trustworthy signal.",
+        }
+
+    return [delta, psi, omega]
+
 
 # ── Philosophy quotes ──────────────────────────────────────────────────────────
 
@@ -299,7 +457,8 @@ def _register(mcp: FastMCP) -> None:
           • Session runtime state — per-session floor stability
         """
         # ── Fetch live health (server truth) ───────────────────────────────────
-        health = _fetch_live_health()
+        status_payload = _fetch_live_health()
+        health = status_payload.get("health") or status_payload
         thermo = health.get("thermodynamic") or {}
         cap_map = health.get("capability_map") or {}
         caps    = cap_map.get("capabilities") or {}
@@ -334,6 +493,39 @@ def _register(mcp: FastMCP) -> None:
         # ── Session floor data (session truth) ─────────────────────────────────
         floors = _live_floor_status(session_id)
         avg_stability = sum(f["stability"] for f in floors) / len(floors)
+        canonical_matrix = status_payload.get("trinity_matrix") or {}
+        if canonical_matrix:
+            signal_matrix = []
+            for axis, title in [("delta", "Infrastructure"), ("psi", "Compliance"), ("omega", "Reasoning")]:
+                entry = canonical_matrix.get(axis) or {}
+                signal_matrix.append(
+                    {
+                        "axis": axis.upper(),
+                        "title": title,
+                        "label": f"{entry.get('label_bm', '--')} / {entry.get('label_en', '--')}",
+                        "variant": (
+                            "positive"
+                            if entry.get("color") == "teal"
+                            else "neutral"
+                            if entry.get("color") == "amber"
+                            else "negative"
+                        ),
+                        "detail": " · ".join(
+                            [
+                                ", ".join(entry.get("evidence") or []),
+                                (
+                                    f"{(entry.get('metrics') or {}).get('raw_val')} "
+                                    f"{(entry.get('metrics') or {}).get('unit', '')}"
+                                ).strip(),
+                            ]
+                        ).strip(" ·"),
+                    }
+                )
+        else:
+            signal_matrix = _derive_signal_matrix(health, floors)
+        worst_signal = next((signal for signal in signal_matrix if signal["variant"] == "negative"), None)
+        if worst_signal is None:
+            worst_signal = next((signal for signal in signal_matrix if signal["variant"] == "neutral"), signal_matrix[0])
 
         # ── Overall status ─────────────────────────────────────────────────────
         if not thermo or not caps:
@@ -379,17 +571,34 @@ def _register(mcp: FastMCP) -> None:
                             Heading("arifOS Metabolic Monitor", size="sm")
                             Muted(runtime_url, css_class="text-xs font-mono")
                         Badge(
-                            interpretation["badge"],
-                            variant=interpretation["variant"],
+                            worst_signal["label"],
+                            variant=_SIGNAL_VARIANTS[worst_signal["variant"]],
                             css_class="ml-auto font-mono text-sm",
                         )
 
             # ══ 2. OPERATOR INTERPRETATION BANNER ══════════════════════════════
             with Card(css_class="border-2"):
                 with CardContent(css_class="py-3 px-5"):
-                    with Row(gap=4, align="center"):
-                        with Column(gap=0):
-                            Text(interpretation["posture"], css_class="text-sm font-medium")
+                    with Column(gap=3):
+                        Text(
+                            "Universal Nine-Signal Matrix · Matriks Sembilan Isyarat Sejagat",
+                            css_class="text-sm font-semibold",
+                        )
+                        for signal in signal_matrix:
+                            with Row(gap=4, align="center"):
+                                Badge(
+                                    signal["axis"],
+                                    variant="outline",
+                                    css_class="w-16 text-center font-mono text-[10px]",
+                                )
+                                Badge(
+                                    signal["label"],
+                                    variant=_SIGNAL_VARIANTS[signal["variant"]],
+                                    css_class="w-52 text-center font-mono text-[10px]",
+                                )
+                                with Column(gap=0, css_class="flex-1"):
+                                    Text(signal["title"], css_class="text-xs font-semibold uppercase")
+                                    Muted(signal["detail"], css_class="text-xs")
 
             # ══ 3. RESTART FRAGILITY WARNING ═══════════════════════════════════
             if is_ephemeral:
@@ -600,7 +809,8 @@ def _register(mcp: FastMCP) -> None:
                 )
 
         summary = (
-            f"arifOS Metabolic Monitor | Status: {overall_status} | "
+            f"arifOS Metabolic Monitor | "
+            f"{signal_matrix[0]['label']} | {signal_matrix[1]['label']} | {signal_matrix[2]['label']} | "
             f"ΔS={entropy_delta:+.2f} | Peace²={peace_sq:.3f} | "
             f"Vitality={vitality:.4f} | Actions: {len(next_actions)}"
         )

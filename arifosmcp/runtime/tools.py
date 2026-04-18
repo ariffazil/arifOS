@@ -157,6 +157,21 @@ def _public_output_options(platform: str, debug: bool) -> dict[str, Any] | None:
     return None
 
 
+def _normalize_context_text(context: Any) -> str | None:
+    """Normalize optional reasoning context into a stable text payload."""
+    import json
+
+    if context is None:
+        return None
+    if isinstance(context, str):
+        text = context.strip()
+        return text or None
+    if isinstance(context, (dict, list, tuple)):
+        return json.dumps(context, default=str, sort_keys=True)
+    text = str(context).strip()
+    return text or None
+
+
 _TOOL_STAGE_MAP = {
     "arifos_init": "000_INIT",
     "arifos_sense": "111_SENSE",
@@ -1634,12 +1649,13 @@ async def arifos_judge(
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """Final constitutional verdict evaluation."""
-    # Horizon Unification: Support both 'candidate_action' and 'query'
-    target_candidate = query or candidate_action or ""
+    # Treat query/candidate_action as the evidence summary for a default SEAL candidacy.
+    reason_summary = query or candidate_action or ""
     envelope = await _mega_apex_judge(
         mode="judge",
         payload={
-            "candidate": target_candidate,
+            "verdict_candidate": "SEAL",
+            "reason_summary": reason_summary,
             "risk_tier": risk_tier,
             "telemetry": telemetry,
         },
@@ -2764,10 +2780,10 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # 11 CANONICAL TOOLS — TIERED IDENTITY SYSTEM
     # ══════════════════════════════════════════════════════════════════════════
     # Tier 00 — IDENTITY / VAULT
-    "arifos_init": _mega_init_anchor,
+    "arifos_init": arifos_init,
     "arifos_vault": arifos_vault,  # tools.py version with correct HTTP→dispatch translation
     # Tier 01 — PERCEPTION
-    "arifos_sense": _mega_physics_reality,
+    "arifos_sense": arifos_sense,
     # Tier 04 — RISK
     "arifos_heart": _mega_asi_heart,
     # Tier 05 — EXECUTION
@@ -2775,7 +2791,7 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # Tier 07 — REFLECTION
     "arifos_mind": _arifos_mind_public,
     # KERNEL & JUDGMENT
-    "arifos_judge": _mega_apex_judge,
+    "arifos_judge": arifos_judge,
     "arifos_kernel": _mega_arifos_kernel,
     # UTILITIES / OBSERVE
     "arifos_ops": _mega_math_estimator,

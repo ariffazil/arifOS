@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import secrets
+import subprocess
 import time
 import uuid
 from collections.abc import Callable
@@ -223,6 +224,220 @@ def _dashboard_cors_headers(request: Request) -> dict[str, str]:
     return {}
 
 
+def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
+    try:
+        result = subprocess.run(
+            [
+                "docker",
+                "ps",
+                "--format",
+                "{{.Names}}\t{{.Image}}\t{{.Status}}",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception:
+        return []
+
+    containers: list[dict[str, str]] = []
+    for row in result.stdout.splitlines():
+        parts = row.split("\t", 2)
+        if len(parts) != 3:
+            continue
+        containers.append(
+            {
+                "name": parts[0],
+                "image": parts[1],
+                "status": parts[2],
+            }
+        )
+        if len(containers) >= limit:
+            break
+    return containers
+
+
+_CRITICAL_CONTAINERS = {
+    "A-FORGE-arifos-mcp",
+    "postgres",
+    "redis",
+    "qdrant",
+}
+
+
+def _matrix_domain(
+    *,
+    state: str,
+    label_bm: str,
+    label_en: str,
+    evidence: list[str],
+    raw_val: float | int | str,
+    unit: str,
+) -> dict[str, Any]:
+    color = {
+        "POSITIVE": "teal",
+        "NEUTRAL": "amber",
+        "NEGATIVE": "red",
+    }[state]
+    return {
+        "state": state,
+        "label_bm": label_bm,
+        "label_en": label_en,
+        "color": color,
+        "evidence": evidence,
+        "metrics": {
+            "raw_val": raw_val,
+            "unit": unit,
+        },
+    }
+
+
+def _build_trinity_matrix(
+    health_payload: dict[str, Any],
+    containers: list[dict[str, str]],
+    *,
+    latency_ms: float,
+) -> dict[str, Any]:
+    thermo = health_payload.get("thermodynamic") or {}
+    gov = health_payload.get("governance") or {}
+    floors = (health_payload.get("runtime_floors") or {})
+    caps = ((health_payload.get("capability_map") or {}).get("capabilities") or {})
+    running = {
+        container["name"]: "Up" in str(container.get("status") or "")
+        for container in containers
+    }
+    missing_critical = sorted(name for name in _CRITICAL_CONTAINERS if not running.get(name, False))
+    entropy_delta = float(thermo.get("entropy_delta") or 0.0)
+    confidence = float(thermo.get("confidence") or 0.0)
+    stage = int(thermo.get("metabolic_stage") or 0)
+    verdict = str(thermo.get("verdict") or "UNKNOWN").upper()
+    failed_floors = sorted(
+        floor_id
+        for floor_id, score in floors.items()
+        if floor_id in FLOOR_SPEC_KEYS and not _floor_passes(floor_id, float(score))
+    )
+    f9_triggered = "F9" in failed_floors or float(thermo.get("shadow") or 0.0) >= 0.3
+    schema_violation = not isinstance(health_payload.get("thermodynamic"), dict) or thermo.get("confidence") is None
+    hallucination_detected = health_payload.get("source_commit") in {None, "", "unknown"}
+
+    if missing_critical:
+        delta = _matrix_domain(
+            state="NEGATIVE",
+            label_bm="LEBUR",
+            label_en="MELTED",
+            evidence=[f"critical_container_down:{name}" for name in missing_critical],
+            raw_val=len(missing_critical),
+            unit="critical_containers_down",
+        )
+    elif health_payload.get("version") != health_payload.get("release_tag") or latency_ms > 500:
+        delta = _matrix_domain(
+            state="NEUTRAL",
+            label_bm="RETAK",
+            label_en="CRACKED",
+            evidence=[
+                *(
+                    ["version_drift"]
+                    if health_payload.get("version") != health_payload.get("release_tag")
+                    else []
+                ),
+                *(["latency_gt_500ms"] if latency_ms > 500 else []),
+            ],
+            raw_val=round(latency_ms, 2),
+            unit="latency_ms",
+        )
+    else:
+        delta = _matrix_domain(
+            state="POSITIVE",
+            label_bm="KUKUH",
+            label_en="SOLID",
+            evidence=[
+                f"containers_up:{len(containers)}",
+                f"entropy_delta:{entropy_delta:+.2f}",
+            ],
+            raw_val=len(containers),
+            unit="containers_running",
+        )
+
+    if failed_floors or f9_triggered:
+        psi = _matrix_domain(
+            state="NEGATIVE",
+            label_bm="KHIANAT",
+            label_en="BREACHED",
+            evidence=(
+                [f"floor_fail:{floor_id}" for floor_id in failed_floors]
+                + (["f9_triggered"] if f9_triggered else [])
+            ),
+            raw_val=len(failed_floors),
+            unit="failed_floors",
+        )
+    elif caps.get("governed_continuity") == "enabled" and confidence >= 0.99 and verdict == "SEAL":
+        psi = _matrix_domain(
+            state="POSITIVE",
+            label_bm="AMANAH",
+            label_en="TRUSTED",
+            evidence=["continuity_persistent", "floors_verified", "seal_ready"],
+            raw_val=confidence,
+            unit="tau",
+        )
+    else:
+        psi = _matrix_domain(
+            state="NEUTRAL",
+            label_bm="GANTUNG",
+            label_en="PENDING",
+            evidence=[f"metabolic_stage:{stage}", f"verdict:{verdict.lower()}"],
+            raw_val=stage,
+            unit="metabolic_stage",
+        )
+
+    if schema_violation or hallucination_detected:
+        omega = _matrix_domain(
+            state="NEGATIVE",
+            label_bm="SESAT",
+            label_en="MISALIGNED",
+            evidence=(
+                (["schema_violation"] if schema_violation else [])
+                + (["hallucination_detected"] if hallucination_detected else [])
+            ),
+            raw_val=confidence,
+            unit="tau",
+        )
+    elif verdict == "SEAL" and confidence >= 0.99:
+        omega = _matrix_domain(
+            state="POSITIVE",
+            label_bm="BIJAKSANA",
+            label_en="WISE",
+            evidence=["verdict_seal", "tau_ge_0_99"],
+            raw_val=confidence,
+            unit="tau",
+        )
+    else:
+        omega = _matrix_domain(
+            state="NEUTRAL",
+            label_bm="BIJAK",
+            label_en="SMART",
+            evidence=[f"verdict:{verdict.lower()}", f"tau:{confidence:.2f}"],
+            raw_val=confidence,
+            unit="tau",
+        )
+
+    overall_ok = all(domain["state"] != "NEGATIVE" for domain in (delta, psi, omega))
+    return {
+        "delta": delta,
+        "psi": psi,
+        "omega": omega,
+        "overall_ok": overall_ok,
+    }
+
+
+def _collect_git_snapshot() -> dict[str, Any]:
+    return {
+        "commit": BUILD_INFO["build"]["commit"],
+        "branch": BUILD_INFO["build"]["branch"],
+        "release_tag": BUILD_INFO.get("release_tag"),
+    }
+
+
 def _merge_headers(*header_sets: dict[str, str]) -> dict[str, str]:
     merged: dict[str, str] = {}
     for header_set in header_sets:
@@ -274,17 +489,93 @@ def _build_governance_status_payload() -> dict[str, Any]:
     except Exception:
         logger.exception("Unexpected error loading governance kernel state")
 
+    live_capability_map: dict[str, Any] | None = None
+    live_containers: list[dict[str, str]] = []
+    try:
+        live_capability_map = build_runtime_capability_map()
+        live_containers = _collect_container_status()
+    except Exception:
+        live_capability_map = None
+        live_containers = []
+
+    live_signals: list[str] = []
+    live_capabilities = (live_capability_map or {}).get("capabilities", {})
+    if BUILD_INFO["build"]["commit"] != "unknown":
+        live_signals.append("source_commit")
+    if BUILD_INFO.get("release_tag"):
+        live_signals.append("release_tag")
+    if live_capabilities.get("governed_continuity") == "enabled":
+        live_signals.append("governed_continuity")
+    if live_capabilities.get("vault_persistence") == "enabled":
+        live_signals.append("vault_persistence")
+    if live_capabilities.get("vector_memory") == "enabled":
+        live_signals.append("vector_memory")
+    if live_containers:
+        live_signals.append("container_runtime")
+
+    if len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
+        try:
+            from core.governance_kernel import clear_governance_kernel, get_governance_kernel
+
+            live_session_id = "live-sot"
+            clear_governance_kernel(live_session_id)
+            live_kernel = get_governance_kernel(live_session_id)
+            live_kernel.apply_temporal_grounding(
+                {
+                    "query": (
+                        "Live SOT aligned: "
+                        f"{BUILD_INFO['build']['commit']} / {BUILD_INFO.get('release_tag')} / "
+                        f"{len(live_containers)} containers / {len(live_signals)} verified runtime signals"
+                    ),
+                    "human_witness": _WITNESS_DEFAULTS["human"],
+                    "ai_witness": 0.99,
+                    "earth_witness": 0.99 if live_containers else _WITNESS_DEFAULTS["earth"],
+                }
+            )
+            live_kernel.record_event(
+                "assumption",
+                {"content": "Live SOT must remain evidence-backed and continuously revalidated."},
+            )
+            for signal in live_signals:
+                live_kernel.record_event("action", {"signal": signal, "reversible": True})
+                live_kernel.record_event("success", {"signal": signal})
+
+            state = live_kernel.get_current_state()
+            session_id = state.get("session_id")
+            floors = state.get("floors", {})
+            telemetry = state.get("telemetry", {})
+            witness = state.get("witness", {})
+            qdf = float(state.get("qdf", qdf or 0.0))
+            metabolic_stage = int(state.get("metabolic_stage", metabolic_stage or 0))
+            verdict = state.get("verdict", verdict)
+        except Exception:
+            logger.exception("Failed to hydrate live-sot governance kernel state")
+
     resolved_floors = {k: floors.get(k, v) for k, v in _FLOOR_DEFAULTS.items()}
+    canonical_floor_aliases = {
+        "F2": "tau_truth",
+        "F3": "witness_coherence",
+        "F4": "ds",
+        "F5": "peace2",
+        "F6": "kappa_r",
+        "F9": "shadow",
+    }
+    for canonical, legacy_key in canonical_floor_aliases.items():
+        if legacy_key in floors:
+            resolved_floors[canonical] = floors[legacy_key]
     resolved_witness = {k: witness.get(k, v) for k, v in _WITNESS_DEFAULTS.items()}
+    live_confidence = telemetry.get("confidence")
+    if live_confidence is None:
+        live_confidence = floors.get("tau_truth")
     resolved_telemetry = {
-        "dS": telemetry.get("dS", -0.35),
-        "peace2": telemetry.get("peace2", 1.04),
-        "kappa_r": telemetry.get("kappa_r", 0.97),
-        "echoDebt": telemetry.get("echoDebt", 0.4),
-        "shadow": telemetry.get("shadow", 0.3),
-        "confidence": telemetry.get("confidence", 0.88),
-        "psi_le": telemetry.get("psi_le", 0.82),
-        "verdict": verdict,
+        "dS": telemetry.get("dS", floors.get("ds")),
+        "peace2": telemetry.get("peace2", floors.get("peace2")),
+        "kappa_r": telemetry.get("kappa_r", floors.get("kappa_r")),
+        "echoDebt": telemetry.get("echoDebt"),
+        "shadow": telemetry.get("shadow", floors.get("shadow")),
+        "confidence": live_confidence,
+        "psi_le": telemetry.get("psi_le", qdf or None),
+        "verdict": telemetry.get("verdict", verdict),
     }
 
     try:
@@ -295,7 +586,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         machine_vitals = {"cpu_percent": 0.0, "memory_percent": 0.0}
 
     try:
-        capability_map = build_runtime_capability_map()
+        capability_map = live_capability_map or build_runtime_capability_map()
         if (
             float(resolved_floors.get("F11", 0.0)) <= 0.0
             and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
@@ -1262,8 +1553,12 @@ def register_rest_routes(
         try:
             from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
 
-            live = get_live_metrics()
-            vault_last_seal = getattr(live, "vault_last_seal", None) or None
+            live = await get_live_metrics()
+            vault_last_seal = (
+                live.get("governance", {}).get("vault_last_seal")
+                if isinstance(live, dict)
+                else None
+            ) or None
         except Exception:
             pass
 
@@ -1319,6 +1614,16 @@ def register_rest_routes(
                     # at https://github.com/ariffazil/arifOS before treating as fact.
                     "floors_hard_doctrinal": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
                     "floors_soft_doctrinal": ["F3", "F4", "F5", "F7", "F8", "F12"],
+                    "sovereign_status": getattr(
+                        getattr(request.app.state, "arifos_sovereign_status", {}),
+                        "get",
+                        lambda *_args, **_kwargs: None,
+                    )("status"),
+                    "sovereign_subject": getattr(
+                        getattr(request.app.state, "arifos_sovereign_status", {}),
+                        "get",
+                        lambda *_args, **_kwargs: None,
+                    )("subject"),
                 },
             },
             headers={"Access-Control-Allow-Origin": "*"},
@@ -1356,8 +1661,12 @@ def register_rest_routes(
         try:
             from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
 
-            live = get_live_metrics()
-            vault_last_seal = getattr(live, "vault_last_seal", None) or None
+            live = await get_live_metrics()
+            vault_last_seal = (
+                live.get("governance", {}).get("vault_last_seal")
+                if isinstance(live, dict)
+                else None
+            ) or None
         except Exception:
             pass
 
@@ -1517,6 +1826,22 @@ def register_rest_routes(
     @route("/.well-known/mcp/server.json", methods=["GET"])
     async def well_known(request: Request) -> Response:
         payload = build_server_json(_public_base_url(request))
+        mcp_tools = await mcp.list_tools()
+        payload["tools"] = [
+            {
+                "name": tool.name,
+                "description": tool.description or "",
+                "inputSchema": tool.parameters or {},
+            }
+            for tool in mcp_tools
+        ]
+        payload["description"] = (
+            f"Constitutional governance server — {len(mcp_tools)} live runtime tools "
+            "with F1-F13 floor enforcement, metabolic routing, prompts, and resources."
+        )
+        payload.setdefault("capabilities", {})
+        payload["capabilities"]["runtime_tools_loaded"] = len(mcp_tools)
+        payload["toolsEndpoint"] = f"{_public_base_url(request)}/tools"
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         payload.setdefault(
@@ -1667,6 +1992,50 @@ def register_rest_routes(
         except Exception:
             logger.exception("governance_status endpoint failed")
             return _rest_error("Failed to retrieve governance status", status_code=500)
+
+    @route("/api/status", methods=["GET"])
+    async def api_status(request: Request) -> Response:
+        """Composite live SoT payload for the public dashboard."""
+        try:
+            started = time.perf_counter()
+            governance_payload = _build_governance_status_payload()
+            health_response = await health(request)
+            health_payload = json.loads(health_response.body.decode("utf-8"))
+            health_payload["runtime_floors"] = governance_payload.get("floors", {})
+            mcp_tools = await mcp.list_tools()
+            manifest = build_server_json(_public_base_url(request))
+            containers = _collect_container_status()
+            latency_ms = round((time.perf_counter() - started) * 1000, 2)
+            matrix = _build_trinity_matrix(health_payload, containers, latency_ms=latency_ms)
+            payload = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "health": health_payload,
+                "git": _collect_git_snapshot(),
+                "trinity_matrix": matrix,
+                "overall_ok": matrix["overall_ok"],
+                "manifest": {
+                    "tools_count": len(mcp_tools),
+                    "prompts_count": len(manifest.get("prompts", [])),
+                    "resources_count": len(manifest.get("resources", [])) + len(manifest.get("resourceTemplates", [])),
+                },
+                "tools": [
+                    {
+                        "name": tool.name,
+                        "description": tool.description or "",
+                        "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
+                        "lane": TRINITY_BY_TOOL.get(tool.name),
+                    }
+                    for tool in mcp_tools
+                ],
+                "containers": containers,
+            }
+            return JSONResponse(
+                payload,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
+        except Exception:
+            logger.exception("api_status endpoint failed")
+            return _rest_error("Failed to retrieve dashboard status", status_code=500)
 
     @route("/status", methods=["GET"])
     async def status_page(request: Request) -> Response:

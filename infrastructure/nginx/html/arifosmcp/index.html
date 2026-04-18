@@ -12,19 +12,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0a0a;
-            --bg-secondary: #111113;
-            --bg-tertiary: #1a1a1f;
-            --border: #2a2a30;
-            --border-hover: #3a3a40;
-            --text: #e5e5e5;
-            --text-secondary: #888;
-            --text-muted: #555;
-            --gold: #D4A853;
-            --gold-dim: #a08040;
-            --cyan: #00D4AA;
-            --red: #ef4444;
-            --green: #22c55e;
+            --bg: #171614;
+            --bg-secondary: #1d1c1a;
+            --bg-tertiary: #252320;
+            --border: #33302c;
+            --border-hover: #4a4742;
+            --text: #cdccca;
+            --text-secondary: #a8a39c;
+            --text-muted: #7d776f;
+            --gold: #4f98a3;
+            --gold-dim: #427f88;
+            --cyan: #4f98a3;
+            --amber: #d4a853;
+            --red: #d46a6a;
+            --green: #79bb84;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -117,6 +118,40 @@
         }
         .status-dot.degraded { background: var(--gold); }
         .status-dot.down { background: var(--red); }
+        .signal-stack { display: grid; gap: 12px; margin-top: 24px; }
+        .signal-row {
+            display: grid;
+            grid-template-columns: 80px 240px 1fr;
+            gap: 16px;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+        }
+        .signal-axis {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .signal-label {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            display: inline-flex;
+            justify-content: center;
+        }
+        .signal-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .signal-positive .signal-label { color: var(--cyan); border-color: rgba(79,152,163,0.45); background: rgba(79,152,163,0.12); }
+        .signal-neutral .signal-label { color: var(--amber); border-color: rgba(212,168,83,0.45); background: rgba(212,168,83,0.12); }
+        .signal-negative .signal-label { color: var(--red); border-color: rgba(212,106,106,0.45); background: rgba(212,106,106,0.12); }
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
         th { color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -581,6 +616,71 @@
                     <a href="/metrics/json" class="btn btn-secondary">View Telemetry JSON</a>
                     <a href="/tools" class="btn btn-secondary">View Tools List</a>
                 </div>
+
+                <div class="signal-stack">
+                    <div class="signal-row signal-neutral" id="delta-row">
+                        <div class="signal-axis">Δ DELTA</div>
+                        <div class="signal-label" id="delta-label">Loading…</div>
+                        <div class="signal-detail" id="delta-detail">Reading machine telemetry…</div>
+                    </div>
+                    <div class="signal-row signal-neutral" id="psi-row">
+                        <div class="signal-axis">Ψ PSI</div>
+                        <div class="signal-label" id="psi-label">Loading…</div>
+                        <div class="signal-detail" id="psi-detail">Reading floor compliance…</div>
+                    </div>
+                    <div class="signal-row signal-neutral" id="omega-row">
+                        <div class="signal-axis">Ω OMEGA</div>
+                        <div class="signal-label" id="omega-label">Loading…</div>
+                        <div class="signal-detail" id="omega-detail">Reading reasoning confidence…</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h3>Live Source of Truth</h3>
+                    <p style="font-size: 14px;">This page translates the live <code>/health</code>, <code>/.well-known/mcp/server.json</code>, and <code>/tools</code> JSON surfaces into HTML.</p>
+                    <div class="grid-3" style="margin-top: 16px;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Source commit</div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--gold);" id="sot-commit">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Release tag</div>
+                            <div style="font-size: 18px; font-weight: 600;" id="sot-release">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Last seal</div>
+                            <div style="font-size: 18px; font-weight: 600;" id="sot-last-seal">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Continuity</div>
+                            <div style="font-size: 18px; font-weight: 600;" id="sot-continuity">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Tau system</div>
+                            <div style="font-size: 18px; font-weight: 600;" id="sot-tau">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Verdict / Stage</div>
+                            <div style="font-size: 18px; font-weight: 600;" id="sot-verdict-stage">--</div>
+                        </div>
+                    </div>
+                    <div id="sot-notes" style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span class="tag">Loading live notes…</span>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div>
+                            <h3>Live Tools Surface</h3>
+                            <p style="font-size: 14px; margin-bottom: 0;">Human-readable HTML translated from the runtime tool JSON.</p>
+                        </div>
+                        <span class="badge badge-cyan" id="tools-surface-count">Loading…</span>
+                    </div>
+                    <div id="tools-surface-list" style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span class="tag">Loading live tools…</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -678,62 +778,115 @@
                     <a href="https://apex.arif-fazil.com" style="color: var(--text-secondary);">Ω MIND</a>
                     <a href="https://aaa.arif-fazil.com" style="color: var(--text-secondary);">Δ BODY</a>
                     <a href="https://geox.arif-fazil.com" style="color: var(--text-secondary);">Φ GEOX</a>
+                    <a href="https://mcp.arif-fazil.com/llms.txt" style="color: var(--cyan);">📋 Full SOT</a>
                 </div>
             </div>
             <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted);">
-                © 2026 ARIF FAZIL — arifOS v2026.04.07-SEAL
+                © 2026 ARIF FAZIL — <span id="footer-release">arifOS live</span>
             </div>
         </div>
     </footer>
 
     <script>
-        const API = 'https://arifosmcp.arif-fazil.com';
-        
-        async function fetchHealth() {
-            try {
-                const res = await fetch(`${API}/health`);
-                const data = await res.json();
-                
-                // Status
-                const isHealthy = data.status === 'healthy';
-                document.getElementById('status-dot').className = 'status-dot' + (isHealthy ? '' : ' degraded');
-                document.getElementById('status-main').textContent = isHealthy ? 'Operational' : 'Degraded';
-                document.getElementById('status-sub').textContent = isHealthy 
-                    ? 'All constitutional floors active' 
-                    : 'System experiencing issues';
-                document.getElementById('header-status-text').textContent = isHealthy ? 'Live' : 'Degraded';
-                
-                // Version
-                document.getElementById('version').textContent = data.version || '--';
-                document.getElementById('transport').textContent = (data.transport || 'HTTP').toUpperCase();
-                
-                // Thermodynamic
-                if (data.thermodynamic) {
-                    document.getElementById('vitality').textContent = (data.thermodynamic.vitality_index || 0).toFixed(2);
-                    document.getElementById('peace').textContent = (data.thermodynamic.peace_squared || 0).toFixed(2);
-                    document.getElementById('confidence').textContent = (data.thermodynamic.confidence || 0).toFixed(2);
-                }
-                
-                // Counts
-                document.getElementById('tools-count').textContent = data.tools_loaded || '--';
-                
-            } catch (e) {
-                document.getElementById('status-dot').className = 'status-dot down';
-                document.getElementById('status-main').textContent = 'Unreachable';
-                document.getElementById('status-sub').textContent = 'Cannot reach ' + API;
-                document.getElementById('header-status-text').textContent = 'Down';
-            }
+        const API = 'https://mcp.arif-fazil.com';
+        const STATUS_API = `${API}/api/status`;
+
+        function setText(id, value, fallback = '--') {
+            const node = document.getElementById(id);
+            if (!node) return;
+            node.textContent = value === null || value === undefined || value === '' ? fallback : value;
         }
 
-        async function fetchCapabilities() {
+        function formatNumber(value, digits = 2) {
+            if (value === null || value === undefined || value === '') return '--';
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? numeric.toFixed(digits) : String(value);
+        }
+
+        function renderTags(id, values, emptyText) {
+            const node = document.getElementById(id);
+            if (!node) return;
+            if (!values || !values.length) {
+                node.innerHTML = `<span class="tag">${emptyText}</span>`;
+                return;
+            }
+            node.innerHTML = values.map((value) => `<span class="tag">${value}</span>`).join('');
+        }
+
+        function renderSignal(axis, signal) {
+            const row = document.getElementById(`${axis}-row`);
+            if (!row || !signal) return;
+            const tone = signal.color === 'teal' ? 'positive' : signal.color === 'amber' ? 'neutral' : 'negative';
+            const evidence = Array.isArray(signal.evidence) ? signal.evidence.join(', ') : '';
+            const metrics = signal.metrics || {};
+            const metricText = metrics.raw_val !== undefined && metrics.unit
+                ? `${metrics.raw_val} ${metrics.unit}`
+                : '';
+            row.className = `signal-row signal-${tone}`;
+            setText(`${axis}-label`, `${signal.label_bm} / ${signal.label_en}`);
+            setText(`${axis}-detail`, [evidence, metricText].filter(Boolean).join(' · '));
+        }
+
+        async function fetchStatus() {
             try {
-                const res = await fetch(`${API}/.well-known/mcp/server.json`);
+                const res = await fetch(STATUS_API, {
+                    headers: { 'Accept': 'application/json' }
+                });
                 const data = await res.json();
-                
-                document.getElementById('prompts-count').textContent = data.prompts?.length || '--';
-                document.getElementById('resources-count').textContent = data.resources?.length || '--';
+                const health = data.health || {};
+                const manifest = data.manifest || {};
+                const tools = Array.isArray(data.tools) ? data.tools : [];
+                const matrix = data.trinity_matrix || {};
+
+                const isHealthy = health.status === 'healthy';
+                document.getElementById('status-dot').className = 'status-dot' + (isHealthy ? '' : ' degraded');
+                renderSignal('delta', matrix.delta);
+                renderSignal('psi', matrix.psi);
+                renderSignal('omega', matrix.omega);
+                document.getElementById('status-main').textContent = [
+                    matrix.delta ? `${matrix.delta.label_bm} / ${matrix.delta.label_en}` : null,
+                    matrix.psi ? `${matrix.psi.label_bm} / ${matrix.psi.label_en}` : null,
+                    matrix.omega ? `${matrix.omega.label_bm} / ${matrix.omega.label_en}` : null,
+                ].filter(Boolean).join(' · ');
+                document.getElementById('status-sub').textContent = data.overall_ok === false
+                    ? 'overall_ok=false — at least one Trinity domain is NEGATIVE'
+                    : 'overall_ok=true — all Trinity domains are neutral or positive';
+                document.getElementById('header-status-text').textContent = isHealthy ? 'Live' : 'Degraded';
+
+                setText('version', health.version);
+                setText('transport', (health.transport || 'HTTP').toUpperCase());
+                setText('footer-release', health.release_tag || health.version);
+
+                if (health.thermodynamic) {
+                    setText('vitality', formatNumber(health.thermodynamic.vitality_index));
+                    setText('peace', formatNumber(health.thermodynamic.peace_squared));
+                    setText('confidence', formatNumber(health.thermodynamic.confidence));
+                }
+
+                setText('tools-count', health.tools_loaded);
+                setText('prompts-count', manifest.prompts_count);
+                setText('resources-count', manifest.resources_count);
+
+                setText('sot-commit', health.source_commit || data.git?.commit);
+                setText('sot-release', health.release_tag || data.git?.release_tag);
+                setText('sot-last-seal', health.governance?.last_seal_timestamp, 'No seal recorded');
+                setText('sot-continuity', health.capability_map?.capabilities?.governed_continuity);
+                setText('sot-tau', formatNumber(health.governance?.tau_confidence_system));
+                setText('sot-verdict-stage', `${health.thermodynamic?.verdict || '--'} / ${health.thermodynamic?.metabolic_stage || '--'}`);
+                renderTags('sot-notes', health.capability_map?.notes, 'No live notes reported');
+
+                setText('tools-surface-count', `${tools.length} live tools`);
+                renderTags('tools-surface-list', tools.map((tool) => tool.name), 'No live tools returned');
             } catch (e) {
-                // Silent fail
+                document.getElementById('status-dot').className = 'status-dot down';
+                document.getElementById('status-main').textContent = 'LEBUR (MELTED)';
+                document.getElementById('status-sub').textContent = 'Cannot reach ' + STATUS_API;
+                document.getElementById('header-status-text').textContent = 'Down';
+                renderSignal('delta', { label_bm: 'LEBUR', label_en: 'MELTED', color: 'red', evidence: ['status_api_unreachable'], metrics: { raw_val: 0, unit: 'reachable_endpoints' } });
+                renderSignal('psi', { label_bm: 'GANTUNG', label_en: 'PENDING', color: 'amber', evidence: ['status_api_unreachable'], metrics: { raw_val: 0, unit: 'verified_domains' } });
+                renderSignal('omega', { label_bm: 'SESAT', label_en: 'MISALIGNED', color: 'red', evidence: ['status_api_unreachable'], metrics: { raw_val: 0, unit: 'tau' } });
+                setText('tools-surface-count', 'Tools unavailable');
+                renderTags('tools-surface-list', [], 'Cannot load live tools');
             }
         }
 
@@ -770,9 +923,8 @@
         }
 
         // Init
-        fetchHealth();
-        fetchCapabilities();
-        setInterval(fetchHealth, 30000);
+        fetchStatus();
+        setInterval(fetchStatus, 60000);
     </script>
 </body>
 </html>

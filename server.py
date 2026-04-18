@@ -54,9 +54,16 @@ from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, StreamingResponse
+from starlette.routing import Route, WebSocketRoute
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger(__name__)
+
+
+def _display_version() -> str:
+    value = str(VERSION).strip()
+    return value if value.startswith("v") else f"v{value}"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # VAULT999 — CONSTITUTIONAL TABLE STORE
@@ -226,6 +233,81 @@ class CSPMiddleware(BaseHTTPMiddleware):
         )
         return response
 
+
+def _sovereign_preview(value: str) -> str:
+    if not value:
+        return ""
+    if value.startswith("TEST_"):
+        return value
+    if len(value) <= 8:
+        return "***"
+    return f"{value[:4]}...{value[-4:]}"
+
+
+class SovereignHandshakeMiddleware(BaseHTTPMiddleware):
+    """Observe sovereign auth headers and preserve identity for downstream handlers."""
+
+    async def dispatch(self, request, call_next):
+        sovereign_sig = request.headers.get("X-Arifos-Sovereign-Sig", "").strip()
+        authorization = request.headers.get("Authorization", "").strip()
+        subject = request.headers.get("X-Arifos-User-Id", "").strip()
+
+        if not subject:
+            if sovereign_sig:
+                subject = "sovereign"
+            elif authorization:
+                subject = "authorized"
+
+        if sovereign_sig or authorization:
+            headers = list(request.scope.get("headers", []))
+            header_names = {name.lower() for name, _ in headers}
+            if subject and b"x-arifos-user-id" not in header_names:
+                headers.append((b"x-arifos-user-id", subject.encode("latin-1")))
+                request.scope["headers"] = headers
+
+            request.app.state.arifos_sovereign_status = {
+                "status": "888_JUDGE_ACTIVE",
+                "subject": subject or "anonymous",
+                "path": str(request.url.path),
+                "authorization_present": bool(authorization),
+                "signature_preview": _sovereign_preview(sovereign_sig),
+            }
+            logger.warning(
+                "F13 sovereign auth observed subject=%s sig=%s authorization=%s path=%s",
+                subject or "anonymous",
+                _sovereign_preview(sovereign_sig),
+                "present" if authorization else "absent",
+                request.url.path,
+            )
+
+        response = await call_next(request)
+
+        state = getattr(request.app.state, "arifos_sovereign_status", None)
+        if state and (sovereign_sig or authorization):
+            response.headers["X-Arifos-Sovereign-Status"] = str(state.get("status", "888_JUDGE_ACTIVE"))
+            response.headers["X-Arifos-Sovereign-Subject"] = str(state.get("subject", "anonymous"))
+
+        return response
+
+
+def _record_sovereign_state(
+    app_instance: Any,
+    *,
+    subject: str,
+    path: str,
+    authorization_present: bool,
+    signature_preview: str,
+) -> dict[str, Any]:
+    state = {
+        "status": "888_JUDGE_ACTIVE",
+        "subject": subject or "anonymous",
+        "path": path,
+        "authorization_present": authorization_present,
+        "signature_preview": signature_preview,
+    }
+    app_instance.state.arifos_sovereign_status = state
+    return state
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # MCP SERVER INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -234,7 +316,7 @@ mcp = FastMCP(
     "ARIFOS MCP",
     version=VERSION,
     website_url="https://arifosmcp.arif-fazil.com",
-    instructions=f"""Constitutional AI orchestration kernel — SEALED v{VERSION}.
+    instructions=f"""Constitutional AI orchestration kernel — SEALED {_display_version()}.
     
     {MOTTO}
     
@@ -380,7 +462,7 @@ async def horizon_health(request: Request) -> JSONResponse:
     build = get_build_info()
     return JSONResponse({
         "status": "healthy",
-        "version": f"{VERSION}-SEALED",
+        "version": f"{_display_version()}-SEALED",
         "tools": len(v2_tools_registered),
         "fail_closed": True,
         "timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
@@ -389,7 +471,7 @@ async def horizon_health(request: Request) -> JSONResponse:
 async def horizon_metadata(request: Request) -> JSONResponse:
     return JSONResponse({
         "name": "ARIFOS MCP",
-        "version": VERSION,
+        "version": _display_version(),
         "security": "Fail-Closed Dispatch (Gate 1-4 active)",
         "protocol": "MCP 2025-03-26",
     })
@@ -401,7 +483,97 @@ async def horizon_metadata(request: Request) -> JSONResponse:
 app = mcp.http_app(stateless_http=True)
 app.add_middleware(GlobalPanicMiddleware)
 app.add_middleware(CSPMiddleware)
+app.add_middleware(SovereignHandshakeMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
+app.state.arifos_sovereign_status = {
+    "status": "inactive",
+    "subject": "anonymous",
+    "path": "",
+    "authorization_present": False,
+    "signature_preview": "",
+}
+
+
+async def sovereign_sse(request: Request) -> StreamingResponse:
+    sovereign_sig = request.headers.get("X-Arifos-Sovereign-Sig", "").strip()
+    authorization = request.headers.get("Authorization", "").strip()
+    subject = request.headers.get("X-Arifos-User-Id", "").strip() or (
+        "sovereign" if sovereign_sig else "authorized" if authorization else "anonymous"
+    )
+    state = _record_sovereign_state(
+        request.app,
+        subject=subject,
+        path=str(request.url.path),
+        authorization_present=bool(authorization),
+        signature_preview=_sovereign_preview(sovereign_sig),
+    )
+
+    async def event_stream():
+        import json
+
+        yield "event: ready\n"
+        yield f"data: {json.dumps(state)}\n\n"
+
+    response = StreamingResponse(event_stream(), media_type="text/event-stream")
+    response.headers["Cache-Control"] = "no-cache, no-transform"
+    response.headers["X-Arifos-Sovereign-Status"] = str(state["status"])
+    response.headers["X-Arifos-Sovereign-Subject"] = str(state["subject"])
+    return response
+
+
+async def sovereign_ws(websocket: WebSocket) -> None:
+    sovereign_sig = websocket.headers.get("X-Arifos-Sovereign-Sig", "").strip()
+    authorization = websocket.headers.get("Authorization", "").strip()
+    subject = websocket.headers.get("X-Arifos-User-Id", "").strip() or (
+        "sovereign" if sovereign_sig else "authorized" if authorization else "anonymous"
+    )
+    state = _record_sovereign_state(
+        websocket.app,
+        subject=subject,
+        path=str(websocket.url.path),
+        authorization_present=bool(authorization),
+        signature_preview=_sovereign_preview(sovereign_sig),
+    )
+    logger.warning(
+        "F13 websocket sovereign auth subject=%s sig=%s authorization=%s path=%s",
+        state["subject"],
+        state["signature_preview"],
+        "present" if authorization else "absent",
+        websocket.url.path,
+    )
+    await websocket.accept(
+        headers=[
+            (b"x-arifos-sovereign-status", str(state["status"]).encode("latin-1")),
+            (b"x-arifos-sovereign-subject", str(state["subject"]).encode("latin-1")),
+        ]
+    )
+    await websocket.send_json(
+        {
+            "type": "connected",
+            "status": state["status"],
+            "subject": state["subject"],
+            "version": _display_version(),
+            "path": state["path"],
+        }
+    )
+    try:
+        while True:
+            message = await websocket.receive_text()
+            await websocket.send_json(
+                {
+                    "type": "echo",
+                    "status": state["status"],
+                    "subject": state["subject"],
+                    "message": message,
+                }
+            )
+    except WebSocketDisconnect:
+        logger.info("F13 websocket disconnected subject=%s", state["subject"])
+
+
+app.router.routes.append(Route("/sse", endpoint=sovereign_sse, methods=["GET"]))
+app.router.routes.append(WebSocketRoute("/ws", endpoint=sovereign_ws))
+app.router.routes.append(WebSocketRoute("/webmcp/ws", endpoint=sovereign_ws))
 
 # Ensure REST routes from arifosmcp are actually bound to this app instance
 # HARDENED_HANDLERS is only defined if the try block (line 251) succeeded
@@ -430,7 +602,7 @@ if __name__ == "__main__":
 
     async def run_server():
         print("=" * 60)
-        print("🔥 ARIFOS MCP v2026.4.14 — SEALED")
+        print(f"🔥 ARIFOS MCP {_display_version()} — SEALED")
         print("=" * 60)
         
         # ── Constitutional startup: load constitution + open session ──

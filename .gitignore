@@ -109,6 +109,7 @@ eigent/
 
 
 # arifOS secret files
+.governance_secret
 *.secret
 secrets/*.secret
 secrets/

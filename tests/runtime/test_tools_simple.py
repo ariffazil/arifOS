@@ -58,6 +58,21 @@ class TestArifosInit:
             assert result is not None
             mock_mega.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_canonical_init_handler_accepts_public_signature(self):
+        """Canonical MCP handler should point at the public init wrapper."""
+        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
+
+        handler = CANONICAL_TOOL_HANDLERS["arifos_init"]
+
+        with patch("arifosmcp.runtime.tools._mega_init_anchor", new_callable=AsyncMock) as mock_mega:
+            mock_mega.return_value = _mock_envelope("arifos_init", stage="000_INIT")
+
+            result = await handler(actor_id="test", intent="test", risk_tier="medium")
+
+            assert result is not None
+            mock_mega.assert_awaited_once()
+
 
 class TestArifosSense:
     """Test arifos_sense"""
@@ -74,6 +89,18 @@ class TestArifosSense:
 
             assert result is not None
             # governed mode may succeed or fall back; either way result is valid
+
+    @pytest.mark.asyncio
+    async def test_canonical_sense_handler_accepts_public_signature(self):
+        """Canonical MCP handler should accept the public sense signature."""
+        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
+
+        handler = CANONICAL_TOOL_HANDLERS["arifos_sense"]
+
+        result = await handler(query="test query", platform="api")
+
+        assert result is not None
+        assert result.tool == "arifos_sense"
 
 
 class TestArifosMind:
@@ -104,6 +131,17 @@ class TestArifosMind:
 
             assert result is not None
             mock_mega.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_arifos_mind_public_normalizes_context_without_nameerror(self):
+        """Public arifos_mind wrapper should normalize context before session gating."""
+        from arifosmcp.runtime.tools import _arifos_mind_public
+
+        result = await _arifos_mind_public(query="test", context={"evidence": [1, 2, 3]})
+
+        assert result is not None
+        assert result.tool == "arifos_mind"
+        assert result.ok is False
 
 
 class TestArifosKernel:
@@ -172,6 +210,25 @@ class TestArifosJudge:
 
             assert result is not None
             mock_mega.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_canonical_judge_handler_accepts_public_query_signature(self):
+        """Canonical MCP handler should point at the public query-compatible wrapper."""
+        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
+
+        handler = CANONICAL_TOOL_HANDLERS["arifos_judge"]
+
+        with patch("arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock) as mock_mega:
+            mock_mega.return_value = _mock_envelope("arifos_judge", stage="888_JUDGE")
+
+            result = await handler(query="test action", risk_tier="medium")
+
+            assert result is not None
+            mock_mega.assert_awaited_once()
+            _, kwargs = mock_mega.await_args
+            assert kwargs["mode"] == "judge"
+            assert kwargs["payload"]["verdict_candidate"] == "SEAL"
+            assert kwargs["payload"]["reason_summary"] == "test action"
 
 
 class TestArifosMemory:
