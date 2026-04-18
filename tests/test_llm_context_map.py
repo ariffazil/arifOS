@@ -17,6 +17,8 @@ def test_build_llm_context_map_exposes_canonical_surface():
     assert "agi_mind" in payload["canonical_tools"]
     assert payload["continuity_contract"]["contract_version"] == "0.1.0"
     assert "authorization may not widen without authority_transition" in payload["continuity_contract"]["invariants"]
+    assert payload["domain_evidence_contract"]["version"] == "geox-evidence/v1"
+    assert "claim_tag" in payload["domain_evidence_contract"]["fields"]
 
 
 def test_discovery_manifest_points_to_llm_context_resource():
@@ -34,6 +36,7 @@ def test_resources_register_llm_context_resource():
     payload = json.loads(runtime_resources._resource_content_functions["arifos://mcp/context"]())
     assert payload["schema"] == "arifos-llm-context/v1"
     assert payload["discovery"]["tool_contracts_resource"] == "arifos://contracts/tools"
+    assert payload["domain_evidence_contract"]["bindings"]["judge"] == "arifos_judge(domain_evidence=...)"
 
 
 @pytest.mark.asyncio

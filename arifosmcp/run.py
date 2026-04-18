@@ -17,7 +17,7 @@ import os
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from arifOS.arifosmcp.mcp_tools import (
+from arifosmcp.mcp_tools import (
     create_perception_mcp,
     create_transformation_mcp,
     create_valuation_mcp,
@@ -50,7 +50,11 @@ def run_agent(agent_id: str):
     mcp = factory()
     print(f"Starting {agent_id} agent MCP server...")
     print(f"  Transport: stdio")
-    print(f"  Tools: {len(mcp._tool_manager.tools)}")
+    try:
+        tools = mcp._tool_manager.tools
+        print(f"  Tools: {len(tools)}")
+    except AttributeError:
+        pass
     mcp.run()
     return 0
 
@@ -60,7 +64,11 @@ def run_multiple_agents(agent_ids: list[str]):
     mcp = create_unified_mcp(agents=agent_ids)
     print(f"Starting unified MCP server for agents: {agent_ids}")
     print(f"  Transport: stdio")
-    print(f"  Tools: {len(mcp._tool_manager.tools)}")
+    try:
+        tools = mcp._tool_manager.tools
+        print(f"  Tools: {len(tools)}")
+    except AttributeError:
+        pass
     mcp.run()
     return 0
 
@@ -72,7 +80,11 @@ def run_all_agents():
     print("  Transport: stdio")
     print("  Agents: P (Perception), T (Transformation), V (Valuation)")
     print("          G (Governance), E (Execution), M (Meta)")
-    print(f"  Total Tools: {len(mcp._tool_manager.tools)}")
+    try:
+        tools = mcp._tool_manager.tools
+        print(f"  Total Tools: {len(tools)}")
+    except AttributeError:
+        pass
     mcp.run()
     return 0
 

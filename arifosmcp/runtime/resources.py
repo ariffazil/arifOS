@@ -630,6 +630,22 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
                 "depth": depth,
                 "compression_mode": "DELTA",
                 "compress": compress,
+                "domain_evidence_contract": {
+                    "version": "geox-evidence/v1",
+                    "accepted_sources": ["GEOX"],
+                    "recommended_fields": [
+                        "claim_tag",
+                        "asset_id",
+                        "disagreement_band",
+                        "p10_p50_p90",
+                        "charge_probability",
+                        "vault_receipt",
+                    ],
+                    "memory_modes": {
+                        "store": "arifos_memory(mode='asset_store')",
+                        "query": "arifos_memory(mode='asset_query')",
+                    },
+                },
             },
             "active_floors": [],
             "last_verdict": {
@@ -637,6 +653,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
                 "tau": 0.96,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             },
+            "active_domain_packets": [],
             "tasks": [],  # Task primitive integration point
         }
 

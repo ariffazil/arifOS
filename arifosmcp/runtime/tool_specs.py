@@ -139,7 +139,9 @@ TOOLS: tuple[ToolSpec, ...] = (
             "Ground query in physical reality via the 8-stage constitutional sensing protocol: "
             "PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF. "
             "Live web search is gated by truth classification — invariants use offline reasoning; "
-            "time-sensitive facts trigger live retrieval; ambiguous queries HOLD for narrowing."
+            "time-sensitive facts trigger live retrieval; ambiguous queries HOLD for narrowing. "
+            "Accepts optional domain_evidence packets from GEOX or other organs so sensing preserves "
+            "claim tags, posterior bands, disagreement spread, and vault receipts instead of flattening them into prose."
         ),
         trinity="Δ",
         floors=("F2", "F3", "F4", "F10"),
@@ -167,6 +169,14 @@ TOOLS: tuple[ToolSpec, ...] = (
                     "type": "boolean",
                     "default": True,
                     "description": "If True, runs the sensing protocol without persisting results or triggering downstream effects.",
+                },
+                "query_frame": {
+                    "type": "object",
+                    "description": "Optional structural query hints such as domain, time_scope, or jurisdiction.",
+                },
+                "domain_evidence": {
+                    "type": "object",
+                    "description": "Optional governed earth/domain evidence packet. Recommended GEOX fields: claim_tag, asset_id, disagreement_band, p10_p50_p90, charge_probability, vault_receipt.",
                 },
             },
         },
@@ -357,7 +367,11 @@ TOOLS: tuple[ToolSpec, ...] = (
         purpose="Apex soul — Final constitutional verdict evaluation",
         layer="GOVERNANCE",
         visibility="public",
-        description="Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD.",
+        description=(
+            "Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD. "
+            "Accepts optional domain_evidence so judgment can account for probabilistic envelopes, "
+            "ensemble disagreement, timing risk, and governed receipts from GEOX without spawning duplicate tools."
+        ),
         trinity="Ψ",
         floors=("F1", "F2", "F3", "F9", "F10", "F12", "F13"),
         input_schema={
@@ -380,6 +394,14 @@ TOOLS: tuple[ToolSpec, ...] = (
                     "type": "string",
                     "description": "Active session ID linking this verdict to a declared constitutional session.",
                 },
+                "telemetry": {
+                    "type": "object",
+                    "description": "Optional telemetry or run metrics contributing to the verdict packet.",
+                },
+                "domain_evidence": {
+                    "type": "object",
+                    "description": "Optional structured domain packet. Recommended fields: claim_tag, asset_id, disagreement_band, p10_p50_p90, charge_probability, vault_receipt.",
+                },
             },
         },
         read_only_hint=False,
@@ -394,24 +416,52 @@ TOOLS: tuple[ToolSpec, ...] = (
         purpose="Engineering memory — Governed context recall",
         layer="INTELLIGENCE",
         visibility="public",
-        description="Retrieve governed memory and engineering context from vector store.",
+        description=(
+            "Retrieve governed memory and engineering context from vector store. "
+            "Supports asset-scoped GEOX memory without adding a new public memory organ."
+        ),
         trinity="Ω",
         floors=("F2", "F10", "F11"),
         input_schema={
             "type": "object",
-            "required": ["query"],
+            "required": [],
             "properties": {
                 "query": {
                     "type": "string",
-                    "minLength": 1,
+                    "minLength": 0,
                     "maxLength": 2000,
-                    "description": "Semantic query string to search governed memory and engineering context.",
+                    "description": "Semantic query string to search governed memory and engineering context. Optional for asset_store when structured content is supplied.",
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["vector_query", "vector_store", "engineer", "query"],
+                    "enum": ["vector_query", "vector_store", "engineer", "query", "ingest", "asset_store", "asset_query"],
                     "default": "vector_query",
-                    "description": "vector_query=semantic search, vector_store=store new memory, engineer=engineering context retrieval, query=exact-match query.",
+                    "description": "vector_query=semantic search, vector_store=store new memory, engineer=engineering context retrieval, query=exact-match query, ingest=governed ingestion, asset_store=store GEOX asset-scoped memory, asset_query=retrieve GEOX asset-scoped memory.",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Optional content payload for vector_store, ingest, or asset_store modes.",
+                },
+                "asset_id": {
+                    "type": "string",
+                    "description": "Optional GEOX asset identifier used to scope asset_store and asset_query modes.",
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Optional originating domain label, e.g. geox, well, terrain, or basin.",
+                },
+                "domain_evidence": {
+                    "type": "object",
+                    "description": "Optional structured evidence packet to persist or bind to an asset memory record.",
+                },
+                "vault_receipt": {
+                    "type": "string",
+                    "description": "Optional immutable receipt or seal reference associated with the memory record.",
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional tags for memory indexing and retrieval.",
                 },
                 "session_id": {
                     "type": "string",

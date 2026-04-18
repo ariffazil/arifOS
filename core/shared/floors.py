@@ -224,6 +224,9 @@ class F2_Truth(Floor):
         except ImportError:
             landauer_available = False
 
+        # P3 HARDENING: Real Landauer bound enforcement
+        # Suspiciously cheap truth (ratio < 10) = hard VOID
+        # Physically impossible truth (ratio < 1) = mathematically proven hallucination
         if landauer_available:
             try:
                 compute_ms = context.get("compute_time_ms", 100)
@@ -237,24 +240,38 @@ class F2_Truth(Floor):
                         entropy_reduction=entropy_delta,
                     )
 
-                    if not landauer_result.get("passed", True):
-                        p_truth *= 0.5  # Penalty for suspiciously cheap truth
-                        ratio = landauer_result.get(
-                            "efficiency_ratio", landauer_result.get("ratio", 0)
+                    ratio = landauer_result.get("efficiency_ratio", landauer_result.get("ratio", 0))
+
+                    # HARD VOID: Suspiciously cheap truth (ratio < 10)
+                    # This catches LLM outputs that claim high clarity but consumed trivial compute
+                    if ratio < 10.0:
+                        return FloorResult(
+                            self.id,
+                            False,  # FAILED
+                            0.0,
+                            f"F2 HARD VIOLATION: Landauer bound violated. "
+                            f"Claims ΔS={entropy_delta:.4f} but compute cost was only {ratio:.1f}x minimum. "
+                            f"Truth is suspiciously cheap — likely cached, hallucinated, or ungrounded.",
                         )
-                        landauer_status = f"(compute efficiency: {ratio:.1f}x)"
+
+                    landauer_status = f"(compute efficiency: {ratio:.1f}x — PASS)"
 
             except Exception as e:
-                # Check if it's a LandauerViolation using isinstance for a proper class reference
+                # LandauerViolation = mathematically proven hallucination
                 if landauer_available and isinstance(e, LandauerViolation):
-                    # Hard violation: mathematically proven hallucination
                     return FloorResult(
                         self.id,
                         False,
                         0.0,
                         f"F2 HARD VIOLATION: {e}",
                     )
-                # Other exceptions fall through to fallback
+                # Other exceptions: fail closed — treat as violation
+                return FloorResult(
+                    self.id,
+                    False,
+                    0.0,
+                    f"F2 ERROR: Could not verify Landauer bound — {type(e).__name__}: {e}",
+                )
 
         if not landauer_available:
             # Fallback to legacy energy efficiency check

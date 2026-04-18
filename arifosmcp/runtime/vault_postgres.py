@@ -177,7 +177,13 @@ class PostgresVaultStore:
             logger.error(f"Local postgres seal error: {e}")
             return False
 
-    async def open_session(self, agent_id: str, anchor_seal_id: str = None) -> str:
+    async def open_session(
+        self,
+        agent_id: str,
+        anchor_seal_id: str = None,
+        declared_intent: str = None,
+        risk_tier: str = None,
+    ) -> str:
         """Initialize session in Postgres."""
         session_id = f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
         # For now, we return the generated ID; actual session table persistence can be added here
@@ -265,8 +271,14 @@ class VaultManager:
             ledger_id=event.event_id,
         )
 
-    async def open_session(self, agent_id: str, anchor_seal_id: str = None) -> str:
-        return await self.postgres.open_session(agent_id, anchor_seal_id)
+    async def open_session(
+        self,
+        agent_id: str,
+        anchor_seal_id: str = None,
+        declared_intent: str = None,
+        risk_tier: str = None,
+    ) -> str:
+        return await self.postgres.open_session(agent_id, anchor_seal_id, declared_intent, risk_tier)
 
     async def load_constitution(self) -> dict:
         return await self.postgres.load_constitution()
@@ -408,7 +420,12 @@ async def seal_vault(
 # ── SESSIONS ──────────────────────────────────────────────────
 
 
-async def open_session(agent_id: str, anchor_seal_id: str = None) -> str:
+async def open_session(
+    agent_id: str,
+    anchor_seal_id: str = None,
+    declared_intent: str = None,
+    risk_tier: str = None,
+) -> str:
     """Call at init_anchor_session. Returns session_id."""
     sb = get_supabase()
     if not sb:
@@ -416,14 +433,17 @@ async def open_session(agent_id: str, anchor_seal_id: str = None) -> str:
     session_id = (
         f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
     )
-    sb.table("arifosmcp_sessions").insert(
-        {
-            "session_id": session_id,
-            "agent_id": agent_id,
-            "anchor_seal_id": anchor_seal_id,
-            "opened_at": "now()",
-        }
-    ).execute()
+    insert_row = {
+        "session_id": session_id,
+        "agent_id": agent_id,
+        "anchor_seal_id": anchor_seal_id,
+        "opened_at": "now()",
+    }
+    if declared_intent:
+        insert_row["declared_intent"] = declared_intent
+    if risk_tier:
+        insert_row["risk_tier"] = risk_tier
+    sb.table("arifosmcp_sessions").insert(insert_row).execute()
     return session_id
 
 

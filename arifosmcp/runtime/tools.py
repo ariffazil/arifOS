@@ -172,6 +172,121 @@ def _normalize_context_text(context: Any) -> str | None:
     return text or None
 
 
+def _normalize_domain_evidence_packet(domain_evidence: Any) -> dict[str, Any] | None:
+    """Normalize GEOX/domain evidence into a stable governed packet."""
+    import json
+
+    if domain_evidence is None:
+        return None
+    if isinstance(domain_evidence, str):
+        text = domain_evidence.strip()
+        return {"source": "external", "contract": "domain-evidence/v1", "summary": text} if text else None
+    if not isinstance(domain_evidence, dict):
+        return {
+            "source": "external",
+            "contract": "domain-evidence/v1",
+            "summary": json.dumps(domain_evidence, default=str, sort_keys=True),
+        }
+
+    packet = dict(domain_evidence)
+    source = str(packet.get("source") or packet.get("organ") or packet.get("system") or "GEOX")
+    packet["source"] = source
+    packet["contract"] = str(packet.get("contract") or ("geox-evidence/v1" if source.upper() == "GEOX" else "domain-evidence/v1"))
+
+    alias_map = {
+        "claimTag": "claim_tag",
+        "assetId": "asset_id",
+        "p10P50P90": "p10_p50_p90",
+        "disagreementBand": "disagreement_band",
+        "chargeProbability": "charge_probability",
+        "vaultReceipt": "vault_receipt",
+    }
+    for old_key, new_key in alias_map.items():
+        if old_key in packet and new_key not in packet:
+            packet[new_key] = packet[old_key]
+
+    if "summary" not in packet:
+        summary_parts = []
+        if packet.get("claim_tag"):
+            summary_parts.append(f"claim_tag={packet['claim_tag']}")
+        if packet.get("asset_id"):
+            summary_parts.append(f"asset_id={packet['asset_id']}")
+        if packet.get("disagreement_band") is not None:
+            summary_parts.append(f"disagreement_band={packet['disagreement_band']}")
+        if packet.get("p10_p50_p90"):
+            summary_parts.append("p10_p50_p90=present")
+        if packet.get("charge_probability") is not None:
+            summary_parts.append(f"charge_probability={packet['charge_probability']}")
+        if packet.get("vault_receipt"):
+            summary_parts.append("vault_receipt=present")
+        packet["summary"] = ", ".join(summary_parts) if summary_parts else f"{source} domain evidence"
+
+    return packet
+
+
+def _merge_domain_evidence_into_envelope(envelope: Any, domain_evidence: dict[str, Any] | None) -> None:
+    """Attach normalized domain evidence to envelope payload/policy surfaces."""
+    if not domain_evidence:
+        return
+
+    payload = dict(getattr(envelope, "payload", {}) or {})
+    payload["domain_evidence"] = domain_evidence
+    envelope.payload = payload
+
+    policy = dict(getattr(envelope, "policy", {}) or {})
+    policy["domain_evidence_present"] = True
+    policy["domain_evidence_source"] = domain_evidence.get("source", "external")
+    policy["domain_evidence_contract"] = domain_evidence.get("contract", "domain-evidence/v1")
+    policy["domain_evidence_hold_conditions"] = [
+        "disagreement_band > 0.20",
+        "posterior breadth exceeds safe judgment tolerance",
+        "charge timing contradicts claimed action",
+        "deterministic claim emitted where probabilistic output is required",
+    ]
+    envelope.policy = policy
+
+    intelligence_state = getattr(envelope, "intelligence_state", None)
+    if isinstance(intelligence_state, dict):
+        intelligence_state["domain_evidence"] = domain_evidence
+
+
+def _build_asset_memory_record(
+    *,
+    query: str,
+    content: str | None,
+    asset_id: str | None,
+    domain: str | None,
+    domain_evidence: dict[str, Any] | None,
+    receipt: str | None,
+    tags: list[str] | None,
+    session_id: str | None,
+) -> dict[str, Any]:
+    return {
+        "kind": "asset_memory_record",
+        "contract": "geox-asset-memory/v1",
+        "asset_id": asset_id,
+        "domain": domain or "geox",
+        "query": query,
+        "content": content,
+        "domain_evidence": domain_evidence,
+        "vault_receipt": receipt,
+        "tags": tags or [],
+        "session_id": session_id,
+    }
+
+
+def _build_asset_memory_query(query: str, asset_id: str | None, domain: str | None, tags: list[str] | None) -> str:
+    parts = [query.strip()] if query and query.strip() else []
+    if asset_id:
+        parts.append(f"asset_id:{asset_id}")
+    if domain:
+        parts.append(f"domain:{domain}")
+    for tag in tags or []:
+        parts.append(f"tag:{tag}")
+    return " ".join(parts).strip()
+    return text or None
+
+
 _TOOL_STAGE_MAP = {
     "arifos_init": "000_INIT",
     "arifos_sense": "111_SENSE",
@@ -556,24 +671,30 @@ async def arifos_init(
     # ── Log init to vault (arif-chatgpt sessions land here) ──
     try:
         import asyncio
+        import hashlib
 
-        from arifosmcp.runtime.vault_postgres import PostgresVaultStore
+        from arifosmcp.runtime import vault_postgres
 
-        _vs = PostgresVaultStore()
         _sid = session_id or f"arif-chatgpt-{datetime.now().strftime('%Y%m%d')}"
         _verdict = str(envelope.verdict) if hasattr(envelope, "verdict") else "SEAL"
         _ms = getattr(envelope, "duration_ms", 0) or 0
+        _actor = actor_id or "unknown"
+        _intent_str = f"actor={_actor} intent={intent[:80]}"
+        _input_hash = hashlib.sha256(_intent_str.encode()).hexdigest()[:16]
+        _result_code = _verdict
+        _peace2 = 1.0
+        _error = None
 
         async def _vault_log():
-            await _vs.log_tool_call(
-                session_id=_sid,
-                run_id=_sid,
+            await vault_postgres.log_tool_call(
                 tool_name="arifos_init",
-                organ="PSI",
-                input_summary=f"actor={actor_id} intent={intent[:80]}",
-                output_summary=f"verdict={_verdict}",
-                verdict=_verdict,
+                agent_id=_actor,
+                session_id=_sid,
+                input_hash=_input_hash,
+                result_code=_result_code,
                 duration_ms=_ms,
+                peace2=_peace2,
+                error_msg=_error,
             )
 
         asyncio.create_task(_vault_log())
@@ -642,6 +763,7 @@ async def arifos_sense(
     policy: dict[str, Any] | None = None,
     budget: dict[str, Any] | None = None,
     actor: dict[str, Any] | None = None,
+    domain_evidence: dict[str, Any] | None = None,
     platform: str = "unknown",
 ) -> RuntimeEnvelope:
     """
@@ -730,6 +852,7 @@ async def arifos_sense(
     if mode == "governed":
         from arifosmcp.runtime.models import RuntimeEnvelope as _RE
         from arifosmcp.runtime.models import RuntimeStatus, Verdict
+        normalized_domain_evidence = _normalize_domain_evidence_packet(domain_evidence)
 
         try:
             from arifosmcp.runtime.sensing_protocol import (
@@ -744,11 +867,18 @@ async def arifos_sense(
                 "sensing_protocol import failed (%s) — falling back to legacy sense", _ie
             )
             return await _sense_legacy(
-                query, "search", session_id, risk_tier, dry_run, debug, platform
+                query,
+                "search",
+                session_id,
+                risk_tier,
+                dry_run,
+                debug,
+                platform,
+                domain_evidence=normalized_domain_evidence,
             )
 
         # Build SenseInput — use extended fields if provided, otherwise auto-normalize
-        if query_frame or intent or policy or budget or actor:
+        if query_frame or intent or policy or budget or actor or normalized_domain_evidence:
             base_si = normalize_query(query)
             if intent:
                 base_si.intent.user_goal = intent
@@ -778,6 +908,10 @@ async def arifos_sense(
                 a = base_si.actor
                 a.actor_id = actor.get("actor_id", a.actor_id)
                 a.authority_level = actor.get("authority_level", a.authority_level)
+            if normalized_domain_evidence:
+                qf = base_si.query_frame
+                qf.domain = qf.domain or normalized_domain_evidence.get("domain", qf.domain)
+                qf.jurisdiction = normalized_domain_evidence.get("jurisdiction", qf.jurisdiction)
             si = base_si
         else:
             si = normalize_query(query)
@@ -871,6 +1005,7 @@ async def arifos_sense(
                 "intel_state_full": intel_state.to_dict(),
                 "truth_vector": intel_state.truth_vector.to_dict(),
             }
+        _merge_domain_evidence_into_envelope(envelope, normalized_domain_evidence)
         _stamp_platform(envelope, platform)
         # ── floors_checked: write to envelope.meta before sealing ───────────
         sense_floors = ["F2", "F3", "F4", "F7", "F8", "F10"]
@@ -880,7 +1015,16 @@ async def arifos_sense(
         return seal_runtime_envelope(envelope, "arifos_sense")
 
     # ── legacy modes: delegate to physics_reality ─────────────────────────────
-    return await _sense_legacy(query, mode, session_id, risk_tier, dry_run, debug, platform)
+    return await _sense_legacy(
+        query,
+        mode,
+        session_id,
+        risk_tier,
+        dry_run,
+        debug,
+        platform,
+        domain_evidence=_normalize_domain_evidence_packet(domain_evidence),
+    )
 
 
 async def _sense_legacy(
@@ -891,6 +1035,7 @@ async def _sense_legacy(
     dry_run: bool,
     debug: bool,
     platform: str = "unknown",
+    domain_evidence: dict[str, Any] | None = None,
 ) -> RuntimeEnvelope:
     """Legacy sense path — delegates to physics_reality mega tool."""
     envelope = await _mega_physics_reality(
@@ -901,6 +1046,7 @@ async def _sense_legacy(
         dry_run=dry_run,
         debug=debug,
     )
+    _merge_domain_evidence_into_envelope(envelope, domain_evidence)
     _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos_sense")
 
@@ -1648,6 +1794,7 @@ async def arifos_judge(
     query: str | None = None,
     risk_tier: str = "medium",
     telemetry: dict[str, Any] | None = None,
+    domain_evidence: dict[str, Any] | None = None,
     session_id: str | None = None,
     dry_run: bool = True,
     debug: bool = False,
@@ -1655,20 +1802,28 @@ async def arifos_judge(
 ) -> RuntimeEnvelope:
     """Final constitutional verdict evaluation."""
     # Treat query/candidate_action as the evidence summary for a default SEAL candidacy.
+    normalized_domain_evidence = _normalize_domain_evidence_packet(domain_evidence)
     reason_summary = query or candidate_action or ""
+    if not reason_summary and normalized_domain_evidence:
+        reason_summary = normalized_domain_evidence.get("summary", "")
+    merged_telemetry = dict(telemetry or {})
+    if normalized_domain_evidence:
+        merged_telemetry["domain_evidence_summary"] = normalized_domain_evidence.get("summary")
     envelope = await _mega_apex_judge(
         mode="judge",
         payload={
             "verdict_candidate": "SEAL",
             "reason_summary": reason_summary,
             "risk_tier": risk_tier,
-            "telemetry": telemetry,
+            "telemetry": merged_telemetry,
+            "domain_evidence": normalized_domain_evidence,
         },
         session_id=session_id,
         risk_tier=risk_tier,
         dry_run=dry_run,
         debug=debug,
     )
+    _merge_domain_evidence_into_envelope(envelope, normalized_domain_evidence)
     _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos_judge")
 
@@ -1677,6 +1832,11 @@ async def arifos_memory(
     query: str = "",
     content: str | None = None,
     mode: str = "vector_query",
+    asset_id: str | None = None,
+    domain: str | None = None,
+    domain_evidence: dict[str, Any] | None = None,
+    vault_receipt: str | None = None,
+    tags: list[str] | None = None,
     session_id: str | None = None,
     risk_tier: str = "medium",
     dry_run: bool = True,
@@ -1685,16 +1845,51 @@ async def arifos_memory(
 ) -> RuntimeEnvelope:
     """
     Retrieve governed memory from vector store or update the continuous world model.
-    Modes: vector_query, vector_store, engineer, query, ingest
+    Modes: vector_query, vector_store, engineer, query, ingest, asset_store, asset_query
     """
     from arifosmcp.core.kernel.metabolic_bridge import metabolic_bridge
 
     # T00_03 Canonical Memory Surface
+    normalized_domain_evidence = _normalize_domain_evidence_packet(domain_evidence)
+    canonical_mode = mode
     payload = {"query": query, "mode": mode}
     if content:
         payload["content"] = content
+    if asset_id:
+        payload["asset_id"] = asset_id
+    if domain:
+        payload["domain"] = domain
+    if tags:
+        payload["tags"] = tags
+    if vault_receipt:
+        payload["vault_receipt"] = vault_receipt
+    if normalized_domain_evidence:
+        payload["domain_evidence"] = normalized_domain_evidence
 
-    if mode == "ingest":
+    if mode == "asset_store":
+        import json
+
+        canonical_mode = "vector_store"
+        payload["query"] = _build_asset_memory_query(query, asset_id, domain, tags)
+        payload["content"] = json.dumps(
+            _build_asset_memory_record(
+                query=query,
+                content=content,
+                asset_id=asset_id,
+                domain=domain,
+                domain_evidence=normalized_domain_evidence,
+                receipt=vault_receipt,
+                tags=tags,
+                session_id=session_id,
+            ),
+            default=str,
+            sort_keys=True,
+        )
+    elif mode == "asset_query":
+        canonical_mode = "vector_query"
+        payload["query"] = _build_asset_memory_query(query, asset_id, domain, tags)
+
+    if canonical_mode == "ingest":
         # Governed Ingestion Pipeline (111 -> 444 -> 777 -> 999)
         ctx = {
             "session_id": session_id or "unknown",
@@ -1719,17 +1914,18 @@ async def arifos_memory(
                 "seal_id": bridge_result.seal_id
             }
         )
+        _merge_domain_evidence_into_envelope(envelope, normalized_domain_evidence)
         _stamp_platform(envelope, platform)
         return seal_runtime_envelope(envelope, "arifos_memory")
 
     # Existing modes
-    if mode == "world_model_update":
+    if canonical_mode == "world_model_update":
         payload["animal_archetype_active"] = True
         payload["continuous_learning_update"] = True
         payload["anterograde_amnesia_override"] = True
 
     envelope = await _mega_engineering_memory(
-        mode=mode,
+        mode=canonical_mode,
         payload=payload,
         session_id=session_id,
         risk_tier=risk_tier,
@@ -1738,7 +1934,7 @@ async def arifos_memory(
     )
 
     # Fix vector_query mode failure (DNS / unreachable)
-    if mode == "vector_query" and not envelope.ok:
+    if canonical_mode == "vector_query" and not envelope.ok:
         if "Name or service not known" in str(envelope.primary_artifact) or not envelope.primary_artifact:
             envelope.primary_artifact = {
                 "error": "Embedding service unreachable",
@@ -1746,6 +1942,7 @@ async def arifos_memory(
                 "code": "INFRA_DEFERRED"
             }
 
+    _merge_domain_evidence_into_envelope(envelope, normalized_domain_evidence)
     _stamp_platform(envelope, platform)
     return seal_runtime_envelope(envelope, "arifos_memory")
 

@@ -129,6 +129,24 @@ def build_llm_context_map() -> dict[str, object]:
                 "canonical tool identity must remain explicit in every envelope",
             ],
         },
+        "domain_evidence_contract": {
+            "version": "geox-evidence/v1",
+            "accepted_sources": ["GEOX"],
+            "fields": [
+                "claim_tag",
+                "asset_id",
+                "disagreement_band",
+                "p10_p50_p90",
+                "charge_probability",
+                "vault_receipt",
+            ],
+            "bindings": {
+                "sense": "arifos_sense(domain_evidence=...)",
+                "judge": "arifos_judge(domain_evidence=...)",
+                "memory_store": "arifos_memory(mode='asset_store', ...)",
+                "memory_query": "arifos_memory(mode='asset_query', ...)",
+            },
+        },
     }
 
 __all__ = [

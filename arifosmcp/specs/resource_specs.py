@@ -77,7 +77,8 @@ CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
         name="arifOS Schema",
         description=(
             "Complete structural blueprint. "
-            "Query: ?section=all|master|tools|trinity|stages|reply|index&tool_id={id}"
+            "Query: ?section=all|master|tools|trinity|stages|reply|index&tool_id={id}. "
+            "Includes the governed domain evidence contract used by GEOX-aware tool envelopes."
         ),
         mime_type="application/json",
         dynamic=False,
@@ -88,7 +89,8 @@ CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
         name="arifOS Session",
         description=(
             "Ephemeral per-session state and task dashboard. "
-            "Query: ?depth=surface|engineer|architect&compress=true|false"
+            "Query: ?depth=surface|engineer|architect&compress=true|false. "
+            "Surfaces active domain evidence contract guidance for GEOX-aware sessions."
         ),
         mime_type="application/json",
         is_template=True,

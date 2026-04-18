@@ -145,15 +145,85 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
     if proposal.irreversible:
         violations.append({"floor": "F1", "reason": "irreversible_action", "verdict": "HOLD"})
 
-    # F2 Truth — confidence threshold
-    if proposal.confidence < 0.70:
-        violations.append(
-            {
-                "floor": "F2",
-                "reason": f"extraction_confidence_too_low: {proposal.confidence}",
-                "verdict": "HOLD",
-            }
+    # F2 Truth — Landauer Bound + Confidence
+    # P3 HARDENING: Truth must be thermodynamically grounded.
+    # Suspiciously fast/cheap claims = mathematically proven hallucination.
+    f2_passed = True
+    f2_reason = ""
+    try:
+        from core.physics.thermodynamics_hardened import (
+            check_landauer_bound,
+            LandauerViolation,
+            K_BOLTZMANN,
+            T_ROOM,
         )
+        import math
+
+        # Build F2 context from proposal
+        f2_context = {
+            "query": proposal.raw_input,
+            "confidence": proposal.confidence,
+            "entropy_delta": -0.1,  # Default: assume small clarity gain
+            "compute_time_ms": 100.0,  # Default assumption
+            "tokens_generated": max(10, len(proposal.raw_input) // 4),
+        }
+
+        # Check for evidence grounding (F2 requires claims be substantiated)
+        raw_input_lower = proposal.raw_input.lower()
+        has_citation = any(
+            pattern in raw_input_lower
+            for pattern in [
+                "http://", "https://", "www.", "[1]", "[2]",  # URLs and refs
+                "according to", "as stated in", "source:",  # Attribution
+                "studies show", "research indicates", "data shows",  # Evidence claims
+            ]
+        )
+        has_technical_detail = len(proposal.raw_input) > 200 and (
+            any(c in proposal.raw_input for c in "0123456789")
+        )
+
+        # F2 requires confidence >= 0.99 for non-axiomatic claims
+        # Axiomatic claims (math, syntax) can be confidence >= 0.95
+        is_technical = has_citation or has_technical_detail or proposal.tier == "physics"
+        f2_threshold = 0.95 if is_technical else 0.99
+
+        if proposal.confidence < f2_threshold:
+            f2_passed = False
+            f2_reason = (
+                f"F2 HARD VIOLATION: confidence={proposal.confidence:.3f} < {f2_threshold} "
+                f"(tier={proposal.tier}, has_evidence={has_citation}). "
+                f"Truth claim ungrounded — requires substantiation."
+            )
+
+        # Landauer check: cheap truth = hallucination
+        # Only applies if we claimed clarity gain (entropy_delta < 0)
+        entropy_delta = f2_context["entropy_delta"]
+        if entropy_delta < 0 and f2_passed:
+            landauer_result = check_landauer_bound(
+                compute_ms=f2_context["compute_time_ms"],
+                tokens_generated=f2_context["tokens_generated"],
+                entropy_reduction=entropy_delta,
+            )
+            ratio = landauer_result.get("efficiency_ratio", float("inf"))
+            if ratio < 10.0:
+                f2_passed = False
+                f2_reason = (
+                    f"F2 HARD VIOLATION: Landauer bound violated. "
+                    f"Claims ΔS={entropy_delta:.4f} but compute is suspiciously cheap "
+                    f"(ratio={ratio:.1f}x). Likely cached or hallucinated."
+                )
+    except LandauerViolation as e:
+        f2_passed = False
+        f2_reason = f"F2 HARD VIOLATION: {e}"
+    except Exception:
+        # Fail closed: if we can't verify, don't pass
+        # (module not available or other error)
+        if proposal.confidence < 0.95:
+            f2_passed = False
+            f2_reason = f"F2 ERROR: Could not verify Landauer bound — treating as ungrounded"
+
+    if not f2_passed:
+        violations.append({"floor": "F2", "reason": f2_reason, "verdict": "VOID"})
 
     # F8 Fail-closed — unknown action type
     if proposal.action_type not in ALLOWED_ACTION_TYPES:

@@ -171,6 +171,8 @@ For each step:
 - Record the tool call
 - Note uncertainty (Ω₀) and clarity (ΔS) metrics
 - Flag any floor violations
+- If GEOX/domain evidence is present, preserve structured fields such as claim_tag, disagreement_band,
+  p10/p50/p90, charge_probability, and vault_receipt. Do not collapse them into a single deterministic claim.
 
 Final output must include:
 - verdict: SEAL | PARTIAL | VOID | HOLD
@@ -204,6 +206,8 @@ Report:
 - severity: CRITICAL | HIGH | MEDIUM | LOW
 - remediation: required actions
 - audit_hash: unique identifier for this audit
+- If the content includes GEOX/domain evidence, explicitly report posterior breadth, disagreement spread,
+  and any probabilistic-vs-deterministic mismatch as audit findings.
 """
 
 
@@ -276,6 +280,7 @@ STEP 0 — RECIPIENT DETECTION (silent)
   → arifos.sense(query="{query}", mode="governed")
   → If recipient=auto: classify from sense output
   → Rule: ambiguous → treat as human PLUS append agent block at end
+  → Preserve any domain_evidence packet from GEOX; never rewrite claim_tag / posterior bands into freehand prose.
 
 STEP 0b — COMPUTE τ (silent)
   → τ = (FACT_count×1.0 + ASSUME_count×0.7 + UNKNOWN_count×0.2) / total_reasoning_steps
@@ -331,6 +336,8 @@ STEP 3 — CONSTITUTIONAL GUARD
         AUDIT_REF: <arifos.vault reference>
   → Never self-approve 888 HOLD.
   → Call arifos.vault for any SEAL or HOLD verdict.
+  → GEOX/domain evidence with disagreement_band > 0.20, overly broad posterior spread, timing conflict,
+    or missing receipt for consequential claims must bias toward HOLD or explicit qualification.
 
 ━━━ REPLY HEADER (prefix every response) ━━━
 TO: <primary recipient>
@@ -382,9 +389,11 @@ Steps:
    - For health: GET /health
 
 2. Interpret the result:
-   - PASS → proceed; task cleared all governance floors
-   - SABAR → F3 InputClarity blocked: task too vague or empty — request clarification
-   - VOID → F6 HarmDignity or F9 Injection blocked: task contains harmful or injection pattern — escalate F13 HOLD
+    - PASS → proceed; task cleared all governance floors
+    - SABAR → F3 InputClarity blocked: task too vague or empty — request clarification
+    - VOID → F6 HarmDignity or F9 Injection blocked: task contains harmful or injection pattern — escalate F13 HOLD
+    - If GEOX/domain evidence accompanies the task, keep its probabilistic fields intact and route them into arifos_judge
+      rather than summarizing away the spread.
 
 3. If PASS and mode=run: record finalText and turnCount in the session context.
 

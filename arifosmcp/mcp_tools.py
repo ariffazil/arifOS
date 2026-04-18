@@ -340,7 +340,7 @@ def create_perception_mcp() -> FastMCP:
     ) -> dict[str, Any]:
         """Read from VAULT999 ledger via vault_postgres if available."""
         try:
-            from arifOS.arifosmcp.runtime.vault_postgres import PostgresVaultStore
+            from arifosmcp.runtime.vault_postgres import PostgresVaultStore
 
             vault = PostgresVaultStore()
             rows = vault.get_seals(
@@ -381,7 +381,7 @@ def create_transformation_mcp() -> FastMCP:
     """Transformation Agent MCP tools — physics, math, monte_carlo."""
     mcp = FastMCP("arifOS-T")
 
-    from arifOS.core.organs._5_wealth import calculate_irr as _calc_irr
+    from core.organs._5_wealth import calculate_irr as _calc_irr
     import math
 
     @mcp.tool(
@@ -659,7 +659,7 @@ def create_valuation_mcp() -> FastMCP:
     mcp = FastMCP("arifOS-V")
 
     # ── Import real implementations ─────────────────────────────────────────────
-    from arifOS.core.organs._5_wealth import (
+    from core.organs._5_wealth import (
         calculate_npv as _calc_npv,
         calculate_dscr as _calc_dscr,
         calculate_irr as _calc_irr,
@@ -1073,7 +1073,7 @@ def create_execution_mcp() -> FastMCP:
         }
 
         try:
-            from arifOS.arifosmcp.runtime.vault_postgres import seal_to_vault
+            from arifosmcp.runtime.vault_postgres import seal_to_vault
 
             result = await seal_to_vault(**record)
             return {
@@ -1201,36 +1201,44 @@ def create_unified_mcp(agents: list[str] | None = None, visibility: str = "publi
 
     agents = agents or ["P", "T", "V", "G", "E", "M"]
 
+    def _get_tools(fastmcp_instance):
+        """Extract tools from FastMCP 3.x instance."""
+        try:
+            components = fastmcp_instance._local_provider._components
+            return {k: v for k, v in components.items() if k.startswith("tool:")}
+        except (AttributeError, TypeError):
+            return {}
+
     # Add agents based on selection
     if "P" in agents:
         perception = create_perception_mcp()
-        for name, tool in perception._tool_manager.tools.items():
-            mcp.add_tool(tool.fn, name=name, description=tool.description, tags=tool.tags)
+        for key, tool in _get_tools(perception).items():
+            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
 
     if "T" in agents:
         transformation = create_transformation_mcp()
-        for name, tool in transformation._tool_manager.tools.items():
-            mcp.add_tool(tool.fn, name=name, description=tool.description, tags=tool.tags)
+        for key, tool in _get_tools(transformation).items():
+            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
 
     if "V" in agents:
         valuation = create_valuation_mcp()
-        for name, tool in valuation._tool_manager.tools.items():
-            mcp.add_tool(tool.fn, name=name, description=tool.description, tags=tool.tags)
+        for key, tool in _get_tools(valuation).items():
+            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
 
     if "G" in agents:
         governance = create_governance_mcp()
-        for name, tool in governance._tool_manager.tools.items():
-            mcp.add_tool(tool.fn, name=name, description=tool.description, tags=tool.tags)
+        for key, tool in _get_tools(governance).items():
+            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
 
     if "E" in agents:
         execution = create_execution_mcp()
-        for name, tool in execution._tool_manager.tools.items():
-            mcp.add_tool(tool.fn, name=name, description=tool.description, tags=tool.tags)
+        for key, tool in _get_tools(execution).items():
+            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
 
     if "M" in agents:
         meta = create_meta_mcp()
-        for name, tool in meta._tool_manager.tools.items():
-            mcp.add_tool(tool.fn, name=name, description=tool.description, tags=tool.tags)
+        for key, tool in _get_tools(meta).items():
+            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
 
     # Apply visibility filter
     tag_map = {

@@ -102,6 +102,23 @@ class TestArifosSense:
         assert result is not None
         assert result.tool == "arifos_sense"
 
+    @pytest.mark.asyncio
+    async def test_arifos_sense_attaches_domain_evidence_to_legacy_envelope(self):
+        from arifosmcp.runtime.tools import arifos_sense
+
+        with patch("arifosmcp.runtime.tools._sense_legacy") as mock_legacy:
+            mock_legacy.return_value = _mock_envelope("arifos_sense", stage="111_SENSE")
+
+            result = await arifos_sense(
+                query="test query",
+                mode="search",
+                domain_evidence={"claim_tag": "GEOX.CLAIM", "disagreement_band": 0.12},
+            )
+
+            _, kwargs = mock_legacy.call_args
+            assert kwargs["domain_evidence"]["claim_tag"] == "GEOX.CLAIM"
+            assert result.tool == "arifos_sense"
+
 
 class TestArifosMind:
     """Test arifos_mind"""
@@ -230,6 +247,22 @@ class TestArifosJudge:
             assert kwargs["payload"]["verdict_candidate"] == "SEAL"
             assert kwargs["payload"]["reason_summary"] == "test action"
 
+    @pytest.mark.asyncio
+    async def test_arifos_judge_forwards_domain_evidence(self):
+        from arifosmcp.runtime.tools import arifos_judge
+
+        with patch("arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock) as mock_mega:
+            mock_mega.return_value = _mock_envelope("arifos_judge", stage="888_JUDGE")
+
+            result = await arifos_judge(
+                risk_tier="medium",
+                domain_evidence={"claim_tag": "GEOX.SEAL", "p10_p50_p90": {"p50": 12.0}},
+            )
+
+            _, kwargs = mock_mega.await_args
+            assert kwargs["payload"]["domain_evidence"]["claim_tag"] == "GEOX.SEAL"
+            assert result.payload["domain_evidence"]["claim_tag"] == "GEOX.SEAL"
+
 
 class TestArifosMemory:
     """Test arifos_memory"""
@@ -246,6 +279,24 @@ class TestArifosMemory:
 
             assert result is not None
             mock_mega.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_arifos_memory_asset_store_maps_to_vector_store(self):
+        from arifosmcp.runtime.tools import arifos_memory
+
+        with patch("arifosmcp.runtime.tools._mega_engineering_memory") as mock_mega:
+            mock_mega.return_value = _mock_envelope("arifos_memory", stage="555_MEMORY")
+
+            result = await arifos_memory(
+                mode="asset_store",
+                asset_id="asset-001",
+                content="stored payload",
+                domain_evidence={"claim_tag": "GEOX.ASSET"},
+            )
+
+            _, kwargs = mock_mega.call_args
+            assert kwargs["mode"] == "vector_store"
+            assert result.payload["domain_evidence"]["claim_tag"] == "GEOX.ASSET"
 
 
 class TestArifosVault:
