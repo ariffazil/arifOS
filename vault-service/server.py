@@ -94,7 +94,7 @@ async def get_last_seal(pool: asyncpg.Pool) -> dict | None:
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
             """
-            SELECT id, seal_hash, chain_hash
+            SELECT id, chain_hash
             FROM vault_seals
             ORDER BY epoch DESC
             LIMIT 1
@@ -107,7 +107,7 @@ async def verify_chain(pool: asyncpg.Pool) -> dict:
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT id, seal_hash, chain_hash, prev_seal_id, epoch, verdict
+            SELECT id, chain_hash, prev_seal_id, epoch, verdict
             FROM vault_seals
             ORDER BY epoch ASC
             """
@@ -363,7 +363,7 @@ async def vault_status():
             "SELECT count(*) FROM cooling_queue WHERE status = 'awaiting_human'"
         )
         last_seal = await conn.fetchrow(
-            "SELECT id, action, verdict, epoch, seal_hash, chain_hash FROM vault_seals ORDER BY epoch DESC LIMIT 1"
+            "SELECT id, action, verdict, epoch, chain_hash FROM vault_seals ORDER BY epoch DESC LIMIT 1"
         )
         chain_info = await verify_chain(pool)
     
@@ -378,7 +378,7 @@ async def vault_status():
             "action": last_seal["action"] if last_seal else None,
             "verdict": last_seal["verdict"] if last_seal else None,
             "epoch": last_seal["epoch"].isoformat() if last_seal else None,
-            "seal_hash": last_seal["seal_hash"] if last_seal else None,
+            "chain_hash": last_seal["chain_hash"] if last_seal else None,
             "chain_hash": last_seal["chain_hash"] if last_seal else None,
         } if last_seal else None,
         "append_only_enforced": True,  # confirmed by trigger
@@ -434,19 +434,19 @@ async def vault_audit(seal_id: str):
         prev_seal_info = None
         if s.get("prev_seal_id"):
             prev_seal = await conn.fetchrow(
-                "SELECT id, seal_hash FROM vault_seals WHERE id = $1",
+                "SELECT id, chain_hash FROM vault_seals WHERE id = $1",
                 s["prev_seal_id"],
             )
             if prev_seal:
                 prev_seal_info = {
                     "prev_seal_id": str(prev_seal["id"]),
-                    "prev_seal_hash": prev_seal["seal_hash"],
+                    "prev_chain_hash": prev_seal["chain_hash"],
                 }
     # connection released here
     
     return {
         "seal_id": str(s["id"]),
-        "seal_hash": s.get("seal_hash"),
+        "chain_hash": s.get("chain_hash"),
         "chain_hash": s.get("chain_hash"),
         "action": s.get("action"),
         "verdict": s.get("verdict"),
@@ -455,7 +455,7 @@ async def vault_audit(seal_id: str):
         "payload": s.get("payload"),
         "chain": {
             "prev_seal_id": str(s["prev_seal_id"]) if s.get("prev_seal_id") else None,
-            "prev_seal_hash": prev_seal_info["prev_seal_hash"] if prev_seal_info else None,
+            "prev_chain_hash": prev_seal_info["prev_chain_hash"] if prev_seal_info else None,
             "is_genesis": s["prev_seal_id"] is None,
         },
         "human_review": human_review,
@@ -484,7 +484,7 @@ async def vault_receipt(seal_id: str):
     if s.get("prev_seal_id"):
         async with pool.acquire() as conn2:
             prev = await conn2.fetchrow(
-                "SELECT seal_hash, chain_hash FROM vault_seals WHERE id = $1",
+                "SELECT chain_hash, chain_hash FROM vault_seals WHERE id = $1",
                 s["prev_seal_id"],
             )
             if prev:
@@ -512,7 +512,7 @@ async def vault_receipt(seal_id: str):
         f"  Agent       : {p.get('agent_id', 'N/A')}",
         f"  Cooling ID  : {str(s.get('cooling_id')) if s.get('cooling_id') else 'N/A'}",
         "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-        f"  Seal Hash   : {s['seal_hash'][:32]}...",
+        f"  Seal Hash   : {s['chain_hash'][:32]}...",
         f"  Chain Hash  : {s['chain_hash'][:32]}...",
         f"  Prev Link   : {str(s['prev_seal_id']) if s.get('prev_seal_id') else 'GENESIS'}",
         "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
