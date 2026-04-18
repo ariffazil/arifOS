@@ -1024,7 +1024,12 @@ async def arifos_mind(
         # Enrich detail with the reasoning summary
         reasoning_summary = decision_packet.get("summary", "")
         if reasoning_summary:
-            sealed.detail = f"{sealed.detail}\n\nREASONING: {reasoning_summary}"
+            base_detail = sealed.detail or ""
+            sealed.detail = (
+                f"{base_detail}\n\nREASONING: {reasoning_summary}"
+                if base_detail
+                else f"REASONING: {reasoning_summary}"
+            )
 
         # Inject structured trace
         intel = sealed.intelligence_state or {}
@@ -2785,17 +2790,17 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # Tier 01 — PERCEPTION
     "arifos_sense": arifos_sense,
     # Tier 04 — RISK
-    "arifos_heart": _mega_asi_heart,
+    "arifos_heart": _arifos_heart_public,
     # Tier 05 — EXECUTION
     "arifos_forge": _arifos_forge_public,
     # Tier 07 — REFLECTION
     "arifos_mind": _arifos_mind_public,
     # KERNEL & JUDGMENT
-    "arifos_judge": arifos_judge,
-    "arifos_kernel": _mega_arifos_kernel,
+    "arifos_judge": _arifos_judge_public,
+    "arifos_kernel": _arifos_kernel_public,
     # UTILITIES / OBSERVE
-    "arifos_ops": _mega_math_estimator,
-    "arifos_memory": _mega_engineering_memory,
+    "arifos_ops": _arifos_ops_public,
+    "arifos_memory": _arifos_memory_public,
     "arifos_fetch": arifos_fetch,
     # ══════════════════════════════════════════════════════════════════════════
     # Extended / Auxiliary

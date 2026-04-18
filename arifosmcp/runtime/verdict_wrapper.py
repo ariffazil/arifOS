@@ -128,14 +128,23 @@ def forge_verdict(
         timestamp=time.time()
     )
 
+    runtime_status = (
+        RuntimeStatus.ERROR
+        if code == VerdictCode.VOID
+        else RuntimeStatus.SABAR
+        if code == VerdictCode.SABAR
+        else RuntimeStatus.SUCCESS
+    )
+
     # 6. Wrap in RuntimeEnvelope for FastMCP compatibility
     return RuntimeEnvelope(
-        ok=(code in (VerdictCode.SEAL, VerdictCode.PARTIAL)),
+        ok=(code != VerdictCode.VOID),
         tool=tool_id,
         canonical_tool_name=canonical_tool_name or tool_id,
         stage=stage,
         session_id=session_id,
         verdict=code,
+        detail=message,
         
         # V2 Unified Data
         execution_status=exec_status,
@@ -144,5 +153,5 @@ def forge_verdict(
         artifact_state=art_status,
         
         payload=res_env.model_dump(),
-        status=RuntimeStatus.SUCCESS if code != VerdictCode.VOID else RuntimeStatus.ERROR
+        status=runtime_status,
     )

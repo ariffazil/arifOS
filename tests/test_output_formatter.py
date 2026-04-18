@@ -7,9 +7,11 @@ from arifosmcp.runtime.models import (
     RuntimeEnvelope,
     RuntimeStatus,
     Verdict,
+    VerdictCode,
     VerdictDetail,
 )
 from arifosmcp.contracts.verdicts import GovernanceStatus
+from arifosmcp.runtime.verdict_wrapper import forge_verdict
 from arifosmcp.runtime.output_formatter import format_output
 
 
@@ -72,3 +74,29 @@ def test_format_output_api_uses_shared_human_language_contract() -> None:
     assert output["universal_context"]["tool"] == "arifos_kernel"
     assert output["execution"]["status"] == "OK"
     assert output["governance"]["verdict"] == "SEAL"
+
+
+def test_format_output_treats_sabar_as_governed_hold_not_error() -> None:
+    envelope = forge_verdict(
+        tool_id="arifos_mind",
+        canonical_tool_name="arifos_mind",
+        stage="333_MIND",
+        payload={"summary": "Need narrower grounding before dispatch."},
+        session_id="sess-output-002",
+        override_code=VerdictCode.SABAR,
+        message="Need narrower grounding before dispatch.",
+    )
+    envelope.platform_context = "mcp"
+    envelope.authority = CanonicalAuthority(
+        actor_id="arif",
+        claim_status=ClaimStatus.CLAIMED,
+    )
+    envelope.risk_class = RiskClass.LOW
+
+    output = format_output(envelope)
+
+    assert output["status"] == "hold"
+    assert output["execution"]["ok"] is True
+    assert output["execution"]["status"] == "HOLD"
+    assert output["governance"]["verdict"] == "PAUSE"
+    assert "error" not in output or output["error"] is None
