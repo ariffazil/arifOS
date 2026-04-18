@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import secrets
+import socket
 import subprocess
 import time
 import uuid
@@ -258,6 +259,19 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
     return containers
 
 
+def _local_service_connect_latency_ms(host: str = "127.0.0.1", port: int = 8080) -> float | None:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.5)
+    started = time.perf_counter()
+    try:
+        sock.connect((host, port))
+        return round((time.perf_counter() - started) * 1000, 2)
+    except OSError:
+        return None
+    finally:
+        sock.close()
+
+
 _CRITICAL_CONTAINERS = {
     "A-FORGE-arifos-mcp",
     "postgres",
@@ -344,7 +358,7 @@ def _build_trinity_matrix(
                 *(["latency_gt_500ms"] if latency_ms > 500 else []),
             ],
             raw_val=round(latency_ms, 2),
-            unit="latency_ms",
+            unit="service_connect_latency_ms",
         )
     else:
         delta = _matrix_domain(
@@ -2142,7 +2156,6 @@ def register_rest_routes(
     async def api_status(request: Request) -> Response:
         """Composite live SoT payload for the public dashboard."""
         try:
-            started = time.perf_counter()
             governance_payload = _build_governance_status_payload()
             health_response = await health(request)
             health_payload = json.loads(health_response.body.decode("utf-8"))
@@ -2150,7 +2163,7 @@ def register_rest_routes(
             mcp_tools = await mcp.list_tools()
             manifest = build_server_json(_public_base_url(request))
             containers = _collect_container_status()
-            latency_ms = round((time.perf_counter() - started) * 1000, 2)
+            latency_ms = _local_service_connect_latency_ms(port=int(os.getenv("PORT", "8080"))) or 999.0
             matrix = _build_trinity_matrix(health_payload, containers, latency_ms=latency_ms)
             payload = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
