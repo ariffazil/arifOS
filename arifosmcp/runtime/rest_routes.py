@@ -1273,7 +1273,7 @@ def register_rest_routes(
                 "service": "arifos-aaa-mcp",
                 "version": BUILD_INFO["version"],
                 "transport": "streamable-http",
-                "tools_loaded": len(tool_registry),
+                "tools_loaded": len(await mcp.list_tools()),
                 "ml_floors": get_ml_floor_runtime(),
                 "capability_map": build_runtime_capability_map(),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
