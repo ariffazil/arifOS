@@ -13,7 +13,7 @@ services:
     ports:
       - "8100:8100"
     environment:
-      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/arifos_vault
+      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
       PORT: "8100"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\""]
@@ -39,7 +39,7 @@ services:
     environment:
       ARIFOS_MCP_URL: http://A-FORGE-arifos-mcp:3000
       VAULT_URL: http://vault-service:8100
-      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/arifos_vault
+      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
       REDIS_URL: redis://redis:6379
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 0"]
@@ -64,7 +64,7 @@ services:
     environment:
       ARIFOS_MCP_URL: http://A-FORGE-arifos-mcp:3000
       VAULT_URL: http://vault-service:8100
-      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/arifos_vault
+      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
       REDIS_URL: redis://redis:6379
     restart: unless-stopped
     networks:

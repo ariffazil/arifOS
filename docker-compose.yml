@@ -31,7 +31,7 @@ services:
     container_name: postgres
     init: true
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-arifos_vault}
+      POSTGRES_DB: ${POSTGRES_DB:-vault999}
       POSTGRES_USER: ${POSTGRES_USER:-arifos_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
@@ -39,7 +39,7 @@ services:
     networks:
       - arifos_core_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arifos_admin} -d ${POSTGRES_DB:-arifos_vault}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arifos_admin} -d ${POSTGRES_DB:-vault999}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -311,7 +311,7 @@ services:
     container_name: vault-service
     init: true
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-arifos_vault}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-vault999}
       PORT: "8100"
     networks:
       - arifos_core_network

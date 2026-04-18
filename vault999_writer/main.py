@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field
 # ============================================================
 # CONFIGURATION
 # ============================================================
-VAULT999_DB = os.getenv("VAULT999_DB", "postgresql://arifos_admin:ArifPostgresVault2026!@72.62.71.199:5432/arifos_vault")
+VAULT999_DB = os.getenv("VAULT999_DB", "postgresql://arifos_admin:ArifPostgresVault2026!@72.62.71.199:5432/vault999")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 logging.basicConfig(
