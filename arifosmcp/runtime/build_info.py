@@ -13,15 +13,44 @@ from typing import Any
 
 
 def _git_sha_short() -> str:
-    """Return the current git short SHA (HEAD), fallback to hardcoded."""
-    try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"],
-            stderr=subprocess.DEVNULL,
-            cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        ).decode().strip()
-    except Exception:
-        return "909c4ca"  # v2026.04.07 release SHA
+    """Return the current git short SHA (HEAD), checked in order:
+    1. GIT_SHA env var (set by entrypoint from host git)
+    2. Direct read of .git/HEAD via known host paths
+    3. Fallback hardcoded SHA
+    """
+    # 1. Env var (set by entrypoint from host git)
+    env_sha = os.environ.get("GIT_SHA", "")
+    if env_sha and env_sha != "unknown":
+        return env_sha
+
+    # 2. Try reading .git/HEAD from known host bind-mount paths
+    #    /root/arifOS on host is bind-mounted to various container paths
+    _possible_git_dirs = [
+        "/root/arifOS/.git",           # host path (may be accessible via nsenter)
+        "/usr/src/app/.git",           # if full repo bind-mounted
+        "/usr/src/app/arifOS/.git",    # if arifOS subdir bind-mounted
+        "/usr/src/project/.git",       # docker-compose volume mount target
+    ]
+    for _git_dir in _possible_git_dirs:
+        try:
+            _head_path = os.path.join(_git_dir, "HEAD")
+            if os.path.exists(_head_path):
+                with open(_head_path, "r") as _f:
+                    _content = _f.read().strip()
+                if _content.startswith("ref: refs/heads/"):
+                    _branch = _content.split("ref: refs/heads/", 1)[1].strip()
+                    _ref_path = os.path.join(_git_dir, "refs", "heads", _branch)
+                    if os.path.exists(_ref_path):
+                        with open(_ref_path, "r") as _f:
+                            _sha = _f.read().strip()
+                        return _sha[:7]
+                elif len(_content) >= 7:
+                    return _content[:7]
+        except Exception:
+            pass
+
+    # 3. Fallback — only used when no git info available
+    return "909c4ca"
 
 
 def get_build_info() -> dict[str, Any]:
@@ -53,14 +82,14 @@ def get_build_info() -> dict[str, Any]:
         "source_repo": "https://github.com/ariffazil/arifOS",
         "source_repo_name": "ariffazil/arifOS",
 
-        # Build traceability
+        # Build traceability — GIT_SHA and ARIFOS_APP_VERSION set by entrypoint from host git
         "build": {
             "commit": commit,
             "commit_short": commit,
             "built_at": datetime.now(timezone.utc).isoformat(),
             "branch": "main",
         },
-        "release_tag": "v2026.4.13",
+        "release_tag": app_version,
 
         # Status
         "status": "FORGED",
