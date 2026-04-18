@@ -15,7 +15,7 @@ services:
   arifos-mcp:
     build:
       context: ../..
-      dockerfile: deployments/a-forge/Dockerfile
+      dockerfile: deployments/af-forge/Dockerfile
       args:
         ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
         ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
@@ -42,7 +42,8 @@ services:
       
       # Federation endpoint (for reference)
       ARIFOS_VPS_URL: ${ARIFOS_VPS_URL:-https://arifos.federation}
-      
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
+
       # Secrets (mount via .env or Docker secrets - NOT in compose)
       # ARIFOS_GOVERNANCE_SECRET: ${ARIFOS_GOVERNANCE_SECRET:-}
     
