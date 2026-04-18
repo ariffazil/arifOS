@@ -89,32 +89,21 @@ class RatifyRequest(BaseModel):
 # ============================================================
 # HASH FUNCTIONS
 # ============================================================
-def compute_seal_hash(agent_id: str, action: str, payload: dict, epoch: str,
-                      verdict: str, human_ratifier: str, human_signature: str,
-                      ratified_at: str, cooling_id: Optional[str],
-                      cli_proposal_hash: Optional[str]) -> str:
-    """SHA256 of canonical seal payload"""
-    canonical = {
-        "agent_id": agent_id,
-        "action": action,
-        "payload": payload,
-        "epoch": epoch,
-        "verdict": verdict,
-        "human_ratifier": human_ratifier,
-        "human_signature": human_signature,
-        "ratified_at": ratified_at,
-        "cooling_id": str(cooling_id) if cooling_id else None,
-        "cli_proposal_hash": cli_proposal_hash
-    }
-    canonical_json = json.dumps(canonical, separators=(",", ":"), sort_keys=True)
+def compute_seal_hash(prev_chain_hash: str, action: str, epoch: str, payload: dict) -> str:
+    """BLAKE3(prev_chain_hash || action || epoch || canonical(payload)).
+    For genesis, prev_chain_hash = blake3(b'VAULT999:GENESIS:arif-fazil:2026-04-18')."""
+    canonical_json = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+    seal_input = f"{prev_chain_hash}|{action}|{epoch}|{canonical_json}"
     if _HAS_BLAKE3:
-        return blake3.blake3(canonical_json.encode("utf-8")).hexdigest(32)
-    return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
+        return blake3.blake3(seal_input.encode("utf-8")).hexdigest(32)
+    return hashlib.sha256(seal_input.encode("utf-8")).hexdigest()
 
-def compute_chain_hash(verdict: str, human_signature: str, ratified_at: str,
-                       prev_seal_hash: Optional[str]) -> str:
-    """BLAKE3(verdict + human_signature + ratified_at + prev_seal_hash). SHA-256 fallback."""
-    chain_input = verdict + human_signature + ratified_at + (prev_seal_hash or "GENESIS")
+def compute_chain_hash(prev_seal_hash: str, seal_hash: str) -> str:
+    """BLAKE3(prev_seal_hash || seal_hash). Genesis uses genesis_chain_hash as prev."""
+    chain_input = f"{prev_seal_hash}|{seal_hash}"
+    if _HAS_BLAKE3:
+        return blake3.blake3(chain_input.encode("utf-8")).hexdigest(32)
+    return hashlib.sha256(chain_input.encode("utf-8")).hexdigest()
     if _HAS_BLAKE3:
         return blake3.blake3(chain_input.encode("utf-8")).hexdigest(32)
     return hashlib.sha256(chain_input.encode("utf-8")).hexdigest()
@@ -138,23 +127,26 @@ class VaultDB:
 
     async def write_seal(self, req: SealRequest) -> dict:
         """INSERT into vault_seals through vault_writer role"""
+        # Genesis chain_hash: blake3(b'VAULT999:GENESIS:arif-fazil:2026-04-18')
+        GENESIS_CHAIN_HASH = "9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43"
+
         async with self.pool.acquire() as conn:
-            # Get prev_seal_id and seal_hash for chain
+            # Get prev seal for chain linking
             prev_row = await conn.fetchrow("""
-                SELECT id, seal_hash FROM vault_seals 
-                ORDER BY ratified_at DESC LIMIT 1
+                SELECT id, seal_hash, chain_hash FROM vault_seals
+                ORDER BY epoch DESC LIMIT 1
             """)
             prev_seal_id = prev_row["id"] if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
+            prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
 
-            # Compute hashes
+            # seal_hash = BLAKE3(prev_chain_hash | action | epoch | canonical(payload))
             seal_hash = compute_seal_hash(
-                req.agent_id, req.action, req.payload, req.epoch,
-                req.verdict, req.human_ratifier, req.human_signature,
-                req.ratified_at, req.cooling_id, req.cli_proposal_hash
+                prev_chain_hash, req.action, req.epoch, req.payload
             )
+            # chain_hash = BLAKE3(prev_seal_hash | seal_hash)
             chain_hash = compute_chain_hash(
-                req.verdict, req.human_signature, req.ratified_at, prev_seal_hash
+                prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash
             )
 
             # Insert

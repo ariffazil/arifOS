@@ -98,8 +98,8 @@ def compute_payload_hash(data: dict) -> str:
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 def compute_chain_hash(prev_hash: str, payload_hash: str) -> str:
-    """BLAKE3(prev_hash + payload_hash). SHA-256 fallback."""
-    combined = f"{prev_hash}{payload_hash}"
+    """BLAKE3(prev_hash || payload_hash). SHA-256 fallback."""
+    combined = f"{prev_hash}|{payload_hash}"
     if _HAS_BLAKE3:
         return blake3.blake3(combined.encode()).hexdigest(32)
     return hashlib.sha256(combined.encode()).hexdigest()
@@ -117,33 +117,61 @@ async def get_last_seal(pool: asyncpg.Pool) -> dict | None:
     return dict(row) if row else None
 
 async def verify_chain(pool: asyncpg.Pool) -> dict:
-    """Walk the full vault_seals chain to verify integrity."""
+    """Walk vault_seals chain verifying BLAKE3(prev_chain_hash | action | epoch | payload) == seal_hash
+    and BLAKE3(prev_seal_hash | seal_hash) == chain_hash for each link."""
+    GENESIS_CHAIN_HASH = "9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43"
+
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT id, chain_hash, prev_seal_id, epoch, verdict
+            SELECT id, seal_hash, chain_hash, prev_seal_id, action, epoch, payload
             FROM vault_seals
             ORDER BY epoch ASC
             """
         )
     if not rows:
         return {"INTACT": True, "gaps": 0, "total": 0}
-    
+
     broken = False
     gaps = 0
-    expected_prev: str | None = None
+    prev_chain_hash = GENESIS_CHAIN_HASH  # genesis chain_hash
+    prev_seal_hash: str | None = None
+
     for i, row in enumerate(rows):
-        if i == 0:
-            if row["prev_seal_id"] is not None:
-                broken = True
+        # Verify seal_hash = BLAKE3(prev_chain_hash | action | epoch | payload)
+        payload = row["payload"]
+        if isinstance(payload, str):
+            import json as _json
+            payload = _json.loads(payload)
+        canonical = _json.dumps(payload, separators=(",", ":"), sort_keys=True) if isinstance(payload, dict) else payload
+        epoch_iso = row["epoch"].isoformat() if hasattr(row["epoch"], "isoformat") else str(row["epoch"])
+        seal_input = f"{prev_chain_hash}|{row['action']}|{epoch_iso}|{canonical}"
+        if _HAS_BLAKE3:
+            expected_seal_hash = blake3.blake3(seal_input.encode()).hexdigest(32)
         else:
-            if row["prev_seal_id"] != expected_prev:
-                gaps += 1
-        expected_prev = str(row["id"])
-    
-    async with pool.acquire() as conn:
-        count = await conn.fetchval("SELECT count(*) FROM vault_seals")
-    return {"INTACT": not broken and gaps == 0, "gaps": gaps, "total": count}
+            import hashlib
+            expected_seal_hash = hashlib.sha256(seal_input.encode()).hexdigest()
+
+        if row["seal_hash"] != expected_seal_hash:
+            broken = True
+            gaps += 1
+
+        # Verify chain_hash = BLAKE3(prev_seal_hash | seal_hash)
+        chain_input = f"{(prev_seal_hash or GENESIS_CHAIN_HASH)}|{row['seal_hash']}"
+        if _HAS_BLAKE3:
+            expected_chain_hash = blake3.blake3(chain_input.encode()).hexdigest(32)
+        else:
+            expected_chain_hash = hashlib.sha256(chain_input.encode()).hexdigest()
+
+        if row["chain_hash"] != expected_chain_hash:
+            broken = True
+            gaps += 1
+
+        # Advance
+        prev_chain_hash = row["chain_hash"]
+        prev_seal_hash = row["seal_hash"]
+
+    return {"INTACT": not broken and gaps == 0, "gaps": gaps, "total": len(rows)}
 
 def sanitized_record(row: dict) -> dict:
     """Remove internal DB fields from record."""
