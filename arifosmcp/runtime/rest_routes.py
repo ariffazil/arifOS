@@ -2009,9 +2009,12 @@ def register_rest_routes(
         payload["toolsEndpoint"] = f"{_public_base_url(request)}/tools"
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
-        # Authentication block removed — OAuth2 not yet implemented (2026-04-19)
-        # Re-enable when real OAuth2 flow is operational
-        # payload.setdefault("authentication", {...})
+        # Bearer token auth — matches ARIFOS_API_KEY / ARIFOS_API_TOKEN env var
+        payload["authentication"] = {
+            "type": "bearer",
+            "description": "Pass your API token as: Authorization: Bearer <token>",
+            "token_env_vars": ["ARIFOS_API_KEY", "ARIFOS_API_TOKEN"],
+        }
         return JSONResponse(payload)
 
     @route("/.well-known/oauth-authorization-server", methods=["GET"])
