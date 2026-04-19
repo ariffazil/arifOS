@@ -2147,6 +2147,8 @@ async def arifos_gateway(
     from arifosmcp.runtime.models import RuntimeStatus, Verdict
 
     trace = tool_trace or []
+    # F2/Tri-Witness self-exclusion guard: arifos_gateway must not appear in its own trace
+    trace = [t for t in trace if t.get("tool") != "arifos_gateway"]
     violations: list[dict[str, Any]] = []
 
     # Forbidden overlap heuristics by organ ownership
