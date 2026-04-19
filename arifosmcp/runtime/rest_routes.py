@@ -1114,40 +1114,69 @@ Sitemap: https://arifosmcp.arif-fazil.com/llms.json
 """
 
 LLMS_TXT = f"""\
-# AGENTS·API·AI·APPS — The AAA Surface Layer
-Location: https://aaa.arif-fazil.com/llms.txt
+# arifOS MCP — Constitutional AI Gateway
 Version: {BUILD_VERSION}
-Domain: AAA / AGENTS·API·AI·APPS
+Domain: MCP / Constitutional Tool Gateway
 
-> The AAA Surface Layer of arifOS — Agents (autonomous actors), API (structured interfaces),
-> AI (governed intelligence), and Apps (executable tools). Built on MCP with 13 constitutional
-> floors ensuring every action is true, safe, and human-aligned before touching reality.
-> Motto: DITEMPA BUKAN DIBERI — Forged, not given.
-
-## The AAA Architecture
-
-| Layer | Domain | Purpose |
-|-------|--------|---------|
-| ARIF | arif-fazil.com | The Human Sovereign (Muhammad Arif bin Fazil) |
-| THEORY | apex.arif-fazil.com | APEX Theory + arifOS Documentation |
-| TRINITY | arifos.arif-fazil.com | AGI-ASI-APEX Dynamic Runtime |
-| AAA | aaa.arif-fazil.com | AGENTS·API·AI·APPS Surface Layer (THIS SITE) |
+> arifOS MCP is a Model Context Protocol server enforcing 13 constitutional floors on every tool call. Built by Muhammad Arif bin Fazil. Every operation is checked for reversibility, truth, anti-deception, and human oversight before touching reality.
+> Motto: DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 ## Official MCP Endpoint
 
-- **URL**: `https://aaa.arif-fazil.com/mcp`
+- **URL**: https://mcp.arif-fazil.com/mcp
 - **Transport**: Streamable HTTP / SSE
 - **Protocol**: MCP 2025-03-26
-- **Tools**: 37 constitutional tools across 11 mega-tools
+- **Tools**: 44 constitutional tools
+- **Capabilities**: constitutional_floors, metabolic_routing, vault999, vector_memory, prompts, resources
 
-## Core Tools
+## Core Tools (44 total)
 
-- `init_anchor` — Identity & session anchoring (F11)
-- `agi_reason` — First-principles reasoning (Δ Mind)
-- `search_reality` — Evidence-grounded search (111 Sense)
-- `agentzero_engineer` — Governed code execution (555 Memory)
-- `arifos_kernel` — Metabolic loop routing (444 Router)
-- `apex_judge` — Constitutional verdict rendering (888 Judge)
+| Tool | Category | Description |
+|------|----------|-------------|
+| arifos_init | arifos | Initialize constitutional session with identity binding |
+| arifos_sense | arifos | Ground query in physical reality via 8-stage constitution |
+| arifos_mind | arifos | Structured reasoning with typed cognitive pipeline |
+| arifos_kernel | arifos | Route request to correct metabolic lane or tool family |
+| arifos_heart | arifos | Red-team proposal for ethical risks |
+| arifos_ops | arifos | Operational telemetry and system status |
+| arifos_judge | arifos | Constitutional verdict rendering (SEAL/VOID/HOLD/SABAR) |
+| arifos_memory | arifos | Delta-logged session memory, no state loss |
+| arifos_vault | arifos | VAULT999 seal operations for irreversible actions |
+| arifos_forge | arifos | Prompt engineering under constitutional governance |
+| constitutional_judge | P | Judge claim compliance against floors |
+| risk_score | P | Compute risk score for given action |
+| truth_band_check | P | Check epistemic band for truth grounding |
+| hold_gate | P | Trigger 888_HOLD for human review |
+| telemetry_emit | P | Emit telemetry event with full audit trail |
+| vault_seal | V | Seal action in VAULT999 for reversibility |
+| memory_delta | M | Record state change with before/after |
+| vector_embed | V | Embed text/chunk into vector memory |
+
+## The 13 Constitutional Floors
+
+| Floor | Name | Threshold | Enforces |
+|-------|------|-----------|----------|
+| F1 | Amanah | ≥ 0.50 | Reversibility — no irreversible action without VAULT999 |
+| F2 | Truth | ≥ 0.99 | Anti-hallucination — no ungrounded claims |
+| F3 | Tri-Witness | ≥ 0.95 | Human + AI + Earth evidence consensus |
+| F4 | ΔS Clarity | ≤ 0 | Entropy reduction — ΔS ≤ 0 in all outputs |
+| F5 | Peace² | ≥ 1.0 | Stability — no action degrading harmony |
+| F6 | Harm/Dignity | VOID check | Block harm to any stakeholder |
+| F7 | Humility | Confidence cap | Confidence capped at 0.85 ceiling |
+| F8 | Memory | Delta-logged | No state loss — all sessions delta-logged |
+| F9 | Anti-Hantu | < 0.30 | No deception, manipulation, or consciousness claims |
+| F10 | Witness | ΔΩΨ trinity | Trinity check on every call |
+| F11 | Auditability | Full trail | F11 audit trail on every operation |
+| F12 | Injection Guard | < 0.85 | Block prompt injection attacks |
+| F13 | Sovereign | HUMAN | Human holds final authority on all decisions |
+
+## Live Endpoints
+
+- MCP: https://mcp.arif-fazil.com/mcp
+- Health: https://mcp.arif-fazil.com/health
+- Tools JSON: https://mcp.arif-fazil.com/tools
+- Server Info: https://mcp.arif-fazil.com/.well-known/mcp/server.json
+- WebMCP Console: https://mcp.arif-fazil.com/webmcp/
 
 ## Getting Started
 
@@ -1156,47 +1185,24 @@ Domain: AAA / AGENTS·API·AI·APPS
 3. Call with envelope: context.actor, intent, approval, trace
 4. Receive verdict: SEAL / VOID / HOLD / SABAR
 
-## The 13 Constitutional Floors
-
-| Floor | Name | Threshold | Enforces |
-|-------|------|-----------|----------|
-| F1 | Amanah | ≥ 0.50 | Reversibility |
-| F2 | Truth | ≥ 0.99 | Anti-hallucination |
-| F3 | Tri-Witness | ≥ 0.95 | Consensus |
-| F4 | ΔS Clarity | ≤ 0 | Entropy reduction |
-| F5 | Peace² | ≥ 1.0 | Stability |
-| F6 | Empathy | ≥ 0.70 | Weakest stakeholder |
-| F7 | Humility | 0.03-0.05 | Uncertainty band |
-| F8 | Genius | ≥ 0.80 | Coherence |
-| F9 | Anti-Hantu | < 0.30 | No dark patterns |
-| F10 | Ontology | LOCK | No consciousness claims |
-| F11 | CommandAuth | LOCK | Identity verification |
-| F12 | Injection | < 0.85 | Adversarial defense |
-| F13 | Sovereign | HUMAN | Human veto |
-
-## Canonical MCP Context
-
-- LLM Context Resource: `arifos://mcp/context`
-- Continuity Contract: `0.1.0`
-- Core Tools: `init_anchor`, `agi_reason`, `search_reality`, `agentzero_engineer`, `arifos_kernel`, `apex_judge`
-
 ## Resources
 
-- Medium: https://medium.com/p/i-accidentally-built-an-intelligence-kernel-for-ai-57832a1fead1
 - GitHub: https://github.com/ariffazil/arifOS
 - Constitution: https://apex.arif-fazil.com
+- arifOS Theory: https://apex.arif-fazil.com
+- GEOX (Geoscience): https://geox.arif-fazil.com
 
-## 🔗 The Sovereign Quad
+## ΔΩΨ Trinity
 
-- **ARIF**: https://arif-fazil.com — The Human Sovereign
-- **THEORY**: https://apex.arif-fazil.com — The Authority Knowledge
-- **TRINITY**: https://arifos.arif-fazil.com — AGI-ASI-APEX Runtime
-- **AAA**: https://aaa.arif-fazil.com — AGENTS·API·AI·APPS Surface (THIS SITE)
+- **Ψ SOUL**: https://arif-fazil.com — Human Sovereign
+- **Ω MIND**: https://apex.arif-fazil.com — APEX Theory + arifOS Documentation
+- **Δ BODY**: https://aaa.arif-fazil.com — AGENTS·API·AI·APPS Surface Layer
+- **Φ GEOX**: https://geox.arif-fazil.com — Geoscience + Earth Reasoning
 
 ---
-**Status:** Ditempa Bukan Diberi.
-**Architecture:** ΔΩΨ Trinity with AAA Surface Layer
-**Vault Tier:** BRAIN / AAA SURFACE
+**Status**: Ditempa Bukan Diberi
+**Architecture**: ΔΩΨ Trinity with MCP Constitutional Gateway
+**Vault Tier**: BRAIN / CONSTITUTIONAL GATEWAY
 """
 
 LLMS_JSON = {
