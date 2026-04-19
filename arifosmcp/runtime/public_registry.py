@@ -94,7 +94,19 @@ def get_pyproject_metadata() -> dict[str, Any]:
 
 
 def release_version_label() -> str:
-    """Return the canonical version string from pyproject.toml."""
+    """
+    Return the canonical version string.
+    
+    Priority:
+    1. RELEASE_TAG env var — injected at deploy time (e.g. v2026.04.19-UNIFIED)
+    2. GIT_SHA_SHORT env var — git commit short hash
+    3. pyproject.toml version — fallback
+    """
+    import os
+    if os.getenv("RELEASE_TAG"):
+        return os.getenv("RELEASE_TAG", "")
+    if os.getenv("GIT_SHA_SHORT"):
+        return f"v2026.{os.getenv('GIT_SHA_SHORT', 'unknown')}"
     return str(get_pyproject_metadata().get("version", "2026.04.06-FUNCTIONAL"))
 
 

@@ -1734,7 +1734,9 @@ def register_rest_routes(
                 "transport": "streamable-http",
                 "tools_loaded": len(await mcp.list_tools()),
                 "ml_floors": get_ml_floor_runtime(),
-                "capability_map": build_runtime_capability_map(),
+                "capability_map": build_runtime_capability_map(
+                    ml_model_available=get_ml_floor_runtime().get("ml_model_available", False)
+                ),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 # SoT linkage — enables drift detection between repo / docs / runtime
                 "source_repo": BUILD_INFO.get("source_repo", "https://github.com/ariffazil/arifOS"),

@@ -48,7 +48,7 @@ def _aggregate_class_status(values: list[str]) -> str:
     return "not_configured"
 
 
-def build_runtime_capability_map() -> dict[str, Any]:
+def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str, Any]:
     """
     Build a redacted runtime capability map.
 
@@ -137,8 +137,8 @@ def build_runtime_capability_map() -> dict[str, Any]:
 
     capabilities = {
         "governed_continuity": "enabled"
-        if continuity_signing in {"configured", "open_dev_mode"}
-        else "degraded",
+        if ml_model_available and continuity_signing in {"configured", "open_dev_mode"}
+        else ("heuristic_fallback" if continuity_signing in {"configured", "open_dev_mode"} else "degraded"),
         "vault_persistence": "enabled" if storage["vault_postgres"] == "configured" else "degraded",
         "vector_memory": "enabled" if storage["vector_memory"] == "configured" else "degraded",
         "external_grounding": "enabled"
