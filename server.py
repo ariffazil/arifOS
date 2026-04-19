@@ -207,8 +207,8 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
         try:
             return await call_next(request)
         except Exception as e:
-            print(f"!!! KERNEL PANIC: {str(e)}", file=sys.stderr)
-            print(traceback.format_exc(), file=sys.stderr)
+            sys.stderr.write(f"!!! KERNEL PANIC: {str(e)}\n")
+            sys.stderr.write(traceback.format_exc() + "\n")
             return JSONResponse(
                 {
                     "status": "void",

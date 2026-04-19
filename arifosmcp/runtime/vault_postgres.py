@@ -38,7 +38,9 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Paths
-_DEFAULT_VAULT_PATH = os.environ.get("VAULT999_PATH", "/root/VAULT999")
+# Paths
+_RE_ROOT = Path(__file__).parent.parent.parent
+_DEFAULT_VAULT_PATH = os.environ.get("VAULT999_PATH", str(_RE_ROOT / "VAULT999"))
 VAULT999_PATH = Path(_DEFAULT_VAULT_PATH)
 VAULT_EVENTS_FILE = VAULT999_PATH / "SEALED_EVENTS.jsonl"
 
@@ -190,10 +192,10 @@ class PostgresVaultStore:
         return session_id
 
     async def load_constitution(self) -> dict:
-        """Load the 13 Floors from the root CORE_SPEC file."""
-        spec_path = Path("/root/arifOS_CORE_SPEC_v2.0.md")
+        """Load the 13 Floors from the root 000_CONSTITUTION file."""
+        spec_path = _RE_ROOT / "000" / "000_CONSTITUTION.md"
         if not spec_path.exists():
-            return {"error": "CORE_SPEC not found", "floors": []}
+            return {"error": f"CORE_SPEC not found at {spec_path}", "floors": []}
         
         # In a real implementation, we would parse the markdown
         # For now, return a status indicating the Spec is the source
