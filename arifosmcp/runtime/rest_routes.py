@@ -2009,14 +2009,9 @@ def register_rest_routes(
         payload["toolsEndpoint"] = f"{_public_base_url(request)}/tools"
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
-        payload.setdefault(
-            "authentication",
-            {
-                "type": "oauth2",
-                "grant_types": ["authorization_code"],
-                "token_endpoint": f"{_public_base_url(request)}/api/auth/token",
-            },
-        )
+        # Authentication block removed — OAuth2 not yet implemented (2026-04-19)
+        # Re-enable when real OAuth2 flow is operational
+        # payload.setdefault("authentication", {...})
         return JSONResponse(payload)
 
     @route("/.well-known/oauth-authorization-server", methods=["GET"])
