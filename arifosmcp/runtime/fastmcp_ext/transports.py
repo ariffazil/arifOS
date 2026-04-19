@@ -491,6 +491,7 @@ class _HealthEndpointMiddleware:
 
         # Only handle /health and /metrics - let all other routes pass through
         if path == "/health" and method == "GET":
+            from starlette.responses import JSONResponse
             response = JSONResponse(
                 {
                     "status": "healthy",
@@ -498,6 +499,7 @@ class _HealthEndpointMiddleware:
                     "version": os.getenv("ARIFOS_VERSION", "2026.03.12"),
                 },
                 status_code=200,
+                headers={"Cache-Control": "no-store"},
             )
             await response(scope, receive, send)
             return
