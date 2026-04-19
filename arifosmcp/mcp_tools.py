@@ -33,6 +33,19 @@ from pydantic import BaseModel, Field
 import os
 from .memory_engine import MemoryEngine
 
+# Canonical tool layer — 33 P/T/V/E/M tools consolidate to 5 canonical engines
+try:
+    from arifosmcp.tools_canonical import (
+        arifos_compute_physics,
+        arifos_compute_finance,
+        arifos_compute_civilization,
+        arifos_oracle_bio,
+        arifos_oracle_world,
+    )
+    CANONICAL_AVAILABLE = True
+except ImportError:
+    CANONICAL_AVAILABLE = False
+
 # Global Memory Engine instance
 memory_engine = MemoryEngine(
     postgres_url=os.getenv("ARIFOS_VAULT_URL", os.getenv("DATABASE_URL")),
