@@ -84,48 +84,48 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  arifos_landings:
-    image: nginx:alpine
-    container_name: arifos_landings
-    volumes:
-      - /opt/arifos/sites/arif-fazil.com/arif:/usr/share/nginx/html/arif:ro
-      - /opt/arifos/sites/arif-fazil.com/arifos:/usr/share/nginx/html/arifos:ro
-      - /opt/arifos/sites/arif-fazil.com/aaa:/usr/share/nginx/html/aaa:ro
-      - /opt/arifos/sites/arif-fazil.com/forge:/usr/share/nginx/html/forge:ro
-      - /opt/arifos/sites/arif-fazil.com/waw:/usr/share/nginx/html/waw:ro
-      - /opt/arifos/sites/arif-fazil.com/apex:/usr/share/nginx/html/apex:ro
-      - /opt/arifos/sites/arif-fazil.com/geox:/usr/share/nginx/html/geox:ro
-      - /opt/arifos/sites/arif-fazil.com/wiki:/usr/share/nginx/html/wiki:ro
-      - /opt/arifos/sites/arif-fazil.com/arifosmcp:/usr/share/nginx/html/arifosmcp:ro
-      - /root/arifOS/infrastructure/nginx/arifos_landings.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      - arifos_core_network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.arif-landing.rule=Host(`arif-fazil.com`) || Host(`www.arif-fazil.com`)"
-      - "traefik.http.routers.aaa-landing.rule=Host(`aaa.arif-fazil.com`)"
-      - "traefik.http.routers.forge-landing.rule=Host(`forge.arif-fazil.com`)"
-      - "traefik.http.routers.waw-landing.rule=Host(`waw.arif-fazil.com`)"
-      - "traefik.http.routers.apex-landing.rule=Host(`apex.arif-fazil.com`)"
-      - "traefik.http.routers.wiki-landing.rule=Host(`wiki.arif-fazil.com`)"
-      - "traefik.http.routers.arif-landing.entrypoints=websecure"
-      - "traefik.http.routers.arif-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.arifos-landing.entrypoints=websecure"
-      - "traefik.http.routers.arifos-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.aaa-landing.entrypoints=websecure"
-      - "traefik.http.routers.aaa-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.forge-landing.entrypoints=websecure"
-      - "traefik.http.routers.forge-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.apex-landing.entrypoints=websecure"
-      - "traefik.http.routers.apex-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.waw-landing.entrypoints=websecure"
-      - "traefik.http.routers.waw-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.wiki-landing.entrypoints=websecure"
-      - "traefik.http.routers.wiki-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.geox-landing.rule=Host(`geox.arif-fazil.com`)"
-      - "traefik.http.routers.geox-landing.entrypoints=websecure"
-      - "traefik.http.routers.geox-landing.tls.certresolver=letsencrypt"
-    restart: unless-stopped
+#  arifos_landings:
+#    image: nginx:alpine
+#    container_name: arifos_landings
+#    volumes:
+#      - /opt/arifos/sites/arif-fazil.com/arif:/usr/share/nginx/html/arif:ro
+#      - /opt/arifos/sites/arif-fazil.com/arifos:/usr/share/nginx/html/arifos:ro
+#      - /opt/arifos/sites/arif-fazil.com/aaa:/usr/share/nginx/html/aaa:ro
+#      - /opt/arifos/sites/arif-fazil.com/forge:/usr/share/nginx/html/forge:ro
+#      - /opt/arifos/sites/arif-fazil.com/waw:/usr/share/nginx/html/waw:ro
+#      - /opt/arifos/sites/arif-fazil.com/apex:/usr/share/nginx/html/apex:ro
+#      - /opt/arifos/sites/arif-fazil.com/geox:/usr/share/nginx/html/geox:ro
+#      - /opt/arifos/sites/arif-fazil.com/wiki:/usr/share/nginx/html/wiki:ro
+#      - /opt/arifos/sites/arif-fazil.com/arifosmcp:/usr/share/nginx/html/arifosmcp:ro
+#      - /root/arifOS/infrastructure/nginx/arifos_landings.conf:/etc/nginx/conf.d/default.conf:ro
+#    networks:
+#      - arifos_core_network
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.arif-landing.rule=Host(`arif-fazil.com`) || Host(`www.arif-fazil.com`)"
+#      - "traefik.http.routers.aaa-landing.rule=Host(`aaa.arif-fazil.com`)"
+#      - "traefik.http.routers.forge-landing.rule=Host(`forge.arif-fazil.com`)"
+#      - "traefik.http.routers.waw-landing.rule=Host(`waw.arif-fazil.com`)"
+#      - "traefik.http.routers.apex-landing.rule=Host(`apex.arif-fazil.com`)"
+#      - "traefik.http.routers.wiki-landing.rule=Host(`wiki.arif-fazil.com`)"
+#      - "traefik.http.routers.arif-landing.entrypoints=websecure"
+#      - "traefik.http.routers.arif-landing.tls.certresolver=letsencrypt"
+#      - "traefik.http.routers.arifos-landing.entrypoints=websecure"
+#      - "traefik.http.routers.arifos-landing.tls.certresolver=letsencrypt"
+#      - "traefik.http.routers.aaa-landing.entrypoints=websecure"
+#      - "traefik.http.routers.aaa-landing.tls.certresolver=letsencrypt"
+#      - "traefik.http.routers.forge-landing.entrypoints=websecure"
+#      - "traefik.http.routers.forge-landing.tls.certresolver=letsencrypt"
+#      - "traefik.http.routers.apex-landing.entrypoints=websecure"
+#      - "traefik.http.routers.apex-landing.tls.certresolver=letsencrypt"
+#      - "traefik.http.routers.waw-landing.entrypoints=websecure"
+#      - "traefik.http.routers.waw-landing.tls.certresolver=letsencrypt"
+#      - "traefik.http.routers.wiki-landing.entrypoints=websecure"
+#      - "traefik.http.routers.wiki-landing.tls.certresolver=letsencrypt"
+#      - "traefik.http.routers.geox-landing.rule=Host(`geox.arif-fazil.com`)"
+#      - "traefik.http.routers.geox-landing.entrypoints=websecure"
+#      - "traefik.http.routers.geox-landing.tls.certresolver=letsencrypt"
+#    restart: unless-stopped
 
   ollama:
     image: ollama/ollama:latest
@@ -142,34 +142,34 @@ services:
           - ollama_engine       # backward compat alias for older configs/scripts
     restart: unless-stopped
 
-  openclaw:
-    image: arifos/openclaw-forged:2026.03.14
-    container_name: openclaw
-    init: true
-    user: root
-    env_file:
-      - path: .env
-    environment:
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - REDIS_URL=redis://redis:6379
-      - OLLAMA_URL=http://ollama:11434
-      - BROWSERLESS_URL=http://headless_browser:3000
-    volumes:
-      - /opt/arifos/data/openclaw:/root/.openclaw
-      - /srv/arifos/skills/vps-monitor:/app/extensions/vps-monitor
-      - /srv/arifos:/mnt/arifos:rw
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - arifos_core_network
-    ports:
-      - "127.0.0.1:18789:18789"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.openclaw.rule=Host(`claw.arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.openclaw.entrypoints=websecure"
-      - "traefik.http.routers.openclaw.tls.certresolver=letsencrypt"
-      - "traefik.http.services.openclaw.loadbalancer.server.port=18789"
-    restart: unless-stopped
+#  openclaw:
+#    image: arifos/openclaw-forged:2026.03.14
+#    container_name: openclaw
+#    init: true
+#    user: root
+#    env_file:
+#      - path: .env
+#    environment:
+#      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+#      - REDIS_URL=redis://redis:6379
+#      - OLLAMA_URL=http://ollama:11434
+#      - BROWSERLESS_URL=http://headless_browser:3000
+#    volumes:
+#      - /opt/arifos/data/openclaw:/root/.openclaw
+#      - /srv/arifos/skills/vps-monitor:/app/extensions/vps-monitor
+#      - /srv/arifos:/mnt/arifos:rw
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#    networks:
+#      - arifos_core_network
+#    ports:
+#      - "127.0.0.1:18789:18789"
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.openclaw.rule=Host(`claw.arifosmcp.arif-fazil.com`)"
+#      - "traefik.http.routers.openclaw.entrypoints=websecure"
+#      - "traefik.http.routers.openclaw.tls.certresolver=letsencrypt"
+#      - "traefik.http.services.openclaw.loadbalancer.server.port=18789"
+#    restart: unless-stopped
 
   arifosmcp:
     build:
@@ -221,25 +221,25 @@ services:
         soft: 65535
         hard: 65535
 
-  webhook:
-    image: almir/webhook:latest
-    container_name: arifos_webhook
-    init: true
-    command: ["-verbose", "-hooks=/etc/webhook/hooks.json", "-hotreload"]
-    volumes:
-      - /root/arifOS/deployment/hooks.json:/etc/webhook/hooks.json:ro
-      - /root/arifOS/infrastructure/deploy_from_git.sh:/var/scripts/deploy_from_git.sh:ro
-      - /root/arifOS:/usr/src/app:rw
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - arifos_core_network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.webhook.rule=Host(`hook.arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.webhook.entrypoints=websecure"
-      - "traefik.http.routers.webhook.tls.certresolver=letsencrypt"
-      - "traefik.http.services.webhook.loadbalancer.server.port=9000"
-    restart: unless-stopped
+#  webhook:
+#    image: almir/webhook:latest
+#    container_name: arifos_webhook
+#    init: true
+#    command: ["-verbose", "-hooks=/etc/webhook/hooks.json", "-hotreload"]
+#    volumes:
+#      - /root/arifOS/deployment/hooks.json:/etc/webhook/hooks.json:ro
+#      - /root/arifOS/infrastructure/deploy_from_git.sh:/var/scripts/deploy_from_git.sh:ro
+#      - /root/arifOS:/usr/src/app:rw
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#    networks:
+#      - arifos_core_network
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.webhook.rule=Host(`hook.arifosmcp.arif-fazil.com`)"
+#      - "traefik.http.routers.webhook.entrypoints=websecure"
+#      - "traefik.http.routers.webhook.tls.certresolver=letsencrypt"
+#      - "traefik.http.services.webhook.loadbalancer.server.port=9000"
+#    restart: unless-stopped
 
 # ── arifOS MCP Substrate Services (Official Reference Layer) ──────────────
 # Enabled per Priority Integration Order (EP-2026.04.11)
