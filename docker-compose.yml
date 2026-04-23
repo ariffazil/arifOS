@@ -1,30 +1,7 @@
-# ── arifOS AI-First Unified Trinity Stack ──────────────────────────
-# HARDENED LEAN PRODUCTION CONFIGURATION
-# Version: 2026.04.06-LEAN-KERNEL
-# ─────────────────────────────────────────────────────────────────
+# ── arifOS Core Infrastructure ──────────────────────────────────────────────
+# Version: v2026.04.24-CADDY-ALIGNED | FHS Optimized
 
 services:
-  traefik:
-    image: traefik:v3.6.9
-    container_name: traefik
-    restart: unless-stopped
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.email=arifbfazil@gmail.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /opt/arifos/traefik/acme.json:/letsencrypt/acme.json
-      - arifosmcp_secrets:/secrets:ro
-    networks:
-      - arifos_core_network
 
   postgres:
     image: postgres:16-alpine
@@ -171,11 +148,11 @@ services:
 #      - "traefik.http.services.openclaw.loadbalancer.server.port=18789"
 #    restart: unless-stopped
 
-  arifosmcp:
+  arifos-mcp-prod:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: arifosmcp
+    container_name: arifos-mcp-prod
     init: true
     command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
     env_file:
@@ -199,13 +176,6 @@ services:
       - arifos_core_network
     ports:
       - "8080:8080"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.arifosmcp.loadbalancer.server.port=8080"
-      - "traefik.http.routers.arifos-root.rule=Host(`arifos.arif-fazil.com`) && (Path(`/`) || PathPrefix(`/health`) || PathPrefix(`/tools`) || PathPrefix(`/prompts`) || PathPrefix(`/resources`) || PathPrefix(`/dashboard`) || PathPrefix(`/sites`) || PathPrefix(`/openapi`) || PathPrefix(`/llms`) || PathPrefix(`/version`) || PathPrefix(`/status`) || PathPrefix(`/discovery`) || PathPrefix(`/ready`) || PathPrefix(`/metrics`) || PathPrefix(`/mcp`) || PathPrefix(`/webmcp`) || PathPrefix(`/.well-known`))"
-      - "traefik.http.routers.arifos-root.entrypoints=websecure"
-      - "traefik.http.routers.arifos-root.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.arifos-root.priority=100"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8080/health | grep -q 'healthy' || exit 1"]
       interval: 30s
