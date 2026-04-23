@@ -346,46 +346,42 @@ try:
     import arifosmcp.runtime.tools as _tools_mod
     _tools_mod.CANONICAL_TOOL_HANDLERS = HARDENED_HANDLERS
 
-    v2_tools_registered = register_v2_tools(mcp, include_legacy_compat=False)
+    # ── UNPACK DISTRIBUTED REGISTRY (74-Tool Expansion) ────────────────────────
+    from arifosmcp.tools_canonical import TOOL_ALIAS_MAP, resolve_alias
+    
+    def create_wrapped_tool(alias_name, target_fn, mode):
+        async def _wrapped(**kwargs):
+            return await resolve_alias(alias_name, kwargs)
+        _wrapped.__name__ = alias_name
+        return _wrapped
+
+    for alias_name in TOOL_ALIAS_MAP:
+        # Map legacy prefixes to manifest namespaces
+        namespace = "arifos"
+        clean_name = alias_name
+        if alias_name.startswith("P_geox") or alias_name.startswith("E_geox"):
+            namespace = "geoxarifOS"
+            clean_name = alias_name.replace("P_geox_", "").replace("E_geox_", "")
+        elif alias_name.startswith("V_") or alias_name.startswith("P_wealth"):
+            namespace = "wealth"
+            clean_name = alias_name.replace("V_", "").replace("P_wealth_", "")
+        elif alias_name.startswith("P_well") or alias_name.startswith("E_well"):
+            namespace = "AFWELL"
+            clean_name = alias_name.replace("P_well_", "").replace("E_well_", "")
+
+        full_tool_name = f"{namespace}_{clean_name}"
+        mcp.tool(name=full_tool_name)(create_wrapped_tool(alias_name, resolve_alias, None))
+        v2_tools_registered.append(full_tool_name)
+
+    v2_tools_registered += register_v2_tools(mcp, include_legacy_compat=False)
     v2_prompts_registered = register_v2_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
-    # Register REST routes AFTER tool registration so tool_registry is populated
-    v2_routes_registered = register_rest_routes(mcp, HARDENED_HANDLERS)
-
-    # Register MCP Apps (with F4 Integrity)
-    from arifosmcp.apps import register_all_apps
-    registered_apps = register_all_apps(mcp)
-    logger.info(f"Successfully registered {len(registered_apps)} constitutional apps")
-
-    # Mount 6-axis MCP tools (P/T/V/G/E/M) from mcp_tools.py
-    # Axis feature flags: set ARIFOS_ENABLE_{P|T|V|G|E|M}_AXIS=false to gate an axis
-    _axis_enabled = lambda axis: os.getenv(f"ARIFOS_ENABLE_{axis}_AXIS", "true").lower() != "false"
-    try:
-        from arifosmcp.mcp_tools import (
-            create_perception_mcp, create_transformation_mcp,
-            create_valuation_mcp, create_governance_mcp,
-            create_execution_mcp, create_meta_mcp,
-        )
-        _agent_factories = {
-            "P": create_perception_mcp,
-            "T": create_transformation_mcp,
-            "V": create_valuation_mcp,
-            "G": create_governance_mcp,
-            "E": create_execution_mcp,
-            "M": create_meta_mcp,
-        }
-        for _axis, _factory in _agent_factories.items():
-            if not _axis_enabled(_axis):
-                logger.info(f"  [{_axis}] axis DISABLED via ARIFOS_ENABLE_{_axis}_AXIS=false")
-                continue
-            _agent_mcp = _factory()
-            mcp.mount(_agent_mcp, namespace=None)
-            logger.info(f"  [{_axis}] 6-axis MCP agent mounted (namespaced by prefix letter)")
-        logger.info("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
-        print("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
-    except Exception as _e:
-        logger.warning(f"6-axis MCP tools unavailable: {_e}")
+    # Mount Specialized Bio/World/Finance Stems
+    from arifosmcp.apps.geox_app import geox_app
+    from arifosmcp.apps.wealth_app import wealth_app
+    mcp.mount(geox_app, namespace="geox-app")
+    mcp.mount(wealth_app, namespace="wealth-app")
 
     # Approval Provider (F13 gate)
     if _env_flag("ARIFOS_ENABLE_APPROVAL_PROVIDER", default=False):
