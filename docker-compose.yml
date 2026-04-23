@@ -103,7 +103,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.arif-landing.rule=Host(`arif-fazil.com`) || Host(`www.arif-fazil.com`)"
-      - "traefik.http.routers.arifos-landing.rule=Host(`arifos.arif-fazil.com`)"
       - "traefik.http.routers.aaa-landing.rule=Host(`aaa.arif-fazil.com`)"
       - "traefik.http.routers.forge-landing.rule=Host(`forge.arif-fazil.com`)"
       - "traefik.http.routers.waw-landing.rule=Host(`waw.arif-fazil.com`)"
@@ -123,9 +122,6 @@ services:
       - "traefik.http.routers.waw-landing.tls.certresolver=letsencrypt"
       - "traefik.http.routers.wiki-landing.entrypoints=websecure"
       - "traefik.http.routers.wiki-landing.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.arifosmcp-landing.rule=Host(`arifosmcp.arif-fazil.com`)"
-      - "traefik.http.routers.arifosmcp-landing.entrypoints=websecure"
-      - "traefik.http.routers.arifosmcp-landing.tls.certresolver=letsencrypt"
       - "traefik.http.routers.geox-landing.rule=Host(`geox.arif-fazil.com`)"
       - "traefik.http.routers.geox-landing.entrypoints=websecure"
       - "traefik.http.routers.geox-landing.tls.certresolver=letsencrypt"
@@ -179,8 +175,7 @@ services:
     image: arifos/arifosmcp:latest
     container_name: arifosmcp
     init: true
-    working_dir: /usr/src/project
-    command: ["uvicorn", "transports.http:app", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
     env_file:
       - path: .env
     environment:

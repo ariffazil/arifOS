@@ -38,17 +38,34 @@ jobs:
           docker build -t ghcr.io/ariffazil/arifos:${{ github.ref_name }} .
           docker push ghcr.io/ariffazil/arifos:${{ github.ref_name }}
 
-      - name: Sync Living Law
+      - name: Publish to NPM (@arifos/elements)
+        if: contains(github.ref_name, 'elements') || contains(github.event.head_commit.message, 'feat: elements')
         env:
-          LAW_TOKEN: ${{ secrets.LAW_GIST_TOKEN }}
-          GIST_ID: ${{ secrets.CONSTITUTIONAL_GIST_ID }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          if [ -d "arif-sites" ]; then
+            cd arif-sites
+            npm publish --access public
+          fi
+
+      - name: Sync Living Law (Sovereign Anchor)
+        env:
+          GITHUB_TOKEN: ${{ secrets.LAW_GIST_TOKEN }}
+          GIST_ID: 81314f6cda1ea898f9feb88ce8f8959b
+        run: |
+          echo "Sealing Sovereign Version ${{ github.ref_name }} to Gist $GIST_ID"
           curl -X PATCH \
-            -H "Authorization: token $LAW_TOKEN" \
-            -d "{\"files\":{\"000_LAW.md\":{\"content\":$(jq -Rs . < 000_LAW.md)}}}" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"files\": {
+                \"000_CONSTITUTION.md\": {\"content\": $(jq -Rs . < 000/000_CONSTITUTION.md)},
+                \"000_DOCTRINE.md\": {\"content\": $(jq -Rs . < 000/000_DOCTRINE.md)}
+              }
+            }" \
             https://api.github.com/gists/$GIST_ID
 
       - name: 999 SEAL
         run: |
-          echo '{"epoch":"'$(date -u +%Y.%m.%dT%H:%M:%SZ)'","verdict":"PUBLISHED","surfaces":["pypi","ghcr","gist"],"ditempa":"BUKAN_DIBERI"}' > seal.json
-          cat seal.json
+          echo '{"epoch":"'$(date -u +%Y.%m.%dT%H:%M:%SZ)'","tag":"'${{ github.ref_name }}'","verdict":"SEALED","surfaces":["pypi","npm","ghcr","gist"],"ditempa":"BUKAN_DIBERI"}' > release_seal.json
+          cat release_seal.json

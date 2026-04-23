@@ -10,7 +10,7 @@ jobs:
       - name: Update Constitutional Gist
         env:
           GITHUB_TOKEN: ${{ secrets.LAW_GIST_TOKEN }}
-          GIST_ID: ${{ secrets.CONSTITUTIONAL_GIST_ID }}
+          GIST_ID: 81314f6cda1ea898f9feb88ce8f8959b
         run: |
           echo "Syncing Constitutional Law and Doctrine to Gist $GIST_ID"
           
