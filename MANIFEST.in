@@ -1,19 +1,24 @@
-# arifOS Manifestation Policy (v2026.4.16)
+# arifOS Manifestation Policy (v2026.04.24)
 # Ditempa Bukan Diberi.
 
-# Include core logic
-recursive-include arifosmcp *.py *.json *.html *.css
+# Include core logic and components
+recursive-include arifosmcp *.py *.json *.jsonl *.html *.css
+recursive-include arifos *.py *.json *.jsonl *.html *.css
+recursive-include wiki *
+recursive-include arifosmcp/VAULT999 *
+
 include pyproject.toml
 include README.md
 include LICENSE
 include program.md
+include smithery.yaml
 
 # Prune Metabolic Shadows
 recursive-exclude arifosmcp/__pycache__ *
 recursive-exclude tests *
 recursive-exclude docs *
 recursive-exclude .archive *
-recursive-exclude VAULT999/STAGING *
+recursive-exclude arifosmcp/VAULT999/STAGING *
 recursive-exclude arifosmcp/.venv *
 
 # Prune Tool Build Bloat
@@ -22,5 +27,3 @@ exclude .env.example
 exclude Makefile
 exclude uv.lock
 exclude MANIFEST.in
-exclude *.txt
-exclude *.json

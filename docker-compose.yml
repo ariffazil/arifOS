@@ -75,9 +75,7 @@ services:
     volumes:
       - /opt/arifos/data/qdrant:/qdrant/storage
     networks:
-      arifos_core_network:
-        aliases:
-          - qdrant_memory       # backward compat alias for older configs/scripts
+      - arifos_core_network
     healthcheck:
       test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /healthz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
       interval: 15s
@@ -162,8 +160,8 @@ services:
       - BROWSERLESS_URL=http://headless_browser:3000
     volumes:
       - /opt/arifos/data/openclaw:/root/.openclaw
-      - /root/arifOS/skills/vps-monitor:/app/extensions/vps-monitor
-      - /root/arifOS:/mnt/arifos:rw
+      - /srv/arifos/skills/vps-monitor:/app/extensions/vps-monitor
+      - /srv/arifos:/mnt/arifos:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - arifos_core_network
@@ -182,24 +180,20 @@ services:
     container_name: arifosmcp
     init: true
     working_dir: /usr/src/project
-    command: ["python", "server.py"]
+    command: ["uvicorn", "transports.http:app", "--host", "0.0.0.0", "--port", "8080"]
     env_file:
       - path: .env
     environment:
       - PYTHONPATH=/usr/src/project
       - VPS_MODE=1
       - ARIFOS_DEPLOYMENT=vps
-      - RELEASE_TAG=v2026.04.19-UNIFIED
-      - GIT_SHA_SHORT=5ab6fdbd
+      - RELEASE_TAG=v2026.04.24-UNIFIED
       - OLLAMA_URL=http://ollama:11434
-      - OLLAMA_BASE_URL=http://ollama:11434
       - QDRANT_URL=http://qdrant:6333
-      - QDRANT_COLLECTION=arifos_memory
-      - EMBEDDING_MODEL=bge-m3
-      - EMBEDDING_DIMENSION=1024
-      - LANCEDB_PATH=/usr/src/project/arifosmcp/data/vector_cache.lance
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://arifos_admin:${POSTGRES_PASSWORD}@postgres:5432/vault999
     volumes:
-      - /root/arifOS:/usr/src/project:rw
+      - /srv/arifos:/usr/src/project:rw
       - /opt/arifos/data/core:/usr/src/project/arifosmcp/data:rw
       - arifosmcp_telemetry:/usr/src/project/arifosmcp/telemetry:rw
       - arifosmcp_vault:/usr/src/project/arifosmcp/VAULT999:rw
@@ -208,14 +202,19 @@ services:
       - arifos_core_network
     ports:
       - "8080:8080"
-      - "8089:8089"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.arifosmcp.loadbalancer.server.port=8080"
+      - "traefik.http.routers.arifos-root.rule=Host(`arifos.arif-fazil.com`) && (Path(`/`) || PathPrefix(`/health`) || PathPrefix(`/tools`) || PathPrefix(`/prompts`) || PathPrefix(`/resources`) || PathPrefix(`/dashboard`) || PathPrefix(`/sites`) || PathPrefix(`/openapi`) || PathPrefix(`/llms`) || PathPrefix(`/version`) || PathPrefix(`/status`) || PathPrefix(`/discovery`) || PathPrefix(`/ready`) || PathPrefix(`/metrics`) || PathPrefix(`/mcp`) || PathPrefix(`/webmcp`) || PathPrefix(`/.well-known`))"
+      - "traefik.http.routers.arifos-root.entrypoints=websecure"
+      - "traefik.http.routers.arifos-root.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.arifos-root.priority=100"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8080/health | grep -q 'healthy' || exit 1"]
       interval: 30s
       timeout: 10s
       start_period: 30s
       retries: 3
-    # Traefik route disabled - served via arifos_landings nginx proxy
     restart: unless-stopped
     ulimits:
       nofile:

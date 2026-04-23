@@ -1,0 +1,54 @@
+name: 🔱 Sovereign Release Pipeline
+on:
+  push:
+    tags:
+      - 'v20[0-9][0-9].*'  # Match sovereign date tags
+
+jobs:
+  audit-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python + uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: 13-Floor Constitutional Audit
+        run: |
+          uv run pytest tests/ -v --tb=short
+          echo "✅ F1-F13 floors cleared"
+
+      - name: Publish to PyPI
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          uv build
+          uv publish
+
+      - name: Build + Push GHCR Image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u ariffazil --password-stdin
+          docker build -t ghcr.io/ariffazil/arifos:${{ github.ref_name }} .
+          docker push ghcr.io/ariffazil/arifos:${{ github.ref_name }}
+
+      - name: Sync Living Law
+        env:
+          LAW_TOKEN: ${{ secrets.LAW_GIST_TOKEN }}
+          GIST_ID: ${{ secrets.CONSTITUTIONAL_GIST_ID }}
+        run: |
+          curl -X PATCH \
+            -H "Authorization: token $LAW_TOKEN" \
+            -d "{\"files\":{\"000_LAW.md\":{\"content\":$(jq -Rs . < 000_LAW.md)}}}" \
+            https://api.github.com/gists/$GIST_ID
+
+      - name: 999 SEAL
+        run: |
+          echo '{"epoch":"'$(date -u +%Y.%m.%dT%H:%M:%SZ)'","verdict":"PUBLISHED","surfaces":["pypi","ghcr","gist"],"ditempa":"BUKAN_DIBERI"}' > seal.json
+          cat seal.json
