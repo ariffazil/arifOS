@@ -478,6 +478,10 @@ class TelemetryVitals(BaseModel):
     escalated_from_tier: str | None = None
     phase_token_usage: dict[str, int] = field(default_factory=dict)
 
+    def get(self, key: str, default: Any = None) -> Any:
+        """Standardize attribute access (F2 Truth Floor)."""
+        return getattr(self, key, default)
+
 
 class TelemetryBasis(BaseModel):
     """Rule 1: Basis tracking for every vital sign + Operational Weight."""
@@ -548,6 +552,10 @@ class CanonicalMetrics(BaseModel):
         return self.telemetry.ds
 
     model_config = ConfigDict(populate_by_name=True)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Standardize attribute access (F2 Truth Floor)."""
+        return getattr(self, key, default)
 
 
 class CanonicalAuthority(BaseModel):

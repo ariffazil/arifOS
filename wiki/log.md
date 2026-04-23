@@ -819,3 +819,22 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 ### Operational Verdict
 
 **FORGED IN WIKI, NOT YET RUNTIME-ENFORCED** — canonical doctrine page exists and is indexed; implementation remains a separate engineering step after audit truth is settled.
+822: 
+823: ---
+824: 
+825: ## [2026-04-24] Sync | Ω-Wiki Naming Harmonization & Submodule Alignment
+826: 
+827: **SEAL AUTHORITY**: Antigravity (Advanced Agentic Coding Agent)
+828: **MOTTO**: *Ditempa Bukan Diberi*
+829: 
+830: ### Actions Taken
+831: - **Tool Naming Harmonization**: Converted all tool references from dot-notation (`arifos.tool`) to underscore-notation (`arifos_tool`) across the entire Ω-Wiki (33+ pages) to align with the canonical `arifosmcp` runtime.
+832: - **Runtime Prompt Update**: Updated `prompts.py` to use underscored tool names, ensuring agent behavior matches implementation.
+833: - **Submodule Core Hardening**: Refined `tools.py` and `server.py` to ensure underscore notation is the absolute standard.
+834: - **Repository Alignment**: Staged and committed the Ω-Wiki into the parent repository and updated the `arifOS` submodule pointer.
+835: 
+836: ### Verdict: SEALED
+837: - **Drift**: 0 (Harmonized)
+838: - **Chaos**: Contained
+839: - **Knowledge**: Persistent & Synchronized
+

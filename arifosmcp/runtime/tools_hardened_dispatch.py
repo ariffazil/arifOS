@@ -70,10 +70,8 @@ async def dispatch_with_fail_closed(tool_name: str, arguments: dict[str, Any]) -
 
 
 def get_tool_handler(name: str) -> Any:
-    """Resolve tool handlers through the canonical runtime registry."""
-    from arifosmcp.runtime.tools import get_tool_handler as _get_tool_handler
-
-    return _get_tool_handler(name)
+    """Resolve tool handlers via the lazy dispatch map to avoid cycles."""
+    return HARDENED_DISPATCH_MAP.get(name)
 
 
 def get_shadow_backends() -> dict[str, Any]:
