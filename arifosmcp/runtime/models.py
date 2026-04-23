@@ -955,10 +955,12 @@ class RuntimeEnvelope(BaseModel):
         description="When True, to_dict() emits compact token-efficient serialization.",
     )
 
-    model_config = ConfigDict(extra="allow")
-
     def __getitem__(self, item: str) -> Any:
         return getattr(self, item)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Standardize attribute access (F2 Truth Floor)."""
+        return getattr(self, key, default)
 
     def to_dict(
         self,

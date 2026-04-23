@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from arifosmcp.integrations.substrate_bridge import bridge
 from arifosmcp.runtime.models import RuntimeEnvelope as _RE
 from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.governance_enforcer import get_enforcer
 
 logger = logging.getLogger(__name__)
 
@@ -51,18 +52,18 @@ async def kg_upsert_entity(
     source: str = "arifos_mind",
 ) -> tuple[bool, str | None]:
     """Upsert an entity to the MCP memory KG via substrate_bridge."""
-    from core.floors import evaluate_tool_call
     
-    gov = evaluate_tool_call(
-        action="memory_write",
+    # F2/F11 Optimized Governance
+    gov = get_enforcer().evaluate_intent(
         tool_name="arifos_memory",
+        action="memory_write",
         parameters={"entity_id": entity_id, "entity_type": entity_type},
         actor_id=actor_id,
         session_id=session_id
     )
     
-    if gov.verdict != Verdict.SEAL:
-        return False, f"Governance blocked: {gov.message}"
+    if not gov.ok:
+        return False, f"Governance blocked: {gov.detail}"
 
     try:
         enriched_observations = []
@@ -96,18 +97,17 @@ async def kg_link_entities(
     session_id: str | None = None
 ) -> tuple[bool, str | None]:
     """Create a relation between entities."""
-    from core.floors import evaluate_tool_call
     
-    gov = evaluate_tool_call(
-        action="memory_link",
+    gov = get_enforcer().evaluate_intent(
         tool_name="arifos_memory",
+        action="memory_link",
         parameters={"from": from_id, "to": to_id, "type": relation_type},
         actor_id=actor_id,
         session_id=session_id
     )
     
-    if gov.verdict != Verdict.SEAL:
-        return False, f"Governance blocked: {gov.message}"
+    if not gov.ok:
+        return False, f"Governance blocked: {gov.detail}"
 
     try:
         payload = {
@@ -130,17 +130,16 @@ async def kg_search(
     limit: int = 10,
 ) -> list[KGEntity]:
     """Search the MCP memory KG."""
-    from core.floors import evaluate_tool_call
     
-    gov = evaluate_tool_call(
-        action="memory_read",
+    gov = get_enforcer().evaluate_intent(
         tool_name="arifos_memory",
+        action="memory_read",
         parameters={"query": query},
         actor_id=actor_id,
         session_id=session_id
     )
     
-    if gov.verdict != Verdict.SEAL:
+    if not gov.ok:
         return []
 
     try:
@@ -172,16 +171,16 @@ async def kg_delete_entity(
 ) -> tuple[bool, str | None]:
     """Delete an entity from the MCP memory KG."""
     
-    gov = evaluate_tool_call(
-        action="memory_delete",
+    gov = get_enforcer().evaluate_intent(
         tool_name="arifos_memory",
+        action="memory_delete",
         parameters={"entity_id": entity_id},
         actor_id=actor_id,
         session_id=session_id
     )
     
-    if gov.verdict != Verdict.SEAL:
-        return False, f"Governance blocked: {gov.message}"
+    if not gov.ok:
+        return False, f"Governance blocked: {gov.detail}"
 
     try:
         await bridge.memory.call_tool("delete_entities", {"entityNames": [entity_id]})

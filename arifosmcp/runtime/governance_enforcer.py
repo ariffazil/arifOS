@@ -116,6 +116,45 @@ class GovernanceEnforcer:
             return QueryClass.GOVERNED
         return QueryClass.INFORMATIONAL
 
+    def evaluate_intent(
+        self,
+        tool_name: str,
+        action: str,
+        parameters: dict[str, Any],
+        actor_id: str = "anonymous",
+        session_id: str | None = None,
+    ) -> RuntimeEnvelope:
+        """
+        Fast-track intent evaluation for unified substrates (F2/F11).
+        Does NOT invoke the tool; only checks if the intent is constitutionally allowed.
+        """
+        from arifosmcp.runtime.models import RuntimeEnvelope, Verdict, RuntimeStatus
+
+        # 1. Scrutinize via Amanah
+        args = {**parameters, "action": action, "session_id": session_id}
+        score_result = _AMANAH_SCORER.evaluate_payload(
+            tool_name=tool_name,
+            mode=action,
+            args=args,
+            actor_id=actor_id,
+        )
+
+        if score_result.triggers_888_hold:
+            return RuntimeEnvelope(
+                ok=False,
+                tool=tool_name,
+                verdict=Verdict.HOLD,
+                status=RuntimeStatus.ERROR,
+                detail=f"888_HOLD (Amanah): {score_result.reason} (score={score_result.score})",
+            )
+
+        return RuntimeEnvelope(
+            ok=True,
+            tool=tool_name,
+            verdict=Verdict.SEAL,
+            status=RuntimeStatus.SUCCESS,
+        )
+
     def evaluate_tool_verdict(
         self,
         tool_name: str,
