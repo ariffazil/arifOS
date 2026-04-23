@@ -55,7 +55,7 @@ The material interface of arifOS is the **11-Tool Canonical Surface**. These too
 | **11** | `arifos_vps_monitor` | 111 | Δ | MACHINE |
 
 > [!NOTE]
-> `arifos.route` is deprecated — use `arifos.kernel` (444_KERNEL) instead.
+> `arifos_route` is deprecated — use `arifos_kernel` (444_KERNEL) instead.
 
 ---
 

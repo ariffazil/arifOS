@@ -32,8 +32,10 @@ from typing import Any, Optional
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _project_root = os.path.dirname(os.path.abspath(__file__))
-if _project_root not in sys.path:
-    sys.path.insert(0, _project_root)
+_parent_root = os.path.dirname(_project_root)
+for _p in (_project_root, _parent_root):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from dotenv import load_dotenv
 
@@ -184,7 +186,9 @@ try:
         meta={"ui": app_config_to_meta_dict(_prefab_app)},
     )
     mcp.add_resource(_prefab_renderer)
-    logger.info("Prefab renderer pre-registered with widget domain https://arifosmcp.arif-fazil.com")
+    logger.info(
+        "Prefab renderer pre-registered with widget domain https://arifosmcp.arif-fazil.com"
+    )
 except Exception as _prefab_err:
     logger.warning(f"Prefab renderer pre-registration skipped: {_prefab_err}")
 
@@ -268,14 +272,16 @@ try:
     try:
         from fastmcp.apps.approval import Approval
 
-        mcp.add_provider(Approval(
-            name="Constitutional Gate",
-            title="888_HOLD — Human Confirmation Required",
-            approve_text="Authorize",
-            reject_text="Reject",
-            approve_variant="default",
-            reject_variant="destructive",
-        ))
+        mcp.add_provider(
+            Approval(
+                name="Constitutional Gate",
+                title="888_HOLD — Human Confirmation Required",
+                approve_text="Authorize",
+                reject_text="Reject",
+                approve_variant="default",
+                reject_variant="destructive",
+            )
+        )
         logger.info("MCP Apps: Approval provider (888_HOLD gate) registered")
     except Exception as _approval_err:
         logger.warning(f"Approval provider unavailable: {_approval_err}")

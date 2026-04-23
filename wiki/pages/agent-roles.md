@@ -375,16 +375,16 @@ Agents interact with arifOS through the **9+1 Constitutional Tools**:
 
 | Tool | Stage | Agent Usage |
 |------|-------|-------------|
-| `arifos.init` | 000_INIT | All agents anchor sessions with declared intent |
-| `arifos.sense` | 111_SENSE | Ground designs/code in reality before execution |
-| `arifos.mind` | 333_MIND | A-ARCHITECT: structured reasoning for designs |
-| `arifos.route` | 444_ROUT | A-ORCHESTRATOR: select execution paths |
-| `arifos.memory` | 555_MEM | All agents: retrieve context from past work |
-| `arifos.heart` | 666_HEART | A-AUDITOR: safety critique before VOID verdicts |
-| `arifos.ops` | 777_OPS | A-ENGINEER: estimate costs, check reversibility |
-| `arifos.judge` | 888_JUDGE | A-VALIDATOR: issue SEAL/VOID verdicts |
-| `arifos.vault` | 999_SEAL | All agents: commit audit trails |
-| `arifos.forge` | Execution | A-ENGINEER: execute after SEAL receipt |
+| `arifos_init` | 000_INIT | All agents anchor sessions with declared intent |
+| `arifos_sense` | 111_SENSE | Ground designs/code in reality before execution |
+| `arifos_mind` | 333_MIND | A-ARCHITECT: structured reasoning for designs |
+| `arifos_route` | 444_ROUT | A-ORCHESTRATOR: select execution paths |
+| `arifos_memory` | 555_MEM | All agents: retrieve context from past work |
+| `arifos_heart` | 666_HEART | A-AUDITOR: safety critique before VOID verdicts |
+| `arifos_ops` | 777_OPS | A-ENGINEER: estimate costs, check reversibility |
+| `arifos_judge` | 888_JUDGE | A-VALIDATOR: issue SEAL/VOID verdicts |
+| `arifos_vault` | 999_SEAL | All agents: commit audit trails |
+| `arifos_forge` | Execution | A-ENGINEER: execute after SEAL receipt |
 
 ---
 

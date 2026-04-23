@@ -28,7 +28,7 @@ confidence: 1.0
 Per `TRINITY_ARCHITECTURE.md` (000_IGNITION canon):
 
 - **Δ HUMAN (The Body / Epistemic)**: `arif-fazil.com`. Identity, biography, and scars. AI must know *who* it serves to provide context-aware, empathetic governance (e.g., the Abah Check).
-- **Ω APPS (The Mind / Implementation)**: `arifos.arif-fazil.com`. Tools, code, and execution. Implementation changes frequently; law does not.
+- **Ω APPS (The Mind / Implementation)**: `arifos_arif-fazil.com`. Tools, code, and execution. Implementation changes frequently; law does not.
 - **Ψ THEORY (The Soul / Authority)**: `apex.arif-fazil.com`. Constitutional law, 13 Floors, and Verdicts. Law must stand independent of personal narrative and implementation details.
 
 ## 2. Horizontal Governance Engines

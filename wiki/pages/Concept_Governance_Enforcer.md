@@ -26,7 +26,7 @@ confidence: 1.0
 
 # Concept: Governance Enforcer
 
-The **Governance Enforcer** (`governance_enforcer.py`) is the structural "Hard Stop" mechanism of arifOS. It ensures that constitutional principles are not just theoretical goals, but enforced runtime constraints.
+The **Governance Enforcer** (`governance_enforcer.py`) is the structural "Hard Stop" mechanism of arifos_ It ensures that constitutional principles are not just theoretical goals, but enforced runtime constraints.
 
 ## Query Classification (The A/B/C Model)
 

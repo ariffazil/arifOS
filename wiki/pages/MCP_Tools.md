@@ -60,7 +60,7 @@ The current registry target is a clean **10-tool public canon**, but the repo ru
 | `arifos_health` | System health endpoint for readiness checks | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/server.py` |
 | `arifos_fetch` | Grounding bridge for external content retrieval | `arifosmcp/runtime/tools.py`, `arifosmcp/tools/fetch_tool.py` |
 | `arifos_forge_bridge`| Internal bridge to delegated execution substrate | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/forge_bridge.py` |
-| dotted `arifos.*` names | legacy alias surface still active | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/kernel_router.py`, `arifosmcp/runtime/server.py` |
+| dotted `arifos_*` names | legacy alias surface still active | `arifosmcp/runtime/tools.py`, `arifosmcp/runtime/kernel_router.py`, `arifosmcp/runtime/server.py` |
 
 ## Current Contrast
 
@@ -69,7 +69,7 @@ The repository currently shows all of the following at once:
 1. `APEX/ASF1/tool_registry.json` defines **10 public canonical tools** and **5 internal folded tools**.
 2. `arifosmcp/runtime/tool_specs.py` exports `PUBLIC_TOOL_SPECS = TOOLS`, so the runtime public surface still follows the broader runtime tuple rather than the 10-tool registry target.
 3. `arifosmcp/runtime/public_registry.py` still declares `EXPECTED_TOOL_COUNT = 11`.
-4. `arifosmcp/runtime/server.py` still describes public tools with canonical dotted ids and explicitly mentions `arifos.reply`.
+4. `arifosmcp/runtime/server.py` still describes public tools with canonical dotted ids and explicitly mentions `arifos_reply`.
 
 This means the naming migration should currently be treated as **audit-pending**, not fully sealed.
 

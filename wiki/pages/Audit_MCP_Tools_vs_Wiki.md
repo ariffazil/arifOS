@@ -56,7 +56,7 @@ The wiki can now reflect the **current repo truth**, but the naming migration ca
 | Registry | `APEX/ASF1/tool_registry.json` | Declares exactly 10 public canonical tools and 5 internal folded tools | INFO |
 | Runtime spec | `arifosmcp/runtime/tool_specs.py` → `PUBLIC_TOOL_SPECS = TOOLS` | Runtime export still follows full tuple, not the 10-tool registry split | HIGH |
 | Public registry | `arifosmcp/runtime/public_registry.py` → `EXPECTED_TOOL_COUNT = 11` | Discovery contract still expects older count | HIGH |
-| Server instructions | `arifosmcp/runtime/server.py` docstring + instructions | Server narrative still advertises 11 canonical tools, dotted ids, and `arifos.reply` | HIGH |
+| Server instructions | `arifosmcp/runtime/server.py` docstring + instructions | Server narrative still advertises 11 canonical tools, dotted ids, and `arifos_reply` | HIGH |
 | Runtime handlers | `arifosmcp/runtime/tools.py` | Legacy/transitional handlers and aliases still present for `arifos_reply`, `arifos_vps_monitor`, `arifos_route`, dotted names | WARN |
 | Resource discovery | `arifosmcp/runtime/resources.py` | Public/internal surface still organized around `arifos_route` and `arifos_vps_monitor` | WARN |
 
@@ -90,7 +90,7 @@ Everything else should be treated as alias, internal-only, deprecated, dead, sub
 | `arifos_reply` | `tool_specs.py`, `tools.py`, `server.py` | internal-only candidate / fold into `arifos_kernel(mode="reply")` |
 | `arifos_vps_monitor` | `tool_specs.py`, `tools.py`, `resources.py`, `server.py` | internal-only candidate / fold into `arifos_ops(mode="monitor")` |
 | `arifos_route` | `tools.py`, `kernel_runtime.py`, `server.py`, `rest_routes.py` | alias or compatibility surface for `arifos_kernel` |
-| dotted `arifos.*` tool names | `tools.py`, `kernel_router.py`, `server.py` | legacy alias layer |
+| dotted `arifos_*` tool names | `tools.py`, `kernel_router.py`, `server.py` | legacy alias layer |
 
 ---
 

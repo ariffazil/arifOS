@@ -108,7 +108,7 @@ Everything outside this 10-tool public set should be classified explicitly as:
 | Registry | `APEX/ASF1/tool_registry.json` defines 10 public tools + 5 internal folded tools | Canon target is reduced public surface |
 | Runtime spec | `arifosmcp/runtime/tool_specs.py` exports `PUBLIC_TOOL_SPECS = TOOLS` | Public runtime still follows broad tuple, not the registry split |
 | Discovery registry | `arifosmcp/runtime/public_registry.py` sets `EXPECTED_TOOL_COUNT = 11` | Discovery still expects pre-migration count |
-| Server narrative | `arifosmcp/runtime/server.py` says public tools use canonical dotted ids and mentions `arifos.reply` | Transport docs still leak older naming/surface assumptions |
+| Server narrative | `arifosmcp/runtime/server.py` says public tools use canonical dotted ids and mentions `arifos_reply` | Transport docs still leak older naming/surface assumptions |
 | Runtime handlers | `arifosmcp/runtime/tools.py` keeps handlers and aliases for `arifos_reply`, `arifos_vps_monitor`, `arifos_route`, and dotted names | Compatibility still exists inside live code path candidates |
 
 ## Structural Law

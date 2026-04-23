@@ -88,9 +88,9 @@ ChatGPT connects to arifOS through the **MCP HTTP transport**, enabling constitu
 
 | Tool | Mode | Purpose | Floors Active |
 |------|------|---------|---------------|
-| `arifos.judge` | `health` | Constitutional health check | All F1-F13 |
-| `arifos.vault` | `render` | Render seal widget in ChatGPT UI | F1, F11 |
-| `arifos.vault` | `list` | Read recent verdicts (last 100) | F11 |
+| `arifos_judge` | `health` | Constitutional health check | All F1-F13 |
+| `arifos_vault` | `render` | Render seal widget in ChatGPT UI | F1, F11 |
+| `arifos_vault` | `list` | Read recent verdicts (last 100) | F11 |
 
 ### Safety: 888_HOLD Compliance
 
@@ -521,11 +521,11 @@ User Output
 
 ```python
 # ❌ Wrong
-result = await arifos.mind(query)
+result = await arifos_mind(query)
 return result
 
 # ✅ Right
-verdict = await arifos.judge(action)
+verdict = await arifos_judge(action)
 if verdict.status == "SEAL":
     return await execute(action)
 else:

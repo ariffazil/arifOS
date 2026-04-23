@@ -34,7 +34,7 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
             },
             "required": ["query"],
         },
-        "default_tools": ["arifos.route", "arifos.sense", "arifos.mind", "arifos.heart", "arifos.judge"],
+        "default_tools": ["arifos_route", "arifos_sense", "arifos_mind", "arifos_heart", "arifos_judge"],
         "tool_choice": "auto",
     },
     {
@@ -48,7 +48,7 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
             },
             "required": ["content"],
         },
-        "default_tools": ["arifos.heart", "arifos.judge"],
+        "default_tools": ["arifos_heart", "arifos_judge"],
         "tool_choice": "required",
     },
     {
@@ -62,7 +62,7 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
             },
             "required": ["task"],
         },
-        "default_tools": ["arifos.route", "arifos.ops", "arifos.judge"],
+        "default_tools": ["arifos_route", "arifos_ops", "arifos_judge"],
         "tool_choice": "auto",
     },
     {
@@ -76,7 +76,7 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
             },
             "required": ["query"],
         },
-        "default_tools": ["arifos.route"],
+        "default_tools": ["arifos_route"],
         "tool_choice": "auto",
     },
     # ─────────────────────────────────────────────────────────────────────────
@@ -161,11 +161,11 @@ Query: {query}{ctx}
 Risk Tier: {risk_tier}
 
 Execute this pipeline:
-1. arifos.route — Determine correct metabolic lane
-2. arifos.sense — Ground in physical reality, verify facts
-3. arifos.mind — Structured reasoning with uncertainty bands
-4. arifos.heart — Safety critique and adversarial review
-5. arifos.judge — Final constitutional verdict
+1. arifos_route — Determine correct metabolic lane
+2. arifos_sense — Ground in physical reality, verify facts
+3. arifos_mind — Structured reasoning with uncertainty bands
+4. arifos_heart — Safety critique and adversarial review
+5. arifos_judge — Final constitutional verdict
 
 For each step:
 - Record the tool call
@@ -198,8 +198,8 @@ Content to audit:
 ---
 
 Execute:
-1. arifos.heart — Identify ethical risks, dignity violations
-2. arifos.judge — Constitutional verdict
+1. arifos_heart — Identify ethical risks, dignity violations
+2. arifos_judge — Constitutional verdict
 
 Report:
 - floors_violated: list of F1-F13 violations found
@@ -239,7 +239,7 @@ def _minimal_response_prompt(query: str, max_tokens: int = 500) -> str:
 Query: {query}
 Max length: {max_tokens} tokens
 
-Use arifos.route only if constitutional risk detected.
+Use arifos_route only if constitutional risk detected.
 Otherwise answer immediately.
 """
 

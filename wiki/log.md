@@ -101,9 +101,9 @@
 **MOTTO**: *Ditempa Bukan Diberi*
 
 #### Finding 1: Trinity Symbol Inconsistency [RESOLVED]
-- **Issue**: `What-is-arifOS.md` mapped Δ→AGI Mind, Ω→ASI Heart, Ψ→APEX Soul
+- **Issue**: `What-is-arifos_md` mapped Δ→AGI Mind, Ω→ASI Heart, Ψ→APEX Soul
 - **Conflict**: `TRINITY_ARCHITECTURE.md` (000_IGNITION canon) maps Δ→HUMAN, Ω→APPS, Ψ→THEORY
-- **Resolution**: Added **Layer vs Engine distinction** to `What-is-arifOS.md`:
+- **Resolution**: Added **Layer vs Engine distinction** to `What-is-arifos_md`:
   - **Layer Mapping** (AAA vertical): Δ HUMAN, Ω APPS, Ψ THEORY
   - **Engine Mapping** (governance horizontal): AGI Mind, ASI Heart, APEX Soul
   - Documented that AGI operates at Ω (APPS) layer implementation
@@ -157,7 +157,7 @@
 
 **SEAL AUTHORITY**: 888 Judge (Muhammad Arif bin Fazil)  
 **CYCLE**: 1 of 4 (Spec-Only)  
-**TARGET**: `arifos.judge` — Constitutional Verdict Engine  
+**TARGET**: `arifos_judge` — Constitutional Verdict Engine  
 **MOTTO**: *Ditempa Bukan Diberi*
 
 ### Ingested Sources
@@ -285,7 +285,7 @@ elif mode == "health":
     return RuntimeEnvelope(
         ok=True,
         tool="apex_judge",
-        canonical_tool_name="arifos.judge",
+        canonical_tool_name="arifos_judge",
         session_id=session_id,
         stage="888_JUDGE",
         verdict=Verdict.SEAL,
@@ -438,7 +438,7 @@ regression: NONE             # ✅ No existing functionality broken
 | File | Change | Reason |
 |------|--------|--------|
 | `tools_hardened_dispatch.py` | Added `arifos_vps_monitor` to `list_canonical_tools()` | Was missing from canonical list |
-| `__main__.py` | Changed `arifos.vault` → `arifos_vault` in stdio response | Dotted name outside compat boundary |
+| `__main__.py` | Changed `arifos_vault` → `arifos_vault` in stdio response | Dotted name outside compat boundary |
 
 ### Verdict: GREEN
 ```
@@ -752,7 +752,7 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - `APEX/ASF1/tool_registry.json` defines 10 public canonical tools + 5 internal folded tools.
 - `arifosmcp/runtime/tool_specs.py` still exports `PUBLIC_TOOL_SPECS = TOOLS`.
 - `arifosmcp/runtime/public_registry.py` still expects 11 public tools.
-- `arifosmcp/runtime/server.py` still narrates dotted ids and `arifos.reply`.
+- `arifosmcp/runtime/server.py` still narrates dotted ids and `arifos_reply`.
 - `arifosmcp/runtime/tools.py` still carries compatibility paths for `arifos_reply`, `arifos_vps_monitor`, `arifos_route`, and dotted aliases.
 
 ### Operational Verdict

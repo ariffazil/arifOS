@@ -136,18 +136,18 @@ Follow the 9-stage execution pipeline:
 Meet the **9+1 Constitutional Tools**:
 
 **9 Governance Tools** (think, validate, reason):
-1. `arifos.init` — Session anchoring
-2. `arifos.sense` — Reality grounding
-3. `arifos.mind` — Structured reasoning
-4. `arifos.route` — Lane selection
-5. `arifos.memory` — Context recall
-6. `arifos.heart` — Safety critique
-7. `arifos.ops` — Operational cost
-8. `arifos.judge` — Constitutional verdict
-9. `arifos.vault` — Immutable seal
+1. `arifos_init` — Session anchoring
+2. `arifos_sense` — Reality grounding
+3. `arifos_mind` — Structured reasoning
+4. `arifos_route` — Lane selection
+5. `arifos_memory` — Context recall
+6. `arifos_heart` — Safety critique
+7. `arifos_ops` — Operational cost
+8. `arifos_judge` — Constitutional verdict
+9. `arifos_vault` — Immutable seal
 
 **1 Execution Bridge** (act after SEAL):
-10. `arifos.forge` — Execution bridge (requires judge SEAL)
+10. `arifos_forge` — Execution bridge (requires judge SEAL)
 
 **Key takeaway:** Governance (9 tools) and Execution (1 tool) are strictly separated. No action without SEAL.
 
@@ -192,7 +192,7 @@ Continue reading:
 3. **[[Audit_Surface_Fragmentation]]** — Drift detection and surface inventory
 4. **[[Eigent_Backend]]** — Multi-agent desktop automation (H1+H2)
 
-Focus: Understanding *where* and *how* to deploy arifOS.
+Focus: Understanding *where* and *how* to deploy arifos_
 
 ---
 
@@ -224,7 +224,7 @@ Or with the MCP client:
 
 ```python
 # Initialize session
-arifos.init(
+arifos_init(
     mode="status",
     declared_name="MyFirstAgent"
 )
