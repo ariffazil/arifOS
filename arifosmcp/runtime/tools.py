@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     pass
 
 from core.shared.types import Verdict
+from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
 
 # Philosophy injection removed from tools - happens centrally in _wrap_call()
 # to ensure ONLY G★ determines band, never tool identity
@@ -3077,34 +3078,6 @@ LEGACY_COMPAT_TOOL_HANDLERS: dict[str, Any] = {
     for legacy_name, canonical_name in LEGACY_TOOL_ALIASES.items()
     if legacy_name in {"agi_reason", "reality_compass", "vault_seal"}
 }
-
-
-def get_tool_handler(name: str) -> Any:
-    """Get tool handler by name, supporting legacy dot-names.
-
-    Args:
-        name: Tool name (canonical underscore or legacy dot format)
-
-    Returns:
-        Tool handler function or None
-
-    Example:
-        >>> get_tool_handler("arifos_init")  # Canonical
-        <function arifos_init>
-        >>> get_tool_handler("arifos.init")  # Legacy alias
-        <function arifos_init>
-    """
-    # Direct lookup (fast path for canonical names)
-    if name in CANONICAL_TOOL_HANDLERS:
-        return CANONICAL_TOOL_HANDLERS[name]
-
-    # Legacy alias lookup (slow path for backwards compatibility)
-    canonical_name = LEGACY_TOOL_ALIASES.get(name)
-    if canonical_name:
-        return CANONICAL_TOOL_HANDLERS.get(canonical_name)
-
-    return None
-
 
 def normalize_tool_name(name: str) -> str:
     """Normalize tool name to canonical underscore format.

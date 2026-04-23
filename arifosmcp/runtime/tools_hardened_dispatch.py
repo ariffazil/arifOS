@@ -53,6 +53,10 @@ class _LazyDispatchMap(MutableMapping[str, Any]):
         self._ensure_loaded()
         return self._mapping.get(key, default)
 
+    def __contains__(self, key: object) -> bool:
+        self._ensure_loaded()
+        return key in self._mapping
+
 
 HARDENED_DISPATCH_MAP: MutableMapping[str, Any] = _LazyDispatchMap()
 
@@ -70,8 +74,22 @@ async def dispatch_with_fail_closed(tool_name: str, arguments: dict[str, Any]) -
 
 
 def get_tool_handler(name: str) -> Any:
-    """Resolve tool handlers via the lazy dispatch map to avoid cycles."""
-    return HARDENED_DISPATCH_MAP.get(name)
+    """Resolve tool handlers via the lazy dispatch map to avoid cycles.
+    Supports canonical names and legacy dot-separated aliases.
+    """
+    from arifosmcp.runtime.tools import LEGACY_TOOL_ALIASES
+    
+    # 1. Direct path (fast)
+    handler = HARDENED_DISPATCH_MAP.get(name)
+    if handler:
+        return handler
+        
+    # 2. Alias path
+    canonical_name = LEGACY_TOOL_ALIASES.get(name)
+    if canonical_name:
+        return HARDENED_DISPATCH_MAP.get(canonical_name)
+        
+    return None
 
 
 def get_shadow_backends() -> dict[str, Any]:

@@ -102,7 +102,7 @@ async def physics_reality(
         res_dict = await HARDENED_DISPATCH_MAP["physics_reality"](mode=mode, payload=payload)
 
         # ─── V1.0 VERDICT FORGING ───
-        from arifosmcp.runtime.models import CanonicalMetrics
+        from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
         metrics = CanonicalMetrics()
@@ -114,14 +114,15 @@ async def physics_reality(
         )
 
         return forge_verdict(
-            tool_id="arifos_sense",
-            canonical_tool_name="arifos_sense",
-            stage="111_SENSE",
-            payload=res_dict.get("payload", res_dict),
+            tool_id="arifos_ops",
+            canonical_tool_name="arifos_ops",
+            stage=res_dict.get("stage", "444_OPS"),
+            payload=res_dict.get("payload", {}),
             session_id=session_id,
-            metrics=metrics,
-            floors_checked=["F2", "F3", "F10"],
-            message=res_dict.get("note"),
+            override_code=VerdictCode(res_dict.get("verdict").value)
+            if hasattr(res_dict.get("verdict"), "value")
+            else VerdictCode.SABAR,
+            message=res_dict.get("payload", {}).get("note", "Physics review completed."),
         )
 
     resolved_payload = dict(payload or {})

@@ -39,7 +39,8 @@ def forge_verdict(
     override_code: VerdictCode | None = None,
     message: str | None = None,
     canonical_tool_name: str | None = None,
-    philosophy: PhilosophyState | None = None
+    philosophy: PhilosophyState | None = None,
+    threshold: float = 0.7
 ) -> RuntimeEnvelope:
     """
     Forge a standardized verdict envelope (v2.0) from raw tool output.
@@ -64,7 +65,7 @@ def forge_verdict(
         reason = "ENTROPY_HIGH"
         message = message or f"F4 Violation: Entropy spike detected (dS={ds})."
     else:
-        threshold = 0.7 
+        # threshold is now an argument
         if philosophy and philosophy.posture == "VOID":
             code = VerdictCode.VOID
             reason = "PHILOSOPHY_VOID"

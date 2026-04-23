@@ -55,38 +55,26 @@ async def engineering_memory(
     if human_approval:
         payload.setdefault("human_approval", human_approval)
 
+    # ─── DISPATCH OVERRIDE CHECK ───
     if "engineering_memory" in HARDENED_DISPATCH_MAP:
         if mode is None:
             mode = "engineer"
-        res = await HARDENED_DISPATCH_MAP["engineering_memory"](mode=mode, payload=payload)
-        if isinstance(res, dict):
-            ok = res.get("ok", res.get("status") not in ("HOLD", "ERROR", "VOID", None))
-            _next_tools = res.get("next_allowed_tools", [])
-            _payload = res.get("payload", res) if isinstance(res.get("payload"), dict) else res
-            _hold_reason = res.get("warnings", [""])[0] if res.get("warnings") else ""
-            _next_action = None
-            if not ok and _hold_reason:
-                _next_action = {
-                    "reason": _hold_reason,
-                    "missing_requirements": _payload.get("missing_requirements", [])
-                    if isinstance(_payload, dict)
-                    else [],
-                    "next_allowed_tools": _next_tools,
-                    "suggested_canonical_call": _payload.get("suggested_canonical_call")
-                    if isinstance(_payload, dict)
-                    else None,
-                }
-            return RuntimeEnvelope(
-                tool="arifos_memory",
-                canonical_tool_name="arifos_memory",
-                stage=res.get("stage", "555_MEMORY"),
-                status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
-                verdict=Verdict.SEAL if ok else Verdict.VOID,
-                allowed_next_tools=_next_tools,
-                next_action=_next_action,
-                payload=res,
-            )
-        return res
+        res_dict = await HARDENED_DISPATCH_MAP["engineering_memory"](mode=mode, payload=payload)
+        
+        from arifosmcp.runtime.models import VerdictCode
+        from arifosmcp.runtime.verdict_wrapper import forge_verdict
+        
+        return forge_verdict(
+            tool_id="arifos_memory",
+            canonical_tool_name="arifos_memory",
+            stage=res_dict.get("stage", "555_MEMORY"),
+            payload=res_dict.get("payload", {}),
+            session_id=session_id,
+            override_code=VerdictCode(res_dict.get("verdict").value)
+            if hasattr(res_dict.get("verdict"), "value")
+            else VerdictCode.SABAR,
+            message=res_dict.get("payload", {}).get("note", "Memory operation processed."),
+        )
 
     resolved_payload = dict(payload or {})
     return await engineering_memory_dispatch_impl(
@@ -95,5 +83,5 @@ async def engineering_memory(
         auth_context=resolved_payload.get("auth_context", auth_context),
         risk_tier=resolved_payload.get("risk_tier", risk_tier),
         dry_run=bool(resolved_payload.get("dry_run", dry_run)),
-        ctx=ctx,  # Context injected by FastMCP framework,
+        ctx=ctx,
     )

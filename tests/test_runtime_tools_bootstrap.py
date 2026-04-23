@@ -38,7 +38,7 @@ class TestInitAnchorBootstrap:
     async def test_init_anchor_returns_session_id(self):
         """init_anchor must return a session_id in payload."""
         envelope = await init_anchor(
-            raw_input="Test initialization",
+            query="Test initialization",
             actor_id="test-actor",
             declared_name="Test Actor",
         )
@@ -50,7 +50,7 @@ class TestInitAnchorBootstrap:
     async def test_init_anchor_returns_authority(self):
         """init_anchor must return populated authority object."""
         envelope = await init_anchor(
-            raw_input="Test initialization",
+            query="Test initialization",
             actor_id="test-actor",
             declared_name="Test Actor",
         )
@@ -65,7 +65,7 @@ class TestInitAnchorBootstrap:
     async def test_init_anchor_returns_auth_context(self):
         """init_anchor must return auth_context for downstream use."""
         envelope = await init_anchor(
-            raw_input="Test initialization",
+            query="Test initialization",
             actor_id="test-actor",
             declared_name="Test Actor",
         )
@@ -81,7 +81,7 @@ class TestInitAnchorBootstrap:
     async def test_init_anchor_returns_next_action(self):
         """init_anchor should guide next step."""
         envelope = await init_anchor(
-            raw_input="Test initialization",
+            query="Test initialization",
             actor_id="test-actor",
         )
         # Should have guidance on what to do next
@@ -98,7 +98,7 @@ class TestInitAnchorBootstrap:
         """init_anchor should progress from anonymous to anchored."""
         # First call - establish anchor
         envelope = await init_anchor(
-            raw_input="Test initialization",
+            query="Test initialization",
             actor_id="test-actor",
             declared_name="Test Actor",
         )
@@ -288,7 +288,7 @@ class TestStateLadder:
         """init_anchor should move from anonymous to anchored."""
         # Initialize
         anchor = await init_anchor(
-            raw_input="Test state progression",
+            query="Test state progression",
             actor_id="test-actor",
         )
         assert anchor.ok is True
@@ -314,7 +314,7 @@ class TestBootstrapFlowIntegration:
         
         # Phase 2: Identity
         anchor = await init_anchor(
-            raw_input="Test full bootstrap",
+            query="Test full bootstrap",
             actor_id="bootstrap-test",
             declared_name="Bootstrap Test",
         )
@@ -330,7 +330,7 @@ class TestBootstrapFlowIntegration:
         """Kernel should be accessible after proper anchoring."""
         # First establish anchor
         anchor = await init_anchor(
-            raw_input="Test kernel access",
+            query="Test kernel access",
             actor_id="kernel-test",
             declared_name="Kernel Test",
         )
