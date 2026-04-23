@@ -6,7 +6,9 @@ Identity must be normalized once and propagated immutably.
 """
 
 from enum import Enum
+
 from pydantic import BaseModel, Field
+
 
 class IdentityStatus(str, Enum):
     """Canonical identity states."""

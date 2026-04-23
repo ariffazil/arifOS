@@ -16,7 +16,7 @@ This is the canonical interface between kernel and wrapper.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.governance_kernel import get_governance_kernel
@@ -260,7 +260,7 @@ class JudgmentKernel:
                 "truth = evidence_strength×0.5 + reasoning_consistency×0.3"
                 " − uncertainty_penalty×0.2"
             ),
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             session_id=f"cog:{abs(hash(query)) % 0xFFFF:04x}",
         )
 
@@ -387,7 +387,7 @@ class JudgmentKernel:
                 ),
             ],
             formula="G = akal×0.35 + peace²×0.30 + sovereign×0.20 + empathy×0.15",
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             session_id=session_id,
         )
 

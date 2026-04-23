@@ -6,9 +6,11 @@ supporting ReAct, Reflection, and complex planning workflows.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
+
 import uuid
+from dataclasses import dataclass, field
+from typing import Any
+
 
 @dataclass
 class Task:
@@ -16,16 +18,16 @@ class Task:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""
     status: str = "PENDING"  # PENDING, RUNNING, COMPLETED, FAILED
-    result: Optional[Any] = None
-    dependencies: List[str] = field(default_factory=list)
+    result: Any | None = None
+    dependencies: list[str] = field(default_factory=list)
 
 @dataclass
 class Plan:
     """A collection of tasks organized in a task graph."""
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     goal: str = ""
-    tasks: Dict[str, Task] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    tasks: dict[str, Task] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class Planner:
     """
@@ -34,15 +36,15 @@ class Planner:
     """
 
     def __init__(self):
-        self._plans: Dict[str, Plan] = {}
+        self._plans: dict[str, Plan] = {}
 
-    def create_plan(self, goal: str, context: Optional[Dict[str, Any]] = None) -> Plan:
+    def create_plan(self, goal: str, context: dict[str, Any] | None = None) -> Plan:
         """Create a new plan for a given goal."""
         plan = Plan(goal=goal, metadata=context or {})
         self._plans[plan.id] = plan
         return plan
 
-    def add_task(self, plan_id: str, description: str, dependencies: Optional[List[str]] = None) -> str:
+    def add_task(self, plan_id: str, description: str, dependencies: list[str] | None = None) -> str:
         """Add a task to a plan, potentially with dependencies on other tasks."""
         if plan_id not in self._plans:
             raise ValueError(f"Plan '{plan_id}' not found.")
@@ -51,7 +53,7 @@ class Planner:
         self._plans[plan_id].tasks[task.id] = task
         return task.id
 
-    def update_task_status(self, plan_id: str, task_id: str, status: str, result: Optional[Any] = None):
+    def update_task_status(self, plan_id: str, task_id: str, status: str, result: Any | None = None):
         """Update the status and result of a task."""
         if plan_id not in self._plans or task_id not in self._plans[plan_id].tasks:
             raise ValueError(f"Task '{task_id}' not found in plan '{plan_id}'.")
@@ -61,7 +63,7 @@ class Planner:
         if result is not None:
             task.result = result
 
-    def get_current_tasks(self, plan_id: str) -> List[Task]:
+    def get_current_tasks(self, plan_id: str) -> list[Task]:
         """Retrieve tasks that are ready to execute (PENDING and all dependencies COMPLETED)."""
         if plan_id not in self._plans:
             raise ValueError(f"Plan '{plan_id}' not found.")
@@ -82,10 +84,10 @@ class Planner:
         
         return ready_tasks
 
-    def get_plan(self, plan_id: str) -> Optional[Plan]:
+    def get_plan(self, plan_id: str) -> Plan | None:
         """Retrieve a plan by its ID."""
         return self._plans.get(plan_id)
 
-    def list_plans(self) -> List[str]:
+    def list_plans(self) -> list[str]:
         """List IDs of all managed plans."""
         return list(self._plans.keys())

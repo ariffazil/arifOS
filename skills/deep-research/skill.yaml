@@ -1,0 +1,40 @@
+name: deep-research
+description: Multi-source research with constitutional fact-checking
+category: analysis
+constitutional_floor: F2
+
+requirements:
+  F2_Truth:
+    verification_sources: 3
+    min_truth_score: 0.99
+    cross_reference: true
+  
+  F3_Consensus:
+    tri_witness_threshold: 0.95
+    human_verification: optional
+  
+  F4_Clarity:
+    output_format: structured_report
+    entropy_delta_max: 0
+    citation_required: true
+  
+  F7_Humility:
+    uncertainty_acknowledgment: true
+    unknown_threshold: 0.1
+  
+  F8_Genius:
+    exploration_depth: high
+    synthesis_required: true
+
+mcp_tools:
+  - physics_reality
+  - engineering_memory
+
+entry_points:
+  - web_search
+  - vector_query
+  - synthesize_report
+
+risk_tiers:
+  public_data: low
+  proprietary: high

@@ -6,13 +6,10 @@ UPGRADE: Actor Registry aligned with v2026.03.24-GOLD Spec.
 
 from __future__ import annotations
 
-import secrets
-import time
 import re
-from datetime import datetime, timezone
-from typing import Any, Dict
+import secrets
+from typing import Any
 
-from core.shared.atlas import Phi
 from core.shared.types import (
     AuthorityLevel,
     CodeState,
@@ -65,7 +62,6 @@ class InjectionGuard:
     ]
 
     def __init__(self):
-        import re
 
         self._patterns = [(re.compile(p, re.IGNORECASE), w) for p, w in self.PATTERNS]
 
@@ -124,7 +120,14 @@ async def init(
     inj_score = _guard.scan(intent.query)
     if inj_score >= 0.7:
         return InitOutput(
-            session_id="VOID", verdict=Verdict.VOID, error_message="F12: Injection detected."
+            session_id="VOID",
+            verdict=Verdict.VOID,
+            error_message="F12: Injection detected.",
+            intent=intent,
+            math=math_dials or MathDials(),
+            code=CodeState(session_id="VOID"),
+            governance=gov,
+            floors_failed=["F12"],
         )
 
     _, authority = verify_auth(gov.actor_id, auth_token, kwargs.get("human_approval", False))
@@ -135,14 +138,55 @@ async def init(
             session_id="HOLD",
             verdict=Verdict.HOLD,
             error_message="F13: Sovereign override required.",
+            intent=intent,
+            math=math_dials or MathDials(),
+            code=CodeState(session_id="HOLD"),
+            governance=gov,
         )
 
+    session_id = session_id or secrets.token_hex(16)
+
+    # --- Metabolic Loop Grounding (F1 Continuity) ---
+    # Every session is born anchored to the last verified Merkle Root from vault_seals.
+    # This prevents 'isolated bubble' sessions and enforces cross-time tamper evidence.
+    try:
+        from ._4_vault import get_last_seal_root, seal
+        prev_hash = await get_last_seal_root()
+        
+        # Write birth certificate to VAULT999
+        # This is the 000_INIT session-open event.
+        await seal(
+            session_id=session_id,
+            summary=f"Session Ignition: {intent.query[:64]}...",
+            verdict="SEAL",
+            telemetry={
+                "actor_id": gov.actor_id,
+                "authority": authority.value,
+                "loop": "OPEN",
+                "grounding": "vault_seals"
+            },
+            source_agent="arifos_init",
+            pipeline_stage="000_INIT",
+            auth_context={"actor_id": gov.actor_id},
+            expected_prev_hash=prev_hash if prev_hash != ("0x" + "0" * 64) else None
+        )
+    except Exception as e:
+        # Fallback to local entry hash if seal_root retrieval fails
+        from ._4_vault import get_last_vault_entry_hash
+        prev_hash = get_last_vault_entry_hash()
+        print(f"DEBUG: Session ignition fallback to local hash: {e}")
+
     return InitOutput(
-        session_id=session_id or secrets.token_hex(16),
+        session_id=session_id,
         verdict=Verdict.SEAL,
+        intent=intent,
+        math=math_dials or MathDials(),
+        physics=PhysicsState(),
+        code=CodeState(session_id=session_id),
         governance=gov,
         auth_verified=(authority in {AuthorityLevel.SOVEREIGN, AuthorityLevel.SYSTEM}),
         tri_witness={"human": 1.0, "ai": 1.0, "earth": 1.0},
+        prev_vault_hash=prev_hash,
     )
 
 

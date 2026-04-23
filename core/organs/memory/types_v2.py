@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class MemoryType(Enum):
@@ -87,10 +87,10 @@ class ContestedStatus(Enum):
 class Source:
     """Provenance: where did this memory come from?"""
     origin: MemoryOrigin
-    session_id: Optional[str] = None
-    message_ref: Optional[str] = None
-    tool_ref: Optional[str] = None
-    vault_ref: Optional[str] = None  # If sealed_from_vault
+    session_id: str | None = None
+    message_ref: str | None = None
+    tool_ref: str | None = None
+    vault_ref: str | None = None  # If sealed_from_vault
 
 
 @dataclass
@@ -99,7 +99,7 @@ class Scope:
     owner: str = "ARIF"
     visibility: Visibility = Visibility.PRIVATE
     domain: str = "arifOS"
-    project: Optional[str] = None
+    project: str | None = None
 
 
 @dataclass
@@ -112,16 +112,16 @@ class Governance:
     promotable_to_vault: bool = False
     revocable: bool = True
     contested: ContestedStatus = ContestedStatus.UNCONTESTED
-    superseded_by: Optional[str] = None  # memory_id of replacement
+    superseded_by: str | None = None  # memory_id of replacement
 
 
 @dataclass
 class DecayPolicy:
     """Lane-specific decay rules."""
     decay_type: str  # "expire", "fade", "consolidate", "never"
-    half_life_hours: Optional[float] = None  # For fade
-    expires_at: Optional[datetime] = None  # For expire
-    consolidation_threshold: Optional[int] = None  # For consolidate (access count)
+    half_life_hours: float | None = None  # For fade
+    expires_at: datetime | None = None  # For expire
+    consolidation_threshold: int | None = None  # For consolidate (access count)
 
 
 @dataclass
@@ -129,15 +129,15 @@ class Time:
     """Temporal tracking for lifecycle management."""
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
-    last_accessed_at: Optional[datetime] = None
+    expires_at: datetime | None = None
+    last_accessed_at: datetime | None = None
     access_count: int = 0
 
 
 @dataclass
 class Retrieval:
     """How do we find this memory again?"""
-    embedding_id: Optional[str] = None
+    embedding_id: str | None = None
     keywords: list[str] = field(default_factory=list)
     entities: list[str] = field(default_factory=list)
     recency_score: float = 0.0
@@ -150,9 +150,9 @@ class Retrieval:
 class Lineage:
     """Where did this come from and what did it replace?"""
     derived_from: list[str] = field(default_factory=list)
-    supersedes: Optional[str] = None
-    superseded_by: Optional[str] = None
-    vault_seal_ref: Optional[str] = None  # Link to vault if promoted
+    supersedes: str | None = None
+    superseded_by: str | None = None
+    vault_seal_ref: str | None = None  # Link to vault if promoted
 
 
 @dataclass
@@ -166,7 +166,7 @@ class MemoryRecord:
     # Content
     title: str
     content: str
-    summary: Optional[str] = None
+    summary: str | None = None
     
     # Metadata
     source: Source = field(default_factory=Source)
@@ -309,16 +309,16 @@ class WriteReceipt:
     memory_id: str
     stored: bool
     embedding_created: bool
-    expires_at: Optional[datetime]
-    superseded_older: Optional[str] = None  # If this superseded an older memory
+    expires_at: datetime | None
+    superseded_older: str | None = None  # If this superseded an older memory
 
 
 @dataclass
 class MemoryQuery:
     """Query for memory retrieval."""
     query: str
-    memory_types: Optional[list[MemoryType]] = None
-    scopes: Optional[list[str]] = None
+    memory_types: list[MemoryType] | None = None
+    scopes: list[str] | None = None
     limit: int = 10
     min_confidence: float = 0.5
     prefer_vault_backed: bool = True  # Boost vault-backed memories

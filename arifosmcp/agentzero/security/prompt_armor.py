@@ -152,7 +152,7 @@ class PromptArmor:
         
         This marks content that should be treated with extra caution.
         """
-        return f"<untrusted source="{source}">{text}</untrusted>"
+        return f"<untrusted source=\"{source}\">{text}</untrusted>"
     
     def sanitize(self, text: str, max_length: int = 10000) -> str:
         """

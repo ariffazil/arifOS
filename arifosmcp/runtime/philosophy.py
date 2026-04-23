@@ -480,73 +480,6 @@ def get_wisdom_for_context(
     return anchor
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# WISDOM REGISTRY BRIDGE
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def select_wisdom_quote(
-    surface: str = "anchor",
-    tone: str | None = None,
-    verdict: str | None = None,
-    risk_tier: str | None = None,
-    language: str | None = None,
-    shadow_profile: str | None = None,
-    session_id: str | None = None,
-) -> dict[str, Any]:
-    """
-    Select a governed wisdom quote from the unified registry.
-    Sources: constitutional_quotes.json, philosophy_atlas.json, wisdom_quotes.json
-    """
-    from arifosmcp.runtime.wisdom_quotes import pick_quote_with_meta
-
-    meta = pick_quote_with_meta(
-        surface=surface,
-        tone=tone,
-        verdict=verdict,
-        risk_tier=risk_tier,
-        language=language,
-        shadow_profile=shadow_profile,
-        session_id=session_id,
-    )
-    quote = meta["quote"]
-    if not quote:
-        return {
-            "quote_id": "NONE",
-            "quote": "Silence is also wisdom.",
-            "author": "arifOS",
-            "category": "wisdom",
-            "surface": surface,
-            "source_type": "unified_registry",
-            "selection_reason": "safe_default",
-            "display_priority": 0,
-            "fallback_step": "no_quote",
-        }
-
-    return {
-        "quote_id": quote["id"],
-        "quote": quote["text"],
-        "author": quote["author"],
-        "source": quote.get("source") or "",
-        "category": quote["category"],
-        "surface": surface,
-        "tone": quote["tone"],
-        "language": quote["language"],
-        "tool_origin": quote.get("toolOrigin"),
-        "zone_id": quote.get("zoneId"),
-        "attribution_confidence": quote.get("attribution_confidence", "verified"),
-        "source_url": quote.get("source_url"),
-        "scar_weight": quote.get("scar_weight", 0),
-        "shadow_weight": quote.get("shadow_weight", 0),
-        "paradox_weight": quote.get("paradox_weight", 0),
-        "contrast_pair": quote.get("contrast_pair"),
-        "polarity": quote.get("polarity"),
-        "selection_reason": meta.get("selection_reason", "exact_match"),
-        "display_priority": meta.get("display_priority", 0),
-        "fallback_step": meta.get("fallback_step", "none"),
-        "source_type": "unified_registry",
-    }
-
-
 __all__ = [
     "AtlasScores",
     "PhilosophySelection",
@@ -564,5 +497,4 @@ __all__ = [
     "get_philosophical_anchor",
     "get_semantic_wisdom",
     "get_wisdom_for_context",
-    "select_wisdom_quote",
 ]

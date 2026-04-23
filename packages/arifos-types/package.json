@@ -1,0 +1,33 @@
+{
+  "name": "@arifos/types",
+  "version": "0.1.0",
+  "description": "Shared TypeScript types for arifOS ecosystem — constitutional governance OS",
+  "main": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "arifos",
+    "constitutional-ai",
+    "governance",
+    "geoscience",
+    "wealth"
+  ],
+  "author": "Muhammad Arif bin Fazil",
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

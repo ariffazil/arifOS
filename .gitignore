@@ -1,45 +1,135 @@
-# Local runtime & OpenClaw config — never commit
-identity/
-soul/
-user/
-skills/
-commands/
-
-# App experiments — never commit
-333_APPS/
-
-# Local organ tooling
-well/
-
-# Signature artifacts
-*.sig
-
-# Editor & system noise
-.DS_Store
-*.swp
+# Python
 __pycache__/
-*.pyc
-*.egg-info/
-.pytest_cache/
-
-# Environment files — NEVER commit secrets
-.env
-.env.local
-.env.production
-
-# Sovereign standalone MCPs — not submodules of arifOS
-GEOX/
-WEALTH/
-
-# Environment noise
-.venv/
-dist/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
 build/
-*.log
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Test results (generated)
-tests/autoresearch/results.tsv
-tests/autoresearch/*.jsonl
-logs/*.jsonl
-logs/*.tsv
-results.tsv
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# Debug/Temp JSON artifacts (NEVER commit these)
+v*.json
+final_*.json
+trace_*.json
+live_*.json
+debug_*.json
+test_*.json
+persist_*.json
+init_res.json
+mind_res.json
+sense_trace.json
+mcp.json
+wow_*.json
+
+# Deployment audit artifacts (should be in wiki, not repo root)
+DEPLOY_*.md
+EPOCH_*.md
+STATUS_EPOCH_*.md
+THERMO_*.md
+MCP_WEB_*.md
+LANDING_PAGE_*.md
+TOOLS_FLOORS_*.md
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Environment
+.env
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.env
+*.key
+*.pem
+openclaw.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/*.log
+logs/backup.log
+!logs/audit.jsonl
+
+# OpenClaw internals
+.openclaw/
+.arifos/
+
+# build
+bin/
+# dashboard
+node_modules/
+dist/
+# Large files and backups
+_ARCHIVE/
+*.zip
+*.tar.gz
+*.7z
+*.rar
+BACKUP_*.zip
+
+# arifosmcp distribution
+arifosmcp.egg-info/
+.env.docker
+VAULT999/
+eigent/
+
+# SQLite databases
+*.db
+
+
+# arifOS secret files
+.governance_secret
+*.secret
+secrets/*.secret
+secrets/
+.coverage
+
+
+# Test artefacts — runtime outputs, not source
+test.txt
+test_write.tmp
+pytest_output.txt
+eval_results.json
+eval_results.txt
+*.tmp
+*_output.*
+
+# Vault / Witness runtime outputs (NOT source)
+core/vault999/**/*.jsonl
+*.jsonl
+
+# Test / eval runtime outputs
+pytest_output.txt
+eval_results.*
+*_output.*

@@ -1,5 +1,5 @@
 #!/bin/bash
-# arifOS MCP — AF-FORGE Deployment Script
+# arifOS MCP — A-FORGE Deployment Script
 # ═══════════════════════════════════════════════════════════════════════════════
 
 set -euo pipefail
@@ -13,14 +13,14 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
-DOMAIN="${ARIFOS_DOMAIN:-mcp.af-forge.io}"
+DOMAIN="${ARIFOS_DOMAIN:-mcp.a-forge.io}"
 
 # Build metadata
 export ARIFOS_BUILD_SHA=$(git -C "$SCRIPT_DIR/../.." rev-parse --short HEAD 2>/dev/null || echo "dev")
 export ARIFOS_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 export ARIFOS_APP_VERSION=${ARIFOS_APP_VERSION:-2026.04.07}
 
-echo -e "${GREEN}🔨 arifOS MCP — AF-FORGE Deployment${NC}"
+echo -e "${GREEN}🔨 arifOS MCP — A-FORGE Deployment${NC}"
 echo "   Build SHA: $ARIFOS_BUILD_SHA"
 echo "   Build Time: $ARIFOS_BUILD_TIME"
 echo "   Version: $ARIFOS_APP_VERSION"
@@ -70,4 +70,4 @@ echo "   Verify CSP:   curl -I https://$DOMAIN/widget/vault-seal | grep -i conte
 echo "   View logs:    docker compose -f $COMPOSE_FILE logs -f"
 echo ""
 echo -e "${YELLOW}⚠️  TLS not yet live — DNS + certbot required (888_HOLD — human step)${NC}"
-echo "   See deployments/af-forge/ssl/README.md for cert provisioning steps."
+echo "   See deployments/a-forge/ssl/README.md for cert provisioning steps."

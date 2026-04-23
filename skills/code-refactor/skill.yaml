@@ -1,0 +1,28 @@
+name: code-refactor
+description: Code refactoring with F8 multi-factor wisdom
+category: engineering
+constitutional_floor: F8
+
+requirements:
+  F8_Genius:
+    akal_factor: 0.8
+    presence_factor: 0.9
+    exploration_factor: 0.7
+    energy_squared: 0.95
+  
+  F6_Empathy:
+    weakest_stakeholder: user
+    care_reliability: 0.95
+  
+  F1_Amanah:
+    tests_required: true
+    rollback_tests: true
+
+mcp_tools:
+  - agi_mind
+  - code_engine
+
+entry_points:
+  - analyze_code
+  - propose_refactor
+  - execute_refactor

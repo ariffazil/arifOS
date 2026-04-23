@@ -1,0 +1,45 @@
+# A-RIF: Accountable Retrieval & Inference Framework
+# ───────────────────────────────────────────────────────────────────────────
+# Canonical Manifest v2026.03.24 | Status: SEALED
+# ───────────────────────────────────────────────────────────────────────────
+
+identity:
+  name: A-RIF
+  expansion: Accountable Retrieval & Inference Framework
+  version: 2026.03.24
+  authority: APEX G / arifOS Kernel
+
+topology:
+  modules:
+    M1: { name: Intake, role: normalization }
+    M2: { name: Governance Gate, role: policy_enforcement }
+    M3: { name: Interpretation, role: query_decomposition }
+    M4: { name: Retrieval, role: hybrid_search }
+    M5: { name: Validation, role: evidence_sufficiency }
+    M6: { name: Assembly, role: context_packaging }
+    M7: { name: Inference, role: grounded_reasoning }
+    M8: { name: Verification, role: claim_audit }
+    M9: { name: Decision, role: release_control }
+    M10: { name: Audit, role: trace_permanence }
+
+gates:
+  grounding_threshold: 0.95
+  uncertainty_band: 0.04
+  mandatory_verification: true
+  reversibility_enforced: true
+
+outcomes:
+  - APPROVED
+  - PARTIAL
+  - PAUSE
+  - HOLD
+  - VOID
+
+failure_codes:
+  F004: GROUNDING_INSUFFICIENT
+  F005: CLAIM_UNSUPPORTED
+  F007: HUMAN_REQUIRED
+  F010: INTEGRITY_VOID
+
+# "DITEMPA BUKAN DIBERI"
+# ───────────────────────────────────────────────────────────────────────────

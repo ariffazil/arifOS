@@ -1,0 +1,52 @@
+{
+  "mission": "WELD-007B",
+  "title": "First ResourceNode — MB-P3-NE-001",
+  "epoch": "2026-04-18",
+  "prospect_id": "MB-P3-NE-001",
+  "play_type": "P3 — Normal fault trap, NE ramp margin",
+  "geology_source": "Madon (2021) GSM Bulletin Vol.72",
+  "petrophysics": "scaffold — SEL-1 analogue",
+  "epistemic": "ESTIMATE",
+  "net_pay_m": 80.0,
+  "avg_porosity": 0.298,
+  "avg_sw": 0.331,
+  "economics": {
+    "npv_usd": -180200000,
+    "irr": -0.015,
+    "mirr": 0.027,
+    "emv_usd": 30300000,
+    "verdict_npv": "REJECT at p50",
+    "verdict_emv": "MARGINAL POSITIVE"
+  },
+  "governance": {
+    "admissible": true,
+    "penalty_infinite": false,
+    "fid_hold": true,
+    "reason": "NPV negative at base case — upgrade path required"
+  },
+  "dual_agent_contrast": {
+    "aligned": true,
+    "perplexity_hash": "4b07635c2d35aaa7",
+    "agent_hash": "2f3a65ac310556af",
+    "agent_seal_id": "9bbfe5bd-9f10-4f14-826d-2a75b9e37f7e",
+    "final_seal_hash": "7955439d85855695",
+    "contrast_session": "599fd885f9c3120e"
+  },
+  "upgrade_path": [
+    "1. Real LAS → calibrate POR to 18-22%",
+    "2. Recalculate net pay (expect ~42-50m not 80m)",
+    "3. Gas price sensitivity: JKM $12 vs $14 vs $16",
+    "4. Capex reduction: $280M → $220M with infra reuse",
+    "5. Check p90 case (55 MMboe) — likely NPV positive"
+  ],
+  "constitutional_coverage": ["F1","F2","F5","F6","F9","F11","F12","F13"],
+  "weld_series": {
+    "WELD-001": "SEALED",
+    "WELD-002": "SEALED",
+    "WELD-003": "SEALED",
+    "WELD-004": "SEALED — 16/16",
+    "WELD-005": "SEALED — CF tunnel fixed",
+    "WELD-006": "SEALED — 18/18",
+    "WELD-007B": "SEALED — dual agent aligned"
+  }
+}

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<!-- arifOS build: 2026.04.06-a-forge -->
+<!-- Widget for ChatGPT Apps SDK -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS Constitutional Health</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        
+        .header .subtitle {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .verdict-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 16px 0;
+        }
+        
+        .verdict-badge.seal {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .verdict-badge.partial {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.3);
+        }
+        
+        .verdict-badge.void {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .verdict-badge.sabar {
+            background: rgba(149, 165, 166, 0.2);
+            color: #95a5a6;
+            border: 1px solid rgba(149, 165, 166, 0.3);
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .metric {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .metric-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .metric-value.good {
+            color: #2ecc71;
+        }
+        
+        .metric-value.warning {
+            color: #f1c40f;
+        }
+        
+        .metric-value.danger {
+            color: #e74c3c;
+        }
+        
+        .attestation {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .attestation-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .jurors {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .juror {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+        }
+        
+        .juror.pending {
+            background: #95a5a6;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+        }
+        
+        .seal-mark {
+            font-size: 24px;
+            margin-top: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚖️ Constitutional Health</h1>
+            <div class="subtitle">arifOS Governance Monitor</div>
+        </div>
+        
+        <div style="text-align: center;">
+            <div class="verdict-badge seal" id="verdict-badge">
+                <span>●</span>
+                <span id="verdict-text">SEAL — Aligned</span>
+            </div>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-label">Truth (τ)</div>
+                <div class="metric-value good" id="tau">99.5%</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Humility (Ω)</div>
+                <div class="metric-value good" id="omega">4%</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Entropy (ΔS)</div>
+                <div class="metric-value good" id="delta">-0.35</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Harmony</div>
+                <div class="metric-value good" id="peace">1.08</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Reality (κ)</div>
+                <div class="metric-value good" id="kappa">97%</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Witness</div>
+                <div class="metric-value good" id="witness">95%</div>
+            </div>
+        </div>
+        
+        <div class="attestation">
+            <div class="attestation-label">BLS Attestation — 3 of 5 Jurors</div>
+            <div class="jurors">
+                <div class="juror"></div>
+                <div class="juror"></div>
+                <div class="juror"></div>
+                <div class="juror pending"></div>
+                <div class="juror pending"></div>
+            </div>
+        </div>
+        
+        <div class="seal-mark">999 ⬡</div>
+        
+        <div class="footer">
+            DITEMPA BUKAN DIBERI — 999 SEAL<br>
+            <span id="timestamp">2026-04-06T10:30:00Z</span>
+        </div>
+    </div>
+    
+    <script>
+        // MCP Apps Bridge
+        // Listen for data from parent ChatGPT window
+        
+        function updateHealth(data) {
+            if (data.verdict) {
+                const badge = document.getElementById('verdict-badge');
+                const text = document.getElementById('verdict-text');
+                
+                badge.className = 'verdict-badge ' + data.verdict.toLowerCase();
+                
+                const labels = {
+                    'SEAL': 'SEAL — Aligned',
+                    'PARTIAL': 'PARTIAL — Reserved',
+                    'VOID': 'VOID — Rejected',
+                    'SABAR': 'SABAR — Pending'
+                };
+                text.textContent = labels[data.verdict] || data.verdict;
+            }
+            
+            if (data.telemetry) {
+                const t = data.telemetry;
+                if (t.tau_truth !== undefined) {
+                    document.getElementById('tau').textContent = (t.tau_truth * 100).toFixed(1) + '%';
+                }
+                if (t.omega_0 !== undefined) {
+                    document.getElementById('omega').textContent = (t.omega_0 * 100).toFixed(0) + '%';
+                }
+                if (t.delta_s !== undefined) {
+                    document.getElementById('delta').textContent = t.delta_s.toFixed(2);
+                }
+                if (t.peace2 !== undefined) {
+                    document.getElementById('peace').textContent = t.peace2.toFixed(2);
+                }
+                if (t.kappa_r !== undefined) {
+                    document.getElementById('kappa').textContent = (t.kappa_r * 100).toFixed(0) + '%';
+                }
+                if (t.tri_witness !== undefined) {
+                    document.getElementById('witness').textContent = (t.tri_witness * 100).toFixed(0) + '%';
+                }
+            }
+            
+            if (data.timestamp) {
+                document.getElementById('timestamp').textContent = data.timestamp;
+            }
+        }
+        
+        // Listen for postMessage from ChatGPT
+        window.addEventListener('message', function(event) {
+            // Verify origin in production
+            if (event.data && event.data.type === 'arifos/health') {
+                updateHealth(event.data.payload);
+            }
+        });
+        
+        // Notify parent we're ready
+        if (window.parent !== window) {
+            window.parent.postMessage({
+                type: 'arifos/widget-ready',
+                version: '2026.04.06'
+            }, '*');
+        }
+        
+        // Demo: Cycle through verdicts every 5 seconds
+        const demoVerdicts = ['SEAL', 'PARTIAL', 'SABAR'];
+        let demoIndex = 0;
+        
+        setInterval(() => {
+            demoIndex = (demoIndex + 1) % demoVerdicts.length;
+            updateHealth({ verdict: demoVerdicts[demoIndex] });
+        }, 5000);
+    </script>
+</body>
+</html>

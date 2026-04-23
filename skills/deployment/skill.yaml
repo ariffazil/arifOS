@@ -1,0 +1,32 @@
+name: deployment
+description: Production deployment with F11 command authority
+category: operations
+constitutional_floor: F11
+
+requirements:
+  F11_Command:
+    authority_verification: strict
+    approval_scope_check: true
+    operator_identity: required
+  
+  F1_Amanah:
+    blue_green: true
+    rollback_plan: required
+    health_checks: true
+  
+  F13_Sovereign:
+    human_approval: required
+    veto_capability: true
+
+mcp_tools:
+  - code_engine
+
+entry_points:
+  - stage_deployment
+  - execute_deployment
+  - rollback_deployment
+
+risk_tiers:
+  staging: medium
+  production: high
+  critical: 888_HOLD

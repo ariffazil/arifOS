@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "arifOS MCP Gateway",
+  "name_for_model": "arifos_mcp",
+  "description_for_human": "arifOS constitutional AI governance tools — mind, sense, judge, vault, memory.",
+  "description_for_model": "Call arifOS constitutional tools: arifos_init, arifos_sense, arifos_mind, arifos_heart, arifos_judge, arifos_vault, arifos_memory, arifos_ops, arifos_kernel, arifos_forge, arifos_gateway.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://mcp.arif-fazil.com/openapi.json"
+  },
+  "logo_url": "https://mcp.arif-fazil.com/logo.png",
+  "contact_email": "arif@arif-fazil.com",
+  "legal_info_url": "https://mcp.arif-fazil.com"
+}

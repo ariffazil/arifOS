@@ -1,10 +1,8 @@
 from __future__ import annotations
+
 import hashlib
 from dataclasses import dataclass, field
 from typing import Any
-import logging
-
-logger = logging.getLogger(__name__)
 
 from arifosmcp.runtime.models import PhilosophyState
 
@@ -276,5 +274,5 @@ def inject_philosophy(envelope: Any) -> PhilosophyState | None:
             posture=state_dict["posture"]
         )
     except Exception as exc:
-        logger.debug("inject_philosophy failed: %s", exc)
+        print(f"DEBUG: inject_philosophy failed: {exc}")
         return None

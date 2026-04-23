@@ -9,17 +9,20 @@ Validates:
 - Decay rules
 """
 
-import pytest
 from datetime import datetime, timedelta
 
-from ..memory.types_v2 import (
-    MemoryRecord, MemoryType, Source, Scope, Governance, Time,
-    ConfidenceClass, ContestedStatus, DecayPolicy, MemoryQuery
-)
-from ..memory.lanes.working import WorkingMemoryLane
-from ..memory.lanes.episodic import EpisodicMemoryLane
-from ..memory.lanes.semantic import SemanticMemoryLane
+import pytest
+
 from ..memory.lanes.constitutional_v2 import ConstitutionalMemoryLane
+from ..memory.lanes.working import WorkingMemoryLane
+from ..memory.types_v2 import (
+    ConfidenceClass,
+    DecayPolicy,
+    Governance,
+    MemoryRecord,
+    MemoryType,
+    Source,
+)
 
 
 class TestMemoryRecordSchema:

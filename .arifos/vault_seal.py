@@ -10,15 +10,14 @@ Usage:
 import hashlib
 import json
 import sys
-from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 VAULT999 = Path("/root/arifOS/VAULT999")
 
 
 def get_timestamp() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def compute_merkle_leaf(data: dict) -> str:
@@ -119,7 +118,7 @@ def main():
         experiment = json.load(f)
 
     seal = seal_experiment(experiment)
-    print(f"✅ Sealed experiment")
+    print("✅ Sealed experiment")
     print(f"   Seal: {seal['seal']}")
     print(f"   Depth: {seal['depth']}")
     print(f"   Root: {seal['root']}")

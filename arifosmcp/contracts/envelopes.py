@@ -6,10 +6,12 @@ This shell is used for ALL transports: STDIO, HTTPS, SSE.
 """
 
 from pydantic import BaseModel, Field
-from arifosmcp.contracts.verdicts import ExecutionStatus, GovernanceStatus, ContinuationStatus
-from arifosmcp.contracts.identity import IdentityContext
+
 from arifosmcp.contracts.artifacts import Artifact, ArtifactStatus
 from arifosmcp.contracts.continuity import ContinuityState
+from arifosmcp.contracts.identity import IdentityContext
+from arifosmcp.contracts.verdicts import ExecutionStatus, GovernanceStatus
+
 
 class ResponseEnvelope(BaseModel):
     """

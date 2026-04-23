@@ -79,53 +79,116 @@ class RealityHandler:
             return "HTTP_4XX"
         return "HTTP_5XX"
 
+    def _is_safe_url(self, url: str) -> bool:
+        """Simple check to prevent SSRF (local/private IPs)."""
+        import re
+        from urllib.parse import urlparse
+
+        try:
+            parsed = urlparse(url)
+            if parsed.scheme not in ("http", "https"):
+                return False
+            
+            host = parsed.hostname
+            if not host:
+                return False
+                
+            # Block localhost and common private ranges
+            # This is a basic heuristic for defense-in-depth
+            if re.match(r"^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|169\.254\.)", host):
+                return False
+            if host in ("localhost", "local", "loopback"):
+                return False
+                
+            return True
+        except Exception:
+            return False
+
     async def fetch_url(self, url: str, render: str = "auto", policy: Any = None) -> FetchResult:
-        start_time = time.time()
         timings = {"dns": 0.0, "connect": 0.0, "ttfb": 0.0, "total": 0.0}
 
         res = FetchResult(url=url)
+        
+        # SSRF Protection
+        if not self._is_safe_url(url):
+            res.error_message = "URL blocked by security policy (SSRF guard)"
+            res.status_code = 403
+            return res
+
         use_render = render == "always"
+        max_size = 10 * 1024 * 1024  # 10MB limit
 
         try:
             if render != "always":
                 async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
                     h_start = time.time()
                     try:
-                        response = await client.get(
+                        # Use stream to enforce MAX_CONTENT_LENGTH before reading everything
+                        async with client.stream(
+                            "GET",
                             url,
                             headers={
-                                "User-Agent": "Mozilla/5.0 arifOS/2026.03.13 (RealityCompass/v1)",
-                                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                "User-Agent": "Mozilla/5.0 arifOS/2026.03.13 (RealityCompass/v2-hardened)",
+                                "Accept": (
+                                    "text/html,application/xhtml+xml,"
+                                    "application/xml;q=0.9,*/*;q=0.8"
+                                ),
                                 "Cache-Control": "no-cache",
                             },
-                        )
-                        timings["total"] = (time.time() - h_start) * 1000
+                        ) as response:
+                            timings["total"] = (time.time() - h_start) * 1000
 
-                        res.status_code = response.status_code
-                        res.content_type = response.headers.get("content-type")
-                        res.headers_subset = {
-                            k: v
-                            for k, v in response.headers.items()
-                            if k.lower()
-                            in ["server", "cache-control", "x-cache", "cf-ray", "content-encoding"]
-                        }
-                        res.final_url = str(response.url)
-                        res.redirects = len(response.history)
+                            res.status_code = response.status_code
+                            res.content_type = response.headers.get("content-type")
+                            res.headers_subset = {
+                                k: v
+                                for k, v in response.headers.items()
+                                if k.lower()
+                                in ["server", "cache-control", "x-cache", "cf-ray", "content-encoding"]
+                            }
+                            res.final_url = str(response.url)
+                            res.redirects = len(response.history)
 
-                        if response.status_code >= 400:
-                            if response.status_code in [403, 429] and render == "auto":
-                                use_render = True
-                                res.error_message = (
-                                    f"HTTP {response.status_code} -> triggering render fallback"
-                                )
+                            if response.status_code >= 400:
+                                if response.status_code in [403, 429] and render == "auto":
+                                    use_render = True
+                                    res.error_message = (
+                                        f"HTTP {response.status_code} -> triggering render fallback"
+                                    )
+                                else:
+                                    # Still want to read some error body
+                                    chunks = []
+                                    count = 0
+                                    async for chunk in response.aiter_text():
+                                        chunks.append(chunk)
+                                        count += len(chunk)
+                                        if count > 200:
+                                            break
+                                    res.error_message = (
+                                        f"HTTP {response.status_code}: {''.join(chunks)[:200]}"
+                                    )
+                                    res.status_code = response.status_code
                             else:
-                                res.error_message = (
-                                    f"HTTP {response.status_code}: {response.text[:200]}"
-                                )
-                                res.status_code = response.status_code
-                        else:
-                            res.raw_content = response.text
-                            res.content_length = len(response.text)
+                                # Check content-length header if present
+                                cl = response.headers.get("content-length")
+                                if cl and int(cl) > max_size:
+                                    res.error_message = f"Content length {cl} exceeds limit"
+                                    res.status_code = 413
+                                    return res
+
+                                chunks = []
+                                bytes_read = 0
+                                async for chunk in response.aiter_text():
+                                    chunks.append(chunk)
+                                    bytes_read += len(chunk)
+                                    if bytes_read > max_size:
+                                        res.error_message = f"Response body exceeds {max_size} bytes"
+                                        res.status_code = 413
+                                        return res
+                                
+                                full_text = "".join(chunks)
+                                res.raw_content = full_text
+                                res.content_length = len(full_text)
                     except Exception as inner_e:
                         res.exception_class = inner_e.__class__.__name__
                         res.error_message = str(inner_e)
@@ -133,6 +196,7 @@ class RealityHandler:
                             use_render = True
 
             if use_render:
+                # SSRF check already passed for 'url'
                 r_start = time.time()
                 async with httpx.AsyncClient(timeout=30.0) as b_client:
                     try:
@@ -148,11 +212,15 @@ class RealityHandler:
                             headers={"Content-Type": "application/json"},
                         )
                         if b_res.status_code == 200:
-                            res.raw_content = b_res.text
-                            res.content_length = len(b_res.text)
-                            res.render_fallback_used = True
-                            res.status_code = 200
-                            res.error_message = None
+                            if len(b_res.text) > max_size:
+                                res.error_message = "Rendered content exceeds limit"
+                                res.status_code = 413
+                            else:
+                                res.raw_content = b_res.text
+                                res.content_length = len(b_res.text)
+                                res.render_fallback_used = True
+                                res.status_code = 200
+                                res.error_message = None
                             timings["total"] = (time.time() - r_start) * 1000
                         else:
                             res.error_message = (

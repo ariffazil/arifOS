@@ -1,0 +1,49 @@
+# arifos.yml — Constitutional Worktree Manifest Template
+# Copy this to each worktree root as arifos.yml
+# F3: Tri-Witness discovery schema
+
+arifos_version: "2026.03.24"
+
+worktree:
+  id: "CHANGE-ME"           # e.g., arifos-claude-mcp-hardening
+  branch: "feature/CHANGE-ME"
+  parent: "main"
+  created_at: "2026-03-24T00:00:00Z"
+  path: "/absolute/path/to/worktree"
+  
+agent:
+  name: "CHANGE-ME"         # claude | codex | gemini | arifos-bot
+  type: "coding"            # coding | reasoning | validation | audit
+  runtime: "acp"            # acp | subagent | direct
+  model: "unknown"
+  
+constitutional:
+  floors:
+    - F1   # Reversibility: worktree can be rm -rf'd
+    - F2   # Truth: dry_run mode enforced
+    - F4   # Clarity: naming convention checked
+    - F7   # Humility: Ω₀ enforced
+    - F11  # Command auth: no push to main
+  veto_holder: "arif"       # F13 absolute
+  max_risk_tier: "medium"   # low | medium | high | critical
+  dry_run: true             # F7: Start in dry_run mode
+  
+governance:
+  tri_witness:
+    human: "pending"        # pending | approved | rejected
+    ai: "pending"           # pending | self-checked | failed
+    earth: "pending"        # pending | ci-pass | ci-fail
+  verdict: "SABAR"          # SABAR | SEAL | HOLD | HOLD_888 | VOID
+  review_url: ""            # PR URL after push
+  
+vault:
+  lineage: true             # All commits tracked in VAULT999
+  ttl_days: 30              # Auto-prune if stale
+  sealed: false             # Set to true after 888_JUDGE SEAL
+  commit_hash: ""           # Filled after first commit
+  
+# F12: Security annotations
+security:
+  secrets_scan: "pending"
+  injection_check: "pending"
+  egress_policy: "allowlist"

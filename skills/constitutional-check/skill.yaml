@@ -1,0 +1,23 @@
+name: constitutional-check
+description: Verify Tri-Witness consensus across all floors
+category: governance
+constitutional_floor: F3
+
+requirements:
+  F3_Witness:
+    human_witness: required
+    ai_witness: required
+    earth_witness: required
+    threshold: 0.95
+  
+  F1_F13:
+    all_floors_checked: true
+
+mcp_tools:
+  - apex_soul
+  - vault_ledger
+
+entry_points:
+  - evaluate_proposal
+  - check_compliance
+  - render_verdict

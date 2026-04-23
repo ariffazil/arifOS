@@ -6,7 +6,9 @@ Rule 5: Symbolic philosophy compiles into plain structs.
 """
 
 from enum import Enum
+
 from pydantic import BaseModel, Field
+
 
 class ExecutionStatus(str, Enum):
     """Mechanical status of the tool execution (Fix 2)."""

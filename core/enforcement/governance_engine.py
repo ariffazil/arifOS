@@ -110,6 +110,21 @@ def wrap_tool_output(
     tri = _calculate_tri_witness_consensus(tool_name, payload)
     failed = [name for name, meta in law_checks.items() if meta.get("required") and not meta.get("pass")]
 
+    # Human Language Population (CHANGE-01)
+    if verdict == "SEAL":
+        human_language = "All floors passing. Safe for consequential action."
+    elif verdict in ("HOLD", "SABAR"):
+        human_language = "Session alive. Identity incomplete. Inspect before proceeding."
+    elif verdict == "PARTIAL":
+        human_language = "Core governance alive. Trust posture degraded. Use for inspection only."
+    elif verdict == "VOID":
+        human_language = "Hard floor violated. No consequential action permitted. Human required."
+    else:
+        human_language = f"Verdict: {verdict}. System state: {vitality.get('status', 'UNKNOWN')}"
+
+    if failed:
+        human_language += f" (Violations: {', '.join(failed)})"
+
     errors = []
     for name in failed:
         remediation = None
@@ -133,6 +148,7 @@ def wrap_tool_output(
         "stage": AAA_TOOL_STAGE_MAP.get(tool_name, "333_MIND"),
         "verdict": verdict,
         "status": status,
+        "human_language": human_language,
         "payload": payload,
         "note": note,
         "errors": errors,

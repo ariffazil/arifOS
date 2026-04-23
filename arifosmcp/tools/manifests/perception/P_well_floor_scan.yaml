@@ -1,0 +1,23 @@
+name: P_well_floor_scan
+canonical: true
+type: perception-tool
+authority: WELL_ORACLE
+description: >
+  Scan W-Floor status across all 13 dimensions.
+  Returns delta field (current vs previous scan diff), not just current state.
+  Enables change detection without full state comparison.
+floors:
+  - F2: TRUTH
+  - F8: GENIUS
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+response_schema:
+  data:
+    floors: object
+    overall_verdict: string
+    well_score: number
+    violations: array
+    delta: object

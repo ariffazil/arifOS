@@ -1,7 +1,7 @@
 """
 agentzero/handoff/sealer.py — Cryptographic Handoff Sealer
 
-zkPC (Zero-Knowledge Proof of Constitutionality) receipt generation
+HMAC Auth Proof of Constitutionality receipt generation
 and verification for secure agent-to-agent handoffs.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -16,7 +16,7 @@ import json
 import logging
 import time
 from dataclasses import asdict, dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +36,10 @@ class HandoffReceipt:
     action_summary: str
     action_digest: str  # SHA-256 of action payload
     verdict: str  # SEAL, SABAR, PARTIAL, VOID, HOLD_888
-    zkpc_proof: str  # Simplified ZK proof (HMAC-based)
+    auth_proof: str  # HMAC-based challenge-response proof (NOT zero-knowledge)
     merkle_leaf: str  # SHA-256 of this receipt
     merkle_root_before: str  # Vault root at handoff time
-    merkle_root_after: Optional[str] = None
+    merkle_root_after: str | None = None
     tri_witness_score: float = 0.0
     timestamp: float = field(default_factory=time.time)
     ttl_seconds: float = 300.0  # Receipt valid for 5 minutes
@@ -60,8 +60,8 @@ class HandoffReceipt:
 
 
 @dataclass
-class ZKPCProof:
-    """Simplified ZK proof structure (HMAC-based, not full ZK-SNARK)."""
+class AuthProof:
+    """HMAC-based challenge-response proof structure. NOT zero-knowledge."""
     agent_state_hash: str  # Hash of source agent constitutional state
     action_hash: str       # Hash of action being handed off
     trinity_role: str      # Source agent role
@@ -74,12 +74,12 @@ class ZKPCProof:
 
 class HandoffSealer:
     """
-    Cryptographic handoff sealing using HMAC-based zkPC receipts
+    Cryptographic handoff sealing using HMAC-based auth receipts
     and Merkle tree append-only ledger.
 
-    In a full implementation, HMAC would be replaced with actual
-    ZK-SNARK proofs (e.g., via circom/snarkjs). This implementation
-    provides the structural interface with a plausible-deniability proof.
+    This implementation uses HMAC challenge-response, NOT ZK-SNARKs.
+    The proof demonstrates possession of a shared secret without
+    transmitting the secret itself.
     """
 
     def __init__(self, vault_manager=None, secret_key: str = ""):
@@ -112,7 +112,7 @@ class HandoffSealer:
 
         Flow:
         1. Compute action digest (SHA-256)
-        2. Generate zkPC proof (HMAC-based)
+        2. Generate auth proof (HMAC-based)
         3. Compute merkle leaf from receipt fields
         4. Get current vault merkle root (for consistency)
         5. Sign receipt with source agent HMAC
@@ -125,9 +125,9 @@ class HandoffSealer:
         action_json = json.dumps(action_payload, sort_keys=True, default=str)
         action_digest = hashlib.sha256(action_json.encode()).hexdigest()
 
-        # Step 2: zkPC proof (simplified HMAC)
+        # Step 2: auth proof (HMAC-based)
         merkle_root_before = self._get_vault_root()
-        zkpc = self._generate_zkpc(
+        auth = self._generate_auth_proof(
             agent_id=source_agent_id,
             role=source_role,
             action_digest=action_digest,
@@ -144,7 +144,7 @@ class HandoffSealer:
             action_summary=action_summary,
             action_digest=action_digest,
             verdict=verdict,
-            zkpc_proof=zkpc.to_proof_string(),
+            auth_proof=auth.to_proof_string(),
             merkle_leaf="",  # Filled below
             merkle_root_before=merkle_root_before,
             tri_witness_score=tri_witness_score,
@@ -166,23 +166,20 @@ class HandoffSealer:
         )
         return pre_receipt
 
-    def _generate_zkpc(
+    def _generate_auth_proof(
         self,
         agent_id: str,
         role: str,
         action_digest: str,
         challenge: str,
-    ) -> ZKPCProof:
+    ) -> AuthProof:
         """
-        Generate a simplified zkPC proof.
+        Generate an HMAC-based auth proof.
 
-        In production: replace with actual ZK-SNARK circuit.
-        This uses HMAC-based challenge-response as a stand-in that
-        proves the agent had access to the secret key without
-        revealing the key itself.
+        Uses HMAC challenge-response to prove the agent knows the
+        shared secret without revealing the secret itself.
+        This is NOT a zero-knowledge proof.
         """
-        # Agent state hash — in production this would include
-        # constitutional floor scores, Trinity role, and session state
         agent_state_str = f"{agent_id}:{role}:{action_digest}"
         agent_state_hash = hashlib.sha256(agent_state_str.encode()).hexdigest()
 
@@ -193,7 +190,7 @@ class HandoffSealer:
         challenge_payload = f"{agent_state_hash}:{witness_challenge}:{action_digest}"
         response = hmac.new(self._secret, challenge_payload.encode(), hashlib.sha256).hexdigest()
 
-        return ZKPCProof(
+        return AuthProof(
             agent_state_hash=agent_state_hash,
             action_hash=action_digest,
             trinity_role=role,
@@ -275,7 +272,7 @@ class HandoffSealer:
         Checks:
         1. Receipt not expired
         2. HMAC signature valid
-        3. zkPC proof structurally valid
+        3. Auth proof structurally valid
         4. Merkle root consistency
 
         Returns: (is_valid, reason)
@@ -289,10 +286,10 @@ class HandoffSealer:
         if not hmac.compare_digest(receipt.signature, expected_sig):
             return False, "HMAC signature mismatch"
 
-        # 3. zkPC proof verification
-        zkpc_valid, zkpc_reason = self._verify_zkpc(receipt.zkpc_proof, receipt.action_digest)
-        if not zkpc_valid:
-            return False, f"zkPC verification failed: {zkpc_reason}"
+        # 3. Auth proof verification
+        auth_valid, auth_reason = self._verify_auth_proof(receipt.auth_proof, receipt.action_digest)
+        if not auth_valid:
+            return False, f"Auth proof verification failed: {auth_reason}"
 
         # 4. Merkle leaf integrity
         computed_leaf = self._compute_leaf(receipt)
@@ -309,8 +306,8 @@ class HandoffSealer:
 
         return True, "verified"
 
-    def _verify_zkpc(self, proof_str: str, action_digest: str) -> tuple[bool, str]:
-        """Verify the zkPC proof structure (simplified)."""
+    def _verify_auth_proof(self, proof_str: str, action_digest: str) -> tuple[bool, str]:
+        """Verify the HMAC auth proof structure."""
         try:
             parts = proof_str.split(":")
             if len(parts) != 5:

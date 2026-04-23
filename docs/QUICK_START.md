@@ -14,7 +14,7 @@ Add to your MCP client config:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifosmcp.arif-fazil.com/mcp"
+      "url": "https://mcp.arif-fazil.com/mcp"
     }
   }
 }
@@ -23,7 +23,7 @@ Add to your MCP client config:
 ### Option B: Direct HTTP (any language)
 
 ```bash
-curl -X POST https://arifosmcp.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -42,7 +42,7 @@ curl -X POST https://arifosmcp.arif-fazil.com/mcp \
 ## ⚡ Step 2: Ask Something
 
 ```bash
-curl -X POST https://arifosmcp.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -166,7 +166,7 @@ import aiohttp
 import asyncio
 import json
 
-arifosmcp = "https://arifosmcp.arif-fazil.com/mcp"
+arifosmcp = "https://mcp.arif-fazil.com/mcp"
 
 async def ask(query: str):
     payload = {

@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class MemoryType(Enum):
@@ -53,9 +53,9 @@ class RetentionClass(Enum):
 class Source:
     """Provenance: where did this memory come from?"""
     origin: MemoryOrigin
-    session_id: Optional[str] = None
-    message_ref: Optional[str] = None
-    tool_ref: Optional[str] = None
+    session_id: str | None = None
+    message_ref: str | None = None
+    tool_ref: str | None = None
 
 
 @dataclass
@@ -64,7 +64,7 @@ class Scope:
     owner: str = "ARIF"
     visibility: Visibility = Visibility.PRIVATE
     domain: str = "arifOS"
-    project: Optional[str] = None
+    project: str | None = None
 
 
 @dataclass
@@ -82,14 +82,14 @@ class Time:
     """Temporal tracking for lifecycle management."""
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
-    last_accessed_at: Optional[datetime] = None
+    expires_at: datetime | None = None
+    last_accessed_at: datetime | None = None
 
 
 @dataclass
 class Retrieval:
     """How do we find this memory again?"""
-    embedding_id: Optional[str] = None
+    embedding_id: str | None = None
     keywords: list[str] = field(default_factory=list)
     entities: list[str] = field(default_factory=list)
     recency_score: float = 0.0
@@ -100,8 +100,8 @@ class Retrieval:
 class Lineage:
     """Where did this come from and what did it replace?"""
     derived_from: list[str] = field(default_factory=list)  # parent memory_ids
-    supersedes: Optional[str] = None  # memory this replaces
-    superseded_by: Optional[str] = None  # memory that replaces this
+    supersedes: str | None = None  # memory this replaces
+    superseded_by: str | None = None  # memory that replaces this
 
 
 @dataclass
@@ -120,7 +120,7 @@ class MemoryRecord:
     # Content
     title: str
     content: str
-    summary: Optional[str] = None
+    summary: str | None = None
     
     # Metadata
     source: Source = field(default_factory=Source)
@@ -187,15 +187,15 @@ class WriteReceipt:
     memory_id: str
     stored: bool
     embedding_created: bool
-    expires_at: Optional[datetime]
+    expires_at: datetime | None
 
 
 @dataclass
 class MemoryQuery:
     """Query for memory retrieval."""
     query: str
-    memory_types: Optional[list[MemoryType]] = None
-    scopes: Optional[list[str]] = None
+    memory_types: list[MemoryType] | None = None
+    scopes: list[str] | None = None
     limit: int = 10
     min_confidence: float = 0.5
     recency_weight: float = 0.3

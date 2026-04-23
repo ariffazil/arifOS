@@ -1,113 +1,198 @@
-"""
-conftest.py — arifos.core.governance mock for all test modules.
+"""Pytest configuration and fixtures for arifOS tests."""
 
-CONFLICT RESOLUTION:
-- test_000_init.py does module-level mock injection that overwrites governed_return
-- test_333_mind.py has `from arifos.core.governance import governed_return` at module scope
-- Module-scope imports are resolved ONCE at first import; patching sys.modules after
-  the import does NOT change existing module-level bindings
-- Solution: conftest patches arifos.tools._333_mind.governed_return DIRECTLY in a
-  pytest hook that runs BEFORE test collection (beforeimport hook)
+from __future__ import annotations
 
-FAILS WITHOUT this approach when both files run together:
-- test_000_init.py collected first → module-level injection corrupts mock
-- _333_mind.py imported after → gets wrong governed_return
-"""
-import sys
+import asyncio
 import os
-import types
+import sys
+import warnings
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-# ── Mock objects ───────────────────────────────────────────────────────────────
-class _MockVerdict:
-    CLAIM_ONLY = "CLAIM_ONLY"
-    PARTIAL = "PARTIAL"
-    SABAR = "SABAR"
-    VOID = "VOID"
-    HOLD_888 = "888_HOLD"
-    SEAL = "SEAL"
+import anyio
+import httpx
+import pytest
 
 
-class _MockThermodynamicMetrics:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+# Add project root to sys.path for imports when running from repo checkout.
+sys.path.insert(0, str(Path(__file__).parents[1]))
 
 
-class _MockAppendVault999Event:
-    _events = []
+# Silence langsmith/pydantic v1 warning on Python 3.14 (benign in this env)
+warnings.filterwarnings(
+    "ignore",
+    message="Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.",
+    category=UserWarning,
+    module="langsmith.schemas",
+)
 
-    def __call__(self, event_type, payload, operator_id, session_id):
-        self._events.append({"event_type": event_type})
-        return {"zkpc_receipt": "mock-receipt"}
+
+# Ensure legacy spec bypass is active during import/collection
+os.environ.setdefault("ARIFOS_ALLOW_LEGACY_SPEC", "1")
+os.environ.setdefault("ARIFOS_PHYSICS_DISABLED", "1")
+# Default to debug output in tests to preserve rich contracts for assertions.
+os.environ.setdefault("AAA_MCP_OUTPUT_MODE", "debug")
 
 
-class _MockGovernedReturn:
+class SyncASGIClient:
+    """Minimal sync wrapper over httpx.ASGITransport for FastMCP test routes."""
+
+    def __init__(self, app, base_url: str = "http://testserver") -> None:
+        self.app = app
+        self.base_url = base_url
+
+    def request(self, method: str, url: str, **kwargs):
+        async def runner():
+            transport = httpx.ASGITransport(app=self.app)
+            async with httpx.AsyncClient(
+                transport=transport,
+                base_url=self.base_url,
+                follow_redirects=True,
+            ) as client:
+                return await client.request(method, url, **kwargs)
+
+        return anyio.run(runner)
+
+    def get(self, url: str, **kwargs):
+        return self.request("GET", url, **kwargs)
+
+    def post(self, url: str, **kwargs):
+        return self.request("POST", url, **kwargs)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_physics_globally():
+    """Disable physics globally for all tests (performance optimization)."""
+
+    os.environ["ARIFOS_PHYSICS_DISABLED"] = "1"
+    yield
+    if "ARIFOS_PHYSICS_DISABLED" in os.environ:
+        del os.environ["ARIFOS_PHYSICS_DISABLED"]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def allow_legacy_spec_for_tests():
+    """Allow legacy spec loading for tests (bypasses cryptographic manifest requirement)."""
+
+    os.environ["ARIFOS_ALLOW_LEGACY_SPEC"] = "1"
+    yield
+    if "ARIFOS_ALLOW_LEGACY_SPEC" in os.environ:
+        del os.environ["ARIFOS_ALLOW_LEGACY_SPEC"]
+
+
+@pytest.fixture(scope="module")
+def enable_physics_for_apex_theory():
+    """Enable physics for APEX THEORY system flow tests."""
+
+    original_state = os.environ.get("ARIFOS_PHYSICS_DISABLED")
+    if "ARIFOS_PHYSICS_DISABLED" in os.environ:
+        del os.environ["ARIFOS_PHYSICS_DISABLED"]
+
+    yield
+
+    if original_state is not None:
+        os.environ["ARIFOS_PHYSICS_DISABLED"] = original_state
+    else:
+        os.environ["ARIFOS_PHYSICS_DISABLED"] = "1"
+
+
+def pytest_ignore_collect(collection_path, config):
+    """Avoid collecting archived/legacy tests.
+
+    This repo contains multiple historical MCP surfaces. For the arifOS AAA MCP
+    13-tool surface, the active lanes are:
+    - tests/canonical: current public contract
+    - tests/compat: backward-compat and entrypoint behavior
+    - tests/archive and tests/legacy: historical surfaces excluded by default
+
+    Active suites are selected by directory, not by scanning file contents for
+    old import strings.
     """
-    Returns report dict with envelope fields merged at top level.
-    Satisfies:
-    - test_000: report dict keys at top level (status, verdict, etc.)
-    - test_333: result["output"] == report dict
-    """
-    def __call__(self, tool_name, report, metrics, operator_id, session_id):
-        base = {
-            "status": "ACTIVE",
-            "verdict": "CLAIM_ONLY",
-            "tool": tool_name,
-            "metrics": {},
-            "identity": {"operator_id": operator_id, "session_id": session_id},
-            "zkpc_receipt": "mock-receipt",
-            "invariant_failures": [],
-        }
-        result = {**base, **report}   # report keys at top level
-        result["output"] = report     # envelope["output"] = report
-        result["raw_output"] = report
-        return result
+
+    path_str = str(collection_path)
+    if "tests/archive" in path_str or "tests\\archive" in path_str:
+        return True
+    if "tests/legacy" in path_str or "tests\\legacy" in path_str:
+        return True
+
+    if collection_path.suffix != ".py":
+        return False
+
+    return False
 
 
-# ── Build fake module hierarchy (installed at collection time) ─────────────────
-_gov_stub = types.ModuleType("arifos.core.governance")
-_gov_stub.Verdict = _MockVerdict()
-_gov_stub.ThermodynamicMetrics = _MockThermodynamicMetrics
-_gov_stub.append_vault999_event = _MockAppendVault999Event()
-_gov_stub.governed_return = _MockGovernedReturn()
-_gov_stub.PEACE_SQUARED_FLOOR = 0.80
-_gov_stub.TRI_WITNESS_PARTIAL = 0.33
-_gov_stub.VAULT999_LEDGER_PATH = "/tmp/vault999/test.jsonl"
-_gov_stub.SABAR = "SABAR"
-_gov_stub.HOLD_888 = "888_HOLD"
-_gov_stub.VERDICT_SABAR = "SABAR"
-_gov_stub.VERDICT_HOLD_888 = "888_HOLD"
-_gov_stub.PARTIAL = "PARTIAL"
+def is_postgres_running() -> bool:
+    """Check if PostgreSQL is running and accessible."""
 
-_core_stub = types.ModuleType("arifos.core")
-setattr(_core_stub, "governance", _gov_stub)
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        return False
 
-sys.modules["arifos.core.governance"] = _gov_stub
-sys.modules["arifos.core"] = _core_stub
-
-
-# ── Patch _333_mind BEFORE collection (solves module-scope import race) ────────
-def pytest_configure(config):
-    """
-    Runs BEFORE test collection starts. Patches arifos.tools._333_mind.governed_return
-    with our envelope mock. This runs BEFORE test_000's module-level injection
-    corrupts the mock, ensuring _333_mind always gets the correct binding.
-    """
     try:
-        import arifos.tools._333_mind as _mind_mod
-        _mind_mod.governed_return = _MockGovernedReturn()
-    except (ImportError, AttributeError):
-        pass
+        import asyncpg as asyncpg_mod
+    except ImportError:
+        return False
 
+    async def check_pg() -> bool:
+        try:
+            conn = await asyncio.wait_for(asyncpg_mod.connect(dsn=db_url), timeout=2.0)
+            await conn.close()
+            return True
+        except (OSError, asyncio.TimeoutError, asyncpg_mod.PostgresError):
+            return False
 
-def pytest_sessionstart(session):
-    """
-    Alternative: patch before FIRST test runs (after all collection).
-    This runs after collection but before any test executes.
-    """
     try:
-        import arifos.tools._333_mind as _mind_mod
-        _mind_mod.governed_return = _MockGovernedReturn()
-    except (ImportError, AttributeError):
-        pass
+        return asyncio.run(check_pg())
+    except Exception:
+        return False
+
+
+def is_redis_running() -> bool:
+    """Check if Redis is running and accessible."""
+
+    redis_url = os.environ.get("REDIS_URL")
+    if not redis_url:
+        return False
+
+    try:
+        import redis as redis_mod
+        from redis import exceptions as redis_exceptions
+    except ImportError:
+        return False
+
+    try:
+        r = redis_mod.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
+        return bool(r.ping())
+    except (redis_exceptions.ConnectionError, redis_exceptions.TimeoutError):
+        return False
+
+
+@pytest.fixture
+def require_postgres():
+    """Skip only when a test explicitly needs a live PostgreSQL service."""
+
+    if not is_postgres_running():
+        pytest.skip("PostgreSQL service not running or configured via DATABASE_URL")
+
+
+@pytest.fixture
+def require_redis():
+    """Skip only when a test explicitly needs a live Redis service."""
+
+    if not is_redis_running():
+        pytest.skip("Redis service not running or configured via REDIS_URL")
+
+
+postgres_required = pytest.mark.usefixtures("require_postgres")
+redis_required = pytest.mark.usefixtures("require_redis")
+
+
+@pytest.fixture
+async def aaa_client():
+    """In-memory MCP client for the canonical AAA server."""
+
+    from fastmcp import Client
+
+    from arifosmcp.runtime.server import create_aaa_mcp_server
+
+    async with Client(create_aaa_mcp_server()) as client:
+        yield client

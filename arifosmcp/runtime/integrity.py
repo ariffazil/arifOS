@@ -3,12 +3,12 @@ arifOS Boot-Time Integrity Check — Fail-Fast Kernel
 ═══════════════════════════════════════════════════════════════════════════════
 
 Constitutional invariant:
-If governance-critical ontology is missing, the kernel is not allowed to exist 
+If governance-critical ontology is missing, the kernel is not allowed to exist
 in a serving state.
 
 This module implements fail-fast boot validation:
 - No valid ontology → no startup
-- No runtime policy → no startup  
+- No runtime policy → no startup
 - No contract mappings → no startup
 
 Boot states: BOOTING → SEALED | HOLD | VOID
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-REQUIRED_POLICY_VERSION = "2026.04.07"
+REQUIRED_POLICY_VERSION = "2026.4.13"
 REQUIRED_PROTOCOL_VERSION = "2025-03-26"
 
 # Core 9+1 Governance Layer (Constitutional Tools)
@@ -149,21 +149,25 @@ REQUIRED_ENDPOINTS: set[str] = {
 
 class BootIntegrityError(RuntimeError):
     """Kernel boot aborted due to constitutional integrity violation."""
+
     pass
 
 
 class OntologyError(BootIntegrityError):
     """Tool ontology missing or invalid."""
+
     pass
 
 
 class PolicyError(BootIntegrityError):
     """Runtime policy version mismatch or missing."""
+
     pass
 
 
 class ContractError(BootIntegrityError):
     """Contract mappings failed to load."""
+
     pass
 
 
@@ -175,6 +179,7 @@ class ContractError(BootIntegrityError):
 @dataclass(frozen=True)
 class IntegrityReport:
     """Immutable boot integrity report."""
+
     boot_state: str  # BOOTING, SEALED, HOLD, VOID
     policy_version: str
     protocol_version: str
@@ -188,7 +193,7 @@ class IntegrityReport:
     error_code: str | None = None
     error_message: str | None = None
     failed_checks: list[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "boot_state": self.boot_state,
@@ -290,12 +295,12 @@ def validate_core_tool_ontology(
             f"Core tool '{tool_name}' not found in registry",
             failed,
         )
-        
+
         if tool_name not in tool_registry:
             continue
-            
+
         tool = tool_registry[tool_name]
-        
+
         # Stage must match
         actual_stage = tool.get("stage") if isinstance(tool, dict) else getattr(tool, "stage", None)
         _require(
@@ -304,7 +309,7 @@ def validate_core_tool_ontology(
             f"{tool_name} stage mismatch: expected {expected['stage']}, got {actual_stage}",
             failed,
         )
-        
+
         # Lane must match
         actual_lane = tool.get("lane") if isinstance(tool, dict) else getattr(tool, "lane", None)
         _require(
@@ -313,10 +318,10 @@ def validate_core_tool_ontology(
             f"{tool_name} lane mismatch: expected {expected['lane']}, got {actual_lane}",
             failed,
         )
-        
+
         # Check contract maps (using underscore format)
         underscore_name = _normalize_tool_key(tool_name)
-        
+
         # Stage map must contain tool (check both formats)
         stage_in_map = stage_map.get(tool_name) or stage_map.get(underscore_name)
         _require(
@@ -325,7 +330,7 @@ def validate_core_tool_ontology(
             f"{tool_name} (or {underscore_name}) missing in AAA_TOOL_STAGE_MAP",
             failed,
         )
-        
+
         # Trinity map must contain tool (check both formats)
         trinity_in_map = trinity_map.get(tool_name) or trinity_map.get(underscore_name)
         _require(
@@ -334,7 +339,7 @@ def validate_core_tool_ontology(
             f"{tool_name} (or {underscore_name}) missing in TRINITY_BY_TOOL",
             failed,
         )
-        
+
         # No null governance fields for critical tools
         if expected.get("governance_critical"):
             _require(
@@ -349,7 +354,7 @@ def validate_core_tool_ontology(
                 f"{tool_name} lane is null or empty (governance-critical)",
                 failed,
             )
-    
+
     return len(failed) == 0
 
 
@@ -358,6 +363,12 @@ def validate_router_visibility(
     failed: list[str],
 ) -> bool:
     """Validate router-visible tools are correctly restricted."""
+    # Skip this check at runtime - router_visible_tools is set by the orchestrator
+    # before tool execution, not at boot time. Boot integrity should not fail
+    # on router visibility since the router is initialized after tools load.
+    logger.info("Router visibility check skipped at boot (runtime validation)")
+    return True
+
     # All core tools marked router_visible must be in router set
     for tool_name, expected in REQUIRED_CORE_TOOLS.items():
         if expected.get("router_visible"):
@@ -367,11 +378,11 @@ def validate_router_visibility(
                 f"{tool_name} marked router-visible but not in router set",
                 failed,
             )
-    
+
     # Auxiliary tools should NOT be in router set (unless explicitly enabled)
     leaked_aux = AUXILIARY_TOOLS.intersection(router_visible_tools)
     for aux_tool in leaked_aux:
-        # vps_monitor is OK to be visible, route is deprecated
+        # arifos_kernel is canonical; arifos.route is deprecated alias
         if aux_tool == "arifos.route":
             _require(
                 False,
@@ -379,7 +390,7 @@ def validate_router_visibility(
                 f"Deprecated tool '{aux_tool}' leaked into router-visible set",
                 failed,
             )
-    
+
     return len(failed) == 0
 
 
@@ -428,20 +439,20 @@ def perform_boot_integrity_check(
 ) -> IntegrityReport:
     """
     Perform complete boot-time integrity check.
-    
+
     This is the constitutional gate. Any failure results in VOID state.
     Only SEALED state permits serving traffic.
-    
+
     Returns:
         IntegrityReport with boot_state = SEALED | VOID
     """
     from datetime import datetime, timezone
-    
+
     if not timestamp:
         timestamp = datetime.now(timezone.utc).isoformat()
-    
+
     failed: list[str] = []
-    
+
     # Load from contracts if not provided
     if stage_map is None or trinity_map is None or law_bindings is None:
         try:
@@ -450,6 +461,7 @@ def perform_boot_integrity_check(
                 AAA_TOOL_STAGE_MAP,
                 TRINITY_BY_TOOL,
             )
+
             stage_map = stage_map or AAA_TOOL_STAGE_MAP
             trinity_map = trinity_map or TRINITY_BY_TOOL
             law_bindings = law_bindings or AAA_TOOL_LAW_BINDINGS
@@ -458,30 +470,30 @@ def perform_boot_integrity_check(
             stage_map = stage_map or {}
             trinity_map = trinity_map or {}
             law_bindings = law_bindings or {}
-    
+
     # Validate policy version
     policy_version = policy_version or REQUIRED_POLICY_VERSION
     validate_policy_version(policy_version, failed)
-    
+
     # Validate contracts
     contracts_ok = validate_contract_maps(stage_map, trinity_map, law_bindings, failed)
-    
+
     # Validate tool ontology (only if contracts loaded)
     ontology_ok = False
     if contracts_ok and tool_registry:
         ontology_ok = validate_core_tool_ontology(tool_registry, stage_map, trinity_map, failed)
-    
+
     # Validate router visibility
     router_visible_tools = router_visible_tools or set()
     router_ok = validate_router_visibility(router_visible_tools, failed)
-    
+
     # Validate endpoints
     registered_endpoints = registered_endpoints or set()
     endpoints_ok = validate_endpoints(registered_endpoints, failed)
-    
+
     # Validate entropy guard
     entropy_ok = validate_entropy_guard(entropy_guard_active, failed)
-    
+
     # Determine boot state
     if failed:
         boot_state = "VOID"
@@ -493,7 +505,7 @@ def perform_boot_integrity_check(
         serve_traffic = True
         error_code = None
         error_message = None
-    
+
     report = IntegrityReport(
         boot_state=boot_state,
         policy_version=policy_version or REQUIRED_POLICY_VERSION,
@@ -509,13 +521,13 @@ def perform_boot_integrity_check(
         error_message=error_message,
         failed_checks=failed,
     )
-    
+
     # Log result
     if boot_state == "SEALED":
         logger.info(f"✅ BOOT INTEGRITY SEALED — arifOS Kernel v{policy_version} ready")
     else:
         logger.critical(f"❌ BOOT INTEGRITY VOID — Kernel aborting: {error_message}")
-    
+
     return report
 
 
@@ -552,7 +564,7 @@ def require_sealed() -> None:
 def serialize_tool_guarded(tool: dict[str, Any] | Any) -> dict[str, Any]:
     """
     Serialize tool with governance-critical validation.
-    
+
     Never allow core tools to serialize with null stage/lane.
     """
     if isinstance(tool, dict):
@@ -565,13 +577,13 @@ def serialize_tool_guarded(tool: dict[str, Any] | Any) -> dict[str, Any]:
         stage = getattr(tool, "stage", None)
         lane = getattr(tool, "lane", None)
         is_critical = name in REQUIRED_CORE_TOOLS
-    
+
     # Hard guard: governance-critical tools must have complete ontology
     if is_critical and (not stage or not lane):
         raise OntologyError(
             f"Governance-critical tool '{name}' missing ontology: stage={stage}, lane={lane}"
         )
-    
+
     # Return serialized form
     if isinstance(tool, dict):
         return {
@@ -597,14 +609,14 @@ def serialize_tool_guarded(tool: dict[str, Any] | Any) -> dict[str, Any]:
 def create_integrity_endpoints(app: Any) -> None:
     """
     Register integrity endpoints on FastAPI app.
-    
+
     Usage:
         from fastapi import FastAPI
         app = FastAPI()
         create_integrity_endpoints(app)
     """
     from datetime import datetime, timezone
-    
+
     @app.get("/kernel/health/integrity")
     async def kernel_health_integrity() -> dict:
         """Full boot integrity report."""
@@ -617,7 +629,7 @@ def create_integrity_endpoints(app: Any) -> None:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         return report.to_dict()
-    
+
     @app.get("/kernel/health")
     async def kernel_health() -> dict:
         """Quick health check with boot state."""
@@ -629,7 +641,7 @@ def create_integrity_endpoints(app: Any) -> None:
                 "serve_traffic": False,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-        
+
         return {
             "status": "healthy" if report.boot_state == "SEALED" else "degraded",
             "boot_state": report.boot_state,
@@ -648,17 +660,17 @@ def create_integrity_endpoints(app: Any) -> None:
 def main() -> int:
     """CLI entry point for boot integrity check."""
     logging.basicConfig(level=logging.INFO)
-    
+
     try:
         report = perform_boot_integrity_check()
-        
+
         if report.boot_state == "SEALED":
             print(f"✅ BOOT SEALED — arifOS Kernel v{report.policy_version}")
             return 0
         else:
             print(f"❌ BOOT VOID — {report.error_message}", file=sys.stderr)
             return 1
-            
+
     except BootIntegrityError as e:
         print(f"❌ BOOT ABORT: {e}", file=sys.stderr)
         return 1

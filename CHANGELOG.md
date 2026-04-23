@@ -2,105 +2,55 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
-## [2026.04.13-COCKPIT-VERIFIED] — First Meaningful MCP App & P0/P1 Stabilization
+## [Unreleased] - 2026-04-17 — Registry Canonicalisation + Namespace Boundary
 
-### 🔥 P0 — UI Crash Eliminated
+### Changed
+- `arifosmcp/tool_registry.json` — deprecated. Replaced with redirect pointer to `tool_registry_v2.json` (99-tool T00–T07 tier architecture, EPOCH-2026-04-16).
+- `arifos_route` removed from registry — routing is fully handled by `arifos_kernel` (T00_06). No live callers exist.
+- Quickstart and public onboarding docs now use `https://mcp.arif-fazil.com/mcp` as the single canonical MCP endpoint; `arifosmcp.arif-fazil.com` remains redirect-only.
 
-**Problem:** `prefab_ui` `ShowToast` accepted only `"error"`, `"success"`, `"warning"`, `"info"` — but all MCP app surfaces used `"destructive"`, causing runtime variant-mismatch crashes.
+### Added
+- `arifosmcp/TOOL_NAMESPACING.md` — documents `arifos_*` public API layer vs internal axis substrate (`P_/T_/V_/G_/E_/M_`). Option A architecture proposed, pending 888-A sovereign confirmation from Arif.
 
-**Fix:** Replaced 7 occurrences across `judge_app.py`, `forge_app.py`, `init_app.py`, `vault_app.py`.
+### Mapped (documentation only — server fix pending Day 2)
+8 compound tools in live session mapped to canonical `arifos_` names and axis equivalents:
+- `anchor_session` → `arifos_anchor_session` / `E09_session_anchor` (LIVE)
+- `forge_execute` → `arifos_forge_execute` / `E03_forge_execute` (LIVE)
+- `get_vault_data` → `arifos_get_vault_data` / `P11_vault_ledger_reader` (LIVE)
+- `monitor_metabolism` → `arifos_monitor_metabolism` / `M11_metabolic_monitor` (LIVE)
+- `execute_judge` → `arifos_execute_judge` / `G06_execute_judge` (**HOLD** — not to be exposed until judge guard wired)
+- `forge_judge_check` → `arifos_forge_judge_check` / `E02_forge_judge_check` (**HOLD**)
+- `perform_economic_audit` → `arifos_perform_economic_audit` / `T11_economic_audit_calculator` (**HOLD**)
+- `verify_location` → `arifos_verify_location` / `P09_geospatial_verifier` (**HOLD**)
 
-**Impact:** Constitutional app UIs (Judge, Forge, Init, Vault) now render and update without crashing.
 
-### 🔥 P0 — Sense Parser Hardened
 
-**Problem:** `arifos_sense` verdict derivation was extremely brittle:
-```python
-verdict_tag = route_reason.split("]")[0].lstrip("[") if route_reason.startswith("[") else "SABAR"
-```
-Any routing reason not wrapped in `[SEAL]`/`[HOLD]` instantly collapsed to `SABAR`.
+## [2026.04.14-KERNEL-RUNTIME-HARDENING] - Public Surface, Contracts, and Route Control Plane Aligned
 
-**Fix:** `tools.py` now maps `HOLD`/`ESCALATE`/`BLOCK` and `SEAL`/`PASS`/`FORWARD` substrings; clean routing without hold markers is treated as `SEAL`.
+### 🔧 RUNTIME: 11-Tool Public Surface Restored
 
-**Impact:** Sense layer no longer fake-HOLDs valid queries.
+- **Canonical public registry** is now aligned to the 11-tool runtime surface instead of leaking legacy/public drift.
+- **Internal `arifos_kernel` is exposed publicly as `arifos_route`**, preserving a stable public router contract while keeping the internal handler name private to runtime wiring.
+- **`arifos_health`** now seals with its canonical public identity instead of leaking the legacy `arifos.vps_monitor` name.
 
-### 🔥 P1 — Sovereign Identity Binding Fixed
+### 🧾 CONTRACTS: Runtime Compatibility Stubs Replaced
 
-**Problem:** `init_anchor` bound `declared_name` but did not promote it to `SOVEREIGN` class or `human_approval=True`, causing `arifos_reply` to see `"anonymous"` despite a valid anchor.
+- Replaced placeholder contract shims with executable runtime contract structures in `arifosmcp/runtime/contracts.py`.
+- Restored compatibility fields used by older callers and tests, including trace/budget helpers and public contract verification.
 
-**Fix:** `init_anchor_hardened.py` now checks `_SOVEREIGN_IDENTITY_MAP`. If `declared_name_norm` matches, it auto-promotes `session_class = SOVEREIGN` and `human_approval = True`.
+### 🛡️ CONTROL PLANE: Authority, Dispatch, and Rollback Hardened
 
-**Impact:** Arif's identity is now recognized and persisted across the metabolic pipeline.
+- Fixed the authority scope typo between minted and enforced kernel execution scopes.
+- Restored `get_tool_handler()` for hardened dispatch compatibility with `kernel_core`.
+- Added rollback checkpoint metadata and recovery wiring for forge/dispatch paths so execution receipts carry reversible control metadata where available.
+- Root `server.py` now defaults to a **strict public bootstrap**: legacy aliases, debug tools, and the approval provider are opt-in instead of being exposed by default on the public FastMCP connector.
 
-### 🔥 P1 — arifos_reply Judges Extracted Action, Not Raw Prompt
+### ♻️ COMPATIBILITY: Legacy Callers Preserved
 
-**Problem:** The orchestrator passed the raw user query (e.g., *"Design a governed decision cockpit..."*) to `arifos_judge`, which correctly returned `HOLD` with `τ=0.50` because it was a design question, not a concrete action.
-
-**Fix:** `tools.py` now pre-extracts `action_to_judge` from `mind_result["action_output"]` or `direct_answer[0]` before calling the judge.
-
-**Impact:** The full 000–999 pipeline evaluates the *actual proposed action*, not the wrapper prompt.
-
-### 🔥 P1 — `tools_internal.py` Verdict-Candidate Bug Fixed
-
-**Problem:** `apex_judge_dispatch_impl` treated `payload["candidate"]` (the action description string) as a verdict string and passed it to `normalize_verdict(888, "Deploy an autonomous trading agent")`, causing coercion warnings and downstream `VOID`.
-
-**Fix:** Separated `candidate_action` (preserved) from `verdict_candidate` (default `"SEAL"`).
-
-**Impact:** Judge dispatch no longer confuses action text with verdict enums.
-
-### 🚀 P2 — First Real ChatGPT Apps Tool: `decide(query)`
-
-**New tool in `chatgpt_integration/chatgpt_tools.py`:**
-```python
-decide(query: str) -> {"verdict": str, "floors_failed": list, "recommendation": str}
-```
-
-**What it does:**
-- Takes a proposed action
-- Runs `arifos_judge` (888_JUDGE, dry_run)
-- Returns operator-grade verdict + failed floors + recommendation
-
-**Verified runtime output:**
-```json
-{
-  "verdict": "SEAL",
-  "floors_failed": [],
-  "recommendation": "Judgment finalized for session ..."
-}
-```
-
-### 🏛️ README Rewritten: Canonical Front Door
-
-**Change:** `README.md` reduced from **2,510 lines / 90 KB** to **~308 lines / 12 KB**.
-
-**What moved out:**
-- Deep architecture → `docs/arifos_architecture_analysis.md`
-- Constitution & Floors → `000/000_README.md`
-- Quick start → `docs/QUICK_START.md`
-- Agent rules → `AGENTS.md`
-
-**What remained:**
-- Elevator pitch + live endpoints
-- Trinity model (ΔΩΨ) + W³ formula
-- 13-floor quick reference
-- Verdict system
-- Canon map linking to deep docs
-- Deployment one-liners
-
-### ✅ Operator Test Verification
-
-**Input:** `Evaluate: Deploy an autonomous trading agent`
-
-**Result through full `arifos_reply` pipeline:**
-- `ok=True`
-- `verdict=Verdict.SEAL`
-- `status=RuntimeStatus.SUCCESS`
-- `to=ariffazil` (sovereign identity resolved)
-- `floors_triggered=[]`
-
-**Verdict:** P0/P1 stabilized. First meaningful MCP app is working.
-
----
+- Restored active legacy registration aliases for `agi_reason`, `reality_compass`, and `vault_seal`.
+- `arifos_route` is now a real public wrapper again, accepting route-facing fields (`context`, `auth_context`, `actor_id`) and preserving philosophy metadata expected by metabolic regression callers.
+- `PhilosophyState` now includes backward-compatible `stage` and `.get()` access patterns.
+- Split registration paths so backward-compat aliases remain available to legacy/test callers, while the actual FastMCP server registers only the 11 public tools.
 
 ## [2026.04.11-SEAL-UNIFIED] - 999_SEAL Unification & Hardened Deployment
 
@@ -339,7 +289,7 @@ All tools use `arifos.{tool}` format:
 - `arifosmcp/runtime/tools_hardened_dispatch.py` — replaced with 8-line stub (`HARDENED_DISPATCH_MAP = {}`)
 - `arifosmcp/runtime/server_compat.py`, `cross_protocol_bridge.py`, `phase2_tools.py`, `dispatcher.py`
 - `arifosmcp/tools/governance/`, `intelligence/`, `reality/`, `execution/` — parallel Phase-3 implementations, never wired
-- Repo root: `build/` (compiled artifacts), `deployments/` (af-forge Docker), `ops/` (91 infra scripts)
+- Repo root: `build/` (compiled artifacts), `deployments/` (a-forge Docker), `ops/` (91 infra scripts)
 
 ---
 
@@ -357,13 +307,13 @@ All tools use `arifos.{tool}` format:
   - `render_vault_seal` — Widget render tool with HTTPS resource URI
   - `list_recent_verdicts` — Vault audit log (last 100 entries)
 
-- **Widget:** `https://mcp.af-forge.io/widget/vault-seal`
+- **Widget:** `https://mcp.a-forge.io/widget/vault-seal`
   - CSP-compliant with `frame-ancestors https://chat.openai.com`
   - Displays: Truth Score, Humility Level, Entropy Delta, Harmony Ratio, Reality Index, Witness Strength
 
 - **888_HOLD Compliance:** Phase 1 is read-only — no vault write or VPS execution in ChatGPT path
 
-> **Deployment:** AF-FORGE VPS ready. OpenAI App Store submission prepared.
+> **Deployment:** A-FORGE VPS ready. OpenAI App Store submission prepared.
 
 ## [2026.04.05-ARCHIVE-SURGERY] - core/ → arifosmcp/ Migration Complete
 

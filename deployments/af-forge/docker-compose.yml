@@ -1,8 +1,8 @@
-# arifOS MCP — AF-FORGE Docker Compose Stack
+# arifOS MCP — A-FORGE Docker Compose Stack
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # Usage:
-#   cd deployments/af-forge
+#   cd deployments/a-forge
 #   export ARIFOS_BUILD_SHA=$(git rev-parse --short HEAD)
 #   export ARIFOS_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 #   docker compose up -d --build
@@ -20,12 +20,13 @@ services:
         ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
         ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
         ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.07}
-    image: arifos-mcp:af-forge
+    image: arifos-mcp:a-forge
     container_name: arifos-mcp
     restart: unless-stopped
     
     ports:
       - "127.0.0.1:3000:3000"
+      - "127.0.0.1:8080:3000"
     
     environment:
       # Transport (HTTP/streamable-http for production)
@@ -41,7 +42,8 @@ services:
       
       # Federation endpoint (for reference)
       ARIFOS_VPS_URL: ${ARIFOS_VPS_URL:-https://arifos.federation}
-      
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
+
       # Secrets (mount via .env or Docker secrets - NOT in compose)
       # ARIFOS_GOVERNANCE_SECRET: ${ARIFOS_GOVERNANCE_SECRET:-}
     

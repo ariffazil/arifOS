@@ -427,7 +427,7 @@ arifOS provides a **ChatGPT Apps SDK** integration for OpenAI's platform.
 | `render_vault_seal` | Renders interactive widget | Read-only |
 | `list_recent_verdicts` | Vault audit log (last 100) | Read-only |
 
-**Widget:** `https://mcp.af-forge.io/widget/vault-seal`
+**Widget:** `https://mcp.a-forge.io/widget/vault-seal`
 - CSP-compliant for ChatGPT iframe
 - Displays: Truth, Humility, Entropy, Harmony, Reality, Witness scores
 - BLS attestation visualization

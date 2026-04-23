@@ -13,9 +13,8 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-
+from enum import Enum
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANTS
@@ -72,12 +71,12 @@ class ToolContract:
     contract_version: str
     
     # Schema
-    input_schema: Dict[str, Any]
-    output_schema: Dict[str, Any]
+    input_schema: dict[str, Any]
+    output_schema: dict[str, Any]
     
     # Constitutional binding
-    floors_enforced: List[str]  # ["F2", "F3", "F4", ...]
-    physics: Dict[str, Any] = field(default_factory=dict)
+    floors_enforced: list[str]  # ["F2", "F3", "F4", ...]
+    physics: dict[str, Any] = field(default_factory=dict)
     # {
     #   "entropy": {"max_delta": 0.0, "target": "decrease"},
     #   "uncertainty": {"band": "low", "omega_range": [0.03, 0.05]},
@@ -90,11 +89,11 @@ class ToolContract:
     reversibility_class: ReversibilityClass = ReversibilityClass.FULL
     
     # Metabolic DAG
-    allowed_predecessors: Set[str] = field(default_factory=set)
-    allowed_successors: Set[str] = field(default_factory=set)
+    allowed_predecessors: set[str] = field(default_factory=set)
+    allowed_successors: set[str] = field(default_factory=set)
     
     # Provenance
-    proof_requirements: List[str] = field(default_factory=list)
+    proof_requirements: list[str] = field(default_factory=list)
     hash: str = field(default="")
     
     def __post_init__(self):
@@ -111,7 +110,7 @@ class ToolContract:
 class ContractRegistry:
     """Central registry of all tool contracts."""
     
-    _contracts: Dict[str, ToolContract] = {}
+    _contracts: dict[str, ToolContract] = {}
     _initialized: bool = False
     
     @classmethod
@@ -156,7 +155,7 @@ class ContractRegistry:
                 side_effect_class=SideEffectClass.WRITE_SAFE,
                 reversibility_class=ReversibilityClass.FULL,
                 allowed_predecessors=set(),  # Genesis
-                allowed_successors={"arifos_sense", "arifos_route"},
+                allowed_successors={"arifos_sense", "arifos_kernel"},
                 proof_requirements=["session_binding"]
             ),
             
@@ -193,7 +192,7 @@ class ContractRegistry:
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
                 allowed_predecessors={"arifos_init"},
-                allowed_successors={"arifos_mind", "arifos_route"},
+                allowed_successors={"arifos_mind", "arifos_kernel"},
                 proof_requirements=["grounding_check", "uncertainty_attached"]
             ),
             
@@ -231,13 +230,13 @@ class ContractRegistry:
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
                 allowed_predecessors={"arifos_sense", "arifos_init"},
-                allowed_successors={"arifos_route"},
+                allowed_successors={"arifos_kernel"},
                 proof_requirements=["reasoning_trace", "confidence_attached"]
             ),
             
             # ═════════════════════════════════════════════════════════════════
-            "arifos_route": ToolContract(
-                name="arifos_route",
+            "arifos_kernel": ToolContract(
+                name="arifos_kernel",
                 contract_version="0.2.0",
                 input_schema={
                     "type": "object",
@@ -304,7 +303,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos_route"},
+                allowed_predecessors={"arifos_kernel"},
                 allowed_successors={"arifos_heart", "arifos_judge"},
                 proof_requirements=["calculation_method", "uncertainty_attached"]
             ),
@@ -339,7 +338,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos_route", "arifos_ops"},
+                allowed_predecessors={"arifos_kernel", "arifos_ops"},
                 allowed_successors={"arifos_judge"},
                 proof_requirements=["value_alignment_check"]
             ),
@@ -375,7 +374,7 @@ class ContractRegistry:
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.READ,
                 reversibility_class=ReversibilityClass.FULL,
-                allowed_predecessors={"arifos_route", "arifos_ops", "arifos_heart"},
+                allowed_predecessors={"arifos_kernel", "arifos_ops", "arifos_heart"},
                 allowed_successors={"arifos_vault", "arifos_forge"},
                 proof_requirements=["tri_witness_verification", "floor_check_all"]
             ),
@@ -494,6 +493,42 @@ class ContractRegistry:
             ),
             
             # ═════════════════════════════════════════════════════════════════
+            "arifos_gateway": ToolContract(
+                name="arifos_gateway",
+                contract_version="0.1.0",
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "session_id": {"type": "string"},
+                        "mode": {"type": "string", "enum": ["guard", "audit", "correlate"]},
+                        "tool_trace": {"type": "array", "items": {"type": "object"}},
+                        "correlation_threshold": {"type": "number"}
+                    },
+                    "required": ["session_id"]
+                },
+                output_schema={
+                    "type": "object",
+                    "properties": {
+                        "omega_ortho": {"type": "number"},
+                        "correlation_threshold": {"type": "number"},
+                        "organs_seen": {"type": "array", "items": {"type": "string"}},
+                        "violations": {"type": "array", "items": {"type": "object"}},
+                        "verdict_hint": {"type": "string"}
+                    }
+                },
+                floors_enforced=["F3", "F4", "F9", "F11", "F13"],
+                physics={
+                    "entropy": {"max_delta": 0.0, "target": "measure_only"},
+                    "uncertainty": {"band": "measured", "omega_range": [0.0, 1.0]}
+                },
+                risk_level=RiskLevel.HIGH,
+                side_effect_class=SideEffectClass.READ,
+                reversibility_class=ReversibilityClass.FULL,
+                allowed_predecessors={"arifos_init", "arifos_ops", "arifos_mind"},
+                allowed_successors={"arifos_judge"},
+                proof_requirements=["trace_evidence"]
+            ),
+            # ═════════════════════════════════════════════════════════════════
             "arifos_health": ToolContract(
                 name="arifos_health",
                 contract_version="0.2.0",
@@ -532,19 +567,19 @@ class ContractRegistry:
         cls._initialized = True
     
     @classmethod
-    def get_contract(cls, tool_name: str) -> Optional[ToolContract]:
+    def get_contract(cls, tool_name: str) -> ToolContract | None:
         """Retrieve contract for a tool."""
         cls.initialize()
         return cls._contracts.get(tool_name)
     
     @classmethod
-    def get_all_contracts(cls) -> Dict[str, ToolContract]:
+    def get_all_contracts(cls) -> dict[str, ToolContract]:
         """Retrieve all registered contracts."""
         cls.initialize()
         return cls._contracts.copy()
     
     @classmethod
-    def describe_contract(cls, tool_name: str) -> Dict[str, Any]:
+    def describe_contract(cls, tool_name: str) -> dict[str, Any]:
         """Generate human/machine-readable contract description."""
         contract = cls.get_contract(tool_name)
         if not contract:
@@ -573,8 +608,8 @@ class ContractRegistry:
 class TransitionResult:
     allowed: bool
     reason: str
-    violation_type: Optional[str] = None
-    remediation: Optional[str] = None
+    violation_type: str | None = None
+    remediation: str | None = None
 
 
 class MetabolicRouter:
@@ -584,22 +619,23 @@ class MetabolicRouter:
     """
     
     # Canonical metabolic flow
-    METABOLIC_DAG: Dict[str, Set[str]] = {
-        "arifos_init": {"arifos_sense", "arifos_route"},
-        "arifos_sense": {"arifos_mind", "arifos_route"},
-        "arifos_mind": {"arifos_route"},
-        "arifos_route": {"arifos_ops", "arifos_heart", "arifos_judge"},
+    METABOLIC_DAG: dict[str, set[str]] = {
+        "arifos_init": {"arifos_sense", "arifos_kernel"},
+        "arifos_sense": {"arifos_mind", "arifos_kernel"},
+        "arifos_mind": {"arifos_kernel"},
+        "arifos_kernel": {"arifos_ops", "arifos_heart", "arifos_judge"},
         "arifos_ops": {"arifos_heart", "arifos_judge"},
         "arifos_heart": {"arifos_judge"},
         "arifos_judge": {"arifos_vault", "arifos_forge"},
         "arifos_vault": set(),  # Terminal
         "arifos_forge": set(),  # Terminal
         "arifos_memory": set(),  # Parallel
+        "arifos_gateway": {"arifos_judge"},  # Pre-judge orthogonality check
         "arifos_health": set(),  # Parallel
     }
     
     # Special gates requiring preconditions
-    GATED_TRANSITIONS: Dict[Tuple[str, str], Dict[str, Any]] = {
+    GATED_TRANSITIONS: dict[tuple[str, str], dict[str, Any]] = {
         ("arifos_judge", "arifos_forge"): {
             "requires": {"judge_verdict": "SEAL"},
             "message": "arifos_forge requires judge:SEAL verdict"
@@ -611,7 +647,7 @@ class MetabolicRouter:
         cls,
         current_tool: str,
         requested_tool: str,
-        context: Optional[Dict[str, Any]] = None
+        context: dict[str, Any] | None = None
     ) -> TransitionResult:
         """
         Validate if transition current_tool → requested_tool is lawful.
@@ -664,7 +700,7 @@ class MetabolicRouter:
         )
     
     @classmethod
-    def get_pipeline(cls, from_tool: Optional[str] = None) -> Dict[str, Any]:
+    def get_pipeline(cls, from_tool: str | None = None) -> dict[str, Any]:
         """Return the metabolic DAG as structured data."""
         if from_tool:
             return {
@@ -688,7 +724,7 @@ class MetabolicRouter:
 class DriftReport:
     tool_name: str
     drift_detected: bool
-    violations: List[Dict[str, Any]]
+    violations: list[dict[str, Any]]
     severity: str  # "none", "minor", "major", "critical"
     recommendation: str
 
@@ -702,9 +738,9 @@ class ContractDriftDetector:
     def check_schema_compliance(
         cls,
         tool_name: str,
-        actual_output: Dict[str, Any],
-        contract: Optional[ToolContract] = None
-    ) -> Dict[str, Any]:
+        actual_output: dict[str, Any],
+        contract: ToolContract | None = None
+    ) -> dict[str, Any]:
         """Check if output matches declared output schema."""
         contract = contract or ContractRegistry.get_contract(tool_name)
         if not contract:
@@ -727,8 +763,8 @@ class ContractDriftDetector:
     @classmethod
     def check_transition_compliance(
         cls,
-        call_graph: List[Tuple[str, str]],  # [(from, to), ...]
-    ) -> Dict[str, Any]:
+        call_graph: list[tuple[str, str]],  # [(from, to), ...]
+    ) -> dict[str, Any]:
         """Check if observed call graph matches declared transitions."""
         violations = []
         
@@ -750,9 +786,9 @@ class ContractDriftDetector:
     def check_side_effect_compliance(
         cls,
         tool_name: str,
-        observed_effects: List[str],
-        contract: Optional[ToolContract] = None
-    ) -> Dict[str, Any]:
+        observed_effects: list[str],
+        contract: ToolContract | None = None
+    ) -> dict[str, Any]:
         """Check if observed side effects match declared class."""
         contract = contract or ContractRegistry.get_contract(tool_name)
         if not contract:
@@ -786,9 +822,9 @@ class ContractDriftDetector:
     def full_audit(
         cls,
         tool_name: str,
-        actual_output: Dict[str, Any],
-        call_graph: List[Tuple[str, str]],
-        observed_effects: List[str]
+        actual_output: dict[str, Any],
+        call_graph: list[tuple[str, str]],
+        observed_effects: list[str]
     ) -> DriftReport:
         """Perform full drift audit on a tool execution."""
         contract = ContractRegistry.get_contract(tool_name)
@@ -858,7 +894,7 @@ class ExecutionStep:
     output_hash: str
     entropy_before: float
     entropy_after: float
-    floors_checked: List[str]
+    floors_checked: list[str]
     verdict: str
     drift_status: str
     timestamp: float
@@ -874,7 +910,7 @@ class ExecutionStep:
     def hash(self) -> str:
         return self._hash
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "step_n": self.step_n,
             "tool": self.tool,
@@ -905,7 +941,7 @@ class ExecutionTrace:
     
     session_id: str
     genesis_hash: str = field(default_factory=lambda: "0" * 64)
-    steps: List[ExecutionStep] = field(default_factory=list)
+    steps: list[ExecutionStep] = field(default_factory=list)
     _current_hash: str = field(default="", repr=False)
     
     def __post_init__(self):
@@ -916,11 +952,11 @@ class ExecutionTrace:
         self,
         tool: str,
         contract_version: str,
-        input_data: Dict[str, Any],
-        output_data: Dict[str, Any],
+        input_data: dict[str, Any],
+        output_data: dict[str, Any],
         entropy_before: float,
         entropy_after: float,
-        floors_checked: List[str],
+        floors_checked: list[str],
         verdict: str,
         drift_status: str = "CLEAN"
     ) -> str:
@@ -949,7 +985,7 @@ class ExecutionTrace:
         
         return self._current_hash
     
-    def seal(self) -> Dict[str, Any]:
+    def seal(self) -> dict[str, Any]:
         """Generate final proof artifact."""
         if not self.steps:
             return {
@@ -973,7 +1009,7 @@ class ExecutionTrace:
             "verification_endpoint": f"/verify/{self.session_id}"
         }
     
-    def verify(self) -> Dict[str, Any]:
+    def verify(self) -> dict[str, Any]:
         """Verify trace integrity by recomputing hashes."""
         if not self.steps:
             return {"valid": True, "steps_verified": 0}
@@ -997,7 +1033,7 @@ class ExecutionTrace:
             "tampered_steps": tampered
         }
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
             "genesis_hash": self.genesis_hash,
@@ -1021,8 +1057,8 @@ class KernelRuntime:
     - mode="emit_proof_stub" → Execution trace access
     """
     
-    _instance: Optional[KernelRuntime] = None
-    _traces: Dict[str, ExecutionTrace] = {}
+    _instance: KernelRuntime | None = None
+    _traces: dict[str, ExecutionTrace] = {}
     
     def __new__(cls):
         if cls._instance is None:
@@ -1042,7 +1078,7 @@ class KernelRuntime:
     # KERNEL SYSCALLS (exposed via arifos.init modes)
     # ═════════════════════════════════════════════════════════════════════════
     
-    def syscall_describe_kernel(self, query: Optional[str] = None) -> Dict[str, Any]:
+    def syscall_describe_kernel(self, query: str | None = None) -> dict[str, Any]:
         """
         SYSCALL: Describe kernel state and contracts.
         
@@ -1066,8 +1102,8 @@ class KernelRuntime:
         self,
         current_tool: str,
         requested_tool: str,
-        context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         SYSCALL: Validate metabolic transition.
         
@@ -1087,10 +1123,10 @@ class KernelRuntime:
     def syscall_audit_contracts(
         self,
         tool_name: str,
-        actual_output: Dict[str, Any],
-        call_graph: List[Tuple[str, str]],
-        observed_effects: List[str]
-    ) -> Dict[str, Any]:
+        actual_output: dict[str, Any],
+        call_graph: list[tuple[str, str]],
+        observed_effects: list[str]
+    ) -> dict[str, Any]:
         """
         SYSCALL: Full drift audit.
         
@@ -1108,7 +1144,7 @@ class KernelRuntime:
             "recommendation": report.recommendation
         }
     
-    def syscall_emit_proof_stub(self, session_id: str) -> Dict[str, Any]:
+    def syscall_emit_proof_stub(self, session_id: str) -> dict[str, Any]:
         """
         SYSCALL: Get execution trace proof for session.
         
@@ -1120,7 +1156,7 @@ class KernelRuntime:
         
         return trace.seal()
     
-    def syscall_get_pipeline(self, from_tool: Optional[str] = None) -> Dict[str, Any]:
+    def syscall_get_pipeline(self, from_tool: str | None = None) -> dict[str, Any]:
         """
         SYSCALL: Get metabolic DAG.
         
@@ -1138,7 +1174,7 @@ class KernelRuntime:
         self._traces[session_id] = trace
         return trace
     
-    def get_trace(self, session_id: str) -> Optional[ExecutionTrace]:
+    def get_trace(self, session_id: str) -> ExecutionTrace | None:
         """Retrieve execution trace for session."""
         return self._traces.get(session_id)
     
@@ -1147,11 +1183,11 @@ class KernelRuntime:
         session_id: str,
         tool: str,
         contract_version: str,
-        input_data: Dict[str, Any],
-        output_data: Dict[str, Any],
+        input_data: dict[str, Any],
+        output_data: dict[str, Any],
         entropy_before: float = 0.5,
         entropy_after: float = 0.5,
-        floors_checked: Optional[List[str]] = None,
+        floors_checked: list[str] | None = None,
         verdict: str = "SEAL",
         drift_status: str = "CLEAN"
     ) -> str:
@@ -1177,7 +1213,7 @@ class KernelRuntime:
 # GLOBAL INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_kernel_runtime: Optional[KernelRuntime] = None
+_kernel_runtime: KernelRuntime | None = None
 
 
 def get_kernel_runtime() -> KernelRuntime:

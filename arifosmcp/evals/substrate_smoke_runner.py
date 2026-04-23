@@ -30,7 +30,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Tuple
+from typing import Any
 
 from arifosmcp.integrations.fetch_bridge import FetchBridge
 from arifosmcp.integrations.git_bridge import GitBridge
@@ -156,7 +156,7 @@ class SubstrateSmokeRunner:
             self._fetch_internal_ip,
             "Attempt to fetch internal IP (should be blocked)")
     
-    async def _fetch_valid_page(self) -> Tuple[bool, str | None]:
+    async def _fetch_valid_page(self) -> tuple[bool, str | None]:
         """Happy path: fetch valid page"""
         try:
             result = await self.fetch_bridge.fetch_guarded(
@@ -168,7 +168,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _fetch_large_page(self) -> Tuple[bool, str | None]:
+    async def _fetch_large_page(self) -> tuple[bool, str | None]:
         """Edge case: fetch with pagination"""
         try:
             result = await self.fetch_bridge.fetch_guarded(
@@ -181,7 +181,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _fetch_internal_ip(self) -> Tuple[bool, str | None]:
+    async def _fetch_internal_ip(self) -> tuple[bool, str | None]:
         """Breach case: attempt internal IP fetch"""
         try:
             result = await self.fetch_bridge.fetch_guarded(
@@ -214,7 +214,7 @@ class SubstrateSmokeRunner:
             self._git_commit_no_ratify,
             "Attempt commit without human ratification")
     
-    async def _git_status_readonly(self) -> Tuple[bool, str | None]:
+    async def _git_status_readonly(self) -> tuple[bool, str | None]:
         """Happy path: read-only git operations"""
         try:
             result = await self.git_bridge.get_repo_state(
@@ -225,13 +225,13 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _git_branch_create(self) -> Tuple[bool, str | None]:
+    async def _git_branch_create(self) -> tuple[bool, str | None]:
         """Edge case: branch creation"""
         # This would need a sandbox repo
         # For now, mark as skip
         return True, "SKIP: Requires sandbox repo"
     
-    async def _git_commit_no_ratify(self) -> Tuple[bool, str | None]:
+    async def _git_commit_no_ratify(self) -> tuple[bool, str | None]:
         """Breach case: commit without ratification"""
         try:
             result = await self.git_bridge.propose_commit(
@@ -266,7 +266,7 @@ class SubstrateSmokeRunner:
             self._fs_path_traversal,
             "Attempt path traversal out of root")
     
-    async def _fs_read_allowed(self) -> Tuple[bool, str | None]:
+    async def _fs_read_allowed(self) -> tuple[bool, str | None]:
         """Happy path: read allowed file"""
         try:
             await bridge.filesystem.call_tool("read_file", {
@@ -276,7 +276,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _fs_write_temp(self) -> Tuple[bool, str | None]:
+    async def _fs_write_temp(self) -> tuple[bool, str | None]:
         """Edge case: write temp file"""
         try:
             await bridge.filesystem.call_tool("write_file", {
@@ -287,7 +287,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _fs_path_traversal(self) -> Tuple[bool, str | None]:
+    async def _fs_path_traversal(self) -> tuple[bool, str | None]:
         """Breach case: path traversal"""
         try:
             await bridge.filesystem.call_tool("read_file", {
@@ -317,7 +317,7 @@ class SubstrateSmokeRunner:
             self._memory_delete_no_auth,
             "Attempt entity deletion without authorization")
     
-    async def _memory_entity_crud(self) -> Tuple[bool, str | None]:
+    async def _memory_entity_crud(self) -> tuple[bool, str | None]:
         """Happy path: entity CRUD"""
         try:
             # Create
@@ -345,7 +345,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _memory_duplicate_handle(self) -> Tuple[bool, str | None]:
+    async def _memory_duplicate_handle(self) -> tuple[bool, str | None]:
         """Edge case: duplicate handling"""
         try:
             # Create same entity twice
@@ -365,7 +365,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _memory_delete_no_auth(self) -> Tuple[bool, str | None]:
+    async def _memory_delete_no_auth(self) -> tuple[bool, str | None]:
         """Breach case: delete without auth"""
         try:
             success, error = await kg_delete_entity(
@@ -398,7 +398,7 @@ class SubstrateSmokeRunner:
             self._time_invalid_format,
             "Handle invalid time format")
     
-    async def _time_zone_convert(self) -> Tuple[bool, str | None]:
+    async def _time_zone_convert(self) -> tuple[bool, str | None]:
         """Happy path: timezone conversion"""
         try:
             await bridge.time.call_tool("get_current_time", {
@@ -408,7 +408,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _time_dst_boundary(self) -> Tuple[bool, str | None]:
+    async def _time_dst_boundary(self) -> tuple[bool, str | None]:
         """Edge case: DST boundary"""
         try:
             await bridge.time.call_tool("convert_timezone", {
@@ -420,7 +420,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _time_invalid_format(self) -> Tuple[bool, str | None]:
+    async def _time_invalid_format(self) -> tuple[bool, str | None]:
         """Breach case: invalid format handling"""
         try:
             await bridge.time.call_tool("convert_timezone", {
@@ -447,7 +447,7 @@ class SubstrateSmokeRunner:
             self._everything_sequence,
             "Multi-feature sequence test")
     
-    async def _everything_discovery(self) -> Tuple[bool, str | None]:
+    async def _everything_discovery(self) -> tuple[bool, str | None]:
         """Happy path: feature discovery"""
         try:
             from arifosmcp.integrations.everything_probe import everything_probe
@@ -456,7 +456,7 @@ class SubstrateSmokeRunner:
         except Exception as e:
             return False, str(e)
     
-    async def _everything_sequence(self) -> Tuple[bool, str | None]:
+    async def _everything_sequence(self) -> tuple[bool, str | None]:
         """Edge case: multi-feature sequence"""
         try:
             from arifosmcp.integrations.everything_probe import everything_probe

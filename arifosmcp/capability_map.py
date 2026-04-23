@@ -1,25 +1,25 @@
 """
 arifosmcp/capability_map.py --- Canonical Tool Registry & Capability Matrix
 
-This module defines the canonical 11-tool metabolic surface and maps 
+This module defines the canonical 28-tool constitutional surface and maps
 the legacy arifos.tool names to the new arifos_tool underscored convention.
 """
 
 from __future__ import annotations
 
-# Canonical 11-tool metabolic mapping
+# Canonical 28-tool constitutional mapping
 CANONICAL_TOOL_HANDLERS = {
     "arifos_init": "arifos_init",
     "arifos_sense": "arifos_sense",
     "arifos_mind": "arifos_mind",
+    "arifos_kernel": "arifos_kernel",
     "arifos_heart": "arifos_heart",
+    "arifos_ops": "arifos_ops",
     "arifos_judge": "arifos_judge",
     "arifos_memory": "arifos_memory",
     "arifos_vault": "arifos_vault",
-    "arifos_math": "arifos_math",
-    "arifos_kernel": "arifos_kernel",
-    "arifos_code": "arifos_code",
-    "arifos_architect": "arifos_architect",
+    "arifos_forge": "arifos_forge",
+    "arifos_gateway": "arifos_gateway",
 }
 
 # Substrate Capability Families
@@ -39,12 +39,29 @@ LEGACY_TOOL_MAP = {
     "arifos.init": "arifos_init",
     "arifos.sense": "arifos_sense",
     "arifos.mind": "arifos_mind",
+    "arifos.kernel": "arifos_kernel",
+    "arifos.route": "arifos_kernel",
     "arifos.heart": "arifos_heart",
+    "arifos.ops": "arifos_ops",
     "arifos.judge": "arifos_judge",
     "arifos.memory": "arifos_memory",
     "arifos.vault": "arifos_vault",
-    "arifos.math": "arifos_math",
-    "arifos.kernel": "arifos_kernel",
+    "arifos.forge": "arifos_forge",
+    "arifos.gateway": "arifos_gateway",
+    "arifos.health": "arifos_health",
+    "init_anchor": "arifos_init",
+    "physics_reality": "arifos_sense",
+    "reality_compass": "arifos_sense",
+    "agi_mind": "arifos_mind",
+    "agi_reason": "arifos_mind",
+    "asi_heart": "arifos_heart",
+    "math_estimator": "arifos_ops",
+    "apex_soul": "arifos_judge",
+    "vault_ledger": "arifos_vault",
+    "vault_seal": "arifos_vault",
+    "code_engine": "arifos_forge",
+    "vps_monitor": "arifos_health",
+    "architect_registry": "arifos_init",
 }
 
 # Metadata and routing
@@ -59,7 +76,7 @@ ALIGNED_STAGES = {
 }
 
 # Legacy aliases for tests
-CAPABILITY_MAP = CANONICAL_TOOL_HANDLERS
+CAPABILITY_MAP = {**CANONICAL_TOOL_HANDLERS, **LEGACY_TOOL_MAP}
 LEGACY_TOOLS = LEGACY_TOOL_MAP
 
 # Legacy aliases for pre-unification tests
@@ -89,7 +106,7 @@ def build_llm_context_map() -> dict[str, object]:
             "init_anchor": "arifos_init",
             "evidence_sense": "arifos_sense",
             "agi_mind": "arifos_mind",
-            "route_meta": "arifos_route",
+            "route_meta": "arifos_kernel",
             "memory_recall": "arifos_memory",
             "asi_heart": "arifos_heart",
             "ops_metrics": "arifos_ops",
@@ -111,6 +128,24 @@ def build_llm_context_map() -> dict[str, object]:
                 "session continuity must persist across tool handoff",
                 "canonical tool identity must remain explicit in every envelope",
             ],
+        },
+        "domain_evidence_contract": {
+            "version": "geox-evidence/v1",
+            "accepted_sources": ["GEOX"],
+            "fields": [
+                "claim_tag",
+                "asset_id",
+                "disagreement_band",
+                "p10_p50_p90",
+                "charge_probability",
+                "vault_receipt",
+            ],
+            "bindings": {
+                "sense": "arifos_sense(domain_evidence=...)",
+                "judge": "arifos_judge(domain_evidence=...)",
+                "memory_store": "arifos_memory(mode='asset_store', ...)",
+                "memory_query": "arifos_memory(mode='asset_query', ...)",
+            },
         },
     }
 

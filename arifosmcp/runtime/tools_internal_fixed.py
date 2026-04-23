@@ -15,17 +15,20 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from core.shared.mottos import (
+    MOTTO_000_INIT_HEADER,
+    MOTTO_999_SEAL_HEADER,
+    get_motto_for_stage,
+)
+from fastmcp.server.context import Context
+
 from arifosmcp.runtime.models import (
     CallerContext,
     CanonicalError,
-    CanonicalMetrics,
     RuntimeEnvelope,
     RuntimeStatus,
     Stage,
     Verdict,
-)
-from arifosmcp.runtime.public_registry import (
-    public_tool_names,
 )
 from arifosmcp.runtime.schemas import IntentType
 from arifosmcp.runtime.sessions import (
@@ -46,17 +49,8 @@ from arifosmcp.tools.agentzero_tools import (
 from arifosmcp.tools.agentzero_tools import (
     agentzero_validate as _az_validate,
 )
-from fastmcp.server.context import Context
-
-from core.shared.mottos import (
-    MOTTO_000_INIT_HEADER,
-    MOTTO_999_SEAL_HEADER,
-    get_motto_for_stage,
-)
 
 from .bridge import call_kernel
-from .reality_handlers import handler as reality_handler
-from .reality_models import BundleInput
 
 # Hybrid memory import (may not be available in all configurations)
 try:
@@ -186,7 +180,7 @@ def _resolve_caller_state(
 
     MEGA_TOOLS = [
         "arifos_init",
-        "arifos_route",
+        "arifos_kernel",
         "arifos_judge",
         "arifos_vault",
         "arifos_mind",
@@ -195,6 +189,7 @@ def _resolve_caller_state(
         "arifos_sense",
         "arifos_ops",
         "arifos_forge",
+        "arifos_gateway",
         "arifos_health",
     ]
 
@@ -202,7 +197,7 @@ def _resolve_caller_state(
         "anonymous": {
             "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifos_route": "Requires anchored session. Run arifos_init first.",
+                "arifos_kernel": "Requires anchored session. Run arifos_init first.",
                 "arifos_mind": "Requires anchored session.",
                 "arifos_memory": "Requires anchored session and high-tier auth.",
                 "arifos_vault": "Requires anchored session and high-tier auth.",
@@ -211,7 +206,7 @@ def _resolve_caller_state(
         "claimed": {
             "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifos_route": "Elevate to verified identity for full kernel access.",
+                "arifos_kernel": "Elevate to verified identity for full kernel access.",
                 "arifos_memory": "Requires verified identity.",
                 "arifos_vault": "Requires verified identity.",
             },
@@ -500,9 +495,8 @@ async def apex_judge_dispatch_impl(
     payload["session_id"] = session_id
 
     if mode == "judge":
-        payload.setdefault("candidate_action", payload.get("candidate", ""))
-        verdict_candidate = payload.pop("verdict_candidate", None) or "SEAL"
-        payload["verdict_candidate"] = verdict_candidate
+        candidate = payload.get("candidate", "SEAL")
+        payload["verdict_candidate"] = candidate
         return await _wrap_call("apex_judge", Stage.JUDGE_888, session_id, payload, ctx)
     elif mode == "rules":
         return await _wrap_call("audit_rules", Stage.INIT_000, session_id, payload, ctx)
@@ -1336,8 +1330,9 @@ async def math_estimator_dispatch_impl(
     if mode == "vitals":
         # PHASE 0 FIX: Wrapped vital signs computation with error handling
         try:
-            import psutil
             import os
+
+            import psutil
             
             # Get system vitals
             cpu_percent = psutil.cpu_percent(interval=0.1)

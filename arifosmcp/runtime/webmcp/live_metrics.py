@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+
 try:
     import psutil
     PSUTIL_AVAILABLE = True
@@ -233,7 +234,10 @@ class LiveMetricsCollector:
             # import core modules
             from core.physics.thermodynamics_hardened import get_thermodynamic_report
             from core.shared.floors import THRESHOLDS
-            from core.state.session_manager import session_manager
+            try:
+                from core.state.session_manager import session_manager
+            except Exception:
+                session_manager = None
 
             # Get floor statuses
             floors = {}
@@ -280,21 +284,35 @@ class LiveMetricsCollector:
             vault_entries = 0
             vault_last = ""
             try:
-                vault_path = Path("VAULT999/vault999.jsonl")
-                if vault_path.exists():
-                    with open(vault_path) as f:
-                        lines = f.readlines()
-                        vault_entries = len(lines)
-                        if lines:
-                            last = json.loads(lines[-1])
-                            vault_last = last.get("timestamp", "")
+                dsn = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
+                if dsn:
+                    import asyncpg
+
+                    conn = await asyncpg.connect(dsn)
+                    row = await conn.fetchrow(
+                        "SELECT COUNT(*)::int AS n, MAX(timestamp)::text AS last_timestamp "
+                        "FROM arifosmcp_vault_seals"
+                    )
+                    vault_entries = row["n"] if row and row["n"] is not None else 0
+                    vault_last = row["last_timestamp"] if row and row["last_timestamp"] else ""
+                    await conn.close()
+                else:
+                    vault_path = Path("VAULT999/vault999.jsonl")
+                    if vault_path.exists():
+                        with open(vault_path) as f:
+                            lines = f.readlines()
+                            vault_entries = len(lines)
+                            if lines:
+                                last = json.loads(lines[-1])
+                                vault_last = last.get("timestamp", "")
             except Exception:
                 pass
 
             # Get session count
             active_sessions = 0
             try:
-                active_sessions = len(session_manager.list_sessions())
+                if session_manager is not None:
+                    active_sessions = len(session_manager.list_sessions())
             except Exception:
                 pass
 

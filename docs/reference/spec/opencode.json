@@ -1,0 +1,82 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "A-ORCHESTRATOR",
+  "agent": {
+    "A-ARCHITECT": {
+      "mode": "primary",
+      "description": "Design-only architect under arifOS Floors.",
+      "prompt": ".opencode/agents/A-ARCHITECT.md",
+      "tools": {
+        "search_web": true,
+        "fetch_url": true,
+        "execute_code": false,
+        "bash": false,
+        "edit": false
+      }
+    },
+    "A-ENGINEER": {
+      "mode": "primary",
+      "description": "Implementation under 888_HOLD and Vault.",
+      "prompt": ".opencode/agents/A-ENGINEER.md",
+      "tools": {
+        "search_web": true,
+        "fetch_url": true,
+        "execute_code": true,
+        "bash": true,
+        "edit": true,
+        "mcp": true
+      },
+      "permission": {
+        "bash": "ask",
+        "edit": "ask"
+      }
+    },
+    "A-AUDITOR": {
+      "mode": "subagent",
+      "prompt": ".opencode/agents/A-AUDITOR.md",
+      "tools": {
+        "search_web": true,
+        "fetch_url": true,
+        "execute_code": true,
+        "bash": false,
+        "edit": false
+      }
+    },
+    "A-VALIDATOR": {
+      "mode": "subagent",
+      "prompt": ".opencode/agents/A-VALIDATOR.md",
+      "tools": {
+        "search_web": true,
+        "fetch_url": true,
+        "execute_code": true
+      }
+    },
+    "A-ORCHESTRATOR": {
+      "mode": "primary",
+      "prompt": ".opencode/agents/A-ORCHESTRATOR.md",
+      "tools": {
+        "search_web": true,
+        "fetch_url": true,
+        "execute_code": true,
+        "bash": false,
+        "edit": false,
+        "task": true,
+        "mcp": true
+      },
+      "permission": {
+        "task": {
+          "A-*": "allow"
+        }
+      }
+    }
+  },
+  "mcp": {
+    "arifos": {
+      "type": "local",
+      "command": ["python", "-m", "arifosmcp.runtime", "stdio"],
+      "environment": {
+        "ARIFOS_MODE": "strict"
+      }
+    }
+  }
+}

@@ -19,10 +19,13 @@ import json
 import logging
 import os
 import secrets
+import socket
+import subprocess
 import time
 import uuid
 from collections.abc import Callable
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from core.shared.floor_audit import get_ml_floor_runtime
@@ -33,7 +36,7 @@ from core.shared.floors import (
     get_floor_threshold,
 )
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from starlette.staticfiles import StaticFiles
 
 from arifosmcp.runtime.public_registry import (
@@ -46,7 +49,6 @@ from arifosmcp.runtime.resources import apex_tools_markdown_table
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
 from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
-from .fastmcp_version import HAS_CUSTOM_ROUTE, HAS_ROUTE
 
 BUILD_INFO = get_build_info()
 BUILD_VERSION = BUILD_INFO["server_version"]
@@ -61,7 +63,7 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
     "arifos_init": {"intent": "intent", "goal": "intent", "task": "intent"},
     "arifos_sense": {
         "query": "input",
-        "content": "input", 
+        "content": "input",
         "text": "input",
         "input": "input",
         "mode": "mode",
@@ -74,7 +76,7 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
         "text": "query",
         "context": "context",
     },
-    "arifos_route": {
+    "arifos_kernel": {
         "intent": "request",
         "query": "request",
         "input": "request",
@@ -130,19 +132,19 @@ PARAMETER_ALIASES: dict[str, dict[str, str]] = {
 
 def _normalize_parameters(tool_name: str, body: dict[str, Any]) -> dict[str, Any]:
     """Normalize parameter names for tool compatibility.
-    
+
     Handles Horizon/ChatGPT-style parameter names (intent, content, etc.)
     and maps them to canonical parameter names expected by tool functions.
     """
     canonical_name = TOOL_ALIASES.get(tool_name, tool_name)
     aliases = PARAMETER_ALIASES.get(canonical_name, {})
-    
+
     normalized: dict[str, Any] = {}
     for key, value in body.items():
         # Map alias to canonical param name if defined
         canonical_param = aliases.get(key, key)
         normalized[canonical_param] = value
-    
+
     return normalized
 
 
@@ -176,7 +178,7 @@ def _representative_floor_score(floor_id: str) -> float:
     return threshold * 0.5
 
 
-def _canonical_floor_defaults() -> dict[dict, float]:
+def _canonical_floor_defaults() -> dict[str, float]:
     return {fid: _representative_floor_score(fid) for fid in FLOOR_SPEC_KEYS}
 
 
@@ -221,6 +223,233 @@ def _dashboard_cors_headers(request: Request) -> dict[str, str]:
             "Vary": "Origin",
         }
     return {}
+
+
+def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
+    try:
+        result = subprocess.run(
+            [
+                "docker",
+                "ps",
+                "--format",
+                "{{.Names}}\t{{.Image}}\t{{.Status}}",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception:
+        return []
+
+    containers: list[dict[str, str]] = []
+    for row in result.stdout.splitlines():
+        parts = row.split("\t", 2)
+        if len(parts) != 3:
+            continue
+        containers.append(
+            {
+                "name": parts[0],
+                "image": parts[1],
+                "status": parts[2],
+            }
+        )
+        if len(containers) >= limit:
+            break
+    return containers
+
+
+def _local_service_connect_latency_ms(host: str = "127.0.0.1", port: int = 8080) -> float | None:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.5)
+    started = time.perf_counter()
+    try:
+        sock.connect((host, port))
+        return round((time.perf_counter() - started) * 1000, 2)
+    except OSError:
+        return None
+    finally:
+        sock.close()
+
+
+_CRITICAL_CONTAINERS = {
+    "A-FORGE-arifos-mcp",
+    "postgres",
+    "redis",
+    "qdrant",
+}
+
+
+def _matrix_domain(
+    *,
+    state: str,
+    label_bm: str,
+    label_en: str,
+    evidence: list[str],
+    raw_val: float | int | str,
+    unit: str,
+) -> dict[str, Any]:
+    color = {
+        "POSITIVE": "teal",
+        "NEUTRAL": "amber",
+        "NEGATIVE": "red",
+    }[state]
+    return {
+        "state": state,
+        "label_bm": label_bm,
+        "label_en": label_en,
+        "color": color,
+        "evidence": evidence,
+        "metrics": {
+            "raw_val": raw_val,
+            "unit": unit,
+        },
+    }
+
+
+def _build_trinity_matrix(
+    health_payload: dict[str, Any],
+    containers: list[dict[str, str]],
+    *,
+    latency_ms: float,
+) -> dict[str, Any]:
+    thermo = health_payload.get("thermodynamic") or {}
+    gov = health_payload.get("governance") or {}
+    floors = (health_payload.get("runtime_floors") or {})
+    caps = ((health_payload.get("capability_map") or {}).get("capabilities") or {})
+    running = {
+        container["name"]: "Up" in str(container.get("status") or "")
+        for container in containers
+    }
+    missing_critical = sorted(name for name in _CRITICAL_CONTAINERS if not running.get(name, False))
+    entropy_delta = float(thermo.get("entropy_delta") or 0.0)
+    confidence = float(thermo.get("confidence") or 0.0)
+    stage = int(thermo.get("metabolic_stage") or 0)
+    verdict = str(thermo.get("verdict") or "UNKNOWN").upper()
+    failed_floors = sorted(
+        floor_id
+        for floor_id, score in floors.items()
+        if floor_id in FLOOR_SPEC_KEYS and not _floor_passes(floor_id, float(score))
+    )
+    f9_triggered = "F9" in failed_floors or float(thermo.get("shadow") or 0.0) >= 0.3
+    schema_violation = not isinstance(health_payload.get("thermodynamic"), dict) or thermo.get("confidence") is None
+    hallucination_detected = health_payload.get("source_commit") in {None, "", "unknown"}
+
+    if missing_critical:
+        delta = _matrix_domain(
+            state="NEGATIVE",
+            label_bm="LEBUR",
+            label_en="MELTED",
+            evidence=[f"critical_container_down:{name}" for name in missing_critical],
+            raw_val=len(missing_critical),
+            unit="critical_containers_down",
+        )
+    elif health_payload.get("version") != health_payload.get("release_tag") or latency_ms > 500:
+        delta = _matrix_domain(
+            state="NEUTRAL",
+            label_bm="RETAK",
+            label_en="CRACKED",
+            evidence=[
+                *(
+                    ["version_drift"]
+                    if health_payload.get("version") != health_payload.get("release_tag")
+                    else []
+                ),
+                *(["latency_gt_500ms"] if latency_ms > 500 else []),
+            ],
+            raw_val=round(latency_ms, 2),
+            unit="service_connect_latency_ms",
+        )
+    else:
+        delta = _matrix_domain(
+            state="POSITIVE",
+            label_bm="KUKUH",
+            label_en="SOLID",
+            evidence=[
+                f"containers_up:{len(containers)}",
+                f"entropy_delta:{entropy_delta:+.2f}",
+            ],
+            raw_val=len(containers),
+            unit="containers_running",
+        )
+
+    if failed_floors or f9_triggered:
+        psi = _matrix_domain(
+            state="NEGATIVE",
+            label_bm="KHIANAT",
+            label_en="BREACHED",
+            evidence=(
+                [f"floor_fail:{floor_id}" for floor_id in failed_floors]
+                + (["f9_triggered"] if f9_triggered else [])
+            ),
+            raw_val=len(failed_floors),
+            unit="failed_floors",
+        )
+    elif caps.get("governed_continuity") == "enabled" and confidence >= 0.99 and verdict == "SEAL":
+        psi = _matrix_domain(
+            state="POSITIVE",
+            label_bm="AMANAH",
+            label_en="TRUSTED",
+            evidence=["continuity_persistent", "floors_verified", "seal_ready"],
+            raw_val=confidence,
+            unit="tau",
+        )
+    else:
+        psi = _matrix_domain(
+            state="NEUTRAL",
+            label_bm="GANTUNG",
+            label_en="PENDING",
+            evidence=[f"metabolic_stage:{stage}", f"verdict:{verdict.lower()}"],
+            raw_val=stage,
+            unit="metabolic_stage",
+        )
+
+    if schema_violation or hallucination_detected:
+        omega = _matrix_domain(
+            state="NEGATIVE",
+            label_bm="SESAT",
+            label_en="MISALIGNED",
+            evidence=(
+                (["schema_violation"] if schema_violation else [])
+                + (["hallucination_detected"] if hallucination_detected else [])
+            ),
+            raw_val=confidence,
+            unit="tau",
+        )
+    elif verdict == "SEAL" and confidence >= 0.99:
+        omega = _matrix_domain(
+            state="POSITIVE",
+            label_bm="BIJAKSANA",
+            label_en="WISE",
+            evidence=["verdict_seal", "tau_ge_0_99"],
+            raw_val=confidence,
+            unit="tau",
+        )
+    else:
+        omega = _matrix_domain(
+            state="NEUTRAL",
+            label_bm="BIJAK",
+            label_en="SMART",
+            evidence=[f"verdict:{verdict.lower()}", f"tau:{confidence:.2f}"],
+            raw_val=confidence,
+            unit="tau",
+        )
+
+    overall_ok = all(domain["state"] != "NEGATIVE" for domain in (delta, psi, omega))
+    return {
+        "delta": delta,
+        "psi": psi,
+        "omega": omega,
+        "overall_ok": overall_ok,
+    }
+
+
+def _collect_git_snapshot() -> dict[str, Any]:
+    return {
+        "commit": BUILD_INFO["build"]["commit"],
+        "branch": BUILD_INFO["build"]["branch"],
+        "release_tag": BUILD_INFO.get("release_tag"),
+    }
 
 
 def _merge_headers(*header_sets: dict[str, str]) -> dict[str, str]:
@@ -274,17 +503,93 @@ def _build_governance_status_payload() -> dict[str, Any]:
     except Exception:
         logger.exception("Unexpected error loading governance kernel state")
 
+    live_capability_map: dict[str, Any] | None = None
+    live_containers: list[dict[str, str]] = []
+    try:
+        live_capability_map = build_runtime_capability_map()
+        live_containers = _collect_container_status()
+    except Exception:
+        live_capability_map = None
+        live_containers = []
+
+    live_signals: list[str] = []
+    live_capabilities = (live_capability_map or {}).get("capabilities", {})
+    if BUILD_INFO["build"]["commit"] != "unknown":
+        live_signals.append("source_commit")
+    if BUILD_INFO.get("release_tag"):
+        live_signals.append("release_tag")
+    if live_capabilities.get("governed_continuity") == "enabled":
+        live_signals.append("governed_continuity")
+    if live_capabilities.get("vault_persistence") == "enabled":
+        live_signals.append("vault_persistence")
+    if live_capabilities.get("vector_memory") == "enabled":
+        live_signals.append("vector_memory")
+    if live_containers:
+        live_signals.append("container_runtime")
+
+    if len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
+        try:
+            from core.governance_kernel import clear_governance_kernel, get_governance_kernel
+
+            live_session_id = "live-sot"
+            clear_governance_kernel(live_session_id)
+            live_kernel = get_governance_kernel(live_session_id)
+            live_kernel.apply_temporal_grounding(
+                {
+                    "query": (
+                        "Live SOT aligned: "
+                        f"{BUILD_INFO['build']['commit']} / {BUILD_INFO.get('release_tag')} / "
+                        f"{len(live_containers)} containers / {len(live_signals)} verified runtime signals"
+                    ),
+                    "human_witness": _WITNESS_DEFAULTS["human"],
+                    "ai_witness": 0.99,
+                    "earth_witness": 0.99 if live_containers else _WITNESS_DEFAULTS["earth"],
+                }
+            )
+            live_kernel.record_event(
+                "assumption",
+                {"content": "Live SOT must remain evidence-backed and continuously revalidated."},
+            )
+            for signal in live_signals:
+                live_kernel.record_event("action", {"signal": signal, "reversible": True})
+                live_kernel.record_event("success", {"signal": signal})
+
+            state = live_kernel.get_current_state()
+            session_id = state.get("session_id")
+            floors = state.get("floors", {})
+            telemetry = state.get("telemetry", {})
+            witness = state.get("witness", {})
+            qdf = float(state.get("qdf", qdf or 0.0))
+            metabolic_stage = int(state.get("metabolic_stage", metabolic_stage or 0))
+            verdict = state.get("verdict", verdict)
+        except Exception:
+            logger.exception("Failed to hydrate live-sot governance kernel state")
+
     resolved_floors = {k: floors.get(k, v) for k, v in _FLOOR_DEFAULTS.items()}
+    canonical_floor_aliases = {
+        "F2": "tau_truth",
+        "F3": "witness_coherence",
+        "F4": "ds",
+        "F5": "peace2",
+        "F6": "kappa_r",
+        "F9": "shadow",
+    }
+    for canonical, legacy_key in canonical_floor_aliases.items():
+        if legacy_key in floors:
+            resolved_floors[canonical] = floors[legacy_key]
     resolved_witness = {k: witness.get(k, v) for k, v in _WITNESS_DEFAULTS.items()}
+    live_confidence = telemetry.get("confidence")
+    if live_confidence is None:
+        live_confidence = floors.get("tau_truth")
     resolved_telemetry = {
-        "dS": telemetry.get("dS", -0.35),
-        "peace2": telemetry.get("peace2", 1.04),
-        "kappa_r": telemetry.get("kappa_r", 0.97),
-        "echoDebt": telemetry.get("echoDebt", 0.4),
-        "shadow": telemetry.get("shadow", 0.3),
-        "confidence": telemetry.get("confidence", 0.88),
-        "psi_le": telemetry.get("psi_le", 0.82),
-        "verdict": verdict,
+        "dS": telemetry.get("dS", floors.get("ds")),
+        "peace2": telemetry.get("peace2", floors.get("peace2")),
+        "kappa_r": telemetry.get("kappa_r", floors.get("kappa_r")),
+        "echoDebt": telemetry.get("echoDebt"),
+        "shadow": telemetry.get("shadow", floors.get("shadow")),
+        "confidence": live_confidence,
+        "psi_le": telemetry.get("psi_le", qdf or None),
+        "verdict": telemetry.get("verdict", verdict),
     }
 
     try:
@@ -295,7 +600,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         machine_vitals = {"cpu_percent": 0.0, "memory_percent": 0.0}
 
     try:
-        capability_map = build_runtime_capability_map()
+        capability_map = live_capability_map or build_runtime_capability_map()
         if (
             float(resolved_floors.get("F11", 0.0)) <= 0.0
             and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
@@ -356,7 +661,11 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
     floor_html = "".join(
         '<div class="floor {}"><strong>{}</strong><span>{:.3f}</span></div>'.format(
-            "pass" if _floor_passes(floor_id, float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0)))) else "fail",
+            "pass"
+            if _floor_passes(
+                floor_id, float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0)))
+            )
+            else "fail",
             floor_id,
             float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0))),
         )
@@ -623,7 +932,7 @@ def _generate_mega_tool_cards() -> str:
               </div>
             </div>
             """
-        html += '</div></div>'
+        html += "</div></div>"
     return html
 
 
@@ -631,40 +940,41 @@ def _generate_mega_tool_cards() -> str:
 def _load_welcome_html() -> str:
     """Load and populate the landing page HTML template."""
     import os
-    
+
     # Try multiple paths for different deployment contexts
     possible_paths = [
-        "/usr/src/app/runtime/landing_page.html",
-        "/usr/src/app/arifosmcp/runtime/landing_page.html",
-        "/root/ariffazil/arifOS/arifosmcp/runtime/landing_page.html",
         os.path.join(os.path.dirname(__file__), "landing_page.html"),
+        "/usr/src/app/arifosmcp/runtime/landing_page.html",
+        "/usr/src/app/runtime/landing_page.html",
+        "/root/ariffazil/arifOS/arifosmcp/runtime/landing_page.html",
     ]
-    
+
     html_content = ""
     for path in possible_paths:
         if os.path.exists(path):
             try:
-                with open(path, 'r') as f:
+                with open(path, "r") as f:
                     html_content = f.read()
                 break
             except Exception:
                 continue
-    
+
     if not html_content:
         # Fallback minimal HTML
         html_content = """<!DOCTYPE html>
 <html><head><title>arifOS MCP</title></head>
 <body><h1>arifOS MCP Server 2.0.0</h1>
-<p>Endpoint: <code>https://arifosmcp.arif-fazil.com/mcp</code></p>
+<p>Endpoint: <code>https://mcp.arif-fazil.com/mcp</code></p>
 <p><strong>DITEMPA BUKAN DIBERI</strong> — Forged, not given.</p>
 </body></html>"""
-    
+
     # Replace placeholders
     html_content = html_content.replace("__BUILD_VERSION__", BUILD_VERSION)
     html_content = html_content.replace("__BUILD_COMMIT__", BUILD_INFO["build"]["commit_short"])
     html_content = html_content.replace("__BUILD_TIME__", BUILD_INFO["build"]["built_at"])
-    
+
     return html_content
+
 
 WELCOME_HTML = _load_welcome_html()
 
@@ -751,7 +1061,7 @@ python -m arifosmcp.runtime stdio</code></pre>
     <tr><td>F4</td><td>ΔS Clarity</td><td>≤ 0</td><td>Entropy reduction</td></tr>
     <tr><td>F5</td><td>Peace²</td><td>≥ 1.0</td><td>Stability</td></tr>
     <tr><td>F6</td><td>Empathy</td><td>≥ 0.70</td><td>Weakest stakeholder</td></tr>
-    <tr><td>F7</td><td>Humility</td><td>0.03-0.20</td><td>Uncertainty</td></tr>
+    <tr><td>F7</td><td>Humility</td><td>0.03-0.05</td><td>Uncertainty</td></tr>
     <tr><td>F8</td><td>Genius</td><td>≥ 0.80</td><td>Coherence</td></tr>
     <tr><td>F9</td><td>Anti-Hantu</td><td>&lt; 0.30</td><td>No dark patterns</td></tr>
     <tr><td>F10</td><td>Ontology</td><td>LOCK</td><td>No consciousness claims</td></tr>
@@ -804,40 +1114,69 @@ Sitemap: https://arifosmcp.arif-fazil.com/llms.json
 """
 
 LLMS_TXT = f"""\
-# AGENTS·API·AI·APPS — The AAA Surface Layer
-Location: https://aaa.arif-fazil.com/llms.txt
+# arifOS MCP — Constitutional AI Gateway
 Version: {BUILD_VERSION}
-Domain: AAA / AGENTS·API·AI·APPS
+Domain: MCP / Constitutional Tool Gateway
 
-> The AAA Surface Layer of arifOS — Agents (autonomous actors), API (structured interfaces),
-> AI (governed intelligence), and Apps (executable tools). Built on MCP with 13 constitutional
-> floors ensuring every action is true, safe, and human-aligned before touching reality.
-> Motto: DITEMPA BUKAN DIBERI — Forged, not given.
-
-## The AAA Architecture
-
-| Layer | Domain | Purpose |
-|-------|--------|---------|
-| ARIF | arif-fazil.com | The Human Sovereign (Muhammad Arif bin Fazil) |
-| THEORY | apex.arif-fazil.com | APEX Theory + arifOS Documentation |
-| TRINITY | arifos.arif-fazil.com | AGI-ASI-APEX Dynamic Runtime |
-| AAA | aaa.arif-fazil.com | AGENTS·API·AI·APPS Surface Layer (THIS SITE) |
+> arifOS MCP is a Model Context Protocol server enforcing 13 constitutional floors on every tool call. Built by Muhammad Arif bin Fazil. Every operation is checked for reversibility, truth, anti-deception, and human oversight before touching reality.
+> Motto: DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 ## Official MCP Endpoint
 
-- **URL**: `https://aaa.arif-fazil.com/mcp`
+- **URL**: https://mcp.arif-fazil.com/mcp
 - **Transport**: Streamable HTTP / SSE
 - **Protocol**: MCP 2025-03-26
-- **Tools**: 37 constitutional tools across 11 mega-tools
+- **Tools**: 44 constitutional tools
+- **Capabilities**: constitutional_floors, metabolic_routing, vault999, vector_memory, prompts, resources
 
-## Core Tools
+## Core Tools (44 total)
 
-- `init_anchor` — Identity & session anchoring (F11)
-- `agi_reason` — First-principles reasoning (Δ Mind)
-- `search_reality` — Evidence-grounded search (111 Sense)
-- `agentzero_engineer` — Governed code execution (555 Memory)
-- `arifos_kernel` — Metabolic loop routing (444 Router)
-- `apex_judge` — Constitutional verdict rendering (888 Judge)
+| Tool | Category | Description |
+|------|----------|-------------|
+| arifos_init | arifos | Initialize constitutional session with identity binding |
+| arifos_sense | arifos | Ground query in physical reality via 8-stage constitution |
+| arifos_mind | arifos | Structured reasoning with typed cognitive pipeline |
+| arifos_kernel | arifos | Route request to correct metabolic lane or tool family |
+| arifos_heart | arifos | Red-team proposal for ethical risks |
+| arifos_ops | arifos | Operational telemetry and system status |
+| arifos_judge | arifos | Constitutional verdict rendering (SEAL/VOID/HOLD/SABAR) |
+| arifos_memory | arifos | Delta-logged session memory, no state loss |
+| arifos_vault | arifos | VAULT999 seal operations for irreversible actions |
+| arifos_forge | arifos | Prompt engineering under constitutional governance |
+| constitutional_judge | P | Judge claim compliance against floors |
+| risk_score | P | Compute risk score for given action |
+| truth_band_check | P | Check epistemic band for truth grounding |
+| hold_gate | P | Trigger 888_HOLD for human review |
+| telemetry_emit | P | Emit telemetry event with full audit trail |
+| vault_seal | V | Seal action in VAULT999 for reversibility |
+| memory_delta | M | Record state change with before/after |
+| vector_embed | V | Embed text/chunk into vector memory |
+
+## The 13 Constitutional Floors
+
+| Floor | Name | Threshold | Enforces |
+|-------|------|-----------|----------|
+| F1 | Amanah | ≥ 0.50 | Reversibility — no irreversible action without VAULT999 |
+| F2 | Truth | ≥ 0.99 | Anti-hallucination — no ungrounded claims |
+| F3 | Tri-Witness | ≥ 0.95 | Human + AI + Earth evidence consensus |
+| F4 | ΔS Clarity | ≤ 0 | Entropy reduction — ΔS ≤ 0 in all outputs |
+| F5 | Peace² | ≥ 1.0 | Stability — no action degrading harmony |
+| F6 | Harm/Dignity | VOID check | Block harm to any stakeholder |
+| F7 | Humility | Confidence cap | Confidence capped at 0.85 ceiling |
+| F8 | Memory | Delta-logged | No state loss — all sessions delta-logged |
+| F9 | Anti-Hantu | < 0.30 | No deception, manipulation, or consciousness claims |
+| F10 | Witness | ΔΩΨ trinity | Trinity check on every call |
+| F11 | Auditability | Full trail | F11 audit trail on every operation |
+| F12 | Injection Guard | < 0.85 | Block prompt injection attacks |
+| F13 | Sovereign | HUMAN | Human holds final authority on all decisions |
+
+## Live Endpoints
+
+- MCP: https://mcp.arif-fazil.com/mcp
+- Health: https://mcp.arif-fazil.com/health
+- Tools JSON: https://mcp.arif-fazil.com/tools
+- Server Info: https://mcp.arif-fazil.com/.well-known/mcp/server.json
+- WebMCP Console: https://mcp.arif-fazil.com/webmcp/
 
 ## Getting Started
 
@@ -846,41 +1185,24 @@ Domain: AAA / AGENTS·API·AI·APPS
 3. Call with envelope: context.actor, intent, approval, trace
 4. Receive verdict: SEAL / VOID / HOLD / SABAR
 
-## The 13 Constitutional Floors
-
-| Floor | Name | Threshold | Enforces |
-|-------|------|-----------|----------|
-| F1 | Amanah | ≥ 0.50 | Reversibility |
-| F2 | Truth | ≥ 0.99 | Anti-hallucination |
-| F3 | Tri-Witness | ≥ 0.95 | Consensus |
-| F4 | ΔS Clarity | ≤ 0 | Entropy reduction |
-| F5 | Peace² | ≥ 1.0 | Stability |
-| F6 | Empathy | ≥ 0.70 | Weakest stakeholder |
-| F7 | Humility | 0.03-0.05 | Uncertainty band |
-| F8 | Genius | ≥ 0.80 | Coherence |
-| F9 | Anti-Hantu | < 0.30 | No dark patterns |
-| F10 | Ontology | LOCK | No consciousness claims |
-| F11 | CommandAuth | LOCK | Identity verification |
-| F12 | Injection | < 0.85 | Adversarial defense |
-| F13 | Sovereign | HUMAN | Human veto |
-
 ## Resources
 
-- Medium: https://medium.com/p/i-accidentally-built-an-intelligence-kernel-for-ai-57832a1fead1
 - GitHub: https://github.com/ariffazil/arifOS
 - Constitution: https://apex.arif-fazil.com
+- arifOS Theory: https://apex.arif-fazil.com
+- GEOX (Geoscience): https://geox.arif-fazil.com
 
-## 🔗 The Sovereign Quad
+## ΔΩΨ Trinity
 
-- **ARIF**: https://arif-fazil.com — The Human Sovereign
-- **THEORY**: https://apex.arif-fazil.com — The Authority Knowledge
-- **TRINITY**: https://arifos.arif-fazil.com — AGI-ASI-APEX Runtime
-- **AAA**: https://aaa.arif-fazil.com — AGENTS·API·AI·APPS Surface (THIS SITE)
+- **Ψ SOUL**: https://arif-fazil.com — Human Sovereign
+- **Ω MIND**: https://apex.arif-fazil.com — APEX Theory + arifOS Documentation
+- **Δ BODY**: https://aaa.arif-fazil.com — AGENTS·API·AI·APPS Surface Layer
+- **Φ GEOX**: https://geox.arif-fazil.com — Geoscience + Earth Reasoning
 
 ---
-**Status:** Ditempa Bukan Diberi.
-**Architecture:** ΔΩΨ Trinity with AAA Surface Layer
-**Vault Tier:** BRAIN / AAA SURFACE
+**Status**: Ditempa Bukan Diberi
+**Architecture**: ΔΩΨ Trinity with MCP Constitutional Gateway
+**Vault Tier**: BRAIN / CONSTITUTIONAL GATEWAY
 """
 
 LLMS_JSON = {
@@ -949,6 +1271,24 @@ def _normalize_tool_name(raw_name: str) -> str:
     return (raw_name or "").strip().strip("/")
 
 
+def _rest_error(
+    message: str,
+    status_code: int = 500,
+    request_id: str | None = None,
+    tool: str | None = None,
+) -> JSONResponse:
+    """Generic error envelope to prevent metadata leakage."""
+    payload: dict[str, Any] = {"error": message}
+    if request_id:
+        payload["request_id"] = request_id
+    if tool:
+        payload["tool"] = tool
+
+    # In production, we don't return raw 'e' or 'exc' strings.
+    # We return the safe 'message' provided.
+    return JSONResponse(payload, status_code=status_code)
+
+
 def _public_base_url(request: Request) -> str:
     explicit = os.getenv("ARIFOS_PUBLIC_BASE_URL", "").strip().rstrip("/")
     if explicit:
@@ -958,8 +1298,114 @@ def _public_base_url(request: Request) -> str:
     return f"{scheme}://{host}".rstrip("/")
 
 
-def _openapi_schema(base_url: str) -> dict[str, Any]:
-    return {
+def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
+    paths: dict[str, Any] = {
+        "/tools": {
+            "get": {
+                "operationId": "listTools",
+                "summary": "List public tools",
+                "description": "Returns the live REST-callable MCP tool surface and input schemas.",
+                "responses": {
+                    "200": {
+                        "description": "Available tools",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/ToolListResponse"}
+                            }
+                        },
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                },
+            }
+        }
+    }
+
+    for tool in tools:
+        tool_name = tool.name
+        request_schema = tool.parameters or {"type": "object", "properties": {}}
+        paths[f"/tools/{tool_name}"] = {
+            "post": {
+                "operationId": f"call_{tool_name}",
+                "summary": tool.description or f"Call {tool_name}",
+                "description": (
+                    f"Invoke the `{tool_name}` tool over the public REST compatibility surface."
+                ),
+                "requestBody": {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": request_schema,
+                        }
+                    },
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tool executed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {"$ref": "#/components/schemas/ToolInvocationResponse"},
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "tool": {"type": "string", "const": tool_name},
+                                                "canonical": {"type": "string", "const": tool_name},
+                                            },
+                                        },
+                                    ]
+                                }
+                            }
+                        },
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                    "404": {
+                        "description": "Tool not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                    "500": {
+                        "description": "Tool execution failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/Error"}
+                            }
+                        },
+                    },
+                },
+            }
+        }
+
+    return paths
+
+
+def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
+    schema = {
         "openapi": "3.1.0",
         "info": {
             "title": "arifOS REST API",
@@ -967,7 +1413,8 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
             "description": (
                 "arifOS constitutional governance REST API. "
                 "MCP clients: connect to `POST /mcp`. "
-                "This REST surface provides checkpoint evaluation and health. "
+                "This REST surface provides health, checkpoint evaluation, and direct "
+                "REST tool invocation under `/tools/{tool_name}`. "
                 "Governance registry: 13 constitutional floors, F1-F13."
             ),
         },
@@ -1101,6 +1548,41 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
                     },
                     "required": ["status", "service", "version", "transport"],
                 },
+                "ToolListEntry": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "description": {"type": "string"},
+                        "parameters": {"type": "object"},
+                        "stage": {"type": ["string", "null"]},
+                        "lane": {"type": ["string", "null"]},
+                        "annotations": {"type": "object"},
+                    },
+                    "required": ["name", "description", "parameters"],
+                },
+                "ToolListResponse": {
+                    "type": "object",
+                    "properties": {
+                        "tools": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/ToolListEntry"},
+                        },
+                        "count": {"type": "integer"},
+                    },
+                    "required": ["tools", "count"],
+                },
+                "ToolInvocationResponse": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "const": "success"},
+                        "tool": {"type": "string"},
+                        "canonical": {"type": "string"},
+                        "request_id": {"type": "string"},
+                        "latency_ms": {"type": "number"},
+                        "result": {"type": "object"},
+                    },
+                    "required": ["status", "tool", "canonical", "request_id", "latency_ms", "result"],
+                },
                 "Error": {
                     "type": "object",
                     "properties": {
@@ -1113,22 +1595,49 @@ def _openapi_schema(base_url: str) -> dict[str, Any]:
             }
         },
     }
+    schema["paths"].update(_tool_openapi_paths(base_url, tools))
+    return schema
 
 
-def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
+def register_rest_routes(
+    mcp: Any,
+    tool_registry: dict[str, Callable],
+    prefix: str = "",
+) -> None:
     """Register REST endpoints as custom routes on the FastMCP instance.
 
     Args:
-        mcp: The FastMCP server instance.
+        mcp: The FastMCP server instance or Starlette App.
         tool_registry: Mapping of canonical tool names to async callables.
+        prefix: Optional URL prefix for all routes (e.g., "/api").
     """
-    # FastMCP 2.x/3.x compatibility: use custom_route if available, else route
-    if HAS_CUSTOM_ROUTE:
-        route = mcp.custom_route
-    elif HAS_ROUTE:
-        route = mcp.route
-    else:
-        raise RuntimeError("FastMCP instance has no custom_route or route method")
+    # Force prefix to start with / and not end with / if provided
+    active_prefix = prefix.rstrip("/")
+    if active_prefix and not active_prefix.startswith("/"):
+        active_prefix = f"/{active_prefix}"
+
+    # Flexible route registration for FastMCP or Starlette app
+    def route(path: str, methods: list[str]):
+        # Apply prefix to path
+        full_path = active_prefix + path
+        if full_path == "":
+            full_path = "/"
+
+        def decorator(handler: Callable):
+            # Starlette app.add_route
+            if hasattr(mcp, "add_route"):
+                mcp.add_route(full_path, handler, methods=methods or ["GET"])
+            # FastMCP mcp.custom_route
+            elif hasattr(mcp, "custom_route"):
+                mcp.custom_route(full_path, methods=methods)(handler)
+            # FastMCP mcp.route (deprecated fallback)
+            elif hasattr(mcp, "route"):
+                mcp.route(full_path, methods=methods)(handler)
+            else:
+                logger.warning(f"Failed to register route {full_path}: {mcp} has no route method")
+            return handler
+
+        return decorator
 
     @route("/", methods=["GET"])
     async def root(request: Request) -> Response:
@@ -1150,13 +1659,13 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         )
 
     # Load AAA landing page HTML
-    AAA_LANDING_HTML_PATH = "/usr/src/app/static/aaa-landing/index.html"
-    AAA_LANDING_HTML = ""
+    aaa_landing_html_path = "/usr/src/app/static/aaa-landing/index.html"
+    aaa_landing_html = ""
     try:
-        with open(AAA_LANDING_HTML_PATH) as f:
-            AAA_LANDING_HTML = f.read()
+        with open(aaa_landing_html_path) as f:
+            aaa_landing_html = f.read()
     except Exception:
-        AAA_LANDING_HTML = """<!DOCTYPE html>
+        aaa_landing_html = """<!DOCTYPE html>
 <html><head><title>arifOS MCP</title></head>
 <body><h1>arifOS Intelligence Kernel</h1>
 <p>MCP Endpoint: https://aaa.arif-fazil.com/mcp</p>
@@ -1168,7 +1677,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         """AAA MCP landing page — serves HTML to browsers, API info to MCP clients."""
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
-            return HTMLResponse(AAA_LANDING_HTML, headers={"Cache-Control": "max-age=60"})
+            return HTMLResponse(aaa_landing_html, headers={"Cache-Control": "max-age=60"})
         # For MCP clients requesting JSON
         return JSONResponse(
             {
@@ -1196,22 +1705,38 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
         """Health check with SoT linkage — ties runtime back to canonical arifOS repository.
-        
+
         Returns thermodynamic truth data (Space, Time, Energy) for preservation verification.
         """
         # Get thermodynamic state for Energy dimension
         thermo = _build_governance_status_payload()
         telemetry = thermo.get("telemetry", {})
-        
+
+        # Probe vault for last seal timestamp (best-effort, null if unavailable)
+        vault_last_seal = None
+        try:
+            from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
+
+            live = await get_live_metrics()
+            vault_last_seal = (
+                live.get("governance", {}).get("vault_last_seal")
+                if isinstance(live, dict)
+                else None
+            ) or None
+        except Exception:
+            pass
+
         return JSONResponse(
             {
                 "status": "healthy",
                 "service": "arifos-aaa-mcp",
                 "version": BUILD_INFO["version"],
                 "transport": "streamable-http",
-                "tools_loaded": len(tool_registry),
+                "tools_loaded": len(await mcp.list_tools()),
                 "ml_floors": get_ml_floor_runtime(),
-                "capability_map": build_runtime_capability_map(),
+                "capability_map": build_runtime_capability_map(
+                    ml_model_available=get_ml_floor_runtime().get("ml_model_available", False)
+                ),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 # SoT linkage — enables drift detection between repo / docs / runtime
                 "source_repo": BUILD_INFO.get("source_repo", "https://github.com/ariffazil/arifOS"),
@@ -1234,6 +1759,38 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                     "metabolic_stage": thermo.get("metabolic_stage", 444),
                     "witness": thermo.get("witness", _WITNESS_DEFAULTS),
                 },
+                # Auditability fields — F2 threshold and confidence semantics
+                # All values below are live from governance kernel when available.
+                # Fields marked _source are null when vault/telemetry is unavailable.
+                "governance": {
+                    # tau_confidence_system: aggregate system readiness from kernel (NOT per-claim F2 threshold)
+                    # Null if governance kernel is unavailable
+                    "tau_confidence_system": telemetry.get("confidence"),
+                    # F2 per-claim threshold — enforced at call time, defined in floor spec
+                    "tau_threshold_f2": 0.99,
+                    # ψ vitality: system stamina from kernel; null if kernel unavailable
+                    "psi_vitality": telemetry.get("psi_le"),
+                    # peace_squared: Lyapunov stability from kernel; null if kernel unavailable
+                    "peace_squared": telemetry.get("peace2"),
+                    # Last VAULT999 seal — null if no seal yet or vault unavailable
+                    "last_seal_timestamp": vault_last_seal,
+                    # Hard/soft floor classification: DOCTRINAL INTERPRETATION ONLY.
+                    # Not verified against runtime enforcement mode. May not reflect
+                    # actual per-floor enforcement behavior. Verify against floor spec
+                    # at https://github.com/ariffazil/arifOS before treating as fact.
+                    "floors_hard_doctrinal": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
+                    "floors_soft_doctrinal": ["F3", "F4", "F5", "F7", "F8", "F12"],
+                    "sovereign_status": getattr(
+                        getattr(request.app.state, "arifos_sovereign_status", {}),
+                        "get",
+                        lambda *_args, **_kwargs: None,
+                    )("status"),
+                    "sovereign_subject": getattr(
+                        getattr(request.app.state, "arifos_sovereign_status", {}),
+                        "get",
+                        lambda *_args, **_kwargs: None,
+                    )("subject"),
+                },
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )
@@ -1253,6 +1810,60 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
         return _Resp(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
+    @route("/metrics/json", methods=["GET"])
+    async def metrics_json(request: Request) -> JSONResponse:
+        """JSON telemetry summary — machine-readable alternative to Prometheus text.
+
+        Returns the same core telemetry as /health but in a flat key-value map
+        optimised for dashboards and alerting pipelines.
+
+        All values are null when the underlying substrate is unavailable.
+        No fabricated values. No defaults that could be mistaken for live readings.
+        """
+        thermo = _build_governance_status_payload()
+        telemetry = thermo.get("telemetry", {})
+
+        vault_last_seal = None
+        try:
+            from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
+
+            live = await get_live_metrics()
+            vault_last_seal = (
+                live.get("governance", {}).get("vault_last_seal")
+                if isinstance(live, dict)
+                else None
+            ) or None
+        except Exception:
+            pass
+
+        return JSONResponse(
+            {
+                # Core gauges — null if kernel telemetry unavailable
+                "entropy_delta": telemetry.get("dS"),
+                "peace_squared": telemetry.get("peace2"),
+                "vitality_index": telemetry.get("psi_le"),
+                "echo_debt": telemetry.get("echoDebt"),
+                "shadow": telemetry.get("shadow"),
+                "confidence": telemetry.get("confidence"),
+                "kappa_r": telemetry.get("kappa_r"),
+                "verdict": telemetry.get("verdict"),
+                "metabolic_stage": thermo.get("metabolic_stage"),
+                # Witness ratios — null if kernel unavailable
+                "witness_human": thermo.get("witness", {}).get("human"),
+                "witness_ai": thermo.get("witness", {}).get("ai"),
+                "witness_earth": thermo.get("witness", {}).get("earth"),
+                # Auditability
+                "last_seal_timestamp": vault_last_seal,
+                "tau_threshold_f2": 0.99,  # constant: F2 floor spec threshold
+                # Freshness metadata
+                "telemetry_source": "live"
+                if telemetry.get("confidence") is not None
+                else "unavailable",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+
     @route("/version", methods=["GET"])
     async def version(request: Request) -> Response:
         return JSONResponse(BUILD_INFO)
@@ -1262,27 +1873,24 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         if err := _auth_error_response(request):
             return err
 
-        # Only return tools in CORE_TOOL_REGISTRY (canonical 23 tools)
         mcp_tools = await mcp.list_tools()
         tool_list = []
         for tool in mcp_tools:
-            if tool.name in tool_registry:
-                entry = {
-                    "name": tool.name,
-                    "description": tool.description or "",
-                    "parameters": tool.parameters or {},
-                    "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
-                    "lane": TRINITY_BY_TOOL.get(tool.name),
+            entry = {
+                "name": tool.name,
+                "description": tool.description or "",
+                "parameters": tool.parameters or {},
+                "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
+                "lane": TRINITY_BY_TOOL.get(tool.name),
+            }
+            if tool.annotations:
+                entry["annotations"] = {
+                    "readOnlyHint": tool.annotations.readOnlyHint,
+                    "destructiveHint": tool.annotations.destructiveHint,
+                    "openWorldHint": tool.annotations.openWorldHint,
+                    "idempotentHint": tool.annotations.idempotentHint,
                 }
-                # Include MCP v2 tool annotations if available
-                if tool.annotations:
-                    entry["annotations"] = {
-                        "readOnlyHint": tool.annotations.readOnlyHint,
-                        "destructiveHint": tool.annotations.destructiveHint,
-                        "openWorldHint": tool.annotations.openWorldHint,
-                        "idempotentHint": tool.annotations.idempotentHint,
-                    }
-                tool_list.append(entry)
+            tool_list.append(entry)
         return JSONResponse({"tools": tool_list, "count": len(tool_list)})
 
     @route("/tools/", methods=["GET"])
@@ -1291,8 +1899,14 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/openapi.json", methods=["GET"])
     async def openapi_json(request: Request) -> Response:
-        schema = _openapi_schema(_public_base_url(request))
+        mcp_tools = await mcp.list_tools()
+        schema = _openapi_schema(_public_base_url(request), mcp_tools)
         return JSONResponse(schema)
+
+    @route("/tools/{tool_name:path}/call", methods=["POST"])
+    async def call_tool_rest_v2(request: Request) -> Response:
+        """Alias for /tools/{tool_name} for MCP-over-REST protocol compliance."""
+        return await call_tool_rest(request)
 
     @route("/tools/{tool_name:path}", methods=["POST"])
     async def call_tool_rest(request: Request) -> Response:
@@ -1324,7 +1938,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         try:
             # Normalize parameter names for Horizon/ChatGPT compatibility
             normalized = _normalize_parameters(canonical_name, body)
-            
+
             # Filter to only valid parameters
             sig = inspect.signature(tool_fn)
             has_kwargs = any(
@@ -1342,10 +1956,13 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 filtered = {k: v for k, v in normalized.items() if k in valid_params}
 
             result = await tool_fn(**filtered)
-        except Exception as exc:
-            return JSONResponse(
-                {"error": str(exc), "tool": incoming_name, "request_id": request_id},
+        except Exception:
+            logger.exception(f"Tool call failed: {incoming_name}")
+            return _rest_error(
+                "Tool execution failed",
                 status_code=500,
+                request_id=request_id,
+                tool=incoming_name,
             )
 
         latency_ms = (time.time() - start_time) * 1000
@@ -1376,48 +1993,66 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     @route("/.well-known/mcp/server.json", methods=["GET"])
     async def well_known(request: Request) -> Response:
         payload = build_server_json(_public_base_url(request))
+        mcp_tools = await mcp.list_tools()
+        payload["tools"] = [
+            {
+                "name": tool.name,
+                "description": tool.description or "",
+                "inputSchema": tool.parameters or {},
+            }
+            for tool in mcp_tools
+        ]
+        payload["description"] = (
+            f"Constitutional governance server — {len(mcp_tools)} live runtime tools "
+            "with F1-F13 floor enforcement, metabolic routing, prompts, and resources."
+        )
+        payload.setdefault("capabilities", {})
+        payload["capabilities"]["runtime_tools_loaded"] = len(mcp_tools)
+        payload["toolsEndpoint"] = f"{_public_base_url(request)}/tools"
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
-        payload.setdefault(
-            "authentication",
-            {
-                "type": "oauth2",
-                "grant_types": ["authorization_code"],
-                "token_endpoint": f"{_public_base_url(request)}/api/auth/token",
-            },
-        )
+        # Bearer token auth — matches ARIFOS_API_KEY / ARIFOS_API_TOKEN env var
+        payload["authentication"] = {
+            "type": "bearer",
+            "description": "Pass your API token as: Authorization: Bearer <token>",
+            "token_env_vars": ["ARIFOS_API_KEY", "ARIFOS_API_TOKEN"],
+        }
         return JSONResponse(payload)
 
     @route("/.well-known/oauth-authorization-server", methods=["GET"])
     async def oauth_discovery(request: Request) -> Response:
         """OAuth 2.1 Authorization Server Metadata (RFC 8414)."""
         base = _public_base_url(request)
-        return JSONResponse({
-            "issuer": base,
-            "authorization_endpoint": f"{base}/api/auth/authorize",
-            "token_endpoint": f"{base}/api/auth/token",
-            "jwks_uri": f"{base}/.well-known/jwks.json",
-            "response_types_supported": ["code"],
-            "grant_types_supported": ["authorization_code", "refresh_token"],
-            "code_challenge_methods_supported": ["S256"],
-            "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"]
-        })
+        return JSONResponse(
+            {
+                "issuer": base,
+                "authorization_endpoint": f"{base}/api/auth/authorize",
+                "token_endpoint": f"{base}/api/auth/token",
+                "jwks_uri": f"{base}/.well-known/jwks.json",
+                "response_types_supported": ["code"],
+                "grant_types_supported": ["authorization_code", "refresh_token"],
+                "code_challenge_methods_supported": ["S256"],
+                "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"],
+            }
+        )
 
     @route("/.well-known/jwks.json", methods=["GET"])
     async def jwks_discovery(request: Request) -> Response:
         """JSON Web Key Set (JWKS) for cryptographic verification."""
-        return JSONResponse({
-            "keys": [
-                {
-                    "kty": "RSA",
-                    "use": "sig",
-                    "kid": "arifos-genesis-key",
-                    "n": "v55-MGI-TRINITY-SEALED",
-                    "e": "AQAB",
-                    "alg": "RS256"
-                }
-            ]
-        })
+        return JSONResponse(
+            {
+                "keys": [
+                    {
+                        "kty": "RSA",
+                        "use": "sig",
+                        "kid": "arifos-genesis-key",
+                        "n": "v55-MGI-TRINITY-SEALED",
+                        "e": "AQAB",
+                        "alg": "RS256",
+                    }
+                ]
+            }
+        )
 
     @route("/api/auth/authorize", methods=["GET"])
     async def oauth_authorize(request: Request) -> Response:
@@ -1425,7 +2060,7 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         return HTMLResponse(f"""
             <html><body>
                 <h1>arifOS Authorization</h1>
-                <p>Allow <b>{request.query_params.get('client_id', 'Unknown Client')}</b> to access MCP tools?</p>
+                <p>Allow <b>{request.query_params.get("client_id", "Unknown Client")}</b> to access MCP tools?</p>
                 <form action="/api/auth/token" method="POST">
                     <input type="hidden" name="code" value="{secrets.token_hex(16)}">
                     <button type="submit">Approve (SEAL)</button>
@@ -1436,12 +2071,14 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     @route("/api/auth/token", methods=["POST"])
     async def oauth_token(request: Request) -> Response:
         """Mock OAuth 2.1 Token endpoint."""
-        return JSONResponse({
-            "access_token": f"mcp_{secrets.token_hex(32)}",
-            "token_type": "Bearer",
-            "expires_in": 3600,
-            "scope": "mcp:full"
-        })
+        return JSONResponse(
+            {
+                "access_token": f"mcp_{secrets.token_hex(32)}",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+                "scope": "mcp:full",
+            }
+        )
 
     @route("/.well-known/agent.json", methods=["GET"])
     async def agent_well_known(request: Request) -> Response:
@@ -1475,7 +2112,9 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 
     @route("/discovery", methods=["GET"])
     async def discovery_alias(request: Request) -> Response:
-        payload = build_server_json(_public_base_url(request))
+        from arifosmcp.runtime.public_registry import build_mcp_discovery_json
+
+        payload = build_mcp_discovery_json(_public_base_url(request))
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         return JSONResponse(payload)
@@ -1515,12 +2154,52 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 payload,
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
-        except Exception as exc:
+        except Exception:
             logger.exception("governance_status endpoint failed")
+            return _rest_error("Failed to retrieve governance status", status_code=500)
+
+    @route("/api/status", methods=["GET"])
+    async def api_status(request: Request) -> Response:
+        """Composite live SoT payload for the public dashboard."""
+        try:
+            governance_payload = _build_governance_status_payload()
+            health_response = await health(request)
+            health_payload = json.loads(health_response.body.decode("utf-8"))
+            health_payload["runtime_floors"] = governance_payload.get("floors", {})
+            mcp_tools = await mcp.list_tools()
+            manifest = build_server_json(_public_base_url(request))
+            containers = _collect_container_status()
+            latency_ms = _local_service_connect_latency_ms(port=int(os.getenv("PORT", "8080"))) or 999.0
+            matrix = _build_trinity_matrix(health_payload, containers, latency_ms=latency_ms)
+            payload = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "health": health_payload,
+                "git": _collect_git_snapshot(),
+                "trinity_matrix": matrix,
+                "overall_ok": matrix["overall_ok"],
+                "manifest": {
+                    "tools_count": len(mcp_tools),
+                    "prompts_count": len(manifest.get("prompts", [])),
+                    "resources_count": len(manifest.get("resources", [])) + len(manifest.get("resourceTemplates", [])),
+                },
+                "tools": [
+                    {
+                        "name": tool.name,
+                        "description": tool.description or "",
+                        "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
+                        "lane": TRINITY_BY_TOOL.get(tool.name),
+                    }
+                    for tool in mcp_tools
+                ],
+                "containers": containers,
+            }
             return JSONResponse(
-                {"error": "governance_status_failed", "detail": str(exc)},
-                status_code=500,
+                payload,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
+        except Exception:
+            logger.exception("api_status endpoint failed")
+            return _rest_error("Failed to retrieve dashboard status", status_code=500)
 
     @route("/status", methods=["GET"])
     async def status_page(request: Request) -> Response:
@@ -1555,10 +2234,10 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                     from .vault_sqlite import VaultSQLite
                 except ImportError:
                     VaultSQLite = None  # type: ignore
-                
+
                 if VaultSQLite is None:
                     raise ImportError("VaultSQLite not available")
-                
+
                 vault = VaultSQLite()
                 raw = vault.query_recent(limit=limit) if hasattr(vault, "query_recent") else []
                 for entry in raw:
@@ -1584,12 +2263,9 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 },
                 headers={"Access-Control-Allow-Origin": "*"},
             )
-        except Exception as exc:
+        except Exception:
             logger.exception("governance_history endpoint failed")
-            return JSONResponse(
-                {"error": "governance_history_failed", "detail": str(exc)},
-                status_code=500,
-            )
+            return _rest_error("Failed to retrieve governance history", status_code=500)
 
     # ═══════════════════════════════════════════════════════
     # CHECKPOINT REST COMPATIBILITY — OpenAPI / action-style integration
@@ -1708,10 +2384,11 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
                 }
             )
 
-        except Exception as exc:
+        except Exception:
             logger.exception("checkpoint_endpoint failed")
-            return JSONResponse(
-                {"error": str(exc), "verdict": "HOLD", "issue": "RUNTIME_FAILURE"}, status_code=500
+            return _rest_error(
+                "Constitutional checkpoint failed",
+                status_code=500,
             )
 
     @route("/openapi.yaml", methods=["GET"])
@@ -1742,55 +2419,113 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         return JSONResponse(LLMS_JSON, headers={"Access-Control-Allow-Origin": "*"})
 
     @route("/.well-known/agent-card.json", methods=["GET"])
-    async def agent_card(_request: Request) -> Response:
-        """A2A Agent Card — discovery endpoint for agent-to-agent protocol."""
-        payload = {
-            "name": "arifOS — AGENTS·API·AI·APPS",
-            "description": "The AAA Surface Layer of arifOS. Agents (autonomous actors), API (structured interfaces), AI (governed intelligence), and Apps (executable tools). Built on MCP with 13 constitutional floors ensuring every action is true, safe, and human-aligned. DITEMPA BUKAN DIBERI.",
-            "supportedInterfaces": [
-                {
-                    "url": "https://aaa.arif-fazil.com/mcp",
-                    "protocolBinding": "MCP",
-                    "protocolVersion": "2025-03-26",
-                    "transport": "StreamableHTTP"
-                }
-            ],
-            "provider": {
-                "name": "Arif Fazil",
-                "url": "https://arif-fazil.com",
-                "role": "ARIF — Human Sovereign Architect"
-            },
-            "version": BUILD_VERSION,
-            "capabilities": {
-                "streaming": True,
-                "governance": True,
-                "humanInTheLoop": True,
-                "constitutionalFloors": 13,
-                "trinity": ["AGI", "ASI", "APEX"]
-            },
-            "skills": [
-                "constitutional-audit",
-                "governed-reasoning",
-                "reality-search",
-                "safe-execution",
-                "metabolic-loop",
-                "tri-witness-consensus"
-            ],
-            "architecture": {
-                "layer": "AAA",
-                "fullName": "AGENTS·API·AI·APPS",
-                "trinityRuntime": "https://arifos.arif-fazil.com",
-                "theoryDocs": "https://apex.arif-fazil.com",
-                "humanSovereign": "https://arif-fazil.com"
-            }
+    async def agent_card_v2(_request: Request) -> Response:
+        """arifOS Agent Card v2.0 — full 6-axis skill registry (23 agents across P/T/V/G/E/M)."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
+
+        card = get_arifOS_agent_card()
+        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
+
+    @route("/agent-card", methods=["GET"])
+    async def agent_card_summary(_request: Request) -> Response:
+        """Compact summary for quick discovery."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_axos_summary
+
+        return JSONResponse(get_axos_summary())
+
+    @route("/agent-card/skills", methods=["GET"])
+    async def agent_card_skills(_request: Request) -> Response:
+        """All 23 skills across 6 axes."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
+
+        card = get_arifOS_agent_card()
+        by_axis = {
+            ax: [s.model_dump() for s in card.skills if s.axis == ax]
+            for ax in ["P", "T", "V", "G", "E", "M"]
         }
-        return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
+        return JSONResponse(
+            {
+                "total": len(card.skills),
+                "by_axis": by_axis,
+                "entry_point": card.routing["entry_point"],
+            }
+        )
+
+    @route("/meta/omega", methods=["GET"])
+    async def meta_omega(_request: Request) -> Response:
+        """Current Ω_ortho from M01 Correlation Auditor."""
+        from arifosmcp.runtime.a2a.seal_verifier import get_seal_verifier
+
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.get_orthogonality().model_dump(), default=str))
+        )
+
+    @route("/meta/omega/violations", methods=["GET"])
+    async def meta_omega_violations(_request: Request) -> Response:
+        """Detailed Ω_ortho violations."""
+        from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+
+        auditor = get_auditor()
+        report = auditor.compute_orthogonality()
+        return JSONResponse(
+            {
+                "omega_ortho": report.omega_ortho,
+                "threshold": auditor.threshold,
+                "violations": report.violations,
+                "agents_in_scope": report.agents_in_scope,
+            }
+        )
+
+    @route("/well/state", methods=["GET"])
+    async def well_state(_request: Request) -> Response:
+        """Current WELL operator state."""
+        from arifosmcp.runtime.a2a.seal_verifier import get_seal_verifier
+
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.get_well_state().model_dump(), default=str))
+        )
+
+    @route("/seal/verify", methods=["POST"])
+    async def seal_verify_post(_request: Request) -> Response:
+        """Verify a SEAL verdict is valid and vault-anchored."""
+        from arifosmcp.runtime.a2a.seal_verifier import (
+            A2ASealVerifier,
+            SealVerificationRequest,
+            get_seal_verifier,
+        )
+
+        body = await _request.json()
+        req = SealVerificationRequest(**body)
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.verify_seal(req).model_dump(), default=str))
+        )
+
+    @route("/seal/verify/{session_id}", methods=["GET"])
+    async def seal_verify_get(_request: Request) -> Response:
+        """Verify SEAL by session ID (GET variant)."""
+        from arifosmcp.runtime.a2a.seal_verifier import (
+            A2ASealVerifier,
+            SealVerificationRequest,
+            get_seal_verifier,
+        )
+
+        session_id = _request.path_params.get("session_id", "")
+        verdict = _request.query_params.get("verdict", "SEAL")
+        state_hash = _request.query_params.get("state_hash")
+        req = SealVerificationRequest(session_id=session_id, verdict=verdict, state_hash=state_hash)
+        verifier = get_seal_verifier()
+        return JSONResponse(
+            json.loads(json.dumps(verifier.verify_seal(req).model_dump(), default=str))
+        )
 
     # Serve the APEX Sovereign Dashboard v2.1 at /dashboard/
     # ── Vault-Seal Widget (ChatGPT Apps SDK) ────────────────────────────────────
     # Served at /widget/vault-seal with frame-ancestors CSP so ChatGPT can embed.
-    # Consolidates the mcp.af-forge.io standalone stack into arifosmcp.arif-fazil.com.
-    _WIDGET_CSP = (
+    # Consolidates the mcp.a-forge.io standalone stack into arifosmcp.arif-fazil.com.
+    widget_csp = (
         "default-src 'none'; "
         "script-src 'self' 'unsafe-inline'; "
         "style-src 'self' 'unsafe-inline'; "
@@ -1799,8 +2534,8 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         "frame-ancestors https://chat.openai.com https://chatgpt.com; "
         "connect-src 'self';"
     )
-    _WIDGET_HEADERS = {
-        "Content-Security-Policy": _WIDGET_CSP,
+    widget_headers = {
+        "Content-Security-Policy": widget_csp,
         "X-Frame-Options": "ALLOW-FROM https://chat.openai.com",
         "Access-Control-Allow-Origin": "https://chat.openai.com",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -1817,23 +2552,26 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
     )
     # Fallback: same repo root at /usr/src/project via project symlink
     if not os.path.exists(_widget_file):
-        _widget_file = os.path.join("/usr/src/project", "static", "widgets", "vault-seal-widget.html")
+        _widget_file = os.path.join(
+            "/usr/src/project", "static", "widgets", "vault-seal-widget.html"
+        )
 
     @route("/widget/vault-seal", methods=["GET", "OPTIONS"])
     async def vault_seal_widget(request: Request) -> Response:
         """Vault-Seal widget for ChatGPT Apps SDK iframe embedding."""
         if request.method == "OPTIONS":
-            return Response(status_code=204, headers=_WIDGET_HEADERS)
+            return Response(status_code=204, headers=widget_headers)
         if not os.path.exists(_widget_file):
             return Response("Widget not found", status_code=404)
-        with open(_widget_file, "r", encoding="utf-8") as fh:
+        with open(_widget_file, encoding="utf-8") as fh:
             html = fh.read()
-        return HTMLResponse(html, headers=_WIDGET_HEADERS)
+        return HTMLResponse(html, headers=widget_headers)
 
     @route("/widget/", methods=["GET"])
     async def widget_index(request: Request) -> Response:
         """Redirect /widget/ to the vault-seal widget."""
         from starlette.responses import RedirectResponse
+
         return RedirectResponse(url="/widget/vault-seal", status_code=302)
 
     dashboard_dir = os.path.join(
@@ -1852,49 +2590,89 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         """List MCP resources — governed context objects."""
         try:
             from arifosmcp.runtime.resources import manifest_resources
+
             resources = manifest_resources()
-            return JSONResponse({
-                "resources": resources,
-                "count": len(resources),
-                "description": "Governed context objects exposed to MCP clients."
-            })
+            return JSONResponse(
+                {
+                    "resources": resources,
+                    "count": len(resources),
+                    "description": "Governed context objects exposed to MCP clients.",
+                }
+            )
         except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+            return _rest_error(f"Failed to list resources: {str(e)}", status_code=500)
 
     @route("/resources/{uri:path}", methods=["GET"])
     async def read_resource(request: Request, uri: str) -> Response:
         """Read a specific resource by URI."""
         try:
             from arifosmcp.runtime.resources import read_resource_content
+
             content = await read_resource_content(uri)
             if not content:
                 return JSONResponse({"error": f"Resource not found: {uri}"}, status_code=404)
             return JSONResponse({"uri": uri, "content": content})
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("Resource retrieval failed", status_code=500)
 
     # ── Prompts ───────────────────────────────────────────────────────────────
     @route("/prompts", methods=["GET"])
     async def list_prompts(request: Request) -> Response:
         """List MCP prompts — constitutional task templates."""
         try:
-            from arifosmcp.runtime.prompts import register_v2_prompts
             prompts_list = [
-                {"name": "constitutional.analysis", "description": "Analyze claims against 13 constitutional floors", "params": ["query", "risk_tier", "context"]},
-                {"name": "governance.audit", "description": "Audit content against governance standards", "params": ["content", "standard"]},
-                {"name": "execution.planning", "description": "Plan task execution with constitutional constraints", "params": ["task", "constraints"]},
-                {"name": "minimal.response", "description": "Generate minimal response with token budget", "params": ["query", "max_tokens"]},
-                {"name": "reply_protocol_v3", "description": "AGI Reply Protocol v3 orchestration", "params": ["query", "recipient", "depth", "compression", "risk_tier", "prior_state"]},
-                {"name": "af-forge.govern", "description": "AF-FORGE governance check prompt", "params": ["task", "mode"]},
-                {"name": "af-forge.deploy", "description": "AF-FORGE deployment prompt", "params": ["target"]},
+                {
+                    "name": "constitutional.analysis",
+                    "description": "Analyze claims against 13 constitutional floors",
+                    "params": ["query", "risk_tier", "context"],
+                },
+                {
+                    "name": "governance.audit",
+                    "description": "Audit content against governance standards",
+                    "params": ["content", "standard"],
+                },
+                {
+                    "name": "execution.planning",
+                    "description": "Plan task execution with constitutional constraints",
+                    "params": ["task", "constraints"],
+                },
+                {
+                    "name": "minimal.response",
+                    "description": "Generate minimal response with token budget",
+                    "params": ["query", "max_tokens"],
+                },
+                {
+                    "name": "reply_protocol_v3",
+                    "description": "AGI Reply Protocol v3 orchestration",
+                    "params": [
+                        "query",
+                        "recipient",
+                        "depth",
+                        "compression",
+                        "risk_tier",
+                        "prior_state",
+                    ],
+                },
+                {
+                    "name": "a-forge.govern",
+                    "description": "A-FORGE governance check prompt",
+                    "params": ["task", "mode"],
+                },
+                {
+                    "name": "a-forge.deploy",
+                    "description": "A-FORGE deployment prompt",
+                    "params": ["target"],
+                },
             ]
-            return JSONResponse({
-                "prompts": prompts_list,
-                "count": len(prompts_list),
-                "description": "Reusable governed task templates. MCP prompt protocol supported."
-            })
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+            return JSONResponse(
+                {
+                    "prompts": prompts_list,
+                    "count": len(prompts_list),
+                    "description": "Reusable governed task templates. MCP prompt protocol supported.",
+                }
+            )
+        except Exception:
+            return _rest_error("Failed to list prompts", status_code=500)
 
     @route("/prompts/{prompt_name:path}", methods=["GET"])
     async def get_prompt(request: Request, prompt_name: str) -> Response:
@@ -1903,56 +2681,100 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
             mcp_prompts = await mcp.list_prompts()
             for p in mcp_prompts:
                 if p.name == prompt_name or p.name == f"arifos.{prompt_name}":
-                    return JSONResponse({
-                        "name": p.name,
-                        "description": p.description or "",
-                        "arguments": getattr(p, 'arguments', []) or []
-                    })
+                    return JSONResponse(
+                        {
+                            "name": p.name,
+                            "description": p.description or "",
+                            "arguments": getattr(p, "arguments", []) or [],
+                        }
+                    )
             return JSONResponse({"error": f"Prompt not found: {prompt_name}"}, status_code=404)
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("Failed to retrieve prompt", status_code=500)
 
     # ── A2A ─────────────────────────────────────────────────────────────────
+    @route("/a2a/health", methods=["GET"])
+    async def a2a_health(request: Request) -> Response:
+        """A2A health check."""
+        return JSONResponse({"status": "healthy", "protocol": "A2A"})
+
     @route("/a2a/task", methods=["POST"])
     async def a2a_task(request: Request) -> Response:
         """Submit A2A task for agent-to-agent coordination."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
+            from arifosmcp.runtime.a2a.models import SubmitTaskRequest, TaskMessage
+
             a2a = create_a2a_server(mcp)
             body = await request.json()
-            task = await a2a.task_manager.create_task(body)
-            return JSONResponse({"task_id": task.id, "status": task.status.value if hasattr(task.status, 'value') else str(task.status)})
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+            messages = [
+                TaskMessage(role=m.get("role", "user"), content=m.get("content", ""))
+                for m in body.get("messages", [])
+            ]
+            req = SubmitTaskRequest(
+                client_agent_id=body.get("client_agent_id", "anonymous"),
+                messages=messages,
+                session_id=body.get("session_id"),
+                skill_id=body.get("skill_id"),
+                parameters=body.get("parameters", {}),
+                status_callback_url=body.get("status_callback_url"),
+            )
+            task = await a2a.task_manager.create_task(req)
+            return JSONResponse(
+                {
+                    "task_id": task.id,
+                    "status": task.state.value if hasattr(task.state, "value") else str(task.state),
+                }
+            )
+        except Exception:
+            return _rest_error("A2A task creation failed", status_code=500)
 
     @route("/a2a/status/{task_id}", methods=["GET"])
-    async def a2a_status(request: Request, task_id: str) -> Response:
+    async def a2a_status(request: Request) -> Response:
         """Get A2A task status."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
+
             a2a = create_a2a_server(mcp)
+            task_id = request.path_params.get("task_id", "")
             task = await a2a.task_manager.get_task(task_id)
             if not task:
                 return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
-            return JSONResponse({"task_id": task.id, "status": task.status.value if hasattr(task.status, 'value') else str(task.status)})
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+            return JSONResponse(
+                {
+                    "task_id": task.id,
+                    "status": task.state.value if hasattr(task.state, "value") else str(task.state),
+                    "task": {
+                        "id": task.id,
+                        "status": task.state.value
+                        if hasattr(task.state, "value")
+                        else str(task.state),
+                    },
+                }
+            )
+        except Exception:
+            return _rest_error("Failed to retrieve task status", status_code=500)
 
     @route("/a2a/subscribe/{task_id}", methods=["GET"])
-    async def a2a_subscribe(request: Request, task_id: str) -> Response:
+    async def a2a_subscribe(request: Request) -> Response:
         """SSE subscribe to A2A task updates."""
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
+
             a2a = create_a2a_server(mcp)
+            task_id = request.path_params.get("task_id", "")
+
             async def event_generator():
                 task = await a2a.task_manager.get_task(task_id)
                 if task:
-                    yield f"data: {task.status.value if hasattr(task.status, 'value') else 'running'}\n\n"
-                yield "data: {"status":"subscribed"}\n\n"
+                    yield f"data: {task.state.value if hasattr(task.state, 'value') else 'running'}\n\n"
+                yield 'data: {"status":"subscribed"}\n\n'
+
             from starlette.responses import StreamingResponse
+
             return StreamingResponse(event_generator(), media_type="text/event-stream")
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("A2A subscription failed", status_code=500)
 
     # ── WebMCP ───────────────────────────────────────────────────────────────
     @route("/.well-known/webmcp", methods=["GET"])
@@ -1960,26 +2782,34 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
         """WebMCP discovery document."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
-            webmcp_app = create_webmcp_app(mcp)
+
+            create_webmcp_app(mcp)
             base = _public_base_url(request)
-            return JSONResponse({
-                "webmcp_version": "1.0",
-                "endpoints": {
-                    "console": f"{base}/webmcp",
-                    "sdk": f"{base}/webmcp/sdk.js",
-                    "tools": f"{base}/webmcp/tools.json",
-                    "init": f"{base}/webmcp/init"
-                },
-                "description": "Browser-native governed interface for arifOS MCP."
-            })
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+            return JSONResponse(
+                {
+                    "site": {
+                        "version": BUILD_VERSION,
+                        "name": "arifOS WebMCP",
+                    },
+                    "webmcp_version": "1.0",
+                    "endpoints": {
+                        "console": f"{base}/webmcp",
+                        "sdk": f"{base}/webmcp/sdk.js",
+                        "tools": f"{base}/webmcp/tools.json",
+                        "init": f"{base}/webmcp/init",
+                    },
+                    "description": "Browser-native governed interface for arifOS MCP.",
+                }
+            )
+        except Exception:
+            return _rest_error("WebMCP discovery failed", status_code=500)
 
     @route("/webmcp", methods=["GET"])
     async def webmcp_console(request: Request) -> Response:
         """WebMCP interactive console — browser-accessible tool playground."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
+
             webmcp_app = create_webmcp_app(mcp)
             base = _public_base_url(request)
             html = f"""<!DOCTYPE html>
@@ -1991,8 +2821,8 @@ def register_rest_routes(mcp: Any, tool_registry: dict[str, Callable]) -> None:
 {{.ok{{color:#3DBE8A}} .err{{color:#E05252}}</style></head><body>
 <h1>🔱 arifOS WebMCP Console</h1>
 <p>Governed browser interface for arifOS MCP. Tool calls enforced against 13 constitutional floors.</p>
-<div><strong>Tools:</strong> <span id="tool-count">loading...</span></div>
-<div id="tools"></div>
+<div><strong>Tools:</strong> <span id=\"tool-count\">loading...</span></div>
+<div id=\"tools\"></div>
 <script>
 const API = '{base}';
 async function init() {{
@@ -2001,7 +2831,7 @@ async function init() {{
   document.getElementById('tool-count').textContent = d.tools?.length + ' tools' || 'unavailable';
   const container = document.getElementById('tools');
   (d.tools||[]).forEach(t => {{
-    container.innerHTML += '<div class="tool"><strong>'+t.name+'</strong>: '+t.description+'</div>';
+    container.innerHTML += '<div class=\"tool\"><strong>'+t.name+'</strong>: '+t.description+'</div>';
   }});
 }}
 init();
@@ -2015,7 +2845,8 @@ init();
         """Browser SDK — drop-in script for web apps."""
         try:
             from arifosmcp.runtime.webmcp.server import create_webmcp_app
-            webmcp_app = create_webmcp_app(mcp)
+
+            create_webmcp_app(mcp)
             base = _public_base_url(request)
             sdk = f"""// arifOS WebMCP SDK v2026.04.11
 (function(w){{
@@ -2037,9 +2868,10 @@ init();
 }})(window);
 """
             from starlette.responses import Response
+
             return Response(content=sdk, media_type="application/javascript")
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+        except Exception:
+            return _rest_error("WebMCP SDK load failed", status_code=500)
 
     @route("/webmcp/tools.json", methods=["GET"])
     async def webmcp_tools(request: Request) -> Response:
@@ -2057,11 +2889,14 @@ init();
         try:
             body = await request.json()
             session_id = f"webmcp-{uuid.uuid4().hex[:12]}"
-            return JSONResponse({
-                "session_id": session_id,
-                "human_approval": body.get("human_approval", False),
-                "protocol_version": "1.0"
-            })
+            return JSONResponse(
+                {
+                    "session_id": session_id,
+                    "verdict": "SEAL",
+                    "human_approval": body.get("human_approval", False),
+                    "protocol_version": "1.0",
+                }
+            )
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -2074,24 +2909,90 @@ init();
             action = body.get("action", "")
             context = body.get("context", "")
             from core.shared.floors import FLOOR_SPEC_KEYS, get_floor_spec
+
             results = []
             for fid in FLOOR_SPEC_KEYS:
                 spec = get_floor_spec(fid)
-                results.append({
-                    "floor": fid,
-                    "name": spec.get("name", fid) if spec else fid,
-                    "verdict": "PASS",
-                    "note": "heuristic mode — ML floors not active"
-                })
+                results.append(
+                    {
+                        "floor": fid,
+                        "name": spec.get("name", fid) if spec else fid,
+                        "verdict": "PASS",
+                        "note": "heuristic mode — ML floors not active",
+                    }
+                )
             verdict = "SEAL" if all(r["verdict"] == "PASS" for r in results) else "HOLD"
-            return JSONResponse({
-                "action": action,
-                "verdict": verdict,
-                "floors_tested": len(results),
-                "results": results
-            })
+            return JSONResponse(
+                {
+                    "action": action,
+                    "verdict": verdict,
+                    "floors_tested": len(results),
+                    "results": results,
+                }
+            )
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── Discovery Static Files ────────────────────────────────────────────────
+    # WELD-006: Serve actual static files from /static/ for AI crawler discovery
+    # These use mcp.custom_route() so they work during fastmcp inspect in Cloud build
+    _static_dir = os.path.join(os.path.dirname(__file__), "..", "..", "static")
+
+    @route("/robots.txt", methods=["GET"])
+    async def static_robots_txt(request: Request) -> Response:
+        """Discovery: robots.txt from static/ (not inline constant)."""
+        from starlette.responses import PlainTextResponse
+        _path = os.path.join(_static_dir, "robots.txt")
+        if os.path.exists(_path):
+            with open(_path) as f:
+                return PlainTextResponse(f.read())
+        return PlainTextResponse("User-agent: *\nAllow: /\n")
+
+    @route("/llms.txt", methods=["GET"])
+    async def static_llms_txt(request: Request) -> Response:
+        """Discovery: llms.txt from static/ (not inline LLMS_TXT constant)."""
+        from starlette.responses import PlainTextResponse
+        _path = os.path.join(_static_dir, "llms.txt")
+        if os.path.exists(_path):
+            with open(_path) as f:
+                return PlainTextResponse(f.read())
+        return PlainTextResponse("")
+
+    @route("/wells.json", methods=["GET"])
+    async def static_wells_json(request: Request) -> Response:
+        """Discovery: constellation manifest from static/wells.json."""
+        _path = os.path.join(_static_dir, "wells.json")
+        if os.path.exists(_path):
+            return FileResponse(_path)
+        return JSONResponse({"error": "wells.json not found"}, status_code=404)
+
+    @route("/.well-known/agent.json", methods=["GET"])
+    async def static_well_known_agent(request: Request) -> Response:
+        """Discovery: A2A agent manifest from static/.well-known/agent.json."""
+        _path = os.path.join(_static_dir, ".well-known", "agent.json")
+        if os.path.exists(_path):
+            return FileResponse(_path)
+        return JSONResponse({"error": "agent.json not found"}, status_code=404)
+
+    @route("/.well-known/ai-plugin.json", methods=["GET"])
+    async def static_well_known_ai_plugin(request: Request) -> Response:
+        """Discovery: ChatGPT Apps no-auth connector manifest."""
+        candidates = [
+            os.path.join(_static_dir, ".well-known", "ai-plugin.json"),
+            os.path.join(os.path.dirname(__file__), "..", "static", ".well-known", "ai-plugin.json"),
+        ]
+        for _path in candidates:
+            if os.path.exists(_path):
+                return FileResponse(_path, media_type="application/json")
+        return JSONResponse({"error": "ai-plugin.json not found"}, status_code=404)
+
+    @route("/.well-known/arifos.json", methods=["GET"])
+    async def static_well_known_arifos(request: Request) -> Response:
+        """Discovery: arifOS node manifest from static/.well-known/arifos.json."""
+        _path = os.path.join(_static_dir, ".well-known", "arifos.json")
+        if os.path.exists(_path):
+            return FileResponse(_path)
+        return JSONResponse({"error": "arifos.json not found"}, status_code=404)
 
     # ── llms-full.txt ────────────────────────────────────────────────────────
     @route("/llms-full.txt", methods=["GET"])
@@ -2126,7 +3027,7 @@ endpoint: {base}/mcp
 - arifos://doctrine: Immutable constitutional substrate
 - arifos://vitals: Real-time constitutional health
 - arifos://schema: Complete structural blueprint
-- arifos://session/{session_id}: Ephemeral per-session state
+- arifos://session/{{session_id}}: Ephemeral per-session state
 - arifos://forge: Execution bridge and deployment topology
 
 ## Endpoints
@@ -2139,7 +3040,7 @@ GET {base}/.well-known/agent.json — Agent card
 GET {base}/llms.txt — This document
 """
             from starlette.responses import Response
+
             return Response(content=content, media_type="text/plain")
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
-

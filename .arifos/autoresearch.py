@@ -17,9 +17,9 @@ Usage:
 import json
 import subprocess
 import sys
-import time
 import tempfile
-from dataclasses import dataclass, asdict
+import time
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 ARIFOS_ROOT = Path(__file__).parent.parent
@@ -32,6 +32,8 @@ CONVEXITY_PENALTY = 0.5
 NOISE_FLOOR = 0.001
 
 sys.path.insert(0, str(Path(__file__).parent))
+from datetime import UTC
+
 import metrics
 
 
@@ -54,9 +56,9 @@ class ExperimentResult:
 
 
 def get_timestamp():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def run_git_command(args, cwd=None):
@@ -281,7 +283,7 @@ def main():
         if exp_file.exists():
             exp_file.unlink()
 
-    print(f"🚀 Starting autoresearch loop")
+    print("🚀 Starting autoresearch loop")
     print(f"   Budget: {TIME_BUDGET}s | Max iterations: {MAX_ITERATIONS}")
     print(f"   Marginal: {MARGINAL_THRESHOLD} | Noise floor: {NOISE_FLOOR} | Half-life: 72h")
     print("─" * 60)
@@ -295,7 +297,7 @@ def main():
         remaining = TIME_BUDGET - elapsed
 
         if remaining <= 0:
-            print(f"\n⏰ TIME_BUDGET exhausted")
+            print("\n⏰ TIME_BUDGET exhausted")
             break
 
         paths = generate_candidate_paths()

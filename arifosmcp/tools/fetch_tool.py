@@ -8,10 +8,12 @@ DITEMPA BUKAN DIBERI — 999 SEAL
 """
 
 import logging
-from typing import Any, Dict, Optional
-from arifosmcp.integrations.substrate_bridge import bridge
-from arifosmcp.runtime.models import RuntimeEnvelope as _RE, RiskClass
+
 from core.floors import evaluate_tool_call
+
+from arifosmcp.integrations.substrate_bridge import bridge
+from arifosmcp.runtime.models import RiskClass
+from arifosmcp.runtime.models import RuntimeEnvelope as _RE
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ async def arifos_fetch(
     url: str,
     max_length: int = 10000,
     actor_id: str = "anonymous",
-    session_id: Optional[str] = None
+    session_id: str | None = None
 ) -> _RE:
     """
     Governed web fetch tool.

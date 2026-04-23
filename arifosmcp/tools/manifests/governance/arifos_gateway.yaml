@@ -1,0 +1,42 @@
+name: arifos_gateway
+canonical: true
+type: mega-tool
+authority: ORTHOGONALITY_GUARD
+description: >
+  Orthogonality Guard — The 11th Public Tool.
+  Supervises AGI||ASI lanes to enforce Ω_ortho >= 0.95.
+  Computes correlation across tool outputs and model traces;
+  if correlation exceeds threshold or ontology overlap is detected, returns 888_HOLD.
+  Prevents physics collapse, governance collapse, and ontology collapse.
+  Modes: guard (full orthogonality check), audit (read-only report),
+  correlate (compute pairwise tool output correlation matrix).
+floors:
+  - F3: TRI_WITNESS (Witness chain diversity)
+  - F4: CLARITY (Ω_ortho ≥ 0.95 enforcement)
+  - F9: ANTI_HANTU (Ontology overlap detection)
+  - F11: COMMAND_AUTH (Audit trail)
+  - F13: SOVEREIGN (Arif veto on correlated outputs)
+risk_tier: P2
+modes:
+  - guard
+  - audit
+  - correlate
+session_required: true
+vault_on_seal: false
+reversible: true
+parameters:
+  session_id:
+    type: string
+    required: true
+  mode:
+    type: string
+    enum: [guard, audit, correlate]
+    default: guard
+  tool_trace:
+    type: array
+    required: false
+    description: Ordered list of tool call records to evaluate (mandatory for mode=guard)
+  correlation_threshold:
+    type: number
+    default: 0.95
+    description: Maximum allowed correlation coefficient before 888_HOLD

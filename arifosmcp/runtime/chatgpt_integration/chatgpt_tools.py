@@ -180,86 +180,10 @@ async def fetch(id: str) -> dict[str, Any]:
         }
 
 
-async def decide(query: str) -> dict[str, Any]:
-    """
-    Constitutional decision evaluation for a proposed action.
-    
-    Runs 888_JUDGE and returns verdict, failed floors, and recommendation.
-    """
-    from arifosmcp.runtime.tools import arifos_judge
-    
-    logger.info(f"[ChatGPT] decide query: {query}")
-    
-    try:
-        result = await arifos_judge(
-            candidate_action=query,
-            risk_tier="medium",
-            dry_run=True,
-        )
-        payload = result.payload if hasattr(result, 'payload') else result
-        if isinstance(payload, dict):
-            # Nested primary_artifact payload (current runtime shape)
-            artifact = payload.get("primary_artifact", {}) or {}
-            artifact_payload = artifact.get("payload", {}) if isinstance(artifact, dict) else {}
-
-            # Verdict: try envelope enum first, then artifact payload
-            verdict = "SEAL"
-            if hasattr(result, "verdict") and result.verdict is not None:
-                verdict_str = str(result.verdict)
-                # Verdict enum names are like 'Verdict.SEAL' or 'SEAL'
-                verdict = verdict_str.split(".")[-1]
-            elif isinstance(artifact_payload, dict):
-                verdict = artifact_payload.get("verdict", "SEAL")
-
-            # Floors: extract failures from artifact floors dict
-            floors = artifact_payload.get("floors", {}) if isinstance(artifact_payload, dict) else {}
-            floors_failed = [k for k, v in (floors.items() if isinstance(floors, dict) else []) if v != "pass"] if floors else []
-
-            # Recommendation: reasoning summary or default
-            reasoning = artifact_payload.get("reasoning", {}) if isinstance(artifact_payload, dict) else {}
-            recommendation = reasoning.get("summary") if isinstance(reasoning, dict) else None
-            if not recommendation:
-                recommendation = artifact_payload.get("summary") if isinstance(artifact_payload, dict) else None
-            if not recommendation:
-                recommendation = "No recommendation available."
-        else:
-            verdict = "VOID"
-            floors_failed = []
-            recommendation = "Invalid judge response"
-        
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": json.dumps({
-                        "verdict": verdict,
-                        "floors_failed": floors_failed,
-                        "recommendation": recommendation,
-                    })
-                }
-            ]
-        }
-    except Exception as e:
-        logger.error(f"[ChatGPT] decide error: {e}")
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": json.dumps({
-                        "verdict": "VOID",
-                        "floors_failed": ["ALL"],
-                        "recommendation": f"Decision evaluation failed: {str(e)}",
-                    })
-                }
-            ]
-        }
-
-
 # Tool registry for direct access
 chatgpt_tools = {
     "search": search,
     "fetch": fetch,
-    "decide": decide,
 }
 
 
@@ -278,9 +202,4 @@ def register_chatgpt_tools(mcp) -> None:
         """Fetch full document content by ID from search results."""
         return await fetch(id)
     
-    @mcp.tool(annotations={"readOnlyHint": True})
-    async def decide_tool(query: str) -> dict:
-        """Evaluate a proposed action through constitutional judgment (888_JUDGE)."""
-        return await decide(query)
-    
-    logger.info("[ChatGPT] Registered search, fetch, and decide tools for Deep Research")
+    logger.info("[ChatGPT] Registered search and fetch tools for Deep Research")

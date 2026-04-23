@@ -7,10 +7,10 @@ Semantic:    Stable knowledge, facts
 Constitutional: Core rules, read often, write rarely
 """
 
-from .working import WorkingMemoryLane
+from .constitutional import ConstitutionalMemoryLane
 from .episodic import EpisodicMemoryLane
 from .semantic import SemanticMemoryLane
-from .constitutional import ConstitutionalMemoryLane
+from .working import WorkingMemoryLane
 
 __all__ = [
     "WorkingMemoryLane",

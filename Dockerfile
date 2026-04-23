@@ -1,79 +1,103 @@
-# ── arifOS MCP Runtime — Lean Multi-Stage Build ──────────────────────────
-# Target size: ~300-500MB (vs 6GB with heavy ML deps)
-# Strategy: runtime deps only from requirements.txt (not full pyproject.toml)
-# Code is volume-mounted at /usr/src/app in production — image provides env only.
-#
-# Build:  docker build -t arifos/arifosmcp:latest .
-# Run:    docker compose up arifosmcp
-# ─────────────────────────────────────────────────────────────────────────
+# ── arifOS AAA MCP Server ──────────────────────────────────────────────
+# Single process, single port. Runs FastMCP streamable-HTTP transport
+# with REST endpoints (/health, /tools, /version) as custom routes.
+# Hardened for Production (v2026.03.28-IDENTITY-BINDING)
+# ───────────────────────────────────────────────────────────────────────
 
-# ── Stage 1: dependency installer ────────────────────────────────────────
-FROM python:3.12-slim AS deps
+FROM python:3.12-slim AS build
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+# Build-time environment
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-WORKDIR /install
+WORKDIR /usr/src/app
 
-# System packages needed to build Python wheels
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     git \
-    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv for fast installs
-RUN pip install uv
+# Copy project files
+COPY . .
 
-# Copy only dependency manifest (cached unless requirements.txt changes)
-COPY requirements.txt .
+# Initialize git submodules (arifOS-model-registry)
+#RUN git submodule update --init --recursive
 
-# Install runtime deps into a separate prefix for clean copy
-RUN uv pip install --system --no-cache -r requirements.txt
+# Install dependencies in build stage to keep runtime image clean
+# NOTE: torch is NOT installed separately — sentence-transformers moved to optional deps.
+# Embeddings are served by Ollama (bge-m3:latest) as an external service.
+RUN python -m pip install --upgrade pip && \
+    if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && \
+    pip install --no-cache-dir .
+
+# Install WebMCP dependencies (F12/F11 constitutional web gateway)
+RUN pip install --no-cache-dir itsdangerous fastapi uvicorn redis python-multipart psutil
+
+# Remove pip-installed arifosmcp from site-packages to avoid conflict with /usr/src/app source
+RUN rm -rf /usr/local/lib/python3.12/site-packages/arifosmcp*
+
+# BGE-M3 model is served by Ollama (ollama_engine container).
+# No local HuggingFace model baking required — eliminates ~750MB torch + ~570MB model from image.
 
 
-# ── Stage 2: runtime image ────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime
 
+# Create non-root user (F11 Authority / F1 Law)
+RUN groupadd -g 1000 arifos && \
+    useradd -u 1000 -g arifos -m -s /bin/bash arifos
+
+WORKDIR /usr/src/app
+
+# Build arguments for metadata
+ARG ARIFOS_VERSION=2026.03.28-IDENTITY-BINDING
 ARG GIT_SHA=unknown
 ARG BUILD_TIME=unknown
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/usr/src/project \
-    VPS_MODE=1 \
-    ARIFOS_DEPLOYMENT=vps \
-    GIT_SHA=${GIT_SHA} \
-    BUILD_TIME=${BUILD_TIME}
+# Environment configuration
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PORT=8080
+ENV HOST=0.0.0.0
+ENV AAA_MCP_TRANSPORT=http
+ENV ARIFOS_VERSION=${ARIFOS_VERSION}
+ENV GIT_SHA=${GIT_SHA}
+ENV BUILD_TIME=${BUILD_TIME}
 
-WORKDIR /usr/src/project
-
-# Minimal runtime system packages only
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
     curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed Python packages from deps stage
-COPY --from=deps /usr/local/lib/python3.12 /usr/local/lib/python3.12
-COPY --from=deps /usr/local/bin /usr/local/bin
-
-# Copy package source (overridden by volume mount in production)
+# Copy artifacts from build stage
+COPY --from=build /usr/local /usr/local
 COPY . .
 
-# Install the package itself (no deps — already installed above)
-RUN pip install --no-deps -e .
+# Setup dirs, fix ownership
+RUN mkdir -p telemetry data memory static/dashboard && rm -rf VAULT999 && mkdir -p VAULT999
+RUN mkdir -p /ms-playwright && chown -R arifos:arifos /usr/src/app /ms-playwright
 
-# Non-root user for security
-RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /usr/src/project
+# Install Playwright browser deterministically
+#RUN python -m playwright install --with-deps chromium && \
+#    chown -R arifos:arifos /ms-playwright
+
+# Switch to non-root user for runtime (F11 Authority / F1 Law)
 USER arifos
 
+# Expose canonical MCP port
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Production Healthcheck (F12 Defense)
+HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -fsS --max-time 3 http://localhost:8080/health || exit 1
 
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
+# Metadata Labels
+LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp"
+LABEL io.modelcontextprotocol.server.version="2026.04.11-SEAL-UNIFIED"
+LABEL io.modelcontextprotocol.server.description="Constitutional AI governance server with a 10-tool APEX-G core stack plus legacy Phase 2 capability tools."
+
+# Execute consolidated entrypoint
+CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]

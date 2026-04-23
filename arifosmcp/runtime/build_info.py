@@ -9,19 +9,71 @@ from __future__ import annotations
 import os
 import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
+
+import tomllib
+from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
+
+
+ROOT = Path(__file__).resolve().parents[2]
+PYPROJECT_PATH = ROOT / "pyproject.toml"
 
 
 def _git_sha_short() -> str:
-    """Return the current git short SHA (HEAD), fallback to hardcoded."""
+    """Return the current git short SHA (HEAD), checked in order:
+    1. Direct read of .git/HEAD via known host paths
+    2. GIT_SHA env var
+    3. Fallback "unknown"
+    """
+    # 1. Try reading .git/HEAD from known bind-mount paths
+    _possible_git_dirs = [
+        "/usr/src/app/.git",
+        "/usr/src/app/arifOS/.git",
+        "/usr/src/project/.git",
+        "/root/arifOS/.git",
+    ]
+    for _git_dir in _possible_git_dirs:
+        try:
+            _head_path = os.path.join(_git_dir, "HEAD")
+            if os.path.exists(_head_path):
+                with open(_head_path, "r") as _f:
+                    _content = _f.read().strip()
+                if _content.startswith("ref: refs/heads/"):
+                    _branch = _content.split("ref: refs/heads/", 1)[1].strip()
+                    _ref_path = os.path.join(_git_dir, "refs", "heads", _branch)
+                    if os.path.exists(_ref_path):
+                        with open(_ref_path, "r") as _f:
+                            _sha = _f.read().strip()
+                        return _sha[:7]
+                elif len(_content) >= 7:
+                    return _content[:7]
+        except Exception:
+            pass
+
+    # 2. Env var fallback
+    env_sha = os.environ.get("GIT_SHA", "").strip()
+    if env_sha and env_sha != "unknown":
+        return env_sha[:7]
+
+    # 3. Truthful final fallback
+    return "unknown"
+
+
+def _pyproject_version() -> str:
+    dna_version = str(DNA_VERSION).strip()
+    if dna_version:
+        return dna_version if dna_version.startswith("v") else f"v{dna_version}"
+
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"],
-            stderr=subprocess.DEVNULL,
-            cwd="C:/ariffazil/arifOS",
-        ).decode().strip()
+        with open(PYPROJECT_PATH, "rb") as handle:
+            project = tomllib.load(handle).get("project", {})
+        version = str(project.get("version", "")).strip()
+        if version:
+            return f"v{version}"
     except Exception:
-        return "909c4ca"  # v2026.04.07 release SHA
+        pass
+    return "v2026.04.18-UNIFIED"
 
 
 def get_build_info() -> dict[str, Any]:
@@ -32,7 +84,7 @@ def get_build_info() -> dict[str, Any]:
         build metadata (commit, branch), and status.
     """
     commit = _git_sha_short()
-    app_version = os.environ.get("ARIFOS_APP_VERSION", "2026.4.13")
+    app_version = os.environ.get("ARIFOS_APP_VERSION", "").strip() or _pyproject_version()
     return {
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,
@@ -53,14 +105,14 @@ def get_build_info() -> dict[str, Any]:
         "source_repo": "https://github.com/ariffazil/arifOS",
         "source_repo_name": "ariffazil/arifOS",
 
-        # Build traceability
+        # Build traceability — GIT_SHA and ARIFOS_APP_VERSION set by entrypoint from host git
         "build": {
             "commit": commit,
             "commit_short": commit,
             "built_at": datetime.now(timezone.utc).isoformat(),
             "branch": "main",
         },
-        "release_tag": "v2026.4.13",
+        "release_tag": app_version,
 
         # Status
         "status": "FORGED",

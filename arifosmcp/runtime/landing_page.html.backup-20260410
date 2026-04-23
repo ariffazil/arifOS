@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="arifOS MCP - Constitutional AI Governance with 50 Core Quotes | AF-FORGE">
+    <meta name="description" content="arifOS MCP - Constitutional AI Governance with 50 Core Quotes | A-FORGE">
     <meta name="version" content="2.1.0-unified">
     <title>arifOS MCP | Constitutional Source of Truth</title>
     <style>
@@ -358,7 +358,7 @@
             <p class="motto">DITEMPA, BUKAN DIBERI</p>
             <div class="live-status">
                 <span class="status-dot"></span>
-                <span id="status-text">Connecting to AF-FORGE...</span>
+                <span id="status-text">Connecting to A-FORGE...</span>
             </div>
         </header>
 
@@ -538,7 +538,7 @@
                 document.getElementById('version').textContent = health.version || 'v2.0.0';
                 document.getElementById('floors').textContent = health.floors_active || '13';
                 document.getElementById('tool-count').textContent = health.tools_loaded || '10';
-                document.getElementById('status-text').textContent = 'AF-FORGE Connected ✓';
+                document.getElementById('status-text').textContent = 'A-FORGE Connected ✓';
                 
                 // Fetch tools list
                 const toolsRes = await fetch(`${API_BASE}/tools`);
@@ -576,7 +576,7 @@
                 
             } catch (error) {
                 console.error('Fetch error:', error);
-                document.getElementById('status-text').textContent = 'AF-FORGE Unreachable';
+                document.getElementById('status-text').textContent = 'A-FORGE Unreachable';
                 document.querySelector('.live-status').classList.add('error-state');
                 
                 // Show fallback data

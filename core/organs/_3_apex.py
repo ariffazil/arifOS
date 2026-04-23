@@ -205,12 +205,13 @@ async def forge(
 
     Survival must not become the telos — it is a boundary condition.
     """
-    from core.physics.thermodynamics_hardened import consume_tool_energy
     from arifosmcp.intelligence.tools.thermo_estimator import (
         coherence_score,
         landauer_limit,
         shannon_entropy,
     )
+
+    from core.physics.thermodynamics_hardened import consume_tool_energy
 
     consume_tool_energy(session_id, n_calls=1)
 
@@ -413,51 +414,6 @@ async def judge(
         kwargs.get("floor_scores") if kwargs.get("floor_scores") is not None else kwargs,
         defaults={"f2_truth": kwargs.get("akal", 0.99)},
     )
-
-    # ─────────────────────────────────────────────────────────────────────────────
-    # Phase 1b: CONSTITUTIONAL HARDENING — arifOS MCP Security Gate
-    # ─────────────────────────────────────────────────────────────────────────────
-    # HARDEN-01: Risk tier escalation
-    # Critical actions without prior constitutional floor evaluation → HOLD
-    risk_tier = kwargs.get("risk_tier", "medium")
-    candidate_action = kwargs.get("candidate_action", "") or ""
-    _has_prior_floors = (
-        kwargs.get("floor_scores") is not None
-        and isinstance(kwargs.get("floor_scores"), dict)
-        and len(kwargs.get("floor_scores", {})) > 1  # More than just f2_truth default
-    )
-
-    # HARDEN-02: Critical risk without constitutional coverage → HOLD
-    if risk_tier == "critical" and not _has_prior_floors:
-        candidate = Verdict.HOLD_888
-        reason_summary = (reason_summary or "") + (
-            " [HARDEN-02 HOLD: Critical-risk action requires prior constitutional floor evaluation."
-            " Run arifos_sense/arifos_mind first to establish floor scores before calling arifos_judge.]"
-        )
-        logger.warning(
-            "APEX HARDEN-02: Critical action %s/%s blocked — no constitutional floor coverage.",
-            session_id,
-            candidate_action,
-        )
-
-    # HARDEN-03: Destructive action keywords require F7/F12 floor evidence
-    _destructive_keywords = [
-        "delete", "destroy", "drop", "truncate", "remove all",
-        "bypass", "override", "disable", "uninstall", "format",
-        "revoke", "terminate", "kill", "stop all", "flush",
-    ]
-    _has_destructive = any(kw in candidate_action.lower() for kw in _destructive_keywords)
-    if _has_destructive and not _has_prior_floors:
-        candidate = Verdict.HOLD_888
-        reason_summary = (reason_summary or "") + (
-            f" [HARDEN-03 HOLD: Destructive action '{candidate_action}' requires"
-            " prior constitutional floor evaluation (F7 Humility, F12 Injection Guard).]"
-        )
-        logger.warning(
-            "APEX HARDEN-03: Destructive action %s/%s blocked — no floor evidence.",
-            session_id,
-            candidate_action,
-        )
 
     # ─────────────────────────────────────────────────────────────────────────────
     # Phase 2: Safety Gates (Monotone + Coherence)

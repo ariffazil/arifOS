@@ -1,0 +1,97 @@
+# geox-wealth/docker-compose.yml
+# WELD-004 — Joins arifos_core_network, no new infra, no port conflicts
+# DITEMPA BUKAN DIBERI
+
+services:
+
+  # ── VAULT999 Writer (ratified seal INSERT) ───────────────────────────
+  vault999-writer:
+    build:
+      context: ../vault999_writer
+      dockerfile: Dockerfile
+    container_name: vault999-writer
+    ports:
+      - "5001:5001"
+    environment:
+      VAULT999_DB: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
+      VAULT_ADMIN_TOKEN: ArifVaultAdmin2026!
+      PORT: "5001"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - arifos_core_network
+
+  # ── VAULT999 Unified Ledger (WELD-003) ──────────────────────────────
+  vault-service:
+    build:
+      context: ../vault-service
+      dockerfile: Dockerfile
+    container_name: vault-service
+    ports:
+      - "8100:8100"
+    environment:
+      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
+      PORT: "8100"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - arifos_core_network
+
+  # ── GEOX Spatial Intelligence ──────────────────────────────────────
+  geox:
+    build:
+      context: /root/GEOX
+      dockerfile: Dockerfile
+    container_name: geox
+    ports:
+      - "8000:8081"
+    depends_on:
+      vault-service:
+        condition: service_started
+    environment:
+      ARIFOS_MCP_URL: http://A-FORGE-arifos-mcp:3000
+      VAULT_URL: http://vault-service:8100
+      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
+      REDIS_URL: redis://redis:6379
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - arifos_core_network
+
+  # ── WEALTH Financial Intelligence ─────────────────────────────────
+  wealth:
+    build:
+      context: /root/WEALTH
+      dockerfile: Dockerfile
+    container_name: wealth
+    # WEALTH is stdio-only MCP — container stays alive via tail
+    # arifOS MCP kernel calls WEALTH via stdio when needed
+    entrypoint: ["tail"]
+    command: ["-f", "/dev/null"]
+    environment:
+      ARIFOS_MCP_URL: http://A-FORGE-arifos-mcp:3000
+      VAULT_URL: http://vault-service:8100
+      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
+      REDIS_URL: redis://redis:6379
+    restart: unless-stopped
+    networks:
+      - arifos_core_network
+
+networks:
+  arifos_core_network:
+    external: true

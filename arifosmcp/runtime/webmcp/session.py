@@ -13,9 +13,9 @@ import uuid
 from dataclasses import dataclass
 from typing import Any
 
-from arifosmcp.runtime.optional_deps import redis
-
 from core.enforcement.auth_continuity import mint_auth_context
+
+from arifosmcp.runtime.optional_deps import redis
 
 
 @dataclass

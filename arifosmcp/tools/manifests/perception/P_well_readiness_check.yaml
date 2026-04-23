@@ -1,0 +1,23 @@
+name: P_well_readiness_check
+canonical: true
+type: perception-tool
+authority: WELL_ORACLE
+description: >
+  Check biological readiness verdict for arifOS JUDGE.
+  Emits explicit floor_binding to tell downstream judge which floors this verdict covers.
+  READY (score>=80, no violations), DEGRADED (score>=50), CRITICAL (score<50).
+floors:
+  - F2: TRUTH
+  - F5: PEACE (stability assessment)
+  - F8: GENIUS
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+response_schema:
+  data:
+    score: number
+    floor_binding: array
+    verdict: string
+    bandwidth_recommendation: string

@@ -9,3 +9,21 @@ node_modules
 venv/
 .venv/
 stdio_server.py
+APEX
+ARCHITECT*
+CHANGELOG.md
+.github
+docs
+scripts
+tests
+*.md
+!pyproject.toml
+!uv.lock
+Dockerfile*
+.dockerignore
+Makefile
+# requirements*.txt (temporarily allowed for v2.0 build)
+!requirements.txt
+setup.py
+build/
+dist/

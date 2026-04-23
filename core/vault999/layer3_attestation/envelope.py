@@ -15,11 +15,12 @@ import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
+
+import nacl.encoding
 
 # Ed25519 for signatures
 import nacl.signing
-import nacl.encoding
 
 
 class ExecutionStatus(Enum):
@@ -49,7 +50,7 @@ class ExecutionEnvelope:
     
     # Authorization
     authority: str              # Who is authorizing (888_JUDGE, AGENT_X)
-    delegated_from: Optional[str] = None  # If delegated, original authority
+    delegated_from: str | None = None  # If delegated, original authority
     
     # Temporal constraints
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -59,8 +60,8 @@ class ExecutionEnvelope:
     nonce: str = field(default_factory=lambda: secrets.token_hex(16))
     
     # Signature (filled after creation)
-    signature: Optional[str] = None
-    public_key: Optional[str] = None
+    signature: str | None = None
+    public_key: str | None = None
     
     # Status tracking
     status: ExecutionStatus = ExecutionStatus.PENDING
@@ -87,7 +88,7 @@ class ExecutionEnvelope:
         """Compute hash of envelope (for reference/logging)."""
         return hashlib.sha256(self.canonical_payload()).hexdigest()[:32]
     
-    def sign(self, signing_key: nacl.signing.SigningKey) -> "ExecutionEnvelope":
+    def sign(self, signing_key: nacl.signing.SigningKey) -> ExecutionEnvelope:
         """Sign the envelope with Ed25519."""
         signature = signing_key.sign(self.canonical_payload())
         self.signature = signature.signature.hex()
@@ -95,7 +96,7 @@ class ExecutionEnvelope:
         self.status = ExecutionStatus.SIGNED
         return self
     
-    def verify(self, public_key: Optional[nacl.signing.VerifyKey] = None) -> bool:
+    def verify(self, public_key: nacl.signing.VerifyKey | None = None) -> bool:
         """
         Verify envelope signature.
         
@@ -127,10 +128,30 @@ class ExecutionEnvelope:
             return False
     
     def _load_authority_key(self, authority: str) -> nacl.signing.VerifyKey:
-        """Load public key for authority from registry."""
-        # In production: query KMS or key registry
-        # For now: mock
-        key_hex = "mock_key"
+        """Load public key for authority from environment or registry file."""
+        import os
+
+        env_var = f"ARIFOS_{authority.upper()}_PUBLIC_KEY"
+        key_hex = os.getenv(env_var)
+        if not key_hex:
+            registry_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "..",
+                "..",
+                "..",
+                "..",
+                ".arifos",
+                "keys",
+                f"{authority.lower()}.pub",
+            )
+            if os.path.exists(registry_path):
+                with open(registry_path) as f:
+                    key_hex = f.read().strip()
+        if not key_hex or len(key_hex) != 64:
+            raise RuntimeError(
+                f"No valid public key found for authority {authority}. "
+                f"Set {env_var} or create registry key file."
+            )
         return nacl.signing.VerifyKey(bytes.fromhex(key_hex))
     
     def to_dict(self) -> dict[str, Any]:
@@ -199,7 +220,7 @@ class ExecutionAttestor:
     The attestor communicates with the key storage to sign envelopes.
     """
     
-    def __init__(self, kms_endpoint: Optional[str] = None):
+    def __init__(self, kms_endpoint: str | None = None):
         self.kms_endpoint = kms_endpoint
         self.nonce_registry = NonceRegistry()
         self._delegation_chain: dict[str, str] = {}  # agent -> delegator
@@ -295,10 +316,35 @@ class ExecutionAttestor:
             }
     
     async def _kms_sign(self, payload: bytes, authority: str) -> str:
-        """Request signature from KMS."""
-        # Integration with AWS KMS, GCP Cloud KMS, or HashiCorp Vault
-        # This ensures private keys never leave secure enclave
-        return "mock_kms_signature"
+        """Request signature from KMS or fall back to HMAC with explicit dev warning."""
+        import hashlib
+        import hmac
+        import os
+
+        if self.kms_endpoint:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.kms_endpoint,
+                    json={"payload": payload.hex(), "authority": authority},
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status != 200:
+                        raise RuntimeError(f"KMS signing failed: {resp.status}")
+                    data = await resp.json()
+                    return data["signature"]
+
+        secret = os.getenv("ARIFOS_KMS_SECRET")
+        if not secret:
+            raise RuntimeError(
+                "No KMS endpoint configured and ARIFOS_KMS_SECRET not set. "
+                "Cannot sign execution envelope."
+            )
+        logger.warning(
+            "_kms_sign using HMAC dev fallback — "
+            "private key is derived from environment, not a secure enclave"
+        )
+        return hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
     
     def _verify_authority_chain(self, authority: str) -> bool:
         """Verify authority is valid or has valid delegation."""

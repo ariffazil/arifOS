@@ -4,6 +4,10 @@ This document provides the operational context for AI agents working within the 
 
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
+> ⚠️ **DEPRECATED ENDPOINT**: `arifosmcp.arif-fazil.com` is stale (11 tools, v2026.04.07). Use **`mcp.arif-fazil.com`** (20 tools, v2026.4.13).
+>
+> ⚠️ **DEPRECATED TOOL NAMES** (do not use): `arifos_anchor_session` → `arifos_init` | `arifos_execute_judge` → `arifos_judge` | `arifos_forge_execute` → `arifos_forge(dry_run=False)` | `arifos_perform_economic_audit` → `arifos_ops(mode="economic_audit")` | `arifos_verify_location` → `arifos_sense(mode="location")` | `arifos_monitor_metabolism` → `arifos_ops(mode="metabolism")` | `arifos_get_vault_data` → `arifos_vault(mode="read")`
+
 ---
 
 ## 🏛️ Project Overview
@@ -141,7 +145,7 @@ You **MUST** trigger an `888_HOLD` and await human confirmation for any high-sta
 
 ### Public MCP Surface (Sovereign Federation Hub)
 The **Federation Hub (`arifosmcp.transport` / `arifosmcp.intelligence`)** exposes the arifOS Intelligence Kernel through 13 canonical system calls:
-- `anchor_session` (000 - Airlock)
+- `arifos_anchor_session` (000 - Airlock)
 - `reason_mind` (111-444 - Mind)
 - `vector_memory` (555 - Subconscious)
 - `simulate_heart` (555-666 - Empathy)

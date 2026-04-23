@@ -1,0 +1,27 @@
+name: security-audit
+description: Security scanning and vulnerability detection
+category: security
+constitutional_floor: F12
+
+requirements:
+  F12_Injection:
+    scan_depth: deep
+    pattern_matching: true
+    behavioral_analysis: true
+  
+  F9_AntiHantu:
+    consciousness_claims: block
+    deception_detection: true
+  
+  F5_Peace:
+    non_destructive: true
+    safe_execution: true
+
+mcp_tools:
+  - code_engine
+  - asi_heart
+
+entry_points:
+  - scan_dependencies
+  - check_injection
+  - audit_secrets

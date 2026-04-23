@@ -11,7 +11,7 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +165,7 @@ class ShadowComparator:
         matches = sum(1 for a, b in zip(v1_ids, v2_ids) if a == b)
         return 1.0 - (matches / max(len(v1_ids), len(v2_ids)))
     
-    def _extract_top(self, result: dict) -> Optional[str]:
+    def _extract_top(self, result: dict) -> str | None:
         """Extract top result ID."""
         results = result.get("results", [])
         if results:
@@ -192,7 +192,7 @@ async def run_shadow_comparison(
     tool: str,
     *args,
     **kwargs
-) -> Optional[ShadowComparison]:
+) -> ShadowComparison | None:
     """
     Convenience function for shadow comparison.
     

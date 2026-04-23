@@ -15,9 +15,8 @@ This avoids the "hantu problem" where vector recall feels clever but drifts.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
-from ..types import MemoryRecord, MemoryQuery, MemoryType
+from ..types import MemoryQuery, MemoryRecord, MemoryType
 
 
 @dataclass

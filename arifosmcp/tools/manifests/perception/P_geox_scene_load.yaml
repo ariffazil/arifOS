@@ -1,0 +1,31 @@
+name: P_geox_scene_load
+canonical: true
+type: perception-tool
+authority: GEOX_ORACLE
+description: >
+  Load seismic, well, or volume data into witness context.
+  Returns scene metadata including CRS (coordinate reference system) — missing CRS causes silent misalignment.
+  Fast, stateless, no Floor overhead.
+floors:
+  - F2: TRUTH (Accurate geospatial data)
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  scene_type:
+    type: string
+    enum: [seismic, well, volume]
+    required: true
+  path:
+    type: string
+    required: true
+    description: Filesystem path to scene data
+response_schema:
+  data:
+    scene_type: string
+    path: string
+    status: string
+    scene_id: string
+    crs: string

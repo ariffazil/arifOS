@@ -6,8 +6,11 @@ based on context, role, and task requirements.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, Optional
-from core.kernel.pattern_registry import PatternRegistry, AgenticPattern
+
+from typing import Any
+
+from core.kernel.pattern_registry import PatternRegistry
+
 
 class PatternSelector:
     """
@@ -18,7 +21,7 @@ class PatternSelector:
     def __init__(self, registry: PatternRegistry):
         self.registry = registry
 
-    def select(self, context: Dict[str, Any]) -> str:
+    def select(self, context: dict[str, Any]) -> str:
         """
         Dynamically select the optimal pattern name based on context.
         Default: Chain-of-Thought (simplest)
@@ -40,7 +43,7 @@ class PatternSelector:
         # Default reasoning pattern
         return "Chain-of-Thought"
 
-    def apply(self, pattern_name: str, state: Dict[str, Any]) -> Dict[str, Any]:
+    def apply(self, pattern_name: str, state: dict[str, Any]) -> dict[str, Any]:
         """
         Instantiate a pattern's parameters with the given state.
         Ensures the right agentic pattern is applied per task.

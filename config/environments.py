@@ -4,9 +4,8 @@ Handles dual-sovereignty deployment: VPS (Sovereign) vs Horizon (Public)
 """
 
 import os
-from enum import Enum
 from dataclasses import dataclass
-from typing import Optional
+from enum import Enum
 
 
 class DeploymentMode(Enum):
@@ -217,10 +216,8 @@ arifOS Environment Configuration
 Handles dual-sovereignty deployment: VPS (Sovereign) vs Horizon (Public)
 """
 
-import os
-from enum import Enum
 from dataclasses import dataclass
-from typing import Optional
+from enum import Enum
 
 
 class DeploymentMode(Enum):

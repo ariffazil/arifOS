@@ -18,7 +18,7 @@ import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -99,7 +99,7 @@ AGENT_REGISTRY: dict[AgentRole, AgentIdentity] = {
         role=AgentRole.ARCHITECT,
         uuid="agent://arifos/architect",
         fingerprint="sha256:architect-v2026.03.13",
-        created=datetime.now(timezone.utc),
+        created=datetime.now(UTC),
         can_read=True,
         can_write=False,
         can_delete=False,
@@ -126,7 +126,7 @@ AGENT_REGISTRY: dict[AgentRole, AgentIdentity] = {
         role=AgentRole.ENGINEER,
         uuid="agent://arifos/engineer",
         fingerprint="sha256:engineer-v2026.03.13",
-        created=datetime.now(timezone.utc),
+        created=datetime.now(UTC),
         can_read=True,
         can_write=True,
         can_delete=False,
@@ -152,7 +152,7 @@ AGENT_REGISTRY: dict[AgentRole, AgentIdentity] = {
         role=AgentRole.AUDITOR,
         uuid="agent://arifos/auditor",
         fingerprint="sha256:auditor-v2026.03.13",
-        created=datetime.now(timezone.utc),
+        created=datetime.now(UTC),
         can_read=True,
         can_write=False,
         can_delete=False,
@@ -183,7 +183,7 @@ AGENT_REGISTRY: dict[AgentRole, AgentIdentity] = {
         role=AgentRole.VALIDATOR,
         uuid="agent://arifos/validator",
         fingerprint="sha256:validator-v2026.03.13",
-        created=datetime.now(timezone.utc),
+        created=datetime.now(UTC),
         can_read=True,
         can_write=True,  # For rollback
         can_delete=True,  # For rollback
@@ -415,7 +415,7 @@ class ExecutionController:
         # Create receipt
         receipt = ExecutionReceipt(
             receipt_id=receipt_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             agent_id=agent_role.value,
             session_id=session_id,
             intent=intent,

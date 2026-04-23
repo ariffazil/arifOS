@@ -3,7 +3,7 @@ aclip_cai/core/floor_audit.py — F1-F13 Runtime Constitutional Auditor
 
 Enforces all 13 Constitutional Floors on every tool call/action.
 F6 Empathy has a real ASEAN/MY maruah check (not a default pass).
-F7 Humility band aligned to Ω₀ ∈ [0.03, 0.15] per v64.1-GAGI spec.
+F7 Humility band aligned to Ω₀ ∈ [0.03, 0.05] per canonical spec.
 F2 Truth includes an axiomatic bypass for math/syntactic certainties.
 
 Authority: ARIF FAZIL (Sovereign)
@@ -636,7 +636,7 @@ class FloorAuditor:
         return FloorResult("F6", True, baseline)
 
     # ------------------------------------------------------------------
-    # F7 — Humility Ω₀ ∈ [0.03, 0.15] (bounded uncertainty)
+    # F7 — Humility Ω₀ ∈ [0.03, 0.05] (bounded uncertainty)
     # ------------------------------------------------------------------
 
     def _check_f7_humility(self, action: str, context: str | dict) -> FloorResult:
@@ -669,7 +669,7 @@ class FloorAuditor:
         )
         if overconfident:
             return FloorResult(
-                "F7", False, 0.0, "Overconfidence violates Humility band Ω₀ ∈ [0.03, 0.15]"
+                "F7", False, 0.0, "Overconfidence violates Humility band Ω₀ ∈ [0.03, 0.05]"
             )
         score = 0.90 if has_uncertainty else 0.75
         return FloorResult(

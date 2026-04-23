@@ -1,0 +1,37 @@
+name: git-ops
+description: Git operations with F1 reversibility guarantees
+category: version_control
+constitutional_floor: F1
+
+requirements:
+  F1_Amanah:
+    worktree_required: true
+    branch_isolation: true
+    rollback_capability: true
+    checkpoint_frequency: high
+  
+  F2_Truth:
+    commit_signing: optional
+    diff_verification: true
+  
+  F3_Consensus:
+    pr_review_required: medium_risk
+    tri_witness_threshold: 0.95
+  
+  F10_Audit:
+    full_git_history: true
+    blame_tracking: true
+
+mcp_tools:
+  - code_engine
+
+entry_points:
+  - create_worktree
+  - commit_changes
+  - create_pr
+  - rollback
+
+risk_tiers:
+  local_branch: low
+  push: medium
+  merge: high

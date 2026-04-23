@@ -6,10 +6,9 @@ Attestation and encrypted backup for sovereign control.
 Authority: 888_JUDGE | 999_SEAL
 """
 
-import json
 import hashlib
-import shutil
-from datetime import datetime, timezone
+import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 VAULT_FILE = Path("/root/.secrets/vault.env")
@@ -32,7 +31,7 @@ def create_attestation():
     
     checksum = hash_file(VAULT_FILE)
     key_count = count_secrets(VAULT_FILE)
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
     
     attestation = {
         "timestamp": timestamp,

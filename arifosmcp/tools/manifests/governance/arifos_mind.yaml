@@ -1,0 +1,43 @@
+name: arifos_mind
+canonical: true
+type: mega-tool
+authority: AGI_MIND
+description: >
+  Structured reasoning with typed cognitive pipeline.
+  Modes: reason (standard pipeline), sequential (multi-step chain with F1-F13 at each step),
+  step (add step), branch (fork), merge (synthesize), review (export), reflect (self-critique).
+  Enforces constitutional governance at every step — replaces external Sequential Thinking MCP.
+floors:
+  - F2: TRUTH (Correct reasoning chain)
+  - F4: CLARITY (Lyapunov stability)
+  - F7: HUMILITY (State uncertainty explicitly — Ω₀ 0.03–0.05)
+  - F8: GENIUS (≥0.80 correct AND useful)
+risk_tier: P2
+modes:
+  - reason
+  - sequential
+  - step
+  - branch
+  - merge
+  - review
+  - reflect
+session_required: true
+vault_on_seal: false
+reversible: true
+parameters:
+  query:
+    type: string
+    required: true
+    description: Primary query or proposition to reason about
+  context:
+    type: string
+    required: false
+    description: Supporting context narrative or structured JSON
+  mode:
+    type: string
+    enum: [reason, sequential, step, branch, merge, review, reflect]
+    default: reason
+  session_id:
+    type: string
+    required: false
+    description: Required for sequential/step/branch/merge modes

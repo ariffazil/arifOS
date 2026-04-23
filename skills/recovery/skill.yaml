@@ -1,0 +1,23 @@
+name: recovery
+description: System recovery with F5 stability guarantee
+category: recovery
+constitutional_floor: F5
+
+requirements:
+  F5_Peace:
+    stability_score: 1.0
+    non_destructive: true
+    graceful_degradation: true
+  
+  F1_Amanah:
+    backup_verification: true
+    rollback_ready: true
+
+mcp_tools:
+  - code_engine
+  - vault_ledger
+
+entry_points:
+  - system_restore
+  - data_recovery
+  - service_restart

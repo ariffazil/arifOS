@@ -6,19 +6,13 @@
   "stage": "000_INIT",
   "stage_order": 0,
   "desc": "Session establishment",
-  "trinity": "\u03a8",
+  "trinity": "Ψ",
   "trinity_name": "Sovereignty",
   "uri": "/arifOS/runtime/init_anchor",
   "backing_tool": "init_anchor",
   "role": "bootstrap",
   "role_description": "Session initialization and actor binding",
-  "modes": [
-    "init",
-    "revoke",
-    "refresh",
-    "state",
-    "status"
-  ],
+  "modes": ["init", "revoke", "refresh", "state", "status"],
   "default_mode": "init",
   "purpose": "Establish session continuity, verify identity, initialize governance context, and bind the actor to a constitutional contract for the session lifetime.",
   "when_to_use": [
@@ -42,13 +36,7 @@
   "inputs": {
     "mode": {
       "type": "string",
-      "enum": [
-        "init",
-        "revoke",
-        "refresh",
-        "state",
-        "status"
-      ],
+      "enum": ["init", "revoke", "refresh", "state", "status"],
       "description": "Operation mode for session management"
     },
     "required_payload": {
@@ -66,17 +54,10 @@
     "shape": {
       "session_id": "string - Unique session identifier",
       "actor_binding": "object - Verified actor identity",
-      "continuity_contract": "object - Session governance terms",
+      "continuity_contract": "object - Governance terms for session",
       "initialized_at": "timestamp",
       "expires_at": "timestamp",
-      "status": "string - active|pending|expired",
-      "agent_identity": "object - AI instrument identity, lane, constraints",
-      "theory_of_mind": "object - Bounded Theory of Mind block",
-      "end_goals": "object - Sovereign intent and completion criteria",
-      "godel_lock": "object - G\u00f6del self-lock acknowledgments",
-      "floors": "object - F1-F13 compact summary",
-      "lifecycle": "object - 000-999 pipeline, current stage, next stage",
-      "telemetry_baseline": "object - Nine-Signal baseline metrics"
+      "status": "string - active|pending|expired"
     }
   },
   "state_behavior": {
@@ -106,63 +87,18 @@
   },
   "routing_hints": {
     "upstream": [],
-    "downstream": [
-      "arifos.sense",
-      "arifos.route",
-      "arifos.memory"
-    ],
-    "typical_flow": [
-      "000_INIT \u2192 444_ROUTER \u2192 (111_SENSE | 333_MIND | 555_MEMORY)"
-    ]
+    "downstream": ["arifos.sense", "arifos.route", "arifos.memory"],
+    "typical_flow": ["000_INIT → 444_ROUTER → (111_SENSE | 333_MIND | 555_MEMORY)"]
   },
   "governance_requirements": {
     "risk_tier": "low",
     "dry_run_allowed": true,
-    "required_context": [
-      "actor_identity"
-    ],
-    "emits_telemetry": true,
-    "lanes": {
-      "type": "array",
-      "items": {
-        "enum": [
-          "planner",
-          "router",
-          "critic",
-          "executor_prep",
-          "memory_agent",
-          "judge_prep",
-          "orchestrator",
-          "general"
-        ]
-      },
-      "description": "Agent lane declarations \u2014 what this agent may and may not do"
-    },
-    "godel_lock": {
-      "type": "bool",
-      "description": "Must acknowledge G\u00f6del self-lock: cannot redefine floors, elevate verdicts, bypass 888_JUDGE"
-    },
-    "end_goals": {
-      "type": "object",
-      "description": "Sovereign intent, task completion definition, forbidden outcomes, abort conditions"
-    },
-    "theory_of_mind": {
-      "type": "object",
-      "description": "Bounded ToM: declared intent, assumptions, alternatives, uncertainties"
-    },
-    "floors_summary": {
-      "type": "object",
-      "description": "Compact F1-F13 enumeration: ID, name, hard/soft, invariant, enforcement"
-    }
+    "required_context": ["actor_identity"],
+    "emits_telemetry": true
   },
   "chatgpt_guidance": {
     "plain_english": "Use this to start any governed session. It creates the container that holds all your later tool calls accountable.",
-    "key_phrases": [
-      "start session",
-      "begin conversation",
-      "initialize",
-      "new task"
-    ],
+    "key_phrases": ["start session", "begin conversation", "initialize", "new task"],
     "ask_before_use_if": [
       "you're unsure if a session already exists",
       "the user wants to change identity mid-conversation"
@@ -175,10 +111,7 @@
     "ideal_prompt_shape": {
       "declared_intent": "I need to analyze the security implications of X",
       "confidence_self_estimate": 0.8,
-      "context_assumptions": [
-        "User has authority to ask about X",
-        "X is within scope"
-      ]
+      "context_assumptions": ["User has authority to ask about X", "X is within scope"]
     }
   },
   "example_calls": [
@@ -188,10 +121,7 @@
         "mode": "init",
         "declared_intent": "Review codebase for security vulnerabilities",
         "confidence_self_estimate": 0.85,
-        "context_assumptions": [
-          "Code is in /project",
-          "Review is authorized"
-        ]
+        "context_assumptions": ["Code is in /project", "Review is authorized"]
       }
     }
   ]

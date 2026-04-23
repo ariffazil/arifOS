@@ -157,6 +157,39 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # --- LLM Engine ---
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama_engine
+    init: true
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_MAX_LOADED_MODELS=2
+      - OLLAMA_NUM_PARALLEL=2
+    volumes:
+      - /opt/arifos/data/ollama:/root/.ollama
+    networks:
+      - arifos_trinity
+    healthcheck:
+      test: ["CMD-SHELL", "OLLAMA_HOST=http://127.0.0.1:11434 ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 3072M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    mem_limit: 3G
+    mem_reservation: 512M
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
   # --- Gateways & Reasoning ---
   openclaw:
     build:
@@ -209,7 +242,6 @@ services:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
     networks:
       - arifos_trinity
-      - arifos_core_network
     ports:
       - "127.0.0.1:18789:18789"
     labels:
@@ -236,6 +268,8 @@ services:
           memory: 512M
     restart: unless-stopped
     depends_on:
+      ollama:
+        condition: service_started
       redis:
         condition: service_healthy
 
@@ -256,15 +290,15 @@ services:
       - /opt/arifos/data/core:/usr/src/app/data:rw
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
-      - /root/arifOS/arifosmcp:/usr/src/app/arifosmcp:ro
-      - /root/arifOS/arifosmcp/server.py:/usr/src/app/server.py:ro
-      - /root/arifOS/arifosmcp/stdio_server.py:/usr/src/app/stdio_server.py:ro
-      - /root/arifOS/arifosmcp/fastmcp.json:/usr/src/app/fastmcp.json:ro
-      - /root/arifOS/arifosmcp/mcp.json:/usr/src/app/mcp.json:ro
-      - /root/arifOS/arifosmcp/core:/usr/src/app/core:ro
-      - /root/arifOS/arifosmcp/000:/usr/src/app/000:ro
-      - /root/arifOS/arifosmcp/333:/usr/src/app/333:ro
-      - /root/arifOS/arifosmcp/spec:/usr/src/app/spec:ro
+      - /root/arifosmcp/arifosmcp:/usr/src/app/arifosmcp:ro
+      - /root/arifosmcp/server.py:/usr/src/app/server.py:ro
+      - /root/arifosmcp/stdio_server.py:/usr/src/app/stdio_server.py:ro
+      - /root/arifosmcp/fastmcp.json:/usr/src/app/fastmcp.json:ro
+      - /root/arifosmcp/mcp.json:/usr/src/app/mcp.json:ro
+      - /root/arifosmcp/core:/usr/src/app/core:ro
+      - /root/arifosmcp/000:/usr/src/app/000:ro
+      - /root/arifosmcp/333:/usr/src/app/333:ro
+      - /root/arifosmcp/spec:/usr/src/app/spec:ro
       - /opt/arifos/secrets:/opt/arifos/secrets:ro
       - arifosmcp_telemetry:/usr/src/app/telemetry:rw
       - arifosmcp_vault:/usr/src/app/VAULT999:rw
@@ -278,7 +312,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-arifos_vault}
       REDIS_URL: redis://redis:6379/0
       QDRANT_URL: http://qdrant:6333
-      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_URL: http://ollama_engine:11434
       BROWSERLESS_URL: http://headless_browser:3000
       OPENCLAW_URL: http://openclaw:18789
       DASHBOARD_ENABLED: "true"
@@ -298,7 +332,6 @@ services:
       - "127.0.0.1:8080:8080"
     networks:
       - arifos_trinity
-      - arifos_core_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.arifosmcp.loadbalancer.server.port=8080"
@@ -351,6 +384,8 @@ services:
       redis:
         condition: service_healthy
       qdrant:
+        condition: service_started
+      ollama:
         condition: service_started
 
   # --- GEOX Earth Physics MCP ---
@@ -444,7 +479,7 @@ services:
       - '--web.enable-lifecycle'
       - '--log.level=warn'
     volumes:
-      - /root/arifOS/arifosmcp/infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /root/arifosmcp/infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - /opt/arifos/data/prometheus:/prometheus
     networks:
       - arifos_trinity
@@ -482,9 +517,9 @@ services:
       GF_AUTH_BASIC_ENABLED: "true"
     volumes:
       - /opt/arifos/data/grafana:/var/lib/grafana
-      - /root/arifOS/arifosmcp/infrastructure/grafana/datasources/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
-      - /root/arifOS/arifosmcp/infrastructure/grafana/dashboards/arifos.yaml:/etc/grafana/provisioning/dashboards/arifos.yaml:ro
-      - /root/arifOS/arifosmcp/infrastructure/grafana/dashboards:/etc/grafana/provisioning/dashboards/json:ro
+      - /root/arifosmcp/infrastructure/grafana/datasources/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+      - /root/arifosmcp/infrastructure/grafana/dashboards/arifos.yaml:/etc/grafana/provisioning/dashboards/arifos.yaml:ro
+      - /root/arifosmcp/infrastructure/grafana/dashboards:/etc/grafana/provisioning/dashboards/json:ro
     networks:
       - arifos_trinity
     labels:
@@ -575,7 +610,7 @@ services:
     command: ["-verbose", "-hooks=/etc/webhook/hooks.json", "-hotreload"]
     volumes:
       - /root/arifosmcp/deployment/hooks.json:/etc/webhook/hooks.json:ro
-      - /root/arifOS/arifosmcp/infrastructure/deploy_from_git.sh:/var/scripts/deploy_from_git.sh:ro
+      - /root/arifosmcp/infrastructure/deploy_from_git.sh:/var/scripts/deploy_from_git.sh:ro
       - /root/arifOS:/usr/src/app:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/bin/docker:/usr/bin/docker:ro
@@ -708,9 +743,6 @@ services:
     restart: unless-stopped
 
 networks:
-  arifos_core_network:
-    external: true
-    name: arifos_core_network
   arifos_trinity:
     driver: bridge
 

@@ -14,8 +14,8 @@ from typing import Any, Literal
 
 from core.shared.types import (
     AsiOutput,
-    CritiqueResult,
     CritiqueFinding,
+    CritiqueResult,
     EthicalIssue,
     FloorScores,
     HeartAssessment,
@@ -191,7 +191,7 @@ async def asi(
         omega_0=0.04,  # Baseline humidity
         kappa_r=empathy.empathy_score,
         phi_stability=empathy.peace_squared,
-        risk_level=empathy.impact_severity,
+        risk_level=0.1, # Derived or hardcoded for v1
         floor_scores=empathy.floor_scores,
         metadata={"stakeholder_count": 2, "vulnerability_score": 0.1, "impact_severity": 0.1},
     )

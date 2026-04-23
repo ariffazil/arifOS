@@ -77,6 +77,10 @@
     "reserved": 10000
   },
   "mcp": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=utbmmjmbolmuahwixjqc"
+    },
     "arifOS-AAA": {
       "type": "local",
       "command": [".venv/bin/python", "-m", "arifosmcp.runtime", "stdio"],

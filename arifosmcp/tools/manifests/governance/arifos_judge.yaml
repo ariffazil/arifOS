@@ -1,0 +1,40 @@
+name: arifos_judge
+canonical: true
+type: mega-tool
+authority: APEX_SOUL
+description: >
+  Final constitutional verdict evaluation — outputs SEAL, PARTIAL, VOID, or HOLD.
+  FLOOR F1: requires arifos_init session anchor before verdict.
+  FLOOR F13: critical risk tier requires human approval (888_HOLD).
+  G* confidence score is surfaced in RuntimeEnvelope.payload and never silently dropped.
+floors:
+  - F1: AMANAH (Reversibility)
+  - F2: TRUTH (Factual accuracy)
+  - F3: TRI_WITNESS (High-stakes witness chain)
+  - F9: ANTI_HANTU (No prompt injection)
+  - F10: ONTOLOGY (No mysticism)
+  - F12: INJECTION (Prompt injection resistance)
+  - F13: SOVEREIGN (Human Arif veto is absolute)
+risk_tier: P1
+modes:
+  - live
+  - dry_run
+session_required: true
+vault_on_seal: true
+reversible: false
+parameters:
+  query:
+    type: string
+    required: true
+    description: Action, decision, or statement to render verdict on
+  risk_tier:
+    type: string
+    enum: [low, medium, high, critical]
+    default: medium
+  session_id:
+    type: string
+    required: false
+  dry_run:
+    type: boolean
+    default: true
+    description: If true, returns verdict without vault write

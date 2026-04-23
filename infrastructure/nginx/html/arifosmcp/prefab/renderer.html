@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arifOS Prefab Renderer</title>
+    <style>
+        :root {
+            --bg: #171614;
+            --card: #1d1c1a;
+            --border: #33302c;
+            --text: #cdccca;
+            --muted: #a8a39c;
+            --teal: #4f98a3;
+            --green: #79bb84;
+            --red: #d46a6a;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        main {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        .hero, .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+        .hero {
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .muted { color: var(--muted); }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--teal);
+        }
+        .ok { background: var(--green); }
+        .bad { background: var(--red); }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .panel {
+            padding: 18px;
+        }
+        .metric {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--teal);
+        }
+        .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+        }
+        .list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .tag {
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: #252320;
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+        code {
+            color: var(--teal);
+            background: #252320;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="hero">
+            <div class="pill"><span class="dot" id="status-dot"></span><strong id="status-text">CONNECTING</strong></div>
+            <div class="pill"><strong>Renderer</strong><span class="muted">ui://prefab/renderer.html</span></div>
+            <div class="pill"><strong>Version</strong><span id="release">--</span></div>
+            <h1 style="margin:16px 0 8px;">Standalone Prefab Renderer</h1>
+            <p class="muted" style="margin:0;">
+                Live constitutional view for <code>mcp.arif-fazil.com</code>. This page renders directly in the browser
+                and reads the same Source of Truth feed as the public dashboard.
+            </p>
+        </section>
+
+        <section class="grid">
+            <article class="panel">
+                <div class="label">Tools</div>
+                <div class="metric" id="tools">--</div>
+            </article>
+            <article class="panel">
+                <div class="label">Containers</div>
+                <div class="metric" id="containers">--</div>
+            </article>
+            <article class="panel">
+                <div class="label">Commit</div>
+                <div class="metric" id="commit" style="font-size:24px;">--</div>
+            </article>
+            <article class="panel">
+                <div class="label">Continuity</div>
+                <div class="metric" id="continuity" style="font-size:24px;">--</div>
+            </article>
+            <article class="panel">
+                <div class="label">Vitality</div>
+                <div class="metric" id="vitality">--</div>
+            </article>
+            <article class="panel">
+                <div class="label">Confidence</div>
+                <div class="metric" id="confidence">--</div>
+            </article>
+        </section>
+
+        <section class="panel" style="margin-top:20px;">
+            <div class="label">Tri-Witness Consensus</div>
+            <div class="list">
+                <span class="tag">Δ arifOS</span>
+                <span class="tag">Φ GEOX</span>
+                <span class="tag">Ψ WEALTH</span>
+            </div>
+            <div class="list" id="notes" style="margin-top:16px;"></div>
+        </section>
+    </main>
+
+    <script>
+        const API = 'https://mcp.arif-fazil.com/api/status';
+
+        function setText(id, value, fallback = '--') {
+            const node = document.getElementById(id);
+            if (!node) return;
+            node.textContent = value === undefined || value === null || value === '' ? fallback : value;
+        }
+
+        function fmt(value, digits = 2) {
+            const num = Number(value);
+            return Number.isFinite(num) ? num.toFixed(digits) : '--';
+        }
+
+        async function refresh() {
+            try {
+                const res = await fetch(API, { headers: { Accept: 'application/json' } });
+                const data = await res.json();
+                const health = data.health || {};
+                const thermo = health.thermodynamic || {};
+                const caps = health.capability_map?.capabilities || {};
+                const notes = health.capability_map?.notes || [];
+
+                setText('status-text', `${health.status || 'unknown'} · ${thermo.verdict || 'UNKNOWN'}`.toUpperCase());
+                document.getElementById('status-dot').className = 'dot ' + ((health.status === 'healthy' && thermo.verdict !== 'VOID') ? 'ok' : 'bad');
+                setText('release', health.release_tag || health.version);
+                setText('tools', health.tools_loaded);
+                setText('containers', Array.isArray(data.containers) ? data.containers.length : '--');
+                setText('commit', health.source_commit || data.git?.commit);
+                setText('continuity', caps.governed_continuity);
+                setText('vitality', fmt(thermo.vitality_index));
+                setText('confidence', fmt(thermo.confidence));
+
+                const notesNode = document.getElementById('notes');
+                notesNode.innerHTML = (notes.length ? notes : ['No live notes']).map((note) => `<span class="tag">${note}</span>`).join('');
+            } catch (_error) {
+                setText('status-text', 'DISCONNECTED');
+                document.getElementById('status-dot').className = 'dot bad';
+            }
+        }
+
+        refresh();
+        setInterval(refresh, 60000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+name: arifos_heart
+canonical: true
+type: mega-tool
+authority: ASI_HEART
+description: >
+  Red-team proposal for ethical risks. Simulate consequences, evaluate against F5, F6, F9.
+  Modes: critique (identify risks), simulate (predict downstream consequences).
+  Returns explicit floor_scores per evaluation for downstream arifos_judge consumption.
+floors:
+  - F5: PEACE (Stability ≥1.0 — de-escalate, protect maruah)
+  - F6: EMPATHY (κᵣ ≥0.70 — ASEAN/Malaysia context)
+  - F9: ANTI_HANTU (Dark cleverness <0.30 — no consciousness performance)
+risk_tier: P2
+modes:
+  - critique
+  - simulate
+session_required: true
+vault_on_seal: false
+reversible: true
+parameters:
+  query:
+    type: string
+    required: true
+    description: Action, proposal, or policy to ethically evaluate
+  mode:
+    type: string
+    enum: [critique, simulate]
+    default: critique
+  session_id:
+    type: string
+    required: false

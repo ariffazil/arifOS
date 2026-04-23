@@ -1,0 +1,24 @@
+name: memory-query
+description: Vector memory search with F2 freshness enforcement
+category: memory
+constitutional_floor: F555
+
+requirements:
+  F2_Truth:
+    freshness_check: true
+    ttl_max: 86400
+  
+  F555_Memory:
+    hybrid_search: true
+    constitutional_indexing: true
+  
+  F4_Clarity:
+    relevance_threshold: 0.8
+
+mcp_tools:
+  - engineering_memory
+
+entry_points:
+  - vector_search
+  - store_memory
+  - forget_memory

@@ -6,7 +6,7 @@ arifosmcp/runtime/tools_v2.py — arifOS MCP v2 Sovereign Core Implementation
 The 10th Tool (arifos.forge) is the Delegated Execution Bridge:
   • Requires judge verdict = SEAL
   • Issues signed execution manifest
-  • Dispatches to AF-FORGE substrate
+  • Dispatches to A-FORGE substrate
   • Preserves separation of powers
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -23,8 +23,6 @@ from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 RuntimeEnvelope = dict[str, Any]
 # Philosophy injection removed from tools - happens centrally in _wrap_call()
 # to ensure ONLY G★ determines band, never tool identity
-from fastmcp import FastMCP
-
 from arifosmcp.runtime.megaTools import (
     agi_mind as _mega_agi_mind,
 )
@@ -52,6 +50,7 @@ from arifosmcp.runtime.megaTools import (
 from arifosmcp.runtime.megaTools import (
     vault_ledger as _mega_vault_ledger,
 )
+from fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
 
@@ -516,9 +515,8 @@ V2_TOOL_HANDLERS: dict[str, Any] = {
 
 def register_v2_tools(mcp: FastMCP) -> list[str]:
     """Register all v2 tools on the MCP instance."""
-    from fastmcp.tools.function_tool import FunctionTool
-
     from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS
+    from fastmcp.tools.function_tool import FunctionTool
 
     registered = []
     for spec in V2_TOOLS:

@@ -1,7 +1,7 @@
 {
   "name": "@arifos/mcp",
-  "version": "2026.3.20",
-  "description": "arifOS MCP Client v2026.3.20 — TypeScript adapter for 11 Mega-Tools (37 modes), 13 Constitutional Floors (F1-F13), Protocol Trinity (MCP + A2A + WebMCP)",
+  "version": "2026.04.16",
+  "description": "arifOS MCP Client v2026.04.16 — TypeScript adapter for 11 Mega-Tools (37 modes), 13 Constitutional Floors (F1-F13), Protocol Trinity (MCP + A2A + WebMCP)",
   "keywords": [
     "mcp",
     "arifos",

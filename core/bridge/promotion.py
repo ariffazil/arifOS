@@ -15,12 +15,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 from ..organs.memory.types import MemoryRecord, MemoryType
 from ..organs.vault.types import (
-    VaultEntry, VaultRecordType, Verdict, Evidence, 
-    Governance, VaultLineage, SealReceipt
+    Evidence,
+    Governance,
+    SealReceipt,
+    VaultEntry,
+    VaultLineage,
+    VaultRecordType,
+    Verdict,
 )
 
 
@@ -90,7 +94,7 @@ class PromotionBridge:
         
         return False, "Does not meet promotion criteria"
     
-    def promote(self, memory_id: str, session_id: str) -> Optional[SealReceipt]:
+    def promote(self, memory_id: str, session_id: str) -> SealReceipt | None:
         """
         Promote a memory record to vault.
         

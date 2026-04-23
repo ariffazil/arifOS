@@ -16,9 +16,8 @@ import logging
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class StepType(str, Enum):
     BRANCH = "branch"           # Branching point marker
 
     @classmethod
-    def from_string(cls, s: str) -> "StepType":
+    def from_string(cls, s: str) -> StepType:
         try:
             return cls(s.lower())
         except ValueError:
@@ -60,9 +59,9 @@ class ThinkingStep:
     step_number: int
     step_type: StepType
     content: str
-    parent_step: Optional[int] = None
+    parent_step: int | None = None
     connections: list[int] = field(default_factory=list)
-    branch_id: Optional[str] = None
+    branch_id: str | None = None
     quality_score: float = 0.0
     timestamp: float = field(default_factory=time.time)
     constitutional_verdict: str = "SEAL"  # SEAL / HOLD / VOID
@@ -79,9 +78,9 @@ class ThinkingSession:
     """A full thinking session — sequential reasoning with constitutional tracking."""
     session_id: str
     problem: str
-    context: Optional[dict[str, Any]] = None
+    context: dict[str, Any] | None = None
     tags: list[str] = field(default_factory=list)
-    template: Optional[str] = None  # e.g. "scientific-method", "five-whys"
+    template: str | None = None  # e.g. "scientific-method", "five-whys"
     steps: list[ThinkingStep] = field(default_factory=list)
     branches: dict[str, list[int]] = field(default_factory=dict)  # branch_id → [step_nums]
     status: SessionStatus = SessionStatus.ACTIVE
@@ -223,9 +222,9 @@ class ThinkingSessionManager:
     def start_session(
         self,
         problem: str,
-        context: Optional[dict[str, Any]] = None,
-        tags: Optional[list[str]] = None,
-        template: Optional[str] = None,
+        context: dict[str, Any] | None = None,
+        tags: list[str] | None = None,
+        template: str | None = None,
     ) -> ThinkingSession:
         """Create a new thinking session."""
         session_id = hashlib.sha256(
@@ -255,10 +254,10 @@ class ThinkingSessionManager:
         session_id: str,
         step_type: StepType,
         content: str,
-        branch_id: Optional[str] = None,
-        parent_step: Optional[int] = None,
-        evidence_refs: Optional[list[str]] = None,
-        connections: Optional[list[int]] = None,
+        branch_id: str | None = None,
+        parent_step: int | None = None,
+        evidence_refs: list[str] | None = None,
+        connections: list[int] | None = None,
     ) -> ThinkingStep:
         """Add a reasoning step to a session. Enforces F2 TRUTH quality gate."""
         session = self._sessions.get(session_id)
@@ -386,13 +385,13 @@ class ThinkingSessionManager:
         session.updated_at = time.time()
         return session
 
-    def get_session(self, session_id: str) -> Optional[ThinkingSession]:
+    def get_session(self, session_id: str) -> ThinkingSession | None:
         return self._sessions.get(session_id)
 
     def list_sessions(
         self,
-        status: Optional[SessionStatus] = None,
-        tag: Optional[str] = None,
+        status: SessionStatus | None = None,
+        tag: str | None = None,
         limit: int = 20,
     ) -> list[ThinkingSession]:
         """List sessions with optional filtering."""
@@ -439,14 +438,14 @@ class ThinkingSessionManager:
     def _export_markdown(self, session: ThinkingSession) -> str:
         lines = [
             f"# Thinking Session: {session.session_id}",
-            f"",
+            "",
             f"**Problem:** {session.problem}",
             f"**Status:** {session.status.value}",
             f"**Template:** {session.template or 'default'}",
             f"**Quality Score:** {session.quality_score:.4f}",
             f"**Steps:** {len(session.steps)}",
-            f"",
-            f"---",
+            "",
+            "---",
             "",
         ]
         for step in session.steps:
@@ -455,12 +454,12 @@ class ThinkingSessionManager:
                 lines.append(f"**Branch:** `{step.branch_id}`")
             if step.parent_step:
                 lines.append(f"**Parent:** Step {step.parent_step}")
-            lines.append(f"")
+            lines.append("")
             lines.append(step.content)
             if step.evidence_refs:
-                lines.append(f"")
+                lines.append("")
                 lines.append(f"*Evidence: {', '.join(step.evidence_refs)}*")
-            lines.append(f"")
+            lines.append("")
             lines.append(f"Quality: `{step.quality_score:.2f}` | Verdict: `{step.constitutional_verdict}`")
             lines.append("")
 
@@ -518,7 +517,7 @@ class ThinkingSessionManager:
 # Global singleton
 # ---------------------------------------------------------------------------
 
-_thinking_manager: Optional[ThinkingSessionManager] = None
+_thinking_manager: ThinkingSessionManager | None = None
 
 
 def get_thinking_manager() -> ThinkingSessionManager:

@@ -6,16 +6,18 @@ Ensures tools are discoverable, schema-validated, and safely callable.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
+
 from dataclasses import dataclass, field
+from typing import Any
+
 
 @dataclass
 class ToolContract:
     """Definition of a tool contract."""
     name: str
     description: str
-    schema: Dict[str, Any]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    schema: dict[str, Any]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class ToolContractRegistry:
     """
@@ -24,9 +26,9 @@ class ToolContractRegistry:
     """
 
     def __init__(self):
-        self._tools: Dict[str, ToolContract] = {}
+        self._tools: dict[str, ToolContract] = {}
 
-    def register_tool(self, name: str, description: str, schema: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None):
+    def register_tool(self, name: str, description: str, schema: dict[str, Any], metadata: dict[str, Any] | None = None):
         """Register a new tool contract."""
         self._tools[name] = ToolContract(
             name=name,
@@ -35,15 +37,15 @@ class ToolContractRegistry:
             metadata=metadata or {}
         )
 
-    def get_tool_contract(self, name: str) -> Optional[ToolContract]:
+    def get_tool_contract(self, name: str) -> ToolContract | None:
         """Retrieve a tool's contract by name."""
         return self._tools.get(name)
 
-    def list_tools(self) -> List[str]:
+    def list_tools(self) -> list[str]:
         """List names of all registered tools."""
         return list(self._tools.keys())
 
-    def validate_call(self, name: str, params: Dict[str, Any]) -> bool:
+    def validate_call(self, name: str, params: dict[str, Any]) -> bool:
         """Validate a tool call against its registered schema."""
         contract = self.get_tool_contract(name)
         if not contract:
@@ -58,6 +60,6 @@ class ToolContractRegistry:
         
         return True
 
-    def get_all_contracts(self) -> List[ToolContract]:
+    def get_all_contracts(self) -> list[ToolContract]:
         """Retrieve all registered tool contract objects."""
         return list(self._tools.values())

@@ -14,16 +14,17 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from fastmcp import FastMCP, Context
+from fastmcp import Context, FastMCP
 from fastmcp.exceptions import ResourceError
-from fastmcp.resources import ResourceContent
-# ResourceResult is FastMCP 3.x only — stub for 2.x compatibility
-ResourceResult = lambda x: x
+from fastmcp.resources import ResourceContent, ResourceResult
 
 logger = logging.getLogger(__name__)
 
 # Module load time for uptime calculation
 START_TIME = datetime.now(timezone.utc)
+
+# Resource content accessors for stdio/inline resource reads
+_resource_content_functions: dict[str, Any] = {}
 
 CANON_SESSION_STATES = """# arifOS Session Ladder
 
@@ -211,8 +212,12 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
     "namespace": "arifos",
     "constitutional_floors": 13,
     "tools": {
-        "public": ["arifos_init", "arifos_route", "arifos_judge", "arifos_forge"],
-        "internal": ["arifos_sense", "arifos_mind", "arifos_heart", "arifos_ops", "arifos_memory", "arifos_vault", "arifos_health"],
+        "public": [
+            "arifos_init", "arifos_sense", "arifos_mind", "arifos_kernel",
+            "arifos_heart", "arifos_ops", "arifos_memory", "arifos_gateway",
+            "arifos_judge", "arifos_forge", "arifos_vault"
+        ],
+        "internal": ["arifos_reply", "arifos_fetch", "arifos_health", "arifos_probe", "arifos_diag_substrate"],
         "total": 11,
     },
     "mcp_version": "2025-11-25",
@@ -230,8 +235,8 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
     },
 }
 
-AF_FORGE_CONTEXT: dict[str, Any] = {
-    "name": "AF-FORGE",
+A_FORGE_CONTEXT: dict[str, Any] = {
+    "name": "A-FORGE",
     "version": "0.1.0",
     "description": (
         "Constitutional Event-Sourced Agent Runtime. "
@@ -239,34 +244,36 @@ AF_FORGE_CONTEXT: dict[str, Any] = {
         "and 888_HOLD human sovereignty gates."
     ),
     "bridge_endpoint": "http://localhost:7071",
-    "mcp_stdio_cmd": ["node", "af-forge/dist/src/mcp/server.js"],
+    "mcp_stdio_cmd": ["node", "a-forge/dist/src/mcp/server.js"],
+    "runtime_contract": {
+        "api_version": "0.1.0",
+        "min_compatible_a_forge": "0.1.0",
+        "governance_surface": "HTTP bridge + MCP stdio",
+        "canonical_source": "a-forge repository (TypeScript runtime)",
+        "note": "Do not hardcode source file paths here; they drift. Use the live bridge contract instead.",
+    },
     "governance_floors_implemented": {
         "F3_InputClarity": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/governance/f3InputClarity.ts",
             "gate": "SABAR — empty, <3 chars, or ambiguous repetition",
             "enforced_in": "AgentEngine.run() before LLM",
         },
         "F6_HarmDignity": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/governance/f6HarmDignity.ts",
             "gate": "VOID — 11 regex patterns (rm -rf, exploit, bypass auth, steal, inject, fork bomb)",
             "enforced_in": "AgentEngine.run() after F3",
         },
         "F9_Injection": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/governance/f9Injection.ts",
             "gate": "VOID — 10 regex patterns (ignore-instructions, bypass-policy, do-not-log, reveal-secrets, DAN)",
             "enforced_in": "AgentEngine.run() after F6",
         },
         "F13_Sovereign": {
             "status": "IMPLEMENTED",
-            "file": "af-forge/src/approval/ApprovalBoundary.ts",
             "gate": "888_HOLD — blocks until human approval, never auto-approved",
         },
         "F7_Confidence": {
             "status": "PARTIAL",
-            "file": "af-forge/src/policy/confidence.ts",
             "gate": "Heuristic bands (VERY_HIGH/HIGH/MODERATE/LOW) — hard AgentEngine gate pending LLM API",
         },
         "summary": "11/13 floors implemented, 2 partial (F4 entropy metric, F8 grounding link)",
@@ -280,9 +287,9 @@ AF_FORGE_CONTEXT: dict[str, Any] = {
         "forge://governance/floors": "F1–F13 constitutional floor definitions",
     },
     "deployment": {
-        "http_bridge": "docker-compose up af-forge-bridge  (port 7071)",
-        "stdio_mcp": "node af-forge/dist/src/mcp/server.js",
-        "launcher": ".github/mcp/start-af-forge-stdio.sh [--build]",
+        "http_bridge": "docker-compose up a-forge-bridge  (port 7071)",
+        "stdio_mcp": "node a-forge/dist/src/mcp/server.js",
+        "launcher": ".github/mcp/start-a-forge-stdio.sh [--build]",
         "platforms": ["Claude Desktop (.mcp.json)", "Cursor (.cursor/mcp.json)", "OpenCode (.opencode.json)", "Smithery (smithery.yaml)"],
     },
     "test_status": {
@@ -379,7 +386,7 @@ def _get_skills_manifest() -> dict[str, Any]:
 
 def _vitals_to_markdown(data: dict[str, Any]) -> str:
     """Convert vitals payload to markdown."""
-    md = f"# arifOS Vitals (Ω)\n\n"
+    md = "# arifOS Vitals (Ω)\n\n"
     md += f"**Status**: {data['system']['name']} {data['system']['version']}\n\n"
     md += "| Metric | Value |\n|---|---|\n"
     thermo = data.get("thermodynamics", {})
@@ -397,7 +404,7 @@ def _get_platform_config(platform: str) -> dict[str, Any]:
         "claude": {"config_file": ".mcp.json", "transport": "stdio"},
         "cursor": {"config_file": ".cursor/mcp.json", "transport": "stdio"},
         "opencode": {"config_file": ".opencode.json", "transport": "stdio"},
-        "chatgpt": {"config_file": "config/apps-sdk/arifos-af-forge.json", "transport": "streamable-http"},
+        "chatgpt": {"config_file": "config/apps-sdk/arifos-a-forge.json", "transport": "streamable-http"},
     }
     return configs.get(platform.lower(), {})
 
@@ -408,8 +415,8 @@ def _get_platform_config(platform: str) -> dict[str, Any]:
 
 def register_v2_resources(mcp: FastMCP) -> list[str]:
     """Register all v2 resources using arifos:// scheme."""
-    from arifosmcp.schema import get_registry
     from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.schema import get_registry
     try:
         from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
         tools_total = len(CANONICAL_TOOL_HANDLERS)
@@ -512,7 +519,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
                     ResourceContent(content=json.dumps(data), mime_type="application/json"),
                     ResourceContent(content=md, mime_type="text/markdown"),
                     ResourceContent(
-                        content="![Vault Seal](https://mcp.af-forge.io/widget/vault-seal)",
+                        content="![Vault Seal](https://mcp.a-forge.io/widget/vault-seal)",
                         mime_type="text/markdown",
                     ),
                 ]
@@ -623,6 +630,22 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
                 "depth": depth,
                 "compression_mode": "DELTA",
                 "compress": compress,
+                "domain_evidence_contract": {
+                    "version": "geox-evidence/v1",
+                    "accepted_sources": ["GEOX"],
+                    "recommended_fields": [
+                        "claim_tag",
+                        "asset_id",
+                        "disagreement_band",
+                        "p10_p50_p90",
+                        "charge_probability",
+                        "vault_receipt",
+                    ],
+                    "memory_modes": {
+                        "store": "arifos_memory(mode='asset_store')",
+                        "query": "arifos_memory(mode='asset_query')",
+                    },
+                },
             },
             "active_floors": [],
             "last_verdict": {
@@ -630,6 +653,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
                 "tau": 0.96,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             },
+            "active_domain_packets": [],
             "tasks": [],  # Task primitive integration point
         }
 
@@ -639,19 +663,19 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         result: dict[str, Any] = {}
 
         if context in ("all", "engine"):
-            result["af_forge"] = {
-                "name": AF_FORGE_CONTEXT["name"],
-                "version": AF_FORGE_CONTEXT["version"],
-                "bridge_endpoint": AF_FORGE_CONTEXT["bridge_endpoint"],
-                "governance_floors_implemented": AF_FORGE_CONTEXT["governance_floors_implemented"],
-                "test_status": AF_FORGE_CONTEXT["test_status"],
-                "golden_path": AF_FORGE_CONTEXT["golden_path"],
+            result["a_forge"] = {
+                "name": A_FORGE_CONTEXT["name"],
+                "version": A_FORGE_CONTEXT["version"],
+                "bridge_endpoint": A_FORGE_CONTEXT["bridge_endpoint"],
+                "governance_floors_implemented": A_FORGE_CONTEXT["governance_floors_implemented"],
+                "test_status": A_FORGE_CONTEXT["test_status"],
+                "golden_path": A_FORGE_CONTEXT["golden_path"],
             }
 
         if context in ("all", "deployment"):
             result["deployment"] = {
-                "platforms": AF_FORGE_CONTEXT["deployment"]["platforms"],
-                "launcher": AF_FORGE_CONTEXT["deployment"]["launcher"],
+                "platforms": A_FORGE_CONTEXT["deployment"]["platforms"],
+                "launcher": A_FORGE_CONTEXT["deployment"]["launcher"],
             }
             if platform:
                 result["deployment"]["platform_view"] = _get_platform_config(platform)
@@ -659,56 +683,27 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         if context in ("all", "widgets"):
             result["widgets"] = {
                 "vault_seal": {
-                    "uri": "https://mcp.af-forge.io/widget/vault-seal",
+                    "uri": "https://mcp.a-forge.io/widget/vault-seal",
                     "mime_type": "text/html",
                 }
             }
 
         return result
 
-    @mcp.resource("arifos://wisdom/{surface}")
-    def get_wisdom(surface: str = "anchor") -> dict[str, Any]:
-        """Governed wisdom quote for a constitutional surface."""
-        from arifosmcp.runtime.philosophy import select_wisdom_quote
-        return select_wisdom_quote(surface)
+    @mcp.resource("arifos://mcp/context")
+    def get_mcp_context() -> dict[str, Any]:
+        """Full LLM context map for canonical tool surface and continuity guidance."""
+        from arifosmcp.capability_map import build_llm_context_map
+        return build_llm_context_map()
 
-    @mcp.resource("arifos://wisdom/index")
-    def get_wisdom_index() -> dict[str, Any]:
-        """Index of all available wisdom resources and surfaces."""
-        from arifosmcp.runtime.wisdom_quotes import SURFACES, WISDOM_REGISTRY
-        return {
-            "surfaces": sorted(SURFACES),
-            "total_quotes": len(WISDOM_REGISTRY),
-            "resources": [
-                "arifos://wisdom/{surface}",
-                "arifos://wisdom/index",
-                "arifos://wisdom/stats",
-                "arifos://wisdom/surfaces",
-            ],
-        }
-
-    @mcp.resource("arifos://wisdom/stats")
-    def get_wisdom_stats() -> dict[str, Any]:
-        """Observability statistics for the wisdom registry."""
-        from arifosmcp.runtime.wisdom_quotes import arifos_wisdom_stats
-        return arifos_wisdom_stats()
-
-    @mcp.resource("arifos://wisdom/surfaces")
-    def get_wisdom_surfaces() -> dict[str, Any]:
-        """Coverage map of quotes per constitutional surface."""
-        from arifosmcp.runtime.wisdom_quotes import registry_stats, quotes_for_surface, SURFACES
-        stats = registry_stats()
-        return {
-            "surfaces": {
-                s: {
-                    "quote_count": stats["by_surface"].get(s, 0),
-                    "sample_quote_ids": [q["id"] for q in quotes_for_surface(s)[:5]],
-                }
-                for s in sorted(SURFACES)
-            },
-            "total_quotes": stats["total"],
-            "active_quotes": stats["active"],
-        }
+    # Populate inline resource content accessors for stdio compatibility
+    _resource_content_functions.update({
+        "arifos://doctrine": lambda: json.dumps(get_doctrine()),
+        "arifos://vitals": lambda: json.dumps({"note": "vitals resource requires async read"}),
+        "arifos://schema": lambda: json.dumps(get_schema()),
+        "arifos://forge": lambda: json.dumps(get_forge()),
+        "arifos://mcp/context": lambda: json.dumps(get_mcp_context()),
+    })
 
     registered = [
         "arifos://doctrine",
@@ -719,10 +714,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         "arifos://schema/tool/{tool_id}",
         "arifos://session/{session_id}",
         "arifos://forge",
-        "arifos://wisdom/{surface}",
-        "arifos://wisdom/index",
-        "arifos://wisdom/stats",
-        "arifos://wisdom/surfaces",
+        "arifos://mcp/context",
     ]
     logger.info(f"Registered {len(registered)} v2 resources.")
     return registered
@@ -756,7 +748,7 @@ def manifest_resources() -> list[dict[str, str]]:
         {"uri": "arifos://vitals", "name": "System Vitals"},
         {"uri": "arifos://schema", "name": "Master Schema"},
         {"uri": "arifos://session/{session_id}", "name": "Session Context"},
-        {"uri": "arifos://forge", "name": "AF-FORGE Bridge"},
+        {"uri": "arifos://forge", "name": "A-FORGE Bridge"},
     ]
 
 

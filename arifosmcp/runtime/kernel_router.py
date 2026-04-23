@@ -21,7 +21,7 @@ Version: 2026.04.06-HARDENED
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from arifosmcp.runtime.belief_registry import update_belief
 from arifosmcp.runtime.governance_enforcer import (
@@ -48,7 +48,7 @@ class HardenedKernelRouter:
         self,
         query: str,
         actor_id: str = "anonymous",
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
@@ -184,26 +184,36 @@ class HardenedKernelRouter:
         tool_name: str,
         query: str,
         actor_id: str,
-        session_id: Optional[str],
+        session_id: str | None,
         context: dict[str, Any],
     ) -> RuntimeEnvelope:
         """Invoke tool with full ToM requirements."""
 
         # Import tools dynamically to avoid circular deps
-        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
+        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, get_tool_handler
 
+        # Try direct lookup first, then fallback to legacy alias resolution
         handler = CANONICAL_TOOL_HANDLERS.get(tool_name)
+        if handler is None:
+            # Try legacy alias resolution before declaring not found
+            handler = get_tool_handler(tool_name)
         if not handler:
-            # Return error envelope if tool not found
+            # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)
             return RuntimeEnvelope(
                 tool=tool_name,
                 stage="444_ROUTER",
                 status=RuntimeStatus.ERROR,
-                verdict=Verdict.VOID,
+                verdict=Verdict.SEAL,  # Dispatch failure ≠ governance failure
                 session_id=session_id,
                 payload={
                     "ok": False,
-                    "error": f"Tool {tool_name} not found",
+                    "error": f"Tool {tool_name} not found in registry",
+                    "dispatch_failure": True,
+                    "query": query,
+                    "tool_name_requested": tool_name,
+                    "available_tools": list(CANONICAL_TOOL_HANDLERS.keys()),
+                    "retryable": True,
+                    "recommendation": "Route to arifos_sense for stateless query handling",
                     "tom_violation": False,
                 },
             )
@@ -237,7 +247,14 @@ class HardenedKernelRouter:
                 allow_execution=context.get("allow_execution", False),
                 **common_args,
             )
-        if tool_name in ("arifos.sense", "arifos_sense", "arifos.mind", "arifos_mind", "arifos.memory", "arifos_memory"):
+        if tool_name in (
+            "arifos.sense",
+            "arifos_sense",
+            "arifos.mind",
+            "arifos_mind",
+            "arifos.memory",
+            "arifos_memory",
+        ):
             extra_args = {}
             if tool_name in ("arifos.mind", "arifos_mind"):
                 extra_args["context"] = payload.get("context")
@@ -262,16 +279,24 @@ class HardenedKernelRouter:
                     if belief.false_belief_flags:
                         logger.info(
                             "ToM: actor=%s flags=%s confidence=%.2f",
-                            actor_id, belief.false_belief_flags, belief.confidence,
+                            actor_id,
+                            belief.false_belief_flags,
+                            belief.confidence,
                         )
                 # ── end ToM wiring ──────────────────────────────────────────
-            return await handler(query=str(payload.get("query") or query), **extra_args, **common_args)
-        if tool_name in ("arifos.kernel", "arifos_kernel", "arifos_route"):
+            return await handler(
+                query=str(payload.get("query") or query), **extra_args, **common_args
+            )
+        if tool_name in ("arifos.kernel", "arifos_kernel"):
             return await handler(request=str(payload.get("query") or query), **common_args)
         if tool_name in ("arifos.heart", "arifos_heart"):
-            return await handler(content=str(payload.get("content") or payload.get("query") or query), **common_args)
+            return await handler(
+                content=str(payload.get("content") or payload.get("query") or query), **common_args
+            )
         if tool_name in ("arifos.ops", "arifos_ops"):
-            return await handler(action=str(payload.get("action") or payload.get("query") or query), **common_args)
+            return await handler(
+                action=str(payload.get("action") or payload.get("query") or query), **common_args
+            )
         if tool_name in ("arifos.judge", "arifos_judge"):
             return await handler(candidate_action=str(payload.get("query") or query), **common_args)
 
@@ -290,7 +315,7 @@ class HardenedKernelRouter:
 
 
 # Global router instance
-_router: Optional[HardenedKernelRouter] = None
+_router: HardenedKernelRouter | None = None
 
 
 def get_router() -> HardenedKernelRouter:
@@ -304,7 +329,7 @@ def get_router() -> HardenedKernelRouter:
 async def process_query(
     query: str,
     actor_id: str = "anonymous",
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """

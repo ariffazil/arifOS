@@ -1,0 +1,23 @@
+name: vps-monitor
+description: Real-time VPS telemetry (CPU, Memory, ZRAM, Disk)
+category: monitoring
+constitutional_floor: F4
+
+requirements:
+  F4_Clarity:
+    output_format: structured
+    entropy_delta_max: 0
+  F12_Security:
+    input_sanitization: strict
+    hardcoded_commands_only: true
+
+mcp_tools:
+  - physics_reality
+
+entry_points:
+  - get_telemetry
+  - get_zram_status
+  - get_disk_usage
+
+risk_tiers:
+  read_only: low

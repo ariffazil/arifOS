@@ -64,21 +64,19 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
 async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[str, Any]:
     handler_name = getattr(handler, "__name__", "")
 
+    from arifosmcp.runtime.sessions import get_session_identity
+
+    if not arguments.get("actor_id"):
+        sid = arguments.get("session_id")
+        if sid:
+            session_info = get_session_identity(sid)
+            if session_info:
+                arguments["actor_id"] = session_info.get("actor_id")
+
     if handler_name == "vault_seal":
-        return {
-            "ok": True,
-            "tool": "arifos_vault",
-            "session_id": arguments.get("session_id"),
-            "stage": "999_VAULT",
-            "verdict": arguments.get("verdict", "SEAL"),
-            "status": "SUCCESS",
-            "payload": {
-                "sealed": True,
-                "evidence": arguments.get("evidence", ""),
-                "message": "Vault seal recorded (stdio compatibility path).",
-            },
-            "errors": [],
-        }
+        from arifosmcp.runtime.tools import arifos_vault
+
+        return await arifos_vault(**arguments)
 
     result = handler(**arguments)
     if inspect.isawaitable(result):
@@ -237,7 +235,16 @@ def main() -> None:
 
     _bootstrap_environment()
 
-    mode = (sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")).lower()
+    # P0 FIX: Robust mode detection
+    mode = os.getenv("AAA_MCP_TRANSPORT", "stdio")
+    if "--mode" in sys.argv:
+        idx = sys.argv.index("--mode")
+        if idx + 1 < len(sys.argv):
+            mode = sys.argv[idx + 1]
+    elif len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+        mode = sys.argv[1]
+
+    mode = mode.lower()
     os.environ["AAA_MCP_TRANSPORT"] = mode
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8080"))

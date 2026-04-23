@@ -12,9 +12,9 @@ Usage:
 import json
 import subprocess
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import UTC
 from pathlib import Path
-from typing import Optional
 
 ARIFOS_ROOT = Path(__file__).parent.parent
 SCOPED_DIRS = ["core/shared", "arifosmcp/runtime", "tests", "ARCH/DOCS"]
@@ -58,9 +58,9 @@ class ArifOutput:
 
 
 def get_timestamp():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def run_git_command(args, cwd=None):
@@ -92,7 +92,7 @@ def count_files_in_scope() -> dict:
 
 def measure_complexity(file_path: Path) -> float:
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
         lines = content.split("\n")
         code_lines = [l for l in lines if l.strip() and not l.strip().startswith("#")]
@@ -128,7 +128,7 @@ def detect_contradictions() -> list:
             continue
         for py_file in dir_path.rglob("*.py"):
             try:
-                with open(py_file, "r") as f:
+                with open(py_file) as f:
                     content = f.read()
                 for pat_a, pat_b, desc in patterns:
                     if pat_a in content.lower() and pat_b in content.lower():
@@ -221,7 +221,7 @@ def analyze_repo_state() -> dict:
     }
 
 
-def run_arif_analysis(target_path: Optional[str] = None) -> ArifOutput:
+def run_arif_analysis(target_path: str | None = None) -> ArifOutput:
     repo_state = analyze_repo_state()
     contradictions = detect_contradictions()
     entropy_delta = calculate_entropy_delta(repo_state)

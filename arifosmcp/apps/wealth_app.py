@@ -1,0 +1,217 @@
+"""
+arifosmcp/apps/wealth_app.py
+═══════════════════════════════════════════════════════════════════════════════
+arifOS WealthApp — The Economist Surface (@WEALTH)
+═══════════════════════════════════════════════════════════════════════════════
+
+Implements the economic organ interface as a FastMCPApp:
+
+  @app.ui()   wealth_dashboard_surface  — entry; renders economic metrics + analysis tool
+  @app.tool() arifos_perform_economic_audit (HOLD) — backend; calls core.organs.wealth
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
+"""
+
+from typing import Annotated, Any
+
+from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
+from prefab_ui.actions import SetState, ShowToast
+from prefab_ui.actions.mcp import CallTool
+from prefab_ui.app import PrefabApp
+from prefab_ui.components import (
+    Badge,
+    Button,
+    Card,
+    CardContent,
+    Column,
+    Grid,
+    Heading,
+    If,
+    Metric,
+    Muted,
+    Row,
+    Separator,
+    Text,
+)
+from prefab_ui.rx import RESULT, STATE
+from pydantic import Field
+
+# ── App definition ────────────────────────────────────────────────────────────
+
+wealth_app = FastMCP("WealthApp")
+if not hasattr(wealth_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    wealth_app.ui = lambda *args, **kwargs: (lambda fn: fn)
+
+@wealth_app.tool(name="arifos_perform_economic_audit", tags={"hold", "internal", "wealth"})
+async def perform_economic_audit(
+    initial_cost: Annotated[float, Field(description="Initial investment amount")],
+    annual_benefit: Annotated[float, Field(description="Expected annual cash flow")],
+    years: Annotated[int, Field(description="Project duration in years")],
+    ebitda: Annotated[
+        float,
+        Field(description="Earnings Before Interest, Taxes, Depreciation, and Amortization"),
+    ] = 120000.0,
+    debt_service: Annotated[
+        float, Field(description="Total debt service obligations")
+    ] = 100000.0,
+) -> ToolResult:
+    """
+    Perform a constitutional economic audit.
+    """
+    try:
+        from core.organs import wealth
+        flows = [annual_benefit] * years
+        
+        npv_res = wealth(operation="npv_reward", initial_investment=initial_cost, cash_flows=flows)
+        irr_res = wealth(operation="irr_yield", initial_investment=initial_cost, cash_flows=flows)
+        dscr_res = wealth(operation="dscr_leverage", ebitda=ebitda, debt_service=debt_service)
+
+        return ToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": (
+                        f"Economic audit complete. Verdict: {npv_res.verdict} "
+                        f"(Signal: {npv_res.allocation_signal})"
+                    ),
+                },
+                {
+                    "type": "json",
+                    "json": {
+                        "success": True,
+                        "npv": npv_res.primary_result["npv"],
+                        "irr": irr_res.primary_result["irr"],
+                        "dscr": dscr_res.primary_result["dscr"],
+                        "verdict": npv_res.verdict,
+                        "signal": npv_res.allocation_signal,
+                        "audited": True,
+                    },
+                },
+            ]
+        )
+    except Exception as e:
+        return ToolResult(
+            content=f"Economic audit failed: {e}",
+            structured_content={"success": False, "error": str(e)},
+            meta={"is_error": True},
+        )
+
+@wealth_app.ui(title="@WEALTH Optimizer")
+def wealth_dashboard_surface() -> PrefabApp:
+    """
+    Open the arifOS Economic Dashboard.
+    F4 Clarity: Visualizing resource metabolism and decision ROI.
+    """
+    initial_state: dict[str, Any] = {
+        "npv": 0.0,
+        "irr": 0.0,
+        "dscr": 0.0,
+        "verdict": "PENDING",
+        "signal": "INSUFFICIENT",
+        "audited": False
+    }
+
+    on_audit = CallTool(
+        perform_economic_audit,
+        args={
+            "initial_cost": 10000.0,
+            "annual_benefit": 2500.0,
+            "years": 5,
+            "ebitda": 150000.0,
+            "debt_service": 100000.0
+        },
+        on_success=[
+            SetState("npv",             RESULT["npv"]),
+            SetState("irr",             RESULT["irr"]),
+            SetState("dscr",            RESULT["dscr"]),
+            SetState("verdict",         RESULT["verdict"]),
+            SetState("signal",          RESULT["signal"]),
+            SetState("audited",         True),
+            ShowToast("Economic audit sealed", variant="success"),
+        ],
+        on_error=ShowToast("Audit failed", variant="destructive"),
+    )
+
+    with Column(gap=5, css_class="p-5 max-w-2xl") as view:
+
+        # ── Header ──────────────────────────────────────────────────────────
+        with Row(gap=3, align="center"):
+            Heading("@WEALTH Economist")
+            Badge(
+                "Economic Organ",
+                variant="secondary",
+                css_class="text-xs font-mono",
+            )
+
+        Muted("Economic modeling & decision governance · DITEMPA BUKAN DIBERI")
+        Separator()
+
+        # ── Metrics ─────────────────────────────────────────────────────────
+        with Grid(columns=3, gap=3):
+            with Card():
+                with CardContent(css_class="py-3 text-center"):
+                    Metric(label="NPV", value=STATE["npv"])
+            with Card():
+                with CardContent(css_class="py-3 text-center"):
+                    Metric(label="IRR", value=STATE["irr"])
+            with Card():
+                with CardContent(css_class="py-3 text-center"):
+                    Metric(label="DSCR", value=STATE["dscr"])
+
+        Separator()
+
+        # ── Signal & Verdict ────────────────────────────────────────────────
+        with If(STATE["audited"]):
+            with Row(gap=4, align="center"):
+                Badge(
+                    STATE["verdict"],
+                    variant=STATE["verdict"].then("success", "destructive"),
+                    css_class="font-mono"
+                )
+                Text(STATE["signal"], css_class="font-bold uppercase tracking-widest")
+        
+        # ── Audit Controls ──────────────────────────────────────────────────
+        with Card():
+            with CardContent(css_class="py-4"):
+                Text("Simulate Project (Demo)", css_class="font-semibold mb-2")
+                Muted("Asset: Production Line | Value: $10,000", css_class="text-xs mb-4")
+                Button(
+                    "Calculate Dimension Scores",
+                    on_click=on_audit,
+                    variant="default",
+                    css_class="w-full",
+                )
+
+        # ── Thermodynamics ───────────────────────────────────────────────────
+        with Card(css_class="bg-muted/10"):
+            with CardContent(css_class="py-3"):
+                with Row(justify="between", align="center"):
+                    with Row(gap=2, align="center"):
+                        Text(
+                            "Thermodynamics",
+                            css_class="text-xs font-mono uppercase tracking-widest "
+                            "text-muted-foreground",
+                        )
+                        Badge("Ω STABLE", variant="outline", css_class="text-[10px]")
+                    with Row(gap=4):
+                        with Column(align="center"):
+                            Text("G-Score", css_class="text-[10px] text-muted-foreground uppercase")
+                            Text("0.85", css_class="text-xs font-bold font-mono")
+                        with Column(align="center"):
+                            Text("ΔS", css_class="text-[10px] text-muted-foreground uppercase")
+                            Text("-0.12", css_class="text-xs font-bold font-mono text-success")
+                        with Column(align="center"):
+                            Text("Ψ", css_class="text-[10px] text-muted-foreground uppercase")
+                            Text("1.10", css_class="text-xs font-bold font-mono text-primary")
+
+        Separator()
+        Muted("Source: ariffazil/WEALTH v1.4.0", css_class="text-xs text-center")
+
+    return PrefabApp(view=view, state=initial_state)
+
+    return PrefabApp(view=view, state=initial_state)
+
+def _register(mcp: FastMCP) -> None:
+    """Mount WealthApp onto the platform FastMCP server."""
+    mcp.add_provider(wealth_app)

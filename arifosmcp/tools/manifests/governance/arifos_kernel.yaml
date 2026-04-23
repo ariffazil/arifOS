@@ -1,0 +1,41 @@
+name: arifos_kernel
+canonical: true
+type: mega-tool
+authority: KERNEL_ROUTER
+description: >
+  Route request to correct metabolic lane or tool family based on risk and task type.
+  Centralises all allowed_next_tools declarations — single source of truth for routing.
+floors:
+  - F4: CLARITY (ΔS routing decisions)
+  - F11: COMMAND_AUTH (Destructive = propose, not decree)
+risk_tier: P2
+modes:
+  - kernel
+  - status
+session_required: true
+vault_on_seal: false
+reversible: true
+parameters:
+  query:
+    type: string
+    required: true
+    description: Primary query string to route
+  request:
+    type: string
+    required: false
+    description: Legacy alias for query
+  mode:
+    type: string
+    enum: [kernel, status]
+    default: kernel
+  session_id:
+    type: string
+    required: false
+  actor_id:
+    type: string
+    required: false
+    description: Identity of requesting actor for auth checks
+  risk_tier:
+    type: string
+    enum: [low, medium, high, critical]
+    default: medium

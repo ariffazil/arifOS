@@ -7,7 +7,7 @@ arifOS VaultApp — FastMCP Immutable Ledger Surface (999_VAULT)
 Implements the immutable verdict ledger as a FastMCPApp:
 
   @app.ui()   vault_ledger_surface  — entry; renders seal card + ledger table
-  @app.tool() get_vault_data        — backend; reads VAULT999/outcomes.jsonl
+  @app.tool() arifos_get_vault_data — backend; reads VAULT999/outcomes.jsonl
                                       + builds BLS seal card
 
 F1 Amanah enforced: append-only display, no edit/delete controls anywhere.
@@ -36,7 +36,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from fastmcp import FastMCP, FastMCPApp
+from fastmcp import FastMCP
+from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -91,13 +92,40 @@ def _ts_human(ts: Any) -> str:
         return str(ts)[:16]
 
 
+# ── Operator interpretation (CHANGE-01) ───────────────────────────────────────
+_STATUS_INTERPRETATIONS: dict[str, dict[str, str]] = {
+    "HEALTHY": {
+        "badge": "SEALED",
+        "posture": "All floors passing. Safe for consequential action.",
+        "variant": "success",
+    },
+    "DEGRADED": {
+        "badge": "DEGRADED",
+        "posture": "Core governance alive. Trust posture degraded. Use for inspection only.",
+        "variant": "warning",
+    },
+    "pending": {
+        "badge": "PENDING",
+        "posture": "Awaiting constitutional evaluation...",
+        "variant": "secondary",
+    },
+}
+
+_PHILOSOPHY: dict[str, str] = {
+    "SEAL": "DITEMPA, BUKAN DIBERI.",
+    "pending": "Awaiting constitutional evaluation...",
+}
+
+
 # ── App definition ────────────────────────────────────────────────────────────
 
-vault_app = FastMCPApp("VaultApp")
+vault_app = FastMCP("VaultApp")
+if not hasattr(vault_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    vault_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
-@vault_app.tool()
-def get_vault_data() -> dict[str, Any]:
+@vault_app.tool(name="arifos_get_vault_data", tags={"public", "vault"})
+def get_vault_data() -> ToolResult:
     """
     Read VAULT999 ledger and build current BLS seal card.
     Returns: seal card data + ledger rows. Read-only (F1 Amanah).
@@ -166,13 +194,13 @@ def get_vault_data() -> dict[str, Any]:
         )
         seal_card = _build_vault_seal_structured_content()
     except Exception:
+        import datetime
         import uuid
-        import datetime as _dt
         seal_card = {
             "seal_id": f"seal_{uuid.uuid4().hex[:16]}",
             "verdict": "SEAL",
-            "timestamp": _dt.datetime.now(
-                _dt.timezone.utc
+            "timestamp": datetime.datetime.now(
+                datetime.timezone.utc
             ).isoformat(),
             "floors": {
                 "tau_truth": 0.99,
@@ -189,28 +217,38 @@ def get_vault_data() -> dict[str, Any]:
             "chain_hash": "",
         }
 
-    # ── Wisdom quote for vault surface ────────────────────────────────────
-    try:
-        from arifosmcp.runtime.philosophy import select_wisdom_quote
-        _wisdom = select_wisdom_quote("vault")
-    except Exception:
-        _wisdom = None
-
-    return {
-        "seal": seal_card,
-        "rows": table_rows,
-        "total_entries": len(rows),
-        "seal_count": seal_count,
-        "void_count": void_count,
-        "hold_count": hold_count,
-        "ledger_file": str(
-            next(
-                (f.name for f in [_SEALED_EVENTS, _OUTCOMES, _VAULT999_JSONL] if f.exists()),
-                "—",
-            )
-        ),
-        "wisdom": _wisdom,
-    }
+    return ToolResult(
+        content=[
+            {
+                "type": "text",
+                "text": (
+                    f"Vault synchronization complete. {len(rows)} total entries found in "
+                    f"{table_rows[0].get('timestamp', '—') if table_rows else 'N/A'}."
+                ),
+            },
+            {
+                "type": "json",
+                "json": {
+                    "seal": seal_card,
+                    "rows": table_rows,
+                    "total_entries": len(rows),
+                    "seal_count": seal_count,
+                    "void_count": void_count,
+                    "hold_count": hold_count,
+                    "ledger_file": str(
+                        next(
+                            (
+                                f.name
+                                for f in [_SEALED_EVENTS, _OUTCOMES, _VAULT999_JSONL]
+                                if f.exists()
+                            ),
+                            "—",
+                        )
+                    ),
+                },
+            },
+        ]
+    )
 
 
 @vault_app.ui(title="999 Vault Ledger")
@@ -244,34 +282,38 @@ def vault_ledger_surface() -> PrefabApp:
             SetState("loaded",        True),
             ShowToast("Vault ledger loaded", variant="success"),
         ],
-        on_error=ShowToast("Vault read error", variant="error"),
+        on_error=ShowToast("Vault read error", variant="destructive"),
     )
 
     with Column(gap=5, css_class="p-5 max-w-3xl") as view:
 
-        # ── Header ──────────────────────────────────────────────────────────
-        with Row(gap=3, align="center"):
-            Heading("999 Vault Ledger")
-            Badge(
-                "F1 Amanah · Append-Only",
-                variant="secondary",
-                css_class="text-xs font-mono",
-            )
+        # ── Operator Interpretation Banner (CHANGE-01) ────────────────────
+        with Card(css_class="border-2 border-primary/20"):
+            with CardContent(css_class="py-4 px-6"):
+                with Row(gap=4, align="center"):
+                    Badge(
+                        STATE["loaded"].then(
+                            _STATUS_INTERPRETATIONS["HEALTHY"]["badge"],
+                            _STATUS_INTERPRETATIONS["pending"]["badge"]
+                        ),
+                        variant=STATE["loaded"].then(
+                            _STATUS_INTERPRETATIONS["HEALTHY"]["variant"],
+                            _STATUS_INTERPRETATIONS["pending"]["variant"]
+                        ),
+                        css_class="font-mono text-lg py-1 px-3 h-auto",
+                    )
+                    with Column(gap=0):
+                        Heading("arifOS Metabolic Monitor", size="sm")
+                        Text(
+                            STATE["loaded"].then(
+                                _STATUS_INTERPRETATIONS["HEALTHY"]["posture"],
+                                _STATUS_INTERPRETATIONS["pending"]["posture"]
+                            ),
+                            css_class="text-sm font-medium",
+                        )
 
         Muted("Immutable constitutional verdict ledger · DITEMPA BUKAN DIBERI")
         Separator()
-
-        # ── Wisdom strip ─────────────────────────────────────────────────────
-        try:
-            from arifosmcp.runtime.philosophy import select_wisdom_quote
-            _wisdom = select_wisdom_quote("vault")
-            if _wisdom and _wisdom.get("quote"):
-                Muted(
-                    f'"{_wisdom["quote"]}" — {_wisdom["author"]}',
-                    css_class="text-xs italic border-l-2 pl-3 border-muted-foreground/30",
-                )
-        except Exception:
-            pass
 
         # ── Summary Metrics ─────────────────────────────────────────────────
         with Grid(columns=4, gap=3):
@@ -388,16 +430,28 @@ def vault_ledger_surface() -> PrefabApp:
 
         # ── Load action (F1: no mutation controls) ───────────────────────────
         Button(
-            "Load Ledger",
+            "Synchronize Vault Ledger",
             on_click=on_load,
             variant="outline",
-            css_class="w-full",
+            css_class="w-full h-10 font-bold",
         )
 
+        # ── Philosophy Footer (CHANGE-05) ─────────────────────────────────
         Muted(
-            "Read-only · F1 Amanah · No edit or delete capability",
-            css_class="text-xs text-center text-muted-foreground",
+            _PHILOSOPHY["SEAL"],
+            css_class="text-xs italic text-center text-muted-foreground/50 mt-4",
         )
+        
+        # ── Sovereign Footer (CHANGE-06) ──────────────────────────────────
+        with Column(gap=1, align="center", css_class="mt-2"):
+            Muted(
+                "Human architect retains sovereign veto. F13 is always alive.",
+                css_class="text-[10px] uppercase tracking-widest font-bold text-primary/40",
+            )
+            Muted(
+                "arifOS Metabolic Monitor · DITEMPA BUKAN DIBERI",
+                css_class="text-[9px] text-muted-foreground/60",
+            )
 
     return PrefabApp(view=view, state=initial_state)
 

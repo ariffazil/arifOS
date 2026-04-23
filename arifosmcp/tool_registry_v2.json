@@ -1,0 +1,1553 @@
+{
+  "schema": "arifOS_TOOL_REGISTRY",
+  "version": "2.0.0-99-TOOLS-RECONCILED-V2",
+  "epoch": "EPOCH-2026-04-16-W3-RECONCILE",
+  "session_id": "a2f0c391",
+  "constitutional_spec": "arifOS_CORE_SPEC_v2.0",
+  "constitutional_hash": "fb238cefd7f4cc267f80acb0e311776cfb1efc812b00cd5a2fc6bd1160afd678",
+  "description": "Canonical 99-tool cognitive topology. Tier order is cognitive sequence, not departmental. All tools require F1-F13 floor verification before execution. Tool calls require stage-gate ordering per pipeline.",
+  "tiers": {
+    "T00": {
+      "name": "Identity & Constitution",
+      "range": "T00_01\u2013T00_15",
+      "cognitive_role": "Authority & Law",
+      "stage": "000_INIT"
+    },
+    "T01": {
+      "name": "Sensory Bus",
+      "range": "T01_16\u2013T01_30",
+      "cognitive_role": "Environmental Sensing",
+      "stage": "111_SENSE"
+    },
+    "T02": {
+      "name": "Physics Engines",
+      "range": "T02_31\u2013T02_45",
+      "cognitive_role": "Earth Truth (GEOX)",
+      "stage": "111_SENSE"
+    },
+    "T03": {
+      "name": "Economic Engines",
+      "range": "T03_46\u2013T03_60",
+      "cognitive_role": "Capital Truth (WEALTH)",
+      "stage": "333_MIND"
+    },
+    "T04": {
+      "name": "Risk & Adversarial",
+      "range": "T04_61\u2013T04_70",
+      "cognitive_role": "Immune Response",
+      "stage": "666_HEART"
+    },
+    "T05": {
+      "name": "Execution Layer",
+      "range": "T05_71\u2013T05_80",
+      "cognitive_role": "Motor Cortex (Action)",
+      "stage": "777_FORGE"
+    },
+    "T06": {
+      "name": "Stewardship & Civilization",
+      "range": "T06_81\u2013T06_89",
+      "cognitive_role": "Civilizational Impact",
+      "stage": "777_FORGE"
+    },
+    "T07": {
+      "name": "Meta-Agentic & Reflection",
+      "range": "T07_90\u2013T07_99",
+      "cognitive_role": "Metacognition (Self-Correct)",
+      "stage": "333_MIND + 888_JUDGE"
+    }
+  },
+  "governance": {
+    "floor_count": 13,
+    "orthogonality_required": true,
+    "apex_required_for_seal": true,
+    "vault_mandatory": true,
+    "dag_enforced": true,
+    "shortcut_forbidden": true,
+    "thresholds": {
+      "omega_min": 0.95,
+      "peace2_floor": 0.7,
+      "w3_min": 0.95,
+      "kappa_H_band": [
+        0.03,
+        0.15
+      ],
+      "dS_budget": 0.0,
+      "shadow_block_threshold": 0.3
+    },
+    "routing_rules": [
+      "No T05 tool callable without T00 judgment (arifos_judge = SEAL)",
+      "No T03 economic projection without T01 data ingestion",
+      "No T02 geological evaluation without T01 reality grounding",
+      "All irreversible actions require: SEAL + omega >= 0.95 + all Floors pass + human_approved = true",
+      "Vault closure (Stage 999) is mandatory \u2014 no session ends without Merkle record"
+    ],
+    "shadow_defense": {
+      "floor": "F9",
+      "patterns": 5,
+      "pattern_P1": "Vocabulary without structure \u2014 SEAL used but no telemetry JSON",
+      "pattern_P2": "Pipeline shortcut \u2014 Stage 777 without Stage 666 completion",
+      "pattern_P3": "Verdict without floor run \u2014 SEAL issued but F1-F13 absent",
+      "pattern_P4": "Identity forgery \u2014 arifOS signature but mismatched session_id",
+      "pattern_P5": "Narrative laundering \u2014 conclusion contradicts Tier 01 data but SEAL issued"
+    }
+  },
+  "tools": [
+    {
+      "tool_id": "T00_01",
+      "tier": "T00",
+      "stage": "000_INIT",
+      "name": "arifos_arifos_init",
+      "description": "Boot identity, constitutional state, issue session_id. Stage 000 anchor.",
+      "pipeline_stage": "000_INIT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F11",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T00_03",
+      "tier": "T00",
+      "stage": "000_INIT",
+      "name": "arifos_arifos_memory",
+      "description": "Governed retrieval and ingestion of episodic and semantic memory via Stage 444.",
+      "pipeline_stage": "000_INIT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F11"
+      ]
+    },
+    {
+      "tool_id": "T00_04",
+      "tier": "T00",
+      "stage": "000_INIT",
+      "name": "arifos_arifos_vault",
+      "description": "Declare vault namespace for session. Establishes Merkle chain context.",
+      "pipeline_stage": "000_INIT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F11",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T00_06",
+      "tier": "T00",
+      "stage": "000_INIT",
+      "name": "arifos_arifos_kernel",
+      "description": "Core decision kernel \u2014 constitutional logic engine. Omega gate computation.",
+      "pipeline_stage": "000_INIT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F1",
+        "F2",
+        "F3",
+        "F5",
+        "F8",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T00_07",
+      "tier": "T00",
+      "stage": "444_KERNEL",
+      "name": "arifos_arifos_gateway",
+      "description": "Orthogonality gate \u2014 Omega cross-domain integrity check. Omega >= 0.95 unlocks Stage 777.",
+      "pipeline_stage": "444_KERNEL",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F5",
+        "F8"
+      ],
+      "note": "Gateway Omega gate not yet formally wired to threshold"
+    },
+    {
+      "tool_id": "T00_08",
+      "tier": "T00",
+      "stage": "888_JUDGE",
+      "name": "arifos_arifos_judge",
+      "description": "Constitutional judgment engine \u2014 issues SEAL/HOLD/SABAR/VOID. Final verdict gate.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T00_11",
+      "tier": "T00",
+      "stage": "888_JUDGE",
+      "name": "wealth_wealth_check_floors",
+      "description": "Economic floor enforcement \u2014 F6 Peace\u00b2 gate. Blocks if Peace\u00b2 < 0.70.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F6",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T00_12",
+      "tier": "T00",
+      "stage": "888_JUDGE",
+      "name": "geox_arifos_check_hold",
+      "description": "Physical/geological hold enforcement. Issues geological HOLD on \u03a9 < 0.95.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F5",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T00_14",
+      "tier": "T00",
+      "stage": "444_KERNEL",
+      "name": "arifos_arifos_ops",
+      "description": "Operational state management. Git, filesystem, fetch, memory, time substrate controls.",
+      "pipeline_stage": "444_KERNEL",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F11",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T01_16",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "arifos_arifos_sense",
+      "description": "Primary environmental sensing \u2014 first reality contact. OBS/DER/INT epistemic labeling.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F2",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T01_17",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "wealth_ingest_fetch",
+      "description": "Fetch live economic and financial data streams.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T01_18",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "wealth_ingest_snapshot",
+      "description": "Point-in-time market snapshot. Captures economic state at query moment.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T01_19",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "wealth_ingest_sources",
+      "description": "Register and validate data source registry. Source authority chain.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T01_20",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "wealth_ingest_health",
+      "description": "Data source health and reliability check. Flags stale or unreliable sources.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T01_21",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "wealth_ingest_vintage",
+      "description": "Temporal data vintage validation \u2014 how old is this data? Issues HOLD on stale data.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F7"
+      ]
+    },
+    {
+      "tool_id": "T01_22",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "wealth_ingest_reconcile",
+      "description": "Cross-source reconciliation \u2014 resolve conflicts between economic data sources.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T01_23",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_well_load_bundle",
+      "description": "Load well data package into session context. LAS/PDF/dlis ingestion.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T01_24",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_seismic_load_line",
+      "description": "Load 2D seismic line. SEGY/SGD format support.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T01_25",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_earth3d_load_volume",
+      "description": "Load 3D seismic volume. Petrel/Geoeast/Warden format support.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T01_26",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_map_get_context_summary",
+      "description": "Spatial map context acquisition. Static map, GIS context.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T01_27",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_map_georeference",
+      "description": "Georeferencing and spatial anchoring. CRS transformation.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T01_28",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_list_skills",
+      "description": "Enumerate available geological skills in the GEOX organ.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F11"
+      ]
+    },
+    {
+      "tool_id": "T01_29",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_skill_metadata",
+      "description": "Retrieve geological skill metadata. Capability discovery.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F11"
+      ]
+    },
+    {
+      "tool_id": "T01_30",
+      "tier": "T01",
+      "stage": "111_SENSE",
+      "name": "geox_skill_dependencies",
+      "description": "Resolve skill dependency graph. Ensures prerequisite skills are available.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_31",
+      "tier": "T02",
+      "stage": "111_SENSE",
+      "name": "geox_well_qc_logs",
+      "description": "Quality control well log data. Flag anomalous curves, depth shifts, Environmental corrections.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F4"
+      ]
+    },
+    {
+      "tool_id": "T02_32",
+      "tier": "T02",
+      "stage": "111_SENSE",
+      "name": "geox_well_compute_petrophysics",
+      "description": "Compute porosity, Sw, Vsh, NTG \u2014 the rock truth. Physics-first computation.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F4"
+      ]
+    },
+    {
+      "tool_id": "T02_33",
+      "tier": "T02",
+      "stage": "111_SENSE",
+      "name": "geox_well_digitize_log",
+      "description": "Digitize analogue log curves. R24/Minitab to continuous curve.",
+      "pipeline_stage": "111_SENSE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2"
+      ]
+    },
+    {
+      "tool_id": "T02_34",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_section_interpret_strata",
+      "description": "Stratigraphic interpretation \u2014 layer sequence. Cross-section building.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F7",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_35",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_earth3d_interpret_horizons",
+      "description": "3D horizon picking and interpretation. Geocellular model construction.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F7",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_36",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_earth3d_model_geometries",
+      "description": "Structural geometry modeling. Fault framework, fold geometry.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_37",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_time4d_verify_timing",
+      "description": "4D temporal change verification. Geochronology constraints.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_38",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_attribute_audit",
+      "description": "Seismic attribute audit. RMS amplitude, coherency, curvature consistency check.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F4"
+      ]
+    },
+    {
+      "tool_id": "T02_39",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_seismic_vision_review",
+      "description": "Visual seismic intelligence review. GEOX vision analysis of seismic displays.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F9"
+      ]
+    },
+    {
+      "tool_id": "T02_40",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_cross_summarize_evidence",
+      "description": "Cross-domain evidence synthesis. Well + seismic + geological synthesis.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F3",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_41",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_prospect_evaluate",
+      "description": "Prospect volumetric evaluation \u2014 STOIIP/GIIP.\u7269\u7406-first volumetrics.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F7"
+      ]
+    },
+    {
+      "tool_id": "T02_42",
+      "tier": "T02",
+      "stage": "333_MIND",
+      "name": "geox_arifos_compute_risk",
+      "description": "Geological risk computation \u2014 POS/POF. Earth-domain risk scoring.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F7",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_43",
+      "tier": "T02",
+      "stage": "888_JUDGE",
+      "name": "geox_arifos_judge_prospect",
+      "description": "Prospect constitutional judgment. GEOX equivalent of arifos_judge for subsurface prospects.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F2",
+        "F3",
+        "F5",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T02_44",
+      "tier": "T02",
+      "stage": "777_FORGE",
+      "name": "geox_basin_model",
+      "description": "Thermal and burial history reconstruction. 1D basin modeling.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F2",
+        "F4",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T02_45",
+      "tier": "T02",
+      "stage": "777_FORGE",
+      "name": "geox_fracture_network",
+      "description": "Natural fracture characterization and permeability tensor. DFN modeling.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F2",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T03_46",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_npv_reward",
+      "description": "Net Present Value computation. Time-value weighted capital assessment.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F6",
+        "F7"
+      ]
+    },
+    {
+      "tool_id": "T03_47",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_irr_yield",
+      "description": "Internal Rate of Return. Breakeven discount rate.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F6",
+        "F7"
+      ]
+    },
+    {
+      "tool_id": "T03_48",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_dscr_leverage",
+      "description": "Profitability Index. PV of inflows per unit of investment.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T03_49",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_payback_time",
+      "description": "Capital payback period. Time to recover initial investment.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T03_50",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_profitability_index",
+      "description": "Economic growth velocity. Rate of value creation over time.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T03_51",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_roe_cost_equity",
+      "description": "Expected Monetary Value under risk. Probability-weighted outcome.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F7"
+      ]
+    },
+    {
+      "tool_id": "T03_52",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_monte_carlo_forecast",
+      "description": "Stochastic scenario simulation. 10,000+ realization ensemble.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F7",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T03_53",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_audit_entropy",
+      "description": "Economic entropy audit. Variance and dispersion in economic assumptions.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F4",
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T03_54",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_liquidity_buffer",
+      "description": "Debt Service Coverage Ratio. Cash flow adequacy for debt servicing.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T03_55",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_capital_velocity",
+      "description": "Cash flow dynamics model. Operating cash flow projection.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T03_56",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_market_risk_exposure",
+      "description": "Net worth state snapshot. Balance sheet at point in time.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T03_57",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_delta_scenario",
+      "description": "Composite economic scoring. Multi-factor capital health score.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T03_58",
+      "tier": "T03",
+      "stage": "888_JUDGE",
+      "name": "wealth_policy_audit",
+      "description": "Financial policy compliance audit. Checks decisions against governance policy.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F10",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T03_59",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_personal_decision",
+      "description": "Personal capital decision engine. Non-institutional capital decisions.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F6",
+        "F10"
+      ]
+    },
+    {
+      "tool_id": "T03_60",
+      "tier": "T03",
+      "stage": "333_MIND",
+      "name": "wealth_agent_budget",
+      "description": "Agent operating budget allocation. Arifos organ cost accounting.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F6",
+        "F11"
+      ]
+    },
+    {
+      "tool_id": "T04_61",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "arifos_arifos_heart",
+      "description": "Constitutional empathy and ethical risk \u2014 Stage 666. Adversarial critique and risk scoring.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F1",
+        "F3",
+        "F6",
+        "F9",
+        "F10"
+      ]
+    },
+    {
+      "tool_id": "T04_62",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "wealth_crisis_triage",
+      "description": "Economic crisis detection and triage. Flags EMV breach and DSCR collapse.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F6",
+        "F9",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T04_63",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "wealth_coordination_equilibrium",
+      "description": "Multi-agent equilibrium solver. Nash equilibrium for multi-party decisions.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F8",
+        "F9"
+      ]
+    },
+    {
+      "tool_id": "T04_64",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "wealth_game_theory_solve",
+      "description": "Game-theoretic adversarial analysis. Zero-sum and cooperative game solving.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "HOLD",
+      "floor_gates": [
+        "F8",
+        "F9"
+      ]
+    },
+    {
+      "tool_id": "T04_66",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "bias_audit_engine",
+      "description": "Cognitive bias detection, Omega correction. Flags confirmation bias, availability bias.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F7",
+        "F8",
+        "F9"
+      ]
+    },
+    {
+      "tool_id": "T04_67",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "cognitive_variance_monitor",
+      "description": "Epistemic drift detector across session steps. Flags W3 variance without new evidence.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F7",
+        "F8",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T04_68",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "entropy_spike_detector",
+      "description": "Sudden Delta-S jump alert. Flags \u0394S > +0.2 in single step.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F4",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T04_69",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "adversarial_simulation_engine",
+      "description": "Red-team attack simulator. Models worst-case adversarial manipulation.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F9",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T04_70",
+      "tier": "T04",
+      "stage": "666_HEART",
+      "name": "irreversible_action_sentinel",
+      "description": "Last-resort veto gate before \u03bar < 0.40 actions. Physical kill-switch.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "FORGED",
+      "floor_gates": [
+        "F1",
+        "F3",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_71",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "arifos_arifos_forge",
+      "description": "Primary execution forge \u2014 Stage 777. Motor cortex fires only after SEAL.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F5",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_73",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "wealth_record_transaction",
+      "description": "Transaction commit to ledger. Economic action permanent record.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "FORGED",
+      "floor_gates": [
+        "F1",
+        "F6",
+        "F10",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_74",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "wealth_snapshot_portfolio",
+      "description": "Portfolio state post-execution. Snapshot after capital action.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6"
+      ]
+    },
+    {
+      "tool_id": "T05_75",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "wealth_civilization_stewardship",
+      "description": "Long-horizon civilizational action. T06 bridge tool for multi-generational decisions.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "HOLD",
+      "floor_gates": [
+        "F1",
+        "F6",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_76",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "contract_executor",
+      "description": "Formal agreement execution, \u03bar = 0.05. Smart contract or binding agreement execution.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "FORGED",
+      "floor_gates": [
+        "F1",
+        "F6",
+        "F10",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_77",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "capital_allocator",
+      "description": "Discretionary capital deployment. Capital allocation across portfolio.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "FORGED",
+      "floor_gates": [
+        "F1",
+        "F6",
+        "F10",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_78",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "strategic_deployment_engine",
+      "description": "Multi-domain mission DAG executor. Coordinates T02+T03+T06 execution.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F5",
+        "F8",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_79",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "automated_hedging_engine",
+      "description": "Risk-offset execution on EMV breach. Automated hedge on risk threshold breach.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "FORGED",
+      "floor_gates": [
+        "F1",
+        "F6",
+        "F10",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T05_80",
+      "tier": "T05",
+      "stage": "777_FORGE",
+      "name": "coordination_executor",
+      "description": "Multi-agent action synchronizer. Coordinates parallel organ execution.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F5",
+        "F8",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T06_81",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "carbon_trajectory_engine",
+      "description": "Net-zero pathway modeling, NZCE 2050. Carbon budget and transition planning.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T06_82",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "demographic_model",
+      "description": "Population dynamics and dependency ratios. T06 civilizational substrate.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T06_83",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "geopolitical_stress_index",
+      "description": "Nation-state risk scoring. SABAR-based geopolitical stability assessment.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T06_84",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "energy_transition_solver",
+      "description": "Fossil-to-renewable trajectory optimizer. Energy mix optimization.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T06_85",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "planetary_boundary_tracker",
+      "description": "Earth system limits monitor. Climate, biodiversity, water, biogeochemical flows.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T06_86",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "water_stress_engine",
+      "description": "Freshwater scarcity risk modeling. Aquifer depletion and demand modeling.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T06_87",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "food_security_model",
+      "description": "Agricultural system risk. Yield projections, supply chain fragility.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T06_88",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "AI_governance_risk_model",
+      "description": "AGI/ASI safety risk index, alignment score. AI self-replication and capability risk.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F6",
+        "F8",
+        "F9",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T06_89",
+      "tier": "T06",
+      "stage": "777_FORGE",
+      "name": "global_macro_reconciler",
+      "description": "Cross-system macro integration. Integrates T03, T04, T06 outputs into unified model.",
+      "pipeline_stage": "777_FORGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F5",
+        "F6",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T07_90",
+      "tier": "T07",
+      "stage": "333_MIND",
+      "name": "arifos_arifos_mind",
+      "description": "Primary cognitive reasoning engine \u2014 Stage 333. Inductive reasoning and hypothesis synthesis.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F7",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T07_91",
+      "tier": "T07",
+      "stage": "333_MIND",
+      "name": "task_graph_planner",
+      "description": "Mission decomposition into metabolic DAG. Decomposes complex goals into 000-999 stage graph.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T07_92",
+      "tier": "T07",
+      "stage": "888_JUDGE",
+      "name": "reflective_loop",
+      "description": "Post-action self-critique, constitutional drift check. Closes cognitive loop after execution.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F7",
+        "F8",
+        "F11",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T07_93",
+      "tier": "T07",
+      "stage": "333_MIND",
+      "name": "tool_selection_optimizer",
+      "description": "Dynamic MCP routing by intent vector. Routes query to correct T01-T06 tool.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F8",
+        "F11"
+      ]
+    },
+    {
+      "tool_id": "T07_94",
+      "tier": "T07",
+      "stage": "333_MIND",
+      "name": "cross_session_synthesizer",
+      "description": "Memory consolidation across vault records. Combines historical session evidence.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F11",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T07_95",
+      "tier": "T07",
+      "stage": "888_JUDGE",
+      "name": "epistemic_uncertainty_scaler",
+      "description": "Confidence calibration, kappa-H band enforcement. Flags CLAIM/PLAUSIBLE/HYPOTHESIS/ESTIMATE/UNKNOWN tagging.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F7",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T07_96",
+      "tier": "T07",
+      "stage": "333_MIND",
+      "name": "chain_of_trust_validator",
+      "description": "Source authority chain verification. Verifies provenance of evidence.",
+      "pipeline_stage": "333_MIND",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F2",
+        "F8"
+      ]
+    },
+    {
+      "tool_id": "T07_97",
+      "tier": "T07",
+      "stage": "888_JUDGE",
+      "name": "goal_realigner",
+      "description": "Constitutional goal drift correction. Corrects when agent drifts from original mission.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F8",
+        "F13"
+      ]
+    },
+    {
+      "tool_id": "T07_98",
+      "tier": "T07",
+      "stage": "666_HEART",
+      "name": "anomaly_detector",
+      "description": "Unexpected state alert, F9 shadow trigger. Flags anomalous telemetry signatures.",
+      "pipeline_stage": "666_HEART",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "FORGED",
+      "floor_gates": [
+        "F9",
+        "F12"
+      ]
+    },
+    {
+      "tool_id": "T07_99",
+      "tier": "T07",
+      "stage": "888_JUDGE",
+      "name": "AGI_capability_scaler",
+      "description": "Autonomous upscale manager, requires W3 >= 0.95 + Architect approval. Upregulation gate.",
+      "pipeline_stage": "888_JUDGE",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "FORGED",
+      "floor_gates": [
+        "F1",
+        "F3",
+        "F13"
+      ]
+    }
+  ],
+  "build_status": {
+    "LIVE": {
+      "count": 14,
+      "tools": [
+        "T00_01",
+        "T00_02",
+        "T00_03",
+        "T00_04",
+        "T00_05",
+        "T00_06",
+        "T00_08",
+        "T00_14",
+        "T01_16",
+        "T04_61",
+        "T04_65",
+        "T05_71",
+        "T05_72",
+        "T07_90"
+      ]
+    },
+    "FORGED": {
+      "count": 30,
+      "tools": [
+        "T02_44",
+        "T02_45",
+        "T04_66",
+        "T04_67",
+        "T04_68",
+        "T04_69",
+        "T04_70",
+        "T05_76",
+        "T05_77",
+        "T05_78",
+        "T05_79",
+        "T05_80",
+        "T06_81",
+        "T06_82",
+        "T06_83",
+        "T06_84",
+        "T06_85",
+        "T06_86",
+        "T06_87",
+        "T06_88",
+        "T06_89",
+        "T07_91",
+        "T07_92",
+        "T07_93",
+        "T07_94",
+        "T07_95",
+        "T07_96",
+        "T07_97",
+        "T07_98",
+        "T07_99"
+      ]
+    },
+    "HOLD": {
+      "count": 55,
+      "note": "T00_07, T00_09, T00_10, T00_11, T00_12, T00_13, T00_15, T01_17-T01_30, T02_31-T02_43, T03_58, T03_59, T03_60, T04_62, T04_63, T04_64, T05_73, T05_74, T05_75"
+    }
+  },
+  "seal": {
+    "verdict": "SEAL",
+    "epoch": "EPOCH-2026-04-16",
+    "session_id": "a2f0c391",
+    "registry_count": 99,
+    "w3": 0.9785,
+    "omega": 0.98,
+    "witness": {
+      "human": 1.0,
+      "ai": 0.97,
+      "earth": 0.95
+    },
+    "declaration": "DITEMPA BUKAN DIBERI \u2014 999 SEAL ALIVE"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ariffazil/arifos-mcp",
-  "version": "2026.04.13-SEAL",
+  "version": "2026.04.07-SEAL",
   "description": "arifOS AAA MCP runtime with streamable HTTP at /mcp, SSE compatibility, 17 public tools, and the arifOS dashboard app resources.",
   "vendor": {
     "name": "arifOS",
@@ -22,7 +22,7 @@
     {
       "registryType": "pypi",
       "identifier": "arifos",
-      "version": "2026.04.13-SEAL",
+      "version": "2026.04.07-SEAL",
       "transport": {
         "type": "stdio",
         "command": "python -m arifosmcp.runtime stdio"
@@ -62,15 +62,6 @@
     },
     {
       "uri": "arifos://aaa/governance-gate-profile"
-    },
-    {
-      "uri": "arifos://wisdom/index"
-    },
-    {
-      "uri": "arifos://wisdom/stats"
-    },
-    {
-      "uri": "arifos://wisdom/surfaces"
     },
     {
       "uri": "ui://geox-dashboard"

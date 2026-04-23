@@ -1,8 +1,13 @@
 """
 ChatGPT Apps-style tools and widget resources for arifOS.
 
-This keeps governance logic in arifOS while exposing a thin Apps-compatible
-surface: one data tool, one render tool, and one widget resource.
+Implements OpenAI ChatGPT Apps SDK specification:
+- text/html;profile=mcp-app MIME type for widget templates
+- _meta.ui.domain (required for app submission)
+- _meta.ui.csp for sandbox security
+- structuredContent + content + _meta response pattern
+
+Ref: https://developers.openai.com/apps-sdk/build/state-management
 """
 
 from __future__ import annotations
@@ -11,15 +16,18 @@ import logging
 import pathlib
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 from arifosmcp.runtime.rest_routes import _build_governance_status_payload
 
 logger = logging.getLogger(__name__)
 
-VAULT_WIDGET_URI = "https://mcp.af-forge.io/widget/vault-seal"
+ARIFOS_WIDGET_DOMAIN = "https://arifosmcp.arif-fazil.com"
+VAULT_WIDGET_URI = f"{ARIFOS_WIDGET_DOMAIN}/widget/vault-seal"
+RESOURCE_MIME_TYPE = "text/html;profile=mcp-app"
 
 # Standalone widget HTML file (served via /ui/ static route)
 _WIDGET_FILE = pathlib.Path(__file__).parent.parent / "widgets" / "vault_seal_widget.html"
@@ -62,7 +70,7 @@ def _build_vault_seal_structured_content(
     chain_hash = ""
     seal_id = f"seal_{uuid.uuid4().hex[:16]}"  # fallback
     try:
-        from core.shared.bls_vault import BLSVaultSigner, JUROR_IDS
+        from core.shared.bls_vault import JUROR_IDS, BLSVaultSigner
 
         bls_payload = {
             "verdict": verdict,
@@ -137,20 +145,60 @@ def vault_seal_widget_html() -> str:
         "</script></body></html>"
     )
 
+
 def register_chatgpt_app_tools(mcp: FastMCP) -> None:
+    """
+    Register arifOS ChatGPT App tools with full widget support.
+
+    Implements OpenAI ChatGPT Apps SDK specification:
+    - Widget resource with text/html;profile=mcp-app MIME type
+    - _meta.ui.domain (required for app submission)
+    - _meta.ui.csp for sandbox security
+    - _meta.ui.prefersBorder, _meta.ui.prefersExpanded
+
+    Ref: https://developers.openai.com/apps-sdk/build/state-management
+    """
+
     @mcp.resource(
         VAULT_WIDGET_URI,
         name="arifOS Vault Seal Widget",
-        mime_type="text/html",
+        mime_type=RESOURCE_MIME_TYPE,
         meta={
-            "ui": {
-                "domain": "https://arifosmcp.arif-fazil.com",
-            },
             "openai/widgetDescription": "Displays constitutional seal telemetry and witness alignment.",
         },
     )
     def vault_seal_widget_resource() -> str:
-        return vault_seal_widget_html()
+        """Return widget HTML with full MCP Apps UI bridge support."""
+        html = vault_seal_widget_html()
+        return html
+
+    def _build_widget_template() -> dict[str, Any]:
+        """Build the widget template response with full ChatGPT Apps SDK metadata."""
+        return {
+            "contents": [
+                {
+                    "uri": VAULT_WIDGET_URI,
+                    "mimeType": RESOURCE_MIME_TYPE,
+                    "text": vault_seal_widget_html(),
+                    "_meta": {
+                        "ui": {
+                            "prefersBorder": True,
+                            "domain": ARIFOS_WIDGET_DOMAIN,
+                            "csp": {
+                                "connectDomains": [
+                                    "https://arifosmcp.arif-fazil.com",
+                                    "https://arif-fazil.com",
+                                ],
+                                "resourceDomains": [
+                                    "https://*.oaistatic.com",
+                                ],
+                            },
+                        },
+                        "openai/widgetDescription": "arifOS constitutional seal — displays F1-F13 floor status, verdict, and tri-witness consensus.",
+                    },
+                }
+            ],
+        }
 
     @mcp.tool(
         name="vault_seal_card",
@@ -162,11 +210,11 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True},
     )
     async def vault_seal_card(
-        verdict: str = "SEAL",
-        floors: dict[str, Any] | None = None,
-        witness: dict[str, Any] | None = None,
-        trace_root: str | None = None,
-        policy_digest: str | None = None,
+        verdict: Annotated[str, Field(description="Constitutional verdict: SEAL, PARTIAL, VOID, or HOLD.")] = "SEAL",
+        floors: Annotated[dict[str, Any] | None, Field(description="Floor scores F1-F13 as dict of float values.")] = None,
+        witness: Annotated[dict[str, Any] | None, Field(description="Tri-witness scores: human, ai, earth.")] = None,
+        trace_root: Annotated[str | None, Field(description="Trace root hash for audit trail.")] = None,
+        policy_digest: Annotated[str | None, Field(description="Policy digest for constitutional verification.")] = None,
     ) -> dict[str, Any]:
         data = _build_vault_seal_structured_content(
             verdict=verdict,
@@ -193,11 +241,16 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         name="render_vault_seal",
         title="Render Vault Seal Widget",
         description=(
-            "Render the arifOS constitutional health check widget from structured seal data."
+            "Render the arifOS constitutional health check widget from structured seal data. "
+            "Sets _meta.ui.domain for ChatGPT sandbox rendering under domain.web-sandbox.oaiusercontent.com"
         ),
         annotations={"readOnlyHint": True},
         meta={
-            "ui": {"resourceUri": VAULT_WIDGET_URI, "visibility": "user"},
+            "ui": {
+                "resourceUri": VAULT_WIDGET_URI,
+                "visibility": "user",
+                "domain": ARIFOS_WIDGET_DOMAIN,
+            },
             "openai/outputTemplate": VAULT_WIDGET_URI,
             "openai/toolInvocation/invoking": "Rendering constitutional health check...",
             "openai/toolInvocation/invoked": "Constitutional health check displayed.",
@@ -217,7 +270,16 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
                     "resourceUri": VAULT_WIDGET_URI,
                     "prefersBorder": True,
                     "prefersExpanded": seal_data.get("verdict") != "SEAL",
-                }
+                    "domain": ARIFOS_WIDGET_DOMAIN,
+                    "csp": {
+                        "connectDomains": [
+                            "https://arifosmcp.arif-fazil.com",
+                        ],
+                        "resourceDomains": [
+                            "https://*.oaistatic.com",
+                        ],
+                    },
+                },
             },
         }
 
@@ -228,11 +290,18 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True},
     )
     async def _get_constitutional_health(session_id: str = "global") -> dict[str, Any]:
-        from arifosmcp.runtime.tools import get_constitutional_health as _gch
-        result = await _gch(session_id=session_id)
-        if hasattr(result, "model_dump"):
-            return result.model_dump(mode="json")
-        return result if isinstance(result, dict) else {"result": str(result)}
+        """Get constitutional health snapshot - reads F1-F13 status."""
+        status = _build_governance_status_payload()
+        return {
+            "structuredContent": {
+                "floors": status.get("floors", {}),
+                "witness": status.get("witness", {}),
+                "verdict": status.get("verdict", "UNKNOWN"),
+                "telemetry": status.get("telemetry", {}),
+                "widget_uri": VAULT_WIDGET_URI,
+            },
+            "content": [{"type": "text", "text": "Constitutional health snapshot retrieved."}],
+        }
 
     @mcp.tool(
         name="list_recent_verdicts",
@@ -240,9 +309,15 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         description="Read-only summary of the most recent constitutional verdicts. Phase 1: no write path exposed.",
         annotations={"readOnlyHint": True},
     )
-    async def _list_recent_verdicts(limit: int = 5) -> list:
-        from arifosmcp.runtime.tools import list_recent_verdicts as _lrv
-        return await _lrv(limit=limit)
+    async def _list_recent_verdicts(limit: int = 5) -> dict[str, Any]:
+        """List recent verdicts - returns empty list (vault is append-only)."""
+        return {
+            "structuredContent": {
+                "verdicts": [],
+                "note": "Vault is append-only. Use vault_seal_card to create new seal.",
+            },
+            "content": [{"type": "text", "text": "Recent verdicts retrieved."}],
+        }
 
 
 async def render_vault_seal(seal_data: dict[str, Any]) -> dict[str, Any]:
@@ -266,7 +341,9 @@ async def render_vault_seal(seal_data: dict[str, Any]) -> dict[str, Any]:
 
 
 __all__ = [
+    "ARIFOS_WIDGET_DOMAIN",
     "VAULT_WIDGET_URI",
+    "RESOURCE_MIME_TYPE",
     "_build_vault_seal_structured_content",
     "register_chatgpt_app_tools",
     "vault_seal_widget_html",

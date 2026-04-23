@@ -8,19 +8,29 @@ from typing import Any
 import tomllib
 
 from .prompts import V2_PROMPT_SPECS
-from .tool_specs import (
-    PUBLIC_RESOURCE_SPECS,
-    PUBLIC_TOOL_SPECS,
-    ToolSpec,
-)
+from .tool_specs import PUBLIC_RESOURCE_SPECS, ToolSpec, get_tool_spec
 
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
-# Clean surface: All tools use functional names. No aliases in public registry.
-PUBLIC_TOOL_ALIASES = {}
-PUBLIC_TOOL_EXCLUSIONS = set()
+# Clean public surface: keep internal handler names private where needed.
+PUBLIC_TOOL_ALIASES = {
+    "arifos_kernel": "arifos_route",
+}
+CANONICAL_PUBLIC_SOURCE_NAMES = (
+    "arifos_init",
+    "arifos_sense",
+    "arifos_mind",
+    "arifos_kernel",
+    "arifos_heart",
+    "arifos_ops",
+    "arifos_judge",
+    "arifos_memory",
+    "arifos_vault",
+    "arifos_forge",
+    "arifos_health",
+)
 
 
 def _public_spec_name(name: str) -> str:
@@ -28,32 +38,37 @@ def _public_spec_name(name: str) -> str:
 
 
 def _transform_public_tool_spec(spec: ToolSpec) -> ToolSpec | None:
-    if spec.name in PUBLIC_TOOL_EXCLUSIONS:
-        return None
     public_name = _public_spec_name(spec.name)
     if public_name == spec.name:
         return spec
     return ToolSpec(
         name=public_name,
         stage=spec.stage,
+        purpose=spec.purpose,
         role=spec.role,
         layer=spec.layer,
         description=spec.description,
         trinity=spec.trinity,
         floors=spec.floors,
         input_schema=spec.input_schema,
+        visibility="public",
+        default_tier=spec.default_tier,
         default_budget_tier=spec.default_budget_tier,
         min_budget_tier=spec.min_budget_tier,
         max_budget_tier=spec.max_budget_tier,
         overflow_policy=spec.overflow_policy,
         readonly=spec.readonly,
+        outputs=spec.outputs,
+        read_only_hint=spec.read_only_hint,
+        destructive_hint=spec.destructive_hint,
+        open_world_hint=spec.open_world_hint,
+        idempotent_hint=spec.idempotent_hint,
     )
 
 
 # Canonical public tool contract derived from tool_specs.py
 CANONICAL_PUBLIC_TOOLS = frozenset(
-    _public_spec_name(spec.name)
-    for spec in PUBLIC_TOOL_SPECS
+    _public_spec_name(name) for name in CANONICAL_PUBLIC_SOURCE_NAMES
 )
 EXPECTED_TOOL_COUNT = 11
 
@@ -79,7 +94,19 @@ def get_pyproject_metadata() -> dict[str, Any]:
 
 
 def release_version_label() -> str:
-    """Return the canonical version string from pyproject.toml."""
+    """
+    Return the canonical version string.
+    
+    Priority:
+    1. RELEASE_TAG env var — injected at deploy time (e.g. v2026.04.19-UNIFIED)
+    2. GIT_SHA_SHORT env var — git commit short hash
+    3. pyproject.toml version — fallback
+    """
+    import os
+    if os.getenv("RELEASE_TAG"):
+        return os.getenv("RELEASE_TAG", "")
+    if os.getenv("GIT_SHA_SHORT"):
+        return f"v2026.{os.getenv('GIT_SHA_SHORT', 'unknown')}"
     return str(get_pyproject_metadata().get("version", "2026.04.06-FUNCTIONAL"))
 
 
@@ -94,11 +121,15 @@ def public_tool_names() -> tuple[str, ...]:
 
 def public_tool_specs() -> tuple[ToolSpec, ...]:
     """Return all public tool specifications."""
-    return tuple(
-        transformed
-        for spec in PUBLIC_TOOL_SPECS
-        if (transformed := _transform_public_tool_spec(spec)) is not None
-    )
+    specs = []
+    for source_name in CANONICAL_PUBLIC_SOURCE_NAMES:
+        spec = get_tool_spec(source_name)
+        if spec is None:
+            continue
+        transformed = _transform_public_tool_spec(spec)
+        if transformed is not None:
+            specs.append(transformed)
+    return tuple(specs)
 
 
 def public_tool_spec_by_name() -> dict[str, ToolSpec]:
@@ -106,6 +137,7 @@ def public_tool_spec_by_name() -> dict[str, ToolSpec]:
     return {spec.name: spec for spec in public_tool_specs()}
 
 
+PUBLIC_TOOL_SPECS = public_tool_specs()
 PUBLIC_PROMPT_SPECS = tuple(
     SimpleNamespace(
         name=spec["name"],
@@ -214,7 +246,9 @@ def build_server_json(public_base_url: str = DEFAULT_PUBLIC_BASE_URL) -> dict[st
 
 def get_legacy_redirect(name: str) -> tuple[str, str] | None:
     """Redirect legacy tool names to the new mega-tool surface (tool, mode)."""
-    from arifosmcp.capability_map import CAPABILITY_MAP  # lazy — avoids circular import at module load
+    from arifosmcp.capability_map import (
+        CAPABILITY_MAP,  # lazy — avoids circular import at module load
+    )
     return CAPABILITY_MAP.get(name)
 
 

@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "runtime_truth_profile",
+  "description": "Live deployment facts — verified per environment. This IS ground truth.",
+  "type": "object",
+  "required": ["deployment_id", "provider_key", "family_key", "model_id"],
+  "properties": {
+    "deployment_id": {
+      "type": "string",
+      "description": "Unique deployment instance identifier"
+    },
+    "provider_key": {
+      "type": "string",
+      "description": "Links to provider_soul"
+    },
+    "family_key": {
+      "type": "string",
+      "description": "Links to provider_soul"
+    },
+    "model_id": {
+      "type": "string",
+      "description": "Actual API model ID (e.g., gpt-4.1-mini)"
+    },
+    "tools_live": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Verified available tools in THIS deployment"
+    },
+    "web_on": {
+      "type": "boolean",
+      "description": "Live web access available?"
+    },
+    "memory_mode": {
+      "type": "string",
+      "enum": ["none", "chat_only", "session_only", "persistent", "vault_backed"],
+      "description": "Persistence level"
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": ["advisory", "execute", "governed"],
+      "description": "Can execute or only advise?"
+    },
+    "side_effects_allowed": {
+      "type": "boolean",
+      "description": "Can perform external side effects?"
+    },
+    "auth_level": {
+      "type": "string",
+      "description": "Permission level (e.g., read_only, full_vps_exec)"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last verification timestamp"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Capability flags - what this deployment can actually do",
+      "properties": {
+        "supports_tools": { "type": "boolean" },
+        "supports_web": { "type": "boolean" },
+        "supports_files": { "type": "boolean" },
+        "supports_vision": { "type": "boolean" },
+        "supports_audio": { "type": "boolean" },
+        "has_memory": { "type": "boolean" },
+        "can_execute_code": { "type": "boolean" },
+        "can_browse": { "type": "boolean" },
+        "max_context_tokens": { "type": "integer" },
+        "risk_tier": { 
+          "type": "string", 
+          "enum": ["low", "medium", "high", "critical"] 
+        },
+        "sovereign_override_available": { "type": "boolean" }
+      }
+    },
+    "self_claim_boundary": {
+      "type": "object",
+      "description": "What the model is allowed to claim about itself",
+      "properties": {
+        "identity_claim_policy": { 
+          "type": "string",
+          "enum": ["verified_against_registry", "self_reported", "runtime_derived"]
+        },
+        "tool_claim_policy": {
+          "type": "string", 
+          "enum": ["runtime_truth_only", "capability_flags", "verified_list"]
+        },
+        "knowledge_claim_policy": {
+          "type": "string",
+          "enum": ["attest_training_cutoff", "attest_sources", "no_claims"]
+        },
+        "execution_claim_policy": {
+          "type": "string",
+          "enum": ["governed_explicit_approval", "dry_run_only", "unrestricted"]
+        }
+      }
+    }
+  }
+}

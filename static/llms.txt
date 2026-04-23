@@ -1,0 +1,37 @@
+# arifOS Constitutional MCP Kernel
+> Version: 2026.4.13
+> Endpoint: https://mcp.arif-fazil.com/mcp
+> Transport: streamable-http
+> Tools: 22
+> Constitutional floors: F1–F13 (full coverage)
+> Vault: VAULT999 — configured
+> Vector memory: qdrant — configured
+> Session cache: redis — configured
+> Identity: https://arif-fazil.com/llms.txt
+> Canon: https://apex.arif-fazil.com
+> Source: https://github.com/ariffazil/arifOS
+> Sealed: true
+> Epoch: 2026-04-18
+
+## Capabilities
+Every call governed by 13 constitutional floors.
+Irreversible actions require 888 HOLD human confirmation.
+All SEAL verdicts written to VAULT999 Merkle chain.
+Epistemic tags preserved across GEOX-WEALTH domain boundary.
+
+## Tool Domains
+GEOX: well_load_bundle, well_qc_logs, well_compute_petrophysics,
+      section_interpret_strata, seismic_load_line, earth3d_load_volume,
+      earth3d_interpret_horizons, earth3d_model_geometries,
+      map_get_context_summary, time4d_verify_timing,
+      prospect_evaluate, cross_summarize_evidence
+WEALTH: npv_reward, irr_yield, pi_efficiency, emv_risk,
+        score_kernel, monte_carlo_forecast
+arifOS: judge_prospect, check_hold, compute_risk
+
+## Constitutional Rules
+F1 Amanah — reversible-first, irreversible needs 888 HOLD
+F2 Truth — grounded claims, declare uncertainty band
+F5 Peace — Peace² ≥ 1.0, no destructive escalation
+F9 Anti-Hantu — no deception, no manipulation
+F13 Sovereignty — human veto is final

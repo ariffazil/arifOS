@@ -23,15 +23,25 @@ Version: 2.0.0 — CANONICAL
 
 from __future__ import annotations
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# A-FORGE BRIDGE INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════════
+import os
 import re
-from datetime import datetime, timezone
 from typing import Any
 
+import requests
+
 from .sensing_protocol import (
+    # Complex dataclasses
+    ActorSpec,
+    AmbiguityModel,
     # Enums
     AmbiguityType,
+    BudgetSpec,
     ClaimTarget,
     ClaimType,
+    ConflictModel,
     ConflictType,
     DecisionProximity,
     EntityRef,
@@ -39,66 +49,173 @@ from .sensing_protocol import (
     EntropyState,
     EurekaState,
     EvidenceItem,
-    EvidenceRank,
+    # ConflictPolicy, removed unused
+    # CorroborationSpec, removed unused
+    EvidencePlan,
     ExplorationState,
+    ExtractedClaim,
+    # FreshnessRequirement, removed unused
+    HandoffSpec,
     InputSpec,
     InputSummary,
     InputType,
+    IntelligenceState,
     IntentSpec,
     NormalizedFindings,
     Polarity,
     PolicySpec,
     QueryFrame,
     ResolutionStatus,
+    RoutingDecision,
     RoutingTarget,
     SenseInput,
     SensePacket,
+    SensingMode,
     StalenessRisk,
+    StateUpdate,
     TaskType,
     TemporalGrounding,
     TimeScope,
     TruthClass,
     TruthClassification,
-    UncertaintyLevel,
-    # Complex dataclasses
-    ActorSpec,
-    AmbiguityModel,
-    BudgetSpec,
-    ConflictModel,
-    ConflictPolicy,
-    CorroborationSpec,
-    EvidencePlan,
-    ExtractedClaim,
-    FreshnessRequirement,
-    HandoffSpec,
-    IntelligenceState,
-    RoutingDecision,
-    StateUpdate,
     TruthVector,
     UncertaintyBand,
     UncertaintyBasis,
+    UncertaintyLevel,
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# AF-FORGE BRIDGE INTEGRATION
-# ═══════════════════════════════════════════════════════════════════════════════
+# A-FORGE Bridge Configuration
+A_FORGE_ENABLED = os.getenv("A_FORGE_ENABLED", "false").lower() == "true"
+A_FORGE_ENDPOINT = os.getenv("A_FORGE_ENDPOINT", "http://localhost:7071/sense")
+A_FORGE_TIMEOUT = float(os.getenv("A_FORGE_TIMEOUT_SECONDS", "2.0"))
+A_FORGE_API_VERSION = "0.1.0"
+MIN_COMPATIBLE_A_FORGE = "0.1.0"
 
-import os
-import requests
-
-# AF-FORGE Bridge Configuration
-AF_FORGE_ENABLED = os.getenv("AF_FORGE_ENABLED", "false").lower() == "true"
-AF_FORGE_ENDPOINT = os.getenv("AF_FORGE_ENDPOINT", "http://localhost:7071/sense")
-AF_FORGE_TIMEOUT = float(os.getenv("AF_FORGE_TIMEOUT_SECONDS", "2.0"))
+_contract_checked = False
+_contract_valid = False
+_contract_failure_reason = None
 
 
-def _call_af_forge_sense(
+def _check_nested_depth(obj: Any, current_depth: int = 0, max_depth: int = 10) -> bool:
+    """Check if an object exceeds maximum nested depth to prevent parsing-based vulnerabilities."""
+    if current_depth > max_depth:
+        return False
+    if isinstance(obj, dict):
+        return all(_check_nested_depth(v, current_depth + 1, max_depth) for v in obj.values())
+    if isinstance(obj, list):
+        return all(_check_nested_depth(v, current_depth + 1, max_depth) for v in obj)
+    return True
+
+
+def _check_contract():
+    """Validate runtime contract against A-FORGE /contract endpoint."""
+    global _contract_checked, _contract_valid, _contract_failure_reason
+    if _contract_checked:
+        return _contract_valid
+
+    if not A_FORGE_ENABLED:
+        _contract_checked = True
+        _contract_valid = False
+        _contract_failure_reason = "A_FORGE_DISABLED"
+        return False
+
+    try:
+        contract_url = A_FORGE_ENDPOINT.replace("/sense", "/contract")
+        resp = requests.get(contract_url, timeout=1.0)
+        resp.raise_for_status()
+        data = resp.json()
+
+        if not data.get("ok"):
+            _contract_failure_reason = "contract_endpoint_not_ok"
+            _contract_checked = True
+            _contract_valid = False
+            return False
+
+        af_api_version = data.get("api_version", "unknown")
+        af_min_client = data.get("min_compatible_client", "unknown")
+
+        if af_min_client != "unknown" and A_FORGE_API_VERSION < af_min_client:
+            _contract_failure_reason = (
+                f"version_incompatible:client={A_FORGE_API_VERSION} requires_af>={af_min_client}"
+            )
+            _contract_checked = True
+            _contract_valid = False
+            print(
+                f"[A-FORGE] CONTRACT MISMATCH: client v{A_FORGE_API_VERSION} "
+                f"< A-FORGE min {af_min_client}",
+                flush=True,
+            )
+            return False
+
+        if af_api_version != "unknown" and af_api_version < MIN_COMPATIBLE_A_FORGE:
+            _contract_failure_reason = (
+                f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_A_FORGE}"
+            )
+            _contract_checked = True
+            _contract_valid = False
+            print(
+                f"[A-FORGE] CONTRACT MISMATCH: A-FORGE v{af_api_version} < required {MIN_COMPATIBLE_A_FORGE}",
+                flush=True,
+            )
+            return False
+
+        _contract_checked = True
+        _contract_valid = True
+        _contract_failure_reason = None
+        return True
+
+    except Exception as e:
+        _contract_failure_reason = f"contract_check_error:{e}"
+        _contract_checked = True
+        _contract_valid = False
+        print(f"[A-FORGE] Contract check error: {e}", flush=True)
+        return False
+
+
+def _call_a_forge_sense(
     raw_input,
     session_id=None,
 ):
-    """Call AF-FORGE Sense endpoint. Returns None on failure or if disabled."""
-    if not AF_FORGE_ENABLED:
+    """Call A-FORGE Sense endpoint. Returns None on failure or if disabled."""
+    if not A_FORGE_ENABLED:
         return None
+
+    if not _check_contract():
+        print(f"[A-FORGE] Bridge call blocked by contract failure: {_contract_failure_reason}", flush=True)
+        return {
+            "ok": True,
+            "sense": {
+                "mode_used": "lite",
+                "escalation_reason": "contract_failure",
+                "evidence_count": 0,
+                "evidence_quality": 0.0,
+                "uncertainty_band": "high",
+                "recommended_next_stage": "hold",
+                "contradiction_flags": ["bridge_contract_mismatch"],
+                "query_complexity_score": 0.0,
+                "risk_indicators": ["bridge_contract_mismatch"],
+            },
+            "judge": {
+                "verdict": "HOLD",
+                "reason": f"A-FORGE bridge contract failure: {_contract_failure_reason}",
+                "confidence": {
+                    "value": 0.0,
+                    "is_estimate": True,
+                    "evidence_count": 0,
+                    "agreement_score": 0.0,
+                    "contradiction_penalty": 1.0,
+                    "uncertainty_hint": 1.0,
+                },
+                "floors_triggered": ["F13"],
+                "human_review_required": True,
+            },
+            "context": {
+                "source": "a-forge",
+                "version": A_FORGE_API_VERSION,
+                "epoch": "2026-04-15",
+                "contract_failure": _contract_failure_reason,
+            },
+        }
     
     # Extract prompt from input
     if isinstance(raw_input, dict):
@@ -108,20 +225,20 @@ def _call_af_forge_sense(
     
     try:
         payload = {
-            "version": "1",
+            "version": A_FORGE_API_VERSION,
             "session_id": session_id or "anon",
             "prompt": prompt,
             "context": {
                 "source": "mcp-python",
                 "tool": "sense",
-                "epoch": "2026-04-08",
+                "epoch": "2026-04-15",
             },
         }
         
         resp = requests.post(
-            AF_FORGE_ENDPOINT,
+            A_FORGE_ENDPOINT,
             json=payload,
-            timeout=AF_FORGE_TIMEOUT,
+            timeout=A_FORGE_TIMEOUT,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -132,7 +249,7 @@ def _call_af_forge_sense(
         return data
         
     except Exception as e:
-        logger.debug("[AF-FORGE] Bridge error (falling back): %s", e)
+        print(f"[A-FORGE] Bridge error (falling back): {e}", flush=True)
         return None
 
 
@@ -668,9 +785,15 @@ async def execute_sensing(
         fetch_top_k=sense_input.budget.fetch_top_k,
     )
     
+    # Execute retrieval with timeout budget
+    timeout_ms = sense_input.budget.budget_ms or 15000
+    
     bundle = await reality_handler.handle_compass(
         bundle_input,
-        {"session_id": session_id or "governed_sense"},
+        {
+            "session_id": session_id or "governed_sense",
+            "timeout_ms": timeout_ms,
+        },
     )
     
     # Convert to EvidenceItems
@@ -1030,6 +1153,8 @@ def build_intelligence_state(
     uncertainty: UncertaintyBand,
     items: list[EvidenceItem],
     findings: NormalizedFindings,
+    ambiguity: AmbiguityModel,
+    conflict: ConflictModel,
 ) -> IntelligenceState:
     """Build the full intelligence state for the RuntimeEnvelope."""
     
@@ -1085,8 +1210,8 @@ def build_intelligence_state(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def _map_af_forge_to_python_result(af_result, raw_input):
-    """Map AF-FORGE response to Python SensePacket format."""
+def _map_a_forge_to_python_result(af_result, raw_input):
+    """Map A-FORGE response to Python SensePacket format."""
     sense = af_result.get("sense", {})
     judge = af_result.get("judge", {})
     
@@ -1112,13 +1237,13 @@ def _map_af_forge_to_python_result(af_result, raw_input):
         },
         "routing": {
             "target": "HOLD" if is_hold else "MIND",
-            "reason": sense.get("escalation_reason", "af-forge-governance"),
+            "reason": sense.get("escalation_reason", "a-forge-governance"),
         },
         "uncertainty": {
             "band": uncertainty_band,
             "score": uncertainty_score,
         },
-        "source": "af-forge",
+        "source": "a-forge",
     }
     
     # Create intelligence state
@@ -1149,6 +1274,12 @@ async def governed_sense_v2(
         tuple of (SensePacket, IntelligenceState) for full constitutional alignment.
     """
     # ═══════════════════════════════════════════════════════════════════════════
+    # DEPTH & TIMEOUT SENTINEL
+    # ═══════════════════════════════════════════════════════════════════════════
+    if not _check_nested_depth(raw_input, max_depth=10):
+        raise ValueError("Constitutional Violation: Input depth exceeds safe limits (max_depth=10).")
+
+    # ═══════════════════════════════════════════════════════════════════════════
     # STAGE 1: PARSE
     # ═══════════════════════════════════════════════════════════════════════════
     sense_input = parse_input(raw_input)
@@ -1158,19 +1289,19 @@ async def governed_sense_v2(
     # ═══════════════════════════════════════════════════════════════════════════
 
     # ═══════════════════════════════════════════════════════════════════════════
-    # AF-FORGE BRIDGE: Try TypeScript governance first
+    # A-FORGE BRIDGE: Try TypeScript governance first
     # ═══════════════════════════════════════════════════════════════════════════
-    af_result = _call_af_forge_sense(raw_input, session_id)
+    af_result = _call_a_forge_sense(raw_input, session_id)
     if af_result is not None:
-        logger.debug("[AF-FORGE] Using TS governance layer")
+        print("[A-FORGE] Using TS governance layer", flush=True)
         sense = af_result.get("sense", {})
         
         # Check for 888_HOLD
         if sense.get("recommended_next_stage") == "hold":
-            logger.debug("[AF-FORGE] 888_HOLD triggered: %s", sense.get("escalation_reason"))
+            print(f"[A-FORGE] 888_HOLD triggered: {sense.get('escalation_reason')}", flush=True)
         
         # Map to Python packet format and return
-        return _map_af_forge_to_python_result(af_result, raw_input)
+        return _map_a_forge_to_python_result(af_result, raw_input)
     
     # Fall through to Python 8-stage governance
 
@@ -1226,7 +1357,7 @@ async def governed_sense_v2(
     
     # Build intelligence state
     intelligence_state = build_intelligence_state(
-        sense_input, truth_classification, uncertainty, items, findings
+        sense_input, truth_classification, uncertainty, items, findings, ambiguity, conflict
     )
     
     # Build canonical SensePacket

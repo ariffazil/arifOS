@@ -1,0 +1,521 @@
+# Orthogonal 33-Tool Matrix (3 × 11)
+# Doctrine: Ω_ortho >= 0.95
+# SEAL: 999_SEAL_ALIVE
+# DITEMPA BUKAN DIBERI
+
+version: "2026.04.14"
+matrix_id: "orthogonal_33x3"
+description: "Canonical registry of 33 orthogonal tools across 3 organs (arifOS, WEALTH, GEOX) arranged in 11 functional bands."
+principles:
+  - "No two tools answer the same question at the same abstraction level."
+  - "Cross-talk happens only via envelopes and constitutional floors."
+  - "GEOX and WEALTH emit domain kernels only; final verdict and seal are exclusive to arifOS."
+  - "Irreversible or reality-touching execution defaults to human approval / 888_HOLD."
+
+organs:
+  - id: arifos
+    name: Constitutional Governor
+    domain: governance
+    owns_verdicts: [SEAL, PARTIAL, 888_HOLD, VOID]
+    note: "Sole authority for constitutional verdicts and VAULT999 sealing."
+  - id: wealth
+    name: Capital Engine
+    domain: capital
+    owns_verdicts: [domain_numeric, domain_rank, domain_attractive]
+    note: "Outputs numbers and finance-domain judgments only; never issues constitutional verdicts."
+  - id: geox
+    name: Earth Engine
+    domain: earth
+    owns_verdicts: [domain_plausible, domain_unknown, domain_risk]
+    note: "Outputs geological and subsurface risk; never computes NPV or issues constitutional verdicts."
+
+capability_axes:
+  READ: "Observe / inspect / query — No side effects"
+  REASON: "Analyze / synthesize / plan — Pure computation"
+  GOVERN: "Judge / gate / verdict — Constitutional enforcement"
+  WRITE: "Persist / mutate / archive — State changes"
+  EXECUTE: "Trigger external side effects — Irreversible actions"
+
+bands:
+  - band: "01"
+    name: Context
+    description: Establish baseline state, scope, and identity across all three domains.
+    tools:
+      - tool_id: arifos_init
+        canonical_name: arifos_init
+        organ: arifos
+        stage: "000"
+        layer: GOVERNANCE
+        capabilities: [READ, REASON]
+        description: Session ignition, identity, authority airlock.
+        inputs: [session_scope, identity_claim, authority_token]
+        outputs: [session_id, authority_level, initialized_context]
+        forbidden_overlap: [geologic_truth, capital_computation]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: wealth_networth_state
+        organ: wealth
+        stage: "01-W"
+        layer: CAPITAL
+        capabilities: [READ]
+        description: Multi-asset state baseline.
+        inputs: [balance_sheet, asset_registry]
+        outputs: [net_worth_vector, state_snapshot]
+        forbidden_overlap: [LAS_parse, constitutional_verdict]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_intake_context
+        organ: geox
+        stage: "01-G"
+        layer: EARTH
+        capabilities: [READ]
+        description: Evidence context; basin/well/scope/objective.
+        inputs: [basin_name, well_list, study_objective]
+        outputs: [context_envelope, scope_boundary]
+        forbidden_overlap: [NPV, constitutional_verdict]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "02"
+    name: EvidenceQC
+    description: Quality control and intent classification across evidence streams.
+    tools:
+      - tool_id: arifos_sense
+        canonical_name: arifos_sense
+        organ: arifos
+        stage: "111"
+        layer: MACHINE
+        capabilities: [READ, REASON]
+        description: Intent classification, domain routing.
+        inputs: [raw_intent, session_context]
+        outputs: [intent_class, recommended_lane, uncertainty_band]
+        forbidden_overlap: [petrophysics, DSCR]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: wealth_audit_entropy
+        organ: wealth
+        stage: "02-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Entropy; sign changes, NPV sensitivity.
+        inputs: [cashflow_series, scenario_matrix]
+        outputs: [entropy_index, sensitivity_map]
+        forbidden_overlap: [LAS_qc, SEAL]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_qc_evidence
+        organ: geox
+        stage: "02-G"
+        layer: EARTH
+        capabilities: [READ, REASON]
+        description: Integrity; LAS/file/log QC, units, mnemonics, depths.
+        inputs: [raw_logs, file_bundle]
+        outputs: [qc_flag, cleaned_evidence, integrity_report]
+        forbidden_overlap: [IRR, 888_HOLD]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "03"
+    name: Bundling
+    description: Aggregate discrete inputs into domain bundles (memory, flow, well objects).
+    tools:
+      - tool_id: arifos_memory
+        canonical_name: arifos_memory
+        organ: arifos
+        stage: "555"
+        layer: INTELLIGENCE
+        capabilities: [READ]
+        description: Context fetch; prior decisions, vault state.
+        inputs: [query_vector, session_id, tier_filter]
+        outputs: [memory_records, relevance_scores]
+        forbidden_overlap: [cashflow_modeling, stratigraphy]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: wealth_cashflow_flow
+        organ: wealth
+        stage: "03-W"
+        layer: CAPITAL
+        capabilities: [READ, REASON]
+        description: Flow; monthly liquidity/burn.
+        inputs: [revenue_schedule, cost_schedule, timing]
+        outputs: [cashflow_stream, burn_rate, runway_months]
+        forbidden_overlap: [well_log_bundle, SEAL]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_well_bundle
+        organ: geox
+        stage: "03-G"
+        layer: EARTH
+        capabilities: [READ, REASON]
+        description: Well; normalized well object (logs, deviation, checks).
+        inputs: [well_name, las_data, deviation_survey]
+        outputs: [well_object, consistency_flags]
+        forbidden_overlap: [NPV, constitutional_verdict]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "04"
+    name: RewardKernel
+    description: Core physical and economic value extraction (reward and material).
+    tools:
+      - tool_id: arifos_mind
+        canonical_name: arifos_mind
+        organ: arifos
+        stage: "333"
+        layer: INTELLIGENCE
+        capabilities: [REASON]
+        description: Reasoning plan, metric selection, hypothesis.
+        inputs: [problem_statement, evidence_set, constraints]
+        outputs: [reasoning_plan, selected_metrics, hypotheses]
+        forbidden_overlap: [petrophysics_computation, IRR]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: wealth_npv_reward
+        organ: wealth
+        stage: "04-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Reward; NPV + terminal + EAA.
+        inputs: [cashflow_stream, discount_rate, terminal_value]
+        outputs: [npv_value, terminal_npV, eaa]
+        forbidden_overlap: [Vsh_calc, VOID]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_petrophysics
+        organ: geox
+        stage: "04-G"
+        layer: EARTH
+        capabilities: [REASON]
+        description: Material; Vsh, ϕ, Sw, cutoffs, net, plausibility.
+        inputs: [well_object, cutoff_rules, fluid_model]
+        outputs: [petrophysical_table, net_pay, uncertainty_bands]
+        forbidden_overlap: [IRR, SEAL]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "05"
+    name: EfficiencyTime
+    description: Temporal and stratigraphic ordering (yield, payback, chronology).
+    tools:
+      - tool_id: arifos_route
+        canonical_name: arifos_kernel
+        organ: arifos
+        stage: "444"
+        layer: GOVERNANCE
+        capabilities: [READ, REASON, GOVERN]
+        description: Workflow selection (WEALTH lane, GEOX lane, mixed).
+        inputs: [intent_class, available_lanes, constraints]
+        outputs: [selected_lane, orchestration_plan, handoff_envelope]
+        forbidden_overlap: [direct_npv, direct_petrophysics]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+        note: "Canonical name in registry is arifos_kernel; arifos_route is deprecated alias."
+      - tool_id: wealth_irr_yield
+        organ: wealth
+        stage: "05-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Energy; IRR/MIRR efficiency.
+        inputs: [cashflow_stream, reinvestment_rate]
+        outputs: [irr, mirr, yield_curve]
+        forbidden_overlap: [stratigraphy, VOID]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_stratigraphy
+        organ: geox
+        stage: "05-G"
+        layer: EARTH
+        capabilities: [REASON]
+        description: Time; tops, chrono-ladder, unconformities, Wheeler.
+        inputs: [well_object, biostratigraphy, seismic_horizons]
+        outputs: [stratigraphic_column, age_model, wheeler_diagram]
+        forbidden_overlap: [NPV, 888_HOLD]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "06"
+    name: SurvivalStructure
+    description: Structural integrity, leverage capacity, and subsurface framework.
+    tools:
+      - tool_id: arifos_heart
+        canonical_name: arifos_heart
+        organ: arifos
+        stage: "666"
+        layer: INTELLIGENCE
+        capabilities: [REASON, GOVERN]
+        description: Floors F1–F13, peace², maruah, downside scan.
+        inputs: [proposed_action, human_context, floor_state]
+        outputs: [heart_scan, harm_score, mitigation_requirements]
+        forbidden_overlap: [DSCR_direct, fault_model]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: wealth_dscr_leverage
+        organ: wealth
+        stage: "06-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Survival; DSCR and load capacity.
+        inputs: [debt_schedule, cashflow_stream, covenants]
+        outputs: [dscr_series, headroom, default_probability]
+        forbidden_overlap: [seismic_interp, SEAL]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_structure
+        organ: geox
+        stage: "06-G"
+        layer: EARTH
+        capabilities: [REASON]
+        description: Depth; horizons, faults, closures, spill/crest.
+        inputs: [seismic_cube, velocity_model, well_tops]
+        outputs: [structural_map, trap_volumes, spill_points]
+        forbidden_overlap: [IRR, constitutional_verdict]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "07"
+    name: PortfolioSpace
+    description: Spatial mapping, portfolio view, and operational surface.
+    tools:
+      - tool_id: arifos_ops
+        canonical_name: arifos_ops
+        organ: arifos
+        stage: "777"
+        layer: MACHINE
+        capabilities: [READ, REASON]
+        description: Batched governed execution and scheduling.
+        inputs: [execution_plan, resource_limits, risk_level]
+        outputs: [batched_ops, rollback_plan, telemetry]
+        forbidden_overlap: [map_projection, NPV]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: wealth_payback_time
+        organ: wealth
+        stage: "07-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Time; payback / discounted payback.
+        inputs: [cashflow_stream, discount_rate]
+        outputs: [payback_period, discounted_payback]
+        forbidden_overlap: [coordinate_system, VOID]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_map_context
+        organ: geox
+        stage: "07-G"
+        layer: EARTH
+        capabilities: [READ, REASON]
+        description: Space; coordinates, basemap, well projection.
+        inputs: [well_locations, seismic_grid, crs_definition]
+        outputs: [map_envelope, projected_wells, spatial_coverage]
+        forbidden_overlap: [DSCR, SEAL]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "08"
+    name: CrossWitness
+    description: Cross-domain verification and entropy linkage.
+    tools:
+      - tool_id: arifos_gateway
+        organ: arifos
+        stage: "888-Ω"
+        layer: GOVERNANCE
+        capabilities: [READ, REASON, GOVERN]
+        description: MCP surface / orthogonality guard (Ω_ortho >= 0.95) supervising AGI||ASI lanes.
+        inputs: [tool_correlation_matrix, execution_trace, model_outputs]
+        outputs: [orthogonality_score, correlation_violations, hold_recommendations]
+        forbidden_overlap: [direct_capital, direct_earth]
+        verdict_gate: 888_HOLD
+        requires_judge: true
+        side_effect_level: governance_only
+        note: "Enterprise extension; not yet in verified public tool list."
+      - tool_id: wealth_emv_risk
+        organ: wealth
+        stage: "08-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Entropy; scenario EMV.
+        inputs: [scenario_tree, probabilities, outcome_values]
+        outputs: [emv_vector, risk_adjusted_value, regret_matrix]
+        forbidden_overlap: [LAS_qc, VOID]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_cross_evidence
+        organ: geox
+        stage: "08-G"
+        layer: EARTH
+        capabilities: [READ, REASON]
+        description: Witness; links well ↔ map ↔ reports ↔ RATLAS.
+        inputs: [well_object, map_envelope, external_reports]
+        outputs: [cross_evidence_graph, consistency_score, gaps]
+        forbidden_overlap: [IRR, 888_HOLD]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "09"
+    name: RiskKernel
+    description: Integrated risk assessment across capital, geology, and constitution.
+    tools:
+      - tool_id: arifos_judge
+        canonical_name: arifos_judge
+        organ: arifos
+        stage: "888"
+        layer: GOVERNANCE
+        capabilities: [GOVERN]
+        description: Constitutional verdict (SEAL / PARTIAL / 888_HOLD / VOID).
+        inputs: [floor_evaluations, domain_kernels, human_context]
+        outputs: [verdict, conditions, required_escalations]
+        forbidden_overlap: [npv_direct, petrophysics_direct]
+        verdict_gate: SEAL
+        requires_judge: false
+        side_effect_level: governance_only
+      - tool_id: wealth_pi_efficiency
+        organ: wealth
+        stage: "09-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Energy; profitability index.
+        inputs: [npv_value, initial_investment, discount_rate]
+        outputs: [pi_value, efficiency_rank]
+        forbidden_overlap: [fault_model, SEAL]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_play_risk
+        organ: geox
+        stage: "09-G"
+        layer: EARTH
+        capabilities: [REASON]
+        description: Chance; SRST / preservation risking, analog fitness.
+        inputs: [structural_map, source_rock_data, analog_set]
+        outputs: [coS_risk, preservation_risk, analog_fit_score]
+        forbidden_overlap: [DSCR, VOID]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "10"
+    name: DecisionAssembly
+    description: Pre-seal decision synthesis and growth velocity alignment.
+    tools:
+      - tool_id: arifos_forge
+        canonical_name: arifos_forge
+        organ: arifos
+        stage: "010"
+        layer: EXECUTION
+        capabilities: [EXECUTE]
+        description: Decision product assembly, ready for humans/tools.
+        inputs: [approved_plan, domain_products, seal_conditions]
+        outputs: [forge_product, execution_manifest, bridge_envelope]
+        forbidden_overlap: [direct_well_log, direct_cashflow]
+        verdict_gate: SEAL
+        requires_judge: true
+        side_effect_level: execute
+      - tool_id: wealth_growth_velocity
+        organ: wealth
+        stage: "10-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Velocity; compounding + runway.
+        inputs: [cashflow_stream, reinvestment_rate, growth_assumptions]
+        outputs: [growth_velocity, compounding_trajectory, runway_extension]
+        forbidden_overlap: [seismic_interp, VOID]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_decision_kernel
+        organ: geox
+        stage: "10-G"
+        layer: EARTH
+        capabilities: [REASON]
+        description: Decision; what is known/unknown, prospect ranking.
+        inputs: [play_risk, structural_map, petrophysical_table]
+        outputs: [decision_matrix, ranked_prospects, unknowns_list]
+        forbidden_overlap: [NPV, constitutional_verdict]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+
+  - band: "11"
+    name: ProductSeal
+    description: Terminal product generation and immutable seal.
+    tools:
+      - tool_id: arifos_vault
+        canonical_name: arifos_vault
+        organ: arifos
+        stage: "999"
+        layer: GOVERNANCE
+        capabilities: [READ, GOVERN, WRITE]
+        description: VAULT999 logging, hash-chain, zkPC seal.
+        inputs: [verdict, forge_product, telemetry_snapshot]
+        outputs: [vault_seal_id, hash_chain, immutable_record]
+        forbidden_overlap: [geologic_product, capital_score]
+        verdict_gate: SEAL
+        requires_judge: true
+        side_effect_level: write
+      - tool_id: wealth_score_kernel
+        organ: wealth
+        stage: "11-W"
+        layer: CAPITAL
+        capabilities: [REASON]
+        description: Allocation; cost of capital, node comparison.
+        inputs: [all_wealth_outputs, wacc, portfolio_constraints]
+        outputs: [allocation_score, ranked_nodes, capital_recommendation]
+        forbidden_overlap: [seismic_interp, SEAL]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: none
+      - tool_id: geox_forge_product
+        organ: geox
+        stage: "11-G"
+        layer: EARTH
+        capabilities: [READ, REASON, WRITE]
+        description: Action; penetration charts, correlation, memo, verdict pack.
+        inputs: [decision_kernel_output, cross_evidence_graph, structural_map]
+        outputs: [geox_product_memo, charts, verdict_pack]
+        forbidden_overlap: [NPV, 888_HOLD]
+        verdict_gate: null
+        requires_judge: false
+        side_effect_level: write
+
+invariants:
+  orthogonality:
+    description: "Tool domains must not overlap in function or verdict authority."
+    checks:
+      - "arifOS tools never compute NPV, Sw, or petrophysics."
+      - "WEALTH tools never parse LAS, stratigraphy, or issue SEAL/VOID."
+      - "GEOX tools never compute NPV, DSCR, or issue constitutional verdicts."
+  sovereignty:
+    description: "Final execution authority is monopolized by arifOS."
+    checks:
+      - "Only arifos_judge may emit SEAL / PARTIAL / 888_HOLD / VOID."
+      - "Only arifos_vault may persist to VAULT999."
+      - "GEOX and WEALTH outputs are advisory kernels, not executable verdicts."
+  reversibility:
+    description: "Irreversible actions require human gate."
+    checks:
+      - "arifos_forge (EXECUTE) requires arifos_judge SEAL and F13."
+      - "arifos_vault (WRITE) requires arifos_judge SEAL and F13."
+      - "Reality-touching paths default to 888_HOLD."

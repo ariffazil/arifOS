@@ -130,7 +130,7 @@ Following the Model Context Protocol specification, arifOS separates concerns in
 | `arifos://vault/recent` | None | JSON | Last 100 verdicts (read-only) |
 | `arifos://sessions/{id}/vitals` | Anchored | JSON | Session telemetry |
 | `arifos://tools/{name}` | None | JSON | Tool contract |
-| `https://mcp.af-forge.io/widget/vault-seal` | None | HTML | ChatGPT widget |
+| `https://mcp.a-forge.io/widget/vault-seal` | None | HTML | ChatGPT widget |
 
 ---
 

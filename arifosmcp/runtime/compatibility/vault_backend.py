@@ -7,7 +7,7 @@ Routes arifos.vault calls to v1 or v2 implementation.
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 # Determine backend version
 VAULT_BACKEND_VERSION = os.getenv("VAULT_BACKEND_VERSION", "v1")
@@ -48,7 +48,7 @@ class VaultBackend:
         """
         if self.version == "v2":
             # Build vault entry
-            from core.organs.vault.types_v2 import VaultEntry, Verdict, Evidence, Governance
+            from core.organs.vault.types_v2 import Evidence, Governance, VaultEntry, Verdict
             
             entry = VaultEntry(
                 vault_id="",
@@ -135,7 +135,7 @@ class VaultBackend:
 
 
 # Singleton instance
-_vault_backend: Optional[VaultBackend] = None
+_vault_backend: VaultBackend | None = None
 
 def get_vault_backend() -> VaultBackend:
     """Get or create vault backend."""

@@ -28,10 +28,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-# Test isolation escape hatch — set ARIFOS_PHYSICS_DISABLED=1 to allow
-# tests that haven't set up a proper thermodynamic session to run without
-# hard exceptions. Production must NEVER set this.
-_PHYSICS_DISABLED = os.environ.get("ARIFOS_PHYSICS_DISABLED", "1") == "1"
+# PRODUCTION: Thermodynamics are ENABLED by default.
+# Test isolation escape hatch — set ARIFOS_PHYSICS_DISABLED=1 to disable for unit tests only.
+# NEVER disable in production — doing so voids F2/F4 constitutional guarantees.
+_PHYSICS_DISABLED = os.environ.get("ARIFOS_PHYSICS_DISABLED", "0") == "1"
 
 # ═══════════════════════════════════════════════════════
 # CONSTANTS — Physical Law (Immutable)

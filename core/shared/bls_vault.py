@@ -48,7 +48,6 @@ import hashlib
 import json
 import time
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING
 
 try:
     from py_ecc.bls import G2ProofOfPossession as bls_scheme
@@ -121,7 +120,7 @@ class JurorKeyPair:
     public_key_hex: str  # 48 bytes G1 point compressed hex
 
     @classmethod
-    def from_juror_id(cls, juror_id: str, domain: str = "vault999") -> "JurorKeyPair":
+    def from_juror_id(cls, juror_id: str, domain: str = "vault999") -> JurorKeyPair:
         """Derive keypair deterministically from juror identity."""
         if not BLS_AVAILABLE:
             raise RuntimeError("py_ecc not installed — run: pip install py_ecc")
@@ -189,7 +188,7 @@ class VaultBLSSeal:
         return hashlib.sha256(self.to_json().encode("utf-8")).hexdigest()
 
     @classmethod
-    def from_dict(cls, d: dict) -> "VaultBLSSeal":
+    def from_dict(cls, d: dict) -> VaultBLSSeal:
         return cls(**d)
 
 
@@ -379,8 +378,8 @@ def _aggregate_pubkeys(pk_bytes_list: list[bytes]) -> bytes:
     Uses py_ecc G1 point addition. Returns compressed 48-byte pubkey.
     """
     from py_ecc.bls.g2_primitives import pubkey_to_G1
-    from py_ecc.optimized_bls12_381 import add as g_add
     from py_ecc.optimized_bls12_381 import Z1
+    from py_ecc.optimized_bls12_381 import add as g_add
 
     agg_point = Z1  # identity element (point at infinity)
     for pk_bytes in pk_bytes_list:

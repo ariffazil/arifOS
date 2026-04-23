@@ -1,6 +1,6 @@
 # arifOS ROADMAP — THE BODY (Engineering & Scaling)
 
-**Version:** 2026.04.13-COCKPIT-VERIFIED
+**Version:** 2026.04.07-SOT-SEALED
 **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)
 **Vision:** *Execution is the proof of Law.*
 
@@ -60,46 +60,28 @@ GET  /api/v1/health    → constitutional health
 | **NPV @ 24mo** | ~$600k |
 | **Risk** | High — larger attack surface, requires API key auth, versioning |
 
-### Path D — ChatGPT Widget Phase 1 *(Shipped — Decision Cockpit Live)*
-The first meaningful constitutional app is now live via the ChatGPT Apps SDK integration.
+### Path D — ChatGPT Widget Phase 1 *(Fix & Ship Now)*
+Fix the missing deployment blockers and ship the existing ChatGPT Apps SDK integration.
 
-**Blocker status (2026.04.13-COCKPIT-VERIFIED):**
+**Blocker status (2026.04.07-TIER1-SEALED):**
 - ✅ `widget-csp.conf` — created and committed
-- ✅ `nginx.conf` — `server_name arifosmcp.arif-fazil.com` consolidated, `mcp.af-forge.io` retired
-- ✅ `docker-compose.yml` — service renamed `arifos-mcp`, `ARIFOS_MCP_*` env vars
-- ✅ DNS — `arifosmcp.arif-fazil.com` live via Traefik + Cloudflare
-- ✅ TLS — certs extracted and HTTPS live
-- ✅ Widget wiring — `vault-seal-widget.html` served with CSP headers
-- ✅ **First real tool**: `decide(query)` — constitutional judgment for any proposed action
-
-**arifOS Decision Cockpit (First Real App)**
-
-One input: `Evaluate: <proposed action>`
-One output:
-- `verdict` (SEAL / HOLD / VOID)
-- `floors_failed` (list of breached floors)
-- `recommendation` (operator-grade next step)
-
-**Verified example:**
-```json
-{
-  "verdict": "SEAL",
-  "floors_failed": [],
-  "recommendation": "Judgment finalized for session ..."
-}
-```
+- ✅ `nginx.conf` — `server_name mcp.a-forge.io` confirmed correct in all server blocks
+- ✅ `docker-compose.yml` — service renamed `arifos-mcp`, `ARIFOS_MCP_*` env vars, v2026.04.07
+- ⏳ DNS — A record pointing `mcp.a-forge.io` → VPS IP (human action required)
+- ⏳ TLS — certbot run on VPS after DNS resolves (888_HOLD)
+- ⏳ Widget wiring — `vault-seal-widget.html` static path verified; live tool connection pending TLS
 
 | | Value |
 |---|---|
-| **Effort** | Shipped (1–2 days of forging) |
-| **EMV** | $30–80k (ChatGPT marketplace + pilot demos) |
+| **Effort** | 1–2 weeks (DNS + TLS + domain fix) |
+| **EMV** | $30–80k (ChatGPT marketplace reach) |
 | **NPV @ 6mo** | ~$40k |
 | **Risk** | Low–Medium (platform dependency on OpenAI Apps SDK) |
 
 ### **Recommended Execution Order (Highest EMV/NPV)**
 
 ```
-NOW (0–2 weeks):    A + cockpit stress tests → platform= mode + more eval scenarios
+NOW (0–2 weeks):    D + A  →  Fix ChatGPT deployment + add platform= mode
 MID (1–4 months):   B      →  MCP Profile Gateway (clean architecture)
 LONG (4–12 months): C      →  REST Constitutional API (true platform agnosticism)
 ```
@@ -113,7 +95,6 @@ LONG (4–12 months): C      →  REST Constitutional API (true platform agnosti
 
 ## 🚀 PHASE 1: THE CONSTITUTIONAL ENGINE (CURRENT)
 - **AGI Mind Pipeline (ACTIVE):** Scale "Speak Narrow" principle to all agent communications.
-- **Decision Cockpit (SHIPPED):** `decide(query)` is the first verified constitutional app. Next: expand eval scenarios and harden edge cases.
 - **Entropy Budgets (PENDING):** Formalize chaos_score() across all MCP endpoints.
 - **Provenance Ledger (PENDING):** Connect VaultLedger directly to AGI Mind Provenance.
 
@@ -237,7 +218,7 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 | Machine-Verifiable Schemas | ✅ Enforced | Explicit thresholds |
 | Red-Team Stage (666_HEART) | ✅ Operational | Adversarial critique |
 | Constitutional MCP Tools | ✅ Wired | `get_constitutional_health` |
-| ChatGPT Apps Manifest | ✅ Manifest | `config/apps-sdk/arifos-af-forge.json` |
+| ChatGPT Apps Manifest | ✅ Manifest | `config/apps-sdk/arifos-a-forge.json` |
 | Governed Sensing Protocol | ✅ Canonical | `governed_sense_v2` with 8 stages |
 | Truth Classification | ✅ 7 Classes | Absolute → Unknown taxonomy |
 | Constitutional Quotes | ✅ 50 Core | 5 per tool, v2.1.0 schema |

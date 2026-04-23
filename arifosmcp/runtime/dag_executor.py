@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +46,8 @@ class DAGNode:
     dependencies: list[str] = field(default_factory=list)
     status: NodeStatus = NodeStatus.PENDING
     result: Any = None
-    verdict: Optional[str] = None
-    error: Optional[str] = None
+    verdict: str | None = None
+    error: str | None = None
     irreversibility_score: float = 0.0
     floor_violations: list[str] = field(default_factory=list)
 
@@ -63,8 +63,8 @@ class ExecutionResult:
     rolled_back: int
     results: dict[str, Any]
     verdicts: dict[str, str]
-    halted_at_node: Optional[str] = None
-    halt_reason: Optional[str] = None
+    halted_at_node: str | None = None
+    halt_reason: str | None = None
 
 
 class ConstitutionalDAGExecutor:
@@ -93,8 +93,8 @@ class ConstitutionalDAGExecutor:
         self.nodes: dict[str, DAGNode] = {}
         self._executed_order: list[str] = []
         self._halted = False
-        self._halt_node: Optional[str] = None
-        self._halt_reason: Optional[str] = None
+        self._halt_node: str | None = None
+        self._halt_reason: str | None = None
 
     def add_node(
         self,
@@ -102,7 +102,7 @@ class ConstitutionalDAGExecutor:
         tool_name: str,
         mode: str,
         args: dict[str, Any],
-        dependencies: Optional[list[str]] = None,
+        dependencies: list[str] | None = None,
     ) -> None:
         """Add a node to the DAG."""
         if node_id in self.nodes:
@@ -152,7 +152,6 @@ class ConstitutionalDAGExecutor:
         self._halt_reason = f"F1_AMANAH_CRITICAL: score={score} floors={floor_violations}"
 
         if self.hold_manager is not None:
-            from arifosmcp.runtime.irreversibility import RiskTier
             self.hold_manager.create_hold(
                 execution_id=f"dag:{self.dag_id}:{node.id}",
                 agent_id="dag_executor",

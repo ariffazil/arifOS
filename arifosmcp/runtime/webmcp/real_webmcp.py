@@ -23,13 +23,14 @@ from datetime import datetime
 from typing import Any
 
 import redis.asyncio as redis
+from fastapi import FastAPI, Request, WebSocket
+from fastapi.responses import HTMLResponse, JSONResponse
+
 from arifosmcp.runtime.mcp_utils import call_mcp_tool
 from arifosmcp.runtime.public_registry import PUBLIC_TOOL_SPECS, ToolSpec
 from arifosmcp.runtime.webmcp.config import WebMCPConfig as BaseWebMCPConfig
 from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
 from arifosmcp.runtime.webmcp.security import RateLimiter
-from fastapi import FastAPI, Request, WebSocket
-from fastapi.responses import HTMLResponse, JSONResponse
 
 
 @dataclass

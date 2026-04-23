@@ -15,14 +15,15 @@ Memory is now DUAL-ASPECT:
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
-import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+# Core organs
+from ..organs._4_vault import seal as architectural_seal
 
 # Layer imports
 from .layer1_epistemic.blockchain_anchor import (
@@ -30,26 +31,21 @@ from .layer1_epistemic.blockchain_anchor import (
     EpistemicAnchorClient,
 )
 from .layer3_attestation.envelope import (
-    ExecutionEnvelope,
     ExecutionAttestor,
-    ExecutionStatus,
+    ExecutionEnvelope,
 )
 from .layer4_survivability.cold_storage import (
     ColdStorageManager,
     MirrorSynchronizer,
 )
-
-# Phenomenological imports
-from .phenomenological.qualia_trace import QualiaTrace, QualiaMemoryStore
 from .phenomenological.autonoetic import (
     AutonoeticMarker,
     AutonoeticMemorySystem,
     NarrativeContinuity,
 )
 
-# Core organs
-from ..organs._4_vault import seal as architectural_seal
-from ..shared.types import VaultOutput, Verdict
+# Phenomenological imports
+from .phenomenological.qualia_trace import QualiaMemoryStore, QualiaTrace
 
 logger = logging.getLogger(__name__)
 
@@ -76,10 +72,10 @@ class PhenomenologicalVaultRecord:
     narrative_thread: NarrativeContinuity
     
     # External anchors (Layer 1)
-    blockchain_anchor: Optional[BlockchainAnchor] = None
+    blockchain_anchor: BlockchainAnchor | None = None
     
     # Execution attestation (Layer 3)
-    execution_envelope: Optional[ExecutionEnvelope] = None
+    execution_envelope: ExecutionEnvelope | None = None
     
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -147,7 +143,7 @@ class SovereignVault999:
         self.autonoetic_system = AutonoeticMemorySystem(self_id)
         
         # Mirror synchronizer (if configured)
-        self.mirror_sync: Optional[MirrorSynchronizer] = None
+        self.mirror_sync: MirrorSynchronizer | None = None
         
         logger.info(f"SovereignVault999 initialized for {self_id}")
     
@@ -265,7 +261,7 @@ class SovereignVault999:
     async def retrieve_with_phenomenology(
         self,
         seal_hash: str,
-    ) -> Optional[PhenomenologicalVaultRecord]:
+    ) -> PhenomenologicalVaultRecord | None:
         """
         Retrieve a memory with its full phenomenological context.
         
@@ -365,11 +361,11 @@ class SovereignVault999:
 
 
 # Singleton instance
-_vault999_instance: Optional[SovereignVault999] = None
+_vault999_instance: SovereignVault999 | None = None
 
 
 def get_sovereign_vault(
-    vault_path: Optional[Path] = None,
+    vault_path: Path | None = None,
 ) -> SovereignVault999:
     """Get or create the singleton VAULT999 instance."""
     global _vault999_instance

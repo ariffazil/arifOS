@@ -14,12 +14,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from arifosmcp.runtime.contracts import REQUIRES_SESSION
-from pydantic import ValidationError
-
 from core.enforcement.auth_continuity import mint_auth_context, verify_auth_context_cached
 from core.organs import agi, apex, asi, init, vault
 from core.organs._4_vault import verify_vault_ledger
+from pydantic import ValidationError
+
+from arifosmcp.runtime.contracts import REQUIRES_SESSION
 
 from .models import ClaimStatus, Verdict
 
@@ -480,9 +480,9 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     Build the system vitals report for check_vital tool.
     Returns health status, thermodynamic budget, and capability map.
     """
-    from arifosmcp.runtime.sessions import get_session_identity
-
     from core.shared.floors import THRESHOLDS
+
+    from arifosmcp.runtime.sessions import get_session_identity
     try:
         from core.state.session_manager import session_manager
     except Exception:
@@ -588,10 +588,10 @@ async def call_kernel(
     session_id: str,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    from arifosmcp.runtime.models import CallerContext as _CallerContext
-
     from core.governance_kernel import get_governance_kernel
     from core.shared.types import GovernanceMetadata, Intent, MathDials, TemporalContract
+
+    from arifosmcp.runtime.models import CallerContext as _CallerContext
 
     canonical_name = tool_name or "unknown"
     claimed_actor_id = _resolve_claimed_actor_id(payload)
@@ -622,7 +622,7 @@ async def call_kernel(
             # Check if we can auto-anchor this specific call
             can_auto = _can_auto_anchor_declared_identity(payload, claimed_actor_id)
             req_auth = _requires_explicit_kernel_auth(payload, canonical_name)
-            logger.debug("metabolic_loop auth check - can_auto=%s, req_auth=%s", can_auto, req_auth)
+            print(f"DEBUG: metabolic_loop auth check - can_auto={can_auto}, req_auth={req_auth}")
 
             if can_auto:
                 auth_ctx = _mint_auto_anchor_auth_context(session_id, claimed_actor_id)
@@ -938,9 +938,6 @@ async def call_kernel(
                 session_id=session_id,
                 verdict_candidate=payload.get("verdict_candidate", "SEAL"),
                 reason_summary=payload.get("reason_summary"),
-                candidate_action=payload.get("candidate_action"),  # The actual action being judged
-                risk_tier=payload.get("risk_tier", "medium"),  # Risk tier for escalation
-                floor_scores=payload.get("floor_scores"),  # Constitutional floor results
                 auth_context=auth_ctx,
                 max_tokens=payload.get("max_tokens") or default_max_tokens,
             )
@@ -1242,7 +1239,7 @@ async def call_kernel(
 
     except Exception as e:
         logger.error(f"Bridge failure on {tool_name}: {e}", exc_info=True)
-        logger.debug("Bridge failure on %s: %s", tool_name, e)
+        print(f"DEBUG: Bridge failure on {tool_name}: {e}")  # Direct visibility for tests
         from core.enforcement.governance_engine import wrap_tool_output
 
         return wrap_tool_output(

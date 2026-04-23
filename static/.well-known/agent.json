@@ -1,0 +1,26 @@
+{
+  "schema": "arifos-agent-manifest/v1",
+  "name": "arifOS Constitutional MCP Kernel",
+  "role": "mcp_kernel",
+  "url": "https://mcp.arif-fazil.com",
+  "mcp_endpoint": "https://mcp.arif-fazil.com/mcp",
+  "transport": ["streamable-http"],
+  "version": "2026.4.13",
+  "constitutional_floors": 13,
+  "capabilities": {
+    "tools": true,
+    "tools_count": 22,
+    "resources": true,
+    "prompts": true,
+    "vault": true,
+    "vector_memory": true,
+    "session_cache": true
+  },
+  "tool_domains": ["geox", "wealth", "arifos"],
+  "verdict_system": ["SEAL", "PROCEED", "HOLD", "PARTIAL", "VOID"],
+  "identity": "https://arif-fazil.com/llms.txt",
+  "canonical_index": "https://arif-fazil.com/.well-known/arifos.json",
+  "wells": "https://arif-fazil.com/wells.json",
+  "sealed": true,
+  "epoch": "2026-04-18"
+}

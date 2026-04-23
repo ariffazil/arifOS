@@ -40,12 +40,10 @@ FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/usr/src/app:/usr/src/project \
+    PYTHONPATH=/usr/src/project \
     VPS_MODE=1 \
     ARIFOS_DEPLOYMENT=vps
 
-# /usr/src/project = image source (pip install -e . installs here)
-# /usr/src/app = docker-compose volume mount override point
 WORKDIR /usr/src/project
 
 # Minimal runtime system packages only

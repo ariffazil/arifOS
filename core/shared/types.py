@@ -12,7 +12,7 @@ License: AGPL-3.0-only
 DITEMPA BUKAN DIBERI 💎🔥🧠
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, Optional
 
@@ -302,7 +302,7 @@ class OracleAttestation(BaseModel):
     evidence_hash: str = Field(..., description="SHA-256 of what was attested")
     source_uri: str | None = Field(default=None, description="Declared source URI")
     attested_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="When the attestation was made"
     )
     signature: str | None = Field(
@@ -476,7 +476,7 @@ class TemporalContract(BaseModel):
     Breaks LLM statelessness by anchoring data to a verified wall-clock.
     """
 
-    observed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    observed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     request_latency_ms: float = Field(
         default=0.0, description="Actual physical latency for effort check"
     )
@@ -503,6 +503,7 @@ class BaseOrganOutput(BaseModel):
     session_id: str
     verdict: Verdict = Verdict.SEAL
     status: Literal["SUCCESS", "ERROR", "SABAR", "READY", "TRANSIENT"] = "SUCCESS"
+    human_language: str = ""  # Operator-centric explanation (CHANGE-01)
     violations: list[str] = Field(default_factory=list)
     error_message: str | None = None
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -522,7 +523,7 @@ class BaseOrganOutput(BaseModel):
 class Intent(BaseModel):
     """G in APEX-G: Human goal and task details."""
 
-    query: str = Field(..., min_length=1)
+    query: str = Field(default="unknown", min_length=1)
     task_type: str = "unknown"
     domain: str = "general"
     desired_output: str = "text"
@@ -553,7 +554,7 @@ class PhysicsState(BaseModel):
 class CodeState(BaseModel):
     """C in APEX-G: Runtime pipeline stage."""
 
-    session_id: str
+    session_id: str = "unknown"
     stage: Literal["000", "111", "222", "333", "444", "555", "666", "777", "888", "889", "999"] = "000"
     lane: Literal["PHATIC", "SOFT", "HARD", "REFUSE", "UNKNOWN"] = "UNKNOWN"
     runtime_mode: Literal["init", "draft", "review", "judge", "seal"] = "init"
@@ -787,11 +788,11 @@ class InitOutput(BaseOrganOutput):
     """Output from arifosmcp.core_init (APEX-G Session Ignition)."""
 
     banner: str = "DITEMPA, BUKAN DIBERI 🔨"
-    intent: Intent
-    math: MathDials
-    physics: PhysicsState
-    code: CodeState
-    governance: GovernanceMetadata
+    intent: Intent = Field(default_factory=Intent)
+    math: MathDials = Field(default_factory=MathDials)
+    physics: PhysicsState = Field(default_factory=PhysicsState)
+    code: CodeState = Field(default_factory=CodeState)
+    governance: GovernanceMetadata = Field(default_factory=GovernanceMetadata)
     floors: dict[str, str] = Field(default_factory=dict)
     prev_vault_hash: str = "0x" + "0" * 64
 

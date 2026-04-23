@@ -1,0 +1,67 @@
+{
+  "schema_version": "CATALOG_V2",
+  "registry_version": "2026.03.28",
+  "description": "arifOS Model Registry — Hardened v2 (4-layer)",
+  "generated_at": "2026-03-28T12:00:00Z",
+
+  "soul_archetypes": [
+    "openai_gpt",
+    "anthropic_claude",
+    "xai_grok",
+    "google_gemini",
+    "moonshot_kimi",
+    "minimax_m27",
+    "deepseek",
+    "mistral",
+    "alibaba_qwen",
+    "meta_llama",
+    "cohere",
+    "github_copilot",
+    "microsoft_copilot",
+    "perplexity_ai",
+    "baidu_ernie",
+    "01ai_yi",
+    "wrong_provider"
+  ],
+
+  "models": [
+    "openai/gpt/gpt-4",
+    "anthropic/claude/claude-3-7-sonnet",
+    "google/gemini/gemini-2.0-flash",
+    "google/gemini/gemini-1.5-pro",
+    "xai/grok/grok-2",
+    "deepseek/deepseek/deepseek-chat",
+    "mistral/mistral/mistral-large",
+    "alibaba/qwen/qwen-max",
+    "meta/llama/llama-3.3-70b",
+    "cohere/cohere/command-r",
+    "moonshot/kimi/kimi-k1.5",
+    "minimax/minimax/minimax-m2.7",
+    "github/copilot/copilot-chat",
+    "microsoft/copilot/copilot-enterprise",
+    "perplexity/perplexity/perplexity-pro",
+    "baidu/ernie/ernie-4.0",
+    "01ai/yi/yi-large",
+    "wrong-provider/wrong-family/claude-3-7-sonnet"
+  ],
+
+  "runtime_profiles": [
+    "vps_main_arifos"
+  ],
+
+  "schemas": [
+    "schemas/provider_soul.schema.json",
+    "schemas/runtime_truth.schema.json",
+    "session_anchors/SCHEMA.json"
+  ],
+
+  "design_principles": {
+    "soul_is_shorthand": "Soul = provider vibe, NOT ground truth",
+    "model_is_specification": "Model = specific version + variant capabilities",
+    "runtime_is_law": "runtime_truth = what is actually true in THIS deployment",
+    "boundary_is_safety": "self_claim_boundary = what the model CANNOT claim",
+    "always_combine": "Soul + Model + Runtime Truth + Self-Claim Boundary = complete v2 init",
+    "chinese_companies_are_different": "Moonshot AI (月之暗面/Kimi) ≠ MiniMax (稀宇科技) — learn the difference",
+    "product_vs_model": "Copilot/Perplexity are products with their own soul, even if they use base models"
+  }
+}

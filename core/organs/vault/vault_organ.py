@@ -12,14 +12,17 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .types import (
-    VaultEntry, VaultRecordType, Verdict, Evidence, Governance,
-    Integrity, VaultLineage, SealReceipt, VerifyReport
+    Integrity,
+    SealReceipt,
+    VaultEntry,
+    VaultRecordType,
+    Verdict,
+    VerifyReport,
 )
 
 
@@ -41,7 +44,7 @@ class VaultOrgan:
     - Never edited in place (supersession only)
     """
     
-    def __init__(self, vault_path: Optional[Path] = None):
+    def __init__(self, vault_path: Path | None = None):
         self.vault_path = vault_path or Path("/root/arifOS/VAULT999/vault.jsonl")
         self.vault_path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -57,7 +60,7 @@ class VaultOrgan:
         if not self.vault_path.exists():
             return
         
-        with open(self.vault_path, 'r') as f:
+        with open(self.vault_path) as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -127,7 +130,7 @@ class VaultOrgan:
     
     # ===================== SEAL =====================
     
-    def seal(self, entry: VaultEntry) -> Optional[SealReceipt]:
+    def seal(self, entry: VaultEntry) -> SealReceipt | None:
         """
         Seal a record to the vault.
         
@@ -242,7 +245,7 @@ class VaultOrgan:
         prev_hash = "0" * 64
         count = 0
         
-        with open(self.vault_path, 'r') as f:
+        with open(self.vault_path) as f:
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if not line:
@@ -277,7 +280,7 @@ class VaultOrgan:
         vault_id: str,
         new_entry: VaultEntry,
         authority: str,
-    ) -> Optional[SealReceipt]:
+    ) -> SealReceipt | None:
         """
         Supersede a vault entry with a new version.
         
@@ -296,7 +299,7 @@ class VaultOrgan:
     
     # ===================== QUERY =====================
     
-    def get_entry(self, vault_id: str) -> Optional[VaultEntry]:
+    def get_entry(self, vault_id: str) -> VaultEntry | None:
         """Get vault entry by ID."""
         return self._entries.get(vault_id)
     
@@ -330,10 +333,10 @@ class VaultOrgan:
 
 
 # Singleton
-_vault_organ: Optional[VaultOrgan] = None
+_vault_organ: VaultOrgan | None = None
 
 
-def get_vault_organ(vault_path: Optional[Path] = None) -> VaultOrgan:
+def get_vault_organ(vault_path: Path | None = None) -> VaultOrgan:
     """Get or create vault organ."""
     global _vault_organ
     if _vault_organ is None:

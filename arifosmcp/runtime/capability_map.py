@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from importlib.util import find_spec
+from typing import Any, Literal
 
 
 def _env_present(*names: str) -> bool:
@@ -26,6 +27,10 @@ def _env_truthy(name: str) -> bool:
     return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _module_available(name: str) -> bool:
+    return find_spec(name) is not None
+
+
 def _configured(*names: str) -> str:
     return "configured" if _env_present(*names) else "not_configured"
 
@@ -43,7 +48,7 @@ def _aggregate_class_status(values: list[str]) -> str:
     return "not_configured"
 
 
-def build_runtime_capability_map() -> dict[str, Any]:
+def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str, Any]:
     """
     Build a redacted runtime capability map.
 
@@ -82,11 +87,13 @@ def build_runtime_capability_map() -> dict[str, Any]:
         "openrouter": _configured("OPENROUTER_API_KEY"),
         "venice": _configured("VENICE_API_KEY"),
         "ollama_local": _url_configured("OLLAMA_URL"),
+        "minimax": _configured("MINIMAX_API_KEY"),
         "brave": _configured("BRAVE_API_KEY"),
         "jina": _configured("JINA_API_KEY"),
         "perplexity": _configured("PPLX_API_KEY", "PERPLEXITY_API_KEY"),
         "firecrawl": _configured("FIRECRAWL_API_KEY"),
         "browserless": _configured("BROWSERLESS_TOKEN"),
+        "ddgs_local": "configured" if _module_available("ddgs") else "not_configured",
     }
 
     substrates = {
@@ -117,6 +124,7 @@ def build_runtime_capability_map() -> dict[str, Any]:
         providers["openrouter"],
         providers["venice"],
         providers["ollama_local"],
+        providers["minimax"],
     ]
     grounding_provider_states = [
         providers["brave"],
@@ -124,12 +132,13 @@ def build_runtime_capability_map() -> dict[str, Any]:
         providers["perplexity"],
         providers["firecrawl"],
         providers["browserless"],
+        providers["ddgs_local"],
     ]
 
     capabilities = {
         "governed_continuity": "enabled"
-        if continuity_signing in {"configured", "open_dev_mode"}
-        else "degraded",
+        if ml_model_available and continuity_signing in {"configured", "open_dev_mode"}
+        else ("heuristic_fallback" if continuity_signing in {"configured", "open_dev_mode"} else "degraded"),
         "vault_persistence": "enabled" if storage["vault_postgres"] == "configured" else "degraded",
         "vector_memory": "enabled" if storage["vector_memory"] == "configured" else "degraded",
         "external_grounding": "enabled"

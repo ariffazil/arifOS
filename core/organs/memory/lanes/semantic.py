@@ -15,9 +15,8 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
-from ..types import MemoryRecord, MemoryType, Source, Scope, Governance, Time, RetentionClass
+from ..types import Governance, MemoryRecord, MemoryType, RetentionClass, Scope, Source, Time
 
 
 @dataclass
@@ -42,7 +41,7 @@ class SemanticMemoryLane:
         fact_key: str,  # Canonical key for this fact (e.g., "arif.preferences.mode")
         source: Source,
         confidence: float = 0.9,
-        embedding_id: Optional[str] = None,
+        embedding_id: str | None = None,
     ) -> MemoryRecord:
         """
         Store a semantic fact.
@@ -98,7 +97,7 @@ class SemanticMemoryLane:
         
         return record
     
-    def get_fact(self, fact_key: str) -> Optional[MemoryRecord]:
+    def get_fact(self, fact_key: str) -> MemoryRecord | None:
         """Get fact by exact key lookup."""
         memory_id = self._fact_index.get(fact_key)
         if memory_id and memory_id in self._memories:
@@ -113,7 +112,7 @@ class SemanticMemoryLane:
         new_content: str,
         new_confidence: float,
         source: Source,
-    ) -> Optional[MemoryRecord]:
+    ) -> MemoryRecord | None:
         """
         Update a fact (supersede old version).
         

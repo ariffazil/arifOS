@@ -5,9 +5,10 @@ Rule 2: One state name = one meaning.
 ArtifactStatus must be binary enough for governance.
 """
 
-from enum import Enum
 from pydantic import BaseModel, Field
+
 from arifosmcp.contracts.verdicts import ArtifactStatus
+
 
 class Claim(BaseModel):
     """A single claim with grounding (Fix 5)."""

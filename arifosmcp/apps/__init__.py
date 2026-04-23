@@ -31,16 +31,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # ── App module registry (import path → human label) ──────────────────────────
-_APP_MODULES: list[tuple[str, str]] = [
-    ("arifosmcp.apps.metabolic_monitor", "MetabolicMonitor (F1-F13 Radar)"),
-    ("arifosmcp.apps.judge_app",         "JudgeApp (888_JUDGE)"),
-    ("arifosmcp.apps.vault_app",         "VaultApp (999_VAULT)"),
-    ("arifosmcp.apps.init_app",          "InitApp (000_INIT)"),
-    ("arifosmcp.apps.forge_app",         "ForgeApp (FORGE Double-Gate)"),
-]
 
 
-def register_all_apps(mcp: "FastMCP") -> list[str]:
+
+def register_all_apps(mcp: FastMCP) -> list[str]:
     """
     Register all constitutional MCP apps onto the given FastMCP server.
     Returns list of successfully registered app labels.

@@ -163,7 +163,7 @@ All defined in `arifosmcp.runtime/server.py` with `@mcp.tool()` decorators.
 
 | Tool (UX Verb)     | Lane    | Stage   | Floors          | Purpose                               |
 | ------------------ | ------- | ------- | --------------- | ------------------------------------- |
-| `anchor_session`   | Δ Delta | 000     | F11, F12, F13   | Session ignition & injection defense  |
+| `arifos_anchor_session` | Δ Delta | 000     | F11, F12, F13   | Session ignition & injection defense  |
 | `reason_mind`      | Δ Delta | 333     | F2, F4, F7, F8  | AGI cognition                         |
 | `vector_memory`    | Ω Omega | 555     | F4, F7, F13     | Associative memory traces             |
 | `simulate_heart`   | Ω Omega | 666     | F4, F5, F6      | Stakeholder impact & care constraints |
@@ -247,9 +247,14 @@ Require explicit user confirmation:
 
 **Live endpoints:**
 
-- Health: `https://arifosmcp.arif-fazil.com/health`
-- SSE: `https://arifosmcp.arif-fazil.com/sse`
-- MCP: `https://arifosmcp.arif-fazil.com/mcp`
+- Health: `https://mcp.arif-fazil.com/health`
+- SSE: `https://mcp.arif-fazil.com/sse`
+- MCP: `https://mcp.arif-fazil.com/mcp`
+
+> ⚠️ **DEPRECATED**: `arifosmcp.arif-fazil.com` is stale (v2026.04.07, 11 tools). Always use `mcp.arif-fazil.com` (v2026.4.13, 20 tools).
+>
+> ⚠️ **DEPRECATED TOOL NAMES** (do not use):
+> `arifos_anchor_session` → `arifos_init` | `arifos_execute_judge` → `arifos_judge` | `arifos_forge_judge_check` → `arifos_judge(dry_run=True)` | `arifos_forge_execute` → `arifos_forge(dry_run=False)` | `arifos_perform_economic_audit` → `arifos_ops(mode="economic_audit")` | `arifos_verify_location` → `arifos_sense(mode="location")` | `arifos_monitor_metabolism` → `arifos_ops(mode="metabolism")` | `arifos_get_vault_data` → `arifos_vault(mode="read")`
 
 ---
 

@@ -125,6 +125,15 @@ SUBSTITUTION_REGISTRY = {
         "floors": ["F4", "F5"],
         "tokens_saved_per_call": 600,
     },
+    "arifos_gateway": {
+        "replaces": [
+            "Ad-hoc orthogonality checks",
+        ],
+        "category": "Governance",
+        "trinity": "Ω",
+        "floors": ["F3", "F4", "F9", "F11", "F13"],
+        "tokens_saved_per_call": 800,
+    },
     "arifos_health": {
         "replaces": [
             "Infrastructure monitoring MCPs",

@@ -28,7 +28,7 @@
 | `af8cf89d` | docs: Update NEXUS_HORIZON with clean architecture appendix |
 | `086daadb` | docs: Update AGENTS.md with functional naming and ChatGPT SDK |
 | `a1dc283b` | docs: Update README with ChatGPT Apps SDK and clean architecture |
-| `0bad3e11` | deploy(af-forge): Docker deployment + FastMCP Horizon alignment |
+| `0bad3e11` | deploy(a-forge): Docker deployment + FastMCP Horizon alignment |
 | `2f82a3e2` | fix: add geox.arif-fazil.com Traefik route + add geox to docker-compose.yml |
 | `a7da0447` | fix(chatgpt): widget CSP and domain requirements |
 | `1d069707` | feat(specs): clean MCP architecture with separated registries |
@@ -44,7 +44,7 @@
 - `arifosmcp/runtime/chatgpt_integration/apps_sdk_tools.py` (+227 lines)
 - `arifosmcp/runtime/widgets/vault_seal_widget.html` (+310 lines)
 - `core/shared/bls_vault.py` (+413 lines BLS12-381)
-- `deployments/af-forge/` — Full Docker deploy stack (Dockerfile, deploy.sh, docker-compose.yml)
+- `deployments/a-forge/` — Full Docker deploy stack (Dockerfile, deploy.sh, docker-compose.yml)
 - `static/dashboard/` — Dashboard HTML + server-render.py
 - `RELEASE_NOTES_2026.04.06.md` (+168 lines — required for GitHub release)
 - `docs/architecture/ARCHITECTURE.md` (+308 lines clean arch)

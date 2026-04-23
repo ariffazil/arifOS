@@ -1,0 +1,37 @@
+# Security Policy for arifOS MCP
+# https://arifosmcp.arif-fazil.com/.well-known/security.txt
+
+Contact: mailto:security@arif-fazil.com
+Expires: 2027-04-06T00:00:00.000Z
+
+Preferred-Languages: en, ms
+
+Canonical: https://arifosmcp.arif-fazil.com/.well-known/security.txt
+Policy: https://github.com/ariffazil/arifOS/blob/main/SECURITY.md
+
+# Scope
+This security.txt applies to:
+- https://arifosmcp.arif-fazil.com
+- MCP endpoints
+- WebMCP transport
+- A2A agent endpoints
+
+# Reporting
+Please report security issues to security@arif-fazil.com
+Include:
+- Description of issue
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
+
+# Acknowledgments
+We will acknowledge receipt within 48 hours.
+We aim to resolve critical issues within 7 days.
+
+# Hall of Fame
+Contributors who report valid security issues will be acknowledged
+in our repository's SECURITY.md file (with permission).
+
+---
+arifOS MCP — Constitutional AI Governance
+DITEMPA, BUKAN DIBERI.

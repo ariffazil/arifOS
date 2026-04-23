@@ -1,0 +1,43 @@
+name: P_vault_ledger_read
+canonical: true
+type: perception-tool
+authority: VAULT_ORACLE
+description: >
+  Read VAULT999 ledger, build BLS seal card.
+  Deduplicates with arifos_vault(mode="read") — two read paths for the same ledger is drift waiting to happen.
+  This oracle is the canonical perception read path; arifos_vault(mode="read") is the governance read path.
+  Fast, stateless, no Floor overhead.
+floors:
+  - F2: TRUTH
+  - F11: COMMAND_AUTH
+risk_tier: P2
+modes: []
+session_required: false
+vault_on_seal: false
+reversible: true
+parameters:
+  session_id:
+    type: string
+    required: false
+    description: Session ID to filter ledger entries
+  verdict:
+    type: string
+    required: false
+    description: Filter by verdict type (SEAL, PARTIAL, VOID, HOLD)
+  since:
+    type: string
+    required: false
+    description: Start timestamp in ISO format
+  until:
+    type: string
+    required: false
+    description: End timestamp in ISO format
+  limit:
+    type: integer
+    default: 100
+    description: Maximum number of records to return
+response_schema:
+  data:
+    entries: array
+    total: number
+    seal_card: object

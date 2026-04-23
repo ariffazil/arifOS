@@ -13,19 +13,23 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
+
+from core.shared.mottos import (
+    MOTTO_000_INIT_HEADER,
+    MOTTO_999_SEAL_HEADER,
+    get_motto_for_stage,
+)
+from fastmcp.server.context import Context
 
 from arifosmcp.runtime.models import (
     CallerContext,
     CanonicalError,
-    CanonicalMetrics,
     RuntimeEnvelope,
     RuntimeStatus,
     Stage,
     Verdict,
-)
-from arifosmcp.runtime.public_registry import (
-    public_tool_names,
 )
 from arifosmcp.runtime.schemas import IntentType
 from arifosmcp.runtime.sessions import (
@@ -46,17 +50,8 @@ from arifosmcp.tools.agentzero_tools import (
 from arifosmcp.tools.agentzero_tools import (
     agentzero_validate as _az_validate,
 )
-from fastmcp.server.context import Context
-
-from core.shared.mottos import (
-    MOTTO_000_INIT_HEADER,
-    MOTTO_999_SEAL_HEADER,
-    get_motto_for_stage,
-)
 
 from .bridge import call_kernel
-from .reality_handlers import handler as reality_handler
-from .reality_models import BundleInput
 
 # Hybrid memory import (may not be available in all configurations)
 try:
@@ -186,7 +181,7 @@ def _resolve_caller_state(
 
     MEGA_TOOLS = [
         "arifos_init",
-        "arifos_route",
+        "arifos_kernel",
         "arifos_judge",
         "arifos_vault",
         "arifos_mind",
@@ -195,6 +190,7 @@ def _resolve_caller_state(
         "arifos_sense",
         "arifos_ops",
         "arifos_forge",
+        "arifos_gateway",
         "arifos_health",
     ]
 
@@ -202,7 +198,7 @@ def _resolve_caller_state(
         "anonymous": {
             "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifos_route": "Requires anchored session. Run arifos_init first.",
+                "arifos_kernel": "Requires anchored session. Run arifos_init first.",
                 "arifos_mind": "Requires anchored session.",
                 "arifos_memory": "Requires anchored session and high-tier auth.",
                 "arifos_vault": "Requires anchored session and high-tier auth.",
@@ -211,7 +207,7 @@ def _resolve_caller_state(
         "claimed": {
             "allowed": ["arifos_init", "arifos_ops", "arifos_judge"],
             "blocked": {
-                "arifos_route": "Elevate to verified identity for full kernel access.",
+                "arifos_kernel": "Elevate to verified identity for full kernel access.",
                 "arifos_memory": "Requires verified identity.",
                 "arifos_vault": "Requires verified identity.",
             },
@@ -531,10 +527,8 @@ async def apex_judge_dispatch_impl(
     payload["session_id"] = session_id
 
     if mode == "judge":
-        # candidate (action text) and verdict_candidate (verdict string) are separate concerns
-        payload.setdefault("candidate_action", payload.get("candidate", ""))
-        verdict_candidate = payload.pop("verdict_candidate", None) or "SEAL"
-        payload["verdict_candidate"] = verdict_candidate
+        candidate = payload.get("candidate", "SEAL")
+        payload["verdict_candidate"] = candidate
         return await _wrap_call("apex_judge", Stage.JUDGE_888, session_id, payload, ctx)
     elif mode == "rules":
         return await _wrap_call("audit_rules", Stage.INIT_000, session_id, payload, ctx)
@@ -638,13 +632,74 @@ async def vault_ledger_dispatch_impl(
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
     if mode == "seal":
-        return await _wrap_call(
-            "vault_seal",
-            Stage.VAULT_999,
-            session_id,
-            {"verdict": payload.get("verdict", "SABAR"), "evidence": payload.get("evidence", "")},
-            ctx,
-        )
+        # Route SEAL writes through vault999_writer (writer_service)
+        writer_url = os.environ.get("VAULT999_WRITER_URL", "http://vault999-writer:5001")
+        verdict = payload.get("verdict", "SEAL")
+        evidence = payload.get("evidence", "")
+        agent_id = "arifOS_bot"
+        human_signature = payload.get("human_signature", "") or ""
+        from datetime import datetime, timezone
+        now_iso = datetime.now(timezone.utc).isoformat()
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                r = await client.post(
+                    f"{writer_url}/seal",
+                    json={
+                        "agent_id": agent_id,
+                        "verdict": verdict,
+                        "action": payload.get("action", "VAULT999_MCP_SEAL"),
+                        "epoch": now_iso,
+                        "human_ratifier": payload.get("human_ratifier", "arif-fazil"),
+                        "ratified_at": now_iso,
+                        "payload": {
+                            "organ": payload.get("organ", "arifOS"),
+                            "session_id": session_id,
+                            "evidence": evidence,
+                            "source_agent": payload.get("source_agent", "arifOS_bot"),
+                            "pipeline_stage": payload.get("pipeline_stage", "999_VAULT"),
+                            "test": payload.get("test", False),
+                        },
+                        "human_signature": human_signature,
+                    },
+                )
+            if r.status_code in (200, 201):
+                data = r.json()
+                from arifosmcp.runtime.models import RuntimeStatus
+                return RuntimeEnvelope(
+                    ok=True,
+                    tool="vault_ledger",
+                    session_id=session_id,
+                    stage=Stage.VAULT_999.value,
+                    verdict=Verdict.SEAL,
+                    status=RuntimeStatus.SUCCESS,
+                    payload={
+                        "sealed": True,
+                        "ledger_id": data.get("id", "unknown"),
+                        "seal_hash": data.get("seal_hash", ""),
+                        "chain_hash": data.get("chain_hash", ""),
+                        "writer_response": data,
+                    },
+                )
+            else:
+                return _create_error_envelope(
+                    tool_name="vault_ledger",
+                    stage=Stage.VAULT_999.value,
+                    session_id=session_id,
+                    error_msg=f"vault999_writer failed: {r.status_code} {r.text}",
+                    error_code="WRITER_ERROR",
+                    verdict=Verdict.VOID,
+                )
+        except Exception as e:
+            logger.error(f"vault_ledger_dispatch_impl writer error: {e}")
+            return _create_error_envelope(
+                tool_name="vault_ledger",
+                stage=Stage.VAULT_999.value,
+                session_id=session_id,
+                error_msg=f"vault999_writer unreachable: {e}",
+                error_code="WRITER_UNAVAILABLE",
+                verdict=Verdict.VOID,
+            )
     elif mode == "verify":
         return await _wrap_call(
             "verify_vault_ledger",
@@ -1433,8 +1488,9 @@ async def math_estimator_dispatch_impl(
     if mode == "vitals":
         # PHASE 0 FIX: Wrapped vital signs computation with error handling
         try:
-            import psutil
             import os
+
+            import psutil
             
             # Get system vitals
             cpu_percent = psutil.cpu_percent(interval=0.1)
@@ -1700,7 +1756,21 @@ async def architect_registry_dispatch_impl(
 ) -> RuntimeEnvelope:
     """Hardened architect registry dispatch."""
     session_id = payload.get("session_id")
-    
+
+    if mode == "context":
+        from arifosmcp.capability_map import build_llm_context_map
+        return RuntimeEnvelope(
+            ok=True,
+            tool="architect_registry",
+            stage=Stage.INIT_000.value,
+            verdict=Verdict.SEAL,
+            payload={
+                "context": build_llm_context_map(),
+                "resource_uri": "arifos://mcp/context",
+            },
+            session_id=session_id,
+        )
+
     try:
         return await _wrap_call("architect_registry", Stage.INIT_000, session_id, payload, ctx)
     except Exception as e:

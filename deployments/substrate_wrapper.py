@@ -12,8 +12,8 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from datetime import UTC, datetime
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
 logging.basicConfig(level=logging.INFO)
@@ -83,7 +83,7 @@ class TimeSubstrateHandler(SubstrateHandler):
         self.send_json_response({
             "status": "OK",
             "service": "mcp_time",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         })
     
     def handle_list_tools(self):
@@ -98,17 +98,17 @@ class TimeSubstrateHandler(SubstrateHandler):
     def handle_call_tool(self, tool_name, arguments):
         if tool_name == "get_current_time":
             result = {
-                "datetime": datetime.now(timezone.utc).isoformat(),
+                "datetime": datetime.now(UTC).isoformat(),
                 "timezone": "UTC",
-                "epoch": int(datetime.now(timezone.utc).timestamp())
+                "epoch": int(datetime.now(UTC).timestamp())
             }
         elif tool_name == "get_epoch":
-            result = {"epoch": int(datetime.now(timezone.utc).timestamp())}
+            result = {"epoch": int(datetime.now(UTC).timestamp())}
         elif tool_name == "convert_timezone":
             result = {
                 "source": arguments.get("from_timezone", "UTC"),
                 "target": arguments.get("to_timezone", "UTC"),
-                "converted": datetime.now(timezone.utc).isoformat()
+                "converted": datetime.now(UTC).isoformat()
             }
         else:
             result = {"error": f"Unknown tool: {tool_name}"}

@@ -1,0 +1,91 @@
+# arifOS Hardened MCP Server
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2: Blast Radius Isolation
+# 
+# Principles:
+# - No root access
+# - No shell
+# - No execution capability
+# - Read-only filesystem
+# - FORGE is the ONLY execution path
+# ═══════════════════════════════════════════════════════════════════════════════
+
+FROM python:3.12-slim AS build
+
+# Build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RUNTIME IMAGE — Minimal Attack Surface
+# ═══════════════════════════════════════════════════════════════════════════════
+
+FROM python:3.12-slim AS runtime
+
+# Remove ALL shell binaries — no exec capability
+RUN rm -f /bin/sh /bin/bash /usr/bin/sh /usr/bin/bash /bin/dash /usr/bin/dash
+
+# Create non-root user (no home directory, no shell)
+RUN groupadd -r arifos -g 1000 && \
+    useradd -r -g arifos -u 1000 -s /usr/sbin/nologin arifos
+
+# Create required directories
+RUN mkdir -p /app /tmp /var/log/arifos && \
+    chown -R arifos:arifos /app /tmp /var/log/arifos
+
+# Copy Python packages from build
+COPY --from=build /root/.local /home/arifos/.local
+ENV PATH=/home/arifos/.local/bin:$PATH
+
+# Copy application code (will be mounted read-only)
+WORKDIR /app
+
+# Install only required Python packages
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user fastmcp pydantic && \
+    rm -rf /home/arifos/.cache/pip
+
+# Copy hardened server code
+COPY arifosmcp/runtime/governance_enforcer.py /app/
+COPY arifosmcp/runtime/kernel_router_hardened.py /app/
+COPY arifosmcp/runtime/models.py /app/
+COPY arifosmcp/runtime/philosophy_registry.py /app/
+COPY arifosmcp/runtime/tools.py /app/
+COPY arifosmcp/runtime/tool_specs.py /app/
+
+# Set ownership
+RUN chown -R arifos:arifos /app /home/arifos
+
+# Switch to non-root user
+USER arifos
+
+# Runtime environment
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" || exit 1
+
+# Run server (no shell, direct Python execution)
+CMD ["python", "-c", "
+import asyncio
+import sys
+sys.path.insert(0, '/app')
+from kernel_router_hardened import get_router
+from governance_enforcer import get_enforcer
+print('arifOS Hardened Kernel Starting...')
+print('User: arifos (UID 1000)')
+print('Capabilities: NONE')
+print('Execution: FORGE-ONLY')
+print('✅ Hardened kernel ready')
+"]

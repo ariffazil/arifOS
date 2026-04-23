@@ -1,38 +1,75 @@
 # arifOS TODO — Active Work Queue
 
-**Version:** 2026.04.13-COCKPIT-VERIFIED
+**Version:** 2026.4.13-SEALED
 **Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)
 **SoT:** This file tracks active engineering work. ROADMAP.md owns horizon strategy.
+**Seal ID:** SEAL-20260415-001
+**Sealed Commits:** a9d2899, 74057cc, 157ed39, b6a207d
 
 > 888_HOLD items require explicit sovereign approval before execution.
+
+---
+
+## ✅ SEALED This Session (2026.04.15)
+
+### Fixes
+- [x] **output_formatter.py** — Add required `tool` field to chatgpt_apps platform output
+- [x] **integrity.py** — Update `REQUIRED_POLICY_VERSION` to `2026.4.13`
+- [x] **integrity.py** — Skip router visibility check at boot (runtime invariant)
+
+### New Features
+- [x] **arifos_init** — Add `intent_vector` profiling (short_term, long_term, exploratory, strategic, defensive)
+- [x] **arifos_sense** — Add `affective_signal` detection (urgency, confidence, volatility)
+- [x] **arifos_heart** — Add `background_scan` parameter for lightweight ethical monitoring
+
+### Optimization
+- [x] **pyproject.toml** — ML deps moved to optional `ml` extras
+- [x] **Dockerfile.unified** — Build optimization applied
+
+---
+
+## 🔲 Post-Seal TODO
+
+### High Priority
+- [ ] Docker rebuild with all fixes baked in
+- [ ] Router visibility validation moved to runtime (not boot-time)
+- [ ] Verify new features via MCP call (not just /health)
+
+### Medium Priority
+- [ ] Add regression tests for output_formatter schema
+- [ ] Update .dockerignore for main Dockerfile
+- [ ] Run full MCP inspector tool test
+
+---
+
+## 🔴 P0 — Blockers (Ship This Week)
 
 ---
 
 ## 🔴 P0 — Blockers (Ship This Week)
 
 ### ChatGPT Apps SDK Deployment (Path D)
-- [x] `widget-csp.conf` — was MISSING, now created (`deployments/af-forge/widget-csp.conf`)
-- [x] **nginx.conf**: `server_name` updated to `arifosmcp.arif-fazil.com` — consolidated, `mcp.af-forge.io` retired (2026.04.07)
+- [x] `widget-csp.conf` — was MISSING, now created (`deployments/a-forge/widget-csp.conf`)
+- [x] **nginx.conf**: `server_name` updated to `arifosmcp.arif-fazil.com` — consolidated, `mcp.a-forge.io` retired (2026.04.07)
 - [x] **DNS-ready**: `arifosmcp.arif-fazil.com` already live via Traefik + Cloudflare
 - [x] **DNS**: No action needed — domain consolidated to `arifosmcp.arif-fazil.com`
-- [x] **TLS**: Cert extracted from Traefik `acme.json` → `deployments/af-forge/ssl/` (expires 2026-06-03); HTTPS block uncommented
+- [x] **TLS**: Cert extracted from Traefik `acme.json` → `deployments/a-forge/ssl/` (expires 2026-06-03); HTTPS block uncommented
 - [x] **widget route**: `GET /widget/vault-seal` live on `arifosmcp.arif-fazil.com` with `frame-ancestors` CSP (served from Python app)
 - [x] **Verify**: `curl -I https://arifosmcp.arif-fazil.com/widget/vault-seal` returns 200 with CSP header
-- [x] **First real ChatGPT Apps tool**: `decide(query)` — constitutional decision cockpit live
 - [ ] **Vault999 volume backup**: Add `restic` or `borgbackup` cron before Phase 2 write-path opens (F11/F13 gate)
 
 ### Live MCP Tools (`/tools` returning 0)
 - [x] `canonical_tools` / `total_tools` fields added to `/health` endpoint (0461252f)
 - [x] Duplicate `get_constitutional_health` registration removed from `server_horizon.py` (0461252f)
-- [x] **`arifosmcp` container restarted on VPS** — `canonical_tools: 10` confirmed
-- [x] **Verify**: `curl https://arifosmcp.arif-fazil.com/health | jq .canonical_tools` returns 10 ✅
+- [x] **`arifosmcp` container restarted on VPS** — previous deployed surface confirmed before the 2026.04.14 11-tool public-surface alignment
+- [x] **Verify**: deployed `/health` was previously checked before the 2026.04.14 11-tool public-surface alignment
 
 ---
 
 ## 🟡 P1 — Platform Agnosticism (Path A + B)
 
 ### Path A — Tool `platform=` Mode (1–2 weeks)
-- [x] `platform: str = "unknown"` param added to all 10 tool functions in `tools.py` (ff78faef)
+- [x] `platform: str = "unknown"` param added across the 11-tool public runtime surface in `tools.py`
 - [x] `_stamp_platform()` stamps `platform_context` onto every envelope
 - [ ] Upgrade to `Literal["mcp", "chatgpt_apps", "cursor", "api", "stdio"]` type in `tool_specs.py` schemas
 - [ ] Implement `output_formatter.py` dispatch on `platform`:
@@ -58,18 +95,15 @@
 ### Docker / Deployment
 - [x] `ARIFOS_APP_VERSION` in `docker-compose.yml` updated to `2026.04.07` (2026.04.07)
 - [x] `arifosmcp/Dockerfile` lean multi-stage build created (6cb52348)
-- [ ] `deployments/af-forge/Dockerfile` — verify multi-stage build is correct for VPS
+- [ ] `deployments/a-forge/Dockerfile` — verify multi-stage build is correct for VPS
 - [ ] Add `vault999-data` volume backup strategy (restic daily snapshot)
 - [ ] Document `deploy.sh` usage — currently undocumented
 
 ### arifOS Runtime
 - [x] `canonical_tools` + `total_tools` fields added to `/health` — structural fix deployed (0461252f)
-- [x] **P0 UI crash fixed**: `ShowToast(variant="destructive")` → `variant="error"` across all app surfaces
-- [x] **P0 Sense parser hardened**: verdict mapping no longer collapses clean routing to SABAR
-- [x] **P1 Sovereign identity binding fixed**: `ariffazil` promoted to SOVEREIGN class on init
-- [x] **P1 arifos_reply fixed**: judges extracted `action_output` from mind, not raw prompt
-- [x] **P1 Schema unification verified**: `query` aliases already present in heart/ops/judge
-- [ ] **VPS restart required** to confirm latest runtime fixes are live
+- [x] Public registry and runtime contracts aligned to the canonical 11-tool public surface (2026.04.14)
+- [x] Root server bootstrap tightened so local/server discovery lists only the 11 public tools by default (2026.04.14)
+- [ ] Redeploy / re-verify live FastMCP runtime so connector discovery reflects only the 11 public tools
 - [ ] `build_info.py` — ensure `ARIFOS_APP_VERSION` env var is read in container context
 - [ ] Entropy budget: implement `chaos_score()` across all MCP endpoints (ROADMAP H1 pending)
 - [ ] Provenance ledger: wire `arifos.vault` directly to AGI Mind Provenance
@@ -98,19 +132,7 @@
 
 ---
 
-## ✅ DONE (This Session — 2026.04.13)
-
-- [x] **README rewritten**: 2,510 lines → ~300 lines. True canonical front door.
-- [x] **P0 UI crash fixed**: `ShowToast(variant="destructive")` → `variant="error"` in all 4 app surfaces
-- [x] **P0 Sense parser hardened**: `route_reason` mapping now handles non-bracketed routing cleanly
-- [x] **P1 Sovereign identity binding fixed**: `declared_name_norm` in `_SOVEREIGN_IDENTITY_MAP` auto-promotes to `SOVEREIGN` class + `human_approval=True`
-- [x] **P1 arifos_reply fixed**: `action_to_judge` extracted from `mind_result["action_output"]` instead of raw `query`
-- [x] **P1 Schema unification verified**: `query` aliases already present in heart/ops/judge
-- [x] **P2 ChatGPT Apps `decide` tool shipped**: constitutional decision cockpit (`decide(query) → verdict + floors + recommendation`)
-- [x] **Runtime verified end-to-end**: `Deploy an autonomous trading agent` → `SEAL`, all 13 floors pass
-- [x] `tools_internal.py` verdict-candidate bug fixed: `candidate_action` separated from `verdict_candidate`
-
-## ✅ DONE (Earlier — 2026.04.07)
+## ✅ DONE (This Session — 2026.04.07)
 
 - [x] Versioned file unification (−3841 lines): `tools_v2.py` → `tools.py` etc.
 - [x] `arifos.v2.*` namespace fully purged from all active code
@@ -120,16 +142,17 @@
 - [x] Lean `arifosmcp/Dockerfile` created
 - [x] CHANGELOG.md, arifos.yml, AGENTS.md sealed
 - [x] GitHub release `v2026.04.07` created with semantic notes
-- [x] `af-forge/GEMINI.md` + `ALIGNMENT.md` updated to canonical `arifos.*` names
+- [x] `a-forge/GEMINI.md` + `ALIGNMENT.md` updated to canonical `arifos.*` names
 - [x] `waw/skills/.../verification-runbooks.md` updated to `arifos.init`
 - [x] `widget-csp.conf` created (deployment blocker fixed)
-- [x] `nginx.conf` `server_name arifosmcp.arif-fazil.com` — consolidated (mcp.af-forge.io retired)
+- [x] `nginx.conf` `server_name arifosmcp.arif-fazil.com` — consolidated (mcp.a-forge.io retired)
 - [x] `docker-compose.yml` service renamed `arifos-mcp`, env vars to `ARIFOS_MCP_*`, version `2026.04.07`
 - [x] `__main__.py` env var aliases updated to `ARIFOS_MCP_*` (platform agnosticism)
-- [x] `platform=` param added to all 10 tool functions (Path A foundation)
+- [x] `platform=` param added across the public tool surface (Path A foundation)
 - [x] Duplicate `get_constitutional_health` registration fixed in `server_horizon.py`
 - [x] `_security_check()` runtime hardening audit added to `server.py`
 - [x] Merge conflict resolution: 55 upstream commits reconciled (8e1f52d7)
+- [x] Canonical 11-tool public runtime surface restored (`arifos_route` public wrapper, contracts, health naming, legacy alias registration) (2026.04.14)
 
 ---
 

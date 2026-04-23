@@ -31,20 +31,33 @@ from typing import Any
 
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 from arifosmcp.runtime.megaTools import (
-    init_anchor as _mega_init_anchor,
     agi_mind as _mega_agi_mind,
-    physics_reality as _mega_physics_reality,
-    arifOS_kernel as _mega_arifOS_kernel,
-    asi_heart as _mega_asi_heart,
-    math_estimator as _mega_math_estimator,
-    apex_judge as _mega_apex_judge,
-    engineering_memory as _mega_engineering_memory,
-    vault_ledger as _mega_vault_ledger,
-    code_engine as _mega_code_engine,
 )
-from arifosmcp.runtime.models import RuntimeEnvelope
-from arifosmcp.runtime.schemas_v2_clean import QueryOptions, CleanInput
-
+from arifosmcp.runtime.megaTools import (
+    apex_judge as _mega_apex_judge,
+)
+from arifosmcp.runtime.megaTools import (
+    arifOS_kernel as _mega_arifOS_kernel,
+)
+from arifosmcp.runtime.megaTools import (
+    asi_heart as _mega_asi_heart,
+)
+from arifosmcp.runtime.megaTools import (
+    engineering_memory as _mega_engineering_memory,
+)
+from arifosmcp.runtime.megaTools import (
+    init_anchor as _mega_init_anchor,
+)
+from arifosmcp.runtime.megaTools import (
+    math_estimator as _mega_math_estimator,
+)
+from arifosmcp.runtime.megaTools import (
+    physics_reality as _mega_physics_reality,
+)
+from arifosmcp.runtime.megaTools import (
+    vault_ledger as _mega_vault_ledger,
+)
+from arifosmcp.runtime.schemas_v2_clean import CleanInput, QueryOptions
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLEAN INPUT WRAPPER

@@ -7,7 +7,7 @@ arifOS ForgeApp — Double-Gated Execution Surface (FORGE)
 Implements the forge execution surface as a FastMCPApp:
 
   @app.ui()   forge_surface      — entry; shows action, judge verdict, approval gate
-  @app.tool() forge_execute      — backend; calls arifos_forge with F13 guard
+  @app.tool() arifos_forge_execute — backend; calls arifos_forge with F13 guard
 
 Double-gate architecture:
   Gate 1: 888_JUDGE must return SEAL (constitutional verdict)
@@ -31,9 +31,14 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from typing import Any
+import logging
+from typing import Annotated, Any
 
-from fastmcp import FastMCP, FastMCPApp
+from fastmcp import FastMCP
+
+from arifosmcp.apps.surface_utils import envelope_error, envelope_pause, normalize_state, safe_get
+
+logger = logging.getLogger(__name__)
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -53,43 +58,59 @@ from prefab_ui.components import (
     Text,
 )
 from prefab_ui.rx import RESULT, STATE
+from pydantic import Field
 
 
 # ── App definition ────────────────────────────────────────────────────────────
 
-forge_app = FastMCPApp("ForgeApp")
+forge_app = FastMCP("ForgeApp")
+if not hasattr(forge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+    forge_app.ui = lambda *args, **kwargs: lambda fn: fn
 
 
-@forge_app.tool()
+def _resolve_forge_action(candidate_action: str) -> str:
+    candidate = (candidate_action or "").strip().lower()
+    if candidate in {"shell", "api_call", "contract", "compute", "container", "vm"}:
+        return candidate
+    return "contract"
+
+
+@forge_app.tool(name="arifos_forge_judge_check", tags={"hold", "internal", "forge"})
 async def forge_judge_check(
     candidate_action: str,
-    risk_tier: str = "medium",
+    risk_tier: Annotated[str, Field(description="Risk tier: low, medium, high, critical.")] = "medium",
+    session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
 ) -> dict[str, Any]:
     """
     Pre-forge constitutional check — runs 888_JUDGE dry_run.
     Returns verdict for Gate 1 evaluation.
     """
+    logger.info(
+        f"forge_judge_check called: session_id={session_id}, state_type={type(STATE).__name__}"
+    )
     try:
         from arifosmcp.runtime.tools import arifos_judge
+
+        if not session_id:
+            session_id = safe_get(STATE, "session_id")
+
         envelope = await arifos_judge(
             candidate_action=candidate_action,
             risk_tier=risk_tier,
             dry_run=True,
+            session_id=session_id,
         )
-        env_dict = (
-            envelope.model_dump()
-            if hasattr(envelope, "model_dump")
-            else dict(envelope)
-        )
+        env_dict = normalize_state(envelope)
 
-        verdict = env_dict.get("verdict") or (
-            "SEAL" if env_dict.get("ok") else "VOID"
-        )
+        verdict = env_dict.get("verdict") or ("SEAL" if env_dict.get("ok") else "VOID")
+        if hasattr(verdict, "value"):
+            verdict = verdict.value
         floors_failed = (env_dict.get("policy") or {}).get("floors_failed", [])
 
         # ── Wisdom quote for judge gate ──────────────────────────────────────
         try:
             from arifosmcp.runtime.philosophy import select_wisdom_quote
+
             _wisdom = select_wisdom_quote("judge")
         except Exception:
             _wisdom = None
@@ -104,19 +125,23 @@ async def forge_judge_check(
         }
 
     except Exception as exc:
-        return {
-            "gate1_verdict": "VOID",
-            "gate1_ok": False,
-            "floors_failed": ["ALL"],
-            "floors_failed_count": 13,
-            "trace_id": f"error: {exc}",
-        }
+        logger.warning(f"forge_judge_check failed: {exc}")
+        return envelope_error(
+            tool_name="forge_judge_check",
+            stage="888_JUDGE",
+            verdict="VOID",
+            detail=f"forge_judge_check failed: {exc}",
+        )
 
 
-@forge_app.tool()
+@forge_app.tool(name="arifos_forge_execute", tags={"public", "forge"})
 async def forge_execute(
     candidate_action: str,
-    risk_tier: str = "medium",
+    risk_tier: Annotated[str, Field(description="Risk tier: low, medium, high, critical.")] = "medium",
+    session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
+    judge_verdict: Annotated[str, Field(description="JUDGE verdict: SEAL, PARTIAL, VOID, HOLD.")] = "VOID",
+    judge_g_star: Annotated[float, Field(description="JUDGE G* score (constitutional alignment).")] = 0.0,
+    judge_state_hash: Annotated[str, Field(description="JUDGE state hash for replay integrity.")] = "",
 ) -> dict[str, Any]:
     """
     Execute forge after both gates pass.
@@ -125,22 +150,62 @@ async def forge_execute(
     if the verdict is not SEAL — the human must have clicked APPROVE
     in the UI after seeing the judge result.
     """
+    logger.info(f"forge_execute called: session_id={session_id}, state_type={type(STATE).__name__}")
     try:
-        from arifosmcp.runtime.tools import arifos_forge
-        envelope = await arifos_forge(
-            candidate_action=candidate_action,
-            risk_tier=risk_tier,
+        from arifosmcp.runtime.tools import get_tool_handler
+
+        if not session_id:
+            session_id = safe_get(STATE, "session_id")
+
+        # Resolve judge values from UI state if not explicitly provided
+        gate1_verdict = judge_verdict or safe_get(STATE, "gate1_verdict", "VOID")
+        gate1_ok = safe_get(STATE, "gate1_ok", False)
+        gate2_approved = safe_get(STATE, "gate2_approved", False)
+
+        if not gate1_ok:
+            return envelope_pause(
+                tool_name="forge_execute",
+                stage="FORGE_555",
+                detail=f"Gate 1 not passed: verdict={gate1_verdict}. Run judge first.",
+                session_id=session_id,
+            )
+
+        if not gate2_approved:
+            return envelope_pause(
+                tool_name="forge_execute",
+                stage="FORGE_555",
+                detail="Gate 2 not passed: human has not approved. F13 Sovereign veto.",
+                session_id=session_id,
+            )
+
+        handler = get_tool_handler("arifos_forge")
+        if not handler:
+            return envelope_error(
+                tool_name="forge_execute",
+                stage="FORGE_555",
+                verdict="VOID",
+                detail="arifos_forge not found in dispatch map",
+                session_id=session_id,
+            )
+
+        envelope = await handler(
+            action=_resolve_forge_action(candidate_action),
+            payload={"candidate_action": candidate_action, "risk_tier": risk_tier},
+            session_id=session_id or "global",
+            judge_verdict=gate1_verdict,
+            judge_g_star=judge_g_star,
+            judge_state_hash=judge_state_hash,
+            dry_run=True,
+            platform="surface",
         )
-        env_dict = (
-            envelope.model_dump()
-            if hasattr(envelope, "model_dump")
-            else dict(envelope)
-        )
+        env_dict = normalize_state(envelope)
 
         verdict = env_dict.get("verdict", "VOID")
-        # ── Wisdom quote for forge surface ───────────────────────────────────
+        if hasattr(verdict, "value"):
+            verdict = verdict.value
         try:
             from arifosmcp.runtime.philosophy import select_wisdom_quote
+
             _wisdom = select_wisdom_quote("forge")
         except Exception:
             _wisdom = None
@@ -154,12 +219,13 @@ async def forge_execute(
         }
 
     except Exception as exc:
-        return {
-            "forge_verdict": "VOID",
-            "forge_ok": False,
-            "result": f"Forge error: {exc}",
-            "trace_id": "—",
-        }
+        logger.warning(f"forge_execute failed: {exc}")
+        return envelope_error(
+            tool_name="forge_execute",
+            stage="FORGE_555",
+            verdict="VOID",
+            detail=f"forge_execute failed: {exc}",
+        )
 
 
 @forge_app.ui(title="Forge — Double-Gated Execution")
@@ -196,11 +262,11 @@ def forge_surface(
         forge_judge_check,
         args={"candidate_action": candidate_action, "risk_tier": risk_tier},
         on_success=[
-            SetState("gate1_verdict",      RESULT["gate1_verdict"]),
-            SetState("gate1_ok",           RESULT["gate1_ok"]),
-            SetState("floors_failed",      RESULT["floors_failed"]),
+            SetState("gate1_verdict", RESULT["gate1_verdict"]),
+            SetState("gate1_ok", RESULT["gate1_ok"]),
+            SetState("floors_failed", RESULT["floors_failed"]),
             SetState("floors_failed_count", RESULT["floors_failed_count"]),
-            SetState("trace_id",           RESULT["trace_id"]),
+            SetState("trace_id", RESULT["trace_id"]),
             ShowToast("Gate 1: Judge evaluated", variant="success"),
         ],
         on_error=ShowToast("Judge check failed", variant="error"),
@@ -225,9 +291,9 @@ def forge_surface(
         args={"candidate_action": candidate_action, "risk_tier": risk_tier},
         on_success=[
             SetState("forge_verdict", RESULT["forge_verdict"]),
-            SetState("forge_ok",      RESULT["forge_ok"]),
-            SetState("forge_result",  RESULT["result"]),
-            SetState("forged",        True),
+            SetState("forge_ok", RESULT["forge_ok"]),
+            SetState("forge_result", RESULT["result"]),
+            SetState("forged", True),
             ShowToast("Forge executed — sealed to VAULT999", variant="success"),
         ],
         on_error=ShowToast("Forge execution failed", variant="error"),
@@ -239,7 +305,6 @@ def forge_surface(
     forged_rx = STATE["forged"]
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-
         # ── Header ──────────────────────────────────────────────────────────
         with Row(gap=3, align="center"):
             Heading("Forge — Execution Surface")
@@ -255,6 +320,7 @@ def forge_surface(
         # ── Wisdom strip ─────────────────────────────────────────────────────
         try:
             from arifosmcp.runtime.philosophy import select_wisdom_quote
+
             _wisdom = select_wisdom_quote("forge")
             if _wisdom and _wisdom.get("quote"):
                 Muted(
@@ -338,9 +404,7 @@ def forge_surface(
                         Text("Forge Result:", css_class="text-sm font-semibold")
                         Badge(
                             STATE["forge_verdict"],
-                            variant=STATE["forge_ok"].then(
-                                "success", "destructive"
-                            ),
+                            variant=STATE["forge_ok"].then("success", "destructive"),
                             css_class="font-mono",
                         )
                     Muted(
@@ -396,8 +460,7 @@ def forge_surface(
             )
 
         Muted(
-            "Sequence: Judge → Approve → Execute. "
-            "No shortcuts permitted.",
+            "Sequence: Judge → Approve → Execute. No shortcuts permitted.",
             css_class="text-xs",
         )
 

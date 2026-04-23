@@ -1,12 +1,12 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════
-# ARIFOS MCP v2 — DEPLOYMENT CHART FOR AF-FORGE VPS
+# ARIFOS MCP v2 — DEPLOYMENT CHART FOR A-FORGE VPS
 # ═══════════════════════════════════════════════════════════════════════════
 
 set -e
 
 echo "╔═══════════════════════════════════════════════════════════════════════════╗"
-echo "║        🚀 ARIFOS MCP v2 — AF-FORGE DEPLOYMENT CHART                       ║"
+echo "║        🚀 ARIFOS MCP v2 — A-FORGE DEPLOYMENT CHART                       ║"
 echo "╠═══════════════════════════════════════════════════════════════════════════╣"
 
 # Colors

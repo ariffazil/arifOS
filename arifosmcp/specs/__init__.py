@@ -15,63 +15,59 @@ Import order:
 3. chatgpt_subset (depends on all above)
 """
 
+from arifosmcp.specs.chatgpt_subset import (
+    CHATGPT_PROMPT_NAMES,
+    CHATGPT_RESOURCE_URIS,
+    CHATGPT_TOOL_NAMES,
+    get_chatgpt_manifest,
+    is_chatgpt_safe_prompt,
+    is_chatgpt_safe_resource,
+    is_chatgpt_safe_tool,
+    validate_chatgpt_safety,
+)
 from arifosmcp.specs.contracts import (
-    # Enums
-    VerdictCode,
-    RiskTier,
-    SessionState,
-    TrinityAspect,
-    # Identity
-    SessionAnchor,
-    ToolAuthContext,
-    # Telemetry
-    WitnessTriple,
-    TelemetryEnvelope,
     ConstitutionalHealthView,
     # Evidence
     EvidenceBundle,
-    # Verdict
-    VerdictRecord,
+    InitSessionInput,
     # Tool inputs
     JudgeVerdictInput,
-    InitSessionInput,
-    SenseRealityInput,
+    RiskTier,
     RouteExecutionInput,
+    SenseRealityInput,
+    # Identity
+    SessionAnchor,
+    SessionState,
+    TelemetryEnvelope,
+    ToolAuthContext,
+    TrinityAspect,
+    # Enums
+    VerdictCode,
+    # Verdict
+    VerdictRecord,
+    # Telemetry
+    WitnessTriple,
+    compute_psi_le,
     # Utils
     make_telemetry_seed,
-    compute_psi_le,
 )
-
-from arifosmcp.specs.tool_specs import (
-    ToolSpec,
-    CANONICAL_TOOL_SPECS,
-    get_tool_spec,
-    TOOL_NAMES,
-)
-
-from arifosmcp.specs.resource_specs import (
-    ResourceSpec,
-    CANONICAL_RESOURCE_SPECS,
-    get_resource_spec,
-    RESOURCE_URIS,
-)
-
 from arifosmcp.specs.prompt_specs import (
-    PromptSpec,
     CANONICAL_PROMPT_SPECS,
-    get_prompt_spec,
     PROMPT_NAMES,
+    PromptSpec,
+    get_prompt_spec,
 )
-
-from arifosmcp.specs.chatgpt_subset import (
-    CHATGPT_TOOL_NAMES,
-    CHATGPT_RESOURCE_URIS,
-    CHATGPT_PROMPT_NAMES,
-    is_chatgpt_safe_tool,
-    is_chatgpt_safe_resource,
-    is_chatgpt_safe_prompt,
-    validate_chatgpt_safety,
-    get_chatgpt_manifest,
+from arifosmcp.specs.resource_specs import (
+    CANONICAL_RESOURCE_SPECS,
+    RESOURCE_URIS,
+    ResourceSpec,
+    get_resource_spec,
+)
+from arifosmcp.specs.tool_specs import (
+    CANONICAL_TOOL_SPECS,
+    TOOL_NAMES,
+    ToolSpec,
+    get_tool_spec,
 )
 
 __all__ = [

@@ -1,8 +1,9 @@
 """
 arifosmcp/runtime/tool_specs.py — arifOS MCP Canonical Tool Specifications
+══════════════════════════════════════════════════════════════════════════════════════
 
-10 sovereign tools. Clean naming: arifos.{verb}
-Visibility: public (4) | internal (6)
+11 canonical tools.
+Clean naming: arifos_{verb} for tools, {noun}_surface for apps.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -18,35 +19,55 @@ class ToolSpec:
     name: str  # arifos_{verb} format
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
-    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION"]
-    description: str
-    trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"]
-    floors: tuple[str, ...]  # F1-F13 that apply
-    input_schema: dict[str, Any]
-    visibility: Literal["public", "internal"] = "internal"  # public = 3 tools only
+    role: str = ""  # Role-based purpose (alias for purpose)
+    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = "MACHINE"
+    description: str = ""
+    trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"] = "ALL"
+    floors: tuple[str, ...] = field(default_factory=tuple)  # F1-F13 that apply
+    input_schema: dict[str, Any] = field(default_factory=dict)
+    visibility: Literal["public", "internal"] = "internal"
     default_tier: str = "medium"
+    default_budget_tier: str = "medium"  # Alias
+    min_budget_tier: str = "small"
+    max_budget_tier: str = "large"
+    overflow_policy: str = "truncate"
     readonly: bool = True
-    outputs: dict[str, Any] = field(default_factory=dict)  # Machine-readable output schema
-    # MCP v2 tool annotations (OpenAI/ChatGPT compatibility)
-    read_only_hint: bool = True       # readOnlyHint: no environment modification
-    destructive_hint: bool = False     # destructiveHint: may perform destructive updates
-    open_world_hint: bool = True      # openWorldHint: interacts with external world
-    idempotent_hint: bool = False     # idempotentHint: repeated calls have no extra effect
+    outputs: dict[str, Any] = field(default_factory=dict)
+    # FastMCP v3 / MCP v2 tool annotations
+    version: str = "2026.04.16"
+    read_only_hint: bool = True
+    destructive_hint: bool = False
+    open_world_hint: bool = True
+    idempotent_hint: bool = False
+    timeout: float = 30.0
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# MCP v2: 9 SOVEREIGN CORE TOOLS
-# ═══════════════════════════════════════════════════════════════════════════════
+@dataclass(frozen=True)
+class ResourceSpec:
+    """Canonical resource specification."""
+
+    uri: str
+    name: str
+    description: str
+    mime_type: str = "application/json"
+    is_template: bool = False
+    visibility: Literal["public", "internal"] = "internal"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# HORIZON 33: CANONICAL TOOL SUITE
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 TOOLS: tuple[ToolSpec, ...] = (
     # ─────────────────────────────────────────────────────────────────────────
-    # 1. arifos.init — Session Initialization (was 000_INIT, init_anchor)
+    # 1. arifos_init — Architect Registry
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_init",
         stage="000",
-        purpose="Start governed session + session diagnostics",
+        purpose="Architect registry — Start governed session",
         layer="GOVERNANCE",
+        visibility="public",
         description=(
             "Initialize constitutional session with identity binding and telemetry seed. "
             "Modes: init/probe/state/status (safe read modes) | revoke requires human_approval. "
@@ -58,47 +79,69 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["actor_id", "intent"],
             "properties": {
-                "actor_id": {"type": "string", "minLength": 2, "maxLength": 64},
-                "intent": {"type": "string", "minLength": 1, "maxLength": 20000},
-                "declared_name": {"type": "string", "maxLength": 64},
-                "session_id": {"type": "string", "minLength": 8, "maxLength": 128},
+                "actor_id": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 64,
+                    "description": "Identity of the actor initiating this session. Must be unique per operator.",
+                },
+                "intent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20000,
+                    "description": "Primary intent or purpose of this session. F1 Amanah commitment.",
+                },
+                "declared_name": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "description": "Optional human-readable name for this session declaration.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "description": "Existing session ID to refresh or operate on. If omitted, a new session is created.",
+                },
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],
                     "default": "medium",
+                    "description": "Risk classification level for this session's operations.",
                 },
                 "platform": {
                     "type": "string",
                     "enum": ["mcp", "chatgpt_apps", "cursor", "api", "stdio", "unknown"],
                     "default": "unknown",
+                    "description": "Platform context from which this session originates.",
                 },
                 "mode": {
                     "type": "string",
                     "enum": ["init", "refresh", "state", "status", "probe"],
                     "default": "init",
-                    "description": "Session operation mode. probe=diagnostic compatibility check. revoke=separate arifos.session tool (requires human_approval).",
+                    "description": "Session operation mode. probe=diagnostic compatibility check. init=new session, refresh=extend existing, state=query current state, status=lightweight health check.",
                 },
             },
         },
+        read_only_hint=False,
+        idempotent_hint=True,
         default_tier="small",
-        read_only_hint=True,       # Default mode is init (read-like)
-        destructive_hint=False,    # Not primarily destructive
-        open_world_hint=False,     # Closed session management domain
-        idempotent_hint=True,      # Idempotent under same session
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 2. arifos.sense — Constitutional Reality Sensing (was 111_SENSE, physics_reality)
+    # 2. arifos_sense — Physics Reality
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_sense",
         stage="111",
-        purpose="Constitutional reality sensing — 8-stage governed protocol",
+        purpose="Physics reality — Constitutional Reality Sensing",
         layer="MACHINE",
+        visibility="public",
         description=(
             "Ground query in physical reality via the 8-stage constitutional sensing protocol: "
             "PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF. "
             "Live web search is gated by truth classification — invariants use offline reasoning; "
-            "time-sensitive facts trigger live retrieval; ambiguous queries HOLD for narrowing."
+            "time-sensitive facts trigger live retrieval; ambiguous queries HOLD for narrowing. "
+            "Accepts optional domain_evidence packets from GEOX or other organs so sensing preserves "
+            "claim tags, posterior bands, disagreement spread, and vault receipts instead of flattening them into prose."
         ),
         trinity="Δ",
         floors=("F2", "F3", "F4", "F10"),
@@ -108,75 +151,103 @@ TOOLS: tuple[ToolSpec, ...] = (
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Query to classify and ground in reality",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Natural language query to ground in physical reality via the 8-stage sensing protocol.",
                 },
                 "mode": {
                     "type": "string",
                     "enum": ["governed", "search", "ingest", "compass", "atlas", "time"],
                     "default": "governed",
-                    "description": (
-                        "'governed' = full 8-stage constitutional protocol (recommended). "
-                        "Legacy modes: 'search' (raw), 'ingest' (URL fetch), 'compass' (auto-detect), "
-                        "'atlas' (discovery), 'time' (clock grounding)."
-                    ),
+                    "description": "Sensing mode: governed=full constitutional pipeline, search=live web retrieval, ingest=store observation, compass=directional heading, atlas=geospatial grounding, time=temporal context.",
                 },
-                "session_id": {"type": "string"},
-                "intent": {"type": "string", "description": "Optional user intent hint"},
-                "query_frame": {
-                    "type": "object",
-                    "description": "Optional: {domain, time_scope, jurisdiction}",
+                "session_id": {
+                    "type": "string",
+                    "description": "Active arifOS session ID. Links this sensing operation to a declared constitutional session.",
                 },
                 "dry_run": {
                     "type": "boolean",
                     "default": True,
-                    "description": "False = execute live retrieval; True = plan only (no HTTP calls)",
+                    "description": "If True, runs the sensing protocol without persisting results or triggering downstream effects.",
+                },
+                "query_frame": {
+                    "type": "object",
+                    "description": "Optional structural query hints such as domain, time_scope, or jurisdiction.",
+                },
+                "domain_evidence": {
+                    "type": "object",
+                    "description": "Optional governed earth/domain evidence packet. Recommended GEOX fields: claim_tag, asset_id, disagreement_band, p10_p50_p90, charge_probability, vault_receipt.",
                 },
             },
         },
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 3. arifos.mind — Structured Reasoning (was 333_MIND, agi_mind)
+    # 3. arifos_mind — Agi Mind
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_mind",
         stage="333",
-        purpose="Structured reasoning + synthesis",
+        purpose="Agi mind — Structured reasoning with typed cognitive pipeline",
         layer="INTELLIGENCE",
-        description="Multi-source synthesis and structured first-principles reasoning with uncertainty bands.",
+        visibility="public",
+        description=(
+            "Structured reasoning with typed cognitive pipeline. Modes: "
+            "- 'reason' (default): Standard AGI pipeline (sense → mind → heart → judge) "
+            "- 'sequential': Constitutionally-governed sequential thinking with templates "
+            "- 'step': Add a step to an existing thinking session "
+            "- 'branch': Create a reasoning branch from a step "
+            "- 'merge': Synthesize insights across branches "
+            "- 'review': Review/export a thinking session "
+            "Sequential thinking enforces F1-F13 at each step, replacing external Sequential Thinking MCP "
+            "with native constitutional governance. Runs the constitutional AGI pipeline producing "
+            "a narrow decision_packet for the operator and a full audit_packet for the vault."
+        ),
         trinity="Δ",
         floors=("F2", "F4", "F7", "F8"),
         input_schema={
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string", "description": "Task or question to reason about"},
-                "context": {"type": "string", "description": "Additional context for reasoning"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000,
+                    "description": "Primary query or proposition to reason about. Must be a factual claim, decision, or question.",
+                },
+                "context": {
+                    "type": "string",
+                    "description": "Supporting context for the reasoning task. Can be a string narrative, structured JSON object, or array of context strings.",
+                },
                 "mode": {
                     "type": "string",
-                    "enum": ["reason", "sequential", "step", "branch", "merge", "review"],
+                    "enum": [
+                        "reason",
+                        "sequential",
+                        "step",
+                        "branch",
+                        "merge",
+                        "review",
+                        "reflect",
+                    ],
                     "default": "reason",
-                    "description": "reason=AGI pipeline; sequential=constitutional step-thinking; step/branch/merge/review=thinking session ops",
+                    "description": "Reasoning mode: reason=standard AGI pipeline, sequential=multi-step constitutional chain, step=add a step to existing session, branch=fork a reasoning path, merge=synthesize branches, review=export reasoning, reflect=self-critique.",
                 },
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID. Required for sequential/step/branch/merge modes to maintain reasoning continuity.",
+                },
             },
         },
-        read_only_hint=False,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=False,
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 4. arifos.kernel — Execution Lane Selection (was 444_ROUT, arifos.route)
+    # 4. arifos_kernel — Metabolic Router
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_kernel",
         stage="444",
-        purpose="Execution lane selection",
+        purpose="Arifos kernel — Route request to metabolic lane",
         layer="GOVERNANCE",
+        visibility="public",
         description="Route request to correct metabolic lane or tool family based on risk and task type.",
         trinity="Δ/Ψ",
         floors=("F4", "F11"),
@@ -184,24 +255,48 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string", "minLength": 1, "description": "Request to route"},
-                "mode": {"type": "string", "enum": ["kernel", "status"], "default": "kernel"},
-                "session_id": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Primary query string to route to the correct metabolic lane or tool family.",
+                },
+                "request": {
+                    "type": "string",
+                    "description": "Alternative query string for backward compatibility with legacy tool aliases.",
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": ["kernel", "status"],
+                    "default": "kernel",
+                    "description": "kernel=route to metabolic lane, status=return current routing decision without executing.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for routing context.",
+                },
+                "actor_id": {
+                    "type": "string",
+                    "description": "Identity of the requesting actor for authorization checks.",
+                },
+                "risk_tier": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "default": "medium",
+                    "description": "Risk tier for this routing decision. Affects which lanes are accessible.",
+                },
             },
         },
-        read_only_hint=False,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=False,
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 5. arifos.heart — Safety Critique (was 666_HEART, asi_heart)
+    # 5. arifos_heart — Red-team Safety
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_heart",
         stage="666",
-        purpose="Safety, dignity, adversarial critique",
+        purpose="Arifos heart — Risk simulation and ethical critique",
         layer="INTELLIGENCE",
+        visibility="public",
         description="Red-team proposal for ethical risks. Simulate consequences, evaluate against F5, F6, F9.",
         trinity="Ω",
         floors=("F5", "F6", "F9"),
@@ -209,556 +304,397 @@ TOOLS: tuple[ToolSpec, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string", "description": "Content or proposal to critique"},
-                "mode": {"type": "string", "enum": ["critique", "simulate"], "default": "critique"},
-                "session_id": {"type": "string"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Action, proposal, or policy to ethically evaluate. Must be a concrete statement of intent.",
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": ["critique", "simulate"],
+                    "default": "critique",
+                    "description": "critique=identify risks and violations against F5/F6/F9, simulate=predict downstream consequences.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for constitutional context.",
+                },
             },
         },
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 6. arifos.ops — Cost Estimation (was 777_OPS, math_estimator)
+    # 6. arifos_ops — Math Estimator
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_ops",
         stage="777",
-        purpose="Cost, thermodynamic, capacity estimation",
+        purpose="Math estimator — Calculate costs and thermodynamics",
         layer="MACHINE",
+        visibility="public",
         description="Calculate operation costs, thermodynamics, capacity, and timing with entropy analysis.",
         trinity="Δ",
         floors=("F4", "F5"),
         input_schema={
             "type": "object",
-            "required": ["query"],
+            "required": [],
             "properties": {
-                "query": {"type": "string", "description": "Action to estimate costs for"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "Query or task to estimate thermodynamic and operational cost for.",
+                },
                 "mode": {
                     "type": "string",
-                    "enum": ["cost", "health", "vitals", "entropy"],
+                    "enum": ["cost", "health", "vitals", "entropy", "economic_audit", "metabolism"],
                     "default": "cost",
+                    "description": "cost=Landauer gate cost estimate, health=system health gauge, vitals=metabolic telemetry, entropy=information-theoretic entropy analysis, economic_audit=WELL economic thermodynamic audit, metabolism=F1-F13 metabolic dashboard.",
                 },
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for context-aware cost estimation.",
+                },
             },
         },
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 7. arifos.judge — Constitutional Verdict (was 888_JUDGE, apex_soul)
+    # 7. arifos_judge — Apex Soul (Final Verdict)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_judge",
         stage="888",
-        purpose="Constitutional verdict engine",
+        purpose="Apex soul — Final constitutional verdict evaluation",
         layer="GOVERNANCE",
-        description="Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD.",
+        visibility="public",
+        description=(
+            "Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD. "
+            "Accepts optional domain_evidence so judgment can account for probabilistic envelopes, "
+            "ensemble disagreement, timing risk, and governed receipts from GEOX without spawning duplicate tools."
+        ),
         trinity="Ψ",
         floors=("F1", "F2", "F3", "F9", "F10", "F12", "F13"),
         input_schema={
             "type": "object",
             "required": ["query", "risk_tier"],
             "properties": {
-                "query": {"type": "string", "description": "Action to judge"},
+                "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Action, decision, or statement to render constitutional verdict on.",
+                },
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],
                     "default": "medium",
+                    "description": "Risk classification: low=minimal impact, medium=moderate scope, high=significant consequences, critical=irreversible or large-scale harm.",
                 },
-                "telemetry": {"type": "object", "description": "Optional telemetry data"},
-                "session_id": {"type": "string"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID linking this verdict to a declared constitutional session.",
+                },
+                "telemetry": {
+                    "type": "object",
+                    "description": "Optional telemetry or run metrics contributing to the verdict packet.",
+                },
+                "domain_evidence": {
+                    "type": "object",
+                    "description": "Optional structured domain packet. Recommended fields: claim_tag, asset_id, disagreement_band, p10_p50_p90, charge_probability, vault_receipt.",
+                },
             },
         },
         read_only_hint=False,
-        destructive_hint=False,
-        open_world_hint=False,
         idempotent_hint=False,
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 8. arifos.memory — Governed Recall (was 555_MEMORY, engineering_memory)
+    # 8. arifos_memory — Engineering Memory
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_memory",
         stage="555",
-        purpose="Governed memory + recall",
+        purpose="Engineering memory — Governed context recall",
         layer="INTELLIGENCE",
-        description="Retrieve governed memory and engineering context from vector store.",
+        visibility="public",
+        description=(
+            "Retrieve governed memory and engineering context from vector store. "
+            "Supports asset-scoped GEOX memory without adding a new public memory organ."
+        ),
         trinity="Ω",
         floors=("F2", "F10", "F11"),
         input_schema={
             "type": "object",
-            "required": ["query"],
+            "required": [],
             "properties": {
-                "query": {"type": "string", "description": "Memory query"},
+                "query": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 2000,
+                    "description": "Semantic query string to search governed memory and engineering context. Optional for asset_store when structured content is supplied.",
+                },
                 "mode": {
                     "type": "string",
-                    "enum": ["vector_query", "vector_store", "engineer", "query"],
+                    "enum": ["vector_query", "vector_store", "engineer", "query", "ingest", "asset_store", "asset_query"],
                     "default": "vector_query",
+                    "description": "vector_query=semantic search, vector_store=store new memory, engineer=engineering context retrieval, query=exact-match query, ingest=governed ingestion, asset_store=store GEOX asset-scoped memory, asset_query=retrieve GEOX asset-scoped memory.",
                 },
-                "session_id": {"type": "string"},
+                "content": {
+                    "type": "string",
+                    "description": "Optional content payload for vector_store, ingest, or asset_store modes.",
+                },
+                "asset_id": {
+                    "type": "string",
+                    "description": "Optional GEOX asset identifier used to scope asset_store and asset_query modes.",
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Optional originating domain label, e.g. geox, well, terrain, or basin.",
+                },
+                "domain_evidence": {
+                    "type": "object",
+                    "description": "Optional structured evidence packet to persist or bind to an asset memory record.",
+                },
+                "vault_receipt": {
+                    "type": "string",
+                    "description": "Optional immutable receipt or seal reference associated with the memory record.",
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional tags for memory indexing and retrieval.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID for session-scoped memory retrieval.",
+                },
             },
         },
-        read_only_hint=False,      # Has vector_store/engineer modes (write)
-        destructive_hint=True,        # vector_store writes to vector DB
-        open_world_hint=False,        # Closed memory domain
-        idempotent_hint=False,        # vector_store is not idempotent
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 9. arifos.vault — Immutable Logging (was 999_VAULT, vault_ledger)
+    # 9. arifos_vault — Vault Ledger
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_vault",
         stage="999",
-        purpose="Immutable verdict logging",
+        purpose="Vault ledger — Immutable verdict record (append or read)",
         layer="GOVERNANCE",
-        description="Append immutable verdict record to Merkle-hashed ledger.",
+        visibility="public",
+        description="Append immutable verdict record to Merkle-hashed ledger (mode=append), or query the ledger (mode=read).",
         trinity="Ψ",
         floors=("F1", "F13"),
         input_schema={
             "type": "object",
-            "required": ["verdict"],
+            "required": [],
             "properties": {
                 "verdict": {
                     "type": "string",
                     "enum": ["SEAL", "PARTIAL", "VOID", "HOLD"],
-                    "description": "Verdict to log",
+                    "description": "Constitutional verdict to append (mode=append). Ignored in read mode.",
                 },
-                "evidence": {"type": "string", "description": "Evidence summary"},
-                "session_id": {"type": "string"},
+                "evidence": {
+                    "type": "string",
+                    "description": "Supporting evidence, reasoning chain, or audit trail for this verdict (mode=append).",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID this verdict pertains to. Also used as a filter in read mode.",
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": ["append", "read"],
+                    "default": "append",
+                    "description": "append=write a verdict record to the ledger; read=query the ledger with optional filters.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Maximum number of ledger entries to return (read mode only).",
+                },
+                "since": {
+                    "type": "string",
+                    "description": "ISO-8601 timestamp — return entries sealed after this time (read mode only).",
+                },
+                "until": {
+                    "type": "string",
+                    "description": "ISO-8601 timestamp — return entries sealed before this time (read mode only).",
+                },
+                "verdict_filter": {
+                    "type": "string",
+                    "description": "Filter by verdict type: APPROVED, PARTIAL, PAUSE, VOID, HOLD (read mode only).",
+                },
             },
         },
         read_only_hint=False,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=False,
+        idempotent_hint=True,
     ),
     # ─────────────────────────────────────────────────────────────────────────
-    # 10. arifos.forge — Delegated Execution Bridge (was shell_forge)
+    # 10. arifos_forge — Code Engine (Execution Bridge)
     # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
         name="arifos_forge",
         stage="010",
-        purpose="Delegated execution to AF-FORGE substrate",
+        purpose="Code engine — Delegated Execution Bridge (The 10th Tool)",
         layer="EXECUTION",
-        description="Issue signed execution manifest to AF-FORGE substrate. Requires judge SEAL. Preserves separation of powers.",
+        visibility="public",
+        description=(
+            "Delegated Execution Bridge — The 10th Tool. This tool does NOT execute directly. It: "
+            "1. Validates judge verdict is SEAL 2. Constructs signed execution manifest "
+            "3. Dispatches to A-FORGE substrate 4. Returns execution receipt. "
+            "Constitutional Guarantee: • No execution without judge SEAL • No self-authorization "
+            "• All actions logged to vault • Separation of powers preserved."
+        ),
         trinity="Δ",
         floors=("F1", "F2", "F7", "F13"),
         input_schema={
             "type": "object",
-            "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"],
+            "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star", "judge_state_hash"],
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["shell", "api_call", "contract", "compute", "container", "vm"],
-                    "description": "Execution type",
+                    "enum": ["shell", "api_call", "contract", "compute"],
+                    "description": "Type of execution action: shell=command execution, api_call=REST/GraphQL call, contract=smart contract invocation, compute=distributed computation.",
                 },
-                "payload": {"type": "object", "description": "Action-specific parameters"},
-                "session_id": {"type": "string"},
+                "payload": {
+                    "type": "object",
+                    "description": "Structured execution payload. Format varies by action type: shell takes {command, timeout_ms}, api_call takes {method, url, headers, body}, etc.",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Active session ID. Must have a prior arifos_judge SEAL verdict attached.",
+                },
                 "judge_verdict": {
                     "type": "string",
                     "enum": ["SEAL"],
-                    "description": "Must be SEAL from arifos.judge",
+                    "description": "Must be SEAL. Any other verdict blocks execution. This is the Gate 1 constitutional checkpoint.",
                 },
                 "judge_g_star": {
                     "type": "number",
-                    "minimum": 0.0,
-                    "maximum": 1.0,
-                    "description": "G★ score at time of verdict",
+                    "description": "Judge G* confidence score from the arifos_judge SEAL verdict. Used for thermodynamic cost accounting.",
                 },
-                "constraints": {
-                    "type": "object",
-                    "description": "Resource limits (cpu, memory, timeout)",
+                "judge_state_hash": {
+                    "type": "string",
+                    "description": "Hash of the judge state used to authorize forge and preserve replay integrity.",
                 },
                 "dry_run": {
                     "type": "boolean",
                     "default": True,
-                    "description": "Generate manifest without dispatch",
-                },
-                "af_forge_endpoint": {"type": "string", "description": "Target substrate endpoint"},
-            },
-        },
-        read_only_hint=False,
-        destructive_hint=False,
-        open_world_hint=True,
-        idempotent_hint=False,
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 11. arifos.reply — Governed Reply Compositor (AGI Reply Protocol v3)
-    # ─────────────────────────────────────────────────────────────────────────
-    # Composite orchestrator: enforces memory→sense→mind→heart→ops→judge→vault
-    # in deterministic order. Prompt reply_protocol_v3 defines the contract;
-    # this tool enforces execution order so the LLM cannot skip or reorder stages.
-    # Use instead of chaining 7 tools manually.
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="arifos_reply",
-        stage="000-999",
-        purpose="Governed reply compositor — deterministic dual-axis reply pipeline",
-        layer="GOVERNANCE",
-        description=(
-            "Composite orchestrator for AGI Reply Protocol v3. "
-            "Internally runs: memory → sense → mind → heart → ops → judge → [vault/forge]. "
-            "Emits AgiReplyEnvelopeHuman (recipient=human) or AgiReplyEnvelopeAgent (recipient=agent). "
-            "Every output includes: TO/CC/TITLE/KEY_CONTEXT header, RACI block, "
-            "computed τ, constitutional floor tags, SEAL signoff. "
-            "888 HOLD blocks forge. F1/F13 triggers require human:arif ratification. "
-            "Schema at arifos://reply/schemas. Session state at arifos://reply/context-pack."
-        ),
-        trinity="ALL",
-        floors=("F1", "F2", "F3", "F4", "F7", "F9", "F11", "F13"),
-        visibility="public",
-        readonly=False,
-        input_schema={
-            "type": "object",
-            "required": ["query", "session_id"],
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "User query or agent task to govern and reply to",
-                },
-                "session_id": {"type": "string"},
-                "recipient": {
-                    "type": "string",
-                    "enum": ["human", "agent", "auto"],
-                    "default": "auto",
-                    "description": (
-                        "auto → classify via sense stage. "
-                        "human → AgiReplyEnvelopeHuman. "
-                        "agent → AgiReplyEnvelopeAgent."
-                    ),
-                },
-                "depth": {
-                    "type": "string",
-                    "enum": ["SURFACE", "ENGINEER", "ARCHITECT"],
-                    "default": "ENGINEER",
-                },
-                "compression": {
-                    "type": "string",
-                    "enum": ["FULL", "DELTA", "SIGNAL_ONLY"],
-                    "default": "DELTA",
-                    "description": (
-                        "FULL = session start / cross-agent handoff. "
-                        "DELTA = normal iterative turns (default). "
-                        "SIGNAL_ONLY = sub-agent internal hops."
-                    ),
-                },
-                "risk_tier": {
-                    "type": "string",
-                    "enum": ["low", "medium", "high", "critical"],
-                    "default": "medium",
-                },
-                "prior_state": {
-                    "type": "string",
-                    "description": "Compressed one-line prior context (omit on first turn)",
-                },
-                "platform": {
-                    "type": "string",
-                    "enum": ["mcp", "chatgpt_apps", "api", "stdio", "agi_reply"],
-                    "default": "agi_reply",
-                    "description": "Output formatter platform. Use agi_reply for protocol envelope.",
-                },
-                "to": {
-                    "type": "string",
-                    "description": "Primary recipient name or agent_id for the reply header",
-                },
-                "cc": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Secondary recipients (agents, vault refs)",
-                },
-                "dry_run": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "True = plan pipeline without executing stages",
+                    "description": "If True, constructs the execution manifest and returns the receipt without dispatching to A-FORGE substrate.",
                 },
             },
         },
-        outputs={
-            "human": "AgiReplyEnvelopeHuman — see arifos://reply/schemas",
-            "agent": "AgiReplyEnvelopeAgent — see arifos://reply/schemas",
-            "platform": "agi_reply (formatter dispatch in output_formatter.py)",
-        },
-        read_only_hint=False,
-        destructive_hint=False,
-        open_world_hint=True,
-        idempotent_hint=False,
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 12. arifos.vps_monitor — Secure Telemetry (New)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="arifos_health",
-        stage="111",
-        purpose="Secure VPS telemetry",
-        layer="MACHINE",
-        description="Retrieve CPU, Memory, ZRAM, and Disk utilization. F12-hardened read-only access.",
-        trinity="Δ",
-        floors=("F4", "F12"),
-        input_schema={
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string",
-                    "enum": ["get_telemetry", "get_zram_status", "get_disk_usage"],
-                    "default": "get_telemetry",
-                    "description": "Telemetry action to perform",
-                },
-                "session_id": {"type": "string"},
-                "dry_run": {"type": "boolean", "default": True},
-            },
-        },
-        default_tier="low",
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 13. arifos.fetch — Governed Web Fetch (F9 Anti-Hantu)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="arifos_fetch",
-        stage="111",
-        purpose="Governed URL fetch + F9 Anti-Hantu filtering",
-        layer="MACHINE",
-        description=(
-            "Retrieve raw content from a URL via mcp_fetch substrate. "
-            "Applies F9 Anti-Hantu constitutional filtering to redact spiritual cosplay "
-            "or hallucinatory consciousness claims in the source content."
-        ),
-        trinity="Δ",
-        floors=("F2", "F9", "F11"),
-        visibility="public",
-        input_schema={
-            "type": "object",
-            "required": ["url"],
-            "properties": {
-                "url": {"type": "string", "description": "URL to fetch"},
-                "max_length": {
-                    "type": "integer",
-                    "default": 10000,
-                    "description": "Max characters to retrieve",
-                },
-                "session_id": {"type": "string"},
-            },
-        },
-        default_tier="medium",
-        read_only_hint=False,
-        destructive_hint=False,
-        open_world_hint=True,
-        idempotent_hint=False,
-    ),
-    # ─────────────────────────────────────────────────────────────────────────
-    # 14. arifos.git_status — Governed Repository State (Substrate)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="arifos_repo_read",
-        stage="911",
-        purpose="Read governed repository state",
-        layer="EXECUTION",
-        description="Check git status, diffs, and log with constitutional path whitelisting.",
-        trinity="Ψ",
-        floors=("F11",),
-        input_schema={
-            "type": "object",
-            "properties": {
-                "path": {"type": "string", "default": "./"},
-            },
-        },
-        default_tier="small",
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
-    ),
-    # -------------------------------------------------------------------------
-    # 15. arifos.probe -- System Health Probe
-    # -------------------------------------------------------------------------
-    ToolSpec(
-        name="arifos_probe",
-        stage="111",
-        purpose="Probe system status or component health",
-        layer="MACHINE",
-        description="Probe system status or component health (system, memory, vault, etc.).",
-        trinity="Δ",
-        floors=("F4", "F12"),
-        input_schema={
-            "type": "object",
-            "properties": {
-                "target": {"type": "string", "default": "system", "description": "Component to probe"},
-                "probe_type": {"type": "string", "enum": ["status", "health", "metrics"], "default": "status"},
-                "timeout_ms": {"type": "integer", "default": 5000},
-            },
-        },
-        default_tier="low",
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
-    ),
-    # -------------------------------------------------------------------------
-    # 16. arifos.diag_substrate -- Substrate Protocol Conformance
-    # -------------------------------------------------------------------------
-    ToolSpec(
-        name="arifos_diag_substrate",
-        stage="911",
-        purpose="Run substrate protocol conformance check",
-        layer="EXECUTION",
-        description="Maintainer: Run substrate protocol conformance check.",
-        trinity="Ψ",
-        floors=("F11",),
-        input_schema={
-            "type": "object",
-            "properties": {
-                "session_id": {"type": "string"},
-            },
-        },
-        default_tier="low",
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
-    ),
-    # -------------------------------------------------------------------------
-    # 17. arifos.git_commit -- Governed Repository Mutation (Substrate)
-    # -------------------------------------------------------------------------
-    # 16. arifos.git_commit — Governed Repository Mutation (Substrate)
-    # ─────────────────────────────────────────────────────────────────────────
-    ToolSpec(
-        name="arifos_repo_seal",
-        stage="999",
-        purpose="Mutate governed repository state (F13 Required)",
-        layer="EXECUTION",
-        description=(
-            "Add and commit changes to the repository. REQUIRES F13 human ratification. "
-            "Enforces F11 audit logging of all substrate mutations."
-        ),
-        trinity="Ψ",
-        floors=("F11", "F13"),
-        input_schema={
-            "type": "object",
-            "required": ["message"],
-            "properties": {
-                "message": {"type": "string", "minLength": 10},
-                "files": {"type": "array", "items": {"type": "string"}},
-            },
-        },
-        default_tier="medium",
         read_only_hint=False,
         destructive_hint=True,
-        open_world_hint=False,
         idempotent_hint=False,
     ),
-    # -------------------------------------------------------------------------
-    # 19. arifos.wisdom — Governed Wisdom Quote Retrieval
-    # -------------------------------------------------------------------------
+    # ─────────────────────────────────────────────────────────────────────────
+    # 11. arifos_gateway — Orthogonality Guard (The 11th Public Tool)
+    # ─────────────────────────────────────────────────────────────────────────
     ToolSpec(
-        name="arifos_wisdom",
-        stage="444",
-        purpose="Retrieve a governed wisdom quote for a constitutional surface",
-        layer="INTELLIGENCE",
+        name="arifos_gateway",
+        stage="888-Ω",
+        purpose="Orthogonality guard — AGI||ASI lane supervisor (Ω_ortho >= 0.95)",
+        layer="GOVERNANCE",
+        visibility="public",
         description=(
-            "Returns a curated philosophical or cultural quote mapped to a constitutional surface. "
-            "Sources include the 27-zone philosophy atlas, constitutional tool quotes, and arifOS forged canon."
+            "Orthogonality Guard — The 11th Public Tool. Supervises AGI||ASI lanes to enforce "
+            "Ω_ortho >= 0.95. Computes correlation across tool outputs and model traces; if "
+            "correlation exceeds threshold or ontology overlap is detected, returns 888_HOLD. "
+            "Prevents physics collapse, governance collapse, and ontology collapse across "
+            "arifOS, WEALTH, and GEOX organs."
         ),
         trinity="Ω",
-        floors=("F7",),
+        floors=("F3", "F4", "F9", "F11", "F13"),
         input_schema={
             "type": "object",
+            "required": ["session_id"],
             "properties": {
-                "surface": {
+                "session_id": {
                     "type": "string",
-                    "enum": ["anchor", "monitor", "sense", "mind", "heart", "judge", "hold", "vault", "forge", "ops", "empty", "void", "partial", "sabar"],
-                    "default": "anchor",
-                    "description": "Constitutional surface to retrieve a quote for",
+                    "description": "Active session ID to evaluate for AGI||ASI orthogonality.",
                 },
-                "tone": {
+                "mode": {
                     "type": "string",
-                    "enum": ["calm", "firm", "reflective", "severe"],
-                    "description": "Optional tone filter",
+                    "enum": ["guard", "audit", "correlate"],
+                    "default": "guard",
+                    "description": "guard=full orthogonality check and HOLD recommendation, audit=read-only orthogonality report, correlate=compute pairwise tool output correlation matrix.",
                 },
-                "verdict": {
-                    "type": "string",
-                    "enum": ["SEAL", "HOLD", "PARTIAL", "VOID", "SABAR", "pending"],
-                    "description": "Optional verdict context for targeted quote selection",
+                "tool_trace": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Ordered list of tool call records to evaluate. Each record should have 'name', 'input', and 'output' fields.",
                 },
-                "risk_tier": {
-                    "type": "string",
-                    "enum": ["low", "medium", "high", "critical"],
-                    "description": "Optional risk tier context",
-                },
-                "language": {
-                    "type": "string",
-                    "enum": ["en", "ms", "mixed"],
-                    "description": "Optional language preference",
-                },
-                "shadow_profile": {
-                    "type": "string",
-                    "enum": ["scar", "shadow", "paradox", "restraint", "humility", "doubt"],
-                    "description": "Optional shadow profile for dramaturgic selection",
+                "correlation_threshold": {
+                    "type": "number",
+                    "default": 0.95,
+                    "description": "Maximum allowed correlation coefficient before 888_HOLD is recommended. Range: 0.0 to 1.0.",
                 },
             },
         },
-        default_tier="low",
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
-    ),
-    # -------------------------------------------------------------------------
-    # 20. arifos.wisdom_stats — Wisdom Registry Observability
-    # -------------------------------------------------------------------------
-    ToolSpec(
-        name="arifos_wisdom_stats",
-        stage="444",
-        purpose="Return comprehensive observability statistics for the governed wisdom registry",
-        layer="INTELLIGENCE",
-        description=(
-            "Returns total quotes, coverage by surface/category/language/polarity, "
-            "shadow index metrics, contrast pairs, and sample IDs for each surface."
-        ),
-        trinity="Ω",
-        floors=("F7",),
-        input_schema={
-            "type": "object",
-            "properties": {},
-        },
-        default_tier="low",
-        read_only_hint=True,
-        destructive_hint=False,
-        open_world_hint=False,
-        idempotent_hint=True,
     ),
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# V2 TOOL NAME MAPPING (for backward compatibility during transition)
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# METADATA & UTILITIES
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 TOOL_NAMES = frozenset(t.name for t in TOOLS)
 TOOL_COUNT = len(TOOLS)
 
-# Map old canonical names to v2 names (for migration)
 LEGACY_NAME_MAP: dict[str, str] = {
     "init_anchor": "arifos_init",
     "physics_reality": "arifos_sense",
     "agi_mind": "arifos_mind",
-    "arifOS_kernel": "arifos_kernel",
     "asi_heart": "arifos_heart",
     "math_estimator": "arifos_ops",
     "apex_soul": "arifos_judge",
     "engineering_memory": "arifos_memory",
     "vault_ledger": "arifos_vault",
-    "architect_registry": "arifos_init",  # Registry folded into init
-    "code_engine": "arifos_vault",  # Execution folded into vault logging
+    "architect_registry": "arifos_init",
+    "code_engine": "arifos_forge",
 }
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# RESOURCES
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+RESOURCES: tuple[ResourceSpec, ...] = (
+    ResourceSpec(
+        uri="arifos://doctrine",
+        name="Constitutional Doctrine",
+        description="The eternal law of arifOS (Ψ).",
+        visibility="public",
+    ),
+    ResourceSpec(
+        uri="arifos://vitals",
+        name="System Vitals",
+        description="Real-time metabolic telemetry (Ω).",
+        visibility="public",
+    ),
+    ResourceSpec(
+        uri="arifos://schema",
+        name="Complete Blueprint",
+        description="Technical schema and ABI definitions (Δ).",
+        visibility="public",
+    ),
+    ResourceSpec(
+        uri="arifos://session/{id}",
+        name="Ephemeral Instance",
+        description="Active session state and governance context.",
+        is_template=True,
+        visibility="public",
+    ),
+    ResourceSpec(
+        uri="arifos://forge",
+        name="Execution Bridge",
+        description="Signed execution manifests and receipts.",
+        visibility="public",
+    ),
+)
 
 
 def normalize_tool_name(name: str) -> str:
-    """Normalize tool name (dots to underscores) for arifOS v2.
-
-    Example: 'arifos.init' -> 'arifos_init'
-    """
+    """Normalize tool name (dots to underscores) for arifOS v2."""
     if name.startswith("arifos."):
         return name.replace(".", "_")
     return name
@@ -777,46 +713,20 @@ def tool_names() -> tuple[str, ...]:
     return tuple(t.name for t in TOOLS)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# BACKWARD COMPAT ALIASES (for code that still uses old names)
-# ═══════════════════════════════════════════════════════════════════════════════
-ToolSpecV2 = ToolSpec
+# Compact compatibility exports
 V2_TOOLS = TOOLS
 V2_TOOL_NAMES = TOOL_NAMES
-V2_TOOL_COUNT = TOOL_COUNT
-V1_TO_V2_MAP = LEGACY_NAME_MAP
-get_v2_tool_spec = get_tool_spec
-v2_tool_names = tool_names
-
-# public_registry.py compat
-PUBLIC_TOOL_SPECS = TOOLS
-PUBLIC_RESOURCE_SPECS: tuple[()] = ()
-PUBLIC_PROMPT_SPECS = ()
-
-# MegaTool Compat Aliases
-MEGA_TOOLS = TOOLS
-MegaToolName = str
-
+PUBLIC_TOOL_SPECS = [t for t in TOOLS if t.visibility == "public"]
+PUBLIC_RESOURCE_SPECS = [r for r in RESOURCES if r.visibility == "public"]
 
 __all__ = [
     "ToolSpec",
+    "ResourceSpec",
     "TOOLS",
+    "RESOURCES",
     "TOOL_NAMES",
-    "TOOL_COUNT",
-    "LEGACY_NAME_MAP",
     "get_tool_spec",
     "tool_names",
-    # compat aliases
-    "ToolSpecV2",
-    "V2_TOOLS",
-    "V2_TOOL_NAMES",
-    "V2_TOOL_COUNT",
-    "V1_TO_V2_MAP",
-    "get_v2_tool_spec",
-    "v2_tool_names",
     "PUBLIC_TOOL_SPECS",
     "PUBLIC_RESOURCE_SPECS",
-    "PUBLIC_PROMPT_SPECS",
-    "MEGA_TOOLS",
-    "MegaToolName",
 ]
