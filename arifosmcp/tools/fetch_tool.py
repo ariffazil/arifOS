@@ -45,6 +45,7 @@ async def arifos_fetch(
             ok=False,
             tool="arifos.fetch",
             canonical_tool_name="arifos.fetch",
+            stage="111_SENSE",
             verdict=gov.verdict,
             detail=gov.message,
             payload={"violations": gov.violations}
@@ -60,6 +61,7 @@ async def arifos_fetch(
             ok=False,
             tool="arifos.fetch",
             canonical_tool_name="arifos.fetch",
+            stage="111_SENSE",
             code="SUBSTRATE_ERROR",
             detail=str(e)
         )
@@ -74,6 +76,7 @@ async def arifos_fetch(
         return _RE(
             ok=False,
             tool="arifos_fetch",
+            stage="111_SENSE",
             verdict="VOID",
             detail="REDACTED: Source contains constitutional F9 violations (Anti-Hantu/Spiritual Cosplay).",
             risk_class=RiskClass.HIGH
@@ -82,6 +85,7 @@ async def arifos_fetch(
     return _RE(
         ok=True,
         tool="arifos_fetch",
+        stage="111_SENSE",
         verdict="SEAL",
         payload={
             "url": url,

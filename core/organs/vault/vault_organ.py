@@ -45,7 +45,7 @@ class VaultOrgan:
     """
     
     def __init__(self, vault_path: Path | None = None):
-        self.vault_path = vault_path or Path("/root/arifOS/VAULT999/vault.jsonl")
+        self.vault_path = vault_path or Path("/var/lib/arifos/vault/vault.jsonl")
         self.vault_path.parent.mkdir(parents=True, exist_ok=True)
         
         # In-memory index
