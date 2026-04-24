@@ -1,306 +1,218 @@
-# ── arifOS Core Infrastructure ──────────────────────────────────────────────
-# Version: v2026.04.24-CADDY-ALIGNED | FHS Optimized
+# arifos Authoritative Compose — MACHINE LAW (v60.1.1 - Dozzle Added)
+# DITEMPA BUKAN DIBERI
 
 services:
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: postgres
-    init: true
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-vault999}
-      POSTGRES_USER: ${POSTGRES_USER:-arifos_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - /opt/arifos/data/postgres:/var/lib/postgresql/data
-    networks:
-      - arifos_core_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arifos_admin} -d ${POSTGRES_DB:-vault999}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    init: true
-    command: redis-server --save 60 1 --loglevel warning --maxmemory 96mb --maxmemory-policy allkeys-lru
-    volumes:
-      - /opt/arifos/data/redis:/data
-    networks:
-      - arifos_core_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
-    restart: unless-stopped
-
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: qdrant
-    init: true
-    environment:
-      - QDRANT__STORAGE__STORAGE_PATH=/qdrant/storage
-      - QDRANT__SERVICE__HTTP_PORT=6333
-      - QDRANT__SERVICE__GRPC_PORT=6334
-      - QDRANT__LOG_LEVEL=WARN
-    volumes:
-      - /opt/arifos/data/qdrant:/qdrant/storage
-    networks:
-      - arifos_core_network
-    healthcheck:
-      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /healthz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    restart: unless-stopped
-
-#  arifos_landings:
-#    image: nginx:alpine
-#    container_name: arifos_landings
-#    volumes:
-#      - /opt/arifos/sites/arif-fazil.com/arif:/usr/share/nginx/html/arif:ro
-#      - /opt/arifos/sites/arif-fazil.com/arifos:/usr/share/nginx/html/arifos:ro
-#      - /opt/arifos/sites/arif-fazil.com/aaa:/usr/share/nginx/html/aaa:ro
-#      - /opt/arifos/sites/arif-fazil.com/forge:/usr/share/nginx/html/forge:ro
-#      - /opt/arifos/sites/arif-fazil.com/waw:/usr/share/nginx/html/waw:ro
-#      - /opt/arifos/sites/arif-fazil.com/apex:/usr/share/nginx/html/apex:ro
-#      - /opt/arifos/sites/arif-fazil.com/geox:/usr/share/nginx/html/geox:ro
-#      - /opt/arifos/sites/arif-fazil.com/wiki:/usr/share/nginx/html/wiki:ro
-#      - /opt/arifos/sites/arif-fazil.com/arifosmcp:/usr/share/nginx/html/arifosmcp:ro
-#      - /root/arifOS/infrastructure/nginx/arifos_landings.conf:/etc/nginx/conf.d/default.conf:ro
-#    networks:
-#      - arifos_core_network
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.arif-landing.rule=Host(`arif-fazil.com`) || Host(`www.arif-fazil.com`)"
-#      - "traefik.http.routers.aaa-landing.rule=Host(`aaa.arif-fazil.com`)"
-#      - "traefik.http.routers.forge-landing.rule=Host(`forge.arif-fazil.com`)"
-#      - "traefik.http.routers.waw-landing.rule=Host(`waw.arif-fazil.com`)"
-#      - "traefik.http.routers.apex-landing.rule=Host(`apex.arif-fazil.com`)"
-#      - "traefik.http.routers.wiki-landing.rule=Host(`wiki.arif-fazil.com`)"
-#      - "traefik.http.routers.arif-landing.entrypoints=websecure"
-#      - "traefik.http.routers.arif-landing.tls.certresolver=letsencrypt"
-#      - "traefik.http.routers.arifos-landing.entrypoints=websecure"
-#      - "traefik.http.routers.arifos-landing.tls.certresolver=letsencrypt"
-#      - "traefik.http.routers.aaa-landing.entrypoints=websecure"
-#      - "traefik.http.routers.aaa-landing.tls.certresolver=letsencrypt"
-#      - "traefik.http.routers.forge-landing.entrypoints=websecure"
-#      - "traefik.http.routers.forge-landing.tls.certresolver=letsencrypt"
-#      - "traefik.http.routers.apex-landing.entrypoints=websecure"
-#      - "traefik.http.routers.apex-landing.tls.certresolver=letsencrypt"
-#      - "traefik.http.routers.waw-landing.entrypoints=websecure"
-#      - "traefik.http.routers.waw-landing.tls.certresolver=letsencrypt"
-#      - "traefik.http.routers.wiki-landing.entrypoints=websecure"
-#      - "traefik.http.routers.wiki-landing.tls.certresolver=letsencrypt"
-#      - "traefik.http.routers.geox-landing.rule=Host(`geox.arif-fazil.com`)"
-#      - "traefik.http.routers.geox-landing.entrypoints=websecure"
-#      - "traefik.http.routers.geox-landing.tls.certresolver=letsencrypt"
-#    restart: unless-stopped
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    init: true
-    environment:
-      - OLLAMA_KEEP_ALIVE=24h
-      - OLLAMA_HOST=0.0.0.0:11434
-    volumes:
-      - /opt/arifos/data/ollama:/root/.ollama
-    networks:
-      arifos_core_network:
-        aliases:
-          - ollama_engine       # backward compat alias for older configs/scripts
-    restart: unless-stopped
-
-#  openclaw:
-#    image: arifos/openclaw-forged:2026.03.14
-#    container_name: openclaw
-#    init: true
-#    user: root
-#    env_file:
-#      - path: .env
-#    environment:
-#      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-#      - REDIS_URL=redis://redis:6379
-#      - OLLAMA_URL=http://ollama:11434
-#      - BROWSERLESS_URL=http://headless_browser:3000
-#    volumes:
-#      - /opt/arifos/data/openclaw:/root/.openclaw
-#      - /srv/arifos/skills/vps-monitor:/app/extensions/vps-monitor
-#      - /srv/arifos:/mnt/arifos:rw
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#    networks:
-#      - arifos_core_network
-#    ports:
-#      - "127.0.0.1:18789:18789"
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.openclaw.rule=Host(`claw.arifosmcp.arif-fazil.com`)"
-#      - "traefik.http.routers.openclaw.entrypoints=websecure"
-#      - "traefik.http.routers.openclaw.tls.certresolver=letsencrypt"
-#      - "traefik.http.services.openclaw.loadbalancer.server.port=18789"
-#    restart: unless-stopped
-
-  arifos-mcp-prod:
+  # -- Governance Kernel --
+  arifosmcp:
     build:
-      context: .
+      context: /opt/arifos/src/arifOS
       dockerfile: Dockerfile
-    container_name: arifos-mcp-prod
-    init: true
-    command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
-    env_file:
-      - path: .env
-    environment:
-      - PYTHONPATH=/usr/src/project
-      - VPS_MODE=1
-      - ARIFOS_DEPLOYMENT=vps
-      - RELEASE_TAG=v2026.04.24-UNIFIED
-      - OLLAMA_URL=http://ollama:11434
-      - QDRANT_URL=http://qdrant:6333
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://arifos_admin:${POSTGRES_PASSWORD}@postgres:5432/vault999
-    volumes:
-      - /srv/arifos:/usr/src/project:rw
-      - /opt/arifos/data/core:/usr/src/project/arifosmcp/data:rw
-      - arifosmcp_telemetry:/usr/src/project/arifosmcp/telemetry:rw
-      - arifosmcp_vault:/usr/src/project/arifosmcp/VAULT999:rw
-      - arifosmcp_secrets:/secrets:ro
-    networks:
-      - arifos_core_network
+    container_name: arifosmcp
     ports:
       - "8080:8080"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ARIFOS_CONSTITUTION: /etc/arifos/constitution
+      ARIFOS_MANIFESTS: /etc/arifos/manifests
+      VAULT_URL: http://vault999:8100
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+    volumes:
+      - /var/lib/arifos/vault:/var/lib/arifos/vault:rw
+      - /var/log/arifos/telemetry:/usr/src/app/arifosmcp/telemetry:rw
+    networks:
+      - arifos_core
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8080/health | grep -q 'healthy' || exit 1"]
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/sse', timeout=5)\""]
       interval: 30s
       timeout: 10s
-      start_period: 30s
+      start_period: 15s
       retries: 3
-    restart: unless-stopped
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
-      nproc:
-        soft: 65535
-        hard: 65535
-
-#  webhook:
-#    image: almir/webhook:latest
-#    container_name: arifos_webhook
-#    init: true
-#    command: ["-verbose", "-hooks=/etc/webhook/hooks.json", "-hotreload"]
-#    volumes:
-#      - /root/arifOS/deployment/hooks.json:/etc/webhook/hooks.json:ro
-#      - /root/arifOS/infrastructure/deploy_from_git.sh:/var/scripts/deploy_from_git.sh:ro
-#      - /root/arifOS:/usr/src/app:rw
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#    networks:
-#      - arifos_core_network
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.webhook.rule=Host(`hook.arifosmcp.arif-fazil.com`)"
-#      - "traefik.http.routers.webhook.entrypoints=websecure"
-#      - "traefik.http.routers.webhook.tls.certresolver=letsencrypt"
-#      - "traefik.http.services.webhook.loadbalancer.server.port=9000"
-#    restart: unless-stopped
-
-# ── arifOS MCP Substrate Services (Official Reference Layer) ──────────────
-# Enabled per Priority Integration Order (EP-2026.04.11)
-# ─────────────────────────────────────────────────────────────────
-
-#  mcp_time:
-#    image: mcp/server-time:latest
-#    container_name: mcp_time
-#    networks:
-#      - arifos_core_network
-#    restart: unless-stopped
-#
-#  mcp_filesystem:
-#    image: mcp/server-filesystem:latest
-#    container_name: mcp_filesystem
-#    volumes:
-#      - /srv/arifos:/usr/src/project:rw
-#    environment:
-#      - ALLOWED_DIRECTORIES=/usr/src/project
-#    networks:
-#      - arifos_core_network
-#    restart: unless-stopped
-#
-#  mcp_git:
-#    image: mcp/server-git:latest
-#    container_name: mcp_git
-#    volumes:
-#      - /srv/arifos:/usr/src/project:ro
-#    networks:
-#      - arifos_core_network
-#    restart: unless-stopped
-#
-#  mcp_memory:
-#    image: mcp/server-memory:latest
-#    container_name: mcp_memory
-#    networks:
-#      - arifos_core_network
-#    restart: unless-stopped
-#
-#  mcp_fetch:
-#    image: mcp/server-fetch:latest
-#    container_name: mcp_fetch
-#    networks:
-#      - arifos_core_network
-#    restart: unless-stopped
-#
-#  mcp_everything:
-#    image: mcp/server-everything:latest
-#    container_name: mcp_everything
-#    networks:
-#      - arifos_core_network
-#    restart: unless-stopped
-    # ─────────────────────────────────────────────────────────────
-    # CONFORMANCE HARNESS: Protocol wind-tunnel only.
-    # NOT for production metabolic paths.
-    # ─────────────────────────────────────────────────────────────
-
-  vault-service:
-    build:
-      context: ./vault-service
-      dockerfile: Dockerfile
-    container_name: vault-service
-    init: true
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-vault999}
-      PORT: "8100"
-    networks:
-      - arifos_core_network
-    ports:
-      - "8100:8100"
     depends_on:
       postgres:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS --max-time 5 http://localhost:8100/health | grep -q 'healthy' || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+
+  # -- LLM Engine (Ollama) --
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_ORIGINS=https://*.arif-fazil.com
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - arifos_core
 
-volumes:
+  # -- Observability (Log Pulse) --
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - arifos_core
+    # No ports exposed to host — Caddy will proxy
 
-  arifosmcp_secrets:
-    external: true
-  arifosmcp_telemetry:
-    driver: local
-  arifosmcp_vault:
-    driver: local
+  # -- Vault API Layer --
+  vault999:
+    build:
+      context: /opt/arifos/src/arifOS/vault-service
+      dockerfile: Dockerfile
+    container_name: vault999
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      PORT: '8100'
+    networks:
+      - arifos_core
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # -- Vault Writer --
+  vault999-writer:
+    build:
+      context: /opt/arifos/src/arifOS/vault999_writer
+      dockerfile: Dockerfile
+    container_name: vault999-writer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:5001"
+    environment:
+      VAULT999_DB: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      PORT: '5001'
+    networks:
+      - arifos_core
+    depends_on:
+      vault999:
+        condition: service_healthy
+
+  # -- Notifier (Telegram Alerts) --
+  forge-notifier:
+    build:
+      context: /opt/arifos/src/arifOS/services/notifier
+      dockerfile: Dockerfile
+    container_name: forge-notifier
+    restart: unless-stopped
+    environment:
+      NOTIFIER_TELEGRAM_BOT_TOKEN: '[REDACTED-TELEGRAM-TOKEN]'
+      NOTIFIER_TELEGRAM_CHAT_ID: '-1003768847825'
+      VAULT_URL: http://vault999:8100/seals
+    networks:
+      - arifos_core
+    depends_on:
+      vault999:
+        condition: service_healthy
+
+  # -- Database --
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vault999
+      POSTGRES_USER: arifos_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - arifos_core
+    healthcheck:
+      test: pg_isready -U arifos_admin -d vault999
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -- Cache --
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - arifos_core
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+
+  # -- Memory Organ (Qdrant) --
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - arifos_core
+    healthcheck:
+      test: grep -l "qdrant" /proc/*/comm || exit 1
+      interval: 15s
+
+  # -- Caddy Proxy --
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - /opt/arifos/src:/var/www/html:ro
+    networks:
+      - arifos_core
+
+  # -- Domain Organs --
+  geox:
+    build: /opt/arifos/src/geox
+    container_name: geox
+    restart: unless-stopped
+    networks:
+      - arifos_core
+    depends_on:
+      vault999:
+        condition: service_healthy
+
+  wealth-organ:
+    build: /opt/arifos/src/wealth
+    container_name: wealth-organ
+    restart: unless-stopped
+    networks:
+      - arifos_core
+
+  aaa:
+    build: /opt/arifos/src/AAA
+    container_name: aaa
+    restart: unless-stopped
+    networks:
+      - arifos_core
 
 networks:
-  arifos_core_network:
+  arifos_core:
     name: arifos_core_network
     external: true
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  ollama_data:
+  caddy_data:
+  caddy_config:
