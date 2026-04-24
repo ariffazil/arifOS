@@ -863,6 +863,13 @@ class RuntimeEnvelope(BaseModel):
     blocked_tools: list[dict[str, str]] = Field(default_factory=list)  # [{tool, reason}]
     diagnostics_only: bool = False  # True for global session
 
+    # ── ARIF.md Attestation (Session Start Gate) ────────────────────────────
+    arif_attestation: dict[str, Any] | None = Field(
+        default=None,
+        description="ARIF.md METABOLIC KERNEL v1.0 attestation. Populated at 000_INIT by init_anchor. Required for forge_verdict gate.",
+    )
+    # ──────────────────────────────────────────────────────────────────────
+
     session_id: str | None = None
     stage: str
     verdict: Verdict = Verdict.SABAR  # Backward compat - to_dict() injects from verdict_detail.code

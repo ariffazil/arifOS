@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # Configuration from environment
 MCP_SUBSTRATES_ENABLED = os.getenv("MCP_SUBSTRATES_ENABLED", "true").lower() == "true"
 MCP_SUBSTRATE_TIMEOUT = float(os.getenv("MCP_SUBSTRATE_TIMEOUT", "30.0"))
+MCP_EVERYTHING_ENABLED = os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() == "true"
 
 
 class SubstrateClient:
@@ -211,13 +212,17 @@ class SubstrateBridge:
             os.getenv("MCP_FETCH_URL", "http://mcp_fetch:8005"),
             MCP_SUBSTRATE_TIMEOUT
         )
-        self.everything = SubstrateClient(
-            "mcp_everything",
-            os.getenv("MCP_EVERYTHING_URL", "http://mcp_everything:8006"),
-            MCP_SUBSTRATE_TIMEOUT
-        )
-        
-        self.clients = [self.time, self.filesystem, self.git, self.memory, self.fetch, self.everything]
+        self.everything = None
+        if MCP_EVERYTHING_ENABLED:
+            self.everything = SubstrateClient(
+                "mcp_everything",
+                os.getenv("MCP_EVERYTHING_URL", "http://mcp_everything:8006"),
+                MCP_SUBSTRATE_TIMEOUT
+            )
+
+        self.clients = [self.time, self.filesystem, self.git, self.memory, self.fetch]
+        if self.everything is not None:
+            self.clients.append(self.everything)
     
     async def get_global_health(self) -> dict[str, Any]:
         """Rollup health status for all substrate components."""

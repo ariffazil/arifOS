@@ -16,6 +16,7 @@ import secrets
 import time
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 from arifosmcp.runtime.models import (
@@ -230,6 +231,9 @@ async def init_anchor(
     deployment_id: str | None = None,
     session_class: str = "execute",
     platform: str = "unknown",
+    arif_read: bool = False,
+    arif_source: str | None = None,
+    arif_hash: str | None = None,
 ) -> RuntimeEnvelope:
     """
     Unified 000_INIT: Authority lifecycle and bootstrap anchor.
@@ -427,4 +431,13 @@ async def init_anchor(
             "injection_score": _injection_score,
         },
         system={"kernel_version": "v2026.04.14-SEALED", "env": "production"},
+        arif_attestation={
+            "canonical_url": "https://gist.github.com/ariffazil/81314f6cda1ea898f9feb88ce8f8959b",
+            "arif_version": "v1.0",
+            "arif_present": arif_read,
+            "arif_source": arif_source or "unknown",
+            "arif_hash": arif_hash or None,
+            "clerk_id": _dn,
+            "epoch": datetime.now(timezone.utc).isoformat(),
+        } if arif_read or arif_source else None,
     )

@@ -183,17 +183,17 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     try:
         sig = inspect.signature(original_handler)
     except Exception:
-        async def fallback_handler(**kwargs):
-            return await _invoke_original(kwargs)
+        async def fallback_handler(req: dict[str, Any]):
+            return await _invoke_original(req)
         return fallback_handler
 
     @functools.wraps(original_handler)
-    async def wrapper(*args, **kwargs):
-        bound = sig.bind(*args, **kwargs)
+    async def wrapper(req: dict[str, Any]):
+        bound = sig.bind(**req)
         bound.apply_defaults()
         return await _invoke_original(dict(bound.arguments))
 
-    wrapper.__signature__ = sig
+    
     return wrapper
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -350,8 +350,8 @@ try:
     from arifosmcp.tools_canonical import TOOL_ALIAS_MAP, resolve_alias
     
     def create_wrapped_tool(alias_name, target_fn, mode):
-        async def _wrapped(**kwargs):
-            return await resolve_alias(alias_name, kwargs)
+        async def _wrapped(req: dict[str, Any]):
+            return await resolve_alias(alias_name, req)
         _wrapped.__name__ = alias_name
         return _wrapped
 
@@ -575,7 +575,7 @@ app.router.routes.append(WebSocketRoute("/webmcp/ws", endpoint=sovereign_ws))
 # HARDENED_HANDLERS is only defined if the try block (line 251) succeeded
 from arifosmcp.runtime.rest_routes import register_rest_routes
 if "HARDENED_HANDLERS" in globals():
-    register_rest_routes(mcp, HARDENED_HANDLERS, prefix="")
+    register_rest_routes(app, HARDENED_HANDLERS, prefix="")
 
 # ── Constitutional startup (runs on module load, not just __main__) ──
 import asyncio
