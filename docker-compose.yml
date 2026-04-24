@@ -112,7 +112,7 @@ services:
     container_name: forge-notifier
     restart: unless-stopped
     environment:
-      NOTIFIER_TELEGRAM_BOT_TOKEN: '[REDACTED-TELEGRAM-TOKEN]'
+      NOTIFIER_TELEGRAM_BOT_TOKEN: ${NOTIFIER_TELEGRAM_BOT_TOKEN}
       NOTIFIER_TELEGRAM_CHAT_ID: '-1003768847825'
       VAULT_URL: http://vault999:8100/seals
     networks:
