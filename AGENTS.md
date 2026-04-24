@@ -34,6 +34,25 @@
 
 Full structure: [`docs/REPO_STRUCTURE.md`](docs/REPO_STRUCTURE.md)
 
+## Canonical File Registry (Do Not Rename)
+
+These filenames are hard-coded in deployment manifests, MCP client configs, build pipelines, and documentation. Renaming any of them without a migration layer will break boot paths, registry loading, or governance contracts.
+
+| File | Role | Severity |
+|------|------|----------|
+| `server.py` | Main MCP runtime entrypoint | **Tier A** |
+| `arifosmcp/server.py` | Internal MCP server implementation | **Tier A** |
+| `arifosmcp/runtime/server.py` | FastMCP runtime layer / re-export wrapper | **Tier A** |
+| `mcp-arifos.json` | Canonical MCP server config (transport, port, constitutional metadata) | **Tier A** |
+| `pyproject.toml` | Python package metadata & dependency contract | **Tier A** |
+| `Dockerfile` | Container image build contract | **Tier A** |
+| `docker-compose.yml` | Local/self-hosted stack definition | **Tier A** |
+| `AGENTS.md` | Repo governance & behavioral contract | **Tier A** |
+| `toolregistry.json` | Canonical constitutional tool registry (SSCT) — *currently missing from repo, planned* | **Tier A** |
+| `constitutionalmap.py` | Enum-based constitutional definitions — *currently missing from repo, planned* | **Tier A** |
+
+> **F10 Coherence:** If a file in this registry is relocated, the migration must update `mcp-arifos.json`, `Dockerfile`, `docker-compose.yml`, and any external MCP client configs (e.g., OpenClaw) in the same commit.
+
 ---
 
 # FULL AGENT LOOP (MANDATORY)
