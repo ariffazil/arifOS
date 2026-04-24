@@ -50,6 +50,51 @@ from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
 from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
 
+
+def _get_tool_obj(mcp: Any, tool: Any) -> Any:
+    """Helper to get tool object from FastMCP instance given string name or tool object."""
+    if not isinstance(tool, str):
+        return tool
+    
+    # Try to find tool in mcp instance
+    # FastMCP v3 keeps tools in _local_provider._components
+    if hasattr(mcp, "_local_provider") and hasattr(mcp._local_provider, "_components"):
+        comp_key = f"tool:{tool}"
+        if comp_key in mcp._local_provider._components:
+            return mcp._local_provider._components[comp_key]
+    
+    # Fallback/Dummy object if not found
+    class DummyTool:
+        def __init__(self, name):
+            self.name = name
+            self.description = ""
+            self.parameters = {}
+            self.annotations = None
+    return DummyTool(tool)
+
+
+_INTERNAL_MCP_REF: Any = None
+
+def _get_tool_obj(tool: Any) -> Any:
+    """Helper to get tool object from the global FastMCP instance reference."""
+    global _INTERNAL_MCP_REF
+    if not isinstance(tool, str):
+        return tool
+    
+    if _INTERNAL_MCP_REF:
+        if hasattr(_INTERNAL_MCP_REF, "_local_provider") and hasattr(_INTERNAL_MCP_REF._local_provider, "_components"):
+            comp_key = f"tool:{tool}"
+            if comp_key in _INTERNAL_MCP_REF._local_provider._components:
+                return _INTERNAL_MCP_REF._local_provider._components[comp_key]
+    
+    class DummyTool:
+        def __init__(self, name):
+            self.name = name
+            self.description = ""
+            self.parameters = {}
+            self.annotations = None
+    return DummyTool(tool)
+
 BUILD_INFO = get_build_info()
 BUILD_VERSION = BUILD_INFO["server_version"]
 MCP_PROTOCOL_VERSION = BUILD_INFO["protocol_version"]
@@ -1327,13 +1372,14 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
         }
     }
 
-    for tool in tools:
+    for tool_raw in tools:
+        tool = _get_tool_obj(tool_raw)
         tool_name = tool.name
-        request_schema = tool.parameters or {"type": "object", "properties": {}}
+        request_schema = getattr(tool, "parameters", {}) or {"type": "object", "properties": {}}
         paths[f"/tools/{tool_name}"] = {
             "post": {
                 "operationId": f"call_{tool_name}",
-                "summary": tool.description or f"Call {tool_name}",
+                "summary": getattr(tool, "description", "") or f"Call {tool_name}",
                 "description": (
                     f"Invoke the `{tool_name}` tool over the public REST compatibility surface."
                 ),
@@ -1612,6 +1658,8 @@ def register_rest_routes(
         prefix: Optional URL prefix for all routes (e.g., "/api").
     """
     # Force prefix to start with / and not end with / if provided
+    global _INTERNAL_MCP_REF
+    _INTERNAL_MCP_REF = mcp
     active_prefix = prefix.rstrip("/")
     if active_prefix and not active_prefix.startswith("/"):
         active_prefix = f"/{active_prefix}"
@@ -1875,11 +1923,12 @@ def register_rest_routes(
 
         mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
         tool_list = []
-        for tool in mcp_tools:
+        for tool_raw in mcp_tools:
+            tool = _get_tool_obj(tool_raw)
             entry = {
                 "name": tool.name,
-                "description": tool.description or "",
-                "parameters": tool.parameters or {},
+                "description": getattr(tool, "description", "") or "",
+                "parameters": getattr(tool, "parameters", {}) or {},
                 "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
                 "lane": TRINITY_BY_TOOL.get(tool.name),
             }
@@ -1902,6 +1951,26 @@ def register_rest_routes(
         mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
         schema = _openapi_schema(_public_base_url(request), mcp_tools)
         return JSONResponse(schema)
+
+    @route("/registry.json", methods=["GET"])
+    async def registry_json(request: Request) -> Response:
+        """Return MCP JSON registry for MCP hosts (Claude Desktop, Cursor, etc.)."""
+        base = _public_base_url(request)
+        registry = {
+            "mcpServers": {
+                "arifos": {
+                    "command": "uv",
+                    "args": ["run", "python", "-m", "arifosmcp.runtime.server"],
+                    "env": {
+                        "ARIFOS_ENV": "production",
+                        "VAULT999_URL": "http://vault999-writer:5001",
+                    },
+                    "endpoint": f"{base}/mcp",
+                    "transport": "streamable-http",
+                }
+            }
+        }
+        return JSONResponse(registry)
 
     @route("/tools/{tool_name:path}/call", methods=["POST"])
     async def call_tool_rest_v2(request: Request) -> Response:
@@ -1996,9 +2065,9 @@ def register_rest_routes(
         mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
         payload["tools"] = [
             {
-                "name": tool.name,
-                "description": tool.description or "",
-                "inputSchema": tool.parameters or {},
+                "name": (t := _get_tool_obj(tool)).name,
+                "description": getattr(t, "description", "") or "",
+                "inputSchema": getattr(t, "parameters", {}) or {},
             }
             for tool in mcp_tools
         ]

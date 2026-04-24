@@ -67,6 +67,9 @@ RUN pip install --no-deps -e ./arifosmcp/
 # Install it directly from PyPI
 RUN pip install blake3==1.0.8
 
+# fastapi must be explicitly installed — uv resolves it but doesn't persist to COPY layer
+RUN pip install "fastapi>=0.100.0"
+
 # Non-root user for security
 RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /usr/src/app
 USER arifos

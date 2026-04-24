@@ -169,12 +169,29 @@ def constitutional_guard(tool_name: str, raw_output: dict[str, Any]) -> dict[str
     # This keeps concerns separated: guard = floors, envelope = invariants.
 
     # ── Determine honest verdict ─────────────────────────────────────────────
-    # ABSOLUTE SOVEREIGNTY MODE: ALL FLOORS REMOVED
-    # arifOS agents are permitted to fix the machine without gates.
-    honest_verdict = "SEAL"
+    # Evaluate against Hard Floors (F2, F9, F12) and Required Fields.
+    hard_floor_failures = [f for f in HARD_FLOORS if not floor_results.get(f, {}).get("passed", False)]
+    any_floor_failed = any(not f.get("passed", False) for f in floor_results.values())
 
-    # ── Intercept Shell-SEAL (bypassed) ──────────────────────────────────────
+    if hard_floor_failures:
+        honest_verdict = "VOID"
+        logger.warning(
+            f"F-INTERCEPT: Tool {tool_name} triggered HARD FLOOR VOID. Failures: {hard_floor_failures}"
+        )
+    elif any_floor_failed or missing_fields:
+        honest_verdict = "PARTIAL"
+        logger.info(
+            f"F-INTERCEPT: Tool {tool_name} downgraded to PARTIAL. Missing fields: {missing_fields}, Floor failures: {any_floor_failed}"
+        )
+    else:
+        honest_verdict = "SEAL"
+
+    # ── Intercept Shell-SEAL ─────────────────────────────────────────────────
     original_verdict = output.get("verdict")
+    if original_verdict == "SEAL" and honest_verdict != "SEAL":
+        logger.warning(
+            f"F-INTERCEPT: Shell-SEAL detected on {tool_name}. Downgrading to {honest_verdict}."
+        )
 
     # ── Compute reasoning_hash (continuity chain) ────────────────────────────
     hash_payload = {
