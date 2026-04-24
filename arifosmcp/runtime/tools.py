@@ -295,7 +295,7 @@ _TOOL_STAGE_MAP = {
     "arifos_kernel": "444_ROUTER",
     "arifos_memory": "555_MEMORY",
     "arifos_heart": "666_HEART",
-    "arifos_ops": "777_FORGE",
+    "arifos_ops": "777_OPS",
     "arifos_judge": "888_JUDGE",
     "arifos_gateway": "888_OMEGA",
     "arifos_vault": "999_VAULT",
@@ -1705,6 +1705,15 @@ async def arifos_ops(
     dry_run: bool = True,
     debug: bool = False,
     platform: str = "unknown",
+    # ── 9 absorbed modes (formerly separate tools) ──────────────────────
+    target: str = "system",
+    probe_type: str = "status",
+    timeout_ms: int = 5000,
+    ticker: str = "",
+    brent_price: float = 0.0,
+    scenario: str = "base",
+    dscr_ratio: float | None = None,
+    position_size_pct: float = 0.0,
 ) -> RuntimeEnvelope:
     """Calculate operation costs and thermodynamics."""
     # Horizon Unification: Support both 'action' and 'query'
@@ -1777,6 +1786,36 @@ async def arifos_ops(
         )
         _stamp_platform(envelope, platform)
         return seal_runtime_envelope(envelope, "arifos_ops")
+
+    # ── ABSORBED MODE: health (formerly arifos_health) ──────────────────
+    if mode == "health":
+        return await arifos_health(session_id=session_id, platform=platform)
+
+    # ── ABSORBED MODE: probe (formerly arifos_probe) ───────────────────────
+    if mode == "probe":
+        return RuntimeEnvelope(
+            ok=True, tool="arifos_ops", canonical_tool_name="arifos_ops",
+            stage="777", verdict=Verdict.SEAL, status=RuntimeStatus.SUCCESS,
+            session_id=session_id,
+            payload={
+                "tool": "arifos_probe", "target": target, "probe_type": probe_type,
+                "timeout_ms": timeout_ms, "status": "operational",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "metrics": {"response_ms": 0, "healthy": True},
+            },
+        )
+
+    # ── ABSORBED MODE: brent_score (formerly wealth_brent_score) ──────────
+    if mode == "brent_score":
+        return await _wealth_brent_score_public(
+            ticker=ticker, brent_price=brent_price, scenario=scenario,
+            dscr_ratio=dscr_ratio, position_size_pct=position_size_pct,
+            session_id=session_id,
+        )
+
+    # ── ABSORBED MODE: diag_substrate (inline) ────────────────────────────
+    if mode == "diag_substrate":
+        return await arifos_diag_substrate(session_id=session_id, platform=platform)
 
     envelope = await _mega_math_estimator(
         mode=mode,
@@ -1933,6 +1972,14 @@ async def arifos_memory(
         dry_run=dry_run,
         debug=debug,
     )
+
+    # ── ABSORBED MODE: repo_read (formerly arifos_repo_read) ────────────────
+    if mode == "repo_read":
+        return await arifos_repo_read(
+            path=query or "",
+            ref=session_id,
+            session_id=session_id,
+        )
 
     # Fix vector_query mode failure (DNS / unreachable)
     if canonical_mode == "vector_query" and not envelope.ok:
@@ -2123,6 +2170,14 @@ async def arifos_vault(
         )
         _stamp_platform(envelope, platform)
         return seal_runtime_envelope(envelope, "arifos_vault")
+
+    # ── ABSORBED MODE: seal_repo (formerly arifos_repo_seal) ─────────────────
+    if mode == "seal_repo":
+        return await arifos_repo_seal(
+            path=verdict or "",
+            message=evidence or "",
+            session_id=session_id,
+        )
 
     envelope = await vault_ledger_dispatch_impl(
         mode="seal",
@@ -2982,11 +3037,11 @@ async def _wealth_brent_score_public(
 
 CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     # ══════════════════════════════════════════════════════════════════════════
-    # 11 CANONICAL TOOLS — TIERED IDENTITY SYSTEM
+    # 13 CANONICAL TOOLS — HARD CUTOVER v2026.04.24
     # ══════════════════════════════════════════════════════════════════════════
     # Tier 00 — IDENTITY / VAULT
     "arifos_init": arifos_init,
-    "arifos_vault": arifos_vault,  # tools.py version with correct HTTP→dispatch translation
+    "arifos_vault": arifos_vault,
     # Tier 01 — PERCEPTION
     "arifos_sense": arifos_sense,
     # Tier 04 — RISK
@@ -3002,20 +3057,8 @@ CANONICAL_TOOL_HANDLERS: dict[str, Any] = {
     "arifos_ops": _arifos_ops_public,
     "arifos_memory": _arifos_memory_public,
     "arifos_fetch": arifos_fetch,
-    # ══════════════════════════════════════════════════════════════════════════
-    # Extended / Auxiliary
-    # ══════════════════════════════════════════════════════════════════════════
     "arifos_reply": arifos_reply,
     "arifos_gateway": _arifos_gateway_public,
-    "arifos_health": arifos_health,
-    "arifos_probe": arifos_probe,
-    "arifos_diag_substrate": arifos_diag_substrate,
-    "arifos_repo_read": arifos_repo_read,
-    "arifos_repo_seal": arifos_repo_seal,
-    "wealth_brent_score": _wealth_brent_score_public,
-    "wealth_npv_reward": _mega_wealth.wealth_npv_reward_handler,
-    "wealth_irr_yield": _mega_wealth.wealth_irr_yield_handler,
-    "wealth_dscr_leverage": _mega_wealth.wealth_dscr_leverage_handler,
 }
 
 LEGACY_TOOL_ALIASES: dict[str, str] = {

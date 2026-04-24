@@ -15,7 +15,7 @@
     {"name": "arifos_heart", "stage": "666_HEART", "mode_parameter": "mode"},
     {"name": "arifos_judge", "stage": "888_JUDGE", "mode_parameter": "query"},
     {"name": "arifos_kernel", "stage": "444_ROUTER", "mode_parameter": "mode"},
-    {"name": "arifos_ops", "stage": "777_FORGE", "mode_parameter": "mode"},
+    {"name": "arifos_ops", "stage": "777_OPS", "mode_parameter": "mode"},
     {"name": "arifos_memory", "stage": "555_MEMORY", "mode_parameter": "mode"},
     {"name": "arifos_fetch", "stage": null, "mode_parameter": "url"},
     {"name": "arifos_forge", "stage": "010_FORGE", "mode_parameter": "action"},
