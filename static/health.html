@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⬡ arifOS | Federation Pulse</title>
+    <style>
+        :root { --primary: #00ff41; --bg: #0d0208; --panel: #1a1a1a; --border: #333; }
+        body { background: var(--bg); color: var(--primary); font-family: 'Courier New', monospace; margin: 0; padding: 40px; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; border: 1px solid var(--primary); padding: 30px; box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+        header { border-bottom: 1px solid var(--primary); margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .card { background: var(--panel); padding: 20px; border: 1px solid var(--border); position: relative; }
+        .card h3 { margin-top: 0; font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .status { font-size: 1.2rem; font-weight: bold; }
+        .status-ok { color: #00ff41; }
+        .status-warn { color: #ffcc00; }
+        .status-error { color: #ff3300; }
+        .vitality-big { font-size: 3.5rem; line-height: 1; margin: 10px 0; }
+        .drift-notice { background: #ff3300; color: white; padding: 2px 10px; font-size: 0.7rem; display: none; }
+        footer { margin-top: 50px; font-size: 0.8rem; color: #555; display: flex; justify-content: space-between; border-top: 1px solid #222; pt: 20px; }
+        .badge { display: inline-block; padding: 2px 8px; border: 1px solid currentColor; font-size: 0.7rem; margin-right: 5px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>⬡ arifOS FEDERATION PULSE</h1>
+                <div id="drift-warning" class="drift-notice">EDGE SYNC DRIFT DETECTED - PURGE CLOUDFLARE CACHE</div>
+            </div>
+            <div style="text-align: right">
+                <h3>VITALITY INDEX</h3>
+                <div class="vitality-big status-ok" id="vitality-val">0.0000</div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h3>ZONE: GOVERNANCE (TOOLS)</h3>
+                <div class="status status-ok" id="mcp-status">ONLINE</div>
+                <p>FastMCP Kernel <span id="kernel-ver">...</span></p>
+                <div id="tool-badges"></div>
+            </div>
+            
+            <div class="card" style="border-color: #008cff">
+                <h3>DATA PLANE: VAULT999</h3>
+                <div class="status status-ok">ANCHORED</div>
+                <p>PostgreSQL Ledger: ACTIVE</p>
+                <p id="vault-status" style="font-size: 0.8rem; color: #888">Storage: PROBING...</p>
+                <div class="badge" style="color: #008cff">DUAL-WRITE ENABLED</div>
+            </div>
+
+            <div class="card">
+                <h3>SURFACES: BODY & AGENT</h3>
+                <p>arif-fazil.com: <span class="status-ok">ONLINE</span></p>
+                <p>aaa.arif-fazil.com: <span class="status-ok">ONLINE</span></p>
+                <div class="badge">A2A: ACTIVE</div>
+            </div>
+        </div>
+
+        <footer>
+            <div>DITEMPA BUKAN DIBERI — 999 SEAL</div>
+            <div id="epoch">EPOCH: 0000-00-00T00:00:00Z</div>
+        </footer>
+    </div>
+
+    <script>
+        const MACHINE_TRUTH_VERSION = 'v2026.04.19-UNIFIED';
+        
+        async function update() {
+            try {
+                const res = await fetch('/health');
+                const data = await res.json();
+                
+                document.getElementById('vitality-val').textContent = data.thermodynamic.vitality_index.toFixed(4);
+                document.getElementById('kernel-ver').textContent = data.version;
+                document.getElementById('epoch').textContent = 'EPOCH: ' + data.timestamp;
+                
+                const badges = document.getElementById('tool-badges');
+                badges.innerHTML = `<span class="badge">${data.tools_loaded} TOOLS LOADED</span>`;
+                
+                const vault = document.getElementById('vault-status');
+                vault.textContent = 'Storage: ' + Object.keys(data.capability_map.storage).filter(k => data.capability_map.storage[k] === 'configured').join(', ').toUpperCase();
+
+                // Check for Edge Drift
+                if (data.version !== MACHINE_TRUTH_VERSION) {
+                    document.getElementById('drift-warning').style.display = 'block';
+                    document.getElementById('vitality-val').className = 'vitality-big status-warn';
+                } else {
+                    document.getElementById('drift-warning').style.display = 'none';
+                    document.getElementById('vitality-val').className = 'vitality-big status-ok';
+                }
+
+            } catch (e) {
+                document.getElementById('mcp-status').textContent = 'UNREACHABLE';
+                document.getElementById('mcp-status').className = 'status-error';
+            }
+        }
+        update();
+        setInterval(update, 30000);
+    </script>
+</body>
+</html>
