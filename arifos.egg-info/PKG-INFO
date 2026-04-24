@@ -1,0 +1,35 @@
+Metadata-Version: 2.4
+Name: arifos
+Version: 2026.4.24
+Summary: arifOS v2026.04.24-KANON — Constitutional AI Governance System. 13 canonical tools, 13 constitutional floors (F1-F13), streamable-http MCP transport. CANONICAL SOURCE OF TRUTH: arifOS repository.
+Author-email: Muhammad Arif bin Fazil <arifbfazil@gmail.com>
+License-Expression: AGPL-3.0-only
+Keywords: ai-governance,constitutional-ai,mcp-server,trinity-architecture,agi-asi-apex
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Security
+Classifier: Typing :: Typed
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastmcp>=3.2.0
+Requires-Dist: fastapi>=0.104.1
+Requires-Dist: uvicorn[standard]>=0.24.0
+Requires-Dist: sse-starlette>=1.8.2
+Requires-Dist: starlette>=0.30.0
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: httpx>=0.25.0
+Requires-Dist: anyio>=4.0.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: prometheus-client>=0.19.0
+Requires-Dist: rich>=13.7.0
+Requires-Dist: psutil>=5.9.0
+Requires-Dist: numpy>=1.20.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"

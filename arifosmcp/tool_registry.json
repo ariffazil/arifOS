@@ -1,25 +1,223 @@
 {
-  "schema": "arifOS_SSCT_v1.0",
-  "version": "2026.04.24-KANON",
+  "_schema": "arifos-ssct-v2026.04.24-kanon-phase1",
+  "_note": "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS. Do not hand edit.",
   "canonical_count": 13,
-  "tiers": {
-    "PSI": ["arifos_init", "arifos_vault", "arifos_judge", "arifos_reply"],
-    "DELTA": ["arifos_sense", "arifos_mind", "arifos_forge", "arifos_kernel", "arifos_ops", "arifos_memory", "arifos_fetch"],
-    "OMEGA": ["arifos_heart", "arifos_gateway"]
+  "total_surface": 13,
+  "tools": {
+    "arif_session_init": {
+      "stage": "000",
+      "lane": "AGI",
+      "floors": [
+        "F01",
+        "F11",
+        "F12"
+      ],
+      "risk_tier": "critical",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_sense_observe": {
+      "stage": "111",
+      "lane": "AGI",
+      "floors": [
+        "F02",
+        "F04",
+        "F07"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_mind_reason": {
+      "stage": "333",
+      "lane": "AGI",
+      "floors": [
+        "F02",
+        "F04",
+        "F07",
+        "F08"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_heart_critique": {
+      "stage": "666",
+      "lane": "ASI",
+      "floors": [
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "risk_tier": "high",
+      "irreversible": false,
+      "access": "authenticated",
+      "requires_auth": true,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_kernel_route": {
+      "stage": "444",
+      "lane": "AGI",
+      "floors": [
+        "F01",
+        "F04",
+        "F11",
+        "F13"
+      ],
+      "risk_tier": "critical",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_forge_execute": {
+      "stage": "010",
+      "lane": "AGI",
+      "floors": [
+        "F02",
+        "F04",
+        "F08",
+        "F13"
+      ],
+      "risk_tier": "critical",
+      "irreversible": true,
+      "access": "sovereign",
+      "requires_auth": true,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_judge_deliberate": {
+      "stage": "888",
+      "lane": "ASI",
+      "floors": [
+        "F01",
+        "F02",
+        "F08",
+        "F11",
+        "F12",
+        "F13"
+      ],
+      "risk_tier": "sovereign",
+      "irreversible": false,
+      "access": "authenticated",
+      "requires_auth": true,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_vault_seal": {
+      "stage": "999",
+      "lane": "APEX",
+      "floors": [
+        "F01",
+        "F02",
+        "F13"
+      ],
+      "risk_tier": "sovereign",
+      "irreversible": true,
+      "access": "authenticated",
+      "requires_auth": true,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_ops_measure": {
+      "stage": "777",
+      "lane": "AGI",
+      "floors": [
+        "F02",
+        "F07",
+        "F08"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_memory_recall": {
+      "stage": "555",
+      "lane": "AGI",
+      "floors": [
+        "F04",
+        "F05",
+        "F10"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_evidence_fetch": {
+      "stage": "222",
+      "lane": "AGI",
+      "floors": [
+        "F02",
+        "F03",
+        "F12"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_reply_compose": {
+      "stage": "444r",
+      "lane": "AGI",
+      "floors": [
+        "F04",
+        "F05",
+        "F10"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "canonical"
+      ]
+    },
+    "arif_gateway_connect": {
+      "stage": "666g",
+      "lane": "ASI",
+      "floors": [
+        "F01",
+        "F11",
+        "F13"
+      ],
+      "risk_tier": "high",
+      "irreversible": false,
+      "access": "authenticated",
+      "requires_auth": true,
+      "tags": [
+        "canonical"
+      ]
+    }
   },
-  "tools": [
-    {"name": "arifos_init", "stage": "000_INIT", "mode_parameter": "mode"},
-    {"name": "arifos_vault", "stage": "999_VAULT", "mode_parameter": "verdict"},
-    {"name": "arifos_sense", "stage": "111_SENSE", "mode_parameter": "mode"},
-    {"name": "arifos_mind", "stage": "333_MIND", "mode_parameter": "mode"},
-    {"name": "arifos_heart", "stage": "666_HEART", "mode_parameter": "mode"},
-    {"name": "arifos_judge", "stage": "888_JUDGE", "mode_parameter": "query"},
-    {"name": "arifos_kernel", "stage": "444_ROUTER", "mode_parameter": "mode"},
-    {"name": "arifos_ops", "stage": "777_OPS", "mode_parameter": "mode"},
-    {"name": "arifos_memory", "stage": "555_MEMORY", "mode_parameter": "mode"},
-    {"name": "arifos_fetch", "stage": null, "mode_parameter": "url"},
-    {"name": "arifos_forge", "stage": "010_FORGE", "mode_parameter": "action"},
-    {"name": "arifos_reply", "stage": null, "mode_parameter": "text"},
-    {"name": "arifos_gateway", "stage": "888_OMEGA", "mode_parameter": "mode"}
-  ]
+  "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given"
 }

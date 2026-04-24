@@ -1,64 +1,79 @@
 [project]
 name = "arifos"
 version = "2026.04.24"
-description = "arifOS v2.0 — Constitutional AGI Operating System"
+description = "arifOS v2026.04.24-KANON — Constitutional AI Governance System. 13 canonical tools, 13 constitutional floors (F1-F13), streamable-http MCP transport. CANONICAL SOURCE OF TRUTH: arifOS repository."
 readme = "README.md"
 requires-python = ">=3.12"
-license = {text = "AGPL-3.0"}
-authors = [
-    {name = "Arif Fazil", email = "arif@arif-fazil.com"}
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+keywords = [
+    "ai-governance",
+    "constitutional-ai",
+    "mcp-server",
+    "trinity-architecture",
+    "agi-asi-apex",
+]
+authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security",
+    "Typing :: Typed",
 ]
 
 dependencies = [
-    "fastmcp==3.2.4",
-    "prefab-ui==0.18.2",
-    "pydantic==2.13.3",
-    "anyio==4.13.0",
-    "starlette==1.0.0",
-    "itsdangerous>=2.0.0",
-    "openapi-pydantic==0.5.1",
-    "fastapi==0.136.1",
-    "uvicorn[standard]==0.46.0",
-    "sse-starlette==3.3.4",
-    "mcp==1.27.0",
-    "httpx==0.28.1",
-    "prometheus-client>=0.19.0",
-    "rich==15.0.0",
-    "asyncpg==0.31.0",
-    "qdrant-client==1.17.1",
-    "ddgs>=9.5.4",
-    "beautifulsoup4>=4.12.0",
-    "requests>=2.31.0",
-    "redis==7.4.0",
-    "cryptography==46.0.7",
-    "psutil==7.2.2",
+    "fastmcp>=3.2.0",
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "sse-starlette>=1.8.2",
+    "starlette>=0.30.0",
+    "pydantic>=2.0.0",
+    "httpx>=0.25.0",
+    "anyio>=4.0.0",
     "python-dotenv>=1.0.0",
-    "pyyaml>=6.0.0",
-    "python-lsp-server>=1.11.0",
-    "py-key-value-aio[redis]>=0.4.0",
-    "psycopg2-binary>=2.9.0",
-    "aiofiles>=23.2.1",
-    "blake3==1.0.8",
-    "supabase==2.25.1",
+    "prometheus-client>=0.19.0",
+    "rich>=13.7.0",
+    "psutil>=5.9.0",
+    "numpy>=1.20.0",
 ]
 
-[project.urls]
-Homepage = "https://arif-fazil.com"
-Repository = "https://github.com/ariffazil/arifos"
-Documentation = "https://arifos.arif-fazil.com"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
 
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+[project.scripts]
+arifos-mcp = "arifosmcp.server:main"
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["arifos*", "arifosmcp*"]
-
-[tool.uv]
-managed = true
-package = true
+include = ["arifosmcp*"]
+exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = "test_*.py"
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+strict_optional = true
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

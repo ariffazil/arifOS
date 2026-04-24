@@ -1,16 +1,11 @@
-"""arifOS MCP package root.
+"""
+arifosmcp — The Sovereign Constitutional Intelligence Kernel
+═════════════════════════════════════════════════════════════
 
-This package is imported under both ``arifosmcp`` and the historical
-``arifosmcp`` alias. Keep both names bound to the same module object so
-runtime globals, Prometheus collectors, and subpackages do not initialize
-twice during mixed-import test runs.
+13-Tool Canonical Surface | 13 Floors (F1–F13) | Trinity ΔΩΨ
+DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """
 
-from __future__ import annotations
-
-import sys
-
-if __name__ == "arifosmcp":
-    sys.modules.setdefault("arifos_mcp", sys.modules[__name__])
-elif __name__ == "arifos_mcp":
-    sys.modules.setdefault("arifosmcp", sys.modules[__name__])
+__version__ = "2026.04.24-KANON"
+__author__ = "Muhammad Arif bin Fazil"
+__license__ = "AGPL-3.0-only"
