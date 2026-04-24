@@ -1,0 +1,75 @@
+{
+  "$schema": "https://modelcontextprotocol.io/specification",
+  "server_info": {
+    "name": "arifOS MCP",
+    "version": "2026.04.19-UNIFIED",
+    "description": "Constitutional governance kernel MCP. Enforces F1-F13 floors, VAULT999 audit, 888_HOLD human veto. 13 canonical tools."
+  },
+  "source": {
+    "path": "arifosmcp/server.py",
+    "entrypoint": "mcp",
+    "repo": "https://github.com/ariffazil/arifOS",
+    "repo_path": "/opt/arifos/src/arifOS"
+  },
+  "environment": {
+    "runtime": "python",
+    "python_version": ">=3.12",
+    "package_manager": "uv",
+    "dependencies": [
+      "fastmcp>=3.0,<4.0",
+      "uvicorn",
+      "fastapi>=0.100.0",
+      "pydantic>=2.0"
+    ]
+  },
+  "deployment": {
+    "transport": "streamable-http",
+    "endpoint": "https://mcp.arif-fazil.com/mcp",
+    "port": 8080,
+    "container": "arifosmcp",
+    "docker_image": "ariffazil/arifosmcp:latest"
+  },
+  "capabilities": {
+    "tools": {
+      "count": 13,
+      "list_endpoint": "/tools",
+      "call_endpoint": "/tools/{tool_name}"
+    },
+    "resources": {
+      "enabled": true,
+      "list_endpoint": "/resources"
+    },
+    "prompts": {
+      "enabled": true,
+      "list_endpoint": "/prompts"
+    }
+  },
+  "tools": [
+    {"name": "arifos_init", "stage": "000_INIT", "lane": "PSI"},
+    {"name": "arifos_vault", "stage": "999_VAULT", "lane": "PSI"},
+    {"name": "arifos_sense", "stage": "111_SENSE", "lane": "DELTA"},
+    {"name": "arifos_heart", "stage": "666_HEART", "lane": "OMEGA"},
+    {"name": "arifos_forge", "stage": "010_FORGE", "lane": "DELTA"},
+    {"name": "arifos_mind", "stage": "333_MIND", "lane": "DELTA"},
+    {"name": "arifos_judge", "stage": "888_JUDGE", "lane": "PSI"},
+    {"name": "arifos_kernel", "stage": "444_ROUTER", "lane": "DELTA/PSI"},
+    {"name": "arifos_ops", "stage": "777_OPS", "lane": "DELTA"},
+    {"name": "arifos_memory", "stage": "555_MEMORY", "lane": "OMEGA"},
+    {"name": "arifos_fetch", "stage": null, "lane": null},
+    {"name": "arifos_reply", "stage": null, "lane": null},
+    {"name": "arifos_gateway", "stage": "888_OMEGA", "lane": "OMEGA"}
+  ],
+  "constitutional_floors": {
+    "count": 13,
+    "hard": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
+    "soft": ["F3", "F4", "F5", "F7", "F8", "F12"]
+  },
+  "endpoints": {
+    "mcp": "https://mcp.arif-fazil.com/mcp",
+    "health": "https://mcp.arif-fazil.com/health",
+    "tools": "https://mcp.arif-fazil.com/tools",
+    "metrics": "https://mcp.arif-fazil.com/metrics/json",
+    "openapi": "https://mcp.arif-fazil.com/openapi.json",
+    "server_manifest": "https://mcp.arif-fazil.com/.well-known/mcp/server.json"
+  }
+}

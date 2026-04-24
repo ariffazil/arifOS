@@ -34,10 +34,10 @@ RUN python -m pip install --upgrade pip && \
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
 RUN pip install --no-cache-dir itsdangerous fastapi uvicorn redis python-multipart psutil
-RUN sed -i "140,142s/^                    /                    # /" /usr/local/lib/python3.12/site-packages/fastmcp/tools/function_parsing.py
-RUN sed -i "140i\                    pass" /usr/local/lib/python3.12/site-packages/fastmcp/tools/function_parsing.py
-RUN sed -i "138s/raise ValueError(/pass #/" /usr/local/lib/python3.12/site-packages/fastmcp/tools/function_parsing.py
-RUN sed -i "138i\                    pass" /usr/local/lib/python3.12/site-packages/fastmcp/tools/function_parsing.py
+RUN pip install --no-cache-dir "fastapi>=0.100.0"
+# NOTE: fastmcp >=3.2.4 function_parsing.py is fragile.
+# Do NOT patch it with sed — use a pinned version or upstream fix instead.
+# If you hit "invalid syntax", rebuild with: docker build --no-cache .
 
 # Remove pip-installed arifosmcp from site-packages to avoid conflict with /usr/src/app source
 RUN rm -rf /usr/local/lib/python3.12/site-packages/arifosmcp*
