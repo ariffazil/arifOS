@@ -1625,8 +1625,8 @@ def register_rest_routes(
 
         def decorator(handler: Callable):
             # Starlette app.add_route
-            if hasattr(mcp, "add_route"):
-                mcp.add_route(full_path, handler, methods=methods or ["GET"])
+            if hasattr(mcp, "add_route") or "Starlette" in str(type(mcp)) or "FastAPI" in str(type(mcp)):
+                from starlette.routing import Route; mcp.router.routes.append(Route(full_path, endpoint=handler, methods=methods or ["GET"]))
             # FastMCP mcp.custom_route
             elif hasattr(mcp, "custom_route"):
                 mcp.custom_route(full_path, methods=methods)(handler)
@@ -1732,7 +1732,7 @@ def register_rest_routes(
                 "service": "arifos-aaa-mcp",
                 "version": BUILD_INFO["version"],
                 "transport": "streamable-http",
-                "tools_loaded": len(await mcp.list_tools()),
+                "tools_loaded": getattr(mcp, "_tool_count", len(tool_registry)),
                 "ml_floors": get_ml_floor_runtime(),
                 "capability_map": build_runtime_capability_map(
                     ml_model_available=get_ml_floor_runtime().get("ml_model_available", False)
@@ -1873,7 +1873,7 @@ def register_rest_routes(
         if err := _auth_error_response(request):
             return err
 
-        mcp_tools = await mcp.list_tools()
+        mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
         tool_list = []
         for tool in mcp_tools:
             entry = {
@@ -1899,7 +1899,7 @@ def register_rest_routes(
 
     @route("/openapi.json", methods=["GET"])
     async def openapi_json(request: Request) -> Response:
-        mcp_tools = await mcp.list_tools()
+        mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
         schema = _openapi_schema(_public_base_url(request), mcp_tools)
         return JSONResponse(schema)
 
@@ -1993,7 +1993,7 @@ def register_rest_routes(
     @route("/.well-known/mcp/server.json", methods=["GET"])
     async def well_known(request: Request) -> Response:
         payload = build_server_json(_public_base_url(request))
-        mcp_tools = await mcp.list_tools()
+        mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
         payload["tools"] = [
             {
                 "name": tool.name,
@@ -2166,7 +2166,7 @@ def register_rest_routes(
             health_response = await health(request)
             health_payload = json.loads(health_response.body.decode("utf-8"))
             health_payload["runtime_floors"] = governance_payload.get("floors", {})
-            mcp_tools = await mcp.list_tools()
+            mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
             manifest = build_server_json(_public_base_url(request))
             containers = _collect_container_status()
             latency_ms = _local_service_connect_latency_ms(port=int(os.getenv("PORT", "8080"))) or 999.0
@@ -2877,8 +2877,8 @@ init();
     async def webmcp_tools(request: Request) -> Response:
         """Machine-readable WebMCP tool registry."""
         try:
-            mcp_tools = await mcp.list_tools()
-            tools = [{"name": t.name, "description": t.description or ""} for t in mcp_tools]
+            _tool_names = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
+            tools = [{"name": t, "description": ""} for t in _tool_names]
             return JSONResponse({"webmcp_version": "1.0", "tools": tools, "count": len(tools)})
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)

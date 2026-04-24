@@ -223,6 +223,10 @@ try:
     v2_resources_registered = register_resources(mcp)
     v2_routes_registered = register_rest_routes(mcp, CANONICAL_TOOL_HANDLERS)
 
+    # Attach tool registry to mcp for safe runtime access (avoids StarletteWithLifespan wrapper issues)
+    mcp._tool_registry = list(CANONICAL_TOOL_HANDLERS.keys())
+    mcp._tool_count = len(v2_tools_registered)
+
     # Register Prefab MCP Apps (arifOS Metabolic Monitor)
     try:
         from arifosmcp.apps.metabolic_monitor import _register as _register_monitor
