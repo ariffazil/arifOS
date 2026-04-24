@@ -56,6 +56,63 @@ These filenames are hard-coded in deployment manifests, MCP client configs, buil
 
 ---
 
+## arifOS Ontological Stack (v2026.04.24)
+
+The architecture is defined by three orthogonal axes:
+
+| Axis | Symbol | Meaning |
+|------|--------|---------|
+| **Workflow** | 000–999 | Time axis — the session pipeline (INIT→SENSE→MIND→HEART→FORGE→JUDGE→SEAL) |
+| **Law** | F1–F13 | Constraint axis — constitutional interceptors that wrap all levels |
+| **Modality** | AGI / ASI / APEX | Cognitive tiers — how intelligence operates at different resolutions |
+
+### The 7-Layer Stack
+
+| Level | Name | Role | Scope |
+|-------|------|------|-------|
+| L6 | **Sovereign** | Human authority (Arif) | Master veto, identity anchor |
+| L5 | **APEX** | Authority binding | Actor verification, capability validation, SEAL authorization |
+| L4 | **ASI** | Judgment / Orthogonality | Cross-domain reasoning, floor interpretation, risk estimation (stage 888) |
+| L3 | **AGI** | Execution / Skills | Tool syntax, workflow movement, error repair, local optimization (stages 000–777) |
+| L2 | **Tools** | Bounded authority portals | 13 canonical prisms with typed I/O and audit accountability |
+| L1 | **Infrastructure** | Substrate | Docker, Caddy, Qdrant, Redis, PostgreSQL |
+| L0 | **Physics** | Base reality | VPS, network, filesystem |
+
+### Cognitive Trinity Definitions
+
+- **AGI (Mechanism Intelligence):** Tactical execution. Cannot issue SEAL, override floors, or self-authorize Forge.
+- **ASI (Constraint-Aware Intelligence):** Strategic evaluation. Cannot execute Forge, modify Law, or alter Vault retroactively.
+- **APEX (Authority Resolution):** Identity-authority projection. Validates actor binding + capability token. APEX *authorizes* 999; Vault *handles* 999 persistence.
+
+### Conflict Resolution Protocol (CRP v1.0)
+
+Disagreement is a Stability Event, not a failure. Resolution follows the Unidirectional Authority Chain:
+
+1. **AGI proposes** → emits `CandidateAction + CapabilityClaim`
+2. **ASI evaluates** → checks Ω_ortho + Floor compliance → emits `VerdictCode` (SEAL / SABAR / VOID)
+3. **APEX authorizes** → validates `ActorBinding` + `CapabilityToken` → rotates key to write SEAL
+
+**Disagreement Matrix:**
+
+| Conflict | Mechanism | Result |
+|----------|-----------|--------|
+| AGI wants act vs ASI detects high risk | Inhibitor Gate: ASI overrides AGI | 888_HOLD (SABAR) |
+| ASI issues SEAL vs APEX identity mismatch | Identity Gate: APEX blocks auth | 888_HOLD (AUTH_FAIL) |
+| All agree vs LAW floor breach | Circuit Breaker: F1–F13 interceptor kills process | VOID (HALT) |
+| Sovereign vs ALL | Master Veto: L6 injects forced state | MANUAL_SEAL |
+
+### What Is NOT a Tool
+
+- **F1–F13:** Interceptors (axioms), not callable functions
+- **VAULT999:** Ledger substrate — tools write to it, it is not a tool
+- **Trinity (PSI/DELTA/OMEGA):** Cognitive lanes, not executable
+- **Organs (WELL/WEALTH/GEOX):** Domain substrates (biology, capital, earth)
+- **Ω_ortho / AC_Risk / ClaimTag:** Evaluative invariants, not tools
+- **Constitution / Machine Law:** Meta-structure and physics of the federation
+- **ARIF.md:** Descriptive metabolic memory, not functional utility
+
+---
+
 # FULL AGENT LOOP (MANDATORY)
 
 > **NON-NEGOTIABLE** — This is how ALL agents operate, forever.

@@ -53,7 +53,17 @@
 - ARIF.md bloat wars: v2.0 506 lines → Gold Seal v1.0 lean
 - Strange Loop: tool-augmented agent > raw LLM at governance execution
 
-## 7. NEXT MOVES
+## 7. ONTOLOGY (v2026.04.24)
+
+- **Workflow** = Time Axis (000–999) — session pipeline
+- **Law** = Constraint Axis (F1–F13) — wraps all levels
+- **AGI** = Execution (000–777) — tactical, cannot SEAL
+- **ASI** = Judgment (888) — strategic, floor enforcement
+- **APEX** = Authority (999 auth) — identity binding, capability validation
+- **Capability** = Identity Reach — permission set of actor
+- **CRP v1.0:** AGI proposes → ASI evaluates → APEX authorizes → Vault persists
+
+## 8. NEXT MOVES
 
 - [ ] Review pre-existing test failures (constitutional_guard, diag_trace)
 - [ ] Build fresh arifosmcp image (remove compose override bind-mount)
