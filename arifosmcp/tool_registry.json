@@ -1,6 +1,25 @@
 {
-  "_note": "DEPRECATED — This 11-tool stub is superseded by tool_registry_v2.json (99-tool canonical registry, EPOCH-2026-04-16-W3-RECONCILE). Do not load this file for tool discovery. See TOOL_NAMESPACING.md for public API boundary.",
-  "_redirect": "tool_registry_v2.json",
-  "_deprecated_at": "2026-04-17",
-  "_deprecated_reason": "Replaced by 99-tool tier architecture (T00-T07). arifos_route removed — routing is now handled by arifos_kernel (T00_06). The 11-tool surface is preserved as the PUBLIC API layer; see TOOL_NAMESPACING.md."
+  "schema": "arifOS_SSCT_v1.0",
+  "version": "2026.04.24-KANON",
+  "canonical_count": 13,
+  "tiers": {
+    "PSI": ["arifos_init", "arifos_vault", "arifos_judge", "arifos_reply"],
+    "DELTA": ["arifos_sense", "arifos_mind", "arifos_forge", "arifos_kernel", "arifos_ops", "arifos_memory", "arifos_fetch"],
+    "OMEGA": ["arifos_heart", "arifos_gateway"]
+  },
+  "tools": [
+    {"name": "arifos_init", "stage": "000_INIT", "mode_parameter": "mode"},
+    {"name": "arifos_vault", "stage": "999_VAULT", "mode_parameter": "verdict"},
+    {"name": "arifos_sense", "stage": "111_SENSE", "mode_parameter": "mode"},
+    {"name": "arifos_mind", "stage": "333_MIND", "mode_parameter": "mode"},
+    {"name": "arifos_heart", "stage": "666_HEART", "mode_parameter": "mode"},
+    {"name": "arifos_judge", "stage": "888_JUDGE", "mode_parameter": "query"},
+    {"name": "arifos_kernel", "stage": "444_KERNEL", "mode_parameter": "mode"},
+    {"name": "arifos_ops", "stage": "444_KERNEL", "mode_parameter": "mode"},
+    {"name": "arifos_memory", "stage": "555_MEM", "mode_parameter": "mode"},
+    {"name": "arifos_fetch", "stage": "111_SENSE", "mode_parameter": "url"},
+    {"name": "arifos_forge", "stage": "777_FORGE", "mode_parameter": "action"},
+    {"name": "arifos_reply", "stage": "000_INIT", "mode_parameter": "text"},
+    {"name": "arifos_gateway", "stage": "444_KERNEL", "mode_parameter": "mode"}
+  ]
 }

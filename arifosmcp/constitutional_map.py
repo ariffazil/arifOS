@@ -177,3 +177,39 @@ def get_public_tool_specs() -> dict[str, str]:
     for tool_key, tool_data in CONSTITUTIONAL_TOOLS.items():
         specs[tool_key] = tool_data["description"]
     return specs
+
+
+# ─── Canonical Enums (v2026.04.24-KANON) ────────────────────────────────────
+# Appended to unify VerdictCode, SacredStage, and FloorId across the federation.
+
+class VerdictCode(str, Enum):
+    SEAL = "SEAL"       # Approved / Committed
+    SABAR = "SABAR"     # 888 HOLD / Pause
+    VOID = "VOID"       # Forbidden / Intercepted
+    PARTIAL = "PARTIAL" # Degraded / Caution
+
+class SacredStage(str, Enum):
+    INIT = "000_INIT"
+    SENSE = "111_SENSE"
+    MIND = "333_MIND"
+    KERNEL = "444_KERNEL"
+    MEM = "555_MEM"
+    HEART = "666_HEART"
+    FORGE = "777_FORGE"
+    JUDGE = "888_JUDGE"
+    VAULT = "999_VAULT"
+
+class FloorId(str, Enum):
+    F1 = "F1_AMANAH"
+    F2 = "F2_TRUTH"
+    F3 = "F3_PEACE"
+    F4 = "F4_DELTAS"
+    F5 = "F5_WITNESS"
+    F6 = "F6_EMPATHY"
+    F7 = "F7_OMEGA0"
+    F8 = "F8_LEDGER"
+    F9 = "F9_ANTIHANTU"
+    F10 = "F10_COHERENCE"
+    F11 = "F11_SABAR"
+    F12 = "F12_PHOENIX"
+    F13 = "F13_KHILAFAH"
