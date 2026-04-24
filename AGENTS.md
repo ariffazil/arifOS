@@ -46,10 +46,11 @@ These filenames are hard-coded in deployment manifests, MCP client configs, buil
 | `mcp-arifos.json` | Canonical MCP server config (transport, port, constitutional metadata) | **Tier A** |
 | `pyproject.toml` | Python package metadata & dependency contract | **Tier A** |
 | `Dockerfile` | Container image build contract | **Tier A** |
-| `docker-compose.yml` | Local/self-hosted stack definition | **Tier A** |
+| `docker-compose.yml` | Local/self-hosted stack definition (repo root) | **Tier A** |
+| `/etc/arifos/compose/docker-compose.yml` | Federation-wide stack definition (Machine Law) | **Tier A** |
 | `AGENTS.md` | Repo governance & behavioral contract | **Tier A** |
-| `toolregistry.json` | Canonical constitutional tool registry (SSCT) — *currently missing from repo, planned* | **Tier A** |
-| `constitutionalmap.py` | Enum-based constitutional definitions — *currently missing from repo, planned* | **Tier A** |
+| `arifosmcp/tool_registry.json` | Canonical constitutional tool registry (SSCT) | **Tier A** |
+| `arifosmcp/constitutional_map.py` | Enum-based constitutional definitions | **Tier A** |
 
 > **F10 Coherence:** If a file in this registry is relocated, the migration must update `mcp-arifos.json`, `Dockerfile`, `docker-compose.yml`, and any external MCP client configs (e.g., OpenClaw) in the same commit.
 
