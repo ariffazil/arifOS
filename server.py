@@ -188,8 +188,8 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
         return fallback_handler
 
     @functools.wraps(original_handler)
-    async def wrapper(req: dict[str, Any]):
-        bound = sig.bind(**req)
+    async def wrapper(**kwargs):
+        bound = sig.bind(**kwargs)
         bound.apply_defaults()
         return await _invoke_original(dict(bound.arguments))
 
