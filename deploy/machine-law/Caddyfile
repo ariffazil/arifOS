@@ -1,0 +1,23 @@
+# GEOX static site + MCP proxy
+geox.arif-fazil.com {
+    encode zstd gzip
+    root * /var/www/html/geox
+    handle /.well-known/* {
+        file_server
+    }
+    reverse_proxy /mcp* geox:8081
+    file_server
+    templates
+}
+
+# arifOS MCP server
+mcp.arif-fazil.com {
+    encode zstd gzip
+    reverse_proxy /* arifosmcp:8080
+}
+
+# AAA service gateway
+aaa.arif-fazil.com {
+    encode zstd gzip
+    reverse_proxy aaa-a2a:3001
+}
