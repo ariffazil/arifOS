@@ -92,7 +92,10 @@ All named `arif_<noun>_<verb>`:
 ## Safety defaults
 
 - Do not dump secrets or large private directories into chat
-- **RULE: DOCKER_PRUNE_RESTRICTION** — Never run `docker system prune` or `docker volume prune` without an explicit `888_HOLD` and human confirmation. Irreversible data loss risk is CRITICAL.
+- **SAFETY MANIFEST v1.0 (3-Point Hard Gate):**
+  1. **RULE: DOCKER_PRUNE_RESTRICTION** — Never run `docker system prune` or `docker volume prune` without an explicit `888_HOLD` and human confirmation. Irreversible data loss risk is CRITICAL.
+  2. **RULE: VOLUME_WITNESS_LOCK** — All volume deletions must be witnessed by a secondary audit tool or human. Propose, do not decree.
+  3. **RULE: SWAP_RESOURCE_GUARD** — Any operation involving system-level resource cleanup must first verify swap/RAM usage to prevent misdiagnosis of system health.
 - Do not run destructive commands unless explicitly approved
 - Do not send partial or half-baked replies to messaging surfaces
 - Do not take external/public actions without clear user intent
