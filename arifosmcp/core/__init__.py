@@ -1,21 +1,11 @@
 """
-arifosmcp.core — Constitutional Kernel Core
-════════════════════════════════════════════
-
-Ditempa Bukan Diberi — Intelligence is forged, not given.
+arifosmcp/core/ — Legacy redirect.
+Canonical core is at repository root: /core/
+arifosmcp/core/floors.py and core/governance_kernel.py are kept for
+backwards compatibility only; new code should import from root /core/
 """
-from arifosmcp.core.floors import (
-    FLOOR_DESCRIPTIONS,
-    ConstitutionalViolation,
-    check_floors,
-    get_floor_status,
-    get_tool_floors,
-)
-
-__all__ = [
-    "FLOOR_DESCRIPTIONS",
-    "ConstitutionalViolation",
-    "check_floors",
-    "get_floor_status",
-    "get_tool_floors",
-]
+from core import *  # noqa: F401,F403
+from core.floors import *  # noqa: F401,F403
+from core.governance_kernel import *  # noqa: F401,F403
+from core.judgment import *  # noqa: F401,F403
+from core.uncertainty_engine import *  # noqa: F401,F403
