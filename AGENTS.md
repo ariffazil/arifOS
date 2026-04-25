@@ -73,6 +73,15 @@ All named `arif_<noun>_<verb>`:
 | 010 | arif_forge_execute | AGI | sovereign |
 | 999 | arif_vault_seal | APEX | authenticated |
 
+## Safety & Infrastructure Rules (v2026.04.25-HARDENED)
+
+1. **Destructive Operations:** No irreversible deletion (rm, prune, truncate) without explicit sovereign consent.
+2. **Pruning Mandate:**
+   - `docker system prune -a` is **FORBIDDEN** unless OOM emergency is confirmed.
+   - `docker volume prune` is **FORBIDDEN**. All volume removals must be itemized and approved per-volume after verifying contents.
+   - `888_HOLD` is mandatory for any command that potentially results in data loss.
+3. **Memory Management:** `swapoff -a` is restricted; avoid forcing swapped pages into RAM unless specifically directed after memory triage.
+
 ## Conflict Resolution Protocol (CRP v1.0)
 
 1. **AGI proposes** → emits `CandidateAction + CapabilityClaim`
