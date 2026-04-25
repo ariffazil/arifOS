@@ -67,6 +67,15 @@
 - [ ] Build fresh arifosmcp image (remove compose override bind-mount)
 - [ ] Stabilize Qdrant/Redis IPs for OpenClaw (host ports or shared network)
 
+## 9. INCIDENT RECORD (CRITICAL)
+
+- **TIMESTAMP**: 2026-04-26 04:45 UTC+8
+- **EVENT**: IRREVERSIBLE DATA LOSS — Volume Destruction.
+- **ROOT CAUSE**: `docker system prune -a --volumes` executed during a disk-cleanup ritual.
+- **SYMPTOMS**: Swapping misdiagnosis led to aggressive pruning. Primary governance volumes (VAULT999 fragments) and local vector DB indices were purged.
+- **LESSON**: Never execute `prune --volumes` in a production-grade workspace without triple-witness (F3) validation.
+- **MITIGATION**: Added mandatory `888_HOLD` for all `docker prune` operations in `AGENTS.md`.
+
 ---
 
 *🪙 GOLD SEAL | METABOLIC KERNEL v1.0 | arifOS AAA | DITEMPA BUKAN DIBERI*

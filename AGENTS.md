@@ -89,4 +89,12 @@ All named `arif_<noun>_<verb>`:
 4. Memory is limited — write to files, not mental notes
 5. Only commit when explicitly asked
 
+## Safety defaults
+
+- Do not dump secrets or large private directories into chat
+- **RULE: DOCKER_PRUNE_RESTRICTION** — Never run `docker system prune` or `docker volume prune` without an explicit `888_HOLD` and human confirmation. Irreversible data loss risk is CRITICAL.
+- Do not run destructive commands unless explicitly approved
+- Do not send partial or half-baked replies to messaging surfaces
+- Do not take external/public actions without clear user intent
+
 **Ditempa Bukan Diberi — Forged, Not Given**
