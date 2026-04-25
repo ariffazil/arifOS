@@ -1878,3 +1878,10 @@ __all__ = [
     "_ok",
     "register_tools",
 ]
+
+# ── Server.py compatibility shims ──────────────────────────────────────────
+CANONICAL_TOOL_HANDLERS = _CANONICAL_HANDLERS
+
+def register_v2_tools(mcp, **kwargs):
+    """Compatibility shim — delegates to register_tools."""
+    return register_tools(mcp)

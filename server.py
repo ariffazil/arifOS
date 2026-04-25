@@ -477,6 +477,7 @@ async def horizon_metadata(request: Request) -> JSONResponse:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 app = mcp.http_app(stateless_http=True)
+app.add_route("/metadata", horizon_metadata)
 app.add_middleware(GlobalPanicMiddleware)
 app.add_middleware(CSPMiddleware)
 app.add_middleware(SovereignHandshakeMiddleware)
