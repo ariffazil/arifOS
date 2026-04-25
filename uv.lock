@@ -112,7 +112,7 @@ requires-dist = [
     { name = "cryptography", specifier = "==46.0.7" },
     { name = "ddgs", specifier = ">=9.5.4" },
     { name = "fastapi", specifier = "==0.136.1" },
-    { name = "fastmcp", specifier = "==3.2.4" },
+    { name = "fastmcp", specifier = "==3.1.0" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "itsdangerous", specifier = ">=2.0.0" },
     { name = "mcp", specifier = "==1.27.0" },
