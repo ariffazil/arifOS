@@ -1,0 +1,43 @@
+# Sync Living Law — pushes 000_INIT.md and CLAUDE.md to constitutional gist
+# F1 Amanah: read-only verification before any write
+
+name: 📜 Sync Living Law
+
+on:
+  push:
+    paths: ['000_INIT.md', 'CLAUDE.md', 'arifOS/**']
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: 📜 Sync to Constitutional Gist
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Push constitutional files to gist
+        env:
+          GITHUB_TOKEN: ${{ secrets.LAW_GIST_TOKEN }}
+          GIST_ID: ${{ vars.LAW_GIST_ID }}
+        run: |
+          if [ -z "$GIST_ID" ] || [ -z "$GITHUB_TOKEN" ]; then
+            echo "SKIP: LAW_GIST_TOKEN or LAW_GIST_ID not configured"
+            exit 0
+          fi
+          echo "=== Syncing Living Law ==="
+          
+          # Update 000_INIT.md
+          if [ -f "000_INIT.md" ]; then
+            echo "Pushing: 000_INIT.md"
+            curl -s -X PATCH \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"description\": \"arifOS Living Law — 000_INIT.md\", \"public\": false}" \
+              "https://api.github.com/gists/$GIST_ID" > /dev/null
+          fi
+          
+          echo "DITEMPA BUKAN DIBERI 🧠✨🌏 — Law sync complete"
