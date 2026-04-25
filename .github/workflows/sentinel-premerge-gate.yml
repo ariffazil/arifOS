@@ -1,0 +1,241 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS-sentinel Pre-Merge Semantic Gate
+# Binary PASS / BLOCK for every PR to main
+# Answers only 3 questions. No suggestions. No fixes.
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: "🛡️ Sentinel Gate"
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  # ─── Question 1: Did critical paths change? ───────────────────────────
+  q1-critical-paths:
+    name: "Q1 — Critical Paths"
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.scan.outputs.critical_changed }}
+      files: ${{ steps.scan.outputs.critical_files }}
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed critical paths
+        id: scan
+        run: |
+          CRITICAL_PATHS=(
+            "arifosmcp/constitutional_map.py"
+            "arifosmcp/core/governance_kernel.py"
+            "arifosmcp/runtime/models.py"
+            "arifosmcp/schemas/verdict.py"
+            "arifosmcp/tool_registry.json"
+            "pyproject.toml"
+          )
+
+          CRITICAL_CHANGED=""
+          CRITICAL_FILES=""
+
+          for f in "${CRITICAL_PATHS[@]}"; do
+            if git diff --exit-code HEAD^ -- "$f" 2>/dev/null; then
+              : # unchanged
+            else
+              if [[ -n "$CRITICAL_CHANGED" ]]; then
+                CRITICAL_CHANGED="$CRITICAL_CHANGED,$f"
+                CRITICAL_FILES="$CRITICAL_FILES\n  - $f (MODIFIED)"
+              else
+                CRITICAL_CHANGED="yes"
+                CRITICAL_FILES="  - $f (MODIFIED)"
+              fi
+            fi
+          done
+
+          echo "critical_changed=$CRITICAL_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "critical_files=$CRITICAL_FILES" >> "$GITHUB_OUTPUT"
+
+          if [[ "$CRITICAL_CHANGED" == "yes" ]]; then
+            echo "::notice::Q1 ALERT: Critical path files modified"
+          else
+            echo "::notice::Q1 PASS: No critical paths modified"
+          fi
+
+  # ─── Question 2: README ↔ registry ↔ code drift? ──────────────────────
+  q2-sot-drift:
+    name: "Q2 — README SOT Drift"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check SOT drift
+        id: sot
+        run: |
+          DRIFT_FOUND="no"
+
+          # Check if README has SOT markers
+          if grep -q "SOT:tool_surface\|SOT:version_info" README.md 2>/dev/null; then
+            echo "README has SOT markers — running audit..."
+
+            # Check tool_registry.json exists
+            if [[ -f "arifosmcp/tool_registry.json" ]]; then
+              README_TOOLS=$(grep -oP 'arif_\w+' README.md | sort -u | wc -l)
+              REGISTRY_TOOLS=$(python3 -c "import json; d=json.load(open('arifosmcp/tool_registry.json')); print(len(d) if isinstance(d,dict) else len(d.get('tools',[])))" 2>/dev/null || echo "0")
+
+              if [[ "$README_TOOLS" != "$REGISTRY_TOOLS" ]]; then
+                echo "DRIFT: README has $README_TOOLS tools, registry has $REGISTRY_TOOLS"
+                DRIFT_FOUND="yes"
+              fi
+            fi
+          else
+            echo "No SOT markers in README — skipping"
+          fi
+
+          echo "drift_found=$DRIFT_FOUND" >> "$GITHUB_OUTPUT"
+          echo "drift_found=$DRIFT_FOUND"
+
+          if [[ "$DRIFT_FOUND" == "yes" ]]; then
+            echo "::warning::Q2 DRIFT: README ↔ registry mismatch"
+          else
+            echo "::notice::Q2 PASS: No SOT drift detected"
+          fi
+
+  # ─── Question 3: Invariant violations? ────────────────────────────────
+  q3-invariants:
+    name: "Q3 — Invariants"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check invariant violations
+        id: invariants
+        run: |
+          VIOLATIONS=""
+
+          # Check: tool_registry.json format validity
+          if [[ -f "arifosmcp/tool_registry.json" ]]; then
+            if ! python3 -c "import json; json.load(open('arifosmcp/tool_registry.json'))" 2>/dev/null; then
+              VIOLATIONS="${VIOLATIONS}\n  - tool_registry.json is invalid JSON"
+            fi
+          fi
+
+          # Check: 13-tool canonical count
+          if [[ -f "arifosmcp/tool_registry.json" ]]; then
+            COUNT=$(python3 -c "import json; d=json.load(open('arifosmcp/tool_registry.json')); print(len(d) if isinstance(d,dict) else len(d.get('tools',[])))" 2>/dev/null)
+            if [[ "$COUNT" != "13" ]]; then
+              VIOLATIONS="${VIOLATIONS}\n  - tool count is $COUNT, expected 13"
+            fi
+          fi
+
+          # Check: no new irreversible actions without approval
+          DESTRUCTIVE=$(git diff HEAD^ --name-only | grep -iE "delete|remove|drop|truncate" | grep -v "README\|CHANGELOG" || true)
+          if [[ -n "$DESTRUCTIVE" ]]; then
+            VIOLATIONS="${VIOLATIONS}\n  - Potentially destructive changes: $DESTRUCTIVE"
+          fi
+
+          echo "violations=${VIOLATIONS:-none}" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$VIOLATIONS" ]]; then
+            echo "::error::Q3 VIOLATION: $VIOLATIONS"
+          else
+            echo "::notice::Q3 PASS: No invariant violations"
+          fi
+
+  # ─── Final Gate: PASS or BLOCK ─────────────────────────────────────────
+  gate:
+    name: "🛡️ Sentinel Verdict"
+    runs-on: ubuntu-latest
+    needs: [q1-critical-paths, q2-sot-drift, q3-invariants]
+    if: always()
+
+    steps:
+      - name: Compute verdict
+        id: verdict
+        run: |
+          Q1=${{ needs.q1-critical-paths.outputs.changed }}
+          Q2=${{ needs.q2-sot-drift.outputs.drift_found }}
+          Q3="${{ needs.q3-invariants.outputs.violations }}"
+
+          BLOCK_REASON=""
+
+          if [[ "$Q1" == "yes" ]]; then
+            BLOCK_REASON="${BLOCK_REASON}\n⚠️ Q1 FAILED: Critical paths modified without review"
+          fi
+
+          if [[ "$Q2" == "yes" ]]; then
+            BLOCK_REASON="${BLOCK_REASON}\n⚠️ Q2 FAILED: README ↔ registry drift detected"
+          fi
+
+          if [[ "$Q3" != "" && "$Q3" != "none" ]]; then
+            BLOCK_REASON="${BLOCK_REASON}\n⚠️ Q3 FAILED: $Q3"
+          fi
+
+          if [[ -z "$BLOCK_REASON" ]]; then
+            echo "VERDICT=PASS" >> "$GITHUB_OUTPUT"
+            echo "VERDICT=PASS"
+          else
+            echo "VERDICT=BLOCK" >> "$GITHUB_OUTPUT"
+            echo "VERDICT=BLOCK"
+            echo "BLOCK_REASON=${BLOCK_REASON}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post PR verdict comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const verdict = '${{ steps.verdict.outputs.VERDICT }}';
+            const reason = '${{ steps.verdict.outputs.BLOCK_REASON }}' || '';
+            const prNumber = context.payload.pull_request.number;
+            const repo = context.repo;
+
+            const body = verdict === 'PASS'
+              ? `## 🛡️ arifOS-sentinel: PASS\n\nNo invariant violations detected. PR is clear to merge.`
+              : `## 🛡️ arifOS-sentinel: VOID — BLOCKED\n\n\`\`\`\n${reason}\n\`\`\`\n\n**This PR cannot merge until the above violations are resolved.**`;
+
+            await github.rest.issues.createComment({
+              ...repo,
+              issue_number: prNumber,
+              body: body
+            });
+
+      - name: Set PR status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const verdict = '${{ steps.verdict.outputs.VERDICT }}';
+            const sha = context.payload.pull_request.head.sha;
+
+            const status = verdict === 'PASS' ? 'success' : 'failure';
+            const description = verdict === 'PASS'
+              ? 'Sentinel Gate: PASS — no violations'
+              : 'Sentinel Gate: BLOCKED — invariant violations';
+
+            await github.rest.repos.createCommitStatus({
+              ...context.repo,
+              sha: sha,
+              state: status,
+              target_url: 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions',
+              description: description,
+              context: 'arifOS-sentinel/gate'
+            });
+
+      - name: Fail if blocked
+        if: steps.verdict.outputs.VERDICT == 'BLOCK'
+        run: |
+          echo "::error::SENTINEL VOID — PR blocked by arifOS-sentinel"
+          exit 1
