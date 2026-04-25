@@ -154,11 +154,68 @@ jobs:
             echo "::notice::Q3 PASS: No invariant violations"
           fi
 
+  # ─── Question 4: arifos.yml Constitutional Manifest ───────────────────
+  q4-manifest:
+    name: "Q4 — Constitutional Manifest"
+    runs-on: ubuntu-latest
+    outputs:
+      has_manifest: ${{ steps.manifest.outputs.has_manifest }}
+      risk_tier: ${{ steps.manifest.outputs.risk_tier }}
+      veto_holder: ${{ steps.manifest.outputs.veto_holder }}
+      manifest_pass: ${{ steps.manifest.outputs.manifest_pass }}
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect arifos.yml manifest
+        id: manifest
+        run: |
+          if [[ -f "arifos.yml" ]]; then
+            echo "has_manifest=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Q4: arifos.yml manifest detected"
+          else
+            echo "has_manifest=false" >> "$GITHUB_OUTPUT"
+            echo "manifest_pass=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Q4: No arifos.yml — non-constitutional PR, skipping"
+            exit 0
+          fi
+
+          # Parse manifest with python (no yq dependency)
+          python3 << 'PYEOF'
+          import sys, yaml, os
+          try:
+              with open('arifos.yml') as f:
+                  m = yaml.safe_load(f)
+              agent = m.get('agent', {}).get('name', 'unknown')
+              risk = m.get('constitutional', {}).get('max_risk_tier', 'unknown')
+              veto = m.get('constitutional', {}).get('veto_holder', 'unknown')
+              print(f"agent={agent}")
+              print(f"risk_tier={risk}")
+              print(f"veto_holder={veto}")
+
+              # F11 check: veto_holder must be defined
+              if veto == 'unknown' or veto == '':
+                  print("manifest_pass=false")
+                  print("::error::Q4 F11 VIOLATION: veto_holder not defined in arifos.yml")
+              else:
+                  print("manifest_pass=true")
+                  print("::notice::Q4 PASS: Constitutional manifest valid")
+          except Exception as e:
+              print(f"manifest_pass=false")
+              print(f"::error::Q4 ERROR: Failed to parse arifos.yml: {e}")
+              sys.exit(1)
+          PYEOF
+        env:
+          risk_tier: ""
+          veto_holder: ""
+
   # ─── Final Gate: PASS or BLOCK ─────────────────────────────────────────
   gate:
     name: "🛡️ Sentinel Verdict"
     runs-on: ubuntu-latest
-    needs: [q1-critical-paths, q2-sot-drift, q3-invariants]
+    needs: [q1-critical-paths, q2-sot-drift, q3-invariants, q4-manifest]
     if: always()
 
     steps:
@@ -168,6 +225,7 @@ jobs:
           Q1=${{ needs.q1-critical-paths.outputs.changed }}
           Q2=${{ needs.q2-sot-drift.outputs.drift_found }}
           Q3="${{ needs.q3-invariants.outputs.violations }}"
+          Q4_PASS=${{ needs.q4-manifest.outputs.manifest_pass }}
 
           BLOCK_REASON=""
 
@@ -181,6 +239,10 @@ jobs:
 
           if [[ "$Q3" != "" && "$Q3" != "none" ]]; then
             BLOCK_REASON="${BLOCK_REASON}\n⚠️ Q3 FAILED: $Q3"
+          fi
+
+          if [[ "$Q4_PASS" == "false" ]]; then
+            BLOCK_REASON="${BLOCK_REASON}\n⚠️ Q4 FAILED: arifos.yml constitutional manifest invalid or veto_holder missing"
           fi
 
           if [[ -z "$BLOCK_REASON" ]]; then

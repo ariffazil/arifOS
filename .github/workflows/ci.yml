@@ -1,8 +1,24 @@
-name: arifOS CI — F2 Truth Gate
-
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS CI — F2 Truth Gate
+#
+# Test Philosophy: Every test answers "Does the system govern AI correctly?"
+#                 Not: "Does the code run?"
+#
+# Constitutional Verification:
+#   F1 Amanah    → Reversibility enforced (revert commits, branch patterns)
+#   F2 Truth     → Hallucinations blocked, type contracts verified
+#   F4 Entropy   → ΔS ≤ 0 enforced, lint/style clean
+#   F5 Peace     → Stability maintained (no destructive changes without approval)
+#   F6 Empathy   → Weakest protected
+#   F7 Humility  → Gödel band [0.03, 0.05]
+#   F8 Genius    → G† ≥ 0.80 required
+#   F11 Authority → Identity verified, secrets scan
+#
 # Runs on push/PR to main or aaa-mcp-induction.
 # Working directory: AAA/ (maps to /root/arifosmcp/ on VPS).
 # All test paths are relative to AAA/.
+# ═══════════════════════════════════════════════════════════════════════════
+
 
 on:
   push:
