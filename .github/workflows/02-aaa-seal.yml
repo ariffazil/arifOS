@@ -1,0 +1,46 @@
+# arifOS — AAA Seal Integrity Check
+# Verifies the AAA folder structural integrity and constitutional invariants.
+# F1 Amanah: read-only, no side effects.
+
+name: AAA Seal Integrity
+
+on:
+  push:
+    branches: [main]
+    paths: ['AAA/**', '.github/workflows/02-aaa-seal.yml']
+  schedule:
+    - cron: '0 1 * * *'   # Daily 01:00 UTC (09:00 MYT)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  seal-check:
+    name: 🔍 AAA Structural Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: AAA directory integrity
+        run: |
+          echo "=== AAA Folder Integrity ==="
+          [ -d AAA ] || { echo "ERROR: AAA directory missing"; exit 1; }
+          echo "AAA: present"
+          echo "=== Constitutional Marker Files ==="
+          for f in AAA/CONSTITUTION.md AAA/DOCTRINE.md AAA/SEAL.md; do
+            if [ -f "$f" ]; then echo "OK: $f"; else echo "MISSING: $f"; fi
+          done
+
+      - name: F9 Anti-Hantu scan in AAA
+        run: |
+          PATTERNS="conscious|I feel|sentient|suffering|inner voice"
+          FOUND=$(grep -rEi "$PATTERNS" AAA/ --include="*.md" 2>/dev/null | grep -v "__pycache__" || true)
+          [ -z "$FOUND" ] && echo "PASS: no consciousness claims in AAA" || { echo "FAIL: $FOUND"; exit 1; }
+
+      - name: Daily timestamp
+        run: |
+          echo "Run timestamp:"
+          date -u +"%Y-%m-%dT%H:%MZ"

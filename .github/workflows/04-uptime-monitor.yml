@@ -1,0 +1,70 @@
+# arifOS Canonical MCP Uptime Monitor
+# 888_HOLD detection + live endpoint verification
+
+name: 📡 Uptime Monitor
+
+on:
+  schedule:
+    # Run every 6 hours — reduced from hourly
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  uptime:
+    name: 🌐 Live Endpoint Health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Health check — mcp.arif-fazil.com
+        run: |
+          echo "=== Uptime Check: mcp.arif-fazil.com ==="
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mcp.arif-fazil.com/health)
+          echo "HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" = "200" ]; then
+            curl -s --max-time 10 https://mcp.arif-fazil.com/health | python3 -c "
+              import sys, json
+              d = json.load(sys.stdin)
+              print(f'Status: {d.get(\"status\",\"?\")}')
+              print(f'Tools: {d.get(\"tool_count\",\"?\")}')
+              print(f'Version: {d.get(\"version\",\"?\")}')
+            "
+          else
+            echo "ALERT: mcp.arif-fazil.com returned $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Health check — arifosmcp.arif-fazil.com (NEW routing target)
+        run: |
+          echo "=== Uptime Check: arifosmcp.arif-fazil.com ==="
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://arifosmcp.arif-fazil.com/mcp)
+          echo "HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "OK: MCP routing confirmed"
+          else
+            echo "WARNING: arifosmcp.arif-fazil.com routing not yet active (HTTP $HTTP_CODE)"
+          fi
+
+      - name: GEOX health check (critical — 888_HOLD-001)
+        run: |
+          echo "=== Uptime Check: geox.arif-fazil.com ==="
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://geox.arif-fazil.com)
+          echo "HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" = "404" ] || [ "$HTTP_CODE" = "503" ]; then
+            echo "⚠️  GEOX OFFLINE — 888_HOLD-001 still active"
+          elif [ "$HTTP_CODE" = "200" ]; then
+            echo "OK: GEOX restored"
+          else
+            echo "UNKNOWN: $HTTP_CODE"
+          fi
+
+      - name: Report
+        run: |
+          echo ""
+          echo "DITEMPA BUKAN DIBERI 🧠✨🌏"
+          echo "Run completed: $(date -u +%Y-%m-%dT%H:%MZ)"
