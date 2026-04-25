@@ -8,14 +8,13 @@
 - REPO: arifOS | CONTAINER: 2026-04-24 | CLASS: RAPID-ITERATE
 - ROLE: Constitutional Intelligence Kernel — F1–F13 enforcement, SEAL/HOLD/VOID verdicts
 
-## 1. CURRENT FOCUS
+## 1. CURRENT FOCUS (INSTRUCTION POINTER)
 
+- Hardening sovereign kernel: Model Registry (F11) wiring complete.
+- Integration: Session bootstrap (init_anchor) now performs live identity grounding.
+- Status: OPERATIONAL — Kernel-Registry wiring validated.
 - MCP Infrastructure: streamable-http transport live, OpenClaw gateway aligned
 - Tier A Registry: 13-tool canonical surface hardened (SSCT v1.0, enums aligned)
-- Stage Coherence: _TOOL_STAGE_MAP / AAA_TOOL_STAGE_MAP / SSCT drift resolved
-- Governance: constitutional_guard.py hard floors restored (bypass removed)
-- Build: Dockerfile sed patches removed, fastmcp>=3.0,<4.0, fastapi explicit
-- Status: OPERATIONAL — MCP endpoint healthy, 2/2 alignment tests passing
 
 ## 2. OPERATIONAL MANDATE
 
@@ -24,17 +23,16 @@
 
 ## 3. THE 999 SEAL (SESSION LOG)
 
-- TIMESTAMP: 2026-04-24 03:15 UTC+8 | CLERK: KIMI-CLI / HUMAN-ARIF
+- TIMESTAMP: 2026-04-26 03:20 UTC+8
+- CLERK_ID: ANTIGRAVITY-CLERK / HUMAN-ARIF
 - SEAL_SUMMARY:
-  - `mcp-arifos.json` canonical server manifest committed (streamable-http, port 8080)
-  - `tool_registry.json` SSCT v1.0 consolidated (13 tools, tiers PSI/DELTA/OMEGA)
-  - `constitutional_map.py` canonical enums appended (VerdictCode, SacredStage, FloorId)
-  - Stage alignment: 7 drifts fixed across tools.py, contracts.py, SSCT
-  - `AGENTS.md` Tier A immutable file registry added
-  - `Dockerfile` broken sed patches removed; `pyproject.toml` fastmcp dep fixed
-  - `rest_routes.py` FastMCP v3 tool resolution helpers added
-  - `constitutional_guard.py` hard floor evaluation restored
-- COMMIT: `54f5e99a1` on `origin/main`
+  - Wired `arifOS-model-registry` into `arifosmcp` kernel.
+  - Restored `architect_registry` dispatch modes (`model_catalog`, `model_profile`, `provider_soul`, `verify_identity`) in `tools_internal.py`.
+  - Implemented F11 identity grounding in `tool_01_init_anchor.py` using `ModelRegistryClient`.
+  - Validated wiring with unit/integration tests in `tests/test_model_registry_wiring.py`.
+  - Kernel-Registry spine is now active for session trust elevation.
+  - Integrated Machine Law v60.1.1 (streamable-http, SSCT v1.0, tool-surface lock).
+- VAULT_REF: https://github.com/ariffazil/arifOS/commit/latest
 
 ## 4. ACTIVE TOPOLOGY
 

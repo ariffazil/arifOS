@@ -28,6 +28,7 @@ from arifosmcp.runtime.models import (
     RuntimeStatus,
     Verdict,
 )
+from arifosmcp.runtime.model_registry_client import get_model_registry_client
 
 logger = logging.getLogger(__name__)
 
@@ -309,6 +310,32 @@ async def init_anchor(
         "platform": "mcp",
     }
 
+    # ── F11: Model Registry Identity Grounding ──
+    model_registry_info = None
+    if model_soul:
+        try:
+            client = get_model_registry_client()
+            # Extract claimed identity from model_soul
+            claimed_identity = model_soul.get("model_key") or model_soul.get("base_identity", {}).get("model_key")
+            claimed_provider = model_soul.get("provider") or model_soul.get("base_identity", {}).get("provider")
+            
+            if claimed_identity:
+                verification = await client.verify_identity(claimed_identity, claimed_provider)
+                model_registry_info = {
+                    "verified": verification.verified,
+                    "matched_key": verification.matched_key,
+                    "drift_risk": verification.drift_risk,
+                    "mismatch_detected": verification.mismatch_detected,
+                }
+                # If model registry confirms identity, we elevate trust
+                if verification.verified:
+                    verified = True
+                    auth_state = "verified"
+                    auth_ctx["verified"] = True
+                    auth_ctx["model_key"] = verification.matched_key
+        except Exception as e:
+            logger.warning(f"Model registry verification failed: {e}")
+
     # TELOS MANIFOLD (8-Axis Goal Space)
     telos_manifold = {
         "axes": {
@@ -344,6 +371,7 @@ async def init_anchor(
             "auth_state": auth_state,
             "verification_status": "verified" if verified else "anonymous",
             "injection_score": _injection_score,
+            "model_registry": model_registry_info,
         },
         "bound_session": {
             "session_id": _session_id,

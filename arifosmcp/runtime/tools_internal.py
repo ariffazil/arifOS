@@ -151,6 +151,36 @@ def _resolve_motto(stage_value: str) -> str | None:
     return f"{stage_motto.positive}, {stage_motto.negative}" if stage_motto else None
 
 
+async def _call_model_registry(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Helper to route calls to the model registry service."""
+    from arifosmcp.runtime.model_registry_client import get_model_registry_client
+    
+    client = get_model_registry_client()
+    try:
+        if mode == "model_catalog":
+            return await client.get_catalog()
+        elif mode == "model_profile":
+            return await client.get_model_profile(payload.get("model_key", ""))
+        elif mode == "provider_soul":
+            return await client.get_provider_profile(payload.get("provider", ""))
+        elif mode == "verify_identity":
+            res = await client.verify_identity(
+                payload.get("model_key", ""), 
+                payload.get("provider", "")
+            )
+            return {
+                "verified": res.verified,
+                "matched_key": res.matched_key,
+                "drift_risk": res.drift_risk,
+                "mismatch_detected": res.mismatch_detected
+            }
+        else:
+            return {"error": f"Unsupported model registry mode: {mode}"}
+    except Exception as e:
+        logger.error(f"Model registry call failed: {e}")
+        return {"error": str(e)}
+
+
 def _resolve_caller_state(
     session_id: str, authority: Any
 ) -> tuple[str, list[str], list[dict[str, str]]]:
@@ -1769,6 +1799,18 @@ async def architect_registry_dispatch_impl(
                 "resource_uri": "arifos://mcp/context",
             },
             session_id=session_id,
+        )
+
+    if mode in ("model_catalog", "model_profile", "provider_soul", "verify_identity"):
+        res = await _call_model_registry(mode, payload)
+        return RuntimeEnvelope(
+            ok="error" not in res,
+            tool="architect_registry",
+            stage=Stage.INIT_000.value,
+            verdict=Verdict.SEAL if "error" not in res else Verdict.SABAR,
+            payload=res,
+            session_id=session_id,
+            status=RuntimeStatus.SUCCESS if "error" not in res else RuntimeStatus.ERROR
         )
 
     try:
