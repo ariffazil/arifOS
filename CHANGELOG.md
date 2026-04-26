@@ -2,6 +2,27 @@
 
 All notable changes to arifOS MCP are documented in this file.
 
+## [2026.04.26-KANON] - The True 13 Surface + Context Witness Internalisation
+
+### 🔧 SURFACE: The True 13 Capability Surface
+
+- **Public surface reduced to 13 capability tools**. Purged diagnostic probes (`arif_ping`, `arif_selftest`) and interpretive tools (`arif_meaning_witness`) from public discovery.
+- **Internalised Disciplines**: `ping` and `selftest` moved to internal runtime functions (`_runtime_ping`, `_runtime_selftest`).
+- **Operational Endpoints**: Added `GET /health` (liveness) and `GET /ready` (integrity) REST routes, decoupled from the MCP tool contract.
+
+### ⚖️ GOVERNANCE: Context Witness Sidecar
+
+- **Meaning Witness → Context Witness**: Refactored the linguistic layer from a standalone tool into an internal governed output mode.
+- **Locked Ledger**: Implemented `wisdom_quotes_99.json` containing 99 verified witnesses with Physics, Math, and Linguistic mappings.
+- **Safety Nervous System**: Forged `context_safety.py` enforcing exact string matching and unauthorized ID rejection (Fail-Closed on drift).
+- **Governance Boundary**: Hardened irreversible-risk controls; actions such as `execute` or `deploy` in high-risk contexts trigger automatic `HOLD` and force human confirmation.
+
+### 🛡️ HARDENING: Safety & Tests
+
+- **Adversarial Audit**: Passed 100% of the adversarial gauntlet (Quote drift, Author swap, Fake ID, Risk bypass).
+- **Test Suite Expansion**: Added 38 targeted tests for Context Witness, Safety Gates, and Registry Alignment.
+- **Registry Synchronization**: `tool_registry.json` and `constitutional_map.py` unified as single sources of truth.
+
 ## [Unreleased] - 2026-04-17 — Registry Canonicalisation + Namespace Boundary
 
 ### Changed

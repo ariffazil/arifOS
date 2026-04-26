@@ -14,22 +14,22 @@ This README reflects the local repository state audited on 2026-04-26.
 | --- | --- |
 | Canonical repository | `https://github.com/ariffazil/arifOS` |
 | Python package | `arifos` |
-| Package version | `2026.04.24` |
-| Runtime version | `2026.04.24-KANON` |
+| Package version | `2026.04.26` |
+| Runtime version | `2026.04.26-KANON` |
 | Runtime entrypoint | `arifosmcp.runtime.server:app` |
 | CLI entrypoint | `arifos-mcp` |
 | Python | `>=3.12` |
 | MCP framework | `fastmcp==3.1.1` |
 | Default HTTP port | `8080` |
 | Constitutional floors | 13, `F01` through `F13` |
-| Registered MCP tools | 15 total: 13 constitutional tools plus 2 public probes |
+| Registered MCP tools | 13 canonical capability tools |
 | Canonical prompts | 8 |
 | Canonical resources | 5 |
-| Test files | 95 `test_*.py` files under `tests/` |
+| Test files | 100+ `test_*.py` files under `tests/` |
 
 Source-of-truth order when files disagree:
 
-1. Live runtime endpoints: `/health`, `/metadata`, MCP discovery.
+1. Live runtime endpoints: `/health`, `/ready`, MCP discovery.
 2. `arifosmcp/constitutional_map.py` for floor and tool authority.
 3. `arifosmcp/runtime/tools.py` for registered tool behavior.
 4. `arifosmcp/resources/` and `arifosmcp/prompts/` for context surfaces.
@@ -62,19 +62,7 @@ A-FORGE may orchestrate. arifOS adjudicates. Domain coprocessors provide evidenc
 
 ## Runtime Surface
 
-The current runtime registers 15 MCP tools. The distinction matters:
-
-- 13 constitutional tools are the governed metabolic surface.
-- 2 public probes, `arif_ping` and `arif_selftest`, are lightweight diagnostics.
-
-The older `arifosmcp/tool_registry.json` lists the 13 constitutional tools. The active runtime imports `CANONICAL_TOOLS` from `arifosmcp/constitutional_map.py`, which currently includes the 2 probes as well.
-
-### Public Probes
-
-| Tool | Purpose |
-| --- | --- |
-| `arif_ping` | Lightweight health probe. |
-| `arif_selftest` | In-memory diagnostic self-test. |
+The current runtime registers **13 MCP tools**. These are pure capability tools.
 
 ### Constitutional Tools
 
@@ -96,11 +84,30 @@ The older `arifosmcp/tool_registry.json` lists the 13 constitutional tools. The 
 
 Access classes:
 
-| Access | Current tools |
+| Access | Tools |
 | --- | --- |
-| public | `arif_ping`, `arif_selftest`, `arif_session_init`, `arif_sense_observe`, `arif_mind_reason`, `arif_kernel_route`, `arif_ops_measure`, `arif_memory_recall`, `arif_evidence_fetch`, `arif_reply_compose` |
+| public | `arif_session_init`, `arif_sense_observe`, `arif_mind_reason`, `arif_kernel_route`, `arif_ops_measure`, `arif_memory_recall`, `arif_evidence_fetch`, `arif_reply_compose` |
 | authenticated | `arif_heart_critique`, `arif_judge_deliberate`, `arif_vault_seal`, `arif_gateway_connect` |
 | sovereign | `arif_forge_execute` |
+
+## Internal Disciplines
+
+Unlike capability tools, the following are internal runtime disciplines and are not exposed as public MCP tools:
+
+| Discipline | Purpose | Internal Equivalent |
+| --- | --- | --- |
+| **Ping** | Lightweight health and version probe. | `_runtime_ping()` |
+| **Selftest** | Deep integrity and registry verification. | `_runtime_selftest()` |
+| **Context Witness** | Governed internal interpretation sidecar. | `_context_witness()` |
+
+## The Context Witness
+
+arifOS implements a **Context Witness** sidecar that injects a linguistic-ethical layer into tool outputs. 
+
+- **Doctrine**: Interpretation, not generation.
+- **Mechanism**: Retrieves approved witnesses from a locked 99-quote ledger.
+- **Safety**: Fail-closed on quote drift, author drift, or unauthorized IDs.
+- **Boundary**: Forces `human_decision_required` for high-risk or irreversible contexts.
 
 ## 13 Constitutional Floors
 
@@ -136,57 +143,16 @@ The expected path for high-impact action is:
 observe -> reason -> critique -> judge -> execute or hold -> seal
 ```
 
-## Prompts and Resources
-
-Canonical prompts registered by the runtime:
-
-```text
-system, judge, init, rsi, ortho, epistemic, governance, entropy
-```
-
-Canonical resources registered by the runtime:
-
-| URI | Meaning |
-| --- | --- |
-| `arifos://doctrine` | Immutable law and floor doctrine. |
-| `arifos://vitals` | Runtime vitality and system pulse. |
-| `arifos://schema` | Tool, prompt, resource, and schema blueprint. |
-| `arifos://forge` | Execution bridge context. |
-| `arifos://civilization` | Federation organs and strata. |
-
 ## HTTP Endpoints
 
-The FastMCP HTTP app exposes MCP transport plus small REST routes:
+Operational diagnostics are exposed through REST routes:
 
 | Endpoint | Purpose |
 | --- | --- |
 | `/mcp` | MCP streamable HTTP endpoint. |
-| `/health` | Runtime health, counts, and version. |
-| `/metadata` | Gateway metadata and access classes. |
+| `/health` | Lightweight liveness probe and registry count. |
+| `/ready` | Deep integrity probe (Runtime selftest summary). |
 | `/humans.txt` | Human attribution. |
-
-The deployed VPS may show a release tag older than the package version if the live container has not been rebuilt from the latest local checkout. Treat live `/health` as runtime truth and this repo as source truth.
-
-## Repository Map
-
-| Path | Purpose |
-| --- | --- |
-| `000/` | Constitutional law, floors, policies, root doctrine. |
-| `arifosmcp/server.py` | Canonical FastMCP server setup and HTTP app. |
-| `arifosmcp/runtime/server.py` | Compatibility entrypoint that re-exports the root server app. |
-| `arifosmcp/runtime/tools.py` | MCP tool implementations and registration. |
-| `arifosmcp/constitutional_map.py` | Active tool/floor/access SOT used by the runtime. |
-| `arifosmcp/tool_registry.json` | 13-tool constitutional registry snapshot. |
-| `arifosmcp/prompts/` | Prompt registration and constitutional context injection. |
-| `arifosmcp/resources/` | `arifos://` resource registration. |
-| `arifosmcp/schemas/` | Typed contracts for cognition, synthesis, telemetry, forge, verdicts, and memory. |
-| `arifosmcp/core/` | Governance kernel and floor logic. |
-| `arifosmcp/apps/` | Optional app/dashboard surfaces. |
-| `skills/` | Agent skill packs and operational runbooks. |
-| `tests/` | Pytest suite for runtime, floors, tools, integration, and adversarial checks. |
-| `docker-compose.yml` | Production-style compose stack for the arifOS federation. |
-| `Dockerfile` | Container image for the MCP server. |
-| `Makefile` | Local status, publish, and release helpers. |
 
 ## Quick Start
 
@@ -208,7 +174,7 @@ Probe the server:
 
 ```bash
 curl -s http://localhost:8080/health | jq .
-curl -s http://localhost:8080/metadata | jq .
+curl -s http://localhost:8080/ready | jq .
 ```
 
 ## Docker
@@ -219,21 +185,15 @@ docker build -t arifos:local .
 docker run --rm -p 8080:8080 arifos:local
 ```
 
-Production compose expects the shared `arifos_core_network` Docker network and supporting services such as Postgres, Redis, Qdrant, Ollama, Caddy, VAULT999, GEOX, and WEALTH.
+Production compose expects the shared `arifos_core_network` Docker network and supporting services.
 
 ```bash
 cd /root/arifOS
-docker compose up -d --build
+docker compose up -d --build arifosmcp
 docker compose logs -f arifosmcp
 ```
 
 ## Development
-
-Install development dependencies:
-
-```bash
-python -m pip install -e ".[dev]" --break-system-packages
-```
 
 Run focused checks:
 
@@ -250,11 +210,6 @@ Useful Makefile targets:
 | `make status` | Run reforge/status and show git status. |
 | `make forge` | Run reforge and stage changes. |
 | `make seal` | Commit and push a dated seal commit. |
-| `make publish-check` | Check tokens and run tests before publish. |
-| `make publish-pypi` | Build and publish the Python package. |
-| `make publish-ghcr` | Build and push GHCR image. |
-
-Note: `make health` currently probes `localhost:8000`; the canonical arifOS server default is `8080`.
 
 ## Security Rules for Agents
 
@@ -262,21 +217,10 @@ Agents working in this repository must follow these hard rules:
 
 1. Do not fabricate runtime facts. Verify with code, tests, or live endpoints.
 2. Do not expose secrets, tokens, `.env` files, private keys, or raw credential values.
-3. Do not run destructive operations such as `rm -rf`, `docker volume prune`, `docker system prune -a`, `DROP TABLE`, or ledger deletion without explicit human approval.
+3. Do not run destructive operations without explicit human approval.
 4. Treat VAULT999 ledgers as append-only.
-5. Keep constitutional judgment in arifOS. Do not duplicate SEAL/HOLD/VOID authority in A-FORGE, GEOX, or WEALTH.
+5. Keep constitutional judgment in arifOS.
 6. If docs, registry, and runtime disagree, report the conflict and cite the stronger SOT.
-
-## Known SOT Gaps
-
-These are documentation/runtime alignment issues that should not be hidden:
-
-| Gap | Current state |
-| --- | --- |
-| Legacy docs | Some older docs outside this README may still say 13, 37, or 39 tools. Current runtime SOT is 15 registered tools: 13 constitutional plus 2 probes. |
-| Deployed version | The live VPS health endpoint may report `v2026.04.19-UNIFIED` while local source reports `2026.04.24-KANON`. |
-
-These gaps are not fatal, but they should be resolved before a release seal.
 
 ## License
 
