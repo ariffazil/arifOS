@@ -101,7 +101,7 @@ HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
 # Metadata Labels
 LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp"
 LABEL io.modelcontextprotocol.server.version="2026.04.24-KANON"
-LABEL io.modelcontextprotocol.server.description="Constitutional AI governance server with 15 registered MCP tools: 13 constitutional tools plus 2 public probes."
+LABEL io.modelcontextprotocol.server.description="Constitutional AI governance server with 13 canonical MCP capability tools. Diagnostics are internal runtime only."
 
 # Execute consolidated entrypoint
 CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
