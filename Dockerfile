@@ -96,7 +96,7 @@ EXPOSE 8080
 
 # Production Healthcheck (F12 Defense)
 HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -fsS --max-time 3 http://localhost:8080/sse || exit 1
+    CMD curl -fsS --max-time 3 http://localhost:8080/health || exit 1
 
 # Metadata Labels
 LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp"
