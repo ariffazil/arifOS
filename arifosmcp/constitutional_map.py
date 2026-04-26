@@ -1,5 +1,5 @@
 """
-ARIFOS CONSTITUTIONAL MAP (v2026.04.24-KANON)
+ARIFOS CONSTITUTIONAL MAP (v2026.04.26-KANON)
 ═══════════════════════════════════════════════
 
 Single source of truth for the active MCP surface:

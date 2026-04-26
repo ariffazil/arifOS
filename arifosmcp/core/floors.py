@@ -129,7 +129,7 @@ def get_floor_status() -> dict[str, Any]:
     return {
         "floors": {f.value: FLOOR_DESCRIPTIONS[f] for f in Floor},
         "status": "aligned",
-        "version": "2026.04.24-KANON",
+        "version": "2026.04.26-KANON",
     }
 
 

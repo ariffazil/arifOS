@@ -191,7 +191,7 @@ async def horizon_metadata(request: Request) -> JSONResponse:
     return JSONResponse(
         {
             "name": "ARIFOS MCP",
-            "version": "2026.04.24-KANON",
+            "version": "2026.04.26-KANON",
             "protocol": "MCP 2025-03-26",
             "gateway": {
                 "type": "unified",

@@ -1,5 +1,5 @@
 """
-arifOS Canonical Output Schemas (v2026.04.24-KANON)
+arifOS Canonical Output Schemas (v2026.04.26-KANON)
 ════════════════════════════════════════════════════
 
 Phase 2 Civilization Intelligence:

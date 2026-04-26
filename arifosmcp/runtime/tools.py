@@ -1068,12 +1068,34 @@ def _build_sequential_result(
 # 333_MIND  →  arif_mind_reason
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _transition_plan_state(plan_id: str, new_state: str, meta: dict[str, Any] | None = None) -> None:
+    """Transition a plan to a new state and append a vault event."""
+    plan = _PLAN_REGISTRY.get(plan_id)
+    if plan is None:
+        return
+    old_state = plan.get("status", "unknown")
+    plan["status"] = new_state
+    plan["state_history"] = plan.get("state_history", []) + [
+        {"from": old_state, "to": new_state, "at": _now(), "meta": meta or {}}
+    ]
+    _VAULT_LEDGER.append({
+        "id": uuid.uuid4().hex[:16],
+        "timestamp": _now(),
+        "type": "plan_state_transition",
+        "plan_id": plan_id,
+        "from_state": old_state,
+        "to_state": new_state,
+        "meta": meta or {},
+    })
+
+
 def _arif_mind_reason(
     mode: str = "reason",
     query: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
     plan_id: str | None = None,
+    witness_type: str = "ai",
 ) -> dict[str, Any]:
     """
     333_MIND: Symbolic constitutional reasoning kernel.
@@ -1213,12 +1235,24 @@ def _arif_mind_reason(
         plan["status"] = "approved"
         plan["approved_at"] = _now()
         plan["approved_by"] = actor_id or "system"
+        plan["approved_session_id"] = session_id
+        plan["witness_type"] = witness_type
+        _VAULT_LEDGER.append({
+            "id": uuid.uuid4().hex[:16],
+            "timestamp": _now(),
+            "type": "plan_approval",
+            "plan_id": plan_id,
+            "approved_by": actor_id or "system",
+            "session_id": session_id,
+            "witness_type": witness_type,
+        })
         return _ok(
             "arif_mind_reason",
             {
                 "mode": "plan_approve",
                 "plan_id": plan_id,
                 "status": "approved",
+                "witness_type": witness_type,
             },
             delta_S=0.001,
             session_id=session_id,
@@ -2320,7 +2354,7 @@ def _arif_vault_seal(
     if mode == "changelog":
         return SealOutput(
             status="OK",
-            result={"changes": [], "version": "2026.04.24-KANON"},
+            result={"changes": [], "version": "2026.04.26-KANON"},
             ledger_size=len(_VAULT_LEDGER),
             irreversibility_bond=IrreversibilityBond(level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0),
             entropy_delta=EntropyDelta(delta_S=0.0, entropy_direction="stable"),
@@ -2509,9 +2543,12 @@ def _arif_forge_execute(
                 },
                 timestamp=_now(),
             ).model_dump(mode="json")
+        _transition_plan_state(plan_id, "in_execution", {"tool": "arif_forge_execute", "mode": mode})
 
     floor_check = check_floors("arif_forge_execute", {"ack_irreversible": ack_irreversible}, actor_id)
     if floor_check["verdict"] != "SEAL":
+        if plan_id:
+            _transition_plan_state(plan_id, "aborted", {"reason": "floor_check_failed", "failed_floors": floor_check.get("failed_floors", [])})
         return ForgeOutput(
             status="HOLD",
             result={},
@@ -2536,6 +2573,8 @@ def _arif_forge_execute(
             tool_name="arif_forge_execute",
         )
         if hold is not None:
+            if plan_id:
+                _transition_plan_state(plan_id, "aborted", {"reason": "judge_contract_hold", "meta": hold["meta"]})
             return ForgeOutput(
                 status="HOLD",
                 result={},
@@ -2596,6 +2635,8 @@ def _arif_forge_execute(
             judge_contract=lineage_contract,
             timestamp=_now(),
         )
+        if plan_id:
+            _transition_plan_state(plan_id, "completed", {"mode": "engineer", "artifact_id": artifact_id_out})
         return output.model_dump(mode="json")
 
     if mode == "query":
@@ -2661,6 +2702,8 @@ def _arif_forge_execute(
             judge_contract=lineage_contract,
             timestamp=_now(),
         )
+        if plan_id:
+            _transition_plan_state(plan_id, "completed", {"mode": "write", "artifact_id": artifact_id_out})
         return output.model_dump(mode="json")
 
     if mode == "generate":
@@ -2685,6 +2728,8 @@ def _arif_forge_execute(
             judge_contract=lineage_contract,
             timestamp=_now(),
         )
+        if plan_id:
+            _transition_plan_state(plan_id, "completed", {"mode": "generate", "artifact_id": artifact_id_out})
         return output.model_dump(mode="json")
 
     if mode == "commit":
@@ -2694,6 +2739,8 @@ def _arif_forge_execute(
             judge_state_hash=judge_state_hash,
         )
         if hold is not None:
+            if plan_id:
+                _transition_plan_state(plan_id, "aborted", {"reason": "vault_entry_hold", "meta": hold["meta"]})
             return ForgeOutput(
                 status="HOLD",
                 result={},
@@ -2728,6 +2775,8 @@ def _arif_forge_execute(
             rollbacks_succeeded=0,
         )
         if not ack_irreversible:
+            if plan_id:
+                _transition_plan_state(plan_id, "aborted", {"reason": "commit_missing_ack_irreversible"})
             return _hold("arif_forge_execute", "commit requires ack_irreversible=True", [], session_id=session_id)
 
         output = ForgeOutput(
@@ -2745,8 +2794,12 @@ def _arif_forge_execute(
             judge_contract=lineage_contract,
             timestamp=_now(),
         )
+        if plan_id:
+            _transition_plan_state(plan_id, "completed", {"mode": "commit", "artifact_id": artifact_id_out})
         return output.model_dump(mode="json")
 
+    if plan_id:
+        _transition_plan_state(plan_id, "aborted", {"reason": f"unknown_mode_{mode}"})
     return ForgeOutput(
         status="HOLD",
         result={},

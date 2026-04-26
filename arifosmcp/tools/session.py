@@ -34,7 +34,7 @@ def arif_session_init(
     if mode == "status":
         from arifosmcp.runtime.tools import _SESSIONS
         return SessionManifest(
-            **_ok("arif_session_init", {"active_sessions": len(_SESSIONS), "version": "2026.04.24-KANON"})
+            **_ok("arif_session_init", {"active_sessions": len(_SESSIONS), "version": "2026.04.26-KANON"})
         )
 
     if mode == "discover":

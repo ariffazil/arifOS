@@ -168,3 +168,71 @@ class TestH2PlanningOrgan:
         _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor")
         result = _arif_forge_execute(mode="engineer", manifest="test", plan_id=pid, ack_irreversible=True, actor_id="test_actor")
         assert result["status"] == "OK"
+
+    def test_plan_transitions_to_in_execution_on_forge_start(self):
+        plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
+        pid = plan["result"]["plan_receipt"]["plan_id"]
+        _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor")
+        _arif_forge_execute(mode="engineer", manifest="test", plan_id=pid, ack_irreversible=True, actor_id="test_actor")
+        assert _PLAN_REGISTRY[pid]["status"] == "completed"
+        history = _PLAN_REGISTRY[pid]["state_history"]
+        assert any(h["to"] == "in_execution" for h in history)
+        assert any(h["to"] == "completed" for h in history)
+
+    def test_plan_transitions_to_aborted_on_forge_hold(self):
+        plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
+        pid = plan["result"]["plan_receipt"]["plan_id"]
+        _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor")
+        # Missing ack_irreversible will trigger floor check HOLD for commit mode
+        result = _arif_forge_execute(mode="commit", manifest="test", plan_id=pid, actor_id="test_actor")
+        assert result["status"] == "HOLD"
+        assert _PLAN_REGISTRY[pid]["status"] == "aborted"
+        history = _PLAN_REGISTRY[pid]["state_history"]
+        assert any(h["to"] == "aborted" for h in history)
+
+    def test_plan_approve_logs_witness_to_vault(self):
+        plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
+        pid = plan["result"]["plan_receipt"]["plan_id"]
+        before = len(_VAULT_LEDGER)
+        _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor", witness_type="human")
+        after = len(_VAULT_LEDGER)
+        assert after > before
+        entry = _VAULT_LEDGER[-1]
+        assert entry["type"] == "plan_approval"
+        assert entry["plan_id"] == pid
+        assert entry["witness_type"] == "human"
+        assert entry["approved_by"] == "test_actor"
+
+
+class TestH3EpochSealGuard:
+    """H3: epoch_seal 888 HOLD guard for degraded epochs."""
+
+    @pytest.fixture(autouse=True)
+    def _clean_state(self):
+        _SESSIONS.clear()
+        _EPOCH_REGISTRY.clear()
+        _VAULT_LEDGER.clear()
+        yield
+        _SESSIONS.clear()
+        _EPOCH_REGISTRY.clear()
+        _VAULT_LEDGER.clear()
+
+    def test_epoch_seal_holds_on_void_verdict(self):
+        init = _arif_session_init(mode="init", actor_id="test_actor")
+        sid = init["result"]["session"]["session_id"]
+        _arif_session_init(mode="epoch_open", session_id=sid, actor_id="test_actor")
+        eid = _SESSIONS[sid]["epoch_id"]
+        _EPOCH_REGISTRY[eid]["verdict"] = "VOID"
+        result = _arif_session_init(mode="epoch_seal", session_id=sid, actor_id="test_actor")
+        assert result["status"] == "HOLD"
+        assert "sovereign review" in result["meta"]["reason"]
+
+    def test_epoch_seal_holds_on_low_peace2(self):
+        init = _arif_session_init(mode="init", actor_id="test_actor")
+        sid = init["result"]["session"]["session_id"]
+        _arif_session_init(mode="epoch_open", session_id=sid, actor_id="test_actor")
+        eid = _SESSIONS[sid]["epoch_id"]
+        _EPOCH_REGISTRY[eid]["peace2"] = 0.8
+        result = _arif_session_init(mode="epoch_seal", session_id=sid, actor_id="test_actor")
+        assert result["status"] == "HOLD"
+        assert "sovereign review" in result["meta"]["reason"]
