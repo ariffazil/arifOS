@@ -223,15 +223,18 @@ def get_floor_bindings() -> dict[str, list[Floor]]:
 
 
 def build_tool_registry_manifest() -> dict[str, Any]:
+    from arifosmcp.tool_manifest import TOOL_MANIFEST, CANONICAL_ORDER
+
     return {
-        "_schema": "arifos-ssct-v2026.04.24-kanon-phase1",
+        "_schema": "arifos-ssct-v2026.04.26-kanon-phase2",
         "_note": (
-            "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS. "
-            "Do not hand edit."
+            "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS + "
+            "arifosmcp.tool_manifest.TOOL_MANIFEST. Do not hand edit."
         ),
         "canonical_count": len(CONSTITUTIONAL_TOOLS),
         "probe_count": len(PROBE_TOOLS),
         "total_surface": len(CANONICAL_TOOLS),
+        "canonical_order": CANONICAL_ORDER,
         "tools": {
             name: {
                 "stage": spec["stage"].value,
@@ -242,6 +245,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
                 "access": spec["access"],
                 "requires_auth": spec["access"] != "public",
                 "tags": ["canonical"],
+                "operational": TOOL_MANIFEST.get(name, {}),
             }
             for name, spec in CANONICAL_TOOLS.items()
         },

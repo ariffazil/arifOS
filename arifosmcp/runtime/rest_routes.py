@@ -1978,6 +1978,7 @@ def register_rest_routes(
             tool = _get_tool_obj(tool_registry.get(tool_name)) if tool_name in tool_registry else None
             spec = public_specs[tool_name]
             annotations = getattr(tool, "annotations", None) if tool is not None else None
+            meta = getattr(tool, "meta", None) if tool is not None else None
             entry = {
                 "name": tool_name,
                 "description": getattr(tool, "description", None) or spec.description,
@@ -1992,6 +1993,8 @@ def register_rest_routes(
                     "openWorldHint": annotations.openWorldHint,
                     "idempotentHint": annotations.idempotentHint,
                 }
+            if meta:
+                entry["meta"] = meta
             tool_list.append(entry)
         return JSONResponse({"tools": tool_list, "count": len(tool_list)})
 

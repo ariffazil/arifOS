@@ -2960,6 +2960,7 @@ def register_tools(
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+    from arifosmcp.tool_manifest import TOOL_MANIFEST
 
     registered: list[str] = []
     del include_legacy_compat
@@ -2968,9 +2969,19 @@ def register_tools(
         if handler is None:
             continue
         try:
+            manifest = TOOL_MANIFEST.get(name, {})
             mcp.tool(
                 name=name,
                 tags={"canonical", "arifos"},
+                meta={
+                    "arifos_manifest": manifest,
+                    "stage_code": manifest.get("stage_code", ""),
+                    "stage_name": manifest.get("stage_name", ""),
+                    "risk_tier": manifest.get("risk", {}).get("tier", "low"),
+                    "irreversible": manifest.get("risk", {}).get("irreversible", False),
+                    "requires_human_ack": manifest.get("risk", {}).get("requires_human_ack", False),
+                    "canonical_order": manifest.get("canonical_order", []),
+                },
             )(handler)
             registered.append(name)
             logger.debug(f"Registered canonical tool: {name}")
