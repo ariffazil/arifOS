@@ -37,19 +37,103 @@ RUNTIME_ENVELOPE_SCHEMA = {
 _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_ping": "Lightweight liveness probe — confirms kernel reachability.",
     "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
-    "arif_session_init": "Start a governed session and bind identity/context.",
-    "arif_sense_observe": "Observe live signals from the environment and runtime.",
-    "arif_evidence_fetch": "Fetch evidence from external or local sources with traceability.",
-    "arif_mind_reason": "Run governed reasoning over evidence and active context.",
-    "arif_kernel_route": "Route work through the constitutional kernel and routing policy.",
-    "arif_reply_compose": "Compose a governed response aligned to active mandate and evidence.",
-    "arif_memory_recall": "Recall relevant prior context and anchored memory.",
-    "arif_heart_critique": "Critique a candidate action against values, risk, and floors.",
-    "arif_gateway_connect": "Bridge into federated capability lanes through governed routing.",
-    "arif_ops_measure": "Measure operational state, economics, and execution thermodynamics.",
-    "arif_judge_deliberate": "Deliberate on a candidate action and return a verdict path.",
-    "arif_vault_seal": "Record the governed outcome into the audit trail.",
-    "arif_forge_execute": "Execute an approved action through the forge lane.",
+    "arif_session_init": (
+        "000_INIT: Constitutional session bootstrap and identity binding. "
+        "Initializes a governed session anchored to the 13-floor constitution. "
+        "Modes: init (new session), status (health check), discover (list canonical tools), "
+        "handover (transfer session), revoke (close session), refresh (extend TTL). "
+        "F11 AUTH identity binding, F12 INJECTION sanitization, F13 SOVEREIGN veto enforced."
+    ),
+    "arif_sense_observe": (
+        "111_SENSE: Multimodal reality observation and environmental sensing. "
+        "Grounds queries in physical reality via PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → "
+        "NORMALIZE → GATE → HANDOFF protocol. Gathers raw observational data across sensory layers. "
+        "Modes: governed (full constitutional pipeline), search (live web retrieval), "
+        "ingest (store observation), compass (directional heading), atlas (geospatial), time (temporal). "
+        "F2 TRUTH, F3 WITNESS, F4 CLARITY, F10 ONTOLOGY enforced."
+    ),
+    "arif_evidence_fetch": (
+        "222_FETCH: Evidence-preserving web ingestion with sequential thinking. "
+        "Fetches verified external evidence with full traceability chain. "
+        "Supports thinking_depth (0–10), thinking_budget (0.0–10.0), sequential modes "
+        "(fast/deliberate/exhaustive), and confidence_threshold early termination. "
+        "Outputs ThinkingSequence + ResourceMetrics when thinking_depth > 0. "
+        "F2 TRUTH source citation, F3 WITNESS verifiable evidence required."
+    ),
+    "arif_mind_reason": (
+        "333_MIND: Symbolic constitutional reasoning kernel. "
+        "Performs governed reasoning using explicit axioms from F1–F13. "
+        "Modes: reason (standard AGI pipeline), sequential (multi-step constitutional chain), "
+        "step/branch/merge (branching reasoning), review (export session), reflect (self-critique). "
+        "Sequential thinking enforces F1–F13 at each step. "
+        "Produces narrow decision_packet (operator) + full audit_packet (vault). "
+        "F2 TRUTH, F4 CLARITY, F7 HUMILITY, F8 GENIUS enforced."
+    ),
+    "arif_kernel_route": (
+        "444_KERNEL: Central orchestration, intent routing, and stage dispatch. "
+        "Routes sovereign intent to the correct constitutional stage. "
+        "Modes: kernel (route to metabolic lane), status (return routing decision without executing). "
+        "Evaluates risk_tier to determine accessible lanes. "
+        "F4 CLARITY transparent intent, F11 AUTH identity verification."
+    ),
+    "arif_reply_compose": (
+        "444_REPLY: Governed response composition with constitutional tone control. "
+        "Composes human-facing replies that are truthful, clear, empathetic, and peace-preserving. "
+        "Modes: compose (default governed reply), rewrite (re-tone existing), analyze (tone audit). "
+        "F2 TRUTH no fabrication, F5 PEACE human dignity, F6 EMPATHY consequence awareness."
+    ),
+    "arif_memory_recall": (
+        "555_MEMORY: Associative retrieval from VAULT999 and vector memory. "
+        "Recalls prior session artifacts, reasoning traces, and sealed events. "
+        "Modes: vector_query (semantic search), vector_store (store), engineer (engineering context), "
+        "asset_store/asset_query (GEOX asset-scoped without new public memory organ). "
+        "F2 TRUTH no fabrication, F10 ONTOLOGY structural coherence, F11 AUTH identity."
+    ),
+    "arif_heart_critique": (
+        "666_HEART: Ethical critique, risk assessment, and empathy scan. "
+        "Evaluates proposed actions against 8 risk categories and F5/F6/F9. "
+        "Modes: critique (identify risks/violations), simulate (predict downstream consequences). "
+        "Prevents F9 ANTIHANTU manipulation, F5 PEACE dignity violations, F6 EMPATHY blindness."
+    ),
+    "arif_gateway_connect": (
+        "666_GATEWAY: Federated cross-agent bridge and A2A mesh protocol. "
+        "Connects to other constitutional agents (WEALTH, GEOX) through governed routing. "
+        "Modes: connect (establish bridge), status (connection health), disconnect (close). "
+        "F4 CLARITY transparent intent, F11 AUTH verified identity, F13 SOVEREIGN veto preserved."
+    ),
+    "arif_ops_measure": (
+        "777_OPS: Resource thermodynamics, health telemetry, and metabolic monitoring. "
+        "Measures operational health using entropy, Landauer limits, G-score, and ΔS. "
+        "Modes: cost (Landauer gate estimate), health (system gauge), vitals (metabolic telemetry), "
+        "entropy (information-theoretic analysis), economic_audit (WELL thermodynamic), "
+        "metabolism (F1–F13 metabolic dashboard). "
+        "F4 CLARITY transparent capacity, F5 PEACE resource stewardship."
+    ),
+    "arif_judge_deliberate": (
+        "888_JUDGE: Final constitutional arbitration and verdict sealing. "
+        "The apex adjudication organ. Evaluates against all 13 floors. "
+        "Outputs: SEAL (proceed), PARTIAL (conditional), VOID (halt), HOLD (escalate). "
+        "Four-axis: orthogonality (Ω_ortho ≥ 0.95), floor compliance, risk tier, "
+        "irreversibility+entropy. F1 AMANAH, F2 TRUTH, F3 WITNESS, F9 ANTIHANTU, "
+        "F10 ONTOLOGY, F12 INJECTION, F13 SOVEREIGN enforced."
+    ),
+    "arif_vault_seal": (
+        "999_VAULT: Immutable ledger anchoring and cryptographic seal. "
+        "Writes terminal verdicts to VAULT999 with Merkle-hashed integrity. "
+        "Modes: append (write verdict record), read (query ledger). "
+        "Filters: verdict type, session_id, since/until timestamp. "
+        "F1 AMANAH accountability, F13 SOVEREIGN human veto preserved. Append-only — immutable."
+    ),
+    "arif_forge_execute": (
+        "010_FORGE: Metabolic execution, build orchestration, and artifact forging. "
+        "Executes approved actions under constitutional supervision. "
+        "NEVER executes without prior arif_judge_deliberate SEAL. "
+        "Modes: shell (command), api_call (REST/GraphQL), contract (smart contract), "
+        "compute (distributed). "
+        "Constitutional guarantees: no execution without SEAL, no self-authorization, "
+        "all actions logged to vault, separation of powers preserved. "
+        "F1 AMANAH, F2 TRUTH, F7 HUMILITY, F13 SOVEREIGN enforced."
+    ),
 }
 
 
