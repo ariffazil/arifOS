@@ -35,7 +35,7 @@ from arifosmcp.runtime.megaTools import (
     physics_reality,
     vault_ledger,
 )
-from arifosmcp.runtime.models import RuntimeEnvelope, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, Verdict
 
 logger = logging.getLogger(__name__)
 

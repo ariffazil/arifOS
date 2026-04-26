@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
 
 
@@ -61,7 +61,7 @@ async def engineering_memory(
             mode = "engineer"
         res_dict = await HARDENED_DISPATCH_MAP["engineering_memory"](mode=mode, payload=payload)
         
-        from arifosmcp.runtime.models import VerdictCode
+        from arifosmcp.runtime.model import VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
         
         return forge_verdict(

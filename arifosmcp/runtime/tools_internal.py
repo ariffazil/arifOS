@@ -23,7 +23,7 @@ from core.shared.mottos import (
 )
 from fastmcp.server.context import Context
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CallerContext,
     CanonicalError,
     RuntimeEnvelope,
@@ -339,7 +339,7 @@ async def _wrap_call(
             raise ValueError(f"Kernel returned non-dict: {type(kernel_res)}")
 
         # ─── V1.0 VERDICT MAPPING ───
-        from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
+        from arifosmcp.runtime.model import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
         # ─── Constitutional Verdict Override ───
@@ -695,7 +695,7 @@ async def vault_ledger_dispatch_impl(
                 )
             if r.status_code in (200, 201):
                 data = r.json()
-                from arifosmcp.runtime.models import RuntimeStatus
+                from arifosmcp.runtime.model import RuntimeStatus
                 return RuntimeEnvelope(
                     ok=True,
                     tool="vault_ledger",
@@ -833,7 +833,7 @@ async def agi_mind_dispatch_impl(
         # and get SEAL regardless of the real constitutional verdict).
         decision_packet = payload.get("decision_packet", {})
         if decision_packet:
-            from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
+            from arifosmcp.runtime.model import CanonicalMetrics, VerdictCode
             from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
             dp_metrics = decision_packet.get("metrics", {})

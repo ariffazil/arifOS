@@ -20,7 +20,7 @@ from arifosmcp.contracts.verdicts import (
     ExecutionStatus,
     GovernanceStatus,
 )
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CanonicalMetrics,
     PhilosophyState,
     RuntimeEnvelope,

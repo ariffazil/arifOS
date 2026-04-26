@@ -22,7 +22,7 @@ from core.shared.mottos import (
 )
 from fastmcp.server.context import Context
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CallerContext,
     CanonicalError,
     RuntimeEnvelope,
@@ -308,7 +308,7 @@ async def _wrap_call(
             raise ValueError(f"Kernel returned non-dict: {type(kernel_res)}")
         
         # ─── V1.0 VERDICT MAPPING ───
-        from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
+        from arifosmcp.runtime.model import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
         
         # Convert legacy Verdict to VerdictCode with fallback

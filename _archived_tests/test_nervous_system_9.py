@@ -22,7 +22,7 @@ class TestSystemHealthHardened:
     async def test_system_health_returns_runtime_envelope(self):
         """Verify system_health returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import system_health
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         result = await system_health()
 
@@ -79,7 +79,7 @@ class TestFsInspectHardened:
     async def test_fs_inspect_returns_runtime_envelope(self):
         """Verify fs_inspect returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import fs_inspect
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         with patch("arifosmcp.intelligence.tools.fs_inspector.inspect_path") as mock_inspect:
             mock_inspect.return_value = {"files": [], "directories": []}
@@ -115,7 +115,7 @@ class TestChromaQueryHardened:
     async def test_chroma_query_returns_runtime_envelope(self):
         """Verify chroma_query returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import chroma_query
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         with patch("arifosmcp.intelligence.tools.chroma_query.query_memory") as mock_query:
             mock_query.return_value = AsyncMock()
@@ -148,7 +148,7 @@ class TestLogTailHardened:
     async def test_log_tail_returns_runtime_envelope(self):
         """Verify log_tail returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import log_tail
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         with patch("arifosmcp.intelligence.tools.log_reader.log_tail") as mock_log:
             mock_log.return_value = AsyncMock()
@@ -181,7 +181,7 @@ class TestProcessListHardened:
     async def test_process_list_returns_runtime_envelope(self):
         """Verify process_list returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import process_list
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         result = await process_list()
 
@@ -204,7 +204,7 @@ class TestNetStatusHardened:
     async def test_net_status_returns_runtime_envelope(self):
         """Verify net_status returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import net_status
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         with patch("arifosmcp.intelligence.tools.net_monitor.check_connectivity") as mock_check:
             mock_check.return_value = AsyncMock()
@@ -237,7 +237,7 @@ class TestListResourcesHardened:
     async def test_list_resources_returns_runtime_envelope(self):
         """Verify arifos_list_resources returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import arifos_list_resources
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         result = await arifos_list_resources()
 
@@ -262,7 +262,7 @@ class TestReadResourceHardened:
     async def test_read_resource_returns_runtime_envelope(self):
         """Verify arifos_read_resource returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import arifos_read_resource
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         result = await arifos_read_resource(uri="canon://floors")
 
@@ -287,7 +287,7 @@ class TestCostEstimatorHardened:
     async def test_cost_estimator_returns_runtime_envelope(self):
         """Verify cost_estimator returns RuntimeEnvelope"""
         from arifosmcp.intelligence.console_tools import cost_estimator
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         result = await cost_estimator(operation="search")
 
@@ -312,7 +312,7 @@ class TestAllNineTools:
     async def test_all_tools_return_runtime_envelope(self):
         """Verify all 9 tools return RuntimeEnvelope"""
         from arifosmcp.intelligence import console_tools
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         tools_to_test = [
             (console_tools.system_health, []),

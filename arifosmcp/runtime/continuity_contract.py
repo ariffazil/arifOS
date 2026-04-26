@@ -14,7 +14,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from arifosmcp.runtime.models import ClaimStatus, RuntimeEnvelope
+from arifosmcp.runtime.model import ClaimStatus, RuntimeEnvelope
 from arifosmcp.runtime.sessions import (
     get_session_continuity_state,
     record_session_tool_event,

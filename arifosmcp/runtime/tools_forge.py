@@ -19,7 +19,7 @@ from typing import Any
 
 from core.governance_kernel import GovernanceKernel
 from core.recovery.rollback_engine import outcome_ledger, rollback_engine
-from arifosmcp.runtime.models import RuntimeEnvelope
+from arifosmcp.runtime.model import RuntimeEnvelope
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXECUTION MANIFEST SCHEMA

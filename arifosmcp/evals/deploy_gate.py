@@ -36,7 +36,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 

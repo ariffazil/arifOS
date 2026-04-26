@@ -19,7 +19,7 @@ from arifosmcp.runtime.tools import (
     audit_rules,
     arifos_kernel,
 )
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     RuntimeEnvelope,
     AuthorityLevel,
     ClaimStatus,

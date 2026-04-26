@@ -9,7 +9,7 @@ Modes: audit, probe, ping
 
 from __future__ import annotations
 
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
 async def compat_probe(

@@ -5,16 +5,16 @@ All exceptions are defined in models.py. This module re-exports them
 for legacy imports.
 """
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     ArifOSError,
 )
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     ConstitutionalViolationError as ConstitutionalViolation,
 )
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     EpistemicGapError as EpistemicGap,
 )
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     InfrastructureFaultError as InfrastructureFault,
 )
 

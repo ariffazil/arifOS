@@ -1,7 +1,7 @@
 import pytest
 
 from arifosmcp.runtime import tools as runtime_tools
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CanonicalAuthority,
     ClaimStatus,
     RuntimeEnvelope,

@@ -2,7 +2,7 @@ import pytest
 from logging import getLogger
 
 from arifosmcp.runtime.tools import init_anchor, arifos_kernel
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 
 logger = getLogger(__name__)

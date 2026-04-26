@@ -17,7 +17,7 @@ from core.floors import evaluate_tool_call
 
 from arifosmcp.integrations.substrate_bridge import bridge
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
-from arifosmcp.runtime.models import RiskClass, RuntimeEnvelope, Verdict
+from arifosmcp.runtime.model import RiskClass, RuntimeEnvelope, Verdict
 
 # RuntimeEnvelope aliased as RE for readability in this module
 RE = RuntimeEnvelope

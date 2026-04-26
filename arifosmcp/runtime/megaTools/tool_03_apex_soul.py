@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 from fastmcp import Context  # Context injected by framework; None if called outside MCP
 
 

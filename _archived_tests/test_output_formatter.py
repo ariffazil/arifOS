@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CanonicalAuthority,
     ClaimStatus,
     RiskClass,

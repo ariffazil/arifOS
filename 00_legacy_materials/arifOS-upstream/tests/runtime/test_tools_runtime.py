@@ -99,7 +99,7 @@ async def test_arifos_vault_basic():
 async def test_arifos_memory_basic():
     """Test arifos_memory query with mocks."""
     with patch("arifosmcp.runtime.tools._mega_engineering_memory") as mock_mega:
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+        from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
         mock_mega.return_value = RuntimeEnvelope(
             ok=True,
             tool="engineering_memory",

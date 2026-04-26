@@ -1,6 +1,6 @@
 import pytest
 from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
 @pytest.mark.asyncio

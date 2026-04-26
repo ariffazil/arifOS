@@ -32,7 +32,7 @@ from enum import Enum
 from typing import Any
 
 from arifosmcp.integrations.substrate_bridge import SubstrateClient, bridge
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 

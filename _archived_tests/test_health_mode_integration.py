@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     RuntimeEnvelope,
     RuntimeStatus,
     Verdict,

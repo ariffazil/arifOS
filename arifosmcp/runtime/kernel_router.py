@@ -30,7 +30,7 @@ from arifosmcp.runtime.governance_enforcer import (
     enforce_tool_verdict,
     get_enforcer,
 )
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
 class HardenedKernelRouter:

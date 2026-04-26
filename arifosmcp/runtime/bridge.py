@@ -591,7 +591,7 @@ async def call_kernel(
     from core.governance_kernel import get_governance_kernel
     from core.shared.types import GovernanceMetadata, Intent, MathDials, TemporalContract
 
-    from arifosmcp.runtime.models import CallerContext as _CallerContext
+    from arifosmcp.runtime.model import CallerContext as _CallerContext
 
     canonical_name = tool_name or "unknown"
     claimed_actor_id = _resolve_claimed_actor_id(payload)

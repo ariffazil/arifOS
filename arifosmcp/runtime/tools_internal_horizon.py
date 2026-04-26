@@ -18,7 +18,7 @@ from typing import Any, dict
 from fastmcp.server.context import Context
 
 from arifosmcp.runtime.bridge import call_kernel
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CanonicalMetrics,
     RuntimeEnvelope,
     RuntimeStatus,

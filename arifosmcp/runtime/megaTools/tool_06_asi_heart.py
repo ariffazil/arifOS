@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.tools_internal import asi_heart_dispatch_impl
 
 

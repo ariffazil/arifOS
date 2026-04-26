@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     AuthorityLevel,
     CanonicalAuthority,
     ClaimStatus,

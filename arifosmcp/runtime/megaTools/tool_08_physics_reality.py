@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope
+from arifosmcp.runtime.model import RuntimeEnvelope
 from arifosmcp.runtime.tools_internal import physics_reality_dispatch_impl
 
 
@@ -61,7 +61,7 @@ async def physics_reality(
     # ═══════════════════════════════════════════════════════════════════════
     effective_query = query or raw_input or (payload.get("query") if payload else None)
     if not effective_query or str(effective_query).strip() == "":
-        from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+        from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
         return RuntimeEnvelope(
             tool="arifos_sense",
@@ -102,7 +102,7 @@ async def physics_reality(
         res_dict = await HARDENED_DISPATCH_MAP["physics_reality"](mode=mode, payload=payload)
 
         # ─── V1.0 VERDICT FORGING ───
-        from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
+        from arifosmcp.runtime.model import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
         metrics = CanonicalMetrics()

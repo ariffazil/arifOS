@@ -28,7 +28,7 @@ from arifosmcp.runtime.contracts import (
     ToolStatus,
     TraceContext,
 )
-from arifosmcp.runtime.models import AuthorityLevel, CanonicalAuthority, ClaimStatus
+from arifosmcp.runtime.model import AuthorityLevel, CanonicalAuthority, ClaimStatus
 from arifosmcp.runtime.sessions import (
     bind_session_identity,
     clear_session_identity,

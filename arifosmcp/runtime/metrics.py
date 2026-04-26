@@ -67,7 +67,7 @@ except ImportError:
     def generate_latest() -> bytes:
         return b"# prometheus_client unavailable\n"
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CanonicalMetrics,
     TelemetryBasis,
     TelemetryVitals,

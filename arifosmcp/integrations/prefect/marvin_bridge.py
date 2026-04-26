@@ -21,7 +21,7 @@ except ImportError:
     Task = None
 
 from arifosmcp.runtime.megaTools import apex_soul, asi_heart
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 

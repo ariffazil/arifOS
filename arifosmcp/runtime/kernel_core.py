@@ -435,7 +435,7 @@ class KernelCore:
         routing_result: dict[str, Any],
     ) -> dict[str, Any]:
         from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
-        from arifosmcp.runtime.models import RuntimeEnvelope
+        from arifosmcp.runtime.model import RuntimeEnvelope
 
         session_id = context.get("session_id")
 

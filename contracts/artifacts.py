@@ -7,7 +7,7 @@ ArtifactStatus must be binary enough for governance.
 
 from pydantic import BaseModel, Field
 
-from arifos.contracts.verdicts import ArtifactStatus
+from contracts.verdicts import ArtifactStatus
 
 
 class Claim(BaseModel):

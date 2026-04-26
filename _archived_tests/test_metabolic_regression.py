@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from arifosmcp.runtime.models import RuntimeEnvelope
+from arifosmcp.runtime.model import RuntimeEnvelope
 from arifosmcp.runtime.tools import arifos_init, arifos_route
 from core.physics.thermodynamics_hardened import init_thermodynamic_budget
 

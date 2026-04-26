@@ -4,7 +4,7 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Any
 
-from arifosmcp.runtime.models import PhilosophyState
+from arifosmcp.runtime.model import PhilosophyState
 
 
 @dataclass(frozen=True)

@@ -354,7 +354,7 @@ class ConstitutionalErrorMiddleware:
             await self.app(scope, receive, send)
             return
 
-        from arifosmcp.runtime.models import ArifOSError
+        from arifosmcp.runtime.model import ArifOSError
 
         try:
             await self.app(scope, receive, send)

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CallerContext,
     PersonaId,
     RuntimeEnvelope,

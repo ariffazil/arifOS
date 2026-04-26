@@ -14,8 +14,8 @@ import logging
 import re
 
 from arifosmcp.integrations.substrate_bridge import bridge
-from arifosmcp.runtime.models import RiskClass, Verdict
-from arifosmcp.runtime.models import RuntimeEnvelope as _RE
+from arifosmcp.runtime.model import RiskClass, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope as _RE
 
 logger = logging.getLogger(__name__)
 

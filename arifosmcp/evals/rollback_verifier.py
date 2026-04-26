@@ -35,7 +35,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 

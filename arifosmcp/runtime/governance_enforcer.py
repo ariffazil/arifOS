@@ -23,7 +23,7 @@ from enum import Enum
 from typing import Any
 
 from arifosmcp.runtime.irreversibility import AmanahIrreversibilityScorer
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
 # Global scorer instance — stateless, thread-safe
 _AMANAH_SCORER = AmanahIrreversibilityScorer()
@@ -128,7 +128,7 @@ class GovernanceEnforcer:
         Fast-track intent evaluation for unified substrates (F2/F11).
         Does NOT invoke the tool; only checks if the intent is constitutionally allowed.
         """
-        from arifosmcp.runtime.models import RuntimeEnvelope, Verdict, RuntimeStatus
+        from arifosmcp.runtime.model import RuntimeEnvelope, Verdict, RuntimeStatus
 
         # 1. Scrutinize via Amanah
         args = {**parameters, "action": action, "session_id": session_id}

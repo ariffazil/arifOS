@@ -19,7 +19,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 from arifosmcp.runtime.schemas import (
     AgiReplyEnvelopeAgent,
     AgiReplyEnvelopeHuman,

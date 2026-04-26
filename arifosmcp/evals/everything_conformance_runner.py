@@ -13,7 +13,7 @@ import asyncio
 import logging
 
 from arifosmcp.integrations.everything_probe import everything_probe
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 

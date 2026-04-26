@@ -3,7 +3,7 @@ Tests for MODEL_SOUL verification and three-layer identity binding in init_ancho
 """
 import pytest
 from arifosmcp.runtime.tools import init_anchor
-from arifosmcp.runtime.models import RuntimeStatus
+from arifosmcp.runtime.model import RuntimeStatus
 
 
 @pytest.mark.asyncio

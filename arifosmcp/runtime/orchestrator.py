@@ -14,7 +14,7 @@ from typing import Any
 from arifosmcp.runtime.metrics import (
     METABOLIC_LOOP_DURATION,
 )
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CallerContext,
     CanonicalError,
     PNSContext,
@@ -511,7 +511,7 @@ async def metabolic_loop(
     start_time = time.perf_counter()
 
     if dry_run:
-        from arifosmcp.runtime.models import AuthContext
+        from arifosmcp.runtime.model import AuthContext
 
         _actual_session = session_id or "dry-run-session"
         _actual_actor = actor_id or "anonymous"

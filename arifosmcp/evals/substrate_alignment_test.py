@@ -13,7 +13,7 @@ import logging
 from arifosmcp.integrations.fetch_bridge import arifos_fetch
 from arifosmcp.integrations.git_bridge import arifos_repo_read, arifos_repo_seal
 from arifosmcp.integrations.memory_bridge import arifos_memory_query, arifos_memory_write
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 

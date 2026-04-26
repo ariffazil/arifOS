@@ -1,7 +1,7 @@
 
 import pytest
 from arifosmcp.runtime.megaTools.tool_08_physics_reality import physics_reality
-from arifosmcp.runtime.models import VerdictCode
+from arifosmcp.runtime.model import VerdictCode
 
 @pytest.mark.asyncio
 async def test_physics_reality_time_mode_returns_ok_seal():

@@ -32,7 +32,7 @@ from arifosmcp.agentzero.memory.constitutional_memory import ConstitutionalMemor
 from arifosmcp.agentzero.security.prompt_armor import PromptArmor
 
 # arifOS runtime models
-from arifosmcp.runtime.models import (
+from arifosmcp.runtime.model import (
     CallerContext,
     RuntimeEnvelope,
     RuntimeStatus,

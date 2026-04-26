@@ -41,7 +41,7 @@ from arifosmcp.integrations.memory_bridge import (
     kg_upsert_entity,
 )
 from arifosmcp.integrations.substrate_bridge import bridge
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 

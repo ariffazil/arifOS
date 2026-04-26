@@ -7,10 +7,10 @@ This shell is used for ALL transports: STDIO, HTTPS, SSE.
 
 from pydantic import BaseModel, Field
 
-from arifos.contracts.artifacts import Artifact, ArtifactStatus
-from arifos.contracts.continuity import ContinuityState
-from arifos.contracts.identity import IdentityContext
-from arifos.contracts.verdicts import ExecutionStatus, GovernanceStatus
+from contracts.artifacts import Artifact, ArtifactStatus
+from contracts.continuity import ContinuityState
+from contracts.identity import IdentityContext
+from contracts.verdicts import ExecutionStatus, GovernanceStatus
 
 
 class ResponseEnvelope(BaseModel):

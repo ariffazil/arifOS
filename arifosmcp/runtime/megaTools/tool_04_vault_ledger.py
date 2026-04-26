@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope
+from arifosmcp.runtime.model import RuntimeEnvelope
 from arifosmcp.runtime.tools_internal import vault_ledger_dispatch_impl
 
 
@@ -61,7 +61,7 @@ async def vault_ledger(
         res_dict = await HARDENED_DISPATCH_MAP["vault_ledger"](mode=mode, payload=payload)
 
         # ─── V1.0 VERDICT FORGING ───
-        from arifosmcp.runtime.models import CanonicalMetrics
+        from arifosmcp.runtime.model import CanonicalMetrics
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
         # Normalize: RuntimeEnvelope (pydantic) → dict

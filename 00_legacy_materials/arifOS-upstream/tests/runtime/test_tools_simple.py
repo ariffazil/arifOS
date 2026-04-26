@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch, AsyncMock
 
 
 def _mock_envelope(tool: str, ok: bool = True, stage: str = "000_INIT"):
-    from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus
+    from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus
     from core.shared.types import Verdict
     return RuntimeEnvelope(
         ok=ok,

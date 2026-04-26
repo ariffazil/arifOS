@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from arifosmcp.runtime import tools as runtime_tools
-from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
 @pytest.mark.asyncio

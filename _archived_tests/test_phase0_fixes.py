@@ -22,7 +22,7 @@ from arifosmcp.runtime.tools_internal import (
     math_estimator_dispatch_impl,
     _create_error_envelope,
 )
-from arifosmcp.runtime.models import Verdict, RuntimeStatus
+from arifosmcp.runtime.model import Verdict, RuntimeStatus
 
 
 class MockContext:

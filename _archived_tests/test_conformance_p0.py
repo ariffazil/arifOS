@@ -10,7 +10,7 @@ Proves:
 
 import pytest
 from arifosmcp.runtime.tools import init_anchor
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 
 @pytest.mark.asyncio
 async def test_protected_id_hard_fail():

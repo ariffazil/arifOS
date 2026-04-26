@@ -31,7 +31,7 @@ from arifosmcp.runtime.megaTools import (
     physics_reality,
     vault_ledger,
 )
-from arifosmcp.runtime.models import Verdict
+from arifosmcp.runtime.model import Verdict
 from arifosmcp.runtime.public_registry import public_tool_names
 
 logger = logging.getLogger(__name__)

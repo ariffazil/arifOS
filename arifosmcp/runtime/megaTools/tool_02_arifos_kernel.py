@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.models import RuntimeEnvelope
+from arifosmcp.runtime.model import RuntimeEnvelope
 
 
 async def arifos_kernel(
@@ -47,7 +47,7 @@ async def arifos_kernel(
     """
     # Use unified KERNEL rCore
     from arifosmcp.runtime.kernel_core import kernel_execute
-    from arifosmcp.runtime.models import Stage
+    from arifosmcp.runtime.model import Stage
 
     # Normalize inputs for kernel_core
     if raw_input and not query:

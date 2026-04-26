@@ -19,7 +19,7 @@ except ImportError:
     pass
 CurrentContext = None  # Always defined — ctx injected by FastMCP framework at runtime
 
-from arifosmcp.runtime.models import RuntimeEnvelope, VerdictCode
+from arifosmcp.runtime.model import RuntimeEnvelope, VerdictCode
 from arifosmcp.runtime.tools_internal import agi_mind_dispatch_impl
 
 
@@ -86,7 +86,7 @@ async def agi_mind(
         res_dict = await HARDENED_DISPATCH_MAP["agi_mind"](mode=mode, payload=payload)
 
         # ─── V1.0 VERDICT FORGING ───
-        from arifosmcp.runtime.models import CanonicalMetrics
+        from arifosmcp.runtime.model import CanonicalMetrics
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
         # Extract metrics from hardened result

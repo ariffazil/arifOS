@@ -5,7 +5,7 @@ Focus on tool wrappers, stage definitions, and core tool functions
 import pytest
 from unittest.mock import Mock, patch, AsyncMock, MagicMock
 import asyncio
-from arifosmcp.runtime.models import Verdict, Stage, RuntimeEnvelope
+from arifosmcp.runtime.model import Verdict, Stage, RuntimeEnvelope
 
 
 class TestStageEnum:
@@ -535,7 +535,7 @@ class TestErrorHandling:
     async def test_tool_handles_arifos_error(self):
         """Test tool handles ArifOSError"""
         from arifosmcp.runtime.tools import agi_reason
-        from arifosmcp.runtime.models import ArifOSError
+        from arifosmcp.runtime.model import ArifOSError
         
         with patch('arifosmcp.runtime.tools.call_kernel', new_callable=AsyncMock) as mock_call:
             mock_call.side_effect = ArifOSError("Test error", "CONSTITUTIONAL", "F2_TRUTH", "VOID")
