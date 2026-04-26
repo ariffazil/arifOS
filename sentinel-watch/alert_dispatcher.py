@@ -7,17 +7,18 @@ DITEMPA BUKAN DIBERI.
 """
 
 from __future__ import annotations
-import json
+import asyncio
 import os
 import time
-from pathlib import Path
 from typing import Optional
 
 try:
     import telegram
+    from telegram import Bot
     TELEGRAM_AVAILABLE = True
 except ImportError:
     TELEGRAM_AVAILABLE = False
+    Bot = object
 
 
 # ── Alert Priority ─────────────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ ALERT_EMOJI = {
 # ── Alert Templates ────────────────────────────────────────────────────────────
 
 def format_hard_sla_alert(verdict_entry: dict, age_hours: float) -> str:
-    chain = verdict_entry.get("chain_hash", verdict_entry.get("merkle_leaf", "?"))[:12]
+    chain = verdict_entry.get("chain_hash", verdict_entry.get("merkle_leaf", "?")[:12])
     tool = verdict_entry.get("tool", verdict_entry.get("payload", {}).get("tool", "?"))
     return (
         f"⚠️ HARD_TIER SLA EXPIRED\n"
@@ -92,6 +93,21 @@ def format_vitals_snapshot(vitals: dict) -> str:
     )
 
 
+# ── Async Telegram Sender ─────────────────────────────────────────────────────
+
+async def _send_telegram_async(bot_token: str, chat_id: str, text: str) -> bool:
+    """Send a Telegram message asynchronously."""
+    try:
+        bot = Bot(token=bot_token)
+        if len(text) > 4096:
+            text = text[:4090] + "\n... [truncated]"
+        await bot.send_message(chat_id=int(chat_id), text=text, parse_mode="Markdown")
+        return True
+    except Exception as e:
+        print(f"[SENTINEL:ALERT_FAIL] {e}", file=__import__("sys").stderr)
+        return False
+
+
 # ── Dispatcher ────────────────────────────────────────────────────────────────
 
 class AlertDispatcher:
@@ -110,27 +126,30 @@ class AlertDispatcher:
     def telegram_available(self) -> bool:
         return TELEGRAM_AVAILABLE and bool(self.bot_token and self.chat_id)
 
-    # ── Low-level Telegram ────────────────────────────────────────────────
+    # ── Low-level Telegram (async) ───────────────────────────────────────
 
-    def _send_telegram(self, text: str, level: str = AlertLevel.INFO) -> bool:
+    async def _send_async(self, text: str) -> bool:
+        return await _send_telegram_async(self.bot_token, self.chat_id, text)
+
+    def _send(self, text: str, level: str = AlertLevel.INFO) -> bool:
+        """Synchronous wrapper. Creates a new event loop if needed."""
         if not self.telegram_available:
             return False
         try:
-            bot = telegram.Bot(token=self.bot_token)
-            if len(text) > 4096:
-                text = text[:4090] + "\n... [truncated]"
-            bot.send_message(chat_id=self.chat_id, text=text, parse_mode="Markdown")
-            return True
-        except Exception as e:
-            # Log failure but don't crash
-            import sys
-            print(f"[SENTINEL:ALERT_FAIL] {e}", file=sys.stderr)
-            return False
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # We're inside an async context — schedule without waiting
+                asyncio.create_task(self._send_async(text))
+                return True
+            return loop.run_until_complete(self._send_async(text))
+        except RuntimeError:
+            # No event loop running — create a fresh one
+            return asyncio.run(self._send_async(text))
 
-    # ── Public Alert API ────────────────────────────────────────────────
+    # ── Public Alert API ───────────────────────────────────────────────
 
     def alert(self, level: str, message: str, metadata: Optional[dict] = None) -> None:
-        """Fire an alert. Queued if Telegram unavailable."""
+        """Fire an alert."""
         entry = {
             "ts": time.time(),
             "level": level,
@@ -140,8 +159,7 @@ class AlertDispatcher:
         }
         self.queue.append(entry)
         if self.telegram_available:
-            sent = self._send_telegram(f"{ALERT_EMOJI.get(level, '⚠️')} {message}", level)
-            entry["sent"] = sent
+            entry["sent"] = self._send(f"{ALERT_EMOJI.get(level, '⚠️')} {message}", level)
         self.sent_log.append(entry)
 
     def alert_sla_expiry(self, entry: dict, age_hours: float) -> None:
@@ -179,14 +197,14 @@ class AlertDispatcher:
             {"type": "VITALS_SNAPSHOT"},
         )
 
-    # ── Queue Drain ────────────────────────────────────────────────────
+    # ── Queue Drain ───────────────────────────────────────────────────
 
     def drain_queue(self) -> int:
         """Attempt to resend failed alerts. Returns count sent."""
         sent = 0
         for entry in self.queue:
             if not entry["sent"]:
-                entry["sent"] = self._send_telegram(entry["message"], entry["level"])
+                entry["sent"] = self._send(entry["message"], entry["level"])
                 if entry["sent"]:
                     sent += 1
         return sent

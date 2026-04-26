@@ -59,7 +59,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F12_INJECTION],
         "risk_tier": "critical",
         "irreversible": False,
-        "modes": ["init", "status", "discover", "handover", "revoke", "refresh"],
+        "modes": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
@@ -90,6 +90,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Floor.F02_TRUTH, Floor.F07_HUMILITY, Floor.F08_GENIUS],
         "risk_tier": "medium",
         "irreversible": False,
+        "modes": ["reason", "reflect", "verify", "critique", "axioms", "plan", "plan_review", "plan_approve"],
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
@@ -170,6 +171,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Floor.F01_AMANAH, Floor.F11_AUTH],
         "risk_tier": "critical",
         "irreversible": True,
+        "modes": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
     },
     "arif_ops_measure": {
         "name": "arif_ops_measure",

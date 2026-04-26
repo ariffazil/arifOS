@@ -275,6 +275,10 @@ def _ok(
             epoch = _EPOCH_REGISTRY.get(epoch_id)
             if epoch is not None and epoch.get("status") == "open":
                 epoch.setdefault("tools_used", []).append(tool)
+                # Sticky-floor: degraded epoch stays degraded until sovereign reset
+                if epoch.get("verdict") != "VOID":
+                    epoch["peace2"] = max(epoch.get("peace2", 0.0), 1.0)
+                    epoch["verdict"] = "SEAL"
 
     return {
         "status": "OK",
@@ -291,11 +295,20 @@ def _hold(
     reason: str,
     floors: list[str] | None = None,
     extra_meta: dict[str, Any] | None = None,
+    session_id: str | None = None,
 ) -> dict[str, Any]:
     """Constitutional HOLD — blocks execution, requires refinement or human intervention."""
     meta = {"reason": reason, "failed_floors": floors or []}
     if extra_meta:
         meta.update(extra_meta)
+    # Degrade epoch health if called within a bound session
+    if session_id and session_id in _SESSIONS:
+        eid = _SESSIONS[session_id].get("epoch_id")
+        if eid:
+            epoch = _EPOCH_REGISTRY.get(eid)
+            if epoch is not None and epoch.get("status") == "open":
+                epoch["verdict"] = "VOID"
+                epoch["peace2"] = min(epoch.get("peace2", 1.0), 0.0)
     return {
         "status": "HOLD",
         "tool": tool,
@@ -556,7 +569,7 @@ def _arif_session_init(
         actor_id,
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_session_init", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_session_init", floor_check["reason"], floor_check["failed_floors"], session_id=session_id)
 
     identity = get_constitution_identity()
     surface = get_public_surface_state()
@@ -666,6 +679,8 @@ def _arif_session_init(
             "sealed_at": None,
             "status": "open",
             "tools_used": [],
+            "peace2": 1.0,
+            "verdict": "SEAL",
         }
         return _ok(
             "arif_session_init",
@@ -706,6 +721,12 @@ def _arif_session_init(
                 "arif_session_init",
                 f"epoch_id not found: {eid}",
                 extra_meta={"allowed_modes": allowed_modes},
+            )
+        if epoch.get("verdict") == "VOID" or epoch.get("peace2", 1.0) < 1.0:
+            return _hold(
+                "arif_session_init",
+                "epoch_seal rejected: degraded epoch cannot be permanently vaulted without sovereign review (F1 + F13)",
+                extra_meta={"epoch_id": eid, "peace2": epoch.get("peace2"), "verdict": epoch.get("verdict")},
             )
         epoch["sealed_at"] = _now()
         epoch["status"] = "sealed"
@@ -781,7 +802,7 @@ def _arif_sense_observe(
     """
     floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"], session_id=session_id)
 
     if mode == "search":
         return _ok("arif_sense_observe", {"query": query, "results": [], "source": "sense", "omega_0": 0.04}, delta_S=0.002)
@@ -796,7 +817,7 @@ def _arif_sense_observe(
         return _ok("arif_sense_observe", {"delta_S": round(dS, 6), "trend": "stable"}, delta_S=abs(dS))
     if mode == "vitals":
         return _ok("arif_sense_observe", {"cpu": 12.5, "mem": 34.0, "io": "normal"}, delta_S=0.001)
-    return _hold("arif_sense_observe", f"Unknown mode: {mode}")
+    return _hold("arif_sense_observe", f"Unknown mode: {mode}", session_id=session_id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -829,7 +850,7 @@ def _arif_evidence_fetch(
     """
     floor_check = check_floors("arif_evidence_fetch", {"url": url or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_evidence_fetch", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_evidence_fetch", floor_check["reason"], floor_check["failed_floors"], session_id=session_id)
 
     # Check for evidence backend configuration
     _has_fetch_backend = bool(url)  # URL presence implies fetch is possible
@@ -901,7 +922,7 @@ def _arif_evidence_fetch(
     if mode == "verify":
         return _ok("arif_evidence_fetch", {"url": url, "verified": False, "note": "stub"}, delta_S=0.001)
 
-    return _hold("arif_evidence_fetch", f"Unknown mode: {mode}")
+    return _hold("arif_evidence_fetch", f"Unknown mode: {mode}", session_id=session_id)
 
 
 def _run_sequential_thinking(
@@ -1070,9 +1091,10 @@ def _arif_mind_reason(
       axioms       — List available constitutional axioms and their confidence.
       plan         — Generate a governed execution plan (PlanReceipt).
       plan_review  — Retrieve an existing plan by plan_id.
+      plan_approve — Promote a plan from pending_approval → approved.
 
     Parameters:
-      mode       — reason | reflect | verify | critique | axioms | plan | plan_review
+      mode       — reason | reflect | verify | critique | axioms | plan | plan_review | plan_approve
       query      — Reasoning prompt or claim to verify
       session_id — Governed session ID
       actor_id   — Sovereign actor identifier
@@ -1085,7 +1107,7 @@ def _arif_mind_reason(
     """
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"], session_id=session_id)
 
     # Default axioms for all modes
     default_axioms = AxiomsUsed(
@@ -1168,10 +1190,10 @@ def _arif_mind_reason(
 
     if mode == "plan_review":
         if not plan_id:
-            return _hold("arif_mind_reason", "plan_id is required for plan_review mode")
+            return _hold("arif_mind_reason", "plan_id is required for plan_review mode", session_id=session_id)
         plan = _PLAN_REGISTRY.get(plan_id)
         if plan is None:
-            return _hold("arif_mind_reason", f"plan_id not found: {plan_id}")
+            return _hold("arif_mind_reason", f"plan_id not found: {plan_id}", session_id=session_id)
         return _ok(
             "arif_mind_reason",
             {
@@ -1184,7 +1206,7 @@ def _arif_mind_reason(
 
     if mode == "plan_approve":
         if not plan_id:
-            return _hold("arif_mind_reason", "plan_id is required for plan_approve mode")
+            return _hold("arif_mind_reason", "plan_id is required for plan_approve mode", session_id=session_id)
         plan = _PLAN_REGISTRY.get(plan_id)
         if plan is None:
             return _hold("arif_mind_reason", f"plan_id not found: {plan_id}")
@@ -1484,7 +1506,7 @@ def _arif_mind_reason(
         )
         return output
 
-    return _hold("arif_mind_reason", f"Unknown mode: {mode}")
+    return _hold("arif_mind_reason", f"Unknown mode: {mode}", session_id=session_id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2007,7 +2029,7 @@ def _arif_judge_deliberate(
     elif mode == "notify":
         result = {"candidate": candidate, "notified": True, "channel": "sovereign", "verdict": "SEAL"}
     else:
-        return _hold("arif_judge_deliberate", f"Unknown mode: {mode}")
+        return _hold("arif_judge_deliberate", f"Unknown mode: {mode}", session_id=session_id)
 
     floor_compliance = FloorComplianceProof(
         floors_invoked=["F01", "F02", "F08", "F11", "F12", "F13"],
@@ -2706,7 +2728,7 @@ def _arif_forge_execute(
             rollbacks_succeeded=0,
         )
         if not ack_irreversible:
-            return _hold("arif_forge_execute", "commit requires ack_irreversible=True", [])
+            return _hold("arif_forge_execute", "commit requires ack_irreversible=True", [], session_id=session_id)
 
         output = ForgeOutput(
             manifest=ForgeManifest(artifact_id=artifact_id_out, status=ManifestStatus.COMMITTED),
@@ -2725,22 +2747,6 @@ def _arif_forge_execute(
         )
         return output.model_dump(mode="json")
 
-    if mode == "dry_run":
-        return {
-            "status": "OK",
-            "tool": "arif_forge_execute",
-            "result": {
-                "forge_dry_run": "PASS",
-                "would_execute_steps": ["parse_query", "resolve_dependencies", "validate_floors", "execute_build", "seal_artifact"],
-                "files_to_modify": ["[simulated — no actual files]"],
-                "rollback_plan": ["remove_artifact_id", "restore_file_timestamps", "clear_build_cache"],
-                "permanent_change": False,
-                "requires_ack_irreversible": True,
-                "note": "dry_run — no files modified, no commands executed",
-            },
-            "meta": {},
-            "timestamp": _now(),
-        }
     return ForgeOutput(
         status="HOLD",
         result={},
@@ -2778,11 +2784,14 @@ async def _arif_forge_execute_tool(
     Modes:
       engineer  — Execute a manifest (build, deploy, or system change).
       query     — Inspect current system state without mutation.
-      rollback  — Revert a prior forge operation by artifact_id.
-      status    — Check forge queue health and pending operations.
+      write     — Write or modify files under constitutional supervision.
+      generate  — Generate code or artifacts under constitutional supervision.
+      commit    — Seal a forge operation to the vault.
+      recall    — Recall a prior forge artifact or execution trace.
+      dry_run   — Simulate a forge operation without mutation.
 
     Parameters:
-      mode                  — engineer | query | rollback | status
+      mode                  — engineer | query | write | generate | commit | recall | dry_run
       manifest              — JSON manifest describing the operation
       query                 — State inspection query (query mode)
       artifact_id           — Target artifact for rollback/status

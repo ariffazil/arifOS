@@ -1034,18 +1034,35 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
                 "required_parameters": ["query"],
                 "returns": ["state", "metrics"],
             },
-            "rollback": {
-                "purpose": "Revert a prior forge operation by artifact_id.",
-                "required_parameters": ["artifact_id"],
-                "returns": ["status", "restored_version"],
+            "write": {
+                "purpose": "Write or modify files under constitutional supervision.",
+                "required_parameters": ["manifest"],
+                "optional_parameters": ["ack_irreversible", "plan_id"],
+                "returns": ["status", "execution_trace", "artifact_id"],
             },
-            "status": {
-                "purpose": "Check forge queue health and pending operations.",
-                "returns": ["queue", "pending"],
+            "generate": {
+                "purpose": "Generate code or artifacts under constitutional supervision.",
+                "required_parameters": ["manifest"],
+                "optional_parameters": ["ack_irreversible", "plan_id"],
+                "returns": ["status", "execution_trace", "artifact_id"],
+            },
+            "commit": {
+                "purpose": "Seal a forge operation to the vault.",
+                "required_parameters": ["artifact_id"],
+                "returns": ["status", "vault_entry_id"],
+            },
+            "recall": {
+                "purpose": "Recall a prior forge artifact or execution trace.",
+                "required_parameters": ["artifact_id"],
+                "returns": ["artifact", "trace"],
+            },
+            "dry_run": {
+                "purpose": "Simulate a forge operation without mutation.",
+                "returns": ["simulation", "would_execute_steps"],
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["engineer", "query", "rollback", "status"], "default": "engineer"},
+            "mode": {"type": "string", "allowed_values": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"], "default": "engineer"},
             "manifest": {"type": "string", "meaning": "JSON manifest describing the operation.", "required_when": [{"mode": "engineer"}]},
             "query": {"type": "string", "meaning": "State inspection query (query mode).", "required_when": [{"mode": "query"}]},
             "artifact_id": {"type": "string", "meaning": "Target artifact for rollback/status.", "required_when": [{"mode": "rollback"}]},

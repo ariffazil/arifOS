@@ -91,10 +91,12 @@ class TestH2PlanningOrgan:
         _SESSIONS.clear()
         _PLAN_REGISTRY.clear()
         _VAULT_LEDGER.clear()
+        _EPOCH_REGISTRY.clear()
         yield
         _SESSIONS.clear()
         _PLAN_REGISTRY.clear()
         _VAULT_LEDGER.clear()
+        _EPOCH_REGISTRY.clear()
 
     def test_plan_mode_emits_plan_receipt(self):
         result = _arif_mind_reason(
