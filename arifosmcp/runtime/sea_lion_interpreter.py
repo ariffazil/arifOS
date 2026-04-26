@@ -204,7 +204,102 @@ async def interpret_with_sea_lion(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FALLBACK INTERPRETER (API unavailable)
+# OLLAMA FALLBACK (try local model before deterministic)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MEANING_MODEL", "qwen2.5:7b")
+
+
+async def interpret_with_ollama(
+    event: str,
+    state: dict[str, Any],
+    judgment: dict[str, Any],
+    candidate_quotes: list[dict[str, Any]],
+    language: str = "en",
+) -> dict[str, Any]:
+    """Use local Ollama model as secondary fallback for interpretation."""
+    import httpx
+
+    candidate_block = json.dumps(
+        [
+            {
+                "id": q["id"],
+                "quote": q["quote"],
+                "author": q["author"],
+                "tradition": q.get("tradition", ""),
+                "theme": q.get("theme", ""),
+                "arifos_mapping": q.get("arifos_mapping", {}),
+                "action_bias": q.get("action_bias", ""),
+                "risk_use": q.get("risk_use", []),
+            }
+            for q in candidate_quotes
+        ],
+        ensure_ascii=False,
+        indent=2,
+    )
+
+    prompt = f"""You are the arifOS Linguistic Meaning Sidecar.
+You do NOT create quotes. Select ONE candidate quote by ID from the list below.
+Return ONLY a JSON object. No prose, no markdown fences.
+
+EVENT: {event}
+STATE: {json.dumps(state, ensure_ascii=False, indent=2)}
+JUDGMENT: {json.dumps(judgment, ensure_ascii=False, indent=2)}
+CANDIDATE QUOTES:
+{candidate_block}
+
+OUTPUT SCHEMA (strict JSON):
+{{
+  "selected_quote_id": "string",
+  "meaning": "string",
+  "interpretation": "string",
+  "arifos_alignment": {{"physics": "string", "math": "string", "linguistic": "string"}},
+  "decision_boundary": "string",
+  "human_decision_required": true,
+  "recommended_action": "string",
+  "uncertainty": ["string"],
+  "safety_notes": ["string"]
+}}"""
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{OLLAMA_BASE_URL}/api/generate",
+                json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False, "format": "json"},
+            )
+    except Exception as exc:
+        raise InterpretationError(f"Ollama unavailable: {exc}")
+
+    if response.status_code != 200:
+        raise InterpretationError(f"Ollama HTTP {response.status_code}")
+
+    try:
+        parsed = response.json()
+        if isinstance(parsed, str):
+            parsed = json.loads(parsed)
+    except Exception as exc:
+        raise InterpretationError(f"Ollama parse error: {exc}")
+
+    required_top = {
+        "selected_quote_id",
+        "meaning",
+        "interpretation",
+        "arifos_alignment",
+        "decision_boundary",
+        "human_decision_required",
+        "recommended_action",
+    }
+    missing = required_top - set(parsed.keys())
+    if missing:
+        raise InterpretationError(f"Ollama output missing fields: {sorted(missing)}")
+
+    logger.debug("Ollama fallback selected quote %s", parsed.get("selected_quote_id"))
+    return parsed
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FALLBACK INTERPRETER (deterministic — last resort)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
