@@ -255,7 +255,59 @@ try:
         app.add_route("/ready", horizon_ready, methods=["GET"])
         app.add_route("/metadata", horizon_metadata, methods=["GET"])
         app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
-        logger.info("HTTP app configured with gateway endpoints")
+
+        # FastMCP built-in /tools doesn't expose meta — override it
+        async def tools_with_meta(request: Request) -> JSONResponse:
+            from arifosmcp.tool_manifest import TOOL_MANIFEST
+            tool_summaries = []
+            try:
+                lp = getattr(mcp, "_local_provider", None)
+                if lp:
+                    raw_tools = {k: v for k, v in lp._components.items() if k.startswith("tool:")}
+                else:
+                    raw_tools = {}
+                for name, tool in raw_tools.items():
+                    tool_name = name.replace("tool:", "").rstrip("@")
+                    base = {"description": tool.description or "", "parameters": tool.parameters or {}}
+                    manifest = TOOL_MANIFEST.get(tool_name, {})
+                    meta_dict = getattr(tool, "meta", None) or {}
+                    arifos_m = meta_dict.get("arifos_manifest", {}) or manifest
+                    entry = {
+                        "name": tool_name,
+                        "description": base["description"],
+                        "parameters": base["parameters"],
+                        "stage": arifos_m.get("stage_code", ""),
+                        "lane": arifos_m.get("lane", ""),
+                        "meta": {
+                            "arifos_manifest": arifos_m,
+                            "stage_code": meta_dict.get("stage_code", arifos_m.get("stage_code", "")),
+                            "stage_name": meta_dict.get("stage_name", arifos_m.get("stage_name", "")),
+                            "risk_tier": meta_dict.get("risk_tier", arifos_m.get("risk", {}).get("tier", "low")),
+                            "irreversible": meta_dict.get("irreversible", arifos_m.get("risk", {}).get("irreversible", False)),
+                            "requires_human_ack": meta_dict.get("requires_human_ack", arifos_m.get("risk", {}).get("requires_human_ack", False)),
+                            "use_when": arifos_m.get("use_when", []),
+                            "do_not_use_when": arifos_m.get("do_not_use_when", []),
+                            "next_recommended_tools": arifos_m.get("next_recommended_tools", []),
+                            "authority_boundary": arifos_m.get("authority_boundary", {}),
+                            "privacy_scope": arifos_m.get("privacy_scope", []),
+                            "canonical_order": meta_dict.get("canonical_order", arifos_m.get("canonical_order", [])),
+                        }
+                    }
+                    tool_summaries.append(entry)
+            except Exception as e:
+                logger.warning(f"Failed to build meta-enriched tools response: {e}")
+                tool_summaries = []
+            return JSONResponse({"tools": tool_summaries, "count": len(tool_summaries)})
+
+        from starlette.routing import Route
+        tools_meta_route = Route("/tools", tools_with_meta, methods=["GET"])
+        # Prepend so it overrides FastMCP's built-in /tools
+        app.router.routes.insert(0, tools_meta_route)
+        app.add_route("/health", horizon_health, methods=["GET"])
+        app.add_route("/ready", horizon_ready, methods=["GET"])
+        app.add_route("/metadata", horizon_metadata, methods=["GET"])
+        app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
+        logger.info("HTTP app configured with gateway endpoints + meta-enriched /tools")
     else:
         logger.warning("HTTP app is None")
 except Exception as e:
