@@ -2,7 +2,10 @@
 ARIFOS CONSTITUTIONAL MAP (v2026.04.24-KANON)
 ═══════════════════════════════════════════════
 
-Single source of truth for the 13-tool canonical surface.
+Single source of truth for the active MCP surface:
+- 13 constitutional tools
+- 2 public diagnostic probes
+
 Ditempa Bukan Diberi.
 """
 from enum import Enum
@@ -224,12 +227,23 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
 }
 
+PROBE_TOOLS = ("arif_ping", "arif_selftest")
+CONSTITUTIONAL_TOOLS = tuple(name for name in CANONICAL_TOOLS if name not in PROBE_TOOLS)
+
 def get_tool_spec(name: str) -> dict[str, Any] | None:
     return CANONICAL_TOOLS.get(name)
 
 
 def list_canonical_tools() -> list[str]:
     return list(CANONICAL_TOOLS.keys())
+
+
+def list_constitutional_tools() -> list[str]:
+    return list(CONSTITUTIONAL_TOOLS)
+
+
+def list_probe_tools() -> list[str]:
+    return list(PROBE_TOOLS)
 
 
 def _list_tools_by_access(access: str) -> list[str]:
@@ -259,7 +273,8 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS. "
             "Do not hand edit."
         ),
-        "canonical_count": len(CANONICAL_TOOLS),
+        "canonical_count": len(CONSTITUTIONAL_TOOLS),
+        "probe_count": len(PROBE_TOOLS),
         "total_surface": len(CANONICAL_TOOLS),
         "tools": {
             name: {
@@ -270,7 +285,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
                 "irreversible": spec["irreversible"],
                 "access": spec["access"],
                 "requires_auth": spec["access"] != "public",
-                "tags": ["canonical"],
+                "tags": ["probe"] if name in PROBE_TOOLS else ["canonical"],
             }
             for name, spec in CANONICAL_TOOLS.items()
         },

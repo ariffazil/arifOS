@@ -13,12 +13,18 @@ import pytest
 
 
 def test_canonical_tool_count():
-    """Surface must be exactly 13 tools."""
-    from arifosmcp.constitutional_map import CANONICAL_TOOLS
-
-    assert len(CANONICAL_TOOLS) == 13, (
-        f"Surface drift: expected 13 tools, got {len(CANONICAL_TOOLS)}. VOID."
+    """Surface must be 15 registered tools: 13 constitutional + 2 probes."""
+    from arifosmcp.constitutional_map import (
+        CANONICAL_TOOLS,
+        list_constitutional_tools,
+        list_probe_tools,
     )
+
+    assert len(CANONICAL_TOOLS) == 15, (
+        f"Surface drift: expected 15 tools, got {len(CANONICAL_TOOLS)}. VOID."
+    )
+    assert len(list_constitutional_tools()) == 13
+    assert len(list_probe_tools()) == 2
 
 
 def test_tool_naming_convention():
@@ -61,10 +67,13 @@ def test_canonical_resources_count():
 
 
 def test_all_tools_have_floors():
-    """Every tool must have at least one floor binding."""
-    from arifosmcp.constitutional_map import CANONICAL_TOOLS
+    """Every constitutional tool must have at least one floor binding."""
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS, list_probe_tools
 
+    probes = set(list_probe_tools())
     for name, spec in CANONICAL_TOOLS.items():
+        if name in probes:
+            continue
         floors = spec.get("floors", [])
         assert len(floors) >= 1, (
             f"Tool {name} has no floor bindings. VOID."

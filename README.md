@@ -273,11 +273,8 @@ These are documentation/runtime alignment issues that should not be hidden:
 
 | Gap | Current state |
 | --- | --- |
-| Tool count wording | Some docs say 13 tools; active runtime registers 15 including `arif_ping` and `arif_selftest`. |
-| Registry split | `tool_registry.json` is a 13-tool constitutional snapshot; `constitutional_map.py` is the active 15-tool runtime map. |
+| Legacy docs | Some older docs outside this README may still say 13, 37, or 39 tools. Current runtime SOT is 15 registered tools: 13 constitutional plus 2 probes. |
 | Deployed version | The live VPS health endpoint may report `v2026.04.19-UNIFIED` while local source reports `2026.04.24-KANON`. |
-| Docker labels | Some Dockerfile labels still describe older tool counts and release tags. |
-| Makefile health port | `make health` probes port `8000`, while the canonical server default is `8080`. |
 
 These gaps are not fatal, but they should be resolved before a release seal.
 

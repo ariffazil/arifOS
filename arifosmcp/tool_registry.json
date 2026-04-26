@@ -2,8 +2,33 @@
   "_schema": "arifos-ssct-v2026.04.24-kanon-phase1",
   "_note": "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS. Do not hand edit.",
   "canonical_count": 13,
-  "total_surface": 13,
+  "probe_count": 2,
+  "total_surface": 15,
   "tools": {
+    "arif_ping": {
+      "stage": "000",
+      "lane": "AGI",
+      "floors": [],
+      "risk_tier": "none",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "probe"
+      ]
+    },
+    "arif_selftest": {
+      "stage": "000",
+      "lane": "AGI",
+      "floors": [],
+      "risk_tier": "none",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "tags": [
+        "probe"
+      ]
+    },
     "arif_session_init": {
       "stage": "000",
       "lane": "AGI",
@@ -219,5 +244,5 @@
       ]
     }
   },
-  "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given"
+  "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given"
 }

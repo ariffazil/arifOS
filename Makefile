@@ -3,7 +3,7 @@
 
 PYTHON = uv run python
 
-.PHONY: status forge seal health sync publish-check publish-pypi publish-ghcr publish-law publish-all
+.PHONY: status forge seal health sync sot-check publish-check publish-pypi publish-ghcr publish-law publish-all
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
@@ -24,7 +24,11 @@ seal:
 
 health:
 	@echo "Verifying 111_SENSE..."
-	@curl -s http://localhost:8000/health | jq .
+	@curl -s http://localhost:8080/health | jq .
+
+sot-check:
+	@echo "Auditing arifOS source-of-truth alignment..."
+	@python scripts/audit_sot.py
 
 sync:
 	@echo "Synchronizing Planetary Fleet..."

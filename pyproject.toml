@@ -1,7 +1,7 @@
 [project]
 name = "arifos"
 version = "2026.04.24"
-description = "arifOS v2026.04.24-KANON — Constitutional AI Governance System. 13 canonical tools, 13 constitutional floors (F1-F13), streamable-http MCP transport. CANONICAL SOURCE OF TRUTH: arifOS repository."
+description = "arifOS v2026.04.24-KANON — Constitutional AI Governance System. 15 registered MCP tools (13 constitutional + 2 public probes), 13 constitutional floors (F1-F13), streamable-http MCP transport. CANONICAL SOURCE OF TRUTH: arifOS repository."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"

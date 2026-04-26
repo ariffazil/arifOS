@@ -2,7 +2,7 @@
 arifOS MCP Server — Canonical Entry Point
 ═══════════════════════════════════════════
 
-13-tool canonical surface | 13 Floors (F1–F13) | Trinity ΔΩΨ
+15-tool runtime surface (13 constitutional + 2 probes) | 13 Floors (F1–F13) | Trinity ΔΩΨ
 FastMCP 3.2.0 + MCP Apps + Streamable HTTP
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -36,6 +36,8 @@ from arifosmcp.constitutional_map import (
     CANONICAL_TOOLS,
     list_authenticated_tools,
     list_canonical_tools,
+    list_constitutional_tools,
+    list_probe_tools,
     list_public_tools,
     list_sovereign_tools,
 )
@@ -44,6 +46,8 @@ logger = logging.getLogger(__name__)
 
 _canonical_tool_names = list_canonical_tools()
 _canonical_tool_names_text = ", ".join(_canonical_tool_names)
+_constitutional_tool_names = list_constitutional_tools()
+_probe_tool_names = list_probe_tools()
 
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
@@ -71,7 +75,8 @@ mcp = FastMCP(
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
         "Golden path: init → sense → mind → heart → judge → vault\n\n"
-        f"Canonical 13 tools (arif_noun_verb):\n  {_canonical_tool_names_text}\n\n"
+        "Runtime surface: 15 tools (13 constitutional + 2 public probes).\n"
+        f"Tools (arif_noun_verb):\n  {_canonical_tool_names_text}\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
@@ -155,7 +160,9 @@ async def horizon_health(request: Request) -> JSONResponse:
             "prompts": len(v2_prompts_registered),
             "resources": len(v2_resources_registered),
             "apps": len(v2_apps_registered),
-            "canonical_surface": 13,
+            "canonical_surface": len(_constitutional_tool_names),
+            "probe_surface": len(_probe_tool_names),
+            "registered_surface": len(v2_tools_registered),
             "timestamp": __import__("datetime")
             .datetime.now(__import__("datetime").timezone.utc)
             .isoformat(),
@@ -172,6 +179,11 @@ async def horizon_metadata(request: Request) -> JSONResponse:
             "gateway": {
                 "type": "unified",
                 "capabilities": ["tools", "prompts", "resources", "apps"],
+                "surface": {
+                    "registered": len(v2_tools_registered),
+                    "constitutional": len(_constitutional_tool_names),
+                    "probes": len(_probe_tool_names),
+                },
                 "tool_access": {
                     "public": PUBLIC_TOOLS,
                     "authenticated": AUTHENTICATED_TOOLS,
