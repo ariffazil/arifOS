@@ -174,7 +174,7 @@ class HardenedInitAnchor:
                     for fname in files:
                         if fname.endswith(".json"):
                             rel = os.path.relpath(os.path.join(root, fname), models_dir)
-                            model_key = rel.replace("\", "/").replace(".json", "")
+                            model_key = rel.replace("\\", "/").replace(".json", "")
                             with open(os.path.join(root, fname), encoding="utf-8") as f:
                                 comprehensive["models"][model_key] = json.load(f)
 

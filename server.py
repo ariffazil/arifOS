@@ -331,6 +331,7 @@ v2_prompts_registered = []
 v2_resources_registered = []
 
 try:
+    from arifosmcp.runtime.public_surface import current_public_surface_mode
     from arifosmcp.runtime.prompts import register_v2_prompts
     from arifosmcp.runtime.resources import register_resources
     from arifosmcp.runtime.rest_routes import register_rest_routes
@@ -346,42 +347,52 @@ try:
     import arifosmcp.runtime.tools as _tools_mod
     _tools_mod.CANONICAL_TOOL_HANDLERS = HARDENED_HANDLERS
 
-    # ── UNPACK DISTRIBUTED REGISTRY (74-Tool Expansion) ────────────────────────
-    from arifosmcp.tools_canonical import TOOL_ALIAS_MAP, resolve_alias
-    
-    def create_wrapped_tool(alias_name, target_fn, mode):
-        async def _wrapped(req: dict[str, Any]):
-            return await resolve_alias(alias_name, req)
-        _wrapped.__name__ = alias_name
-        return _wrapped
+    public_surface_mode = current_public_surface_mode()
 
-    for alias_name in TOOL_ALIAS_MAP:
-        # Map legacy prefixes to manifest namespaces
-        namespace = "arifos"
-        clean_name = alias_name
-        if alias_name.startswith("P_geox") or alias_name.startswith("E_geox"):
-            namespace = "geoxarifOS"
-            clean_name = alias_name.replace("P_geox_", "").replace("E_geox_", "")
-        elif alias_name.startswith("V_") or alias_name.startswith("P_wealth"):
-            namespace = "wealth"
-            clean_name = alias_name.replace("V_", "").replace("P_wealth_", "")
-        elif alias_name.startswith("P_well") or alias_name.startswith("E_well"):
-            namespace = "AFWELL"
-            clean_name = alias_name.replace("P_well_", "").replace("E_well_", "")
+    if (
+        public_surface_mode == "expanded45"
+        and _env_flag("ARIFOS_ENABLE_INTERNAL_ALIAS_SURFACE", default=False)
+    ):
+        from arifosmcp.tools_canonical import TOOL_ALIAS_MAP, resolve_alias
 
-        full_tool_name = f"{namespace}_{clean_name}"
-        mcp.tool(name=full_tool_name)(create_wrapped_tool(alias_name, resolve_alias, None))
-        v2_tools_registered.append(full_tool_name)
+        def create_wrapped_tool(alias_name, target_fn, mode):
+            async def _wrapped(req: dict[str, Any]):
+                return await resolve_alias(alias_name, req)
 
-    v2_tools_registered += register_v2_tools(mcp, include_legacy_compat=False)
+            _wrapped.__name__ = alias_name
+            return _wrapped
+
+        for alias_name in TOOL_ALIAS_MAP:
+            namespace = "arifos"
+            clean_name = alias_name
+            if alias_name.startswith("P_geox") or alias_name.startswith("E_geox"):
+                namespace = "geoxarifOS"
+                clean_name = alias_name.replace("P_geox_", "").replace("E_geox_", "")
+            elif alias_name.startswith("V_") or alias_name.startswith("P_wealth"):
+                namespace = "wealth"
+                clean_name = alias_name.replace("V_", "").replace("P_wealth_", "")
+            elif alias_name.startswith("P_well") or alias_name.startswith("E_well"):
+                namespace = "AFWELL"
+                clean_name = alias_name.replace("P_well_", "").replace("E_well_", "")
+
+            full_tool_name = f"{namespace}_{clean_name}"
+            mcp.tool(name=full_tool_name)(create_wrapped_tool(alias_name, resolve_alias, None))
+            v2_tools_registered.append(full_tool_name)
+
+    v2_tools_registered += register_v2_tools(
+        mcp,
+        include_legacy_compat=False,
+        surface_mode=public_surface_mode,
+    )
     v2_prompts_registered = register_v2_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
-    # Mount Specialized Bio/World/Finance Stems
-    from arifosmcp.apps.geox_app import geox_app
-    from arifosmcp.apps.wealth_app import wealth_app
-    mcp.mount(geox_app, namespace="geox-app")
-    mcp.mount(wealth_app, namespace="wealth-app")
+    if public_surface_mode == "expanded45":
+        from arifosmcp.apps.geox_app import geox_app
+        from arifosmcp.apps.wealth_app import wealth_app
+
+        mcp.mount(geox_app, namespace="geox-app")
+        mcp.mount(wealth_app, namespace="wealth-app")
 
     # Approval Provider (F13 gate)
     if _env_flag("ARIFOS_ENABLE_APPROVAL_PROVIDER", default=False):

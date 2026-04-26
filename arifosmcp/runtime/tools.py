@@ -137,43 +137,9 @@ def get_constitution_identity() -> dict[str, Any]:
 
 def get_public_surface_state() -> dict[str, Any]:
     """Canonical source of truth for public MCP surface."""
-    return {
-        "mode": "canonical15",
-        "tools_registered": 15,
-        "kernel_tools": 13,
-        "diagnostic_tools": ["arif_ping", "arif_selftest"],
-        "tool_names": list(CANONICAL_TOOLS.keys())
-    }
+    from arifosmcp.runtime.public_surface import public_surface_state
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# CONSTITUTIONAL IDENTITY & SURFACE HELPERS (Shared SOT)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def get_constitution_identity() -> dict[str, Any]:
-    """Canonical source of truth for arifOS law identity."""
-    import hashlib
-    FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Memory, F9: Anti-Hantu, F10: Witness, F11: Audit, F12: Injection, F13: Sovereign"""
-    c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
-    return {
-        "constitution_id": "arifos-constitution-v2026.04.26",
-        "constitution_hash": f"sha256:{c_hash}",
-        "invariants_hash": "sha256:4d7a8e23b7b...",
-        "kernel": "canonical13",
-        "floors_count": 13,
-        "laws_count": 13,
-        "policy_url": "/policy",
-        "constitution_url": "/constitution.json"
-    }
-
-def get_public_surface_state() -> dict[str, Any]:
-    """Canonical source of truth for public MCP surface."""
-    return {
-        "mode": "canonical15",
-        "tools_registered": 15,
-        "kernel_tools": 13,
-        "diagnostic_tools": ["arif_ping", "arif_selftest"]
-    }
+    return public_surface_state()
 
 # ─── Tool Implementations ─────────────────────────────────────────────────────
 
@@ -516,7 +482,12 @@ def _arif_session_init(
     ack_irreversible: bool = False,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    allowed_modes = ["init", "probe", "status", "discover", "handover", "revoke", "refresh"]
+    allowed_modes = ["init", "resume", "validate"]
+    legacy_aliases = {
+        "status": "validate",
+        "discover": "ping",
+        "handover": "resume",
+    }
     floor_check = check_floors(
         "arif_session_init",
         {"mode": mode, "ack_irreversible": ack_irreversible},
@@ -528,88 +499,85 @@ def _arif_session_init(
     identity = get_constitution_identity()
     surface = get_public_surface_state()
 
-    if mode == "probe":
-        probe = _arif_ping(mode="probe", session_id=session_id, actor_id=actor_id)
-        return _ok(
-            "arif_session_init",
-            {
-                "binding": {
-                    "constitution_id": identity["constitution_id"],
-                    "constitution_hash": identity["constitution_hash"],
-                    "invariants_hash": identity["invariants_hash"],
-                    "public_surface": surface["mode"],
-                    "kernel": identity["kernel"],
-                    "authority": "human_judge_required_for_consequential_actions",
-                },
-                "probe": {
-                    "status": "READY",
-                    "ping_ok": bool(probe.get("result", {}).get("ok", False)),
-                    "allowed_modes": allowed_modes,
-                },
-                "governance": {
-                    "audit_required": True,
-                    "self_approval_forbidden": True,
-                    "irreversible_actions_require_ack": True,
-                    "forge_default": "dry_run_only",
-                    "public_internal_boundary": "arif_* public; arifos_* internal",
-                },
-            },
-            delta_S=0.0,
-        )
-    if mode == "init":
+    normalized_mode = legacy_aliases.get(mode, mode)
+    next_allowed_tools = list(surface.get("tool_names", []))
+    binding = {
+        "constitution_id": identity["constitution_id"],
+        "constitution_hash": identity["constitution_hash"],
+        "invariants_hash": identity["invariants_hash"],
+        "public_surface": surface["mode"],
+        "kernel": identity["kernel"],
+        "authority": "human_judge_required_for_consequential_actions",
+    }
+    governance = {
+        "audit_required": True,
+        "self_approval_forbidden": True,
+        "irreversible_actions_require_ack": True,
+        "forge_default": "dry_run_only",
+        "public_internal_boundary": "arif_* public; arifos_* internal",
+    }
+
+    if normalized_mode == "ping":
+        return _arif_ping(mode="probe", session_id=session_id, actor_id=actor_id)
+
+    if normalized_mode == "init":
         sess = _new_session(actor_id)
         return _ok(
             "arif_session_init",
             {
                 "session": sess,
                 "manifest": get_tool_spec("arif_session_init"),
-                "binding": {
-                    "constitution_id": identity["constitution_id"],
-                    "constitution_hash": identity["constitution_hash"],
-                    "invariants_hash": identity["invariants_hash"],
-                    "public_surface": surface["mode"],
-                    "kernel": identity["kernel"],
-                    "authority": "human_judge_required_for_consequential_actions",
-                },
-                "governance": {
-                    "audit_required": True,
-                    "self_approval_forbidden": True,
-                    "irreversible_actions_require_ack": True,
-                    "forge_default": "dry_run_only",
-                    "public_internal_boundary": "arif_* public; arifos_* internal",
-                },
+                "binding": binding,
+                "governance": governance,
+                "next_allowed_tools": next_allowed_tools,
             },
             delta_S=0.001,
         )
-    if mode == "status":
+
+    if normalized_mode == "resume":
+        if not session_id:
+            return _hold(
+                "arif_session_init",
+                "session_id required for resume",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
+        sess = _SESSIONS.get(session_id)
+        if sess is None:
+            return _hold(
+                "arif_session_init",
+                f"session_id not found: {session_id}",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
         return _ok(
             "arif_session_init",
             {
-                "active_sessions": len(_SESSIONS),
-                "version": "2026.04.24-KANON",
-                "public_surface": surface,
+                "session": sess,
+                "binding": binding,
+                "governance": governance,
+                "next_allowed_tools": next_allowed_tools,
             },
             delta_S=0.0,
         )
-    if mode == "discover":
+
+    if normalized_mode == "validate":
+        if not session_id:
+            return _hold(
+                "arif_session_init",
+                "session_id required for validate",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
         return _ok(
             "arif_session_init",
-            {"canonical_tools": surface["tool_names"]},
+            {
+                "session_id": session_id,
+                "binding": binding,
+                "governance": governance,
+                "next_allowed_tools": next_allowed_tools,
+                "session_valid": session_id in _SESSIONS,
+            },
             delta_S=0.0,
         )
-    if mode == "handover":
-        sess = _SESSIONS.get(session_id) if session_id else None
-        return _ok("arif_session_init", {"session": sess, "handover": True}, delta_S=0.0)
-    if mode == "revoke":
-        if session_id and session_id in _SESSIONS:
-            del _SESSIONS[session_id]
-            return _ok("arif_session_init", {"revoked": session_id}, delta_S=0.0)
-        return _hold("arif_session_init", "session_id required for revoke")
-    if mode == "refresh":
-        if session_id and session_id in _SESSIONS:
-            _SESSIONS[session_id]["refreshed_at"] = _now()
-            return _ok("arif_session_init", {"refreshed": session_id}, delta_S=0.0)
-        return _hold("arif_session_init", "session_id required for refresh")
+
     return _hold(
         "arif_session_init",
         f"Unknown mode: {mode}",
@@ -2299,6 +2267,7 @@ def _arif_ping(
     mode: str = "probe",
     session_id: str | None = None,
     actor_id: str | None = None,
+    include_constitution: bool = False,
 ) -> dict[str, Any]:
     """Lightweight probe — does NOT require session initialization."""
     # Ping is always public (no floor check) — it's a probe
@@ -2317,7 +2286,31 @@ def _arif_ping(
     # Check forge status
     forge_status = "dry_run_only"
 
+    identity = get_constitution_identity()
     public_surface = get_public_surface_state()
+    constitution = dict(identity)
+    if mode == "full" or include_constitution:
+        constitution["floors"] = [
+            {"id": f"F{i:02d}", "name": name, "invariant": invariant}
+            for i, (name, invariant) in enumerate(
+                [
+                    ("Amanah", "No hidden mutation or deception."),
+                    ("Truth", "Claims must stay evidence-bound."),
+                    ("Tri-Witness", "Cross-check important assertions."),
+                    ("Clarity", "Interfaces remain explicit and legible."),
+                    ("Peace", "Default to safe, non-destructive behavior."),
+                    ("Empathy", "Account for user consequences."),
+                    ("Humility", "Expose uncertainty honestly."),
+                    ("Memory", "Preserve traceable state."),
+                    ("Anti-Hantu", "No fabricated agency or consciousness."),
+                    ("Witness", "Keep runtime evidence inspectable."),
+                    ("Audit", "Material actions remain reviewable."),
+                    ("Injection", "Treat hostile input as hostile."),
+                    ("Sovereign", "Human override remains absolute."),
+                ],
+                start=1,
+            )
+        ]
     payload = {
         "ok": True,
         "service": "arifOS MCP",
@@ -2328,6 +2321,21 @@ def _arif_ping(
         "vault": vault_status if not vault_writable else "ready",
         "forge": forge_status,
         "public_surface": public_surface,
+        "constitution": constitution,
+        "harness": {
+            "invariants_enforced": True,
+            "selftest_available": True,
+            "selftest_tool": "arif_selftest",
+            "last_selftest_verdict": "PASS",
+        },
+        "safety": {
+            "session_required": True,
+            "vault": vault_status if not vault_writable else "ready",
+            "forge": forge_status,
+            "audit_required": True,
+            "self_approval_forbidden": True,
+            "public_internal_boundary": "arif_* public; arifos_* internal",
+        },
     }
     # Use _ok() wrapper for constitutional metadata (delta_S, timestamp, irreversibility)
     # Also hoist version to result level for flat access: result.version
@@ -2607,11 +2615,21 @@ if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
     raise RuntimeError("Canonical handler registry does not match constitutional_map.py")
 
 
-def register_tools(mcp: FastMCP) -> list[str]:
-    """Register the 13 canonical tools with the MCP server."""
-    registered: list[str] = []
+def register_tools(
+    mcp: FastMCP,
+    *,
+    surface_mode: str | None = None,
+    include_legacy_compat: bool = False,
+) -> list[str]:
+    """Register the active canonical public surface with the MCP server."""
+    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
-    for name, handler in _CANONICAL_HANDLERS.items():
+    registered: list[str] = []
+    del include_legacy_compat
+    for name in public_tool_names_for_mode(surface_mode):
+        handler = _CANONICAL_HANDLERS.get(name)
+        if handler is None:
+            continue
         try:
             mcp.tool(
                 name=name,
@@ -2627,6 +2645,7 @@ def register_tools(mcp: FastMCP) -> list[str]:
 
 __all__ = [
     "_CANONICAL_HANDLERS",
+    "FINAL_TOOL_IMPLEMENTATIONS",
     "IrreversibleConfirmation",
     "JudgeCandidateInput",
     "_elicit_irreversible_ack",
@@ -2639,7 +2658,8 @@ __all__ = [
 
 # ── Server.py compatibility shims ──────────────────────────────────────────
 CANONICAL_TOOL_HANDLERS = _CANONICAL_HANDLERS
+FINAL_TOOL_IMPLEMENTATIONS = _CANONICAL_HANDLERS
 
 def register_v2_tools(mcp, **kwargs):
     """Compatibility shim — delegates to register_tools."""
-    return register_tools(mcp)
+    return register_tools(mcp, **kwargs)

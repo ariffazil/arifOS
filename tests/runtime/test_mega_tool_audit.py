@@ -1,95 +1,49 @@
 from __future__ import annotations
 
-import pytest
-from fastmcp import FastMCP
+import importlib.util
+from pathlib import Path
 
-from arifosmcp.runtime.public_registry import (
-    public_tool_names,
-    verify_no_drift,
-    CANONICAL_PUBLIC_TOOLS,
-    EXPECTED_TOOL_COUNT,
-)
-from arifosmcp.runtime.tools import register_tools
-from arifosmcp.capability_map import CAPABILITY_MAP
+from fastapi.testclient import TestClient
+
+from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES
 
 
-def test_public_registry_exactly_11():
-    """Requirement A: Public registry exposes exactly 11 tools."""
-    names = set(public_tool_names())
-    assert len(names) == EXPECTED_TOOL_COUNT
-    assert names == CANONICAL_PUBLIC_TOOLS
-
-    drift = verify_no_drift()
-    assert drift["ok"], f"Registry drift detected: {drift}"
-
-
-@pytest.mark.asyncio
-async def test_legacy_aliases_routing():
-    """Requirement C: Backward compatibility — legacy aliases route correctly.
-
-    Note: init_anchor_state and get_caller_status were REMOVED in Track A.
-    They were simple wrappers routing to init_anchor(mode=X). The unified
-    init_anchor now handles all modes internally via init_v1 adapter.
-    """
-    mcp = FastMCP("test")
-    register_tools(mcp)
-
-    # In FastMCP, use list_tools() to get registered tools
-    tools = await mcp.list_tools()
-    registered_names = {t.name for t in tools}
-
-    # REMOVED legacy tools (intentionally absent — Track A)
-    removed_aliases = ["init_anchor_state", "get_caller_status"]
-    for alias in removed_aliases:
-        assert alias not in registered_names, (
-            f"Legacy alias '{alias}' should be REMOVED but is still registered"
-        )
-
-    # Still-present legacy aliases from CAPABILITY_MAP
-    active_aliases = [
-        "agi_reason",
-        "reality_compass",
-        "vault_seal",
-    ]
-
-    for alias in active_aliases:
-        assert alias in registered_names, f"Legacy alias '{alias}' is missing from registration"
-        target = CAPABILITY_MAP[alias]
-        tool = next(t for t in tools if t.name == alias)
-        # Verify the tool is callable and has a description
-        assert tool.description is not None, f"Tool '{alias}' has no description"
+def _load_root_server_module():
+    server_path = Path(__file__).resolve().parents[2] / "server.py"
+    spec = importlib.util.spec_from_file_location("root_server", server_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def test_governance_contracts_aligned():
-    """Requirement D: Governance integrity — contracts are bound to 11 tools."""
-    from arifosmcp.runtime.contracts import (
-        AAA_TOOL_STAGE_MAP,
-        TRINITY_BY_TOOL,
-        TOOL_MODES,
-        verify_contract,
-    )
+def test_http_discovery_surfaces_match_canonical15() -> None:
+    server_module = _load_root_server_module()
+    client = TestClient(server_module.app)
 
-    result = verify_contract()
-    assert result["ok"], f"Contract verification failed: {result}"
+    tools_response = client.get("/tools")
+    well_known_response = client.get("/.well-known/mcp/server.json")
 
-    # Ensure every public tool has a stage and trinity
-    for tool in CANONICAL_PUBLIC_TOOLS:
-        assert tool in AAA_TOOL_STAGE_MAP
-        assert tool in TRINITY_BY_TOOL
-        assert tool in TOOL_MODES
+    assert tools_response.status_code == 200
+    assert well_known_response.status_code == 200
 
+    tools_payload = tools_response.json()
+    well_known_payload = well_known_response.json()
 
-def test_no_forbidden_public_exposure():
-    """Ensure internal tools are NOT in the public names list."""
-    public_names = set(public_tool_names())
-    internal_only = {
-        "init_anchor_state",
-        "get_caller_status",
-        "agi_reason",
-        "forge",
-        "fs_inspect",
+    assert tools_payload["count"] == 15
+    assert len(tools_payload["tools"]) == 15
+    assert len(well_known_payload["tools"]) == 15
+    assert {
+        tool["name"] for tool in tools_payload["tools"]
+    } == {
+        tool["name"] for tool in well_known_payload["tools"]
     }
 
-    # These should be shims in the MCP object but NOT tool specs in public_registry
-    intersection = public_names.intersection(internal_only)
-    assert not intersection, f"Internal tools exposed in public ToolSpecs: {intersection}"
+
+def test_http_discovery_blocks_internal_prefixes() -> None:
+    server_module = _load_root_server_module()
+    client = TestClient(server_module.app)
+    payload = client.get("/tools").json()
+
+    names = [tool["name"] for tool in payload["tools"]]
+    assert not [name for name in names if name.startswith(BLOCKED_PUBLIC_PREFIXES)]

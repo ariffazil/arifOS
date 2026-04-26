@@ -42,6 +42,7 @@ from starlette.staticfiles import StaticFiles
 from arifosmcp.runtime.public_registry import (
     build_mcp_discovery_json,
     build_server_json,
+    public_tool_names,
     public_tool_specs,
 )
 from arifosmcp.runtime.resources import apex_tools_markdown_table
@@ -1971,23 +1972,25 @@ def register_rest_routes(
         if err := _auth_error_response(request):
             return err
 
-        mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
+        public_specs = {spec.name: spec for spec in public_tool_specs()}
         tool_list = []
-        for tool_raw in mcp_tools:
-            tool = _get_tool_obj(tool_raw)
+        for tool_name in public_tool_names():
+            tool = _get_tool_obj(tool_registry.get(tool_name)) if tool_name in tool_registry else None
+            spec = public_specs[tool_name]
+            annotations = getattr(tool, "annotations", None) if tool is not None else None
             entry = {
-                "name": tool.name,
-                "description": getattr(tool, "description", "") or "",
-                "parameters": getattr(tool, "parameters", {}) or {},
-                "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
-                "lane": TRINITY_BY_TOOL.get(tool.name),
+                "name": tool_name,
+                "description": getattr(tool, "description", None) or spec.description,
+                "parameters": getattr(tool, "parameters", None) or spec.input_schema,
+                "stage": AAA_TOOL_STAGE_MAP.get(tool_name) or spec.stage,
+                "lane": TRINITY_BY_TOOL.get(tool_name) or spec.trinity,
             }
-            if tool.annotations:
+            if annotations:
                 entry["annotations"] = {
-                    "readOnlyHint": tool.annotations.readOnlyHint,
-                    "destructiveHint": tool.annotations.destructiveHint,
-                    "openWorldHint": tool.annotations.openWorldHint,
-                    "idempotentHint": tool.annotations.idempotentHint,
+                    "readOnlyHint": annotations.readOnlyHint,
+                    "destructiveHint": annotations.destructiveHint,
+                    "openWorldHint": annotations.openWorldHint,
+                    "idempotentHint": annotations.idempotentHint,
                 }
             tool_list.append(entry)
         return JSONResponse({"tools": tool_list, "count": len(tool_list)})
@@ -2233,7 +2236,11 @@ def register_rest_routes(
     async def discovery_alias(request: Request) -> Response:
         from arifosmcp.runtime.public_registry import build_mcp_discovery_json
 
-        payload = build_mcp_discovery_json(_public_base_url(request))
+        payload = build_mcp_discovery_json(
+            _public_base_url(request),
+            surface_mode="expanded45",
+            internal=True,
+        )
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         return JSONResponse(payload)
@@ -2250,7 +2257,11 @@ def register_rest_routes(
                 {"error": "Internal contract disabled on public profile."}, status_code=404
             )
 
-        payload = build_mcp_discovery_json(_public_base_url(request))
+        payload = build_mcp_discovery_json(
+            _public_base_url(request),
+            surface_mode="expanded45",
+            internal=True,
+        )
         payload.setdefault("protocolVersion", MCP_PROTOCOL_VERSION)
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         payload.setdefault(
@@ -2285,7 +2296,7 @@ def register_rest_routes(
             health_response = await health(request)
             health_payload = json.loads(health_response.body.decode("utf-8"))
             health_payload["runtime_floors"] = governance_payload.get("floors", {})
-            mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
+            public_specs = list(public_tool_specs())
             manifest = build_server_json(_public_base_url(request))
             containers = _collect_container_status()
             latency_ms = _local_service_connect_latency_ms(port=int(os.getenv("PORT", "8080"))) or 999.0
@@ -2297,19 +2308,19 @@ def register_rest_routes(
                 "trinity_matrix": matrix,
                 "overall_ok": matrix["overall_ok"],
                 "manifest": {
-                    "tools_count": len(mcp_tools),
+                    "tools_count": len(public_specs),
                     "prompts_count": len(manifest.get("prompts", [])),
                     "resources_count": len(manifest.get("resources", [])) + len(manifest.get("resourceTemplates", [])),
                 },
                 "tools": [
                     {
-                        "name": tool.name if hasattr(tool, "name") else str(tool),
-                        "description": tool.description if hasattr(tool, "description") else "",
-                        "stage": _get_stage_lane_access(tool.name if hasattr(tool, "name") else str(tool))[0],
-                        "lane": _get_stage_lane_access(tool.name if hasattr(tool, "name") else str(tool))[1],
-                        "access": _get_stage_lane_access(tool.name if hasattr(tool, "name") else str(tool))[2],
+                        "name": spec.name,
+                        "description": spec.description,
+                        "stage": _get_stage_lane_access(spec.name)[0] or spec.stage,
+                        "lane": _get_stage_lane_access(spec.name)[1] or spec.trinity,
+                        "access": _get_stage_lane_access(spec.name)[2],
                     }
-                    for tool in mcp_tools
+                    for spec in public_specs
                 ],
                 "containers": containers,
             }
