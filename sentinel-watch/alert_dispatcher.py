@@ -44,7 +44,7 @@ def format_hard_sla_alert(verdict_entry: dict, age_hours: float) -> str:
     chain = verdict_entry.get("chain_hash", verdict_entry.get("merkle_leaf", "?")[:12])
     tool = verdict_entry.get("tool", verdict_entry.get("payload", {}).get("tool", "?"))
     return (
-        f"⚠️ HARD_TIER SLA EXPIRED\n"
+        f"⚠️ HARD\\_TIER SLA EXPIRED\n"
         f"Tool: `{tool}`\n"
         f"Verdict: `{verdict_entry.get('verdict', '?')}`\n"
         f"Age: {age_hours:.1f}h (limit: 4h)\n"
@@ -76,7 +76,7 @@ def format_flood_attack_alert(density: float, soft_count: int, hard_count: int) 
 def format_affirmative_ack_reminder(pending_hard: int, oldest_hours: float) -> str:
     return (
         f"ℹ️ GOVERNANCE REMINDER\n"
-        f"{pending_hard} unacknowledged HARD_TIER verdict(s)\n"
+        f"{pending_hard} unacknowledged HARD\\_TIER verdict(s)\n"
         f"Oldest pending: {oldest_hours:.1f}h\n"
         f"Silence ≠ approval. Affirmative ACK required."
     )
@@ -104,7 +104,8 @@ async def _send_telegram_async(bot_token: str, chat_id: str, text: str) -> bool:
         await bot.send_message(chat_id=int(chat_id), text=text, parse_mode="Markdown")
         return True
     except Exception as e:
-        print(f"[SENTINEL:ALERT_FAIL] {e}", file=__import__("sys").stderr)
+        import sys
+        print(f"[SENTINEL:ALERT_FAIL] {e}", file=sys.stderr)
         return False
 
 
@@ -138,12 +139,10 @@ class AlertDispatcher:
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                # We're inside an async context — schedule without waiting
                 asyncio.create_task(self._send_async(text))
                 return True
             return loop.run_until_complete(self._send_async(text))
         except RuntimeError:
-            # No event loop running — create a fresh one
             return asyncio.run(self._send_async(text))
 
     # ── Public Alert API ───────────────────────────────────────────────
@@ -224,4 +223,5 @@ if __name__ == "__main__":
         "anomaly_density_per_day": 0.4,
         "drift_flags": [],
     })
+    d.alert_reminder(pending_hard=2, oldest_hours=1.2)
     print(f"Queue depth: {d.get_queue_depth()}")
