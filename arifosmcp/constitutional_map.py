@@ -48,6 +48,28 @@ class ToolStage(str, Enum):
 
 
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
+    "arif_ping": {
+        "name": "arif_ping",
+        "description": "000_PING: Lightweight health probe. Always public. No session required. Returns system status.",
+        "access": "public",
+        "stage": ToolStage.INIT,
+        "lane": TrinityLane.AGI,
+        "floors": [],  # No floor check — ping is always public
+        "risk_tier": "none",
+        "irreversible": False,
+        "modes": ["probe"],
+    },
+    "arif_selftest": {
+        "name": "arif_selftest",
+        "description": "000_SELFTEST: Comprehensive self-diagnostic. Runs all checks in-memory. No permanent effects.",
+        "access": "public",
+        "stage": ToolStage.INIT,
+        "lane": TrinityLane.AGI,
+        "floors": [],  # Self-test does not require floor pre-check
+        "risk_tier": "none",
+        "irreversible": False,
+        "modes": ["dry_run"],
+    },
     "arif_session_init": {
         "name": "arif_session_init",
         "description": "000_INIT: Session bootstrap + identity binding. Constitutional ignition sequence.",
