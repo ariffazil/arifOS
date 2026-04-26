@@ -48,7 +48,67 @@ from arifosmcp.runtime.resources import apex_tools_markdown_table
 
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
-from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
+from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL, AAA_TOOL_LAW_BINDINGS
+
+# External MCP tool name → internal contract name
+# This is the authoritative mapping for stage/lane lookups
+_EXTERNAL_TO_INTERNAL = {
+    "arif_ping":             "000_INIT",
+    "arif_selftest":         "000_INIT",
+    "arif_session_init":     "arifos_init",
+    "arif_sense_observe":   "arifos_sense",
+    "arif_evidence_fetch":   "arifos_fetch",
+    "arif_mind_reason":     "arifos_mind",
+    "arif_kernel_route":    "arifos_kernel",
+    "arif_reply_compose":   "arifos_reply",
+    "arif_memory_recall":   "arifos_memory",
+    "arif_heart_critique":  "arifos_heart",
+    "arif_gateway_connect":  "arifos_gateway",
+    "arif_ops_measure":     "arifos_ops",
+    "arif_judge_deliberate":"arifos_judge",
+    "arif_vault_seal":      "arifos_vault",
+    "arif_forge_execute":   "arifos_forge",
+}
+
+# Human-readable descriptions for each tool (authoritative)
+TOOL_HUMAN_DESCRIPTIONS = {
+    "arif_ping":             "Lightweight liveness probe — confirms kernel is responsive and sovereign.",
+    "arif_selftest":         "Internal diagnostic — verifies all 13 constitutional floors are intact.",
+    "arif_session_init":     "Session anchor — opens a new governance session with identity binding.",
+    "arif_sense_observe":    "Observe real-world signals — web search, system telemetry, environment data.",
+    "arif_evidence_fetch":   "Fetch and verify evidence from URLs, files, or databases.",
+    "arif_mind_reason":      "First-principles reasoning engine — synthesis, hypothesis, and cross-domain analysis.",
+    "arif_kernel_route":     "Metabolic conductor — routes tasks to the correct organ: GEOX, WEALTH, or WELL.",
+    "arif_reply_compose":     "Governed response compositor — drafts human-readable answers with constitutional tone.",
+    "arif_memory_recall":    "Vector memory retrieval — searches past sessions, decisions, and sealed events.",
+    "arif_heart_critique":   "Safety and empathy check — consequence modeling and bias detection.",
+    "arif_gateway_connect":   "Agent-to-agent mesh router — opens connections across the federation (A2A protocol).",
+    "arif_ops_measure":      "Thermodynamic metrics — CPU, memory, disk, and constitutional pressure.",
+    "arif_judge_deliberate":  "888 ASI judgment — final rule-check against F1–F13 floors before approval.",
+    "arif_vault_seal":        "APEX ledger writer — permanently seals verdicts to VAULT999 (Merkle-hashed).",
+    "arif_forge_execute":     "Execution dispatcher — sends signed manifests to A-FORGE after SEAL authorization.",
+}
+
+def _get_stage_lane_access(tool_name: str) -> tuple[str | None, str | None, str]:
+    """Return (stage, lane, access_level) for a tool given its external name."""
+    # Probe tools — not part of the constitutional pipeline
+    if tool_name in ("arif_ping", "arif_selftest"):
+        return "PROBE", "PROBE", "public"
+    internal = _EXTERNAL_TO_INTERNAL.get(tool_name)
+    if internal is None:
+        return None, None, "public"
+    stage = AAA_TOOL_STAGE_MAP.get(internal)
+    lane = TRINITY_BY_TOOL.get(internal)
+    # Access level from law bindings
+    access = "public"
+    if tool_name in [
+        "arif_heart_critique", "arif_gateway_connect",
+        "arif_judge_deliberate", "arif_vault_seal",
+    ]:
+        access = "authenticated"
+    if tool_name == "arif_forge_execute":
+        access = "sovereign"
+    return stage, lane, access
 
 
 def _get_tool_obj(mcp: Any, tool: Any) -> Any:
@@ -2245,8 +2305,9 @@ def register_rest_routes(
                     {
                         "name": tool.name if hasattr(tool, "name") else str(tool),
                         "description": tool.description if hasattr(tool, "description") else "",
-                        "stage": AAA_TOOL_STAGE_MAP.get(tool.name if hasattr(tool, "name") else str(tool)),
-                        "lane": TRINITY_BY_TOOL.get(tool.name if hasattr(tool, "name") else str(tool)),
+                        "stage": _get_stage_lane_access(tool.name if hasattr(tool, "name") else str(tool))[0],
+                        "lane": _get_stage_lane_access(tool.name if hasattr(tool, "name") else str(tool))[1],
+                        "access": _get_stage_lane_access(tool.name if hasattr(tool, "name") else str(tool))[2],
                     }
                     for tool in mcp_tools
                 ],
@@ -2259,6 +2320,70 @@ def register_rest_routes(
         except Exception:
             logger.exception("api_status endpoint failed")
             return _rest_error("Failed to retrieve dashboard status", status_code=500)
+
+    @route("/api/constitution", methods=["GET"])
+    async def api_constitution(request: Request) -> Response:
+        """Public constitutional map: stage, lane, access for each MCP tool.
+
+        This is the authoritative answer to: 'what stage/lane is tool X?'
+        No inference. No stale cache. Direct from live runtime contracts.
+        """
+        try:
+            # Collect all registered tool names from the MCP registry
+            mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
+
+            tools_list = []
+            for tool in mcp_tools:
+                name = tool.name if hasattr(tool, "name") else str(tool)
+                stage, lane, access = _get_stage_lane_access(name)
+                # Normalize stage: strip _SUFFIX, return just the number
+                stage_label = stage.split("_")[0] if stage else None
+                tools_list.append({
+                    "name": name,
+                    "stage": stage_label,
+                    "stage_full": stage,  # e.g. "888_JUDGE"
+                    "lane": lane,
+                    "access": access,
+                    "description": TOOL_HUMAN_DESCRIPTIONS.get(name, ""),
+                })
+
+            # Canonical pipeline stages in execution order
+            pipeline_stages = [
+                {"num": "000", "label": "INIT",    "sub": "Session Anchor", "type": "psi"},
+                {"num": "111", "label": "SENSE",   "sub": "Observe",         "type": "delta"},
+                {"num": "333", "label": "MIND",    "sub": "Reason",           "type": "delta"},
+                {"num": "444", "label": "ROUTE",   "sub": "Kernel",           "type": "delta"},
+                {"num": "555", "label": "RECALL",  "sub": "Memory",           "type": "psi"},
+                {"num": "666", "label": "CRITIQUE","sub": "Heart",            "type": "omega"},
+                {"num": "777", "label": "OPS",     "sub": "Measure",          "type": "delta"},
+                {"num": "888", "label": "JUDGE",   "sub": "ASI",              "type": "omega"},
+                {"num": "999", "label": "SEAL",   "sub": "VAULT",            "type": "psi"},
+                {"num": "010", "label": "FORGE",   "sub": "EXEC",             "type": "delta"},
+            ]
+
+            # Forge execution mode: dry_run=true per constitution default (F7)
+            # Toggle via ARIFOS_FORGE_DRY_RUN=false env var for live execution
+            import os as _os
+            forge_dry_run = _os.getenv("ARIFOS_FORGE_DRY_RUN", "true").lower() == "true"
+
+            return JSONResponse(
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "tools": tools_list,
+                    "pipeline": pipeline_stages,
+                    "lanes": ["PSI Ψ", "DELTA Δ", "OMEGA Ω"],
+                    "core_tool_count": len(tools_list),
+                    "forge": {
+                        "state": "dry_run_only" if forge_dry_run else "live",
+                        "mode": "simulation" if forge_dry_run else "execution",
+                        "note": "Forge execution is SIMULATION ONLY — no live VPS commands executed" if forge_dry_run else "Forge execution is LIVE — irreversible commands enabled",
+                    },
+                },
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
+        except Exception:
+            logger.exception("api_constitution endpoint failed")
+            return _rest_error("Failed to retrieve constitution map", status_code=500)
 
     @route("/status", methods=["GET"])
     async def status_page(request: Request) -> Response:
