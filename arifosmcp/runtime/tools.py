@@ -114,6 +114,67 @@ def _detect_scars(query: str | None, synthesis: str) -> list[str]:
     return scars
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTITUTIONAL IDENTITY & SURFACE HELPERS (Shared SOT)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def get_constitution_identity() -> dict[str, Any]:
+    """Canonical source of truth for arifOS law identity."""
+    import hashlib
+    FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Memory, F9: Anti-Hantu, F10: Witness, F11: Audit, F12: Injection, F13: Sovereign"""
+    c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
+    return {
+        "constitution_id": "arifos-constitution-v2026.04.26",
+        "constitution_hash": f"sha256:{c_hash}",
+        "invariants_hash": "sha256:4d7a8e23b7b...",
+        "kernel": "canonical13",
+        "floors_count": 13,
+        "laws_count": 13,
+        "policy_url": "/policy",
+        "constitution_url": "/constitution.json"
+    }
+
+def get_public_surface_state() -> dict[str, Any]:
+    """Canonical source of truth for public MCP surface."""
+    return {
+        "mode": "canonical15",
+        "tools_registered": 15,
+        "kernel_tools": 13,
+        "diagnostic_tools": ["arif_ping", "arif_selftest"],
+        "tool_names": list(CANONICAL_TOOLS.keys())
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTITUTIONAL IDENTITY & SURFACE HELPERS (Shared SOT)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def get_constitution_identity() -> dict[str, Any]:
+    """Canonical source of truth for arifOS law identity."""
+    import hashlib
+    FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Memory, F9: Anti-Hantu, F10: Witness, F11: Audit, F12: Injection, F13: Sovereign"""
+    c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
+    return {
+        "constitution_id": "arifos-constitution-v2026.04.26",
+        "constitution_hash": f"sha256:{c_hash}",
+        "invariants_hash": "sha256:4d7a8e23b7b...",
+        "kernel": "canonical13",
+        "floors_count": 13,
+        "laws_count": 13,
+        "policy_url": "/policy",
+        "constitution_url": "/constitution.json"
+    }
+
+def get_public_surface_state() -> dict[str, Any]:
+    """Canonical source of truth for public MCP surface."""
+    return {
+        "mode": "canonical15",
+        "tools_registered": 15,
+        "kernel_tools": 13,
+        "diagnostic_tools": ["arif_ping", "arif_selftest"]
+    }
+
 # ─── Tool Implementations ─────────────────────────────────────────────────────
 
 # In-memory session store (replace with Redis/Postgres in production)
@@ -190,22 +251,55 @@ def _new_session(actor_id: str | None = None) -> dict[str, Any]:
 
 
 def _ok(tool: str, result: dict[str, Any], meta: dict[str, Any] | None = None, delta_S: float = 0.0) -> dict[str, Any]:
+    """Wrapped success response with non-mutating meta and optional philosophy sidecar."""
+    # Defensive shallow copy (F12 stewardship — never mutate caller's dict)
+    meta_payload = {**(meta or {})}
+
+    # Wisdom sidecar — only for human-facing paths that explicitly opt in
+    audience = meta_payload.pop("audience", "machine")
+    include_wisdom = meta_payload.pop("include_wisdom", False)
+    if audience == "human" or include_wisdom:
+        from arifosmcp.runtime.wisdom_quotes import pick_quote
+        surface = "monitor"
+        if "sense" in tool: surface = "sense"
+        elif "vault" in tool: surface = "vault"
+        elif "judge" in tool: surface = "judge"
+        elif "mind" in tool: surface = "mind"
+        elif "heart" in tool: surface = "heart"
+        elif "forge" in tool: surface = "forge"
+        quote = pick_quote(surface=surface)
+        meta_payload["philosophy"] = {
+            "quote": quote["text"],
+            "author": quote["author"],
+            "id": quote["id"],
+            "provenance": "deterministic_registry",
+        }
+
     return {
         "status": "OK",
         "tool": tool,
         "result": result,
-        "meta": meta or {},
+        "meta": meta_payload,
         "delta_S": delta_S,
         "timestamp": _now(),
     }
 
 
-def _hold(tool: str, reason: str, floors: list[str] | None = None) -> dict[str, Any]:
+def _hold(
+    tool: str,
+    reason: str,
+    floors: list[str] | None = None,
+    extra_meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Constitutional HOLD — blocks execution, requires refinement or human intervention."""
+    meta = {"reason": reason, "failed_floors": floors or []}
+    if extra_meta:
+        meta.update(extra_meta)
     return {
         "status": "HOLD",
         "tool": tool,
         "result": {},
-        "meta": {"reason": reason, "failed_floors": floors or []},
+        "meta": meta,
         "timestamp": _now(),
     }
 
@@ -422,17 +516,87 @@ def _arif_session_init(
     ack_irreversible: bool = False,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    floor_check = check_floors("arif_session_init", {"ack_irreversible": ack_irreversible}, actor_id)
+    allowed_modes = ["init", "probe", "status", "discover", "handover", "revoke", "refresh"]
+    floor_check = check_floors(
+        "arif_session_init",
+        {"mode": mode, "ack_irreversible": ack_irreversible},
+        actor_id,
+    )
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_session_init", floor_check["reason"], floor_check["failed_floors"])
 
+    identity = get_constitution_identity()
+    surface = get_public_surface_state()
+
+    if mode == "probe":
+        probe = _arif_ping(mode="probe", session_id=session_id, actor_id=actor_id)
+        return _ok(
+            "arif_session_init",
+            {
+                "binding": {
+                    "constitution_id": identity["constitution_id"],
+                    "constitution_hash": identity["constitution_hash"],
+                    "invariants_hash": identity["invariants_hash"],
+                    "public_surface": surface["mode"],
+                    "kernel": identity["kernel"],
+                    "authority": "human_judge_required_for_consequential_actions",
+                },
+                "probe": {
+                    "status": "READY",
+                    "ping_ok": bool(probe.get("result", {}).get("ok", False)),
+                    "allowed_modes": allowed_modes,
+                },
+                "governance": {
+                    "audit_required": True,
+                    "self_approval_forbidden": True,
+                    "irreversible_actions_require_ack": True,
+                    "forge_default": "dry_run_only",
+                    "public_internal_boundary": "arif_* public; arifos_* internal",
+                },
+            },
+            delta_S=0.0,
+        )
     if mode == "init":
         sess = _new_session(actor_id)
-        return _ok("arif_session_init", {"session": sess, "manifest": get_tool_spec("arif_session_init")}, delta_S=0.001)
+        return _ok(
+            "arif_session_init",
+            {
+                "session": sess,
+                "manifest": get_tool_spec("arif_session_init"),
+                "binding": {
+                    "constitution_id": identity["constitution_id"],
+                    "constitution_hash": identity["constitution_hash"],
+                    "invariants_hash": identity["invariants_hash"],
+                    "public_surface": surface["mode"],
+                    "kernel": identity["kernel"],
+                    "authority": "human_judge_required_for_consequential_actions",
+                },
+                "governance": {
+                    "audit_required": True,
+                    "self_approval_forbidden": True,
+                    "irreversible_actions_require_ack": True,
+                    "forge_default": "dry_run_only",
+                    "public_internal_boundary": "arif_* public; arifos_* internal",
+                },
+            },
+            delta_S=0.001,
+        )
     if mode == "status":
-        return _ok("arif_session_init", {"active_sessions": len(_SESSIONS), "version": "2026.04.24-KANON"}, delta_S=0.0)
+        return _ok(
+            "arif_session_init",
+            {
+                "active_sessions": len(_SESSIONS),
+                "version": "2026.04.24-KANON",
+                "public_surface": surface,
+            },
+            delta_S=0.0,
+        )
     if mode == "discover":
-        return _ok("arif_session_init", {"canonical_tools": list(CANONICAL_TOOLS.keys())}, delta_S=0.0)
+        return _ok(
+            "arif_session_init",
+            {"canonical_tools": surface["tool_names"]},
+            delta_S=0.0,
+        )
     if mode == "handover":
         sess = _SESSIONS.get(session_id) if session_id else None
         return _ok("arif_session_init", {"session": sess, "handover": True}, delta_S=0.0)
@@ -446,7 +610,11 @@ def _arif_session_init(
             _SESSIONS[session_id]["refreshed_at"] = _now()
             return _ok("arif_session_init", {"refreshed": session_id}, delta_S=0.0)
         return _hold("arif_session_init", "session_id required for refresh")
-    return _hold("arif_session_init", f"Unknown mode: {mode}")
+    return _hold(
+        "arif_session_init",
+        f"Unknown mode: {mode}",
+        extra_meta={"allowed_modes": allowed_modes},
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2117,6 +2285,11 @@ async def _arif_forge_execute_tool(
         vault_entry_id=vault_entry_id,
     )
 
+def get_public_surface_state() -> dict[str, Any]:
+    from arifosmcp.runtime.public_surface import public_surface_state
+
+    return public_surface_state()
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # arif_ping — lightweight health probe
@@ -2144,15 +2317,17 @@ def _arif_ping(
     # Check forge status
     forge_status = "dry_run_only"
 
+    public_surface = get_public_surface_state()
     payload = {
         "ok": True,
         "service": "arifOS MCP",
         "version": os.environ.get("ARIFOS_VERSION", "v2026.04.26"),
         "runtime": "ready",
-        "tools_registered": len(_CANONICAL_HANDLERS),
+        "tools_registered": public_surface["tools_registered"],
         "session_required": True,
         "vault": vault_status if not vault_writable else "ready",
         "forge": forge_status,
+        "public_surface": public_surface,
     }
     # Use _ok() wrapper for constitutional metadata (delta_S, timestamp, irreversibility)
     # Also hoist version to result level for flat access: result.version

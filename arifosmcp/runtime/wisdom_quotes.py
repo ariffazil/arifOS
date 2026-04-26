@@ -974,7 +974,10 @@ ARIFOS_FORGED_CANON: list[WisdomQuote] = [
 # ═══════════════════════════════════════════════════════════════════════════════
 # UNIFIED REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
-WISDOM_REGISTRY: list[WisdomQuote] = CIVILIZATIONAL_CANON + MALAY_WISDOM + ARIFOS_FORGED_CANON
+# SEA-LION curated quotes live here; populated offline by wisdom_sea_lion.py
+SEA_LION_CURATED: list[WisdomQuote] = []
+
+WISDOM_REGISTRY: list[WisdomQuote] = CIVILIZATIONAL_CANON + MALAY_WISDOM + ARIFOS_FORGED_CANON + SEA_LION_CURATED
 
 SURFACES = {
     "anchor",
