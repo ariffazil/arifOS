@@ -19,7 +19,7 @@ services:
       args:
         ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
         ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
-        ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.07}
+        ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.26}
     image: ghcr.io/ariffazil/arifos:a-forge
     container_name: arifosmcp
     restart: unless-stopped
@@ -37,7 +37,7 @@ services:
       # Build info
       ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
       ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
-      ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.07}
+      ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.26}
       GIT_COMMIT: ${ARIFOS_BUILD_SHA:-dev}
       
       # Federation endpoint (for reference)

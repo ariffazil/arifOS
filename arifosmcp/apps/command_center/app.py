@@ -27,27 +27,50 @@ from arifosmcp.apps.command_center.state import get_state
 from fastmcp import FastMCP
 from fastmcp.apps import FastMCPApp
 from mcp.types import ToolAnnotations
-from prefab_ui.actions import SetState
-from prefab_ui.actions.mcp import CallTool
-from prefab_ui.app import PrefabApp
-from prefab_ui.components import (
-    Badge,
-    Button,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    Column,
-    Heading,
-    Input,
-    Metric,
-    Row,
-    Separator,
-    Tab,
-    Tabs,
-    Text,
-    Textarea,
-)
+try:
+    from prefab_ui.actions import SetState
+    from prefab_ui.actions.mcp import CallTool
+    from prefab_ui.app import PrefabApp
+    from prefab_ui.components import (
+        Badge,
+        Button,
+        Card,
+        CardContent,
+        CardHeader,
+        CardTitle,
+        Column,
+        Heading,
+        Input,
+        Metric,
+        Row,
+        Separator,
+        Tab,
+        Tabs,
+        Text,
+        Textarea,
+    )
+    PREFAB_UI_AVAILABLE = True
+except ImportError:
+    SetState = None
+    CallTool = None
+    PrefabApp = None
+    Badge = None
+    Button = None
+    Card = None
+    CardContent = None
+    CardHeader = None
+    CardTitle = None
+    Column = None
+    Heading = None
+    Input = None
+    Metric = None
+    Row = None
+    Separator = None
+    Tab = None
+    Tabs = None
+    Text = None
+    Textarea = None
+    PREFAB_UI_AVAILABLE = False
 
 # ---------------------------------------------------------------------------
 # Safety constants — red-team hardening

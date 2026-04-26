@@ -145,14 +145,33 @@ except Exception as e:
 
 
 # ── MCP Apps registration ───────────────────────────────────────────────────
-try:
-    from arifosmcp.apps.command_center import _register as _register_command_center
+# Each app in its own try block so one failure doesn't cascade
+def _safe_register(mcp, module_path: str, name: str) -> None:
+    import sys
+    try:
+        import importlib
+        mod = importlib.import_module(module_path)
+        print(f"[arif-register] Importing {module_path}...", flush=True)
+        mod._register(mcp)
+        v2_apps_registered.append(name)
+        print(f"[arif-register] Registered: {name} OK", flush=True)
+        logger.info(f"  Registered app: {name}")
+    except Exception as e:
+        import traceback
+        print(f"[arif-register] FAILED {name}: {e}", flush=True)
+        traceback.print_exc(file=sys.stdout)
+        logger.warning(f"  Skipped app {name} ({module_path}): {e}")
 
-    _register_command_center(mcp)
-    v2_apps_registered.append("command_center")
-    logger.info(f"ARIFOS MCP KANON Phase 2: {len(v2_apps_registered)} apps registered")
+try:
+    _safe_register(mcp, "arifosmcp.apps.forge_app", "forge")
+    _safe_register(mcp, "arifosmcp.apps.vault_app", "vault")
+    _safe_register(mcp, "arifosmcp.apps.judge_app", "judge")
+    _safe_register(mcp, "arifosmcp.apps.vault_audit", "vault_audit")
+    _safe_register(mcp, "arifosmcp.apps.command_center", "command_center")
+    print(f"[arif-register] Total apps registered: {len(v2_apps_registered)} — {v2_apps_registered}", flush=True)
+    logger.info(f"ARIFOS MCP KANON Phase 2: {len(v2_apps_registered)} apps registered — {v2_apps_registered}")
 except Exception as e:
-    logger.error(f"Failed to register Command Center app: {e}")
+    logger.error(f"App registration failed: {e}")
 
 PUBLIC_TOOLS = list_public_tools()
 AUTHENTICATED_TOOLS = list_authenticated_tools()
