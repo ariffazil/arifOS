@@ -24,7 +24,7 @@ Every tool result MUST include a `lineage` object:
     "tool_id": "arif_judge_deliberate",
     "tool_version": "1.3.0",
     "schema_hash": "a3f7c2d9...",
-    "git_commit_full": "45ea239044563e74f9c166f86784af3c807a1375",
+    "git_commit_full": "45ea239044563e74f9c166f86784af3c807a1375",  # pragma: allowlist secret
     "git_commit_short": "45ea2390",
     "runtime_version": "2026.04.26-KANON",
     "claim_state": "JUDGED",
@@ -76,7 +76,7 @@ def compute_schema_hash(tool_schema: dict) -> str:
 {
   "wealth_evoi_compute": {
     "version": "1.0.0",
-    "schema_hash": "a3f7c2d9e8b1d4f5",
+    "schema_hash": "a3f7c2d9e8b1d4f5",  # pragma: allowlist secret
     "last_updated": "2026-04-26",
     "schema": { ... }
   }

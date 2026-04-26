@@ -90,14 +90,14 @@ def _fetch_jwks() -> dict[str, Any]:
             SUPABASE_JWKS_URL,
             headers={"Accept": "application/json"},
         )
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310
             data = json.loads(resp.read().decode("utf-8"))
             _jwks_cache = data
             _jwks_fetched_at = now
             logger.info(
                 "JWKS fetched from %s — keys: %s", SUPABASE_JWKS_URL, len(data.get("keys", []))
             )
-            return data
+            return data  # type: ignore[no-any-return]
     except Exception as e:
         logger.warning("JWKS fetch failed: %s — using cached/stale keys", e)
         return _jwks_cache
@@ -171,9 +171,6 @@ def verify_jwt(token: str, expected_actor_id: str | None = None) -> JWTVerificat
         return JWTVerificationResult(valid=False, error=f"malformed_token: {e}")
 
     alg = unverified_header.get("alg", "")
-    kid = unverified_header.get("kid", "")
-    iss = unverified_claims.get("iss", "")
-    sub = unverified_claims.get("sub", "")
 
     # ── Route by algorithm ────────────────────────────────────────────────
     if alg == "RS256":

@@ -163,7 +163,10 @@ class PostgresVaultStore:
         try:
             async with pool.acquire() as conn:
                 await conn.execute(
-                    "INSERT INTO vault_events (event_id, event_type, session_id, actor_id, stage, verdict, payload, merkle_leaf, prev_hash, chain_hash, risk_tier, auth_lineage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+                    "INSERT INTO vault_events "
+                    "(event_id, event_type, session_id, actor_id, stage, verdict, "
+                    "payload, merkle_leaf, prev_hash, chain_hash, risk_tier, auth_lineage) "
+                    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
                     event.event_id,
                     event.event_type,
                     event.session_id,

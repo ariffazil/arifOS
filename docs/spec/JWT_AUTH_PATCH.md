@@ -140,7 +140,7 @@ Rules:
 - `sub` MUST start with `system:` — never collide with human actor IDs
 - `exp` max 5 minutes — short-lived
 - `scope` MUST be explicit and minimal
-- Each service gets its own secret: `ARIFOS_INTERNAL_SECRET_SENTINELWATCH`, `ARIFOS_INTERNAL_SECRET_WELL`, `ARIFOS_INTERNAL_SECRET_AFORGE`
+- Each service gets its own secret: `ARIFOS_INTERNAL_SECRET_SENTINELWATCH`, `ARIFOS_INTERNAL_SECRET_WELL`, `ARIFOS_INTERNAL_SECRET_AFORGE`  # pragma: allowlist secret
 - Compromised service cannot mint tokens for another service
 
 Services using internal tokens:
