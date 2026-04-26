@@ -48,6 +48,8 @@
   - 23 Docker volumes were permanently destroyed, including legacy Vault999, GEOX, A-FORGE, and arifOS session state.
   - `swapoff -a && swapon -a` was a misdiagnosis; it reduced available RAM from 12GB to 8GB by forcing swapped pages into physical memory.
   - Data loss is irreversible without external backups.
+  - Data loss is irreversible without external backups.
+  - POST-MORTEM ACTION: Reconciled orphans (aaa-a2a, mcp_everything) under authoritative /etc/arifos/compose. Rotated leaked A2A credentials. Restored arifosmcp shims to fix GET /mcp and 404 errors. Archived /root shadow compose files to prevent F2 Source of Truth violations.
 
 ## 4. ACTIVE TOPOLOGY
 
