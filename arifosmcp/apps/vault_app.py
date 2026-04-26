@@ -11,6 +11,7 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 
+from arifosmcp.apps import vault_chain as vault_chain
 from arifosmcp.apps.vault_chain import append_vault_record, VAULT_PATH
 
 VAULT999_DOMAIN = "https://arifosmcp.arif-fazil.com"
