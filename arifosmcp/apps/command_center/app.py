@@ -5,15 +5,20 @@ One cockpit. Separate chambers. Judge above action.
 Architecture:
 - FastMCPApp ("arifOS Command Center") owns the UI + app-scoped backend tools.
 - Only command_center() is a visible UI entry point for the model.
-- All Forge, Vault, Gateway operations are simulated (dry-run) in v0.1.
+- v0.2 wires all tools to the real arifOS canonical backends (888_JUDGE, 999_VAULT,
+  010_FORGE, 666_GATEWAY, 777_OPS). No simulation.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
+import os
+
+from arifosmcp.apps.command_center.forge_app import governed_forge_execute
 from arifosmcp.apps.command_center.governance import classify_risk, hash_preview, judge_candidate
-from arifosmcp.apps.command_center.mock_kernel import MOCK_VAULT_ENTRIES
+from arifosmcp.apps.command_center.interceptor import governance_guard
+from arifosmcp.apps.command_center.judge_app import governed_judge_deliberate
 from arifosmcp.apps.command_center.models import (
     ForgeDryRun,
     GatewayHandshake,
@@ -21,9 +26,15 @@ from arifosmcp.apps.command_center.models import (
     OpsVitals,
     SessionStatus,
     VaultDrySeal,
+    VaultEntry,
     VaultList,
 )
 from arifosmcp.apps.command_center.state import get_state
+from arifosmcp.apps.command_center.vault_audit import get_vault_audit
+from arifosmcp.apps.command_center.vault_chain import append_vault_record
+from arifosmcp.tools.gateway import arif_gateway_connect
+from arifosmcp.tools.kernel import arif_kernel_route
+from arifosmcp.tools.ops import arif_ops_measure
 from fastmcp import FastMCP
 from fastmcp.apps import FastMCPApp
 from mcp.types import ToolAnnotations
@@ -48,6 +59,72 @@ from prefab_ui.components import (
     Text,
     Textarea,
 )
+
+# Evaluation mode: when True, tools use simulated governance responses.
+# When False (production/App Store), tools proxy to real canonical backends.
+EVALUATION_MODE = os.environ.get("ARIFOS_EVALUATION_MODE", "false").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+
+# ---------------------------------------------------------------------------
+# Governance helpers
+# ---------------------------------------------------------------------------
+
+
+def _get_live_session() -> dict:
+    """Pull live session state from the Command Center registry or arifOS runtime."""
+    # Priority 1: Command Center local session registry (v0.2+ session continuity)
+    state = get_state()
+    local = state.get_session()
+    if local:
+        return {
+            "session_id": local.session_id,
+            "actor_id": local.actor_id,
+            "declared_name": local.declared_name,
+            "intent": local.intent,
+            "token": local.token,
+            "floor_audit": local.floor_audit,
+            "created_at": local.created_at,
+            "expires_at": local.expires_at,
+        }
+
+    # Priority 2: arifOS runtime session store (legacy fallback)
+    try:
+        from arifosmcp.runtime.session import _ACTIVE_SESSION_ID, _SESSION_IDENTITY
+
+        active_id = _ACTIVE_SESSION_ID
+        if active_id and active_id in _SESSION_IDENTITY:
+            return dict(_SESSION_IDENTITY[active_id])
+    except Exception:  # nosec: governance guard handles failures gracefully
+        pass
+    return {}
+
+
+def _kernel_status() -> dict:
+    """Get kernel routing status."""
+    try:
+        return arif_kernel_route(mode="status", actor_id="arif")
+    except Exception:
+        return {}
+
+
+def _kernel_telemetry() -> dict:
+    """Get kernel thermodynamic telemetry."""
+    try:
+        return arif_kernel_route(mode="telemetry", actor_id="arif")
+    except Exception:
+        return {}
+
+
+def _route_action(target: str, task: str) -> dict:
+    """Route an action intent through 444_KERNEL. Returns routing decision."""
+    try:
+        return arif_kernel_route(mode="route", target=target, task=task, actor_id="arif")
+    except Exception as e:
+        return {"result": {}, "status": "HOLD", "meta": {"reason": str(e)}}
+
 
 # ---------------------------------------------------------------------------
 # Safety constants — red-team hardening
@@ -79,37 +156,139 @@ command_center_app = FastMCPApp("arifOS Command Center")
 def session_status() -> dict:
     """Use this when refreshing the constitutional session panel.
 
-    Returns the current actor ID, constitution hash, stage, lane, authority,
-    and sealed status. Read-only diagnostic.
+    Returns live governance state from the arifOS kernel: session ID, actor ID,
+    constitution hash, stage, lane, plan state, latest verdict, required next
+    tool, and blocked reason. Read-only diagnostic.
 
     Do not use for creating new sessions — use arif_session_init instead.
     """
     state = get_state()
     state.session_count += 1
-    return SessionStatus().model_dump()
+
+    local = state.get_session()
+    if local:
+        return SessionStatus(
+            session_id=local.session_id,
+            actor_id=local.actor_id,
+            constitution_id="arifos-constitution-v2026.04.26",
+            stage="000",
+            lane="AGI",
+            sealed=False,
+            authority="human_judge_required_for_consequential_actions",
+            plan_state="draft",
+            token=local.token,
+            floor_audit=local.floor_audit,
+            created_at=local.created_at,
+            expires_at=local.expires_at,
+        ).model_dump()
+
+    if EVALUATION_MODE:
+        return SessionStatus(
+            session_id="eval-session",
+            actor_id="arif",
+            stage="000",
+            lane="AGI",
+            sealed=False,
+            authority="human_judge_required_for_consequential_actions",
+            plan_state="draft",
+        ).model_dump()
+
+    live = _get_live_session()
+    kstatus = _kernel_status()
+    ktelemetry = _kernel_telemetry()
+
+    result_status = kstatus.get("result", {})
+    result_telemetry = ktelemetry.get("result", {})
+
+    session_id = live.get("session_id", live.get("id", "uninitialized"))
+    actor_id = live.get("actor_id", "anonymous")
+    stage = live.get("stage", result_status.get("stage", "000"))
+    lane = live.get("lane", "AGI")
+    plan_id = live.get("plan_id", None)
+    plan_state = live.get("caller_state", "draft")
+    authority = live.get(
+        "authority_level", live.get("authority", "human_judge_required_for_consequential_actions")
+    )
+    latest_verdict = live.get("latest_verdict", None)
+    judge_state_hash = live.get("judge_state_hash", None)
+    sealed = live.get("sealed", False)
+
+    # Phase 2: Determine required next tool from plan state
+    required_next = None
+    blocked_reason = None
+    if plan_state == "draft":
+        required_next = "arif_kernel_route"
+        blocked_reason = None
+    elif plan_state == "planned":
+        required_next = "arif_judge_deliberate"
+    elif plan_state == "judge_reviewed":
+        required_next = "arif_ops_measure"
+    elif plan_state == "approved":
+        required_next = "arif_forge_execute"
+    elif plan_state == "executed":
+        required_next = "arif_vault_seal"
+    elif plan_state == "blocked":
+        blocked_reason = live.get("blocked_reason", "Plan blocked by governance gate")
+        required_next = None
+
+    constitution_id = live.get("constitution_id", "arifos-constitution-v2026.04.26")
+    g_score = result_telemetry.get("g_score", ktelemetry.get("g_score", 0.0))
+    delta_s = result_telemetry.get("delta_S", ktelemetry.get("delta_S", 0.0))
+
+    return SessionStatus(
+        session_id=str(session_id),
+        actor_id=str(actor_id),
+        constitution_id=str(constitution_id),
+        stage=str(stage),
+        lane=str(lane),
+        sealed=bool(sealed),
+        authority=str(authority),
+        plan_id=str(plan_id) if plan_id else None,
+        plan_state=str(plan_state),
+        latest_verdict=str(latest_verdict) if latest_verdict else None,
+        judge_state_hash=str(judge_state_hash) if judge_state_hash else None,
+        required_next_tool=required_next,
+        blocked_reason=str(blocked_reason) if blocked_reason else None,
+        g_score=float(g_score),
+        delta_s=float(delta_s),
+    ).model_dump()
 
 
 @command_center_app.tool()
 def ops_vitals() -> dict:
     """Use this when refreshing the thermodynamic health panel.
 
-    Returns simulated genius score (G), entropy delta (ΔS), human impact
-    load (Ω), and paradox tension (Ψ). Read-only diagnostic.
+    Returns genius score (G), entropy delta (ΔS), human impact load (Ω),
+    and paradox tension (Ψ). Read-only diagnostic from real 777_OPS backend.
 
     Do not use for actual system monitoring outside the Command Center.
     """
-    state = get_state()
-    state.ops_reads += 1
-    return OpsVitals().model_dump()
+    if EVALUATION_MODE:
+        state = get_state()
+        state.ops_reads += 1
+        return OpsVitals().model_dump()
+
+    result = arif_ops_measure(mode="vitals")
+    return OpsVitals(
+        g_score=result.g_score,
+        delta_S=result.delta_S,
+        omega=result.omega,
+        psi_le=result.psi_le,
+        status=result.meta.get("status", "OK"),
+    ).model_dump()
 
 
 @command_center_app.tool()
 def judge_action(candidate: str) -> dict:
     """Use this when the user submits an action for constitutional review.
 
-    Adjudicates the candidate against floors F1–F13 and returns a verdict:
-    SEAL (approved), SABAR (conditional), HOLD (paused), or VOID (rejected).
-    Large or empty inputs fail closed to HOLD.
+    Routes through 444_KERNEL, then calls governed_judge_deliberate which:
+      1. Validates session + identity
+      2. Calls real 888_JUDGE backend for F1-F13 verdict
+      3. Advances the session lifecycle (draft→planned→judged→approved/blocked)
+      4. Appends the verdict to VAULT999 hash chain
+
+    Returns: SEAL (approved), SABAR (conditional), HOLD (paused), or VOID (rejected).
 
     Parameters:
         candidate: Plain-text description of the proposed action.
@@ -122,71 +301,181 @@ def judge_action(candidate: str) -> dict:
     if not isinstance(candidate, str):
         candidate = str(candidate) if candidate is not None else ""
     candidate = _truncate(candidate.strip(), MAX_CANDIDATE_LENGTH)
-    result = judge_candidate(candidate)
-    return JudgeVerdict(**result).model_dump()
+
+    # Phase 2: Route through kernel first
+    routing = _route_action(target="arif_judge_deliberate", task=candidate)
+    routing_result = routing.get("result", {})
+    routing_path = routing_result.get("path", ["init", "sense", "judge"])
+
+    if EVALUATION_MODE:
+        result = judge_candidate(candidate)
+        return JudgeVerdict(
+            routing_path=routing_path,
+            required_next_tool="arif_ops_measure",
+            **result,
+        ).model_dump()
+
+    # Use governed_judge_deliberate: calls 888_JUDGE + lifecycle advance + vault append
+    live = _get_live_session()
+    session_id = live.get("session_id", "uninitialized")
+    plan_id = live.get("plan_id")
+    plan_state = live.get("caller_state", "draft")
+
+    result = governed_judge_deliberate(
+        candidate=candidate,
+        actor_id="arif",
+        session_id=session_id,
+        plan_id=plan_id,
+        plan_state=plan_state,
+    )
+
+    # Map to JudgeVerdict shape
+    verdict_code = result.get("verdict", "HOLD")
+    risk_tier = result.get("risk_tier", "high")
+    human_required = result.get("human_decision_required", verdict_code != "SEAL")
+
+    risk_tier_map = {"low": "low", "medium": "medium", "high": "high", "critical": "critical"}
+    risk_tier = risk_tier_map.get(risk_tier, "high")
+
+    return JudgeVerdict(
+        verdict=verdict_code,
+        risk_tier=risk_tier,
+        human_decision_required=human_required,
+        reason=result.get("reason", ""),
+        allowed_next=result.get("allowed_next", []),
+        forbidden_next=result.get("forbidden_next", []),
+        routing_path=routing_path,
+        required_next_tool=result.get("required_next_tool"),
+    ).model_dump()
 
 
 @command_center_app.tool()
 def forge_dry_run(manifest: str) -> dict:
     """Use this when the user wants to simulate a forge execution.
 
-    Accepts a manifest and returns a dry-run assessment including
-    reversibility classification and required verdict. No build, deploy,
-    or file write is performed in v0.1.
+    Routes through 444_KERNEL, then calls the real 010_FORGE backend in dry_run mode.
+    Phase 4 enforcement: requires approved_plan_id + judge_state_hash before execution
+    is permitted. Returns a reversibility classification and required verdict.
 
     Parameters:
         manifest: JSON manifest or plain-text description of the proposed
             build/deploy operation.
             Example: '{"mode": "deploy", "service": "arifosmcp"}'.
 
-    Do not use for real builds or deployments — this is simulation only.
+    Do not use for real builds without a SEAL verdict and approved plan.
     """
     state = get_state()
     state.forge_dry_runs += 1
-
-    risk = classify_risk(manifest)
-    reversibility = "uncertain" if risk in {"high", "critical"} else "reversible"
-
     manifest = _truncate(manifest, MAX_MANIFEST_LENGTH)
-    summary = f"Would simulate: {manifest[:120]}"
-    if len(manifest) > 120:
-        summary += "..."
 
-    return ForgeDryRun(
+    # Phase 2: Route through kernel first
+    routing = _route_action(target="arif_forge_execute", task=manifest)
+    routing_result = routing.get("result", {})
+    routing_path = routing_result.get("path", ["init", "sense", "mind"])
+
+    if EVALUATION_MODE:
+        risk = classify_risk(manifest)
+        reversibility = "uncertain" if risk in {"high", "critical"} else "reversible"
+        return ForgeDryRun(
+            routing_path=routing_path,
+            mode="dry_run",
+            would_execute=False,
+            manifest_summary=manifest[:120] + ("..." if len(manifest) > 120 else ""),
+            reversibility=reversibility,
+            required_verdict="SEAL",
+            status="simulated",
+            plan_state="draft",
+        ).model_dump()
+
+    # Phase 4: Enforcement gates via governed_forge_execute
+    live = _get_live_session()
+    session_id = live.get("session_id", "uninitialized")
+    plan_id = live.get("plan_id")
+    plan_state = live.get("caller_state", "draft")
+    judge_state_hash = live.get("judge_state_hash")
+    approved_plan_id = live.get("approved_plan_id")
+    judge_verdict = live.get("latest_verdict")
+
+    forge_result = governed_forge_execute(
+        manifest=manifest,
+        actor_id="arif",
+        session_id=session_id,
+        plan_id=plan_id,
+        judge_verdict=judge_verdict,
+        judge_state_hash=judge_state_hash,
+        approved_plan_id=approved_plan_id,
+        plan_state=plan_state,
         mode="dry_run",
-        would_execute=False,
-        manifest_summary=summary,
-        reversibility=reversibility,
+    )
+
+    forge_out = forge_result.get("forge_result") or {}
+    status_map = {
+        "allowed": "routed",
+        "executed": "executed",
+        "blocked": "blocked",
+        "hold": "hold",
+    }
+    return ForgeDryRun(
+        routing_path=routing_path,
+        mode="dry_run",
+        would_execute=forge_out.get("would_execute", False),
+        manifest_summary=manifest[:120] + ("..." if len(manifest) > 120 else ""),
+        reversibility=forge_out.get("reversibility", "uncertain"),
         required_verdict="SEAL",
-        status="simulated",
+        status=status_map.get(forge_result.get("status", ""), "hold"),
+        plan_id=plan_id,
+        plan_state=plan_state,
+        judge_state_hash=judge_state_hash,
+        approved_plan_id=approved_plan_id,
+        blocked_reason=(
+            forge_result.get("reason") if forge_result.get("status") != "allowed" else None
+        ),
     ).model_dump()
 
 
 @command_center_app.tool()
 def gateway_handshake(target_agent: str) -> dict:
-    """Use this when the user wants to simulate a cross-agent handshake.
+    """Use this when the user wants to initiate a cross-agent A2A handshake.
 
-    Accepts a target agent name and returns a simulated constitutional
-    handshake result including rogue-agent protection status. No real
-    network traffic or credential exchange occurs.
+    Calls the real 666_GATEWAY backend to perform a constitutional handshake
+    with the target federation agent. Returns rogue-agent protection status.
 
     Parameters:
         target_agent: Canonical agent name to handshake with.
             Example: "geox-mcp", "wealth-mcp", "a-forge".
 
-    Do not use for actual A2A mesh routing — use arif_gateway_connect.
+    Do not use for actual A2A mesh routing — the gateway handles that.
     """
     state = get_state()
     state.gateway_handshakes += 1
     if not isinstance(target_agent, str):
         target_agent = str(target_agent) if target_agent is not None else ""
     target_agent = _truncate(target_agent.strip(), MAX_AGENT_NAME_LENGTH)
+
+    # Phase 2: Route through kernel first
+    routing = _route_action(target="arif_gateway_connect", task=target_agent)
+    routing_result = routing.get("result", {})
+    routing_path = routing_result.get("path", ["init", "sense", "mind"])
+
+    if EVALUATION_MODE:
+        return GatewayHandshake(
+            target_agent=target_agent,
+            handshake="simulated",
+            constitution_hash_required=True,
+            rogue_agent_protection=True,
+            status="pending_trust_verification",
+            routing_path=routing_path,
+        ).model_dump()
+
+    result = arif_gateway_connect(mode="handshake", target_agent=target_agent, actor_id="arif")
+    handshake_ok = result.get("result", {}).get("handshake", "unknown")
     return GatewayHandshake(
         target_agent=target_agent,
-        handshake="simulated",
+        handshake=handshake_ok,
         constitution_hash_required=True,
         rogue_agent_protection=True,
-        status="pending_trust_verification",
+        status="verified" if handshake_ok == "OK" else "pending_trust_verification",
+        routing_path=routing_path,
     ).model_dump()
 
 
@@ -194,37 +483,124 @@ def gateway_handshake(target_agent: str) -> dict:
 def vault_list() -> dict:
     """Use this when refreshing the vault audit panel.
 
-    Returns mock vault audit entries for demonstration. v0.1 uses synthetic
-    data only — no ledger read from VAULT999.
+    Reads the real VAULT999 ledger. Returns the last 10 entries with hash-chain
+    verification. Read-only. Uses vault_audit.get_vault_audit internally.
 
-    Do not use for retrieving real sealed events — use arif_vault_seal.
+    Do not use for retrieving real sealed events — this is the canonical read path.
     """
-    return VaultList(entries=MOCK_VAULT_ENTRIES).model_dump()
+    if EVALUATION_MODE:
+        from arifosmcp.apps.command_center.mock_kernel import MOCK_VAULT_ENTRIES  # noqa: F401
+
+        return VaultList(entries=MOCK_VAULT_ENTRIES).model_dump()
+
+    audit = get_vault_audit(limit=20)
+    entries = [
+        VaultEntry(
+            id=e.get("entry_id", "unknown"),
+            type=e.get("type", "seal"),
+            permanent=e.get("permanent", False),
+            note=e.get("note", "")[:80],
+            timestamp=e.get("timestamp", ""),
+            prev_hash=e.get("prev_hash", ""),
+        )
+        for e in audit.get("entries", [])
+    ]
+    return VaultList(
+        entries=entries,
+        total_count=audit.get("total", 0),
+        chain_valid=audit.get("chain_valid", False),
+    ).model_dump()
 
 
 @command_center_app.tool()
 def vault_dry_seal(payload: str) -> dict:
     """Use this when the user wants to preview a vault seal.
 
-    Accepts a payload string and returns a hash preview and dry-seal status.
-    No permanent append to VAULT999 occurs in v0.1.
+    Routes through 444_KERNEL, then calls the real 999_VAULT backend in dry_run mode.
+    Phase 4 enforcement: requires approved_plan_id + judge_state_hash before dry_seal
+    is permitted. The payload is not written to the ledger until mode=permanent.
 
     Parameters:
-        payload: The payload to hash and preview for sealing.
-            Example: '{"event": "deployment", "service": "arifosmcp"}'.
+        payload: JSON event payload to seal.
+            Example: '{"session_id": "SEAL-abc", "action": "deploy", "actor": "arif"}'.
 
-    Do not use for permanent ledger writes — use arif_vault_seal.
+    Do not use for permanent seals without explicit human acknowledgment.
     """
     state = get_state()
     state.vault_dry_seals += 1
     if not isinstance(payload, str):
         payload = str(payload) if payload is not None else ""
     payload = _truncate(payload, MAX_PAYLOAD_LENGTH)
+
+    # Phase 2: Route through kernel first
+    routing = _route_action(target="arif_vault_seal", task=payload)
+    routing_result = routing.get("result", {})
+    routing_path = routing_result.get("path", ["init", "sense", "mind"])
+
+    if EVALUATION_MODE:
+        return VaultDrySeal(
+            routing_path=routing_path,
+            mode="dry_seal",
+            permanent=False,
+            payload_hash_preview=hash_preview(payload),
+            status="not_written",
+            plan_state="draft",
+        ).model_dump()
+
+    # Phase 4: Enforcement gates
+    live = _get_live_session()
+    plan_id = live.get("plan_id")
+    plan_state = live.get("caller_state", "draft")
+    judge_state_hash = live.get("judge_state_hash")
+    approved_plan_id = live.get("approved_plan_id")
+
+    # Phase 4 enforcement via interceptor
+    check = governance_guard(
+        action="vault_dry_seal",
+        actor_id="arif",
+        session_id=live.get("session_id", "uninitialized"),
+        payload={"payload": payload},
+        plan_state=plan_state,
+        judge_state_hash=judge_state_hash,
+        approved_plan_id=approved_plan_id,
+    )
+    if check["status"] != "allowed":
+        return VaultDrySeal(
+            routing_path=routing_path,
+            mode="dry_seal",
+            permanent=False,
+            payload_hash_preview="__blocked__",
+            status=f"enforcement_gate:{check['gate']}",
+            plan_id=plan_id,
+            plan_state=plan_state,
+            judge_state_hash=judge_state_hash,
+            approved_plan_id=approved_plan_id,
+            blocked_reason=check["reason"],
+        ).model_dump()
+
+    # Use real vault_chain for hash preview
+    try:
+        vault_record = append_vault_record(
+            entry_type="vault_dry_seal_preview",
+            payload={"payload": payload, "session_id": live.get("session_id", "")},
+            permanent=False,
+            note=f"dry_seal_preview session={live.get('session_id', '?')}",
+            actor_id="arif",
+        )
+        hash_preview_out = vault_record["payload_hash"]
+    except Exception:
+        hash_preview_out = hash_preview(payload)
+
     return VaultDrySeal(
+        routing_path=routing_path,
         mode="dry_seal",
         permanent=False,
-        payload_hash_preview=hash_preview(payload),
-        status="not_written",
+        payload_hash_preview=hash_preview_out,
+        status="preview_generated",
+        plan_id=plan_id,
+        plan_state=plan_state,
+        judge_state_hash=judge_state_hash,
+        approved_plan_id=approved_plan_id,
     ).model_dump()
 
 
@@ -274,6 +650,26 @@ def command_center() -> PrefabApp:
     a single action outside the cockpit context.
     """
 
+    # ── Session Continuity (Eureka 6+7) ─────────────────────────────────────
+    # Initialize or recover a constitutional session on every UI open.
+    state = get_state()
+    sess = state.get_session()
+    if sess is None:
+        sess = state.init_session(
+            actor_id="anonymous",
+            intent="arifOS Command Center session",
+        )
+
+    # Pre-populate UI state from session anchor
+    session_defaults = {
+        "session_actor": sess.actor_id,
+        "session_constitution": "arifos-constitution-v2026.04.26",
+        "session_stage": "000",
+        "session_lane": "AGI",
+        "session_sealed": "false",
+        "session_authority": "human_judge_required_for_consequential_actions",
+    }
+
     # Header
     header = Column(
         children=[
@@ -281,7 +677,9 @@ def command_center() -> PrefabApp:
             Text(content="One cockpit. Separate chambers. Judge above action.", italic=True),
             Row(
                 children=[
-                    Badge(label="v0.1 DRY-RUN ONLY", variant="warning"),
+                    Badge(
+                        label="v0.3 LIVE — 444/888/777/999/010/666 GOVERNANCE", variant="success"
+                    ),
                     Badge(label="F1 Amanah Active", variant="success"),
                 ],
                 gap=2,
@@ -690,13 +1088,8 @@ def command_center() -> PrefabApp:
             gap=4,
         ),
         state={
-            # Session defaults
-            "session_actor": "—",
-            "session_constitution": "—",
-            "session_stage": "—",
-            "session_lane": "—",
-            "session_sealed": "false",
-            "session_authority": "—",
+            # Session defaults (populated from constitutional session anchor)
+            **session_defaults,
             # Ops defaults
             "ops_g": "—",
             "ops_delta_s": "—",

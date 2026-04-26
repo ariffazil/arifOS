@@ -17,19 +17,37 @@ from pydantic import BaseModel, Field
 
 
 class SessionStatus(BaseModel):
-    actor_id: str = "arif"
+    session_id: str = "uninitialized"
+    actor_id: str = "anonymous"
     constitution_id: str = "arifos-constitution-v2026.04.26"
     stage: str = "000"
     lane: str = "AGI"
     sealed: bool = False
     authority: str = "human_judge_required_for_consequential_actions"
+    # Phase 2 governance fields
+    plan_id: str | None = None
+    plan_state: str = "draft"  # draft|planned|risk_judged|approved|executed|sealed|blocked
+    latest_verdict: str | None = None
+    judge_state_hash: str | None = None
+    required_next_tool: str | None = None
+    blocked_reason: str | None = None
+    # Kernel telemetry (context contract: TelemetryEnvelope)
+    g_score: float = 0.0
+    delta_s: float = 0.0
+    # v0.2: Session continuity
+    token: str = ""
+    floor_audit: dict[str, bool] = Field(default_factory=dict)
+    created_at: str = ""
+    expires_at: str = ""
     text: str = ""
 
     def model_post_init(self, __context: Any) -> None:
         self.text = (
-            f"Session active for actor {self.actor_id}. "
-            f"Constitution {self.constitution_id}. Stage {self.stage}. "
-            f"Lane {self.lane}. Authority: {self.authority}."
+            f"Session {self.session_id} | actor={self.actor_id} | "
+            f"constitution={self.constitution_id} | stage={self.stage} | lane={self.lane} | "
+            f"plan={self.plan_id} [{self.plan_state}] | verdict={self.latest_verdict} | "
+            f"blocked={self.blocked_reason or 'none'} | "
+            f"token={self.token[:20] + '...' if len(self.token) > 20 else self.token}."
         )
 
 
@@ -56,12 +74,17 @@ class JudgeVerdict(BaseModel):
     reason: str
     allowed_next: list[str]
     forbidden_next: list[str]
+    # Phase 2 routing
+    routing_path: list[str] = Field(default_factory=list)
+    required_next_tool: str | None = None
     text: str = ""
 
     def model_post_init(self, __context: Any) -> None:
+        path_str = " → ".join(self.routing_path) if self.routing_path else "direct"
         self.text = (
-            f"Verdict: {self.verdict}. Risk tier: {self.risk_tier}. "
-            f"Human decision required: {self.human_decision_required}. {self.reason}"
+            f"Verdict: {self.verdict} | Risk: {self.risk_tier} | "
+            f"Human required: {self.human_decision_required} | "
+            f"Routing: {path_str} | {self.reason}"
         )
 
 
@@ -72,24 +95,35 @@ class ForgeDryRun(BaseModel):
     reversibility: str = Field(pattern=r"^(reversible|uncertain)$")
     required_verdict: str = "SEAL"
     status: str = "simulated"
+    # Phase 2 enforcement gates
+    plan_id: str | None = None
+    plan_state: str = "draft"
+    judge_state_hash: str | None = None
+    approved_plan_id: str | None = None
+    ack_irreversible: bool = False
+    routing_path: list[str] = Field(default_factory=list)
+    blocked_reason: str | None = None
     text: str = ""
 
     def model_post_init(self, __context: Any) -> None:
-        safe_summary = html.escape(self.manifest_summary)
         self.text = (
-            f"Forge dry-run complete. Mode: {self.mode}. "
-            f"Would execute: {self.would_execute}. {safe_summary} "
-            f"Reversibility: {self.reversibility}. Required verdict: {self.required_verdict}. "
-            f"Status: {self.status}."
+            f"Forge dry-run | Mode: {self.mode} | "
+            f"Would execute: {self.would_execute} | Rev: {self.reversibility} | "
+            f"Plan: {self.plan_id} [{self.plan_state}] | "
+            f"Verdict: {self.required_verdict} | "
+            f"Routing: {' → '.join(self.routing_path) or 'direct'}."
+            + (f" BLOCKED: {self.blocked_reason}" if self.blocked_reason else "")
         )
 
 
 class GatewayHandshake(BaseModel):
     target_agent: str
-    handshake: str = "simulated"
-    constitution_hash_required: bool = True
-    rogue_agent_protection: bool = True
+    handshake: str
+    constitution_hash_required: bool
+    rogue_agent_protection: bool
     status: str = "pending_trust_verification"
+    # Phase 2 routing
+    routing_path: list[str] = Field(default_factory=list)
     text: str = ""
 
     def model_post_init(self, __context: Any) -> None:
@@ -123,12 +157,19 @@ class VaultDrySeal(BaseModel):
     permanent: bool = False
     payload_hash_preview: str
     status: str = "not_written"
+    # Phase 2 enforcement gates
+    plan_id: str | None = None
+    judge_state_hash: str | None = None
+    approved_plan_id: str | None = None
+    ack_irreversible: bool = False
+    routing_path: list[str] = Field(default_factory=list)
     text: str = ""
 
     def model_post_init(self, __context: Any) -> None:
         safe_hash = html.escape(self.payload_hash_preview)
         self.text = (
-            f"Vault dry-seal complete. Mode: {self.mode}. "
-            f"Permanent: {self.permanent}. Hash preview: {safe_hash}. "
+            f"Vault dry-seal | Mode: {self.mode} | Permanent: {self.permanent} | "
+            f"Hash: {safe_hash} | Plan: {self.plan_id} | "
+            f"Routing: {' → '.join(self.routing_path) or 'direct'} | "
             f"Status: {self.status}."
         )
