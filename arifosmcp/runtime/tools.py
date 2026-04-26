@@ -137,12 +137,9 @@ def get_constitution_identity() -> dict[str, Any]:
 
 def get_public_surface_state() -> dict[str, Any]:
     """Canonical source of truth for public MCP surface."""
-    return {
-        "mode": "canonical13",
-        "tools_registered": 13,
-        "kernel_tools": 13,
-        "diagnostic_tools": []
-    }
+    from arifosmcp.runtime.public_surface import public_surface_state
+
+    return public_surface_state()
 
 # ─── Tool Implementations ─────────────────────────────────────────────────────
 
@@ -2279,7 +2276,7 @@ def get_public_surface_state() -> dict[str, Any]:
 # arif_ping — lightweight health probe
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _runtime_ping(
+def _arif_ping(
     mode: str = "probe",
     session_id: str | None = None,
     actor_id: str | None = None,
@@ -2602,6 +2599,14 @@ def _runtime_selftest(
     }
 
 
+def _arif_selftest(
+    mode: str = "dry_run",
+    session_id: str | None = None,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    return _runtime_selftest(mode=mode, session_id=session_id, actor_id=actor_id)
+
+
 # Internal aliases — diagnostics stay callable in-process but are not public MCP tools.
 def _runtime_ping(
     mode: str = "probe",
@@ -2682,11 +2687,15 @@ __all__ = [
     "FINAL_TOOL_IMPLEMENTATIONS",
     "IrreversibleConfirmation",
     "JudgeCandidateInput",
+    "_arif_ping",
+    "_arif_selftest",
     "_elicit_irreversible_ack",
     "_elicit_judge_candidate",
     "_hold",
     "_new_session",
     "_ok",
+    "_runtime_ping",
+    "_runtime_selftest",
     "register_tools",
 ]
 
