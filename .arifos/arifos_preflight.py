@@ -58,13 +58,15 @@ def main():
     target_file = os.path.abspath(sys.argv[2])
     
     # 1. Physical Integrity Check
-    if not os.path.exists(target_file):
-        log_event(agent_id, "PREFLIGHT", target_file, "ERROR", "File does not exist")
-        print(f"[888-HOLD] Target file {target_file} not found.")
-        sys.exit(1)
+    file_exists = os.path.exists(target_file)
 
     # 2. Information Asymmetry (Git Diff) Check
-    is_dirty = check_git_status(target_file)
+    if file_exists:
+        is_dirty = check_git_status(target_file)
+    else:
+        # For new files, check the parent directory's git status instead
+        parent_dir = os.path.dirname(target_file)
+        is_dirty = check_git_status(parent_dir) if os.path.isdir(parent_dir) else None
     
     if is_dirty is True:
         log_event(agent_id, "PREFLIGHT", target_file, "HOLD", "Uncommitted changes detected")
@@ -72,7 +74,8 @@ def main():
         print("F1 Violation: Resource is in a state of high entropy. Potential collision.")
         sys.exit(1)
     elif is_dirty is False:
-        log_event(agent_id, "PREFLIGHT", target_file, "PASS", "File is clean")
+        status_msg = "File is clean" if file_exists else "Parent directory is clean (new file)"
+        log_event(agent_id, "PREFLIGHT", target_file, "PASS", status_msg)
         print(f"[PASS] Pre-flight successful for {target_file}")
         sys.exit(0)
     else:
