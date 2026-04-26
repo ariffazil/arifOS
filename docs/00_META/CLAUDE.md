@@ -73,7 +73,7 @@ ruff check core/ arifosmcp.runtime/ arifosmcp.intelligence/ --fix
 mypy core/ --ignore-missing-imports
 ```
 
-Black: 100 char line length. Ruff: py310 target, excludes `archive/**`, `tests/**`. MyPy: strict on `core.governance_kernel`, `core.judgment`, `core.pipeline`, `core.organs.*`, `core.shared.*`.
+Black: 100 char line length. Ruff: py310 target, excludes `tests/**`. MyPy: strict on `core.governance_kernel`, `core.judgment`, `core.pipeline`, `core.organs.*`, `core.shared.*`.
 
 ---
 

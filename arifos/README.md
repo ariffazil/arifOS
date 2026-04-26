@@ -390,7 +390,6 @@ arifOS/
 │   ├── PRODUCTION_PROMPT_PACK_v1.md
 │   └── ASF1_COMMUNICATION_PROTOCOL.md
 ├── apps/                             # Metabolic apps (Judge, Vault, Init, Forge)
-├── archive/                          # Archived artifacts
 ├── authentik/                        # Identity / auth layer
 ├── config/ + CONFIG/                 # Environment config
 ├── core/                             # Constitutional kernel

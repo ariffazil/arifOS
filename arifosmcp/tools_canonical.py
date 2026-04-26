@@ -12,7 +12,7 @@ Axis mapping:
   Oracle Bio: P_well_* + E_well_* → arifos_oracle_bio
   Oracle World: P_geox_* + P_wealth_* → arifos_oracle_world
 
-EXTENSION HOOKS PATTERN (from archive/2026-04-01_agent_zero_eureka_extraction.md):
+EXTENSION HOOKS PATTERN (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   Before deployment: wire F9_TAQWA and F11_AUDIT into the tool dispatch layer.
   class Extension:
       async def before_execution(self, **kwargs):  # F9 TAQWA constitutional check
@@ -21,11 +21,11 @@ EXTENSION HOOKS PATTERN (from archive/2026-04-01_agent_zero_eureka_extraction.md
           pass
   Maps cleanly to: before_execution → F9_TAQWA check; after_execution → F11_AUDIT logging.
 
-DELTA BUNDLE SPEC (from archive/333/README.md):
+DELTA BUNDLE SPEC (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   arif_mind_reason output must include: facts, scars, floor_scores, entropy, omega_0.
   See: tools/mind_reason.py _build_delta_bundle()
 
-QUANTUM SABAR PROTOCOL (from archive/333/QUANTUM_SABAR_PROTOCOL.md):
+QUANTUM SABAR PROTOCOL (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   Byzantine continuity when W1/W3 unreachable. partition_mode: ONLINE | PURGATORY | DEAD.
   See: tools/sense_observe.py
 
