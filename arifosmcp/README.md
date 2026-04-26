@@ -21,10 +21,10 @@
 ### Live Services
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **MCP Endpoint** | https://mcp.arif-fazil.com/mcp | Main API (20 tools, v2026.4.13+) |
+| **MCP Endpoint** | https://mcp.arif-fazil.com/mcp | Main API (canonical15 public surface) |
 | **Health + Tools** | https://mcp.arif-fazil.com/health | Capability map |
 | **Tool Explorer** | https://mcp.arif-fazil.com/tools | Interactive browser |
-| ⚠️ **Stale (do not use)** | `arifosmcp.arif-fazil.com/*` | Redirects to `mcp.arif-fazil.com` (11 tools, v2026.04.07) |
+| ⚠️ **Stale (do not use)** | `arifosmcp.arif-fazil.com/*` | Redirects to `mcp.arif-fazil.com` (older 11-tool snapshot) |
 
 ### GitHub Repositories
 | Repo | URL |
@@ -51,7 +51,9 @@
 
 **What is arifosmcp?**
 
-arifosmcp is the **runtime implementation and packaging shell** for the arifOS constitutional intelligence kernel — the deployable code that enforces the 13 Floors at runtime, runs the 000-999 pipeline, and delivers the 11 mega-tools.
+arifosmcp is the **runtime implementation and packaging shell** for the arifOS constitutional intelligence kernel — the deployable code that enforces the 13 Floors at runtime, runs the 000-999 pipeline, and delivers the **canonical15** public MCP surface (**13 constitutional tools + 2 probes**).
+
+> **Current public contract:** `arif_*` names only. `arifos_*` names are internal implementation engines and must not appear on the default public discovery surface.
 
 **Source of Truth Hierarchy:**
 

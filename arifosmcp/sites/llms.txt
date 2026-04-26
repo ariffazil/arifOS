@@ -88,10 +88,10 @@ The `/health` endpoint exposes thermodynamic telemetry. These values require car
 Agents SHOULD compose tools across all three organs in this sequence:
 
 ```
-1. arifos_sense  → Capture OBS/INT/DER evidence (Φ GEOX domain)
-2. arifos_mind   → Inductive synthesis from evidence
-3. arifos_judge  → Constitutional verdict (SEAL/CAUTION/HOLD/VOID)
-4. arifos_vault  → VAULT999 immutable seal
+1. arif_sense_observe   → Capture OBS/INT/DER evidence (Φ GEOX domain)
+2. arif_mind_reason     → Inductive synthesis from evidence
+3. arif_judge_deliberate → Constitutional verdict (SEAL/CAUTION/HOLD/VOID)
+4. arif_vault_seal      → VAULT999 immutable seal
 ```
 
 **Rule:** GEOX and WEALTH provide evidence; arifOS provides verdict. No organ may self-approve.
