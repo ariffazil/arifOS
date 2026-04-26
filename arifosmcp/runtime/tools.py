@@ -2155,7 +2155,10 @@ def _arif_ping(
         "forge": forge_status,
     }
     # Use _ok() wrapper for constitutional metadata (delta_S, timestamp, irreversibility)
-    return _ok("arif_ping", payload, delta_S=0.0)
+    # Also hoist version to result level for flat access: result.version
+    response = _ok("arif_ping", payload, delta_S=0.0)
+    response["version"] = os.environ.get("ARIFOS_VERSION", "v2026.04.26")
+    return response
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
