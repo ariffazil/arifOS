@@ -1325,10 +1325,7 @@ def _register_tool(
     async def governed_wrapped_handler(req: dict[str, Any]):
         if inspect.iscoroutinefunction(handler):
             return await handler(name, req)
-        return handler(name, req)
-
-    # In FastMCP 3.x, we should use the decorator or set the name explicitly
-    mcp.tool(name=name, description=description, tags=tags_set)(governed_wrapped_handler)
+        return handler(name, req)  # sync stub returns dict directly
 
 
 # =============================================================================

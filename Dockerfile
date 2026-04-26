@@ -1,7 +1,7 @@
 # ── arifOS AAA MCP Server ──────────────────────────────────────────────
 # Single process, single port. Runs FastMCP streamable-HTTP transport
 # with REST endpoints (/health, /tools, /version) as custom routes.
-# Hardened for Production (v2026.03.28-IDENTITY-BINDING)
+# Hardened for Production (v2026.04.26-SEALED)
 # ───────────────────────────────────────────────────────────────────────
 
 FROM python:3.12-slim AS build
@@ -55,7 +55,7 @@ RUN groupadd -g 1000 arifos && \
 WORKDIR /usr/src/app
 
 # Build arguments for metadata
-ARG ARIFOS_VERSION=2026.03.28-IDENTITY-BINDING
+ARG ARIFOS_VERSION=2026.04.26-SEALED
 ARG GIT_SHA=unknown
 ARG BUILD_TIME=unknown
 

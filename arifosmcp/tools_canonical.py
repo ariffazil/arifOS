@@ -697,4 +697,5 @@ def resolve_alias(tool_name: str, kwargs: dict[str, Any]) -> dict[str, Any]:
     if fn is None:
         return {"error": f"Canonical function not found: {canonical_fn}"}
     logger.debug(f"ALIAS_RESOLVE: {tool_name} → {canonical_fn}[{mode}]")
+    kwargs.pop("mode", None)
     return fn(mode, **kwargs)

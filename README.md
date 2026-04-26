@@ -9,9 +9,9 @@ This repo holds: the constitutional kernel, 13 Floors (F1–F13), `AGENTS.md`, c
 <!-- SOT:version_info -->
 | Field | Value |
 |-------|-------|
-| VERSION | 2026.04.25-KANON |
-| BUILD_EPOCH | 2026.04.25 |
-| BUILD_TIMESTAMP | 2026-04-25T05:31:00+00:00 |
+| VERSION | 2026.04.26-SEALED |
+| BUILD_EPOCH | 2026.04.26 |
+| BUILD_TIMESTAMP | 2026-04-26T02:55:00+00:00 |
 | CONSTITUTIONAL_HASH | via constitutional_map.py CANONICAL_TOOLS |
 | TOOL_COUNT | 13 |
 | FLOOR_COUNT | 13 (F1–F13) |
@@ -22,8 +22,8 @@ _Auto-generated — run `python3 skills/github-readme-dynamic/generate.py . --ap
 ## 🛠️ Canonical 13 Tools
 
 <!-- SOT:tool_surface -->
-**Surface:** arifOS MCP — KANON Phase 1
-**Total Tools:** 13
+**Surface:** arifOS MCP — KANON Phase 1 + AXIS Phase
+**Total Tools:** 39 (11 v1 constitutional + 28 axis domain tools)
 
 | Stage | Tool | Lane | Description |
 |-------|------|------|-------------|

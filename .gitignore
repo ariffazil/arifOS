@@ -133,3 +133,5 @@ core/vault999/**/*.jsonl
 pytest_output.txt
 eval_results.*
 *_output.*
+*.pyc
+__pycache__/
