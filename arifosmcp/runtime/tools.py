@@ -2189,10 +2189,25 @@ def _arif_selftest(
     # 6. Mind check
     try:
         mind = _arif_mind_reason(query="test", actor_id="selftest")
-        mind_ok = mind.get("status") in ("OK", "HOLD")
+        # MindOutput is a pydantic model with .status and .verdict attributes
+        if hasattr(mind, 'status'):
+            mind_status = mind.status
+        elif isinstance(mind, dict):
+            mind_status = mind.get("status", "?")
+        else:
+            mind_status = "?"
+        # Verdict is CLAIM/PARTIAL/HOLD/VOID — also an attribute on pydantic model
+        if hasattr(mind, 'verdict'):
+            mind_verdict = mind.verdict
+        elif isinstance(mind, dict):
+            mind_verdict = mind.get("verdict", "?")
+        else:
+            mind_verdict = "?"
+        mind_ok = mind_status in ("OK", "HOLD") and mind_verdict in ("CLAIM", "PARTIAL", "HOLD", "VOID")
         checks["mind_check"] = {
             "verdict": "PASS" if mind_ok else "FAIL",
-            "status": mind.get("status"),
+            "status": mind_status,
+            "verdict": mind_verdict,
         }
         if not mind_ok:
             failed_checks.append("mind_check")
@@ -2274,7 +2289,7 @@ def _arif_selftest(
 
     # 12. Vault dry_run check
     try:
-        vault = _arif_vault_seal(mode="dry_run", candidate="selftest: vault dry run test", actor_id="selftest")
+        vault = _arif_vault_seal(mode="dry_run", actor_id="selftest")
         vault_status = vault.get("status")
         vault_result = vault.get("result", {})
         vault_ok = vault_status in ("OK", "HOLD")
