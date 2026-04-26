@@ -277,55 +277,71 @@ try:
 
             tool_summaries = []
             try:
-                lp = getattr(mcp, "_local_provider", None)
-                if lp:
-                    raw_tools = {k: v for k, v in lp._components.items() if k.startswith("tool:")}
-                else:
-                    raw_tools = {}
-                for name, tool in raw_tools.items():
-                    tool_name = name.replace("tool:", "").rstrip("@")
-                    base = {
-                        "description": tool.description or "",
-                        "parameters": tool.parameters or {},
+                # Iterate over all providers (LocalProvider, AppProvider, etc.)
+                for provider in mcp.providers:
+                    # Access the internal _components map
+                    # Some providers have it at the top level, others (like FastMCPApp) have it in _local
+                    raw_components = getattr(provider, "_components", None)
+                    if raw_components is None:
+                        local = getattr(provider, "_local", None)
+                        if local:
+                            raw_components = getattr(local, "_components", None)
+
+                    if not raw_components:
+                        continue
+
+                    raw_tools = {
+                        k: v for k, v in raw_components.items() if k.startswith("tool:")
                     }
-                    manifest = TOOL_MANIFEST.get(tool_name, {})
-                    meta_dict = getattr(tool, "meta", None) or {}
-                    arifos_m = meta_dict.get("arifos_manifest", {}) or manifest
-                    entry = {
-                        "name": tool_name,
-                        "description": base["description"],
-                        "parameters": base["parameters"],
-                        "stage": arifos_m.get("stage_code", ""),
-                        "lane": arifos_m.get("lane", ""),
-                        "meta": {
-                            "arifos_manifest": arifos_m,
-                            "stage_code": meta_dict.get(
-                                "stage_code", arifos_m.get("stage_code", "")
-                            ),
-                            "stage_name": meta_dict.get(
-                                "stage_name", arifos_m.get("stage_name", "")
-                            ),
-                            "risk_tier": meta_dict.get(
-                                "risk_tier", arifos_m.get("risk", {}).get("tier", "low")
-                            ),
-                            "irreversible": meta_dict.get(
-                                "irreversible", arifos_m.get("risk", {}).get("irreversible", False)
-                            ),
-                            "requires_human_ack": meta_dict.get(
-                                "requires_human_ack",
-                                arifos_m.get("risk", {}).get("requires_human_ack", False),
-                            ),
-                            "use_when": arifos_m.get("use_when", []),
-                            "do_not_use_when": arifos_m.get("do_not_use_when", []),
-                            "next_recommended_tools": arifos_m.get("next_recommended_tools", []),
-                            "authority_boundary": arifos_m.get("authority_boundary", {}),
-                            "privacy_scope": arifos_m.get("privacy_scope", []),
-                            "canonical_order": meta_dict.get(
-                                "canonical_order", arifos_m.get("canonical_order", [])
-                            ),
-                        },
-                    }
-                    tool_summaries.append(entry)
+
+                    for name, tool in raw_tools.items():
+                        tool_name = name.replace("tool:", "").rstrip("@")
+                        base = {
+                            "description": tool.description or "",
+                            "parameters": tool.parameters or {},
+                        }
+                        manifest = TOOL_MANIFEST.get(tool_name, {})
+                        meta_dict = getattr(tool, "meta", None) or {}
+                        arifos_m = meta_dict.get("arifos_manifest", {}) or manifest
+                        entry = {
+                            "name": tool_name,
+                            "description": base["description"],
+                            "parameters": base["parameters"],
+                            "stage": arifos_m.get("stage_code", ""),
+                            "lane": arifos_m.get("lane", ""),
+                            "meta": {
+                                "arifos_manifest": arifos_m,
+                                "stage_code": meta_dict.get(
+                                    "stage_code", arifos_m.get("stage_code", "")
+                                ),
+                                "stage_name": meta_dict.get(
+                                    "stage_name", arifos_m.get("stage_name", "")
+                                ),
+                                "risk_tier": meta_dict.get(
+                                    "risk_tier", arifos_m.get("risk", {}).get("tier", "low")
+                                ),
+                                "irreversible": meta_dict.get(
+                                    "irreversible",
+                                    arifos_m.get("risk", {}).get("irreversible", False),
+                                ),
+                                "requires_human_ack": meta_dict.get(
+                                    "requires_human_ack",
+                                    arifos_m.get("risk", {}).get("requires_human_ack", False),
+                                ),
+                                "use_when": arifos_m.get("use_when", []),
+                                "do_not_use_when": arifos_m.get("do_not_use_when", []),
+                                "next_recommended_tools": arifos_m.get(
+                                    "next_recommended_tools", []
+                                ),
+                                "authority_boundary": arifos_m.get("authority_boundary", {}),
+                                "privacy_scope": arifos_m.get("privacy_scope", []),
+                                "canonical_order": meta_dict.get(
+                                    "canonical_order", arifos_m.get("canonical_order", [])
+                                ),
+                                "ui": meta_dict.get("ui", {}),
+                            },
+                        }
+                        tool_summaries.append(entry)
             except Exception as e:
                 logger.warning(f"Failed to build meta-enriched tools response: {e}")
                 tool_summaries = []
@@ -349,7 +365,6 @@ try:
         app.add_route("/webmcp/tools", tools_with_meta, methods=["GET"])
         app.add_route("/webmcp/metadata", horizon_metadata, methods=["GET"])
         app.add_route("/webmcp/.well-known/mcp", webmcp_discovery, methods=["GET"])
-
 
         # Overwrite Starlette routes list with our prioritized meta-enriched /tools
         app.add_route("/tools", tools_with_meta, methods=["GET"])

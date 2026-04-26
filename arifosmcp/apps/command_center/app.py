@@ -26,6 +26,7 @@ from arifosmcp.apps.command_center.models import (
 from arifosmcp.apps.command_center.state import get_state
 from fastmcp import FastMCP
 from fastmcp.apps import FastMCPApp
+from mcp.types import ToolAnnotations
 from prefab_ui.actions import SetState
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -76,7 +77,13 @@ command_center_app = FastMCPApp("arifOS Command Center")
 
 @command_center_app.tool()
 def session_status() -> dict:
-    """Return current constitutional session status."""
+    """Use this when refreshing the constitutional session panel.
+
+    Returns the current actor ID, constitution hash, stage, lane, authority,
+    and sealed status. Read-only diagnostic.
+
+    Do not use for creating new sessions — use arif_session_init instead.
+    """
     state = get_state()
     state.session_count += 1
     return SessionStatus().model_dump()
@@ -84,7 +91,13 @@ def session_status() -> dict:
 
 @command_center_app.tool()
 def ops_vitals() -> dict:
-    """Return simulated thermodynamic health telemetry."""
+    """Use this when refreshing the thermodynamic health panel.
+
+    Returns simulated genius score (G), entropy delta (ΔS), human impact
+    load (Ω), and paradox tension (Ψ). Read-only diagnostic.
+
+    Do not use for actual system monitoring outside the Command Center.
+    """
     state = get_state()
     state.ops_reads += 1
     return OpsVitals().model_dump()
@@ -92,10 +105,17 @@ def ops_vitals() -> dict:
 
 @command_center_app.tool()
 def judge_action(candidate: str) -> dict:
-    """Adjudicate a candidate action against constitutional floors F1–F13.
+    """Use this when the user submits an action for constitutional review.
 
-    Returns SEAL, SABAR, HOLD, or VOID. Never permits real execution in v0.1.
+    Adjudicates the candidate against floors F1–F13 and returns a verdict:
+    SEAL (approved), SABAR (conditional), HOLD (paused), or VOID (rejected).
     Large or empty inputs fail closed to HOLD.
+
+    Parameters:
+        candidate: Plain-text description of the proposed action.
+            Example: "restart the production database" or "deploy v2.3".
+
+    Do not use for final execution — this only returns a verdict.
     """
     state = get_state()
     state.judge_calls += 1
@@ -108,9 +128,18 @@ def judge_action(candidate: str) -> dict:
 
 @command_center_app.tool()
 def forge_dry_run(manifest: str) -> dict:
-    """Simulate a forge execution without changing anything.
+    """Use this when the user wants to simulate a forge execution.
 
-    v0.1: dry_run only. No build, no deploy, no file write.
+    Accepts a manifest and returns a dry-run assessment including
+    reversibility classification and required verdict. No build, deploy,
+    or file write is performed in v0.1.
+
+    Parameters:
+        manifest: JSON manifest or plain-text description of the proposed
+            build/deploy operation.
+            Example: '{"mode": "deploy", "service": "arifosmcp"}'.
+
+    Do not use for real builds or deployments — this is simulation only.
     """
     state = get_state()
     state.forge_dry_runs += 1
@@ -135,9 +164,17 @@ def forge_dry_run(manifest: str) -> dict:
 
 @command_center_app.tool()
 def gateway_handshake(target_agent: str) -> dict:
-    """Simulate a constitutional cross-agent handshake.
+    """Use this when the user wants to simulate a cross-agent handshake.
 
-    No real network traffic. No credential exchange.
+    Accepts a target agent name and returns a simulated constitutional
+    handshake result including rogue-agent protection status. No real
+    network traffic or credential exchange occurs.
+
+    Parameters:
+        target_agent: Canonical agent name to handshake with.
+            Example: "geox-mcp", "wealth-mcp", "a-forge".
+
+    Do not use for actual A2A mesh routing — use arif_gateway_connect.
     """
     state = get_state()
     state.gateway_handshakes += 1
@@ -155,18 +192,28 @@ def gateway_handshake(target_agent: str) -> dict:
 
 @command_center_app.tool()
 def vault_list() -> dict:
-    """Return mock vault audit entries.
+    """Use this when refreshing the vault audit panel.
 
-    v0.1: synthetic data only. No ledger read from VAULT999.
+    Returns mock vault audit entries for demonstration. v0.1 uses synthetic
+    data only — no ledger read from VAULT999.
+
+    Do not use for retrieving real sealed events — use arif_vault_seal.
     """
     return VaultList(entries=MOCK_VAULT_ENTRIES).model_dump()
 
 
 @command_center_app.tool()
 def vault_dry_seal(payload: str) -> dict:
-    """Simulate a vault seal without permanent write.
+    """Use this when the user wants to preview a vault seal.
 
-    v0.1: not_written. No append to VAULT999.
+    Accepts a payload string and returns a hash preview and dry-seal status.
+    No permanent append to VAULT999 occurs in v0.1.
+
+    Parameters:
+        payload: The payload to hash and preview for sealing.
+            Example: '{"event": "deployment", "service": "arifosmcp"}'.
+
+    Do not use for permanent ledger writes — use arif_vault_seal.
     """
     state = get_state()
     state.vault_dry_seals += 1
@@ -181,14 +228,51 @@ def vault_dry_seal(payload: str) -> dict:
     ).model_dump()
 
 
+_READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
+_DRY_RUN = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
+
+_TOOL_ANNOTATIONS = {
+    "session_status": _READ_ONLY,
+    "ops_vitals": _READ_ONLY,
+    "judge_action": _READ_ONLY,
+    "forge_dry_run": _DRY_RUN,
+    "gateway_handshake": _DRY_RUN,
+    "vault_list": _READ_ONLY,
+    "vault_dry_seal": _DRY_RUN,
+}
+
+for _key, _comp in command_center_app._local._components.items():
+    if _key.startswith("tool:"):
+        _name = getattr(_comp, "name", None)
+        if _name in _TOOL_ANNOTATIONS:
+            _comp.annotations = _TOOL_ANNOTATIONS[_name]
+
+
 # ---------------------------------------------------------------------------
 # Visible UI entry point
 # ---------------------------------------------------------------------------
 
 
-@command_center_app.ui()
+@command_center_app.ui(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "openWorldHint": False,
+    }
+)
 def command_center() -> PrefabApp:
-    """Open arifOS Command Center."""
+    """Use this when the user wants to open the arifOS Command Center.
+
+    This is the governed cockpit for constitutional AI operations across the
+    arifOS federation (arifOS, A-FORGE, GEOX, WEALTH). It provides tabs for
+    session status, thermodynamic vitals, constitutional judgment (888 Judge),
+    forge dry-run simulation (010 Forge), cross-agent gateway handshake
+    (666 Gateway), and vault audit (999 Vault).
+
+    Do not use for direct tool execution — use the specific canonical tool
+    (e.g., arif_judge_deliberate, arif_ops_measure) when the user asks for
+    a single action outside the cockpit context.
+    """
 
     # Header
     header = Column(
@@ -642,6 +726,13 @@ def command_center() -> PrefabApp:
             "seal_status": "—",
         },
     )
+
+
+# Patch widget domain for ChatGPT MCP Apps sandbox compliance
+for _key, _comp in command_center_app._local._components.items():
+    if _key.startswith("tool:") and getattr(_comp, "name", None) == "command_center":
+        _comp.meta.setdefault("ui", {})["domain"] = "https://arifosmcp.arif-fazil.com"
+        break
 
 
 def _register(mcp: FastMCP) -> None:

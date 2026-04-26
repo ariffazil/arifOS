@@ -191,6 +191,8 @@ services:
     depends_on:
       vault999:
         condition: service_healthy
+    volumes:
+      - /root/geox/geox_mcp_server.py:/app/geox_mcp_server.py:ro
 
   wealth-organ:
     build: /root/arifOS/skills/wealth
