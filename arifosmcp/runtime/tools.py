@@ -491,6 +491,29 @@ def _arif_session_init(
     ack_irreversible: bool = False,
     session_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    000_INIT: Constitutional session bootstrap and identity binding.
+
+    Anchors a new governed session to the 13-floor constitution (F1–F13).
+    Every session receives a unique ID, actor binding, and a constitutional
+    fingerprint (constitution_hash + invariants_hash). This is the entry gate
+    for all subsequent tool calls.
+
+    Modes:
+      init     — Create a new session with full constitutional binding.
+      resume   — Reattach to an existing session by session_id.
+      validate — Check session health and constitutional alignment.
+
+    Parameters:
+      mode              — init | resume | validate
+      actor_id          — Sovereign actor identifier (required for init)
+      ack_irreversible  — Explicit human ack for irreversible operations (F1 Amanah)
+      session_id        — Existing session UUID (required for resume/validate)
+
+    Returns:
+      SessionState with constitution_id, constitution_hash, public_surface,
+      authority level, and next_allowed_tools.
+    """
     allowed_modes = ["init", "resume", "validate"]
     legacy_aliases = {
         "status": "validate",
@@ -606,6 +629,32 @@ def _arif_sense_observe(
     url: str | None = None,
     layers: list[str] | None = None,
 ) -> dict[str, Any]:
+    """
+    111_SENSE: Multimodal reality observation and environmental sensing.
+
+    Gathers raw observational data across multiple sensory layers:
+    web search, URL ingestion, geospatial compass, structured atlas maps,
+    entropy monitoring (ΔS), and system vitals.
+
+    Modes:
+      search      — Free-text query against configured search backends.
+      ingest      — Fetch and parse a specific URL.
+      compass     — Directional / geospatial heading query.
+      atlas       — Structured map/layer retrieval.
+      entropy_dS  — Measure thermodynamic entropy delta of the session.
+      vitals      — CPU, memory, and I/O telemetry.
+
+    Parameters:
+      mode       — search | ingest | compass | atlas | entropy_dS | vitals
+      query      — Free-text search query
+      url        — Target URL for ingest mode
+      layers     — Layer identifiers for atlas mode
+      session_id — Governed session ID
+      actor_id   — Sovereign actor identifier
+
+    Returns:
+      Observation payload with results, source tag, and omega_0 (uncertainty).
+    """
     floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"])
@@ -880,6 +929,31 @@ def _arif_mind_reason(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    333_MIND: Symbolic constitutional reasoning kernel.
+
+    Performs governed reasoning using explicit axioms from the F1–F13
+    constitution. Every reasoning trace includes axiom citations,
+    confidence bands, and step-level derivations. Modes cover inductive,
+    deductive, abductive, analogical, and critical reasoning.
+
+    Modes:
+      reason   — General constitutional reasoning with axiom trace.
+      reflect  — Introspective replay of prior reasoning steps.
+      verify   — Truth-check a specific claim against the constitution.
+      critique — Adversarial stress-test of a reasoning chain.
+      axioms   — List available constitutional axioms and their confidence.
+
+    Parameters:
+      mode       — reason | reflect | verify | critique | axioms
+      query      — Reasoning prompt or claim to verify
+      session_id — Governed session ID
+      actor_id   — Sovereign actor identifier
+
+    Returns:
+      ReasoningTrace with steps, axioms_used, conclusion, confidence,
+      and epistemic_snapshot.
+    """
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"])
@@ -1205,6 +1279,31 @@ def _arif_kernel_route(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    444_KERNEL: Central orchestration, intent routing, and stage dispatch.
+
+    Routes sovereign intent to the correct constitutional stage and tool
+    sequence. Acts as the traffic controller for the 13-tool surface,
+    ensuring every call flows through the proper floor checks.
+
+    Modes:
+      route   — Resolve intent to a canonical tool + stage path.
+      stage   — Query or advance the session stage (000–999).
+      lane    — Switch cognitive lane (AGI | ASI | APEX).
+      list    — Enumerate available tools for the current session.
+      status  — Return kernel health and routing table state.
+
+    Parameters:
+      mode       — route | stage | lane | list | status
+      target     — Target tool or endpoint name
+      task       — Task description for routing resolution
+      stage      — Explicit stage override (000–999)
+      session_id — Governed session ID
+      actor_id   — Sovereign actor identifier
+
+    Returns:
+      Routing decision with path, hops, stage, and allowed_next_tools.
+    """
     floor_check = check_floors("arif_kernel_route", {"target": target or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_kernel_route", floor_check["reason"], floor_check["failed_floors"])
@@ -1236,6 +1335,30 @@ def _arif_reply_compose(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    444_REPLY: Governed response composition with constitutional tone control.
+
+    Composes human-facing replies that are truthful (F2), clear (F4),
+    empathetic (F6), and humble (F7). All outputs include entropy delta
+    and optional source citations.
+
+    Modes:
+      compose  — Draft a reply from a message payload.
+      style    — Apply a constitutional tone (neutral, empathetic, terse, formal).
+      cite     — Inject verified citations into an existing message.
+      summary  — Condense a long message while preserving constitutional intent.
+
+    Parameters:
+      mode       — compose | style | cite | summary
+      message    — Raw message text to compose or transform
+      style      — Tone/style directive
+      citations  — List of verified source identifiers to cite
+      session_id — Governed session ID
+      actor_id   — Sovereign actor identifier
+
+    Returns:
+      Composed message with formatted text, tone tag, and delta_S.
+    """
     floor_check = check_floors("arif_reply_compose", {"message": message or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_reply_compose", floor_check["reason"], floor_check["failed_floors"])
@@ -1262,6 +1385,30 @@ def _arif_memory_recall(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    555_MEMORY: Associative retrieval from VAULT999 and vector memory.
+
+    Recalls prior session artifacts, reasoning traces, and sealed events
+    from the immutable ledger. Supports semantic search by query,
+    exact lookup by memory_id, and session-scoped listing.
+
+    Modes:
+      recall  — Semantic search across all stored memories.
+      store   — Ingest a new memory entry (requires ack_irreversible).
+      get     — Exact retrieval by memory_id.
+      list    — List memories scoped to the current session.
+      prune   — Remove expired memories (F1 Amanah — reversible only).
+
+    Parameters:
+      mode       — recall | store | get | list | prune
+      query      — Semantic search query
+      memory_id  — Exact UUID for get/delete
+      session_id — Governed session ID
+      actor_id   — Sovereign actor identifier
+
+    Returns:
+      Memory payload with entries, confidence scores, and source tags.
+    """
     floor_check = check_floors("arif_memory_recall", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
@@ -1319,6 +1466,29 @@ def _arif_heart_critique(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    666_HEART: Ethical critique, risk assessment, and empathy scan.
+
+    Evaluates proposed actions against 8 risk categories (privacy, bias,
+    harm, irreversibility, deception, autonomy, dignity, sustainability).
+    Forces human_decision_required for high/critical/irreversible risk tiers.
+
+    Modes:
+      critique   — Full risk analysis of a target action or content.
+      simulate   — Run a what-if scenario and project risk outcomes.
+      empathize  — Assess human impact load (Ω) on weakest stakeholders.
+      summary    — Return a condensed risk scorecard.
+
+    Parameters:
+      mode       — critique | simulate | empathize | summary
+      target     — Action, content, or scenario to critique
+      session_id — Governed session ID
+      actor_id   — Sovereign actor identifier
+
+    Returns:
+      RiskReport with risks_found, risk_tier, human_decision_required,
+      and empathy_score (κᵣ).
+    """
     floor_check = check_floors("arif_heart_critique", {"target": target or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_heart_critique", floor_check["reason"], floor_check["failed_floors"])
@@ -1446,6 +1616,28 @@ def _arif_gateway_connect(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    666_GATEWAY: Federated cross-agent bridge and A2A mesh protocol.
+
+    Connects the sovereign session to other constitutional agents (Kimi,
+    Claude, Gemini, etc.) via the Agent-to-Agent (A2A) mesh. All handshakes
+    include constitution hash verification to prevent rogue agent injection.
+
+    Modes:
+      route     — Forward intent to a specific target agent.
+      discover  — List available agents in the federation mesh.
+      handshake — Initiate a verified constitutional handshake.
+      relay     — Pass a sealed message through the gateway without mutation.
+
+    Parameters:
+      mode        — route | discover | handshake | relay
+      target_agent — Canonical agent name (e.g., kimi, claude, gemini)
+      session_id  — Governed session ID
+      actor_id    — Sovereign actor identifier
+
+    Returns:
+      Gateway status with protocol, routing path, and agent capability map.
+    """
     floor_check = check_floors("arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_gateway_connect", floor_check["reason"], floor_check["failed_floors"])
@@ -1471,6 +1663,28 @@ def _arif_ops_measure(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
+    """
+    777_OPS: Resource thermodynamics, health telemetry, and metabolic monitoring.
+
+    Measures the operational health of the constitutional kernel using
+    thermodynamic analogies: entropy (ΔS), genius score (G ≥ 0.80),
+    human impact load (Ω), and paradox tension (Ψ).
+
+    Modes:
+      health  — Lightweight liveness check (CPU, mem, disk).
+      vitals  — Full thermodynamic state (G, ΔS, Ω, Ψ).
+      cost    — Estimate computational and token cost of a planned action.
+      predict — Project resource trajectory based on current load.
+
+    Parameters:
+      mode       — health | vitals | cost | predict
+      estimate   — Cost estimate input for cost/predict modes
+      session_id — Governed session ID
+      actor_id   — Sovereign actor identifier
+
+    Returns:
+      Health payload with status, metrics, and thermodynamic bands.
+    """
     floor_check = check_floors("arif_ops_measure", {}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_ops_measure", floor_check["reason"], floor_check["failed_floors"])
@@ -1650,6 +1864,32 @@ async def _arif_judge_deliberate_tool(
     constitutional_chain_id: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
+    """
+    888_JUDGE: Final constitutional arbitration and verdict sealing.
+
+    The apex adjudication organ. Evaluates a candidate action against
+    all 13 constitutional floors (F1–F13) and returns a binding verdict:
+    SEAL (approved), SABAR (conditional), HOLD (paused), or VOID (rejected).
+    Irreversible actions require explicit human confirmation via ctx elicitation.
+
+    Modes:
+      judge     — Full constitutional review of a candidate.
+      compare   — Side-by-side comparison of two candidate actions.
+      history   — Retrieve prior verdicts from the constitutional chain.
+      explain   — Generate a human-readable rationale for a verdict.
+
+    Parameters:
+      mode                  — judge | compare | history | explain
+      candidate             — Action or proposal to adjudicate
+      constitutional_chain_id — Immutable chain hash for audit continuity
+      session_id            — Governed session ID
+      actor_id              — Sovereign actor identifier
+      ctx                   — FastMCP Context for progress reporting and elicitation
+
+    Returns:
+      VerdictOutput with code, floor compliance proof, epistemic_snapshot,
+      and required_next_tool (if any).
+    """
     candidate, hold = await _elicit_judge_candidate(ctx, mode=mode, candidate=candidate)
     if hold is not None:
         return hold
@@ -1905,6 +2145,33 @@ async def _arif_vault_seal_tool(
     judge_state_hash: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
+    """
+    999_VAULT: Immutable ledger anchoring and cryptographic seal.
+
+    Writes terminal verdicts, session artifacts, and audit events to
+    VAULT999 — the append-only constitutional ledger. Every entry is
+    hashed, chained, and witnessed. Irreversible writes require explicit
+    human ack (F1 Amanah). Dry-run mode is default for safety.
+
+    Modes:
+      seal    — Anchor a payload to the immutable ledger.
+      verify  — Cryptographically verify a prior vault entry.
+      chain   — Retrieve the Merkle chain tip and lineage.
+      list    — Enumerate entries scoped to the current session.
+
+    Parameters:
+      mode                  — seal | verify | chain | list
+      payload               — JSON string to anchor (seal mode)
+      ack_irreversible      — Explicit human ack for permanent writes
+      constitutional_chain_id — Chain hash for lineage verification
+      judge_state_hash      — Judge verdict hash that authorized this seal
+      session_id            — Governed session ID
+      actor_id              — Sovereign actor identifier
+      ctx                   — FastMCP Context for progress reporting and elicitation
+
+    Returns:
+      SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
+    """
     ack_irreversible, hold = await _elicit_irreversible_ack(
         ctx,
         tool_name="arif_vault_seal",
@@ -2237,6 +2504,37 @@ async def _arif_forge_execute_tool(
     vault_entry_id: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
+    """
+    010_FORGE: Metabolic execution, build orchestration, and artifact forging.
+
+    Executes system modifications, builds, deployments, and code changes
+    under constitutional supervision. All forge operations run in dry_run
+    mode by default. Permanent changes require a prior 888_JUDGE SEAL
+    verdict and explicit human ack (F1 Amanah).
+
+    Modes:
+      engineer  — Execute a manifest (build, deploy, or system change).
+      query     — Inspect current system state without mutation.
+      rollback  — Revert a prior forge operation by artifact_id.
+      status    — Check forge queue health and pending operations.
+
+    Parameters:
+      mode                  — engineer | query | rollback | status
+      manifest              — JSON manifest describing the operation
+      query                 — State inspection query (query mode)
+      artifact_id           — Target artifact for rollback/status
+      ack_irreversible      — Explicit human ack for permanent changes
+      constitutional_chain_id — Chain hash for audit continuity
+      judge_state_hash      — Authorizing 888_JUDGE verdict hash
+      vault_entry_id        — VAULT999 entry to link this forge to
+      session_id            — Governed session ID
+      actor_id              — Sovereign actor identifier
+      ctx                   — FastMCP Context for progress reporting and elicitation
+
+    Returns:
+      ForgeOutput with status, execution_trace, artifact_id, and
+      irreversibility_level.
+    """
     ack_irreversible, hold = await _elicit_irreversible_ack(
         ctx,
         tool_name="arif_forge_execute",
