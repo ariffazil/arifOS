@@ -1,0 +1,708 @@
+{
+  "$schema": "https://arif-fazil.com/schemas/federation-tool-versions/v1.json",
+  "description": "Federation-wide tool version registry. Every tool seals its version into VAULT999. Unknown versions are rejected.",
+  "last_updated": "2026-04-26",
+  "update_hash": "SEE_MANIFEST",
+  "federation_servers": {
+    "arifOS": "https://arifOS.fastmcp.app/mcp",
+    "GEOX": "https://geoxarifOS.fastmcp.app/mcp",
+    "WEALTH": "https://wealth.fastmcp.app/mcp"
+  },
+  "tools": {
+
+    "arif_session_init": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "000_INIT",
+      "epistemic_class": "INIT",
+      "escalation_tier": 0,
+      "claim_tag": "INIT",
+      "schema_hash": "arifosmcp_runtime_000_INIT_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Canonical init — identity binding and constitutional hash anchoring"
+    },
+    "arif_sense_observe": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "111_SENSE",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "OBSERVED",
+      "schema_hash": "arifosmcp_runtime_111_SENSE_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Reality grounding and physics sensing"
+    },
+    "arif_evidence_fetch": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "222_FETCH",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "OBSERVED",
+      "schema_hash": "arifosmcp_runtime_222_FETCH_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "External evidence retrieval — F3 WITNESS compliance"
+    },
+    "arif_mind_reason": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "333_MIND",
+      "epistemic_class": "REASONED",
+      "escalation_tier": 1,
+      "claim_tag": "REASONED",
+      "schema_hash": "arifosmcp_runtime_333_MIND_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Symbolic constitutional reasoning kernel — LLM interpretive"
+    },
+    "arif_kernel_route": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "444_KERNEL",
+      "epistemic_class": "ROUTED",
+      "escalation_tier": 0,
+      "claim_tag": "ROUTED",
+      "schema_hash": "arifosmcp_runtime_444_KERNEL_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Deterministic stage routing — no LLM"
+    },
+    "arif_reply_compose": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "444_REPLY",
+      "epistemic_class": "COMPOSED",
+      "escalation_tier": 0,
+      "claim_tag": "COMPOSED",
+      "schema_hash": "arifosmcp_runtime_444_REPLY_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Human-facing composition — LLM interpretive"
+    },
+    "arif_memory_recall": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "555_MEMORY",
+      "epistemic_class": "RECALLED",
+      "escalation_tier": 0,
+      "claim_tag": "RECALLED",
+      "schema_hash": "arifosmcp_runtime_555_MEMORY_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Semantic recall layer — storage is deterministic"
+    },
+    "arif_heart_critique": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "666_HEART",
+      "epistemic_class": "CRITIQUED",
+      "escalation_tier": 1,
+      "claim_tag": "CRITIQUED",
+      "schema_hash": "arifosmcp_runtime_666_HEART_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Ethical critique and empathy scan — LLM interpretive"
+    },
+    "arif_gateway_connect": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "666_GATEWAY",
+      "epistemic_class": "ROUTED",
+      "escalation_tier": 1,
+      "claim_tag": "ROUTED",
+      "schema_hash": "arifosmcp_runtime_666_GATEWAY_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "A2A mesh protocol — cross-agent federation bridge"
+    },
+    "arif_ops_measure": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "777_OPS",
+      "epistemic_class": "MEASURED",
+      "escalation_tier": 0,
+      "claim_tag": "MEASURED",
+      "schema_hash": "arifosmcp_runtime_777_OPS_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Thermodynamic telemetry — deterministic, no LLM"
+    },
+    "arif_judge_deliberate": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "888_JUDGE",
+      "epistemic_class": "JUDGED",
+      "escalation_tier": 2,
+      "claim_tag": "JUDGED",
+      "schema_hash": "arifosmcp_runtime_888_JUDGE_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Constitutional arbitration — LLM interpretive, seals verdict"
+    },
+    "arif_forge_execute": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "010_FORGE",
+      "epistemic_class": "EXECUTED",
+      "escalation_tier": 2,
+      "claim_tag": "EXECUTED",
+      "schema_hash": "arifosmcp_runtime_010_FORGE_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "System mutation engine — deterministic execution substrate"
+    },
+    "arif_vault_seal": {
+      "server": "arifOS",
+      "version": "1.0.0",
+      "stage": "999_VAULT",
+      "epistemic_class": "SEALED",
+      "escalation_tier": 3,
+      "claim_tag": "SEALED",
+      "schema_hash": "arifosmcp_runtime_999_VAULT_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Immutable ledger anchoring — cryptographic, no LLM"
+    },
+
+    "geox_well_load_bundle": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_WELL",
+      "epistemic_class": "LOADED",
+      "escalation_tier": 0,
+      "claim_tag": "LOADED",
+      "schema_hash": "geox_well_load_bundle_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "LAS/DLIS bundle ingestion"
+    },
+    "geox_well_qc_logs": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_WELL",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "QC",
+      "schema_hash": "geox_well_qc_logs_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Quality control on loaded logs"
+    },
+    "geox_well_compute_petrophysics": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_WELL",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 1,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "geox_well_compute_petrophysics_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Petrophysics computation — F1 amanah asset writes disabled"
+    },
+    "geox_seismic_load_volume": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_SEISMIC",
+      "epistemic_class": "LOADED",
+      "escalation_tier": 0,
+      "claim_tag": "LOADED",
+      "schema_hash": "geox_seismic_load_volume_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "SEG-Y volume ingestion via segyio"
+    },
+    "geox_seismic_compute_attribute": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_SEISMIC",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 1,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "geox_seismic_compute_attribute_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Seismic attribute via bruges"
+    },
+    "geox_seismic_render_slice": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_SEISMIC",
+      "epistemic_class": "RENDERED",
+      "escalation_tier": 0,
+      "claim_tag": "RENDERED",
+      "schema_hash": "geox_seismic_render_slice_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "2D slice extraction via pyvista"
+    },
+    "geox_map_get_context_summary": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_MAP",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "OBSERVED",
+      "schema_hash": "geox_map_get_context_summary_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Spatial fabric introspection"
+    },
+    "geox_time4d_verify_timing": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_TIME4D",
+      "epistemic_class": "VERIFIED",
+      "escalation_tier": 1,
+      "claim_tag": "VERIFIED",
+      "schema_hash": "geox_time4d_verify_timing_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Trap charge timing verification"
+    },
+    "geox_prospect_evaluate": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_PROSPECT",
+      "epistemic_class": "EVALUATED",
+      "escalation_tier": 2,
+      "claim_tag": "EVALUATED",
+      "schema_hash": "geox_prospect_evaluate_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Hydrocarbon prospect evaluation — routes to arifOS for judgment"
+    },
+    "geox_list_skills": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_DISCOVERY",
+      "epistemic_class": "DISCOVERY",
+      "escalation_tier": 0,
+      "claim_tag": "DISCOVERY",
+      "schema_hash": "geox_list_skills_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Skill discovery tool"
+    },
+    "geox_skill_metadata": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_DISCOVERY",
+      "epistemic_class": "DISCOVERY",
+      "escalation_tier": 0,
+      "claim_tag": "DISCOVERY",
+      "schema_hash": "geox_skill_metadata_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Skill metadata lookup"
+    },
+    "geox_skill_dependencies": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "GEOX_DISCOVERY",
+      "epistemic_class": "DISCOVERY",
+      "escalation_tier": 0,
+      "claim_tag": "DISCOVERY",
+      "schema_hash": "geox_skill_dependencies_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Skill dependency resolution"
+    },
+
+    "arifos_check_hold": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "ROUTED_ARIFOS",
+      "epistemic_class": "CHECKED",
+      "escalation_tier": 1,
+      "claim_tag": "CHECKED",
+      "schema_hash": "arifos_check_hold_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "888_HOLD check — routes to arifOS kernel"
+    },
+    "arifos_manage_hold": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "ROUTED_ARIFOS",
+      "epistemic_class": "MANAGED",
+      "escalation_tier": 2,
+      "claim_tag": "MANAGED",
+      "schema_hash": "arifos_manage_hold_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "HOLD lifecycle — routes to arifOS kernel"
+    },
+    "arifos_compute_risk": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "ROUTED_ARIFOS",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 2,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "arifos_compute_risk_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "AC_Risk computation — routes to arifOS constitutional layer"
+    },
+    "arifos_judge_prospect": {
+      "server": "GEOX",
+      "version": "1.0.0",
+      "stage": "ROUTED_ARIFOS",
+      "epistemic_class": "JUDGED",
+      "escalation_tier": 3,
+      "claim_tag": "JUDGED",
+      "schema_hash": "arifos_judge_prospect_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Prospect judgment — routes to arifOS 888_JUDGE for VAULT999 sealing"
+    },
+
+    "wealth_npv_reward": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_FINANCE",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 1,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_npv_reward_v1",
+      "last_updated": "2026-04-26",
+      "change_note": "Net present value computation"
+    },
+    "wealth_irr_yield": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_FINANCE",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 1,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_irr_yield_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_pi_efficiency": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_FINANCE",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 1,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_pi_efficiency_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_emv_risk": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_RISK",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 2,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_emv_risk_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_audit_entropy": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_AUDIT",
+      "epistemic_class": "AUDITED",
+      "escalation_tier": 1,
+      "claim_tag": "AUDITED",
+      "schema_hash": "wealth_audit_entropy_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_dscr_leverage": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_FINANCE",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 1,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_dscr_leverage_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_payback_time": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_FINANCE",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 0,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_payback_time_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_growth_velocity": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_FINANCE",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 1,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_growth_velocity_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_networth_state": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_STATE",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_networth_state_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_cashflow_flow": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_STATE",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_cashflow_flow_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_score_kernel": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_GOVERNANCE",
+      "epistemic_class": "SCORED",
+      "escalation_tier": 1,
+      "claim_tag": "SCORED",
+      "schema_hash": "wealth_score_kernel_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_personal_decision": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_GOVERNANCE",
+      "epistemic_class": "DECIDED",
+      "escalation_tier": 2,
+      "claim_tag": "DECIDED",
+      "schema_hash": "wealth_personal_decision_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_agent_budget": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_BUDGET",
+      "epistemic_class": "ALLOCATED",
+      "escalation_tier": 1,
+      "claim_tag": "ALLOCATED",
+      "schema_hash": "wealth_agent_budget_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_crisis_triage": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_CRISIS",
+      "epistemic_class": "TRIAGED",
+      "escalation_tier": 3,
+      "claim_tag": "TRIAGED",
+      "schema_hash": "wealth_crisis_triage_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_civilization_stewardship": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_CIVILIZATION",
+      "epistemic_class": "GOVERNED",
+      "escalation_tier": 2,
+      "claim_tag": "GOVERNED",
+      "schema_hash": "wealth_civilization_stewardship_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_coordination_equilibrium": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_COORDINATION",
+      "epistemic_class": "COORDINATED",
+      "escalation_tier": 2,
+      "claim_tag": "COORDINATED",
+      "schema_hash": "wealth_coordination_equilibrium_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_game_theory_solve": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_GAME",
+      "epistemic_class": "SOLVED",
+      "escalation_tier": 2,
+      "claim_tag": "SOLVED",
+      "schema_hash": "wealth_game_theory_solve_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_monte_carlo_forecast": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_SIMULATION",
+      "epistemic_class": "SIMULATED",
+      "escalation_tier": 1,
+      "claim_tag": "SIMULATED",
+      "schema_hash": "wealth_monte_carlo_forecast_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_ingest_fetch": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_INGEST",
+      "epistemic_class": "FETCHED",
+      "escalation_tier": 0,
+      "claim_tag": "FETCHED",
+      "schema_hash": "wealth_ingest_fetch_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_ingest_snapshot": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_INGEST",
+      "epistemic_class": "SNAPSHOTTED",
+      "escalation_tier": 0,
+      "claim_tag": "SNAPSHOTTED",
+      "schema_hash": "wealth_ingest_snapshot_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_ingest_sources": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_INGEST",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_ingest_sources_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_ingest_health": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_INGEST",
+      "epistemic_class": "OBSERVED",
+      "escalation_tier": 0,
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_ingest_health_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_ingest_vintage": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_INGEST",
+      "epistemic_class": "VINTAGED",
+      "escalation_tier": 0,
+      "claim_tag": "VINTAGED",
+      "schema_hash": "wealth_ingest_vintage_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_ingest_reconcile": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_INGEST",
+      "epistemic_class": "RECONCILED",
+      "escalation_tier": 1,
+      "claim_tag": "RECONCILED",
+      "schema_hash": "wealth_ingest_reconcile_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_check_floors": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_GOVERNANCE",
+      "epistemic_class": "CHECKED",
+      "escalation_tier": 1,
+      "claim_tag": "CHECKED",
+      "schema_hash": "wealth_check_floors_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_policy_audit": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_AUDIT",
+      "epistemic_class": "AUDITED",
+      "escalation_tier": 2,
+      "claim_tag": "AUDITED",
+      "schema_hash": "wealth_policy_audit_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_record_transaction": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_RECORD",
+      "epistemic_class": "RECORDED",
+      "escalation_tier": 1,
+      "claim_tag": "RECORDED",
+      "schema_hash": "wealth_record_transaction_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_snapshot_portfolio": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_STATE",
+      "epistemic_class": "SNAPSHOTTED",
+      "escalation_tier": 1,
+      "claim_tag": "SNAPSHOTTED",
+      "schema_hash": "wealth_snapshot_portfolio_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_evoi_compute": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_EVOI",
+      "epistemic_class": "COMPUTED",
+      "escalation_tier": 2,
+      "claim_tag": "COMPUTED",
+      "schema_hash": "wealth_evoi_compute_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_evoi_monte_carlo": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_EVOI",
+      "epistemic_class": "SIMULATED",
+      "escalation_tier": 2,
+      "claim_tag": "SIMULATED",
+      "schema_hash": "wealth_evoi_monte_carlo_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_correlation_guard_check": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_GUARD",
+      "epistemic_class": "CHECKED",
+      "escalation_tier": 1,
+      "claim_tag": "CHECKED",
+      "schema_hash": "wealth_correlation_guard_check_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_schema_validate": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_VALIDATION",
+      "epistemic_class": "VALIDATED",
+      "escalation_tier": 0,
+      "claim_tag": "VALIDATED",
+      "schema_hash": "wealth_schema_validate_v1",
+      "last_updated": "2026-04-26"
+    },
+    "wealth_init": {
+      "server": "WEALTH",
+      "version": "1.0.0",
+      "stage": "WEALTH_INIT",
+      "epistemic_class": "INIT",
+      "escalation_tier": 0,
+      "claim_tag": "INIT",
+      "schema_hash": "wealth_init_v1",
+      "last_updated": "2026-04-26"
+    }
+  },
+
+  "escalation_tiers": {
+    "0": "AUTONOMOUS — no human confirmation required",
+    "1": "HUMAN_CONFIRM — explicit human acknowledgment before irreversible step",
+    "2": "MULTI_AGENT — requires quorum from multiple domain agents",
+    "3": "CONSTITUTIONAL_FREEZE — full governance halt, sovereign must intervene"
+  },
+
+  "epistemic_classes": {
+    "INIT": "System initialization, identity binding",
+    "OBSERVED": "Direct observation or data retrieval",
+    "LOADED": "Data loaded into session context",
+    "FETCHED": "External source fetched",
+    "COMPUTED": "Deterministic calculation result",
+    "SIMULATED": "Monte Carlo or probabilistic simulation",
+    "REASONED": "LLM interpretive reasoning",
+    "CRITIQUED": "Ethical/risk critique by LLM",
+    "JUDGED": "Constitutional adjudication",
+    "VERIFIED": "Cross-checked against constraints",
+    "RENDERED": "Visualization output",
+    "QC": "Quality control check",
+    "DISCOVERY": "Tool/skill discovery query",
+    "CHECKED": "Policy or floor check",
+    "MANAGED": "Lifecycle management action",
+    "AUDITED": "Compliance audit performed",
+    "SCORED": "Scoring computation",
+    "DECIDED": "Decision under uncertainty",
+    "ALLOCATED": "Budget/resource allocation",
+    "TRIAGED": "Crisis triage",
+    "GOVERNED": "Civilizational governance",
+    "COORDINATED": "Multi-party coordination",
+    "SOLVED": "Game theory solution",
+    "RECORDED": "Immutable record written",
+    "SNAPSHOTTED": "Point-in-time state capture",
+    "VINTAGED": "Dated to specific time period",
+    "RECONCILED": "Cross-source reconciliation",
+    "VALIDATED": "Schema/structure validation",
+    "ROUTED": "Routing decision, no mutation",
+    "EXECUTED": "System mutation performed",
+    "SEALED": "Immutable ledger entry created"
+  }
+}
