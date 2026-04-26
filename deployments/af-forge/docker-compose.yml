@@ -12,7 +12,7 @@ version: "3.8"
 
 services:
   # ─── arifOS MCP Server ─────────────────────────────────────────────────────
-  arifos-mcp:
+  arifosmcp:
     build:
       context: ../..
       dockerfile: deployments/af-forge/Dockerfile
@@ -20,8 +20,8 @@ services:
         ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
         ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
         ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.07}
-    image: arifos-mcp:a-forge
-    container_name: arifos-mcp
+    image: ghcr.io/ariffazil/arifos:a-forge
+    container_name: arifosmcp
     restart: unless-stopped
     
     ports:
@@ -70,6 +70,7 @@ services:
 
     networks:
       - arifos-network
+      - arifos_core_network
 
   # ─── Nginx Reverse Proxy ────────────────────────────────────────────────────
   nginx:
@@ -89,10 +90,11 @@ services:
       - certbot-webroot:/var/www/certbot:ro
     
     depends_on:
-      - arifos-mcp
+      - arifosmcp
     
     networks:
       - arifos-network
+      - arifos_core_network
 
 # ─── Volumes ──────────────────────────────────────────────────────────────────
 volumes:
@@ -107,3 +109,6 @@ volumes:
 networks:
   arifos-network:
     driver: bridge
+  arifos_core_network:
+    external: true
+    name: arifos_core_network
