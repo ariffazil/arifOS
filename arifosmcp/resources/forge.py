@@ -12,7 +12,7 @@ from fastmcp.resources.types import TextResource
 FORGE_TEXT = """\
 arifOS Forge — Execution Audit Bridge
 
-Runtime contract version: 2026.04.24-KANON
+Runtime contract version: 2026.04.26-KANON
 A-FORGE boundary: TypeScript execution runtime.
 
 Interface contract:
@@ -37,6 +37,12 @@ def register_forge(mcp: FastMCP) -> list[str]:
     resource = TextResource(
         uri="arifos://forge",
         name="Execution Bridge",
+        description=(
+            "Delegated execution bridge between arifOS and A-FORGE. "
+            "Defines the runtime contract for system modifications, builds, and deployments. "
+            "All forge operations require a prior 888_JUDGE SEAL verdict and explicit human ack. "
+            "Authority flow: AGI proposes → ASI evaluates → APEX authorizes → Forge executes."
+        ),
         text=FORGE_TEXT,
     )
     mcp.add_resource(resource)

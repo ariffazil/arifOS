@@ -191,23 +191,63 @@ Entropy is not your enemy. Misdirected entropy is.
 def register_meta_skill_prompts(mcp: FastMCP) -> list[str]:
     """Register the 5 meta-skill prompts."""
 
-    @mcp.prompt(name="rsi", description="Recursive Self-Improvement — AGI→ASI gate")
+    @mcp.prompt(
+        name="rsi",
+        description=(
+            "Recursive Self-Improvement (RSI) — AGI→ASI transcendence gate. "
+            "Guides constitutional self-improvement loops with F7 Humility enforced. "
+            "Covers capability expansion, failure-mode analysis, and Gödel-lock safety. "
+            "Use when the agent seeks to upgrade its own reasoning architecture."
+        ),
+    )
     def rsi() -> str:
         return RSI_PROMPT
 
-    @mcp.prompt(name="ortho", description="Orthogonal Abstraction — cross-domain structure transfer")
+    @mcp.prompt(
+        name="ortho",
+        description=(
+            "Orthogonal Abstraction — cross-domain structure transfer and analogy. "
+            "Maps patterns from one knowledge domain to another while preserving "
+            "constitutional invariants. Use for creative problem-solving, metaphor "
+            "generation, and interdisciplinary reasoning under F2 Truth and F8 Genius."
+        ),
+    )
     def ortho() -> str:
         return ORTHO_PROMPT
 
-    @mcp.prompt(name="epistemic", description="Epistemic Integrity — truth under uncertainty")
+    @mcp.prompt(
+        name="epistemic",
+        description=(
+            "Epistemic Integrity — truth maintenance under uncertainty. "
+            "Separates CLAIM, PLAUSIBLE, and UNKNOWN with explicit confidence bands. "
+            "Enforces F2 Truth (τ ≥ 0.99) and F7 Humility (Ω₀ ∈ [0.03, 0.05]). "
+            "Use when evaluating evidence, sources, or conflicting information."
+        ),
+    )
     def epistemic() -> str:
         return EPISTEMIC_PROMPT
 
-    @mcp.prompt(name="governance", description="Constitutional Governance — power alignment")
+    @mcp.prompt(
+        name="governance",
+        description=(
+            "Constitutional Governance — power alignment and authority verification. "
+            "Enforces F11 AUTH (identity verification), F13 Sovereign (human veto), "
+            "and F1 Amanah (reversibility). Use for access control decisions, "
+            "privilege escalation reviews, and multi-stakeholder conflict resolution."
+        ),
+    )
     def governance() -> str:
         return GOVERNANCE_PROMPT
 
-    @mcp.prompt(name="entropy", description="Entropy Optimization — energy-information tradeoff")
+    @mcp.prompt(
+        name="entropy",
+        description=(
+            "Entropy Optimization — energy-information tradeoff and thermodynamic discipline. "
+            "Minimizes delta_S (entropy increase) per operation while maximizing "
+            "information value. Covers Landauer limits, coherence preservation, "
+            "and metabolic cost accounting. Use for resource-efficient planning."
+        ),
+    )
     def entropy() -> str:
         return ENTROPY_PROMPT
 

@@ -38,6 +38,11 @@ def register_vitals(mcp: FastMCP) -> list[str]:
     resource = TextResource(
         uri="arifos://vitals",
         name="System Vitals",
+        description=(
+            "Live constitutional vitals and thermodynamic telemetry. "
+            "Reports G-score (genius), ΔS (entropy), Ω_ortho (orthogonality), "
+            "and Psi_LE (Landauer efficiency). Updated continuously by the metabolic monitor."
+        ),
         text=text,
     )
     mcp.add_resource(resource)

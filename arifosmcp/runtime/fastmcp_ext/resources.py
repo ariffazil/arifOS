@@ -16,7 +16,15 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     """Register canonical arifOS MCP resources on the given FastMCP server."""
     registered: list[str] = []
 
-    @mcp.resource("arifos://verdict/{session_id}")
+    @mcp.resource(
+        "arifos://verdict/{session_id}",
+        description=(
+            "Constitutional verdict for a specific session. "
+            "Returns the current binding verdict (SEAL, SABAR, VOID, or HOLD) "
+            "from the governance kernel, along with floor compliance proof and "
+            "risk tier. Updated in real-time as the session progresses through stages."
+        ),
+    )
     async def get_verdict(session_id: str) -> str:
         """Get constitutional verdict for a session as JSON."""
         try:
@@ -33,7 +41,15 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     registered.append("arifos://verdict/{session_id}")
 
-    @mcp.resource("arifos://continuity/{session_id}")
+    @mcp.resource(
+        "arifos://continuity/{session_id}",
+        description=(
+            "Session continuity state and contract lineage. "
+            "Returns the full continuity chain for a session including previous tool, "
+            "current tool, max risk tier, and contract version. "
+            "Essential for resuming interrupted sessions and audit trail reconstruction."
+        ),
+    )
     async def get_continuity(session_id: str) -> str:
         """Get session continuity state as JSON."""
         try:
@@ -49,7 +65,15 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     registered.append("arifos://continuity/{session_id}")
 
-    @mcp.resource("arifos://vitals")
+    @mcp.resource(
+        "arifos://vitals",
+        description=(
+            "Real-time constitutional vitals and thermodynamic telemetry. "
+            "Returns CPU, memory, disk, genius score (G), entropy delta (ΔS), "
+            "human impact load (Ω), and paradox tension (Ψ). "
+            "Updated continuously by the metabolic monitor. Use for health checks."
+        ),
+    )
     async def get_vitals() -> str:
         """Get real-time constitutional vitals as JSON."""
         try:

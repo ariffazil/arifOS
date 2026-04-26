@@ -37,7 +37,16 @@ DITEMPA BUKAN DIBERI.
 def register_init_prompt(mcp: FastMCP) -> list[str]:
     """Register the 000_INIT session anchor prompt."""
 
-    @mcp.prompt(name="init", description="000_INIT session anchor context")
+    @mcp.prompt(
+        name="init",
+        description=(
+            "000_INIT session anchor context. "
+            "AGI-tactical lane prompt for constitutional session bootstrap. "
+            "Covers identity binding (F11 AUTH), entropy baseline recording, "
+            "session manifest emission, and capability claim negotiation. "
+            "Use at the start of every new governed session."
+        ),
+    )
     def init() -> str:
         return INIT_PROMPT
 

@@ -43,6 +43,12 @@ def register_schema(mcp: FastMCP) -> list[str]:
     resource = TextResource(
         uri="arifos://schema",
         name="Canonical Schema",
+        description=(
+            "Complete canonical blueprint of the arifOS MCP surface. "
+            "Lists all 13 tools, Trinity lanes (AGI/ASI/APEX), 13 constitutional floors, "
+            "and the Conflict Resolution Protocol (CRP v1.0). "
+            "Use as the reference map for the entire constitutional kernel."
+        ),
         text=SCHEMA_TEXT,
     )
     mcp.add_resource(resource)

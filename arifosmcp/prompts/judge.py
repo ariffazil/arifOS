@@ -51,7 +51,17 @@ DITEMPA BUKAN DIBERI.
 def register_judge_prompt(mcp: FastMCP) -> list[str]:
     """Register the 888_JUDGE verdict prompt."""
 
-    @mcp.prompt(name="judge", description="888_JUDGE verdict engine context")
+    @mcp.prompt(
+        name="judge",
+        description=(
+            "888_JUDGE constitutional verdict engine context. "
+            "Guides ASI-strategic adjudication across four axes: "
+            "orthogonality (Ω_ortho), F1–F13 floor compliance, risk tier classification, "
+            "and irreversibility+entropy evaluation. "
+            "Emits binding verdicts: SEAL (proceed), SABAR (hold), or VOID (halt). "
+            "Use before any irreversible or high-risk action."
+        ),
+    )
     def judge() -> str:
         return JUDGE_PROMPT
 

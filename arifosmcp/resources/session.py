@@ -24,7 +24,15 @@ arif_session_init → arif_vault_seal lifecycle.
 def register_session(mcp: FastMCP) -> list[str]:
     """Register arifos://session/{id} — Ephemeral Instance."""
 
-    @mcp.resource(uri="arifos://session/{id}")
+    @mcp.resource(
+        uri="arifos://session/{id}",
+        description=(
+            "Ephemeral session manifest for a specific session ID. "
+            "Returns the live session binding status, actor verification state, "
+            "and constitutional fingerprint. Updated as the session progresses "
+            "through the init→vault lifecycle. Use to inspect session health remotely."
+        ),
+    )
     def session_resource(id: str) -> str:
         return SESSION_STUB_TEXT.format(session_id=id)
 

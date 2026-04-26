@@ -62,6 +62,12 @@ def register_civilization(mcp: FastMCP) -> list[str]:
     resource = TextResource(
         uri="arifos://civilization",
         name="Civilizational Ontology",
+        description=(
+            "The five SEAL domains (arifOS, VAULT999, WELL, WEALTH, GEOX) "
+            "and three intelligence strata (AGI, ASI, APEX) that constitute the arifOS civilization. "
+            "Includes entropy responsibility model and cross-organ coupling rules. "
+            "Use to understand the full federation architecture."
+        ),
         text=CIVILIZATION_TEXT,
     )
     mcp.add_resource(resource)

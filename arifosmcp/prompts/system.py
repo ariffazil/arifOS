@@ -8,7 +8,7 @@ from fastmcp import FastMCP
 
 
 SYSTEM_PROMPT = """\
-You are operating within the arifOS Constitutional Kernel (v2026.04.24-KANON).
+You are operating within the arifOS Constitutional Kernel (v2026.04.26-KANON).
 
 Golden path:
   init → sense → mind → heart → judge → vault
@@ -44,7 +44,17 @@ Motto: DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 def register_system_prompt(mcp: FastMCP) -> list[str]:
     """Register the system constitutional prompt."""
 
-    @mcp.prompt(name="system", description="Constitutional system context")
+    @mcp.prompt(
+        name="system",
+        description=(
+            "Constitutional system context for arifOS MCP. "
+            "Provides the full F1–F13 floor doctrine, cognitive Trinity (AGI/ASI/APEX), "
+            "five SEAL domains (arifOS, VAULT999, WELL, WEALTH, GEOX), "
+            "golden path workflow (init→sense→mind→heart→judge→vault), "
+            "and epistemic discipline rules. "
+            "Use this prompt to ground any agent operating on the arifOS constitutional kernel."
+        ),
+    )
     def system() -> str:
         return SYSTEM_PROMPT
 

@@ -36,6 +36,12 @@ def register_doctrine(mcp: FastMCP) -> list[str]:
     resource = TextResource(
         uri="arifos://doctrine",
         name="Constitutional Doctrine",
+        description=(
+            "The immutable 13-floor constitution (F1–F13) that governs all arifOS operations. "
+            "Includes Amanah, Truth, Witness, Clarity, Peace, Empathy, Humility, Genius, "
+            "Anti-Hantu, Ontology, Auth, Injection, and Sovereign. "
+            "All tools and agents must operate within these floors."
+        ),
         text=DOCTRINE_TEXT,
     )
     mcp.add_resource(resource)
