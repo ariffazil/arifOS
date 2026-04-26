@@ -17,7 +17,7 @@ def _load_root_server_module():
     return module
 
 
-def test_http_discovery_surfaces_match_canonical15() -> None:
+def test_http_discovery_surfaces_match_canonical13() -> None:
     server_module = _load_root_server_module()
     client = TestClient(server_module.app)
 
@@ -30,9 +30,9 @@ def test_http_discovery_surfaces_match_canonical15() -> None:
     tools_payload = tools_response.json()
     well_known_payload = well_known_response.json()
 
-    assert tools_payload["count"] == 15
-    assert len(tools_payload["tools"]) == 15
-    assert len(well_known_payload["tools"]) == 15
+    assert tools_payload["count"] == 13
+    assert len(tools_payload["tools"]) == 13
+    assert len(well_known_payload["tools"]) == 13
     assert {
         tool["name"] for tool in tools_payload["tools"]
     } == {

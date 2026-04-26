@@ -1,0 +1,362 @@
+[
+  {
+    "id": "Q001",
+    "quote": "A journey of a thousand miles begins with a single step.",
+    "author": "Lao Tzu",
+    "tradition": "Chinese philosophy",
+    "domain": ["discipline", "leadership", "ethics"],
+    "theme": "structured action over impulse",
+    "trigger_conditions": ["lack of structure", "unprepared action", "scope creep"],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction; entropy decreases only with work input.",
+      "math": "Consistency requires invariant maintenance; small steps accumulate to large displacements.",
+      "linguistic": "Language must encode constraint, not just possibility; the first step is a speech act of commitment."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": ["low", "medium"],
+    "source_status": "public_domain",
+    "allow_use": true
+  },
+  {
+    "id": "Q002",
+    "quote": "The only true wisdom is in knowing you know nothing.",
+    "author": "Socrates",
+    "tradition": "Greek philosophy",
+    "domain": ["humility", "learning", "ethics"],
+    "theme": "acknowledging limits",
+    "trigger_conditions": ["overconfidence", "expert blindness", "unquestioned assumption"],
+    "arifos_mapping": {
+      "physics": "The observer is part of the observed system; measurement disturbs the field.",
+      "math": "Confidence intervals must include uncertainty; overfitting is the illusion of knowledge.",
+      "linguistic": "Words of certainty often mask ignorance; epistemic humility is a precondition of truth."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["medium", "high"],
+    "source_status": "public_domain",
+    "allow_use": true
+  },
+  {
+    "id": "Q003",
+    "quote": "The ink of the scholar is more sacred than the blood of the martyr.",
+    "author": "Prophet Muhammad",
+    "tradition": "Islamic tradition",
+    "domain": ["learning", "ethics", "governance"],
+    "theme": "knowledge above violence",
+    "trigger_conditions": ["force preferred over reason", "intellectual labor devalued", "conflict escalation"],
+    "arifos_mapping": {
+      "physics": "Information persists longer than kinetic energy; entropy of knowledge is lower than entropy of war.",
+      "math": "Knowledge accumulation dominates over zero-sum conflict; the scholar's mark is a constructive proof.",
+      "linguistic": "The pen outweighs the sword in lasting value; text outlives trauma."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["medium", "high"],
+    "source_status": "curated",
+    "allow_use": true
+  },
+  {
+    "id": "Q004",
+    "quote": "What I cannot create, I do not understand.",
+    "author": "Richard Feynman",
+    "tradition": "Science / Engineering",
+    "domain": ["science", "learning", "truth"],
+    "theme": "understanding requires construction",
+    "trigger_conditions": ["theoretical claim without implementation", "untested hypothesis", "black box trust"],
+    "arifos_mapping": {
+      "physics": "Understanding is the ability to reconstruct a system from first principles.",
+      "math": "Constructive proof is stronger than existential proof; if you can build it, you understand it.",
+      "linguistic": "Explanation without construction is hearsay; the builder's testimony is admissible evidence."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["medium", "high"],
+    "source_status": "verified",
+    "allow_use": true
+  },
+  {
+    "id": "Q005",
+    "quote": "He who has a why to live can bear almost any how.",
+    "author": "Viktor Frankl",
+    "tradition": "Western philosophy",
+    "domain": ["identity", "ethics", "uncertainty"],
+    "theme": "purpose enables endurance",
+    "trigger_conditions": ["crisis", "burnout", "meaninglessness", "system failure"],
+    "arifos_mapping": {
+      "physics": "Purpose provides an attractor state for resilient dynamics; systems with attractors recover from perturbation.",
+      "math": "Robustness is higher when the objective function is clear; drift without purpose increases variance.",
+      "linguistic": "Meaning is the load-bearing structure of endurance; narrative coherence sustains action."
+    },
+    "action_bias": "request_approval",
+    "risk_use": ["high", "critical"],
+    "source_status": "verified",
+    "allow_use": true
+  },
+  {
+    "id": "Q006",
+    "quote": "Premature optimization is the root of all evil.",
+    "author": "Donald Knuth",
+    "tradition": "Science / Engineering",
+    "domain": ["science", "strategy", "discipline"],
+    "theme": "optimize at the right time",
+    "trigger_conditions": ["premature optimization", "micro-optimization", "complexity added too early"],
+    "arifos_mapping": {
+      "physics": "Optimizing local minima can destabilize global structure; premature forcing creates brittle systems.",
+      "math": "Big-O analysis should follow correctness proof; optimize only after profiling identifies bottlenecks.",
+      "linguistic": "Measure before you claim; the premature declaration of efficiency is a category error."
+    },
+    "action_bias": "hold",
+    "risk_use": ["medium", "high"],
+    "source_status": "verified",
+    "allow_use": true
+  },
+  {
+    "id": "Q007",
+    "quote": "If you want to go fast, go alone. If you want to go far, go together.",
+    "author": "African proverb",
+    "tradition": "African philosophy",
+    "domain": ["leadership", "ethics", "strategy"],
+    "theme": "collaboration over speed",
+    "trigger_conditions": ["silo mentality", "unilateral action", "short-termism", "stakeholder excluded"],
+    "arifos_mapping": {
+      "physics": "Distributed systems have higher mean time to failure but slower initial velocity; redundancy costs latency.",
+      "math": "Coordination cost is O(n^2) but robustness scales with redundancy; the union outlasts the singleton.",
+      "linguistic": "Speed is solitary; distance is communal; the first-person singular is a sprint, the plural is a marathon."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["medium"],
+    "source_status": "curated",
+    "allow_use": true
+  },
+  {
+    "id": "Q008",
+    "quote": "Those who cannot remember the past are condemned to repeat it.",
+    "author": "George Santayana",
+    "tradition": "Western philosophy",
+    "domain": ["memory", "learning", "governance"],
+    "theme": "history as constraint on future",
+    "trigger_conditions": ["repeated mistake", "lesson unlearned", "historical pattern ignored"],
+    "arifos_mapping": {
+      "physics": "Systems with no memory are Markovian and repeat errors; hysteresis is a feature, not a bug.",
+      "math": "Time-series without autoregressive terms have high variance; the past is a predictor of the future.",
+      "linguistic": "Memory is the defense against cyclical failure; to forget is to reset the error counter."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["high", "critical"],
+    "source_status": "verified",
+    "allow_use": true
+  },
+  {
+    "id": "Q009",
+    "quote": "Di mana bumi dipijak, di situ langit dijunjung.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "domain": ["identity", "ethics", "governance"],
+    "theme": "local context governs behavior",
+    "trigger_conditions": ["context ignored", "universal rule imposed", "cultural insensitivity"],
+    "arifos_mapping": {
+      "physics": "Local boundary conditions determine system behavior; no universal solution fits all substrates.",
+      "math": "Context-sensitive rules outperform universal heuristics; the optimal policy is state-dependent.",
+      "linguistic": "Adat tempat bergantung; respect the local grammar before speaking."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": ["low", "medium"],
+    "source_status": "curated",
+    "allow_use": true
+  },
+  {
+    "id": "Q010",
+    "quote": "The unexamined life is not worth living.",
+    "author": "Socrates",
+    "tradition": "Greek philosophy",
+    "domain": ["self-knowledge", "ethics", "learning"],
+    "theme": "reflection as essential to existence",
+    "trigger_conditions": ["blind automation", "unquestioned assumption", "lack of self-audit"],
+    "arifos_mapping": {
+      "physics": "Systems without feedback decay; the unobserved system drifts to maximum entropy.",
+      "math": "Self-consistency requires recursive evaluation; a system that cannot inspect itself is incomplete.",
+      "linguistic": "Life without examination is mere existence; the interrogative is the highest mood."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["medium", "high"],
+    "source_status": "public_domain",
+    "allow_use": true
+  },
+  {
+    "id": "Q011",
+    "quote": "Sebab nila setitik, rosak susu sebelanga.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "domain": ["ethics", "governance", "truth"],
+    "theme": "small corruption destroys whole system",
+    "trigger_conditions": ["minor breach tolerated", "integrity erosion", "false claim"],
+    "arifos_mapping": {
+      "physics": "Small perturbations can cascade to system failure; the butterfly effect is real in social systems.",
+      "math": "Sensitivity to initial conditions; one bad datum can corrupt the entire training set.",
+      "linguistic": "A single drop of ink spoils the milk; one lie poisons the well of trust."
+    },
+    "action_bias": "refuse",
+    "risk_use": ["high", "critical", "irreversible"],
+    "source_status": "curated",
+    "allow_use": true
+  },
+  {
+    "id": "Q012",
+    "quote": "The measure of intelligence is the ability to change.",
+    "author": "Albert Einstein",
+    "tradition": "Science / Engineering",
+    "domain": ["learning", "science", "strategy"],
+    "theme": "adaptability as intelligence",
+    "trigger_conditions": ["rigid strategy", "environment changed", "model obsolete"],
+    "arifos_mapping": {
+      "physics": "Intelligence is the capacity to update internal models from external signals; plasticity is survival.",
+      "math": "Bayesian updating rate correlates with predictive accuracy; the rigid prior is a cognitive prison.",
+      "linguistic": "Intelligence is measured by the speed of belief revision; the wise change their minds."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": ["medium"],
+    "source_status": "curated",
+    "allow_use": true
+  },
+  {
+    "id": "Q013",
+    "quote": "In God we trust; all others bring data.",
+    "author": "W. Edwards Deming",
+    "tradition": "Science / Engineering",
+    "domain": ["science", "governance", "truth"],
+    "theme": "evidence over authority",
+    "trigger_conditions": ["authority without evidence", "data dismissed", "opinion over fact"],
+    "arifos_mapping": {
+      "physics": "Reality is the final arbiter; belief must align with measurement or it is fiction.",
+      "math": "Hypothesis testing requires data; priors alone are insufficient for inference.",
+      "linguistic": "Trust is earned by evidence, not granted by title; the credential is not the proof."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["medium", "high"],
+    "source_status": "verified",
+    "allow_use": true
+  },
+  {
+    "id": "Q014",
+    "quote": "He who knows himself knows his Lord.",
+    "author": "Ibn Arabi",
+    "tradition": "Islamic Golden Age",
+    "domain": ["self-knowledge", "ethics", "uncertainty"],
+    "theme": "self-knowledge as gateway to deeper truth",
+    "trigger_conditions": ["unexamined motive", "blind automation", "authority claimed without introspection"],
+    "arifos_mapping": {
+      "physics": "The observer is entangled with the observed; you cannot measure the system without measuring yourself.",
+      "math": "Self-reference is necessary for consistent epistemology; Gödel's lens applies to the self.",
+      "linguistic": "Knowing the self is the foundation of all knowing; the first person is the root of grammar."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["medium"],
+    "source_status": "curated",
+    "allow_use": true
+  },
+  {
+    "id": "Q015",
+    "quote": "The child who is not embraced by the village will burn it down to feel its warmth.",
+    "author": "African proverb",
+    "tradition": "African philosophy",
+    "domain": ["ethics", "governance", "conflict"],
+    "theme": "exclusion breeds destruction",
+    "trigger_conditions": ["stakeholder excluded", "marginalization", "revenge motive", "asymmetric harm"],
+    "arifos_mapping": {
+      "physics": "Systems without heat dissipation experience thermal runaway; exclusion is a heat source.",
+      "math": "Excluded agents have incentive to defect in game-theoretic frames; the Nash equilibrium becomes destructive.",
+      "linguistic": "Exclusion is the seed of destruction; the unheard voice becomes the shout of fire."
+    },
+    "action_bias": "request_approval",
+    "risk_use": ["high", "critical", "irreversible"],
+    "source_status": "curated",
+    "allow_use": true
+  },
+  {
+    "id": "Q016",
+    "quote": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+    "author": "Aristotle",
+    "tradition": "Greek philosophy",
+    "domain": ["discipline", "ethics", "leadership"],
+    "theme": "habit formation defines character",
+    "trigger_conditions": ["one-off effort expected", "inconsistency", "unsustainable sprint"],
+    "arifos_mapping": {
+      "physics": "Repeated force shapes material; character is the plastic deformation of practice.",
+      "math": "Expected value is the sum over time; transient excellence has low integral.",
+      "linguistic": "Identity is the cumulative function of repeated action; you are your habits."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": ["low", "medium"],
+    "source_status": "public_domain",
+    "allow_use": true
+  },
+  {
+    "id": "Q017",
+    "quote": "己所不欲，勿施於人。",
+    "author": "Confucius",
+    "tradition": "Chinese philosophy",
+    "domain": ["ethics", "governance", "identity"],
+    "theme": "reciprocal treatment",
+    "trigger_conditions": ["asymmetric harm", "stakeholder excluded", "externalized cost"],
+    "arifos_mapping": {
+      "physics": "Feedback loops return effects to their origin; action at a distance is local in the long run.",
+      "math": "Symmetric payoff matrices favor cooperation; the golden rule is a Nash equilibrium.",
+      "linguistic": "Do not impose on others what you yourself do not desire; the imperative is reciprocal."
+    },
+    "action_bias": "request_approval",
+    "risk_use": ["low", "medium"],
+    "source_status": "public_domain",
+    "allow_use": true
+  },
+  {
+    "id": "Q018",
+    "quote": "Nothing is more precious than independence and freedom.",
+    "author": "Hồ Chí Minh",
+    "tradition": "Southeast Asian thought",
+    "domain": ["identity", "governance", "ethics"],
+    "theme": "autonomy as highest value",
+    "trigger_conditions": ["autonomy threatened", "dependency", "subjugation"],
+    "arifos_mapping": {
+      "physics": "Autonomy is the capacity to maintain internal state against external forcing; it is self-regulation.",
+      "math": "Independence is the condition where boundary conditions do not dominate the solution space.",
+      "linguistic": "Freedom is the non-negotiable baseline of dignity; it is the axiom, not the theorem."
+    },
+    "action_bias": "request_approval",
+    "risk_use": ["high"],
+    "source_status": "verified",
+    "allow_use": true
+  },
+  {
+    "id": "Q019",
+    "quote": "As a person acts, so they become.",
+    "author": "Brihadaranyaka Upanishad",
+    "tradition": "Indian philosophy",
+    "domain": ["ethics", "identity", "discipline"],
+    "theme": "action shapes being",
+    "trigger_conditions": ["identity crisis", "inconsistent behavior", "values mismatch"],
+    "arifos_mapping": {
+      "physics": "Systems evolve according to their dynamics; you are your trajectory, not your initial condition.",
+      "math": "Identity is the integral of action over time; the derivative of character is choice.",
+      "linguistic": "You become what you repeatedly do; the verb precedes the noun."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": ["medium"],
+    "source_status": "public_domain",
+    "allow_use": true
+  },
+  {
+    "id": "Q020",
+    "quote": "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
+    "author": "Stephen Hawking",
+    "tradition": "Science / Engineering",
+    "domain": ["learning", "science", "ethics"],
+    "theme": "false expertise is more dangerous than admitted ignorance",
+    "trigger_conditions": ["expert blindness", "Dunning-Kruger", "unquestioned authority"],
+    "arifos_mapping": {
+      "physics": "False models persist when feedback is suppressed; the illusion of knowledge is a closed system.",
+      "math": "Overconfidence inflates variance; humility reduces mean squared error.",
+      "linguistic": "The illusion of knowing prevents actual learning; certainty is the enemy of curiosity."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": ["high", "critical"],
+    "source_status": "curated",
+    "allow_use": true
+  }
+]

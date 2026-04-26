@@ -93,10 +93,10 @@ def test_llms_txt_contains_canonical_context(client):
 
 
 def test_ready_alias_reachable(client):
-    """Test that /ready mirrors health instead of 404ing."""
+    """Test that /ready exposes structured runtime readiness."""
     response = client.get("/ready")
     assert response.status_code == 200
-    assert response.json()["status"] == "healthy"
+    assert response.json()["status"] in {"pass", "partial"}
 
 
 def test_webmcp_manifest_and_assets_reachable(client):

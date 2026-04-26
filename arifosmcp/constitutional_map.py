@@ -3,8 +3,7 @@ ARIFOS CONSTITUTIONAL MAP (v2026.04.24-KANON)
 ═══════════════════════════════════════════════
 
 Single source of truth for the active MCP surface:
-- 13 constitutional tools
-- 2 public diagnostic probes
+- 13 canonical capability tools
 
 Ditempa Bukan Diberi.
 """
@@ -29,9 +28,9 @@ class Floor(str, Enum):
 
 
 class TrinityLane(str, Enum):
-    AGI = "AGI"   # Tactical — stages 000–777
-    ASI = "ASI"   # Strategic — stage 888
-    APEX = "APEX" # Authority — stage 999
+    AGI = "AGI"
+    ASI = "ASI"
+    APEX = "APEX"
 
 
 class ToolStage(str, Enum):
@@ -51,184 +50,141 @@ class ToolStage(str, Enum):
 
 
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
-    "arif_ping": {
-        "name": "arif_ping",
-        "description": "000_PING: Lightweight health probe. Always public. No session required. Returns system status.",
-        "access": "public",
-        "stage": ToolStage.INIT,
-        "lane": TrinityLane.AGI,
-        "floors": [],  # No floor check — ping is always public
-        "risk_tier": "none",
-        "irreversible": False,
-        "modes": ["probe"],
-    },
-    "arif_selftest": {
-        "name": "arif_selftest",
-        "description": "000_SELFTEST: Comprehensive self-diagnostic. Runs all checks in-memory. No permanent effects.",
-        "access": "public",
-        "stage": ToolStage.INIT,
-        "lane": TrinityLane.AGI,
-        "floors": [],  # Self-test does not require floor pre-check
-        "risk_tier": "none",
-        "irreversible": False,
-        "modes": ["dry_run"],
-    },
     "arif_session_init": {
         "name": "arif_session_init",
-        "description": "000_INIT: Session bootstrap + identity binding. Constitutional ignition sequence.",
+        "description": "000_INIT: Session bootstrap + identity binding.",
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F12_INJECTION],
         "risk_tier": "critical",
         "irreversible": False,
-        "hold_condition": "Unverified actor on irreversible mode, or injection detected.",
         "modes": ["init", "status", "discover", "handover", "revoke", "refresh"],
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
-        "description": "111_SENSE: Reality-grounded observation. Evidence-preserving web ingestion and telemetry.",
+        "description": "111_SENSE: Multimodal reality observation.",
         "access": "public",
         "stage": ToolStage.SENSE,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F04_CLARITY, Floor.F07_HUMILITY],
+        "floors": [Floor.F02_TRUTH],
         "risk_tier": "low",
         "irreversible": False,
-        "output_contract": "Reality-grounded payload with confidence band Omega_0 in [0.03,0.05].",
-        "modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
-    },
-    "arif_mind_reason": {
-        "name": "arif_mind_reason",
-        "description": "333_MIND: Inductive reasoning engine. First-principles synthesis and QTT-enabled reflection.",
-        "access": "public",
-        "stage": ToolStage.MIND,
-        "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F04_CLARITY, Floor.F07_HUMILITY, Floor.F08_GENIUS],
-        "risk_tier": "medium",
-        "irreversible": False,
-        "output_contract": "Tagged CLAIM | PLAUSIBLE | HYPOTHESIS | ESTIMATE | UNKNOWN.",
-        "modes": ["reason", "reflect", "forge", "debate", "socratic"],
-    },
-    "arif_heart_critique": {
-        "name": "arif_heart_critique",
-        "description": "666_HEART: Thermodynamic vitality monitor. Safety, empathy, and consequence modeling.",
-        "access": "authenticated",
-        "stage": ToolStage.HEART,
-        "lane": TrinityLane.ASI,
-        "floors": [Floor.F05_PEACE, Floor.F06_EMPATHY, Floor.F09_ANTIHANTU],
-        "risk_tier": "high",
-        "irreversible": False,
-        "orthogonality": "Omega_ortho >= 0.95 vs arif_mind_reason.",
-        "modes": ["critique", "simulate", "redteam", "maruah", "deescalate", "empathy"],
-    },
-    "arif_kernel_route": {
-        "name": "arif_kernel_route",
-        "description": "444_KERNEL: Kernel syscall and telemetry. Primary metabolic conductor and route dispatcher.",
-        "access": "public",
-        "stage": ToolStage.KERNEL,
-        "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F04_CLARITY, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
-        "risk_tier": "critical",
-        "irreversible": False,
-        "hold_condition": "risk_tier=critical requires F11 verified ID before execution.",
-        "modes": ["route", "kernel", "triage", "delegate", "status", "telemetry"],
-    },
-    "arif_forge_execute": {
-        "name": "arif_forge_execute",
-        "description": "010_FORGE: Execution substrate dispatch. Signed manifest bridge to A-FORGE.",
-        "access": "sovereign",
-        "stage": ToolStage.FORGE,
-        "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F04_CLARITY, Floor.F08_GENIUS, Floor.F13_SOVEREIGN],
-        "risk_tier": "critical",
-        "irreversible": True,
-        "output_contract": "Generated artifact + delta_S reduction metric.",
-        "modes": ["engineer", "query", "recall", "write", "generate", "commit"],
-    },
-    "arif_judge_deliberate": {
-        "name": "arif_judge_deliberate",
-        "description": "888_JUDGE: Constitutional verdict engine. Sovereign judgment layer (ASI strategic).",
-        "access": "authenticated",
-        "stage": ToolStage.JUDGE,
-        "lane": TrinityLane.ASI,
-        "floors": [Floor.F01_AMANAH, Floor.F02_TRUTH, Floor.F08_GENIUS, Floor.F11_AUTH, Floor.F12_INJECTION, Floor.F13_SOVEREIGN],
-        "risk_tier": "sovereign",
-        "irreversible": False,
-        "hold_condition": "Irreversible action, injection detected, or F13 veto required.",
-        "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify"],
-    },
-    "arif_vault_seal": {
-        "name": "arif_vault_seal",
-        "description": "999_VAULT: Immutable ledger. Merkle-hashed recording and audit engine.",
-        "access": "authenticated",
-        "stage": ToolStage.VAULT,
-        "lane": TrinityLane.APEX,
-        "floors": [Floor.F01_AMANAH, Floor.F02_TRUTH, Floor.F13_SOVEREIGN],
-        "risk_tier": "sovereign",
-        "irreversible": True,
-        "hold_condition": "Any seal without prior arif_judge_deliberate verdict=SEAL.",
-        "modes": ["seal", "verify", "ledger", "changelog", "audit"],
-    },
-    "arif_ops_measure": {
-        "name": "arif_ops_measure",
-        "description": "777_OPS: Operations and economic thermodynamics (WEALTH). Capacity and cost estimation.",
-        "access": "public",
-        "stage": ToolStage.OPS,
-        "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F07_HUMILITY, Floor.F08_GENIUS],
-        "risk_tier": "low",
-        "irreversible": False,
-        "output_contract": "JSON telemetry block compatible with arif_vault_seal footer.",
-        "modes": ["health", "vitals", "cost", "genius", "psi_le", "omega", "landauer"],
-    },
-    "arif_memory_recall": {
-        "name": "arif_memory_recall",
-        "description": "555_MEMORY: Vector memory and context retrieval. Governed recall and engineering context.",
-        "access": "public",
-        "stage": ToolStage.MEMORY,
-        "lane": TrinityLane.AGI,
-        "floors": [Floor.F04_CLARITY, Floor.F05_PEACE, Floor.F10_ONTOLOGY],
-        "risk_tier": "medium",
-        "irreversible": False,
-        "modes": ["recall", "store", "search", "prune", "context"],
     },
     "arif_evidence_fetch": {
         "name": "arif_evidence_fetch",
-        "description": "222_FETCH: Evidence-preserving web ingestion. Reality-grounded fetch with data fencing.",
+        "description": "222_FETCH: Verified external evidence retrieval.",
         "access": "public",
         "stage": ToolStage.FETCH,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F03_WITNESS, Floor.F12_INJECTION],
+        "floors": [Floor.F02_TRUTH, Floor.F03_WITNESS],
+        "risk_tier": "low",
+        "irreversible": False,
+    },
+    "arif_mind_reason": {
+        "name": "arif_mind_reason",
+        "description": "333_MIND: Symbolic reasoning kernel.",
+        "access": "public",
+        "stage": ToolStage.MIND,
+        "lane": TrinityLane.AGI,
+        "floors": [Floor.F02_TRUTH, Floor.F07_HUMILITY, Floor.F08_GENIUS],
         "risk_tier": "medium",
         "irreversible": False,
-        "modes": ["fetch", "search", "archive", "verify"],
+    },
+    "arif_heart_critique": {
+        "name": "arif_heart_critique",
+        "description": "666_HEART: Ethical critique and impact assessment.",
+        "access": "public",
+        "stage": ToolStage.HEART,
+        "lane": TrinityLane.ASI,
+        "floors": [Floor.F05_PEACE, Floor.F06_EMPATHY],
+        "risk_tier": "medium",
+        "irreversible": False,
+    },
+    "arif_kernel_route": {
+        "name": "arif_kernel_route",
+        "description": "444_KERNEL: Central orchestration and tool routing.",
+        "access": "public",
+        "stage": ToolStage.KERNEL,
+        "lane": TrinityLane.AGI,
+        "floors": [Floor.F01_AMANAH, Floor.F04_CLARITY],
+        "risk_tier": "medium",
+        "irreversible": False,
     },
     "arif_reply_compose": {
         "name": "arif_reply_compose",
-        "description": "444r_REPLY: Governed response compositor. Formats output with constitutional metadata.",
+        "description": "444_REPLY: Governed response composition.",
         "access": "public",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F04_CLARITY, Floor.F05_PEACE, Floor.F10_ONTOLOGY],
+        "floors": [Floor.F04_CLARITY, Floor.F06_EMPATHY, Floor.F09_ANTIHANTU],
         "risk_tier": "low",
         "irreversible": False,
-        "modes": ["compose", "format", "nudge", "cite"],
+    },
+    "arif_memory_recall": {
+        "name": "arif_memory_recall",
+        "description": "555_MEMORY: Associative retrieval from VAULT999.",
+        "access": "public",
+        "stage": ToolStage.MEMORY,
+        "lane": TrinityLane.AGI,
+        "floors": [Floor.F01_AMANAH, Floor.F08_GENIUS],
+        "risk_tier": "low",
+        "irreversible": False,
     },
     "arif_gateway_connect": {
         "name": "arif_gateway_connect",
-        "description": "666g_GATEWAY: Cross-agent routing (A2A). Federation hub for agent-to-agent protocol.",
-        "access": "authenticated",
+        "description": "666_GATEWAY: Federated cross-agent bridge.",
+        "access": "public",
         "stage": ToolStage.GATEWAY,
         "lane": TrinityLane.ASI,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
-        "risk_tier": "high",
+        "floors": [Floor.F01_AMANAH, Floor.F03_WITNESS],
+        "risk_tier": "medium",
         "irreversible": False,
-        "modes": ["route", "discover", "handshake", "seal"],
+    },
+    "arif_judge_deliberate": {
+        "name": "arif_judge_deliberate",
+        "description": "888_JUDGE: Final constitutional arbitration.",
+        "access": "public",
+        "stage": ToolStage.JUDGE,
+        "lane": TrinityLane.ASI,
+        "floors": [Floor.F11_AUTH, Floor.F13_SOVEREIGN],
+        "risk_tier": "critical",
+        "irreversible": False,
+    },
+    "arif_vault_seal": {
+        "name": "arif_vault_seal",
+        "description": "999_VAULT: Immutable ledger anchoring.",
+        "access": "public",
+        "stage": ToolStage.VAULT,
+        "lane": TrinityLane.APEX,
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH],
+        "risk_tier": "critical",
+        "irreversible": True,
+    },
+    "arif_forge_execute": {
+        "name": "arif_forge_execute",
+        "description": "010_FORGE: System modification and build execution.",
+        "access": "public",
+        "stage": ToolStage.FORGE,
+        "lane": TrinityLane.AGI,
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH],
+        "risk_tier": "critical",
+        "irreversible": True,
+    },
+    "arif_ops_measure": {
+        "name": "arif_ops_measure",
+        "description": "777_OPS: Resource thermodynamics.",
+        "access": "public",
+        "stage": ToolStage.OPS,
+        "lane": TrinityLane.AGI,
+        "floors": [Floor.F04_CLARITY],
+        "risk_tier": "low",
+        "irreversible": False,
     },
 }
 
-PROBE_TOOLS = ("arif_ping", "arif_selftest")
-CONSTITUTIONAL_TOOLS = tuple(name for name in CANONICAL_TOOLS if name not in PROBE_TOOLS)
+PROBE_TOOLS: tuple[str, ...] = ()
+CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 
 def get_tool_spec(name: str) -> dict[str, Any] | None:
     return CANONICAL_TOOLS.get(name)
@@ -285,7 +241,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
                 "irreversible": spec["irreversible"],
                 "access": spec["access"],
                 "requires_auth": spec["access"] != "public",
-                "tags": ["probe"] if name in PROBE_TOOLS else ["canonical"],
+                "tags": ["canonical"],
             }
             for name, spec in CANONICAL_TOOLS.items()
         },

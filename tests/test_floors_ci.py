@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from arifosmcp.runtime.public_registry import build_mcp_manifest, build_server_json
-from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES, CANONICAL_15
+from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES, CANONICAL_13
 
 
-def test_public_manifests_lock_to_canonical15() -> None:
-    expected = set(CANONICAL_15)
+def test_public_manifests_lock_to_canonical13() -> None:
+    expected = set(CANONICAL_13)
     server_json = build_server_json()
     manifest_json = build_mcp_manifest()
 

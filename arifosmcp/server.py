@@ -2,7 +2,7 @@
 arifOS MCP Server — Canonical Entry Point
 ═══════════════════════════════════════════
 
-15-tool runtime surface (13 constitutional + 2 probes) | 13 Floors (F1–F13) | Trinity ΔΩΨ
+13-tool capability surface | internal ping/selftest | 13 Floors (F1–F13) | Trinity ΔΩΨ
 FastMCP 3.2.0 + MCP Apps + Streamable HTTP
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -75,7 +75,7 @@ mcp = FastMCP(
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
         "Golden path: init → sense → mind → heart → judge → vault\n\n"
-        "Runtime surface: 15 tools (13 constitutional + 2 public probes).\n"
+        "Runtime surface: 13 public capability tools.\n"
         f"Tools (arif_noun_verb):\n  {_canonical_tool_names_text}\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
@@ -170,6 +170,23 @@ async def horizon_health(request: Request) -> JSONResponse:
     )
 
 
+async def horizon_ready(request: Request) -> JSONResponse:
+    from arifosmcp.runtime.tools import _runtime_selftest
+
+    readiness = _runtime_selftest()
+    verdict = str(readiness.get("verdict", "FAIL")).lower()
+    return JSONResponse(
+        {
+            "status": verdict,
+            "checks": readiness.get("checks", {}),
+            "failures": readiness.get("failed_checks", []),
+            "warnings": readiness.get("warnings", []),
+            "timestamp": readiness.get("timestamp"),
+        },
+        status_code=200 if verdict in {"pass", "partial"} else 503,
+    )
+
+
 async def horizon_metadata(request: Request) -> JSONResponse:
     return JSONResponse(
         {
@@ -193,6 +210,7 @@ async def horizon_metadata(request: Request) -> JSONResponse:
             "endpoints": {
                 "mcp": "/mcp",
                 "health": "/health",
+                "ready": "/ready",
                 "metadata": "/metadata",
                 "tools": "/tools",
             },
@@ -234,6 +252,7 @@ try:
             allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
         )
         app.add_route("/health", horizon_health, methods=["GET"])
+        app.add_route("/ready", horizon_ready, methods=["GET"])
         app.add_route("/metadata", horizon_metadata, methods=["GET"])
         app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
         logger.info("HTTP app configured with gateway endpoints")

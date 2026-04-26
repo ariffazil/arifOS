@@ -4,7 +4,7 @@ from arifosmcp.runtime.public_registry import CANONICAL_PUBLIC_TOOLS, EXPECTED_T
 from arifosmcp.runtime.tools import _arif_ping, _arif_selftest, _arif_session_init
 
 
-def test_public_registry_exposes_only_canonical15() -> None:
+def test_public_registry_exposes_only_canonical13() -> None:
     names = set(public_tool_names())
 
     assert len(names) == EXPECTED_TOOL_COUNT
@@ -22,7 +22,7 @@ def test_ping_and_init_share_constitution_identity() -> None:
     assert constitution["constitution_hash"] == binding["constitution_hash"]
     assert constitution["invariants_hash"] == binding["invariants_hash"]
     assert constitution["kernel"] == "canonical13"
-    assert binding["public_surface"] == "canonical15"
+    assert binding["public_surface"] == "canonical13"
 
 
 def test_unknown_init_mode_holds_with_allowed_modes() -> None:
@@ -37,5 +37,5 @@ def test_selftest_passes_and_keeps_forge_dry_run() -> None:
     result = _arif_selftest()
 
     assert result["verdict"] == "PASS"
-    assert result["checks"]["registry_check"]["tools_count"] == 15
+    assert result["checks"]["registry_check"]["tools_count"] == 13
     assert result["checks"]["forge_dry_run_check"]["permanent_change"] is False

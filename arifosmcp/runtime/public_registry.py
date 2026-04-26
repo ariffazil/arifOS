@@ -10,6 +10,7 @@ import tomllib
 from .prompts import V2_PROMPT_SPECS
 from .tool_specs import PUBLIC_RESOURCE_SPECS
 from .public_surface import (
+    CANONICAL_13,
     CANONICAL_15,
     current_public_surface_mode,
     normalize_public_surface_mode,
@@ -21,8 +22,8 @@ PYPROJECT_PATH = ROOT / "pyproject.toml"
 TOOL_REGISTRY_PATH = ROOT / "arifosmcp" / "tool_registry.json"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
-CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_15)
-EXPECTED_TOOL_COUNT = len(CANONICAL_15)
+CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13)
+EXPECTED_TOOL_COUNT = len(CANONICAL_13)
 
 RUNTIME_ENVELOPE_SCHEMA = {
     "type": "object",
@@ -93,8 +94,6 @@ def _role_for_name(name: str) -> str:
 
 def _layer_for_name(name: str) -> str:
     if name in {
-        "arif_ping",
-        "arif_selftest",
         "arif_session_init",
         "arif_judge_deliberate",
         "arif_vault_seal",
@@ -251,7 +250,7 @@ def tool_names_for_profile(profile: str) -> list[str]:
         return list(public_tool_names("expanded45"))
     if normalized == "canonical13":
         return list(public_tool_names("canonical13"))
-    return list(public_tool_names("canonical15"))
+    return list(public_tool_names("canonical13"))
 
 
 def build_internal_server_json(

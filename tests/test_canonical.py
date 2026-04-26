@@ -1,5 +1,5 @@
 """
-Canonical rebuild tests — 15 registered tools, 13 floors.
+Canonical rebuild tests — 13 public capability tools, 2 internal diagnostics.
 """
 import pytest
 from fastmcp import FastMCP
@@ -29,9 +29,9 @@ from arifosmcp.tools.judge_deliberate import arif_judge_deliberate
 
 
 def test_surface_partition():
-    assert len(CANONICAL_TOOLS) == 15
+    assert len(CANONICAL_TOOLS) == 13
     assert len(list_constitutional_tools()) == 13
-    assert len(list_probe_tools()) == 2
+    assert len(list_probe_tools()) == 0
 
 
 def test_tool_names():
@@ -50,15 +50,14 @@ def test_tool_names():
         "arif_vault_seal",
         "arif_forge_execute",
     ]
-    expected_with_probes = ["arif_ping", "arif_selftest", *expected]
     assert sorted(list_constitutional_tools()) == sorted(expected)
-    assert sorted(list_canonical_tools()) == sorted(expected_with_probes)
+    assert sorted(list_canonical_tools()) == sorted(expected)
 
 
 def test_register_tools_matches_canonical_surface():
     mcp = FastMCP("test-arifos")
     registered = register_tools(mcp)
-    assert len(registered) == 15
+    assert len(registered) == 13
     assert set(registered) == set(CANONICAL_TOOLS)
     assert not any(name.startswith("arifos_") for name in registered)
 

@@ -54,15 +54,15 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         raw = (os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "") or "").strip().lower()
 
     profile_map = {
-        "public": "canonical15",
-        "chatgpt": "canonical15",
-        "agnostic_public": "canonical15",
+        "public": "canonical13",
+        "chatgpt": "canonical13",
+        "agnostic_public": "canonical13",
         "canonical13": "canonical13",
         "canonical15": "canonical15",
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
-    return profile_map.get(raw, "canonical15")
+    return profile_map.get(raw, "canonical13")
 
 
 def current_public_surface_mode() -> str:

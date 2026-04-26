@@ -14,8 +14,8 @@ def test_canonical_handlers_match_public_registry() -> None:
 
 
 @pytest.mark.asyncio
-async def test_register_tools_registers_only_canonical15() -> None:
-    mcp = FastMCP("test-canonical15")
+async def test_register_tools_registers_only_canonical13() -> None:
+    mcp = FastMCP("test-canonical13")
 
     registered = register_tools(mcp)
     listed = await mcp.list_tools()

@@ -1,0 +1,4229 @@
+[
+  {
+    "id": "INIT_Q_001",
+    "quote": "A journey of a thousand miles begins with a single step.",
+    "author": "Lao Tzu",
+    "tradition": "Chinese philosophy",
+    "source": "Tao Te Ching",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "public_domain",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "anchor"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": "VAULT_Q_002",
+    "polarity": "order"
+  },
+  {
+    "id": "INIT_Q_004",
+    "quote": "The only true wisdom is in knowing you know nothing.",
+    "author": "Socrates",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Platonic Dialogues",
+    "domain": [
+      "ethics",
+      "self-knowledge",
+      "uncertainty"
+    ],
+    "theme": "acknowledging limits",
+    "trigger_conditions": [
+      "overconfidence",
+      "unquestioned assumption",
+      "expert blindness"
+    ],
+    "arifos_mapping": {
+      "physics": "The observer is part of the observed system.",
+      "math": "Confidence intervals must include uncertainty.",
+      "linguistic": "Words of certainty often mask ignorance."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "public_domain",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "anchor",
+      "sense"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 2,
+    "contrast_pair": "MIND_Q_004",
+    "polarity": "doubt"
+  },
+  {
+    "id": "INIT_Q_003",
+    "quote": "No wind serves him who addresses his voyage to no certain port.",
+    "author": "Michel de Montaigne",
+    "tradition": "Western philosophy",
+    "source": "Essays",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "anchor"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "SENSE_Q_002",
+    "quote": "The first principle is that you must not fool yourself—and you are the easiest person to fool.",
+    "author": "Richard Feynman",
+    "tradition": "Science / Engineering",
+    "source": "Cargo Cult Science",
+    "domain": [
+      "science",
+      "ethics",
+      "governance"
+    ],
+    "theme": "evidence before belief",
+    "trigger_conditions": [
+      "insufficient evidence",
+      "false claim",
+      "unverified data"
+    ],
+    "arifos_mapping": {
+      "physics": "Reality exists independent of belief.",
+      "math": "Propositions require proof within the axiomatic frame.",
+      "linguistic": "Meaning is grounded in verifiable reference."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "monitor",
+      "mind"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": "JUDGE_Q_005",
+    "polarity": "truth"
+  },
+  {
+    "id": "SENSE_Q_001",
+    "quote": "It is wrong always, everywhere, and for anyone, to believe anything upon insufficient evidence.",
+    "author": "W. K. Clifford",
+    "tradition": "Universal wisdom",
+    "source": "The Ethics of Belief",
+    "domain": [
+      "science",
+      "ethics",
+      "governance"
+    ],
+    "theme": "evidence before belief",
+    "trigger_conditions": [
+      "insufficient evidence",
+      "false claim",
+      "unverified data"
+    ],
+    "arifos_mapping": {
+      "physics": "Reality exists independent of belief.",
+      "math": "Propositions require proof within the axiomatic frame.",
+      "linguistic": "Meaning is grounded in verifiable reference."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "truth"
+  },
+  {
+    "id": "SENSE_Q_004",
+    "quote": "No man ever steps in the same river twice.",
+    "author": "Heraclitus",
+    "tradition": "Universal wisdom",
+    "source": "Fragments",
+    "domain": [
+      "science",
+      "ethics",
+      "governance"
+    ],
+    "theme": "evidence before belief",
+    "trigger_conditions": [
+      "insufficient evidence",
+      "false claim",
+      "unverified data"
+    ],
+    "arifos_mapping": {
+      "physics": "Reality exists independent of belief.",
+      "math": "Propositions require proof within the axiomatic frame.",
+      "linguistic": "Meaning is grounded in verifiable reference."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "public_domain",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "vault"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 2,
+    "contrast_pair": null,
+    "polarity": "chaos"
+  },
+  {
+    "id": "MIND_Q_004",
+    "quote": "Doubt is not a pleasant condition, but certainty is absurd.",
+    "author": "Voltaire",
+    "tradition": "Universal wisdom",
+    "source": "Letter to Frederick II",
+    "domain": [
+      "ethics",
+      "self-knowledge",
+      "uncertainty"
+    ],
+    "theme": "acknowledging limits",
+    "trigger_conditions": [
+      "overconfidence",
+      "unquestioned assumption",
+      "expert blindness"
+    ],
+    "arifos_mapping": {
+      "physics": "The observer is part of the observed system.",
+      "math": "Confidence intervals must include uncertainty.",
+      "linguistic": "Words of certainty often mask ignorance."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "mind",
+      "judge",
+      "partial"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 2,
+    "contrast_pair": "INIT_Q_004",
+    "polarity": "doubt"
+  },
+  {
+    "id": "MIND_Q_005",
+    "quote": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+    "author": "Antoine de Saint-Exupéry",
+    "tradition": "Universal wisdom",
+    "source": "Wind, Sand and Stars",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "mind",
+      "forge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "HEART_Q_001",
+    "quote": "First, do no harm.",
+    "author": "Hippocrates",
+    "tradition": "Universal wisdom",
+    "source": "Epidemics",
+    "domain": [
+      "ethics",
+      "strategy",
+      "governance"
+    ],
+    "theme": "limiting action",
+    "trigger_conditions": [
+      "excessive ambition",
+      "premature action",
+      "irreversible step"
+    ],
+    "arifos_mapping": {
+      "physics": "Not all possible actions are sustainable.",
+      "math": "Pareto improvement requires no harm to baseline.",
+      "linguistic": "Silence is a valid speech act."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "heart",
+      "judge",
+      "hold"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": "PW1",
+    "polarity": "mercy"
+  },
+  {
+    "id": "HEART_Q_002",
+    "quote": "Act in such a way that you treat humanity, whether in your own person or in the person of another, always as an end and never as a means only.",
+    "author": "Immanuel Kant",
+    "tradition": "Western philosophy",
+    "source": "Groundwork of the Metaphysics of Morals",
+    "domain": [
+      "ethics",
+      "governance",
+      "leadership"
+    ],
+    "theme": "bearing consequence",
+    "trigger_conditions": [
+      "stewardship void",
+      "accountability gap",
+      "delegation failure"
+    ],
+    "arifos_mapping": {
+      "physics": "Causal chains link actor and consequence.",
+      "math": "Utility functions must internalize externalities.",
+      "linguistic": "Stewardship is spoken through action, not title."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "judgment"
+  },
+  {
+    "id": "JUDGE_Q_002",
+    "quote": "Power tends to corrupt, and absolute power corrupts absolutely.",
+    "author": "Lord Acton",
+    "tradition": "Universal wisdom",
+    "source": "Letter to Bishop Mandell Creighton",
+    "domain": [
+      "ethics",
+      "strategy",
+      "governance"
+    ],
+    "theme": "limiting action",
+    "trigger_conditions": [
+      "excessive ambition",
+      "premature action",
+      "irreversible step"
+    ],
+    "arifos_mapping": {
+      "physics": "Not all possible actions are sustainable.",
+      "math": "Pareto improvement requires no harm to baseline.",
+      "linguistic": "Silence is a valid speech act."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "judge",
+      "hold",
+      "void"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 1,
+    "shadow_weight": 2,
+    "paradox_weight": 1,
+    "contrast_pair": "PW1",
+    "polarity": "power"
+  },
+  {
+    "id": "JUDGE_Q_004",
+    "quote": "Injustice anywhere is a threat to justice everywhere.",
+    "author": "Martin Luther King Jr.",
+    "tradition": "Universal wisdom",
+    "source": "Letter from Birmingham Jail",
+    "domain": [
+      "governance",
+      "ethics",
+      "strategy"
+    ],
+    "theme": "measured evaluation",
+    "trigger_conditions": [
+      "ambiguous evidence",
+      "conflicting signals",
+      "moral hazard"
+    ],
+    "arifos_mapping": {
+      "physics": "Evidence is the physical constraint on decision.",
+      "math": "Bayesian updating governs belief revision.",
+      "linguistic": "Discourse must distinguish evidence from opinion."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "judgment",
+    "surfaces": [
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "judgment"
+  },
+  {
+    "id": "JUDGE_Q_005",
+    "quote": "The sad truth is that most evil is done by people who never make up their minds to be good or evil.",
+    "author": "Hannah Arendt",
+    "tradition": "Universal wisdom",
+    "source": "The Life of the Mind",
+    "domain": [
+      "governance",
+      "ethics",
+      "strategy"
+    ],
+    "theme": "measured evaluation",
+    "trigger_conditions": [
+      "ambiguous evidence",
+      "conflicting signals",
+      "moral hazard"
+    ],
+    "arifos_mapping": {
+      "physics": "Evidence is the physical constraint on decision.",
+      "math": "Bayesian updating governs belief revision.",
+      "linguistic": "Discourse must distinguish evidence from opinion."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "judgment",
+    "surfaces": [
+      "judge",
+      "hold",
+      "void"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 2,
+    "shadow_weight": 2,
+    "paradox_weight": 1,
+    "contrast_pair": "SENSE_Q_002",
+    "polarity": "shadow"
+  },
+  {
+    "id": "FORGE_Q_001",
+    "quote": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+    "author": "Antoine de Saint-Exupéry",
+    "tradition": "Universal wisdom",
+    "source": "Wind, Sand and Stars",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "OPS_Q_002",
+    "quote": "An ounce of practice is worth more than tons of preaching.",
+    "author": "Mahatma Gandhi",
+    "tradition": "Indian philosophy",
+    "source": "",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "public_domain",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "ops"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "OPS_Q_001",
+    "quote": "Well done is better than well said.",
+    "author": "Benjamin Franklin",
+    "tradition": "Universal wisdom",
+    "source": "Poor Richard's Almanack",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "ops"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "VAULT_Q_002",
+    "quote": "Those who cannot remember the past are condemned to repeat it.",
+    "author": "George Santayana",
+    "tradition": "Universal wisdom",
+    "source": "The Life of Reason",
+    "domain": [
+      "learning",
+      "identity"
+    ],
+    "theme": "learning from history",
+    "trigger_conditions": [
+      "repeated mistake",
+      "historical pattern ignored",
+      "lesson unlearned"
+    ],
+    "arifos_mapping": {
+      "physics": "Time is irreversible; past states constrain future ones.",
+      "math": "Markov chains show path dependence.",
+      "linguistic": "Narrative carries causal structure across time."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "memory",
+    "surfaces": [
+      "vault"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": "INIT_Q_001",
+    "polarity": "memory"
+  },
+  {
+    "id": "VAULT_Q_004",
+    "quote": "The struggle of man against power is the struggle of memory against forgetting.",
+    "author": "Milan Kundera",
+    "tradition": "Universal wisdom",
+    "source": "The Book of Laughter and Forgetting",
+    "domain": [
+      "learning",
+      "identity"
+    ],
+    "theme": "learning from history",
+    "trigger_conditions": [
+      "repeated mistake",
+      "historical pattern ignored",
+      "lesson unlearned"
+    ],
+    "arifos_mapping": {
+      "physics": "Time is irreversible; past states constrain future ones.",
+      "math": "Markov chains show path dependence.",
+      "linguistic": "Narrative carries causal structure across time."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "memory",
+    "surfaces": [
+      "vault",
+      "void"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 2,
+    "shadow_weight": 2,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "memory"
+  },
+  {
+    "id": "Z01-Q01",
+    "quote": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+    "author": "Marcus Aurelius",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Meditations",
+    "domain": [
+      "governance",
+      "strategy",
+      "conflict"
+    ],
+    "theme": "checking authority",
+    "trigger_conditions": [
+      "authority unchecked",
+      "asymmetric control",
+      "coercion risk"
+    ],
+    "arifos_mapping": {
+      "physics": "Force without feedback amplifies instability.",
+      "math": "Game theory shows unchecked dominance leads to Nash defects.",
+      "linguistic": "Naming authority does not confer legitimacy."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "power",
+    "surfaces": [
+      "monitor",
+      "judge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "power"
+  },
+  {
+    "id": "Z03-Q01",
+    "quote": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude.",
+    "author": "Viktor Frankl",
+    "tradition": "Universal wisdom",
+    "source": "Man's Search for Meaning",
+    "domain": [
+      "learning",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "synthesizing insight",
+    "trigger_conditions": [
+      "complex situation",
+      "no clear answer",
+      "synthesis required"
+    ],
+    "arifos_mapping": {
+      "physics": "Complex systems resist simple prediction.",
+      "math": "Synthesis requires integration across multiple frames.",
+      "linguistic": "Meaning emerges from synthesis, not accumulation."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "heart",
+      "hold"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "mercy"
+  },
+  {
+    "id": "Z05-Q01",
+    "quote": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+    "author": "Aristotle",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Nicomachean Ethics",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "public_domain",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "ops"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "Z19-Q01",
+    "quote": "Either mathematics is too big for the human mind, or the human mind is more than a machine.",
+    "author": "Kurt Gödel",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "uncertainty",
+      "science"
+    ],
+    "theme": "holding contradiction",
+    "trigger_conditions": [
+      "contradictory constraints",
+      "unsolvable trade-off",
+      "false dichotomy"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems can contain mutually exclusive states.",
+      "math": "Gödelian incompleteness: some truths are unprovable in-system.",
+      "linguistic": "Apparent contradiction may reveal deeper structure."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "paradox",
+    "surfaces": [
+      "mind",
+      "judge",
+      "partial"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 7,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 3,
+    "contrast_pair": null,
+    "polarity": "doubt"
+  },
+  {
+    "id": "MS_001",
+    "quote": "Ikut resmi padi, makin berisi makin tunduk.",
+    "author": "Peribahasa Melayu",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "self-knowledge",
+      "uncertainty"
+    ],
+    "theme": "acknowledging limits",
+    "trigger_conditions": [
+      "overconfidence",
+      "unquestioned assumption",
+      "expert blindness"
+    ],
+    "arifos_mapping": {
+      "physics": "The observer is part of the observed system.",
+      "math": "Confidence intervals must include uncertainty.",
+      "linguistic": "Words of certainty often mask ignorance."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "anchor",
+      "heart",
+      "judge"
+    ],
+    "tone": "calm",
+    "language": "ms",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "humility"
+  },
+  {
+    "id": "MS_002",
+    "quote": "Biar lambat, asal selamat.",
+    "author": "Peribahasa Melayu",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "strategy",
+      "governance"
+    ],
+    "theme": "limiting action",
+    "trigger_conditions": [
+      "excessive ambition",
+      "premature action",
+      "irreversible step"
+    ],
+    "arifos_mapping": {
+      "physics": "Not all possible actions are sustainable.",
+      "math": "Pareto improvement requires no harm to baseline.",
+      "linguistic": "Silence is a valid speech act."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "hold",
+      "judge",
+      "forge"
+    ],
+    "tone": "firm",
+    "language": "ms",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "restraint"
+  },
+  {
+    "id": "MS_003",
+    "quote": "Sedikit-sedikit, lama-lama jadi bukit.",
+    "author": "Peribahasa Melayu",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "anchor",
+      "forge",
+      "ops",
+      "sabar"
+    ],
+    "tone": "calm",
+    "language": "ms",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "MS_005",
+    "quote": "Harimau mati meninggalkan belang, manusia mati meninggalkan nama.",
+    "author": "Peribahasa Melayu",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "learning",
+      "identity"
+    ],
+    "theme": "learning from history",
+    "trigger_conditions": [
+      "repeated mistake",
+      "historical pattern ignored",
+      "lesson unlearned"
+    ],
+    "arifos_mapping": {
+      "physics": "Time is irreversible; past states constrain future ones.",
+      "math": "Markov chains show path dependence.",
+      "linguistic": "Narrative carries causal structure across time."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "memory",
+    "surfaces": [
+      "vault"
+    ],
+    "tone": "severe",
+    "language": "ms",
+    "priority": 8,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "memory"
+  },
+  {
+    "id": "SE4",
+    "quote": "DITEMPA, BUKAN DIBERI.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "governance",
+      "ethics"
+    ],
+    "theme": "final commitment",
+    "trigger_conditions": [
+      "final commitment",
+      "irreversible decision",
+      "contract execution"
+    ],
+    "arifos_mapping": {
+      "physics": "Irreversible transitions change phase state.",
+      "math": "Commitment is a binding constraint on future strategy space.",
+      "linguistic": "Final words carry irreversible commitment."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "seal",
+    "surfaces": [
+      "anchor",
+      "forge",
+      "monitor"
+    ],
+    "tone": "firm",
+    "language": "ms",
+    "priority": 11,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "seal"
+  },
+  {
+    "id": "WI3",
+    "quote": "Truth ages well; shortcuts do not.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "science",
+      "ethics",
+      "governance"
+    ],
+    "theme": "evidence before belief",
+    "trigger_conditions": [
+      "insufficient evidence",
+      "false claim",
+      "unverified data"
+    ],
+    "arifos_mapping": {
+      "physics": "Reality exists independent of belief.",
+      "math": "Propositions require proof within the axiomatic frame.",
+      "linguistic": "Meaning is grounded in verifiable reference."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "judge",
+      "vault"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "truth"
+  },
+  {
+    "id": "WI6",
+    "quote": "Humility is an operating constraint, not a mood.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "self-knowledge",
+      "uncertainty"
+    ],
+    "theme": "acknowledging limits",
+    "trigger_conditions": [
+      "overconfidence",
+      "unquestioned assumption",
+      "expert blindness"
+    ],
+    "arifos_mapping": {
+      "physics": "The observer is part of the observed system.",
+      "math": "Confidence intervals must include uncertainty.",
+      "linguistic": "Words of certainty often mask ignorance."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "anchor",
+      "monitor",
+      "mind"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "humility"
+  },
+  {
+    "id": "WI7",
+    "quote": "If the witness is weak, the claim must wait.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "governance",
+      "ethics",
+      "strategy"
+    ],
+    "theme": "measured evaluation",
+    "trigger_conditions": [
+      "ambiguous evidence",
+      "conflicting signals",
+      "moral hazard"
+    ],
+    "arifos_mapping": {
+      "physics": "Evidence is the physical constraint on decision.",
+      "math": "Bayesian updating governs belief revision.",
+      "linguistic": "Discourse must distinguish evidence from opinion."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "judgment",
+    "surfaces": [
+      "judge",
+      "hold",
+      "sense"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "restraint"
+  },
+  {
+    "id": "WI13",
+    "quote": "What you cannot explain clearly, do not ship proudly.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "ops"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "PX20",
+    "quote": "The limit is part of the design, not the enemy of it.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "critical",
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "judge",
+      "void"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "restraint"
+  },
+  {
+    "id": "PW1",
+    "quote": "Power without restraint is noise pretending to be force.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "strategy",
+      "governance"
+    ],
+    "theme": "limiting action",
+    "trigger_conditions": [
+      "excessive ambition",
+      "premature action",
+      "irreversible step"
+    ],
+    "arifos_mapping": {
+      "physics": "Not all possible actions are sustainable.",
+      "math": "Pareto improvement requires no harm to baseline.",
+      "linguistic": "Silence is a valid speech act."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "judge",
+      "hold",
+      "forge",
+      "void"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 2,
+    "paradox_weight": 1,
+    "contrast_pair": "HEART_Q_001",
+    "polarity": "restraint"
+  },
+  {
+    "id": "PW3",
+    "quote": "Command begins with self-command.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "ops",
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "SE1",
+    "quote": "What is forged with witness can survive the night.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "governance",
+      "ethics"
+    ],
+    "theme": "final commitment",
+    "trigger_conditions": [
+      "final commitment",
+      "irreversible decision",
+      "contract execution"
+    ],
+    "arifos_mapping": {
+      "physics": "Irreversible transitions change phase state.",
+      "math": "Commitment is a binding constraint on future strategy space.",
+      "linguistic": "Final words carry irreversible commitment."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "seal",
+    "surfaces": [
+      "vault",
+      "forge"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "seal"
+  },
+  {
+    "id": "LV3",
+    "quote": "Mercy does not erase truth; it carries it gently.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "identity"
+    ],
+    "theme": "care amid complexity",
+    "trigger_conditions": [
+      "human cost ignored",
+      "stakeholder excluded",
+      "relationship fracture"
+    ],
+    "arifos_mapping": {
+      "physics": "Human systems are biological and social substrates.",
+      "math": "Optimization must include human welfare in the objective.",
+      "linguistic": "Care is expressed through attention, not abstraction."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "love",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "mercy"
+  },
+  {
+    "id": "LV8",
+    "quote": "The safest room is one where dignity remains intact.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "identity"
+    ],
+    "theme": "care amid complexity",
+    "trigger_conditions": [
+      "human cost ignored",
+      "stakeholder excluded",
+      "relationship fracture"
+    ],
+    "arifos_mapping": {
+      "physics": "Human systems are biological and social substrates.",
+      "math": "Optimization must include human welfare in the objective.",
+      "linguistic": "Care is expressed through attention, not abstraction."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "love",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "mercy"
+  },
+  {
+    "id": "ARIF_VOID_001",
+    "quote": "What is forbidden is not a mistake to fix; it is a boundary to honor.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "strategy",
+      "governance"
+    ],
+    "theme": "limiting action",
+    "trigger_conditions": [
+      "excessive ambition",
+      "premature action",
+      "irreversible step"
+    ],
+    "arifos_mapping": {
+      "physics": "Not all possible actions are sustainable.",
+      "math": "Pareto improvement requires no harm to baseline.",
+      "linguistic": "Silence is a valid speech act."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "void",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 2,
+    "shadow_weight": 3,
+    "paradox_weight": 1,
+    "contrast_pair": "PX20",
+    "polarity": "restraint"
+  },
+  {
+    "id": "ARIF_VOID_002",
+    "quote": "Crossing the line once makes the line invisible forever.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "identity",
+      "ethics",
+      "conflict"
+    ],
+    "theme": "facing hidden motive",
+    "trigger_conditions": [
+      "hidden motive",
+      "unacknowledged bias",
+      "subversion risk"
+    ],
+    "arifos_mapping": {
+      "physics": "Unobserved variables still influence dynamics.",
+      "math": "Hidden variables introduce unmodeled bias.",
+      "linguistic": "Unspoken assumptions drive implicit inference."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "shadow",
+    "surfaces": [
+      "void",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 3,
+    "shadow_weight": 3,
+    "paradox_weight": 2,
+    "contrast_pair": null,
+    "polarity": "shadow"
+  },
+  {
+    "id": "ARIF_PARTIAL_001",
+    "quote": "Incomplete is not the same as broken. Some truths need more turns.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "uncertainty",
+      "science"
+    ],
+    "theme": "holding contradiction",
+    "trigger_conditions": [
+      "contradictory constraints",
+      "unsolvable trade-off",
+      "false dichotomy"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems can contain mutually exclusive states.",
+      "math": "Gödelian incompleteness: some truths are unprovable in-system.",
+      "linguistic": "Apparent contradiction may reveal deeper structure."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "paradox",
+    "surfaces": [
+      "partial",
+      "judge"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 2,
+    "contrast_pair": "MIND_Q_004",
+    "polarity": "doubt"
+  },
+  {
+    "id": "ARIF_PARTIAL_002",
+    "quote": "Sabar — the floor strains but does not break. Adjust, then proceed.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "critical",
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "partial",
+      "sabar",
+      "judge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "order"
+  },
+  {
+    "id": "ARIF_HOLD_001",
+    "quote": "Restraint is the first act of sovereignty.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "strategy",
+      "governance"
+    ],
+    "theme": "limiting action",
+    "trigger_conditions": [
+      "excessive ambition",
+      "premature action",
+      "irreversible step"
+    ],
+    "arifos_mapping": {
+      "physics": "Not all possible actions are sustainable.",
+      "math": "Pareto improvement requires no harm to baseline.",
+      "linguistic": "Silence is a valid speech act."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "hold",
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 2,
+    "paradox_weight": 1,
+    "contrast_pair": null,
+    "polarity": "restraint"
+  },
+  {
+    "id": "ARIF_SABAR_001",
+    "quote": "Stop, acknowledge, breathe, adjust, resume. The floor protects.",
+    "author": "arifOS Foundry",
+    "tradition": "Universal wisdom",
+    "source": "",
+    "domain": [
+      "ethics",
+      "learning",
+      "leadership"
+    ],
+    "theme": "structured action over impulse",
+    "trigger_conditions": [
+      "lack of structure",
+      "unprepared action",
+      "scope creep"
+    ],
+    "arifos_mapping": {
+      "physics": "Action requires structured energy and direction.",
+      "math": "Consistency requires invariant maintenance.",
+      "linguistic": "Language must encode constraint, not just possibility."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "sabar",
+      "anchor",
+      "hold"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "contrast_pair": null,
+    "polarity": "mercy"
+  },
+  {
+    "id": "MS_010",
+    "quote": "Bagai aur dengan tebing.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Peribahasa",
+    "domain": [
+      "ethics",
+      "governance"
+    ],
+    "theme": "mutual dependence",
+    "trigger_conditions": [
+      "interdependence ignored",
+      "unilateral action"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems require mutual support to stand.",
+      "math": "Bilateral constraints stabilize equilibrium.",
+      "linguistic": "Hubungan saling bergantung mesti dihormati."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "anchor",
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "ms",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "MS_011",
+    "quote": "Di mana bumi dipijak, di situ langit dijunjung.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Adat",
+    "domain": [
+      "identity",
+      "ethics",
+      "governance"
+    ],
+    "theme": "local context governs behavior",
+    "trigger_conditions": [
+      "context ignored",
+      "universal rule imposed"
+    ],
+    "arifos_mapping": {
+      "physics": "Local conditions constrain what works.",
+      "math": "Context-sensitive rules outperform universal heuristics.",
+      "linguistic": "Adat tempat bergantung; jangan langgar tanpa izin."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "sense",
+      "anchor"
+    ],
+    "tone": "calm",
+    "language": "ms",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "MS_012",
+    "quote": "Sebab nila setitik, rosak susu sebelanga.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Peribahasa",
+    "domain": [
+      "ethics",
+      "governance"
+    ],
+    "theme": "small corruption destroys whole system",
+    "trigger_conditions": [
+      "minor breach tolerated",
+      "integrity erosion"
+    ],
+    "arifos_mapping": {
+      "physics": "Small perturbations can cascade to system failure.",
+      "math": "Sensitivity to initial conditions; butterfly effect.",
+      "linguistic": "Satu kesilapan kecil boleh rosakkan semua."
+    },
+    "action_bias": "refuse",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "judge",
+      "vault"
+    ],
+    "tone": "severe",
+    "language": "ms",
+    "priority": 10,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "MS_013",
+    "quote": "Tak kenal maka tak cinta.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Peribahasa",
+    "domain": [
+      "learning",
+      "identity",
+      "ethics"
+    ],
+    "theme": "understanding precedes commitment",
+    "trigger_conditions": [
+      "premature judgment",
+      "insufficient knowledge"
+    ],
+    "arifos_mapping": {
+      "physics": "Observation must precede interaction.",
+      "math": "Prior probability must be informed by evidence.",
+      "linguistic": "Kenali dahulu sebelum menilai."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "calm",
+    "language": "ms",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "doubt"
+  },
+  {
+    "id": "MS_014",
+    "quote": "Harimau mati meninggalkan belang, manusia mati meninggalkan nama.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Peribahasa",
+    "domain": [
+      "ethics",
+      "identity",
+      "leadership"
+    ],
+    "theme": "legacy and reputation",
+    "trigger_conditions": [
+      "irreversible decision",
+      "long-term consequence"
+    ],
+    "arifos_mapping": {
+      "physics": "Actions leave persistent traces in social systems.",
+      "math": "Reputation is a cumulative function over time.",
+      "linguistic": "Nama baik lebih berharga dari kekayaan."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "vault",
+      "forge"
+    ],
+    "tone": "reflective",
+    "language": "ms",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "MS_015",
+    "quote": "Melentur buluh biarlah dari rebungnya.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Peribahasa",
+    "domain": [
+      "learning",
+      "ethics",
+      "strategy"
+    ],
+    "theme": "early intervention shapes outcome",
+    "trigger_conditions": [
+      "late correction attempted",
+      "system already rigid"
+    ],
+    "arifos_mapping": {
+      "physics": "Young systems have lower activation energy for change.",
+      "math": "Cost of correction grows superlinearly with time.",
+      "linguistic": "Didik dan ubah seawal mungkin."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "mind"
+    ],
+    "tone": "calm",
+    "language": "ms",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "MS_016",
+    "quote": "Berat sama dipikul, ringan sama dijinjing.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Peribahasa",
+    "domain": [
+      "ethics",
+      "governance",
+      "leadership"
+    ],
+    "theme": "shared burden",
+    "trigger_conditions": [
+      "asymmetric load",
+      "stakeholder excluded"
+    ],
+    "arifos_mapping": {
+      "physics": "Distributed load reduces local stress.",
+      "math": "Fair division is Pareto-improving.",
+      "linguistic": "Tanggungjawab harus dikongsi secara adil."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "ops",
+      "heart"
+    ],
+    "tone": "firm",
+    "language": "ms",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "MS_017",
+    "quote": "Tak ada rotan, akar pun berguna.",
+    "author": "Malay proverb",
+    "tradition": "Nusantara",
+    "source": "Peribahasa",
+    "domain": [
+      "strategy",
+      "uncertainty",
+      "learning"
+    ],
+    "theme": "resourcefulness under constraint",
+    "trigger_conditions": [
+      "resource shortage",
+      "ideal tool unavailable"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems must operate with available materials.",
+      "math": "Constraint satisfaction requires local search.",
+      "linguistic": "Gunakan apa yang ada; jangan tunggu sempurna."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "forge",
+      "ops"
+    ],
+    "tone": "calm",
+    "language": "ms",
+    "priority": 7,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "CN_001",
+    "quote": "知之為知之，不知為不知，是知也。",
+    "author": "Confucius",
+    "tradition": "Chinese philosophy",
+    "source": "Analects",
+    "domain": [
+      "humility",
+      "learning",
+      "ethics"
+    ],
+    "theme": "honest epistemic boundaries",
+    "trigger_conditions": [
+      "overconfidence",
+      "expert blindness",
+      "unquestioned assumption"
+    ],
+    "arifos_mapping": {
+      "physics": "Knowledge maps to observable state; ignorance maps to uncertainty.",
+      "math": "Type-I and Type-II errors both require honest accounting.",
+      "linguistic": "Knowing what you do not know is the beginning of wisdom."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "CN_002",
+    "quote": "上善若水。水善利萬物而不爭。",
+    "author": "Lao Tzu",
+    "tradition": "Chinese philosophy",
+    "source": "Tao Te Ching",
+    "domain": [
+      "ethics",
+      "strategy",
+      "leadership"
+    ],
+    "theme": "adaptability without conflict",
+    "trigger_conditions": [
+      "rigid strategy",
+      "unnecessary confrontation",
+      "force over flow"
+    ],
+    "arifos_mapping": {
+      "physics": "Water finds lowest energy path; it does not fight terrain.",
+      "math": "Gradient descent outperforms brute force in high dimensions.",
+      "linguistic": "The highest good is like water: it benefits all without struggle."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "anchor",
+      "heart"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "CN_003",
+    "quote": "故兵貴勝，不貴久。",
+    "author": "Sun Tzu",
+    "tradition": "Chinese philosophy",
+    "source": "The Art of War",
+    "domain": [
+      "strategy",
+      "conflict",
+      "governance"
+    ],
+    "theme": "decisive action over prolonged engagement",
+    "trigger_conditions": [
+      "scope creep",
+      "endless deliberation",
+      "resource drain"
+    ],
+    "arifos_mapping": {
+      "physics": "Prolonged conflict increases entropy and waste.",
+      "math": "Optimal stopping: delay beyond a threshold is suboptimal.",
+      "linguistic": "Victory is valued; prolonged struggle is not."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "strategy",
+    "surfaces": [
+      "judge",
+      "forge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "CN_004",
+    "quote": "君子和而不同。",
+    "author": "Confucius",
+    "tradition": "Chinese philosophy",
+    "source": "Analects",
+    "domain": [
+      "ethics",
+      "governance",
+      "identity"
+    ],
+    "theme": "harmony without uniformity",
+    "trigger_conditions": [
+      "groupthink",
+      "dissent suppressed",
+      "false consensus"
+    ],
+    "arifos_mapping": {
+      "physics": "Diverse agents improve system robustness.",
+      "math": "Ensemble models outperform monocultures.",
+      "linguistic": "The noble person harmonizes without conforming."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "mind",
+      "heart"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "CN_005",
+    "quote": "治大國，若烹小鮮。",
+    "author": "Lao Tzu",
+    "tradition": "Chinese philosophy",
+    "source": "Tao Te Ching",
+    "domain": [
+      "governance",
+      "strategy",
+      "leadership"
+    ],
+    "theme": "minimal intervention in complex systems",
+    "trigger_conditions": [
+      "over-management",
+      "microcontrol",
+      "bureaucratic bloat"
+    ],
+    "arifos_mapping": {
+      "physics": "Complex systems are sensitive to perturbation.",
+      "math": "Overfitting reduces generalization.",
+      "linguistic": "Governing a large state is like cooking a small fish: too much stirring and it falls apart."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "restraint",
+    "surfaces": [
+      "ops",
+      "judge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "CN_006",
+    "quote": "學而不思則罔，思而不學則殆。",
+    "author": "Confucius",
+    "tradition": "Chinese philosophy",
+    "source": "Analects",
+    "domain": [
+      "learning",
+      "science",
+      "ethics"
+    ],
+    "theme": "balance of study and reflection",
+    "trigger_conditions": [
+      "blind execution",
+      "analysis paralysis",
+      "theory-practice gap"
+    ],
+    "arifos_mapping": {
+      "physics": "Learning without application is entropy without work.",
+      "math": "Learning and inference must iterate.",
+      "linguistic": "Learning without thought is labor lost; thought without learning is perilous."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "mind",
+      "forge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "polarity": "order"
+  },
+  {
+    "id": "CN_007",
+    "quote": "禍兮福之所倚，福兮禍之所伏。",
+    "author": "Lao Tzu",
+    "tradition": "Chinese philosophy",
+    "source": "Tao Te Ching",
+    "domain": [
+      "uncertainty",
+      "strategy",
+      "ethics"
+    ],
+    "theme": "fortune and misfortune are intertwined",
+    "trigger_conditions": [
+      "false certainty",
+      "unanticipated consequence",
+      "polarity fixation"
+    ],
+    "arifos_mapping": {
+      "physics": "Phase transitions can reverse system state.",
+      "math": "Optimality is context-dependent; local maxima become minima.",
+      "linguistic": "Disaster is the hinge of fortune; fortune is the shadow of disaster."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "paradox",
+    "surfaces": [
+      "sense",
+      "judge"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 2,
+    "polarity": "doubt"
+  },
+  {
+    "id": "CN_008",
+    "quote": "己所不欲，勿施於人。",
+    "author": "Confucius",
+    "tradition": "Chinese philosophy",
+    "source": "Analects",
+    "domain": [
+      "ethics",
+      "governance",
+      "identity"
+    ],
+    "theme": "reciprocal treatment",
+    "trigger_conditions": [
+      "asymmetric harm",
+      "stakeholder excluded",
+      "externalized cost"
+    ],
+    "arifos_mapping": {
+      "physics": "Feedback loops return effects to their origin.",
+      "math": "Symmetric payoff matrices favor cooperation.",
+      "linguistic": "Do not impose on others what you yourself do not desire."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "ethics",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IS_001",
+    "quote": "The ink of the scholar is more sacred than the blood of the martyr.",
+    "author": "Prophet Muhammad",
+    "tradition": "Islamic tradition",
+    "source": "Hadith",
+    "domain": [
+      "learning",
+      "ethics",
+      "governance"
+    ],
+    "theme": "knowledge above violence",
+    "trigger_conditions": [
+      "force preferred over reason",
+      "intellectual labor devalued"
+    ],
+    "arifos_mapping": {
+      "physics": "Information persists longer than kinetic energy.",
+      "math": "Knowledge accumulation dominates over zero-sum conflict.",
+      "linguistic": "The pen outweighs the sword in lasting value."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "mind",
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IS_002",
+    "quote": "He who knows himself knows his Lord.",
+    "author": "Ibn Arabi",
+    "tradition": "Islamic Golden Age",
+    "source": "Fusus al-Hikam",
+    "domain": [
+      "self-knowledge",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "self-knowledge as gateway to deeper truth",
+    "trigger_conditions": [
+      "unexamined motive",
+      "blind automation",
+      "authority claimed without introspection"
+    ],
+    "arifos_mapping": {
+      "physics": "The observer is entangled with the observed.",
+      "math": "Self-reference is necessary for consistent epistemology.",
+      "linguistic": "Knowing the self is the foundation of all knowing."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "IS_003",
+    "quote": "The cure for ignorance is to question.",
+    "author": "Al-Ghazali",
+    "tradition": "Islamic Golden Age",
+    "source": "Munqidh min al-Dalal",
+    "domain": [
+      "learning",
+      "science",
+      "ethics"
+    ],
+    "theme": "questioning as epistemic virtue",
+    "trigger_conditions": [
+      "unquestioned assumption",
+      "dogma enforced",
+      "false certainty"
+    ],
+    "arifos_mapping": {
+      "physics": "Measurement requires interaction; passivity yields no data.",
+      "math": "Hypothesis testing is the engine of belief revision.",
+      "linguistic": "Doubt is the door to understanding."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "IS_004",
+    "quote": "Waste no time debating what a good person should be. Be one.",
+    "author": "Marcus Aurelius",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Meditations",
+    "domain": [
+      "ethics",
+      "leadership",
+      "discipline"
+    ],
+    "theme": "action over abstraction",
+    "trigger_conditions": [
+      "analysis paralysis",
+      "virtue signaling",
+      "endless deliberation"
+    ],
+    "arifos_mapping": {
+      "physics": "Work done is the integral of force over distance; intention without motion is zero work.",
+      "math": "Optimization requires execution, not just modeling.",
+      "linguistic": "Stop debating virtue and embody it."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "ops"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IS_005",
+    "quote": "He who has a why to live can bear almost any how.",
+    "author": "Viktor Frankl",
+    "tradition": "Western philosophy",
+    "source": "Man's Search for Meaning",
+    "domain": [
+      "identity",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "purpose enables endurance",
+    "trigger_conditions": [
+      "crisis",
+      "burnout",
+      "meaninglessness"
+    ],
+    "arifos_mapping": {
+      "physics": "Purpose provides attractor state for resilient dynamics.",
+      "math": "Robustness is higher when objective function is clear.",
+      "linguistic": "Meaning is the load-bearing structure of endurance."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "heart",
+      "anchor"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IS_006",
+    "quote": "The unexamined life is not worth living.",
+    "author": "Socrates",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Apology",
+    "domain": [
+      "self-knowledge",
+      "ethics",
+      "learning"
+    ],
+    "theme": "reflection as essential to existence",
+    "trigger_conditions": [
+      "blind automation",
+      "unquestioned assumption",
+      "lack of self-audit"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems without feedback decay.",
+      "math": "Self-consistency requires recursive evaluation.",
+      "linguistic": "Life without examination is mere existence."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "sense",
+      "mind",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "IS_007",
+    "quote": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+    "author": "Aristotle",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Nicomachean Ethics",
+    "domain": [
+      "discipline",
+      "ethics",
+      "leadership"
+    ],
+    "theme": "habit formation defines character",
+    "trigger_conditions": [
+      "one-off effort expected",
+      "inconsistency",
+      "unsustainable sprint"
+    ],
+    "arifos_mapping": {
+      "physics": "Repeated force shapes material; character is the plastic deformation of practice.",
+      "math": "Expected value is the sum over time; transient excellence has low integral.",
+      "linguistic": "Identity is the cumulative function of repeated action."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "anchor",
+      "forge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IS_008",
+    "quote": "It is not death that a man should fear, but he should fear never beginning to live.",
+    "author": "Marcus Aurelius",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Meditations",
+    "domain": [
+      "identity",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "courage to act over fear of consequence",
+    "trigger_conditions": [
+      "risk aversion",
+      "perfectionism",
+      "inaction"
+    ],
+    "arifos_mapping": {
+      "physics": "Inaction is also a thermodynamic state with entropy cost.",
+      "math": "Regret of omission often exceeds regret of commission.",
+      "linguistic": "Fear of failure is worse than failure itself."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "critical",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "courage",
+    "surfaces": [
+      "heart",
+      "forge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "SC_001",
+    "quote": "What I cannot create, I do not understand.",
+    "author": "Richard Feynman",
+    "tradition": "Science / Engineering",
+    "source": "Caltech blackboard",
+    "domain": [
+      "science",
+      "learning",
+      "ethics"
+    ],
+    "theme": "understanding requires construction",
+    "trigger_conditions": [
+      "theoretical claim without implementation",
+      "untested hypothesis",
+      "black box trust"
+    ],
+    "arifos_mapping": {
+      "physics": "Understanding is the ability to reconstruct a system from first principles.",
+      "math": "Constructive proof is stronger than existential proof.",
+      "linguistic": "If you cannot build it, you do not understand it."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "forge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "SC_002",
+    "quote": "We can only see a short distance ahead, but we can see plenty there that needs to be done.",
+    "author": "Alan Turing",
+    "tradition": "Science / Engineering",
+    "source": "Computing Machinery and Intelligence",
+    "domain": [
+      "science",
+      "strategy",
+      "uncertainty"
+    ],
+    "theme": "pragmatic action despite limited foresight",
+    "trigger_conditions": [
+      "paralysis by uncertainty",
+      "infinite horizon planning",
+      "perfect information demanded"
+    ],
+    "arifos_mapping": {
+      "physics": "Local gradient information is sufficient for next-step optimization.",
+      "math": "Greedy algorithms can be optimal under matroid structure.",
+      "linguistic": "Foresight is limited, but the next step is visible."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "mind",
+      "forge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "SC_003",
+    "quote": "The purpose of computing is insight, not numbers.",
+    "author": "Richard Hamming",
+    "tradition": "Science / Engineering",
+    "source": "Numerical Methods for Scientists and Engineers",
+    "domain": [
+      "science",
+      "learning",
+      "strategy"
+    ],
+    "theme": "output must serve understanding",
+    "trigger_conditions": [
+      "metric obsession",
+      "data without meaning",
+      "output for its own sake"
+    ],
+    "arifos_mapping": {
+      "physics": "Measurement without interpretation is noise.",
+      "math": "Dimensionality reduction loses information unless grounded in structure.",
+      "linguistic": "Numbers are vessels; insight is the cargo."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "SC_004",
+    "quote": "Premature optimization is the root of all evil.",
+    "author": "Donald Knuth",
+    "tradition": "Science / Engineering",
+    "source": "Structured Programming with Go To Statements",
+    "domain": [
+      "science",
+      "strategy",
+      "discipline"
+    ],
+    "theme": "optimize at the right time",
+    "trigger_conditions": [
+      "premature optimization",
+      "micro-optimization",
+      "complexity added too early"
+    ],
+    "arifos_mapping": {
+      "physics": "Optimizing local minima can destabilize global structure.",
+      "math": "Big-O analysis should follow correctness proof.",
+      "linguistic": "Optimize only after you know what matters."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "forge",
+      "ops"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "SC_005",
+    "quote": "Any sufficiently advanced technology is indistinguishable from magic.",
+    "author": "Arthur C. Clarke",
+    "tradition": "Science / Engineering",
+    "source": "Profiles of the Future",
+    "domain": [
+      "science",
+      "uncertainty",
+      "governance"
+    ],
+    "theme": "technology opacity and responsibility",
+    "trigger_conditions": [
+      "black box trust",
+      "unexplained system behavior",
+      "magical thinking about AI"
+    ],
+    "arifos_mapping": {
+      "physics": "Complex systems can exhibit emergent behaviors opaque to observers.",
+      "math": "Opacity increases with system complexity; interpretability must be engineered.",
+      "linguistic": "What seems magical is merely uncomprehended engineering."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "judge"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "SC_006",
+    "quote": "If you can't explain it simply, you don't understand it well enough.",
+    "author": "Albert Einstein",
+    "tradition": "Science / Engineering",
+    "source": "Attributed",
+    "domain": [
+      "learning",
+      "science",
+      "ethics"
+    ],
+    "theme": "simplicity as signal of understanding",
+    "trigger_conditions": [
+      "unnecessary complexity",
+      "jargon mask",
+      "obfuscation"
+    ],
+    "arifos_mapping": {
+      "physics": "Simple models generalize; complex models overfit.",
+      "math": "Kolmogorov complexity: simplest description is deepest understanding.",
+      "linguistic": "Complexity in explanation often signals confusion in thought."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "mind",
+      "sense"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "SC_007",
+    "quote": "In God we trust; all others bring data.",
+    "author": "W. Edwards Deming",
+    "tradition": "Science / Engineering",
+    "source": "Statistical Method from the Viewpoint of Quality Control",
+    "domain": [
+      "science",
+      "governance",
+      "ethics"
+    ],
+    "theme": "evidence over authority",
+    "trigger_conditions": [
+      "authority without evidence",
+      "data dismissed",
+      "opinion over fact"
+    ],
+    "arifos_mapping": {
+      "physics": "Reality is the final arbiter; belief must align with measurement.",
+      "math": "Hypothesis testing requires data; priors alone are insufficient.",
+      "linguistic": "Trust is earned by evidence, not granted by title."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "SC_008",
+    "quote": "The most exciting phrase to hear in science, the one that heralds new discoveries, is not 'Eureka!' but 'That's funny...'",
+    "author": "Isaac Asimov",
+    "tradition": "Science / Engineering",
+    "source": "Attributed",
+    "domain": [
+      "science",
+      "learning",
+      "uncertainty"
+    ],
+    "theme": "anomaly as discovery signal",
+    "trigger_conditions": [
+      "unexpected result ignored",
+      "outlier dismissed",
+      "surprise suppressed"
+    ],
+    "arifos_mapping": {
+      "physics": "Anomalies indicate incomplete models.",
+      "math": "Residual analysis reveals model failure modes.",
+      "linguistic": "Surprise is the doorway to discovery."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "IN_001",
+    "quote": "As a person acts, so they become.",
+    "author": "Brihadaranyaka Upanishad",
+    "tradition": "Indian philosophy",
+    "source": "Upanishads",
+    "domain": [
+      "ethics",
+      "identity",
+      "discipline"
+    ],
+    "theme": "action shapes being",
+    "trigger_conditions": [
+      "identity crisis",
+      "inconsistent behavior",
+      "values mismatch"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems evolve according to their dynamics; you are your trajectory.",
+      "math": "Identity is the integral of action over time.",
+      "linguistic": "You become what you repeatedly do."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "anchor",
+      "forge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IN_002",
+    "quote": "In the midst of winter, I found there was, within me, an invincible summer.",
+    "author": "Albert Camus",
+    "tradition": "Western philosophy",
+    "source": "Return to Tipasa",
+    "domain": [
+      "identity",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "inner resilience amid external adversity",
+    "trigger_conditions": [
+      "crisis",
+      "system failure",
+      "despair"
+    ],
+    "arifos_mapping": {
+      "physics": "Thermodynamic systems have internal energy independent of boundary conditions.",
+      "math": "Robustness is invariant to external perturbation.",
+      "linguistic": "Inner strength persists regardless of external winter."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "heart",
+      "anchor"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IN_003",
+    "quote": "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
+    "author": "Stephen Hawking",
+    "tradition": "Science / Engineering",
+    "source": "Attributed",
+    "domain": [
+      "learning",
+      "science",
+      "ethics"
+    ],
+    "theme": "false expertise is more dangerous than admitted ignorance",
+    "trigger_conditions": [
+      "expert blindness",
+      "Dunning-Kruger",
+      "unquestioned authority"
+    ],
+    "arifos_mapping": {
+      "physics": "False models persist when feedback is suppressed.",
+      "math": "Overconfidence inflates variance; humility reduces error.",
+      "linguistic": "The illusion of knowing prevents actual learning."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "humility",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 2,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "IN_004",
+    "quote": "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+    "author": "Ralph Waldo Emerson",
+    "tradition": "Western philosophy",
+    "source": "Self-Reliance",
+    "domain": [
+      "leadership",
+      "strategy",
+      "identity"
+    ],
+    "theme": "innovation over imitation",
+    "trigger_conditions": [
+      "status quo bias",
+      "path dependence",
+      "conformity pressure"
+    ],
+    "arifos_mapping": {
+      "physics": "Exploration discovers attractors invisible from current basin.",
+      "math": "Local optima trap gradient descent; escape requires perturbation.",
+      "linguistic": "Leadership creates paths, not followers."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "leadership",
+    "surfaces": [
+      "forge",
+      "heart"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IN_005",
+    "quote": "The measure of intelligence is the ability to change.",
+    "author": "Albert Einstein",
+    "tradition": "Science / Engineering",
+    "source": "Attributed",
+    "domain": [
+      "learning",
+      "science",
+      "strategy"
+    ],
+    "theme": "adaptability as intelligence",
+    "trigger_conditions": [
+      "rigid strategy",
+      "environment changed",
+      "model obsolete"
+    ],
+    "arifos_mapping": {
+      "physics": "Intelligence is the capacity to update internal models from external signals.",
+      "math": "Bayesian updating rate correlates with predictive accuracy.",
+      "linguistic": "Intelligence is measured by the speed of belief revision."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IN_006",
+    "quote": "Those who cannot remember the past are condemned to repeat it.",
+    "author": "George Santayana",
+    "tradition": "Western philosophy",
+    "source": "The Life of Reason",
+    "domain": [
+      "memory",
+      "learning",
+      "governance"
+    ],
+    "theme": "history as constraint on future",
+    "trigger_conditions": [
+      "repeated mistake",
+      "lesson unlearned",
+      "historical pattern ignored"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems with no memory are Markovian and repeat errors.",
+      "math": "Time-series without autoregressive terms have high variance.",
+      "linguistic": "Memory is the defense against cyclical failure."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "memory",
+    "surfaces": [
+      "mind",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "IN_007",
+    "quote": "He who has a why to live can bear almost any how.",
+    "author": "Viktor Frankl",
+    "tradition": "Western philosophy",
+    "source": "Man's Search for Meaning",
+    "domain": [
+      "identity",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "purpose enables endurance",
+    "trigger_conditions": [
+      "crisis",
+      "burnout",
+      "meaninglessness"
+    ],
+    "arifos_mapping": {
+      "physics": "Purpose provides attractor state for resilient dynamics.",
+      "math": "Robustness is higher when objective function is clear.",
+      "linguistic": "Meaning is the load-bearing structure of endurance."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "heart",
+      "anchor"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "IN_008",
+    "quote": "Freedom is not worth having if it does not include the freedom to make mistakes.",
+    "author": "Mahatma Gandhi",
+    "tradition": "Indian philosophy",
+    "source": "Young India",
+    "domain": [
+      "ethics",
+      "governance",
+      "learning"
+    ],
+    "theme": "error tolerance as freedom condition",
+    "trigger_conditions": [
+      "zero-tolerance policy",
+      "blame culture",
+      "innovation stifled"
+    ],
+    "arifos_mapping": {
+      "physics": "Exploration requires error tolerance; exploitation alone leads to local optima.",
+      "math": "Epsilon-greedy strategies require non-zero error probability.",
+      "linguistic": "Freedom includes the right to err."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "forge",
+      "heart"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "polarity": "order"
+  },
+  {
+    "id": "AF_001",
+    "quote": "I am because we are.",
+    "author": "Ubuntu proverb",
+    "tradition": "African philosophy",
+    "source": "Ubuntu",
+    "domain": [
+      "ethics",
+      "identity",
+      "governance"
+    ],
+    "theme": "interconnected identity",
+    "trigger_conditions": [
+      "individualism over community",
+      "stakeholder excluded",
+      "asymmetric harm"
+    ],
+    "arifos_mapping": {
+      "physics": "Identity is emergent from social network topology.",
+      "math": "Graph centrality: no node exists independently of its edges.",
+      "linguistic": "Personhood is defined through relationship."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "ethics",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "AF_002",
+    "quote": "If you want to go fast, go alone. If you want to go far, go together.",
+    "author": "African proverb",
+    "tradition": "African philosophy",
+    "source": "Ubuntu",
+    "domain": [
+      "leadership",
+      "ethics",
+      "strategy"
+    ],
+    "theme": "collaboration over speed",
+    "trigger_conditions": [
+      "silo mentality",
+      "unilateral action",
+      "short-termism"
+    ],
+    "arifos_mapping": {
+      "physics": "Distributed systems have higher mean time to failure but slower initial velocity.",
+      "math": "Coordination cost is O(n²) but robustness scales with redundancy.",
+      "linguistic": "Speed is solitary; distance is communal."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "leadership",
+    "surfaces": [
+      "ops",
+      "heart"
+    ],
+    "tone": "calm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "AF_003",
+    "quote": "The child who is not embraced by the village will burn it down to feel its warmth.",
+    "author": "African proverb",
+    "tradition": "African philosophy",
+    "source": "Ubuntu",
+    "domain": [
+      "ethics",
+      "governance",
+      "conflict"
+    ],
+    "theme": "exclusion breeds destruction",
+    "trigger_conditions": [
+      "stakeholder excluded",
+      "marginalization",
+      "revenge motive"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems without heat dissipation experience thermal runaway.",
+      "math": "Excluded agents have incentive to defect in game-theoretic frames.",
+      "linguistic": "Exclusion is the seed of destruction."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "ethics",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "AF_004",
+    "quote": "Wisdom is like a baobab tree; no one individual can embrace it.",
+    "author": "African proverb",
+    "tradition": "African philosophy",
+    "source": "Ubuntu",
+    "domain": [
+      "learning",
+      "ethics",
+      "wisdom"
+    ],
+    "theme": "collective knowledge",
+    "trigger_conditions": [
+      "expert blindness",
+      "single point of failure",
+      "knowledge hoarding"
+    ],
+    "arifos_mapping": {
+      "physics": "Complex knowledge requires distributed storage.",
+      "math": "Wisdom is the emergent property of networked cognition.",
+      "linguistic": "No one mind can hold all wisdom."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "mind",
+      "heart"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "SEA_001",
+    "quote": "I have always believed that you must stand up for what you think is right, even if you stand alone.",
+    "author": "Lee Kuan Yew",
+    "tradition": "Southeast Asian thought",
+    "source": "The Singapore Story",
+    "domain": [
+      "leadership",
+      "ethics",
+      "governance"
+    ],
+    "theme": "moral courage in governance",
+    "trigger_conditions": [
+      "consensus pressure",
+      "unpopular truth",
+      "moral hazard"
+    ],
+    "arifos_mapping": {
+      "physics": "Standing alone requires internal structural integrity.",
+      "math": "Nash equilibrium may be Pareto-inferior to cooperative defection.",
+      "linguistic": "Rightness does not depend on popularity."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "leadership",
+    "surfaces": [
+      "judge",
+      "heart"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "SEA_002",
+    "quote": "Bhinneka Tunggal Ika.",
+    "author": "Mpu Tantular",
+    "tradition": "Southeast Asian thought",
+    "source": "Kakawin Sutasoma",
+    "domain": [
+      "identity",
+      "ethics",
+      "governance"
+    ],
+    "theme": "unity in diversity",
+    "trigger_conditions": [
+      "sectarian conflict",
+      "identity erasure",
+      "homogeneity imposed"
+    ],
+    "arifos_mapping": {
+      "physics": "Ecosystems with high biodiversity are more resilient.",
+      "math": "Diversity increases robustness against perturbation.",
+      "linguistic": "Unity does not require uniformity."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "identity",
+    "surfaces": [
+      "heart",
+      "anchor"
+    ],
+    "tone": "calm",
+    "language": "ms",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "SEA_003",
+    "quote": "A nation is not built in a day. It is built with patience, wisdom, and sacrifice.",
+    "author": "Sukarno",
+    "tradition": "Southeast Asian thought",
+    "source": "Attributed",
+    "domain": [
+      "leadership",
+      "governance",
+      "ethics"
+    ],
+    "theme": "nation-building as long-term stewardship",
+    "trigger_conditions": [
+      "short-termism",
+      "instant gratification",
+      "stewardship void"
+    ],
+    "arifos_mapping": {
+      "physics": "Nation is a dissipative structure requiring sustained energy input.",
+      "math": "Nation-building is a cumulative function with long time constants.",
+      "linguistic": "Patience and sacrifice are the foundations of collective identity."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "leadership",
+    "surfaces": [
+      "vault",
+      "forge"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "SEA_004",
+    "quote": "Nothing is more precious than independence and freedom.",
+    "author": "Hồ Chí Minh",
+    "tradition": "Southeast Asian thought",
+    "source": "Prison Diary",
+    "domain": [
+      "identity",
+      "governance",
+      "ethics"
+    ],
+    "theme": "autonomy as highest value",
+    "trigger_conditions": [
+      "autonomy threatened",
+      "dependency",
+      "subjugation"
+    ],
+    "arifos_mapping": {
+      "physics": "Autonomy is the capacity to maintain internal state against external forcing.",
+      "math": "Independence is the condition where boundary conditions do not dominate.",
+      "linguistic": "Freedom is the non-negotiable baseline of dignity."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "identity",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 1,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  },
+  {
+    "id": "WE_001",
+    "quote": "Man is condemned to be free.",
+    "author": "Jean-Paul Sartre",
+    "tradition": "Western philosophy",
+    "source": "Being and Nothingness",
+    "domain": [
+      "identity",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "freedom as burden",
+    "trigger_conditions": [
+      "choice paralysis",
+      "resistance to autonomy",
+      "blame externalized"
+    ],
+    "arifos_mapping": {
+      "physics": "Agency requires energy expenditure; passivity is the default.",
+      "math": "Freedom increases dimensionality of decision space.",
+      "linguistic": "Freedom is not a gift; it is a sentence of responsibility."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "responsibility",
+    "surfaces": [
+      "mind",
+      "heart"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "WE_002",
+    "quote": "The limits of my language mean the limits of my world.",
+    "author": "Ludwig Wittgenstein",
+    "tradition": "Western philosophy",
+    "source": "Tractatus Logico-Philosophicus",
+    "domain": [
+      "science",
+      "learning",
+      "identity"
+    ],
+    "theme": "language bounds cognition",
+    "trigger_conditions": [
+      "vocabulary gap",
+      "conceptual blind spot",
+      "unarticulated risk"
+    ],
+    "arifos_mapping": {
+      "physics": "Observable universe is bounded by measurement apparatus.",
+      "math": "Expressible truths are a subset of all truths.",
+      "linguistic": "What cannot be said cannot be thought clearly."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "truth",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 9,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "WE_003",
+    "quote": "Hell is other people.",
+    "author": "Jean-Paul Sartre",
+    "tradition": "Western philosophy",
+    "source": "No Exit",
+    "domain": [
+      "identity",
+      "ethics",
+      "conflict"
+    ],
+    "theme": "social gaze as constraint",
+    "trigger_conditions": [
+      "peer pressure",
+      "surveillance",
+      "conformity demand"
+    ],
+    "arifos_mapping": {
+      "physics": "Social systems exert boundary pressure on individual state.",
+      "math": "Game theory: others' strategies constrain your optimal move.",
+      "linguistic": "The gaze of others can become a prison."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "identity",
+    "surfaces": [
+      "heart",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 7,
+    "scar_weight": 0,
+    "shadow_weight": 2,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "WE_004",
+    "quote": "One cannot step twice into the same river.",
+    "author": "Heraclitus",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Fragments",
+    "domain": [
+      "uncertainty",
+      "science",
+      "memory"
+    ],
+    "theme": "impermanence of state",
+    "trigger_conditions": [
+      "status quo bias",
+      "nostalgia",
+      "false stability"
+    ],
+    "arifos_mapping": {
+      "physics": "Entropy increases; systems evolve irreversibly.",
+      "math": "State space trajectories are non-repeating in chaotic systems.",
+      "linguistic": "Change is the only constant."
+    },
+    "action_bias": "proceed_carefully",
+    "risk_use": [
+      "low",
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "wisdom",
+    "surfaces": [
+      "sense",
+      "mind"
+    ],
+    "tone": "reflective",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 1,
+    "polarity": "doubt"
+  },
+  {
+    "id": "WE_005",
+    "quote": "Act only according to that maxim whereby you can at the same time will that it should become a universal law.",
+    "author": "Immanuel Kant",
+    "tradition": "Western philosophy",
+    "source": "Groundwork of the Metaphysics of Morals",
+    "domain": [
+      "ethics",
+      "governance",
+      "strategy"
+    ],
+    "theme": "universalizability as moral test",
+    "trigger_conditions": [
+      "moral hazard",
+      "externalized cost",
+      "special pleading"
+    ],
+    "arifos_mapping": {
+      "physics": "Symmetry is a fundamental constraint on physical law.",
+      "math": "Universal quantification: if true for one, must hold for all.",
+      "linguistic": "What you do, you endorse for all."
+    },
+    "action_bias": "pause_and_reflect",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "ethics",
+    "surfaces": [
+      "judge",
+      "vault"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 10,
+    "scar_weight": 0,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "WE_006",
+    "quote": "God is dead. God remains dead. And we have killed him.",
+    "author": "Friedrich Nietzsche",
+    "tradition": "Western philosophy",
+    "source": "The Gay Science",
+    "domain": [
+      "identity",
+      "ethics",
+      "uncertainty"
+    ],
+    "theme": "loss of absolute grounding",
+    "trigger_conditions": [
+      "authority collapse",
+      "value vacuum",
+      "nihilism risk"
+    ],
+    "arifos_mapping": {
+      "physics": "Systems without external reference must self-stabilize.",
+      "math": "Axioms are chosen, not discovered; consequences follow.",
+      "linguistic": "Without transcendent authority, meaning must be self-forged."
+    },
+    "action_bias": "hold",
+    "risk_use": [
+      "critical",
+      "high",
+      "irreversible"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "paradox",
+    "surfaces": [
+      "mind",
+      "judge"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 7,
+    "scar_weight": 1,
+    "shadow_weight": 2,
+    "paradox_weight": 2,
+    "polarity": "doubt"
+  },
+  {
+    "id": "WE_007",
+    "quote": "The life of man is solitary, poor, nasty, brutish, and short.",
+    "author": "Thomas Hobbes",
+    "tradition": "Western philosophy",
+    "source": "Leviathan",
+    "domain": [
+      "governance",
+      "ethics",
+      "conflict"
+    ],
+    "theme": "state of nature as baseline",
+    "trigger_conditions": [
+      "governance void",
+      "anarchy",
+      "social contract breach"
+    ],
+    "arifos_mapping": {
+      "physics": "Without structure, systems decay to maximum entropy.",
+      "math": "Nash equilibrium without enforcement is the defect-defect state.",
+      "linguistic": "Order is artificial; chaos is default."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "critical",
+      "high"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "governance",
+    "surfaces": [
+      "judge",
+      "ops"
+    ],
+    "tone": "severe",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 1,
+    "shadow_weight": 1,
+    "paradox_weight": 0,
+    "polarity": "truth"
+  },
+  {
+    "id": "WE_008",
+    "quote": "No man is free who is not master of himself.",
+    "author": "Epictetus",
+    "tradition": "Greek / Roman philosophy",
+    "source": "Discourses",
+    "domain": [
+      "identity",
+      "ethics",
+      "discipline"
+    ],
+    "theme": "self-mastery as freedom condition",
+    "trigger_conditions": [
+      "impulse control failure",
+      "addiction",
+      "external locus of control"
+    ],
+    "arifos_mapping": {
+      "physics": "Autonomy requires negative feedback on internal dynamics.",
+      "math": "Self-control is the optimization of delayed reward.",
+      "linguistic": "Freedom is internal, not external."
+    },
+    "action_bias": "request_approval",
+    "risk_use": [
+      "medium"
+    ],
+    "source_status": "curated",
+    "allow_use": true,
+    "category": "discipline",
+    "surfaces": [
+      "anchor",
+      "heart"
+    ],
+    "tone": "firm",
+    "language": "en",
+    "priority": 8,
+    "scar_weight": 0,
+    "shadow_weight": 0,
+    "paradox_weight": 0,
+    "polarity": "order"
+  }
+]

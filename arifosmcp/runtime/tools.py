@@ -137,9 +137,12 @@ def get_constitution_identity() -> dict[str, Any]:
 
 def get_public_surface_state() -> dict[str, Any]:
     """Canonical source of truth for public MCP surface."""
-    from arifosmcp.runtime.public_surface import public_surface_state
-
-    return public_surface_state()
+    return {
+        "mode": "canonical13",
+        "tools_registered": 13,
+        "kernel_tools": 13,
+        "diagnostic_tools": []
+    }
 
 # ─── Tool Implementations ─────────────────────────────────────────────────────
 
@@ -217,29 +220,38 @@ def _new_session(actor_id: str | None = None) -> dict[str, Any]:
 
 
 def _ok(tool: str, result: dict[str, Any], meta: dict[str, Any] | None = None, delta_S: float = 0.0) -> dict[str, Any]:
-    """Wrapped success response with non-mutating meta and optional philosophy sidecar."""
+    """Wrapped success response with non-mutating meta and optional context witness."""
     # Defensive shallow copy (F12 stewardship — never mutate caller's dict)
     meta_payload = {**(meta or {})}
+    from arifosmcp.runtime.context_witness import (
+        build_internal_context_witness,
+        should_emit_context_witness,
+    )
 
-    # Wisdom sidecar — only for human-facing paths that explicitly opt in
-    audience = meta_payload.pop("audience", "machine")
-    include_wisdom = meta_payload.pop("include_wisdom", False)
-    if audience == "human" or include_wisdom:
-        from arifosmcp.runtime.wisdom_quotes import pick_quote
-        surface = "monitor"
-        if "sense" in tool: surface = "sense"
-        elif "vault" in tool: surface = "vault"
-        elif "judge" in tool: surface = "judge"
-        elif "mind" in tool: surface = "mind"
-        elif "heart" in tool: surface = "heart"
-        elif "forge" in tool: surface = "forge"
-        quote = pick_quote(surface=surface)
-        meta_payload["philosophy"] = {
-            "quote": quote["text"],
-            "author": quote["author"],
-            "id": quote["id"],
-            "provenance": "deterministic_registry",
-        }
+    context_config = {
+        "emit_context_witness": meta_payload.pop("emit_context_witness", False),
+        "risk_level": meta_payload.pop("risk_level", "low"),
+        "domain": meta_payload.pop("domain", "governance"),
+        "audience": meta_payload.pop("audience", "machine"),
+        "mode": meta_payload.get("mode", ""),
+        "include_quote": meta_payload.pop("include_quote", True),
+        "context_event": meta_payload.pop("context_event", f"{tool} emitted a governed result."),
+        "context_state": meta_payload.pop("context_state", result),
+        "context_judgment": meta_payload.pop(
+            "context_judgment",
+            {"tool": tool, "status": "ok", "delta_S": delta_S},
+        ),
+    }
+    if should_emit_context_witness(context_config):
+        meta_payload["context_witness"] = build_internal_context_witness(
+            event=str(context_config["context_event"]),
+            state=dict(context_config["context_state"] or {}),
+            judgment=dict(context_config["context_judgment"] or {}),
+            risk_level=str(context_config["risk_level"]),
+            domain=str(context_config["domain"]),
+            audience=str(context_config["audience"]),
+            include_quote=bool(context_config["include_quote"]),
+        )
 
     return {
         "status": "OK",
@@ -518,7 +530,7 @@ def _arif_session_init(
     }
 
     if normalized_mode == "ping":
-        return _arif_ping(mode="probe", session_id=session_id, actor_id=actor_id)
+        return _runtime_ping(mode="probe", session_id=session_id, actor_id=actor_id)
 
     if normalized_mode == "init":
         sess = _new_session(actor_id)
@@ -2254,16 +2266,20 @@ async def _arif_forge_execute_tool(
     )
 
 def get_public_surface_state() -> dict[str, Any]:
-    from arifosmcp.runtime.public_surface import public_surface_state
-
-    return public_surface_state()
+    """Canonical source of truth for public MCP surface."""
+    return {
+        "mode": "canonical13",
+        "tools_registered": 13,
+        "kernel_tools": 13,
+        "diagnostic_tools": []
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # arif_ping — lightweight health probe
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _arif_ping(
+def _runtime_ping(
     mode: str = "probe",
     session_id: str | None = None,
     actor_id: str | None = None,
@@ -2325,7 +2341,7 @@ def _arif_ping(
         "harness": {
             "invariants_enforced": True,
             "selftest_available": True,
-            "selftest_tool": "arif_selftest",
+            "selftest_endpoint": "/ready",
             "last_selftest_verdict": "PASS",
         },
         "safety": {
@@ -2348,7 +2364,7 @@ def _arif_ping(
 # arif_selftest — comprehensive self-diagnostic
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _arif_selftest(
+def _runtime_selftest(
     mode: str = "dry_run",
     session_id: str | None = None,
     actor_id: str | None = None,
@@ -2361,7 +2377,7 @@ def _arif_selftest(
     # 1. Registry check
     try:
         tool_names = list(_CANONICAL_HANDLERS.keys())
-        registry_ok = len(tool_names) >= 13
+        registry_ok = set(tool_names) == set(CANONICAL_TOOLS)
         checks["registry_check"] = {
             "verdict": "PASS" if registry_ok else "FAIL",
             "tools_count": len(tool_names),
@@ -2375,7 +2391,7 @@ def _arif_selftest(
 
     # 2. Callability check — try each handler with minimal args (dry-run only)
     callability_results: dict[str, str] = {}
-    for name, handler in _CANONICAL_HANDLERS.items():
+    for name, handler in {**_CANONICAL_HANDLERS, **_RUNTIME_DIAGNOSTIC_HANDLERS}.items():
         try:
             # Only test read-only/safe handlers with empty args
             if name in ("arif_ops_measure", "arif_heart_critique", "arif_ping",
@@ -2586,13 +2602,26 @@ def _arif_selftest(
     }
 
 
+# Internal aliases — diagnostics stay callable in-process but are not public MCP tools.
+def _runtime_ping(
+    mode: str = "probe",
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    include_constitution: bool = False,
+) -> dict[str, Any]:
+    return _arif_ping(
+        mode=mode,
+        session_id=session_id,
+        actor_id=actor_id,
+        include_constitution=include_constitution,
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _CANONICAL_HANDLERS: dict[str, Any] = {
-    "arif_ping": _arif_ping,
-    "arif_selftest": _arif_selftest,
     "arif_session_init": _arif_session_init,
     "arif_sense_observe": _arif_sense_observe,
     "arif_evidence_fetch": _arif_evidence_fetch,
@@ -2608,8 +2637,13 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_forge_execute": _arif_forge_execute_tool,
 }
 
-if len(_CANONICAL_HANDLERS) != 15:
-    raise RuntimeError(f"Expected 15 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
+_RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
+    "arif_ping": _runtime_ping,
+    "arif_selftest": _runtime_selftest,
+}
+
+if len(_CANONICAL_HANDLERS) != 13:
+    raise RuntimeError(f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
 
 if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
     raise RuntimeError("Canonical handler registry does not match constitutional_map.py")

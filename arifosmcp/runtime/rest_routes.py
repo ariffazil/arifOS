@@ -2247,7 +2247,19 @@ def register_rest_routes(
 
     @route("/ready", methods=["GET"])
     async def readiness_alias(request: Request) -> Response:
-        return await health(request)
+        from arifosmcp.runtime.tools import _runtime_selftest
+
+        readiness = _runtime_selftest()
+        verdict = str(readiness.get("verdict", "FAIL")).lower()
+        payload = {
+            "status": verdict,
+            "checks": readiness.get("checks", {}),
+            "failures": readiness.get("failed_checks", []),
+            "warnings": readiness.get("warnings", []),
+            "timestamp": readiness.get("timestamp"),
+        }
+        status_code = 200 if verdict in {"pass", "partial"} else 503
+        return JSONResponse(payload, status_code=status_code)
 
     @route("/.well-known/mcp/internal-server.json", methods=["GET"])
     async def internal_well_known(request: Request) -> Response:
