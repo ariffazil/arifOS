@@ -27,6 +27,19 @@ from arifosmcp.apps.command_center.state import get_state, reset_state
 
 
 # ---------------------------------------------------------------------------
+# Test fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _evaluation_mode(monkeypatch):
+    """Force evaluation mode for all tests — tests validate mock/safe paths."""
+    monkeypatch.setenv("ARIFOS_EVALUATION_MODE", "true")
+    # Re-import to pick up the env var
+    import arifosmcp.apps.command_center.app as app_module
+    monkeypatch.setattr(app_module, "EVALUATION_MODE", True)
+
+
+# ---------------------------------------------------------------------------
 # Visibility
 # ---------------------------------------------------------------------------
 
