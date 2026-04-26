@@ -33,6 +33,7 @@ services:
       ARIFOS_MCP_TRANSPORT: http
       ARIFOS_MCP_HOST: 0.0.0.0
       ARIFOS_MCP_PORT: 3000
+      VAULT999_PATH: /app/VAULT999/outcomes.jsonl
       
       # Build info
       ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
