@@ -226,7 +226,7 @@ async def sse() -> PlainTextResponse:
     SSE fallback is available via the MCP endpoint with proper Accept headers.
     """
     return PlainTextResponse(
-        "event: info\ndata: {"message": "SSE transport not standalone — use /mcp with Accept: text/event-stream"}\n\n",
+        'event: info\ndata: {"message": "SSE transport not standalone -- use /mcp with Accept: text/event-stream"}\n\n',
         media_type="text/event-stream",
     )
 

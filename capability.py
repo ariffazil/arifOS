@@ -34,7 +34,13 @@ SUBSTRATE_CAPABILITIES = {
     "substrate.validation.everything.protocol_smoke": "everything_probe.probe_tools_roundtrip",
 }
 
-# Legacy dotted-map for v1 compatibility
+# 888 HOLD — LEGACY_TOOL_MAP
+# Status: DEPRECATED as of 2026-04-26 · Epoch Seal: SOVEREIGN_RATIFICATION_H1
+# These aliases are NOT registered on the MCP surface (intentional).
+# Internal Python callers must route through arifos_kernel, not this dict.
+# Cutover audit due: end of current sprint.
+# Remove only after confirming zero active callers.
+# F1 Amanah — irreversible deletion guard active.
 LEGACY_TOOL_MAP = {
     "arifos.init": "arifos_init",
     "arifos.sense": "arifos_sense",

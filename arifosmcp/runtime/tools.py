@@ -122,7 +122,7 @@ def _detect_scars(query: str | None, synthesis: str) -> list[str]:
 def get_constitution_identity() -> dict[str, Any]:
     """Canonical source of truth for arifOS law identity."""
     import hashlib
-    FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Memory, F9: Anti-Hantu, F10: Witness, F11: Audit, F12: Injection, F13: Sovereign"""
+    FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auth, F12: Injection, F13: Sovereign"""
     c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
     return {
         "constitution_id": "arifos-constitution-v2026.04.26",
@@ -149,6 +149,8 @@ _VAULT_LEDGER: list[dict[str, Any]] = []
 _JUDGE_STATE_REGISTRY: dict[str, dict[str, Any]] = {}
 _JUDGE_CHAIN_REGISTRY: dict[str, dict[str, Any]] = {}
 _VAULT_ENTRY_REGISTRY: dict[str, dict[str, Any]] = {}
+_PLAN_REGISTRY: dict[str, dict[str, Any]] = {}
+_EPOCH_REGISTRY: dict[str, dict[str, Any]] = {}
 _IRREVERSIBLE_ELICITATION_MODES = {"seal", "commit"}
 
 
@@ -201,7 +203,7 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _new_session(actor_id: str | None = None) -> dict[str, Any]:
+def _new_session(actor_id: str | None = None, epoch_id: str | None = None) -> dict[str, Any]:
     sid = f"SEAL-{uuid.uuid4().hex[:16]}"
     sess = {
         "session_id": sid,
@@ -211,12 +213,27 @@ def _new_session(actor_id: str | None = None) -> dict[str, Any]:
         "lane": "AGI",
         "entropy_delta": 0.0,
         "sealed": False,
+        "epoch_id": epoch_id,
     }
     _SESSIONS[sid] = sess
+    if epoch_id:
+        _EPOCH_REGISTRY[epoch_id] = {
+            "epoch_id": epoch_id,
+            "session_id": sid,
+            "opened_at": _now(),
+            "sealed_at": None,
+            "status": "open",
+        }
     return sess
 
 
-def _ok(tool: str, result: dict[str, Any], meta: dict[str, Any] | None = None, delta_S: float = 0.0) -> dict[str, Any]:
+def _ok(
+    tool: str,
+    result: dict[str, Any],
+    meta: dict[str, Any] | None = None,
+    delta_S: float = 0.0,
+    session_id: str | None = None,
+) -> dict[str, Any]:
     """Wrapped success response with non-mutating meta and optional context witness."""
     # Defensive shallow copy (F12 stewardship — never mutate caller's dict)
     meta_payload = {**(meta or {})}
@@ -249,6 +266,15 @@ def _ok(tool: str, result: dict[str, Any], meta: dict[str, Any] | None = None, d
             audience=str(context_config["audience"]),
             include_quote=bool(context_config["include_quote"]),
         )
+
+    # H3: propagate epoch_id if session is bound to an epoch; track tool usage
+    if session_id and session_id in _SESSIONS:
+        epoch_id = _SESSIONS[session_id].get("epoch_id")
+        if epoch_id:
+            result["epoch_id"] = epoch_id
+            epoch = _EPOCH_REGISTRY.get(epoch_id)
+            if epoch is not None and epoch.get("status") == "open":
+                epoch.setdefault("tools_used", []).append(tool)
 
     return {
         "status": "OK",
@@ -490,6 +516,7 @@ def _arif_session_init(
     actor_id: str | None = None,
     ack_irreversible: bool = False,
     session_id: str | None = None,
+    epoch_id: str | None = None,
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap and identity binding.
@@ -500,21 +527,24 @@ def _arif_session_init(
     for all subsequent tool calls.
 
     Modes:
-      init     — Create a new session with full constitutional binding.
-      resume   — Reattach to an existing session by session_id.
-      validate — Check session health and constitutional alignment.
+      init        — Create a new session with full constitutional binding.
+      resume      — Reattach to an existing session by session_id.
+      validate    — Check session health and constitutional alignment.
+      epoch_open  — Open a new epoch, binding epoch_id to session_id.
+      epoch_seal  — Seal the current epoch, writing Epoch Seal JSON to vault.
 
     Parameters:
-      mode              — init | resume | validate
+      mode              — init | resume | validate | epoch_open | epoch_seal
       actor_id          — Sovereign actor identifier (required for init)
       ack_irreversible  — Explicit human ack for irreversible operations (F1 Amanah)
-      session_id        — Existing session UUID (required for resume/validate)
+      session_id        — Existing session UUID (required for resume/validate/epoch_*)
+      epoch_id          — Epoch identifier (optional for init; required for epoch_seal)
 
     Returns:
       SessionState with constitution_id, constitution_hash, public_surface,
-      authority level, and next_allowed_tools.
+      authority level, next_allowed_tools, and epoch binding.
     """
-    allowed_modes = ["init", "resume", "validate"]
+    allowed_modes = ["init", "resume", "validate", "epoch_open", "epoch_seal"]
     legacy_aliases = {
         "status": "validate",
         "discover": "ping",
@@ -553,7 +583,7 @@ def _arif_session_init(
         return _runtime_ping(mode="probe", session_id=session_id, actor_id=actor_id)
 
     if normalized_mode == "init":
-        sess = _new_session(actor_id)
+        sess = _new_session(actor_id, epoch_id=epoch_id)
         return _ok(
             "arif_session_init",
             {
@@ -564,6 +594,7 @@ def _arif_session_init(
                 "next_allowed_tools": next_allowed_tools,
             },
             delta_S=0.001,
+            session_id=sess["session_id"],
         )
 
     if normalized_mode == "resume":
@@ -589,6 +620,7 @@ def _arif_session_init(
                 "next_allowed_tools": next_allowed_tools,
             },
             delta_S=0.0,
+            session_id=session_id,
         )
 
     if normalized_mode == "validate":
@@ -608,6 +640,98 @@ def _arif_session_init(
                 "session_valid": session_id in _SESSIONS,
             },
             delta_S=0.0,
+            session_id=session_id,
+        )
+
+    if normalized_mode == "epoch_open":
+        if not session_id:
+            return _hold(
+                "arif_session_init",
+                "session_id required for epoch_open",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
+        sess = _SESSIONS.get(session_id)
+        if sess is None:
+            return _hold(
+                "arif_session_init",
+                f"session_id not found: {session_id}",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
+        eid = epoch_id or f"EPOCH-{uuid.uuid4().hex[:16]}"
+        sess["epoch_id"] = eid
+        _EPOCH_REGISTRY[eid] = {
+            "epoch_id": eid,
+            "session_id": session_id,
+            "opened_at": _now(),
+            "sealed_at": None,
+            "status": "open",
+            "tools_used": [],
+        }
+        return _ok(
+            "arif_session_init",
+            {
+                "mode": "epoch_open",
+                "epoch_id": eid,
+                "session_id": session_id,
+                "status": "open",
+            },
+            delta_S=0.001,
+            session_id=session_id,
+        )
+
+    if normalized_mode == "epoch_seal":
+        if not session_id:
+            return _hold(
+                "arif_session_init",
+                "session_id required for epoch_seal",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
+        sess = _SESSIONS.get(session_id)
+        if sess is None:
+            return _hold(
+                "arif_session_init",
+                f"session_id not found: {session_id}",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
+        eid = epoch_id or sess.get("epoch_id")
+        if not eid:
+            return _hold(
+                "arif_session_init",
+                "No epoch_id bound to session and none provided",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
+        epoch = _EPOCH_REGISTRY.get(eid)
+        if epoch is None:
+            return _hold(
+                "arif_session_init",
+                f"epoch_id not found: {eid}",
+                extra_meta={"allowed_modes": allowed_modes},
+            )
+        epoch["sealed_at"] = _now()
+        epoch["status"] = "sealed"
+        seal_entry = {
+            "id": uuid.uuid4().hex[:16],
+            "timestamp": _now(),
+            "type": "epoch_seal",
+            "epoch_id": eid,
+            "session_id": session_id,
+            "tools_used": epoch.get("tools_used", []),
+            "payload": json.dumps(epoch, default=str),
+        }
+        _VAULT_LEDGER.append(seal_entry)
+        _VAULT_ENTRY_REGISTRY[seal_entry["id"]] = seal_entry
+        return _ok(
+            "arif_session_init",
+            {
+                "mode": "epoch_seal",
+                "epoch_id": eid,
+                "session_id": session_id,
+                "vault_entry_id": seal_entry["id"],
+                "ledger_size": len(_VAULT_LEDGER),
+                "status": "sealed",
+            },
+            delta_S=0.001,
+            session_id=session_id,
         )
 
     return _hold(
@@ -928,6 +1052,7 @@ def _arif_mind_reason(
     query: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    plan_id: str | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND: Symbolic constitutional reasoning kernel.
@@ -938,21 +1063,25 @@ def _arif_mind_reason(
     deductive, abductive, analogical, and critical reasoning.
 
     Modes:
-      reason   — General constitutional reasoning with axiom trace.
-      reflect  — Introspective replay of prior reasoning steps.
-      verify   — Truth-check a specific claim against the constitution.
-      critique — Adversarial stress-test of a reasoning chain.
-      axioms   — List available constitutional axioms and their confidence.
+      reason       — General constitutional reasoning with axiom trace.
+      reflect      — Introspective replay of prior reasoning steps.
+      verify       — Truth-check a specific claim against the constitution.
+      critique     — Adversarial stress-test of a reasoning chain.
+      axioms       — List available constitutional axioms and their confidence.
+      plan         — Generate a governed execution plan (PlanReceipt).
+      plan_review  — Retrieve an existing plan by plan_id.
 
     Parameters:
-      mode       — reason | reflect | verify | critique | axioms
+      mode       — reason | reflect | verify | critique | axioms | plan | plan_review
       query      — Reasoning prompt or claim to verify
       session_id — Governed session ID
       actor_id   — Sovereign actor identifier
+      plan_id    — Plan identifier (for plan_review)
 
     Returns:
       ReasoningTrace with steps, axioms_used, conclusion, confidence,
-      and epistemic_snapshot.
+      and epistemic_snapshot. Plan mode returns a PlanReceipt with
+      plan_id, task_graph, and reversibility_map.
     """
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
@@ -981,6 +1110,97 @@ def _arif_mind_reason(
         dominant_axiom="F02_TRUTH",
         axiom_diversity=0.5,
     )
+
+    if mode == "plan":
+        pid = f"PLAN-{uuid.uuid4().hex[:16]}"
+        # Parse query into a simple task graph
+        task_steps = []
+        if query:
+            # Split on sentence boundaries and numbered lists
+            raw_steps = [s.strip() for s in query.replace("\n", ". ").split(". ") if s.strip()]
+            for i, step_text in enumerate(raw_steps[:8], start=1):  # cap at 8 steps
+                reversible = not any(
+                    verb in step_text.lower()
+                    for verb in ("delete", "remove", "drop", "seal", "commit", "deploy", "prune")
+                )
+                task_steps.append({
+                    "step": i,
+                    "description": step_text,
+                    "tool_hint": "arif_forge_execute" if "deploy" in step_text.lower() or "build" in step_text.lower() else "arif_evidence_fetch" if "fetch" in step_text.lower() or "search" in step_text.lower() else "arif_mind_reason",
+                    "reversible": reversible,
+                })
+        if not task_steps:
+            task_steps = [{"step": 1, "description": query or "No query provided", "tool_hint": "arif_mind_reason", "reversible": True}]
+        reversibility_map = {s["step"]: s["reversible"] for s in task_steps}
+        plan_receipt = {
+            "plan_id": pid,
+            "task_graph": task_steps,
+            "reversibility_map": reversibility_map,
+            "all_reversible": all(reversibility_map.values()),
+            "any_irreversible": any(not v for v in reversibility_map.values()),
+            "created_at": _now(),
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "status": "pending_approval",
+        }
+        _PLAN_REGISTRY[pid] = plan_receipt
+        # Wire to vault: lightweight plan entry
+        vault_entry = {
+            "id": uuid.uuid4().hex[:16],
+            "timestamp": _now(),
+            "type": "plan",
+            "plan_id": pid,
+            "session_id": session_id,
+            "payload": json.dumps(plan_receipt, default=str),
+        }
+        _VAULT_LEDGER.append(vault_entry)
+        _VAULT_ENTRY_REGISTRY[vault_entry["id"]] = vault_entry
+        return _ok(
+            "arif_mind_reason",
+            {
+                "mode": "plan",
+                "plan_receipt": plan_receipt,
+                "vault_entry_id": vault_entry["id"],
+            },
+            delta_S=0.002,
+            session_id=session_id,
+        )
+
+    if mode == "plan_review":
+        if not plan_id:
+            return _hold("arif_mind_reason", "plan_id is required for plan_review mode")
+        plan = _PLAN_REGISTRY.get(plan_id)
+        if plan is None:
+            return _hold("arif_mind_reason", f"plan_id not found: {plan_id}")
+        return _ok(
+            "arif_mind_reason",
+            {
+                "mode": "plan_review",
+                "plan_receipt": plan,
+            },
+            delta_S=0.0,
+            session_id=session_id,
+        )
+
+    if mode == "plan_approve":
+        if not plan_id:
+            return _hold("arif_mind_reason", "plan_id is required for plan_approve mode")
+        plan = _PLAN_REGISTRY.get(plan_id)
+        if plan is None:
+            return _hold("arif_mind_reason", f"plan_id not found: {plan_id}")
+        plan["status"] = "approved"
+        plan["approved_at"] = _now()
+        plan["approved_by"] = actor_id or "system"
+        return _ok(
+            "arif_mind_reason",
+            {
+                "mode": "plan_approve",
+                "plan_id": plan_id,
+                "status": "approved",
+            },
+            delta_S=0.001,
+            session_id=session_id,
+        )
 
     if mode == "reason":
         # Build reasoning trace
@@ -2210,8 +2430,9 @@ def _arif_forge_execute(
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
     vault_entry_id: str | None = None,
+    plan_id: str | None = None,
 ) -> dict[str, Any]:
-    # dry_run mode — skip floor checks, return simulation immediately
+    # dry_run mode — skip floor checks and plan gate, return simulation immediately
     if mode == "dry_run":
         return {
             "status": "OK",
@@ -2228,6 +2449,44 @@ def _arif_forge_execute(
             "meta": {},
             "timestamp": _now(),
         }
+
+    # H2 hard-gate: artifact-producing modes require an approved plan
+    _PLAN_REQUIRED_MODES = {"engineer", "write", "generate"}
+    if mode in _PLAN_REQUIRED_MODES:
+        if not plan_id:
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "reason": f"mode='{mode}' requires an approved plan_id (H2 ratification). Use arif_mind_reason(mode='plan') first.",
+                    "failed_floors": ["F01_AMANAH", "F08_GENIUS"],
+                },
+                timestamp=_now(),
+            ).model_dump(mode="json")
+        plan = _PLAN_REGISTRY.get(plan_id)
+        if plan is None:
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "reason": f"plan_id '{plan_id}' not found in plan registry.",
+                    "failed_floors": ["F01_AMANAH"],
+                },
+                timestamp=_now(),
+            ).model_dump(mode="json")
+        if plan.get("status") != "approved":
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "reason": f"plan_id '{plan_id}' exists but is not approved (status='{plan.get('status')}'). Await 888_JUDGE SEAL or manual approval.",
+                    "failed_floors": ["F01_AMANAH", "F11_AUTH"],
+                },
+                timestamp=_now(),
+            ).model_dump(mode="json")
 
     floor_check = check_floors("arif_forge_execute", {"ack_irreversible": ack_irreversible}, actor_id)
     if floor_check["verdict"] != "SEAL":
@@ -2502,6 +2761,7 @@ async def _arif_forge_execute_tool(
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
     vault_entry_id: str | None = None,
+    plan_id: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
@@ -2511,6 +2771,9 @@ async def _arif_forge_execute_tool(
     under constitutional supervision. All forge operations run in dry_run
     mode by default. Permanent changes require a prior 888_JUDGE SEAL
     verdict and explicit human ack (F1 Amanah).
+
+    Artifact-producing modes (engineer, write, generate) require an
+    approved plan_id from arif_mind_reason(mode='plan') per H2 ratification.
 
     Modes:
       engineer  — Execute a manifest (build, deploy, or system change).
@@ -2527,6 +2790,7 @@ async def _arif_forge_execute_tool(
       constitutional_chain_id — Chain hash for audit continuity
       judge_state_hash      — Authorizing 888_JUDGE verdict hash
       vault_entry_id        — VAULT999 entry to link this forge to
+      plan_id               — Approved plan_id (required for engineer/write/generate)
       session_id            — Governed session ID
       actor_id              — Sovereign actor identifier
       ctx                   — FastMCP Context for progress reporting and elicitation
@@ -2558,6 +2822,7 @@ async def _arif_forge_execute_tool(
         constitutional_chain_id=constitutional_chain_id,
         judge_state_hash=judge_state_hash,
         vault_entry_id=vault_entry_id,
+        plan_id=plan_id,
     )
 
 def get_public_surface_state() -> dict[str, Any]:

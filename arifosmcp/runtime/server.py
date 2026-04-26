@@ -19,7 +19,7 @@ if _project_root not in sys.path:
 # This imports the already-initialized FastMCP instance with all routes
 _import_error_msg: str | None = None
 try:
-    from server import app, mcp
+    from arifosmcp.server import app, mcp
 except ImportError as e:
     _import_error_msg = str(e)
     # Fallback: if import fails, create minimal app for health check

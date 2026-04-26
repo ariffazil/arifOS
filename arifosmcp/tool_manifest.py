@@ -63,7 +63,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "init": {
                 "purpose": "Start a new governed session with full constitutional binding.",
                 "required_parameters": ["actor_id"],
-                "optional_parameters": ["ack_irreversible"],
+                "optional_parameters": ["ack_irreversible", "epoch_id"],
                 "returns": ["session_id", "constitution_hash", "invariants_hash", "allowed_next_tools"],
             },
             "resume": {
@@ -78,12 +78,24 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
                 "optional_parameters": [],
                 "returns": ["session_id", "status", "floors_ok", "floors_fail"],
             },
+            "epoch_open": {
+                "purpose": "Open a new epoch, binding epoch_id to session_id (H3).",
+                "required_parameters": ["session_id"],
+                "optional_parameters": ["epoch_id"],
+                "returns": ["epoch_id", "session_id", "status"],
+            },
+            "epoch_seal": {
+                "purpose": "Seal the current epoch, writing Epoch Seal JSON to vault (H3).",
+                "required_parameters": ["session_id"],
+                "optional_parameters": ["epoch_id", "ack_irreversible"],
+                "returns": ["epoch_id", "session_id", "vault_entry_id", "status"],
+            },
         },
         "inputs": {
             "mode": {
                 "type": "string",
                 "meaning": "Operation mode for the session lifecycle.",
-                "allowed_values": ["init", "resume", "validate"],
+                "allowed_values": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
                 "default": "init",
                 "required": True,
             },
@@ -99,8 +111,12 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
             "session_id": {
                 "type": "string",
-                "meaning": "Existing session UUID. Required for resume/validate.",
-                "required_when": [{"mode": "resume"}, {"mode": "validate"}],
+                "meaning": "Existing session UUID. Required for resume/validate/epoch_*.",
+                "required_when": [{"mode": "resume"}, {"mode": "validate"}, {"mode": "epoch_open"}, {"mode": "epoch_seal"}],
+            },
+            "epoch_id": {
+                "type": "string",
+                "meaning": "Epoch identifier. Optional for init; required for epoch_seal if not bound.",
             },
         },
         "outputs": {
@@ -369,10 +385,26 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
                 "purpose": "List available constitutional axioms and their confidence.",
                 "returns": ["axioms"],
             },
+            "plan": {
+                "purpose": "Generate a governed execution plan (PlanReceipt) with task_graph and reversibility_map (H2).",
+                "required_parameters": ["query"],
+                "returns": ["plan_receipt", "plan_id", "vault_entry_id"],
+            },
+            "plan_review": {
+                "purpose": "Retrieve an existing plan by plan_id.",
+                "required_parameters": ["plan_id"],
+                "returns": ["plan_receipt"],
+            },
+            "plan_approve": {
+                "purpose": "Approve a pending plan so it can be used by arif_forge_execute (H2).",
+                "required_parameters": ["plan_id"],
+                "returns": ["plan_id", "status"],
+            },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["reason", "reflect", "verify", "critique", "axioms"], "default": "reason"},
-            "query": {"type": "string", "meaning": "The claim, question, or plan to reason over.", "required_when": [{"mode": "reason"}, {"mode": "verify"}, {"mode": "critique"}]},
+            "mode": {"type": "string", "allowed_values": ["reason", "reflect", "verify", "critique", "axioms", "plan", "plan_review", "plan_approve"], "default": "reason"},
+            "query": {"type": "string", "meaning": "The claim, question, or plan to reason over.", "required_when": [{"mode": "reason"}, {"mode": "verify"}, {"mode": "critique"}, {"mode": "plan"}]},
+            "plan_id": {"type": "string", "meaning": "Plan identifier (for plan_review / plan_approve).", "required_when": [{"mode": "plan_review"}, {"mode": "plan_approve"}]},
         },
         "outputs": {
             "conclusion": {"meaning": "Reasoning classification or structured conclusion."},
@@ -1020,6 +1052,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "ack_irreversible": {"type": "boolean", "meaning": "Explicit human ack for permanent changes (F1 Amanah).", "default": False},
             "constitutional_chain_id": {"type": "string", "meaning": "Chain hash for audit continuity."},
             "judge_state_hash": {"type": "string", "meaning": "Authorizing 888_JUDGE verdict hash."},
+            "plan_id": {"type": "string", "meaning": "Approved plan_id from arif_mind_reason(mode='plan'). Required for engineer/write/generate (H2).", "required_when": [{"mode": "engineer"}, {"mode": "write"}, {"mode": "generate"}]},
         },
         "outputs": {
             "status": {"meaning": "Execution status: SUCCESS, FAILURE, DRY_RUN, or DEGRADED."},
