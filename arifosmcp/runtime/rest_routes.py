@@ -2243,10 +2243,10 @@ def register_rest_routes(
                 },
                 "tools": [
                     {
-                        "name": tool.name,
-                        "description": tool.description or "",
-                        "stage": AAA_TOOL_STAGE_MAP.get(tool.name),
-                        "lane": TRINITY_BY_TOOL.get(tool.name),
+                        "name": tool.name if hasattr(tool, "name") else str(tool),
+                        "description": tool.description if hasattr(tool, "description") else "",
+                        "stage": AAA_TOOL_STAGE_MAP.get(tool.name if hasattr(tool, "name") else str(tool)),
+                        "lane": TRINITY_BY_TOOL.get(tool.name if hasattr(tool, "name") else str(tool)),
                     }
                     for tool in mcp_tools
                 ],
