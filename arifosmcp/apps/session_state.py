@@ -59,13 +59,39 @@ _session_store: dict[str, SessionState] = {}
 
 
 def get_or_create_session(session_id: str, actor_id: str = "arif") -> SessionState:
-    """Get an existing session or create a new one."""
-    if session_id not in _session_store:
-        _session_store[session_id] = SessionState(
-            session_id=session_id,
-            actor_id=actor_id,
-            created_at=datetime.now(timezone.utc).isoformat(),
-        )
+    """Get an existing session or create a new one.
+
+    Reads from both the governance store (_session_store) and the kernel
+    store (runtime.tools._SESSIONS) so that sessions created by
+    arif_session_init are visible to governance apps.
+    """
+    # Check governance store first
+    if session_id in _session_store:
+        return _session_store[session_id]
+
+    # Check kernel session store (arif_session_init uses this)
+    try:
+        from arifosmcp.runtime.tools import _SESSIONS
+        if session_id in _SESSIONS:
+            kernel_sess = _SESSIONS[session_id]
+            # Mirror into governance store
+            _session_store[session_id] = SessionState(
+                session_id=session_id,
+                actor_id=kernel_sess.get("actor_id", actor_id),
+                stage=kernel_sess.get("stage", "000"),
+                lane=kernel_sess.get("lane", "AGI"),
+                created_at=kernel_sess.get("created_at", datetime.now(timezone.utc).isoformat()),
+            )
+            return _session_store[session_id]
+    except Exception:
+        pass  # runtime.tools not available — fall through to create
+
+    # Create new governance session
+    _session_store[session_id] = SessionState(
+        session_id=session_id,
+        actor_id=actor_id,
+        created_at=datetime.now(timezone.utc).isoformat(),
+    )
     return _session_store[session_id]
 
 

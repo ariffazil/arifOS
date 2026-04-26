@@ -7,13 +7,14 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 from __future__ import annotations
 
+import os
 import json
 from pathlib import Path
 
 from fastmcp import FastMCP
 from fastmcp.apps import AppConfig
 
-VAULT_PATH = Path("/root/VAULT999/outcomes.jsonl")
+VAULT_PATH = Path(os.environ.get("VAULT999_PATH", "/root/VAULT999/outcomes.jsonl"))
 VAULT999_DOMAIN = "https://arifosmcp.arif-fazil.com"
 
 
