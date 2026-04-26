@@ -17,7 +17,23 @@
     "vault999": "postgresql+redis+merkle",
     "vector_memory": "qdrant+bge-m3-1024dim",
     "prompts": 8,
-    "resources": 5
+    "resources": 5,
+    "apps": {
+      "available": true,
+      "ui_extension": "prefab-ui",
+      "entries": [
+        {
+          "id": "arifos_command_center",
+          "name": "arifOS Command Center",
+          "description": "Interactive MCP cockpit for governed session, ops, judge, forge, gateway, and vault review.",
+          "entry_tool": "arifos_command_center",
+          "status": "v0.1_evaluation_ready",
+          "risk_tier": "medium",
+          "default_mode": "dry_run_only",
+          "human_authority_required": true
+        }
+      ]
+    }
   },
   "serverUrl": "https://mcp.arif-fazil.com",
   "llm_context": {
@@ -268,5 +284,31 @@
       "arif_reply_compose": {},
       "arif_gateway_connect": {}
     }
+  },
+  "platform_agnostic": true,
+  "model_agnostic": true,
+  "protocol": {
+    "standard": "MCP",
+    "transports": ["streamable_http"],
+    "endpoint": "https://mcp.arif-fazil.com/mcp"
+  },
+  "apps": {
+    "supported": true,
+    "extension": "io.modelcontextprotocol/ui",
+    "fallback_required": true,
+    "fallback_modes": ["text", "json"],
+    "primary_app": {
+      "id": "arifos_command_center",
+      "name": "arifOS Command Center MCP",
+      "description": "Interactive governance cockpit for arifOS MCP.",
+      "ui_resource": "ui://arifos/command-center.html"
+    }
+  },
+  "governance": {
+    "authority": "Human 888 Judge",
+    "self_approval_allowed": false,
+    "audit_required": true,
+    "default_mode": "dry_run_only",
+    "irreversible_actions_require_ack": true
   }
 }

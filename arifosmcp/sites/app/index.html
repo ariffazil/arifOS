@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>arifOS Command Center MCP — Browser Preview</title>
+  <meta name="description" content="Browser preview for arifOS Command Center MCP. The interactive cockpit for governed MCP execution.">
+  <link rel="canonical" href="https://mcp.arif-fazil.com/app">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #13151a;
+      --border: #252830;
+      --text: #e8e6e1;
+      --text-secondary: #8b8d91;
+      --accent: #00b4a0;
+      --warning: #f5a623;
+      --danger: #e05252;
+      --success: #3dbe8a;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .header .tagline {
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin: 0.25rem;
+    }
+    .badge-warning {
+      background: rgba(245, 166, 35, 0.12);
+      color: var(--warning);
+    }
+    .badge-success {
+      background: rgba(61, 190, 138, 0.12);
+      color: var(--success);
+    }
+    .badge-secondary {
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .card p, .card li {
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      margin-bottom: 0.5rem;
+    }
+    .card ul {
+      margin-left: 1.25rem;
+    }
+    .route-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 0.75rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .route-box .label {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+    .route-box .url {
+      color: var(--accent);
+      word-break: break-all;
+    }
+    .warning-box {
+      background: rgba(224, 82, 82, 0.08);
+      border: 1px solid rgba(224, 82, 82, 0.25);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      color: var(--danger);
+      font-size: 0.88rem;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>arifOS Command Center MCP</h1>
+      <p class="tagline">One cockpit. Separate chambers. Judge above action.</p>
+      <div style="margin-top:1rem">
+        <span class="badge badge-warning">v0.1.1 EVALUATION READY</span>
+        <span class="badge badge-success">F1 Amanah Active</span>
+        <span class="badge badge-secondary">Dry-Run Only</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>What this is</h2>
+      <p>
+        arifOS Command Center MCP is the interactive cockpit for governed MCP execution.
+        It renders inside compatible MCP hosts and provides chambers for session state,
+        ops vitals, constitutional verdicts, forge dry-runs, gateway handshakes, and vault review.
+      </p>
+      <p>
+        The app does not bypass governance. It uses the same 13-tool public surface,
+        the same human authority model, and the same audit-first runtime contract.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Route Distinction</h2>
+      <div class="route-box">
+        <div class="label">Machine MCP Endpoint</div>
+        <div class="url">https://mcp.arif-fazil.com/mcp</div>
+      </div>
+      <div class="route-box">
+        <div class="label">Human Browser Preview</div>
+        <div class="url">https://mcp.arif-fazil.com/app</div>
+      </div>
+      <div class="route-box">
+        <div class="label">MCP App Resource Identity</div>
+        <div class="url">ui://arifos/command-center.html</div>
+      </div>
+      <p>
+        MCP hosts connect to <strong>/mcp</strong>. This page is for human preview only.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>How to Connect</h2>
+      <p>If your host supports MCP Apps, open <code>command_center()</code> from the MCP server.</p>
+      <p>If your host does not support MCP Apps, the same backend tools return text and JSON fallback.</p>
+      <ul>
+        <li><strong>Level 1:</strong> Plain MCP — text + JSON results from every tool</li>
+        <li><strong>Level 2:</strong> MCP with resources — Prefab UI resource at <code>command_center()</code></li>
+        <li><strong>Level 3:</strong> MCP Apps host — interactive cockpit with buttons, forms, and live state</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Chambers</h2>
+      <ul>
+        <li><strong>Session</strong> — Constitutional identity, stage, lane, authority</li>
+        <li><strong>Ops</strong> — Thermodynamic vitals (G, ΔS, Ω, Ψ)</li>
+        <li><strong>Judge</strong> — Constitutional verdicts (SEAL / SABAR / HOLD / VOID)</li>
+        <li><strong>Forge</strong> — Dry-run manifest simulation only</li>
+        <li><strong>Gateway</strong> — Simulated cross-agent handshake</li>
+        <li><strong>Vault</strong> — Mock audit entries and dry-seal preview</li>
+      </ul>
+    </div>
+
+    <div class="warning-box">
+      <strong>Evaluation-grade only.</strong> This hosted endpoint is for evaluation and testing.
+      Self-host arifOS for sensitive, sovereign, or production workloads.
+      v0.1 does not implement real Forge execution, real Vault sealing, or real Gateway network calls.
+    </div>
+
+    <div class="footer">
+      <p>Built under the 13 Constitutional Floors (F1–F13)</p>
+      <p>Human authority remains final. The app is a UI layer only. Governance remains server-side.</p>
+      <p style="margin-top:1rem">
+        <a href="https://mcp.arif-fazil.com/">Home</a> ·
+        <a href="https://mcp.arif-fazil.com/.well-known/mcp/server.json">Manifest</a> ·
+        <a href="https://github.com/ariffazil/arifOS">GitHub</a>
+      </p>
+      <p style="margin-top:0.5rem; font-style: italic;">Ditempa bukan diberi.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -298,6 +298,39 @@ The institutional death where the system forgets it forgot, and no human notices
 
 ---
 
+## Model Neutrality & Platform Agnosticism
+
+arifOS MCP is **model-agnostic** and **platform-agnostic**.
+
+### Integration Principle
+Clients should connect through the MCP endpoint and use MCP discovery.
+Do not assume a specific model provider, host, or UI runtime.
+
+### MCP Endpoint
+- Streamable HTTP MCP endpoint: https://arifosmcp.arif-fazil.com/mcp
+- Tool registry: https://arifosmcp.arif-fazil.com/tools
+- Server manifest: https://arifosmcp.arif-fazil.com/.well-known/mcp/server.json
+- Governance policy: https://arifosmcp.arif-fazil.com/policy.json
+
+### MCP Apps
+arifOS may expose interactive MCP Apps for hosts that support the MCP Apps extension.
+Apps are optional progressive enhancement.
+
+If MCP Apps are unsupported, clients must use the text and JSON fallback returned by the same tools.
+
+### Model Neutrality
+No tool requires a specific model.
+No model may self-approve seal-grade or irreversible actions.
+Human authority remains final.
+
+### Safety
+Default mode is claim_only / dry_run_only.
+Irreversible actions require explicit human acknowledgement.
+Hosted endpoint is evaluation-grade only.
+Self-host for sensitive, sovereign, or production workloads.
+
+---
+
 ## SEAL
 
 Version:    v2026.03-FORGE

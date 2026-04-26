@@ -1314,6 +1314,7 @@
       <li><a href="#lifecycle">Lifecycle</a></li>
       <li><a href="#protocol">Protocol</a></li>
       <li><a href="#tools">Tools</a></li>
+      <li><a href="#apps">Apps</a></li>
       <li><a href="#floors">Governance</a></li>
     </ul>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
@@ -1872,6 +1873,53 @@
       <div class="tool-card skeleton" style="height:80px"></div>
       <div class="tool-card skeleton" style="height:80px"></div>
       <div class="tool-card skeleton" style="height:80px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     MCP APPS
+═══════════════════════════════════════════ -->
+<section class="section" id="apps">
+  <div class="container">
+    <p class="section-label">MCP Apps</p>
+    <h2 class="section-title">arifOS Command Center</h2>
+    <p style="color:var(--text-secondary);max-width:640px;margin-bottom:var(--space-8)">
+      One cockpit. Separate chambers. Judge above action.
+      The interactive layer of the same web contract — session, ops, judge,
+      forge dry-run, gateway handshake, and vault review.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--space-5)">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6)">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-3)">🧠</div>
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:var(--space-2)">Interactive Cockpit</h3>
+        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5">
+          Renders inside compatible MCP hosts. Chambers for session state, ops vitals,
+          constitutional verdicts, forge dry-runs, gateway handshakes, and vault review.
+        </p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6)">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-3)">🛡️</div>
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:var(--space-2)">UI Layer Only</h3>
+        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5">
+          The app does not bypass governance. It uses the same 13-tool public surface,
+          same human authority model, and same audit-first runtime contract.
+        </p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6)">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-3)">🔒</div>
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:var(--space-2)">Dry-Run by Default</h3>
+        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5">
+          Forge, Vault, and Gateway chambers are simulated in v0.1.
+          No real irreversible execution. Sampling deferred to v0.2+.
+        </p>
+      </div>
+    </div>
+    <div style="margin-top:var(--space-8)">
+      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--seal-green-dim);color:var(--seal-green);padding:6px 12px;border-radius:999px;font-size:0.78rem;font-weight:600">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--seal-green);display:inline-block"></span>
+        MCP Apps · v0.1.1 evaluation ready
+      </span>
     </div>
   </div>
 </section>

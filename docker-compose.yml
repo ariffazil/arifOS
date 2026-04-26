@@ -6,7 +6,7 @@ services:
   # -- Governance Kernel --
   arifosmcp:
     build:
-      context: /opt/arifos/src/arifOS
+      context: /root/arifOS
       dockerfile: Dockerfile
     container_name: arifosmcp
     ports:
@@ -67,7 +67,7 @@ services:
   # -- Vault API Layer --
   vault999:
     build:
-      context: /opt/arifos/src/arifOS/vault-service
+      context: /root/arifOS/00_legacy_materials/arifOS-upstream/vault-service
       dockerfile: Dockerfile
     container_name: vault999
     restart: unless-stopped
@@ -89,7 +89,7 @@ services:
   # -- Vault Writer --
   vault999-writer:
     build:
-      context: /opt/arifos/src/arifOS/vault999_writer
+      context: /root/arifOS/00_legacy_materials/arifOS-upstream/vault999_writer
       dockerfile: Dockerfile
     container_name: vault999-writer
     restart: unless-stopped
@@ -107,7 +107,7 @@ services:
   # -- Notifier (Telegram Alerts) --
   forge-notifier:
     build:
-      context: /opt/arifos/src/arifOS/services/notifier
+      context: /root/arifOS/services/notifier
       dockerfile: Dockerfile
     container_name: forge-notifier
     restart: unless-stopped
@@ -176,13 +176,14 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-      - /opt/arifos/src:/var/www/html:ro
+      - /root/sites:/var/www/html:ro
+      - /root/volumes/caddy/cloudflare-origin:/data/cloudflare-origin:ro
     networks:
       - arifos_core
 
   # -- Domain Organs --
   geox:
-    build: /opt/arifos/src/geox
+    build: /root/geox
     container_name: geox
     restart: unless-stopped
     networks:
@@ -192,14 +193,14 @@ services:
         condition: service_healthy
 
   wealth-organ:
-    build: /opt/arifos/src/wealth
+    build: /root/arifOS/skills/wealth
     container_name: wealth-organ
     restart: unless-stopped
     networks:
       - arifos_core
 
   aaa:
-    build: /opt/arifos/src/AAA
+    build: /root/geox/site
     container_name: aaa
     restart: unless-stopped
     networks:

@@ -6,6 +6,7 @@ arifOS MCP Server — Canonical Entry Point
 FastMCP 3.2.0 + MCP Apps + Streamable HTTP
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import logging
@@ -26,12 +27,6 @@ if os.path.exists(_env_path):
     load_dotenv(_env_path, override=True)
 
 import fastmcp
-from fastmcp import FastMCP
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse, Response
-from starlette.requests import Request
-
 from arifosmcp.constitutional_map import (
     CANONICAL_TOOLS,
     list_authenticated_tools,
@@ -41,6 +36,11 @@ from arifosmcp.constitutional_map import (
     list_public_tools,
     list_sovereign_tools,
 )
+from fastmcp import FastMCP
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
 
 logger = logging.getLogger(__name__)
 
@@ -118,9 +118,9 @@ v2_apps_registered: list[str] = []
 IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 
 try:
-    from arifosmcp.runtime.tools import register_tools
     from arifosmcp.prompts import CANONICAL_PROMPTS, register_prompts
     from arifosmcp.resources import CANONICAL_RESOURCES, register_resources
+    from arifosmcp.runtime.tools import register_tools
 
     v2_tools_registered = register_tools(mcp)
     _assert_registered_surface(v2_tools_registered)
@@ -143,6 +143,16 @@ except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
     raise
 
+
+# ── MCP Apps registration ───────────────────────────────────────────────────
+try:
+    from arifosmcp.apps.command_center import _register as _register_command_center
+
+    _register_command_center(mcp)
+    v2_apps_registered.append("command_center")
+    logger.info(f"ARIFOS MCP KANON Phase 2: {len(v2_apps_registered)} apps registered")
+except Exception as e:
+    logger.error(f"Failed to register Command Center app: {e}")
 
 PUBLIC_TOOLS = list_public_tools()
 AUTHENTICATED_TOOLS = list_authenticated_tools()
@@ -195,7 +205,7 @@ async def horizon_metadata(request: Request) -> JSONResponse:
             "protocol": "MCP 2025-03-26",
             "gateway": {
                 "type": "unified",
-                "capabilities": ["tools", "prompts", "resources", "apps"],
+                "capabilities": ["tools", "prompts", "resources", "apps", "webmcp"],
                 "surface": {
                     "registered": len(v2_tools_registered),
                     "constitutional": len(_constitutional_tool_names),
@@ -213,8 +223,25 @@ async def horizon_metadata(request: Request) -> JSONResponse:
                 "ready": "/ready",
                 "metadata": "/metadata",
                 "tools": "/tools",
+                "webmcp_discovery": "/.well-known/mcp",
             },
             "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given",
+        }
+    )
+
+
+async def webmcp_discovery(request: Request) -> JSONResponse:
+    return JSONResponse(
+        {
+            "name": "arifOS WebMCP Gateway",
+            "version": "v2026.04.26",
+            "endpoints": {
+                "health": "/health",
+                "tools": "/tools",
+                "execute": "/mcp",
+                "metadata": "/metadata",
+            },
+            "capabilities": ["tools:list", "execute", "metadata"],
         }
     )
 
@@ -244,21 +271,10 @@ try:
         app = mcp._mcp_server.app
 
     if app is not None:
-        app.add_middleware(GlobalPanicMiddleware)
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-            allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
-        )
-        app.add_route("/health", horizon_health, methods=["GET"])
-        app.add_route("/ready", horizon_ready, methods=["GET"])
-        app.add_route("/metadata", horizon_metadata, methods=["GET"])
-        app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
-
-        # FastMCP built-in /tools doesn't expose meta — override it
+        # Define tools_with_meta before registration
         async def tools_with_meta(request: Request) -> JSONResponse:
             from arifosmcp.tool_manifest import TOOL_MANIFEST
+
             tool_summaries = []
             try:
                 lp = getattr(mcp, "_local_provider", None)
@@ -268,7 +284,10 @@ try:
                     raw_tools = {}
                 for name, tool in raw_tools.items():
                     tool_name = name.replace("tool:", "").rstrip("@")
-                    base = {"description": tool.description or "", "parameters": tool.parameters or {}}
+                    base = {
+                        "description": tool.description or "",
+                        "parameters": tool.parameters or {},
+                    }
                     manifest = TOOL_MANIFEST.get(tool_name, {})
                     meta_dict = getattr(tool, "meta", None) or {}
                     arifos_m = meta_dict.get("arifos_manifest", {}) or manifest
@@ -280,18 +299,31 @@ try:
                         "lane": arifos_m.get("lane", ""),
                         "meta": {
                             "arifos_manifest": arifos_m,
-                            "stage_code": meta_dict.get("stage_code", arifos_m.get("stage_code", "")),
-                            "stage_name": meta_dict.get("stage_name", arifos_m.get("stage_name", "")),
-                            "risk_tier": meta_dict.get("risk_tier", arifos_m.get("risk", {}).get("tier", "low")),
-                            "irreversible": meta_dict.get("irreversible", arifos_m.get("risk", {}).get("irreversible", False)),
-                            "requires_human_ack": meta_dict.get("requires_human_ack", arifos_m.get("risk", {}).get("requires_human_ack", False)),
+                            "stage_code": meta_dict.get(
+                                "stage_code", arifos_m.get("stage_code", "")
+                            ),
+                            "stage_name": meta_dict.get(
+                                "stage_name", arifos_m.get("stage_name", "")
+                            ),
+                            "risk_tier": meta_dict.get(
+                                "risk_tier", arifos_m.get("risk", {}).get("tier", "low")
+                            ),
+                            "irreversible": meta_dict.get(
+                                "irreversible", arifos_m.get("risk", {}).get("irreversible", False)
+                            ),
+                            "requires_human_ack": meta_dict.get(
+                                "requires_human_ack",
+                                arifos_m.get("risk", {}).get("requires_human_ack", False),
+                            ),
                             "use_when": arifos_m.get("use_when", []),
                             "do_not_use_when": arifos_m.get("do_not_use_when", []),
                             "next_recommended_tools": arifos_m.get("next_recommended_tools", []),
                             "authority_boundary": arifos_m.get("authority_boundary", {}),
                             "privacy_scope": arifos_m.get("privacy_scope", []),
-                            "canonical_order": meta_dict.get("canonical_order", arifos_m.get("canonical_order", [])),
-                        }
+                            "canonical_order": meta_dict.get(
+                                "canonical_order", arifos_m.get("canonical_order", [])
+                            ),
+                        },
                     }
                     tool_summaries.append(entry)
             except Exception as e:
@@ -299,14 +331,39 @@ try:
                 tool_summaries = []
             return JSONResponse({"tools": tool_summaries, "count": len(tool_summaries)})
 
-        from starlette.routing import Route
-        tools_meta_route = Route("/tools", tools_with_meta, methods=["GET"])
-        # Prepend so it overrides FastMCP's built-in /tools
-        app.router.routes.insert(0, tools_meta_route)
+        app.add_middleware(GlobalPanicMiddleware)
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+            allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
+        )
         app.add_route("/health", horizon_health, methods=["GET"])
         app.add_route("/ready", horizon_ready, methods=["GET"])
         app.add_route("/metadata", horizon_metadata, methods=["GET"])
         app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
+        app.add_route("/.well-known/mcp", webmcp_discovery, methods=["GET"])
+
+        # WebMCP Aliases
+        app.add_route("/webmcp/health", horizon_health, methods=["GET"])
+        app.add_route("/webmcp/tools", tools_with_meta, methods=["GET"])
+        app.add_route("/webmcp/metadata", horizon_metadata, methods=["GET"])
+        app.add_route("/webmcp/.well-known/mcp", webmcp_discovery, methods=["GET"])
+
+
+        # Overwrite Starlette routes list with our prioritized meta-enriched /tools
+        app.add_route("/tools", tools_with_meta, methods=["GET"])
+        app.add_route("/health", horizon_health, methods=["GET"])
+        app.add_route("/ready", horizon_ready, methods=["GET"])
+        app.add_route("/metadata", horizon_metadata, methods=["GET"])
+        app.add_route("/humans.txt", serve_humans_txt, methods=["GET"])
+        app.add_route("/.well-known/mcp", webmcp_discovery, methods=["GET"])
+
+        # WebMCP Aliases
+        app.add_route("/webmcp/health", horizon_health, methods=["GET"])
+        app.add_route("/webmcp/tools", tools_with_meta, methods=["GET"])
+        app.add_route("/webmcp/metadata", horizon_metadata, methods=["GET"])
+        app.add_route("/webmcp/.well-known/mcp", webmcp_discovery, methods=["GET"])
         logger.info("HTTP app configured with gateway endpoints + meta-enriched /tools")
     else:
         logger.warning("HTTP app is None")
@@ -319,6 +376,7 @@ __all__ = ["mcp", "create_arifos_mcp_server", "app", "v2_tools_registered"]
 
 def main() -> None:
     import asyncio
+
     import uvicorn
 
     async def run_server():

@@ -201,6 +201,16 @@ Tool count for the arifos_* namespace is available at `GET /tools`.
 
 ---
 
+## Model Neutrality & Platform Agnosticism
+
+arifOS MCP is **model-agnostic** and **platform-agnostic**.
+
+- No tool requires a specific model.
+- No model may self-approve seal-grade or irreversible actions.
+- MCP Apps are optional progressive enhancement.
+- If MCP Apps are unsupported, clients use the same text and JSON fallback.
+- Human authority remains final across all hosts and models.
+
 ## Source of Truth
 
 - **Doctrine:** https://github.com/ariffazil/arifOS

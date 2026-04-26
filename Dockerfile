@@ -29,7 +29,7 @@ COPY . .
 # NOTE: torch is NOT installed separately — sentence-transformers moved to optional deps.
 # Embeddings are served by Ollama (bge-m3:latest) as an external service.
 RUN python -m pip install --upgrade pip && \
-    if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt fastmcp==3.1.1; fi && \
+    if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && \
     pip install --no-cache-dir .
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)

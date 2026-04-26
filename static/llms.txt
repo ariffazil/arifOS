@@ -35,3 +35,11 @@ F2 Truth — grounded claims, declare uncertainty band
 F5 Peace — Peace² ≥ 1.0, no destructive escalation
 F9 Anti-Hantu — no deception, no manipulation
 F13 Sovereignty — human veto is final
+
+## Model Neutrality & Platform Agnosticism
+arifOS MCP is model-agnostic and platform-agnostic.
+No tool requires a specific model.
+No model may self-approve seal-grade or irreversible actions.
+MCP Apps are optional progressive enhancement.
+If MCP Apps are unsupported, clients use the same text and JSON fallback.
+Human authority remains final across all hosts and models.

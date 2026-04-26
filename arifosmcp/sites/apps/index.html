@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>arifOS MCP Apps Index</title>
+  <meta name="description" content="Index of MCP Apps available on arifOS MCP.">
+  <link rel="canonical" href="https://mcp.arif-fazil.com/apps">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #13151a;
+      --border: #252830;
+      --text: #e8e6e1;
+      --text-secondary: #8b8d91;
+      --accent: #00b4a0;
+      --warning: #f5a623;
+      --success: #3dbe8a;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      color: var(--text-secondary);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin: 0.25rem;
+    }
+    .badge-warning {
+      background: rgba(245, 166, 35, 0.12);
+      color: var(--warning);
+    }
+    .badge-success {
+      background: rgba(61, 190, 138, 0.12);
+      color: var(--success);
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .meta {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+    }
+    .meta dt {
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 0.5rem;
+    }
+    .meta dd {
+      margin-left: 0;
+      margin-bottom: 0.25rem;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>arifOS MCP Apps</h1>
+      <p>Interactive applications built on the arifOS MCP governance kernel</p>
+    </div>
+
+    <div class="card">
+      <h2>arifOS Command Center MCP</h2>
+      <span class="badge badge-warning">v0.1.1 EVALUATION READY</span>
+      <span class="badge badge-success">Human Authority</span>
+      <p style="margin-top:0.75rem">
+        Interactive governance cockpit for governed MCP execution.
+        Chambers for session, ops, judge, forge dry-run, gateway handshake, and vault review.
+      </p>
+      <dl class="meta">
+        <dt>Entry tool</dt>
+        <dd>command_center</dd>
+        <dt>UI resource</dt>
+        <dd>ui://arifos/command-center.html</dd>
+        <dt>Fallback</dt>
+        <dd>text + JSON</dd>
+        <dt>Authority</dt>
+        <dd>Human 888 Judge</dd>
+        <dt>Default mode</dt>
+        <dd>dry_run_only</dd>
+        <dt>MCP endpoint</dt>
+        <dd>https://mcp.arif-fazil.com/mcp</dd>
+        <dt>Browser preview</dt>
+        <dd><a href="/app">/app</a></dd>
+      </dl>
+    </div>
+
+    <div class="footer">
+      <p>MCP Apps are optional progressive enhancement.</p>
+      <p>Hosts without Apps support receive the same text and JSON fallback.</p>
+      <p style="margin-top:1rem">
+        <a href="https://mcp.arif-fazil.com/">Home</a> ·
+        <a href="https://mcp.arif-fazil.com/app">Preview</a> ·
+        <a href="https://mcp.arif-fazil.com/.well-known/mcp/server.json">Manifest</a>
+      </p>
+      <p style="margin-top:0.5rem; font-style: italic;">Ditempa bukan diberi.</p>
+    </div>
+  </div>
+</body>
+</html>
