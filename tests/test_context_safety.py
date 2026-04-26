@@ -24,7 +24,7 @@ def test_context_safety_rejects_unknown_quote_id() -> None:
     }
     safety = validate_interpretation_safety(interpretation, candidates, risk_level="high")
     assert safety["status"] == "hold"
-    assert safety["error"] == "quote_not_in_approved_ledger"
+    assert safety["error_code"] == "quote_not_in_approved_ledger"
 
 
 def test_context_safety_rejects_author_drift() -> None:
