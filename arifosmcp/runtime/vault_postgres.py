@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Optional imports
 try:
@@ -29,7 +29,7 @@ except ImportError:
     ASYNCpg_AVAILABLE = False
 
 try:
-    from supabase import create_client, Client
+    from supabase import Client, create_client
 
     SUPABASE_AVAILABLE = True
 except ImportError:
@@ -59,6 +59,7 @@ class VaultEvent:
     chain_hash: str = ""
     sealed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    auth_lineage: dict[str, Any] | None = None  # Phase 1: JWT auth snapshot
 
 
 @dataclass
@@ -77,7 +78,7 @@ class SupabaseVaultStore:
     def __init__(self):
         self.url = os.environ.get("SUPABASE_URL")
         self.key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-        self.client: Optional[Client] = None
+        self.client: Client | None = None
         if SUPABASE_AVAILABLE and self.url and self.key:
             try:
                 self.client = create_client(self.url, self.key)
@@ -116,6 +117,7 @@ class SupabaseVaultStore:
                 "epoch": event.sealed_at.isoformat(),
                 "prev_hash": event.prev_hash,
                 "chain_hash": event.chain_hash,
+                "auth_lineage": event.auth_lineage,
             }
             self.client.table("arifosmcp_vault_seals").insert(data).execute()
             return True
@@ -161,7 +163,7 @@ class PostgresVaultStore:
         try:
             async with pool.acquire() as conn:
                 await conn.execute(
-                    "INSERT INTO vault_events (event_id, event_type, session_id, actor_id, stage, verdict, payload, merkle_leaf, prev_hash, chain_hash, risk_tier) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+                    "INSERT INTO vault_events (event_id, event_type, session_id, actor_id, stage, verdict, payload, merkle_leaf, prev_hash, chain_hash, risk_tier, auth_lineage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
                     event.event_id,
                     event.event_type,
                     event.session_id,
@@ -173,6 +175,7 @@ class PostgresVaultStore:
                     event.prev_hash,
                     event.chain_hash,
                     event.risk_tier,
+                    json.dumps(event.auth_lineage) if event.auth_lineage else None,
                 )
             return True
         except Exception as e:
@@ -187,7 +190,9 @@ class PostgresVaultStore:
         risk_tier: str = None,
     ) -> str:
         """Initialize session in Postgres."""
-        session_id = f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
+        session_id = (
+            f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
+        )
         # For now, we return the generated ID; actual session table persistence can be added here
         return session_id
 
@@ -196,14 +201,28 @@ class PostgresVaultStore:
         spec_path = _RE_ROOT / "000" / "000_CONSTITUTION.md"
         if not spec_path.exists():
             return {"error": f"CORE_SPEC not found at {spec_path}", "floors": []}
-        
+
         # In a real implementation, we would parse the markdown
         # For now, return a status indicating the Spec is the source
         return {
             "source": str(spec_path),
             "version": "2.0",
             "status": "LOADED",
-            "floors": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]
+            "floors": [
+                "F1",
+                "F2",
+                "F3",
+                "F4",
+                "F5",
+                "F6",
+                "F7",
+                "F8",
+                "F9",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+            ],
         }
 
 
@@ -280,11 +299,12 @@ class VaultManager:
         declared_intent: str = None,
         risk_tier: str = None,
     ) -> str:
-        return await self.postgres.open_session(agent_id, anchor_seal_id, declared_intent, risk_tier)
+        return await self.postgres.open_session(
+            agent_id, anchor_seal_id, declared_intent, risk_tier
+        )
 
     async def load_constitution(self) -> dict:
         return await self.postgres.load_constitution()
-
 
     async def _supabase_async_seal(self, event: VaultEvent) -> None:
         """Async Supabase mirror write — fire-and-forget, non-blocking."""
@@ -379,7 +399,7 @@ class SupabaseStateStore:
 # ── HELPER ───────────────────────────────────────────────────
 
 
-def get_supabase() -> Optional[Client]:
+def get_supabase() -> Client | None:
     """Helper to get a Supabase client."""
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")

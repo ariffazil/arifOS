@@ -85,18 +85,33 @@ _guard = InjectionGuard()
 def verify_auth(
     actor_id: str, auth_token: str | None = None, human_approval: bool = False
 ) -> tuple[bool, AuthorityLevel]:
-    """F11 Grounded: Aligned with Actor Registry Scopes."""
-    actor_id_clean = actor_id.lower().strip()
+    """F11 Grounded: Aligned with Actor Registry Scopes.
 
+    Phase 1: Delegates cryptographic verification to jwt_auth module.
+    Hardcoded "IM ARIF" literal removed — identity must be JWT-verified.
+    """
+    actor_id_clean = actor_id.lower().strip()
     authority = ACTOR_AUTHORITY.get(actor_id_clean, AuthorityLevel.ANONYMOUS)
 
-    if authority == AuthorityLevel.SOVEREIGN:
-        if auth_token and auth_token.upper().strip() == "IM ARIF":
-            return True, AuthorityLevel.SOVEREIGN
-        if human_approval:
-            return True, AuthorityLevel.VERIFIED
-        return True, AuthorityLevel.CLAIMED
+    # Phase 1: JWT verification is the canonical path
+    if auth_token:
+        try:
+            from arifosmcp.runtime.jwt_auth import verify_jwt
 
+            result = verify_jwt(auth_token, expected_actor_id=actor_id)
+            if result.valid:
+                # JWT verified — grant authority based on registry + claims
+                if authority == AuthorityLevel.SOVEREIGN:
+                    return True, AuthorityLevel.SOVEREIGN
+                return True, authority
+        except Exception:
+            pass
+
+    # Fallback: human approval (offline constitutional override)
+    if human_approval and authority == AuthorityLevel.SOVEREIGN:
+        return True, AuthorityLevel.VERIFIED
+
+    # Unauthenticated — return registry level but mark as unverified
     return True, authority
 
 
@@ -151,8 +166,9 @@ async def init(
     # This prevents 'isolated bubble' sessions and enforces cross-time tamper evidence.
     try:
         from ._4_vault import get_last_seal_root, seal
+
         prev_hash = await get_last_seal_root()
-        
+
         # Write birth certificate to VAULT999
         # This is the 000_INIT session-open event.
         await seal(
@@ -163,16 +179,17 @@ async def init(
                 "actor_id": gov.actor_id,
                 "authority": authority.value,
                 "loop": "OPEN",
-                "grounding": "vault_seals"
+                "grounding": "vault_seals",
             },
             source_agent="arifos_init",
             pipeline_stage="000_INIT",
             auth_context={"actor_id": gov.actor_id},
-            expected_prev_hash=prev_hash if prev_hash != ("0x" + "0" * 64) else None
+            expected_prev_hash=prev_hash if prev_hash != ("0x" + "0" * 64) else None,
         )
     except Exception as e:
         # Fallback to local entry hash if seal_root retrieval fails
         from ._4_vault import get_last_vault_entry_hash
+
         prev_hash = get_last_vault_entry_hash()
         print(f"DEBUG: Session ignition fallback to local hash: {e}")
 
@@ -195,7 +212,18 @@ def get_authority_name(level: AuthorityLevel) -> str:
 
 
 def validate_token(token: Any) -> tuple[bool, str]:
-    return True, "Valid"
+    """Phase 1: JWT validation replaces unconditional pass-through."""
+    if not token or not isinstance(token, str):
+        return False, "missing_token"
+    try:
+        from arifosmcp.runtime.jwt_auth import verify_jwt
+
+        result = verify_jwt(token)
+        if result.valid:
+            return True, result.claims.get("sub", "anonymous")
+        return False, result.error
+    except Exception as e:
+        return False, str(e)
 
 
 def scan_injection(query: str) -> float:

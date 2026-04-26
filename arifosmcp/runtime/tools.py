@@ -2286,6 +2286,14 @@ def _arif_vault_seal(
             amanah_score=0.91,
         )
         epistemic = EpistemicSnapshot(**judge_contract.epistemic_snapshot)
+
+        # Phase 1: Include auth_lineage snapshot if JWT-verified identity available
+        try:
+            from arifosmcp.runtime.jwt_auth import get_request_auth_lineage
+            auth_lineage = get_request_auth_lineage()
+        except Exception:
+            auth_lineage = None
+
         entry = {
             "id": entry_id,
             "timestamp": _now(),
@@ -2295,6 +2303,7 @@ def _arif_vault_seal(
             "judge_state_hash": judge_contract.state_hash,
             "judge_contract": judge_contract.model_dump(mode="json"),
             "delta_s_total": entropy.delta_S,
+            "auth_lineage": auth_lineage,
         }
         _VAULT_LEDGER.append(entry)
         _VAULT_ENTRY_REGISTRY[entry_id] = entry

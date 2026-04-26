@@ -128,8 +128,96 @@ def _header_preview(value: str) -> str:
     return f"{value[:4]}...{value[-4:]}"
 
 
+class ConstitutionalJWTAuthMiddleware:
+    """Verify JWT tokens and bind identity to scope.
+
+    Phase 1: Replaces header-derived identity with JWT-verified identity.
+    Kills x-arifos-user-id and x-arifos-sovereign-sig as identity sources.
+    actor_id derives ONLY from JWT.sub.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope.get("type") not in {"http", "websocket"}:
+            await self.app(scope, receive, send)
+            return
+
+        headers = _decode_headers(scope)
+        authorization = headers.get("authorization", "").strip()
+        token = ""
+        if authorization.lower().startswith("bearer "):
+            token = authorization[7:].strip()
+
+        # ── JWT Verification ──────────────────────────────────────────────
+        jwt_result = None
+        if token:
+            from arifosmcp.runtime.jwt_auth import is_enforce_mode, log_violation, verify_jwt
+
+            jwt_result = verify_jwt(token)
+            if not jwt_result.valid:
+                log_violation(
+                    token_preview=token[:8] + "..." if len(token) > 12 else "***",
+                    error=jwt_result.error,
+                    path=scope.get("path", ""),
+                )
+                if is_enforce_mode():
+                    response = JSONResponse(
+                        {
+                            "error": "unauthorized",
+                            "message": jwt_result.error,
+                            "x-constitutional-status": "DENIED",
+                        },
+                        status_code=401,
+                        headers={"X-Constitutional-Status": "DENIED"},
+                    )
+                    await response(scope, receive, send)
+                    return
+
+        # ── Identity Binding (JWT.sub ONLY) ───────────────────────────────
+        from arifosmcp.runtime.jwt_auth import set_request_auth_lineage
+
+        if jwt_result and jwt_result.valid:
+            scope["arifos_auth_verified"] = True
+            scope["arifos_actor_id"] = jwt_result.claims.get("sub", "anonymous")
+            scope["arifos_auth_method"] = jwt_result.auth_method
+            scope["arifos_jwt_claims"] = jwt_result.claims
+            auth_lineage = jwt_result.to_auth_lineage()
+            scope["arifos_auth_lineage"] = auth_lineage
+            set_request_auth_lineage(auth_lineage)
+            logger.info(
+                "JWT_AUTH [method=%s] sub=%s path=%s",
+                jwt_result.auth_method,
+                jwt_result.claims.get("sub", "anonymous"),
+                scope.get("path", ""),
+            )
+        else:
+            # No valid JWT — mark as unauthenticated but allow through (observe mode)
+            scope["arifos_auth_verified"] = False
+            scope["arifos_actor_id"] = "anonymous"
+            scope["arifos_auth_method"] = "none"
+            scope["arifos_jwt_claims"] = {}
+            scope["arifos_auth_lineage"] = None
+            set_request_auth_lineage(None)
+
+        async def send_with_auth_header(message: Message) -> None:
+            if message.get("type") == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers["X-Constitutional-Status"] = (
+                    "VERIFIED" if scope.get("arifos_auth_verified") else "UNVERIFIED"
+                )
+            await send(message)
+
+        await self.app(scope, receive, send_with_auth_header)
+
+
 class SovereignIdentityMiddleware:
-    """Preserve sovereign auth headers across HTTP/WebSocket transport boundaries."""
+    """DEPRECATED — Replaced by ConstitutionalJWTAuthMiddleware.
+
+    Preserved for compatibility during Phase 1 migration.
+    Does NOT derive identity from headers. Headers are logged only.
+    """
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -142,48 +230,25 @@ class SovereignIdentityMiddleware:
         headers = _decode_headers(scope)
         sovereign_sig = headers.get("x-arifos-sovereign-sig", "").strip()
         authorization = headers.get("authorization", "").strip()
-        derived_subject = headers.get("x-arifos-user-id", "").strip()
 
-        if not derived_subject:
-            if sovereign_sig:
-                derived_subject = "sovereign"
-            elif authorization:
-                derived_subject = "authorized"
-
+        # Log legacy header presence for migration analysis — do NOT use for identity
         if sovereign_sig or authorization:
-            scope["arifos_sovereign_status"] = "888_JUDGE_ACTIVE"
-            scope["arifos_sovereign_subject"] = derived_subject or "anonymous"
-
-            normalized_headers = list(scope.get("headers", []))
-            if derived_subject and "x-arifos-user-id" not in headers:
-                normalized_headers.append((b"x-arifos-user-id", derived_subject.encode("latin-1")))
-            scope["headers"] = normalized_headers
-
             logger.info(
-                "F13 sovereign auth observed subject=%s sig=%s authorization=%s path=%s",
-                derived_subject or "anonymous",
+                "F13 legacy headers observed (not used for identity) sig=%s auth=%s path=%s",
                 _header_preview(sovereign_sig),
                 "present" if authorization else "absent",
                 scope.get("path", ""),
             )
 
-        async def send_with_sovereign_header(message: Message) -> None:
-            if (
-                message.get("type") == "http.response.start"
-                and scope.get("arifos_sovereign_status")
-            ):
-                headers = MutableHeaders(scope=message)
-                headers["X-Arifos-Sovereign-Status"] = str(scope["arifos_sovereign_status"])
-                headers["X-Arifos-Sovereign-Subject"] = str(
-                    scope.get("arifos_sovereign_subject", "anonymous")
-                )
-            await send(message)
-
-        await self.app(scope, receive, send_with_sovereign_header)
+        await self.app(scope, receive, send)
 
 
 class BearerAuthMiddleware:
-    """Optional Bearer-token gate for MCP HTTP surfaces."""
+    """DEPRECATED — Replaced by ConstitutionalJWTAuthMiddleware.
+
+    Preserved as pass-through during Phase 1 migration.
+    All auth enforcement now lives in ConstitutionalJWTAuthMiddleware.
+    """
 
     def __init__(
         self,
@@ -193,17 +258,13 @@ class BearerAuthMiddleware:
         self.app = app
         self.exempt_paths = tuple(exempt_paths or [])
 
-    @staticmethod
-    def _required_token() -> str | None:
-        return os.getenv("ARIFOS_API_KEY") or os.getenv("ARIFOS_API_TOKEN")
-
     def _is_exempt(self, path: str) -> bool:
         if path in self.exempt_paths:
             return True
         return path.startswith("/.well-known/")
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        # Auth disabled - public access allowed
+        # Pass-through: ConstitutionalJWTAuthMiddleware handles all auth
         await self.app(scope, receive, send)
         return
 
@@ -388,6 +449,7 @@ def _build_http_middleware() -> list[Middleware]:
 
     # Add default Accept header for universal compatibility (must be first)
     middleware.append(Middleware(AgnosticAcceptMiddleware))
+    middleware.append(Middleware(ConstitutionalJWTAuthMiddleware))
     middleware.append(Middleware(SovereignIdentityMiddleware))
 
     # Catch arifOS errors early
@@ -492,6 +554,7 @@ class _HealthEndpointMiddleware:
         # Only handle /health and /metrics - let all other routes pass through
         if path == "/health" and method == "GET":
             from starlette.responses import JSONResponse
+
             response = JSONResponse(
                 {
                     "status": "healthy",
@@ -505,13 +568,12 @@ class _HealthEndpointMiddleware:
             return
 
         if path == "/metrics" and method == "GET":
-            from starlette.responses import Response
-
             from arifosmcp.runtime.metrics import (
                 CONTENT_TYPE_LATEST,
                 generate_latest,
                 update_prometheus_metrics,
             )
+            from starlette.responses import Response
 
             update_prometheus_metrics()
 

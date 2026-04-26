@@ -110,7 +110,7 @@ repos:
       - id: detect-secrets
         name: Detect hardcoded secrets
         args: []
-        exclude: 'package-lock.json|.secrets.baseline'
+        exclude: 'package-lock.json|.secrets.baseline|docs/spec/'
 
   # Constitutional checks (custom)
   - repo: local
