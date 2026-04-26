@@ -52,7 +52,7 @@ class ToolStage(str, Enum):
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_session_init": {
         "name": "arif_session_init",
-        "description": "000_INIT: Session bootstrap + identity binding.",
+        "description": "000_INIT: + birth — Session bootstrap + identity binding.",
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
@@ -63,7 +63,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
-        "description": "111_SENSE: Multimodal reality observation.",
+        "description": "111_SENSE: + contact reality — Multimodal reality observation.",
         "access": "public",
         "stage": ToolStage.SENSE,
         "lane": TrinityLane.AGI,
@@ -73,7 +73,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_evidence_fetch": {
         "name": "arif_evidence_fetch",
-        "description": "222_FETCH: Verified external evidence retrieval.",
+        "description": "222_FETCH: + gather — Verified external evidence retrieval.",
         "access": "public",
         "stage": ToolStage.FETCH,
         "lane": TrinityLane.AGI,
@@ -83,7 +83,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_mind_reason": {
         "name": "arif_mind_reason",
-        "description": "333_MIND: Symbolic reasoning kernel.",
+        "description": "333_MIND: + reason — Symbolic reasoning kernel.",
         "access": "public",
         "stage": ToolStage.MIND,
         "lane": TrinityLane.AGI,
@@ -93,7 +93,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
-        "description": "666_HEART: Ethical critique and impact assessment.",
+        "description": "666_HEART: + feel consequence — Ethical critique and impact assessment.",
         "access": "public",
         "stage": ToolStage.HEART,
         "lane": TrinityLane.ASI,
@@ -103,7 +103,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_kernel_route": {
         "name": "arif_kernel_route",
-        "description": "444_KERNEL: Central orchestration and tool routing.",
+        "description": "444_KERNEL: + route — Central orchestration and tool routing.",
         "access": "public",
         "stage": ToolStage.KERNEL,
         "lane": TrinityLane.AGI,
@@ -113,7 +113,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_reply_compose": {
         "name": "arif_reply_compose",
-        "description": "444_REPLY: Governed response composition.",
+        "description": "444_REPLY: + express — Governed response composition.",
         "access": "public",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
@@ -123,7 +123,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_memory_recall": {
         "name": "arif_memory_recall",
-        "description": "555_MEMORY: Associative retrieval from VAULT999.",
+        "description": "555_MEMORY: + remember — Associative retrieval from VAULT999.",
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
@@ -133,7 +133,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_gateway_connect": {
         "name": "arif_gateway_connect",
-        "description": "666_GATEWAY: Federated cross-agent bridge.",
+        "description": "666_GATEWAY: connect outward — Federated cross-agent bridge.",
         "access": "public",
         "stage": ToolStage.GATEWAY,
         "lane": TrinityLane.ASI,
@@ -143,7 +143,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_judge_deliberate": {
         "name": "arif_judge_deliberate",
-        "description": "888_JUDGE: Final constitutional arbitration.",
+        "description": "888_JUDGE: < arbitrate — Final constitutional arbitration.",
         "access": "public",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
@@ -153,7 +153,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_vault_seal": {
         "name": "arif_vault_seal",
-        "description": "999_VAULT: Immutable ledger anchoring.",
+        "description": "999_VAULT: + seal finally — Immutable ledger anchoring.",
         "access": "public",
         "stage": ToolStage.VAULT,
         "lane": TrinityLane.APEX,
@@ -163,7 +163,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_forge_execute": {
         "name": "arif_forge_execute",
-        "description": "010_FORGE: System modification and build execution.",
+        "description": "010_FORGE: < build — System modification and build execution.",
         "access": "public",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.AGI,
@@ -173,7 +173,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_ops_measure": {
         "name": "arif_ops_measure",
-        "description": "777_OPS: Resource thermodynamics.",
+        "description": "777_OPS: measure — Resource thermodynamics.",
         "access": "public",
         "stage": ToolStage.OPS,
         "lane": TrinityLane.AGI,
