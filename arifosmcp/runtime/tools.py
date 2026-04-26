@@ -1741,6 +1741,24 @@ def _arif_forge_execute(
     judge_state_hash: str | None = None,
     vault_entry_id: str | None = None,
 ) -> dict[str, Any]:
+    # dry_run mode — skip floor checks, return simulation immediately
+    if mode == "dry_run":
+        return {
+            "status": "OK",
+            "tool": "arif_forge_execute",
+            "result": {
+                "forge_dry_run": "PASS",
+                "would_execute_steps": ["parse_query", "resolve_dependencies", "validate_floors", "execute_build", "seal_artifact"],
+                "files_to_modify": ["[simulated — no actual files]"],
+                "rollback_plan": ["remove_artifact_id", "restore_file_timestamps", "clear_build_cache"],
+                "permanent_change": False,
+                "requires_ack_irreversible": True,
+                "note": "dry_run — no files modified, no commands executed",
+            },
+            "meta": {},
+            "timestamp": _now(),
+        }
+
     floor_check = check_floors("arif_forge_execute", {"ack_irreversible": ack_irreversible}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return ForgeOutput(
