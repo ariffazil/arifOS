@@ -7,10 +7,27 @@ Preserves all capability — zero capability loss.
 Axis mapping:
   Constitutional Primordials (11): arifosmcp/runtime/tools.py — UNCHANGED
   Computation Engine 1: T_* physics/math → arifos_compute_physics
-  Computation Engine 2: V_* + T_irr + T_growth → arifos_compute_finance  
+  Computation Engine 2: V_* + T_irr + T_growth → arifos_compute_finance
   Computation Engine 3: V_civ + M_game + M_cross → arifos_compute_civilization
   Oracle Bio: P_well_* + E_well_* → arifos_oracle_bio
   Oracle World: P_geox_* + P_wealth_* → arifos_oracle_world
+
+EXTENSION HOOKS PATTERN (from archive/2026-04-01_agent_zero_eureka_extraction.md):
+  Before deployment: wire F9_TAQWA and F11_AUDIT into the tool dispatch layer.
+  class Extension:
+      async def before_execution(self, **kwargs):  # F9 TAQWA constitutional check
+          pass
+      async def after_execution(self, result, **kwargs):  # F11 AUDIT → VAULT999
+          pass
+  Maps cleanly to: before_execution → F9_TAQWA check; after_execution → F11_AUDIT logging.
+
+DELTA BUNDLE SPEC (from archive/333/README.md):
+  arif_mind_reason output must include: facts, scars, floor_scores, entropy, omega_0.
+  See: tools/mind_reason.py _build_delta_bundle()
+
+QUANTUM SABAR PROTOCOL (from archive/333/QUANTUM_SABAR_PROTOCOL.md):
+  Byzantine continuity when W1/W3 unreachable. partition_mode: ONLINE | PURGATORY | DEAD.
+  See: tools/sense_observe.py
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
