@@ -295,6 +295,8 @@ AAA_TOOL_STAGE_MAP = {
     "arifos_fetch": None,
     "arifos_reply": None,
     "arifos_gateway": "888_OMEGA",
+    "arif_ping":             "PROBE",
+    "arif_selftest":         "PROBE",
     "arifos_health": "111_SENSE",
 }
 
@@ -324,6 +326,8 @@ TRINITY_BY_TOOL = {
     "arifos_fetch": "DELTA Δ",
     "arifos_reply": "PSI Ψ",
     "arifos_gateway": "OMEGA Ω",
+    "arif_ping":             "PROBE",
+    "arif_selftest":         "PROBE",
     "arifos_health": "DELTA Δ",
 }
 
