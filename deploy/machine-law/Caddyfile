@@ -75,19 +75,19 @@ mcp.arif-fazil.com {
     root * /var/www/html/mcp
 
     handle /mcp* {
-        reverse_proxy arifosmcp:8080
+        reverse_proxy arifosmcp:3000
     }
     handle /health {
-        reverse_proxy arifosmcp:8080
+        reverse_proxy arifosmcp:3000
     }
     handle /tools {
-        reverse_proxy arifosmcp:8080
+        reverse_proxy arifosmcp:3000
     }
     handle /metadata {
-        reverse_proxy arifosmcp:8080
+        reverse_proxy arifosmcp:3000
     }
     handle /ready {
-        reverse_proxy arifosmcp:8080
+        reverse_proxy arifosmcp:3000
     }
 
     # Static surfaces (Human readable)
@@ -109,7 +109,7 @@ mcp.arif-fazil.com {
 
     # Fallback
     handle {
-        reverse_proxy arifosmcp:8080
+        reverse_proxy arifosmcp:3000
     }
 }
 
