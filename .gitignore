@@ -135,3 +135,14 @@ eval_results.*
 *_output.*
 *.pyc
 __pycache__/
+
+# Runtime & secrets
+SECRETS.md
+state/
+memory/
+.openclaw/
+
+# Operator scratch / bootstrap noise
+codex/
+notes/
+skills/github-readme-dynamic/
