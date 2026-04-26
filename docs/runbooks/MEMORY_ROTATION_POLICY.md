@@ -7,7 +7,7 @@ Memory files in `memory/` are **session-scoped operational context**.
 | State | Condition | Action |
 |---|---|---|
 | `active` | File date = today | Keep in `memory/` |
-| `expired` | File date < today | Archive to `archive/memory/YYYY/MM/` |
+| `expired` | File date < today | Archive to `wiki/pages/YYYY-MM/` |
 | `compress` | Monthly accumulation | Synthesize into `wiki/log.md` session summary |
 
 ## TTL
@@ -19,9 +19,9 @@ filename date < today.
 
 ## Destination
 ```
-archive/memory/YYYY/MM/<filename>.md
+wiki/pages/YYYY-MM/<filename>.md
 ```
 
 ## Synthesis cadence
-At month boundary: compress `archive/memory/YYYY/MM/*.md` into a single
+At month boundary: compress `wiki/pages/YYYY-MM/*.md` into a single
 `wiki/log.md` monthly-summary entry.

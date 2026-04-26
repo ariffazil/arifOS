@@ -3,8 +3,8 @@ arifosmcp/runtime/wisdom_quotes.py — Governed Wisdom Registry v2
 
 Unified quote corpus mapped from real VPS sources:
   - /root/arifOS/arifosmcp/runtime/constitutional_quotes.json (100 tool-mapped quotes)
-  - /root/arifOS/archive/DATA/wisdom_quotes.json (arifOS Foundry corpus)
-  - /root/arifOS/archive/DATA/philosophy_atlas.json (27-zone S×G×Ω atlas)
+  - /root/arifOS/wiki/raw/wisdom_quotes.json (arifOS Foundry corpus)
+  - /root/arifOS/wiki/pages/ (philosophy atlas — see wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md)
 
 v2 additions:
   - attribution_confidence
