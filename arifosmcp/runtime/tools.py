@@ -2144,9 +2144,7 @@ def _arif_ping(
     # Check forge status
     forge_status = "dry_run_only"
 
-    return {
-        "status": "OK",
-        "tool": "arif_ping",
+    payload = {
         "ok": True,
         "service": "arifOS MCP",
         "version": os.environ.get("ARIFOS_VERSION", "v2026.04.26"),
@@ -2155,8 +2153,9 @@ def _arif_ping(
         "session_required": True,
         "vault": vault_status if not vault_writable else "ready",
         "forge": forge_status,
-        "timestamp": _dt.datetime.now(_dt.timezone.utc).isoformat(),
     }
+    # Use _ok() wrapper for constitutional metadata (delta_S, timestamp, irreversibility)
+    return _ok("arif_ping", payload, delta_S=0.0)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
