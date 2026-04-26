@@ -1,3 +1,6 @@
-[submodule "geox"]
-	path = geox
+[submodule "GEOX"]
+	path = GEOX
 	url = https://github.com/ariffazil/GEOX.git
+[submodule "arifOS"]
+	path = arifOS
+	url = https://github.com/ariffazil/arifOS.git
