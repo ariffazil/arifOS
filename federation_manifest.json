@@ -1,0 +1,223 @@
+{
+  "$schema": "https://arif-fazil.com/schemas/federation-manifest/v1.json",
+  "description": "arifOS Federation Constitution v2 — Domain trust boundaries, governance topology, and epistemic contracts. Governs all MCP servers in the arifOS constitutional federation.",
+  "version": "2.0.0",
+  "effective_date": "2026-04-26",
+  "last_updated": "2026-04-26",
+  "update_hash": "SEE_GIT_COMMIT",
+  "commit": "395f3e36",
+
+  "kernel": {
+    "name": "arifOS",
+    "server_id": "arifOS-prod-001",
+    "version": "2026.04.26-KANON",
+    "constitution_hash": "sha256:SEE_000_ROOT_K000_CONSTITUTION",
+    "domain": "GOVERNANCE",
+    "trust_level": "SOVEREIGN",
+    "may_judge": true,
+    "may_seal": true,
+    "may_delegate": true,
+    "parent_governance": null,
+    "must_route_judgment_to": null,
+    "gateway": "https://arifOS.fastmcp.app/mcp",
+    "local": "http://localhost:8080"
+  },
+
+  "domains": {
+    "arifOS": {
+      "description": "Constitutional governance kernel — F1-F13 floors, VAULT999, 888_JUDGE, 999_VAULT",
+      "trust_level": "SOVEREIGN",
+      "may_judge": true,
+      "may_seal": true,
+      "may_compute": true,
+      "may_delegate": true,
+      "must_route_judgment_to": null,
+      "gateway": "https://arifOS.fastmcp.app/mcp",
+      "public_key_id": null,
+      "vault_required": true,
+      "escalation_tiers_enforced": true,
+      "claim_states_emitted": [
+        "INIT", "OBSERVED", "FETCHED", "REASONED", "COMPUTED",
+        "CRITIQUED", "JUDGED", "ROUTED", "CHECKED", "EXECUTED", "SEALED"
+      ]
+    },
+    "GEOX": {
+      "description": "Earth intelligence — subsurface, seismic, petrophysics, prospect evaluation",
+      "trust_level": "COMPUTE_ONLY",
+      "may_judge": false,
+      "may_seal": false,
+      "may_compute": true,
+      "may_delegate": false,
+      "must_route_judgment_to": "arifOS",
+      "gateway": "https://geoxarifOS.fastmcp.app/mcp",
+      "public_key_id": null,
+      "vault_required": false,
+      "escalation_tiers_enforced": true,
+      "claim_states_emitted": [
+        "LOADED", "QC", "COMPUTED", "OBSERVED", "VERIFIED",
+        "RENDERED", "DISCOVERY", "EVALUATED", "CHECKED", "MANAGED"
+      ],
+      "anti_hallucination_contract": {
+        "required_fields": [
+          "claim_state",
+          "confidence",
+          "evidence_refs",
+          "uncertainty_reason",
+          "data_quality",
+          "failure_modes",
+          "do_not_use_for"
+        ],
+        "claim_states_allowed": ["OBSERVED", "LOADED", "COMPUTED", "VERIFIED", "RENDERED", "EVALUATED", "DISCOVERY"],
+        "claim_states_forbidden": ["JUDGED", "SEALED", "APPROVED", "APPROVED_INVESTMENT"],
+        "confidence_threshold_for_investment": 0.80,
+        "required_evidence_refs_for_prospect": 3,
+        "failure_mode_obligation": "Every EVALUATED output must include failure_modes"
+      }
+    },
+    "WEALTH": {
+      "description": "Capital intelligence — NPV, EMV, crisis triage, civilizational stewardship",
+      "trust_level": "ADVISORY_COMPUTE",
+      "may_judge": false,
+      "may_seal": false,
+      "may_compute": true,
+      "may_delegate": false,
+      "must_route_judgment_to": "arifOS",
+      "gateway": "https://wealth.fastmcp.app/mcp",
+      "public_key_id": null,
+      "vault_required": true,
+      "escalation_tiers_enforced": true,
+      "claim_states_emitted": [
+        "COMPUTED", "SIMULATED", "OBSERVED", "FETCHED", "AUDITED",
+        "SCORED", "DECIDED", "ALLOCATED", "TRIAGED", "GOVERNED",
+        "COORDINATED", "SOLVED", "RECORDED", "SNAPSHOTTED", "RECONCILED",
+        "VALIDATED", "INIT"
+      ],
+      "anti_hallucination_contract": {
+        "required_fields": [
+          "claim_state",
+          "confidence",
+          "input_hash",
+          "output_hash",
+          "model_version"
+        ],
+        "claim_states_allowed": ["COMPUTED", "SIMULATED", "OBSERVED", "AUDITED", "SCORED", "TRIAGED", "GOVERNED", "RECORDED"],
+        "claim_states_forbidden": ["JUDGED", "SEALED"],
+        "capital_threshold_override_tier": 3
+      }
+    },
+    "WELL": {
+      "description": "Biological substrate — operator cognitive pressure monitor",
+      "trust_level": "META_OBSERVER",
+      "may_judge": false,
+      "may_seal": false,
+      "may_compute": false,
+      "may_delegate": false,
+      "must_route_judgment_to": null,
+      "gateway": null,
+      "public_key_id": null,
+      "vault_required": false,
+      "escalation_tiers_enforced": false,
+      "claim_states_emitted": ["OBSERVED"],
+      "is_sidecar": true,
+      "not_public_mcp": true
+    }
+  },
+
+  "claim_tag_registry": {
+    "INIT": {"meaning": "System initialization, identity binding", "domain": "arifOS"},
+    "OBSERVED": {"meaning": "Direct observation or data retrieval", "domain": "ANY"},
+    "LOADED": {"meaning": "Data loaded into session context", "domain": "GEOX"},
+    "QC": {"meaning": "Quality control check performed", "domain": "GEOX"},
+    "FETCHED": {"meaning": "External source fetched", "domain": "ANY"},
+    "COMPUTED": {"meaning": "Deterministic calculation result", "domain": "ANY"},
+    "SIMULATED": {"meaning": "Monte Carlo or probabilistic simulation", "domain": "WEALTH"},
+    "REASONED": {"meaning": "LLM interpretive reasoning", "domain": "arifOS"},
+    "CRITIQUED": {"meaning": "Ethical/risk critique by LLM", "domain": "arifOS"},
+    "JUDGED": {"meaning": "Constitutional adjudication (arifOS ONLY)", "domain": "arifOS"},
+    "VERIFIED": {"meaning": "Cross-checked against constraints", "domain": "GEOX"},
+    "RENDERED": {"meaning": "Visualization output", "domain": "GEOX"},
+    "DISCOVERY": {"meaning": "Tool/skill discovery query", "domain": "ANY"},
+    "CHECKED": {"meaning": "Policy or floor check", "domain": "ANY"},
+    "MANAGED": {"meaning": "Lifecycle management action", "domain": "arifOS"},
+    "AUDITED": {"meaning": "Compliance audit performed", "domain": "WEALTH"},
+    "SCORED": {"meaning": "Scoring computation", "domain": "WEALTH"},
+    "DECIDED": {"meaning": "Decision under uncertainty", "domain": "WEALTH"},
+    "ALLOCATED": {"meaning": "Budget/resource allocation", "domain": "WEALTH"},
+    "TRIAGED": {"meaning": "Crisis triage", "domain": "WEALTH"},
+    "GOVERNED": {"meaning": "Civilizational governance", "domain": "WEALTH"},
+    "COORDINATED": {"meaning": "Multi-party coordination", "domain": "WEALTH"},
+    "SOLVED": {"meaning": "Game theory solution", "domain": "WEALTH"},
+    "RECORDED": {"meaning": "Immutable record written", "domain": "WEALTH"},
+    "SNAPSHOTTED": {"meaning": "Point-in-time state capture", "domain": "ANY"},
+    "RECONCILED": {"meaning": "Cross-source reconciliation", "domain": "WEALTH"},
+    "VALIDATED": {"meaning": "Schema/structure validation", "domain": "ANY"},
+    "ROUTED": {"meaning": "Routing decision, no mutation", "domain": "arifOS"},
+    "EXECUTED": {"meaning": "System mutation performed", "domain": "arifOS"},
+    "SEALED": {"meaning": "Immutable ledger entry created (arifOS ONLY)", "domain": "arifOS"},
+    "EVALUATED": {"meaning": "Prospect or asset evaluation", "domain": "GEOX"},
+    "COMPOSED": {"meaning": "Human-facing composition by LLM", "domain": "arifOS"},
+    "RECALLED": {"meaning": "Memory retrieved from vault", "domain": "arifOS"},
+    "MEASURED": {"meaning": "Thermodynamic/operational measurement", "domain": "arifOS"},
+    "VINTAGED": {"meaning": "Dated to specific time period", "domain": "WEALTH"},
+    "INFERRED": {"meaning": "Reasoned but not directly proven", "domain": "GEOX"},
+    "INTERPRETED": {"meaning": "Human or model geological interpretation", "domain": "GEOX"}
+  },
+
+  "escalation_tiers": {
+    "0": {"label": "AUTONOMOUS", "description": "No human confirmation required"},
+    "1": {"label": "HUMAN_CONFIRM", "description": "Explicit human acknowledgment before irreversible step"},
+    "2": {"label": "MULTI_AGENT", "description": "Requires quorum from multiple domain agents"},
+    "3": {"label": "CONSTITUTIONAL_FREEZE", "description": "Full governance halt, sovereign must intervene"}
+  },
+
+  "vault_seal_contract": {
+    "required_fields": [
+      "seal_id",
+      "actor_id",
+      "jwt_sub",
+      "tool_name",
+      "tool_version",
+      "claim_state",
+      "escalation_tier",
+      "input_hash",
+      "output_hash",
+      "timestamp_utc"
+    ],
+    "optional_fields": [
+      "evidence_refs",
+      "confidence",
+      "session_id",
+      "epoch_id",
+      "domain",
+      "failure_modes",
+      "uncertainty_reason"
+    ],
+    "actor_id_policy": "MUST match jwt_sub — spoofed actor_id is a F11 violation",
+    "tool_version_policy": "MUST match entry in tool_versions.json — unknown versions rejected after enforce mode",
+    "claim_state_policy": "MUST be in claim_tag_registry",
+    "irreversible_writes_require": "T3 escalation_tier + human_signature + vault_entry_id"
+  },
+
+  "jwt_enforcement_policy": {
+    "observe_mode": "Log violations but do not block. Collect telemetry for 24h minimum.",
+    "enforce_mode": "Block missing/invalid JWT. Reject actor_id mismatch. Block service-role writes.",
+    "internal_writers_require": "Valid short-lived internal JWT with arifOS-internal issuer",
+    "external_clients_require": "Valid Supabase OAuth JWT with verified sub claim",
+    "actor_id_policy": "jwt sub claim MUST match actor_id in payload"
+  },
+
+  "health_endpoints": {
+    "required": ["/health", "/identity"],
+    "optional": ["/manifest"],
+    "identity_response": {
+      "server": "string",
+      "server_id": "string",
+      "version": "string",
+      "domain": "string",
+      "trust_level": "string",
+      "may_judge": "boolean",
+      "parent_governance": "string | null",
+      "federation_manifest_version": "string"
+    }
+  }
+}
