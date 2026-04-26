@@ -456,30 +456,16 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
                 "required_parameters": ["target"],
                 "returns": ["target", "path", "hops"],
             },
-            "stage": {
-                "purpose": "Query or advance the session stage (000–999).",
-                "required_parameters": ["stage"],
-                "returns": ["stage", "lane", "allowed_tools"],
-            },
-            "lane": {
-                "purpose": "Switch cognitive lane (AGI | ASI | APEX).",
-                "required_parameters": ["target"],
-                "returns": ["lane", "posture"],
-            },
-            "list": {
-                "purpose": "Enumerate available tools for the current session.",
-                "returns": ["tools"],
-            },
             "status": {
                 "purpose": "Return kernel health and routing table state.",
                 "returns": ["status", "routing_table"],
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["route", "stage", "lane", "list", "status"], "default": "route"},
-            "target": {"type": "string", "meaning": "Target tool, endpoint, or lane name.", "required_when": [{"mode": "route"}, {"mode": "lane"}]},
+            "mode": {"type": "string", "allowed_values": ["route", "status"], "default": "route"},
+            "target": {"type": "string", "meaning": "Target tool, endpoint, or lane name.", "required_when": [{"mode": "route"}]},
             "task": {"type": "string", "meaning": "Task description for routing resolution."},
-            "stage": {"type": "string", "meaning": "Explicit stage override (000–999).", "required_when": [{"mode": "stage"}]},
+            "stage": {"type": "string", "meaning": "Explicit stage override (000–999)."},
         },
         "outputs": {
             "path": {"meaning": "Suggested tool sequence from current state to target."},
@@ -489,7 +475,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
         "next_recommended_tools": ["arif_sense_observe", "arif_mind_reason", "arif_ops_measure"],
-        "authority_boundary": {"may": ["route", "list", "query"], "may_not": ["execute", "judge", "seal"]},
+        "authority_boundary": {"may": ["route", "query"], "may_not": ["execute", "judge", "seal"]},
         "examples": {
             "good": [
                 {"user_intent": "What tool should I use next?", "call": {"tool": "arif_kernel_route", "args": {"mode": "route", "target": "arif_judge_deliberate"}}}
