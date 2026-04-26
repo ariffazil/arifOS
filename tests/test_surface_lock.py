@@ -13,18 +13,18 @@ import pytest
 
 
 def test_canonical_tool_count():
-    """Surface must be 15 registered tools: 13 constitutional + 2 probes."""
+    """Surface must be 13 canonical capability tools. Diagnostics are internal runtime only."""
     from arifosmcp.constitutional_map import (
         CANONICAL_TOOLS,
         list_constitutional_tools,
         list_probe_tools,
     )
 
-    assert len(CANONICAL_TOOLS) == 15, (
-        f"Surface drift: expected 15 tools, got {len(CANONICAL_TOOLS)}. VOID."
+    assert len(CANONICAL_TOOLS) == 13, (
+        f"Surface drift: expected 13 tools, got {len(CANONICAL_TOOLS)}. VOID."
     )
     assert len(list_constitutional_tools()) == 13
-    assert len(list_probe_tools()) == 2
+    assert len(list_probe_tools()) == 0
 
 
 def test_tool_naming_convention():
@@ -115,9 +115,9 @@ def test_meta_skills_registered():
 
 
 def test_version_string():
-    """Version must be 2026.04.24-KANON."""
+    """Version must be 2026.04.26-KANON."""
     from arifosmcp import __version__
 
-    assert __version__ == "2026.04.24-KANON", (
-        f"Version drift: expected 2026.04.24-KANON, got {__version__}. VOID."
+    assert __version__ == "2026.04.26-KANON", (
+        f"Version drift: expected 2026.04.26-KANON, got {__version__}. VOID."
     )

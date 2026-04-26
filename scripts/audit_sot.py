@@ -125,17 +125,16 @@ def main() -> int:
 
     check_contains("README.md", readme, f"Package version | `{package_version}`", failures)
     check_contains("README.md", readme, f"Runtime version | `{runtime_version}`", failures)
-    check_contains("README.md", readme, "15 total: 13 constitutional tools plus 2 public probes", failures)
+    check_contains("README.md", readme, "13 canonical MCP capability tools", failures)
     check_contains("README.md", readme, "Canonical prompts | 8", failures)
     check_contains("README.md", readme, "Canonical resources | 5", failures)
-    check_contains("pyproject.toml", pyproject, "15 registered MCP tools", failures)
+    check_contains("pyproject.toml", pyproject, "13 canonical MCP capability tools", failures)
     check_contains("Dockerfile", dockerfile, f"ARIFOS_VERSION={runtime_version}", failures)
     check_contains("Dockerfile", dockerfile, f'server.version="{runtime_version}"', failures)
-    check_contains("Dockerfile", dockerfile, "15 registered MCP tools", failures)
+    check_contains("Dockerfile", dockerfile, "13 canonical MCP capability tools", failures)
     check_contains("Makefile", makefile, "http://localhost:8080/health", failures)
     check_contains("Makefile", makefile, "python scripts/audit_sot.py", failures)
-    check_contains("arifosmcp/server.py", server, "15-tool runtime surface", failures)
-    check_contains("arifosmcp/server.py", server, "probe_surface", failures)
+    check_contains("arifosmcp/server.py", server, "13 canonical MCP capability tools", failures)
 
     if re.search(r"localhost:8000/health", makefile):
         failures.append("Makefile still references localhost:8000/health")

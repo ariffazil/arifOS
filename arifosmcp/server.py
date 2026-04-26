@@ -70,7 +70,7 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
 
 mcp = FastMCP(
     "ARIFOS MCP",
-    version="2026.04.24-KANON",
+    version="2026.04.26-KANON",
     website_url="https://arifosmcp.arif-fazil.com",
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
@@ -154,7 +154,7 @@ async def horizon_health(request: Request) -> JSONResponse:
         {
             "status": "healthy",
             "service": "arifos-mcp-kanon",
-            "version": "2026.04.24-KANON",
+            "version": "2026.04.26-KANON",
             "gateway": "unified",
             "tools": len(v2_tools_registered),
             "prompts": len(v2_prompts_registered),
@@ -271,7 +271,7 @@ def main() -> None:
 
     async def run_server():
         print("=" * 60)
-        print("ARIFOS MCP v2026.04.24-KANON — CANONICAL SURFACE")
+        print("ARIFOS MCP v2026.04.26-KANON — CANONICAL SURFACE")
         print("=" * 60)
         print(f"   Server: {mcp.name}")
         print(f"   Version: {mcp.version}")
