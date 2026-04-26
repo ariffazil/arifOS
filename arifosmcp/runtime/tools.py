@@ -1978,13 +1978,6 @@ def _arif_forge_execute(
         )
         return output.model_dump(mode="json")
 
-    return ForgeOutput(
-        status="HOLD",
-        result={},
-        manifest=ForgeManifest(status=ManifestStatus.HOLD),
-        meta={"reason": f"Unknown mode: {mode}"},
-        timestamp=_now(),
-    ).model_dump(mode="json")
     if mode == "dry_run":
         return {
             "status": "OK",
@@ -2001,6 +1994,13 @@ def _arif_forge_execute(
             "meta": {},
             "timestamp": _now(),
         }
+    return ForgeOutput(
+        status="HOLD",
+        result={},
+        manifest=ForgeManifest(status=ManifestStatus.HOLD),
+        meta={"reason": f"Unknown mode: {mode}"},
+        timestamp=_now(),
+    ).model_dump(mode="json")
 
 
 async def _arif_forge_execute_tool(
