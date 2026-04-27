@@ -61,3 +61,65 @@ No-cache headers added for .well-known/* route. Won't fix existing cached 404s b
 - `.well-known/arifos.json`: Trinity manifest written
 - `.well-known/000_GENESIS.md`: Genesis Chamber machine-readable file written
 - `.well-known/did.json`: Placeholder key replaced with real Ed25519 multikey
+
+### Full round 2 — 2026-04-27
+
+NEW FILES CREATED:
+- /root/sites/arif/999/credentials.json — public credential manifest (geoscientist + arifOS architect)
+- /root/sites/arif/999/keys.json — Ed25519 Multikey (placeholder replaced with real key: 7QEoRWyuHag0bUvDP+X59n6Bb3ZCwBwTQHz8Lylanllj1Q)
+- /root/sites/arif/999/revocation.json — empty void registry (structure correct)
+- /root/sites/arif/999/constitution.hash.json — git commit hash anchor (df19560b6e63955328559d1178687974b4afaa4c)
+- /root/sites/arif/.well-known/arif-human.json — human authority manifest (valid JSON, complete)
+- /root/sites/arif/.well-known/arifos.json — Trinity manifest
+- /root/sites/arif/.well-known/000_GENESIS.md — Genesis Chamber machine-readable
+- /root/sites/arif/llms.txt — full AI instruction surface
+
+SITE PAGE CHANGES:
+- /index.html: Trinity labels updated (Ψ HUMAN ROOT / Δ AGENTIC COCKPIT / ☸ GOVERNANCE MACHINE)
+- /000/index.html: subtitle → Genesis Chamber, DITEMPA BUKAN DIBERI added, "Intelligence must reduce confusion" added
+- /999/index.html: W3C DID/VC wording, JSON-LD links, proof-cards for all 4 /999 JSON files
+
+CLOUDFLARE CACHE STILL BLOCKING:
+- arif-human.json, did.json, arifos.json, 000_GENESIS.md → 404 from Cloudflare (origin is correct)
+- API token lacks "Cache Purge" permission
+- User must manually purge via Cloudflare Dashboard
+
+KEY VAULT:
+- Private key: /root/sites/arif/.vault/did-ed25519.pem (Ed25519)
+- Public key (multikey): 7QEoRWyuHag0bUvDP+X59n6Bb3ZCwBwTQHz8Lylanllj1Q
+
+### Final round - 2026-04-27 07:00 UTC
+
+CRITICAL FINDING: The ASI bot was partially correct, but the diagnosis was wrong.
+
+ACTUAL PROBLEM (Caddy routing):
+- `/999/*.json` files: Were returning HTTP 200 with HTML body (Caddy's file_server without try_files was falling through to index.html for URIs that didn't exactly match file paths)
+- FIX: Added try_files {path} /index.html to the /999/* route (already present in Sovereign Caddyfile at /root/arifOS/Caddyfile line 51-52)
+- `.well-known/*` files: Routing was CORRECT but Cloudflare cached old 404s
+
+TWO CADDYFILES EXIST:
+- /root/Caddyfile = aasic-landing style (NOT LIVE in container)
+- /root/arifOS/Caddyfile = arifOS Sovereign Caddyfile (LIVE, mapped via docker-compose to /etc/caddy/Caddyfile)
+
+IMPORTANT: All future Caddyfile changes must be made to /root/arifOS/Caddyfile, NOT /root/Caddyfile.
+
+Caddyfile fix committed to /root/arifOS (git push successful: 82361d5b)
+
+ALL JSON FILES NOW SERVING CORRECTLY (direct to Caddy):
+- /.well-known/did.json → 200 application/json ✅
+- /.well-known/arif-human.json → 200 application/json ✅
+- /.well-known/arifos.json → 200 application/json ✅
+- /.well-known/000_GENESIS.md → 200 text/markdown ✅
+- /999/credentials.json → 200 application/json ✅
+- /999/keys.json → 200 application/json ✅
+- /999/revocation.json → 200 application/json ✅
+- /999/constitution.hash.json → 200 application/json ✅
+
+CLOUDFLARE CACHE STILL BLOCKS 4 routes:
+- /.well-known/did.json (404 from Cloudflare, origin is 200)
+- /.well-known/arif-human.json (404 from Cloudflare, origin is 200)
+- /.well-known/arifos.json (404 from Cloudflare, origin is 200)
+- /.well-known/000_GENESIS.md (404 from Cloudflare, origin is 200)
+
+Cloudflare API token (from /root/.cloudflare_token) lacks "Cache Purge" permission.
+Manual purge required: Cloudflare Dashboard → Caching → Configuration → Purge Everything
