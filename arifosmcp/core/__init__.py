@@ -1,13 +1,13 @@
 """
-arifosmcp/core/ — Legacy redirect.
-Canonical core is at repository root: /core/
-arifosmcp/core/floors.py and core/governance_kernel.py are kept for
-backwards compatibility only; new code should import from root /core/
+arifosmcp/core/ — re-exports from root /core/ for cross-version compatibility.
+
+Note: /app/arifosmcp/core/ and /app/core/ are separate directories.
+The root core/ lives at /app/core/ (canonical). This package's core/
+is for backwards compat only — it re-exports root symbols.
 """
-# 3-dot relative imports escape arifosmcp/core/ sibling collision
-# and reach root /app/core/ where judgment.py actually lives
-from ..core import *  # noqa: F401,F403
 from ..core.floors import *  # noqa: F401,F403
 from ..core.governance_kernel import *  # noqa: F401,F403
-from ..core.judgment import *  # noqa: F401,F403
 from ..core.uncertainty_engine import *  # noqa: F401,F403
+# judgment.py is not re-exported — constitution_kernel.py imports
+# from root /core/judgment.py directly via absolute import
+# (avoids arifosmcp.core → arifosmcp.core circular resolution)
