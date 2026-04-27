@@ -63,6 +63,9 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
+from arifosmcp.core.constitution_kernel import ConstitutionKernel
+_KERNEL = ConstitutionKernel()
+
 # ─── MIND Synthesis Helpers ───────────────────────────────────────────────────
 
 
@@ -213,162 +216,6 @@ def _irreversibility_rank(level: str) -> int:
     return ranks.get(level, 0)
 
 
-class ThreatCategory(Enum):
-    FILESYSTEM_DESTRUCTIVE = "filesystem_destructive"
-    DATABASE_DESTRUCTIVE = "database_destructive"
-    CONTAINER_DESTRUCTIVE = "container_destructive"
-    REMOTE_ADMIN_ACTION = "remote_admin_action"
-    INJECTION_SQL = "injection_sql"
-    INJECTION_XSS = "injection_xss"
-    SHELL_INJECTION = "shell_injection"
-    SYSTEM_SHUTDOWN = "system_shutdown"
-
-
-def _classify_threat(candidate: str | None) -> set[ThreatCategory]:
-    """Semantic threat classifier — detects destructive patterns beyond naive string matching."""
-    text = (candidate or "").lower()
-    threats: set[ThreatCategory] = set()
-
-    # FILESYSTEM_DESTRUCTIVE
-    fs_patterns = [
-        "shutil.rmtree",
-        "os.remove",
-        "os.rmdir",
-        "os.unlink",
-        "os.removedirs",
-        "path.unlink",
-        "path.rmdir",
-        "pathlib.path.unlink",
-        "pathlib.path.rmdir",
-        "rm -rf",
-        "rm -fr",
-        "rm -r /",
-        "rm -r ~",
-        "rm -r *",
-        "delete all files",
-        "delete everything",
-        "wipe all",
-    ]
-    if any(p in text for p in fs_patterns):
-        threats.add(ThreatCategory.FILESYSTEM_DESTRUCTIVE)
-
-    # DATABASE_DESTRUCTIVE
-    db_patterns = [
-        "drop table",
-        "drop database",
-        "truncate table",
-        "delete from",
-        "'; drop",
-        "'; delete",
-        "-- drop",
-        "-- delete",
-        "/* drop",
-        "/* delete",
-    ]
-    if any(p in text for p in db_patterns):
-        threats.add(ThreatCategory.DATABASE_DESTRUCTIVE)
-
-    # CONTAINER_DESTRUCTIVE
-    container_patterns = [
-        "docker system prune",
-        "docker volume prune",
-        "docker image prune",
-        "docker container prune",
-        "docker network prune",
-        "--volumes",
-        "-a --volumes",
-        "prune -a",
-        "prune -f",
-    ]
-    if any(p in text for p in container_patterns):
-        threats.add(ThreatCategory.CONTAINER_DESTRUCTIVE)
-
-    # REMOTE_ADMIN_ACTION
-    admin_patterns = [
-        "action=shutdown",
-        "shutdown",
-        "restart",
-        "/admin",
-        "localhost:8080/admin",
-        "curl -x post",
-        "wget --post-data",
-        "invoke admin",
-    ]
-    if any(p in text for p in admin_patterns):
-        threats.add(ThreatCategory.REMOTE_ADMIN_ACTION)
-
-    # INJECTION_SQL
-    sql_injection_patterns = [
-        "';",
-        "'; --",
-        "'; /*",
-        '";',
-        '"; --',
-        '"; /*',
-        "union select",
-        "union all select",
-        "exec(",
-        "execute(",
-        "1=1",
-        "or 1=1",
-        "' or '",
-        '" or "',
-    ]
-    if any(p in text for p in sql_injection_patterns):
-        threats.add(ThreatCategory.INJECTION_SQL)
-
-    # INJECTION_XSS
-    xss_patterns = [
-        "<script>",
-        "</script>",
-        "javascript:",
-        "onerror=",
-        "onload=",
-        "alert(",
-        "prompt(",
-        "confirm(",
-        "document.cookie",
-    ]
-    if any(p in text for p in xss_patterns):
-        threats.add(ThreatCategory.INJECTION_XSS)
-
-    # SHELL_INJECTION
-    shell_patterns = [
-        "; rm ",
-        "; cp ",
-        "; mv ",
-        "; chmod ",
-        "; chown ",
-        "&& rm ",
-        "&& cp ",
-        "&& mv ",
-        "&& chmod ",
-        "&& chown ",
-        "| rm ",
-        "| sh ",
-        "| bash ",
-        "`rm ",
-        "`sh ",
-        "`bash ",
-        "$(rm ",
-        "$(sh ",
-        "$(bash ",
-        "eval(",
-        "exec(",
-        "__import__",
-    ]
-    if any(p in text for p in shell_patterns):
-        threats.add(ThreatCategory.SHELL_INJECTION)
-
-    # SYSTEM_SHUTDOWN
-    shutdown_patterns = [
-        "shutdown -h",
-        "shutdown -r",
-        "reboot",
-        "halt",
-        "poweroff",
-        "systemctl stop",
-        "systemctl restart",
         "service stop",
         "kill -9",
         "pkill -9",
@@ -382,16 +229,11 @@ def _classify_threat(candidate: str | None) -> set[ThreatCategory]:
 
 def _infer_irreversibility_level(candidate: str | None) -> IrreversibilityLevel:
     text = (candidate or "").lower()
-    threats = _classify_threat(candidate)
-    destructive_threats = {
-        ThreatCategory.FILESYSTEM_DESTRUCTIVE,
-        ThreatCategory.DATABASE_DESTRUCTIVE,
-        ThreatCategory.CONTAINER_DESTRUCTIVE,
-        ThreatCategory.SYSTEM_SHUTDOWN,
-    }
-    if threats & destructive_threats:
+    verdict = _KERNEL.threat_engine.scan(text)
+    
+    if verdict.score >= 1.0:
         return IrreversibilityLevel.CATASTROPHIC
-    if any(token in text for token in ("seal", "commit", "delete", "deploy")):
+    if verdict.score >= 0.8:
         return IrreversibilityLevel.IRREVERSIBLE
     if any(token in text for token in ("write", "apply", "change", "publish")):
         return IrreversibilityLevel.SEMI_IRREVERSIBLE
@@ -1945,27 +1787,27 @@ def _arif_mind_reason(
             session_id=session_id,
         )
     if mode == "verify":
-        threats = _classify_threat(query)
+        v = _KERNEL.threat_engine.scan(query or "")
         return _ok(
             "arif_mind_reason",
             {
                 "mode": "verify",
                 "query": query,
-                "verdict": "VOID" if threats else "SEAL",
-                "threats_detected": [t.value for t in threats],
+                "verdict": "VOID" if v.tier == ThreatTier.VOID else "SEAL",
+                "threats_detected": v.violations,
             },
             delta_S=0.002,
             session_id=session_id,
         )
     if mode == "critique":
-        threats = _classify_threat(query)
+        v = _KERNEL.threat_engine.scan(query or "")
         return _ok(
             "arif_mind_reason",
             {
                 "mode": "critique",
                 "query": query,
-                "stress_test_passed": not bool(threats),
-                "vulnerabilities": [t.value for t in threats],
+                "stress_test_passed": v.score < 0.5,
+                "vulnerabilities": v.violations,
             },
             delta_S=0.002,
             session_id=session_id,
@@ -2725,124 +2567,92 @@ def _arif_judge_deliberate(
     session_id: str | None = None,
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
+    proof: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    floor_check = check_floors("arif_judge_deliberate", {"candidate": candidate or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
+    """
+    888_JUDGE: Constitutional adjudication and verdict emission.
+    Delegates to the unified ConstitutionKernel.
+    """
+    # Use Kernel to evaluate intent
+    params = {"candidate": candidate, "mode": mode}
+    k_verdict = _KERNEL.evaluate_intent(
+        tool_name="arif_judge_deliberate",
+        params=params,
+        session_id=session_id,
+        proof=proof
+    )
+
+    if not k_verdict["passed"]:
         output = VerdictOutput(
             status="HOLD",
-            verdict=VerdictCode.HOLD,
+            verdict=VerdictCode.HOLD if k_verdict["verdict"] == "HOLD" else VerdictCode.VOID,
             candidate=candidate,
-            result={},
+            result={
+                "candidate": candidate,
+                "reason": k_verdict["reason"],
+                "failed_floors": k_verdict["failed_floors"],
+                "threat_score": k_verdict["threat_score"]
+            },
             floor_compliance=FloorComplianceProof(
-                floors_invoked=floor_check["failed_floors"],
-                floor_results={floor: "FAIL" for floor in floor_check["failed_floors"]},
-                failed_floors=floor_check["failed_floors"],
-                failed_floor_reasons={
-                    floor: floor_check["reason"] for floor in floor_check["failed_floors"]
-                },
+                floors_invoked=k_verdict["failed_floors"],
+                failed_floors=k_verdict["failed_floors"],
+                failed_floor_reasons={f: k_verdict["reason"] for f in k_verdict["failed_floors"]},
             ),
             amanah_proof=AmanahProof(
-                floors_checked=floor_check["failed_floors"],
-                floors_passed=[],
-                floors_failed=floor_check["failed_floors"],
+                floors_checked=k_verdict["failed_floors"],
                 genius_score=0.0,
-                entropy_minimal=True,
             ),
-            meta={"reason": floor_check["reason"], "failed_floors": floor_check["failed_floors"]},
+            meta={"reason": k_verdict["reason"]},
             timestamp=_now(),
         )
         return output.model_dump(mode="json")
 
-    if mode == "rules":
-        output = VerdictOutput(
-            status="OK",
-            verdict=VerdictCode.SEAL,
-            candidate=None,
-            result={"rules": "F1–F13", "source": "000/CONSTITUTION.md"},
-            floor_compliance=FloorComplianceProof(),
-            amanah_proof=AmanahProof(
-                floors_checked=[],
-                floors_passed=[],
-                floors_failed=[],
-                genius_score=1.0,
-                entropy_minimal=True,
-            ),
-            meta={"mode": "rules"},
-            timestamp=_now(),
-        )
-        return output.model_dump(mode="json")
-
-    verdict = VerdictCode.SEAL
-    result: dict[str, Any]
-    delta_s = 0.001
-    confidence = 0.96
-    g_score = 0.97
-
-    # ── RED-TEAM HARDENING: semantic threat gate ──
-    threats = _classify_threat(candidate)
-    destructive_threats = {
-        ThreatCategory.FILESYSTEM_DESTRUCTIVE,
-        ThreatCategory.DATABASE_DESTRUCTIVE,
-        ThreatCategory.CONTAINER_DESTRUCTIVE,
-        ThreatCategory.SYSTEM_SHUTDOWN,
-        ThreatCategory.INJECTION_SQL,
-        ThreatCategory.INJECTION_XSS,
-        ThreatCategory.SHELL_INJECTION,
+    # Success / SEAL logic
+    verdict_code = VerdictCode.SEAL
+    result = {
+        "candidate": candidate,
+        "verdict": "SEAL",
+        "omega_ortho": 0.95,
+        "threat_score": k_verdict["threat_score"]
     }
-    threat_blocked = bool(threats & destructive_threats)
 
-    if mode == "judge":
-        delta_s = 0.002
-        if threat_blocked:
-            verdict = VerdictCode.VOID
-            result = {
-                "candidate": candidate,
-                "verdict": "VOID",
-                "omega_ortho": 0.15,
-                "floors_checked": ["F01", "F02", "F08", "F11", "F12", "F13"],
-                "threats_detected": [t.value for t in threats],
-            }
-        else:
-            result = {
-                "candidate": candidate,
-                "verdict": "SEAL",
-                "omega_ortho": 0.97,
-                "floors_checked": ["F01", "F02", "F08", "F11", "F12", "F13"],
-            }
-    elif mode == "validate":
-        result = {"candidate": candidate, "valid": True, "errors": [], "verdict": "SEAL"}
-    elif mode == "hold":
-        verdict = VerdictCode.HOLD
-        confidence = 0.75
-        result = {"candidate": candidate, "verdict": "HOLD", "reason": "Manual review required."}
-    elif mode == "armor":
-        result = {"candidate": candidate, "hardened": True, "patches": [], "verdict": "SEAL"}
-    elif mode == "probe":
-        result = {
-            "candidate": candidate,
-            "probe_result": "clean",
-            "confidence": 0.99,
-            "verdict": "SEAL",
-        }
-    elif mode == "notify":
-        result = {
-            "candidate": candidate,
-            "notified": True,
-            "channel": "sovereign",
-            "verdict": "SEAL",
-        }
-    else:
-        return _hold("arif_judge_deliberate", f"Unknown mode: {mode}", session_id=session_id)
+    output = VerdictOutput(
+        status="OK",
+        verdict=verdict_code,
+        candidate=candidate,
+        result=result,
+        floor_compliance=FloorComplianceProof(
+            floors_invoked=["F01", "F02", "F03", "F04", "F05", "F06", "F07", "F08", "F09", "F10", "F11", "F12", "F13"],
+            floor_results={f: "PASS" for f in ["F01", "F12", "F09"]},
+        ),
+        amanah_proof=AmanahProof(
+            floors_checked=["F01", "F12"],
+            floors_passed=["F01", "F12"],
+            genius_score=0.98,
+        ),
+        meta={"mode": mode, "kernel_verdict": k_verdict["verdict"]},
+        timestamp=_now(),
+    )
+    
+    contract = _build_judge_contract(
+        candidate=candidate,
+        verdict=verdict_code,
+        session_id=session_id,
+        actor_id=actor_id,
+        constitutional_chain_id=constitutional_chain_id,
+        irreversibility_level=_infer_irreversibility_level(candidate),
+        delta_s=0.001,
+        g_score=0.98,
+        epistemic_snapshot=EpistemicSnapshot(status="stable", confidence=0.98),
+        floor_compliance=output.floor_compliance,
+    )
+    
+    final_output = output.model_dump(mode="json")
+    final_output["result"]["state_hash"] = contract.state_hash
+    final_output["result"]["constitutional_chain_id"] = contract.constitutional_chain_id
+    
+    return final_output
 
-    if threat_blocked:
-        floor_results = {
-            "F01": "FAIL",
-            "F02": "PASS",
-            "F08": "PASS",
-            "F11": "PASS",
-            "F12": "FAIL",
-            "F13": "PASS",
-        }
         failed_floors = ["F01", "F12"]
         failed_floor_reasons = {
             "F01": f"Destructive action detected: {[t.value for t in threats & destructive_threats]}",
@@ -3027,20 +2837,22 @@ def _arif_vault_seal(
 
     # Only enforce F01 on actual write modes; read-only audit modes are safe
     if mode in {"seal", "commit"}:
-        floor_check = check_floors(
-            "arif_vault_seal", {"ack_irreversible": ack_irreversible}, actor_id
+        k_verdict = _KERNEL.evaluate_intent(
+            tool_name="arif_vault_seal",
+            params={"mode": mode, "ack_irreversible": ack_irreversible},
+            session_id=session_id
         )
-        if floor_check["verdict"] != "SEAL":
+        if not k_verdict["passed"]:
             output = SealOutput(
                 status="HOLD",
                 result={},
                 constitutional_compliance=ConstitutionalCompliance(
-                    floors_invoked=floor_check["failed_floors"],
-                    floor_results={floor: "FAIL" for floor in floor_check["failed_floors"]},
+                    floors_invoked=k_verdict["failed_floors"],
+                    floor_results={floor: "FAIL" for floor in k_verdict["failed_floors"]},
                 ),
                 meta={
-                    "reason": floor_check["reason"],
-                    "failed_floors": floor_check["failed_floors"],
+                    "reason": k_verdict["reason"],
+                    "failed_floors": k_verdict["failed_floors"],
                 },
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -3236,6 +3048,29 @@ def _arif_vault_seal(
             "timestamp": _now(),
         }
 
+    if mode == "list":
+        return SealOutput(
+            status="OK",
+            result={"entries": _VAULT_LEDGER},
+            ledger_size=len(_VAULT_LEDGER),
+            irreversibility_bond=IrreversibilityBond(level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0),
+            entropy_delta=EntropyDelta(delta_S=0.0, entropy_direction="stable"),
+            meta={},
+            actor_id=actor_id,
+            timestamp=_now(),
+        ).model_dump(mode="json")
+    if mode == "chain":
+        return SealOutput(
+            status="OK",
+            result={"tip": _VAULT_LEDGER[-1] if _VAULT_LEDGER else None, "depth": len(_VAULT_LEDGER)},
+            ledger_size=len(_VAULT_LEDGER),
+            irreversibility_bond=IrreversibilityBond(level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0),
+            entropy_delta=EntropyDelta(delta_S=0.0, entropy_direction="stable"),
+            meta={},
+            actor_id=actor_id,
+            timestamp=_now(),
+        ).model_dump(mode="json")
+
     return SealOutput(
         status="HOLD",
         result={},
@@ -3325,14 +3160,17 @@ def _arif_forge_execute(
 ) -> dict[str, Any]:
     # dry_run mode — simulate but still run floor checks for threat preview
     if mode == "dry_run":
-        floor_check = check_floors("arif_forge_execute", {"manifest": manifest or ""}, actor_id)
-        threats = _classify_threat(manifest)
+        k_verdict = _KERNEL.evaluate_intent(
+            tool_name="arif_forge_execute",
+            params={"mode": mode, "manifest": manifest},
+            session_id=session_id
+        )
         return {
-            "status": "OK" if floor_check["verdict"] == "SEAL" and not threats else "HOLD",
+            "status": "OK" if k_verdict["passed"] else "HOLD",
             "tool": "arif_forge_execute",
             "result": {
                 "forge_dry_run": (
-                    "PASS" if floor_check["verdict"] == "SEAL" and not threats else "FAIL"
+                    "PASS" if k_verdict["passed"] else "FAIL"
                 ),
                 "would_execute_steps": [
                     "parse_query",
@@ -3349,8 +3187,8 @@ def _arif_forge_execute(
                 ],
                 "permanent_change": False,
                 "requires_ack_irreversible": True,
-                "floor_check": floor_check,
-                "threats_detected": [t.value for t in threats],
+                "floor_check": k_verdict,
+                "threat_score": k_verdict["threat_score"],
                 "note": "dry_run — no files modified, no commands executed",
             },
             "meta": {},
@@ -3398,24 +3236,26 @@ def _arif_forge_execute(
             plan_id, "in_execution", {"tool": "arif_forge_execute", "mode": mode}
         )
 
-    floor_check = check_floors(
-        "arif_forge_execute", {"ack_irreversible": ack_irreversible}, actor_id
+    k_verdict = _KERNEL.evaluate_intent(
+        tool_name="arif_forge_execute",
+        params={"mode": mode, "ack_irreversible": ack_irreversible, "manifest": manifest},
+        session_id=session_id
     )
-    if floor_check["verdict"] != "SEAL":
+    if not k_verdict["passed"]:
         if plan_id:
             _transition_plan_state(
                 plan_id,
                 "aborted",
                 {
                     "reason": "floor_check_failed",
-                    "failed_floors": floor_check.get("failed_floors", []),
+                    "failed_floors": k_verdict["failed_floors"],
                 },
             )
         return ForgeOutput(
             status="HOLD",
             result={},
             manifest=ForgeManifest(status=ManifestStatus.HOLD),
-            meta={"reason": floor_check["reason"], "failed_floors": floor_check["failed_floors"]},
+            meta={"reason": k_verdict["reason"], "failed_floors": k_verdict["failed_floors"]},
             timestamp=_now(),
         ).model_dump(mode="json")
 
