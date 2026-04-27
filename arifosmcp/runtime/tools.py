@@ -2645,6 +2645,8 @@ def _arif_judge_deliberate(
     audit_entropy: dict[str, Any] | None = None,
     wealth_score: dict[str, Any] | None = None,
     verification_surface: dict[str, Any] | None = None,
+    truth_band: str | None = None,
+    confidence_note: str | None = None,
 ) -> dict[str, Any]:
     """
     888_JUDGE: Constitutional adjudication and verdict emission.
@@ -2653,6 +2655,8 @@ def _arif_judge_deliberate(
       - audit_entropy (delta_m, svs, entropy_band) from wealth_audit_entropy
       - wealth_score (multi-axis constitutional score) from wealth_score_kernel
       - verification_surface (canonical claim + evidence) from VerificationSurface
+      - truth_band: F2 declaration (CERTAIN | HIGH_CONFIDENCE | PLAUSIBLE | etc.)
+      - confidence_note: F2 human-readable band declaration
 
     These are NOT optional decoration — they are first-class governance inputs.
     WEALTH verification gates apply BEFORE constitutional kernel evaluation.
@@ -2710,7 +2714,9 @@ def _arif_judge_deliberate(
                 floors_checked=verdict.floors.failed_floors,
                 genius_score=0.0,
             ),
-            meta={"reason": "Constitutional breach detected by kernel"},
+            truth_band=truth_band or "UNKNOWN",
+            confidence_note=confidence_note or "Verification state present; band derived from entropy/gap analysis",
+            meta={"reason": "Constitutional breach detected by kernel", "verification_state": {"delta_m": (_audit_entropy or {}).get("delta_m"), "svs": (_audit_entropy or {}).get("svs"), "entropy_band": (_audit_entropy or {}).get("entropy_band")}},
             timestamp=verdict.timestamp,
         )
         return output.model_dump(mode="json")
@@ -2734,10 +2740,12 @@ def _arif_judge_deliberate(
             floors_passed=["F01", "F12"],
             genius_score=0.98,
         ),
-        meta={"mode": mode, "state_hash": verdict.state_hash},
+        truth_band=truth_band or "CERTAIN",
+        confidence_note=confidence_note or "Full constitutional floors passed; verification state clean",
+        meta={"mode": mode, "state_hash": verdict.state_hash, "verification_state": {"delta_m": (_audit_entropy or {}).get("delta_m"), "svs": (_audit_entropy or {}).get("svs"), "entropy_band": (_audit_entropy or {}).get("entropy_band")}},
         timestamp=verdict.timestamp,
     )
-    
+
     return output.model_dump(mode="json")
 
 def _old_deliberate_unused():

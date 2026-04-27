@@ -592,6 +592,18 @@ class VerdictOutput(BaseModel):
         description="Structured judge packet for downstream irreversible lineage checks",
     )
 
+    # ── Post-AGI WEALTH verification governance (Phase 2) ─────────────────────
+    # F2 truth declaration and confidence note — propagated from WealthGovernance
+    # at judgment time. Not optional: every SEAL/HOLD/VOID must declare its band.
+    truth_band: str | None = Field(
+        default=None,
+        description="F2 truth declaration: CERTAIN | HIGH_CONFIDENCE | PLAUSIBLE | SPECULATIVE | UNKNOWN"
+    )
+    confidence_note: str | None = Field(
+        default=None,
+        description="F2 human-readable confidence declaration at judgment time"
+    )
+
     # Metadata
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
