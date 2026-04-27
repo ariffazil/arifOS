@@ -702,3 +702,42 @@ class SealOutput(BaseModel):
 
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
+
+    # ── Post-AGI WEALTH verification governance (Phase 2) ─────────────────────
+    # Captured at decision time, stored in ledger for drift analysis / post-mortems
+    delta_m: float | None = Field(
+        default=None,
+        description="Measurability Gap: share of tasks AI can execute minus share humans can verify"
+    )
+    svs: float | None = Field(
+        default=None,
+        description="Safe Verifiable Share: fraction of AI output safely underwritable at acceptable cost"
+    )
+    entropy_band: str | None = Field(
+        default=None,
+        description="Entropy classification: LOW | MEDIUM | HIGH | EXTREME"
+    )
+    liability_owner: str | None = Field(
+        default=None,
+        description="Human or institution who bears downside accountability — no owner = no SEAL"
+    )
+    verification_bottlenecks: list[str] = Field(
+        default_factory=list,
+        description="Top verification bottlenecks at decision time"
+    )
+    wealth_final_score: float | None = Field(
+        default=None,
+        description="WEALTH constitutional score: multi-axis reward/risk/verifiability composite"
+    )
+    wealth_recommendation: str | None = Field(
+        default=None,
+        description="WEALTH score recommendation: SEAL_CANDIDATE | HOLD_CANDIDATE | VOID_CANDIDATE"
+    )
+    truth_band: str | None = Field(
+        default=None,
+        description="F2 truth declaration: CERTAIN | HIGH_CONFIDENCE | PLAUSIBLE | SPECULATIVE | UNKNOWN"
+    )
+    confidence_note: str | None = Field(
+        default=None,
+        description="F2 human-readable confidence declaration at seal time"
+    )

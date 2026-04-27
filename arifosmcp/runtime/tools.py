@@ -2847,7 +2847,16 @@ def _arif_vault_seal(
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
+    verification_state: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """
+    999_VAULT: Immutable ledger anchoring and cryptographic seal.
+
+    verification_state (optional): Post-AGI WEALTH governance fields captured at
+    decision time — delta_m, svs, entropy_band, liability_owner, wealth_score.
+    These are stored in the ledger entry for future drift analysis, post-mortems,
+    and civilization capital memory.
+    """
     if mode == "dry_run":
         # Vault dry_run: simulate seal without writing anything — skips floor check
         import hashlib as _hashlib
@@ -2974,6 +2983,16 @@ def _arif_vault_seal(
             "judge_contract": judge_contract.model_dump(mode="json"),
             "delta_s_total": entropy.delta_S,
             "auth_lineage": auth_lineage,
+            # ── Post-AGI WEALTH verification state at decision time ──────
+            "delta_m": (verification_state or {}).get("delta_m"),
+            "svs": (verification_state or {}).get("svs"),
+            "entropy_band": (verification_state or {}).get("entropy_band"),
+            "bottlenecks": (verification_state or {}).get("bottlenecks", []),
+            "liability_owner": (verification_state or {}).get("liability_owner"),
+            "wealth_final_score": (verification_state or {}).get("final_score"),
+            "wealth_recommendation": (verification_state or {}).get("recommendation"),
+            "wealth_floor_flags": (verification_state or {}).get("floor_flags", []),
+            "verification_state": verification_state or {},
         }
         _VAULT_LEDGER.append(entry)
         _VAULT_ENTRY_REGISTRY[entry_id] = entry
@@ -2996,7 +3015,7 @@ def _arif_vault_seal(
             judge_contract=judge_contract,
             ack_irreversible_received=ack_irreversible,
             actor_id=actor_id,
-            meta={},
+            meta={"verification_state": verification_state or {}},
             timestamp=_now(),
         )
         return output.model_dump(mode="json")
@@ -4101,20 +4120,25 @@ if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
     raise RuntimeError("Canonical handler registry does not match constitutional_map.py")
 
 
+import functools
+import inspect
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """Wrap a handler so Pydantic validation errors expose the public tool name."""
-    # Sync wrapper
+
+    # Sync wrapper — functools.wraps copies __annotations__ so FastMCP's
+    # get_type_hints() finds the handler's parameter types (KeyError 'mode' fix)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return handler(*args, **kwargs)
         except Exception as exc:
-            # Sanitize error messages to prevent internal name leakage
             msg = str(exc)
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)
             raise type(exc)(msg) from exc.__cause__
 
-    # Async wrapper
+    # Async wrapper — same fix
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return await handler(*args, **kwargs)
@@ -4124,15 +4148,10 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 msg = msg.replace(handler.__name__, tool_name)
             raise type(exc)(msg) from exc.__cause__
 
-    import inspect
-
-    wrapped = async_wrapper if inspect.iscoroutinefunction(handler) else wrapper
-    wrapped.__name__ = tool_name
-    wrapped.__doc__ = handler.__doc__
-    wrapped.__module__ = handler.__module__
-    wrapped.__signature__ = inspect.signature(handler)
-    wrapped.__wrapped__ = handler
-    return wrapped
+    _wrapped = async_wrapper if inspect.iscoroutinefunction(handler) else wrapper
+    functools.wraps(handler)(_wrapped)  # copies __annotations__, __name__, __doc__, __wrapped__
+    _wrapped.__name__ = tool_name
+    return _wrapped
 
 
 def register_tools(

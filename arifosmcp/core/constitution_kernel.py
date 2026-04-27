@@ -199,13 +199,13 @@ class ConstitutionKernel:
             threat = ThreatAssessment(
                 threats=[],
                 overall_confidence=0.0,
-                irreversibility=IrreversibilityLevel.REVERSIBLE,
+                irreversibility=IrreversibilityLevel.NONE,
                 category=None,
             )
             floors = FloorResult(
                 verdict="HOLD" if wg_status == "HOLD" else "VOID",
                 failed_floors=["F-GOVERNANCE"],
-                floor_reasons=[wg["reason"]],
+                floor_reasons={"F-GOVERNANCE": wg["reason"]},
             )
             authority = AuthorityProof(authorized=True, level="WEALTH_GOVERNANCE")
             return ConstitutionalVerdict(
@@ -214,9 +214,9 @@ class ConstitutionKernel:
                 threat=threat,
                 floors=floors,
                 authority=authority,
-                irreversibility=IrreversibilityLevel.REVERSIBLE,
+                irreversibility=IrreversibilityLevel.NONE,
                 # Attach verification state so it propagates to vault seal
-                state_hash=json.dumps({"wealth_governance": wg["verification_state"]}).hexdigest()[:32],
+                state_hash=hashlib.sha256(json.dumps({"wealth_governance": wg["verification_state"]}).encode()).hexdigest()[:32],
             )
 
         # ── Normal constitutional evaluation ───────────────────────────────
