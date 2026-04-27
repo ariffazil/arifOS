@@ -15,6 +15,8 @@ from arifosmcp.apps.session_state import (
     STAGE_MIN_FORGE,
     LifecycleState,
     get_or_create_session,
+    record_tool_call,
+    was_tool_called,
 )
 from arifosmcp.apps.surface_utils import envelope_error, envelope_pause
 
@@ -27,6 +29,13 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
     Dangerous tools (arif_forge_execute, vault_seal_record, vault_append)
     require a valid session_id. Anonymous callers are blocked.
     """
+    # Record all tool calls passing through interceptor — F9 TAQWA prerequisite tracking
+    if session_id:
+        try:
+            record_tool_call(session_id, tool_name)
+        except Exception:
+            pass
+
     if session_id:
         session = get_or_create_session(session_id)
     else:
@@ -80,6 +89,20 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
                     f"Current: {session.stage}. Advance session first."
                 ),
                 session_id=session_id,
+            )
+
+        # F9 TAQWA: arif_heart_critique must have been called in this session chain.
+        # If agent skips heart_critique entirely, forge must be blocked — PSI KHIANAT.
+        if not was_tool_called(session_id, "arif_heart_critique"):
+            return envelope_error(
+                tool_name=tool_name,
+                stage="INTERCEPTOR",
+                verdict="HOLD",
+                detail=(
+                    "F09 ANTIHANTU gate: arif_heart_critique not called in this session. "
+                    "PSI KHIANAT: Anti-Hantu prerequisite violated. "
+                    "Call arif_heart_critique before arif_forge_execute."
+                ),
             )
 
     return None  # Clear to proceed

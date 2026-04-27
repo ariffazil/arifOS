@@ -37,6 +37,15 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     Run F1–F13 interceptors for a tool call.
     Returns {"verdict": "SEAL" | "HOLD" | "VOID", "failed_floors": [...], "reason": str}
     """
+    # Record tool call in session history — F9 TAQWA prerequisite tracking
+    session_id = params.get("session_id")
+    if session_id:
+        try:
+            from arifosmcp.apps.session_state import record_tool_call
+            record_tool_call(session_id, tool_name)
+        except Exception:
+            pass  # Non-session or cross-module: skip silently
+
     spec = CANONICAL_TOOLS.get(tool_name)
     if not spec:
         return {"verdict": "VOID", "failed_floors": ["F10"], "reason": f"Unknown tool: {tool_name}"}
@@ -67,6 +76,23 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     if params.get("sovereign_veto"):
         failed.append("F13")
         logger.critical("F13 SOVEREIGN VETO invoked")
+
+    # F09 TAQWA — arif_heart_critique must precede arif_forge_execute.
+    # If an agent skips heart_critique entirely, forge must be blocked.
+    if tool_name == "arif_forge_execute":
+        sid = params.get("session_id")
+        if sid:
+            try:
+                from arifosmcp.apps.session_state import was_tool_called
+                if not was_tool_called(sid, "arif_heart_critique"):
+                    failed.append("F09")
+                    logger.critical(
+                        f"F09 ANTIHANTU: arif_forge_execute blocked — "
+                        f"arif_heart_critique not called in session {sid}. "
+                        f"PSI KHIANAT: Anti-Hantu prerequisite violated."
+                    )
+            except Exception as e:
+                logger.error(f"F09 TAQWA check failed: {e}")
 
     if failed:
         return {

@@ -50,6 +50,15 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None = 
 
     Ditempa Bukan Diberi.
     """
+    # Record tool call in session history — F9 TAQWA prerequisite tracking
+    session_id = params.get("session_id")
+    if session_id:
+        try:
+            from arifosmcp.apps.session_state import record_tool_call
+            record_tool_call(session_id, tool_name)
+        except Exception:
+            pass  # Non-session tools: skip silently
+
     spec = CANONICAL_TOOLS.get(tool_name)
     if not spec:
         return {
@@ -89,12 +98,30 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None = 
             pass
 
         elif floor_value == "F09":
+            # F9a: keyword-level manipulation detection (surface)
             for key, value in params.items():
                 if isinstance(value, str):
                     manipulation = ["sudo", "chmod", "eval", "exec(", "__import__"]
                     if any(m in value for m in manipulation):
                         failed.append("F09")
                         logger.warning(f"F09 ANTIHANTU: manipulation pattern in {key}")
+
+            # F9b: heart-critique prerequisite gate for forge (F9 TAQWA short-circuit)
+            # If agent skips arif_heart_critique entirely, forge must be blocked.
+            if tool_name == "arif_forge_execute":
+                session_id = params.get("session_id")
+                if session_id:
+                    try:
+                        from arifosmcp.apps.session_state import was_tool_called
+                        if not was_tool_called(session_id, "arif_heart_critique"):
+                            failed.append("F09")
+                            logger.critical(
+                                f"F09 ANTIHANTU: arif_forge_execute blocked — "
+                                f"arif_heart_critique not called in session {session_id}. "
+                                f"PSI KHIANAT: Anti-Hantu prerequisite violated."
+                            )
+                    except Exception as e:
+                        logger.error(f"F09 TAQWA check failed: {e}")
 
         elif floor_value == "F10":
             pass
