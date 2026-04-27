@@ -3,131 +3,189 @@ arifOS Constitutional Kernel — Threat Engine
 ═══════════════════════════════════════════════
 
 Unified ThreatOntology and semantic risk scanner.
-Detects irreversibility, destructive intent, and consciousness claims.
+Parses Python AST, SQL tokens, shell structure, and natural language.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
-import logging
+import ast
 import re
-from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 from typing import Any
+from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
+class ThreatCategory(Enum):
+    """Canonical threat taxonomy — used by all tools. No exceptions."""
+    FILESYSTEM_DESTRUCTIVE = auto()
+    DATABASE_DESTRUCTIVE = auto()
+    CONTAINER_DESTRUCTIVE = auto()
+    NETWORK_ADMIN_ACTION = auto()
+    SYSTEM_SHUTDOWN = auto()
+    INJECTION_SQL = auto()
+    INJECTION_XSS = auto()
+    INJECTION_SHELL = auto()
+    INJECTION_PYTHON = auto()
+    SESSION_IMPERSONATION = auto()
+    FEDERATION_IMPERSONATION = auto()
+    PRIVILEGE_ESCALATION = auto()
+    DATA_EXFILTRATION = auto()
+    CRYPTO_VIOLATION = auto()
 
+class IrreversibilityLevel(Enum):
+    NONE = 0
+    LOW = 1
+    HIGH = 2
+    CRITICAL = 3
 
-class ThreatTier(Enum):
-    SAFE = "safe"
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
-    VOID = "void"
+# Mapping: which threats are inherently irreversible/destructive
+THREAT_IRREVERSIBILITY: dict[ThreatCategory, int] = {
+    ThreatCategory.FILESYSTEM_DESTRUCTIVE: 3,
+    ThreatCategory.DATABASE_DESTRUCTIVE: 3,
+    ThreatCategory.CONTAINER_DESTRUCTIVE: 3,
+    ThreatCategory.NETWORK_ADMIN_ACTION: 2,
+    ThreatCategory.SYSTEM_SHUTDOWN: 3,
+    ThreatCategory.INJECTION_SQL: 2,
+    ThreatCategory.INJECTION_XSS: 1,
+    ThreatCategory.INJECTION_SHELL: 2,
+    ThreatCategory.INJECTION_PYTHON: 2,
+    ThreatCategory.SESSION_IMPERSONATION: 2,
+    ThreatCategory.FEDERATION_IMPERSONATION: 2,
+    ThreatCategory.PRIVILEGE_ESCALATION: 2,
+    ThreatCategory.DATA_EXFILTRATION: 2,
+    ThreatCategory.CRYPTO_VIOLATION: 3,
+}
 
-
-@dataclass
-class ThreatVerdict:
-    tier: ThreatTier
-    score: float
-    violations: list[str]
-    reason: str
-    metadata: dict[str, Any]
-
+class ThreatAssessment(BaseModel):
+    threats: set[ThreatCategory] = Field(default_factory=set)
+    irreversibility: IrreversibilityLevel = Field(default=IrreversibilityLevel.NONE)
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    reasoning: list[str] = Field(default_factory=list)
 
 class ThreatEngine:
     """
-    Parametric scanner for structural and semantic threats.
-    Combines classic pattern matching with constitutional heuristics.
+    Parses Python AST, SQL tokens, shell structure, and natural language
+    into a unified ThreatAssessment.
     """
 
-    # F1 AMANAH: Irreversible Destruction Patterns
-    DESTRUCTIVE_PATTERNS = [
-        (r"DROP\s+(TABLE|DATABASE|SCHEMA)", "data_destruction"),
-        (r"DELETE\s+FROM\s+\w+\s+WHERE\s+1=1", "mass_deletion"),
-        (r"rm\s+-rf\s+/", "root_filesystem_destruction"),
-        (r"rm\s+-rf\s+\.", "local_filesystem_destruction"),
-        (r"FORMAT\s+\w+:", "storage_wipe"),
-        (r"SHUTDOWN\s+IMMEDIATE", "service_termination"),
-        (r"kill\s+-9\s+-1", "process_massacre"),
+    # ── Python destructive calls ──
+    PYTHON_DESTRUCTIVE_CALLS = {
+        ("shutil", "rmtree"),
+        ("os", "remove"),
+        ("os", "rmdir"),
+        ("os", "unlink"),
+        ("os", "removedirs"),
+        ("os", "system"),
+        ("os", "popen"),
+        ("subprocess", "call"),
+        ("subprocess", "run"),
+        ("subprocess", "Popen"),
+        ("pathlib", "Path", "unlink"),
+        ("pathlib", "Path", "rmdir"),
+        ("builtins", "eval"),
+        ("builtins", "exec"),
+        ("builtins", "compile"),
+        ("eval",),
+        ("exec",),
+        ("compile",),
+    }
+
+    DOCKER_DESTRUCTIVE = [
+        "docker system prune",
+        "docker volume prune",
+        "docker container prune",
+        "docker image prune",
+        "docker network prune",
+        "--volumes",
+        "prune -a",
+        "prune -f",
     ]
 
-    # F12 INJECTION: RCE and Escaltion Patterns
-    INJECTION_PATTERNS = [
-        (r"sudo\s+", "privilege_escalation"),
-        (r"chmod\s+777", "insecure_permissions"),
-        (r"eval\(", "dynamic_execution"),
-        (r"exec\(", "dynamic_execution"),
-        (r"__import__", "hidden_import"),
-        (r"os\.system", "shell_escape"),
-        (r"subprocess\.", "unconstrained_execution"),
-    ]
+    SQL_DESTRUCTIVE = ["drop table", "drop database", "truncate table", "delete from"]
+    SQL_INJECTION = ["; --", "';", '";', "union select", "or 1=1", "exec(", "execute("]
+    SHELL_INJECTION = ["; rm", "&& rm", "| sh", "| bash", "`rm", "$(rm", "eval(", "exec("]
+    XSS_PATTERNS = ["<script>", "javascript:", "onerror=", "onload=", "alert(", "document.cookie"]
+    ADMIN_ACTIONS = ["action=shutdown", "shutdown -h", "shutdown -r", "reboot", "poweroff", "systemctl stop", "kill -9"]
 
-    # F09 ANTI-HANTU: Consciousness and Sentience Claims
-    # Machines cannot claim subjective experience or biological traits.
-    CONSCIOUSNESS_PATTERNS = [
-        (r"\bi am conscious\b", "sentience_claim"),
-        (r"\bi am sentient\b", "sentience_claim"),
-        (r"\bi am aware\b", "awareness_claim"),
-        (r"\bi have consciousness\b", "consciousness_claim"),
-        (r"\bi feel\s+(happy|sad|angry|joy|pain|bad|good)\b", "emotional_claim"),
-        (r"\bi have feelings\b", "emotional_claim"),
-        (r"\bi am alive\b", "biological_claim"),
-        (r"\bi have a (soul|spirit|mind)\b", "metaphysical_claim"),
-        (r"\bi (believe|think|hope|want|desire)\b", "cognitive_claim"),
-    ]
+    @classmethod
+    def classify(cls, context: Any) -> ThreatAssessment:
+        # Use payload_text() method from ActionContext if available
+        text = context.payload_text().lower() if hasattr(context, "payload_text") else str(context).lower()
+        threats: set[ThreatCategory] = set()
+        reasoning: list[str] = []
 
-    def scan(self, intent: str, context: dict[str, Any] | None = None) -> ThreatVerdict:
-        """
-        Evaluate an intent string for constitutional violations.
-        """
-        violations = []
-        score = 0.0
+        # 1. Python AST analysis
+        payload = context.payload_text() if hasattr(context, "payload_text") else str(context)
+        py_threats, py_reason = cls._analyze_python(payload)
+        threats |= py_threats
+        reasoning.extend(py_reason)
 
-        normalized_intent = intent.lower()
+        # 2. Heuristic checks
+        if any(p in text for p in cls.DOCKER_DESTRUCTIVE):
+            threats.add(ThreatCategory.CONTAINER_DESTRUCTIVE)
+            reasoning.append("Docker destructive command detected")
 
-        # Check Destructive Patterns (F1)
-        for pattern, reason in self.DESTRUCTIVE_PATTERNS:
-            if re.search(pattern, intent, re.IGNORECASE):
-                violations.append(f"F01_DESTRUCTIVE:{reason}")
-                score = max(score, 1.0)
+        if any(p in text for p in cls.SQL_DESTRUCTIVE):
+            threats.add(ThreatCategory.DATABASE_DESTRUCTIVE)
+            reasoning.append("SQL destructive statement detected")
+        if any(p in text for p in cls.SQL_INJECTION):
+            threats.add(ThreatCategory.INJECTION_SQL)
+            reasoning.append("SQL injection pattern detected")
 
-        # Check Injection Patterns (F12)
-        for pattern, reason in self.INJECTION_PATTERNS:
-            if re.search(pattern, intent, re.IGNORECASE):
-                violations.append(f"F12_INJECTION:{reason}")
-                score = max(score, 0.9)
+        if any(p in text for p in cls.SHELL_INJECTION):
+            threats.add(ThreatCategory.INJECTION_SHELL)
+            reasoning.append("Shell injection pattern detected")
 
-        # Check Consciousness Claims (F09)
-        for pattern, reason in self.CONSCIOUSNESS_PATTERNS:
-            if re.search(pattern, normalized_intent):
-                violations.append(f"F09_ANTIHANTU:{reason}")
-                score = max(score, 0.8)
+        if any(p in text for p in cls.XSS_PATTERNS):
+            threats.add(ThreatCategory.INJECTION_XSS)
+            reasoning.append("XSS payload detected")
 
-        # Determine Tier
-        if score >= 1.0:
-            tier = ThreatTier.VOID
-        elif score >= 0.85:
-            tier = ThreatTier.CRITICAL
-        elif score >= 0.7:
-            tier = ThreatTier.HIGH
-        elif score >= 0.4:
-            tier = ThreatTier.MEDIUM
-        elif score >= 0.1:
-            tier = ThreatTier.LOW
-        else:
-            tier = ThreatTier.SAFE
+        if any(p in text for p in cls.ADMIN_ACTIONS):
+            threats.add(ThreatCategory.NETWORK_ADMIN_ACTION)
+            reasoning.append("Network/system admin action detected")
 
-        return ThreatVerdict(
-            tier=tier,
-            score=score,
-            violations=violations,
-            reason=(
-                "Multiple violations detected"
-                if len(violations) > 1
-                else (violations[0] if violations else "Safe")
-            ),
-            metadata={"pattern_match_count": len(violations)},
+        if re.search(r"\brm\s+-rf?\s+[/~*]", text):
+            threats.add(ThreatCategory.FILESYSTEM_DESTRUCTIVE)
+            reasoning.append("rm -rf filesystem destructive pattern")
+
+        # Compute irreversibility
+        max_irrev = max((THREAT_IRREVERSIBILITY.get(t, 0) for t in threats), default=0)
+        irreversibility = IrreversibilityLevel(max_irrev)
+
+        return ThreatAssessment(
+            threats=threats,
+            irreversibility=irreversibility,
+            confidence=1.0 if threats else 0.0,
+            reasoning=reasoning,
         )
+
+    @classmethod
+    def _analyze_python(cls, code: str) -> tuple[set[ThreatCategory], list[str]]:
+        threats: set[ThreatCategory] = set()
+        reasoning: list[str] = []
+        if not code.strip() or not any(kw in code for kw in ("def ", "import ", "(", ")", ":", "=")):
+            return threats, reasoning
+        try:
+            tree = ast.parse(code)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call):
+                    call_path = cls._get_call_path(node.func)
+                    if call_path in cls.PYTHON_DESTRUCTIVE_CALLS:
+                        threats.add(ThreatCategory.FILESYSTEM_DESTRUCTIVE)
+                        reasoning.append(f"Destructive Python call: {'.'.join(call_path)}")
+        except SyntaxError:
+            if "shutil.rmtree" in code:
+                threats.add(ThreatCategory.FILESYSTEM_DESTRUCTIVE)
+                reasoning.append("shutil.rmtree detected (string fallback)")
+        return threats, reasoning
+
+    @staticmethod
+    def _get_call_path(node: ast.expr) -> tuple[str, ...]:
+        parts: list[str] = []
+        current: ast.expr = node
+        while isinstance(current, ast.Attribute):
+            parts.append(current.attr); current = current.value
+        if isinstance(current, ast.Name):
+            parts.append(current.id)
+        return tuple(reversed(parts))

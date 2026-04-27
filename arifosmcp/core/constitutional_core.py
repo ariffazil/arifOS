@@ -17,8 +17,10 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import ipaddress
 import json
 import re
+import urllib.parse
 from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Any
@@ -121,9 +123,29 @@ class ActionContext(BaseModel):
 
     @field_validator("url")
     @classmethod
-    def _validate_url_scheme(cls, v: str | None) -> str | None:
-        if v and not v.startswith(("http://", "https://")):
+    def _validate_url(cls, v: str | None) -> str | None:
+        if not v:
+            return v
+        # Scheme restriction
+        if not v.startswith(("http://", "https://")):
             raise ValueError(f"Invalid URL scheme: {v}. Only http:// and https:// allowed.")
+        # SSRF / internal network block
+        parsed = urllib.parse.urlparse(v)
+        hostname = parsed.hostname or ""
+        blocked_hostnames = {
+            "localhost", "127.0.0.1", "0.0.0.0", "::1",
+            "postgres", "redis", "qdrant", "vault999", "arifosmcp",
+            "ollama", "geox", "wealth-organ", "aaa", "caddy",
+        }
+        if hostname.lower() in blocked_hostnames:
+            raise ValueError(f"SSRF blocked: internal hostname '{hostname}' is not reachable.")
+        try:
+            ip = ipaddress.ip_address(hostname)
+        except ValueError:
+            pass  # hostname is not an IP, that's fine
+        else:
+            if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_multicast:
+                raise ValueError(f"SSRF blocked: internal IP '{hostname}' is not reachable.")
         return v
 
     def payload_text(self) -> str:

@@ -66,8 +66,95 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-from arifosmcp.core.constitution_kernel import ConstitutionKernel
-_KERNEL = ConstitutionKernel()
+from arifosmcp.core.constitution_kernel import ConstitutionKernel, ActionContext, get_kernel, WitnessType
+_CORE = get_kernel()
+_KERNEL = _CORE # Maintain compatibility if needed
+
+
+def _constitutional_gate(
+    tool_name: str,
+    mode: str,
+    actor_id: str | None,
+    session_id: str | None = None,
+    candidate: str | None = None,
+    manifest: str | None = None,
+    query: str | None = None,
+    url: str | None = None,
+    target_agent: str | None = None,
+    ack_irreversible: bool = False,
+    witness_type: str = "ai",
+    plan_id: str | None = None,
+) -> dict[str, Any] | None:
+    """
+    Universal constitutional evaluation gate.
+
+    All tools call this before executing. If the core returns non-SEAL,
+    the tool must return the constitutional HOLD/VOID response immediately.
+    Returns None if the action is authorized (SEAL).
+    """
+    try:
+        ctx = ActionContext(
+            tool_name=tool_name,
+            mode=mode,
+            actor_id=actor_id,
+            session_id=session_id,
+            candidate=candidate,
+            manifest=manifest,
+            query=query,
+            url=url,
+            target_agent=target_agent,
+            ack_irreversible=ack_irreversible,
+            witness_type=WitnessType(witness_type) if witness_type in ("ai", "human", "multi") else WitnessType.AI,
+            plan_id=plan_id,
+            session_registry=set(_SESSIONS.keys()),
+            federation_registry={"kimi", "claude", "gemini"},
+            plan_registry=set(_PLAN_REGISTRY.keys()),
+        )
+    except ValueError as exc:
+        # Pydantic validation failure (e.g., invalid URL)
+        return _hold(tool_name, f"Constitutional gate blocked: {exc}", ["F12"], session_id=session_id)
+
+    verdict = _CORE.evaluate(ctx)
+    if verdict.verdict == "SEAL":
+        return None
+
+    # Map core verdict to tool response
+    return _hold(
+        tool_name,
+        f"Constitutional {verdict.verdict}: {', '.join(verdict.floors.failed_floors)}",
+        verdict.floors.failed_floors,
+        session_id=session_id,
+    )
+
+
+def _kernel_eval(
+    tool_name: str,
+    mode: str,
+    actor_id: str | None,
+    session_id: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Wrap _CORE.evaluate in the legacy dict shape used by tool implementations."""
+    ctx = ActionContext(
+        tool_name=tool_name,
+        mode=mode,
+        actor_id=actor_id,
+        session_id=session_id,
+        **kwargs,
+    )
+    v = _CORE.evaluate(ctx)
+    return {
+        "verdict": v.verdict,
+        "passed": v.verdict == "SEAL",
+        "failed_floors": v.floors.failed_floors,
+        "reason": (
+            ", ".join(v.floors.failed_floors)
+            if v.floors.failed_floors
+            else "Constitutional alignment confirmed."
+        ),
+        "threat_score": v.threat.confidence,
+    }
+
 
 # ─── MIND Synthesis Helpers ───────────────────────────────────────────────────
 
@@ -217,17 +304,6 @@ def _irreversibility_rank(level: str) -> int:
         IrreversibilityLevel.CATASTROPHIC.value: 3,
     }
     return ranks.get(level, 0)
-
-
-        "service stop",
-        "kill -9",
-        "pkill -9",
-        "killall",
-    ]
-    if any(p in text for p in shutdown_patterns):
-        threats.add(ThreatCategory.SYSTEM_SHUTDOWN)
-
-    return threats
 
 
 def _infer_irreversibility_level(candidate: str | None) -> IrreversibilityLevel:
@@ -870,14 +946,9 @@ def _arif_sense_observe(
             session_id=session_id,
         )
 
-    floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_sense_observe",
-            floor_check["reason"],
-            floor_check["failed_floors"],
-            session_id=session_id,
-        )
+    gate = _constitutional_gate("arif_sense_observe", mode, actor_id, session_id=session_id, query=query)
+    if gate is not None:
+        return gate
 
     if mode == "search":
         return _ok(
@@ -932,14 +1003,9 @@ def _arif_evidence_fetch(
 
     When thinking_depth > 0, output includes ThinkingSequence + ResourceMetrics.
     """
-    floor_check = check_floors("arif_evidence_fetch", {"url": url or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_evidence_fetch",
-            floor_check["reason"],
-            floor_check["failed_floors"],
-            session_id=session_id,
-        )
+    gate = _constitutional_gate("arif_evidence_fetch", mode, actor_id, session_id=session_id, url=url, query=query)
+    if gate is not None:
+        return gate
 
     # Check for evidence backend configuration
     _has_fetch_backend = bool(url)  # URL presence implies fetch is possible
@@ -1260,14 +1326,9 @@ def _arif_mind_reason(
       and epistemic_snapshot. Plan mode returns a PlanReceipt with
       plan_id, task_graph, and reversibility_map.
     """
-    floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_mind_reason",
-            floor_check["reason"],
-            floor_check["failed_floors"],
-            session_id=session_id,
-        )
+    gate = _constitutional_gate("arif_mind_reason", mode, actor_id, session_id=session_id, query=query, witness_type=witness_type, plan_id=plan_id)
+    if gate is not None:
+        return gate
 
     # Default axioms for all modes
     default_axioms = AxiomsUsed(
@@ -1857,9 +1918,9 @@ def _arif_kernel_route(
     Returns:
       Routing decision with path, hops, stage, and allowed_next_tools.
     """
-    floor_check = check_floors("arif_kernel_route", {"target": target or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold("arif_kernel_route", floor_check["reason"], floor_check["failed_floors"])
+    gate = _constitutional_gate("arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target)
+    if gate is not None:
+        return gate
 
     if mode == "route":
         return _ok(
@@ -1943,9 +2004,9 @@ def _arif_reply_compose(
     Returns:
       Composed message with formatted text, tone tag, and delta_S.
     """
-    floor_check = check_floors("arif_reply_compose", {"message": message or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold("arif_reply_compose", floor_check["reason"], floor_check["failed_floors"])
+    gate = _constitutional_gate("arif_reply_compose", mode, actor_id, session_id=session_id, query=message)
+    if gate is not None:
+        return gate
 
     if mode == "compose":
         return _ok(
@@ -2018,9 +2079,9 @@ def _arif_memory_recall(
     Returns:
       Memory payload with entries, confidence scores, and source tags.
     """
-    floor_check = check_floors("arif_memory_recall", {"query": query or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
+    gate = _constitutional_gate("arif_memory_recall", mode, actor_id, session_id=session_id, query=query)
+    if gate is not None:
+        return gate
 
     if mode == "recall":
         return _ok(
@@ -2029,6 +2090,18 @@ def _arif_memory_recall(
     if mode == "store":
         return _ok(
             "arif_memory_recall", {"stored": True, "memory_id": uuid.uuid4().hex[:8]}, delta_S=0.002
+        )
+    if mode == "get":
+        return _ok(
+            "arif_memory_recall",
+            {"memory_id": memory_id, "entry": None, "found": False},
+            delta_S=0.0,
+        )
+    if mode == "list":
+        return _ok(
+            "arif_memory_recall",
+            {"session_id": session_id, "entries": [], "count": 0},
+            delta_S=0.0,
         )
     if mode == "search":
         return _ok("arif_memory_recall", {"query": query, "results": []}, delta_S=0.001)
@@ -2110,9 +2183,9 @@ def _arif_heart_critique(
       RiskReport with risks_found, risk_tier, human_decision_required,
       and empathy_score (κᵣ).
     """
-    floor_check = check_floors("arif_heart_critique", {"target": target or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold("arif_heart_critique", floor_check["reason"], floor_check["failed_floors"])
+    gate = _constitutional_gate("arif_heart_critique", mode, actor_id, session_id=session_id, query=target)
+    if gate is not None:
+        return gate
 
     if mode == "simulate":
         return _ok(
@@ -2421,11 +2494,9 @@ def _arif_gateway_connect(
     Returns:
       Gateway status with protocol, routing path, and agent capability map.
     """
-    floor_check = check_floors(
-        "arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id
-    )
-    if floor_check["verdict"] != "SEAL":
-        return _hold("arif_gateway_connect", floor_check["reason"], floor_check["failed_floors"])
+    gate = _constitutional_gate("arif_gateway_connect", mode, actor_id, session_id=session_id, target_agent=target_agent)
+    if gate is not None:
+        return gate
 
     _FEDERATION_REGISTRY = {"kimi", "claude", "gemini"}
     if mode == "route":
@@ -2506,9 +2577,9 @@ def _arif_ops_measure(
     Returns:
       Health payload with status, metrics, and thermodynamic bands.
     """
-    floor_check = check_floors("arif_ops_measure", {}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold("arif_ops_measure", floor_check["reason"], floor_check["failed_floors"])
+    gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
+    if gate is not None:
+        return gate
 
     if mode == "health":
         return _ok(
@@ -2574,177 +2645,109 @@ def _arif_judge_deliberate(
 ) -> dict[str, Any]:
     """
     888_JUDGE: Constitutional adjudication and verdict emission.
-    Delegates to the unified ConstitutionKernel.
+    Delegates to the high-fidelity split ConstitutionKernel.
     """
-    # Use Kernel to evaluate intent
-    params = {"candidate": candidate, "mode": mode}
-    k_verdict = _KERNEL.evaluate_intent(
+    ctx = ActionContext(
         tool_name="arif_judge_deliberate",
-        params=params,
+        mode=mode,
+        actor_id=actor_id,
         session_id=session_id,
-        proof=proof
+        candidate=candidate,
+        witness_type=WitnessType.HUMAN if proof and proof.get("witness_type") == "human" else WitnessType.AI,
+        constitutional_chain_id=constitutional_chain_id,
+        session_registry=set(_SESSIONS.keys()),
     )
+    
+    verdict = _CORE.evaluate(ctx)
 
-    if not k_verdict["passed"]:
+    if verdict.status != "OK":
         output = VerdictOutput(
-            status="HOLD",
-            verdict=VerdictCode.HOLD if k_verdict["verdict"] == "HOLD" else VerdictCode.VOID,
+            status=verdict.status,
+            verdict=VerdictCode.HOLD if verdict.verdict == "HOLD" else VerdictCode.VOID,
             candidate=candidate,
             result={
                 "candidate": candidate,
-                "reason": k_verdict["reason"],
-                "failed_floors": k_verdict["failed_floors"],
-                "threat_score": k_verdict["threat_score"]
+                "reason": verdict.floors.floor_reasons,
+                "failed_floors": verdict.floors.failed_floors,
+                "threat_score": verdict.threat.confidence
             },
             floor_compliance=FloorComplianceProof(
-                floors_invoked=k_verdict["failed_floors"],
-                failed_floors=k_verdict["failed_floors"],
-                failed_floor_reasons={f: k_verdict["reason"] for f in k_verdict["failed_floors"]},
+                floors_invoked=verdict.floors.failed_floors,
+                failed_floors=verdict.floors.failed_floors,
+                failed_floor_reasons=verdict.floors.floor_reasons,
             ),
             amanah_proof=AmanahProof(
-                floors_checked=k_verdict["failed_floors"],
+                floors_checked=verdict.floors.failed_floors,
                 genius_score=0.0,
             ),
-            meta={"reason": k_verdict["reason"]},
-            timestamp=_now(),
+            meta={"reason": "Constitutional breach detected by kernel"},
+            timestamp=verdict.timestamp,
         )
         return output.model_dump(mode="json")
 
     # Success / SEAL logic
-    verdict_code = VerdictCode.SEAL
-    result = {
-        "candidate": candidate,
-        "verdict": "SEAL",
-        "omega_ortho": 0.95,
-        "threat_score": k_verdict["threat_score"]
-    }
-
     output = VerdictOutput(
         status="OK",
-        verdict=verdict_code,
+        verdict=VerdictCode.SEAL,
         candidate=candidate,
-        result=result,
+        result={
+            "candidate": candidate,
+            "verdict": "SEAL",
+            "omega_ortho": 0.98,
+        },
         floor_compliance=FloorComplianceProof(
-            floors_invoked=["F01", "F02", "F03", "F04", "F05", "F06", "F07", "F08", "F09", "F10", "F11", "F12", "F13"],
-            floor_results={f: "PASS" for f in ["F01", "F12", "F09"]},
+            floors_invoked=["F01", "F11", "F12", "F13"],
+            floor_results={f: "PASS" for f in ["F01", "F11", "F12", "F13"]},
         ),
         amanah_proof=AmanahProof(
             floors_checked=["F01", "F12"],
             floors_passed=["F01", "F12"],
             genius_score=0.98,
         ),
-        meta={"mode": mode, "kernel_verdict": k_verdict["verdict"]},
-        timestamp=_now(),
+        meta={"mode": mode, "state_hash": verdict.state_hash},
+        timestamp=verdict.timestamp,
+    )
+    
+    return output.model_dump(mode="json")
+
+def _old_deliberate_unused():
+    verdict_code = VerdictCode.VOID if c_verdict.verdict == "VOID" else (
+        VerdictCode.HOLD if c_verdict.verdict == "HOLD" else VerdictCode.SEAL
     )
 
-    contract = _build_judge_contract(
-        candidate=candidate,
-        verdict=verdict_code,
-        session_id=session_id,
-        actor_id=actor_id,
-        constitutional_chain_id=constitutional_chain_id,
-        irreversibility_level=_infer_irreversibility_level(candidate),
-        delta_s=0.001,
-        g_score=0.98,
-        epistemic_snapshot=EpistemicSnapshot(status="stable", confidence=0.98),
-        floor_compliance=output.floor_compliance,
-    )
-
-    final_output = output.model_dump(mode="json")
-    final_output["result"]["state_hash"] = contract.state_hash
-    final_output["result"]["constitutional_chain_id"] = contract.constitutional_chain_id
-
-    return final_output
-
-        failed_floors = ["F01", "F12"]
-        failed_floor_reasons = {
-            "F01": f"Destructive action detected: {[t.value for t in threats & destructive_threats]}",
-            "F12": "Injection or destructive pattern detected in candidate input.",
-        }
-        g_score = 0.0
-    elif verdict == VerdictCode.SEAL:
-        floor_results = {
-            "F01": "PASS",
-            "F02": "PASS",
-            "F08": "PASS",
-            "F11": "PASS",
-            "F12": "PASS",
-            "F13": "PASS",
-        }
-        failed_floors = []
-        failed_floor_reasons = {}
-    else:
-        floor_results = {
-            "F01": "PASS",
-            "F02": "PASS",
-            "F08": "PASS",
-            "F11": "PASS",
-            "F12": "PASS",
-            "F13": "FAIL",
-        }
-        failed_floors = ["F13"]
-        failed_floor_reasons = {"F13": "Manual sovereign review required."}
+    floor_results = {f: "PASS" for f in ["F01", "F02", "F08", "F11", "F12", "F13"]}
+    for f in c_verdict.floors.failed_floors:
+        floor_results[f.replace("_VIOLATION", "")] = "FAIL"
 
     floor_compliance = FloorComplianceProof(
         floors_invoked=["F01", "F02", "F08", "F11", "F12", "F13"],
         floor_results=floor_results,
-        failed_floors=failed_floors,
-        failed_floor_reasons=failed_floor_reasons,
-    )
-    amanah = AmanahProof(
-        floors_checked=floor_compliance.floors_invoked,
-        floors_passed=[
-            floor for floor, status in floor_compliance.floor_results.items() if status == "PASS"
-        ],
-        floors_failed=floor_compliance.failed_floors,
-        genius_score=g_score,
-        genius_rationale=(
-            "Single-contract lineage reduces ambiguity at the irreversible edge."
-            if not threat_blocked
-            else "Threat classifier blocked destructive candidate — zero genius score."
-        ),
-        entropy_minimal=True,
-        entropy_alternatives_considered=2,
-    )
-    epistemic = EpistemicSnapshot(
-        omega_ortho=0.97,
-        confidence=confidence,
-        assumptions=["candidate_provided", "constitutional_chain_preserved"],
-        confidence_sources=["policy_alignment", "floor_compliance"],
-    )
-    thermo = ThermodynamicState(
-        energy_estimate=0.001,
-        delta_S=delta_s,
-        entropy_direction="increasing" if delta_s > 0 else "stable",
-        irreversibility=_infer_irreversibility_level(candidate) != IrreversibilityLevel.REVERSIBLE,
-    )
-    judge_contract = _build_judge_contract(
-        candidate=candidate,
-        verdict=verdict,
-        session_id=session_id,
-        actor_id=actor_id,
-        constitutional_chain_id=constitutional_chain_id,
-        irreversibility_level=_infer_irreversibility_level(candidate),
-        delta_s=delta_s,
-        g_score=g_score,
-        epistemic_snapshot=epistemic,
-        floor_compliance=floor_compliance,
+        failed_floors=[f.replace("_VIOLATION", "") for f in c_verdict.floors.failed_floors],
+        failed_floor_reasons=c_verdict.floors.floor_reasons,
     )
     output = VerdictOutput(
-        status="OK" if verdict == VerdictCode.SEAL else "HOLD",
-        verdict=verdict,
+        status="OK" if c_verdict.verdict == "SEAL" else "HOLD",
+        verdict=verdict_code,
         candidate=candidate,
-        result=result,
+        result={
+            "candidate": candidate,
+            "verdict": c_verdict.verdict,
+            "omega_ortho": epistemic.omega_ortho,
+            "floors_checked": floor_compliance.floors_invoked,
+            "threats_detected": [t.name for t in c_verdict.threat.threats],
+        },
         thermodynamic_state=thermo,
         floor_compliance=floor_compliance,
         amanah_proof=amanah,
-        judge_contract=judge_contract,
+        judge_contract=contract,
         meta={
-            "constitutional_chain_id": judge_contract.constitutional_chain_id,
-            "state_hash": judge_contract.state_hash,
-            "irreversibility_level": judge_contract.irreversibility_level,
-            "delta_s": judge_contract.delta_s,
-            "g_score": judge_contract.g_score,
+            "constitutional_chain_id": contract.constitutional_chain_id,
+            "state_hash": contract.state_hash,
+            "irreversibility_level": contract.irreversibility_level,
+            "delta_s": contract.delta_s,
+            "g_score": contract.g_score,
+            "kernel_verdict": c_verdict.verdict,
+            "kernel_state_hash": c_verdict.state_hash,
         },
         timestamp=_now(),
     )
@@ -4068,6 +4071,40 @@ if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
     raise RuntimeError("Canonical handler registry does not match constitutional_map.py")
 
 
+def _wrap_handler(handler: Any, tool_name: str) -> Any:
+    """Wrap a handler so Pydantic validation errors expose the public tool name."""
+    # Sync wrapper
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return handler(*args, **kwargs)
+        except Exception as exc:
+            # Sanitize error messages to prevent internal name leakage
+            msg = str(exc)
+            if handler.__name__ in msg:
+                msg = msg.replace(handler.__name__, tool_name)
+            raise type(exc)(msg) from exc.__cause__
+
+    # Async wrapper
+    async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return await handler(*args, **kwargs)
+        except Exception as exc:
+            msg = str(exc)
+            if handler.__name__ in msg:
+                msg = msg.replace(handler.__name__, tool_name)
+            raise type(exc)(msg) from exc.__cause__
+
+    import inspect
+
+    wrapped = async_wrapper if inspect.iscoroutinefunction(handler) else wrapper
+    wrapped.__name__ = tool_name
+    wrapped.__doc__ = handler.__doc__
+    wrapped.__module__ = handler.__module__
+    wrapped.__signature__ = inspect.signature(handler)
+    wrapped.__wrapped__ = handler
+    return wrapped
+
+
 def register_tools(
     mcp: FastMCP,
     *,
@@ -4086,6 +4123,7 @@ def register_tools(
             continue
         try:
             manifest = TOOL_MANIFEST.get(name, {})
+            wrapped = _wrap_handler(handler, name)
             mcp.tool(
                 name=name,
                 tags={"canonical", "arifos"},
@@ -4098,7 +4136,7 @@ def register_tools(
                     "requires_human_ack": manifest.get("risk", {}).get("requires_human_ack", False),
                     "canonical_order": manifest.get("canonical_order", []),
                 },
-            )(handler)
+            )(wrapped)
             registered.append(name)
             logger.debug(f"Registered canonical tool: {name}")
         except Exception as e:
