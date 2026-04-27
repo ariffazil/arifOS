@@ -111,8 +111,29 @@ class WealthGovernance:
       - no liability owner → HOLD (automatic)
     """
     # Thresholds
-    MIN_SVS = 0.30
-    MAX_DELTA_M = 0.80
+    MIN_SVS = 0.30          # hard HOLD below this line
+    MAX_DELTA_M = 0.80     # hard HOLD above this line
+    # Graduated governance penalty zone: svs in [MIN_SVS, 0.50] gets proportional penalty
+    SVS_PENALTY_ZONE = 0.50
+
+    # ── Graduated penalty for threshold gaming mitigation ────────────────────
+    # If svs is just above MIN_SVS (e.g. 0.3501), it technically passes the hard gate
+    # but should still receive governance penalty rather than neutral status.
+    # We compute a penalty_factor (0=full pass, 1=maximum penalty) applied to score.
+    @classmethod
+    def _svs_penalty(cls, svs: float) -> float:
+        """
+        Return penalty 0.0-1.0 based on svs in the graduated zone [MIN_SVS, SVS_PENALTY_ZONE].
+        At exactly MIN_SVS: penalty = 0.0 (just cleared hard gate — no additional penalty).
+        At SVS_PENALTY_ZONE and above: penalty = 0.0 (fully in safe zone).
+        In between: linear ramp from 0.0 at MIN_SVS to 1.0 at SVS_PENALTY_ZONE.
+        """
+        if svs >= cls.SVS_PENALTY_ZONE:
+            return 0.0  # fully in safe zone
+        if svs <= cls.MIN_SVS:
+            return 0.0  # at or below hard gate — hard block handles this, not penalty
+        # linear ramp: MIN_SVS → 0.0 penalty, SVS_PENALTY_ZONE → 1.0 penalty
+        return (cls.SVS_PENALTY_ZONE - svs) / (cls.SVS_PENALTY_ZONE - cls.MIN_SVS)
 
     @classmethod
     def evaluate(cls, context: ActionContext) -> dict[str, Any]:
@@ -157,6 +178,17 @@ class WealthGovernance:
             hard_blocks.append(f"SVS_BELOW_{cls.MIN_SVS}")
         if delta_m > cls.MAX_DELTA_M:
             hard_blocks.append(f"DELTA_M_EXCEEDS_{cls.MAX_DELTA_M}")
+
+        # ── Graduated penalty for svs in [MIN_SVS, SVS_PENALTY_ZONE] ─────────────
+        # Gaming mitigation: svs=0.3501 technically clears hard gate but is still risky.
+        # Record penalty factor in verification_state for downstream score adjustment.
+        # Penalty is advisory — does not override hard blocks — but signals governance concern.
+        if not any("SVS_BELOW" in b for b in hard_blocks):
+            penalty = cls._svs_penalty(svs)
+            verification_state["svs_governance_penalty"] = round(penalty, 4)
+            if penalty > 0.5:
+                # Elevated governance concern but not a hard block — flag for advisory HOLD
+                verification_state["advisory_governance_flag"] = f"SVS_PENALTY_ZONE: penalty={penalty:.2f}"
 
         # ── Process wealth_score ───────────────────────────────────────────
         ws = context.wealth_score or {}
