@@ -91,6 +91,72 @@ EVALUATION_MODE = os.environ.get("ARIFOS_EVALUATION_MODE", "false").lower() in (
     "yes",
 )
 
+# Evaluation mode: when True, tools use simulated governance responses.
+# When False (production/App Store), tools proxy to real canonical backends.
+EVALUATION_MODE = os.environ.get("ARIFOS_EVALUATION_MODE", "false").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+
+# ---------------------------------------------------------------------------
+# Governance helpers
+# ---------------------------------------------------------------------------
+
+
+def _get_live_session() -> dict:
+    """Pull live session state from the Command Center registry or arifOS runtime."""
+    # Priority 1: Command Center local session registry (v0.2+ session continuity)
+    state = get_state()
+    local = state.get_session()
+    if local:
+        return {
+            "session_id": local.session_id,
+            "actor_id": local.actor_id,
+            "declared_name": local.declared_name,
+            "intent": local.intent,
+            "token": local.token,
+            "floor_audit": local.floor_audit,
+            "created_at": local.created_at,
+            "expires_at": local.expires_at,
+        }
+
+    # Priority 2: arifOS runtime session store (legacy fallback)
+    try:
+        from arifosmcp.runtime.session import _ACTIVE_SESSION_ID, _SESSION_IDENTITY
+
+        active_id = _ACTIVE_SESSION_ID
+        if active_id and active_id in _SESSION_IDENTITY:
+            return dict(_SESSION_IDENTITY[active_id])
+    except Exception:  # nosec: governance guard handles failures gracefully
+        pass
+    return {}
+
+
+def _kernel_status() -> dict:
+    """Get kernel routing status."""
+    try:
+        return arif_kernel_route(mode="status", actor_id="arif")
+    except Exception:
+        return {}
+
+
+def _kernel_telemetry() -> dict:
+    """Get kernel thermodynamic telemetry."""
+    try:
+        return arif_kernel_route(mode="telemetry", actor_id="arif")
+    except Exception:
+        return {}
+
+
+def _route_action(target: str, task: str) -> dict:
+    """Route an action intent through 444_KERNEL. Returns routing decision."""
+    try:
+        return arif_kernel_route(mode="route", target=target, task=task, actor_id="arif")
+    except Exception as e:
+        return {"result": {}, "status": "HOLD", "meta": {"reason": str(e)}}
+
+
 # ---------------------------------------------------------------------------
 # Governance helpers
 # ---------------------------------------------------------------------------
