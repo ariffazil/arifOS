@@ -40,6 +40,7 @@ class SessionState:
     plan_id: Optional[str] = None
     last_verdict: Optional[str] = None
     last_tool: Optional[str] = None
+    tool_call_history: list[str] = field(default_factory=list)
     created_at: str = ""
 
     def can_advance_to(self, target_stage: str) -> bool:
@@ -105,7 +106,27 @@ def advance_session(
     s.lifecycle = new_state
     if tool:
         s.last_tool = tool
+        s.tool_call_history.append(tool)
     return s
+
+
+def record_tool_call(session_id: str, tool_name: str) -> None:
+    """Record a tool call in the session history. F9 TAQWA tracking."""
+    if not session_id:
+        return
+    s = get_or_create_session(session_id)
+    s.tool_call_history.append(tool_name)
+
+
+def was_tool_called(session_id: str, tool_name: str) -> bool:
+    """Check if a tool was called in the current session chain. F9 TAQWA gate."""
+    if not session_id:
+        return False
+    try:
+        s = get_or_create_session(session_id)
+        return tool_name in s.tool_call_history
+    except Exception:
+        return False
 
 
 def reset_session_store() -> None:

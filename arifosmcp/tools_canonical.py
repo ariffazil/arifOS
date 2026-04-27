@@ -221,13 +221,30 @@ def arifos_compute_finance(
     resources: dict[str, Any] | None = None,
     # Civilization
     current_state: dict[str, Any] | None = None,
+    # Verification / Δm
+    novelty: float = 0.5,
+    proxy_distance: float = 0.5,
+    verifier_scarcity: float = 0.5,
+    latency_to_ground_truth: float = 0.5,
+    model_opacity: float = 0.5,
+    provenance_score: float = 0.5,
+    reversibility_score: float = 0.5,
+    executable_scope: float = 1.0,
+    verifiable_scope: float = 1.0,
+    liability_owner: str | None = None,
+    junior_loop_status: str = "SAFE",
+    human_capacity_score: float = 0.8,
+    anti_hantu_fail: bool = False,
+    sovereign_veto: bool = False,
+    floors_passed: bool = True,
     ctx: Any | None = None,
 ) -> dict[str, Any]:
     """
-    Financial valuation and decision engine.
+    Financial + verification governance engine.
     Modes: npv | irr | mirr | emv | dscr | payback | profitability_index |
            allocation_rank | personal_decision_rank | budget_optimize |
-           civilization_sustainability
+           civilization_sustainability | wealth_audit_entropy | wealth_score_kernel |
+           wealth_decision_packet | wealth_junior_loop | wealth_liability_route
     """
     # ── NPV ──────────────────────────────────────────────────────────────────
     if mode == "npv":
@@ -419,6 +436,137 @@ def arifos_compute_finance(
                 "trajectory": cs.get("trajectory", "unknown"),
                 "flags": cs.get("flags", []),
             },
+        }
+
+    # ── WEALTH AUDIT ENTROPY / Δm ───────────────────────────────────────────
+    if mode == "wealth_audit_entropy":
+        from skills.wealth.verify import wealth_measure_delta_m
+        result = wealth_measure_delta_m(
+            cashflows=cash_flows,
+            novelty=novelty,
+            proxy_distance=proxy_distance,
+            verifier_scarcity=verifier_scarcity,
+            latency_to_ground_truth=latency_to_ground_truth,
+            model_opacity=model_opacity,
+            provenance_score=provenance_score,
+            reversibility_score=reversibility_score,
+            executable_scope=executable_scope,
+            verifiable_scope=verifiable_scope,
+        )
+        return {
+            "agent": "V", "domain": "verification", "action": "wealth_audit_entropy",
+            "canonical": "arifos_compute_finance[wealth_audit_entropy]",
+            "result": result.to_dict(),
+        }
+
+    # ── WEALTH SCORE KERNEL ─────────────────────────────────────────────────
+    if mode == "wealth_score_kernel":
+        from skills.wealth.score_kernel import wealth_score_kernel
+        # Derive svs from verifiable_scope / executable_scope
+        safe_exec = max(executable_scope, 1e-9)
+        svs = verifiable_scope / safe_exec
+        delta_m = max(0.0, executable_scope - verifiable_scope)
+        # Determine entropy band
+        if delta_m >= 0.75 or svs < 0.25:
+            band = "EXTREME"
+        elif delta_m >= 0.50 or svs < 0.50:
+            band = "HIGH"
+        elif delta_m >= 0.25 or svs < 0.75:
+            band = "MEDIUM"
+        else:
+            band = "LOW"
+        result = wealth_score_kernel(
+            reward_score=initial_investment,
+            risk_score=discount_rate,
+            npv_estimate=None,
+            emv_estimate=None,
+            verifiability_score=svs,
+            delta_m=delta_m,
+            entropy_band=band,
+            floors_passed=floors_passed,
+            liability_owner_present=(liability_owner is not None),
+            liability_score=0.8 if liability_owner else 0.0,
+            reversibility_score=reversibility_score,
+            junior_loop_status=junior_loop_status,
+            human_capacity_score=human_capacity_score,
+            anti_hantu_fail=anti_hantu_fail,
+            sovereign_veto=sovereign_veto,
+        )
+        return {
+            "agent": "V", "domain": "verification", "action": "wealth_score_kernel",
+            "canonical": "arifos_compute_finance[wealth_score_kernel]",
+            "result": result.to_dict(),
+        }
+
+    # ── WEALTH JUNIOR LOOP ─────────────────────────────────────────────────
+    if mode == "wealth_junior_loop":
+        from skills.wealth.verify import wealth_assess_junior_loop
+        result = wealth_assess_junior_loop(
+            domain=(alternatives[0].get("domain") if alternatives else "unknown"),
+            junior_task_share_removed=min(1.0, novelty),
+            synthetic_training_available=(provenance_score > 0.5),
+            current_senior_capacity=human_capacity_score,
+        )
+        return {
+            "agent": "V", "domain": "verification", "action": "wealth_junior_loop",
+            "canonical": "arifos_compute_finance[wealth_junior_loop]",
+            "result": result.to_dict(),
+        }
+
+    # ── WEALTH LIABILITY ROUTE ───────────────────────────────────────────────
+    if mode == "wealth_liability_route":
+        from skills.wealth.verify import wealth_route_liability
+        decision_id = (alternatives[0].get("decision_id") if alternatives else "unknown")
+        result = wealth_route_liability(
+            decision_id=decision_id,
+            liability_owner=liability_owner,
+            owner_type="human" if liability_owner else None,
+            max_loss_band=0.0,
+            insurance_required=False,
+            legal_review_required=False,
+            deployment_class="LOW",
+        )
+        return {
+            "agent": "V", "domain": "verification", "action": "wealth_liability_route",
+            "canonical": "arifos_compute_finance[wealth_liability_route]",
+            "result": result.to_dict(),
+        }
+
+    # ── WEALTH DECISION PACKET ───────────────────────────────────────────────
+    if mode == "wealth_decision_packet":
+        from skills.wealth.score_kernel import wealth_decision_packet
+        title = (alternatives[0].get("title") if alternatives else "Unnamed") if alternatives else "Unnamed"
+        safe_exec = max(executable_scope, 1e-9)
+        svs = verifiable_scope / safe_exec
+        delta_m = max(0.0, executable_scope - verifiable_scope)
+        if delta_m >= 0.75 or svs < 0.25:
+            band = "EXTREME"
+        elif delta_m >= 0.50 or svs < 0.50:
+            band = "HIGH"
+        elif delta_m >= 0.25 or svs < 0.75:
+            band = "MEDIUM"
+        else:
+            band = "LOW"
+        result = wealth_decision_packet(
+            title=title,
+            domain=(alternatives[0].get("domain") if alternatives else "trading") if alternatives else "trading",
+            claims=(alternatives[0].get("claims", []) if alternatives else []),
+            npv_estimate=None,
+            emv_estimate=None,
+            liability_owner=liability_owner,
+            entropy_band=band,
+            delta_m=delta_m,
+            svs=svs,
+            floors_passed=floors_passed,
+            junior_loop_status=junior_loop_status,
+            human_capacity_score=human_capacity_score,
+            anti_hantu_fail=anti_hantu_fail,
+            sovereign_veto=sovereign_veto,
+        )
+        return {
+            "agent": "V", "domain": "verification", "action": "wealth_decision_packet",
+            "canonical": "arifos_compute_finance[wealth_decision_packet]",
+            "result": result,
         }
 
     return {"error": f"Unknown finance mode: {mode}"}
