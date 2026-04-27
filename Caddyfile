@@ -26,47 +26,21 @@
 }
 
 # ─── Ψ HUMAN SURFACE ───────────────────────────────────────────────────────────
-# arif-fazil.com — Personal anchor: human portfolio, wisdom wall, verification room
 arif-fazil.com, www.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
-
     root * /var/www/html/arif
-
-    # Sub-pages
-    handle /000 {
-        redir /000 /000/
-    }
     handle /000/* {
         root * /var/www/html/arif/000
         file_server
         try_files {path} /index.html
-    }
-    handle /999 {
-        redir /999 /999/
     }
     handle /999/* {
         root * /var/www/html/arif/999
         file_server
         try_files {path} /index.html
     }
-    handle /proof/* {
-        root * /var/www/html/arif/proof
-        file_server
-    }
-    handle /.well-known/* {
-        root * /var/www/html/arif/.well-known
-        file_server
-    }
-
-    handle /llms.txt {
-        file_server
-    }
-    handle /llms-full.txt {
-        file_server
-    }
-
     handle {
         file_server
         try_files {path} /index.html
@@ -74,14 +48,37 @@ arif-fazil.com, www.arif-fazil.com {
 }
 
 # ─── Δ MACHINE SURFACE ─────────────────────────────────────────────────────────
-# mcp.arif-fazil.com — MCP gateway: landing page + JSON-RPC proxy
+# mcp.arif-fazil.com — Legacy hub (Direct Proxy to preserve POST)
 mcp.arif-fazil.com {
     import tls_origin
+    handle /mcp* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle {
+        redir https://arifos.arif-fazil.com/mcp{uri} permanent
+    }
+}
+
+# arifOS MCP alias (Direct Proxy to preserve POST)
+arifosmcp.arif-fazil.com {
+    import tls_origin
+    handle /mcp* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle {
+        redir https://arifos.arif-fazil.com/mcp{uri} permanent
+    }
+}
+
+# ─── Ω INTELLIGENCE SURFACE ────────────────────────────────────────────────────
+# arifos.arif-fazil.com — Federation hub: arifOS + geox + wealth
+arifos.arif-fazil.com {
+    import tls_origin
+    import shared_assets
     encode zstd gzip
+    root * /var/www/html/arifos
 
-    root * /var/www/html/mcp
-
-    # MCP JSON-RPC → arifosmcp (fixed: was 3000, actual port is 8080)
+    # CORE MCP
     handle /mcp* {
         reverse_proxy arifosmcp:8080
     }
@@ -91,132 +88,37 @@ mcp.arif-fazil.com {
     handle /tools {
         reverse_proxy arifosmcp:8080
     }
-    handle /metadata {
-        reverse_proxy arifosmcp:8080
-    }
-    handle /ready {
-        reverse_proxy arifosmcp:8080
-    }
-    handle /.well-known/mcp* {
-        reverse_proxy arifosmcp:8080
-    }
 
-    # AAA A2A gateway
-    handle /a2a/* {
-        reverse_proxy aaa-a2a:3001
-    }
-
-    # Human-readable surfaces
-    handle /llms.txt {
-        file_server
-    }
-    handle /llms-full.txt {
-        file_server
-    }
-    handle /privacy* {
-        file_server
-    }
-    handle /app* {
-        file_server
-    }
-    handle /apps* {
-        file_server
-    }
-    handle /webmcp* {
-        file_server
-    }
-    handle /command-center* {
-        file_server
-    }
-
-    handle {
-        file_server
-        try_files {path} /index.html
-    }
-}
-
-# arifOS MCP alias
-arifosmcp.arif-fazil.com {
-    import tls_origin
-    redir https://mcp.arif-fazil.com{uri} permanent
-}
-
-# ─── Ω INTELLIGENCE SURFACE ────────────────────────────────────────────────────
-# arifOS.arif-fazil.com — Federation hub: arifOS + geox + wealth + forge
-arifos.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-
-    root * /var/www/html/arifos
-
-    # GEOX Earth Intelligence sub-section
+    # GEOX MCP
     handle /geox* {
-        root * /var/www/html/geox
-        handle /geox/mcp* {
+        uri strip_prefix /geox
+        handle /mcp* {
             reverse_proxy geox:8081
         }
-        handle /geox/health {
+        handle /health {
             reverse_proxy geox:8081
         }
         handle {
+            root * /var/www/html/geox
             file_server
             try_files {path} /index.html
         }
     }
 
-    # WEALTH Capital Intelligence sub-section
+    # WEALTH MCP
     handle /wealth* {
-        root * /var/www/html/wealth
-        handle /wealth/mcp* {
+        uri strip_prefix /wealth
+        handle /mcp* {
             reverse_proxy wealth-organ:8000
         }
-        handle /wealth/health {
-            reverse_proxy wealth-organ:8000
-        }
-        handle /wealth/api* {
-            reverse_proxy wealth-organ:8000
-        }
-        handle /wealth/ready {
+        handle /health {
             reverse_proxy wealth-organ:8000
         }
         handle {
+            root * /var/www/html/wealth
             file_server
             try_files {path} /index.html
         }
-    }
-
-    # FORGE Execution Substrate sub-section
-    handle /forge* {
-        root * /var/www/html/forge
-        file_server
-        try_files {path} /index.html
-    }
-
-    # AAA Control Plane sub-section
-    handle /aaa* {
-        root * /var/www/html/aaa
-        handle /aaa/a2a/* {
-            reverse_proxy aaa-a2a:3001
-        }
-        handle {
-            file_server
-            try_files {path} /index.html
-        }
-    }
-
-    # WIKI Knowledge Mesh sub-section
-    handle /wiki* {
-        root * /var/www/html/wiki
-        file_server
-        try_files {path} /index.html
-    }
-
-    # WAW Words and Works sub-section
-    handle /waw* {
-        root * /var/www/html/waw
-        file_server
-        try_files {path} /index.html
     }
 
     handle {
@@ -225,68 +127,25 @@ arifos.arif-fazil.com {
     }
 }
 
-# ─── REDIRECT MATRIX (old subdomains → canonical 3-surface) ───────────────────
-# apex: Authority Layer = Ω Intelligence surface
-apex.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-
-    root * /var/www/html/apex
-
-    handle /llms.txt {
-        file_server
-    }
-    handle /llms-full.txt {
-        file_server
-    }
-
-    handle {
-        file_server
-        try_files {path} /index.html
-    }
-}
-
-# aaa: Control Plane = Δ Machine surface / sub-section
+# ─── REDIRECT MATRIX ──────────────────────────────────────────────────────────
 aaa.arif-fazil.com {
     import tls_origin
-    redir https://mcp.arif-fazil.com/aaa{uri} permanent
+    redir https://arifos.arif-fazil.com/aaa{uri} permanent
 }
 
-# wiki: Knowledge Mesh = Ω Intelligence surface / sub-section
 wiki.arif-fazil.com {
     import tls_origin
-    redir https://arifOS.arif-fazil.com/wiki{uri} permanent
+    redir https://arifos.arif-fazil.com/wiki{uri} permanent
 }
 
-# geox: Earth Intelligence = Ω Intelligence surface / sub-section
 geox.arif-fazil.com {
     import tls_origin
-    redir https://arifOS.arif-fazil.com/geox{uri} permanent
+    redir https://arifos.arif-fazil.com/geox{uri} permanent
 }
 
-# wealth: Capital Intelligence = Ω Intelligence surface / sub-section
 wealth.arif-fazil.com {
     import tls_origin
-    redir https://arifOS.arif-fazil.com/wealth{uri} permanent
-}
-
-# forge: Execution Substrate = Ω Intelligence surface / sub-section
-forge.arif-fazil.com {
-    import tls_origin
-    redir https://arifOS.arif-fazil.com/forge{uri} permanent
-}
-
-# waw: Words and Works = Ω Intelligence surface / sub-section
-waw.arif-fazil.com {
-    import tls_origin
-    redir https://arifOS.arif-fazil.com/waw{uri} permanent
-}
-
-# wawa: typo redirect
-wawa.arif-fazil.com {
-    import tls_origin
-    redir https://arifOS.arif-fazil.com/waw{uri} permanent
+    redir https://arifos.arif-fazil.com/wealth{uri} permanent
 }
 
 # ─── INFRASTRUCTURE ────────────────────────────────────────────────────────────
