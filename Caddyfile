@@ -31,16 +31,41 @@ arif-fazil.com, www.arif-fazil.com {
     import shared_assets
     encode zstd gzip
     root * /var/www/html/arif
-    handle /000/* {
+
+    # .well-known — serve JSON files from .well-known subdir
+    @well-known {
+        path /.well-known/*
+    }
+    handle @well-known {
+        uri strip_prefix /.well-known
+        root * /var/www/html/arif/.well-known
+        file_server
+        try_files {path} /index.html
+    }
+
+    # Genesis chamber
+    @genesis {
+        path /000/*
+    }
+    handle @genesis {
+        uri strip_prefix /000
         root * /var/www/html/arif/000
         file_server
         try_files {path} /index.html
     }
-    handle /999/* {
+
+    # Validation chamber
+    @validation {
+        path /999/*
+    }
+    handle @validation {
+        uri strip_prefix /999
         root * /var/www/html/arif/999
         file_server
         try_files {path} /index.html
     }
+
+    # SPA fallback
     handle {
         file_server
         try_files {path} /index.html
@@ -48,7 +73,6 @@ arif-fazil.com, www.arif-fazil.com {
 }
 
 # ─── Δ MACHINE SURFACE ─────────────────────────────────────────────────────────
-# mcp.arif-fazil.com — Legacy hub (Direct Proxy to preserve POST)
 mcp.arif-fazil.com {
     import tls_origin
     handle /mcp* {
@@ -59,7 +83,6 @@ mcp.arif-fazil.com {
     }
 }
 
-# arifOS MCP alias (Direct Proxy to preserve POST)
 arifosmcp.arif-fazil.com {
     import tls_origin
     handle /mcp* {
@@ -71,14 +94,12 @@ arifosmcp.arif-fazil.com {
 }
 
 # ─── Ω INTELLIGENCE SURFACE ────────────────────────────────────────────────────
-# arifos.arif-fazil.com — Federation hub: arifOS + geox + wealth
 arifos.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
     root * /var/www/html/arifos
 
-    # CORE MCP
     handle /mcp* {
         reverse_proxy arifosmcp:8080
     }
@@ -89,7 +110,6 @@ arifos.arif-fazil.com {
         reverse_proxy arifosmcp:8080
     }
 
-    # GEOX MCP
     handle /geox* {
         uri strip_prefix /geox
         handle /mcp* {
@@ -105,7 +125,6 @@ arifos.arif-fazil.com {
         }
     }
 
-    # WEALTH MCP
     handle /wealth* {
         uri strip_prefix /wealth
         handle /mcp* {
