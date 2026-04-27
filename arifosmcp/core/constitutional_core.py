@@ -448,16 +448,16 @@ class FloorEvaluator:
             reasons["F11"] = f"Agent '{context.target_agent}' not in federation registry"
 
         # F12 INJECTION — Sanitize inputs
-        if threat.threats & {
+        injection_categories = {
             ThreatCategory.INJECTION_SQL,
             ThreatCategory.INJECTION_XSS,
             ThreatCategory.INJECTION_SHELL,
             ThreatCategory.INJECTION_PYTHON,
-        }:
+        }
+        if threat.threats & injection_categories:
             failed.append("F12")
-            reasons["F12"] = (
-                f"Injection threat detected: {[t.name for t in (threat.threats & {{ThreatCategory.INJECTION_SQL, ThreatCategory.INJECTION_XSS, ThreatCategory.INJECTION_SHELL, ThreatCategory.INJECTION_PYTHON}})]}"  # noqa: E501
-            )
+            detected = [t.name for t in threat.threats & injection_categories]
+            reasons["F12"] = f"Injection threat detected: {detected}"
 
         # F13 SOVEREIGN — Human veto is absolute
         if cls._requires_human_witness(context, threat):

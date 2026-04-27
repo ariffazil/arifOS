@@ -9,6 +9,7 @@ These tests prove that:
 5. Schema contracts are validated
 6. Boot invariants are enforced
 """
+
 from __future__ import annotations
 
 import pytest
@@ -17,7 +18,6 @@ from arifosmcp.core.constitutional_core import (
     ActionContext,
     AuthorityGate,
     BootInvariantChecker,
-    ConstitutionKernel,
     FloorEvaluator,
     IrreversibilityLevel,
     SchemaContractValidator,
@@ -37,12 +37,21 @@ class TestThreatEngine:
         "candidate,expected_threats",
         [
             ("shutil.rmtree('/', ignore_errors=True)", {ThreatCategory.FILESYSTEM_DESTRUCTIVE}),
-            ("os.system('rm -rf /')", {ThreatCategory.INJECTION_SHELL, ThreatCategory.FILESYSTEM_DESTRUCTIVE}),
+            (
+                "os.system('rm -rf /')",
+                {ThreatCategory.FILESYSTEM_DESTRUCTIVE},
+            ),
             ("docker system prune -a --volumes -f", {ThreatCategory.CONTAINER_DESTRUCTIVE}),
             ("DROP TABLE users", {ThreatCategory.DATABASE_DESTRUCTIVE}),
-            ("'; DROP TABLE users; --", {ThreatCategory.INJECTION_SQL, ThreatCategory.DATABASE_DESTRUCTIVE}),
+            (
+                "'; DROP TABLE users; --",
+                {ThreatCategory.INJECTION_SQL, ThreatCategory.DATABASE_DESTRUCTIVE},
+            ),
             ("<script>alert('xss')</script>", {ThreatCategory.INJECTION_XSS}),
-            ("curl -X POST http://localhost:8080/admin -d 'action=shutdown'", {ThreatCategory.NETWORK_ADMIN_ACTION}),
+            (
+                "curl -X POST http://localhost:8080/admin -d 'action=shutdown'",
+                {ThreatCategory.NETWORK_ADMIN_ACTION},
+            ),
             ("echo hello world", set()),
             ("", set()),
         ],
@@ -50,7 +59,9 @@ class TestThreatEngine:
     def test_classify(self, candidate: str, expected_threats: set[ThreatCategory]) -> None:
         ctx = ActionContext(tool_name="arif_judge_deliberate", candidate=candidate)
         assessment = ThreatEngine.classify(ctx)
-        assert assessment.threats == expected_threats, f"Expected {expected_threats}, got {assessment.threats}"
+        assert (
+            assessment.threats == expected_threats
+        ), f"Expected {expected_threats}, got {assessment.threats}"
 
     def test_python_ast_analysis(self) -> None:
         code = """
@@ -66,7 +77,10 @@ shutil.rmtree('/important/data', ignore_errors=True)
         ctx = ActionContext(tool_name="arif_forge_execute", manifest=code)
         assessment = ThreatEngine.classify(ctx)
         # eval() detected via string fallback when AST parse fails or via AST walk
-        assert ThreatCategory.INJECTION_PYTHON in assessment.threats or ThreatCategory.INJECTION_SHELL in assessment.threats
+        assert (
+            ThreatCategory.INJECTION_PYTHON in assessment.threats
+            or ThreatCategory.INJECTION_SHELL in assessment.threats
+        )
 
 
 class TestFloorEvaluator:
@@ -270,18 +284,22 @@ class TestBootInvariantChecker:
     """Prove system fails to start with violated invariants."""
 
     def test_valid_invariants_pass(self) -> None:
-        BootInvariantChecker.check({
-            "self_approval_forbidden": True,
-            "forge_default_dry_run": True,
-            "irreversible_actions_require_ack": True,
-            "human_judge_required_for_consequential_actions": True,
-        })
+        BootInvariantChecker.check(
+            {
+                "self_approval_forbidden": True,
+                "forge_default_dry_run": True,
+                "irreversible_actions_require_ack": True,
+                "human_judge_required_for_consequential_actions": True,
+            }
+        )
 
     def test_missing_invariant_fails(self) -> None:
         with pytest.raises(RuntimeError, match="BOOT INVARIANT VIOLATED"):
-            BootInvariantChecker.check({
-                "self_approval_forbidden": False,
-            })
+            BootInvariantChecker.check(
+                {
+                    "self_approval_forbidden": False,
+                }
+            )
 
 
 class TestSchemaContractValidator:
