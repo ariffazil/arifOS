@@ -27,6 +27,15 @@ arif-fazil.com, www.arif-fazil.com {
     try_files {path} /index.html
 }
 
+arifos.arif-fazil.com {
+    import tls_origin
+    import shared_assets
+    encode zstd gzip
+    root * /var/www/html/arifos
+    file_server
+    try_files {path} /index.html
+}
+
 apex.arif-fazil.com {
     import tls_origin
     import shared_assets
