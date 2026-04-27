@@ -189,9 +189,51 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
 
     @functools.wraps(original_handler)
     async def wrapper(**kwargs):
+        # ── Constitutional floor enforcement (F1–F13) ──
+        # Run BEFORE the handler executes — fail-closed on floor breach.
+        from arifosmcp.core.floors import check_floors, record_tool_call
+
         bound = sig.bind(**kwargs)
         bound.apply_defaults()
-        return await _invoke_original(dict(bound.arguments))
+        args = dict(bound.arguments)
+
+        session_id = args.get("session_id") or os.environ.get("ARIFOS_SESSION_ID")
+        actor_id = args.get("actor_id") or os.environ.get("ARIFOS_ACTOR_ID")
+
+        floor_result = check_floors(
+            tool_name=tool_name,
+            params=args,
+            actor_id=actor_id,
+            session_id=session_id,
+        )
+        if floor_result["verdict"] != "SEAL":
+            # Log the blocked call
+            try:
+                vs = _get_vault_store()
+                vs.log_tool_call(
+                    session_id=session_id or ACTIVE_SESSION_ID,
+                    run_id=ACTIVE_SESSION_ID,
+                    tool_name=tool_name,
+                    organ="PSI",
+                    input_summary=str(args)[:200],
+                    output_summary=f"BLOCKED: {floor_result['reason']}",
+                    verdict=floor_result["verdict"],
+                    duration_ms=0,
+                )
+            except Exception:
+                pass  # never fail due to logging
+            return {
+                "verdict": floor_result["verdict"],
+                "tool": tool_name,
+                "failed_floors": floor_result.get("failed_floors", []),
+                "reason": floor_result.get("reason", "Floor breach"),
+                "action": "HOLD" if floor_result["verdict"] == "HOLD" else "VOID",
+            }
+
+        # Record tool in session history for F9 TAQWA prerequisite tracking
+        record_tool_call(session_id, tool_name)
+
+        return await _invoke_original(args)
 
     
     return wrapper

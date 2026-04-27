@@ -1,11 +1,10 @@
 """
-arifosmcp/core/ — Legacy redirect.
-Canonical core is at repository root: /core/
-arifosmcp/core/floors.py and core/governance_kernel.py are kept for
-backwards compatibility only; new code should import from root /core/
+arifosmcp/core/ — empty package.
+
+Canonical core lives at /core/ (root level).
+arifosmcp/core/ exists solely to hold constitution_kernel.py
+and floors.py which are imported via 'from arifosmcp.core.X'.
+
+No re-exports — that creates a shadow namespace collision
+with root /core/ which is reached via absolute import.
 """
-from core import *  # noqa: F401,F403
-from core.floors import *  # noqa: F401,F403
-from core.governance_kernel import *  # noqa: F401,F403
-from core.judgment import *  # noqa: F401,F403
-from core.uncertainty_engine import *  # noqa: F401,F403

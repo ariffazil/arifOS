@@ -1,1 +1,160 @@
-/root/arifOS/deploy/machine-law/Caddyfile
+# arifOS Sovereign Caddyfile — 3-Surface Architecture
+# DITEMPA BUKAN DIBERI
+# Ψ Human Surface | Δ Machine Surface | Ω Intelligence Surface
+# Reconcile: 2026-04-27
+
+{
+    admin unix//var/run/caddy-admin.sock
+    email arif@arif-fazil.com
+}
+
+(tls_origin) {
+    tls /data/cloudflare-origin/cert.pem /data/cloudflare-origin/key.pem
+    header {
+        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
+
+(shared_assets) {
+    handle /_shared/* {
+        root * /var/www/html/_shared
+        file_server
+    }
+}
+
+# ─── Ψ HUMAN SURFACE ───────────────────────────────────────────────────────────
+arif-fazil.com, www.arif-fazil.com {
+    import tls_origin
+    import shared_assets
+    encode zstd gzip
+    root * /var/www/html/arif
+    handle /000/* {
+        root * /var/www/html/arif/000
+        file_server
+        try_files {path} /index.html
+    }
+    handle /999/* {
+        root * /var/www/html/arif/999
+        file_server
+        try_files {path} /index.html
+    }
+    handle {
+        file_server
+        try_files {path} /index.html
+    }
+}
+
+# ─── Δ MACHINE SURFACE ─────────────────────────────────────────────────────────
+# mcp.arif-fazil.com — Legacy hub (Direct Proxy to preserve POST)
+mcp.arif-fazil.com {
+    import tls_origin
+    handle /mcp* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle {
+        redir https://arifos.arif-fazil.com/mcp{uri} permanent
+    }
+}
+
+# arifOS MCP alias (Direct Proxy to preserve POST)
+arifosmcp.arif-fazil.com {
+    import tls_origin
+    handle /mcp* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle {
+        redir https://arifos.arif-fazil.com/mcp{uri} permanent
+    }
+}
+
+# ─── Ω INTELLIGENCE SURFACE ────────────────────────────────────────────────────
+# arifos.arif-fazil.com — Federation hub: arifOS + geox + wealth
+arifos.arif-fazil.com {
+    import tls_origin
+    import shared_assets
+    encode zstd gzip
+    root * /var/www/html/arifos
+
+    # CORE MCP
+    handle /mcp* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /health {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /tools {
+        reverse_proxy arifosmcp:8080
+    }
+
+    # GEOX MCP
+    handle /geox* {
+        uri strip_prefix /geox
+        handle /mcp* {
+            reverse_proxy geox:8081
+        }
+        handle /health {
+            reverse_proxy geox:8081
+        }
+        handle {
+            root * /var/www/html/geox
+            file_server
+            try_files {path} /index.html
+        }
+    }
+
+    # WEALTH MCP
+    handle /wealth* {
+        uri strip_prefix /wealth
+        handle /mcp* {
+            reverse_proxy wealth-organ:8000
+        }
+        handle /health {
+            reverse_proxy wealth-organ:8000
+        }
+        handle {
+            root * /var/www/html/wealth
+            file_server
+            try_files {path} /index.html
+        }
+    }
+
+    handle {
+        file_server
+        try_files {path} /index.html
+    }
+}
+
+# ─── REDIRECT MATRIX ──────────────────────────────────────────────────────────
+aaa.arif-fazil.com {
+    import tls_origin
+    redir https://arifos.arif-fazil.com/aaa{uri} permanent
+}
+
+wiki.arif-fazil.com {
+    import tls_origin
+    redir https://arifos.arif-fazil.com/wiki{uri} permanent
+}
+
+geox.arif-fazil.com {
+    import tls_origin
+    redir https://arifos.arif-fazil.com/geox{uri} permanent
+}
+
+wealth.arif-fazil.com {
+    import tls_origin
+    redir https://arifos.arif-fazil.com/wealth{uri} permanent
+}
+
+# ─── INFRASTRUCTURE ────────────────────────────────────────────────────────────
+dozzle.arif-fazil.com {
+    import tls_origin
+    reverse_proxy dozzle:8080
+}
+
+ollama.arif-fazil.com {
+    import tls_origin
+    reverse_proxy ollama:11434
+}
