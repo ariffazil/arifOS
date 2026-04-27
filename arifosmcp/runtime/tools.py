@@ -9,13 +9,16 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import json
 import logging
 import random
+import re
 import time
 import uuid
 from enum import Enum
 from typing import Any
+import urllib.parse
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS, get_tool_spec
 from arifosmcp.runtime.floors import check_floors
@@ -230,7 +233,7 @@ def _irreversibility_rank(level: str) -> int:
 def _infer_irreversibility_level(candidate: str | None) -> IrreversibilityLevel:
     text = (candidate or "").lower()
     verdict = _KERNEL.threat_engine.scan(text)
-    
+
     if verdict.score >= 1.0:
         return IrreversibilityLevel.CATASTROPHIC
     if verdict.score >= 0.8:
@@ -2633,7 +2636,7 @@ def _arif_judge_deliberate(
         meta={"mode": mode, "kernel_verdict": k_verdict["verdict"]},
         timestamp=_now(),
     )
-    
+
     contract = _build_judge_contract(
         candidate=candidate,
         verdict=verdict_code,
@@ -2646,11 +2649,11 @@ def _arif_judge_deliberate(
         epistemic_snapshot=EpistemicSnapshot(status="stable", confidence=0.98),
         floor_compliance=output.floor_compliance,
     )
-    
+
     final_output = output.model_dump(mode="json")
     final_output["result"]["state_hash"] = contract.state_hash
     final_output["result"]["constitutional_chain_id"] = contract.constitutional_chain_id
-    
+
     return final_output
 
         failed_floors = ["F01", "F12"]
