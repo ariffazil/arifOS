@@ -39,8 +39,8 @@ arif-fazil.com, www.arif-fazil.com {
     handle @well-known {
         uri strip_prefix /.well-known
         root * /var/www/html/arif/.well-known
-        file_server
         try_files {path} /index.html
+        file_server
     }
 
     # Genesis chamber
@@ -50,8 +50,8 @@ arif-fazil.com, www.arif-fazil.com {
     handle @genesis {
         uri strip_prefix /000
         root * /var/www/html/arif/000
-        file_server
         try_files {path} /index.html
+        file_server
     }
 
     # Validation chamber
@@ -61,14 +61,14 @@ arif-fazil.com, www.arif-fazil.com {
     handle @validation {
         uri strip_prefix /999
         root * /var/www/html/arif/999
-        file_server
         try_files {path} /index.html
+        file_server
     }
 
-    # SPA fallback
+    # SPA fallback — serve static files first, then index.html
     handle {
-        file_server
         try_files {path} /index.html
+        file_server
     }
 }
 
@@ -120,8 +120,8 @@ arifos.arif-fazil.com {
         }
         handle {
             root * /var/www/html/geox
-            file_server
             try_files {path} /index.html
+            file_server
         }
     }
 
@@ -135,14 +135,14 @@ arifos.arif-fazil.com {
         }
         handle {
             root * /var/www/html/wealth
-            file_server
             try_files {path} /index.html
+            file_server
         }
     }
 
     handle {
-        file_server
         try_files {path} /index.html
+        file_server
     }
 }
 
