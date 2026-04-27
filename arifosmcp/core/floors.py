@@ -11,11 +11,45 @@ Ditempa Bukan Diberi — Intelligence is forged, not given.
 from __future__ import annotations
 
 import logging
+import threading
 from typing import Any
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS, Floor
 
 logger = logging.getLogger(__name__)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SESSION CALL CHAIN TRACKING (F9 TAQWA prerequisite enforcement)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Tracks which tools were called per session, so arif_forge_execute can require
+# arif_heart_critique to have been called first (F9 Anti-Hantu gate).
+# Key: session_id (str). Value: set of tool names called in this session.
+_SESSION_TOOL_HISTORY: dict[str, set[str]] = {}
+_history_lock = threading.Lock()
+
+
+def record_tool_call(session_id: str | None, tool_name: str) -> None:
+    """Record a tool call in the session history for F9 prerequisite tracking."""
+    if not session_id:
+        return
+    with _history_lock:
+        if session_id not in _SESSION_TOOL_HISTORY:
+            _SESSION_TOOL_HISTORY[session_id] = set()
+        _SESSION_TOOL_HISTORY[session_id].add(tool_name)
+
+
+def get_session_history(session_id: str | None) -> set[str]:
+    """Return the set of tools called in this session, or empty set."""
+    if not session_id:
+        return set()
+    with _history_lock:
+        return set(_SESSION_TOOL_HISTORY.get(session_id, set()))
+
+
+def clear_session_history(session_id: str) -> None:
+    """Clear history when a session ends."""
+    with _history_lock:
+        _SESSION_TOOL_HISTORY.pop(session_id, None)
 
 FLOOR_DESCRIPTIONS: dict[Floor, str] = {
     Floor.F01_AMANAH: "Trustworthiness — every action carries signature and accountability.",
@@ -44,7 +78,10 @@ class ConstitutionalError(Exception):
 
 
 def check_floors(
-    tool_name: str, params: dict[str, Any], actor_id: str | None = None
+    tool_name: str,
+    params: dict[str, Any],
+    actor_id: str | None = None,
+    session_id: str | None = None,
 ) -> dict[str, Any]:
     """
     Run F1–F13 interceptors for a tool call.
@@ -144,6 +181,16 @@ def check_floors(
                                 f"F09 ANTIHANTU: consciousness claim detected in {key}: {pattern}"
                             )
                             break
+            # Gate 3: arif_forge_execute requires arif_heart_critique in session chain (F9 TAQWA)
+            if tool_name == "arif_forge_execute":
+                history = get_session_history(session_id)
+                if "arif_heart_critique" not in history:
+                    failed.append("F09")
+                    logger.warning(
+                        "F09 ANTIHANTU: arif_forge_execute blocked — "
+                        "arif_heart_critique not called in this session chain. "
+                        "PSI KHIANAT — manipulation of execution sequence detected."
+                    )
 
         elif floor_value == "F10":
             pass
@@ -161,9 +208,15 @@ def check_floors(
                         logger.warning(f"F12 INJECTION: pattern in {key}")
 
         elif floor_value == "F13":
-            if params.get("sovereign_veto"):
-                failed.append("F13")
-                logger.critical("F13 SOVEREIGN VETO activated")
+            # F13 fires when sovereign_veto is ABSENT for sovereign-class tools.
+            # A caller who OMITS sovereign_veto is attempting to bypass the human veto.
+            if spec.get("access") in ("sovereign", "authenticated"):
+                if not params.get("sovereign_veto"):
+                    failed.append("F13")
+                    logger.critical(
+                        "F13 SOVEREIGN: veto absent — caller attempted to bypass "
+                        "human override for a sovereign-class tool."
+                    )
 
     if failed:
         if "F13" in failed:
