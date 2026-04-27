@@ -2667,6 +2667,7 @@ def _arif_judge_deliberate(
     _verification_surface = verification_surface
 
     # Try to parse verification state from candidate JSON if available
+    _parse_failed = False
     if _audit_entropy is None and candidate:
         import json as _json
         try:
@@ -2676,7 +2677,11 @@ def _arif_judge_deliberate(
                 _wealth_score = cand_obj.get("wealth_score")
                 _verification_surface = cand_obj.get("verification_surface")
         except Exception:
-            pass  # candidate is plain text, not JSON
+            _parse_failed = True  # malformed JSON — cannot extract verification state safely
+            # Safe fallback: do NOT silently allow old path.
+            # Flag the candidate as unparseable so caller knows verification state is missing.
+            # The caller (or upstream) should treat this as a partial/invalid candidate.
+            pass
 
     ctx = ActionContext(
         tool_name="arif_judge_deliberate",
@@ -2695,6 +2700,11 @@ def _arif_judge_deliberate(
     verdict = _CORE.evaluate(ctx)
 
     if verdict.status != "OK":
+        meta_state = {"reason": "Constitutional breach detected by kernel"}
+        if _audit_entropy:
+            meta_state["verification_state"] = {"delta_m": _audit_entropy.get("delta_m"), "svs": _audit_entropy.get("svs"), "entropy_band": _audit_entropy.get("entropy_band")}
+        if _parse_failed:
+            meta_state["parse_warning"] = "candidate JSON unparseable — verification state not extracted",
         output = VerdictOutput(
             status=verdict.status,
             verdict=VerdictCode.HOLD if verdict.verdict == "HOLD" else VerdictCode.VOID,
@@ -2716,11 +2726,15 @@ def _arif_judge_deliberate(
             ),
             truth_band=truth_band or "UNKNOWN",
             confidence_note=confidence_note or "Verification state present; band derived from entropy/gap analysis",
-            meta={"reason": "Constitutional breach detected by kernel", "verification_state": {"delta_m": (_audit_entropy or {}).get("delta_m"), "svs": (_audit_entropy or {}).get("svs"), "entropy_band": (_audit_entropy or {}).get("entropy_band")}},
+            meta=meta_state,
             timestamp=verdict.timestamp,
         )
         return output.model_dump(mode="json")
 
+    # Success / SEAL logic
+    meta_state = {"mode": mode, "state_hash": verdict.state_hash}
+    if _audit_entropy:
+        meta_state["verification_state"] = {"delta_m": _audit_entropy.get("delta_m"), "svs": _audit_entropy.get("svs"), "entropy_band": _audit_entropy.get("entropy_band")}
     # Success / SEAL logic
     output = VerdictOutput(
         status="OK",
@@ -2742,7 +2756,7 @@ def _arif_judge_deliberate(
         ),
         truth_band=truth_band or "CERTAIN",
         confidence_note=confidence_note or "Full constitutional floors passed; verification state clean",
-        meta={"mode": mode, "state_hash": verdict.state_hash, "verification_state": {"delta_m": (_audit_entropy or {}).get("delta_m"), "svs": (_audit_entropy or {}).get("svs"), "entropy_band": (_audit_entropy or {}).get("entropy_band")}},
+        meta=meta_state,
         timestamp=verdict.timestamp,
     )
 

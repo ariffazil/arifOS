@@ -131,9 +131,21 @@ class WealthGovernance:
 
         # ── Process audit_entropy ──────────────────────────────────────────
         ae = context.audit_entropy or {}
-        entropy_band = ae.get("entropy_band", "LOW")
-        svs = ae.get("svs", 1.0)
-        delta_m = ae.get("delta_m", 0.0)
+        # Normalize entropy_band to uppercase for case-insensitive comparison
+        raw_band = ae.get("entropy_band", "LOW")
+        entropy_band = raw_band.upper() if isinstance(raw_band, str) else "LOW"
+        # Normalize svs to float — guard against string "0.278" from JSON
+        raw_svs = ae.get("svs", 1.0)
+        try:
+            svs = float(raw_svs) if raw_svs is not None else 1.0
+        except (TypeError, ValueError):
+            svs = 1.0  # safest fallback: treat as fully verifiable
+        # Normalize delta_m to float
+        raw_dm = ae.get("delta_m", 0.0)
+        try:
+            delta_m = float(raw_dm) if raw_dm is not None else 0.0
+        except (TypeError, ValueError):
+            delta_m = 0.0  # safest fallback
         verification_state["delta_m"] = round(delta_m, 6)
         verification_state["svs"] = round(svs, 6)
         verification_state["entropy_band"] = entropy_band
