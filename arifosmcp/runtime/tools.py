@@ -2642,11 +2642,38 @@ def _arif_judge_deliberate(
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
     proof: dict[str, Any] | None = None,
+    audit_entropy: dict[str, Any] | None = None,
+    wealth_score: dict[str, Any] | None = None,
+    verification_surface: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     888_JUDGE: Constitutional adjudication and verdict emission.
-    Delegates to the high-fidelity split ConstitutionKernel.
+
+    Verification-first governance:
+      - audit_entropy (delta_m, svs, entropy_band) from wealth_audit_entropy
+      - wealth_score (multi-axis constitutional score) from wealth_score_kernel
+      - verification_surface (canonical claim + evidence) from VerificationSurface
+
+    These are NOT optional decoration — they are first-class governance inputs.
+    WEALTH verification gates apply BEFORE constitutional kernel evaluation.
     """
+    # ── Extract verification state from candidate if not explicitly passed ──
+    _audit_entropy = audit_entropy
+    _wealth_score = wealth_score
+    _verification_surface = verification_surface
+
+    # Try to parse verification state from candidate JSON if available
+    if _audit_entropy is None and candidate:
+        import json as _json
+        try:
+            cand_obj = _json.loads(candidate)
+            if isinstance(cand_obj, dict):
+                _audit_entropy = cand_obj.get("audit_entropy")
+                _wealth_score = cand_obj.get("wealth_score")
+                _verification_surface = cand_obj.get("verification_surface")
+        except Exception:
+            pass  # candidate is plain text, not JSON
+
     ctx = ActionContext(
         tool_name="arif_judge_deliberate",
         mode=mode,
@@ -2656,6 +2683,9 @@ def _arif_judge_deliberate(
         witness_type=WitnessType.HUMAN if proof and proof.get("witness_type") == "human" else WitnessType.AI,
         constitutional_chain_id=constitutional_chain_id,
         session_registry=set(_SESSIONS.keys()),
+        audit_entropy=_audit_entropy,
+        wealth_score=_wealth_score,
+        verification_surface=_verification_surface,
     )
     
     verdict = _CORE.evaluate(ctx)

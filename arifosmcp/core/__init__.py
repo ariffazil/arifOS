@@ -1,13 +1,10 @@
 """
-arifosmcp/core/ — re-exports from root /core/ for cross-version compatibility.
+arifosmcp/core/ — empty package.
 
-Note: /app/arifosmcp/core/ and /app/core/ are separate directories.
-The root core/ lives at /app/core/ (canonical). This package's core/
-is for backwards compat only — it re-exports root symbols.
+Canonical core lives at /core/ (root level).
+arifosmcp/core/ exists solely to hold constitution_kernel.py
+and floors.py which are imported via 'from arifosmcp.core.X'.
+
+No re-exports — that creates a shadow namespace collision
+with root /core/ which is reached via absolute import.
 """
-from ..core.floors import *  # noqa: F401,F403
-from ..core.governance_kernel import *  # noqa: F401,F403
-from ..core.uncertainty_engine import *  # noqa: F401,F403
-# judgment.py is not re-exported — constitution_kernel.py imports
-# from root /core/judgment.py directly via absolute import
-# (avoids arifosmcp.core → arifosmcp.core circular resolution)
