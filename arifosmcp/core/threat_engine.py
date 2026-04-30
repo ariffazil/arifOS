@@ -189,3 +189,58 @@ class ThreatEngine:
         if isinstance(current, ast.Name):
             parts.append(current.id)
         return tuple(reversed(parts))
+
+
+# ─── ThreatTier + scan() ────────────────────────────────────────────────────────
+# Provides the .scan(text) → {score, tier, violations} interface that tools.py expects.
+# ThreatTier mirrors the IrreversibilityLevel scale but adds VOID for blocked threats.
+
+class ThreatTier(Enum):
+    VOID = "void"      # Threat detected → blocked
+    SEAL = "seal"       # Clean → approved
+    SABAR = "sabar"    # Conditional hold
+    HOLD = "hold"      # Paused
+
+
+class ScanResult:
+    """Result object returned by ThreatEngine.scan() — mimics what tools.py expects."""
+    def __init__(self, assessment: ThreatAssessment):
+        self.assessment = assessment
+        # score: 0.0 (clean) → 1.0 (max threat)
+        self.score = 0.0
+        self.violations: list[str] = []
+        if assessment.confidence > 0:
+            self.score = float(min(assessment.confidence, 1.0))
+        if assessment.threats:
+            self.violations = assessment.reasoning.copy()
+        # tier: derived from irreversibility level
+        irr = assessment.irreversibility.value if assessment.irreversibility else 0
+        if assessment.threats and irr >= 2:
+            self.tier = ThreatTier.VOID
+        elif assessment.threats and irr == 1:
+            self.tier = ThreatTier.SABAR
+        elif assessment.threats:
+            self.tier = ThreatTier.HOLD
+        else:
+            self.tier = ThreatTier.SEAL
+
+    def __repr__(self):
+        return f"ScanResult(score={self.score:.3f}, tier={self.tier.name}, violations={len(self.violations)})"
+
+
+def scan(cls, text: str) -> ScanResult:
+    """
+    Lightweight scan — takes raw text and returns a ScanResult.
+    Used by tools.py for fast irreversibility inference and verify/critique modes.
+    """
+    # Build a minimal ActionContext from raw text
+    class _TextContext:
+        def payload_text(inner_self) -> str:
+            return text
+    ctx = _TextContext()
+    assessment = cls.classify(ctx)
+    return ScanResult(assessment)
+
+
+# Monkey-patch scan onto ThreatEngine class so _KERNEL.threat_engine.scan() works
+ThreatEngine.scan = classmethod(scan)
