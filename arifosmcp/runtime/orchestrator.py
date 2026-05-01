@@ -222,7 +222,7 @@ async def handle_pns_health(session_id: str) -> RuntimeEnvelope:
 
 async def handle_pns_orchestrate(task: str, session_id: str) -> RuntimeEnvelope:
     """PNS·ORCHESTRATE: Tool routing mediation."""
-    from arifosmcp.provisional.agentzero_tools import agentzero_engineer
+    from arifosmcp.tools.agentzero_tools import agentzero_engineer
 
     return await agentzero_engineer(task=task, action_type="execute_code", session_id=session_id)
 
@@ -236,7 +236,7 @@ async def handle_pns_floor(input_data: Any, session_id: str) -> RuntimeEnvelope:
 
 async def handle_pns_redteam(candidate: str, session_id: str) -> RuntimeEnvelope:
     """PNS·REDTEAM: Adversarial testing."""
-    from arifosmcp.provisional.agentzero_tools import agentzero_validate
+    from arifosmcp.tools.agentzero_tools import agentzero_validate
 
     return await agentzero_validate(
         input_to_validate=candidate, validation_type="plan", session_id=session_id
@@ -315,17 +315,13 @@ async def run_stage(
     """
     from arifosmcp.runtime.tools import (
         agi_asi_forge_handler,
+        arifos_mind as agi_reason,
+        arifos_memory as agi_reflect,
         apex_judge,
         asi_critique,
         asi_simulate,
         init_anchor,
         vault_seal,
-    )
-    from arifosmcp.runtime.tools import (
-        arifos_memory as agi_reflect,
-    )
-    from arifosmcp.runtime.tools import (
-        arifos_mind as agi_reason,
     )
 
     try:
@@ -540,9 +536,9 @@ async def metabolic_loop(
             "meta": {"dry_run": True},
         }
 
-    from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
-
     from core.governance_kernel import route_pipeline
+
+    from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
 
     # Track if we're approaching timeout
     def _check_timeout() -> bool:

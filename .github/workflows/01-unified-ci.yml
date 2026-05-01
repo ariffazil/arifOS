@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Python + uv
         uses: astral-sh/setup-uv@v4
@@ -136,7 +136,7 @@ jobs:
     needs: [fast-signal]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Python + uv
         uses: astral-sh/setup-uv@v4
@@ -199,7 +199,7 @@ jobs:
     needs: [fast-signal]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Python + uv
         uses: astral-sh/setup-uv@v4
@@ -288,7 +288,7 @@ jobs:
     needs: [fast-signal]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: No consciousness claims in tool sources
         run: |
@@ -312,7 +312,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -366,7 +366,7 @@ jobs:
     needs: [fast-signal]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Python + uv
         uses: astral-sh/setup-uv@v4
@@ -403,7 +403,7 @@ jobs:
         python-version: ["3.13"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Python + uv
         uses: astral-sh/setup-uv@v4
@@ -438,7 +438,7 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -457,7 +457,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: System health check
         run: |

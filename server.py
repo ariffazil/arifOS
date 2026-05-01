@@ -65,7 +65,6 @@ def _display_version() -> str:
     value = str(VERSION).strip()
     return value if value.startswith("v") else f"v{value}"
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # VAULT999 — CONSTITUTIONAL TABLE STORE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -82,7 +81,6 @@ def _get_vault_store():
     global vault_store
     if vault_store is None:
         from arifosmcp.runtime.vault_postgres import PostgresVaultStore
-
         vault_store = PostgresVaultStore()
     return vault_store
 
@@ -104,17 +102,19 @@ async def _constitutional_startup():
             risk_tier="LOW",
         )
         print(f"[VAULT] Session: {ACTIVE_SESSION_ID}")
-
+        
         # H1: Seed healthy baseline metrics to prevent startup HOLD
         from core.governance_kernel import get_governance_kernel
-
         gk = get_governance_kernel()
         if hasattr(gk, "update_telemetry"):
-            gk.update_telemetry(
-                {"dS": -0.32, "peace2": 1.04, "confidence": 0.88, "verdict": "SEAL"}
-            )
+            gk.update_telemetry({
+                "dS": -0.32,
+                "peace2": 1.04,
+                "confidence": 0.88,
+                "verdict": "SEAL"
+            })
             print("[VAULT] Healthy thermodynamic baseline seeded.")
-
+            
     except Exception as e:
         print(f"[VAULT] Session open failed: {e}")
 
@@ -125,11 +125,9 @@ def _env_flag(name: str, default: bool = False) -> bool:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # FAIL-CLOSED DISPATCH INTEGRATION (Horizon Rebuild)
 # ═══════════════════════════════════════════════════════════════════════════════
-
 
 def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     """
@@ -140,7 +138,6 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
 
     async def _invoke_original(arguments: dict[str, Any]) -> Any:
         import time
-
         t0 = time.monotonic()
         result = original_handler(**arguments)
         if inspect.isawaitable(result):
@@ -186,17 +183,16 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     try:
         sig = inspect.signature(original_handler)
     except Exception:
-
         async def fallback_handler(req: dict[str, Any]):
             return await _invoke_original(req)
-
         return fallback_handler
 
     @functools.wraps(original_handler)
     async def wrapper(**kwargs):
         # ── Constitutional floor enforcement (F1–F13) ──
         # Run BEFORE the handler executes — fail-closed on floor breach.
-        from arifosmcp.core.floors import check_floors, record_tool_call
+        from arifosmcp.apps.session_state import record_tool_call
+        from arifosmcp.core.floors import check_floors
 
         bound = sig.bind(**kwargs)
         bound.apply_defaults()
@@ -209,6 +205,7 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
             tool_name=tool_name,
             params=args,
             actor_id=actor_id,
+            session_id=session_id,
         )
         if floor_result["verdict"] != "SEAL":
             # Log the blocked call
@@ -239,13 +236,12 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
 
         return await _invoke_original(args)
 
+    
     return wrapper
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GLOBAL PANIC MIDDLEWARE
 # ═══════════════════════════════════════════════════════════════════════════════
-
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
     """Intercepts kernel panics and emits a Constitutional VOID."""
@@ -265,7 +261,6 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
                 },
                 status_code=500,
             )
-
 
 class CSPMiddleware(BaseHTTPMiddleware):
     """Inject CSP headers for MCP Apps iframe compatibility."""
@@ -332,9 +327,7 @@ class SovereignHandshakeMiddleware(BaseHTTPMiddleware):
 
         state = getattr(request.app.state, "arifos_sovereign_status", None)
         if state and (sovereign_sig or authorization):
-            response.headers["X-Arifos-Sovereign-Status"] = str(
-                state.get("status", "888_JUDGE_ACTIVE")
-            )
+            response.headers["X-Arifos-Sovereign-Status"] = str(state.get("status", "888_JUDGE_ACTIVE"))
             response.headers["X-Arifos-Sovereign-Subject"] = str(state.get("subject", "anonymous"))
 
         return response
@@ -358,7 +351,6 @@ def _record_sovereign_state(
     app_instance.state.arifos_sovereign_status = state
     return state
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # MCP SERVER INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -368,9 +360,9 @@ mcp = FastMCP(
     version=VERSION,
     website_url="https://arifosmcp.arif-fazil.com",
     instructions=f"""Constitutional AI orchestration kernel — SEALED {_display_version()}.
-
+    
     {MOTTO}
-
+    
     Golden path: init → sense → mind → heart → judge → vault
     Governance : arifos_init | arifos_kernel | arifos_judge | arifos_vault
     Execution : arifos_forge
@@ -396,13 +388,16 @@ try:
 
     # Override the library's handlers with our hardened ones for this server instance
     import arifosmcp.runtime.tools as _tools_mod
-
+    # Hardened dispatch must update BOTH aliases because register_tools uses
+    # the underscore-prefixed internal name (_CANONICAL_HANDLERS).
+    _tools_mod._CANONICAL_HANDLERS = HARDENED_HANDLERS
     _tools_mod.CANONICAL_TOOL_HANDLERS = HARDENED_HANDLERS
 
     public_surface_mode = current_public_surface_mode()
 
-    if public_surface_mode == "expanded45" and _env_flag(
-        "ARIFOS_ENABLE_INTERNAL_ALIAS_SURFACE", default=False
+    if (
+        public_surface_mode == "expanded45"
+        and _env_flag("ARIFOS_ENABLE_INTERNAL_ALIAS_SURFACE", default=False)
     ):
         from arifosmcp.tools_canonical import TOOL_ALIAS_MAP, resolve_alias
 
@@ -439,8 +434,8 @@ try:
     v2_resources_registered = register_resources(mcp)
 
     if public_surface_mode == "expanded45":
-        from arifosmcp.apps.command_center.geox_app import geox_app
-        from arifosmcp.apps.command_center.wealth_app import wealth_app
+        from arifosmcp.apps.geox_app import geox_app
+        from arifosmcp.apps.wealth_app import wealth_app
 
         mcp.mount(geox_app, namespace="geox-app")
         mcp.mount(wealth_app, namespace="wealth-app")
@@ -477,9 +472,7 @@ try:
     except (ImportError, Exception) as _e:
         logger.warning(f"Skills provider unavailable: {_e}")
 
-    logger.info(
-        f"ARIFOS MCP SEALED: {len(v2_tools_registered)} tools registered with Fail-Closed gates."
-    )
+    logger.info(f"ARIFOS MCP SEALED: {len(v2_tools_registered)} tools registered with Fail-Closed gates.")
     logger.info("ARIFOS MCP tool manifest: %s", ", ".join(v2_tools_registered))
     print(f"ARIFOS MCP tool manifest: {', '.join(v2_tools_registered)}")
 
@@ -491,7 +484,6 @@ except Exception as e:
 # LEGACY TOOL ALIASES (Horizon Compatibility)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-
 def _register_legacy_aliases():
     """
     Legacy aliases are NO LONGER registered as separate MCP tools.
@@ -500,7 +492,6 @@ def _register_legacy_aliases():
     surface entropy (Phase 1 Compression).
     """
     logger.info("Legacy alias registration skipped — canonical surface only.")
-
 
 def _register_debug_tools() -> None:
     @mcp.tool(name="echo")
@@ -519,34 +510,24 @@ if _env_flag("ARIFOS_ENABLE_DEBUG_TOOLS", default=False):
 # GATEWAY ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-
 async def horizon_health(request: Request) -> JSONResponse:
     from arifosmcp.runtime.build_info import get_build_info
-
     build = get_build_info()
-    return JSONResponse(
-        {
-            "status": "healthy",
-            "version": f"{_display_version()}-SEALED",
-            "tools": len(v2_tools_registered),
-            "fail_closed": True,
-            "timestamp": __import__("datetime")
-            .datetime.now(__import__("datetime").timezone.utc)
-            .isoformat(),
-        }
-    )
-
+    return JSONResponse({
+        "status": "healthy",
+        "version": f"{_display_version()}-SEALED",
+        "tools": len(v2_tools_registered),
+        "fail_closed": True,
+        "timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+    })
 
 async def horizon_metadata(request: Request) -> JSONResponse:
-    return JSONResponse(
-        {
-            "name": "ARIFOS MCP",
-            "version": _display_version(),
-            "security": "Fail-Closed Dispatch (Gate 1-4 active)",
-            "protocol": "MCP 2025-03-26",
-        }
-    )
-
+    return JSONResponse({
+        "name": "ARIFOS MCP",
+        "version": _display_version(),
+        "security": "Fail-Closed Dispatch (Gate 1-4 active)",
+        "protocol": "MCP 2025-03-26",
+    })
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HTTP APP SETUP
@@ -651,7 +632,6 @@ app.router.routes.append(WebSocketRoute("/webmcp/ws", endpoint=sovereign_ws))
 # Ensure REST routes from arifosmcp are actually bound to this app instance
 # HARDENED_HANDLERS is only defined if the try block (line 251) succeeded
 from arifosmcp.runtime.rest_routes import register_rest_routes
-
 if "HARDENED_HANDLERS" in globals():
     register_rest_routes(app, HARDENED_HANDLERS, prefix="")
 
@@ -659,9 +639,15 @@ if "HARDENED_HANDLERS" in globals():
 import asyncio
 
 try:
-    asyncio.get_event_loop().run_until_complete(_constitutional_startup())
+    loop = asyncio.get_event_loop()
 except RuntimeError:
-    asyncio.get_event_loop().create_task(_constitutional_startup())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+if loop.is_running():
+    loop.create_task(_constitutional_startup())
+else:
+    loop.run_until_complete(_constitutional_startup())
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXPORT
@@ -678,19 +664,19 @@ if __name__ == "__main__":
         print("=" * 60)
         print(f"🔥 ARIFOS MCP {_display_version()} — SEALED")
         print("=" * 60)
-
+        
         # ── Constitutional startup: load constitution + open session ──
         await _constitutional_startup()
-
+        
         # Resolve host and port from CLI or ENV
         host = "0.0.0.0"
         port = int(os.getenv("PORT", 8080))
-
+        
         if "--host" in sys.argv:
             idx = sys.argv.index("--host")
             if idx + 1 < len(sys.argv):
                 host = sys.argv[idx + 1]
-
+        
         if "--port" in sys.argv:
             idx = sys.argv.index("--port")
             if idx + 1 < len(sys.argv):

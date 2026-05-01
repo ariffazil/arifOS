@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 3
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Push constitutional files to gist
         env:
@@ -29,7 +29,7 @@ jobs:
             exit 0
           fi
           echo "=== Syncing Living Law ==="
-
+          
           # Update 000_INIT.md
           if [ -f "000_INIT.md" ]; then
             echo "Pushing: 000_INIT.md"
@@ -39,5 +39,5 @@ jobs:
               -d "{\"description\": \"arifOS Living Law — 000_INIT.md\", \"public\": false}" \
               "https://api.github.com/gists/$GIST_ID" > /dev/null
           fi
-
+          
           echo "DITEMPA BUKAN DIBERI 🧠✨🌏 — Law sync complete"

@@ -143,7 +143,12 @@ class TestH2PlanningOrgan:
     def test_plan_approve_updates_status(self):
         plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
         pid = plan["result"]["plan_receipt"]["plan_id"]
-        result = _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor")
+        result = _arif_mind_reason(
+            mode="plan_approve",
+            plan_id=pid,
+            actor_id="test_actor",
+            witness_type="human",
+        )
         assert result["status"] == "OK"
         assert _PLAN_REGISTRY[pid]["status"] == "approved"
 
@@ -176,26 +181,38 @@ class TestH2PlanningOrgan:
     def test_forge_engineer_with_approved_plan_succeeds(self):
         plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
         pid = plan["result"]["plan_receipt"]["plan_id"]
-        _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor")
+        _arif_mind_reason(
+            mode="plan_approve",
+            plan_id=pid,
+            actor_id="test_actor",
+            witness_type="human",
+        )
         result = _arif_forge_execute(
             mode="engineer",
             manifest="test",
             plan_id=pid,
             ack_irreversible=True,
             actor_id="test_actor",
+            witness_type="human",
         )
         assert result["status"] == "OK"
 
     def test_plan_transitions_to_in_execution_on_forge_start(self):
         plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
         pid = plan["result"]["plan_receipt"]["plan_id"]
-        _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor")
+        _arif_mind_reason(
+            mode="plan_approve",
+            plan_id=pid,
+            actor_id="test_actor",
+            witness_type="human",
+        )
         _arif_forge_execute(
             mode="engineer",
             manifest="test",
             plan_id=pid,
             ack_irreversible=True,
             actor_id="test_actor",
+            witness_type="human",
         )
         assert _PLAN_REGISTRY[pid]["status"] == "completed"
         history = _PLAN_REGISTRY[pid]["state_history"]
@@ -205,7 +222,12 @@ class TestH2PlanningOrgan:
     def test_plan_transitions_to_aborted_on_forge_hold(self):
         plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
         pid = plan["result"]["plan_receipt"]["plan_id"]
-        _arif_mind_reason(mode="plan_approve", plan_id=pid, actor_id="test_actor")
+        _arif_mind_reason(
+            mode="plan_approve",
+            plan_id=pid,
+            actor_id="test_actor",
+            witness_type="human",
+        )
         # Missing ack_irreversible will trigger floor check HOLD for commit mode
         result = _arif_forge_execute(
             mode="commit", manifest="test", plan_id=pid, actor_id="test_actor"

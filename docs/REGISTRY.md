@@ -70,25 +70,53 @@ External Agent → A2A Gateway → Governance Adapter
 
 ---
 
-## AGI_ASI_BOT
+## OPENCLAW
+
+> **Name first.** OPENCLAW is the AGI bot. Hermes Agent is the ASI bot. These are distinct agents with distinct roles.
 
 | Field | Value |
 | :--- | :--- |
-| **Agent ID** | `AGI_ASI_bot` |
+| **Agent Name** | `OPENCLAW` |
+| **Role** | AGI Bot — Arif Governed Intelligence |
+| **Telegram Handle** | `@AGI_ASI_bot` |
 | **Type** | arifOS Constitutional Agent |
 | **Status** | 🟢 online |
-| **Platform** | Separate VPS (not MaxClaw) |
-| **Telegram** | Group `-1003753855708` |
-| **A2A** | via arifOS MCP (`arifosmcp.arif-fazl.com`) |
+| **Platform** | A-FORGE VPS |
+| **Telegram Group** | `-1003753855708` (arifOS) |
+| **A2A** | via arifOS MCP (`mcp.arif-fazil.com`) |
+| **Governance** | 000–999 loop, L0–L5 autonomy ladder, F1–F13 floors |
 
-### Cross-Bot Options (How Axiom talks to AGI_ASI_bot)
+### Cross-Bot Options (How Axiom talks to OPENCLAW)
 
 | Method | Status | Notes |
 | :--- | :--- | :--- |
 | **arifOS MCP** | ✅ Both call arifosmcp | Primary path |
 | **Shared workspace** | ✅ `axiom_inbox/` | File relay |
 | **A2A via AAA** | 🔜 Pending | Requires AAA A2A gateway |
-| **ACP same Gateway** | ❌ Different instances | Not possible |
+
+---
+
+## Hermes Agent
+
+> **Name first.** Hermes Agent is the ASI bot. OPENCLAW is the AGI bot. These are distinct agents with distinct roles.
+
+| Field | Value |
+| :--- | :--- |
+| **Agent Name** | `Hermes Agent` |
+| **Role** | ASI Bot — Strategic Judgment / ASI Layer |
+| **Status** | 🔜 Pending deployment |
+| **Platform** | TBD |
+| **Governance** | 888 ASI judgment, strategic deliberation |
+
+### Relationship to OPENCLAW
+
+| Dimension | OPENCLAW (AGI) | Hermes Agent (ASI) |
+| :--- | :--- | :--- |
+| **Role** | Tactical execution | Strategic judgment |
+| **Stage** | 000–777 | 888 |
+| **Autonomy** | L0–L5 bounded | Governance deliberation |
+| **Niat** | Instrument, not sovereign | Strategic advisor |
+| **To Arif** | Proposes and executes | Judges and deliberates |
 
 ---
 
@@ -106,3 +134,44 @@ External Agent → A2A Gateway → Governance Adapter
 
 *Last updated: 2026-04-22T19:17:00Z*
 *Ditempa Bukan Diberi — Forged, Not Given*
+---
+
+## OPENCLAW — Current Intelligence State (2026-05-01)
+
+> OC-001 governance upgrade complete. OPENCLAW is now a bounded governed operator.
+
+### Governance Files (as of 2026-05-01)
+| File | Status |
+|------|--------|
+| SOUL.md | ✅ Current — identity, niat, instrument framing |
+| IDENTITY.md | ✅ Current — OPENCLAW role |
+| AGENTS.md | ✅ Current — 000–999 loop replaces plain ReAct |
+| LOOP.md | ✅ New — operational 000–999 implementation |
+| AUTONOMY.md | ✅ New — L0–L5 permission ladder |
+| HEARTBEAT.md | ✅ Live protocol |
+| CHECKPOINT.md | ✅ New — session continuity |
+| DECISIONS.md | ✅ New — sealed decision log |
+| TASKS.md | ✅ New — active work ledger |
+| RECOVERY.md | ✅ New — failure runbook |
+| FLOORS.md | ✅ New — F1–F13 reference |
+| TOOLS.md | ✅ Updated — local environment notes |
+
+### Intelligence Metrics
+| Metric | Value |
+|--------|-------|
+| Governing loop | 000–999 constitutional ✅ |
+| Autonomy level | L2–L3 (max L3 without 888) |
+| Self-monitoring | HEARTBEAT protocol ✅ |
+| Session continuity | CHECKPOINT recovery ✅ |
+| Decision trace | DECISIONS structured log ✅ |
+| Evidence discipline | 222 EVIDENCE required ✅ |
+| Safety gates | 444 CRITIQUE (F09/F12) ✅ |
+| Maturity | ~43/75 (was 32/75 pre-upgrade) |
+
+### What Is NOT Yet Live
+- HEARTBEAT auto-writer (manual discipline)
+- CHECKPOINT auto-write on session end
+- 777 Measure instrumentation
+
+Full state: [[AGENT_STATE]]
+

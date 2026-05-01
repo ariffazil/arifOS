@@ -1076,3 +1076,8 @@ __all__ = [
     "FloorCalibrationResult",
     "FloorCalibrator",
 ]
+
+try:
+    from arifosmcp.core.floors import FLOOR_DESCRIPTIONS  # noqa: E402, F401
+except ImportError:
+    FLOOR_DESCRIPTIONS = {}

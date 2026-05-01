@@ -75,10 +75,11 @@ def governed_judge_deliberate(
 
     # ── Call 888_JUDGE backend ────────────────────────────────────────────
     try:
+        from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
         from arifosmcp.schemas.verdict import VerdictCode
-        from arifosmcp.tools.judge import arif_judge_deliberate
 
-        output = arif_judge_deliberate(mode="judge", candidate=candidate, actor_id=actor_id)
+        handler = _CANONICAL_HANDLERS.get("arif_judge_deliberate")
+        output = handler(mode="judge", candidate=candidate, actor_id=actor_id)
     except Exception as e:
         return {
             "status": "hold",

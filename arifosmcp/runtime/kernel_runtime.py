@@ -101,7 +101,8 @@ class ToolContract:
     def __post_init__(self):
         if not self.hash:
             # Compute hash from contract content
-            content = f"{self.name}:{self.contract_version}:{json.dumps(self.floors_enforced, sort_keys=True)}"
+            floors_json = json.dumps(self.floors_enforced, sort_keys=True)
+            content = f"{self.name}:{self.contract_version}:{floors_json}"
             object.__setattr__(self, "hash", hashlib.sha256(content.encode()).hexdigest()[:16])
 
 
@@ -701,11 +702,15 @@ class MetabolicRouter:
         contract = ContractRegistry.get_contract(requested_tool)
         if contract:
             if current_tool not in contract.allowed_predecessors:
+                allowed_preds = list(contract.allowed_predecessors)
                 return TransitionResult(
                     allowed=False,
-                    reason=f"Contract violation: {requested_tool} does not accept {current_tool} as predecessor",
+                    reason=(
+                        f"Contract violation: {requested_tool} does not accept "
+                        f"{current_tool} as predecessor"
+                    ),
                     violation_type="CONTRACT_VIOLATION",
-                    remediation=f"Allowed predecessors: {list(contract.allowed_predecessors)}",
+                    remediation=f"Allowed predecessors: {allowed_preds}",
                 )
 
         return TransitionResult(
@@ -752,24 +757,44 @@ class ContractDriftDetector:
     def check_schema_compliance(
         cls, tool_name: str, actual_output: dict[str, Any], contract: ToolContract | None = None
     ) -> dict[str, Any]:
-        """Check if output matches declared output schema."""
+        """Check if output matches declared output schema using jsonschema."""
         contract = contract or ContractRegistry.get_contract(tool_name)
         if not contract:
             return {"valid": False, "error": "Contract not found"}
 
-        # Simplified schema check — full implementation would use jsonschema
-        required_keys = set(contract.output_schema.get("properties", {}).keys())
-        actual_keys = set(actual_output.keys())
+        try:
+            from jsonschema import validate
+            from jsonschema.exceptions import ValidationError
 
-        missing = required_keys - actual_keys
-        if missing:
+            # Use the output_schema from contract
+            schema = contract.output_schema
+            if not schema:
+                return {"valid": True, "warning": "No output schema defined"}
+
+            validate(instance=actual_output, schema=schema)
+            return {"valid": True}
+
+        except ImportError:
+            # Fallback to simplified check
+            required_keys = set(contract.output_schema.get("properties", {}).keys())
+            actual_keys = set(actual_output.keys())
+            missing = required_keys - actual_keys
+            if missing:
+                return {
+                    "valid": False,
+                    "violation": "MISSING_REQUIRED_FIELDS",
+                    "missing": list(missing),
+                }
+            return {"valid": True}
+        except ValidationError as e:
             return {
                 "valid": False,
-                "violation": "MISSING_REQUIRED_FIELDS",
-                "missing": list(missing),
+                "violation": "SCHEMA_VALIDATION_ERROR",
+                "message": str(e),
+                "path": list(e.path),
             }
-
-        return {"valid": True}
+        except Exception as e:
+            return {"valid": False, "error": str(e)}
 
     @classmethod
     def check_transition_compliance(

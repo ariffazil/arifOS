@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from importlib.util import find_spec
 from typing import Any
 
 
@@ -28,7 +27,11 @@ def _env_truthy(name: str) -> bool:
 
 
 def _module_available(name: str) -> bool:
-    return find_spec(name) is not None
+    try:
+        __import__(name)
+        return True
+    except ImportError:
+        return False
 
 
 def _configured(*names: str) -> str:
@@ -85,6 +88,7 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     providers = {
         "openai": _configured("OPENAI_API_KEY"),
         "anthropic": _configured("ANTHROPIC_API_KEY"),
+        "sea_lion": _configured("SEA_LION_API_KEY"),
         "google": _configured("GOOGLE_API_KEY"),
         "openrouter": _configured("OPENROUTER_API_KEY"),
         "venice": _configured("VENICE_API_KEY"),
@@ -94,8 +98,8 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
         "jina": _configured("JINA_API_KEY"),
         "perplexity": _configured("PPLX_API_KEY", "PERPLEXITY_API_KEY"),
         "firecrawl": _configured("FIRECRAWL_API_KEY"),
-        "browserless": _configured("BROWSERLESS_TOKEN"),
-        "ddgs_local": "configured" if _module_available("ddgs") else "not_configured",
+        "browserless": _url_configured("BROWSERLESS_URL"),
+        "ddgs_local": "configured" if _module_available("duckduckgo_search") else "not_configured",
     }
 
     substrates = {
@@ -119,6 +123,7 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     llm_provider_states = [
         providers["openai"],
         providers["anthropic"],
+        providers["sea_lion"],
         providers["google"],
         providers["openrouter"],
         providers["venice"],

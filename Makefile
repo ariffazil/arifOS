@@ -3,7 +3,7 @@
 
 PYTHON = uv run python
 
-.PHONY: status forge seal health sync sot-check publish-check publish-pypi publish-ghcr publish-law publish-all
+.PHONY: status forge seal health sync sot-check publish-check publish-pypi publish-ghcr publish-law publish-all verify-public
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
@@ -54,17 +54,18 @@ publish-check:
 ## PyPI: Build + publish with uv
 publish-pypi:
 	@echo "🔱 Publishing to PyPI..."
-	uv build
-	uv publish --token $(PYPI_TOKEN)
-	@echo "✅ PyPI: arifos $(shell grep '^version' pyproject.toml | cut -d'\"' -f2) published"
+	uv build --project arifosmcp && uv publish --project arifosmcp --token $(PYPI_TOKEN)
+	@echo "✅ PyPI: arifos $(shell grep '^version' arifosmcp/pyproject.toml | cut -d'\"' -f2) published"
 
 ## GHCR: Build + push Docker image
 publish-ghcr:
 	@echo "🐳 Publishing to GHCR..."
-	docker build -t ghcr.io/ariffazil/arifos:$(shell grep '^version' pyproject.toml | cut -d'\"' -f2) .
-	docker push ghcr.io/ariffazil/arifos:$(shell grep '^version' pyproject.toml | cut -d'\"' -f2)
-	docker tag ghcr.io/ariffazil/arifos:$(shell grep '^version' pyproject.toml | cut -d'\"' -f2) ghcr.io/ariffazil/arifos:latest
-	docker push ghcr.io/ariffazil/arifos:latest
+	@VERSION=2026.05.01; \
+	docker build -t ghcr.io/ariffazil/arifos:$$VERSION . && \
+	docker push ghcr.io/ariffazil/arifos:$$VERSION && \
+	docker tag ghcr.io/ariffazil/arifos:$$VERSION ghcr.io/ariffazil/arifos:latest && \
+	docker push ghcr.io/ariffazil/arifos:latest && \
+	echo "✅ GHCR: arifos:$$VERSION and latest pushed"
 
 ## GitGist: Sync 000_LAW.md to public gist
 publish-law:
@@ -80,3 +81,11 @@ publish-all: publish-check publish-pypi publish-ghcr publish-law
 	@echo "🔱 All surfaces published. DITEMPA BUKAN DIBERI — 999 SEAL ALIVE"
 	@git tag -s v$(shell date +%Y.%m.%d) -m "Sovereign release $(shell date +%Y.%m.%d)"
 	@git push origin --tags
+
+## ─── Public Parity Verification ───────────────────────────────────────────────
+## Verify that public HTTPS surface matches local/container truth.
+## Prevents deployment drift from hiding real failures.
+verify-public:
+	@echo "🔍 Verifying public parity..."
+	@$(PYTHON) scripts/verify_public.py
+	@echo "📄 Full report: tmp/verify_public_report.json"

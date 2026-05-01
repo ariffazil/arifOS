@@ -19,13 +19,21 @@ PYPROJECT_PATH = ROOT / "pyproject.toml"
 
 
 def _git_sha_short() -> str:
-    """Return the current git short SHA (HEAD), checked in order:
-    1. Direct read of .git/HEAD via known host paths
-    2. GIT_SHA env var
-    3. Fallback "unknown"
     """
-    # 1. Try reading .git/HEAD from known bind-mount paths
+    1. DEPLOY_GIT_COMMIT env var (baked into image at docker build time) — HIGHEST PRIORITY
+    2. ARIFOS_BUILD_SHA env var (passed at container start)
+    3. Worktree git dirs (bind mounts — lower priority than env)
+    4. Fallback "unknown"
+    """
+    # 1. Image-baked env (highest priority — set at docker build time)
+    for env_key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
+        env_sha = os.environ.get(env_key, "").strip()
+        if env_sha and env_sha not in ("unknown", ""):
+            return env_sha[:7]
+
+    # 2. Try reading .git/HEAD from known bind-mount paths (fallback)
     _possible_git_dirs = [
+        "/app/.git",
         "/usr/src/app/.git",
         "/usr/src/app/arifOS/.git",
         "/usr/src/project/.git",
@@ -48,11 +56,6 @@ def _git_sha_short() -> str:
                     return _content[:7]
         except Exception:
             pass
-
-    # 2. Env var fallback
-    env_sha = os.environ.get("GIT_SHA", "").strip()
-    if env_sha and env_sha != "unknown":
-        return env_sha[:7]
 
     # 3. Truthful final fallback
     return "unknown"
@@ -87,7 +90,11 @@ def get_build_info() -> dict[str, Any]:
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,
         "server_version": app_version,
-        "update_summary": "5-Resource Canonical Consolidation. Enforced single Source-of-Truth architecture, consolidated 20+ fragmented resources into 5 canonical URIs (doctrine, vitals, schema, session, forge), and eliminated identity confusion.",
+        "update_summary": (
+            "5-Resource Canonical Consolidation. Enforced single Source-of-Truth architecture, "
+            "consolidated 20+ fragmented resources into 5 canonical URIs "
+            "(doctrine, vitals, schema, session, forge), and eliminated identity confusion."
+        ),
         # MCP protocol compatibility
         "protocol_version": "2025-03-26",
         "supported_protocol_versions": ["2025-03-26", "2024-11-05"],

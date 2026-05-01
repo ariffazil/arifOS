@@ -195,11 +195,11 @@ wealth.arif-fazil.com {
 
     handle /mcp* {
         import cors_public
-        reverse_proxy 172.19.0.9:8082
+        reverse_proxy wealth-organ:8082
     }
     handle /health {
         import cors_public
-        reverse_proxy 172.19.0.9:8082
+        reverse_proxy wealth-organ:8082
     }
     handle /sse* {
         reverse_proxy wealth-organ:8082

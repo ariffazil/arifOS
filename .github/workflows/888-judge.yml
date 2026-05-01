@@ -13,13 +13,13 @@ jobs:
   constitutional-review:
     name: F3 Tri-Witness Verification
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
+          
       - name: Detect arifos.yml
         id: detect-manifest
         run: |
@@ -30,7 +30,7 @@ jobs:
             echo "manifest_found=false" >> $GITHUB_OUTPUT
             echo "⚠️  F3: No arifos.yml found — treating as non-constitutional PR"
           fi
-
+          
       - name: Parse Constitutional Manifest
         if: steps.detect-manifest.outputs.manifest_found == 'true'
         id: parse-manifest
@@ -38,30 +38,30 @@ jobs:
           # Install yq for YAML parsing
           wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           chmod +x /usr/local/bin/yq
-
+          
           AGENT_NAME=$(yq '.agent.name' arifos.yml)
           RISK_TIER=$(yq '.constitutional.max_risk_tier' arifos.yml)
           VETO_HOLDER=$(yq '.constitutional.veto_holder' arifos.yml)
-
+          
           echo "agent_name=$AGENT_NAME" >> $GITHUB_OUTPUT
           echo "risk_tier=$RISK_TIER" >> $GITHUB_OUTPUT
           echo "veto_holder=$VETO_HOLDER" >> $GITHUB_OUTPUT
-
+          
           echo "🤖 Agent: $AGENT_NAME"
           echo "⚠️  Risk: $RISK_TIER"
           echo "👑 Veto: $VETO_HOLDER"
-
+          
       - name: F1 Reversibility Check
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥 F1: REVERSIBILITY CHECK"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           # Check if branch can be reverted
           if git log --oneline -1 | grep -q "revert\|Revert"; then
             echo "✅ F1: Revert commit detected — reversibility pattern followed"
           fi
-
+          
           # Check worktree pattern
           BRANCH_NAME="${{ github.head_ref }}"
           if [[ "$BRANCH_NAME" == feature/* || "$BRANCH_NAME" == hotfix/* || "$BRANCH_NAME" == experiment/* ]]; then
@@ -69,28 +69,28 @@ jobs:
           else
             echo "⚠️  F1: Branch name doesn't follow pattern (feature/*|hotfix/*|experiment/*)"
           fi
-
+          
       - name: F2 Truth Verification
         run: |
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥 F2: TRUTH VERIFICATION"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           # Check for tests
           if [[ -d "tests" ]] || [[ -d "test" ]]; then
             echo "✅ F2: Test directory present"
           else
             echo "⚠️  F2: No test directory found — τ may be compromised"
           fi
-
+          
           # Check for documentation updates
           if git diff --name-only origin/main | grep -qE "\.md$|docs/"; then
             echo "✅ F2: Documentation updates detected"
           else
             echo "⚠️  F2: No documentation updates — consider if τ ≥ 0.99 requires docs"
           fi
-
+          
       - name: F3 Tri-Witness
         id: tri-witness
         run: |
@@ -98,10 +98,10 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥 F3: TRI-WITNESS PROTOCOL"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           # AI witness: Lint/code quality
           echo "🤖 AI Witness: Running constitutional checks..."
-
+          
           # Check for Python syntax errors (example)
           if find . -name "*.py" -exec python -m py_compile {} \; 2>/dev/null; then
             echo "✅ AI: Python syntax valid"
@@ -111,22 +111,22 @@ jobs:
             echo "ai_witness=failed" >> $GITHUB_OUTPUT
             exit 1
           fi
-
+          
           # Earth witness: CI status (this IS the CI)
           echo "🌍 Earth Witness: CI environment validated"
           echo "earth_witness=passed" >> $GITHUB_OUTPUT
-
+          
           # Human witness: PR review required
           echo "👤 Human Witness: Review required (enforced by branch protection)"
           echo "human_witness=pending" >> $GITHUB_OUTPUT
-
+          
       - name: F4 Clarity Check
         run: |
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥 F4: CLARITY (ΔS ≤ 0)"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           # Check PR size (smaller = clearer)
           CHANGED_FILES=$(git diff --name-only origin/main | wc -l)
           if [[ $CHANGED_FILES -lt 20 ]]; then
@@ -136,19 +136,19 @@ jobs:
           else
             echo "⚠️  F4: $CHANGED_FILES files changed — high entropy, consider splitting"
           fi
-
+          
           # Check for PROPA (polished narrative) indicators
           if git log --oneline origin..HEAD | grep -qiE "wip|todo|fixme|hack"; then
             echo "⚠️  F4: WIP/TODO commits found — entropy not minimized"
           fi
-
+          
       - name: F7 Humility (Ω₀) Check
         run: |
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥 F7: HUMILITY (Ω₀ ∈ [0.03, 0.05])"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           # Check for uncertainty acknowledgment in PR description
           PR_BODY="${{ github.event.pull_request.body }}"
           if echo "$PR_BODY" | grep -qiE "uncertain|not sure|Ω|omega|Ω₀"; then
@@ -156,41 +156,41 @@ jobs:
           else
             echo "⚠️  F7: No explicit uncertainty acknowledgment — default Ω₀ = 0.04 assumed"
           fi
-
+          
       - name: F11 Command Authority
         run: |
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥 F11: COMMAND AUTHORITY"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           # Check if PR is from protected branch
           BRANCH="${{ github.head_ref }}"
           if [[ "$BRANCH" == hotfix/* ]]; then
             echo "🚨 F11: HOTFIX branch detected — 888_JUDGE required"
             echo "requires_approval=true" >> $GITHUB_ENV
           fi
-
+          
           # Enforce: only feature/*, hotfix/*, experiment/* can PR to main
           if [[ "$BRANCH" != feature/* && "$BRANCH" != hotfix/* && "$BRANCH" != experiment/* ]]; then
             echo "❌ F11: Branch '$BRANCH' does not follow constitutional naming"
             exit 1
           fi
-
+          
       - name: F12 Injection Defense
         run: |
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥 F12: INJECTION DEFENSE"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           # Check for secrets
           if [[ -f ".gitleaks.toml" ]] || grep -r "password\|secret\|key" --include="*.py" --include="*.js" . 2>/dev/null | head -5; then
             echo "⚠️  F12: Potential secrets detected — manual review required"
           else
             echo "✅ F12: No obvious secrets in diff"
           fi
-
+          
       - name: 888_JUDGE Verdict
         id: verdict
         run: |
@@ -198,10 +198,10 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔥🔥🔥 888_JUDGE: CONSTITUTIONAL VERDICT"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+          
           RISK_TIER="${{ steps.parse-manifest.outputs.risk_tier || 'medium' }}"
           AI_WITNESS="${{ steps.tri-witness.outputs.ai_witness }}"
-
+          
           # Default verdict logic
           if [[ "$AI_WITNESS" == "failed" ]]; then
             VERDICT="VOID"
@@ -212,10 +212,10 @@ jobs:
           else
             VERDICT="SEAL"
           fi
-
+          
           echo "⚖️  VERDICT: $VERDICT"
           echo "verdict=$VERDICT" >> $GITHUB_OUTPUT
-
+          
           if [[ "$VERDICT" == "VOID" ]]; then
             echo "❌ PR rejected — constitutional floors failed"
             exit 1
@@ -226,15 +226,15 @@ jobs:
           else
             echo "✅ Constitutional floors passed — awaiting human review"
           fi
-
+          
       - name: Post Verdict Comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const verdict = '${{ steps.verdict.outputs.verdict }}';
             const riskTier = '${{ steps.parse-manifest.outputs.risk_tier || 'unknown' }}';
             const agentName = '${{ steps.parse-manifest.outputs.agent_name || 'unknown' }}';
-
+            
             const verdictEmoji = {
               'SEAL': '✅',
               'PROVISIONAL': '⚠️',
@@ -243,35 +243,35 @@ jobs:
               'HOLD_888': '🚨',
               'VOID': '❌'
             };
-
+            
             const body = `## 🔥 888_JUDGE: Constitutional Verdict
-
+            
             **Verdict:** ${verdictEmoji[verdict] || '⚖️'} **${verdict}**
-
+            
             | Witness | Status |
             |---------|--------|
             | 🤖 AI (Self-Check) | ${'${{ steps.tri-witness.outputs.ai_witness }}'} |
             | 🌍 Earth (CI) | ${'${{ steps.tri-witness.outputs.earth_witness }}'} |
             | 👤 Human (Review) | Pending |
-
+            
             **Agent:** ${agentName}
             **Risk Tier:** ${riskTier}
-
+            
             ---
-
+            
             ### Constitutional Floors
             - ✅ F1 (Reversibility): Worktree pattern confirmed
             - ✅ F2 (Truth): Tests/docs checked
             - ✅ F4 (Clarity): ΔS evaluated
             - ✅ F11 (Command Auth): Branch naming valid
             - ✅ F12 (Injection): Scanned
-
+            
             ${verdict === 'HOLD_888' ? '🚨 **F13 REQUIRED:** Arif must review this PR.' : ''}
             ${verdict === 'VOID' ? '❌ **REJECTED:** Constitutional floors failed.' : ''}
-
+            
             *Ditempa bukan diberi.*
             `;
-
+            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

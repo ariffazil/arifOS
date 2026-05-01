@@ -28,12 +28,14 @@ from arifosmcp.runtime.contracts import (
     ToolStatus,
     TraceContext,
 )
-from arifosmcp.runtime.models import AuthorityLevel, CanonicalAuthority, ClaimStatus
+from arifosmcp.runtime.model import AuthorityLevel, CanonicalAuthority, ClaimStatus
 from arifosmcp.runtime.sessions import (
     bind_session_identity,
     clear_session_identity,
     get_session_identity,
+    _SOVEREIGN_IDENTITY_MAP,
 )
+
 from core.enforcement.auth_continuity import mint_auth_context
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -172,7 +174,7 @@ class HardenedInitAnchor:
                     for fname in files:
                         if fname.endswith(".json"):
                             rel = os.path.relpath(os.path.join(root, fname), models_dir)
-                            model_key = rel.replace("\", "/").replace(".json", "")
+                            model_key = rel.replace("\\", "/").replace(".json", "")
                             with open(os.path.join(root, fname), encoding="utf-8") as f:
                                 comprehensive["models"][model_key] = json.load(f)
 
@@ -404,6 +406,16 @@ class HardenedInitAnchor:
             datetime.now(timezone.utc).isoformat(),
             secrets.token_hex(16),
         )
+        # Promote sovereign binding when declared name maps to sovereign identity
+        is_sovereign = (
+            declared_name_norm in _SOVEREIGN_IDENTITY_MAP
+            or declared_name_norm in _SOVEREIGN_IDENTITY_MAP.values()
+        )
+        if is_sovereign:
+            human_approval = True
+            if sclass != SessionClass.SOVEREIGN:
+                sclass = SessionClass.SOVEREIGN
+
         effective_auth_ctx = auth_context or self._mint_auth_context(
             session_id=session_id,
             actor_id=declared_name_norm,

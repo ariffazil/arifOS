@@ -26,11 +26,11 @@ from arifosmcp.runtime.tools import (
     _elicit_judge_candidate,
     register_tools,
 )
-from arifosmcp.tools.session import arif_session_init
+from arifosmcp.tools.session_init import arif_session_init
 from arifosmcp.tools.sense_observe import arif_sense_observe
-from arifosmcp.tools.vault import arif_vault_seal
-from arifosmcp.tools.forge import arif_forge_execute
-from arifosmcp.tools.judge import arif_judge_deliberate
+from arifosmcp.tools.vault_seal import arif_vault_seal
+from arifosmcp.tools.forge_execute import arif_forge_execute
+from arifosmcp.tools.judge_deliberate import arif_judge_deliberate
 
 
 def test_surface_partition():
@@ -98,6 +98,7 @@ def test_vault_seals_with_ack():
         payload="test",
         ack_irreversible=True,
         actor_id="arif",
+        witness_type="human",
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
     )
@@ -110,7 +111,7 @@ def test_vault_seals_with_ack():
 def test_forge_holds_without_actor():
     r = arif_forge_execute(mode="commit", ack_irreversible=True)
     assert r.status == "HOLD"
-    assert "vault_entry_id" in r.meta.get("reason", "").lower() or r.meta.get("failed_floors") == []
+    assert "F11" in r.meta["failed_floors"]
 
 
 def test_injection_guard_blocks():
@@ -128,7 +129,9 @@ def test_judge_emits_seal():
 
 
 def test_vault_requires_judge_contract_even_with_ack():
-    r = arif_vault_seal(mode="seal", payload="test", ack_irreversible=True, actor_id="arif")
+    r = arif_vault_seal(
+        mode="seal", payload="test", ack_irreversible=True, actor_id="arif", witness_type="human"
+    )
     assert r.status == "HOLD"
     assert "judge" in r.meta["reason"]
 
@@ -146,6 +149,7 @@ def test_forge_commit_accepts_vault_lineage():
         payload="test",
         ack_irreversible=True,
         actor_id="arif",
+        witness_type="human",
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
     )
@@ -153,6 +157,7 @@ def test_forge_commit_accepts_vault_lineage():
         mode="commit",
         ack_irreversible=True,
         actor_id="arif",
+        witness_type="human",
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
         vault_entry_id=seal.entry_id,

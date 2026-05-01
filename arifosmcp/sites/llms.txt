@@ -1,8 +1,8 @@
 # arifOS MCP — Constitutional AI Gateway
 ## Source of Truth for arifOS Trinity System
 
-**Version:** 2026.4.13-UNIFIED
-**Gateway:** https://mcp.arif-fazil.com
+**Version:** 2026.04.26-KANON
+**Gateway:** https://mcp.arif-fazil.com/mcp
 **Health:** https://mcp.arif-fazil.com/health
 **MCP Protocol:** 2024-11-05 (streamable-http primary)
 **Doctrine:** DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -43,43 +43,46 @@ arifOS MCP serves three orthogonal AI organs. Every tool call passes through the
 - **Endpoint:** https://mcp.arif-fazil.com/mcp
 - **Namespace:** arifos_*
 - **Role:** Decision authority, VAULT999 audit ledger, 13-floor enforcement, 888_HOLD human veto
-- **Loaded tools:** arifos_* namespace (count varies by deployment — use /tools to confirm)
+- **Loaded tools:** 13 canonical arifos_* tools — use /tools to enumerate
 - **Can emit:** SEAL / CAUTION / HOLD / VOID verdicts
 
 ### Φ GEOX — Earth Intelligence (Physics Grounding)
-- **Endpoint:** https://mcp.arif-fazil.com/geox/mcp
+- **Endpoint:** https://geox.arif-fazil.com/mcp
 - **Namespace:** geox_*
 - **Role:** Petrophysics, stratigraphy, play risk, physics constraints, well data, seismic interpretation
 - **Epistemic rule:** OBS from pixels (direct measurement), DER from computation, INT from interpretation — never conflate the three
 - **Status:** Separate deployment. GEOX acts as a client jurisdiction calling upstream constitutional tools.
 
 ### Ψ WEALTH — Capital Engine (Financial Intelligence)
-- **Endpoint:** Not yet deployed to public URL
+- **Endpoint:** https://wealth.arif-fazil.com/mcp
 - **Namespace:** wealth_*
 - **Role:** Brent crude analysis, NPV/IRR, DSCR, portfolio construction, capital efficiency
-- **Status:** PLANNED — source ready, not yet live on VPS
+- **Status:** Separate deployment. WEALTH operates as a downstream jurisdiction with its own MCP surface.
 
-**Important note on namespaces:** Main public tool exposure on this host is the arifos_* namespace. GEOX and WEALTH operate as routed jurisdictions or planned organs, not as equally exposed peer toolsets on this host.
+**Important note on namespaces:** The canonical machine endpoint for arifOS is `mcp.arif-fazil.com`. GEOX and WEALTH expose their own public MCP surfaces and remain downstream jurisdictions rather than peer toolsets on the arifOS endpoint itself.
 
 ---
 
 ## Metrics Semantics
 
-The `/health` endpoint exposes thermodynamic telemetry. These values require careful interpretation:
+The `/health` endpoint exposes Nine-Signal constitutional telemetry. The `nine_signal` block uses Dwibahasa labels derived from the Nine-Signal HORIZON artifact.
 
-| Field | Meaning | Warning |
-|-------|---------|---------|
-| `confidence` (τ system) | Aggregate system readiness | **Not** per-claim F2 truth threshold |
-| `peace_squared` (κ) | Lyapunov stability; >1.0 = stable/reversible posture | Stability proxy, not truth proof |
-| `vitality_index` (Ψ) | System stamina / baseline energy | Not proof-of-truth |
-| `entropy_delta` (ΔS) | Landauer cost; ≤0 for F4 Clarity | System heat indicator |
-| `echo_debt` | Accumulated unresolved iterations | Debt, not confidence |
+**Nine-Signal labels:**
+
+| Signal | Domain | Meaning | SEALS label |
+|--------|--------|---------|-------------|
+| `delta` (Δ) | Governance | Overall system constitutionality | AMANAH / HATI / RETAK |
+| `psi` (Ψ) | Capital | Financial/capital intelligence posture | BIJAKSANA / SABAR / SESAT |
+| `omega` (Ω) | Intelligence | Cognitive/reasoning integrity | SEAL / CAUTION / SESAT |
+| `overall` | Composite | Weighted constitutional verdict | SEAL / CAUTION / HOLD / SESAT |
+
+**Legacy thermodynamic fields** (deprecated — retained for backwards compatibility in `/ready`):
+- `confidence`: aggregate system readiness proxy
+- `peace_squared`: Lyapunov stability > 1.0 = healthy reversibility
+- `vitality_index`: system stamina
+- `entropy_delta`: Landauer cost ≤ 0 for F4 Clarity
 
 **F2 Truth threshold:** For any individual claim *emitted beyond this membrane*, F2 enforces τ ≥ 0.99. The `confidence` field in `/health` is an aggregate system-readiness proxy. Related to but distinct from per-claim F2 truth.
-
-**F5 Peace²:** Peace² > 1.0 indicates stable, reversible posture. Below 1.0, some actions may be blocked. This is a system-level stability measure.
-
-**No metric on this endpoint certifies individual claim accuracy.** Each tool call is evaluated independently against F2 at call time.
 
 ---
 
@@ -157,34 +160,32 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
 ```json
 {
   "status": "healthy",
-  "version": "2026.4.13",
-  "tools_loaded": <integer>,
+  "service": "arifos-mcp-kanon",
+  "version": "2026.04.26-KANON",
+  "gateway": "unified",
+  "tools": 13,
+  "prompts": 8,
+  "resources": 5,
+  "apps": 5,
+  "canonical_surface": 13,
+  "probe_surface": 0,
+  "registered_surface": 13,
   "timestamp": "<ISO-8601>",
-  "source_repo": "https://github.com/ariffazil/arifOS",
-  "source_commit": "<commit-sha>",
-  "thermodynamic": {
-    "entropy_delta": <number>,
-    "peace_squared": <number>,
-    "vitality_index": <number>,
-    "echo_debt": <number>,
-    "shadow": <number>,
-    "confidence": <number>,
-    "verdict": "SEAL|CAUTION|HOLD|VOID",
-    "metabolic_stage": <integer>
-  },
-  "source_of_truth": {
-    "doctrine": "https://github.com/ariffazil/arifOS",
-    "runtime": "/health and /tools on this server",
-    "canonical_index": "/.well-known/mcp/server.json"
+  "nine_signal": {
+    "delta": "AMANAH",
+    "psi": "BIJAKSANA",
+    "omega": "SEAL",
+    "overall": "SEAL"
   }
 }
 ```
 
 **Field semantics:**
-- `confidence` (system): Aggregate readiness proxy. Not F2 per-claim threshold.
-- `tau_threshold_f2`: The F2 per-claim threshold is 0.99 (defined in floor spec, enforced at call time).
-- `peace_squared`: Stability proxy. > 1.0 = healthy reversibility posture.
-- `vitality_index`: System stamina. Baseline energy, not claim accuracy.
+- `tools` / `registered_surface`: total MCP tools registered in this instance
+- `canonical_surface`: number of constitutional arifos_* tools (13 canonical)
+- `probe_surface`: number of diagnostic/probe tools (0 in production)
+- `nine_signal`: runtime constitutional signal — delta=Δ (delta/governance), psi=Ψ (capital), omega=Ω (intelligence). Overall SEAL = all floors passed. See Nine-Signal doctrine for Dwibahasa label semantics.
+- `status: healthy`: MCP server is responding. Does not certify individual tool accuracy.
 
 ---
 
