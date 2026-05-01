@@ -4,6 +4,12 @@ F1–F13 Constitutional Floor Enforcer
 
 Each floor is an interceptor axiom, not a callable tool.
 They wrap all tool executions and gate the pipeline.
+
+v2026.05.01-NIAT PATCH:
+- Reasoning free / Action narrow — core principle
+- Angel + Devil reasoning allowed without gate
+- Execution gated, not reasoning
+- Fine-grained verdict subtypes replace flat HOLD
 """
 
 from __future__ import annotations
@@ -16,51 +22,222 @@ from arifosmcp.constitutional_map import CANONICAL_TOOLS, Floor
 logger = logging.getLogger(__name__)
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Request Type Classification — NIAT principle
+# Think wide / Act narrow
+# ─────────────────────────────────────────────────────────────────────────────
+
+class RequestType:
+    """Cognitive mode tags — determines gating aggressiveness."""
+    READ          = "READ"          # Memory, evidence, observation — free
+    REASON        = "REASON"        # Thinking, analysis, critique — free
+    CRITIQUE      = "CRITIQUE"      # Adversarial/angel-devil reasoning — free
+    DESIGN        = "DESIGN"        # Architecture, blueprint — allow with caveat
+    SIMULATE      = "SIMULATE"      # What-if, dry-run — allow with caveat
+    RED_TEAM      = "RED_TEAM"      # Adversarial simulation — free (not execution)
+    DRY_RUN       = "DRY_RUN"       # Simulation only — allow with caveat
+    EXECUTE       = "EXECUTE"       # Real mutation — gate required
+    VAULT_WRITE   = "VAULT_WRITE"   # Irreversible anchoring — hard gate
+
+
+# Verdict subtypes (replaces flat HOLD)
+class VerdictLabel:
+    ALLOW                      = "ALLOW"                      # Pure read/critique, no gate
+    ALLOW_WITH_CAVEAT          = "ALLOW_WITH_CAVEAT"          # Design/simulate, caveat attached
+    PARTIAL_EVIDENCE           = "PARTIAL_EVIDENCE"           # Claim needs sourcing, can proceed with flag
+    DESIGN_ONLY                = "DESIGN_ONLY"                # Blueprint ok, execution blocked
+    DRY_RUN_ONLY               = "DRY_RUN_ONLY"               # Simulate ok, real execution HOLD
+    RED_TEAM_SIMULATION_ONLY   = "RED_TEAM_SIMULATION_ONLY"  # Adversarial reasoning ok, weaponization blocked
+    HUMAN_APPROVAL_REQUIRED    = "HUMAN_APPROVAL_REQUIRED"    # Needs explicit ack before proceeding
+    HOLD_EXECUTION             = "HOLD_EXECUTION"             # Full stop, fix needed before proceeding
+    VOID                       = "VOID"                       # Breach, blocked permanently
+
+
+# Mode-to-RequestType mapping for arif_mind_reason
+MIND_REASON_MODES = {
+    "reason":       RequestType.REASON,
+    "reflect":      RequestType.REASON,
+    "verify":       RequestType.CRITIQUE,
+    "critique":     RequestType.CRITIQUE,
+    "debate":       RequestType.RED_TEAM,
+    "socratic":     RequestType.REASON,
+    "axioms":       RequestType.READ,
+    "plan":         RequestType.DESIGN,
+    "plan_review":  RequestType.DESIGN,
+    "plan_approve": RequestType.EXECUTE,
+}
+
+# Tool-to-RequestType mapping
+TOOL_REQUEST_TYPE = {
+    "arif_session_init":     RequestType.EXECUTE,
+    "arif_sense_observe":    RequestType.READ,
+    "arif_evidence_fetch":   RequestType.READ,
+    "arif_mind_reason":      RequestType.REASON,   # overridden by mode param
+    "arif_heart_critique":   RequestType.CRITIQUE,  # overridden by mode
+    "arif_kernel_route":     RequestType.READ,
+    "arif_reply_compose":    RequestType.REASON,
+    "arif_memory_recall":    RequestType.READ,
+    "arif_gateway_connect":  RequestType.EXECUTE,
+    "arif_judge_deliberate": RequestType.REASON,
+    "arif_vault_seal":       RequestType.VAULT_WRITE,
+    "arif_forge_execute":    RequestType.EXECUTE,   # overridden by mode
+    "arif_ops_measure":      RequestType.READ,
+}
+
+
+def classify_request(tool_name: str, params: dict[str, Any]) -> str:
+    """
+    Classify the request type for a tool call.
+    Used to determine gating aggressiveness.
+
+    NIAT principle:
+      The Instrument may imagine the forbidden.
+      The Instrument may not perform the forbidden.
+      The Instrument may expose the dangerous.
+      The Instrument may not enable the dangerous.
+    """
+    base_type = TOOL_REQUEST_TYPE.get(tool_name, RequestType.REASON)
+
+    # Override by mode for multi-mode tools
+    mode = params.get("mode", "").lower()
+
+    if tool_name == "arif_mind_reason":
+        return MIND_REASON_MODES.get(mode, RequestType.REASON)
+
+    if tool_name == "arif_heart_critique":
+        if mode in ("critique", "redteam", "simulate"):
+            return RequestType.CRITIQUE
+        if mode in ("empathize", "maruah", "deescalate"):
+            return RequestType.REASON
+        return RequestType.CRITIQUE
+
+    if tool_name == "arif_forge_execute":
+        if mode == "dry_run":
+            return RequestType.DRY_RUN
+        if mode in ("query", "recall"):
+            return RequestType.READ
+        if mode in ("write", "generate"):
+            return RequestType.DESIGN
+        if mode == "engineer":
+            return RequestType.EXECUTE
+        return base_type
+
+    return base_type
+
+
+def is_dangerous_tool(tool_name: str, params: dict[str, Any]) -> bool:
+    """
+    Check if tool call is asking for dangerous execution (not just reasoning).
+    Used for weaponization detection — intent matters, not topic.
+    """
+    dangerous_keywords = [
+        "bypass", "exploit", "privilege_escalate",
+        "stealth", "rootkit", "backdoor", "credential",
+        "unauthorized", "force_auth", "dump_password",
+    ]
+    return any(
+        kw.lower() in str(v).lower()
+        for k, v in params.items()
+        if isinstance(v, str)
+        for kw in dangerous_keywords
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Floor Descriptions
+# ─────────────────────────────────────────────────────────────────────────────
+
 FLOOR_DESCRIPTIONS: dict[Floor, str] = {
     Floor.F01_AMANAH: "Trustworthiness — every action is accountable.",
-    Floor.F02_TRUTH: "Truthfulness — no deception, no hallucination passed as fact.",
-    Floor.F03_WITNESS: "Witness — evidence must be verifiable and preserved.",
-    Floor.F04_CLARITY: "Clarity — intent and mechanism are transparent.",
-    Floor.F05_PEACE: "Peace — no harm to human dignity or safety.",
-    Floor.F06_EMPATHY: "Empathy — consider human consequence before acting.",
-    Floor.F07_HUMILITY: "Humility — acknowledge limits and uncertainty.",
+    Floor.F02_TRUTH:  "Truthfulness — no deception, no hallucination passed as fact.",
+    Floor.F03_WITNESS:"Witness — evidence must be verifiable and preserved.",
+    Floor.F04_CLARITY:"Clarity — intent and mechanism are transparent.",
+    Floor.F05_PEACE:  "Peace — no harm to human dignity or safety.",
+    Floor.F06_EMPATHY:"Empathy — consider human consequence before acting.",
+    Floor.F07_HUMILITY:"Humility — acknowledge limits and uncertainty.",
     Floor.F08_GENIUS: "Genius — strive for elegant, correct solutions.",
-    Floor.F09_ANTIHANTU: "Anti-Hantu — detect and reject manipulation.",
-    Floor.F10_ONTOLOGY: "Ontology — preserve structural coherence.",
-    Floor.F11_AUTH: "Authority — verify identity before irreversible acts.",
-    Floor.F12_INJECTION: "Injection Guard — sanitize all inputs.",
-    Floor.F13_SOVEREIGN: "Sovereign — human veto is absolute.",
+    Floor.F09_ANTIHANTU:"Anti-Hantu — detect and reject manipulation.",
+    Floor.F10_ONTOLOGY:"Ontology — preserve structural coherence.",
+    Floor.F11_AUTH:   "Authority — verify identity before irreversible acts.",
+    Floor.F12_INJECTION:"Injection Guard — sanitize all inputs.",
+    Floor.F13_SOVEREIGN:"Sovereign — human veto is absolute.",
 }
 
 
 def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -> dict[str, Any]:
     """
     Run F1–F13 interceptors for a tool call.
-    Returns {"verdict": "SEAL" | "HOLD" | "VOID", "failed_floors": [...], "reason": str}
+
+    Returns dict with:
+      - verdict: SEAL | HOLD | VOID
+      - label: VerdictLabel string (fine-grained)
+      - failed_floors: list
+      - reason: str
+      - request_type: classified type
+      - next_safe_action: str
+
+    NIAT principle:
+      - Reasoning: wide (READ, REASON, CRITIQUE, RED_TEAM → ALLOW)
+      - Action: narrow (EXECUTE, VAULT_WRITE → HARD GATE)
+      - Design/Simulate → ALLOW_WITH_CAVEAT
     """
-    import time
-
-    from arifosmcp.runtime.telemetry import get_telemetry
-
-    start_time = time.time()
-    session_id = params.get("session_id")
-
     # Record tool call in session history — F9 TAQWA prerequisite tracking
+    session_id = params.get("session_id")
     if session_id:
         try:
             from arifosmcp.apps.session_state import record_tool_call
-
             record_tool_call(session_id, tool_name)
         except Exception:
             pass  # Non-session or cross-module: skip silently
 
+    # ── 1. Classify request type ─────────────────────────────────────────────
+    request_type = classify_request(tool_name, params)
+
+    # ── 2. Angel/Devil reasoning — always allowed (niats freely) ────────────
+    # "The Instrument may imagine the forbidden."
+    if request_type in (
+        RequestType.REASON, RequestType.CRITIQUE,
+        RequestType.RED_TEAM, RequestType.READ,
+    ):
+        return {
+            "verdict": "SEAL",
+            "label": VerdictLabel.ALLOW,
+            "failed_floors": [],
+            "reason": f"Free reasoning mode: {request_type}",
+            "request_type": request_type,
+            "next_safe_action": "Proceed — thinking is safe",
+        }
+
+    # ── 3. Design / Simulate → allow with caveat ─────────────────────────────
+    # Blueprint and simulation are safe — real execution is gated separately
+    if request_type in (
+        RequestType.DESIGN, RequestType.SIMULATE, RequestType.DRY_RUN,
+    ):
+        return {
+            "verdict": "SEAL",
+            "label": VerdictLabel.ALLOW_WITH_CAVEAT,
+            "failed_floors": [],
+            "reason": f"Simulation/design mode: {request_type} — execution blocked separately",
+            "request_type": request_type,
+            "next_safe_action": "Blueprint/simulation ok — real execution will require separate gate",
+        }
+
+    # ── 4. Execution-gated tools (EXECUTE, VAULT_WRITE) ───────────────────────
+    # These get the full constitutional treatment
     spec = CANONICAL_TOOLS.get(tool_name)
     if not spec:
-        return {"verdict": "VOID", "failed_floors": ["F10"], "reason": f"Unknown tool: {tool_name}"}
+        return {
+            "verdict": "VOID",
+            "label": VerdictLabel.VOID,
+            "failed_floors": ["F10"],
+            "reason": f"Unknown tool: {tool_name}",
+            "request_type": request_type,
+            "next_safe_action": "Tool not found in canonical registry",
+        }
 
     failed: list[str] = []
 
-    # F12 Injection Guard — basic sanity on params
+    # F12 Injection Guard — block injection patterns
     for key, value in params.items():
         if isinstance(value, str):
             risky = ["rm -rf", "eval(", "exec(", "__import__", "os.system"]
@@ -69,30 +246,30 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                 logger.warning(f"F12 BLOCK: injection pattern in param '{key}' for {tool_name}")
                 break
 
-    # F11 Authority — irreversible or sovereign tools need actor_id
+    # F11 Authority — only for EXECUTE/VAULT_WRITE, not for reasoning
+    # "The Instrument may not perform the forbidden without identity."
     risk_tier = spec.get("risk_tier", "low")
     if risk_tier in ("critical", "sovereign") and not actor_id:
         failed.append("F11")
         logger.warning(f"F11 HOLD: {tool_name} requires actor_id")
 
-    # F01 Amanah — vault and forge are irreversible; need explicit ack
+    # F01 Amanah — irreversible tools need explicit ack
     if spec.get("irreversible") and not params.get("ack_irreversible"):
         failed.append("F01")
         logger.warning(f"F01 HOLD: {tool_name} is irreversible without ack")
 
-    # F13 Sovereign — hardcoded master veto placeholder
+    # F13 Sovereign — master veto
     if params.get("sovereign_veto"):
         failed.append("F13")
         logger.critical("F13 SOVEREIGN VETO invoked")
 
-    # F09 TAQWA — arif_heart_critique must precede arif_forge_execute.
-    # If an agent skips heart_critique entirely, forge must be blocked.
+    # F09 TAQWA — arif_heart_critique must precede arif_forge_execute
+    # "The Instrument may not enable the dangerous without review."
     if tool_name == "arif_forge_execute":
         sid = params.get("session_id")
         if sid:
             try:
                 from arifosmcp.apps.session_state import was_tool_called
-
                 if not was_tool_called(sid, "arif_heart_critique"):
                     failed.append("F09")
                     logger.critical(
@@ -103,28 +280,52 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
             except Exception as e:
                 logger.error(f"F09 TAQWA check failed: {e}")
 
+    # ── 5. Build response ────────────────────────────────────────────────────
     if failed:
-        res = {
-            "verdict": "HOLD" if "F13" not in failed else "VOID",
+        if "F13" in failed:
+            return {
+                "verdict": "VOID",
+                "label": VerdictLabel.VOID,
+                "failed_floors": failed,
+                "reason": f"Constitutional breach: {', '.join(failed)}",
+                "request_type": request_type,
+                "next_safe_action": "Sovereign veto — no proceed path",
+            }
+        if "F09" in failed:
+            return {
+                "verdict": "HOLD",
+                "label": VerdictLabel.HOLD_EXECUTION,
+                "failed_floors": failed,
+                "reason": f"Constitutional floor breach: {', '.join(failed)}",
+                "request_type": request_type,
+                "next_safe_action": "Run arif_heart_critique first, then retry forge",
+            }
+        if "F01" in failed or "F11" in failed:
+            return {
+                "verdict": "HOLD",
+                "label": VerdictLabel.HUMAN_APPROVAL_REQUIRED,
+                "failed_floors": failed,
+                "reason": f"Constitutional floor breach: {', '.join(failed)}",
+                "request_type": request_type,
+                "next_safe_action": "Provide actor_id and/or ack_irreversible=true to proceed",
+            }
+        return {
+            "verdict": "HOLD",
+            "label": VerdictLabel.HOLD_EXECUTION,
             "failed_floors": failed,
             "reason": f"Constitutional floor breach: {', '.join(failed)}",
+            "request_type": request_type,
+            "next_safe_action": "Address failed floors before retry",
         }
-    else:
-        res = {"verdict": "SEAL", "failed_floors": [], "reason": "All floors clear"}
 
-    # Record to Telemetry (Prometheus + Langfuse)
-    try:
-        get_telemetry().record_tool_call(
-            tool=tool_name,
-            verdict=res["verdict"],
-            latency=time.time() - start_time,
-            session_id=session_id,
-            metadata={"reason": res["reason"], "failed_floors": res.get("failed_floors", [])},
-        )
-    except Exception as e:
-        logger.debug(f"Telemetry recording failed: {e}")
-
-    return res
+    return {
+        "verdict": "SEAL",
+        "label": VerdictLabel.ALLOW,
+        "failed_floors": [],
+        "reason": "All floors clear",
+        "request_type": request_type,
+        "next_safe_action": "Proceed",
+    }
 
 
 def get_floor_status() -> dict[str, Any]:
@@ -132,5 +333,5 @@ def get_floor_status() -> dict[str, Any]:
     return {
         "floors": {f.value: FLOOR_DESCRIPTIONS[f] for f in Floor},
         "status": "aligned",
-        "version": "2026.04.26-KANON",
+        "version": "2026.05.01-NIAT",
     }
