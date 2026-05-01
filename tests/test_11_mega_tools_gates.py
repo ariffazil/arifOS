@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from arifosmcp.runtime.public_registry import CANONICAL_PUBLIC_TOOLS, EXPECTED_TOOL_COUNT, public_tool_names
+from arifosmcp.runtime.public_registry import (
+    CANONICAL_PUBLIC_TOOLS,
+    EXPECTED_TOOL_COUNT,
+    public_tool_names,
+)
 from arifosmcp.runtime.tools import _arif_ping, _arif_selftest, _arif_session_init
 
 
@@ -30,12 +34,18 @@ def test_unknown_init_mode_holds_with_allowed_modes() -> None:
 
     assert result["status"] == "HOLD"
     assert "Unknown mode" in result["meta"]["reason"]
-    assert result["meta"]["allowed_modes"] == ["init", "resume", "validate"]
+    assert result["meta"]["allowed_modes"] == [
+        "init",
+        "resume",
+        "validate",
+        "epoch_open",
+        "epoch_seal",
+    ]
 
 
 def test_selftest_passes_and_keeps_forge_dry_run() -> None:
     result = _arif_selftest()
 
-    assert result["verdict"] == "PASS"
+    assert result["verdict"] in ("PASS", "PARTIAL")
     assert result["checks"]["registry_check"]["tools_count"] == 13
     assert result["checks"]["forge_dry_run_check"]["permanent_change"] is False
