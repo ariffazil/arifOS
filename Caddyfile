@@ -2,7 +2,7 @@
 # DITEMPA BUKAN DIBERI
 # 3 Main Sites: arif-fazil.com | arifos.arif-fazil.com | aaa.arif-fazil.com
 # Federation MCP: arifos (13) | geox (28) | wealth (40+) | well (30+)
-# Last reconcile: 2026-05-01
+# Last reconcile: 2026-05-01 — FULL SWEEP: root→dist, apex+wiki merged, handle_path fixed
 
 {
     admin unix//var/run/caddy-admin.sock
@@ -33,33 +33,53 @@
 
 # ═══════════════════════════════════════════════════════════════════════
 # MAIN SITE 1 — Ψ HUMAN SURFACE
+# arif-fazil.com | www.arif-fazil.com
+# Root: /var/www/html/arif/dist (built React bundle — was source tree)
+# Sub-pages: /apex | /wiki | /888 | /000 | /999 | /.well-known
 # ═══════════════════════════════════════════════════════════════════════
 arif-fazil.com, www.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
-    root * /var/www/html/arif
+    root * /var/www/html/arif/dist
 
-    @well-known path /.well-known/*
-    handle @well-known {
-        uri strip_prefix /.well-known
-        root * /var/www/html/arif/.well-known
+    # ACME challenge + identity
+    handle_path /.well-known/* {
+        root * /var/www/html/arif/dist/.well-known
+        file_server
+    }
+
+    # Constitutional genesis
+    handle_path /000/* {
+        root * /var/www/html/arif/dist/000
         try_files {path} /index.html
         file_server
     }
 
-    @genesis path /000/*
-    handle @genesis {
-        uri strip_prefix /000
-        root * /var/www/html/arif/000
+    # Constitutional validation
+    handle_path /999/* {
+        root * /var/www/html/arif/dist/999
         try_files {path} /index.html
         file_server
     }
 
-    @validation path /999/*
-    handle @validation {
-        uri strip_prefix /999
-        root * /var/www/html/arif/999
+    # AGI lane (888)
+    handle_path /888/* {
+        root * /var/www/html/arif/888
+        try_files {path} /index.html
+        file_server
+    }
+
+    # APEX theory
+    handle_path /apex/* {
+        root * /var/www/html/apex
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Ω-Wiki
+    handle_path /wiki/* {
+        root * /var/www/html/wiki
         try_files {path} /index.html
         file_server
     }
@@ -72,6 +92,10 @@ arif-fazil.com, www.arif-fazil.com {
 
 # ═══════════════════════════════════════════════════════════════════════
 # MAIN SITE 2 — Ω ARIFOS OBSERVATORY
+# arifos.arif-fazil.com
+# Root: /var/www/html/arifos
+# MCP: /mcp*, /health, /tools, /sse → arifosmcp:8080
+# Ω-Wiki: /wiki/*
 # ═══════════════════════════════════════════════════════════════════════
 arifos.arif-fazil.com {
     import tls_origin
@@ -100,6 +124,13 @@ arifos.arif-fazil.com {
         reverse_proxy arifosmcp:8080
     }
 
+    # Ω-Wiki merged from wiki.arif-fazil.com
+    handle_path /wiki/* {
+        root * /var/www/html/wiki
+        try_files {path} /index.html
+        file_server
+    }
+
     handle {
         try_files {path} /index.html
         file_server
@@ -108,6 +139,8 @@ arifos.arif-fazil.com {
 
 # ═══════════════════════════════════════════════════════════════════════
 # MAIN SITE 3 — Δ AAA COCKPIT
+# aaa.arif-fazil.com
+# A2A: /a2a/* → aaa-a2a:3001
 # ═══════════════════════════════════════════════════════════════════════
 aaa.arif-fazil.com {
     import tls_origin
@@ -125,22 +158,17 @@ aaa.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
-# THEORY / APEX
+# APEX — consolidated into arif-fazil.com/apex
 # ═══════════════════════════════════════════════════════════════════════
 apex.arif-fazil.com {
     import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/apex
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+    redir https://arif-fazil.com/apex{uri} permanent
 }
 
 # ═══════════════════════════════════════════════════════════════════════
 # FEDERATION MCP — GEOX
-# Keep at geox.arif-fazil.com — ChatGPT registered here
+# geox.arif-fazil.com
+# ChatGPT registered here — DO NOT MOVE
 # ═══════════════════════════════════════════════════════════════════════
 geox.arif-fazil.com {
     import tls_origin
@@ -148,7 +176,6 @@ geox.arif-fazil.com {
     encode zstd gzip
     root * /var/www/html/geox
 
-    # Sovereign 13 MCP Endpoint
     handle /mcp* {
         reverse_proxy geox_eic:8081 {
             header_up Host {host}
@@ -156,22 +183,18 @@ geox.arif-fazil.com {
             flush_interval 100ms
         }
     }
-
     handle /health {
         import cors_public
         reverse_proxy geox_eic:8081
     }
-
     handle /ready {
         import cors_public
         reverse_proxy geox_eic:8081
     }
-
     handle /status {
         import cors_public
         reverse_proxy geox_eic:8081
     }
-
     handle /sse* {
         reverse_proxy geox_eic:8081
     }
@@ -184,8 +207,8 @@ geox.arif-fazil.com {
 
 # ═══════════════════════════════════════════════════════════════════════
 # FEDERATION MCP — WEALTH
-# Keep at wealth.arif-fazil.com — ChatGPT registered here
-# Note: wealth-organ internal port is 8082
+# wealth.arif-fazil.com
+# ChatGPT registered here — DO NOT MOVE
 # ═══════════════════════════════════════════════════════════════════════
 wealth.arif-fazil.com {
     import tls_origin
@@ -204,6 +227,7 @@ wealth.arif-fazil.com {
     handle /sse* {
         reverse_proxy wealth-organ:8082
     }
+
     handle {
         try_files {path} /index.html
         file_server
@@ -212,8 +236,9 @@ wealth.arif-fazil.com {
 
 # ═══════════════════════════════════════════════════════════════════════
 # FEDERATION MCP — WELL
-# Add this — was completely missing from Caddyfile
-# ChatGPT registered at well.arif-fazil.com/mcp
+# well.arif-fazil.com
+# ChatGPT registered here — DO NOT MOVE
+# Root → redirects to arifos.arif-fazil.com
 # ═══════════════════════════════════════════════════════════════════════
 well.arif-fazil.com {
     import tls_origin
@@ -221,14 +246,14 @@ well.arif-fazil.com {
 
     handle /mcp* {
         import cors_public
-        reverse_proxy 172.19.0.15:8083
+        reverse_proxy well:8083
     }
     handle /health {
         import cors_public
-        reverse_proxy 172.19.0.15:8083
+        reverse_proxy well:8083
     }
     handle /sse* {
-        reverse_proxy 172.19.0.15:8083
+        reverse_proxy well:8083
     }
     handle {
         redir https://arifos.arif-fazil.com permanent
@@ -236,7 +261,7 @@ well.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
-# LEGACY REDIRECTS — old subdomains → main sites
+# LEGACY REDIRECTS — consolidated to main sites
 # ═══════════════════════════════════════════════════════════════════════
 arifosmcp.arif-fazil.com {
     import tls_origin
@@ -253,15 +278,10 @@ mcp.arif-fazil.com {
     }
 }
 
+# WIKI — consolidated into arifos.arif-fazil.com/wiki
 wiki.arif-fazil.com {
     import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/wiki
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+    redir https://arifos.arif-fazil.com/wiki{uri} permanent
 }
 
 # ═══════════════════════════════════════════════════════════════════════
