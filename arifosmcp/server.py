@@ -393,6 +393,7 @@ try:
 
         # Overwrite Starlette routes list with our prioritized meta-enriched /tools
         app.add_route("/tools", tools_with_meta, methods=["GET"])
+        app.add_route("/tools.json", tools_with_meta, methods=["GET"])
         app.add_route("/health", horizon_health, methods=["GET"])
         app.add_route("/ready", horizon_ready, methods=["GET"])
         app.add_route("/metadata", horizon_metadata, methods=["GET"])
