@@ -1,16 +1,15 @@
-import os
 import asyncio
 import logging
-from typing import Optional
-from .types import EmbeddingStatus
+import os
 
 # Placeholder for real clients
 try:
-    from arifosmcp.core.intelligence.ollama import ollama_client
     from arifosmcp.core.infrastructure.qdrant import qdrant_client
+    from arifosmcp.core.intelligence.ollama import ollama_client
 except ImportError:
     ollama_client = None
     qdrant_client = None
+
 
 class EmbeddingWorker:
     def __init__(self, db_client=None):
@@ -19,7 +18,7 @@ class EmbeddingWorker:
         self.collection = os.getenv("MEMORY_QDRANT_COLLECTION", "arifos_memory")
         self.max_retries = 3
 
-    async def get_embedding(self, text: str) -> Optional[list[float]]:
+    async def get_embedding(self, text: str) -> list[float] | None:
         """Generate embedding using Ollama."""
         try:
             # Assuming ollama_client has an embed or similar method
@@ -34,15 +33,15 @@ class EmbeddingWorker:
         while True:
             # 1. Fetch pending jobs from DB
             # jobs = await self.db.fetch("SELECT * FROM memory_write_queue WHERE status = 'pending' LIMIT 10")
-            jobs = [] # Placeholder
-            
+            jobs = []  # Placeholder
+
             for job in jobs:
                 memory_id = job["memory_id"]
-                content = job["content"] # Assume content is joined or fetched
-                
+                content = job["content"]  # Assume content is joined or fetched
+
                 # 2. Generate Embedding
                 embedding = await self.get_embedding(content)
-                
+
                 if embedding:
                     try:
                         # 3. Upsert to Qdrant
@@ -50,7 +49,7 @@ class EmbeddingWorker:
                         #     collection_name=self.collection,
                         #     points=[{"id": str(memory_id), "vector": embedding, "payload": job["metadata"]}]
                         # )
-                        
+
                         # 4. Update status in DB
                         # await self.db.execute("UPDATE memory_records SET embedding_status = 'ready' WHERE memory_id = $1", memory_id)
                         # await self.db.execute("UPDATE memory_write_queue SET status = 'completed' WHERE job_id = $1", job["job_id"])
@@ -59,8 +58,8 @@ class EmbeddingWorker:
                         await self.handle_failure(job, str(e))
                 else:
                     await self.handle_failure(job, "Embedding generation returned None")
-            
-            await asyncio.sleep(5) # Poll interval
+
+            await asyncio.sleep(5)  # Poll interval
 
     async def handle_failure(self, job: dict, error: str):
         retries = job["retry_count"] + 1

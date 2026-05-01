@@ -19,6 +19,7 @@ import time
 from typing import Any
 
 from arifosmcp.tools.base import ToolRegistry
+
 from core.shared.types import (
     RuntimeEnvelope,
     RuntimeStatus,
@@ -100,9 +101,7 @@ class ToolDispatcher:
                 start_time=start_time,
             )
 
-        self.logger.info(
-            f"[DISPATCH] {tool_name} (stage: {tool.stage}, floors: {tool.floors})"
-        )
+        self.logger.info(f"[DISPATCH] {tool_name} (stage: {tool.stage}, floors: {tool.floors})")
 
         # 2. Run tool with full governance
         try:

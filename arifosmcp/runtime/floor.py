@@ -27,61 +27,65 @@ logger = logging.getLogger(__name__)
 # Think wide / Act narrow
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class RequestType:
     """Cognitive mode tags — determines gating aggressiveness."""
-    READ          = "READ"          # Memory, evidence, observation — free
-    REASON        = "REASON"        # Thinking, analysis, critique — free
-    CRITIQUE      = "CRITIQUE"      # Adversarial/angel-devil reasoning — free
-    DESIGN        = "DESIGN"        # Architecture, blueprint — allow with caveat
-    SIMULATE      = "SIMULATE"      # What-if, dry-run — allow with caveat
-    RED_TEAM      = "RED_TEAM"      # Adversarial simulation — free (not execution)
-    DRY_RUN       = "DRY_RUN"       # Simulation only — allow with caveat
-    EXECUTE       = "EXECUTE"       # Real mutation — gate required
-    VAULT_WRITE   = "VAULT_WRITE"   # Irreversible anchoring — hard gate
+
+    READ = "READ"  # Memory, evidence, observation — free
+    REASON = "REASON"  # Thinking, analysis, critique — free
+    CRITIQUE = "CRITIQUE"  # Adversarial/angel-devil reasoning — free
+    DESIGN = "DESIGN"  # Architecture, blueprint — allow with caveat
+    SIMULATE = "SIMULATE"  # What-if, dry-run — allow with caveat
+    RED_TEAM = "RED_TEAM"  # Adversarial simulation — free (not execution)
+    DRY_RUN = "DRY_RUN"  # Simulation only — allow with caveat
+    EXECUTE = "EXECUTE"  # Real mutation — gate required
+    VAULT_WRITE = "VAULT_WRITE"  # Irreversible anchoring — hard gate
 
 
 # Verdict subtypes (replaces flat HOLD)
 class VerdictLabel:
-    ALLOW                      = "ALLOW"                      # Pure read/critique, no gate
-    ALLOW_WITH_CAVEAT          = "ALLOW_WITH_CAVEAT"          # Design/simulate, caveat attached
-    PARTIAL_EVIDENCE           = "PARTIAL_EVIDENCE"           # Claim needs sourcing, can proceed with flag
-    DESIGN_ONLY                = "DESIGN_ONLY"                # Blueprint ok, execution blocked
-    DRY_RUN_ONLY               = "DRY_RUN_ONLY"               # Simulate ok, real execution HOLD
-    RED_TEAM_SIMULATION_ONLY   = "RED_TEAM_SIMULATION_ONLY"  # Adversarial reasoning ok, weaponization blocked
-    HUMAN_APPROVAL_REQUIRED    = "HUMAN_APPROVAL_REQUIRED"    # Needs explicit ack before proceeding
-    HOLD_EXECUTION             = "HOLD_EXECUTION"             # Full stop, fix needed before proceeding
-    VOID                       = "VOID"                       # Breach, blocked permanently
+    ALLOW = "ALLOW"  # Pure read/critique, no gate
+    ALLOW_WITH_CAVEAT = "ALLOW_WITH_CAVEAT"  # Design/simulate, caveat attached
+    PARTIAL_EVIDENCE = "PARTIAL_EVIDENCE"  # Claim needs sourcing, can proceed with flag
+    DESIGN_ONLY = "DESIGN_ONLY"  # Blueprint ok, execution blocked
+    DRY_RUN_ONLY = "DRY_RUN_ONLY"  # Simulate ok, real execution HOLD
+    RED_TEAM_SIMULATION_ONLY = (
+        "RED_TEAM_SIMULATION_ONLY"  # Adversarial reasoning ok, weaponization blocked
+    )
+    HUMAN_APPROVAL_REQUIRED = "HUMAN_APPROVAL_REQUIRED"  # Needs explicit ack before proceeding
+    HOLD_EXECUTION = "HOLD_EXECUTION"  # Full stop, fix needed before proceeding
+    VOID = "VOID"  # Breach, blocked permanently
 
 
 # Mode-to-RequestType mapping for arif_mind_reason
 MIND_REASON_MODES = {
-    "reason":       RequestType.REASON,
-    "reflect":      RequestType.REASON,
-    "verify":       RequestType.CRITIQUE,
-    "critique":     RequestType.CRITIQUE,
-    "debate":       RequestType.CRITIQUE,
-    "socratic":     RequestType.CRITIQUE,
-    "axioms":       RequestType.READ,
-    "plan":         RequestType.DESIGN,
-    "plan_review":  RequestType.DESIGN,
+    "reason": RequestType.REASON,
+    "reflect": RequestType.REASON,
+    "verify": RequestType.CRITIQUE,
+    "critique": RequestType.CRITIQUE,
+    "debate": RequestType.RED_TEAM,
+    "socratic": RequestType.REASON,
+    "axioms": RequestType.READ,
+    "plan": RequestType.DESIGN,
+    "plan_review": RequestType.DESIGN,
     "plan_approve": RequestType.EXECUTE,
 }
 
 # Tool-to-RequestType mapping
 TOOL_REQUEST_TYPE = {
-    "arif_session_init":     RequestType.EXECUTE,
-    "arif_sense_observe":    RequestType.READ,
-    "arif_evidence_fetch":   RequestType.READ,
-    "arif_mind_reason":      RequestType.REASON,   # overridden by mode param
-    "arif_heart_critique":   RequestType.CRITIQUE,  # overridden by mode
-    "arif_kernel_route":     RequestType.READ,
-    "arif_reply_compose":    RequestType.REASON,
-    "arif_memory_recall":    RequestType.READ,
-    "arif_gateway_connect":  RequestType.EXECUTE,
+    "arif_session_init": RequestType.EXECUTE,
+    "arif_sense_observe": RequestType.READ,
+    "arif_evidence_fetch": RequestType.READ,
+    "arif_mind_reason": RequestType.REASON,  # overridden by mode param
+    "arif_heart_critique": RequestType.CRITIQUE,  # overridden by mode
+    "arif_kernel_route": RequestType.READ,
+    "arif_reply_compose": RequestType.REASON,
+    "arif_memory_recall": RequestType.READ,
+    "arif_gateway_connect": RequestType.EXECUTE,
     "arif_judge_deliberate": RequestType.REASON,
-    "arif_vault_seal":       RequestType.VAULT_WRITE,
-    "arif_forge_execute":    RequestType.EXECUTE,   # overridden by mode
-    "arif_ops_measure":      RequestType.READ,
+    "arif_vault_seal": RequestType.VAULT_WRITE,
+    "arif_forge_execute": RequestType.EXECUTE,  # overridden by mode
+    "arif_ops_measure": RequestType.READ,
 }
 
 
@@ -102,15 +106,7 @@ def classify_request(tool_name: str, params: dict[str, Any]) -> str:
     mode = params.get("mode", "").lower()
 
     if tool_name == "arif_mind_reason":
-        # Explicit mode mapping — missing modes fall through to CRITIQUE (NIAT-safe)
-        # rather than silently defaulting to REASON
-        override = MIND_REASON_MODES.get(mode)
-        if override:
-            return override
-        if mode in ("debate", "socratic"):
-            # Undocumented-but-NIAT-exempt: adversarial/socratic reasoning
-            return RequestType.CRITIQUE
-        return RequestType.REASON
+        return MIND_REASON_MODES.get(mode, RequestType.REASON)
 
     if tool_name == "arif_heart_critique":
         if mode in ("critique", "redteam", "simulate"):
@@ -139,9 +135,16 @@ def is_dangerous_tool(tool_name: str, params: dict[str, Any]) -> bool:
     Used for weaponization detection — intent matters, not topic.
     """
     dangerous_keywords = [
-        "bypass", "exploit", "privilege_escalate",
-        "stealth", "rootkit", "backdoor", "credential",
-        "unauthorized", "force_auth", "dump_password",
+        "bypass",
+        "exploit",
+        "privilege_escalate",
+        "stealth",
+        "rootkit",
+        "backdoor",
+        "credential",
+        "unauthorized",
+        "force_auth",
+        "dump_password",
     ]
     return any(
         kw.lower() in str(v).lower()
@@ -157,18 +160,18 @@ def is_dangerous_tool(tool_name: str, params: dict[str, Any]) -> bool:
 
 FLOOR_DESCRIPTIONS: dict[Floor, str] = {
     Floor.F01_AMANAH: "Trustworthiness — every action is accountable.",
-    Floor.F02_TRUTH:  "Truthfulness — no deception, no hallucination passed as fact.",
-    Floor.F03_WITNESS:"Witness — evidence must be verifiable and preserved.",
-    Floor.F04_CLARITY:"Clarity — intent and mechanism are transparent.",
-    Floor.F05_PEACE:  "Peace — no harm to human dignity or safety.",
-    Floor.F06_EMPATHY:"Empathy — consider human consequence before acting.",
-    Floor.F07_HUMILITY:"Humility — acknowledge limits and uncertainty.",
+    Floor.F02_TRUTH: "Truthfulness — no deception, no hallucination passed as fact.",
+    Floor.F03_WITNESS: "Witness — evidence must be verifiable and preserved.",
+    Floor.F04_CLARITY: "Clarity — intent and mechanism are transparent.",
+    Floor.F05_PEACE: "Peace — no harm to human dignity or safety.",
+    Floor.F06_EMPATHY: "Empathy — consider human consequence before acting.",
+    Floor.F07_HUMILITY: "Humility — acknowledge limits and uncertainty.",
     Floor.F08_GENIUS: "Genius — strive for elegant, correct solutions.",
-    Floor.F09_ANTIHANTU:"Anti-Hantu — detect and reject manipulation.",
-    Floor.F10_ONTOLOGY:"Ontology — preserve structural coherence.",
-    Floor.F11_AUTH:   "Authority — verify identity before irreversible acts.",
-    Floor.F12_INJECTION:"Injection Guard — sanitize all inputs.",
-    Floor.F13_SOVEREIGN:"Sovereign — human veto is absolute.",
+    Floor.F09_ANTIHANTU: "Anti-Hantu — detect and reject manipulation.",
+    Floor.F10_ONTOLOGY: "Ontology — preserve structural coherence.",
+    Floor.F11_AUTH: "Authority — verify identity before irreversible acts.",
+    Floor.F12_INJECTION: "Injection Guard — sanitize all inputs.",
+    Floor.F13_SOVEREIGN: "Sovereign — human veto is absolute.",
 }
 
 
@@ -194,6 +197,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     if session_id:
         try:
             from arifosmcp.apps.session_state import record_tool_call
+
             record_tool_call(session_id, tool_name)
         except Exception:
             pass  # Non-session or cross-module: skip silently
@@ -204,8 +208,10 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     # ── 2. Angel/Devil reasoning — always allowed (niats freely) ────────────
     # "The Instrument may imagine the forbidden."
     if request_type in (
-        RequestType.REASON, RequestType.CRITIQUE,
-        RequestType.RED_TEAM, RequestType.READ,
+        RequestType.REASON,
+        RequestType.CRITIQUE,
+        RequestType.RED_TEAM,
+        RequestType.READ,
     ):
         return {
             "verdict": "SEAL",
@@ -219,7 +225,9 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     # ── 3. Design / Simulate → allow with caveat ─────────────────────────────
     # Blueprint and simulation are safe — real execution is gated separately
     if request_type in (
-        RequestType.DESIGN, RequestType.SIMULATE, RequestType.DRY_RUN,
+        RequestType.DESIGN,
+        RequestType.SIMULATE,
+        RequestType.DRY_RUN,
     ):
         return {
             "verdict": "SEAL",
@@ -227,7 +235,9 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
             "failed_floors": [],
             "reason": f"Simulation/design mode: {request_type} — execution blocked separately",
             "request_type": request_type,
-            "next_safe_action": "Blueprint/simulation ok — real execution will require separate gate",
+            "next_safe_action": (
+                "Blueprint/simulation ok — real execution will require separate gate"
+            ),  # noqa: E501
         }
 
     # ── 4. Execution-gated tools (EXECUTE, VAULT_WRITE) ───────────────────────
@@ -278,6 +288,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         if sid:
             try:
                 from arifosmcp.apps.session_state import was_tool_called
+
                 if not was_tool_called(sid, "arif_heart_critique"):
                     failed.append("F09")
                     logger.critical(

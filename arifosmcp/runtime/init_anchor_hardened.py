@@ -20,8 +20,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from core.enforcement.auth_continuity import mint_auth_context
-
 from arifosmcp.runtime.contracts import (
     EntropyBudget,
     RiskTier,
@@ -37,6 +35,7 @@ from arifosmcp.runtime.sessions import (
     clear_session_identity,
     get_session_identity,
 )
+from core.enforcement.auth_continuity import mint_auth_context
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL INGRESS FIELDS

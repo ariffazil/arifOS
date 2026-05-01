@@ -13,30 +13,29 @@ import uuid
 from dataclasses import dataclass
 from typing import Any
 
-from core.enforcement.auth_continuity import mint_auth_context
-
 from arifosmcp.runtime.optional_deps import redis
+from core.enforcement.auth_continuity import mint_auth_context
 
 
 @dataclass
 class WebSession:
     """Web browser session with constitutional auth."""
-    
+
     session_id: str
     auth_context: dict[str, Any]
     created_at: float
     expires_at: float
     user_agent: str | None = None
     ip_address: str | None = None
-    
+
     @property
     def is_expired(self) -> bool:
         return time.time() > self.expires_at
-    
+
     @property
     def age_seconds(self) -> float:
         return time.time() - self.created_at
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
@@ -46,7 +45,7 @@ class WebSession:
             "user_agent": self.user_agent,
             "ip_address": self.ip_address,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> WebSession:
         return cls(**data)
@@ -55,17 +54,17 @@ class WebSession:
 class WebSessionManager:
     """
     Manages browser sessions with F11 Command Auth.
-    
+
     Links browser cookies to arifOS auth_context with
     cryptographic continuity via VAULT999.
     """
-    
+
     def __init__(self, redis_client: redis.Redis, config: Any):
         self.redis = redis_client
         self.config = config
         self._key_prefix = "arifos:web:session:"
         self._redis_timeout = float(getattr(config, "REDIS_TIMEOUT", 0.5))
-    
+
     async def mint_session(
         self,
         actor_id: str,
@@ -75,31 +74,31 @@ class WebSessionManager:
     ) -> WebSession:
         """
         Mint new web session with F11 auth continuity.
-        
+
         Args:
             actor_id: Declared identity
             user_agent: Browser user agent
             ip_address: Client IP for geo-binding
             human_approval: Whether human has pre-approved
-            
+
         Returns:
             WebSession with auth_context
         """
         session_id = f"web-{uuid.uuid4().hex[:16]}"
         now = time.time()
-        
+
         # Mint F11-compliant auth_context
         auth_context = mint_auth_context(
             session_id=session_id,
             actor_id=actor_id,
-            token_fingerprint=hashlib.sha256(
-                f"{session_id}:{actor_id}:{now}".encode()
-            ).hexdigest()[:16],
+            token_fingerprint=hashlib.sha256(f"{session_id}:{actor_id}:{now}".encode()).hexdigest()[
+                :16
+            ],
             approval_scope=["web", "read", "search"] if not human_approval else ["*"],
             parent_signature="",
             authority_level="web_session",
         )
-        
+
         session = WebSession(
             session_id=session_id,
             auth_context=auth_context,
@@ -108,7 +107,7 @@ class WebSessionManager:
             user_agent=user_agent,
             ip_address=ip_address,
         )
-        
+
         # Store in Redis with TTL (F11 continuity)
         await asyncio.wait_for(
             self.redis.setex(
@@ -118,9 +117,9 @@ class WebSessionManager:
             ),
             timeout=self._redis_timeout,
         )
-        
+
         return session
-    
+
     async def get_session(self, session_id: str) -> WebSession | None:
         """Retrieve session by ID."""
         try:
@@ -132,25 +131,25 @@ class WebSessionManager:
             return None
         if not data:
             return None
-        
+
         session = WebSession.from_dict(json.loads(data))
-        
+
         # Check expiration (F11)
         if session.is_expired:
             await self.revoke_session(session_id, "expired")
             return None
-        
+
         return session
-    
+
     async def refresh_session(self, session_id: str) -> WebSession | None:
         """Extend session TTL (F11 continuity)."""
         session = await self.get_session(session_id)
         if not session:
             return None
-        
+
         # Extend expiration
         session.expires_at = time.time() + self.config.SESSION_TTL
-        
+
         # Update Redis
         await asyncio.wait_for(
             self.redis.setex(
@@ -160,13 +159,13 @@ class WebSessionManager:
             ),
             timeout=self._redis_timeout,
         )
-        
+
         return session
-    
+
     async def revoke_session(self, session_id: str, reason: str) -> None:
         """
         Revoke session (kill switch - F11).
-        
+
         Args:
             session_id: Session to revoke
             reason: Audit reason
@@ -179,15 +178,15 @@ class WebSessionManager:
             )
         except Exception:
             return
-        
+
         # Log to VAULT999
         await self._log_revocation(session_id, reason)
-    
+
     async def _log_revocation(self, session_id: str, reason: str) -> None:
         """Log session revocation to VAULT999 (F1 Amanah)."""
         # This would call vault_seal in production
         pass
-    
+
     async def list_active_sessions(self, actor_id: str | None = None) -> list[WebSession]:
         """List all active web sessions."""
         try:
@@ -208,5 +207,5 @@ class WebSessionManager:
                 session = WebSession.from_dict(json.loads(data))
                 if actor_id is None or session.auth_context.get("actor_id") == actor_id:
                     sessions.append(session)
-        
+
         return sessions

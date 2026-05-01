@@ -14,15 +14,14 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from arifosmcp.models.verdicts import PipelineStage
+from arifosmcp.runtime.sessions import get_session_continuity_state
+from arifosmcp.runtime.shadow_defense import ShadowDefense
 from core.kernel.pattern_registry import PatternRegistry
 from core.kernel.pattern_selector import PatternSelector
 from core.kernel.planner import Planner
 from core.kernel.role_registry import AgentRoleRegistry
 from core.kernel.tool_registry import ToolContractRegistry
-
-from arifosmcp.models.verdicts import PipelineStage
-from arifosmcp.runtime.sessions import get_session_continuity_state
-from arifosmcp.runtime.shadow_defense import ShadowDefense
 
 logger = logging.getLogger(__name__)
 
@@ -74,19 +73,19 @@ class KernelCore:
             payload.setdefault("caller_context", caller_context)
 
         effective_query = payload.get("query") or query or ""
-        
+
         # ── Identity Resolution (F11 Hardening) ──
         from arifosmcp.runtime.sessions import get_session_identity
-        
+
         _bound_actor = None
         if session_id and session_id != "global":
             _identity = get_session_identity(session_id)
             if _identity:
                 _bound_actor = _identity.get("actor_id")
-        
+
         effective_actor = (
-            _bound_actor or payload.get("actor_id") or actor_id or "anonymous"
-        ).strip().lower()
+            (_bound_actor or payload.get("actor_id") or actor_id or "anonymous").strip().lower()
+        )
 
         selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
         adaptive_depth = self._compute_adaptive_depth(effective_query, risk_tier, payload)
@@ -468,18 +467,18 @@ class KernelCore:
         # ── Philosophy Injection (Horizon Atlas) ──
         try:
             from arifosmcp.runtime.philosophy import AtlasScores, select_atlas_philosophy
-            
+
             # Extract metrics from envelope/payload
             metrics = getattr(envelope, "metrics", None)
             pl = envelope.payload if isinstance(envelope.payload, dict) else {}
-            
+
             delta_s = float(
                 pl.get("delta_s", getattr(metrics.telemetry, "ds", -0.01) if metrics else -0.01)
             )
             g_score = float(
                 pl.get(
                     "truth_score",
-                    getattr(metrics.telemetry, "confidence", 0.85) if metrics else 0.85
+                    getattr(metrics.telemetry, "confidence", 0.85) if metrics else 0.85,
                 )
             )
             omega_score = float(pl.get("omega_score", 0.04))
@@ -492,17 +491,17 @@ class KernelCore:
                 verdict=str(envelope.verdict),
                 session_stage=str(envelope.stage),
             )
-            
+
             phi = select_atlas_philosophy(scores, session_id=session_id)
             if isinstance(envelope.payload, dict):
                 envelope.payload["philosophy"] = phi
-                
+
             # Update detail with primary quote
             quote = phi.get("primary_quote", {}).get("quote")
             author = phi.get("primary_quote", {}).get("author", "Unknown")
             if quote:
                 base_detail = envelope.detail or ""
-                envelope.detail = f"{base_detail}\n\n\"{quote}\" — {author}"
+                envelope.detail = f'{base_detail}\n\n"{quote}" — {author}'
         except Exception as phil_err:
             logger.debug(f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}")
 
@@ -525,15 +524,37 @@ class KernelCore:
             sealed.payload = payload
             return sealed.to_dict(compact=True)
         return sealed
-    async def execute(self, query: str | None = None, session_id: str | None = None, actor_id: str | None = None, 
-                      intent: str | None = None, auth_context: dict | None = None, risk_tier: str = "medium", 
-                      dry_run: bool = True, allow_execution: bool = False, caller_context: dict | None = None, 
-                      payload: dict[str, Any] | None = None, platform: str = "unknown", **kwargs: Any) -> dict[str, Any]:
-        
-        context = await self.input_stage(query=query, session_id=session_id, actor_id=actor_id, intent=intent, 
-                                          auth_context=auth_context, risk_tier=risk_tier, dry_run=dry_run, 
-                                          allow_execution=allow_execution, caller_context=caller_context, 
-                                          payload=payload, platform=platform, **kwargs)
+
+    async def execute(
+        self,
+        query: str | None = None,
+        session_id: str | None = None,
+        actor_id: str | None = None,
+        intent: str | None = None,
+        auth_context: dict | None = None,
+        risk_tier: str = "medium",
+        dry_run: bool = True,
+        allow_execution: bool = False,
+        caller_context: dict | None = None,
+        payload: dict[str, Any] | None = None,
+        platform: str = "unknown",
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+
+        context = await self.input_stage(
+            query=query,
+            session_id=session_id,
+            actor_id=actor_id,
+            intent=intent,
+            auth_context=auth_context,
+            risk_tier=risk_tier,
+            dry_run=dry_run,
+            allow_execution=allow_execution,
+            caller_context=caller_context,
+            payload=payload,
+            platform=platform,
+            **kwargs,
+        )
 
         orchestrate_result = await self.orchestrate_stage(context)
         if not orchestrate_result.get("ok"):

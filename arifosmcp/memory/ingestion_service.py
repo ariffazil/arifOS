@@ -1,15 +1,25 @@
 import hashlib
-import json
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import Any
 from uuid import uuid4
 
-from .types import MemoryRecord, MemoryCandidate, MemoryType, MemoryStatus, RetentionClass, EmbeddingStatus
 from .extractors import (
-    FactExtractor, PreferenceExtractor, DecisionExtractor, 
-    CorrectionDetector, ProcedureExtractor, SensitivityClassifier, AuthorityClassifier
+    AuthorityClassifier,
+    CorrectionDetector,
+    DecisionExtractor,
+    FactExtractor,
+    PreferenceExtractor,
+    ProcedureExtractor,
+    SensitivityClassifier,
 )
 from .policy_engine import MemoryPolicyEngine
+from .types import (
+    MemoryRecord,
+    MemoryStatus,
+    MemoryType,
+    RetentionClass,
+)
+
 
 class MemoryIngestionService:
     def __init__(self, db_client=None, qdrant_client=None):
@@ -17,8 +27,11 @@ class MemoryIngestionService:
         self.qdrant = qdrant_client
         self.policy_engine = MemoryPolicyEngine()
         self.extractors = [
-            FactExtractor(), PreferenceExtractor(), DecisionExtractor(),
-            CorrectionDetector(), ProcedureExtractor()
+            FactExtractor(),
+            PreferenceExtractor(),
+            DecisionExtractor(),
+            CorrectionDetector(),
+            ProcedureExtractor(),
         ]
         self.sensitivity_classifier = SensitivityClassifier()
         self.authority_classifier = AuthorityClassifier()
@@ -45,32 +58,34 @@ class MemoryIngestionService:
             record.retention_class = RetentionClass.IMMUTABLE_AUDIT
             record.revocable = False
 
-    async def ingest(self, session_turn: Dict[str, Any], ctx: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def ingest(
+        self, session_turn: dict[str, Any], ctx: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         results = []
-        
+
         # 1. Extract candidates
         candidates = []
         for ext in self.extractors:
             candidates.extend(ext.extract(session_turn, ctx))
-            
+
         for candidate in candidates:
             # 2. Classify
             candidate.sensitivity = self.sensitivity_classifier.classify(candidate)
             candidate.authority = self.authority_classifier.classify(candidate)
             candidate.hash = self._compute_hash(candidate.content)
-            
+
             # 3. Policy Evaluation
             actor_role = ctx.get("actor_role", "user")
             allowed, reason, score = self.policy_engine.evaluate(candidate, actor_role, ctx)
-            
+
             verdict = {
                 "candidate": candidate.content[:50] + "...",
                 "allowed": allowed,
                 "reason": reason,
                 "score": score,
-                "memory_id": None
+                "memory_id": None,
             }
-            
+
             if allowed:
                 # 4. Normalize and Persist
                 record = MemoryRecord(
@@ -88,25 +103,25 @@ class MemoryIngestionService:
                     sensitivity=candidate.sensitivity,
                     consent_level=candidate.consent_level,
                     tags=candidate.tags,
-                    hash=candidate.hash
+                    hash=candidate.hash,
                 )
                 self._assign_retention(record)
-                
+
                 # Mock DB Persistence
                 # await self.db.execute("INSERT INTO memory_records ...", record.__dict__)
                 verdict["memory_id"] = str(record.memory_id)
-                
+
                 # 5. Queue Embedding
                 if record.status == MemoryStatus.ACTIVE:
                     # await self.db.execute("INSERT INTO memory_write_queue ...", record.memory_id)
                     pass
-                
+
                 # 6. Audit
                 # await audit_logger.log("MEMORY_WRITE_ALLOWED", record)
             else:
                 # await audit_logger.log("MEMORY_WRITE_DENIED" if "DENIED" in reason else "MEMORY_WRITE_SKIPPED", candidate)
                 pass
-                
+
             results.append(verdict)
-            
+
         return results

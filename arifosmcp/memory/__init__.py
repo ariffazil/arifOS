@@ -1,7 +1,7 @@
-from .types import MemoryType, MemoryRecord, MemoryCandidate
-from .ingestion_service import MemoryIngestionService
 from .audit_logger import MemoryAuditLogger
+from .ingestion_service import MemoryIngestionService
 from .revocation_manager import MemoryRevocationManager
+from .types import MemoryCandidate, MemoryRecord, MemoryType
 
 __all__ = [
     "MemoryType",
@@ -9,5 +9,5 @@ __all__ = [
     "MemoryCandidate",
     "MemoryIngestionService",
     "MemoryAuditLogger",
-    "MemoryRevocationManager"
+    "MemoryRevocationManager",
 ]

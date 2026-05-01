@@ -8,7 +8,7 @@ Constitutional session bootstrap + identity binding.
 from __future__ import annotations
 
 from arifosmcp.runtime.floors import check_floors
-from arifosmcp.runtime.tools import _hold, _new_session, _ok
+from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
 from arifosmcp.schemas.session import SessionManifest
 
 
@@ -23,7 +23,9 @@ def arif_session_init(
 
         count_after = list_active_sessions_count()
         return SessionManifest(
-            **_ok("arif_session_init", {"stale_swept": True, "active_count": count_after})
+            status="OK",
+            result={"stale_swept": True, "active_count": count_after},
+            doctrine=ARIF_DOCTRINE,
         )
 
     floor_check = check_floors(
@@ -33,58 +35,88 @@ def arif_session_init(
     )
     if floor_check["verdict"] != "SEAL":
         return SessionManifest(
-            **_hold("arif_session_init", floor_check["reason"], floor_check["failed_floors"])
+            status="HOLD",
+            result={},
+            meta={
+                "reason": floor_check["reason"],
+                "failed_floors": floor_check.get("failed_floors", []),
+            },
+            doctrine=ARIF_DOCTRINE,
         )
 
     if mode == "init":
         sess = _new_session(actor_id)
-        return SessionManifest(**_ok("arif_session_init", {"session": sess}))
+        return SessionManifest(
+            status="OK",
+            result={"session": sess},
+            doctrine=ARIF_DOCTRINE,
+        )
 
     if mode == "status":
         from arifosmcp.runtime.tools import _SESSIONS
 
         return SessionManifest(
-            **_ok(
-                "arif_session_init",
-                {"active_sessions": len(_SESSIONS), "version": "2026.04.26-KANON"},
-            )
+            status="OK",
+            result={"active_sessions": len(_SESSIONS), "version": "2026.04.26-KANON"},
+            doctrine=ARIF_DOCTRINE,
         )
 
     if mode == "discover":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
         return SessionManifest(
-            **_ok("arif_session_init", {"canonical_tools": list(CANONICAL_TOOLS.keys())})
+            status="OK",
+            result={"canonical_tools": list(CANONICAL_TOOLS.keys())},
+            doctrine=ARIF_DOCTRINE,
         )
 
     if mode == "handover":
         from arifosmcp.runtime.tools import _SESSIONS
 
         sess = _SESSIONS.get(session_id) if session_id else None
-        return SessionManifest(**_ok("arif_session_init", {"session": sess, "handover": True}))
+        return SessionManifest(
+            status="OK",
+            result={"session": sess, "handover": True},
+            doctrine=ARIF_DOCTRINE,
+        )
 
     if mode == "revoke":
         from arifosmcp.runtime.tools import _SESSIONS
 
         if session_id and session_id in _SESSIONS:
             del _SESSIONS[session_id]
-            return SessionManifest(**_ok("arif_session_init", {"revoked": session_id}))
-        return SessionManifest(**_hold("arif_session_init", "session_id required for revoke"))
+            return SessionManifest(
+                status="OK",
+                result={"revoked": session_id},
+                doctrine=ARIF_DOCTRINE,
+            )
+        return SessionManifest(
+            status="HOLD",
+            result={},
+            meta={"reason": "session_id required for revoke"},
+            doctrine=ARIF_DOCTRINE,
+        )
 
     if mode == "refresh":
         from arifosmcp.runtime.tools import _SESSIONS, _now
 
         if session_id and session_id in _SESSIONS:
             _SESSIONS[session_id]["refreshed_at"] = _now()
-            return SessionManifest(**_ok("arif_session_init", {"refreshed": session_id}))
-        return SessionManifest(**_hold("arif_session_init", "session_id required for refresh"))
-
-    if mode == "cleanup":
-        from arifosmcp.runtime.session import list_active_sessions_count
-
-        count_after = list_active_sessions_count()
+            return SessionManifest(
+                status="OK",
+                result={"refreshed": session_id},
+                doctrine=ARIF_DOCTRINE,
+            )
         return SessionManifest(
-            **_ok("arif_session_init", {"stale_swept": True, "active_count": count_after})
+            status="HOLD",
+            result={},
+            meta={"reason": "session_id required for refresh"},
+            doctrine=ARIF_DOCTRINE,
         )
 
-    return SessionManifest(**_hold("arif_session_init", f"Unknown mode: {mode}"))
+    return SessionManifest(
+        status="HOLD",
+        result={},
+        meta={"reason": f"Unknown mode: {mode}"},
+        doctrine=ARIF_DOCTRINE,
+    )

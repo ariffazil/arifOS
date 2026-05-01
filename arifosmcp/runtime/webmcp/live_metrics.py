@@ -23,6 +23,7 @@ import httpx
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -232,9 +233,9 @@ class LiveMetricsCollector:
         """Collect arifOS governance metrics."""
         try:
             # import core modules
+            from core.physics.thermodynamics_hardened import get_thermodynamic_report
             from core.shared.floors import THRESHOLDS
 
-            from core.physics.thermodynamics_hardened import get_thermodynamic_report
             try:
                 from core.state.session_manager import session_manager
             except Exception:
@@ -279,7 +280,14 @@ class LiveMetricsCollector:
                 kappa_r = thermo.get("kappa_r", 0.97)
                 psi_le = thermo.get("psi_le", 1.09)
             except Exception:
-                G_star, entropy_delta, peace2, omega, kappa_r, psi_le = 0.85, -0.3, 1.05, 0.04, 0.97, 1.09
+                G_star, entropy_delta, peace2, omega, kappa_r, psi_le = (
+                    0.85,
+                    -0.3,
+                    1.05,
+                    0.04,
+                    0.97,
+                    1.09,
+                )
 
             # Get VAULT999 stats
             vault_entries = 0

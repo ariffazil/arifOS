@@ -4,6 +4,12 @@ arifosmcp/runtime/jwt_auth.py — Constitutional JWT Verification Engine (Phase 
 Enforces identity-before-governance for all constitutional boundaries.
 Supports Supabase Auth (RS256) and self-issued internal tokens (HS256).
 
+v2026.05.01-DURABLE — JWT telemetry now survives container restarts:
+- log_violation() writes to both in-memory cache AND durable JSONL
+- query_violations() reads from durable JSONL (source of truth)
+- get_durable_violation_stats() replaces get_violation_stats() for enforce readiness
+- _jwt_violation_log is cache only — never source of truth for enforce readiness
+
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
@@ -26,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 JWT_ENFORCE_MODE = os.getenv("JWT_ENFORCE_MODE", "observe").strip().lower()
 # "enforce"  → block on JWT failure
-# "observe"  → log violations, allow through (default for migration)
-# "off"      → disabled (emergency only)
+# "observe"   → log violations, allow through (default for migration)
+# "off"       → disabled (emergency only)
 
 TRUSTED_ISSUERS = [
     iss.strip()
@@ -62,6 +68,53 @@ def _get_internal_secret(service_name: str) -> str | None:
         )
         return legacy
     return None
+
+
+# ── Durable Telemetry Configuration ─────────────────────────────────────────
+
+TELEMETRY_PATH = os.getenv("TELEMETRY_PATH", "/app/telemetry")
+VIOLATION_LOGFILE = os.path.join(TELEMETRY_PATH, "jwt_violations.jsonl")
+
+# Boot/container identifier — set once per process boot
+_ARIFOS_BOOT_ID = os.getenv("ARIFOS_BOOT_ID") or str(int(time.time()))
+
+# Constitution hash — loaded once, used in every violation record
+_CONSTITUTION_HASH = os.getenv("ARIFOS_CONSTITUTION_HASH", "unknown")
+
+# Observe window — 24h minimum before enforce may be considered
+OBSERVE_WINDOW_HOURS = 24
+
+
+def _get_boot_id() -> str:
+    """Return boot-scoped unique identifier for this container process."""
+    return _ARIFOS_BOOT_ID
+
+
+def _ensure_telemetry_dir() -> bool:
+    """
+    Ensure telemetry directory and log file are writable.
+
+    Returns True if durable writes are possible.
+    """ ""
+    try:
+        os.makedirs(TELEMETRY_PATH, exist_ok=True)
+        # Test directory writability
+        test_dir = os.path.join(TELEMETRY_PATH, ".write_test_dir")
+        os.makedirs(test_dir, exist_ok=True)
+        os.rmdir(test_dir)
+        # Test the actual log file path for writability (not just the directory).
+        # An immutable file or permission error on the specific file means durable writes will fail.
+        test_file = VIOLATION_LOGFILE
+        try:
+            with open(test_file, "a", encoding="utf-8") as _fw:
+                pass  # just test open-for-append
+        except (PermissionError, OSError) as e:
+            logger.error(f"VIOLATION_LOGFILE not writable: {e}")
+            return False
+        return True
+    except Exception as e:
+        logger.error(f"TELEMETRY_PATH not writable: {e}")
+        return False
 
 
 # ── JWKS Cache ─────────────────────────────────────────────────────────────
@@ -287,11 +340,50 @@ def _verify_internal_jwt(
     )
 
 
-# ── Observe Mode Logging ───────────────────────────────────────────────────
-
+# ── Durable Violation Logging ───────────────────────────────────────────────
 
 _jwt_violation_log: list[dict[str, Any]] = []
 _MAX_VIOLATION_LOG = 1000
+
+
+def log_violation_durable(
+    error: str,
+    path: str = "",  # noqa: B107
+    actor_id: str | None = None,
+    session_id: str | None = None,
+    jwt_sub: str | None = None,
+    token_preview: str = "",  # noqa: B107
+) -> bool:
+    """
+    Append a JWT violation record to the durable JSONL telemetry file.
+
+    This is the SOURCE OF TRUTH for enforce readiness.
+    In-memory _jwt_violation_log is cache only.
+
+    Returns True if durable write succeeded, False if it failed.
+    """
+    entry = {
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "error_code": error,
+        "reason": f"{error} | path={path}",
+        "actor_id": actor_id,
+        "session_id": session_id,
+        "request_path": path,
+        "jwt_subject": jwt_sub,
+        "enforce_mode": JWT_ENFORCE_MODE,
+        "container_boot_id": _get_boot_id(),
+        "constitution_hash": _CONSTITUTION_HASH,
+        "token_preview": token_preview[:40] if token_preview else "",
+    }
+
+    try:
+        os.makedirs(TELEMETRY_PATH, exist_ok=True)
+        with open(VIOLATION_LOGFILE, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        return True
+    except Exception as e:
+        logger.error(f"Durable JWT violation log failed: {e}")
+        return False
 
 
 def log_violation(
@@ -299,8 +391,18 @@ def log_violation(
     error: str,
     path: str = "",
     actor_id: str | None = None,
+    session_id: str | None = None,
 ) -> None:
-    """Log a JWT verification violation for observe-mode analysis."""
+    """
+    Log a JWT verification violation for observe-mode analysis.
+
+    Writes to BOTH:
+    - in-memory cache (_jwt_violation_log) — for fast runtime status
+    - durable JSONL file — SOURCE OF TRUTH, survives restarts
+
+    The in-memory log is cache only. It must never be used as the
+    source of truth for enforce readiness decisions.
+    """
     global _jwt_violation_log
 
     entry = {
@@ -309,24 +411,190 @@ def log_violation(
         "error": error,
         "path": path,
         "actor_id": actor_id,
+        "session_id": session_id,
         "enforce_mode": JWT_ENFORCE_MODE,
+        "boot_id": _get_boot_id(),
     }
+
+    # 1. In-memory cache (runtime fast path, NOT source of truth)
     _jwt_violation_log.append(entry)
     if len(_jwt_violation_log) > _MAX_VIOLATION_LOG:
         _jwt_violation_log = _jwt_violation_log[-_MAX_VIOLATION_LOG:]
 
+    # 2. Durable JSONL (source of truth — survives container restart)
+    durable_ok = log_violation_durable(
+        error=error,
+        path=path,
+        actor_id=actor_id,
+        session_id=session_id,
+        token_preview=token_preview,
+    )
+
+    if not durable_ok:
+        logger.error(
+            "JWT violation logged to in-memory cache but FAILED durable write. "
+            "Enforce readiness may be unreliable until durable logging is restored."
+        )
+
     logger.warning(
-        "JWT_VIOLATION [mode=%s] error=%s path=%s actor_id=%s token_preview=%s",
+        "JWT_VIOLATION [mode=%s] error=%s path=%s actor_id=%s durable=%s",
         JWT_ENFORCE_MODE,
         error,
         path,
         actor_id,
-        token_preview,
+        "ok" if durable_ok else "FAIL",
     )
 
 
+def query_violations(
+    window_start: datetime | None = None,
+    window_end: datetime | None = None,
+    error_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    """
+    Query the durable JWT violation log (JSONL).
+
+    Returns:
+        {
+            "total": int,
+            "by_error_code": {str: int},
+            "by_actor_id": {str: int},
+            "window_start": str | None,
+            "window_end": str | None,
+            "boot_ids_covered": [str],
+            "durable": bool,
+            "durable_path": str,
+            "window_complete": bool,  # True if window_start..window_end >= 24h
+            "ready_for_enforce": bool,
+            "verdict": "CLEAR" | "HOLD",
+            "reason": str,
+            "violations": [entry, ...],
+        }
+    """
+    violations = []
+    durable = False
+
+    if window_start is None:
+        window_start = datetime.min.replace(tzinfo=timezone.utc)
+    if window_end is None:
+        window_end = datetime.now(timezone.utc)
+
+    # Determine durability based on directory writability, not file existence.
+    # An empty telemetry dir (no violations yet) is still durable if writable.
+    telemetry_dir_ok = _ensure_telemetry_dir()
+
+    try:
+        if os.path.isfile(VIOLATION_LOGFILE):
+            with open(VIOLATION_LOGFILE, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        rec = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+
+                    # Parse timestamp
+                    ts_str = rec.get("timestamp_utc", "")
+                    try:
+                        if ts_str:
+                            ts = datetime.fromisoformat(ts_str)
+                        else:
+                            continue
+                    except ValueError:
+                        continue
+
+                    # Window filter
+                    if not (window_start <= ts <= window_end):
+                        continue
+
+                    # Error code filter
+                    if error_codes and rec.get("error_code") not in error_codes:
+                        continue
+
+                    violations.append(rec)
+            # File exists and was readable — durable if dir is also writable
+            durable = telemetry_dir_ok
+        else:
+            # File doesn't exist yet (zero violations) — durable if dir is writable
+            durable = telemetry_dir_ok
+    except FileNotFoundError:
+        durable = telemetry_dir_ok
+    except Exception as e:
+        logger.error(f"query_violations failed to read JSONL: {e}")
+        durable = False
+
+    # Aggregate
+    by_error_code: dict[str, int] = {}
+    by_actor_id: dict[str, int] = {}
+    boot_ids: set[str] = set()
+
+    for v in violations:
+        err = v.get("error_code", "unknown")
+        by_error_code[err] = by_error_code.get(err, 0) + 1
+        actor = v.get("actor_id") or "anonymous"
+        by_actor_id[actor] = by_actor_id.get(actor, 0) + 1
+        bid = v.get("container_boot_id", "unknown")
+        if bid:
+            boot_ids.add(bid)
+
+    # Window completeness check
+    window_duration_hours = (window_end - window_start).total_seconds() / 3600
+    window_complete = window_duration_hours >= OBSERVE_WINDOW_HOURS
+
+    # Enforce readiness: requires durable logging AND complete 24h window AND zero violations
+    if not durable:
+        verdict = "HOLD"
+        reason = "Durable telemetry unavailable — cannot trust violation counts"
+        ready = False
+    elif not window_complete:
+        verdict = "HOLD"
+        reason = (
+            f"Observe window incomplete: {window_duration_hours:.1f}h < "
+            f"{OBSERVE_WINDOW_HOURS}h minimum"
+        )
+        ready = False
+    elif len(violations) > 0:
+        verdict = "HOLD"
+        reason = f"{len(violations)} violation(s) found in observe window — enforce not approved"
+        ready = False
+    else:
+        verdict = "CLEAR"
+        reason = (
+            f"Zero violations in {window_duration_hours:.1f}h observe window — "
+            f"enforce may proceed with human approval"
+        )
+        ready = True
+
+    return {
+        "total": len(violations),
+        "by_error_code": by_error_code,
+        "by_actor_id": by_actor_id,
+        "window_start": window_start.isoformat(),
+        "window_end": window_end.isoformat(),
+        "boot_ids_covered": sorted(boot_ids),
+        "durable": durable,
+        "durable_path": VIOLATION_LOGFILE,
+        "window_complete": window_complete,
+        "window_hours": round(window_duration_hours, 2),
+        "required_hours": OBSERVE_WINDOW_HOURS,
+        "ready_for_enforce": ready,
+        "verdict": verdict,
+        "reason": reason,
+        "violations": violations,
+    }
+
+
 def get_violation_stats() -> dict[str, Any]:
-    """Return violation statistics for observe-mode readiness check."""
+    """
+    DEPRECATED — retained for backward compatibility with internal callers.
+
+    This function reads from in-memory cache only. It must NOT be used
+    as the source of truth for enforce readiness decisions.
+
+    Use get_durable_violation_stats() instead.
+    """
     total = len(_jwt_violation_log)
     by_error: dict[str, int] = {}
     for v in _jwt_violation_log:
@@ -337,6 +605,51 @@ def get_violation_stats() -> dict[str, Any]:
         "by_error": by_error,
         "enforce_mode": JWT_ENFORCE_MODE,
         "ready_for_enforce": total == 0,
+        "WARNING": (
+            "This function reads in-memory cache only. Use "
+            "get_durable_violation_stats() for enforce readiness."
+        ),
+    }
+
+
+def get_durable_violation_stats(
+    window_start: datetime | None = None,
+    window_end: datetime | None = None,
+) -> dict[str, Any]:
+    """
+    Return enforce readiness assessment from durable telemetry.
+
+    This is the authoritative function for JWT enforce readiness decisions.
+
+    Returns dict with:
+        - total, by_error_code, by_actor_id
+        - durable: bool
+        - window_complete: bool
+        - ready_for_enforce: bool (False unless 24h window + zero violations + durable)
+        - verdict: "CLEAR" | "HOLD"
+        - reason: str
+    """
+    report = query_violations(
+        window_start=window_start,
+        window_end=window_end,
+        error_codes=None,
+    )
+
+    # Summarize for caller
+    return {
+        "total_violations": report["total"],
+        "by_error_code": report["by_error_code"],
+        "by_actor_id": report["by_actor_id"],
+        "enforce_mode": JWT_ENFORCE_MODE,
+        "durable": report["durable"],
+        "durable_path": report["durable_path"],
+        "window_complete": report["window_complete"],
+        "window_hours": report["window_hours"],
+        "required_hours": OBSERVE_WINDOW_HOURS,
+        "boot_ids_covered": report["boot_ids_covered"],
+        "ready_for_enforce": report["ready_for_enforce"],
+        "verdict": report["verdict"],
+        "reason": report["reason"],
     }
 
 

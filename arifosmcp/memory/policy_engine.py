@@ -1,6 +1,8 @@
 import os
-from typing import Dict, Any, Tuple
-from .types import MemoryCandidate, MemoryType, Authority
+from typing import Any
+
+from .types import Authority, MemoryCandidate, MemoryType
+
 
 class MemoryPolicyEngine:
     def __init__(self):
@@ -13,7 +15,7 @@ class MemoryPolicyEngine:
         }
         self.allowed_sources = ["session_turn", "document_upload", "system_event"]
 
-    def check_hard_gates(self, candidate: MemoryCandidate, actor_role: str) -> Tuple[bool, str]:
+    def check_hard_gates(self, candidate: MemoryCandidate, actor_role: str) -> tuple[bool, str]:
         """Hard gates: must ALL pass before soft scoring."""
         # 1. source_certified
         if candidate.source_type not in self.allowed_sources:
@@ -21,7 +23,7 @@ class MemoryPolicyEngine:
 
         # 2. policy_allow (Simplified check)
         if candidate.type == MemoryType.POLICY and actor_role != "architect":
-             return False, "policy_write_requires_architect_role"
+            return False, "policy_write_requires_architect_role"
 
         # 3. no_critical_sensitivity (F13 check placeholder)
         if candidate.sensitivity > 0.8:
@@ -34,14 +36,14 @@ class MemoryPolicyEngine:
 
         return True, "PASS"
 
-    def compute_write_score(self, candidate: MemoryCandidate, ctx: Dict[str, Any]) -> float:
+    def compute_write_score(self, candidate: MemoryCandidate, ctx: dict[str, Any]) -> float:
         """
         Soft scoring:
         write_score = (0.25 * relevance) + (0.20 * confidence) + (0.15 * authority_score)
                     + (0.15 * reuse) + (0.10 * freshness) - (0.10 * sensitivity_risk) - (0.05 * storage_cost)
         """
         # Placeholders for metrics
-        relevance = 0.7 
+        relevance = 0.7
         confidence = candidate.confidence
         authority_score = 1.0 if candidate.authority == Authority.EXPLICIT_USER else 0.5
         reuse = 0.5
@@ -49,12 +51,21 @@ class MemoryPolicyEngine:
         sensitivity_risk = candidate.sensitivity
         storage_cost = 0.1
 
-        score = (0.25 * relevance) + (0.20 * confidence) + (0.15 * authority_score) \
-                + (0.15 * reuse) + (0.10 * freshness) - (0.10 * sensitivity_risk) - (0.05 * storage_cost)
-        
+        score = (
+            (0.25 * relevance)
+            + (0.20 * confidence)
+            + (0.15 * authority_score)
+            + (0.15 * reuse)
+            + (0.10 * freshness)
+            - (0.10 * sensitivity_risk)
+            - (0.05 * storage_cost)
+        )
+
         return score
 
-    def evaluate(self, candidate: MemoryCandidate, actor_role: str, ctx: Dict[str, Any]) -> Tuple[bool, str, float]:
+    def evaluate(
+        self, candidate: MemoryCandidate, actor_role: str, ctx: dict[str, Any]
+    ) -> tuple[bool, str, float]:
         # 1. Hard Gates
         passed, reason = self.check_hard_gates(candidate, actor_role)
         if not passed:
@@ -62,7 +73,7 @@ class MemoryPolicyEngine:
 
         # 2. Soft Scoring
         score = self.compute_write_score(candidate, ctx)
-        
+
         # 3. Threshold Check
         threshold = self.thresholds.get(candidate.type, 0.5)
         if score < threshold:

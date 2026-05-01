@@ -3,36 +3,41 @@ import shlex
 import subprocess
 from datetime import datetime, timezone
 
+from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
+
 # arifOS Governance Imports
 from core.shared.physics import delta_S
-
-from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
 
 
 class HardenedShellForge:
     """
     Sovereign Forge for Shell Operations.
-    
+
     Enforces arifOS 13 Floors:
     - F1 Amanah: Pre-execution checkpointing via git-worktree/commit.
     - F7 Humility: Mandatory dry_run enforcement.
     - F13 Sovereign: 888_HOLD logic for High/Critical risk commands.
     """
-    
+
     def __init__(self, default_cwd: str = None):
         self.default_cwd = default_cwd or os.getcwd()
 
     def _is_high_risk(self, command: str) -> bool:
         """Heuristic for high-risk shell operations."""
-        risk_patterns = ["rm ", "git push", "pip install", "rm -rf", "mv ", "> /", "docker rm", "sudo "]
+        risk_patterns = [
+            "rm ",
+            "git push",
+            "pip install",
+            "rm -rf",
+            "mv ",
+            "> /",
+            "docker rm",
+            "sudo ",
+        ]
         return any(p in command.lower() for p in risk_patterns)
 
     def execute(
-        self,
-        command: str,
-        cwd: str = None,
-        dry_run: bool = True,
-        session_id: str = "anonymous"
+        self, command: str, cwd: str = None, dry_run: bool = True, session_id: str = "anonymous"
     ) -> dict[str, any]:
         """Execute a shell command with governance induction."""
         target_cwd = cwd or self.default_cwd
@@ -44,7 +49,7 @@ class HardenedShellForge:
                 "ok": False,
                 "status": "HOLD",
                 "error": "888_HOLD: Anchor is void. Execution blocked.",
-                "note": anchor_hold_registry.get_hold_reason(session_id)
+                "note": anchor_hold_registry.get_hold_reason(session_id),
             }
 
         # 2. Risk Evaluation & F13 Calibration
@@ -54,7 +59,7 @@ class HardenedShellForge:
                 "ok": False,
                 "status": "888_HOLD",
                 "error": "F13 Sovereign: High-risk command detected. Approval required.",
-                "command_preview": command
+                "command_preview": command,
             }
 
         # 3. F7 Humility: Dry Run Simulation
@@ -64,7 +69,7 @@ class HardenedShellForge:
                 "status": "SIMULATED",
                 "command": command,
                 "note": "F7 Humility: Command simulated but not executed.",
-                "thermodynamics": {"delta_s": 0, "status": "STABLE"}
+                "thermodynamics": {"delta_s": 0, "status": "STABLE"},
             }
 
         # 4. Preparation: F1 Amanah Checkpoint (MOCK Logic - in prod would call git)
@@ -81,7 +86,7 @@ class HardenedShellForge:
                 capture_output=True,
                 text=True,
                 check=False,
-                timeout=60  # Humility limit: avoid hangs
+                timeout=60,  # Humility limit: avoid hangs
             )
 
             # F4 Clarity: Thermodynamic Measurement
@@ -96,22 +101,18 @@ class HardenedShellForge:
                 "stderr": result.stderr,
                 "returncode": result.returncode,
                 "entropy": {"delta_s": round(ds, 4), "is_stable": ds <= 0},
-                "execution_timestamp": start_time.isoformat()
+                "execution_timestamp": start_time.isoformat(),
             }
         except subprocess.TimeoutExpired:
             return {
                 "ok": False,
                 "status": "TIMEOUT",
                 "error": "F7 Humility: Command timed_out after 60s.",
-                "command": command
+                "command": command,
             }
         except Exception as e:
-            return {
-                "ok": False,
-                "status": "EXCEPTION",
-                "error": str(e),
-                "command": command
-            }
+            return {"ok": False, "status": "EXCEPTION", "error": str(e), "command": command}
+
 
 # Canonical instance
 forge = HardenedShellForge()

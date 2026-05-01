@@ -25,7 +25,7 @@ SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
 SEA_LION_MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-SEA-LION-v4-32B-IT")
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://ollama:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:14b")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")  # Only 7b is installed on ollama-engine-prod
 
 
 class LLMUnavailableError(Exception):

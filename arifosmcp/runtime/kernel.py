@@ -6,9 +6,8 @@ from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
 
 # --- Thermodynamics & Physics Stubs ---
 try:
-    from core.shared.physics import build_qt_quad_proof, genius_score
-
     from core.physics.thermodynamics_hardened import check_landauer_bound as landauer_limit
+    from core.shared.physics import build_qt_quad_proof, genius_score
 except ImportError:
 
     def landauer_limit(bits_erased: float) -> dict:
