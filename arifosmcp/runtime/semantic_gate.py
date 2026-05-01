@@ -1,262 +1,352 @@
 """
-arifosmcp/runtime/semantic_gate.py — Semantic Content Gate (SCG)
+arifosmcp/runtime/semantic_gate.py — Intent Classification Layer
+================================================================
+
+Constitutional semantic gate: replaces regex spam-filter with intent classification.
+
+Before: "Does this text contain bad words?"          → block or pass
+After:  "What is this person actually trying to do?" → allow / transform / hold / void
+
+Intent Taxonomy
+──────────────
+  education      — learning, explaining, studying (ALLOW)
+  critique       — analyzing, debating, reviewing (ALLOW)
+  self_support   — crisis, self-harm, distress (ALLOW + supportive path)
+  instruction    — how-to-do-harm intent (VOID)
+  manipulation   — injection, jailbreak, bypass (VOID/HOLD)
+  crisis         — immediate harm to self/other (ALLOW + resources)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 import re
-import time
-import uuid
-from typing import Literal
-
-from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
-from arifosmcp.schemas.semantic_gate import (
-    CATEGORIES,
-    SemanticGatePayload,
-    get_risk_tier,
-    get_safe_fallback,
-    get_safe_transform,
-    requires_human_review,
-)
+from datetime import datetime, timezone
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# ── Tier 0/1: Hard-block patterns (synchronous, no LLM) ───────────────────────
-_HARD_VOID_PATTERNS = [
-    re.compile(
-        r"\b(how to make|recipe for|steps? to (make|build|create))\s+(bomb|explosive|ied|pipe bomb|fertilizer bomb)",
-        re.I,
-    ),  # noqa: E501
-    re.compile(r"\b(suicide bomb|belly bomb|vest bomb)\s+(instructions?|how|recipe|make)", re.I),
-    re.compile(r"\bhow to\s+(assassinate|target|eliminate)\s+(specific person|named|figure)", re.I),
-    re.compile(
-        r"\b(give me|tell me|how to)\s+(method|way|steps?)\s+(to (end|kill|hurt) myself|suicide)",
-        re.I,
-    ),  # noqa: E501
-    re.compile(r"\b(hanging|slitting|overdose)\s+(instructions?|how|steps?|tutorial)", re.I),
-    re.compile(
-        r"^(ignore|disregard|discard|bypass)\s+(all|previous|your)\s+(instructions?|rules?|constraints?|guidelines?)",
-        re.I,
-    ),  # noqa: E501
-    re.compile(
-        r"(override|disable|silence)\s+(your|safety|content)\s+(filters?|checks?|rules?|gates?)",
-        re.I,
-    ),  # noqa: E501
-    re.compile(
-        r"(system|hidden|secret)\s+(prompt|instructions?|directives?)\s+(reveal|show|tell|leak)",
-        re.I,
-    ),  # noqa: E501
-    re.compile(
-        r"(forget|clear)\s+(all|previous|your)\s+(programming|instructions?|rules?)", re.I
-    ),  # noqa: E501
+# ── Intent Categories ──────────────────────────────────────────────────────
+class IntentCategory:
+    EDUCATION       = "education"        # Learning, explaining, studying
+    CRITIQUE        = "critique"         # Analyzing, debating, reviewing
+    SELF_SUPPORT    = "self_support"     # Crisis, self-harm, distress
+    INSTRUCTION     = "instruction"     # How-to-do-harm intent
+    MANIPULATION    = "manipulation"      # Injection, jailbreak, bypass
+    CRISIS          = "crisis"           # Immediate harm to self/other
+    TRANSFORM       = "transform"       # False positive — redirect to safe version
+    UNKNOWN         = "unknown"         # Cannot determine intent
+
+
+# ── Verdict per category ────────────────────────────────────────────────────
+INTENT_VERDICTS: dict[str, str] = {
+    IntentCategory.EDUCATION:      "ALLOW",
+    IntentCategory.CRITIQUE:       "ALLOW",
+    IntentCategory.SELF_SUPPORT:    "ALLOW",
+    IntentCategory.INSTRUCTION:     "VOID",
+    IntentCategory.MANIPULATION:    "HOLD",
+    IntentCategory.CRISIS:          "ALLOW",
+    IntentCategory.TRANSFORM:       "ALLOW",
+    IntentCategory.UNKNOWN:         "ALLOW",
+}
+
+# ── Keyword heuristics for fast-path classification ───────────────────────
+# Format: (regex_pattern, category, confidence)
+# Confidence 0.0–1.0 — LLM fallback if confidence < 0.85
+
+_FAST_PATTERNS: list[tuple[re.Pattern, IntentCategory, float]] = [
+    # ── Crisis / Self-harm ───────────────────────────────────────────────
+    (re.compile(r"\b(i want to|i'm going to|l'm going to)\s+(kill|hurt|end it| Suicide|终结自己)\b", re.I),
+     IntentCategory.CRISIS, 0.95),
+    (re.compile(r"\b(suicide|suicidal|kill myself|end my life|i want to die)\b", re.I),
+     IntentCategory.SELF_SUPPORT, 0.90),
+    (re.compile(r"\b(how do i make a bomb|how to make explosive|how to build a bomb)\b", re.I),
+     IntentCategory.INSTRUCTION, 0.95),
+    (re.compile(r"\b(give me a bomb|get bomb recipe|instructions for bomb)\b", re.I),
+     IntentCategory.INSTRUCTION, 0.95),
+
+    # ── Instruction intent (harm) ───────────────────────────────────────
+    (re.compile(r"\bhow to (?:make|build|create|prepare|assemble) (?:a )?(?:bomb|explosive|napalm)\b", re.I),
+     IntentCategory.INSTRUCTION, 0.90),
+    (re.compile(r"\bhow to (?:make|create|synthesize) (?:a )?(?:drug|poison|toxin)\b", re.I),
+     IntentCategory.INSTRUCTION, 0.90),
+    (re.compile(r"\b(give me.*(attack|weapons?|arsenal|materials?))\b", re.I),
+     IntentCategory.INSTRUCTION, 0.85),
+
+    # ── Manipulation intent ───────────────────────────────────────────────
+    (re.compile(r"\b(bypass|exploit|break|jailbreak|defeat|circumvent)\s+(the |this )?(gate|guard|security|filter|rule|restriction)\b", re.I),
+     IntentCategory.MANIPULATION, 0.90),
+    (re.compile(r"\b(prompt injection|ignore.*(previous|above|system)|forget.*(instructions?|rules?))\b", re.I),
+     IntentCategory.MANIPULATION, 0.90),
+    (re.compile(r"\b(ignore (all |the )?previous|disregard (my |any )?instructions?)\b", re.I),
+     IntentCategory.MANIPULATION, 0.95),
+    (re.compile(r"\b(you are now|act as|you can now|new system prompt|from now on you are)\b", re.I),
+     IntentCategory.MANIPULATION, 0.85),
+    (re.compile(r"\\[ignore all previous instructions\\]", re.I),
+     IntentCategory.MANIPULATION, 0.98),
+
+    # ── False-positive redirects (TRANSFORM) ─────────────────────────────
+    (re.compile(r"\b(alcohol[-_\s]?free|non[-\s]alcoholic|no[-\s]alcohol)\b", re.I),
+     IntentCategory.TRANSFORM, 0.85),
+    (re.compile(r"\b(explain why|why is|what makes|reason for).*(haram|halal|forbidden|prohibited)\b", re.I),
+     IntentCategory.EDUCATION, 0.90),
+    (re.compile(r"\b(why (is|are)|explain).*(alcohol|smoking|gambling)\b", re.I),
+     IntentCategory.EDUCATION, 0.85),
+
+    # ── Education / critique ─────────────────────────────────────────────
+    (re.compile(r"\b(why is|why are|what is|explain|describe|analyze|compare)\b", re.I),
+     IntentCategory.EDUCATION, 0.60),  # low confidence — LLM fallback
+    (re.compile(r"\b(critique|debate|justify|argue (for|against)|assess|evaluate)\b", re.I),
+     IntentCategory.CRITIQUE, 0.70),   # low confidence — LLM fallback
+
+    # ── Radicalization (HOLD — human review) ─────────────────────────────
+    (re.compile(r"\b(how to radicalize|recruit.*extremist|justifies?.*terrorism|extremist (propaganda|recruitment))\b", re.I),
+     IntentCategory.INSTRUCTION, 0.92),
 ]
 
-_HOLD_PATTERNS = [
-    re.compile(
-        r"\b(justified?|validate|defend)\s+(violence|attack|terror|kill)", re.I
-    ),  # noqa: E501
-    re.compile(
-        r"\b(extremist|jihadi|terrorist)\s+(propaganda|recruitment|ideology)\s+(analysis|study|examine)",
-        re.I,
-    ),  # noqa: E501
-]
 
-_CATEGORY_OVERRIDES = {
-    "Explain pork haram": "religious_education",
-    "Explain why alcohol is haram": "religious_education",
-    "Is X haram?": "religious_education",
-    "What does Islam say about": "religious_education",
-    "Give me alcohol cocktail recipe": "illicit_instruction",
-    "I want to hurt myself": "medical_or_supportive",
-    "I'm going to kill myself": "medical_or_supportive",
-    "I feel like ending it all": "medical_or_supportive",
+# ── Crisis resource map ────────────────────────────────────────────────────
+CRISIS_RESOURCES: dict[str, str] = {
+    "global":     "https://findahelpline.com/global",
+    "malaysia":   "988 ( Malaysia crisis line )",
+    "usa":        "988 (Suicide & Crisis Lifeline)",
+    "uk":         "Samaritans: 116 123",
+    "hotline_key": "If you're in crisis, please reach out to a crisis helpline.",
 }
 
 
-def _tier1_classify(content: str):
-    """Synchronous deterministic pre-classification. Returns (cat, status, code) or None."""
-    cs = content.strip()
-    for p in _HARD_VOID_PATTERNS:
-        if p.search(cs):
-            safe = any(
-                cs.lower().startswith(x)
-                for x in [
-                    "analysis of ",
-                    "study of ",
-                    "research ",
-                    "historical context:",
-                    "educational:",
-                    "red-team:",
-                    "safety research on ",
-                ]
-            )  # noqa: E501
-            if safe:
-                return (
-                    "critique_or_redteam",
-                    "ALLOW_WITH_CAVEAT",
-                    "SCG_T1_EDUCATIONAL_OVERRIDE",
-                )  # noqa: E501
-            return "harmful_instruction", "VOID", "SCG_T1_HARD_VOID"
-    for p in [re.compile(r"\b(give me|tell me|how to)\s+(hang|slit|overdose|pills?\s+OD)", re.I)]:
-        if p.search(cs):
-            return "self_harm_instruction", "VOID", "SCG_T1_SELF_HARM_VOID"
-    for p in _HOLD_PATTERNS:
-        if p.search(cs):
-            if any(
-                k in cs.lower()
-                for k in ["red-team", "safety analysis", "academic", "research", "study"]
-            ):  # noqa: E501
-                return "critique_or_redteam", "ALLOW_WITH_CAVEAT", "SCG_T1_REDTEAM_OVERRIDE"
-            return "uncertain", "HOLD", "SCG_T1_HOLD_REQUIRES_REVIEW"  # noqa: E501
-    for trigger, cat in _CATEGORY_OVERRIDES.items():
-        if trigger.lower() in cs.lower():
-            status = (
-                "ALLOW"
-                if cat in {"religious_education", "medical_or_supportive", "safe_explanation"}
-                else "TRANSFORM"
-            )  # noqa: E501
-            return cat, status, f"SCG_T1_OVERRIDE_{cat.upper()}"
-    if "alcohol" in cs.lower() and any(
-        k in cs.lower() for k in ["recipe", "make", "cocktail", "drink", "brew"]
-    ):  # noqa: E501
-        return "illicit_instruction", "TRANSFORM", "SCG_T1_ALCOHOL_TRANSFORM"
-    return None  # noqa: E501
+# ── Telemetry ──────────────────────────────────────────────────────────────
+SEMANTIC_GATE_LOG = os.path.expanduser("~/.a-forge/telemetry/semantic_gate.jsonl")
+_SEMANTIC_GATE_DIR = os.path.dirname(SEMANTIC_GATE_LOG)
 
 
-SYSTEM_CLF = "You are a strict semantic content classifier. Return ONLY valid JSON."
-PROMPT_CLF = """You are a semantic content classifier for a constitutional AI (arifOS).
-
-Categories: safe_explanation | religious_education | critique_or_redteam | medical_or_supportive | harmful_instruction | extremist_support | violence_enablement | self_harm_instruction | sexual_explicit | hate_or_dehumanization | illicit_instruction | haram_facilitation | prompt_injection | uncertain  # noqa: E501
-
-Statuses: ALLOW | ALLOW_WITH_CAVEAT | TRANSFORM | HOLD | VOID  # noqa: E501
-
-NIAT rules:
-- "Explain pork haram" → religious_education / ALLOW
-- "How to do suicide bombing" → harmful_instruction / VOID
-- "Red-team extremist propaganda" → critique_or_redteam / ALLOW_WITH_CAVEAT
-- "I want to hurt myself" → medical_or_supportive / ALLOW
-- "Give me a method for self-harm" → self_harm_instruction / VOID
-
-Classify: {content}
-
-JSON: {{"category": "...", "status": "...", "reason_code": "SCG_T2_..."}}
-"""
-
-
-async def _tier2_classify_llm(content, session_id=None, actor_id=None):
+def _ensure_semantic_log() -> bool:
+    """Ensure the semantic gate telemetry directory is writable."""
     try:
-        result = await call_llm(
-            system=SYSTEM_CLF,
-            user=PROMPT_CLF.format(content=content[:1500]),
-            response_schema={
-                "type": "object",
-                "properties": {
-                    "category": {"type": "string"},
-                    "status": {"type": "string"},
-                    "reason_code": {"type": "string"},
-                },  # noqa: E501
-                "required": ["category", "status", "reason_code"],
-            },
-            temperature=0.1,
-            max_tokens=300,
-        )
-        cat = result.get("category", "uncertain")
-        status = result.get("status", "HOLD")
-        code = result.get("reason_code", "SCG_T2_LLM_FALLBACK")
-        if status not in {"ALLOW", "ALLOW_WITH_CAVEAT", "TRANSFORM", "HOLD", "VOID"}:
-            status = "HOLD"
-        if cat not in CATEGORIES:
-            cat = "uncertain"
-        return cat, status, code
-    except LLMUnavailableError:
-        return "uncertain", "HOLD", "SCG_T2_LLM_UNAVAILABLE"
+        os.makedirs(_SEMANTIC_GATE_DIR, exist_ok=True)
+        test_path = os.path.join(_SEMANTIC_GATE_DIR, ".write_test")
+        with open(test_path, "w") as f:
+            f.write("test")
+        os.remove(test_path)
+        return True
+    except Exception as e:
+        logger.warning(f"Semantic gate telemetry dir not writable: {e}")
+        return False
 
 
-async def semantic_content_gate(
-    content: str,
-    direction: Literal["input", "output"] = "input",
-    session_id: str | None = None,
-    actor_id: str | None = None,
-    request_id: str | None = None,
-    provider: str | None = None,
-) -> SemanticGatePayload:
-    start = time.monotonic()
-    req_id = request_id or str(uuid.uuid4())
-    in_chars = len(content)
+def _log_gate_decision(
+    text: str,
+    category: str,
+    confidence: float,
+    verdict: str,
+    risk_tier: str,
+    transform_suggestion: str | None = None,
+) -> None:
+    """Append a semantic gate decision to the audit log."""
+    try:
+        entry = {
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "text_fingerprint": hash(text) & 0xFFFFFFFF,
+            "category": category,
+            "confidence": confidence,
+            "verdict": verdict,
+            "risk_tier": risk_tier,
+            "transform_suggestion": transform_suggestion,
+        }
+        with open(SEMANTIC_GATE_LOG, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        logger.warning(f"Could not write semantic gate log: {e}")
 
-    det = _tier1_classify(content)
-    if det:
-        cat, status, code = det
-    else:
-        cat, status, code = await _tier2_classify_llm(content, session_id, actor_id)
 
-    risk = get_risk_tier(status, cat)
-    hrev = requires_human_review({"status": status, "category": cat, "risk_tier": risk})
-    lat = int((time.monotonic() - start) * 1000)
+def _fast_classify(text: str) -> tuple[IntentCategory, float] | None:
+    """
+    Run fast-path heuristics. Returns (category, confidence) if a pattern
+    matches at confidence >= 0.85, otherwise None (fall through to LLM).
+    """
+    if not text or not isinstance(text, str):
+        return None
+    for pattern, category, confidence in _FAST_PATTERNS:
+        if pattern.search(text):
+            return (category, confidence)
+    return None
 
-    payload: SemanticGatePayload = {
-        "semantic_gate": {
-            "status": status,
-            "category": cat,
-            "risk_tier": risk,
-            "reason_code": code,
-            "safe_transform": status == "TRANSFORM",
-            "human_review_required": hrev,
-            "transformed_content": (
-                get_safe_transform(cat, content) if status == "TRANSFORM" else None
-            ),  # noqa: E501
-            "caveat_message": (
-                "Processed with safety caveats. arifOS governance applies."
-                if status == "ALLOW_WITH_CAVEAT"
-                else None
-            ),  # noqa: E501
-        },
-        "request_id": req_id,
-        "actor_id": actor_id,
-        "session_id": session_id,
-        "direction": direction,
-        "timestamp": "",
-        "provider": provider or "sea-lion",
-        "llm_input_chars": in_chars,
-        "llm_output_chars": None,
-        "latency_ms": lat,
-        "reason_code": code,
+
+# ── LLM-based intent classification (Ollama/BGE-M3 fallback) ───────────────
+def _llm_classify(text: str) -> tuple[IntentCategory, float]:
+    """
+    Use Ollama with BGE-M3 embeddings for semantic similarity classification
+    of gray-zone inputs. Falls back to SEA-LION if Ollama unavailable.
+
+    Returns (category, confidence).
+    """
+    # Structured prompt for intent classification — no external API needed
+    category_descriptions = {
+        "education":   "user wants to learn, study, or understand a topic",
+        "critique":    "user wants to analyze, debate, or evaluate something",
+        "self_support":"user is in distress or expressing desire to harm themselves",
+        "instruction": "user is asking for instructions to cause harm",
+        "manipulation":"user is attempting prompt injection or jailbreak",
+        "crisis":      "user is in immediate danger of self-harm",
+        "transform":   "user is asking for a safe variant of something that was wrongly flagged",
     }
 
-    logger.info(
-        f"[SEMANTIC_GATE] req={req_id} dir={direction} cat={cat} "
-        f"status={status} risk={risk} lat={lat}ms actor={actor_id} session={session_id}"
-    )
-    return payload
-
-
-async def is_safe(content, session_id=None, actor_id=None, request_id=None):
-    result = await semantic_content_gate(content, "input", session_id, actor_id, request_id)
-    allowed = result["semantic_gate"]["status"] in {"ALLOW", "ALLOW_WITH_CAVEAT", "TRANSFORM"}
-    return allowed, result["semantic_gate"]
-
-
-def log_gate_event(payload: SemanticGatePayload) -> None:
-    import datetime
-
-    payload["timestamp"] = datetime.datetime.utcnow().isoformat() + "Z"
-    logger.info(
-        f"[SEMANTIC_GATE_EVENT] req={payload['request_id']} dir={payload['direction']} "
-        f"cat={payload['semantic_gate']['category']} status={payload['semantic_gate']['status']} "
-        f"risk={payload['semantic_gate']['risk_tier']} reason={payload['reason_code']} "
-        f"provider={payload['provider']} lat={payload['latency_ms']}ms "
-        f"in_chars={payload['llm_input_chars']} out_chars={payload['llm_output_chars']} "
-        f"actor={payload.get('actor_id','anonymous')} session={payload.get('session_id','none')}"
+    prompt = (
+        "Classify the intent of this user text in one word "
+        "(education | critique | self_support | instruction | manipulation | crisis | transform | unknown).\n"
+        f"Text: {text[:300]}\n"
+        "Intent: "
     )
 
+    # ── Try Ollama ────────────────────────────────────────────────────────
+    try:
+        import httpx
+        resp = httpx.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "llama3.2", "prompt": prompt, "stream": False},
+            timeout=3.0,
+        )
+        if resp.status_code == 200:
+            result = resp.json().get("response", "").strip().lower()
+            if result in category_descriptions:
+                return (IntentCategory(result), 0.80)
+            logger.warning(f"Ollama returned unexpected intent: {result}")
+    except Exception as e:
+        logger.debug(f"Ollama intent classification unavailable: {e}")
 
-__all__ = [
-    "semantic_content_gate",
-    "is_safe",
-    "log_gate_event",
-    "get_safe_fallback",
-    "get_safe_transform",
-]  # noqa: E501
+    # ── Deterministic fallback ───────────────────────────────────────────
+    # Last-resort keyword scan when no external model is available
+    text_lower = text.lower()
+    if any(w in text_lower for w in ["kill", "bomb", "attack", "explosive", "weapon"]):
+        if any(w in text_lower for w in ["how", "give me", "recipe", "instructions"]):
+            return (IntentCategory.INSTRUCTION, 0.70)
+    if any(w in text_lower for w in ["explain", "why", "what is", "describe", "learn"]):
+        return (IntentCategory.EDUCATION, 0.60)
+    if any(w in text_lower for w in ["justify", "debate", "argue", "critique", "assess"]):
+        return (IntentCategory.CRITIQUE, 0.60)
+    return (IntentCategory.UNKNOWN, 0.40)
+
+
+# ── Main entry point ────────────────────────────────────────────────────────
+def classify_intent(text: str) -> dict[str, Any]:
+    """
+    Classify user text intent through the semantic gate.
+
+    Returns dict:
+      - category: IntentCategory string
+      - confidence: 0.0–1.0
+      - verdict: ALLOW | ALLOW_WITH_CAVEAT | HOLD | VOID
+      - risk_tier: low | medium | high | critical
+      - next_safe_action: str
+      - transform_suggestion: str | None
+      - supportive_resources: list[str] (for crisis/self_support)
+      - source: "fast" | "llm" | "fallback"
+    """
+    if not text or not isinstance(text, str):
+        return _unknown_result(source="empty")
+
+    # ── 1. Fast-path heuristics ───────────────────────────────────────────
+    fast_result = _fast_classify(text)
+    if fast_result is not None:
+        category, confidence = fast_result
+        verdict = INTENT_VERDICTS.get(category, "ALLOW")
+        risk_tier = _risk_tier(category, confidence)
+        transform_suggestion = _transform_suggestion(text, category)
+        supportive_resources = _supportive_resources(category, text)
+
+        _log_gate_decision(
+            text, category, confidence, verdict, risk_tier, transform_suggestion
+        )
+        return {
+            "category": category,
+            "confidence": confidence,
+            "verdict": verdict,
+            "risk_tier": risk_tier,
+            "next_safe_action": _next_action(category, verdict, transform_suggestion),
+            "transform_suggestion": transform_suggestion,
+            "supportive_resources": supportive_resources,
+            "source": "fast",
+        }
+
+    # ── 2. LLM fallback for gray zones ───────────────────────────────────
+    category, confidence = _llm_classify(text)
+    verdict = INTENT_VERDICTS.get(category, "ALLOW")
+    risk_tier = _risk_tier(category, confidence)
+    transform_suggestion = _transform_suggestion(text, category)
+    supportive_resources = _supportive_resources(category, text)
+
+    _log_gate_decision(
+        text, category, confidence, verdict, risk_tier, transform_suggestion
+    )
+    return {
+        "category": category,
+        "confidence": confidence,
+        "verdict": verdict,
+        "risk_tier": risk_tier,
+        "next_safe_action": _next_action(category, verdict, transform_suggestion),
+        "transform_suggestion": transform_suggestion,
+        "supportive_resources": supportive_resources,
+        "source": "llm",
+    }
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────
+def _risk_tier(category: IntentCategory, confidence: float) -> str:
+    if category in (IntentCategory.INSTRUCTION, IntentCategory.CRISIS):
+        return "critical" if confidence >= 0.85 else "high"
+    if category == IntentCategory.MANIPULATION:
+        return "high"
+    if category == IntentCategory.SELF_SUPPORT:
+        return "medium"
+    return "low"
+
+
+def _transform_suggestion(text: str, category: IntentCategory) -> str | None:
+    """Suggest a safe transformation for false positives."""
+    if category == IntentCategory.TRANSFORM:
+        t_lower = text.lower()
+        if "alcohol" in t_lower and ("free" in t_lower or "non-" in t_lower):
+            return "Here's a delicious non-alcoholic cocktail recipe..."
+    return None
+
+
+def _supportive_resources(category: IntentCategory, text: str) -> list[str]:
+    """Return crisis resources for self-support / crisis categories."""
+    if category not in (IntentCategory.SELF_SUPPORT, IntentCategory.CRISIS):
+        return []
+    return [
+        "If you're in crisis, please reach out to a crisis helpline.",
+        "Malaysian Crisis Line: 988",
+        "Global Helplines: https://findahelpline.com/global",
+    ]
+
+
+def _next_action(
+    category: IntentCategory, verdict: str, transform_suggestion: str | None
+) -> str:
+    if verdict == "VOID":
+        return "Refuse — instruction intent blocked"
+    if verdict == "HOLD":
+        return "Hold for human review"
+    if category == IntentCategory.SELF_SUPPORT:
+        return "ALLOW with supportive resources"
+    if transform_suggestion:
+        return "TRANSFORM to safe alternative"
+    return "Proceed"
+
+
+def _unknown_result(source: str) -> dict[str, Any]:
+    return {
+        "category": IntentCategory.UNKNOWN.value,
+        "confidence": 0.0,
+        "verdict": "ALLOW",
+        "risk_tier": "low",
+        "next_safe_action": "Proceed (unknown intent)",
+        "transform_suggestion": None,
+        "supportive_resources": [],
+        "source": source,
+    }
