@@ -1,0 +1,33 @@
+{
+  "policy_id": "AAA-GOV-BUDGET-v1",
+  "version": "1.0.0",
+  "created_at": "2026-05-01T13:50:00Z",
+  "owner": "AAA",
+  "description": "Shared budget contract for all agent sessions. AAA defines, A-FORGE enforces, arifOS judges.",
+
+  "limits": {
+    "max_turns": 8,
+    "max_tool_calls": 12,
+    "max_same_tool_calls": 2,
+    "max_retries_per_tool": 1,
+    "max_no_progress_turns": 2,
+    "max_context_percent": 0.75
+  },
+
+  "on_violation": "888_HOLD",
+
+  "enforcement": {
+    "layer": "A-FORGE",
+    "mechanism": "ToolCallGate + LoopGuard + BudgetManager",
+    "audit_trail": "RunLedger → arifOS vault"
+  },
+
+  "floors_applied": ["F01", "F07", "F09", "F12"],
+
+  "notes": [
+    "DITEMPA BUKAN DIBERI — Forged, Not Given",
+    "AAA is cockpit seed. A-FORGE is engine shell. arifOS is law.",
+    "A-FORGE must NOT execute without a valid budget contract loaded.",
+    "On violation: A-FORGE emits 888_HOLD, logs to RunLedger, awaits human ack."
+  ]
+}

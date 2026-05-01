@@ -146,7 +146,7 @@ class BudgetContract:
             return False, self._snap.hold_reason
         max_retries = self._limits.get("max_retries_per_tool", 1)
         if self._snap.retries >= max_retries:
-            msg = f"888_HOLD: max_retries_per_tool ({max_retries}) " f"exceeded for {tool_name}"
+            msg = f"888_HOLD: max_retries_per_tool ({max_retries}) exceeded for {tool_name}"
             self._emit_hold(msg)
             return False, msg
         return True, None
@@ -178,7 +178,7 @@ class BudgetContract:
             return False, self._snap.hold_reason
         max_ctx = self._limits.get("max_context_percent", 0.75)
         if context_percent > max_ctx:
-            msg = f"888_HOLD: context ({context_percent:.0%}) " f"exceeds budget ({max_ctx:.0%})"
+            msg = f"888_HOLD: context ({context_percent:.0%}) exceeds budget ({max_ctx:.0%})"
             self._emit_hold(msg)
             return False, msg
         return True, None
@@ -209,12 +209,13 @@ class BudgetContract:
 
     def record_no_progress(self) -> None:
         """Record a turn with no forward progress (called by check_progress)."""
+        # No-op — counter managed inside check_progress
 
     def record_context_usage(self, percent: float) -> None:
         """Record current context usage percent."""
         self._snap.context_percent = percent
 
-    # ── Hold emission ─────────────────────────────────────────────────────
+    # ── Hold emission ──────────────────────────────────────────────────────
 
     def _emit_hold(self, reason: str) -> None:
         """Emit 888_HOLD and log to RunLedger."""
@@ -223,8 +224,8 @@ class BudgetContract:
             self._snap.hold_reason = reason
         self._log_to_vault(reason)
         logger.critical(
-            f"BUDGET CONTRACT VIOLATION [{self._policy_id}] "
-            f"session={self.session_id} reason={reason}"
+            f"BUDGET CONTRACT VIOLATION [{self._policy_id}] session={self.session_id} "
+            f"reason={reason}"
         )
 
     def _log_to_vault(self, reason: str) -> None:
@@ -254,7 +255,7 @@ class BudgetContract:
         except Exception as e:
             logger.error(f"Could not write budget violation to vault: {e}")
 
-    # ── Snapshot & status ─────────────────────────────────────────────────
+    # ── Snapshot & status ───────────────────────────────────────────────────
 
     def snapshot(self) -> BudgetSnapshot:
         """Return current budget state."""

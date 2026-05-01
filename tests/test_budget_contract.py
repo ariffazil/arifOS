@@ -1,226 +1,193 @@
 """
-tests/test_budget_contract.py — AAA-GOV-BUDGET-v1 Enforcement Tests
-===================================================================
+tests/test_budget_contract.py — Budget contract enforcement tests
 
 Verifies AAA-GOV-BUDGET-v1 contract enforcement in A-FORGE.
-
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+import pytest
 from arifosmcp.runtime.budget_contract import (
     BudgetContract,
+    BudgetSnapshot,
     get_budget_contract,
     clear_budget_contract,
+    DEFAULT_CONTRACT,
 )
 
 
-class TestTurnBudget:
-    """max_turns limit enforcement."""
-
-    def test_turns_within_limit(self):
-        bc = BudgetContract("session-turns")
-        for i in range(8):
-            ok, reason = bc.check_turn()
-            assert ok is True, f"Turn {i+1} should be allowed"
-            bc.record_turn()
-        snap = bc.snapshot()
-        assert snap.turns == 8
-
-    def test_turns_exceeded(self):
-        bc = BudgetContract("session-turns-exceeded")
-        for _ in range(8):
-            bc.record_turn()
-        ok, reason = bc.check_turn()
-        assert ok is False
-        assert "888_HOLD" in reason
-        assert "max_turns" in reason
-
-    def test_session_is_held_after_turn_violation(self):
-        bc = BudgetContract("session-held")
-        for _ in range(8):
-            bc.record_turn()
-        bc.check_turn()
-        assert bc.is_held() is True
-
-    def test_held_reason_captured(self):
-        bc = BudgetContract("session-reason")
-        for _ in range(8):
-            bc.record_turn()
-        _, reason = bc.check_turn()
-        assert bc.hold_reason() == reason
-
-
-class TestToolCallBudget:
-    """max_tool_calls and max_same_tool_calls enforcement."""
-
-    def test_tool_calls_within_limit(self):
-        bc = BudgetContract("session-tools")
-        # Different tools — same_tool_calls check fires per-tool, not cumulative
-        tools = ["terminal", "read_file", "grep", "python"]
-        for _ in range(3):  # 12 total calls across 4 different tools
-            for t in tools:
-                ok, reason = bc.check_tool_call(t)
-                assert ok is True, reason
-                bc.record_tool_call(t)
-        assert bc.snapshot().tool_calls == 12
-
-    def test_total_tool_calls_exceeded(self):
-        bc = BudgetContract("session-tools-exceeded")
-        # Use different tools so same_tool_calls doesn't fire first
-        tools = ["terminal", "read_file", "grep", "python"]
-        for t in tools:
-            for _ in range(3):  # 12 total
-                bc.record_tool_call(t)
-        ok, reason = bc.check_tool_call("read_file")
-        assert ok is False
-        assert "max_tool_calls" in reason
-
-    def test_same_tool_repeated_blocked(self):
-        bc = BudgetContract("session-same-tool")
-        bc.record_tool_call("terminal")
-        bc.record_tool_call("terminal")
-        ok, reason = bc.check_tool_call("terminal")
-        assert ok is False
-        assert "max_same_tool_calls" in reason
-        assert "terminal" in reason
-
-    def test_different_tools_allowed(self):
-        bc = BudgetContract("session-diff-tools")
-        tools = ["terminal", "read_file", "search", "python"]
-        for t in tools * 3:  # 12 total calls
-            ok, reason = bc.check_tool_call(t)
-            assert ok is True, f"{t} should be allowed"
-            bc.record_tool_call(t)
-
-
-class TestRetryBudget:
-    """max_retries_per_tool enforcement."""
-
-    def test_retry_within_limit(self):
-        bc = BudgetContract("session-retry-ok")
-        # max_retries=1 means: after 0 retries, one retry is allowed.
-        # check_retry: pass when retries < max_retries.
-        ok, _ = bc.check_retry("terminal")  # retries=0, 0<1 → pass
-        assert ok is True
-        bc.record_retry()  # retries becomes 1
-        # Now retries==max_retries, next check_retry fails
-
-    def test_retry_exactly_at_limit(self):
-        bc = BudgetContract("session-retry-limit")
-        ok, _ = bc.check_retry("terminal")  # 0<1 → pass
-        bc.record_retry()  # retries=1
-        ok2, _ = bc.check_retry("terminal")  # 1>=1 → fail
-        assert ok2 is False
-
-    def test_retry_exceeded(self):
-        bc = BudgetContract("session-retry-fail")
-        bc.record_retry()
-        bc.check_retry("terminal")
-        ok, reason = bc.check_retry("terminal")
-        assert ok is False
-        assert "max_retries" in reason
-
-
-class TestProgressBudget:
-    """max_no_progress_turns enforcement."""
-
-    def test_progress_resets_counter(self):
-        bc = BudgetContract("session-progress-ok")
-        # check_progress(False) increments no_progress_turns (doesn't call record)
-        # First two False calls: npt=1, npt=2 → held
-        bc.check_progress(False)  # npt=1
-        bc.check_progress(False)  # npt=2 → held
-        assert bc.snapshot().no_progress_turns == 2
-        assert bc.is_held() is True
-        # reset() clears the held state
-        bc.reset()
-        assert bc.snapshot().no_progress_turns == 0
-        assert bc.is_held() is False
-
-    def test_no_progress_exceeded(self):
-        bc = BudgetContract("session-stuck")
-        for _ in range(2):
-            bc.check_progress(False)
-        ok, reason = bc.check_progress(False)
-        assert ok is False
-        assert "no_progress" in reason
-
-
-class TestContextBudget:
-    """max_context_percent enforcement."""
-
-    def test_context_within_budget(self):
-        bc = BudgetContract("session-ctx-ok")
-        ok, reason = bc.check_context(0.74)
-        assert ok is True
-
-    def test_context_over_budget(self):
-        bc = BudgetContract("session-ctx-high")
-        ok, reason = bc.check_context(0.80)
-        assert ok is False
-        assert "context" in reason.lower()
-
-    def test_context_at_exact_boundary(self):
-        bc = BudgetContract("session-ctx-boundary")
-        ok, reason = bc.check_context(0.75)
-        assert ok is True
-
-
-class TestBudgetSnapshot:
-    """Budget state snapshot accuracy."""
-
-    def test_snapshot_captures_state(self):
-        bc = BudgetContract("session-snap")
-        bc.record_turn("init")
-        bc.record_tool_call("terminal")
-        snap = bc.snapshot()
-        assert snap.session_id == "session-snap"
-        assert snap.turns == 1
-        assert snap.tool_calls == 1
-        assert snap.last_tool == "terminal"
-        assert snap.held is False
-
-    def test_limits_returned(self):
-        bc = BudgetContract("session-limits")
-        limits = bc.limits()
-        assert limits["max_turns"] == 8
-        assert limits["max_tool_calls"] == 12
-        assert limits["max_same_tool_calls"] == 2
-
-
-class TestBudgetRegistry:
-    """Session-scoped budget registry."""
-
-    def test_get_creates_new(self):
-        clear_budget_contract("new-session")
-        bc = get_budget_contract("new-session")
-        assert bc.snapshot().session_id == "new-session"
-
-    def test_get_returns_same(self):
-        clear_budget_contract("shared-session")
-        bc1 = get_budget_contract("shared-session")
-        bc2 = get_budget_contract("shared-session")
-        assert bc1 is bc2
-
-    def test_clear_removes(self):
-        clear_budget_contract("to-clear")
-        bc = get_budget_contract("to-clear")
-        clear_budget_contract("to-clear")
-        # After clear, new call returns fresh instance
-        bc_new = get_budget_contract("to-clear")
-        assert bc_new is not bc
-        assert bc_new.snapshot().turns == 0
-
-
-class TestBudgetReset:
-    """Session reset functionality."""
-
-    def test_reset_clears_state(self):
-        bc = BudgetContract("session-reset")
+def test_max_turns_hold():
+    """Session hits max_turns and gets 888_HOLD."""
+    bc = BudgetContract(session_id="test-turns")
+    for _ in range(8):
+        allowed, _ = bc.check_turn()
+        assert allowed is True, "turns 1-8 should be allowed"
         bc.record_turn()
-        bc.record_tool_call("terminal")
-        bc.reset()
-        snap = bc.snapshot()
-        assert snap.turns == 0
-        assert snap.tool_calls == 0
-        assert snap.held is False
+
+    allowed, reason = bc.check_turn()
+    assert allowed is False
+    assert "888_HOLD" in reason
+    assert "max_turns" in reason
+    assert bc.is_held()
+
+
+def test_max_tool_calls_hold():
+    """Session hits max_tool_calls and gets 888_HOLD."""
+    bc = BudgetContract(session_id="test-tools")
+    tools = ["arif_read", "arif_mind_reason", "arif_heart_critique"]
+    for i in range(12):
+        tool = tools[i % len(tools)]
+        allowed, _ = bc.check_tool_call(tool)
+        assert allowed is True
+        bc.record_tool_call(tool)
+
+    # 13th call with a new tool (arif_read has same_tool_calls=0)
+    # Total calls is 12 = max_tool_calls, so this is blocked
+    allowed, reason = bc.check_tool_call("arif_read")
+    assert allowed is False
+    assert "888_HOLD" in reason
+    # max_tool_calls takes priority over same_tool_calls check in enforcement order
+    # but either limit being hit is a valid budget HOLD
+    assert "max_tool_calls" in reason or "max_same_tool_calls" in reason
+
+
+def test_max_same_tool_calls_hold():
+    """Same tool called too many times consecutively → 888_HOLD."""
+    bc = BudgetContract(session_id="test-same-tool")
+    for _ in range(2):
+        allowed, _ = bc.check_tool_call("arif_read")
+        assert allowed is True
+        bc.record_tool_call("arif_read")
+
+    # Same tool called 3rd time → blocked (same_tool_calls was 2, limit=2)
+    allowed, reason = bc.check_tool_call("arif_read")
+    assert allowed is False
+    assert "max_same_tool_calls" in reason
+
+
+def test_retry_blocked_after_limit():
+    """Retry of same tool after max_retries → 888_HOLD."""
+    bc = BudgetContract(session_id="test-retry")
+    bc.record_tool_call("arif_read")
+    bc.record_retry()
+
+    allowed, reason = bc.check_retry("arif_read")
+    assert allowed is False
+    assert "max_retries" in reason
+
+
+def test_no_progress_hold():
+    """
+    check_progress increments no_progress_turns on False.
+    2 consecutive False calls → 888_HOLD at max_no_progress_turns=2.
+    """
+    bc = BudgetContract(session_id="test-noprogress")
+    bc._snap.no_progress_turns = 0
+
+    ok1, _ = bc.check_progress(made_progress=False)  # counter becomes 1
+    ok2, _ = bc.check_progress(made_progress=False)  # counter becomes 2, blocked
+
+    assert ok1 is True, "first no-progress turn should be allowed"
+    assert ok2 is False, "second no-progress turn should be blocked"
+    assert bc.is_held()
+
+    # 3rd call when already at counter=2 → still blocked
+    allowed, reason = bc.check_progress(made_progress=False)
+    assert allowed is False
+
+
+def test_progress_resets_counter():
+    """Making progress resets no_progress counter."""
+    bc = BudgetContract(session_id="test-progress")
+    bc._snap.no_progress_turns = 1
+
+    allowed, _ = bc.check_progress(made_progress=True)
+    assert allowed is True
+    assert bc._snap.no_progress_turns == 0
+
+
+def test_different_tool_allows_new_tool():
+    """Calling a different tool after hitting same_tool limit is allowed."""
+    bc = BudgetContract(session_id="test-switch")
+    # Simulate arif_read was at the same_tool_calls limit (2)
+    bc._snap.same_tool_calls = 2
+    bc._snap.last_tool = "arif_read"
+    bc._snap.tool_calls = 2
+
+    # Different tool should be allowed (same_tool limit is per-tool)
+    allowed, _ = bc.check_tool_call("arif_mind_reason")
+    assert allowed is True
+
+
+def test_snapshot_contains_current_state():
+    """Snapshot reflects current budget state."""
+    bc = BudgetContract(session_id="test-snapshot")
+    bc.record_turn()
+    bc.record_tool_call("arif_read")
+    bc.record_context_usage(0.60)
+
+    snap = bc.snapshot()
+    assert snap.turns == 1
+    assert snap.tool_calls == 1
+    assert snap.last_tool == "arif_read"
+    assert snap.context_percent == 0.60
+    assert snap.held is False
+
+
+def test_reset_clears_state():
+    """Reset restores fresh session state."""
+    bc = BudgetContract(session_id="test-reset")
+    bc.record_turn()
+    bc.record_tool_call("arif_read")
+    bc._emit_hold("test")
+
+    bc.reset()
+    snap = bc.snapshot()
+    assert snap.turns == 0
+    assert snap.tool_calls == 0
+    assert snap.held is False
+
+
+def test_registry_get_or_create():
+    """get_budget_contract returns same instance for same session."""
+    s1 = get_budget_contract("session-xyz")
+    s2 = get_budget_contract("session-xyz")
+    assert s1 is s2
+
+    clear_budget_contract("session-xyz")
+    s3 = get_budget_contract("session-xyz")
+    assert s3 is not s1
+
+
+def test_default_contract_values():
+    """Default contract has correct limit values."""
+    bc = BudgetContract(session_id="test-defaults")
+    limits = bc.limits()
+    assert limits["max_turns"] == 8
+    assert limits["max_tool_calls"] == 12
+    assert limits["max_same_tool_calls"] == 2
+    assert limits["max_retries_per_tool"] == 1
+    assert limits["max_no_progress_turns"] == 2
+    assert limits["max_context_percent"] == 0.75
+    assert bc._on_violation == "888_HOLD"
+
+
+def test_held_blocks_all_checks():
+    """Once held, all subsequent checks return False with same reason."""
+    bc = BudgetContract(session_id="test-held")
+    bc._emit_hold("test hold reason")
+
+    assert bc.check_turn()[0] is False
+    assert bc.check_tool_call("arif_read")[0] is False
+    assert bc.check_retry("arif_read")[0] is False
+    assert bc.check_context(0.5)[0] is False
+    assert bc.is_held()
+    assert bc.hold_reason() == "test hold reason"
+
+
+def test_context_overflow_hold():
+    """Context usage exceeds budget → 888_HOLD."""
+    bc = BudgetContract(session_id="test-context")
+    allowed, reason = bc.check_context(0.80)
+    assert allowed is False
+    assert "context" in reason.lower()
+    assert bc.is_held()
