@@ -123,3 +123,19 @@ CLOUDFLARE CACHE STILL BLOCKS 4 routes:
 
 Cloudflare API token (from /root/.cloudflare_token) lacks "Cache Purge" permission.
 Manual purge required: Cloudflare Dashboard → Caching → Configuration → Purge Everything
+
+---
+
+### FLOORS.md v2 + arifOS Kanon Lock — 2026-05-01
+
+**FLOORS.md updated** with functional enforcement mechanics:
+- F05 PEACE² ≥ 1.0, F06 W_scar, F07 P(truth) < 0.99 → Ω_0, F08 G ≥ 0.80
+- 3-lane metabolic pipeline: AGI → ASI → APEX
+- Sovereign trinity table (arifOS/A-FORGE/AAA/GEOX/WEALTH)
+- Key formulas, claim labeling, violation responses
+
+**arifOS v2026.05.01 [KANON LOCK]** — operational baseline confirmed.
+
+Git: 8c0512c pushed, main synced ✅
+
+**DITEMPA BUKAN DIBERI — Forged, not given.**
