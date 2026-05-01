@@ -1,4 +1,5 @@
 """Session output schemas — 000_INIT"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -22,4 +23,5 @@ class SessionManifest(BaseModel):
     session: SessionState | None = None
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
+    doctrine: dict[str, Any] | None = None  # DITEMPA BUKAN DIBERI — coded constant
     timestamp: str | None = None

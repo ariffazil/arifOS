@@ -3608,6 +3608,7 @@ async def _arif_heart_critique(
     if gate is not None:
         return gate
 
+    _exc: Exception | None = None
     try:
         from arifosmcp.tools.heart import arif_heart_critique as _heart_llm
 
@@ -3626,6 +3627,16 @@ async def _arif_heart_critique(
             "666_HEART module unavailable (%s); returning safe HOLD",
             type(_exc).__name__,
         )
+        return {
+            "tool": "arif_heart_critique",
+            "status": "HOLD",
+            "risk_tier": "AMBER",
+            "verdict": "HOLD",
+            "human_decision_required": True,
+            "risks_found": [],
+            "error": f"666_HEART unavailable: {type(_exc).__name__}",
+            "nine_signal": _nine_signal_from_status("HOLD"),
+        }
 
     return {
         "tool": "arif_heart_critique",
@@ -3634,7 +3645,7 @@ async def _arif_heart_critique(
         "verdict": "HOLD",
         "human_decision_required": True,
         "risks_found": [],
-        "error": f"666_HEART unavailable: {type(_exc).__name__}",
+        "error": "666_HEART unavailable: unknown",
         "nine_signal": _nine_signal_from_status("HOLD"),
     }
 
