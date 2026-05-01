@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="arifOS MCP - Constitutional AI Governance with 50 Core Quotes | A-FORGE">
+    <meta name="version" content="2.1.0-unified">
+    <title>arifOS MCP | Constitutional Source of Truth</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888a0;
+            --accent-gold: #d4af37;
+            --accent-seal: #22c55e;
+            --accent-void: #ef4444;
+            --accent-partial: #f59e0b;
+            --accent-delta: #3b82f6;
+            --accent-omega: #a855f7;
+            --accent-psi: #ec4899;
+            --border: #2a2a3a;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        .forge-mark { 
+            font-size: 4rem; 
+            margin-bottom: 1rem;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent-gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .motto {
+            font-size: 1.3rem;
+            color: var(--accent-gold);
+            font-weight: bold;
+            margin: 1rem 0;
+            letter-spacing: 0.1em;
+        }
+        
+        .live-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 1rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-seal);
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: border-color 0.3s;
+        }
+        
+        .card:hover {
+            border-color: var(--accent-gold);
+        }
+        
+        .card h3 {
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .metric-row:last-child { border-bottom: none; }
+        
+        .metric-label { color: var(--text-secondary); }
+        
+        .metric-value {
+            font-weight: bold;
+            color: var(--accent-seal);
+        }
+        
+        .tools-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        .tool-item {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-gold);
+        }
+        
+        .tool-name {
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 0.25rem;
+        }
+        
+        .tool-stage {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .trinity-delta { border-left-color: var(--accent-delta); }
+        .trinity-omega { border-left-color: var(--accent-omega); }
+        .trinity-psi { border-left-color: var(--accent-psi); }
+        
+        .philosophy-box {
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+            border: 1px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .philosophy-text {
+            font-size: 1.5rem;
+            font-style: italic;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+        
+        .philosophy-meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .quotes-section {
+            margin: 2rem 0;
+        }
+        
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .quote-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            position: relative;
+        }
+        
+        .quote-card::before {
+            content: '"';
+            font-size: 3rem;
+            color: var(--accent-gold);
+            opacity: 0.3;
+            position: absolute;
+            top: -0.5rem;
+            left: 0.5rem;
+        }
+        
+        .quote-text {
+            font-style: italic;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .quote-author {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-align: right;
+        }
+        
+        .quote-tool {
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .api-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .api-link:hover {
+            border-color: var(--accent-gold);
+            background: var(--bg-secondary);
+        }
+        
+        .api-method {
+            font-weight: bold;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .api-method.get { background: var(--accent-delta); color: white; }
+        .api-method.post { background: var(--accent-omega); color: white; }
+        
+        .api-path {
+            font-family: monospace;
+            color: var(--accent-gold);
+        }
+        
+        .api-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .last-updated {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--accent-gold);
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .corpus-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-tertiary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 0.5rem;
+        }
+        
+        .corpus-badge .count {
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .sensing-flow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .flow-stage {
+            background: var(--bg-tertiary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+        }
+        
+        .flow-arrow {
+            color: var(--accent-gold);
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="forge-mark">🔥</div>
+            <h1>arifOS MCP</h1>
+            <p class="subtitle">Constitutional AI Governance — Source of Truth</p>
+            <p class="motto">DITEMPA, BUKAN DIBERI</p>
+            <div class="live-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Connecting to A-FORGE...</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📊 System Status</h3>
+                <div class="metric-row">
+                    <span class="metric-label">Health</span>
+                    <span class="metric-value" id="health">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Version</span>
+                    <span class="metric-value" id="version">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Constitutional Floors</span>
+                    <span class="metric-value" id="floors">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Tools Loaded</span>
+                    <span class="metric-value" id="tool-count">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Quotes Corpus</span>
+                    <span class="metric-value" id="quotes-corpus">v2.1.0-unified</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Governed Sensing</span>
+                    <span class="metric-value" id="sensing-protocol">8-Stage Protocol</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Commit Hash</span>
+                    <span class="metric-value" style="font-size: 0.85rem;" id="commit-hash">be770d0</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔱 Trinity Alignment</h3>
+                <div class="metric-row">
+                    <span class="metric-label">Δ (Discernment)</span>
+                    <span class="metric-value" style="color: var(--accent-delta);">25 quotes</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Ω (Empathy)</span>
+                    <span class="metric-value" style="color: var(--accent-omega);">10 quotes</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Ψ (Authority)</span>
+                    <span class="metric-value" style="color: var(--accent-psi);">15 quotes</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Total Core Quotes</span>
+                    <span class="metric-value" id="total-quotes">50</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Truth Classes</span>
+                    <span class="metric-value">7 (A → Unknown)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Evidence Ranks</span>
+                    <span class="metric-value">7 (Direct → Social)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="philosophy-box">
+            <div class="philosophy-text" id="philosophy-text">"Loading constitutional anchor..."</div>
+            <div class="philosophy-meta" id="philosophy-meta">arifOS Principle | Initializing...</div>
+        </div>
+
+        <h2 class="section-title">⚡ Governed Sensing Protocol</h2>
+        <div class="sensing-flow">
+            <span class="flow-stage">PARSE</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-stage">CLASSIFY</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-stage">DECIDE</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-stage">PLAN</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-stage">SENSE</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-stage">NORMALIZE</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-stage">GATE</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-stage">HANDOFF</span>
+        </div>
+        <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+            8-stage constitutional sensing with IntelligenceState (G, τ, σ, C, ΔS, Ω₀)
+        </p>
+
+        <h2 class="section-title">🛠️ Canonical Tools</h2>
+        <div class="tools-container" id="tools-container">
+            <div class="tool-item"><div class="tool-name">Loading...</div></div>
+        </div>
+
+        <h2 class="section-title">📜 Constitutional Quotes Corpus</h2>
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <span class="corpus-badge">Tools: <span class="count">10</span></span>
+            <span class="corpus-badge">Core Quotes: <span class="count">50</span></span>
+            <span class="corpus-badge">Schema: <span class="count">v2.1.0</span></span>
+        </div>
+        <div class="quotes-grid" id="quotes-container">
+            <!-- Quotes loaded dynamically -->
+        </div>
+
+        <h2 class="section-title">🔌 API Endpoints</h2>
+        <div class="api-grid" id="api-container">
+            <a href="/health" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/health</span>
+                <span class="api-desc">Health status & metrics</span>
+            </a>
+            <a href="/tools" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/tools</span>
+                <span class="api-desc">List canonical tools</span>
+            </a>
+            <a href="/prompts" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/prompts</span>
+                <span class="api-desc">Constitutional prompts</span>
+            </a>
+            <a href="/resources" target="_blank" class="api-link">
+                <span class="api-method get">GET</span>
+                <span class="api-path">/resources</span>
+                <span class="api-desc">Governed resources</span>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>🔒 <strong>999_VALIDATOR SEAL</strong> | Constitutional Source of Truth</p>
+            <p>ΔΩΨ — Discernment · Empathy · Authority</p>
+            <p class="last-updated" id="last-updated">Last updated: --</p>
+            <p class="last-updated">Commit: <code id="footer-commit">be770d0</code> | Branch: main</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // Core quotes data (embedded for instant render, updated via API)
+        const CORE_QUOTES = [
+            { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu", tool: "arifos.init", category: "origin_intent" },
+            { text: "It is wrong... to believe anything upon insufficient evidence.", author: "William Clifford", tool: "arifos.sense", category: "evidence_first" },
+            { text: "The first principle is that you must not fool yourself.", author: "Richard Feynman", tool: "arifos.sense", category: "perception_reality" },
+            { text: "I think, therefore I am.", author: "René Descartes", tool: "arifos.mind", category: "logic_truth" },
+            { text: "Know thyself.", author: "Socrates", tool: "arifos.mind", category: "knowledge_selfknowledge" },
+            { text: "No man ever steps in the same river twice.", author: "Heraclitus", tool: "arifos.sense", category: "temporal_awareness" },
+            { text: "First, do no harm.", author: "Hippocrates", tool: "arifos.heart", category: "non_harm" },
+            { text: "Act only according to that maxim whereby you can will that it should become universal law.", author: "Immanuel Kant", tool: "arifos.heart", category: "human_dignity" },
+            { text: "With great power comes great responsibility.", author: "Voltaire/Spiderman", tool: "arifos.judge", category: "power_restraint" },
+            { text: "Those who cannot remember the past are condemned to repeat it.", author: "George Santayana", tool: "arifos.memory", category: "history_continuity" }
+        ];
+        
+        async function fetchStatus() {
+            try {
+                // Fetch version info (includes commit hash)
+                try {
+                    const versionRes = await fetch(`${API_BASE}/version`);
+                    const version = await versionRes.json();
+                    if (version.commit) {
+                        document.getElementById('commit-hash').textContent = version.commit;
+                        document.getElementById('footer-commit').textContent = version.commit;
+                    }
+                } catch (e) {
+                    console.log('Version endpoint not available');
+                }
+                
+                // Fetch health status
+                const healthRes = await fetch(`${API_BASE}/health`);
+                const health = await healthRes.json();
+                
+                document.getElementById('health').textContent = health.status || 'unknown';
+                document.getElementById('health').style.color = health.status === 'healthy' ? 'var(--accent-seal)' : 'var(--accent-void)';
+                document.getElementById('version').textContent = health.version || 'v2.0.0';
+                document.getElementById('floors').textContent = health.floors_active || '13';
+                document.getElementById('tool-count').textContent = health.tools_loaded || '10';
+                document.getElementById('status-text').textContent = 'A-FORGE Connected ✓';
+                
+                // Fetch tools list
+                const toolsRes = await fetch(`${API_BASE}/tools`);
+                const tools = await toolsRes.json();
+                
+                if (tools.tools && tools.tools.length > 0) {
+                    renderTools(tools.tools);
+                }
+                
+                // Fetch philosophy via init endpoint (dry-run)
+                try {
+                    const philRes = await fetch(`${API_BASE}/tools/arifos.init`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            actor_id: 'landing_page', 
+                            intent: 'status_check',
+                            dry_run: true 
+                        })
+                    });
+                    const phil = await philRes.json();
+                    
+                    if (phil.philosophy && phil.philosophy.entry) {
+                        document.getElementById('philosophy-text').textContent = `"${phil.philosophy.entry.text}"`;
+                        document.getElementById('philosophy-meta').textContent = 
+                            `${phil.philosophy.entry.author} | Band: ${phil.philosophy.band} | Mode: ${phil.philosophy.selection_mode}`;
+                    }
+                } catch (e) {
+                    // Fallback to static S1
+                    document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
+                    document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
+                }
+                
+                document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString();
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('status-text').textContent = 'A-FORGE Unreachable';
+                document.querySelector('.live-status').classList.add('error-state');
+                
+                // Show fallback data
+                document.getElementById('health').textContent = 'degraded';
+                document.getElementById('health').style.color = 'var(--accent-void)';
+                document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
+                document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
+            }
+        }
+        
+        function renderTools(tools) {
+            const container = document.getElementById('tools-container');
+            container.innerHTML = '';
+            
+            const toolInfo = {
+                'arifos.init': { stage: '000_INIT', desc: 'Session establishment & anchoring', trinity: 'Δ', class: 'trinity-delta' },
+                'arifos.sense': { stage: '111_SENSE', desc: 'Reality intake & evidence grounding', trinity: 'Δ', class: 'trinity-delta' },
+                'arifos.mind': { stage: '333_MIND', desc: 'Structured reasoning & synthesis', trinity: 'Δ', class: 'trinity-delta' },
+                'arifos.route': { stage: '444_ROUTER', desc: 'Lane selection & downstream routing', trinity: 'Δ', class: 'trinity-delta' },
+                'arifos.memory': { stage: '555_MEMORY', desc: 'Continuity, persistence & recall', trinity: 'Ω', class: 'trinity-omega' },
+                'arifos.heart': { stage: '666_HEART', desc: 'Ethical review & dignity protection', trinity: 'Ω', class: 'trinity-omega' },
+                'arifos.ops': { stage: '777_OPS', desc: 'Execution & implementation', trinity: 'Ψ', class: 'trinity-psi' },
+                'arifos.judge': { stage: '888_JUDGE', desc: 'Constitutional verdict & consequence', trinity: 'Ψ', class: 'trinity-psi' },
+                'arifos.forge': { stage: '888_FORGE', desc: 'Shape durable doctrine & artifact', trinity: 'Δ', class: 'trinity-delta' },
+                'arifos.vault': { stage: '999_VAULT', desc: 'Seal, preserve & archive', trinity: 'Ψ', class: 'trinity-psi' }
+            };
+            
+            tools.forEach(toolName => {
+                const info = toolInfo[toolName] || { stage: '--', desc: 'Tool', trinity: '', class: '' };
+                const div = document.createElement('div');
+                div.className = `tool-item ${info.class}`;
+                div.innerHTML = `
+                    <div class="tool-name">${info.trinity} ${toolName}</div>
+                    <div class="tool-stage">${info.stage} | ${info.desc}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function renderQuotes() {
+            const container = document.getElementById('quotes-container');
+            container.innerHTML = '';
+            
+            CORE_QUOTES.forEach(quote => {
+                const div = document.createElement('div');
+                div.className = 'quote-card';
+                div.innerHTML = `
+                    <div class="quote-text">${quote.text}</div>
+                    <div class="quote-author">— ${quote.author}</div>
+                    <div class="quote-tool">${quote.tool} | ${quote.category}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Initial load
+        renderQuotes();
+        fetchStatus();
+        
+        // Auto-refresh every 30s
+        setInterval(fetchStatus, 30000);
+    </script>
+</body>
+</html>

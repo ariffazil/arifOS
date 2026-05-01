@@ -2,15 +2,15 @@
   "$schema": "https://arif-fazil.com/schemas/federation-manifest/v1.json",
   "description": "arifOS Federation Constitution v2 — Domain trust boundaries, governance topology, and epistemic contracts. Governs all MCP servers in the arifOS constitutional federation.",
   "version": "2.0.0",
-  "effective_date": "2026-04-26",
-  "last_updated": "2026-04-26",
+  "effective_date": "2026-05-01",
+  "last_updated": "2026-05-01",
   "update_hash": "SEE_GIT_COMMIT",
   "commit": "395f3e36",
 
   "kernel": {
     "name": "arifOS",
     "server_id": "arifOS-prod-001",
-    "version": "2026.04.26-KANON",
+    "version": "2026.05.01-KANON",
     "constitution_hash": "sha256:SEE_000_ROOT_K000_CONSTITUTION",
     "domain": "GOVERNANCE",
     "trust_level": "SOVEREIGN",

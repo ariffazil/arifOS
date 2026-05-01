@@ -1,0 +1,287 @@
+"""
+arifOS WELL Bridge — Biological Substrate Connector
+═══════════════════════════════════════════════════════════════════════════════
+
+Connects the arifOS Governance Kernel to the WELL Human Substrate Layer.
+Provides biological readiness signals (Sleep, Stress, Cognitive) to JUDGE.
+
+Axiom: W0 — Sovereignty Invariant. WELL informs, JUDGE considers.
+
+P0-B APPLIED 2026-05-01: Schema split — human_baseline_readiness vs task_specific_readiness
+"""
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import Any, Dict
+
+logger = logging.getLogger(__name__)
+
+import os as _os
+WELL_STATE_PATH = Path(_os.environ.get("WELL_STATE_PATH", "/root/WELL/state.json"))
+
+
+def _infer_task_readiness(score: float, violations: list, task_load: float = 0.5) -> str:
+    """Infer task-specific readiness from task load and biological state."""
+    if violations:
+        return "DEGRADED"
+    if task_load > 0.7:
+        return "FUNCTIONAL"
+    return "OPTIMAL"
+
+
+def _compute_risk(baseline: str, task: str) -> str:
+    """Compute coupled human-machine risk level."""
+    if baseline == "OPTIMAL" and task in ("FUNCTIONAL", "DEGRADED"):
+        return "AMBER"
+    if baseline == "DEGRADED":
+        return "RED"
+    return "GREEN"
+
+
+def _compute_mode(baseline: str, task: str) -> str:
+    """Compute recommended mode from baseline and task readiness."""
+    if task == "DEGRADED":
+        return "draft_only"
+    if baseline == "OPTIMAL" and task == "OPTIMAL":
+        return "full"
+    return "normal"
+
+
+def _compute_flags(metrics: dict) -> list:
+    """Compute failure flags from WELL metrics."""
+    flags = []
+    cog = metrics.get("cognitive", {})
+    if cog.get("decision_fatigue", 0) > 7:
+        flags.append("high_decision_fatigue")
+    if cog.get("clarity", 10) < 4:
+        flags.append("low_clarity_complex_coding")
+    return flags
+
+
+def get_biological_readiness(task_load: float = 0.5) -> Dict[str, Any]:
+    """
+    Read the current biological readiness from WELL state.
+    Returns a structured readiness report for the Governance Kernel.
+
+    Schema split (P0-B):
+    - human_baseline_readiness: what WELL observed at baseline
+    - task_specific_readiness: what the task demands from the human
+    - machine_readiness: always HEALTHY (WELL is human substrate only)
+    - coupled_risk: risk level for this human-machine pair
+    - recommended_mode: draft_only | normal | full
+    - failure_flags: list of specific failure signals
+
+    W0 Invariant: WELL informs, Arif decides. WELL never vetoes.
+    """
+    try:
+        _exists = WELL_STATE_PATH.exists()
+    except (PermissionError, OSError):
+        _exists = False
+    if not _exists:
+        return {
+            "ok": False,
+            "verdict": "UNKNOWN",
+            "human_baseline_readiness": "UNKNOWN",
+            "task_specific_readiness": "UNKNOWN",
+            "machine_readiness": "HEALTHY",
+            "coupled_risk": "UNKNOWN",
+            "well_score": 50.0,
+            "bandwidth": "NORMAL",
+            "message": "WELL substrate offline or state missing.",
+            "recommended_mode": "draft_only",
+            "failure_flags": ["well_offline"],
+            "sabar_advisory": False
+        }
+
+    try:
+        with open(WELL_STATE_PATH, "r") as f:
+            state = json.load(f)
+
+        score = state.get("well_score", 50.0)
+        violations = state.get("floors_violated", [])
+        metrics = state.get("metrics", {})
+
+        # Baseline verdict — what WELL observed
+        if violations:
+            baseline = "DEGRADED"
+            bandwidth = "RESTRICTED"
+            sabar_advisory = True
+        elif score >= 80:
+            baseline = "OPTIMAL"
+            bandwidth = "FULL"
+            sabar_advisory = False
+        elif score >= 60:
+            baseline = "FUNCTIONAL"
+            bandwidth = "NORMAL"
+            sabar_advisory = False
+        else:
+            baseline = "LOW_CAPACITY"
+            bandwidth = "REDUCED"
+            sabar_advisory = True
+
+        # Task-specific readiness
+        task_readiness = _infer_task_readiness(score, violations, task_load)
+
+        # Coupled risk
+        coupled_risk = _compute_risk(baseline, task_readiness)
+
+        # Recommended mode
+        recommended_mode = _compute_mode(baseline, task_readiness)
+
+        # Failure flags
+        failure_flags = _compute_flags(metrics)
+
+        return {
+            "ok": True,
+            "verdict": baseline,                     # human_baseline_readiness (backward compat)
+            "human_baseline_readiness": baseline,     # explicit baseline field
+            "task_specific_readiness": task_readiness,
+            "machine_readiness": "HEALTHY",         # always HEALTHY — WELL is human substrate
+            "coupled_risk": coupled_risk,
+            "well_score": score,
+            "bandwidth": bandwidth,
+            "violations": violations,
+            "sabar_advisory": sabar_advisory,
+            "recommended_mode": recommended_mode,
+            "failure_flags": failure_flags,
+            "timestamp": state.get("timestamp")
+        }
+    except Exception as e:
+        logger.error(f"Failed to read WELL state: {e}")
+        return {
+            "ok": False,
+            "verdict": "ERROR",
+            "human_baseline_readiness": "ERROR",
+            "task_specific_readiness": "ERROR",
+            "machine_readiness": "HEALTHY",
+            "coupled_risk": "UNKNOWN",
+            "error": str(e),
+            "well_score": 0.0,
+            "bandwidth": "RESTRICTED",
+            "recommended_mode": "draft_only",
+            "failure_flags": ["well_readiness_error"],
+            "sabar_advisory": True
+        }
+
+
+def inject_biological_context(
+    governance_state: Dict[str, Any],
+    task_load: float = 0.5
+) -> Dict[str, Any]:
+    """
+    Inject biological readiness into the governance state telemetry.
+    Uses new split schema (P0-B) for precise human-machine coupling.
+    """
+    readiness = get_biological_readiness(task_load)
+
+    # Add WELL metadata to telemetry
+    telemetry = governance_state.get("telemetry", {})
+    telemetry["well_score"] = readiness["well_score"]
+    telemetry["well_verdict"] = readiness["human_baseline_readiness"]
+    telemetry["well_bandwidth"] = readiness["bandwidth"]
+    telemetry["well_task_readiness"] = readiness["task_specific_readiness"]
+    telemetry["well_coupled_risk"] = readiness["coupled_risk"]
+
+    # P0-B: Use task_specific_readiness for SABAR advisory
+    if readiness.get("sabar_advisory"):
+        governance_state["sabar_advisory"] = True
+        if governance_state.get("verdict") == "SEAL":
+            if readiness["task_specific_readiness"] == "DEGRADED":
+                governance_state["verdict"] = "HOLD"
+                governance_state["message"] = (
+                    governance_state.get("message", "") +
+                    " [WELL-HOLD] Task-specific readiness DEGRADED. Sovereign review required."
+                )
+
+    governance_state["telemetry"] = telemetry
+    return governance_state
+
+
+def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
+    """
+    Signal cognitive pressure/load to WELL.
+    Directly updates state.json if server is not available.
+    """
+    try:
+        if not WELL_STATE_PATH.exists():
+            return False
+    except (PermissionError, OSError):
+        return False
+
+    try:
+        with open(WELL_STATE_PATH, "r") as f:
+            state = json.load(f)
+
+        metrics = state.get("metrics", {})
+        cog = dict(metrics.get("cognitive", {"clarity": 10, "decision_fatigue": 0}))
+
+        # Increment fatigue
+        old_fatigue = cog.get("decision_fatigue", 0)
+        new_fatigue = min(10.0, old_fatigue + load_delta)
+        cog["decision_fatigue"] = new_fatigue
+        metrics["cognitive"] = cog
+
+        # W6 Logic (Sync with server logic)
+        violations = state.get("floors_violated", [])
+        if load_delta > 2.0 and "W6_METABOLIC_PAUSE" not in violations:
+            violations.append("W6_METABOLIC_PAUSE")
+
+        state["metrics"] = metrics
+        state["well_score"] = max(0, state.get("well_score", 50) - (load_delta * 2))
+        state["floors_violated"] = violations
+
+        with open(WELL_STATE_PATH, "w") as f:
+            json.dump(state, f, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+async def anchor_well_to_vault(
+    summary: str = "WELL Substrate Anchor",
+    force: bool = False
+) -> Dict[str, Any]:
+    """
+    Anchor current WELL state to the arifOS VAULT999.
+    Provides immutable grounding for biological telemetry.
+    """
+    readiness = get_biological_readiness()
+    if not readiness["ok"] and not force:
+        return {"ok": False, "message": "Substrate offline. Anchor aborted."}
+
+    try:
+        from core.organs._4_vault import seal
+
+        # Build telemetry for the vault
+        telemetry = {
+            "well_score": readiness["well_score"],
+            "well_verdict": readiness["human_baseline_readiness"],
+            "well_bandwidth": readiness["bandwidth"],
+            "well_violations": readiness.get("violations", []),
+            "well_task_readiness": readiness["task_specific_readiness"],
+            "well_coupled_risk": readiness["coupled_risk"],
+            "source": "WELL-Substrate"
+        }
+
+        # Final seal of substrate state
+        res = await seal(
+            session_id="WELL-AUTO-SYNC",
+            summary=summary,
+            verdict="SEAL" if readiness["human_baseline_readiness"] in ("OPTIMAL", "FUNCTIONAL") else "HOLD",
+            telemetry=telemetry,
+            source_agent="well",
+            pipeline_stage="999_VAULT",
+            risk_tier="LOW"
+        )
+
+        return {
+            "ok": True,
+            "vault_id": res.seal_record.ledger_id,
+            "hash": res.seal_record.hash,
+            "verdict": res.verdict
+        }
+    except Exception as e:
+        logger.error(f"VAULT ANCHOR FAILED: {e}")
+        return {"ok": False, "error": str(e)}

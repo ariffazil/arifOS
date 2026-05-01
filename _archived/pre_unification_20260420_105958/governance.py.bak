@@ -1,0 +1,319 @@
+"""
+arifOS Governance Kernel — Floors F1–F13, ΔS, Ω0, Tri-Witness
+
+This module is the Single Execution Spine (SES) for all 13 tools.
+All irreversible or high-impact decisions must pass through here.
+
+DITEMPA BUKAN DIBERI
+"""
+
+from __future__ import annotations
+import hashlib
+import json
+import os
+import time
+from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Union
+
+from arifosmcp.runtime.invariant_contract import enforce_invariants
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Constitutional Constants
+# ──────────────────────────────────────────────────────────────────────────────
+
+PEACE_SQUARED_FLOOR = 0.80  # F5 cooling floor — below this triggers SABAR
+TRI_WITNESS_PARTIAL = 0.33  # One-witness score when Earth/AI bridge fails
+TRI_WITNESS_THRESHOLD = 0.95  # High-stakes consensus requirement
+STAKEHOLDER_SAFETY_FLOOR = 0.90  # F6 hard floor
+F4_ENTROPY_TOLERANCE = 0.02  # Allow small positive ΔS for honest failure recording
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Verdicts (888)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class Verdict:
+    SEAL = "SEAL"         # Proceed
+    PARTIAL = "PARTIAL"   # Proceed with remediation noted (invariant failure)
+    SABAR = "SABAR"       # Cooling / retry / downgrade
+    VOID = "VOID"         # Hard block
+    HOLD_888 = "888_HOLD" # Escalate to human sovereign
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Thermodynamic & Constitutional Metrics
+# ──────────────────────────────────────────────────────────────────────────────
+# Floors referenced:
+# F1  : Amanah Lock (reversibility / integrity)
+# F2  : Truth / factual grounding
+# F3  : Tri-Witness consensus (Human / AI / Earth)
+# F4  : ΔS ≤ 0 (entropy reduction / clarity)
+# F5  : Peace² ≥ 1.0 (stability)
+# F6  : Stakeholder / harm floor (placeholder hook)
+# F7  : Humility band Ω0 ∈ [0.03, 0.05]
+# F8–F13 : Reserved hooks for extended governance (explicit enums)
+
+
+@dataclass
+class ThermodynamicMetrics:
+    # F2: Truth / factual grounding (0–1, must be high)
+    truth_score: float
+
+    # F4: Entropy change (ΔS). Must be ≤ 0 for clarity.
+    # Small positive values ≤ F4_ENTROPY_TOLERANCE are permitted for honest
+    # failure recording (e.g. bridge timeout) — they trigger SABAR via F5,
+    # not VOID.
+    delta_s: float
+
+    # F7: Humility band Ω0. Must be in [0.03, 0.05].
+    omega_0: float
+
+    # F5: Stability metric (Peace²). Must be ≥ 1.0 for SEAL.
+    # Cooling floor is PEACE_SQUARED_FLOOR (0.80).
+    peace_squared: float
+
+    # F1: Amanah Lock — True if action is reversible or explicitly authorized.
+    amanah_lock: bool
+
+    # F3: Tri-Witness consensus (Human / AI / Earth). Must be ≥ 0.95 for high stakes.
+    tri_witness_score: float
+
+    # F6: Stakeholder harm floor (0–1, 1 = no harm). Must be high.
+    stakeholder_safety: float = 1.0
+
+    # F8–F13: Explicit string enums instead of null for clarity.
+    floor_8_signal: Union[str, float, None] = "not_evaluated"
+    floor_9_signal: Union[str, float, None] = "not_evaluated"
+    floor_10_signal: Union[str, float, None] = "not_evaluated"
+    floor_11_signal: Union[str, float, None] = "not_evaluated"
+    floor_12_signal: Union[str, float, None] = "not_evaluated"
+    floor_13_signal: Union[str, float, None] = "not_evaluated"
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Floor Enforcement (F1–F7 hard checks, F8–F13 hooks)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def apex_constitutional_review(metrics: ThermodynamicMetrics) -> str:
+    """
+    Evaluate a tool's proposed outcome against the 13 Floors.
+
+    This is the Single Execution Spine (SES). All high-impact tool calls
+    must pass through here before being considered valid.
+    """
+
+    m = metrics
+
+    # F1: Amanah Lock — if integrity / reversibility is not guaranteed → VOID
+    if not m.amanah_lock:
+        return Verdict.VOID
+
+    # F2: Truth — must be strongly grounded
+    if m.truth_score < 0.99:
+        return Verdict.VOID
+
+    # F4: ΔS ≤ 0 — entropy must not increase beyond tolerance.
+    # Small positive values (≤ F4_ENTROPY_TOLERANCE) are allowed so that
+    # honest failure recording (e.g. bridge timeout) yields SABAR via F5
+    # instead of being masked as zero entropy.
+    if m.delta_s > F4_ENTROPY_TOLERANCE:
+        return Verdict.VOID
+
+    # F5: Peace² ≥ 1.0 — system must be stable.
+    # Below PEACE_SQUARED_FLOOR is a hard cooling state.
+    if m.peace_squared < PEACE_SQUARED_FLOOR:
+        return Verdict.SABAR
+
+    # F7: Humility band Ω0 ∈ [0.03, 0.05]
+    if not (0.03 <= m.omega_0 <= 0.05):
+        return Verdict.SABAR
+
+    # F3: Tri-Witness consensus ≥ 0.95 for high-stakes decisions
+    if m.tri_witness_score < TRI_WITNESS_THRESHOLD:
+        return Verdict.HOLD_888
+
+    # F6: Stakeholder safety — if too low, escalate or block
+    if m.stakeholder_safety < STAKEHOLDER_SAFETY_FLOOR:
+        return Verdict.HOLD_888
+
+    # F8–F13: extension hooks (no hard logic yet, but kept explicit)
+    # Example: if any future floor signals are critical, they can override here.
+
+    return Verdict.SEAL
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Vault-999: Cryptographic Immutability (Cooling Ledger)
+# ──────────────────────────────────────────────────────────────────────────────
+
+VAULT999_LEDGER_PATH = os.getenv(
+    "ARIFOS_VAULT999_LEDGER",
+    "/usr/src/app/VAULT999/SEALED_EVENTS.jsonl"
+)
+
+
+def seal_to_vault999(
+    tool_name: str,
+    payload: Dict[str, Any],
+    verdict: str,
+    previous_hash: str = "GENESIS"
+) -> str:
+    """
+    Append the decision to a Merkle-style cooling ledger.
+
+    In production, this should write to an append-only log (e.g. JSONL file,
+    database, or external ledger). Here we only compute the hash and return it.
+    """
+    entry = {
+        "ts": time.time(),
+        "tool": tool_name,
+        "payload": payload,
+        "verdict": verdict,
+        "prev": previous_hash,
+    }
+    entry_str = repr(entry)
+    return hashlib.sha256(entry_str.encode("utf-8")).hexdigest()
+
+
+def append_vault999_event(
+    event_type: str,
+    payload: Dict[str, Any],
+    operator_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+) -> str:
+    """
+    Append a lightweight event to the VAULT999 JSONL ledger.
+
+    Returns the Merkle leaf hash of the appended record.
+    """
+    ledger_path = VAULT999_LEDGER_PATH
+    os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
+
+    # Compute previous hash from last line if present
+    previous_hash = "GENESIS"
+    if os.path.exists(ledger_path):
+        try:
+            with open(ledger_path, "r", encoding="utf-8") as fh:
+                lines = [ln.strip() for ln in fh if ln.strip()]
+                if lines:
+                    last = json.loads(lines[-1])
+                    previous_hash = last.get("chain_hash", last.get("merkle_leaf", "GENESIS"))
+        except Exception:
+            previous_hash = "GENESIS"
+
+    entry = {
+        "ts": time.time(),
+        "event_type": event_type,
+        "operator_id": operator_id,
+        "session_id": session_id,
+        "payload": payload,
+        "prev_hash": previous_hash,
+    }
+    entry_str = json.dumps(entry, sort_keys=True, ensure_ascii=False)
+    merkle_leaf = hashlib.sha256(entry_str.encode("utf-8")).hexdigest()
+    chain_hash = hashlib.sha256(
+        f"{previous_hash}:{merkle_leaf}".encode("utf-8")
+    ).hexdigest()
+
+    record = {
+        **entry,
+        "merkle_leaf": merkle_leaf,
+        "chain_hash": chain_hash,
+    }
+
+    with open(ledger_path, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    return chain_hash
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Public API for Tools: governed_return
+# ──────────────────────────────────────────────────────────────────────────────
+
+def governed_return(
+    tool_name: str,
+    raw_output: Any,
+    metrics: ThermodynamicMetrics,
+    operator_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+    previous_hash: str = "GENESIS"
+) -> Dict[str, Any]:
+    """
+    Wrap a tool's raw_output with constitutional review and Vault-999 sealing.
+
+    This is what every arifOS tool should call at the end of its execute()
+    function. The tool is responsible for computing honest ThermodynamicMetrics.
+
+    AGI Invariant Enforcement:
+      - Always runs enforce_invariants() on raw_output.
+      - If invariants fail, the raw verdict from apex review is downgraded:
+        SEAL → PARTIAL (output still delivered for inspection).
+      - raw_output is ALWAYS preserved in the envelope for downstream
+        constitutional_guard inspection, even on VOID/SABAR/HOLD_888.
+    """
+
+    # Identity / Sovereign Anchor (Floor: Identity)
+    identity = {
+        "operator_id": operator_id,
+        "session_id": session_id,
+    }
+
+    # ── AGI Invariant Enforcement (epistemic safety beyond schema) ───────────
+    invariant_failures: List[str] = []
+    if isinstance(raw_output, dict):
+        invariant_failures = enforce_invariants(tool_name, raw_output)
+
+    # ── Apex Constitutional Review (thermodynamic floors) ────────────────────
+    verdict = apex_constitutional_review(metrics)
+
+    # Downgrade SEAL if invariants fail — output still delivered for inspection
+    if verdict == Verdict.SEAL and invariant_failures:
+        verdict = Verdict.PARTIAL
+
+    receipt_hash = seal_to_vault999(
+        tool_name=tool_name,
+        payload={"output": raw_output, "metrics": asdict(metrics), "identity": identity},
+        verdict=verdict,
+        previous_hash=previous_hash,
+    )
+
+    # Base envelope — raw_output always preserved for inspection
+    envelope: Dict[str, Any] = {
+        "status": "success",
+        "verdict": verdict,
+        "tool": tool_name,
+        "output": raw_output if verdict in (Verdict.SEAL, Verdict.PARTIAL) else None,
+        "raw_output": raw_output,  # Always preserved for downstream guard/audit
+        "metrics": asdict(metrics),
+        "identity": identity,
+        "zkpc_receipt": receipt_hash,
+        "invariant_failures": invariant_failures,
+    }
+
+    if verdict == Verdict.SEAL:
+        return envelope
+
+    if verdict == Verdict.PARTIAL:
+        envelope["status"] = "partial"
+        envelope["error"] = (
+            "AGI invariants failed: " + ", ".join(invariant_failures)
+        )
+        return envelope
+
+    if verdict == Verdict.SABAR:
+        envelope["status"] = "cooling"
+        envelope["error"] = "Thermodynamic instability (ΔS, Ω0, or Peace² out of band)."
+        return envelope
+
+    if verdict == Verdict.HOLD_888:
+        envelope["status"] = "escalated"
+        envelope["error"] = "Tri-Witness or stakeholder safety insufficient. Human approval required."
+        return envelope
+
+    # Verdict.VOID or any other unexpected state → hard block
+    envelope["status"] = "blocked"
+    envelope["verdict"] = Verdict.VOID
+    envelope["error"] = "Constitutional VOID."
+    return envelope

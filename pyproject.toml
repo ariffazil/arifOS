@@ -1,7 +1,7 @@
 [project]
 name = "arifos"
 version = "2026.05.01"
-description = "arifOS v2026.05.01-KANON — Constitutional AI Governance System. 13 canonical MCP tools, 13 constitutional floors (F01-F13), WELL human substrate layer (v2 consent reliability composite), streamable-http MCP transport. W0 Invariant: WELL informs, Arif decides."
+description = "arifOS v2026.05.01-KANON — Federated Truth-Status Kernel. 13 canonical MCP tools, 13 constitutional floors (F01-F13), WELL human substrate layer (v2 consent reliability composite). W0 Invariant: WELL informs, Arif decides."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"

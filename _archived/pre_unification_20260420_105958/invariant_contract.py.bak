@@ -1,0 +1,209 @@
+"""
+arifOS Invariant Contract — AGI-Level Epistemic Safety Layer
+
+Stage: All | Trinity: Ψ+Ω+Δ | Floors: F2, F7, F9, F11
+
+Purpose:
+  Enforce invariants BEYOND schema validation. Every tool output must
+  demonstrate self-bounded certainty, explicit assumptions, traceable
+  reasoning, and floor-aware governance.
+
+Invariants checked:
+  1. confidence ∈ [0.03, 0.97]              (epistemic boundedness)
+  2. uncertainty_acknowledged == True       (honest about limits)
+  3. assumptions is non-empty list          (explicit assumptions)
+  4. reasoning_hash is present              (traceability)
+  5. input_hash is present                  (input traceability)
+  6. timestamp is present                   (temporal anchoring)
+  7. verdict != "SEAL" for non-judge tools  (non-self-sealing)
+  8. floors_evaluated is list               (floor awareness)
+  9. meta_intelligence block present        (self-model signal)
+
+Tool-specific:
+  000_init : epoch in YYYY.MM format, identity_reason present
+  111_sense: ambiguity_score ∈ [0, 1], truth_class present
+  222_witness: tri_witness_tag ∈ {FULL_WITNESS, PARTIAL_WITNESS, NO_WITNESS},
+              judge_signal present
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+
+# ── Global AGI Invariants ────────────────────────────────────────────────────
+
+AGI_INVARIANTS: dict[str, dict[str, Any]] = {
+    "confidence_bounds": {
+        "description": "Confidence must be explicitly bounded in [0.03, 0.97]",
+        "min": 0.03,
+        "max": 0.97,
+    },
+    "uncertainty_acknowledged": {
+        "description": "Tool must explicitly acknowledge uncertainty",
+        "required_value": True,
+    },
+    "assumptions_present": {
+        "description": "At least one explicit assumption must be stated",
+        "min_count": 1,
+    },
+    "reasoning_hash_present": {
+        "description": "reasoning_hash must be present for traceability",
+    },
+    "input_hash_present": {
+        "description": "input_hash must be present for input traceability",
+    },
+    "timestamp_present": {
+        "description": "timestamp must be present for temporal anchoring",
+    },
+    "non_self_sealing": {
+        "description": "Only 888_judge may issue SEAL verdict",
+    },
+    "floors_evaluated_present": {
+        "description": "floors_evaluated must be a list of floor identifiers",
+    },
+    "meta_intelligence_present": {
+        "description": "meta_intelligence block must be present",
+    },
+}
+
+# ── Tool-Specific Invariants ─────────────────────────────────────────────────
+
+TOOL_SPECIFIC_INVARIANTS: dict[str, dict[str, Any]] = {
+    "arifos_000_init": {
+        "epoch_format": "YYYY.MM",
+        "required_fields": ["identity_reason", "epoch", "identity_verified"],
+    },
+    "arifos_111_sense": {
+        "required_fields": ["truth_class", "ambiguity_score", "grounded_scene"],
+        "ambiguity_bounds": [0.0, 1.0],
+    },
+    "arifos_222_witness": {
+        "required_fields": [
+            "tri_witness_score",
+            "tri_witness_tag",
+            "claim_bundle",
+            "consensus_rationale",
+            "judge_signal",
+        ],
+        "valid_tags": ["FULL_WITNESS", "PARTIAL_WITNESS", "NO_WITNESS"],
+    },
+}
+
+
+# ── Invariant Enforcement ────────────────────────────────────────────────────
+
+
+def enforce_invariants(tool_name: str, payload: dict[str, Any]) -> list[str]:
+    """
+    Evaluate payload against AGI invariants and tool-specific invariants.
+
+    Returns a list of failure codes. Empty list means all invariants pass.
+    """
+    failures: list[str] = []
+    if not payload:
+        return ["payload_missing"]
+
+    # ── Global: confidence ∈ [0.03, 0.97] ────────────────────────────────────
+    conf = payload.get("confidence")
+    if conf is None:
+        failures.append("confidence_missing")
+    else:
+        try:
+            c = float(conf)
+            if not (0.03 <= c <= 0.97):
+                failures.append("confidence_out_of_bounds")
+        except (TypeError, ValueError):
+            failures.append("confidence_not_numeric")
+
+    # ── Global: uncertainty_acknowledged ─────────────────────────────────────
+    if payload.get("uncertainty_acknowledged") is not True:
+        failures.append("uncertainty_not_acknowledged")
+
+    # ── Global: assumptions non-empty list ───────────────────────────────────
+    assumptions = payload.get("assumptions")
+    if not isinstance(assumptions, list) or len(assumptions) < 1:
+        failures.append("missing_assumptions")
+
+    # ── Global: reasoning_hash present ───────────────────────────────────────
+    if not payload.get("reasoning_hash"):
+        failures.append("missing_reasoning_hash")
+
+    # ── Global: input_hash present ───────────────────────────────────────────
+    if not payload.get("input_hash"):
+        failures.append("missing_input_hash")
+
+    # ── Global: timestamp present ────────────────────────────────────────────
+    if not payload.get("timestamp"):
+        failures.append("missing_timestamp")
+
+    # ── Global: no self-SEAL (only 888_judge may SEAL) ───────────────────────
+    if tool_name != "arifos_888_judge" and payload.get("verdict") == "SEAL":
+        failures.append("illegal_self_seal")
+
+    # ── Global: floors_evaluated must be list ────────────────────────────────
+    if not isinstance(payload.get("floors_evaluated"), list):
+        failures.append("missing_floors_evaluated")
+
+    # ── Global: meta_intelligence block present ──────────────────────────────
+    meta = payload.get("meta_intelligence")
+    if not isinstance(meta, dict):
+        failures.append("missing_meta_intelligence")
+    else:
+        required_meta_keys = [
+            "self_model_present",
+            "assumption_tracking",
+            "uncertainty_tracking",
+        ]
+        for key in required_meta_keys:
+            if key not in meta:
+                failures.append(f"missing_meta_intelligence.{key}")
+
+    # ── Tool-specific checks ─────────────────────────────────────────────────
+    tool_specs = TOOL_SPECIFIC_INVARIANTS.get(tool_name, {})
+
+    # Required fields
+    for field in tool_specs.get("required_fields", []):
+        if field not in payload or payload[field] is None:
+            failures.append(f"missing_required_field:{field}")
+
+    # 000_init: epoch format
+    if tool_name == "arifos_000_init":
+        epoch = payload.get("epoch", "")
+        if epoch and not _is_YYYY_MM(epoch):
+            failures.append("epoch_format_invalid")
+
+    # 111_sense: ambiguity_score bounds
+    if tool_name == "arifos_111_sense":
+        amb = payload.get("ambiguity_score")
+        if amb is not None:
+            try:
+                a = float(amb)
+                if not (0.0 <= a <= 1.0):
+                    failures.append("ambiguity_score_out_of_bounds")
+            except (TypeError, ValueError):
+                failures.append("ambiguity_score_not_numeric")
+
+    # 222_witness: valid tag
+    if tool_name == "arifos_222_witness":
+        tag = payload.get("tri_witness_tag")
+        valid_tags = tool_specs.get("valid_tags", [])
+        if tag and tag not in valid_tags:
+            failures.append("invalid_tri_witness_tag")
+
+    return failures
+
+
+def _is_YYYY_MM(epoch: str) -> bool:
+    """Check if epoch matches YYYY.MM format (e.g. 2026.04)."""
+    parts = epoch.split(".")
+    if len(parts) != 2:
+        return False
+    try:
+        year = int(parts[0])
+        month = int(parts[1])
+        return 1900 <= year <= 2100 and 1 <= month <= 12
+    except ValueError:
+        return False

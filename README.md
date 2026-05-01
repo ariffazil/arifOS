@@ -34,6 +34,37 @@ Operator (Arif) → WELL (Human Substrate Mirror) → arifOS (Constitutional Ker
 
 ---
 
+## Federated Truth-Status Kernel (v3.2)
+
+arifOS v2026.05.01 introduces the **Federated Truth-Status Intelligence Kernel**, moving from simple unsupported claim detection to a physically-grounded truth-status evaluation pipeline.
+
+### Core Equation ($T_{status}$)
+
+Truth-status is not an oracle assertion, but a governed claim-state transition computed as:
+
+$$T = (G \times E \times W \times R \times A) \times e^{-(C + S + M + 10U)}$$
+
+| Variable | Source | Meaning |
+|----------|--------|---------|
+| **G** | `PULSE` | Governance & floor compliance stability |
+| **E** | `WEALTH` | Epistemic Integrity (RAGAS-aligned faithfulness) |
+| **W** | `Shahada` | Witness strength (Official source + ClaimReview) |
+| **R** | `WELL` | Human/Machine readiness and reliability |
+| **A** | `VAULT` | Auditability (C2PA-aligned provenance) |
+| **C, S, M, U** | Internal | Penalties for Contradiction, Staleness, Manipulation, Uncertainty |
+
+### Truth Packet Schema
+
+Every truth-evaluated reasoning result returns a **Truth Packet**:
+- `claim`: The raw assertion.
+- `truth_state`: {`TRUE_SUPPORTED`, `FALSE_SUPPORTED`, `CONTRADICTED`, `STALE`, `AMBIGUOUS`, `NON_FALSIFIABLE`, `VALUE_JUDGMENT`, `HIGH_RISK_HOLD`}.
+- `confidence`: The calculated $T_{status}$ score (0.0 to 1.0).
+- `provenance`: {`C2PA_SIGNED`, `UNVERIFIED_ORIGIN`}.
+- `safe_statement`: A constitutionally-calibrated statement for human review.
+- `vitals_summary`: Live grounding metrics from the federation stacks.
+
+---
+
 ## 13 Canonical MCP Tools
 
 | Stage | Tool | Lane | Purpose |

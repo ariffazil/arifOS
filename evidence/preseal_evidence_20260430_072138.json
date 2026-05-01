@@ -1,0 +1,53 @@
+{
+  "skill": "vps_preseal_evidence",
+  "status": "HOLD",
+  "timestamp_utc": "2026-04-30T07:21:40Z",
+  "recommendation": "HOLD",
+  "evidence": {
+    "git": {
+      "commit": "bc3932a5e8bf74b018887ecf1767b7a6199c7fe4",
+      "commit_short": "bc3932a5",
+      "branch": "main",
+      "uncommitted_files": 8,
+      "last_message": "feat: canonical package layout + Langfuse v3 + observatory + skill",
+      "log_5": "bc3932a5 feat: canonical package layout + Langfuse v3 + observatory + skill\n79d7a844 feat(telemetry): Langfuse v4 SDK tracing wired into kernel dispatch\n12214675 fix: all 5 _arif_vault_seal HOLD paths now wrapped with _inject_nine_signal\nb6b9c85c feat: P2+P3 constitutional hardening — 888_JUDGE evidence pre-loading, post-SEAL vault hook, 333_MIND context injection, 666_HEART context_type scaling, 555_MEMORY init_recall, session cleanup\naf576939 fix: _hold and _arif_vault_seal — all 4 HOLD paths now return reasons[] + next_safe_action\n"
+    },
+    "image": {
+      "current": "arifos@sha256:a9c5dcbb80f171ca1e4b618aca3556924088fc4cf9d3a274b436d1ab5c974417",
+      "digest": "sha256:a9c5dcbb80f171ca1e4b618aca3556924088fc4cf9d3a274b436d1ab5c974417",
+      "compose_ref": "ghcr.io/ariffazil/arifos:v0.2"
+    },
+    "runtime": {
+      "tool_registry_hash": "d8163837619251e7",
+      "schema_hash": "6b2f0e7657ebacef",
+      "runtime_drift": "False",
+      "constitution_hash": "unknown",
+      "version": "kanon-bc3932a",
+      "health_status": "healthy"
+    },
+    "vault999": {
+      "status": "unreachable",
+      "chain_height": 0
+    },
+    "mcp": {
+      "caddyfile_route_count": 20,
+      "caddyfile_found": "yes"
+    },
+    "tools": {
+      "expected_count": 13,
+      "actual_count": "unknown"
+    },
+    "langfuse": {
+      "keys_in_container": "yes"
+    }
+  },
+  "reasons": [
+  "uncommitted_files:8"
+],
+  "hold_issues": [
+  "uncommitted_changes:8"
+],
+  "risk": "MEDIUM",
+  "seal_warrant": "sha256:98b97c973134601e",
+  "next_safe_action": "resolve_holds_then_recheck"
+}

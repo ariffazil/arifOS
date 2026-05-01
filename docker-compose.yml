@@ -1,0 +1,221 @@
+# arifos Authoritative Compose — MACHINE LAW (v60.1.1 - Dozzle Added)
+# DITEMPA BUKAN DIBERI
+
+services:
+
+  # -- Governance Kernel --
+  arifosmcp:
+    build:
+      context: /root/arifOS
+      dockerfile: Dockerfile
+    container_name: arifosmcp
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ARIFOS_CONSTITUTION: /etc/arifos/constitution
+      ARIFOS_MANIFESTS: /etc/arifos/manifests
+      VAULT_URL: http://vault999:8100
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+    volumes:
+      - /var/lib/arifos/vault:/var/lib/arifos/vault:rw
+      - /var/log/arifos/telemetry:/usr/src/app/arifosmcp/telemetry:rw
+    networks:
+      - arifos_core
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/sse', timeout=5)\""]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # -- LLM Engine (Ollama) --
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_ORIGINS=https://*.arif-fazil.com
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - arifos_core
+
+  # -- Observability (Log Pulse) --
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - arifos_core
+    # No ports exposed to host — Caddy will proxy
+
+  # -- Vault API Layer --
+  vault999:
+    build:
+      context: /root/arifOS/00_legacy_materials/arifOS-upstream/vault-service
+      dockerfile: Dockerfile
+    container_name: vault999
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      PORT: '8100'
+    networks:
+      - arifos_core
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # -- Vault Writer --
+  vault999-writer:
+    build:
+      context: /root/arifOS/00_legacy_materials/arifOS-upstream/vault999_writer
+      dockerfile: Dockerfile
+    container_name: vault999-writer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:5001"
+    environment:
+      VAULT999_DB: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      PORT: '5001'
+    networks:
+      - arifos_core
+    depends_on:
+      vault999:
+        condition: service_healthy
+
+  # -- Notifier (Telegram Alerts) --
+  forge-notifier:
+    build:
+      context: /root/arifOS/services/notifier
+      dockerfile: Dockerfile
+    container_name: forge-notifier
+    restart: unless-stopped
+    environment:
+      NOTIFIER_TELEGRAM_BOT_TOKEN: ${NOTIFIER_TELEGRAM_BOT_TOKEN}
+      NOTIFIER_TELEGRAM_CHAT_ID: '-1003768847825'
+      VAULT_URL: http://vault999:8100/seals
+    networks:
+      - arifos_core
+    depends_on:
+      vault999:
+        condition: service_healthy
+
+  # -- Database --
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vault999
+      POSTGRES_USER: arifos_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - arifos_core
+    healthcheck:
+      test: pg_isready -U arifos_admin -d vault999
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -- Cache --
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - arifos_core
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+
+  # -- Memory Organ (Qdrant) --
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - arifos_core
+    healthcheck:
+      test: grep -l "qdrant" /proc/*/comm || exit 1
+      interval: 15s
+
+  # -- Caddy Proxy --
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - /root/sites:/var/www/html:ro
+      - /root/volumes/caddy/cloudflare-origin:/data/cloudflare-origin:ro
+    networks:
+      - arifos_core
+
+  # -- Domain Organs --
+  geox:
+    build: /root/geox
+    container_name: geox
+    restart: unless-stopped
+    networks:
+      - arifos_core
+    depends_on:
+      vault999:
+        condition: service_healthy
+    volumes:
+      - /root/geox/geox_mcp_server.py:/app/geox_mcp_server.py:ro
+
+  wealth-organ:
+    build: /root/arifOS/skills/wealth
+    container_name: wealth-organ
+    restart: unless-stopped
+    networks:
+      - arifos_core
+
+  aaa:
+    build: /root/geox/site
+    container_name: aaa
+    restart: unless-stopped
+    networks:
+      - arifos_core
+
+networks:
+  arifos_core:
+    name: arifos_core_network
+    external: true
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  ollama_data:
+  caddy_data:
+  caddy_config:

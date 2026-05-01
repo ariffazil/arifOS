@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>arifOS MCP — Governed Intelligence Server</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root {
+      --bg: #0a0a0a;
+      --card-bg: #141414;
+      --border: #2a2a2a;
+      --accent: #e6c25d;
+      --text: #d4d4d4;
+      --dim: #888;
+      --blue: #7dd3fc;
+      --green: #22c55e;
+      --orange: #f59e0b;
+      --red: #ef4444;
+    }
+    body{background:var(--bg);color:var(--text);font-family:ui-monospace,monospace;
+         font-size:14px;line-height:1.6;padding:2rem 1rem;max-width:1100px;margin:auto}
+
+    /* Hero */
+    .hero { border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem; }
+    .hero h1 { color: var(--accent); font-size: 1.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 1rem; }
+    .hero .tagline { color: var(--dim); font-size: 1rem; margin-bottom: 1.5rem; }
+    .hero-stats { display: flex; gap: 2rem; flex-wrap: wrap; }
+    .hero-stat { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+    .hero-stat .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    .hero-stat .dot.pulse { animation: pulse 2s infinite; }
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .pill-live { background: var(--green); color: #000; padding: 0.15rem 0.5rem; border-radius: 99px; font-size: 0.65rem; font-weight: bold; }
+
+    /* Quick Connect - Priority Section */
+    .quick-connect { background: linear-gradient(135deg, #141414 0%, #1a1a1a 100%); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+    .quick-connect h2 { color: var(--accent); font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .endpoint-box { background: #000; border: 1px solid #333; border-radius: 6px; padding: 0.75rem 1rem; font-family: monospace; font-size: 0.9rem; color: var(--blue); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    .config-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .config-card h4 { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+    .code-block { position: relative; background: #000; padding: 0.75rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; border: 1px solid #222; }
+    .code-block code { color: var(--text); }
+    .copy-btn { position: absolute; top: 0.4rem; right: 0.4rem; background: #333; border: none; color: var(--text); padding: 0.2rem 0.5rem; font-size: 0.65rem; border-radius: 3px; cursor: pointer; opacity: 0.7; transition: 0.2s; }
+    .copy-btn:hover { opacity: 1; background: #444; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
+    .tab { padding: 0.75rem 1.25rem; cursor: pointer; color: var(--dim); border-bottom: 2px solid transparent; transition: 0.2s; font-size: 0.9rem; }
+    .tab:hover { color: var(--blue); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Canonical Tools - 10 Tool Surface */
+    .tools-section { margin-bottom: 2rem; }
+    .tools-section h3 { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    .tool-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; transition: 0.2s; }
+    .tool-card:hover { border-color: var(--blue); }
+    .tool-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .tool-name { color: var(--blue); font-weight: 600; font-size: 0.95rem; }
+    .tool-meta { display: flex; gap: 0.5rem; font-size: 0.65rem; }
+    .tool-stage { background: #333; padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--dim); }
+    .tool-trinity { background: var(--accent); color: #000; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; }
+    .tool-desc { font-size: 0.85rem; color: #aaa; margin-bottom: 0.75rem; line-height: 1.5; }
+    .tool-usage { font-size: 0.75rem; color: var(--dim); border-top: 1px solid #222; padding-top: 0.5rem; }
+    .tool-usage .when { color: var(--green); }
+    .tool-usage .not-when { color: var(--orange); }
+
+    /* Status Grid */
+    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .status-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .status-card h4 { color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .status-card .value { color: var(--accent); font-size: 1.1rem; font-weight: 600; }
+    .status-card .help { font-size: 0.7rem; color: var(--dim); margin-top: 0.25rem; }
+
+    /* Security Section */
+    .security-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem; }
+    .security-section h3 { color: var(--accent); font-size: 0.9rem; margin-bottom: 1rem; }
+    .security-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .security-item { font-size: 0.8rem; }
+    .security-item strong { color: var(--blue); display: block; margin-bottom: 0.25rem; }
+    .security-item span { color: var(--dim); }
+
+    /* Protocol Section */
+    .protocol-section { background: #0f0f0f; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem; }
+    .protocol-section h3 { color: var(--orange); font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .protocol-note { font-size: 0.8rem; color: var(--dim); margin-bottom: 1rem; }
+    .protocol-example { background: #000; border: 1px solid #333; border-radius: 4px; padding: 0.75rem; font-size: 0.8rem; overflow-x: auto; }
+    .protocol-example code { color: var(--text); }
+
+    /* Legacy Section */
+    .legacy-section { margin-top: 2rem; }
+    .legacy-section summary { cursor: pointer; padding: 0.75rem; background: var(--card-bg); border-radius: 6px; color: var(--dim); font-size: 0.85rem; }
+    .legacy-section details[open] summary { border-radius: 6px 6px 0 0; }
+    .legacy-content { padding: 1rem; background: #0f0f0f; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--dim); font-weight: normal; font-size: 0.7rem; text-transform: uppercase; }
+    .url { color: var(--blue); }
+
+    /* Footer */
+    .motto { color: #555; font-size: 0.75rem; margin-top: 3rem; text-align: center; }
+
+    /* Trinity Legend */
+    .trinity-legend { display: flex; gap: 2rem; margin: 1rem 0; font-size: 0.8rem; flex-wrap: wrap; }
+    .trinity-item { display: flex; align-items: center; gap: 0.5rem; }
+    .trinity-item .symbol { font-weight: bold; font-size: 1.1rem; }
+    .trinity-item.delta .symbol { color: var(--blue); }
+    .trinity-item.omega .symbol { color: var(--green); }
+    .trinity-item.psi .symbol { color: var(--accent); }
+
+    /* API Explorer */
+    .api-explorer { background: linear-gradient(135deg, #0f0f15 0%, #151520 100%); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+    .api-explorer h2 { color: var(--accent); font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .endpoint-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; }
+    .endpoint-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; transition: 0.2s; }
+    .endpoint-link:hover { border-color: var(--blue); background: #1a1a25; }
+    .endpoint-link .method { font-size: 0.65rem; font-weight: bold; padding: 0.15rem 0.4rem; border-radius: 3px; }
+    .endpoint-link .method.get { background: var(--green); color: #000; }
+    .endpoint-link .method.post { background: var(--blue); color: #000; }
+    .endpoint-link .path { color: var(--blue); font-family: monospace; font-size: 0.8rem; }
+    .endpoint-link .desc { color: var(--dim); font-size: 0.75rem; margin-left: auto; }
+    .mcp-endpoint { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .mcp-endpoint .mcp-label { color: var(--dim); font-size: 0.8rem; }
+    .mcp-endpoint code { color: var(--orange); font-family: monospace; font-size: 0.85rem; background: #000; padding: 0.3rem 0.6rem; border-radius: 4px; border: 1px solid #333; }
+  </style>
+</head>
+<body>
+  <!-- Hero -->
+  <header class="hero">
+    <h1>arifOS MCP <span class="pill-live">LIVE</span></h1>
+    <p class="tagline">Governed remote MCP server for reasoning, safety, memory, judgment, and controlled execution.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="dot pulse"></span>Healthy — Endpoint responding</div>
+      <div class="hero-stat">Server 2.0.0 • Registry 1.2.0</div>
+      <div class="hero-stat">Transport: Streamable HTTP</div>
+      <div class="hero-stat">Protocol: MCP 2025-03-26</div>
+    </div>
+  </header>
+
+  <!-- Quick Connect - Start in 30 Seconds -->
+  <section class="quick-connect">
+    <h2>⚡ Connect in 30 Seconds</h2>
+    <div class="endpoint-box">
+      <span>https://arifosmcp.arif-fazil.com/mcp</span>
+      <button class="copy-btn" onclick="copyText('https://arifosmcp.arif-fazil.com/mcp')">Copy</button>
+    </div>
+    <div class="config-grid">
+      <div class="config-card">
+        <h4>🤖 ChatGPT / OpenAI</h4>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <code>{"mcpServers":{"arifos":{"url":"https://arifosmcp.arif-fazil.com/mcp"}}}</code>
+        </div>
+      </div>
+      <div class="config-card">
+        <h4>🧩 Claude / Anthropic</h4>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <code>{"mcpServers":{"arifos":{"command":"npx","args":["-y","@modelcontextprotocol/inspector","https://arifosmcp.arif-fazil.com/mcp"]}}}</code>
+        </div>
+      </div>
+      <div class="config-card">
+        <h4>🧪 MCP Inspector</h4>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <code>npx -y @modelcontextprotocol/inspector https://arifosmcp.arif-fazil.com/mcp</code>
+        </div>
+      </div>
+      <div class="config-card">
+        <h4>📋 Raw curl</h4>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <code>curl -X POST https://arifosmcp.arif-fazil.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "MCP-Protocol-Version: 2025-03-26" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API Explorer -->
+  <section class="api-explorer">
+    <h2>🔍 API Explorer — Click to Test</h2>
+    <div class="endpoint-grid">
+      <a href="/health" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/health</span>
+        <span class="desc">Health status & metrics</span>
+      </a>
+      <a href="/version" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/version</span>
+        <span class="desc">Server version info</span>
+      </a>
+      <a href="/tools" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/tools</span>
+        <span class="desc">List 10 canonical tools</span>
+      </a>
+      <a href="/openapi.json" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/openapi.json</span>
+        <span class="desc">OpenAPI 3.1 spec</span>
+      </a>
+      <a href="/llms.txt" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/llms.txt</span>
+        <span class="desc">Model-readable context</span>
+      </a>
+      <a href="/.well-known/mcp/server.json" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/.well-known/mcp/server.json</span>
+        <span class="desc">MCP discovery manifest</span>
+      </a>
+      <a href="/.well-known/agent.json" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/.well-known/agent.json</span>
+        <span class="desc">A2A agent card</span>
+      </a>
+      <a href="/.well-known/webmcp" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/.well-known/webmcp</span>
+        <span class="desc">WebMCP manifest</span>
+      </a>
+      <a href="/webmcp/tools.json" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/webmcp/tools.json</span>
+        <span class="desc">WebMCP tools</span>
+      </a>
+      <a href="/status" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/status</span>
+        <span class="desc">Governance status</span>
+      </a>
+      <a href="/api/live/all" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/api/live/all</span>
+        <span class="desc">Live metrics (all)</span>
+      </a>
+      <a href="/robots.txt" target="_blank" class="endpoint-link">
+        <span class="method get">GET</span>
+        <span class="path">/robots.txt</span>
+        <span class="desc">Crawler directives</span>
+      </a>
+    </div>
+    <div class="mcp-endpoint">
+      <span class="mcp-label">MCP Protocol Endpoint (POST only):</span>
+      <code>https://arifosmcp.arif-fazil.com/mcp</code>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('operator')">👤 Operator Lane</div>
+    <div class="tab" onclick="showTab('builder')">🔧 Builder Lane</div>
+  </div>
+
+  <!-- Operator Lane -->
+  <div id="operator" class="tab-content active">
+    <!-- 10 Canonical Tools -->
+    <section class="tools-section">
+      <h3>10 Canonical Tools</h3>
+      <div class="trinity-legend">
+        <div class="trinity-item delta"><span class="symbol">Δ</span> Discernment — Reality & Reasoning</div>
+        <div class="trinity-item omega"><span class="symbol">Ω</span> Stability — Safety & Memory</div>
+        <div class="trinity-item psi"><span class="symbol">Ψ</span> Sovereignty — Routing & Judgment</div>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.init</span>
+            <div class="tool-meta">
+              <span class="tool-stage">000_INIT</span>
+              <span class="tool-trinity">Ψ</span>
+            </div>
+          </div>
+          <p class="tool-desc">Session establishment and actor binding. Creates foundational context for all operations.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Starting new conversations, re-establishing identity</div>
+            <div><span class="not-when">✗ Don't:</span> Mid-conversation without cause</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.sense</span>
+            <div class="tool-meta">
+              <span class="tool-stage">111_SENSE</span>
+              <span class="tool-trinity">Δ</span>
+            </div>
+          </div>
+          <p class="tool-desc">Reality grounding — time, environmental facts, source evidence. Prevents hallucination.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Verifying external facts, temporal context</div>
+            <div><span class="not-when">✗ Don't:</span> Pure logic without empirical component</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.mind</span>
+            <div class="tool-meta">
+              <span class="tool-stage">333_MIND</span>
+              <span class="tool-trinity">Δ</span>
+            </div>
+          </div>
+          <p class="tool-desc">Structured reasoning, synthesis, architecture design. Produces candidate solutions.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Multi-source synthesis, system thinking</div>
+            <div><span class="not-when">✗ Don't:</span> Final authority decisions, direct execution</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.route</span>
+            <div class="tool-meta">
+              <span class="tool-stage">444_ROUTER</span>
+              <span class="tool-trinity">Ψ</span>
+            </div>
+          </div>
+          <p class="tool-desc">The Kernel — routes requests to correct lane based on task profile and session state.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Uncertain which tool to use, orchestration</div>
+            <div><span class="not-when">✗ Don't:</span> When target tool is clear — call directly</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.memory</span>
+            <div class="tool-meta">
+              <span class="tool-stage">555_MEMORY</span>
+              <span class="tool-trinity">Ω</span>
+            </div>
+          </div>
+          <p class="tool-desc">Governed memory — store/retrieve episodic, semantic, engineering memory. Not final truth.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Long-term context, reusable knowledge</div>
+            <div><span class="not-when">✗ Don't:</span> Treat as immutable ledger — use vault</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.heart</span>
+            <div class="tool-meta">
+              <span class="tool-stage">666_HEART</span>
+              <span class="tool-trinity">Ω</span>
+            </div>
+          </div>
+          <p class="tool-desc">Safety critique — stress-test for dignity, misuse, instability. The conscience of arifOS.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Safety implications, high-consequence decisions</div>
+            <div><span class="not-when">✗ Don't:</span> Routine low-risk operations</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.ops</span>
+            <div class="tool-meta">
+              <span class="tool-stage">777_OPS</span>
+              <span class="tool-trinity">Ω</span>
+            </div>
+          </div>
+          <p class="tool-desc">Cost estimation — computational cost, entropy, capacity, runtime health.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Before expensive operations, budget decisions</div>
+            <div><span class="not-when">✗ Don't:</span> As sole decision criteria — combine with heart</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.judge</span>
+            <div class="tool-meta">
+              <span class="tool-stage">888_JUDGE</span>
+              <span class="tool-trinity">Ψ</span>
+            </div>
+          </div>
+          <p class="tool-desc">Constitutional verdict — applies constitutional gate. Final authority before execution.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Constitutional approval, high-consequence gating</div>
+            <div><span class="not-when">✗ Don't:</span> Information retrieval, raw synthesis</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.vault</span>
+            <div class="tool-meta">
+              <span class="tool-stage">999_VAULT</span>
+              <span class="tool-trinity">Ψ</span>
+            </div>
+          </div>
+          <p class="tool-desc">The Seal — immutable ledger for final governed records. Permanent accountability.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> Permanent storage, audit trails, sealing decisions</div>
+            <div><span class="not-when">✗ Don't:</span> Working memory — use arifos.memory</div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-header">
+            <span class="tool-name">arifos.forge</span>
+            <div class="tool-meta">
+              <span class="tool-stage">FORGE_010</span>
+              <span class="tool-trinity">Δ</span>
+            </div>
+          </div>
+          <p class="tool-desc">Execution bridge — bridges governed decisions to controlled execution. May have side effects.</p>
+          <div class="tool-usage">
+            <div><span class="when">✓ Use:</span> After judge approval, approved action realization</div>
+            <div><span class="not-when">✗ Don't:</span> NEVER without judge approval for consequential actions</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security & Auth -->
+    <section class="security-section">
+      <h3>🔒 Security & Authentication</h3>
+      <div class="security-grid">
+        <div class="security-item">
+          <strong>Auth Required?</strong>
+          <span>No — Public read access for discovery endpoints</span>
+        </div>
+        <div class="security-item">
+          <strong>Anonymous Calls</strong>
+          <span>Allowed for /health, /tools, discovery</span>
+        </div>
+        <div class="security-item">
+          <strong>Rate Limits</strong>
+          <span>100 req/min per IP; burst protection enabled</span>
+        </div>
+        <div class="security-item">
+          <strong>CORS Policy</strong>
+          <span>Open — * origins allowed for MCP compatibility</span>
+        </div>
+        <div class="security-item">
+          <strong>Session Lifecycle</strong>
+          <span>24h default; auto-refresh on activity</span>
+        </div>
+        <div class="security-item">
+          <strong>Execution Auth</strong>
+          <span>Judge approval required for consequential actions</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Server Registry Card -->
+    <section class="status-grid">
+      <div class="status-card">
+        <h4>server.json</h4>
+        <div class="value"><a href="/.well-known/mcp/server.json" class="url">View →</a></div>
+        <div class="help">MCP registry discovery manifest</div>
+      </div>
+      <div class="status-card">
+        <h4>OpenAPI Spec</h4>
+        <div class="value"><a href="/openapi.json" class="url">View →</a></div>
+        <div class="help">REST API specification</div>
+      </div>
+      <div class="status-card">
+        <h4>llms.txt</h4>
+        <div class="value"><a href="/llms.txt" class="url">View →</a></div>
+        <div class="help">Model-readable context</div>
+      </div>
+      <div class="status-card">
+        <h4>Agent Card</h4>
+        <div class="value"><a href="/.well-known/agent.json" class="url">View →</a></div>
+        <div class="help">A2A protocol discovery</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Builder Lane -->
+  <div id="builder" class="tab-content">
+    <!-- Protocol Note -->
+    <section class="protocol-section">
+      <h3>⚠️ Protocol Note: /mcp Endpoint</h3>
+      <p class="protocol-note">
+        Direct browser navigation to /mcp returns 405 Method Not Allowed (per MCP spec). 
+        The endpoint expects JSON-RPC POST requests with proper headers.
+      </p>
+      <div class="protocol-example">
+<code>POST /mcp HTTP/1.1
+Host: arifosmcp.arif-fazil.com
+Content-Type: application/json
+MCP-Protocol-Version: 2025-03-26
+MCP-Session-Id: &lt;optional-session&gt;
+
+{
+  "jsonrpc": "2.0",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-03-26",
+    "capabilities": {},
+    "clientInfo": {"name": "example-client", "version": "1.0"}
+  },
+  "id": 1
+}</code>
+      </div>
+    </section>
+
+    <!-- Developer Endpoints -->
+    <section style="margin-bottom: 2rem;">
+      <h3 style="color: var(--accent); font-size: 0.9rem; margin-bottom: 1rem;">Developer Endpoints</h3>
+      <table>
+        <tr><th>Path</th><th>Description</th><th>Auth</th></tr>
+        <tr><td class="url">/health</td><td>Health check & metrics</td><td>None</td></tr>
+        <tr><td class="url">/tools</td><td>List canonical 10 tools</td><td>None</td></tr>
+        <tr><td class="url">/version</td><td>Build info & version</td><td>None</td></tr>
+        <tr><td class="url">/openapi.json</td><td>OpenAPI 3.1 specification</td><td>None</td></tr>
+        <tr><td class="url">/llms.txt</td><td>LLM-readable context</td><td>None</td></tr>
+        <tr><td class="url">/.well-known/mcp/server.json</td><td>MCP discovery manifest</td><td>None</td></tr>
+        <tr><td class="url">/.well-known/agent.json</td><td>A2A agent card</td><td>None</td></tr>
+        <tr><td class="url">/mcp</td><td>MCP protocol endpoint (POST)</td><td>Session</td></tr>
+      </table>
+    </section>
+
+    <!-- Legacy Mapping -->
+    <section class="legacy-section">
+      <details>
+        <summary>📎 Legacy Tool Mapping (Internal)</summary>
+        <div class="legacy-content">
+          <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 1rem;">
+            Legacy tool names map to the 10 canonical tools above. These are internal aliases for backward compatibility.
+          </p>
+          <table>
+            <tr><th>Legacy Name</th><th>Canonical Tool</th><th>Internal Mode</th></tr>
+            <tr><td>init_anchor</td><td>arifos.init</td><td>init, revoke, refresh</td></tr>
+            <tr><td>physics_reality</td><td>arifos.sense</td><td>search, ingest, compass</td></tr>
+            <tr><td>agi_mind</td><td>arifos.mind</td><td>reason, reflect, forge</td></tr>
+            <tr><td>arifOS_kernel</td><td>arifos.route</td><td>kernel, status</td></tr>
+            <tr><td>engineering_memory</td><td>arifos.memory</td><td>vector_query, vector_store</td></tr>
+            <tr><td>asi_heart</td><td>arifos.heart</td><td>critique, simulate</td></tr>
+            <tr><td>math_estimator</td><td>arifos.ops</td><td>cost, health, vitals</td></tr>
+            <tr><td>apex_soul</td><td>arifos.judge</td><td>judge, rules, validate</td></tr>
+            <tr><td>vault_ledger</td><td>arifos.vault</td><td>seal, verify</td></tr>
+            <tr><td>code_engine</td><td>arifos.forge</td><td>fs, process, net</td></tr>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <!-- Stage Order -->
+    <section style="margin-top: 2rem;">
+      <h3 style="color: var(--accent); font-size: 0.9rem; margin-bottom: 1rem;">Stage Progression</h3>
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;">
+        <code style="color: var(--dim);">
+          000_INIT → 111_SENSE → 333_MIND → 444_ROUTER → 555_MEMORY → 666_HEART → 777_OPS → 888_JUDGE → 999_VAULT → FORGE_010
+        </code>
+      </div>
+    </section>
+  </div>
+
+  <div class="motto">
+    DITEMPA BUKAN DIBERI — Forged, not given. ΔΩΨ | ARIF<br>
+    <span style="font-size: 0.65rem; color: #444;">Commit ab774bf8 • Built 2026-04-06</span>
+  </div>
+
+  <script>
+    function showTab(id) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(id).classList.add('active');
+    }
+    function copyCode(btn) {
+      const code = btn.nextElementSibling.innerText;
+      navigator.clipboard.writeText(code);
+      btn.innerText = 'Copied!';
+      setTimeout(() => btn.innerText = 'Copy', 2000);
+    }
+    function copyText(text) {
+      navigator.clipboard.writeText(text);
+      const btn = event.target;
+      btn.innerText = 'Copied!';
+      setTimeout(() => btn.innerText = 'Copy', 2000);
+    }
+  </script>
+</body>
+</html>

@@ -55,4 +55,4 @@ Gemini follows the **Unidirectional Authority Chain**:
 
 ---
 
-**⬡ L3 CLERK BINDING SEALED — MACHINE TRUTH v2026.04.24 ⬡**
+**⬡ L3 CLERK BINDING SEALED — TRUTH-STATUS KERNEL v2026.05.01 ⬡**

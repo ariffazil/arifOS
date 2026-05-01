@@ -1,0 +1,135 @@
+"""
+arifos/runtime/megaTools/08_physics_reality.py
+
+111_SENSE: Earth-Witness fact acquisition and mapping
+Stage: 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, F10
+
+Modes: search, ingest, compass, atlas, time, governed
+
+GOVERNED MODE — Constitutional Sensing Protocol:
+    Implements 8-stage governed sensing:
+        1. PARSE    → Extract entities, intent, time-dependence
+        2. CLASSIFY → Route to truth-class lane (A-E)
+        3. DECIDE   → Whether search is needed
+        4. PLAN     → Build evidence hierarchy
+        5. SENSE    → Execute constrained retrieval
+        6. NORMALIZE→ Convert to structured claims
+        7. GATE     → Confidence/ambiguity checks
+        8. HANDOFF  → Pass clean packet downstream
+
+    Invariants:
+        - Do not search if first principles suffice
+        - Do not trust retrieval without source ranking
+        - Do not collapse conflicting frames into one answer
+        - Do not hide uncertainty
+        - Do not pass raw noise downstream
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from arifos.runtime.models import RuntimeEnvelope
+from arifos.runtime.tools_internal import physics_reality_dispatch_impl
+
+
+async def physics_reality(
+    mode: str | None = None,
+    payload: dict[str, Any] | None = None,
+    query: str | None = None,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    declared_name: str | None = None,
+    intent: Any | None = None,
+    human_approval: bool = False,
+    risk_tier: str = "medium",
+    dry_run: bool = True,
+    allow_execution: bool = False,
+    caller_context: dict | None = None,
+    auth_context: dict | None = None,
+    debug: bool = False,
+    request_id: str | None = None,
+    timestamp: str | None = None,
+    raw_input: str | None = None,
+    ctx: Any | None = None,
+) -> RuntimeEnvelope:
+    from arifos.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # PATCH (2026-04-06): Validate query to prevent empty string collapse
+    # Empty query causes downstream Brave validation errors
+    # ═══════════════════════════════════════════════════════════════════════
+    effective_query = query or raw_input or (payload.get("query") if payload else None)
+    if not effective_query or str(effective_query).strip() == "":
+        from arifos.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
+
+        return RuntimeEnvelope(
+            tool="arifos_sense",
+            canonical_tool_name="arifos_sense",
+            stage="111_SENSE",
+            status=RuntimeStatus.ERROR,
+            verdict=Verdict.VOID,
+            session_id=session_id,
+            payload={
+                "ok": False,
+                "error": "SENSE_QUERY_EMPTY",
+                "detail": "Query cannot be empty or whitespace-only",
+                "hint": "Provide a valid query string for reality grounding",
+            },
+        )
+
+    payload = dict(payload or {})
+    # Ensure validated query is in payload (physics_reality uses "query" field)
+    payload["query"] = effective_query
+    payload["input"] = effective_query  # Keep for backward compatibility during transition
+
+    if caller_context:
+        payload.setdefault("caller_context", caller_context)
+    if auth_context:
+        payload.setdefault("auth_context", auth_context)
+    if session_id:
+        payload.setdefault("session_id", session_id)
+    if actor_id:
+        payload.setdefault("actor_id", actor_id)
+    if intent:
+        payload.setdefault("intent", intent)
+    if human_approval:
+        payload.setdefault("human_approval", human_approval)
+
+    if "physics_reality" in HARDENED_DISPATCH_MAP:
+        if mode is None:
+            mode = "search"
+        res_dict = await HARDENED_DISPATCH_MAP["physics_reality"](mode=mode, payload=payload)
+
+        # ─── V1.0 VERDICT FORGING ───
+        from arifos.runtime.models import CanonicalMetrics
+        from arifos.runtime.verdict_wrapper import forge_verdict
+
+        metrics = CanonicalMetrics()
+        metrics.telemetry.ds = res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
+        metrics.telemetry.confidence = (
+            res_dict.get("metrics", {})
+            .get("telemetry", {})
+            .get("confidence", res_dict.get("confidence", 0.0))
+        )
+
+        return forge_verdict(
+            tool_id="arifos_sense",
+            canonical_tool_name="arifos_sense",
+            stage="111_SENSE",
+            payload=res_dict.get("payload", res_dict),
+            session_id=session_id,
+            metrics=metrics,
+            floors_checked=["F2", "F3", "F10"],
+            message=res_dict.get("note"),
+        )
+
+    resolved_payload = dict(payload or {})
+    return await physics_reality_dispatch_impl(
+        mode=mode,
+        payload=resolved_payload,
+        auth_context=resolved_payload.get("auth_context", auth_context),
+        risk_tier=resolved_payload.get("risk_tier", risk_tier),
+        dry_run=bool(resolved_payload.get("dry_run", dry_run)),
+        ctx=ctx,  # Context injected by FastMCP framework,
+    )

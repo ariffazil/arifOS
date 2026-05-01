@@ -1,0 +1,664 @@
+"""
+arifOS KERNEL rCore — Unified Metabolic Orchestrator
+
+444_KERNEL: Primary metabolic conductor that unifies:
+  - INPUT Stage: Query normalization, session context assembly
+  - ORCHESTRATE Stage: Classification, tool selection, governance enforcement
+  - OUTPUT Stage: Envelope sealing, continuity state management
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any, Dict, List, Tuple
+
+from core.kernel.pattern_registry import PatternRegistry
+from core.kernel.pattern_selector import PatternSelector
+from core.kernel.planner import (
+    Planner,
+    evaluate_plan_against_governance,
+    normalize_intent_to_plan,
+    plan_to_execution_manifest,
+)
+from core.kernel.role_registry import AgentRoleRegistry
+from core.kernel.tool_registry import ToolContractRegistry
+
+from arifos.runtime.shadow_defense import ShadowDefense
+from arifos.models.verdicts import SealType, PipelineStage
+from arifos.runtime.sessions import get_session_continuity_state
+
+logger = logging.getLogger(__name__)
+
+
+class KernelCore:
+    """
+    Unified KERNEL rCore that orchestrates the metabolic pipeline.
+    """
+
+    def __init__(self):
+        self._tool_handlers: dict[str, Any] = {}
+        self._governance_enabled: bool = True
+
+        self.pattern_registry = PatternRegistry()
+        self.pattern_selector = PatternSelector(self.pattern_registry)
+        self.planner = Planner()
+        self.tool_registry = ToolContractRegistry()
+        self.role_registry = AgentRoleRegistry()
+        self.shadow_defense = ShadowDefense()
+
+    async def input_stage(
+        self,
+        query: str | None = None,
+        session_id: str | None = None,
+        actor_id: str | None = None,
+        intent: str | None = None,
+        auth_context: dict | None = None,
+        risk_tier: str = "medium",
+        dry_run: bool = True,
+        allow_execution: bool = False,
+        caller_context: dict | None = None,
+        payload: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        payload = dict(payload or {})
+        payload.update(kwargs)
+
+        if query:
+            payload.setdefault("query", query)
+        if session_id:
+            payload.setdefault("session_id", session_id)
+        if actor_id:
+            payload.setdefault("actor_id", actor_id)
+        if intent:
+            payload.setdefault("intent", intent)
+        if auth_context:
+            payload.setdefault("auth_context", auth_context)
+        if caller_context:
+            payload.setdefault("caller_context", caller_context)
+
+        effective_query = payload.get("query") or query or ""
+        
+        # ── Identity Resolution (F11 Hardening) ──
+        from arifos.runtime.sessions import get_session_identity
+        
+        _bound_actor = None
+        if session_id and session_id != "global":
+            _identity = get_session_identity(session_id)
+            if _identity:
+                _bound_actor = _identity.get("actor_id")
+        
+        effective_actor = (
+            _bound_actor or payload.get("actor_id") or actor_id or "anonymous"
+        ).strip().lower()
+
+        selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
+        adaptive_depth = self._compute_adaptive_depth(effective_query, risk_tier, payload)
+
+        context = {
+            "payload": payload,
+            "query": effective_query,
+            "actor_id": effective_actor,
+            "session_id": session_id,
+            "risk_tier": risk_tier,
+            "dry_run": dry_run,
+            "allow_execution": allow_execution,
+            "intent": intent,
+            "auth_context": auth_context or {},
+            "selected_pattern": selected_pattern,
+            "adaptive_depth": adaptive_depth,
+            "kernel_primitives": {
+                "planner": self.planner,
+                "tool_registry": self.tool_registry,
+                "role_registry": self.role_registry,
+            },
+        }
+        return context
+
+    def _compute_adaptive_depth(self, query: str, risk_tier: str, payload: dict[str, Any]) -> str:
+        q = query.lower()
+        destructive_signals = {
+            "delete",
+            "remove",
+            "forge",
+            "execute",
+            "write",
+            "modify",
+            "deploy",
+            "seal",
+            "wipe",
+            "drop",
+        }
+        has_destructive = any(s in q for s in destructive_signals)
+        if risk_tier == "low" and not has_destructive and not payload.get("allow_execution"):
+            return "fast"
+        return "deep" if (risk_tier in ("high", "critical") or has_destructive) else "standard"
+
+    def _get_session_state(self, session_id: str | None) -> dict[str, Any]:
+        """Fetch session continuity state for G02 RouteContext population."""
+        try:
+            from arifos.runtime.sessions import get_session_continuity_state
+
+            return get_session_continuity_state(session_id) or {}
+        except Exception:
+            return {}
+
+    def _update_session_judge_state(
+        self, session_id: str | None, verdict: str, state_hash: str | None
+    ) -> None:
+        """Store arifos_judge verdict in session continuity state for E-axis gate."""
+        if not session_id:
+            return
+        try:
+            from arifos.runtime.sessions import (
+                set_session_continuity_state,
+                get_session_continuity_state,
+            )
+
+            current = get_session_continuity_state(session_id) or {}
+            current["judge_verdict"] = verdict
+            if state_hash:
+                current["judge_state_hash"] = state_hash
+            set_session_continuity_state(session_id, current)
+            logger.info(f"[G02] Judge verdict stored: session={session_id[:20]}, verdict={verdict}")
+        except Exception as e:
+            logger.warning(f"[G02] Failed to persist judge verdict: {e}")
+
+    def verify_dag(
+        self, tool_name: str, session_id: str, context: Dict[str, Any]
+    ) -> Tuple[bool, str]:
+        """
+        Enforces arifOS v2.0 DAG ordering and Omega gates.
+        """
+        state = get_session_continuity_state(session_id) or {}
+        completed_stages = state.get("completed_stages", [])
+
+        # Rule 1: No Stage 777 (Forge/Execution) without Stage 666 (Heart/Risk)
+        if "forge" in tool_name or "execute" in tool_name:
+            if 666 not in completed_stages:
+                return (
+                    False,
+                    "DAG_VIOLATION: Stage 777 (Forge) requires Stage 666 (Heart) completion.",
+                )
+
+            # Omega Gate: Ω ≥ 0.95
+            omega = context.get("metrics", {}).get("omega_ortho", 1.0)
+            if omega < 0.95:
+                return (
+                    False,
+                    f"GATE_LOCKED: Ω={omega} < 0.95. Lane independence insufficient for execution.",
+                )
+
+        return True, "OK"
+
+    async def orchestrate_stage(self, context: dict[str, Any]) -> dict[str, Any]:
+        from arifos.runtime.governance_enforcer import classify_and_route
+        from arifos.runtime.tools_hardened_dispatch import get_tool_handler
+
+        query = context.get("query", "")
+        actor_id = context.get("actor_id", "anonymous")
+        session_id = context.get("session_id", "global")
+
+        # 1. Shadow-arifOS Audit (F9)
+        audit_results = self.shadow_defense.run_full_audit(context)
+        if any(r.is_shadow for r in audit_results):
+            return self._router_error(
+                code="SHADOW_DETECTED",
+                summary=audit_results[0].description,
+                context=context,
+                route_intent={"query": query},
+                dependency_failure_point="shadow_defense",
+                retryable=False,
+            )
+
+        # 2. DAG Verification
+        try:
+            routing_result = await classify_and_route(
+                query=query,
+                actor_id=actor_id,
+                session_id=session_id,
+                context=context,
+            )
+        except Exception as exc:
+            return self._router_error(
+                code="ROUTER_CLASSIFICATION_ERROR",
+                summary="Routing classification failed.",
+                context=context,
+                dependency_failure_point="classify_and_route",
+                retryable=True,
+                exception=exc,
+            )
+        tool_name = routing_result.get("tool_name", "arifos_mind")
+
+        dag_ok, dag_error = self.verify_dag(tool_name, session_id, context)
+        if not dag_ok:
+            return self._router_error(
+                code="DAG_VIOLATION",
+                summary=dag_error,
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="verify_dag",
+                retryable=False,
+            )
+
+        # ── G02 Layered Router ─────────────────────────────────────────────────
+        # Layer 3 constitutional enforcement: axis classification, call graph,
+        # and E-axis SEAL precondition. Every tool call passes through here.
+        try:
+            from arifos.runtime.agent_registry import RouteContext, RiskTier, Axis
+            from arifos.runtime.g02_router import get_router
+
+            router = get_router()
+            session_state = self._get_session_state(session_id)
+
+            # Build RouteContext from session + context
+            risk_tier_str = context.get("risk_tier", "medium")
+            try:
+                risk_tier = RiskTier(risk_tier_str)
+            except ValueError:
+                risk_tier = RiskTier.MEDIUM
+
+            route_ctx = RouteContext(
+                session_id=session_id,
+                actor_id=context.get("actor_id"),
+                risk_tier=risk_tier,
+                caller_axis=None,  # External caller — kernel is the entry point
+                judge_verdict=session_state.get("judge_verdict"),
+                judge_state_hash=session_state.get("judge_state_hash"),
+                well_readiness=session_state.get("well_readiness", 1.0),
+                trace=[],
+            )
+
+            g02_result = router.route(
+                request={"tool_name": tool_name, "query": query},
+                context=route_ctx,
+            )
+
+            if not g02_result.ok:
+                logger.warning(
+                    f"[G02] Blocked: {tool_name} → {g02_result.verdict} | {g02_result.blocked_reason}"
+                )
+                return self._router_error(
+                    code=f"G02_{g02_result.verdict}",
+                    summary=g02_result.blocked_reason or f"G02 blocked {tool_name}",
+                    context=context,
+                    resolved_lane=tool_name,
+                    route_intent=routing_result.get("route_intent"),
+                    dependency_failure_point="g02_router",
+                    retryable=(g02_result.verdict == "HOLD"),
+                )
+
+            # Annotate context with G02 result for downstream tools
+            context["g02_axis"] = g02_result.target_axis
+            context["g02_operation_class"] = g02_result.operation_class
+            context["g02_verdict"] = g02_result.verdict
+
+            logger.info(
+                f"[G02] Allowed: {tool_name} → {g02_result.target_axis.value}/{g02_result.operation_class.value}"
+            )
+
+        except ImportError:
+            # G02 not available — degrade gracefully (old runtime)
+            logger.warning("[G02] Router not available, skipping enforcement")
+        except Exception as exc:
+            logger.error(f"[G02] Router error: {exc}")
+            # Non-fatal — don't block tool execution on router errors
+
+        # 3. Invoke Tool
+        handler = get_tool_handler(tool_name) or get_tool_handler("arifos_mind")
+        if handler is None:
+            return self._router_error(
+                code="TOOL_HANDLER_MISSING",
+                summary=f"No handler registered for {tool_name}.",
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="tool_registry",
+                retryable=True,
+            )
+        tool_result = await self._invoke_with_governance(
+            handler=handler, tool_name=tool_name, context=context
+        )
+
+        # ── Persist judge verdict to session continuity state ─────────────────
+        # After arifos_judge runs, store verdict + state_hash so subsequent
+        # E-axis calls (arifos_forge) can satisfy G02 Layer 3 precondition.
+        if tool_name == "arifos_judge" and tool_result.get("ok"):
+            self._update_session_judge_state(
+                session_id=context.get("session_id"),
+                verdict=tool_result.get("verdict")
+                or tool_result.get("payload", {}).get("verdict", "HOLD"),
+                state_hash=tool_result.get("payload", {}).get("state_hash"),
+            )
+
+        if not tool_result.get("ok", True):
+            return self._router_error(
+                code=str(tool_result.get("error_code") or "ROUTER_DOWNSTREAM_ERROR"),
+                summary=str(tool_result.get("error") or "Downstream tool execution failed."),
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="dispatch_with_fail_closed",
+                retryable=bool(tool_result.get("retryable", True)),
+            )
+
+        # ── WELL Cognitive Pressure Signal ───────────────────────────
+        try:
+            from arifos.runtime.well_bridge import signal_cognitive_pressure
+
+            signal_cognitive_pressure(load_delta=0.1, source=tool_name)
+        except Exception:
+            pass  # non-fatal
+
+        return {
+            "ok": tool_result.get("ok", True),
+            "tool_name": tool_name,
+            "tool_result": tool_result,
+            "routing_result": routing_result,
+            "context": context,
+        }
+
+    def _router_error(
+        self,
+        *,
+        code: str,
+        summary: str,
+        context: dict[str, Any],
+        resolved_lane: str | None = None,
+        route_intent: dict[str, Any] | None = None,
+        dependency_failure_point: str | None = None,
+        retryable: bool = True,
+        exception: Exception | None = None,
+    ) -> dict[str, Any]:
+        auth_context = dict(context.get("auth_context") or {})
+        session_id = context.get("session_id")
+        return {
+            "ok": False,
+            "tool": "arifos_kernel",
+            "stage": "444_ROUTER",
+            "status": "error",
+            "error": code,
+            "summary": summary,
+            "retryable": retryable,
+            "route_intent": route_intent
+            or {
+                "query": context.get("query"),
+                "intent": context.get("intent"),
+            },
+            "resolved_lane": resolved_lane,
+            "session_presence": bool(session_id),
+            "session_id": session_id,
+            "identity_auth_status": {
+                "actor_id": context.get("actor_id", "anonymous"),
+                "verified": bool(auth_context.get("verified")),
+                "auth_state": auth_context.get("auth_state")
+                or ("verified" if auth_context.get("verified") else "anonymous"),
+            },
+            "dependency_failure_point": dependency_failure_point,
+            "stack_error_code": code,
+            "detail": str(exception) if exception else summary,
+        }
+
+    async def _invoke_with_governance(
+        self, handler: Any, tool_name: str, context: dict[str, Any]
+    ) -> dict[str, Any]:
+        import inspect
+
+        try:
+            kwargs = {
+                "query": context.get("query"),
+                "session_id": context.get("session_id"),
+                "risk_tier": context.get("risk_tier", "medium"),
+                "dry_run": context.get("dry_run", True),
+                "allow_execution": context.get("allow_execution", False),
+                "platform": context.get("platform", "unknown"),
+            }
+            if tool_name == "arifos_init":
+                kwargs["actor_id"] = context.get("actor_id")
+                kwargs["intent"] = context.get("intent")
+
+            # E-axis tools (forge, vault_seal, memory) require G05 SEAL verdict
+            g02_axis = context.get("g02_axis")
+            if g02_axis and g02_axis.value == "E":
+                session_state = self._get_session_state(context.get("session_id"))
+                kwargs["judge_verdict"] = session_state.get("judge_verdict") or context.get(
+                    "g02_verdict"
+                )
+                kwargs["judge_state_hash"] = session_state.get("judge_state_hash")
+
+            # Thread plan metadata through to tool invocation (repaired Planning Organ)
+            plan_meta = context.get("plan")
+            if plan_meta and isinstance(plan_meta, dict):
+                kwargs["plan_id"] = plan_meta.get("plan_id", "")
+                kwargs["_plan_metadata"] = plan_meta
+
+            # ── Signature-alignment gate: filter kwargs to what handler accepts ──
+            # Prevents wrapper-drift crashes (e.g. allow_execution passed to
+            # _arifos_mind_public which doesn't accept it).
+            try:
+                sig = inspect.signature(handler)
+                accepted = set(sig.parameters.keys())
+                # Always keep **kwargs catch-alls
+                has_kwargs = any(
+                    p.kind == inspect.Parameter.VAR_KEYWORD
+                    for p in sig.parameters.values()
+                )
+                if not has_kwargs:
+                    kwargs = {k: v for k, v in kwargs.items() if k in accepted}
+            except Exception:
+                pass  # If introspection fails, send full kwargs (old behavior)
+
+            from arifos.runtime.tools_hardened_dispatch import dispatch_with_fail_closed
+
+            return await dispatch_with_fail_closed(tool_name, kwargs)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    async def output_stage(
+        self,
+        tool_result: dict[str, Any],
+        tool_name: str,
+        context: dict[str, Any],
+        routing_result: dict[str, Any],
+    ) -> dict[str, Any]:
+        from arifos.runtime.continuity_contract import seal_runtime_envelope
+        from arifos.runtime.models import RuntimeEnvelope
+
+        session_id = context.get("session_id")
+
+        # Build envelope from tool result
+        if isinstance(tool_result, RuntimeEnvelope):
+            envelope = tool_result
+        else:
+            # Wrap raw result in envelope
+            envelope = RuntimeEnvelope(
+                ok=tool_result.get("ok", True),
+                tool=tool_name,
+                canonical_tool_name=tool_name,
+                stage=str(PipelineStage.S444_KERNEL.value),
+                session_id=session_id,
+                payload=tool_result,
+            )
+
+        # ── OutputEnvelope limits: cap payload lists and truncate verbose strings ──
+        if isinstance(envelope.payload, dict):
+            pl = envelope.payload
+            for key in ("facts", "uncertainties", "options"):
+                if key in pl and isinstance(pl[key], list):
+                    pl[key] = pl[key][:3]
+            envelope.payload = pl
+        if envelope.detail and len(envelope.detail) > 500:
+            envelope.detail = envelope.detail[:497] + "..."
+        if envelope.hint and len(envelope.hint) > 300:
+            envelope.hint = envelope.hint[:297] + "..."
+
+        # ── Philosophy Injection (Horizon Atlas) ──
+        try:
+            from arifos.runtime.philosophy import AtlasScores, select_atlas_philosophy
+            
+            # Extract metrics from envelope/payload
+            metrics = getattr(envelope, "metrics", None)
+            pl = envelope.payload if isinstance(envelope.payload, dict) else {}
+            
+            delta_s = float(
+                pl.get("delta_s", getattr(metrics.telemetry, "ds", -0.01) if metrics else -0.01)
+            )
+            g_score = float(
+                pl.get(
+                    "truth_score",
+                    getattr(metrics.telemetry, "confidence", 0.85) if metrics else 0.85
+                )
+            )
+            omega_score = float(pl.get("omega_score", 0.04))
+
+            scores = AtlasScores(
+                delta_s=delta_s,
+                g_score=g_score,
+                omega_score=omega_score,
+                lyapunov_sign="stable",
+                verdict=str(envelope.verdict),
+                session_stage=str(envelope.stage),
+            )
+            
+            phi = select_atlas_philosophy(scores, session_id=session_id)
+            if isinstance(envelope.payload, dict):
+                envelope.payload["philosophy"] = phi
+                
+            # Update detail with primary quote
+            quote = phi.get("primary_quote", {}).get("quote")
+            author = phi.get("primary_quote", {}).get("author", "Unknown")
+            if quote:
+                base_detail = envelope.detail or ""
+                envelope.detail = f"{base_detail}\n\n"{quote}" — {author}"
+        except Exception as phil_err:
+            logger.debug(f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}")
+
+        # Seal with continuity (Harden G02 public routing)
+        sealed = seal_runtime_envelope(envelope=envelope, tool_id=tool_name, session_id=session_id)
+
+        # ── Health Band Injection ──
+        if isinstance(sealed, RuntimeEnvelope):
+            from arifos.runtime.telemetry_bands import TelemetryBands
+
+            metrics_dict = {
+                "ds": getattr(sealed.metrics.telemetry, "ds", 0.0),
+                "peace2": getattr(sealed.metrics.telemetry, "peace2", 1.0),
+                "omega": getattr(sealed.metrics.telemetry, "omega_ortho", 1.0),
+                "w3": getattr(sealed.metrics.witness, "ai", 0.95),  # Simplification for now
+                "shadow": getattr(sealed.metrics.telemetry, "shadow", 0.0),
+            }
+            payload = dict(sealed.payload or {})
+            payload["health_bands"] = TelemetryBands.compute_all_bands(metrics_dict)
+            sealed.payload = payload
+            return sealed.to_dict(compact=True)
+        return sealed
+    async def execute(self, query: str | None = None, session_id: str | None = None, actor_id: str | None = None, 
+                      intent: str | None = None, auth_context: dict | None = None, risk_tier: str = "medium", 
+                      dry_run: bool = True, allow_execution: bool = False, caller_context: dict | None = None, 
+                      payload: dict[str, Any] | None = None, platform: str = "unknown", **kwargs: Any) -> dict[str, Any]:
+        
+        context = await self.input_stage(query=query, session_id=session_id, actor_id=actor_id, intent=intent,
+                                          auth_context=auth_context, risk_tier=risk_tier, dry_run=dry_run,
+                                          allow_execution=allow_execution, caller_context=caller_context,
+                                          payload=payload, platform=platform, **kwargs)
+
+        # ── PLANNING ORGAN: Intent → Plan → Governance Gate ──────────────────
+        # No non-trivial INTENT -> EXECUTION path may bypass an explicit plan.
+        effective_intent = intent or query or ""
+        plan = normalize_intent_to_plan(
+            intent=effective_intent,
+            session_id=session_id or "global",
+            actor_id=actor_id or "anonymous",
+            request_id=context.get("session_id", ""),
+            risk_tier=risk_tier,
+        )
+        plan = evaluate_plan_against_governance(plan)
+
+        # Inject plan metadata into context so downstream can observe it
+        context["plan"] = plan_to_execution_manifest(plan)
+        context["plan_id"] = plan.id
+
+        # 888 HOLD gate: if plan is high-risk / irreversible and not approved, halt cleanly
+        if plan.governance_verdict == "HOLD" and not dry_run and allow_execution:
+            logger.warning(
+                f"[PLAN] 888_HOLD triggered for plan {plan.id}: "
+                f"score={plan.irreversibility_score} floors={plan.floor_violations}"
+            )
+            return {
+                "ok": False,
+                "tool": "arifos_kernel",
+                "stage": "444_ROUTER",
+                "status": "error",
+                "error": "PLAN_888_HOLD",
+                "summary": (
+                    f"Plan '{plan.id}' blocked by governance gate. "
+                    f"Irreversibility={plan.irreversibility_score}. "
+                    "Human approval required before execution."
+                ),
+                "retryable": True,
+                "route_intent": {"query": query, "intent": intent},
+                "resolved_lane": "plan_governance_gate",
+                "session_presence": bool(session_id),
+                "session_id": session_id,
+                "identity_auth_status": {
+                    "actor_id": actor_id or "anonymous",
+                    "verified": bool(auth_context and auth_context.get("verified")),
+                },
+                "dependency_failure_point": "plan_governance_gate",
+                "plan": plan_to_execution_manifest(plan),
+            }
+
+        # If plan is HOLD but we're in dry_run or not allowing execution, downgrade to advisory
+        if plan.governance_verdict == "HOLD":
+            context["plan_advisory_hold"] = True
+            logger.info(
+                f"[PLAN] Advisory HOLD for plan {plan.id} (dry_run={dry_run}, allow_execution={allow_execution})"
+            )
+
+        orchestrate_result = await self.orchestrate_stage(context)
+        if not orchestrate_result.get("ok"):
+            return orchestrate_result
+
+        final_result = await self.output_stage(
+            orchestrate_result.get("tool_result", {}),
+            orchestrate_result.get("tool_name"),
+            context,
+            orchestrate_result.get("routing_result", {}),
+        )
+
+        verdict = final_result.get("verdict", "SABAR")
+        final_result["kernel_status"] = (
+            "READY" if verdict == "SEAL" else ("BLOCKED" if verdict == "VOID" else "HOLD")
+        )
+
+        # ── Thread plan metadata into final result (repaired Planning Organ) ───
+        plan_meta = context.get("plan")
+        if plan_meta and isinstance(plan_meta, dict):
+            final_result["plan"] = plan_meta
+            final_result["plan_id"] = plan_meta.get("plan_id")
+
+        # ── WELL Biological Context Injection ────────────────────────
+        try:
+            from arifos.runtime.well_bridge import inject_biological_context
+
+            final_result = inject_biological_context(final_result)
+        except Exception:
+            pass  # WELL offline is non-fatal — W0 sovereignty invariant
+
+        return final_result
+
+
+_kernel_core: KernelCore | None = None
+
+
+def get_kernel_core() -> KernelCore:
+    global _kernel_core
+    if _kernel_core is None:
+        _kernel_core = KernelCore()
+    return _kernel_core
+
+
+async def kernel_execute(**kwargs: Any) -> dict[str, Any]:
+    return await get_kernel_core().execute(**kwargs)
