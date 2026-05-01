@@ -19,12 +19,12 @@ Context injection (P2): When context is provided, the tool pre-loads
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 from arifosmcp.runtime.floors import check_floors
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
-import datetime
 
 
 def _build_delta_bundle(
@@ -58,9 +58,7 @@ def _build_delta_bundle(
         vitals = context.get("vitals", {})
         prior_results = context.get("prior_tool_results", {})
 
-        reasoning_trace.append(
-            f"[333_MIND context] session_id={session_id}, g_score={g_score}"
-        )
+        reasoning_trace.append(f"[333_MIND context] session_id={session_id}, g_score={g_score}")
         if vitals:
             reasoning_trace.append(
                 f"[333_MIND vitals] G={vitals.get('G', g_score)}, "
@@ -70,32 +68,35 @@ def _build_delta_bundle(
             )
         if prior_results:
             tool_names = list(prior_results.keys())
-            reasoning_trace.append(f"[333_MIND prior] {len(prior_results)} tool(s) in trace: {tool_names}")
+            reasoning_trace.append(
+                f"[333_MIND prior] {len(prior_results)} tool(s) in trace: {tool_names}"
+            )
 
     return {
         "query": query,
         "verdict": verdict,
         "synthesis": synthesis,
         "confidence": confidence,
-        "omega_0": omega_0,           # F7 Humility band ∈ [0.03, 0.05]
+        "omega_0": omega_0,  # F7 Humility band ∈ [0.03, 0.05]
         "reasoning_mode": reasoning_mode,
         # Delta Bundle required fields:
-        "scars": scars or [],         # Unresolved contradictions
-        "floor_scores": {             # Self-check F2, F4, F7, F13
+        "scars": scars or [],  # Unresolved contradictions
+        "floor_scores": {  # Self-check F2, F4, F7, F13
             "F02_TRUTH": confidence >= 0.99,
             "F04_CLARITY": delta_S <= 0,
             "F07_HUMILITY": omega_0 in [0.03, 0.05],
             "F13_SOVEREIGN": True,  # Always true — no override attempted
         },
-        "entropy": delta_S,           # ΔS — negative = clarification
-        "facts": [],                  # Populated by real reasoning (F2 ≥ 0.99)
-        "axioms_used": [],            # Constitutional grounding trace
-        "reasoning_trace": reasoning_trace or [],        # Step-by-step derivation
-        "anomalous_contrast": None,   # ToAC detection
+        "entropy": delta_S,  # ΔS — negative = clarification
+        "facts": [],  # Populated by real reasoning (F2 ≥ 0.99)
+        "axioms_used": [],  # Constitutional grounding trace
+        "reasoning_trace": reasoning_trace or [],  # Step-by-step derivation
+        "anomalous_contrast": None,  # ToAC detection
     }
 
 
 # ─── Synthesis Helpers ───────────────────────────────────────────────────────
+
 
 def _synthesize(query: str | None, reasoning_mode: str) -> str:
     """
@@ -165,7 +166,9 @@ def arif_mind_reason(
     """
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return Synthesis(**_hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"]))
+        return Synthesis(
+            **_hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"])
+        )
 
     # F7 Humility: calibrated Ω₀ band ∈ [0.03, 0.05]
     OMEGA_BAND = (0.03, 0.05)
@@ -187,26 +190,34 @@ def arif_mind_reason(
 
     if mode == "reflect":
         bundle = _build_delta_bundle(
-            query=query, verdict="PLAUSIBLE",
-            synthesis="Reflection complete.", confidence=0.80,
-            reasoning_mode="abductive", delta_S=-0.005,
+            query=query,
+            verdict="PLAUSIBLE",
+            synthesis="Reflection complete.",
+            confidence=0.80,
+            reasoning_mode="abductive",
+            delta_S=-0.005,
             context=context,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
     if mode == "forge":
         bundle = _build_delta_bundle(
-            query=query, verdict="HOLD",
-            synthesis="Forge artifact generated.", confidence=0.75,
-            reasoning_mode="deductive", delta_S=-0.01,
+            query=query,
+            verdict="HOLD",
+            synthesis="Forge artifact generated.",
+            confidence=0.75,
+            reasoning_mode="deductive",
+            delta_S=-0.01,
             context=context,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
     if mode == "debate":
         bundle = _build_delta_bundle(
-            query=query, verdict="HOLD",
-            synthesis="Positions evaluated.", confidence=0.70,
+            query=query,
+            verdict="HOLD",
+            synthesis="Positions evaluated.",
+            confidence=0.70,
             reasoning_mode="counterfactual",
             scars=["Position divergence unresolved"],
             delta_S=0.0,  # Neutral — neither side won
@@ -216,9 +227,12 @@ def arif_mind_reason(
 
     if mode == "socratic":
         bundle = _build_delta_bundle(
-            query=query, verdict="CLAIM",
-            synthesis="Socratic questioning complete.", confidence=0.85,
-            reasoning_mode="inductive", delta_S=-0.02,
+            query=query,
+            verdict="CLAIM",
+            synthesis="Socratic questioning complete.",
+            confidence=0.85,
+            reasoning_mode="inductive",
+            delta_S=-0.02,
             scars=["Root assumption untested"],
             context=context,
         )

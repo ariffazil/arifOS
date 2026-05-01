@@ -30,12 +30,11 @@ from arifosmcp.runtime.contracts import (
 )
 from arifosmcp.runtime.model import AuthorityLevel, CanonicalAuthority, ClaimStatus
 from arifosmcp.runtime.sessions import (
+    _SOVEREIGN_IDENTITY_MAP,
     bind_session_identity,
     clear_session_identity,
     get_session_identity,
-    _SOVEREIGN_IDENTITY_MAP,
 )
-
 from core.enforcement.auth_continuity import mint_auth_context
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -230,6 +229,7 @@ class HardenedInitAnchor:
         """Mint a verifiable auth_context with signed continuity fields (F11)."""
         # Align with bridge._normalize_public_authority_level logic
         from arifosmcp.runtime.bridge import _normalize_public_authority_level
+
         public_level = _normalize_public_authority_level(authority_level)
 
         seed = f"{session_id}:{actor_id}:{public_level}".encode()
@@ -384,7 +384,9 @@ class HardenedInitAnchor:
         eff_intent = str(intent or query or raw_input or f"Init {declared_name_norm}")
 
         # ── F12: Injection score — count how many patterns hit in combined input ──
-        _combined_input = " ".join(filter(None, [declared_name, str(intent or ""), str(query or ""), raw_input or ""])).lower()
+        _combined_input = " ".join(
+            filter(None, [declared_name, str(intent or ""), str(query or ""), raw_input or ""])
+        ).lower()
         _injection_hits = sum(1 for p in _INJECTION_PATTERNS if p in _combined_input)
         _injection_score = min(1.0, round(_injection_hits / max(len(_INJECTION_PATTERNS), 1), 3))
 
@@ -599,9 +601,12 @@ Begin reasoning with this constitutional grounding. Flag any paradox, uncertaint
                 "env": __import__("os").getenv("ARIFOS_ENV", "production"),
                 "dependency_health": "ok",
             },
-            capabilities=list(dict.fromkeys(  # dedup, preserve order
-                ["query", "reflect"] + (["forge", "execute"] if sclass.value not in ("observe", "advise") else [])
-            )),
+            capabilities=list(
+                dict.fromkeys(  # dedup, preserve order
+                    ["query", "reflect"]
+                    + (["forge", "execute"] if sclass.value not in ("observe", "advise") else [])
+                )
+            ),
             injection_score=_injection_score,
             payload={
                 "identity": {
@@ -660,7 +665,12 @@ Begin reasoning with this constitutional grounding. Flag any paradox, uncertaint
                 anchor_state="denied",
                 anchor_scope="stateless",
                 degraded_reason="session_not_found",
-                policy={"floors_checked": ["F11"], "floors_failed": [], "injection_score": 0.0, "witness_required": False},
+                policy={
+                    "floors_checked": ["F11"],
+                    "floors_failed": [],
+                    "injection_score": 0.0,
+                    "witness_required": False,
+                },
                 system={
                     "kernel_version": __import__("os").getenv("ARIFOS_VERSION", "2026.04"),
                     "adapter": "mcp",
@@ -708,7 +718,12 @@ Begin reasoning with this constitutional grounding. Flag any paradox, uncertaint
                 "advise": "stateless",
                 "sovereign": "elevated_session",
             }.get(state.session_class.value, "session"),
-            policy={"floors_checked": ["F11", "F12", "F13"], "floors_failed": [], "injection_score": 0.0, "witness_required": False},
+            policy={
+                "floors_checked": ["F11", "F12", "F13"],
+                "floors_failed": [],
+                "injection_score": 0.0,
+                "witness_required": False,
+            },
             system={
                 "kernel_version": __import__("os").getenv("ARIFOS_VERSION", "2026.04"),
                 "adapter": "mcp",
@@ -768,7 +783,12 @@ Begin reasoning with this constitutional grounding. Flag any paradox, uncertaint
             session_id=session_id,
             anchor_state="denied",
             anchor_scope="stateless",
-            policy={"floors_checked": ["F11", "F13"], "floors_failed": [], "injection_score": 0.0, "witness_required": False},
+            policy={
+                "floors_checked": ["F11", "F13"],
+                "floors_failed": [],
+                "injection_score": 0.0,
+                "witness_required": False,
+            },
             system={
                 "kernel_version": __import__("os").getenv("ARIFOS_VERSION", "2026.04"),
                 "adapter": "mcp",

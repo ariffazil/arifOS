@@ -3,6 +3,7 @@ InitApp — 000 Session Anchoring Surface
 ═══════════════════════════════════════
 Session ignition and identity binding UI.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

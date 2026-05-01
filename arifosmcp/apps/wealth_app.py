@@ -43,6 +43,7 @@ wealth_app = FastMCP("WealthApp")
 if not hasattr(wealth_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     wealth_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
+
 @wealth_app.tool(name="arifos_perform_economic_audit", tags={"hold", "internal", "wealth"})
 async def perform_economic_audit(
     initial_cost: Annotated[float, Field(description="Initial investment amount")],
@@ -52,17 +53,16 @@ async def perform_economic_audit(
         float,
         Field(description="Earnings Before Interest, Taxes, Depreciation, and Amortization"),
     ] = 120000.0,
-    debt_service: Annotated[
-        float, Field(description="Total debt service obligations")
-    ] = 100000.0,
+    debt_service: Annotated[float, Field(description="Total debt service obligations")] = 100000.0,
 ) -> ToolResult:
     """
     Perform a constitutional economic audit.
     """
     try:
         from core.organs import wealth
+
         flows = [annual_benefit] * years
-        
+
         npv_res = wealth(operation="npv_reward", initial_investment=initial_cost, cash_flows=flows)
         irr_res = wealth(operation="irr_yield", initial_investment=initial_cost, cash_flows=flows)
         dscr_res = wealth(operation="dscr_leverage", ebitda=ebitda, debt_service=debt_service)
@@ -97,6 +97,7 @@ async def perform_economic_audit(
             meta={"is_error": True},
         )
 
+
 @wealth_app.ui(title="@WEALTH Optimizer")
 def wealth_dashboard_surface() -> PrefabApp:
     """
@@ -109,7 +110,7 @@ def wealth_dashboard_surface() -> PrefabApp:
         "dscr": 0.0,
         "verdict": "PENDING",
         "signal": "INSUFFICIENT",
-        "audited": False
+        "audited": False,
     }
 
     on_audit = CallTool(
@@ -119,15 +120,15 @@ def wealth_dashboard_surface() -> PrefabApp:
             "annual_benefit": 2500.0,
             "years": 5,
             "ebitda": 150000.0,
-            "debt_service": 100000.0
+            "debt_service": 100000.0,
         },
         on_success=[
-            SetState("npv",             RESULT["npv"]),
-            SetState("irr",             RESULT["irr"]),
-            SetState("dscr",            RESULT["dscr"]),
-            SetState("verdict",         RESULT["verdict"]),
-            SetState("signal",          RESULT["signal"]),
-            SetState("audited",         True),
+            SetState("npv", RESULT["npv"]),
+            SetState("irr", RESULT["irr"]),
+            SetState("dscr", RESULT["dscr"]),
+            SetState("verdict", RESULT["verdict"]),
+            SetState("signal", RESULT["signal"]),
+            SetState("audited", True),
             ShowToast("Economic audit sealed", variant="success"),
         ],
         on_error=ShowToast("Audit failed", variant="destructive"),
@@ -167,10 +168,10 @@ def wealth_dashboard_surface() -> PrefabApp:
                 Badge(
                     STATE["verdict"],
                     variant=STATE["verdict"].then("success", "destructive"),
-                    css_class="font-mono"
+                    css_class="font-mono",
                 )
                 Text(STATE["signal"], css_class="font-bold uppercase tracking-widest")
-        
+
         # ── Audit Controls ──────────────────────────────────────────────────
         with Card():
             with CardContent(css_class="py-4"):
@@ -211,6 +212,7 @@ def wealth_dashboard_surface() -> PrefabApp:
     return PrefabApp(view=view, state=initial_state)
 
     return PrefabApp(view=view, state=initial_state)
+
 
 def _register(mcp: FastMCP) -> None:
     """Mount WealthApp onto the platform FastMCP server."""

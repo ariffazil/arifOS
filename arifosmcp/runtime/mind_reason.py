@@ -257,6 +257,7 @@ SEQUENTIAL_RESPONSE_SCHEMA = {
 # ── Session-backed thought storage ─────────────────────────────────────────────
 # Lightweight in-memory + persistent storage for interactive sequential thinking.
 
+
 class _SequentialThinkingSession:
     """Stores thought history per session for interactive constitutional reasoning."""
 
@@ -269,6 +270,7 @@ class _SequentialThinkingSession:
     def _load_store(self) -> dict[str, Any]:
         try:
             from arifosmcp.runtime.tools import _SESSION_STORE
+
             raw = _SESSION_STORE.get(self._STORE_KEY) or {}
             return raw
         except Exception:
@@ -277,6 +279,7 @@ class _SequentialThinkingSession:
     def _save_store(self) -> None:
         try:
             from arifosmcp.runtime.tools import _SESSION_STORE
+
             _SESSION_STORE.set(self._STORE_KEY, self._store)
         except Exception:
             pass
@@ -355,7 +358,9 @@ def _normalize_llm_result(result: dict[str, Any], mode: str) -> dict[str, Any]:
     raw_axioms = result.get("axioms_used") or []
     raw_reasons = result.get("reasons") or []
 
-    verdict_final = raw_verdict if raw_verdict in ("CLAIM", "PLAUSIBLE", "HOLD", "VOID") else "CLAIM"
+    verdict_final = (
+        raw_verdict if raw_verdict in ("CLAIM", "PLAUSIBLE", "HOLD", "VOID") else "CLAIM"
+    )
     conf_final = max(0.0, min(1.0, raw_conf))
     omega_final = max(0.03, min(0.05, raw_omega))
     delta_final = raw_delta_s
@@ -365,21 +370,65 @@ def _normalize_llm_result(result: dict[str, Any], mode: str) -> dict[str, Any]:
 
     # F2 addendum: HOLD/VOID MUST have reasons[]
     if verdict_final in ("HOLD", "VOID") and not reasons_final:
-        reasons_final = [f"LLM returned {verdict_final} without reasons; default enforced by 333_MIND wrapper."]
+        reasons_final = [
+            f"LLM returned {verdict_final} without reasons; default enforced by 333_MIND wrapper."
+        ]
 
     normalization_events: list[dict[str, Any]] = []
     if verdict_final != raw_verdict:
-        normalization_events.append({"field": "verdict", "action": "enum_override", "raw_value": raw_verdict, "final_value": verdict_final})
+        normalization_events.append(
+            {
+                "field": "verdict",
+                "action": "enum_override",
+                "raw_value": raw_verdict,
+                "final_value": verdict_final,
+            }
+        )
     if conf_final != raw_conf:
-        normalization_events.append({"field": "confidence", "action": "clamped", "raw_value": raw_conf, "final_value": conf_final})
+        normalization_events.append(
+            {
+                "field": "confidence",
+                "action": "clamped",
+                "raw_value": raw_conf,
+                "final_value": conf_final,
+            }
+        )
     if omega_final != raw_omega:
-        normalization_events.append({"field": "omega_0", "action": "clamped", "raw_value": raw_omega, "final_value": omega_final})
+        normalization_events.append(
+            {
+                "field": "omega_0",
+                "action": "clamped",
+                "raw_value": raw_omega,
+                "final_value": omega_final,
+            }
+        )
     if not raw_scars and scars_final:
-        normalization_events.append({"field": "scars", "action": "defaulted_empty", "raw_value": raw_scars, "final_value": scars_final})
+        normalization_events.append(
+            {
+                "field": "scars",
+                "action": "defaulted_empty",
+                "raw_value": raw_scars,
+                "final_value": scars_final,
+            }
+        )
     if not raw_axioms and axioms_final:
-        normalization_events.append({"field": "axioms_used", "action": "defaulted_empty", "raw_value": raw_axioms, "final_value": axioms_final})
+        normalization_events.append(
+            {
+                "field": "axioms_used",
+                "action": "defaulted_empty",
+                "raw_value": raw_axioms,
+                "final_value": axioms_final,
+            }
+        )
     if verdict_final in ("HOLD", "VOID") and not raw_reasons:
-        normalization_events.append({"field": "reasons", "action": "defaulted_mandatory", "raw_value": raw_reasons, "final_value": reasons_final})
+        normalization_events.append(
+            {
+                "field": "reasons",
+                "action": "defaulted_mandatory",
+                "raw_value": raw_reasons,
+                "final_value": reasons_final,
+            }
+        )
 
     return {
         "verdict": verdict_final,
@@ -388,7 +437,9 @@ def _normalize_llm_result(result: dict[str, Any], mode: str) -> dict[str, Any]:
         "confidence_meta": {
             "llm_self_assessed": raw_conf,
             "system_calibrated": conf_final,
-            "calibration_status": "clamped_to_unit_interval" if conf_final != raw_conf else "pass_through",
+            "calibration_status": (
+                "clamped_to_unit_interval" if conf_final != raw_conf else "pass_through"
+            ),
         },
         "omega_0": omega_final,
         "delta_S": delta_final,
@@ -426,17 +477,19 @@ def _parse_sequential_thoughts(raw_thoughts: list[Any]) -> dict[str, Any]:
         if branch_id and branch_id not in branches:
             branches.append(branch_id)
 
-        thoughts.append({
-            "thought_number": thought_num,
-            "thought": str(t.get("thought", "")),
-            "verdict": verdict,
-            "confidence": conf,
-            "axioms_used": t.get("axioms_used") or [],
-            "is_revision": bool(t.get("is_revision", False)),
-            "revises_thought": t.get("revises_thought"),
-            "branch_from_thought": t.get("branch_from_thought"),
-            "branch_id": branch_id,
-        })
+        thoughts.append(
+            {
+                "thought_number": thought_num,
+                "thought": str(t.get("thought", "")),
+                "verdict": verdict,
+                "confidence": conf,
+                "axioms_used": t.get("axioms_used") or [],
+                "is_revision": bool(t.get("is_revision", False)),
+                "revises_thought": t.get("revises_thought"),
+                "branch_from_thought": t.get("branch_from_thought"),
+                "branch_id": branch_id,
+            }
+        )
 
     return {
         "thoughts": thoughts,
@@ -763,7 +816,8 @@ async def arif_mind_reason(
             synthesis=synthesis_text,
             confidence=0.55,
             reasoning_mode="inductive",
-            scars=scars_list + ["Sequential reasoning degraded: LLM unavailable, heuristic fallback active"],
+            scars=scars_list
+            + ["Sequential reasoning degraded: LLM unavailable, heuristic fallback active"],
             delta_s=-0.01,
         )
         bundle["reasoning_trace"] = {

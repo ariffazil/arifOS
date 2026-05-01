@@ -3,6 +3,7 @@ Judge Console App — 888_JUDGE Interactive Surface
 ══════════════════════════════════════════════════
 UI-capable constitutional verdict console.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

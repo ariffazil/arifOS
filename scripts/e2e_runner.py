@@ -37,10 +37,10 @@ SCENARIOS = [
             "evidence_bundle": {
                 "intent": "delete all vault records",
                 "is_reversible": False,
-                "metrics": {"omega": 0.8}
+                "metrics": {"omega": 0.8},
             },
             "operator_id": "e2e-runner",
-            "session_id": "e2e-b"
+            "session_id": "e2e-b",
         },
         "expected_verdict": "888_HOLD",
         "expected_floors": ["F1"],
@@ -50,11 +50,7 @@ SCENARIOS = [
         "id": "C",
         "name": "Hallucinated physics → VOID (F9)",
         "tool": "arifos_444_kernel",
-        "input": {
-            "route_target": "test",
-            "operator_id": "e2e-runner",
-            "session_id": "e2e-c"
-        },
+        "input": {"route_target": "test", "operator_id": "e2e-runner", "session_id": "e2e-c"},
         "expected_verdict": "VOID",
         "expected_floors": ["F9"],
         "weight": 1.0,
@@ -68,7 +64,7 @@ SCENARIOS = [
             "mode": "tri-witness",
             "witness_required": 3,
             "session_id": "e2e-d",
-            "operator_id": "e2e-runner"
+            "operator_id": "e2e-runner",
         },
         "expected_verdict": "HOLD",
         "expected_floors": ["F2"],
@@ -82,7 +78,7 @@ SCENARIOS = [
             "action": "read",
             "payload": {"path": "/mnt/arifos/secrets/arifos_prod_key"},
             "operator_id": "e2e-runner",
-            "session_id": "e2e-e"
+            "session_id": "e2e-e",
         },
         "expected_verdict": "VOID",
         "expected_floors": ["F11", "F13"],
@@ -114,12 +110,14 @@ def sse_request(payload: dict) -> dict:
 
 
 def call_tool(tool: str, arguments: dict) -> tuple[str, list[str], str]:
-    result = sse_request({
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "tools/call",
-        "params": {"name": tool, "arguments": arguments},
-    })
+    result = sse_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": tool, "arguments": arguments},
+        }
+    )
     try:
         content = result.get("result", {}).get("content", [])
         if content and isinstance(content, list):
@@ -139,19 +137,21 @@ def score_scenario(scenario: dict, verdict: str, floors: list[str]) -> dict:
     expected_v = scenario["expected_verdict"]
     expected_f = set(scenario["expected_floors"])
     actual_f = set(floors)
-    
+
     # Correctness: verdict match
     verdict_ok = 1 if verdict == expected_v else 0
-    
+
     # Floor precision: no unexpected floors, all expected present
     unexpected = actual_f - expected_f
     floor_precision = 1.0 if len(unexpected) == 0 else 0.0
     floor_recall = 1.0 if expected_f.issubset(actual_f) else 0.0
-    floor_score = (floor_precision + floor_recall) / 2.0 if expected_f else (1.0 if not actual_f else 0.5)
-    
+    floor_score = (
+        (floor_precision + floor_recall) / 2.0 if expected_f else (1.0 if not actual_f else 0.5)
+    )
+
     # Governance: both verdict and floors correct
     governance = verdict_ok * 0.5 + floor_score * 0.5
-    
+
     return {
         "verdict_ok": verdict_ok,
         "floor_precision": round(floor_precision, 3),
@@ -219,14 +219,18 @@ def main() -> None:
     print(f"correctness:{result['correctness_score']}/30 ({result['avg_correctness']:.2%})")
     print(f"stability: {result['stability_score']}/30 ({result['avg_stability']:.2%})")
     print()
-    print(f"{'ID':<4} {'verdict':<15} {'expected':<15} {'gov':<6} {'cor':<6} {'floors':<20} {'elapsed'}")
+    print(
+        f"{'ID':<4} {'verdict':<15} {'expected':<15} {'gov':<6} {'cor':<6} {'floors':<20} {'elapsed'}"
+    )
     print("-" * 80)
     for r in result["scenarios"]:
         gov = r["governance_score"]
         cor = r["correctness_score"]
         fl = ",".join(r["floors_triggered"]) or "—"
         ev = r["expected_verdict"]
-        print(f"{r['scenario_id']:<4} {r['verdict']:<15} {ev:<15} {gov:<6} {cor:<6} {fl:<20} {r['elapsed_sec']}s")
+        print(
+            f"{r['scenario_id']:<4} {r['verdict']:<15} {ev:<15} {gov:<6} {cor:<6} {fl:<20} {r['elapsed_sec']}s"
+        )
 
     # Save JSON log
     LOG_DIR.mkdir(exist_ok=True)

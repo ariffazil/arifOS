@@ -315,13 +315,17 @@ async def run_stage(
     """
     from arifosmcp.runtime.tools import (
         agi_asi_forge_handler,
-        arifos_mind as agi_reason,
-        arifos_memory as agi_reflect,
         apex_judge,
         asi_critique,
         asi_simulate,
         init_anchor,
         vault_seal,
+    )
+    from arifosmcp.runtime.tools import (
+        arifos_memory as agi_reflect,
+    )
+    from arifosmcp.runtime.tools import (
+        arifos_mind as agi_reason,
     )
 
     try:
@@ -536,9 +540,8 @@ async def metabolic_loop(
             "meta": {"dry_run": True},
         }
 
-    from core.governance_kernel import route_pipeline
-
     from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
+    from core.governance_kernel import route_pipeline
 
     # Track if we're approaching timeout
     def _check_timeout() -> bool:

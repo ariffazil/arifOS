@@ -45,7 +45,12 @@ class InterceptorResult(str, Enum):
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Actions that require a valid session + actor
-_ACTOR_GATED = {"arif_cc_judge_action", "arif_cc_forge_dry_run", "arif_cc_vault_dry_seal", "arif_cc_gateway_handshake"}
+_ACTOR_GATED = {
+    "arif_cc_judge_action",
+    "arif_cc_forge_dry_run",
+    "arif_cc_vault_dry_seal",
+    "arif_cc_gateway_handshake",
+}
 
 # Actions that require an approved plan (plan_state == approved)
 _PLAN_GATED = {"arif_cc_forge_dry_run", "arif_cc_vault_dry_seal"}

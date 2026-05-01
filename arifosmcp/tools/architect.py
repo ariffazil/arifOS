@@ -73,9 +73,9 @@ async def a_architect_dispatch_impl(
 ) -> dict:
     """
     A-ARCHITECT tool implementation.
-    
+
     Provides architectural guidance based on arifOS principles.
-    
+
     Modes:
         - design: Create a new architectural design
         - review: Review existing design for constitutional compliance
@@ -83,12 +83,12 @@ async def a_architect_dispatch_impl(
         - decision: Make an architectural decision with trade-off analysis
     """
     from arifosmcp.runtime.tools_internal import RuntimeEnvelope, RuntimeStatus, Verdict
-    
+
     session_id = payload.get("session_id")
     query = payload.get("query", "")
     context = payload.get("context", {})
     mode = mode or payload.get("mode", "design")
-    
+
     if not query:
         return RuntimeEnvelope(
             ok=False,
@@ -99,7 +99,7 @@ async def a_architect_dispatch_impl(
             status=RuntimeStatus.FAILURE,
             payload={"error": "Query is required"},
         )
-    
+
     # Route to appropriate mode handler
     if mode == "design":
         result = await _architect_design(query, context, session_id)
@@ -111,7 +111,7 @@ async def a_architect_dispatch_impl(
         result = await _architect_decision(query, context, session_id)
     else:
         result = {"error": f"Unknown mode: {mode}"}
-    
+
     return RuntimeEnvelope(
         ok=True,
         tool="a_architect",
@@ -127,7 +127,7 @@ async def _architect_design(query: str, context: dict, session_id: str) -> dict:
     """Generate architectural design for a problem."""
     priority = context.get("priority", "P2")
     constraints = context.get("constraints", [])
-    
+
     return {
         "mode": "design",
         "query": query,
@@ -146,14 +146,20 @@ async def _architect_design(query: str, context: dict, session_id: str) -> dict:
 async def _architect_review(query: str, context: dict, session_id: str) -> dict:
     """Review existing design for constitutional compliance."""
     existing = context.get("existing_design", "")
-    
+
     return {
         "mode": "review",
         "query": query,
         "review_findings": {
-            "F1_AMANAH": {"status": "PASS" if "reversible" in existing.lower() else "WARN", "notes": "Check reversibility"},
+            "F1_AMANAH": {
+                "status": "PASS" if "reversible" in existing.lower() else "WARN",
+                "notes": "Check reversibility",
+            },
             "F2_SIDDIQ": {"status": "PASS" if existing else "WARN", "notes": "Verify all claims"},
-            "F4_CLARITY": {"status": "PASS" if len(existing) < 500 else "WARN", "notes": "Complexity check"},
+            "F4_CLARITY": {
+                "status": "PASS" if len(existing) < 500 else "WARN",
+                "notes": "Complexity check",
+            },
             "F7_HUMILITY": {"status": "PASS", "notes": "No overconfidence detected"},
             "F9_TAQWA": {"status": "PASS", "notes": "No harm vectors"},
             "F13_KHILAFAH": {"status": "PASS", "notes": "Human authority preserved"},
@@ -174,7 +180,7 @@ async def _architect_refactor(query: str, context: dict, session_id: str) -> dic
                 "floors": ["F1", "F11"],
             },
             {
-                "priority": "P1", 
+                "priority": "P1",
                 "change": "Separate concerns by Trinity pattern",
                 "floors": ["F4", "F7"],
             },
@@ -195,7 +201,7 @@ async def _architect_decision(query: str, context: dict, session_id: str) -> dic
         "rationale": "Balances F7 (humility) with F4 (clarity)",
         "constitutional_ballot": {
             "F1": "reversible",
-            "F2": "verified", 
+            "F2": "verified",
             "F4": "clear",
             "F7": "humble",
             "F9": "safe",
@@ -242,6 +248,7 @@ def _constitutional_checklist(query: str) -> list[dict]:
 # F3 TRI_WITNESS Design Validation
 # ─────────────────────────────────────────────────────────────
 
+
 def validate_design_tri_witness(
     design: dict,
     human_approval: bool = False,
@@ -250,33 +257,33 @@ def validate_design_tri_witness(
 ) -> dict:
     """
     F3_QuadWitness validation for architectural decisions.
-    
+
     Requires consensus from 3 parties:
     - w1: Human (must approve)
     - w2: AI/Auditor (constitutional check)
     - w3: Earth/System (environmental constraints)
-    
+
     Args:
         design: Design spec to validate
         human_approval: Has human approved?
         ai_verdict: What did A-AUDITOR say?
         system_verdict: What is the system verdict?
-    
+
     Returns:
         F3 validation result with consensus score
     """
     w1 = 1.0 if human_approval else 0.0
     w2 = 1.0 if ai_verdict == "SEAL" else 0.5 if ai_verdict == "HOLD" else 0.0
     w3 = 1.0 if system_verdict == "SEAL" else 0.5 if system_verdict == "HOLD" else 0.0
-    
+
     w4 = 0.75  # Adversarial Byzantine witness (assume worst-case)
-    
-    w_cube = (w1 * w2 * w3) ** (1/3)
+
+    w_cube = (w1 * w2 * w3) ** (1 / 3)
     quad_witness = (w1 + w2 + w3 + w4) / 4
-    
+
     threshold = 0.75
     consensus_achieved = quad_witness >= threshold
-    
+
     return {
         "F3_quad_witness": {
             "W1_human": w1,

@@ -1,7 +1,7 @@
 # Blueprint: Prospect X Governed Decision Demo
 ## Unified Kernel Route — Stage 444_KERNEL (Blue)
 
-This blueprint outlines the end-to-end governed intelligence pipeline for the decision: 
+This blueprint outlines the end-to-end governed intelligence pipeline for the decision:
 > **"Should we acquire more data for Prospect X?"**
 
 ---

@@ -4,6 +4,7 @@ arifosmcp/tools/sense_observe.py — 111_SENSE
 
 Reality-grounded observation and telemetry.
 """
+
 from __future__ import annotations
 
 import random
@@ -25,7 +26,10 @@ def arif_sense_observe(
         return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"])
 
     if mode == "search":
-        return _ok("arif_sense_observe", {"query": query, "results": [], "source": "sense", "omega_0": 0.04})
+        return _ok(
+            "arif_sense_observe",
+            {"query": query, "results": [], "source": "sense", "omega_0": 0.04},
+        )
     if mode == "ingest":
         return _ok("arif_sense_observe", {"url": url, "ingested": False, "note": "stub"})
     if mode == "compass":

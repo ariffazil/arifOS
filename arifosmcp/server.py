@@ -181,9 +181,9 @@ IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 
 
 try:
-    from arifosmcp.prompts import CANONICAL_PROMPTS, register_prompts
-    from arifosmcp.resources import CANONICAL_RESOURCES, register_resources
-    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
+    from arifosmcp.prompts import register_prompts
+    from arifosmcp.resources import register_resources
+    from arifosmcp.runtime.tools import register_tools
 
     v2_tools_registered = register_tools(mcp)
     _assert_registered_surface(v2_tools_registered)

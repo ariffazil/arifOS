@@ -78,10 +78,7 @@ class A2ATaskManager:
             # Call arifos_init to establish governed session
             init_result = await self._call_mcp_tool(
                 "arif_session_init",
-                {
-                    "mode": "init",
-                    "actor_id": request.client_agent_id
-                },
+                {"mode": "init", "actor_id": request.client_agent_id},
             )
 
             if init_result.get("verdict") == "SEAL":
@@ -179,6 +176,7 @@ class A2ATaskManager:
             # Parse verdict from the nested MCP result structure
             # judge_result = {"content": [{"type": "text", "text": "{\"verdict\": \"SEAL\", ...}"}]}
             import json as _json
+
             _raw = judge_result.get("content", [{}])[0].get("text", "{}")
             try:
                 _judge_payload = _json.loads(_raw)
@@ -220,7 +218,8 @@ class A2ATaskManager:
                         "task_id": task.id,
                         "client_agent_id": task.client_agent_id,
                         "skill_id": task.skill_id,
-                        "mode": "route", "task": query,
+                        "mode": "route",
+                        "task": query,
                         "parameters": task.parameters,
                     }
 
@@ -267,9 +266,9 @@ class A2ATaskManager:
                 execution_result = await self._call_mcp_tool(
                     "arif_kernel_route",
                     {
-                        "mode": "route", "task": query,
+                        "mode": "route",
+                        "task": query,
                         "session_id": task.session_id,
-                        
                     },
                 )
 
@@ -465,10 +464,10 @@ class A2AServer:
             execution_result = await self.task_manager._call_mcp_tool(
                 "arif_kernel_route",
                 {
-                    "mode": "route", "task": query,
+                    "mode": "route",
+                    "task": query,
                     "session_id": session_id,
                     "context": f"A2A direct-execution probe (actor={actor_id}, mode={mode})",
-                    
                 },
             )
 

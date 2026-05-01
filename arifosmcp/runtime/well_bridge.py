@@ -13,15 +13,17 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # Topology: WELL State Path
 import os as _os
+
 WELL_STATE_PATH = Path(_os.environ.get("WELL_STATE_PATH", "/root/WELL/state.json"))
 
-def get_biological_readiness() -> Dict[str, Any]:
+
+def get_biological_readiness() -> dict[str, Any]:
     """
     Read the current biological readiness from WELL state.
     Returns a structured readiness report for the Governance Kernel.
@@ -37,16 +39,16 @@ def get_biological_readiness() -> Dict[str, Any]:
             "well_score": 50.0,
             "bandwidth": "NORMAL",
             "message": "WELL substrate offline or state missing.",
-            "sabar_advisory": False
+            "sabar_advisory": False,
         }
 
     try:
-        with open(WELL_STATE_PATH, "r") as f:
+        with open(WELL_STATE_PATH) as f:
             state = json.load(f)
-        
+
         score = state.get("well_score", 50.0)
         violations = state.get("floors_violated", [])
-        
+
         # Readiness logic (mirrors WELL/server.py:well_readiness)
         if violations:
             verdict = "DEGRADED"
@@ -64,7 +66,7 @@ def get_biological_readiness() -> Dict[str, Any]:
             verdict = "LOW_CAPACITY"
             bandwidth = "REDUCED"
             sabar_advisory = True
-            
+
         return {
             "ok": True,
             "verdict": verdict,
@@ -72,7 +74,7 @@ def get_biological_readiness() -> Dict[str, Any]:
             "bandwidth": bandwidth,
             "violations": violations,
             "sabar_advisory": sabar_advisory,
-            "timestamp": state.get("timestamp")
+            "timestamp": state.get("timestamp"),
         }
     except Exception as e:
         logger.error(f"Failed to read WELL state: {e}")
@@ -82,34 +84,36 @@ def get_biological_readiness() -> Dict[str, Any]:
             "error": str(e),
             "well_score": 0.0,
             "bandwidth": "RESTRICTED",
-            "sabar_advisory": True
+            "sabar_advisory": True,
         }
 
-def inject_biological_context(governance_state: Dict[str, Any]) -> Dict[str, Any]:
+
+def inject_biological_context(governance_state: dict[str, Any]) -> dict[str, Any]:
     """
     Inject biological readiness into the governance state telemetry.
     """
     readiness = get_biological_readiness()
-    
+
     # Add WELL metadata to telemetry
     telemetry = governance_state.get("telemetry", {})
     telemetry["well_score"] = readiness["well_score"]
     telemetry["well_verdict"] = readiness["verdict"]
     telemetry["well_bandwidth"] = readiness["bandwidth"]
-    
+
     if readiness["sabar_advisory"]:
         # If biological state is degraded, suggest SABAR (Patience)
         governance_state["sabar_advisory"] = True
         if governance_state.get("verdict") == "SEAL":
             # Soft-downgrade to HOLD if it was SEAL but substrate is low
             if readiness["verdict"] == "DEGRADED":
-                 governance_state["verdict"] = "HOLD"
-                 governance_state["message"] = (
-                     governance_state.get("message", "") + 
-                     " [WELL-HOLD] Biological substrate degraded. Sovereign review required."
-                 )
-    
+                governance_state["verdict"] = "HOLD"
+                governance_state["message"] = (
+                    governance_state.get("message", "")
+                    + " [WELL-HOLD] Biological substrate degraded. Sovereign review required."
+                )
+
     return governance_state
+
 
 def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
     """
@@ -123,37 +127,40 @@ def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
         return False
 
     try:
-        with open(WELL_STATE_PATH, "r") as f:
+        with open(WELL_STATE_PATH) as f:
             state = json.load(f)
-        
+
         metrics = state.get("metrics", {})
         cog = dict(metrics.get("cognitive", {"clarity": 10, "decision_fatigue": 0}))
-        
+
         # Increment fatigue
         old_fatigue = cog.get("decision_fatigue", 0)
         new_fatigue = min(10.0, old_fatigue + load_delta)
         cog["decision_fatigue"] = new_fatigue
         metrics["cognitive"] = cog
-        
+
         # W6 Logic (Sync with server logic)
         violations = state.get("floors_violated", [])
         if load_delta > 2.0 and "W6_METABOLIC_PAUSE" not in violations:
             violations.append("W6_METABOLIC_PAUSE")
-            
+
         state["metrics"] = metrics
         # Note: We don't recompute score here to keep the bridge lightweight;
         # the score will be recomputed next time WELL server is used or state is loaded.
         # But for UI accuracy, a quick estimation is better:
         state["well_score"] = max(0, state.get("well_score", 50) - (load_delta * 2))
         state["floors_violated"] = violations
-        
+
         with open(WELL_STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
         return True
     except Exception:
         return False
 
-async def anchor_well_to_vault(summary: str = "WELL Substrate Anchor", force: bool = False) -> Dict[str, Any]:
+
+async def anchor_well_to_vault(
+    summary: str = "WELL Substrate Anchor", force: bool = False
+) -> dict[str, Any]:
     """
     Anchor current WELL state to the arifOS VAULT999.
     Provides immutable grounding for biological telemetry.
@@ -161,19 +168,19 @@ async def anchor_well_to_vault(summary: str = "WELL Substrate Anchor", force: bo
     readiness = get_biological_readiness()
     if not readiness["ok"] and not force:
         return {"ok": False, "message": "Substrate offline. Anchor aborted."}
-    
+
     try:
         from core.organs._4_vault import seal
-        
+
         # Build telemetry for the vault
         telemetry = {
             "well_score": readiness["well_score"],
             "well_verdict": readiness["verdict"],
             "well_bandwidth": readiness["bandwidth"],
             "well_violations": readiness.get("violations", []),
-            "source": "WELL-Substrate"
+            "source": "WELL-Substrate",
         }
-        
+
         # Final seal of substrate state
         res = await seal(
             session_id="WELL-AUTO-SYNC",
@@ -182,14 +189,14 @@ async def anchor_well_to_vault(summary: str = "WELL Substrate Anchor", force: bo
             telemetry=telemetry,
             source_agent="well",
             pipeline_stage="999_VAULT",
-            risk_tier="LOW"
+            risk_tier="LOW",
         )
-        
+
         return {
             "ok": True,
             "vault_id": res.seal_record.ledger_id,
             "hash": res.seal_record.hash,
-            "verdict": res.verdict
+            "verdict": res.verdict,
         }
     except Exception as e:
         logger.error(f"VAULT ANCHOR FAILED: {e}")

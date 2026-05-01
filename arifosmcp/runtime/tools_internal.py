@@ -17,6 +17,8 @@ import logging
 import os
 from typing import Any
 
+from fastmcp.server.context import Context
+
 from arifosmcp.runtime.model import (
     CallerContext,
     RuntimeEnvelope,
@@ -43,8 +45,6 @@ from arifosmcp.tools.agentzero_tools import (
 from arifosmcp.tools.agentzero_tools import (
     agentzero_validate as _az_validate,
 )
-from fastmcp.server.context import Context
-
 from core.shared.mottos import (
     MOTTO_000_INIT_HEADER,
     MOTTO_999_SEAL_HEADER,
@@ -94,12 +94,12 @@ async def _fetch_jwks() -> dict | None:
     if not JWT_SUPABASE_JWKS_URL:
         return None
     try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                r = await client.get(JWT_SUPABASE_JWKS_URL)
-                if r.status_code == 200:
-                    _jwt_cache = r.json()
-                    _jwt_cache_time = time.time()
-                    return _jwt_cache
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(JWT_SUPABASE_JWKS_URL)
+            if r.status_code == 200:
+                _jwt_cache = r.json()
+                _jwt_cache_time = time.time()
+                return _jwt_cache
     except Exception:  # nosec: B110 — network failures are non-fatal in observe mode
         pass
     return None
@@ -107,7 +107,7 @@ async def _fetch_jwks() -> dict | None:
 
 def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
     """Log JWT violation in observe mode. Escalates to error for F11/F12 severity.
-    
+
     Writes to BOTH container logs AND the telemetry-data volume so violations
     survive container restarts (fixes cron 24h observation window gap).
     """
@@ -848,7 +848,9 @@ async def vault_ledger_dispatch_impl(
         jwt_sub = jwt_result.get("jwt_sub") or "unverified"
         logger.info(
             "vault_ledger seal | jwt_sub=%s actor=%s violations=%d",
-            jwt_sub, actor_id, len(jwt_result["violations"]),
+            jwt_sub,
+            actor_id,
+            len(jwt_result["violations"]),
         )
         # ── End JWT Guard ────────────────────────────────────────────────
 

@@ -16,7 +16,6 @@ import hmac
 import logging
 import os
 import time
-from typing import Optional
 
 import httpx
 
@@ -104,9 +103,9 @@ def verify_rootkey(actor_id: str, challenge: str, sig: str) -> bool:
 
 async def verify_arif_identity(
     actor_id: str,
-    challenge: Optional[str] = None,
-    sig: Optional[str] = None,
-    session_id: Optional[str] = None,
+    challenge: str | None = None,
+    sig: str | None = None,
+    session_id: str | None = None,
 ) -> bool:
     """
     Full F3+F11 identity verification for arifOS actor binding.

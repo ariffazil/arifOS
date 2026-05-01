@@ -13,6 +13,7 @@ import logging
 from typing import Annotated, Any
 
 from pydantic import Field
+
 from arifosmcp.runtime.model import (
     AuthorityLevel,
     CanonicalAuthority,
@@ -203,7 +204,10 @@ def register_lsp_tools(mcp: FastMCP) -> None:
 
     @mcp.tool()
     async def lsp_query_tool(
-        file_path: Annotated[str, Field(description="Path to the file to query with LSP.")], query_type: str, line: int = 0, character: int = 0
+        file_path: Annotated[str, Field(description="Path to the file to query with LSP.")],
+        query_type: str,
+        line: int = 0,
+        character: int = 0,
     ) -> dict[str, Any]:
         return await lsp_query(file_path, query_type, line, character)
 

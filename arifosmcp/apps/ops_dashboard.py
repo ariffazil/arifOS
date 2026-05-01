@@ -3,6 +3,7 @@ Ops Dashboard App — 777_OPS Live Telemetry Surface
 ═══════════════════════════════════════════════════
 UI-capable operations and thermodynamic dashboard.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

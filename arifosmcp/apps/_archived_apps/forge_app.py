@@ -8,20 +8,19 @@ Gate 2: Human approval token must be True
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import hashlib
 import uuid
 from datetime import datetime, timezone
 
+from arifosmcp.apps.interceptor import intercept
+from arifosmcp.apps.vault_chain import append_vault_record
 from fastmcp import FastMCP
 
-from arifosmcp.apps.interceptor import intercept
-from arifosmcp.apps.surface_utils import envelope_error, envelope_pause
-from arifosmcp.apps.vault_chain import append_vault_record
-
-
 # ── Tool functions defined at module level (importable, then registered) ─────
+
 
 def arif_forge_execute(
     manifest: str,

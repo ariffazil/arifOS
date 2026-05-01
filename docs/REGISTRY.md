@@ -174,4 +174,3 @@ External Agent → A2A Gateway → Governance Adapter
 - 777 Measure instrumentation
 
 Full state: [[AGENT_STATE]]
-

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import tomllib
+
 from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]

@@ -3,6 +3,7 @@ Metabolic Monitor App
 ═════════════════════
 Live G-score, ΔS, and thermodynamic telemetry surface.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

@@ -10,6 +10,7 @@ init_recall hook (P3): When mode='init_recall', the tool auto-loads
   session context. This grounds every session in the constitutional
   substrate before any tool is called.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -37,11 +38,19 @@ def arif_memory_recall(
             {"uri": "arifos://doctrine", "label": "Immutable Law (Ψ)", "tier": "sacred"},
             {"uri": "arifos://vitals", "label": "Living Pulse (Ω)", "tier": "sacred"},
             {"uri": "arifos://schema", "label": "Complete Blueprint (Δ)", "tier": "sacred"},
-            {"uri": "arifos://session/" + (session_id or "new"), "label": "Ephemeral Instance", "tier": "ephemeral"},
+            {
+                "uri": "arifos://session/" + (session_id or "new"),
+                "label": "Ephemeral Instance",
+                "tier": "ephemeral",
+            },
             {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
         ]
         floor_summary = [
-            {"floor": "F01", "name": "AMANAH", "purpose": "Trustworthiness — every action accountable"},
+            {
+                "floor": "F01",
+                "name": "AMANAH",
+                "purpose": "Trustworthiness — every action accountable",
+            },
             {"floor": "F02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
             {"floor": "F03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
             {"floor": "F04", "name": "CLARITY", "purpose": "Transparent intent"},
@@ -55,14 +64,17 @@ def arif_memory_recall(
             {"floor": "F12", "name": "INJECTION", "purpose": "Sanitize inputs"},
             {"floor": "F13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
         ]
-        return _ok("arif_memory_recall", {
-            "init_recall": True,
-            "session_id": session_id,
-            "sacred_resources": sacred_resources,
-            "floor_summary": floor_summary,
-            "tool_surface": list(CANONICAL_TOOLS.keys()),
-            "tool_count": len(CANONICAL_TOOLS),
-        })
+        return _ok(
+            "arif_memory_recall",
+            {
+                "init_recall": True,
+                "session_id": session_id,
+                "sacred_resources": sacred_resources,
+                "floor_summary": floor_summary,
+                "tool_surface": list(CANONICAL_TOOLS.keys()),
+                "tool_count": len(CANONICAL_TOOLS),
+            },
+        )
 
     if mode == "recall":
         return _ok("arif_memory_recall", {"query": query, "memories": [], "confidence": 0.0})

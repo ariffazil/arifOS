@@ -5,9 +5,8 @@ Interactive constitutional verdict rendering with session state wiring.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
-from __future__ import annotations
 
-from fastmcp import FastMCP
+from __future__ import annotations
 
 from arifosmcp.apps.command_center.governance import judge_candidate
 from arifosmcp.apps.session_state import (
@@ -15,6 +14,7 @@ from arifosmcp.apps.session_state import (
     advance_session,
     get_or_create_session,
 )
+from fastmcp import FastMCP
 
 
 def _register(mcp: FastMCP) -> None:

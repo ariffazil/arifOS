@@ -5,14 +5,12 @@ Real vault append and hash-chain integration for VAULT999.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
-from pathlib import Path
-
-from fastmcp import FastMCP
-
 from arifosmcp.apps import vault_chain as vault_chain
-from arifosmcp.apps.vault_chain import append_vault_record, VAULT_PATH
+from arifosmcp.apps.vault_chain import VAULT_PATH, append_vault_record
+from fastmcp import FastMCP
 
 VAULT999_DOMAIN = "https://arifosmcp.arif-fazil.com"
 

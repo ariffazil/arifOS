@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 from typing import Any
 
+
 class _LazyDispatchMap(MutableMapping[str, Any]):
     """Lazy mapping wrapper that avoids import-time cycles with runtime.tools."""
 
@@ -78,17 +79,17 @@ def get_tool_handler(name: str) -> Any:
     Supports canonical names and legacy dot-separated aliases.
     """
     from arifosmcp.runtime.tools import LEGACY_TOOL_ALIASES
-    
+
     # 1. Direct path (fast)
     handler = HARDENED_DISPATCH_MAP.get(name)
     if handler:
         return handler
-        
+
     # 2. Alias path
     canonical_name = LEGACY_TOOL_ALIASES.get(name)
     if canonical_name:
         return HARDENED_DISPATCH_MAP.get(canonical_name)
-        
+
     return None
 
 

@@ -11,14 +11,18 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from enum import Enum
-from pydantic import BaseModel, Field
-from arifosmcp.core.threat_engine import ThreatAssessment, IrreversibilityLevel
+
+from pydantic import BaseModel
+
 from arifosmcp.core.floor_evaluator import FloorEvaluator
+from arifosmcp.core.threat_engine import ThreatAssessment
+
 
 class WitnessType(Enum):
     AI = "ai"
     HUMAN = "human"
     MULTI = "multi"
+
 
 class AuthorityProof(BaseModel):
     authorized: bool = False
@@ -26,6 +30,7 @@ class AuthorityProof(BaseModel):
     witness_type: WitnessType = WitnessType.AI
     plan_approved: bool = False
     reason: str = ""
+
 
 class AuthorityGate:
     """
@@ -37,13 +42,33 @@ class AuthorityGate:
         requires_human = FloorEvaluator._requires_human_witness(context, threat)
 
         plan_approved = False
-        if context.tool_name == "arif_forge_execute" and context.mode in {"engineer", "write", "generate"}:
-            if getattr(context, "plan_id", None) and context.plan_id in getattr(context, "plan_registry", set()):
+        if context.tool_name == "arif_forge_execute" and context.mode in {
+            "engineer",
+            "write",
+            "generate",
+        }:
+            if getattr(context, "plan_id", None) and context.plan_id in getattr(
+                context, "plan_registry", set()
+            ):
                 plan_approved = True
             else:
-                return AuthorityProof(authorized=False, requires_human=True, reason="Forge requires approved plan_id (H2 ratification)")
+                return AuthorityProof(
+                    authorized=False,
+                    requires_human=True,
+                    reason="Forge requires approved plan_id (H2 ratification)",
+                )
 
         if requires_human and getattr(context, "witness_type", WitnessType.AI) != WitnessType.HUMAN:
-            return AuthorityProof(authorized=False, requires_human=True, witness_type=getattr(context, "witness_type", WitnessType.AI), reason="F13 SOVEREIGN: human witness required")
+            return AuthorityProof(
+                authorized=False,
+                requires_human=True,
+                witness_type=getattr(context, "witness_type", WitnessType.AI),
+                reason="F13 SOVEREIGN: human witness required",
+            )
 
-        return AuthorityProof(authorized=True, requires_human=requires_human, plan_approved=plan_approved, reason="Authority verified")
+        return AuthorityProof(
+            authorized=True,
+            requires_human=requires_human,
+            plan_approved=plan_approved,
+            reason="Authority verified",
+        )

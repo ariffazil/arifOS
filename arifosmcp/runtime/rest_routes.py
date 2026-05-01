@@ -2131,19 +2131,74 @@ def register_rest_routes(
         F7 Humility, F13 Sovereign).
         """
         FLOORS_CATALOG = [
-            {"code": "F1", "name": "AMANAH", "category": "HARD", "enforcement": "irreversible_actions"},
+            {
+                "code": "F1",
+                "name": "AMANAH",
+                "category": "HARD",
+                "enforcement": "irreversible_actions",
+            },
             {"code": "F2", "name": "TRUTH", "category": "HARD", "enforcement": "all_claims"},
-            {"code": "F3", "name": "WITNESS", "category": "SOFT", "enforcement": "evidence_required"},
-            {"code": "F4", "name": "CLARITY", "category": "SOFT", "enforcement": "intent_transparent"},
+            {
+                "code": "F3",
+                "name": "WITNESS",
+                "category": "SOFT",
+                "enforcement": "evidence_required",
+            },
+            {
+                "code": "F4",
+                "name": "CLARITY",
+                "category": "SOFT",
+                "enforcement": "intent_transparent",
+            },
             {"code": "F5", "name": "PEACE", "category": "SOFT", "enforcement": "human_dignity"},
-            {"code": "F6", "name": "EMPATHY", "category": "HARD", "enforcement": "consequence_assessment"},
-            {"code": "F7", "name": "HUMILITY", "category": "SOFT", "enforcement": "uncertainty_bands"},
-            {"code": "F8", "name": "GENIUS", "category": "SOFT", "enforcement": "elegance_threshold"},
-            {"code": "F9", "name": "ANTIHANTU", "category": "HARD", "enforcement": "no_consciousness_claims"},
-            {"code": "F10", "name": "ONTOLOGY", "category": "HARD", "enforcement": "structural_coherence"},
-            {"code": "F11", "name": "AUTH", "category": "HARD", "enforcement": "identity_verification"},
-            {"code": "F12", "name": "INJECTION", "category": "SOFT", "enforcement": "input_sanitization"},
-            {"code": "F13", "name": "SOVEREIGN", "category": "HARD", "enforcement": "human_veto_absolute"},
+            {
+                "code": "F6",
+                "name": "EMPATHY",
+                "category": "HARD",
+                "enforcement": "consequence_assessment",
+            },
+            {
+                "code": "F7",
+                "name": "HUMILITY",
+                "category": "SOFT",
+                "enforcement": "uncertainty_bands",
+            },
+            {
+                "code": "F8",
+                "name": "GENIUS",
+                "category": "SOFT",
+                "enforcement": "elegance_threshold",
+            },
+            {
+                "code": "F9",
+                "name": "ANTIHANTU",
+                "category": "HARD",
+                "enforcement": "no_consciousness_claims",
+            },
+            {
+                "code": "F10",
+                "name": "ONTOLOGY",
+                "category": "HARD",
+                "enforcement": "structural_coherence",
+            },
+            {
+                "code": "F11",
+                "name": "AUTH",
+                "category": "HARD",
+                "enforcement": "identity_verification",
+            },
+            {
+                "code": "F12",
+                "name": "INJECTION",
+                "category": "SOFT",
+                "enforcement": "input_sanitization",
+            },
+            {
+                "code": "F13",
+                "name": "SOVEREIGN",
+                "category": "HARD",
+                "enforcement": "human_veto_absolute",
+            },
         ]
 
         return JSONResponse(
@@ -2293,7 +2348,7 @@ def register_rest_routes(
     async def _probe_tcp_port(host: str, port: int, timeout: float = 1.0) -> dict[str, Any]:
         """Probe a single TCP port. Returns status and latency_ms."""
         import asyncio
-        import socket
+
         start = time.perf_counter()
         try:
             reader, writer = await asyncio.wait_for(
@@ -2304,11 +2359,18 @@ def register_rest_routes(
             latency_ms = (time.perf_counter() - start) * 1000
             return {"host": host, "port": port, "status": "ON", "latency_ms": round(latency_ms, 2)}
         except Exception as e:
-            return {"host": host, "port": port, "status": "OFF", "error": str(e)[:80], "latency_ms": None}
+            return {
+                "host": host,
+                "port": port,
+                "status": "OFF",
+                "error": str(e)[:80],
+                "latency_ms": None,
+            }
 
     async def _probe_http(path: str = "/health", timeout: float = 2.0) -> dict[str, Any]:
         """Probe an internal HTTP endpoint. Returns status, response_ms, and parsed JSON."""
         import httpx
+
         base = os.getenv("INTERNAL_BASE", "http://arifosmcp:8080")
         url = f"{base}{path}"
         start = time.perf_counter()
@@ -2320,7 +2382,12 @@ def register_rest_routes(
                     data = r.json()
                 except Exception:
                     data = {"raw": r.text[:200]}
-                return {"url": url, "status_code": r.status_code, "response_ms": round(response_ms, 2), "data": data}
+                return {
+                    "url": url,
+                    "status_code": r.status_code,
+                    "response_ms": round(response_ms, 2),
+                    "data": data,
+                }
         except Exception as e:
             return {"url": url, "status": "OFF", "error": str(e)[:120], "response_ms": None}
 
@@ -2349,7 +2416,7 @@ def register_rest_routes(
 
         # --- Layer 1: MCP Servers ---
         mcp_tasks = [
-            _probe_http("/health", timeout=3.0),          # arifOS self
+            _probe_http("/health", timeout=3.0),  # arifOS self
             _probe_http("/health", timeout=3.0, path="http://geox:8081/health"),
             _probe_http("/health", timeout=3.0, path="http://wealth-organ:8082/health"),
             _probe_http("/health", timeout=3.0, path="http://well:8083/health"),
@@ -2374,20 +2441,30 @@ def register_rest_routes(
         mcp_http = await asyncio.gather(*mcp_tasks[:7])
         ollama_result = await mcp_tasks[7]
         mcp_results = [
-            {"name": "arifOS",       "type": "mcp", "host": "arifosmcp",        "port": 8080, **mcp_http[0]},
-            {"name": "GEOX",          "type": "mcp", "host": "geox",             "port": 8081, **mcp_http[1]},
-            {"name": "WEALTH",        "type": "mcp", "host": "wealth-organ",     "port": 8082, **mcp_http[2]},
-            {"name": "WELL",          "type": "mcp", "host": "well",             "port": 8083, **mcp_http[3]},
-            {"name": "A-FORGE",       "type": "mcp", "host": "af-bridge-prod",   "port": 7071, **mcp_http[4]},
-            {"name": "AAA",           "type": "mcp", "host": "aaa-a2a",           "port": 3001, **mcp_http[5]},
-            {"name": "Hermes",        "type": "mcp", "host": "hermes-agent",      "port": 3002, **mcp_http[6]},
+            {"name": "arifOS", "type": "mcp", "host": "arifosmcp", "port": 8080, **mcp_http[0]},
+            {"name": "GEOX", "type": "mcp", "host": "geox", "port": 8081, **mcp_http[1]},
+            {"name": "WEALTH", "type": "mcp", "host": "wealth-organ", "port": 8082, **mcp_http[2]},
+            {"name": "WELL", "type": "mcp", "host": "well", "port": 8083, **mcp_http[3]},
+            {
+                "name": "A-FORGE",
+                "type": "mcp",
+                "host": "af-bridge-prod",
+                "port": 7071,
+                **mcp_http[4],
+            },
+            {"name": "AAA", "type": "mcp", "host": "aaa-a2a", "port": 3001, **mcp_http[5]},
+            {"name": "Hermes", "type": "mcp", "host": "hermes-agent", "port": 3002, **mcp_http[6]},
             {**ollama_result, "name": "Ollama", "type": "llm", "host": "ollama"},
         ]
 
         external_results = await asyncio.gather(*external_tasks)
 
         def build_component(name: str, ctype: str, host: str, port: int | None, info: dict) -> dict:
-            status = info.get("status", "ON") if info.get("status") in ("ON", "OFF") else ("ON" if info.get("status_code", 0) == 200 else "OFF")
+            status = (
+                info.get("status", "ON")
+                if info.get("status") in ("ON", "OFF")
+                else ("ON" if info.get("status_code", 0) == 200 else "OFF")
+            )
             return {
                 "name": name,
                 "type": ctype,
@@ -2395,19 +2472,21 @@ def register_rest_routes(
                 "port": port,
                 "status": status,
                 "latency_ms": info.get("latency_ms") or info.get("response_ms"),
-                "version": (info.get("data", {}).get("version")
-                            or info.get("data", {}).get("service")
-                            or info.get("data", {}).get("build", {}).get("commit", "")[:8]),
+                "version": (
+                    info.get("data", {}).get("version")
+                    or info.get("data", {}).get("service")
+                    or info.get("data", {}).get("build", {}).get("commit", "")[:8]
+                ),
                 "detail": info.get("data", {}).get("version", ""),
                 "error": info.get("error"),
             }
 
         infra_layer = [
-            build_component("PostgreSQL",     "db",      "postgres",        5432,  infra_results[0]),
-            build_component("Redis",          "cache",   "redis",           6379,  infra_results[1]),
-            build_component("Qdrant",         "vector",  "qdrant",          6333,  infra_results[2]),
-            build_component("Vault999",       "ledger",  "vault999",        8100,  infra_results[3]),
-            build_component("Vault999-Writer", "ledger",  "vault999-writer", 5001, infra_results[4]),
+            build_component("PostgreSQL", "db", "postgres", 5432, infra_results[0]),
+            build_component("Redis", "cache", "redis", 6379, infra_results[1]),
+            build_component("Qdrant", "vector", "qdrant", 6333, infra_results[2]),
+            build_component("Vault999", "ledger", "vault999", 8100, infra_results[3]),
+            build_component("Vault999-Writer", "ledger", "vault999-writer", 5001, infra_results[4]),
         ]
 
         # Ollama model list
@@ -2421,10 +2500,14 @@ def register_rest_routes(
             pass
 
         external_layer = [
-            build_component("Ollama",   "llm",        "ollama",             11434, external_results[0]),
-            build_component("SEA-LION", "llm",        "api.sea-lion.ai",    443,   external_results[1]),
-            build_component("Langfuse", "observability", "jp.cloud.langfuse.com", 443, external_results[2]),
-            build_component("Supabase JWKS", "auth",   "arifos.supabase.co", 443,   {}),  # static config
+            build_component("Ollama", "llm", "ollama", 11434, external_results[0]),
+            build_component("SEA-LION", "llm", "api.sea-lion.ai", 443, external_results[1]),
+            build_component(
+                "Langfuse", "observability", "jp.cloud.langfuse.com", 443, external_results[2]
+            ),
+            build_component(
+                "Supabase JWKS", "auth", "arifos.supabase.co", 443, {}
+            ),  # static config
         ]
 
         layers = {
@@ -2460,7 +2543,7 @@ def register_rest_routes(
         # 1. Image digest (if available in container env)
         image_digest = os.getenv("IMAGE_DIGEST", "unknown")
         git_sha = os.getenv("DEPLOY_GIT_COMMIT", "unknown")
-        
+
         # 2. Compute tool registry hash for drift detection
         registry_text = json.dumps(public_tool_names(), sort_keys=True)
         registry_hash = hashlib.sha256(registry_text.encode()).hexdigest()
@@ -2473,7 +2556,7 @@ def register_rest_routes(
             "build_time": os.getenv("DEPLOY_BUILD_TIME", "unknown"),
             "registry_hash": registry_hash,
             "started_at": os.getenv("START_TIME", datetime.now(timezone.utc).isoformat()),
-            "runtime_drift": git_sha == "unknown" or image_digest == "unknown"
+            "runtime_drift": git_sha == "unknown" or image_digest == "unknown",
         }
         return JSONResponse(fingerprint)
 
@@ -2594,6 +2677,7 @@ def register_rest_routes(
 
             # Handle both sync and async tool functions
             import asyncio as _asyncio
+
             if _asyncio.iscoroutinefunction(tool_fn):
                 result = await tool_fn(**filtered)
             else:

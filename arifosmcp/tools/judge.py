@@ -10,6 +10,7 @@ before adjudication so epistemic confidence is grounded in actual system state.
 Post-SEAL auto-hook: When verdict is SEAL and vault_entry_id is provided,
 the judge output is automatically routed to arif_vault_seal for immutable anchoring.
 """
+
 from __future__ import annotations
 
 import json as json_lib
@@ -41,7 +42,9 @@ def arif_judge_deliberate(
     if _evidence.get("vitals") is None:
         try:
             vitals_result = arif_ops_measure(mode="vitals")
-            _evidence["vitals"] = getattr(vitals_result, "__dict__", {}) or {"status": "unavailable"}
+            _evidence["vitals"] = getattr(vitals_result, "__dict__", {}) or {
+                "status": "unavailable"
+            }
         except Exception:
             _evidence["vitals"] = {"status": "unavailable"}
 

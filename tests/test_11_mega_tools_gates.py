@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from arifosmcp.runtime.public_registry import CANONICAL_PUBLIC_TOOLS, EXPECTED_TOOL_COUNT, public_tool_names
+from arifosmcp.runtime.public_registry import (
+    CANONICAL_PUBLIC_TOOLS,
+    EXPECTED_TOOL_COUNT,
+    public_tool_names,
+)
 from arifosmcp.runtime.tools import _arif_ping, _arif_selftest, _arif_session_init
 
 

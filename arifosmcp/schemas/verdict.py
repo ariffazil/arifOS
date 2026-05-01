@@ -22,10 +22,11 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
+from pydantic import BaseModel, Field
+
 from arifosmcp.schemas.cognition import UncertaintyGeometry
 from arifosmcp.schemas.forge import ConstitutionalCompliance, IrreversibilityBond
 from arifosmcp.schemas.lineage import JudgeSealContract
-from pydantic import BaseModel, Field
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # VERDICT CODES

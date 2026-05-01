@@ -18,6 +18,10 @@ import inspect
 import os
 import threading
 
+from fastmcp import FastMCP
+from fastmcp.apps import FastMCPApp
+from mcp.types import ToolAnnotations
+
 from arifosmcp.apps.command_center.forge_app import governed_forge_execute
 from arifosmcp.apps.command_center.governance import classify_risk, hash_preview, judge_candidate
 from arifosmcp.apps.command_center.interceptor import governance_guard
@@ -38,9 +42,6 @@ from arifosmcp.runtime.tools import (
     _CANONICAL_HANDLERS,
     _SESSION_STORE,
 )
-from fastmcp import FastMCP
-from fastmcp.apps import FastMCPApp
-from mcp.types import ToolAnnotations
 
 try:
     from prefab_ui.actions import SetState

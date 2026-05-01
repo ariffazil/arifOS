@@ -178,16 +178,19 @@ class LangfuseTrace:
 
 
 class LangfuseSpan:
-    def __init__(self, tracer: LangfuseTrace, trace_id: str, parent_observation_id: str | None = None):
+    def __init__(
+        self, tracer: LangfuseTrace, trace_id: str, parent_observation_id: str | None = None
+    ):
         self.tracer = tracer
         self.trace_id = trace_id
         self.parent_observation_id = parent_observation_id
 
     async def span(self, name: str, input: Any = None, metadata: dict[str, Any] | None = None):
         from datetime import datetime, timezone
+
         ts = datetime.now(timezone.utc).isoformat()
         span_id = str(uuid.uuid4())
-        
+
         if self.tracer.enabled:
             body: dict[str, Any] = {
                 "id": span_id,
@@ -200,29 +203,32 @@ class LangfuseSpan:
             if self.parent_observation_id:
                 body["parentObservationId"] = self.parent_observation_id
 
-            await self.tracer._ingest([
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "span",
-                    "body": body,
-                    "timestamp": ts,
-                }
-            ])
+            await self.tracer._ingest(
+                [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "span",
+                        "body": body,
+                        "timestamp": ts,
+                    }
+                ]
+            )
         return LangfuseSpan(self.tracer, self.trace_id, span_id)
 
     async def generation(
-        self, 
-        name: str, 
-        model: str | None = None, 
-        input: Any = None, 
+        self,
+        name: str,
+        model: str | None = None,
+        input: Any = None,
         output: Any = None,
         usage: dict[str, int] | None = None,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ):
         from datetime import datetime, timezone
+
         ts = datetime.now(timezone.utc).isoformat()
         gen_id = str(uuid.uuid4())
-        
+
         if self.tracer.enabled:
             body: dict[str, Any] = {
                 "id": gen_id,
@@ -238,38 +244,43 @@ class LangfuseSpan:
             if self.parent_observation_id:
                 body["parentObservationId"] = self.parent_observation_id
 
-            await self.tracer._ingest([
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "generation",
-                    "body": body,
-                    "timestamp": ts,
-                }
-            ])
+            await self.tracer._ingest(
+                [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "generation",
+                        "body": body,
+                        "timestamp": ts,
+                    }
+                ]
+            )
         return LangfuseSpan(self.tracer, self.trace_id, gen_id)
 
     async def update(self, output: Any = None, metadata: dict[str, Any] | None = None):
         """Update the current span/observation with output and final metadata."""
         if not self.parent_observation_id:
-            return # Trace updates not handled here yet
-            
+            return  # Trace updates not handled here yet
+
         from datetime import datetime, timezone
+
         ts = datetime.now(timezone.utc).isoformat()
-        
+
         if self.tracer.enabled:
-            await self.tracer._ingest([
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "span-patch" if self.parent_observation_id else "trace-patch",
-                    "body": {
-                        "id": self.parent_observation_id,
-                        "endTime": ts,
-                        "output": output,
-                        "metadata": metadata or {},
-                    },
-                    "timestamp": ts,
-                }
-            ])
+            await self.tracer._ingest(
+                [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "span-patch" if self.parent_observation_id else "trace-patch",
+                        "body": {
+                            "id": self.parent_observation_id,
+                            "endTime": ts,
+                            "output": output,
+                            "metadata": metadata or {},
+                        },
+                        "timestamp": ts,
+                    }
+                ]
+            )
 
     async def __aenter__(self):
         return self
@@ -396,7 +407,7 @@ class MemoryEngine:
         trace = await self._langfuse.trace(
             name="memory:store",
             session_id=session_id,
-            metadata={"tier": tier, "memory_id": memory_id, "text_len": len(text)}
+            metadata={"tier": tier, "memory_id": memory_id, "text_len": len(text)},
         )
 
         import json as _json
@@ -461,21 +472,22 @@ class MemoryEngine:
         )
 
         res = {"status": "success", "postgres_id": pg_id, "qdrant_id": qdrant_id, "tier": tier}
-        
+
         # Patch trace with result
         if self._langfuse.enabled:
             from datetime import datetime, timezone
+
             ts = datetime.now(timezone.utc).isoformat()
-            await self._langfuse._ingest([{
-                "id": str(uuid.uuid4()),
-                "type": "trace-patch",
-                "body": {
-                    "id": trace.trace_id,
-                    "output": res,
-                    "endTime": ts
-                },
-                "timestamp": ts
-            }])
+            await self._langfuse._ingest(
+                [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "trace-patch",
+                        "body": {"id": trace.trace_id, "output": res, "endTime": ts},
+                        "timestamp": ts,
+                    }
+                ]
+            )
 
         return res
 
@@ -538,7 +550,7 @@ class MemoryEngine:
         trace = await self._langfuse.trace(
             name="memory:retrieve",
             session_id=session_id,
-            metadata={"tier": tier, "limit": limit, "query": query}
+            metadata={"tier": tier, "limit": limit, "query": query},
         )
 
         all_results = []
@@ -635,7 +647,7 @@ class MemoryEngine:
                     args.append(tier)
                 query_text += f" ORDER BY created_at DESC LIMIT {len(args) + 1}"
                 rows = await conn.fetch(query_text, *args)
-                
+
                 res = {
                     "memories": [
                         {
@@ -652,22 +664,30 @@ class MemoryEngine:
                     ],
                     "graph_facts": graph_facts,
                 }
-                
+
                 # Patch trace with result
                 if self._langfuse.enabled:
                     from datetime import datetime, timezone
+
                     ts = datetime.now(timezone.utc).isoformat()
-                    await self._langfuse._ingest([{
-                        "id": str(uuid.uuid4()),
-                        "type": "trace-patch",
-                        "body": {
-                            "id": trace.trace_id,
-                            "output": {"memories_count": len(res["memories"]), "graph_facts_count": len(graph_facts)},
-                            "endTime": ts
-                        },
-                        "timestamp": ts
-                    }])
-                    
+                    await self._langfuse._ingest(
+                        [
+                            {
+                                "id": str(uuid.uuid4()),
+                                "type": "trace-patch",
+                                "body": {
+                                    "id": trace.trace_id,
+                                    "output": {
+                                        "memories_count": len(res["memories"]),
+                                        "graph_facts_count": len(graph_facts),
+                                    },
+                                    "endTime": ts,
+                                },
+                                "timestamp": ts,
+                            }
+                        ]
+                    )
+
                 return res
 
         all_results.sort(key=lambda x: x["score"], reverse=True)
@@ -705,22 +725,31 @@ class MemoryEngine:
                 ),
                 "graph_facts": graph_facts,
             }
-            
+
             # Patch trace with result
             if self._langfuse.enabled:
                 from datetime import datetime, timezone
+
                 ts = datetime.now(timezone.utc).isoformat()
-                await self._langfuse._ingest([{
-                    "id": str(uuid.uuid4()),
-                    "type": "trace-patch",
-                    "body": {
-                        "id": trace.trace_id,
-                        "output": {"memories_count": len(res["memories"]), "graph_facts_count": len(graph_facts), "qdrant_only": True},
-                        "endTime": ts
-                    },
-                    "timestamp": ts
-                }])
-                
+                await self._langfuse._ingest(
+                    [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "type": "trace-patch",
+                            "body": {
+                                "id": trace.trace_id,
+                                "output": {
+                                    "memories_count": len(res["memories"]),
+                                    "graph_facts_count": len(graph_facts),
+                                    "qdrant_only": True,
+                                },
+                                "endTime": ts,
+                            },
+                            "timestamp": ts,
+                        }
+                    ]
+                )
+
             return res
 
         pool = await self._get_pg_pool()
@@ -749,22 +778,30 @@ class MemoryEngine:
                     final_memories.append(record)
 
         res = {"memories": final_memories, "graph_facts": graph_facts}
-        
+
         # Patch trace with result
         if self._langfuse.enabled:
             from datetime import datetime, timezone
+
             ts = datetime.now(timezone.utc).isoformat()
-            await self._langfuse._ingest([{
-                "id": str(uuid.uuid4()),
-                "type": "trace-patch",
-                "body": {
-                    "id": trace.trace_id,
-                    "output": {"memories_count": len(final_memories), "graph_facts_count": len(graph_facts)},
-                    "endTime": ts
-                },
-                "timestamp": ts
-            }])
-            
+            await self._langfuse._ingest(
+                [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "trace-patch",
+                        "body": {
+                            "id": trace.trace_id,
+                            "output": {
+                                "memories_count": len(final_memories),
+                                "graph_facts_count": len(graph_facts),
+                            },
+                            "endTime": ts,
+                        },
+                        "timestamp": ts,
+                    }
+                ]
+            )
+
         return res
 
     async def forget(self, memory_id: str, tier: str) -> dict[str, Any]:

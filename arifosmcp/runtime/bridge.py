@@ -14,12 +14,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from core.enforcement.auth_continuity import mint_auth_context, verify_auth_context_cached
-from core.organs import agi, apex, asi, init, vault
-from core.organs._4_vault import verify_vault_ledger
 from pydantic import ValidationError
 
 from arifosmcp.runtime.contracts import REQUIRES_SESSION
+from core.enforcement.auth_continuity import mint_auth_context, verify_auth_context_cached
+from core.organs import agi, apex, asi, init, vault
+from core.organs._4_vault import verify_vault_ledger
 
 from .models import ClaimStatus, Verdict
 
@@ -102,6 +102,7 @@ def _normalize_public_authority_level(level: str | None) -> str:
         "web_session": "agent",
         "web_session_degraded": "declared",
     }.get(normalized, normalized or "anonymous")
+
 
 AUTO_BOOTSTRAP_RISK_TIERS = frozenset({"low", "medium"})
 PROTECTED_AUTO_ANCHOR_IDS = frozenset({"arif", "arif-fazil", "ariffazil"})
@@ -480,9 +481,9 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     Build the system vitals report for check_vital tool.
     Returns health status, thermodynamic budget, and capability map.
     """
+    from arifosmcp.runtime.sessions import get_session_identity
     from core.shared.floors import THRESHOLDS
 
-    from arifosmcp.runtime.sessions import get_session_identity
     try:
         from core.state.session_manager import session_manager
     except Exception:
@@ -588,10 +589,9 @@ async def call_kernel(
     session_id: str,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
+    from arifosmcp.runtime.model import CallerContext as _CallerContext
     from core.governance_kernel import get_governance_kernel
     from core.shared.types import GovernanceMetadata, Intent, MathDials, TemporalContract
-
-    from arifosmcp.runtime.model import CallerContext as _CallerContext
 
     canonical_name = tool_name or "unknown"
     claimed_actor_id = _resolve_claimed_actor_id(payload)
@@ -865,9 +865,11 @@ async def call_kernel(
                 "level": auth_level,
                 "auth_state": "verified" if res.verdict != Verdict.VOID else "unverified",
                 "human_approval_persisted": ha_value,
-                "claim_status": ClaimStatus.ANCHORED.value
-                if res.verdict != Verdict.VOID
-                else ClaimStatus.REJECTED_PROTECTED_ID.value,
+                "claim_status": (
+                    ClaimStatus.ANCHORED.value
+                    if res.verdict != Verdict.VOID
+                    else ClaimStatus.REJECTED_PROTECTED_ID.value
+                ),
             }
             result["human_approval_persisted"] = ha_value
             result["abi_version"] = "1.0"
@@ -1257,6 +1259,7 @@ async def call_kernel(
 # STUB: Office Tools (To be implemented)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def audit_markdown(markdown: str) -> dict:
     """Stub: Audit markdown document (office_forge_audit)."""
     return {"ok": False, "error": "audit_markdown not implemented", "input_length": len(markdown)}
@@ -1289,5 +1292,10 @@ async def ollama_local_generate_call(
 ) -> dict:
     """Call ollama local generate implementation."""
     from .tools_internal import ollama_local_generate_impl
+
     result = await ollama_local_generate_impl(prompt=prompt, session_id=None)
-    return result.payload if hasattr(result, "payload") else {"ok": False, "error": "Ollama call failed"}
+    return (
+        result.payload
+        if hasattr(result, "payload")
+        else {"ok": False, "error": "Ollama call failed"}
+    )

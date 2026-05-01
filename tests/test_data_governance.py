@@ -11,38 +11,29 @@ input sanitization, and human veto.
 Run:
     pytest tests/test_data_governance.py -v
 """
+
 from __future__ import annotations
 
-import uuid
 from datetime import datetime, timezone
 
-import pytest
 
 from arifosmcp.runtime.data_governance import (
     AccessRole,
-    AuditMutationLog,
-    ConfidenceEnvelope,
-    DataClassification,
     DataGovernanceEnforcer,
     GovernanceVerdict,
-    HumanVetoRecord,
     IngestionContract,
-    MaskingPolicy,
     RoleAccessPolicy,
     SourceVerificationRecord,
-    TaxonomyValidator,
     WitnessBundle,
-    classify_sensitive_field,
     compute_confidence_envelope,
     detect_injection,
-    mask_value,
-    sanitize_dict,
     sanitize_input,
     validate_taxonomy,
 )
 
 
 # ─── F1: Custodian ──────────────────────────────────────────────────────────
+
 
 class TestF1Custodian:
     """F1 AMANAH: Every data asset must have a named custodian."""
@@ -83,6 +74,7 @@ class TestF1Custodian:
 
 
 # ─── F2: Source Verification ─────────────────────────────────────────────────
+
 
 class TestF2Truth:
     """F2 TRUTH: Sources must be verified before ingestion."""
@@ -136,6 +128,7 @@ class TestF2Truth:
 
 # ─── F3: Witness Bundle ─────────────────────────────────────────────────────
 
+
 class TestF3Witness:
     """F3 WITNESS: Multi-source cross-validation required."""
 
@@ -158,7 +151,9 @@ class TestF3Witness:
             custodian_id="arif",
             actor_id="agent-001",
             actor_role=AccessRole.EDITOR,
-            source_verification=SourceVerificationRecord(source_name="source-a", verification_method="manual", trust_score=0.65),
+            source_verification=SourceVerificationRecord(
+                source_name="source-a", verification_method="manual", trust_score=0.65
+            ),
             witness_bundle=bundle,
         )
         assert "F03" in decision.failed_floors
@@ -167,8 +162,12 @@ class TestF3Witness:
         enforcer = DataGovernanceEnforcer()
         bundle = WitnessBundle(
             sources=[
-                SourceVerificationRecord(source_name="a", verification_method="manual", trust_score=0.85),
-                SourceVerificationRecord(source_name="b", verification_method="automated", trust_score=0.8),
+                SourceVerificationRecord(
+                    source_name="a", verification_method="manual", trust_score=0.85
+                ),
+                SourceVerificationRecord(
+                    source_name="b", verification_method="automated", trust_score=0.8
+                ),
             ],
             witness_count=2,
             consensus_score=0.82,
@@ -184,6 +183,7 @@ class TestF3Witness:
 
 
 # ─── F4: Schema Contract ────────────────────────────────────────────────────
+
 
 class TestF4Clarity:
     """F4 CLARITY: Required fields must be present per ingestion contract."""
@@ -224,6 +224,7 @@ class TestF4Clarity:
 
 
 # ─── F5: Sensitive Data Masking ────────────────────────────────────────────
+
 
 class TestF5Peace:
     """F5 PEACE: Sensitive fields are masked at ingestion."""
@@ -270,6 +271,7 @@ class TestF5Peace:
 
 # ─── F7: Confidence Envelope ────────────────────────────────────────────────
 
+
 class TestF7Humility:
     """F7 HUMILITY: Confidence scores must be in [0.03, 0.05] band."""
 
@@ -290,6 +292,7 @@ class TestF7Humility:
 
 
 # ─── F9: Audit Mutation Log ────────────────────────────────────────────────
+
 
 class TestF9Antihantu:
     """F9 ANTIHANTU: Every mutation must write an immutable audit record."""
@@ -312,12 +315,17 @@ class TestF9Antihantu:
 
     def test_audit_chain_integrity(self):
         enforcer = DataGovernanceEnforcer()
-        enforcer.ingest_asset(asset_id="a1", asset_data={"x": 1}, custodian_id="arif", actor_id="agent")
-        d2 = enforcer.ingest_asset(asset_id="a2", asset_data={"x": 2}, custodian_id="arif", actor_id="agent")
+        enforcer.ingest_asset(
+            asset_id="a1", asset_data={"x": 1}, custodian_id="arif", actor_id="agent"
+        )
+        d2 = enforcer.ingest_asset(
+            asset_id="a2", asset_data={"x": 2}, custodian_id="arif", actor_id="agent"
+        )
         assert d2.audit_log.previous_hash == enforcer.audit_logs[0].new_hash
 
 
 # ─── F10: Taxonomy ──────────────────────────────────────────────────────────
+
 
 class TestF10Ontology:
     """F10 ONTOLOGY: Assets must belong to the canonical taxonomy."""
@@ -345,6 +353,7 @@ class TestF10Ontology:
 
 
 # ─── F11: Role-Based Access ─────────────────────────────────────────────────
+
 
 class TestF11Auth:
     """F11 AUTH: Access is role-verified, not merely assumed."""
@@ -385,6 +394,7 @@ class TestF11Auth:
 
 # ─── F12: Input Sanitization ───────────────────────────────────────────────
 
+
 class TestF12Injection:
     """F12 INJECTION: All inputs sanitized before processing."""
 
@@ -405,7 +415,7 @@ class TestF12Injection:
         assert "\x00" not in result
 
     def test_html_escape_prevents_raw_tags(self):
-        result = sanitize_input('<script>alert(1)</script>')
+        result = sanitize_input("<script>alert(1)</script>")
         assert "<script" not in result
         assert "&lt;script" in result
 
@@ -424,6 +434,7 @@ class TestF12Injection:
 
 # ─── F13: Human Veto ───────────────────────────────────────────────────────
 
+
 class TestF13Sovereign:
     """F13 SOVEREIGN: Human can veto or override automated decisions."""
 
@@ -437,8 +448,12 @@ class TestF13Sovereign:
         )
         bundle = WitnessBundle(
             sources=[
-                SourceVerificationRecord(source_name="a", verification_method="manual", trust_score=0.9),
-                SourceVerificationRecord(source_name="b", verification_method="automated", trust_score=0.88),
+                SourceVerificationRecord(
+                    source_name="a", verification_method="manual", trust_score=0.9
+                ),
+                SourceVerificationRecord(
+                    source_name="b", verification_method="automated", trust_score=0.88
+                ),
             ],
             witness_count=2,
             consensus_score=0.89,
@@ -473,6 +488,7 @@ class TestF13Sovereign:
 
 # ─── Full Pipeline ──────────────────────────────────────────────────────────
 
+
 class TestGovernancePipeline:
     """End-to-end: clean asset passes all floors, dirty asset fails appropriately."""
 
@@ -485,8 +501,12 @@ class TestGovernancePipeline:
         )
         bundle = WitnessBundle(
             sources=[
-                SourceVerificationRecord(source_name="a", verification_method="manual", trust_score=0.9),
-                SourceVerificationRecord(source_name="b", verification_method="automated", trust_score=0.88),
+                SourceVerificationRecord(
+                    source_name="a", verification_method="manual", trust_score=0.9
+                ),
+                SourceVerificationRecord(
+                    source_name="b", verification_method="automated", trust_score=0.88
+                ),
             ],
             witness_count=2,
             consensus_score=0.89,
@@ -503,7 +523,9 @@ class TestGovernancePipeline:
             required_role=AccessRole.EDITOR,
             actor_role=AccessRole.EDITOR,
         )
-        assert decision.verdict == GovernanceVerdict.SEAL, f"Failed floors: {decision.failed_floors}"
+        assert (
+            decision.verdict == GovernanceVerdict.SEAL
+        ), f"Failed floors: {decision.failed_floors}"
         assert decision.audit_log is not None
 
     def test_dirty_asset_voids(self):
@@ -535,5 +557,19 @@ class TestGovernancePipeline:
         summary = enforcer.get_governance_summary()
         floor_keys = [k for k in summary.keys()]
         assert len(floor_keys) == 13
-        for floor in ["F01", "F02", "F03", "F04", "F05", "F06", "F07", "F08", "F09", "F10", "F11", "F12", "F13"]:
+        for floor in [
+            "F01",
+            "F02",
+            "F03",
+            "F04",
+            "F05",
+            "F06",
+            "F07",
+            "F08",
+            "F09",
+            "F10",
+            "F11",
+            "F12",
+            "F13",
+        ]:
             assert any(floor in k for k in floor_keys), f"Missing {floor} in summary"

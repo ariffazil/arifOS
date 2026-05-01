@@ -225,15 +225,17 @@ class ThreatEngine:
 # Provides the .scan(text) → {score, tier, violations} interface that tools.py expects.
 # ThreatTier mirrors the IrreversibilityLevel scale but adds VOID for blocked threats.
 
+
 class ThreatTier(Enum):
-    VOID = "void"      # Threat detected → blocked
-    SEAL = "seal"       # Clean → approved
-    SABAR = "sabar"    # Conditional hold
-    HOLD = "hold"      # Paused
+    VOID = "void"  # Threat detected → blocked
+    SEAL = "seal"  # Clean → approved
+    SABAR = "sabar"  # Conditional hold
+    HOLD = "hold"  # Paused
 
 
 class ScanResult:
     """Result object returned by ThreatEngine.scan() — mimics what tools.py expects."""
+
     def __init__(self, assessment: ThreatAssessment):
         self.assessment = assessment
         # score: 0.0 (clean) → 1.0 (max threat)
@@ -263,10 +265,12 @@ def scan(cls, text: str) -> ScanResult:
     Lightweight scan — takes raw text and returns a ScanResult.
     Used by tools.py for fast irreversibility inference and verify/critique modes.
     """
+
     # Build a minimal ActionContext from raw text
     class _TextContext:
         def payload_text(inner_self) -> str:
             return text
+
     ctx = _TextContext()
     assessment = cls.classify(ctx)
     return ScanResult(assessment)

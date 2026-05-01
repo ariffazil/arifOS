@@ -12,12 +12,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from pydantic import BaseModel, Field
+
 from arifosmcp.core.threat_engine import (
     IrreversibilityLevel,
     ThreatAssessment,
     ThreatCategory,
 )
-from pydantic import BaseModel, Field
 
 # Import all 13 floor classes from canonical shared implementation.
 # These live at repo-root /core/shared/ (mapped to sys.path parent).

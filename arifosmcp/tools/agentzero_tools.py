@@ -42,22 +42,25 @@ from arifosmcp.runtime.model import (
 
 logger = logging.getLogger(__name__)
 
+
 class SimpleArifOSClient:
     """Mock client for AgentZero agents to interact with arifOS governance."""
+
     async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> AZVerdict:
         # Default to SEAL for now as the tool wrapper provides the final governance envelope
         return AZVerdict.seal(
             execution_id=action.get("execution_id", "ext-000"),
             agent_id=action.get("agent_id", "unknown"),
             action_type=action.get("agent_type", "task"),
-            floor_scores=[FloorScore(f, 1.0, 1.0, True) for f in floors]
+            floor_scores=[FloorScore(f, 1.0, 1.0, True) for f in floors],
         )
-    
+
     async def seal_to_vault(self, verdict: AZVerdict) -> str:
         return f"vault_{uuid.uuid4().hex[:12]}"
-    
+
     async def request_human_approval(self, execution_id: str, reason: str) -> bool:
         return False
+
 
 # Singletons for performance and continuity
 _CLIENT = SimpleArifOSClient()
@@ -69,6 +72,7 @@ _VALIDATOR = ValidatorAgent(agent_id="validator.mcp", arifos_client=_CLIENT)
 _ENGINEER = EngineerAgent(agent_id="engineer.mcp", arifos_client=_CLIENT)
 _ENGINEER.set_validator(_VALIDATOR)
 
+
 async def agentzero_validate(
     input_to_validate: str,
     validation_type: str = "code",
@@ -79,7 +83,7 @@ async def agentzero_validate(
 ) -> RuntimeEnvelope:
     """
     ValidatorAgent (Ψ - APEX): Constitutional verification of code, output, or action.
-    
+
     Arg:
         input_to_validate: The code, output, or action to validate.
         validation_type: Type of validation ("code", "output", "action", "plan").
@@ -92,9 +96,9 @@ async def agentzero_validate(
             "validation_type": validation_type,
             "risk_level": "medium",
         }
-        
+
         result = await _VALIDATOR.execute(task)
-        
+
         az_status = result.get("verdict", "VOID")
         verdict_map = {
             "SEAL": Verdict.SEAL,
@@ -103,20 +107,22 @@ async def agentzero_validate(
             "HOLD": Verdict.HOLD,
             "PARTIAL": Verdict.PARTIAL,
         }
-        
+
         return RuntimeEnvelope(
             tool="agentzero_validate",
             session_id=session_id,
             stage=Stage.JUDGE_888.value,
             verdict=verdict_map.get(az_status, Verdict.VOID),
-            status=RuntimeStatus.SUCCESS if result.get("status") == "success" else RuntimeStatus.ERROR,
+            status=(
+                RuntimeStatus.SUCCESS if result.get("status") == "success" else RuntimeStatus.ERROR
+            ),
             payload={
                 "validation_result": result.get("result", result),
                 "agent_id": _VALIDATOR.agent_id,
             },
             auth_context=auth_context,
         )
-        
+
     except Exception as e:
         logger.error(f"AgentZero validation failed: {e}")
         return RuntimeEnvelope(
@@ -141,7 +147,7 @@ async def agentzero_engineer(
 ) -> RuntimeEnvelope:
     """
     EngineerAgent (Ω - HEART): Code generation and execution with F11 gating.
-    
+
     Arg:
         task_description: The code or command to execute.
         action_type: "execute_code", "shell_command", "read_file", "write_file".
@@ -154,12 +160,12 @@ async def agentzero_engineer(
             "risk_tier": risk_tier,
             "authorized": True,
         }
-        
+
         result = await _ENGINEER.execute(task)
-        
+
         is_err = result.get("status") in ["error", "VOID", "BLOCKED"]
         status = RuntimeStatus.ERROR if is_err else RuntimeStatus.SUCCESS
-        
+
         return RuntimeEnvelope(
             tool="agentzero_engineer",
             session_id=session_id,
@@ -173,7 +179,7 @@ async def agentzero_engineer(
             },
             auth_context=auth_context,
         )
-        
+
     except Exception as e:
         logger.error(f"AgentZero engineering failed: {e}")
         return RuntimeEnvelope(
@@ -205,7 +211,7 @@ async def agentzero_hold_check(
                 "pending_holds": [h.to_dict() for h in pending],
                 "stats": _HOLD_MANAGER.get_stats(),
             }
-        
+
         return RuntimeEnvelope(
             tool="agentzero_hold_check",
             session_id=session_id,
@@ -215,7 +221,7 @@ async def agentzero_hold_check(
             payload=payload,
             auth_context=auth_context,
         )
-        
+
     except Exception as e:
         logger.error(f"AgentZero hold check failed: {e}")
         return RuntimeEnvelope(
@@ -240,20 +246,20 @@ async def agentzero_memory_query(
     """autonomous memory search across Vault999 and session artifacts."""
     try:
         await _MEMORY.initialize_project(project_id)
-        
+
         memories = await _MEMORY.recall(
             query=query,
             project_id=project_id,
             k=5,
             verify_f2=True,
         )
-        
+
         payload = {
             "query": query,
             "results": [m.to_dict() for m in memories],
             "project_id": project_id,
         }
-        
+
         return RuntimeEnvelope(
             tool="agentzero_memory_query",
             session_id=session_id,
@@ -263,7 +269,7 @@ async def agentzero_memory_query(
             payload=payload,
             auth_context=auth_context,
         )
-        
+
     except Exception as e:
         logger.error(f"AgentZero memory query failed: {e}")
         return RuntimeEnvelope(
@@ -287,7 +293,7 @@ async def agentzero_armor_scan(
     """F12 security scan (PromptArmor) on content."""
     try:
         report = await _ARMOR.scan(content)
-        
+
         return RuntimeEnvelope(
             tool="agentzero_armor_scan",
             session_id=session_id,
@@ -297,7 +303,7 @@ async def agentzero_armor_scan(
             payload=report.to_dict(),
             auth_context=auth_context,
         )
-        
+
     except Exception as e:
         logger.error(f"AgentZero armor scan failed: {e}")
         return RuntimeEnvelope(
@@ -309,6 +315,7 @@ async def agentzero_armor_scan(
             payload={"error": str(e)},
             auth_context=auth_context,
         )
+
 
 # Export all tools
 __all__ = [
