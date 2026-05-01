@@ -1,0 +1,40 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS PyPI Publish — API Token auth (PYPI_API_TOKEN secret)
+#
+# Triggers on push to main when arifosmcp/pyproject.toml version changes,
+# or manually via workflow_dispatch.
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: Publish to PyPI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'arifosmcp/pyproject.toml'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Build and publish arifos
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Build package
+        run: uv build --project arifosmcp
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: arifosmcp/dist/
+          password: ${{ secrets.PYPI_API_TOKEN }}

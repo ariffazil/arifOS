@@ -14,10 +14,13 @@ import ast
 import re
 from enum import Enum, auto
 from typing import Any
+
 from pydantic import BaseModel, Field
+
 
 class ThreatCategory(Enum):
     """Canonical threat taxonomy — used by all tools. No exceptions."""
+
     FILESYSTEM_DESTRUCTIVE = auto()
     DATABASE_DESTRUCTIVE = auto()
     CONTAINER_DESTRUCTIVE = auto()
@@ -33,11 +36,13 @@ class ThreatCategory(Enum):
     DATA_EXFILTRATION = auto()
     CRYPTO_VIOLATION = auto()
 
+
 class IrreversibilityLevel(Enum):
     NONE = 0
     LOW = 1
     HIGH = 2
     CRITICAL = 3
+
 
 # Mapping: which threats are inherently irreversible/destructive
 THREAT_IRREVERSIBILITY: dict[ThreatCategory, int] = {
@@ -57,11 +62,21 @@ THREAT_IRREVERSIBILITY: dict[ThreatCategory, int] = {
     ThreatCategory.CRYPTO_VIOLATION: 3,
 }
 
+
 class ThreatAssessment(BaseModel):
     threats: set[ThreatCategory] = Field(default_factory=set)
     irreversibility: IrreversibilityLevel = Field(default=IrreversibilityLevel.NONE)
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     reasoning: list[str] = Field(default_factory=list)
+
+    @property
+    def tier(self) -> ThreatTier:
+        return ThreatTier(self.irreversibility.value)
+
+    @property
+    def violations(self) -> set[ThreatCategory]:
+        return self.threats
+
 
 class ThreatEngine:
     """
@@ -106,12 +121,24 @@ class ThreatEngine:
     SQL_INJECTION = ["; --", "';", '";', "union select", "or 1=1", "exec(", "execute("]
     SHELL_INJECTION = ["; rm", "&& rm", "| sh", "| bash", "`rm", "$(rm", "eval(", "exec("]
     XSS_PATTERNS = ["<script>", "javascript:", "onerror=", "onload=", "alert(", "document.cookie"]
-    ADMIN_ACTIONS = ["action=shutdown", "shutdown -h", "shutdown -r", "reboot", "poweroff", "systemctl stop", "kill -9"]
+    ADMIN_ACTIONS = [
+        "action=shutdown",
+        "shutdown -h",
+        "shutdown -r",
+        "reboot",
+        "poweroff",
+        "systemctl stop",
+        "kill -9",
+    ]
 
     @classmethod
     def classify(cls, context: Any) -> ThreatAssessment:
         # Use payload_text() method from ActionContext if available
-        text = context.payload_text().lower() if hasattr(context, "payload_text") else str(context).lower()
+        text = (
+            context.payload_text().lower()
+            if hasattr(context, "payload_text")
+            else str(context).lower()
+        )
         threats: set[ThreatCategory] = set()
         reasoning: list[str] = []
 
@@ -164,7 +191,9 @@ class ThreatEngine:
     def _analyze_python(cls, code: str) -> tuple[set[ThreatCategory], list[str]]:
         threats: set[ThreatCategory] = set()
         reasoning: list[str] = []
-        if not code.strip() or not any(kw in code for kw in ("def ", "import ", "(", ")", ":", "=")):
+        if not code.strip() or not any(
+            kw in code for kw in ("def ", "import ", "(", ")", ":", "=")
+        ):
             return threats, reasoning
         try:
             tree = ast.parse(code)
@@ -185,7 +214,8 @@ class ThreatEngine:
         parts: list[str] = []
         current: ast.expr = node
         while isinstance(current, ast.Attribute):
-            parts.append(current.attr); current = current.value
+            parts.append(current.attr)
+            current = current.value
         if isinstance(current, ast.Name):
             parts.append(current.id)
         return tuple(reversed(parts))

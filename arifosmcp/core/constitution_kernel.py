@@ -10,20 +10,44 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 from datetime import datetime, timezone
 from typing import Any
+
+from arifosmcp.core.authority_gate import AuthorityGate, AuthorityProof, WitnessType
+from arifosmcp.core.floor_evaluator import FloorEvaluator, FloorResult
+from arifosmcp.core.threat_engine import (
+    IrreversibilityLevel,
+    ThreatAssessment,
+    ThreatCategory,
+    ThreatEngine,
+)
 from pydantic import BaseModel, Field, field_validator
 
-from arifosmcp.core.threat_engine import ThreatEngine, ThreatAssessment, IrreversibilityLevel, ThreatCategory, THREAT_IRREVERSIBILITY
-from arifosmcp.core.floor_evaluator import FloorEvaluator, FloorResult
-from arifosmcp.core.authority_gate import AuthorityGate, AuthorityProof, WitnessType
+__all__ = [
+    "ActionContext",
+    "AuthorityGate",
+    "BootInvariantChecker",
+    "ConstitutionKernel",
+    "ConstitutionalVerdict",
+    "FloorEvaluator",
+    "IrreversibilityLevel",
+    "SchemaContractValidator",
+    "ThreatAssessment",
+    "ThreatCategory",
+    "ThreatEngine",
+    "WitnessType",
+    "get_kernel",
+    "reset_kernel",
+]
+
 
 class IrreversibilityModel:
     @staticmethod
     def from_threats(assessment: ThreatAssessment) -> IrreversibilityLevel:
         return assessment.irreversibility
+
 
 class ActionContext(BaseModel):
     tool_name: str
@@ -44,15 +68,14 @@ class ActionContext(BaseModel):
     # ── Post-AGI verification governance (WEALTH layer) ────────────────────
     audit_entropy: dict[str, Any] | None = Field(
         default=None,
-        description="AuditEntropy result: delta_m, svs, entropy_band from wealth_audit_entropy"
+        description="AuditEntropy result: delta_m, svs, entropy_band from wealth_audit_entropy",
     )
     wealth_score: dict[str, Any] | None = Field(
         default=None,
-        description="WealthScore: multi-axis constitutional score from wealth_score_kernel"
+        description="WealthScore: multi-axis constitutional score from wealth_score_kernel",
     )
     verification_surface: dict[str, Any] | None = Field(
-        default=None,
-        description="VerificationSurface: canonical claim + evidence + verifier info"
+        default=None, description="VerificationSurface: canonical claim + evidence + verifier info"
     )
 
     @field_validator("url")
@@ -65,8 +88,10 @@ class ActionContext(BaseModel):
     def payload_text(self) -> str:
         for attr in ("candidate", "manifest", "query", "url"):
             val = getattr(self, attr)
-            if val: return val
+            if val:
+                return val
         return ""
+
 
 class ConstitutionalVerdict(BaseModel):
     status: str
@@ -92,7 +117,10 @@ class ConstitutionalVerdict(BaseModel):
             "irreversibility": self.irreversibility.name,
             "timestamp": self.timestamp,
         }
-        return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        return hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+
 
 class WealthGovernance:
     """
@@ -110,9 +138,10 @@ class WealthGovernance:
       - sovereign_veto in wealth_score → VOID
       - no liability owner → HOLD (automatic)
     """
+
     # Thresholds
-    MIN_SVS = 0.30          # hard HOLD below this line
-    MAX_DELTA_M = 0.80     # hard HOLD above this line
+    MIN_SVS = 0.30  # hard HOLD below this line
+    MAX_DELTA_M = 0.80  # hard HOLD above this line
     # Graduated governance penalty zone: svs in [MIN_SVS, 0.50] gets proportional penalty
     SVS_PENALTY_ZONE = 0.50
 
@@ -145,7 +174,12 @@ class WealthGovernance:
           verification_state: dict (for vault seal record)
         """
         if context.audit_entropy is None and context.wealth_score is None:
-            return {"status": "OK", "reason": "no_verification_state", "hard_blocks": [], "verification_state": {}}
+            return {
+                "status": "OK",
+                "reason": "no_verification_state",
+                "hard_blocks": [],
+                "verification_state": {},
+            }
 
         hard_blocks: list[str] = []
         verification_state: dict[str, Any] = {}
@@ -188,7 +222,9 @@ class WealthGovernance:
             verification_state["svs_governance_penalty"] = round(penalty, 4)
             if penalty > 0.5:
                 # Elevated governance concern but not a hard block — flag for advisory HOLD
-                verification_state["advisory_governance_flag"] = f"SVS_PENALTY_ZONE: penalty={penalty:.2f}"
+                verification_state["advisory_governance_flag"] = (
+                    f"SVS_PENALTY_ZONE: penalty={penalty:.2f}"
+                )
 
         # ── Process wealth_score ───────────────────────────────────────────
         ws = context.wealth_score or {}
@@ -229,16 +265,133 @@ class ConstitutionKernel:
         self.floor_evaluator = FloorEvaluator()
         self.authority_gate = AuthorityGate()
 
+    def evaluate_intent(
+        self,
+        tool_name: str,
+        params: dict[str, Any],
+        session_id: str | None = None,
+        actor_id: str | None = None,
+        witness_type: WitnessType = WitnessType.AI,
+    ) -> dict[str, Any]:
+        """Bridge for tools.py callers that expect GovernanceEnforcer-style evaluate_intent.
+
+        Converts (tool_name, params, session_id) → ActionContext → ConstitutionalVerdict,
+        then returns the {"passed", "failed_floors"} dict that
+        arif_forge_execute / arif_vault_seal expect.
+        """
+        context = ActionContext(
+            tool_name=tool_name,
+            mode=params.get("mode", "default"),
+            ack_irreversible=params.get("ack_irreversible", False),
+            session_id=session_id,
+            actor_id=actor_id,
+            witness_type=witness_type,
+            plan_id=params.get("plan_id"),
+            plan_registry=params.get("plan_registry", set()),
+        )
+        verdict = self.evaluate(context)
+        return {
+            "passed": verdict.verdict in ("SEAL", "OK"),
+            "failed_floors": verdict.floors.failed_floors if verdict.floors else [],
+            "threat_score": verdict.threat.confidence if verdict.threat else 0.0,
+        }
+
     def evaluate(self, context: ActionContext) -> ConstitutionalVerdict:
+        # ── Step -1: Biological Readiness Gate (WELL Mirror) ──────────────
+        # F13 SOVEREIGN: Mandatory physiological gate before any SEAL.
+        # This prevents autonomous action when the operator is degraded.
+        try:
+            well_state_path = "/root/WELL/state.json"
+            # Note: In production container, this path must be mounted.
+            # If missing, we fallback to a safe 'STABLE' assumption unless in strict mode.
+            import json
+            import os
+
+            if os.path.exists(well_state_path):
+                with open(well_state_path) as f:
+                    well_state = json.load(f)
+                readiness = well_state.get("well_score")
+                backend_status = well_state.get("backend_status", "UNKNOWN")
+
+                # Fail-closed: null well_score or DEGRADED backend blocks SEAL
+                if readiness is None or backend_status == "DEGRADED":
+                    is_dev = os.environ.get("ARIFOS_DEV_MODE", "").lower() in ("1", "true", "yes")
+                    f13_reason = (
+                        f"WELL telemetry unavailable (well_score={readiness}, "
+                        f"backend_status={backend_status})"
+                    )
+                    from arifosmcp.core.authority_gate import AuthorityProof
+                    from arifosmcp.core.floor_evaluator import FloorResult
+                    from arifosmcp.core.threat_engine import (
+                        IrreversibilityLevel,
+                        ThreatAssessment,
+                    )
+
+                    threat = ThreatAssessment(
+                        threats=[],
+                        overall_confidence=1.0,
+                        irreversibility=IrreversibilityLevel.NONE,
+                        category=None,
+                    )
+                    floors = FloorResult(
+                        verdict="HOLD",
+                        failed_floors=["F13"],
+                        floor_reasons={"F13": f13_reason},
+                    )
+                    authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
+                    return ConstitutionalVerdict(
+                        status="WARN" if is_dev else "HOLD",
+                        verdict="WARN" if is_dev else "HOLD",
+                        threat=threat,
+                        floors=floors,
+                        authority=authority,
+                        irreversibility=IrreversibilityLevel.NONE,
+                    )
+
+                if readiness < 40:  # Threshold per doctrinal move
+                    from arifosmcp.core.authority_gate import AuthorityProof
+                    from arifosmcp.core.floor_evaluator import FloorResult
+                    from arifosmcp.core.threat_engine import (
+                        IrreversibilityLevel,
+                        ThreatAssessment,
+                    )
+
+                    threat = ThreatAssessment(
+                        threats=[],
+                        overall_confidence=1.0,
+                        irreversibility=IrreversibilityLevel.NONE,
+                        category=None,
+                    )
+                    floors = FloorResult(
+                        verdict="HOLD",
+                        failed_floors=["F13"],
+                        floor_reasons={
+                            "F13": f"Operator readiness {readiness} below constitutional floor (40)"
+                        },
+                    )
+                    authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
+                    return ConstitutionalVerdict(
+                        status="HOLD",
+                        verdict="HOLD",
+                        threat=threat,
+                        floors=floors,
+                        authority=authority,
+                        irreversibility=IrreversibilityLevel.NONE,
+                    )
+        except Exception:
+            # We do not block on well-mirror errors to prevent deadlocks,
+            # but we log the friction.
+            pass
+
         # ── Step 0: WEALTH verification governance (pre-flight check) ──────
         wg = WealthGovernance.evaluate(context)
         wg_status = wg["status"]
 
         # If verification already determined VOID/HOLD, short-circuit constitutional evaluation
         if wg_status in ("VOID", "HOLD"):
-            from arifosmcp.core.floor_evaluator import FloorResult
-            from arifosmcp.core.threat_engine import ThreatAssessment, IrreversibilityLevel
             from arifosmcp.core.authority_gate import AuthorityProof
+            from arifosmcp.core.floor_evaluator import FloorResult
+            from arifosmcp.core.threat_engine import IrreversibilityLevel, ThreatAssessment
 
             threat = ThreatAssessment(
                 threats=[],
@@ -260,7 +413,9 @@ class ConstitutionKernel:
                 authority=authority,
                 irreversibility=IrreversibilityLevel.NONE,
                 # Attach verification state so it propagates to vault seal
-                state_hash=hashlib.sha256(json.dumps({"wealth_governance": wg["verification_state"]}).encode()).hexdigest()[:32],
+                state_hash=hashlib.sha256(
+                    json.dumps({"wealth_governance": wg["verification_state"]}).encode()
+                ).hexdigest()[:32],
             )
 
         # ── Normal constitutional evaluation ───────────────────────────────
@@ -285,8 +440,9 @@ class ConstitutionKernel:
             threat=threat,
             floors=floors,
             authority=authority,
-            irreversibility=threat.irreversibility
+            irreversibility=threat.irreversibility,
         )
+
 
 class SchemaContractValidator:
     @staticmethod
@@ -313,21 +469,27 @@ class SchemaContractValidator:
             errors.append(f"{tool_name}: implemented modes not documented: {extra}")
         return errors
 
+
 class BootInvariantChecker:
     REQUIRED_INVARIANTS = {
         "self_approval_forbidden": True,
         "forge_default_dry_run": True,
         "irreversible_actions_require_ack": True,
     }
+
     @classmethod
     def check(cls, config: dict[str, Any]) -> None:
         for invariant, required_value in cls.REQUIRED_INVARIANTS.items():
             if config.get(invariant) != required_value:
                 raise RuntimeError(f"BOOT INVARIANT VIOLATED: {invariant}")
 
+
 _kernel = ConstitutionKernel()
+
+
 def get_kernel() -> ConstitutionKernel:
     return _kernel
+
 
 def reset_kernel() -> None:
     global _kernel

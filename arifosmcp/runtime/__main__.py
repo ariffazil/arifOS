@@ -99,14 +99,12 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
 def _run_minimal_stdio_server() -> None:
     from mcp import types as mcp_types
 
-    from .tool_specs import LEGACY_NAME_MAP, TOOLS
-    from .tools import CANONICAL_TOOL_HANDLERS, get_tool_handler, normalize_tool_name
+    from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
+    from .tools import CANONICAL_TOOL_HANDLERS
+    from .tools_hardened_dispatch import get_tool_handler
 
-    tool_handlers: dict[str, Any] = {
-        spec.name: CANONICAL_TOOL_HANDLERS[spec.name]
-        for spec in TOOLS
-        if spec.name in CANONICAL_TOOL_HANDLERS
-    }
+    # tool_handlers uses arif_* names (CANONICAL_TOOL_HANDLERS keys)
+    tool_handlers: dict[str, Any] = CANONICAL_TOOL_HANDLERS.copy()
 
     # Build spec lookup from canonical TOOLS tuple
     _spec_by_name = {spec.name: spec for spec in TOOLS}

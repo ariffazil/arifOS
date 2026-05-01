@@ -7,6 +7,7 @@ Forged irreversibly: delta_S, irreversibility bond, manifest, execution trace.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -16,13 +17,14 @@ from pydantic import BaseModel, Field
 
 from arifosmcp.schemas.lineage import JudgeSealContract
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # FORGE ENUMS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class IrreversibilityLevel(str, Enum):
     """How irreversible is this forge action?"""
+
     REVERSIBLE = "reversible"
     SEMI_IRREVERSIBLE = "semi_irreversible"
     IRREVERSIBLE = "irreversible"
@@ -31,6 +33,7 @@ class IrreversibilityLevel(str, Enum):
 
 class ManifestStatus(str, Enum):
     """What happened to the manifest?"""
+
     PENDING = "pending"
     FORGED = "forged"
     COMMITTED = "committed"
@@ -43,6 +46,7 @@ class ManifestStatus(str, Enum):
 # IRREVERSIBILITY BOND — ENTROPY COST OF THIS ACTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class IrreversibilityBond(BaseModel):
     """
     Landauer-aware irreversibility assessment.
@@ -51,31 +55,28 @@ class IrreversibilityBond(BaseModel):
 
     Mandatory in: 999_VAULT, 010_FORGE
     """
+
     level: IrreversibilityLevel = Field(
-        default=IrreversibilityLevel.REVERSIBLE,
-        description="How irreversible is this action?"
+        default=IrreversibilityLevel.REVERSIBLE, description="How irreversible is this action?"
     )
     delta_S: float = Field(
-        default=0.0,
-        description="Entropy change (J/K). Positive = heat to environment."
+        default=0.0, description="Entropy change (J/K). Positive = heat to environment."
     )
     landauer_cost_joules: float | None = Field(
-        default=None,
-        description="Landauer bound: k_B * T * ln(2) * bits_flipped"
+        default=None, description="Landauer bound: k_B * T * ln(2) * bits_flipped"
     )
     compensation_required: bool = Field(
-        default=False,
-        description="Does this action require compensation entropy?"
+        default=False, description="Does this action require compensation entropy?"
     )
     rollback_possible: bool = Field(
-        default=True,
-        description="Can this action be theoretically rolled back?"
+        default=True, description="Can this action be theoretically rolled back?"
     )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DELTA S EVIDENCE — THERMODYNAMIC FOOTPRINT
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class DeltaSEvidence(BaseModel):
     """
@@ -86,29 +87,16 @@ class DeltaSEvidence(BaseModel):
     - delta_S_net determines if action is allowed (F13 entropy budget)
     - energy_cost determines if system can afford the action
     """
+
     delta_S_positive: float = Field(
-        default=0.0,
-        description="Entropy produced (heat to environment)"
+        default=0.0, description="Entropy produced (heat to environment)"
     )
-    delta_S_negative: float = Field(
-        default=0.0,
-        description="Entropy absorbed (cooling)"
-    )
-    delta_S_net: float = Field(
-        default=0.0,
-        description="Net entropy change"
-    )
-    energy_cost_joules: float | None = Field(
-        default=None,
-        description="Direct energy cost"
-    )
-    landauer_optimal: bool = Field(
-        default=True,
-        description="Is action within Landauer bound?"
-    )
+    delta_S_negative: float = Field(default=0.0, description="Entropy absorbed (cooling)")
+    delta_S_net: float = Field(default=0.0, description="Net entropy change")
+    energy_cost_joules: float | None = Field(default=None, description="Direct energy cost")
+    landauer_optimal: bool = Field(default=True, description="Is action within Landauer bound?")
     entropy_budget_remaining: float | None = Field(
-        default=None,
-        description="F13 entropy budget remaining"
+        default=None, description="F13 entropy budget remaining"
     )
 
 
@@ -116,8 +104,10 @@ class DeltaSEvidence(BaseModel):
 # EXECUTION TRACE — WHAT HAPPENED DURING FORGE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ExecutionNode(BaseModel):
     """Single step in the forge execution trace."""
+
     step: int = Field(default=0, description="Step number")
     action: str = Field(default="", description="What was done")
     artifact_id: str | None = Field(default=None, description="ID of artifact produced")
@@ -128,6 +118,7 @@ class ExecutionNode(BaseModel):
 
 class ExecutionTrace(BaseModel):
     """Full trace of what happened during forge."""
+
     steps: list[ExecutionNode] = Field(default_factory=list)
     total_steps: int = Field(default=0)
     final_artifact_id: str | None = Field(default=None)
@@ -141,8 +132,10 @@ class ExecutionTrace(BaseModel):
 # FORGE MANIFEST — THE THING BEING FORGED
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ForgeManifest(BaseModel):
     """The artifact being forged."""
+
     artifact_id: str = Field(default="", description="Unique identifier")
     name: str = Field(default="", description="Human-readable name")
     type: str = Field(default="", description="artifact_type")
@@ -156,8 +149,10 @@ class ForgeManifest(BaseModel):
 # CONSTITUTIONAL COMPLIANCE — F1-F13 CHECK RESULTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ConstitutionalCompliance(BaseModel):
     """F1-F13 floor compliance for this forge action."""
+
     floors_invoked: list[str] = Field(default_factory=list)
     floor_results: dict[str, str] = Field(default_factory=dict)
     violations_found: list[str] = Field(default_factory=list)
@@ -168,6 +163,7 @@ class ConstitutionalCompliance(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 # FORGE OUTPUT — PRIMARY OUTPUT FOR arif_forge_execute
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class ForgeOutput(BaseModel):
     """
@@ -182,6 +178,7 @@ class ForgeOutput(BaseModel):
     Stage: 010_FORGE
     Pillar: Thermodynamic + Amanah Genius + Constitutional Law
     """
+
     # Core
     manifest: ForgeManifest = Field(default_factory=ForgeManifest)
     status: str = Field(default="OK", description="'OK' | 'HOLD' | 'VOID'")
@@ -189,32 +186,27 @@ class ForgeOutput(BaseModel):
 
     # Irreversibility
     irreversibility_bond: IrreversibilityBond = Field(
-        default_factory=IrreversibilityBond,
-        description="Thermodynamic irreversibility assessment"
+        default_factory=IrreversibilityBond, description="Thermodynamic irreversibility assessment"
     )
 
     # Entropy
     delta_S_evidence: DeltaSEvidence = Field(
-        default_factory=DeltaSEvidence,
-        description="Entropy production evidence"
+        default_factory=DeltaSEvidence, description="Entropy production evidence"
     )
 
     # Constitutional compliance
     constitutional_compliance: ConstitutionalCompliance = Field(
-        default_factory=ConstitutionalCompliance,
-        description="F1-F13 floor compliance"
+        default_factory=ConstitutionalCompliance, description="F1-F13 floor compliance"
     )
 
     # Execution trace
     execution_trace: ExecutionTrace = Field(
-        default_factory=ExecutionTrace,
-        description="Step-by-step execution record"
+        default_factory=ExecutionTrace, description="Step-by-step execution record"
     )
 
     # Acknowledgment
     ack_irreversible_received: bool = Field(
-        default=False,
-        description="Did actor acknowledge irreversibility?"
+        default=False, description="Did actor acknowledge irreversibility?"
     )
     ack_irreversible_timestamp: str | None = Field(default=None)
 
@@ -239,52 +231,23 @@ class ForgeOutput(BaseModel):
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
 
+    # Nine-Signal / F2 addendum — reasons[] required for HOLD/VOID/SABAR
+    reasons: list[str] = Field(default_factory=list)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BACKWARD-COMPATIBLE ENVELOPE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ForgeEnvelope(BaseModel):
     """Backward-compatible forge envelope."""
+
     status: str = "OK"
     tool: str = "arif_forge_execute"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
-
-
-# P1-B APPLIED 2026-05-01: Unified Reversibility Schema
-class ReversibilityState(BaseModel):
-    """
-    Unified reversibility across all arifOS tools.
-    Detects contradictions between kernel_route inference and judge evaluation.
-    """
-    external_effect: bool = Field(
-        description="Does this action produce observable effects outside the system?"
-    )
-    vault_commit: bool = Field(
-        description="Will this be recorded permanently in VAULT999?"
-    )
-    artifact_type: str = Field(
-        description="'reversible_local_draft' | 'semi_irreversible' | 'irreversible' | 'catastrophic'"
-    )
-    permanent_seal_requires: str = Field(
-        description="'none' | 'human_ack' | '888_seal'"
-    )
-    level: IrreversibilityLevel = Field(
-        description="Numeric irreversibility level (0=REVERSIBLE through 3=CATASTROPHIC)"
-    )
-    level_rank: int = Field(
-        description="Numeric rank: 0=REVERSIBLE, 1=SEMI_IRREVERSIBLE, 2=IRREVERSIBLE, 3=CATASTROPHIC"
-    )
-
-    def is_contradictory(self, other: "ReversibilityState") -> bool:
-        """Detect reversibility contradiction between two assessments."""
-        return (
-            self.level_rank >= 2 and other.level_rank < 2
-        ) or (
-            other.level_rank >= 2 and self.level_rank < 2
-        )
 
 
 # Alias

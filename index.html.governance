@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arifOS 🔱 Constitutional Governance | Main Site</title>
+  <meta name="description" content="arifOS Main Site. The constitutional proof surface and canon for governed intelligence. DITEMPA BUKAN DIBERI." />
+  <meta name="role" content="PROOF" />
+  <link rel="canonical" href="https://arifos.arif-fazil.com" />
+  <style>
+    :root{--bg:#0c0a06;--bg2:#14110a;--text:#e8dcc8;--text2:#a09078;--amber:#c4791a;--amber-dim:#7a4c10}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:"Courier New",monospace;padding-bottom:48px;min-height:100vh}
+    header{border-bottom:1px solid #2a2010;padding:32px 48px 24px}
+    .role-chip{display:inline-block;font-size:9px;letter-spacing:2px;color:var(--amber);border:1px solid var(--amber-dim);padding:3px 10px;margin-bottom:16px;text-transform:uppercase}
+    h1{font-size:28px;font-weight:700;color:var(--amber);letter-spacing:3px;margin-bottom:8px}
+    .hero-sub{font-size:13px;color:var(--text2);letter-spacing:1px;max-width:520px;line-height:1.6}
+    .cta-row{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+    .cta{display:inline-block;font-size:10px;letter-spacing:1.5px;padding:9px 20px;text-decoration:none;text-transform:uppercase;border:1px solid;transition:background .15s}
+    .cta-primary{color:var(--amber);border-color:var(--amber)}.cta-primary:hover{background:var(--amber);color:#0c0a06}
+    .cta-secondary{color:var(--text2);border-color:#3a2e1a}.cta-secondary:hover{background:#1a1508}
+    main{padding:40px 48px;max-width:820px}section{margin-bottom:40px}
+    h2{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--amber);margin-bottom:16px;border-bottom:1px solid #2a2010;padding-bottom:8px}
+    .floor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+    .floor{background:var(--bg2);border:1px solid #2a2010;padding:12px 16px}
+    .floor-id{font-size:9px;letter-spacing:1.5px;color:var(--amber);margin-bottom:4px}
+    .floor-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+    .floor-type{font-size:9px;letter-spacing:1px;color:var(--text2)}
+    .floor.hard .floor-id,.floor.hard .floor-type{color:#e05c3a}
+    .links{display:flex;flex-direction:column;gap:8px}
+    .link-row{display:flex;align-items:center;gap:12px;font-size:11px}
+    .link-row a{color:var(--amber);text-decoration:none}.link-row a:hover{text-decoration:underline}
+    .link-row .lbl{color:var(--text2);width:80px;flex-shrink:0;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+    footer{padding:24px 48px;border-top:1px solid #2a2010;font-size:9px;letter-spacing:1.5px;color:var(--text2)}
+    #rn{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(10,10,10,0.97);border-top:1px solid #1e1e1e;display:flex;align-items:stretch;justify-content:center;height:36px;font-family:"Courier New",monospace}
+    #rn a{color:inherit;text-decoration:none;padding:0 13px;display:flex;align-items:center;font-size:10px;letter-spacing:1.2px;border-right:1px solid #1e1e1e;white-space:nowrap;transition:background .15s}
+    #rn a:last-child{border-right:none}#rn a:hover{background:#1a1a1a}#rn a.rn-active{background:#181818;border-bottom:2px solid currentColor}
+    @media(max-width:600px){header,main,footer{padding-left:20px;padding-right:20px}.floor-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="role-chip">ROLE: PROOF</div>
+    <h1>arifOS 🔱 Constitutional Governance for Agentic AI</h1>
+    <p class="hero-sub">A governance and proof surface for AI systems that use tools, coordinate through agents, and require human authority before irreversible action.</p>
+    <div class="hero-sub" style="margin-top:12px; font-style:italic">
+      MCP gives capability.<br>
+      A2A gives coordination.<br>
+      arifOS gives governance.<br>
+      888 Judge gives final human approval.
+    </div>
+    <div class="cta-row">
+      <a class="cta cta-primary" href="#floors">Governance & Floors</a>
+      <a class="cta cta-secondary" href="https://aaa.arif-fazil.com">AAA Cockpit</a>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>The 13 Constitutional Floors</h2>
+      <div class="floor-grid">
+        <div class="floor hard"><div class="floor-id">F1 ◆ HARD FLOOR</div><div class="floor-name">AMANAH</div><div class="floor-type">No irreversible action without VAULT999 seal</div></div>
+        <div class="floor hard"><div class="floor-id">F2 ◆ HARD FLOOR</div><div class="floor-name">TRUTH</div><div class="floor-type">Ω ≥ 0.99 — ungrounded claims blocked</div></div>
+        <div class="floor"><div class="floor-id">F3 ◆ SOFT FLOOR</div><div class="floor-name">TRI-WITNESS</div><div class="floor-type">Theory, constitution, and intent must agree</div></div>
+        <div class="floor"><div class="floor-id">F4 ◆ SOFT FLOOR</div><div class="floor-name">CLARITY</div><div class="floor-type">ΔS ≤ 0 — entropy must decrease</div></div>
+        <div class="floor"><div class="floor-id">F5 ◆ SOFT FLOOR</div><div class="floor-name">PEACE ◆</div><div class="floor-type">Must not destroy without restoration path</div></div>
+        <div class="floor"><div class="floor-id">F6 ◆ SOFT FLOOR</div><div class="floor-name">EMPATHY</div><div class="floor-type">Human impact must be modelled</div></div>
+        <div class="floor"><div class="floor-id">F7 ◆ SOFT FLOOR</div><div class="floor-name">HUMILITY</div><div class="floor-type">Uncertainty must be acknowledged</div></div>
+        <div class="floor"><div class="floor-id">F8 ◆ SOFT FLOOR</div><div class="floor-name">GENIUS</div><div class="floor-type">G ≥ 0.80 — governed intelligence score</div></div>
+        <div class="floor hard"><div class="floor-id">F9 ◆ HARD FLOOR</div><div class="floor-name">ANTI-HANTU</div><div class="floor-type">Manipulation and deception blocked</div></div>
+        <div class="floor"><div class="floor-id">F10 ◆ SOFT FLOOR</div><div class="floor-name">BALANCE</div><div class="floor-type">Resource allocation must be proportional to value</div></div>
+        <div class="floor"><div class="floor-id">F11 ◆ SOFT FLOOR</div><div class="floor-name">AUDITABILITY</div><div class="floor-type">All actions logged and inspectable</div></div>
+        <div class="floor"><div class="floor-id">F12 ◆ SOFT FLOOR</div><div class="floor-name">CONTINUITY</div><div class="floor-type">System must maintain operational continuity</div></div>
+        <div class="floor hard"><div class="floor-id">F13 ◆ HARD FLOOR</div><div class="floor-name">SOVEREIGN</div><div class="floor-type">Human holds final authority ◆ 888_HOLD cannot be bypassed</div></div>
+      </div>
+    </section>
+    <section>
+      <h2>Trinity Architecture (Ψ Ω Σ)</h2>
+      <div class="floor-grid">
+        <div class="floor"><div class="floor-id">Ψ MIND Ψ AGI</div><div class="floor-name">Logic &amp; Synthesis</div><div class="floor-type">F2, F4, F7, F8, F10 ◆ Reasoning organ</div></div>
+        <div class="floor"><div class="floor-id">Ω HEART Ω ASI</div><div class="floor-name">Ethics &amp; Empathy</div><div class="floor-type">F1, F5, F6, F9, F11, F12 ◆ Safety organ</div></div>
+        <div class="floor"><div class="floor-id">Σ SOUL Σ APEX</div><div class="floor-name">Final Judgment</div><div class="floor-type">F3, F13 ◆ Verdict organ</div></div>
+      </div>
+    </section>
+    <section>
+      <h2>Canon &amp; Docs</h2>
+      <div class="links">
+        <div class="link-row"><span class="lbl">Architecture</span><a href="https://apex.arif-fazil.com/architecture">apex.arif-fazil.com/architecture</a></div>
+        <div class="link-row"><span class="lbl">MCP Server</span><a href="https://apex.arif-fazil.com/mcp-server">apex.arif-fazil.com/mcp-server</a></div>
+        <div class="link-row"><span class="lbl">Endpoint</span><a href="https://mcp.arif-fazil.com">mcp.arif-fazil.com</a></div>
+        <div class="link-row"><span class="lbl">APEX Repo</span><a href="https://github.com/ariffazil/APEX" target="_blank" rel="noopener">github.com/ariffazil/APEX</a></div>
+        <div class="link-row"><span class="lbl">arifOS Repo</span><a href="https://github.com/ariffazil/arifOS" target="_blank" rel="noopener">github.com/ariffazil/arifOS</a></div>
+      </div>
+    </section>
+  </main>
+  <footer>APEX ◆ Constitutional Canon &nbsp;|&nbsp; DITEMPA BUKAN DIBERI ◆ Forged, Not Given &nbsp;|&nbsp; ◆ 2026 &nbsp;|&nbsp; ariffazil/arifOS &nbsp;|&nbsp; All rights reserved</footer>
+  <nav id="rn">
+    <a href="https://arif-fazil.com" data-h="arif-fazil.com" style="color:#c94b2e">ARIF (human)</a>
+    <a href="https://apex.arif-fazil.com" data-h="apex.arif-fazil.com" style="color:#c4791a">APEX (theory)</a>
+    <a href="https://apex.arif-fazil.com" data-h="apex.arif-fazil.com" style="color:#2a8a6e">arifOS (kernel)</a>
+    <a href="https://aaa.arif-fazil.com" data-h="aaa.arif-fazil.com" style="color:#2a6fbd">AAA (agents)</a>
+    <a href="https://waw.arif-fazil.com" data-h="waw.arif-fazil.com" style="color:#6d4ade">WAW (state)</a>
+    <a href="https://mcp.arif-fazil.com" data-h="mcp.arif-fazil.com" style="color:#2a8a4a">MCP (endpoint)</a>
+  </nav>
+  <script>(function(){var h=location.hostname,a=document.querySelectorAll("#rn a");a.forEach(function(x){if(x.dataset.h===h)x.classList.add("rn-active")})})();</script>
+</body>
+</html>
+

@@ -1967,6 +1967,92 @@ def register_rest_routes(
     async def version(request: Request) -> Response:
         return JSONResponse(BUILD_INFO)
 
+    @route("/components", methods=["GET"])
+    async def components(request: Request) -> Response:
+        """
+        Full topology map of the arifOS federation.
+        Probes: MCP servers, AI/external, infrastructure.
+        Returns ON/OFF status + latency_ms per component.
+        """
+        import asyncio
+        import httpx
+
+        async def _probe_tcp(host: str, port: int, timeout: float = 1.0) -> dict[str, Any]:
+            start = time.perf_counter()
+            try:
+                reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=timeout)
+                writer.close()
+                await writer.wait_closed()
+                return {"host": host, "port": port, "status": "ON", "latency_ms": round((time.perf_counter() - start) * 1000, 2)}
+            except Exception as e:
+                return {"host": host, "port": port, "status": "OFF", "error": str(e)[:80], "latency_ms": None}
+
+        async def _probe_http(url: str, timeout: float = 3.0) -> dict[str, Any]:
+            start = time.perf_counter()
+            try:
+                async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+                    r = await client.get(url)
+                    ms = round((time.perf_counter() - start) * 1000, 2)
+                    try:
+                        data = r.json()
+                    except Exception:
+                        data = {"raw": r.text[:100]}
+                    return {"url": url, "status": "ON" if r.status_code < 500 else "DEGRADED", "status_code": r.status_code, "response_ms": ms, "data": data}
+            except Exception as e:
+                return {"url": url, "status": "OFF", "error": str(e)[:120], "response_ms": None}
+
+        # ── Layer 1: MCP Servers ────────────────────────────────────────
+        mcp_results = await asyncio.gather(
+            _probe_http("http://arifosmcp:8080/health", timeout=3.0),
+            _probe_http("http://geox:8081/health", timeout=3.0),
+            _probe_http("http://wealth-organ:8082/health", timeout=3.0),
+            _probe_http("http://well:8083/health", timeout=3.0),
+            _probe_http("http://af-bridge-prod:7071/health", timeout=3.0),
+            _probe_http("http://aaa-a2a:3001/health", timeout=3.0),
+            _probe_http("http://hermes-agent:3002/health", timeout=3.0),
+        )
+
+        # ── Layer 2: AI / External ───────────────────────────────────────
+        sea_lion = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
+        langfuse  = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
+        external_results = await asyncio.gather(
+            _probe_tcp("ollama", 11434),
+            _probe_http(sea_lion, timeout=5.0),
+            _probe_http(f"{langfuse}/api/public/health", timeout=5.0),
+        )
+
+        # ── Layer 3: Infrastructure ──────────────────────────────────────
+        infra_results = await asyncio.gather(
+            _probe_tcp("postgres", 5432),
+            _probe_tcp("redis", 6379),
+            _probe_tcp("qdrant", 6333),
+        )
+
+        all_res = list(mcp_results) + list(external_results) + list(infra_results)
+        online  = sum(1 for r in all_res if r.get("status") == "ON")
+
+        def _name(r: dict) -> str:
+            u = str(r.get("url", ""))
+            return u.split("/")[2] if "://" in u else r.get("host", "?")
+
+        def _strip(r: dict) -> dict:
+            return {k: v for k, v in r.items() if k != "url"}
+
+        return JSONResponse(
+            {
+                "federation": "arifOS",
+                "version": "2026.05.01",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "summary": {"total": len(all_res), "online": online, "offline": len(all_res) - online},
+                "layers": {
+                    "mcp_servers":    [{"name": _name(r), **_strip(r)} for r in mcp_results],
+                    "ai_external":    [{"name": _name(r), **_strip(r)} for r in external_results],
+                    "infrastructure": [{"host": r["host"], "port": r["port"], "status": r["status"], "latency_ms": r.get("latency_ms")} for r in infra_results],
+                },
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+
     @route("/tools", methods=["GET"])
     async def list_tools(request: Request) -> Response:
         if err := _auth_error_response(request):

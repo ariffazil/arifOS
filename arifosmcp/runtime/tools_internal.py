@@ -12,6 +12,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from typing import Any
@@ -105,7 +106,11 @@ async def _fetch_jwks() -> dict | None:
 
 
 def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
-    """Log JWT violation in observe mode. Escalates to error for F11/F12 severity."""
+    """Log JWT violation in observe mode. Escalates to error for F11/F12 severity.
+    
+    Writes to BOTH container logs AND the telemetry-data volume so violations
+    survive container restarts (fixes cron 24h observation window gap).
+    """
     payload = {
         "type": violation_type,
         "detail": detail,
@@ -117,6 +122,18 @@ def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
         logger.error(f"JWT_VIOLATION [{violation_type}]: {detail} context={context}")
     else:
         logger.warning(f"JWT_VIOLATION [{violation_type}]: {detail}")
+
+    # ── Persist to telemetry-data volume ─────────────────────────────────────
+    # Mount: telemetry-data:/app/telemetry (docker-compose.yml)
+    # Cron reads this file so violations survive container restarts.
+    try:
+        telemetry_path = os.environ.get("TELEMETRY_PATH", "/app/telemetry")
+        os.makedirs(telemetry_path, exist_ok=True)
+        violation_log = os.path.join(telemetry_path, "jwt_violations.jsonl")
+        with open(violation_log, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception as write_err:
+        logger.warning(f"JWT_VIOLATION: could not write to telemetry volume: {write_err}")
 
 
 async def vault_jwt_guard(

@@ -1,9 +1,14 @@
 """
 Canonical rebuild tests — 13 public capability tools, 2 internal diagnostics.
 """
+
 import pytest
 from fastmcp import FastMCP
-from fastmcp.server.elicitation import AcceptedElicitation, CancelledElicitation, DeclinedElicitation
+from fastmcp.server.elicitation import (
+    AcceptedElicitation,
+    CancelledElicitation,
+    DeclinedElicitation,
+)
 
 from arifosmcp.constitutional_map import (
     CANONICAL_TOOLS,
@@ -13,7 +18,7 @@ from arifosmcp.constitutional_map import (
 )
 from arifosmcp.prompts import CANONICAL_PROMPTS, register_prompts
 from arifosmcp.resources import CANONICAL_RESOURCES, register_resources
-from arifosmcp.runtime.floors import check_floors, get_floor_status
+from arifosmcp.runtime.floors import get_floor_status
 from arifosmcp.runtime.tools import (
     IrreversibleConfirmation,
     JudgeCandidateInput,
@@ -93,6 +98,7 @@ def test_vault_seals_with_ack():
         payload="test",
         ack_irreversible=True,
         actor_id="arif",
+        witness_type="human",
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
     )
@@ -123,7 +129,9 @@ def test_judge_emits_seal():
 
 
 def test_vault_requires_judge_contract_even_with_ack():
-    r = arif_vault_seal(mode="seal", payload="test", ack_irreversible=True, actor_id="arif")
+    r = arif_vault_seal(
+        mode="seal", payload="test", ack_irreversible=True, actor_id="arif", witness_type="human"
+    )
     assert r.status == "HOLD"
     assert "judge" in r.meta["reason"]
 
@@ -141,6 +149,7 @@ def test_forge_commit_accepts_vault_lineage():
         payload="test",
         ack_irreversible=True,
         actor_id="arif",
+        witness_type="human",
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
     )
@@ -148,6 +157,7 @@ def test_forge_commit_accepts_vault_lineage():
         mode="commit",
         ack_irreversible=True,
         actor_id="arif",
+        witness_type="human",
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
         vault_entry_id=seal.entry_id,
@@ -177,9 +187,7 @@ class _FakeContext:
 
 @pytest.mark.asyncio
 async def test_elicitation_accepts_irreversible_ack():
-    ctx = _FakeContext(
-        AcceptedElicitation(data=IrreversibleConfirmation(ack_irreversible=True))
-    )
+    ctx = _FakeContext(AcceptedElicitation(data=IrreversibleConfirmation(ack_irreversible=True)))
 
     ack, hold = await _elicit_irreversible_ack(
         ctx,

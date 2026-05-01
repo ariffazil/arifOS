@@ -7,12 +7,13 @@ They wrap ALL tool executions unconditionally.
 
 Ditempa Bukan Diberi — Intelligence is forged, not given.
 """
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from arifosmcp.constitutional_map import Floor, CANONICAL_TOOLS
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, Floor
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +36,16 @@ FLOOR_DESCRIPTIONS: dict[Floor, str] = {
 
 class ConstitutionalViolation(Exception):
     """Raised when a floor is breached."""
+
     def __init__(self, floors: list[str], reason: str):
         self.floors = floors
         self.reason = reason
         super().__init__(f"Floor breach [{', '.join(floors)}]: {reason}")
 
 
-def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None = None) -> dict[str, Any]:
+def check_floors(
+    tool_name: str, params: dict[str, Any], actor_id: str | None = None
+) -> dict[str, Any]:
     """
     Run F1–F13 interceptors for a tool call.
 
@@ -55,6 +59,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None = 
     if session_id:
         try:
             from arifosmcp.apps.session_state import record_tool_call
+
             record_tool_call(session_id, tool_name)
         except Exception:
             pass  # Non-session tools: skip silently
@@ -113,6 +118,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None = 
                 if session_id:
                     try:
                         from arifosmcp.apps.session_state import was_tool_called
+
                         if not was_tool_called(session_id, "arif_heart_critique"):
                             failed.append("F09")
                             logger.critical(
@@ -129,6 +135,9 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None = 
         elif floor_value == "F11":
             if spec.get("access") == "sovereign" and not actor_id:
                 failed.append("F11")
+            # H2: All F11-gated tools require identity binding (session_id or actor_id)
+            if not actor_id and not session_id and spec.get("access") != "public":
+                failed.append("F11")
 
         elif floor_value == "F12":
             for key, value in params.items():
@@ -139,14 +148,28 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None = 
                         logger.warning(f"F12 INJECTION: pattern in {key}")
 
         elif floor_value == "F13":
+            # F13 fires when sovereign override is BYPASSED (not when used).
+            # sovereign_veto=True means Arif exercised his override — operation halts
+            # but this is F13 WORKING, not F13 BREACHING.
+            # We log it and return VOID so execution stops, but do NOT add to failed.
             if params.get("sovereign_veto"):
-                failed.append("F13")
-                logger.critical("F13 SOVEREIGN VETO activated")
+                logger.critical("F13 SOVEREIGN VETO exercised by Arif — operation halted")
+                # Return VOID but do NOT append F13 to failed — veto usage is not a breach
+                return {
+                    "verdict": "VOID",
+                    "failed_floors": [],
+                    "reason": "Sovereign veto exercised — operation halted by Arif",
+                    "sovereign_veto_used": True,
+                }
 
     if failed:
         if "F13" in failed:
             return {"verdict": "VOID", "failed_floors": failed, "reason": "Sovereign veto"}
-        return {"verdict": "HOLD", "failed_floors": failed, "reason": f"Floor breach: {', '.join(failed)}"}
+        return {
+            "verdict": "HOLD",
+            "failed_floors": failed,
+            "reason": f"Floor breach: {', '.join(failed)}",
+        }
 
     return {"verdict": "SEAL", "failed_floors": [], "reason": "All constitutional floors clear"}
 

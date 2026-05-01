@@ -66,6 +66,7 @@ Complete mapping of all 43 pages to their tiers, strands, and metadata.
 | [[Concept_Floor_Tensions]] | 30_GOVERNANCE | paradox | researchers | advanced | [Floors, Trinity_Architecture] |
 | [[Concept_Epistemic_Circuit_Breakers]] | 30_GOVERNANCE | paradox | researchers | advanced | [Floors, Concept_Godellock] |
 | [[Agents-and-AAA-Architecture]] | 30_GOVERNANCE | architecture | engineers | intermediate | [Trinity_Architecture] |
+| [[Concept_OpenClaw_Memory_Architecture]] | 30_GOVERNANCE | memory | all | intermediate | [Concept_Architecture] |
 
 **Rationale**: Governance pages answer "what are the rules and edge cases?" They assume the reader understands foundations and wants constitutional depth.
 
@@ -164,7 +165,7 @@ Complete mapping of all 43 pages to their tiers, strands, and metadata.
 |------------|-------|-------|
 | beginner | 13 | quickstart, Federation_Three_Wikis, Naming_Canon, What-is-arifOS, Floors, Trinity_Architecture, Roadmap, GEOX, Entity_Andrej_Karpathy, Changelog, Source_Karpathy_LLM_Wiki, Source_NotebookLM_HighLevel_Overview, Prerequisite_Map |
 | intermediate | 21 | (see registry above) |
-| advanced | 11 | Concept_Vault999_Architecture, Concept_Metabolic_Pipeline, Concept_Gateway_Architecture, Concept_Governance_Enforcer, Concept_Godellock, Concept_Floor_Tensions, Concept_Epistemic_Circuit_Breakers, Concept_Decision_Velocity, ToolSpec_arifos_judge, Horizon_2_Swarm, Horizon_3_Universal_Body |
+| advanced | 11 | Concept_Vault999_Architecture, Concept_Metabolic_Pipeline, Concept_Gateway_Architecture, Concept_Governance_Enforcer, Concept_Godellock, Concept_Floor_Tensions, Concept_Epistemic_Circuit_Breakers, Concept_Decision_Velocity, ToolSpec_arifos_judge, Horizon_2_Swarm, Horizon_3_Universal_Body, Concept_OpenClaw_Memory_Architecture |
 
 ---
 
@@ -210,6 +211,6 @@ quickstart → MCP_Tools → Reference_MCP_Servers → Audit_999_SEAL_Runtime_Co
 
 ---
 
-**Registry Version**: 2026.04.11  
-**Total Pages**: 47  
+**Registry Version**: 2026.04.11
+**Total Pages**: 47
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.

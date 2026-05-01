@@ -1,6 +1,6 @@
 """
 arifosmcp/tools/mind_reason.py — 333_MIND
-═════════════════════════════════════════
+════════════════════════════════════════
 
 Inductive reasoning engine and synthesis.
 
@@ -11,6 +11,11 @@ DELTA BUNDLE SPEC (from archive/333/README.md):
   - floor_scores: F2, F4, F7, F13 self-check
   - entropy: ΔS ≤ 0 (must decrease local entropy)
   - confidence: calibrated Ω₀ ∈ [0.03, 0.05] (F7 Humility band)
+
+Context injection (P2): When context is provided, the tool pre-loads
+  session state (session_id, G-score, vitals) and prior tool results
+  into the reasoning trace before synthesis. This grounds every
+  reasoning call in actual system state rather than abstract axioms.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -30,6 +35,7 @@ def _build_delta_bundle(
     reasoning_mode: str = "inductive",
     scars: list[str] | None = None,
     delta_S: float = -0.01,
+    context: dict | None = None,
 ) -> dict:
     """
     Build a Delta Bundle — the constitutional output for 333_MIND.
@@ -44,6 +50,27 @@ def _build_delta_bundle(
     """
     # Calibrate Ω₀ to F7 band [0.03, 0.05]
     omega_0 = max(0.03, min(0.05, round(1.0 - confidence, 4)))
+
+    reasoning_trace = []
+    if context:
+        session_id = context.get("session_id", "unknown")
+        g_score = context.get("g_score", context.get("vitals", {}).get("g_score", "unavailable"))
+        vitals = context.get("vitals", {})
+        prior_results = context.get("prior_tool_results", {})
+
+        reasoning_trace.append(
+            f"[333_MIND context] session_id={session_id}, g_score={g_score}"
+        )
+        if vitals:
+            reasoning_trace.append(
+                f"[333_MIND vitals] G={vitals.get('G', g_score)}, "
+                f"ΔS={vitals.get('delta_S', 'unavailable')}, "
+                f"Ω={vitals.get('omega', 'unavailable')}, "
+                f"Ψ={vitals.get('psi_le', 'unavailable')}"
+            )
+        if prior_results:
+            tool_names = list(prior_results.keys())
+            reasoning_trace.append(f"[333_MIND prior] {len(prior_results)} tool(s) in trace: {tool_names}")
 
     return {
         "query": query,
@@ -63,7 +90,7 @@ def _build_delta_bundle(
         "entropy": delta_S,           # ΔS — negative = clarification
         "facts": [],                  # Populated by real reasoning (F2 ≥ 0.99)
         "axioms_used": [],            # Constitutional grounding trace
-        "reasoning_trace": [],        # Step-by-step derivation
+        "reasoning_trace": reasoning_trace or [],        # Step-by-step derivation
         "anomalous_contrast": None,   # ToAC detection
     }
 
@@ -124,7 +151,18 @@ def arif_mind_reason(
     mode: str = "reason",
     query: str | None = None,
     actor_id: str | None = None,
+    context: dict | None = None,
 ) -> Synthesis:
+    """
+    333_MIND: Constitutional reasoning and synthesis.
+
+    Args:
+        context: Optional context dict containing:
+            - session_id: current governed session
+            - g_score: current genius score (from vitals)
+            - vitals: output from arif_ops_measure(mode='vitals')
+            - prior_tool_results: dict of prior tool outputs in this session
+    """
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return Synthesis(**_hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"]))
@@ -133,7 +171,6 @@ def arif_mind_reason(
     OMEGA_BAND = (0.03, 0.05)
 
     if mode == "reason":
-        # Real synthesis: ground query in constitutional axioms
         synthesis_text = _synthesize(query, "inductive")
         scars_list = _detect_scars(query, synthesis_text)
         bundle = _build_delta_bundle(
@@ -144,6 +181,7 @@ def arif_mind_reason(
             reasoning_mode="inductive",
             scars=scars_list,
             delta_S=-0.01,
+            context=context,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
@@ -152,6 +190,7 @@ def arif_mind_reason(
             query=query, verdict="PLAUSIBLE",
             synthesis="Reflection complete.", confidence=0.80,
             reasoning_mode="abductive", delta_S=-0.005,
+            context=context,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
@@ -160,6 +199,7 @@ def arif_mind_reason(
             query=query, verdict="HOLD",
             synthesis="Forge artifact generated.", confidence=0.75,
             reasoning_mode="deductive", delta_S=-0.01,
+            context=context,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
@@ -170,6 +210,7 @@ def arif_mind_reason(
             reasoning_mode="counterfactual",
             scars=["Position divergence unresolved"],
             delta_S=0.0,  # Neutral — neither side won
+            context=context,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
@@ -179,6 +220,7 @@ def arif_mind_reason(
             synthesis="Socratic questioning complete.", confidence=0.85,
             reasoning_mode="inductive", delta_S=-0.02,
             scars=["Root assumption untested"],
+            context=context,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 

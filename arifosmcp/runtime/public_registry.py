@@ -8,14 +8,13 @@ from typing import Any
 import tomllib
 
 from .prompts import V2_PROMPT_SPECS
-from .tool_specs import PUBLIC_RESOURCE_SPECS
 from .public_surface import (
     CANONICAL_13,
-    CANONICAL_15,
     current_public_surface_mode,
     normalize_public_surface_mode,
     public_tool_names_for_mode,
 )
+from .tool_specs import PUBLIC_RESOURCE_SPECS
 
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
@@ -47,9 +46,9 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_sense_observe": (
         "111_SENSE: Multimodal reality observation and environmental sensing. "
         "Grounds queries in physical reality via PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → "
-        "NORMALIZE → GATE → HANDOFF protocol. Gathers raw observational data across sensory layers. "
+        "NORMALIZE → GATE → HANDOFF protocol. Gathers raw observational data across sensory. "
         "Modes: governed (full constitutional pipeline), search (live web retrieval), "
-        "ingest (store observation), compass (directional heading), atlas (geospatial), time (temporal). "
+        "ingest (store observation), compass (heading), atlas (geospatial), time (temporal). "
         "F2 TRUTH, F3 WITNESS, F4 CLARITY, F10 ONTOLOGY enforced."
     ),
     "arif_evidence_fetch": (
@@ -64,7 +63,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "333_MIND: Symbolic constitutional reasoning kernel. "
         "Performs governed reasoning using explicit axioms from F1–F13. "
         "Modes: reason (standard AGI pipeline), sequential (multi-step constitutional chain), "
-        "step/branch/merge (branching reasoning), review (export session), reflect (self-critique). "
+        "step/branch/merge (branching), review (export session), reflect (self-critique). "
         "Sequential thinking enforces F1–F13 at each step. "
         "Produces narrow decision_packet (operator) + full audit_packet (vault). "
         "F2 TRUTH, F4 CLARITY, F7 HUMILITY, F8 GENIUS enforced."
@@ -72,21 +71,21 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_kernel_route": (
         "444_KERNEL: Central orchestration, intent routing, and stage dispatch. "
         "Routes sovereign intent to the correct constitutional stage. "
-        "Modes: kernel (route to metabolic lane), status (return routing decision without executing). "
+        "Modes: kernel (route to metabolic lane), status (routing decision without execution). "
         "Evaluates risk_tier to determine accessible lanes. "
         "F4 CLARITY transparent intent, F11 AUTH identity verification."
     ),
     "arif_reply_compose": (
         "444_REPLY: Governed response composition with constitutional tone control. "
         "Composes human-facing replies that are truthful, clear, empathetic, and peace-preserving. "
-        "Modes: compose (default governed reply), rewrite (re-tone existing), analyze (tone audit). "
+        "Modes: compose (governed reply), rewrite (re-tone existing), analyze (tone audit). "
         "F2 TRUTH no fabrication, F5 PEACE human dignity, F6 EMPATHY consequence awareness."
     ),
     "arif_memory_recall": (
         "555_MEMORY: Associative retrieval from VAULT999 and vector memory. "
         "Recalls prior session artifacts, reasoning traces, and sealed events. "
-        "Modes: vector_query (semantic search), vector_store (store), engineer (engineering context), "
-        "asset_store/asset_query (GEOX asset-scoped without new public memory organ). "
+        "Modes: vector_query (semantic search), vector_store (store), engineer (engineering), "
+        "asset_store/asset_query (GEOX asset-scoped). "
         "F2 TRUTH no fabrication, F10 ONTOLOGY structural coherence, F11 AUTH identity."
     ),
     "arif_heart_critique": (
@@ -104,8 +103,8 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_ops_measure": (
         "777_OPS: Resource thermodynamics, health telemetry, and metabolic monitoring. "
         "Measures operational health using entropy, Landauer limits, G-score, and ΔS. "
-        "Modes: cost (Landauer gate estimate), health (system gauge), vitals (metabolic telemetry), "
-        "entropy (information-theoretic analysis), economic_audit (WELL thermodynamic), "
+        "Modes: cost (Landauer gate), health (system gauge), vitals (metabolic telemetry), "
+        "entropy (information-theoretic), economic_audit (WELL thermodynamic), "
         "metabolism (F1–F13 metabolic dashboard). "
         "F4 CLARITY transparent capacity, F5 PEACE resource stewardship."
     ),

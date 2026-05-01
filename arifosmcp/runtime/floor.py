@@ -5,12 +5,13 @@ F1–F13 Constitutional Floor Enforcer
 Each floor is an interceptor axiom, not a callable tool.
 They wrap all tool executions and gate the pipeline.
 """
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from arifosmcp.constitutional_map import Floor, CANONICAL_TOOLS
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, Floor
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +38,18 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     Run F1–F13 interceptors for a tool call.
     Returns {"verdict": "SEAL" | "HOLD" | "VOID", "failed_floors": [...], "reason": str}
     """
-    # Record tool call in session history — F9 TAQWA prerequisite tracking
+    import time
+
+    from arifosmcp.runtime.telemetry import get_telemetry
+
+    start_time = time.time()
     session_id = params.get("session_id")
+
+    # Record tool call in session history — F9 TAQWA prerequisite tracking
     if session_id:
         try:
             from arifosmcp.apps.session_state import record_tool_call
+
             record_tool_call(session_id, tool_name)
         except Exception:
             pass  # Non-session or cross-module: skip silently
@@ -84,6 +92,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         if sid:
             try:
                 from arifosmcp.apps.session_state import was_tool_called
+
                 if not was_tool_called(sid, "arif_heart_critique"):
                     failed.append("F09")
                     logger.critical(
@@ -95,13 +104,27 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                 logger.error(f"F09 TAQWA check failed: {e}")
 
     if failed:
-        return {
+        res = {
             "verdict": "HOLD" if "F13" not in failed else "VOID",
             "failed_floors": failed,
             "reason": f"Constitutional floor breach: {', '.join(failed)}",
         }
+    else:
+        res = {"verdict": "SEAL", "failed_floors": [], "reason": "All floors clear"}
 
-    return {"verdict": "SEAL", "failed_floors": [], "reason": "All floors clear"}
+    # Record to Telemetry (Prometheus + Langfuse)
+    try:
+        get_telemetry().record_tool_call(
+            tool=tool_name,
+            verdict=res["verdict"],
+            latency=time.time() - start_time,
+            session_id=session_id,
+            metadata={"reason": res["reason"], "failed_floors": res.get("failed_floors", [])},
+        )
+    except Exception as e:
+        logger.debug(f"Telemetry recording failed: {e}")
+
+    return res
 
 
 def get_floor_status() -> dict[str, Any]:

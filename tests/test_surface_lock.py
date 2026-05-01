@@ -115,9 +115,9 @@ def test_meta_skills_registered():
 
 
 def test_version_string():
-    """Version must be 2026.04.26-KANON."""
+    """Version must be 2026.05.01."""
     from arifosmcp import __version__
 
-    assert __version__ == "2026.04.26-KANON", (
-        f"Version drift: expected 2026.04.26-KANON, got {__version__}. VOID."
+    assert __version__ == "2026.05.01", (
+        f"Version drift: expected 2026.05.01, got {__version__}. VOID."
     )

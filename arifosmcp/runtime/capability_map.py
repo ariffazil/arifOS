@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-from importlib.util import find_spec
-from typing import Any, Literal
+from typing import Any
 
 
 def _env_present(*names: str) -> bool:
@@ -28,7 +27,11 @@ def _env_truthy(name: str) -> bool:
 
 
 def _module_available(name: str) -> bool:
-    return find_spec(name) is not None
+    try:
+        __import__(name)
+        return True
+    except ImportError:
+        return False
 
 
 def _configured(*names: str) -> str:
@@ -73,9 +76,11 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     }
 
     storage = {
-        "vault_postgres": "configured"
-        if _env_present("DATABASE_URL") or _env_present("POSTGRES_PASSWORD")
-        else "not_configured",
+        "vault_postgres": (
+            "configured"
+            if _env_present("DATABASE_URL") or _env_present("POSTGRES_PASSWORD")
+            else "not_configured"
+        ),
         "session_cache": "configured" if _env_present("REDIS_URL") else "not_configured",
         "vector_memory": "configured" if _env_present("QDRANT_URL") else "not_configured",
     }
@@ -83,6 +88,7 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     providers = {
         "openai": _configured("OPENAI_API_KEY"),
         "anthropic": _configured("ANTHROPIC_API_KEY"),
+        "sea_lion": _configured("SEA_LION_API_KEY"),
         "google": _configured("GOOGLE_API_KEY"),
         "openrouter": _configured("OPENROUTER_API_KEY"),
         "venice": _configured("VENICE_API_KEY"),
@@ -92,22 +98,19 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
         "jina": _configured("JINA_API_KEY"),
         "perplexity": _configured("PPLX_API_KEY", "PERPLEXITY_API_KEY"),
         "firecrawl": _configured("FIRECRAWL_API_KEY"),
-        "browserless": _configured("BROWSERLESS_TOKEN"),
-        "ddgs_local": "configured" if _module_available("ddgs") else "not_configured",
+        "browserless": _url_configured("BROWSERLESS_URL"),
+        "ddgs_local": "configured" if _module_available("duckduckgo_search") else "not_configured",
     }
 
     substrates = {
-        "git": "configured" if _env_truthy("ARIFOS_SUBSTRATE_GIT_ENABLED") else "configured", # Default to configured for arifOS Core
+        "git": (
+            "configured" if _env_truthy("ARIFOS_SUBSTRATE_GIT_ENABLED") else "configured"
+        ),  # Default to configured for arifOS Core
         "fetch": "configured" if _env_truthy("ARIFOS_SUBSTRATE_FETCH_ENABLED") else "configured",
         "memory": "configured",
         "time": "configured",
         "filesystem": "configured",
-        "validation": {
-            "everything": {
-                "probe": "configured",
-                "protocol_smoke": "configured"
-            }
-        }
+        "validation": {"everything": {"probe": "configured", "protocol_smoke": "configured"}},
     }
 
     ops = {
@@ -120,6 +123,7 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     llm_provider_states = [
         providers["openai"],
         providers["anthropic"],
+        providers["sea_lion"],
         providers["google"],
         providers["openrouter"],
         providers["venice"],
@@ -136,20 +140,28 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     ]
 
     capabilities = {
-        "governed_continuity": "enabled"
-        if ml_model_available and continuity_signing in {"configured", "open_dev_mode"}
-        else ("heuristic_fallback" if continuity_signing in {"configured", "open_dev_mode"} else "degraded"),
+        "governed_continuity": (
+            "enabled"
+            if ml_model_available and continuity_signing in {"configured", "open_dev_mode"}
+            else (
+                "heuristic_fallback"
+                if continuity_signing in {"configured", "open_dev_mode"}
+                else "degraded"
+            )
+        ),
         "vault_persistence": "enabled" if storage["vault_postgres"] == "configured" else "degraded",
         "vector_memory": "enabled" if storage["vector_memory"] == "configured" else "degraded",
-        "external_grounding": "enabled"
-        if any(state == "configured" for state in grounding_provider_states)
-        else "limited",
-        "model_provider_access": "enabled"
-        if any(state == "configured" for state in llm_provider_states)
-        else "disabled",
-        "local_model_runtime": "enabled"
-        if providers["ollama_local"] == "configured"
-        else "disabled",
+        "external_grounding": (
+            "enabled"
+            if any(state == "configured" for state in grounding_provider_states)
+            else "limited"
+        ),
+        "model_provider_access": (
+            "enabled" if any(state == "configured" for state in llm_provider_states) else "disabled"
+        ),
+        "local_model_runtime": (
+            "enabled" if providers["ollama_local"] == "configured" else "disabled"
+        ),
         "auto_deploy": "enabled" if ops["webhook_deploy"] == "configured" else "disabled",
     }
 

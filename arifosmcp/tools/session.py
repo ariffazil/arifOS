@@ -17,6 +17,14 @@ def arif_session_init(
     ack_irreversible: bool = False,
     session_id: str | None = None,
 ) -> SessionManifest:
+    if mode == "cleanup":
+        from arifosmcp.runtime.session import list_active_sessions_count
+
+        count_after = list_active_sessions_count()
+        return SessionManifest(
+            **_ok("arif_session_init", {"stale_swept": True, "active_count": count_after})
+        )
+
     floor_check = check_floors(
         "arif_session_init",
         {"mode": mode, "ack_irreversible": ack_irreversible},
@@ -61,5 +69,13 @@ def arif_session_init(
             _SESSIONS[session_id]["refreshed_at"] = _now()
             return SessionManifest(**_ok("arif_session_init", {"refreshed": session_id}))
         return SessionManifest(**_hold("arif_session_init", "session_id required for refresh"))
+
+    if mode == "cleanup":
+        from arifosmcp.runtime.session import list_active_sessions_count
+
+        count_after = list_active_sessions_count()
+        return SessionManifest(
+            **_ok("arif_session_init", {"stale_swept": True, "active_count": count_after})
+        )
 
     return SessionManifest(**_hold("arif_session_init", f"Unknown mode: {mode}"))

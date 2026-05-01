@@ -7,7 +7,6 @@ This module provides runtime traceability back to that canonical repo.
 from __future__ import annotations
 
 import os
-import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,19 +14,26 @@ from typing import Any
 import tomllib
 from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
 
-
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 
 
 def _git_sha_short() -> str:
-    """Return the current git short SHA (HEAD), checked in order:
-    1. Direct read of .git/HEAD via known host paths
-    2. GIT_SHA env var
-    3. Fallback "unknown"
     """
-    # 1. Try reading .git/HEAD from known bind-mount paths
+    1. DEPLOY_GIT_COMMIT env var (baked into image at docker build time) — HIGHEST PRIORITY
+    2. ARIFOS_BUILD_SHA env var (passed at container start)
+    3. Worktree git dirs (bind mounts — lower priority than env)
+    4. Fallback "unknown"
+    """
+    # 1. Image-baked env (highest priority — set at docker build time)
+    for env_key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
+        env_sha = os.environ.get(env_key, "").strip()
+        if env_sha and env_sha not in ("unknown", ""):
+            return env_sha[:7]
+
+    # 2. Try reading .git/HEAD from known bind-mount paths (fallback)
     _possible_git_dirs = [
+        "/app/.git",
         "/usr/src/app/.git",
         "/usr/src/app/arifOS/.git",
         "/usr/src/project/.git",
@@ -37,24 +43,19 @@ def _git_sha_short() -> str:
         try:
             _head_path = os.path.join(_git_dir, "HEAD")
             if os.path.exists(_head_path):
-                with open(_head_path, "r") as _f:
+                with open(_head_path) as _f:
                     _content = _f.read().strip()
                 if _content.startswith("ref: refs/heads/"):
                     _branch = _content.split("ref: refs/heads/", 1)[1].strip()
                     _ref_path = os.path.join(_git_dir, "refs", "heads", _branch)
                     if os.path.exists(_ref_path):
-                        with open(_ref_path, "r") as _f:
+                        with open(_ref_path) as _f:
                             _sha = _f.read().strip()
                         return _sha[:7]
                 elif len(_content) >= 7:
                     return _content[:7]
         except Exception:
             pass
-
-    # 2. Env var fallback
-    env_sha = os.environ.get("GIT_SHA", "").strip()
-    if env_sha and env_sha != "unknown":
-        return env_sha[:7]
 
     # 3. Truthful final fallback
     return "unknown"
@@ -89,22 +90,22 @@ def get_build_info() -> dict[str, Any]:
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,
         "server_version": app_version,
-        "update_summary": "5-Resource Canonical Consolidation. Enforced single Source-of-Truth architecture, consolidated 20+ fragmented resources into 5 canonical URIs (doctrine, vitals, schema, session, forge), and eliminated identity confusion.",
-
+        "update_summary": (
+            "5-Resource Canonical Consolidation. Enforced single Source-of-Truth architecture, "
+            "consolidated 20+ fragmented resources into 5 canonical URIs "
+            "(doctrine, vitals, schema, session, forge), and eliminated identity confusion."
+        ),
         # MCP protocol compatibility
         "protocol_version": "2025-03-26",
         "supported_protocol_versions": ["2025-03-26", "2024-11-05"],
-
         # Governance layer
         "governance_version": "registry-1.3.0",
         "policy_version": "arifOS.constitution.v1",
         "floors_version": "2026.04",
         "floors_active": 13,
-
         # Source-of-Truth linkage — ties runtime back to canonical doctrine repo
         "source_repo": "https://github.com/ariffazil/arifOS",
         "source_repo_name": "ariffazil/arifOS",
-
         # Build traceability — GIT_SHA and ARIFOS_APP_VERSION set by entrypoint from host git
         "build": {
             "commit": commit,
@@ -113,11 +114,9 @@ def get_build_info() -> dict[str, Any]:
             "branch": "main",
         },
         "release_tag": app_version,
-
         # Status
         "status": "FORGED",
         "forge_date": "2026-04-13",
-
         # Display helpers
         "display": {
             "short": "2.0.0",

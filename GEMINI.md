@@ -1,4 +1,9 @@
-# arifOS — Gemini Clerk Protocol (L3 AGI + CRP v1.0)
+> ⚠️ ARCHIVED / STALE — Do not use as active governance
+> These files contain agent instruction sets that conflict with current OPENCLAW governance (AGENTS.md, LOOP.md, AUTONOMY.md).
+> They are kept for historical reference only.
+> Last active before: 2026-05-01
+
+
 
 > Operating Level: **L3 AGI (Execution / Skills)**
 > Authority Ceiling: **777 FORGE** — cannot issue SEAL or self-authorize Forge
