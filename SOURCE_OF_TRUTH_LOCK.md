@@ -102,8 +102,8 @@ All patches target the **canonical repo** `/root/arifOS` unless noted.
 | G1 | Verify Phase 1: confirm _hold() envelope in deployed container | Container `/app/arifosmcp/runtime/tools.py` | READ ONLY | NO |
 | G2 | Build + deploy image from current HEAD | GitHub Actions GHCR workflow | HIGH | YES |
 | G3 | Add budget tracking (turn_count, tool_call_count) | `session_state.py` | MEDIUM | NO |
-| G4 | Add budget enforcement in check_floors() | `floor.py` | MEDIUM | NO |
-| G5 | Budget HOLD envelope (reasons[], DOMAIN_VOID, nine_signal) | `floor.py` budget branch | LOW | NO |
+| G4 | ADD budget enforcement in check_floors() | `floor.py` | ✅ **SEALED — 5e27e931** | YES — committed + pushed |
+| G5 | Budget HOLD envelope (reasons[], DOMAIN_VOID, nine_signal) | `floor.py` budget branch | ✅ **SEALED — 5e27e931 (same commit as G4)** | YES |
 | G6 | HEART timeout wrapper | `tools.py:_arif_heart_critique` | MEDIUM | NO |
 | G7 | HEART mode enum validation | `tools.py:_arif_heart_critique` | LOW | NO |
 | G8 | Universal mode=schema/help | Per-tool | LOW | NO |
