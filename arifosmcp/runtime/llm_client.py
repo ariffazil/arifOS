@@ -201,18 +201,19 @@ async def call_llm(
         temperature: Sampling temperature (0.1–0.3 for adjudication, 0.4–0.7 for reply)
         max_tokens: Maximum tokens in response
     """
-    # Tier 1 — SEA-LION (schema validation skipped — provider returns its own format)
-    try:
-        result = await _call_sea_lion(system, user, response_schema, temperature, max_tokens)
-        return result
-    except LLMUnavailableError:
-        pass
-
-    # Tier 2 — Ollama fallback
+    # Tier 1 — Ollama local (qwen2.5:7b on ollama-engine-prod)
+    # Try Ollama first: it's confirmed working and has low latency
     try:
         result = await _call_ollama(system, user, response_schema, temperature, max_tokens)
         if response_schema:
             _validate_schema(result, set(response_schema.get("properties", {}).keys()))
+        return result
+    except LLMUnavailableError:
+        pass
+
+    # Tier 2 — SEA-LION remote fallback (schema validation skipped — provider returns its own format)
+    try:
+        result = await _call_sea_lion(system, user, response_schema, temperature, max_tokens)
         return result
     except LLMUnavailableError:
         pass
