@@ -142,16 +142,15 @@ arifos.arif-fazil.com {
         root * /var/www/html/arifos
         file_server
     }
+    handle /llms-full.txt {
+        root * /var/www/html/arifos
+        file_server
+    }
     handle /webmcp {
         reverse_proxy arifosmcp:8080 {
             flush_interval 100ms
         }
     }
-    handle_path /.well-known/* {
-        root * /var/www/html/arifos/.well-known
-        file_server
-    }
-
     # Ω-Wiki merged from wiki.arif-fazil.com
     handle_path /wiki/* {
         root * /var/www/html/wiki
@@ -204,21 +203,28 @@ geox.arif-fazil.com {
     encode zstd gzip
     root * /var/www/html/geox
 
-    @well-known {
-        path /.well-known/*
+    # Serve .las files with correct content-type
+    @las_files {
+        path *.las
     }
-    handle @well-known {
-        root * /var/www/html/geox/.well-known
+    handle @las_files {
+        header Content-Type "application/octet-stream"
         file_server
-        header Cache-Control "no-store, no-cache"
-        header Pragma "no-cache"
     }
 
+    # GEOX artifact download — PNG/CSV panels
+    handle /panels/* {
+        root * /data/geox_panels
+        file_server
+        header Cache-Control "no-store, no-cache"
+    }
+
+    # GEOX MCP — proxy /mcp to geox_eic, FastMCP serves at root
     handle /mcp* {
         reverse_proxy geox_eic:8081 {
             header_up Host {host}
             header_up X-Real-IP {remote_host}
-            header_up Accept "application/json, text/event-stream"
+            header_up Accept "text/event-stream, application/json"
             flush_interval -1
         }
     }

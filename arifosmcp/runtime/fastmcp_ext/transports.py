@@ -551,22 +551,7 @@ class _HealthEndpointMiddleware:
         path = scope.get("path", "")
         method = scope.get("method", "GET")
 
-        # Only handle /health and /metrics - let all other routes pass through
-        if path == "/health" and method == "GET":
-            from starlette.responses import JSONResponse
-
-            response = JSONResponse(
-                {
-                    "status": "healthy",
-                    "service": "arifos-mcp",
-                    "version": os.getenv("ARIFOS_VERSION", "2026.03.12"),
-                },
-                status_code=200,
-                headers={"Cache-Control": "no-store"},
-            )
-            await response(scope, receive, send)
-            return
-
+        # Only handle /metrics - let all other routes (including /health) pass through to the app
         if path == "/metrics" and method == "GET":
             from starlette.responses import Response
 

@@ -4538,7 +4538,8 @@ init();
         """Extended machine-readable documentation for LLM context."""
         try:
             base = _public_base_url(request)
-            tools = await mcp.list_tools()
+            specs = public_tool_specs()
+            tool_entries = [(s.name, s.description) for s in specs]
             content = f"""# arifOS MCP — Full Machine-Readable Documentation
 
 ## Service
@@ -4548,10 +4549,10 @@ protocol_version: {MCP_PROTOCOL_VERSION}
 transport: streamable-http
 endpoint: {base}/mcp
 
-## Tools ({len(tools)} total)
+## Tools ({len(tool_entries)} total)
 """
-            for t in tools:
-                content += f"- {t.name}: {t.description or 'no description'}\n"
+            for name, desc in tool_entries:
+                content += f"- {name}: {desc or 'no description'}\n"
             content += f"""
 ## Prompts
 - constitutional.analysis: Analyze claims against 13 floors
@@ -4565,7 +4566,7 @@ endpoint: {base}/mcp
 - arifos://doctrine: Immutable constitutional substrate
 - arifos://vitals: Real-time constitutional health
 - arifos://schema: Complete structural blueprint
-- arifos://session/{{session_id}}: Ephemeral per-session state
+- arifos://session/${{session_id}}: Ephemeral per-session state
 - arifos://forge: Execution bridge and deployment topology
 
 ## Endpoints

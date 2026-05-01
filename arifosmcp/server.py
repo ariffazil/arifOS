@@ -234,7 +234,7 @@ app = mcp.http_app()
 if app:
     app.add_middleware(GlobalPanicMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
-    app.add_route("/health", horizon_health, methods=["GET"])
+    # /health is registered by register_rest_routes() below with full thermodynamic schema
     app.add_route("/ready", horizon_ready, methods=["GET"])
     app.add_route("/metadata", horizon_metadata, methods=["GET"])
     app.add_route("/tools", tools_with_meta, methods=["GET"])
