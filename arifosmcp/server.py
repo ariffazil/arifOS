@@ -167,9 +167,8 @@ def _safe_register(mcp, module_path: str, name: str) -> None:
 
 
 try:
-    _safe_register(mcp, "arifosmcp.apps.command_center.forge_app", "forge")
-    # vault_app removed — vault_audit handles vault surface
-    _safe_register(mcp, "arifosmcp.apps.command_center.judge_app", "judge")
+    # forge_app and judge_app are helper modules inside command_center/
+    # they do not export _register(); command_center app mounts them
     _safe_register(mcp, "arifosmcp.apps.vault_audit", "vault_audit")
     _safe_register(mcp, "arifosmcp.apps.command_center", "command_center")
     print(
