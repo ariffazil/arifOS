@@ -237,22 +237,30 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
             ok, reason = contract.check_turn()
             if not ok:
                 logger.critical(f"BUDGET HOLD: {reason}")
+                from arifosmcp.runtime.tools import _nine_signal_from_status
+
                 return {
                     "verdict": "HOLD",
                     "label": VerdictLabel.HOLD_EXECUTION,
                     "failed_floors": ["BUDGET"],
-                    "reason": reason,
+                    "reasons": [reason],
+                    "output_policy": "DOMAIN_VOID",
+                    "nine_signal": _nine_signal_from_status("HOLD"),
                     "request_type": request_type,
                     "next_safe_action": "888_HOLD — budget exhausted, await human verdict",
                 }
             ok, reason = contract.check_tool_call(tool_name)
             if not ok:
                 logger.critical(f"BUDGET HOLD: {reason}")
+                from arifosmcp.runtime.tools import _nine_signal_from_status
+
                 return {
                     "verdict": "HOLD",
                     "label": VerdictLabel.HOLD_EXECUTION,
                     "failed_floors": ["BUDGET"],
-                    "reason": reason,
+                    "reasons": [reason],
+                    "output_policy": "DOMAIN_VOID",
+                    "nine_signal": _nine_signal_from_status("HOLD"),
                     "request_type": request_type,
                     "next_safe_action": "888_HOLD — tool call budget exhausted",
                 }
