@@ -754,3 +754,16 @@ class SealOutput(BaseModel):
     confidence_note: str | None = Field(
         default=None, description="F2 human-readable confidence declaration at seal time"
     )
+
+    # ── Constitutional Doctrine (F9 Anti-Hallucination: witness, not authority) ──
+    # This field is a CODED CONSTANT. It is never LLM-generated.
+    # The motto is proof-of-origin, not proof-of-truth.
+    # It does NOT affect verdict, status, floor pass/fail, or execution.
+    doctrine: dict | None = Field(
+        default=None,
+        description="arifOS constitutional doctrine motto. "
+        "seal_motto: fixed coded string. "
+        "llm_generated: always false. "
+        "source: 'arifOS constitutional doctrine'. "
+        "Authority remains with the constitution and human sovereign.",
+    )

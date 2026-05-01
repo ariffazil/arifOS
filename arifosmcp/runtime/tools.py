@@ -3,10 +3,19 @@ arifosmcp/runtime/tools.py — 13-Tool Canonical Surface
 ═══════════════════════════════════════════════════════
 
 Single registration authority for the canonical arif_* MCP surface.
-DITEMPA BUKAN DIBERI — Forged, Not Given
+DITEMPA BUKAN DIBERI — Forged, Not Given 🔥🌎🧠🪙
 """
 
 from __future__ import annotations
+
+# ── Constitutional Doctrine (F9 Anti-Hallucination: witness, not authority) ─────
+# CODED CONSTANT. Never LLM-generated. Never affects verdict, status, or execution.
+ARIF_DOCTRINE: dict = {
+    "seal_motto": "DITEMPA BUKAN DIBERI — Forged, Not Given 🔥🌎🧠🪙",
+    "source": "arifOS constitutional doctrine",
+    "generated_by": "code",
+    "llm_generated": False,
+}
 
 import asyncio
 import fcntl
@@ -1244,6 +1253,7 @@ def _arif_session_init(
                 "governance": governance,
                 "next_allowed_tools": next_allowed_tools,
                 "store_ack": store_ack,
+                "doctrine": ARIF_DOCTRINE,
                 "lineage": {
                     "previous_session_hash": previous_session_hash,
                     "session_genesis_hash": hashlib.sha256(
@@ -1400,6 +1410,7 @@ def _arif_session_init(
                 "vault_entry_id": seal_entry["id"],
                 "ledger_size": len(_VAULT_LEDGER),
                 "status": "sealed",
+                "doctrine": ARIF_DOCTRINE,
             },
             delta_S=0.001,
             session_id=session_id,
@@ -2576,8 +2587,8 @@ def _arif_mind_reason(
             {
                 "mode": "critique",
                 "query": query,
-                "stress_test_passed": v.score < 0.5,
-                "vulnerabilities": v.violations,
+                "stress_test_passed": v.confidence < 0.5,
+                "vulnerabilities": list(v.violations),
             },
             delta_S=0.002,
             session_id=session_id,
@@ -4327,6 +4338,7 @@ def _arif_vault_seal(
             actor_id=actor_id,
             meta={"verification_state": verification_state or {}},
             timestamp=_now(),
+            doctrine=ARIF_DOCTRINE,
         )
         return _inject_nine_signal(output.model_dump(mode="json"), "OK")
     if mode == "verify":

@@ -59,8 +59,8 @@ MIND_REASON_MODES = {
     "reflect":      RequestType.REASON,
     "verify":       RequestType.CRITIQUE,
     "critique":     RequestType.CRITIQUE,
-    "debate":       RequestType.RED_TEAM,
-    "socratic":     RequestType.REASON,
+    "debate":       RequestType.CRITIQUE,
+    "socratic":     RequestType.CRITIQUE,
     "axioms":       RequestType.READ,
     "plan":         RequestType.DESIGN,
     "plan_review":  RequestType.DESIGN,
@@ -102,7 +102,15 @@ def classify_request(tool_name: str, params: dict[str, Any]) -> str:
     mode = params.get("mode", "").lower()
 
     if tool_name == "arif_mind_reason":
-        return MIND_REASON_MODES.get(mode, RequestType.REASON)
+        # Explicit mode mapping — missing modes fall through to CRITIQUE (NIAT-safe)
+        # rather than silently defaulting to REASON
+        override = MIND_REASON_MODES.get(mode)
+        if override:
+            return override
+        if mode in ("debate", "socratic"):
+            # Undocumented-but-NIAT-exempt: adversarial/socratic reasoning
+            return RequestType.CRITIQUE
+        return RequestType.REASON
 
     if tool_name == "arif_heart_critique":
         if mode in ("critique", "redteam", "simulate"):

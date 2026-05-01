@@ -34,7 +34,7 @@ def test_unknown_init_mode_holds_with_allowed_modes() -> None:
 
     assert result["status"] == "HOLD"
     assert "Unknown mode" in result["meta"]["reason"]
-    assert result["meta"]["allowed_modes"] == ["init", "resume", "validate"]
+    assert result["meta"]["allowed_modes"] == ["init", "resume", "validate", "epoch_open", "epoch_seal"]
 
 
 def test_selftest_passes_and_keeps_forge_dry_run() -> None:

@@ -402,8 +402,15 @@ class ConstitutionKernel:
             )
             floors = FloorResult(
                 verdict="HOLD" if wg_status == "HOLD" else "VOID",
-                failed_floors=["F-GOVERNANCE"],
-                floor_reasons={"F-GOVERNANCE": wg["reason"]},
+                # WealthGovernance is a pre-constitutional gate; it gates on
+                # verification-state integrity (entropy, svs, anti_hantu).
+                # Map to F02 (Truth — information fidelity) and F10 (Ontology —
+                # structural coherence of verification evidence).
+                failed_floors=["F02", "F10"],
+                floor_reasons={
+                    "F02": f"[pre-kernel verification] {wg['reason']}",
+                    "F10": f"[pre-kernel governance] {wg['reason']}",
+                },
             )
             authority = AuthorityProof(authorized=True, level="WEALTH_GOVERNANCE")
             return ConstitutionalVerdict(
@@ -425,9 +432,14 @@ class ConstitutionKernel:
         authority = self.authority_gate.verify(context, threat)
 
         # Simplified verdict logic from monolith
-        if floors.verdict == "VOID" or not authority.authorized:
+        # VOID is preserved — never demoted to HOLD (HOLD = refinement needed;
+        # VOID = true breach / irrecoverable structural failure)
+        if floors.verdict == "VOID":
+            status = "VOID"
+            verdict = "VOID"
+        elif not authority.authorized:
             status = "HOLD"
-            verdict = "VOID" if floors.verdict == "VOID" else "HOLD"
+            verdict = "HOLD"
         elif floors.verdict == "HOLD":
             status = "HOLD"
             verdict = "HOLD"
