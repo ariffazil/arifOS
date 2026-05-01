@@ -69,14 +69,14 @@ def run_mcp_test():
     if resp and "result" in resp:
         content = json.loads(resp["result"]["content"][0]["text"])
         if not content.get("ok"):
-            print(f"   ✅ Error envelope returned")
+            print("   ✅ Error envelope returned")
             print(f"   📝 Verdict: {content.get('verdict')}")
             results.append(("arifos_mind empty", True))
         else:
-            print(f"   ⚠️ Unexpected success")
+            print("   ⚠️ Unexpected success")
             results.append(("arifos_mind empty", False))
     else:
-        print(f"   ❌ No response")
+        print("   ❌ No response")
         results.append(("arifos_mind empty", False))
     
     # Test 2: arifos_memory with empty content
@@ -85,14 +85,14 @@ def run_mcp_test():
     if resp and "result" in resp:
         content = json.loads(resp["result"]["content"][0]["text"])
         if not content.get("ok"):
-            print(f"   ✅ Error envelope returned")
+            print("   ✅ Error envelope returned")
             print(f"   📝 Verdict: {content.get('verdict')}")
             results.append(("arifos_memory empty", True))
         else:
-            print(f"   ⚠️ Unexpected success")
+            print("   ⚠️ Unexpected success")
             results.append(("arifos_memory empty", False))
     else:
-        print(f"   ❌ No response")
+        print("   ❌ No response")
         results.append(("arifos_memory empty", False))
     
     # Test 3: arifos_ops vitals (should work)
@@ -101,14 +101,14 @@ def run_mcp_test():
     if resp and "result" in resp:
         content = json.loads(resp["result"]["content"][0]["text"])
         if content.get("ok"):
-            print(f"   ✅ Vitals returned successfully")
+            print("   ✅ Vitals returned successfully")
             print(f"   📝 Verdict: {content.get('verdict')}")
             results.append(("arifos_ops vitals", True))
         else:
             print(f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}")
             results.append(("arifos_ops vitals", True))  # Still counts as hardening works
     else:
-        print(f"   ❌ No response")
+        print("   ❌ No response")
         results.append(("arifos_ops vitals", False))
     
     # Cleanup

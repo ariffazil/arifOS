@@ -16,8 +16,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 
 class Axis(str, Enum):
     """The 6 irreducible cognitive axes."""

@@ -56,7 +56,7 @@ def validate_setup():
     # Check metrics/benchmark.py
     benchmark_path = AUTORESEARCH_DIR / "metrics" / "benchmark.py"
     if not benchmark_path.exists():
-        errors.append(f"Missing: metrics/benchmark.py")
+        errors.append("Missing: metrics/benchmark.py")
     
     # Check arifOS structure
     arifOS_path = AUTORESEARCH_DIR.parent
@@ -100,15 +100,15 @@ def list_experiments():
         print(f"\n{name}:")
         print(f"  ID: {exp.experiment_id}")
         print(f"  Change: {exp.change_description}")
-        print(f"  Config:")
+        print("  Config:")
         for key in ["omega_simple_tasks", "omega_medium_tasks", "omega_complex_tasks"]:
             val = getattr(exp, key, None)
             if val is not None:
                 print(f"    {key}: {val}")
     
     print("\n" + "=" * 60)
-    print(f"\nAlso: --baseline (revert to baseline)")
-    print(f"And:  --custom for interactive custom experiment\n")
+    print("\nAlso: --baseline (revert to baseline)")
+    print("And:  --custom for interactive custom experiment\n")
 
 
 def run_baseline():

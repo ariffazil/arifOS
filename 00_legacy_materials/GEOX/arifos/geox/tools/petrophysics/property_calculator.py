@@ -29,7 +29,6 @@ from arifos.geox.schemas.petrophysics.rock_state import (
     SaturationModelParameters,
     ProvenanceRecord,
 )
-from arifos.geox.schemas.geox_schemas import CoordinatePoint
 
 
 # In-memory store

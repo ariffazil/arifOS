@@ -18,7 +18,7 @@ from typing import Any
 from core.kernel.planner import Plan, Planner, Task
 from core.kernel.substrate_assert import substrate_assert, emit_substrate_assert_event
 # arifOS Core Imports
-from core.shared.types import Verdict, PhysicsState, MathDials, CodeState
+from core.shared.types import Verdict
 from core.shared.verdict_contract import normalize_verdict
 # We assume the organs expose async interfaces as described in _0_init.py etc.
 from core.organs import _0_init, _1_agi, _2_asi, _3_apex, _4_vault

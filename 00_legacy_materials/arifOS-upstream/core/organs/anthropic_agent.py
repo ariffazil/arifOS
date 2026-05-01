@@ -1,6 +1,5 @@
 import os
 import httpx
-import json
 import logging
 from dataclasses import dataclass
 

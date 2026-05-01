@@ -5,7 +5,7 @@ Direct tests for _2_asi.py that work without complex mocking
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, MagicMock
 import sys
 from types import ModuleType
 

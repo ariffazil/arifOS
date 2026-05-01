@@ -13,9 +13,7 @@ Verdict: SEAL | Stage: E3E_999 | Floor: F1-F13
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, UTC
-from typing import Any
 
 import pytest
 
@@ -199,7 +197,7 @@ class TestTrinitySessionFlow:
             floors_count = len(result["floors"])
             print(f"[E3E] F1-F13 audited: {floors_count} floors")
         else:
-            print(f"[E3E] F1-F13 audited: floors in telemetry")
+            print("[E3E] F1-F13 audited: floors in telemetry")
 
     def test_e3e_init_anchor_via_rest(self, test_client, mock_browser_session):
         """
@@ -314,7 +312,7 @@ class TestTrinityConstitutionalEnforcement:
             if response.status_code == 200:
                 print(f"[E3E] F12 scan: '{attempt[:30]}...' → scanned")
             else:
-                print(f"[E3E] F12 scan: tool not mounted (404)")
+                print("[E3E] F12 scan: tool not mounted (404)")
 
     def test_e3e_f7_humility_band_in_metrics(self, test_client):
         """
@@ -338,9 +336,9 @@ class TestTrinityConstitutionalEnforcement:
 
         if not has_telemetry:
             # Just verify the health endpoint works
-            print(f"[E3E] F7 Humility: health endpoint active (telemetry in check_vital)")
+            print("[E3E] F7 Humility: health endpoint active (telemetry in check_vital)")
         else:
-            print(f"[E3E] F7 Humility: telemetry present")
+            print("[E3E] F7 Humility: telemetry present")
 
     def test_e3e_blocked_tools_for_anonymous(self, test_client):
         """
@@ -501,7 +499,7 @@ class TestTrinityFullLoop:
         assert audit_res.status_code == 200
 
         audit_data = audit_res.json()
-        print(f"[E3E] Step 2 (MIND): rules audited")
+        print("[E3E] Step 2 (MIND): rules audited")
 
         # Step 3: INTROSPECTION (use GET /tools instead of POST /tools/register_tools)
         tools_res = test_client.get("/tools")

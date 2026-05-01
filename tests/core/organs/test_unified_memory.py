@@ -5,7 +5,6 @@ Tests for unified_memory.py — testing actual available functions
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 
 class TestUnifiedMemory:

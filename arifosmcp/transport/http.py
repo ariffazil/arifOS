@@ -10,7 +10,7 @@ import os
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 
-from arifosmcp.server import mcp, GlobalPanicMiddleware
+from arifosmcp.server import GlobalPanicMiddleware, mcp
 
 
 def create_http_app():

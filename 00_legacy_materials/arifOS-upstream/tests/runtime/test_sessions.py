@@ -4,8 +4,6 @@ tests/runtime/test_sessions.py — Session Management Tests
 Tests for runtime/sessions.py — identity binding and session continuity
 """
 
-import pytest
-from unittest.mock import Mock, patch
 
 
 class TestSessionNormalization:

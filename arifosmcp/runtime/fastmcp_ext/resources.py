@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastmcp.resources.types import TextResource
-
 
 def register_arifos_resources(mcp: Any) -> list[str]:
     """Register canonical arifOS MCP resources on the given FastMCP server."""

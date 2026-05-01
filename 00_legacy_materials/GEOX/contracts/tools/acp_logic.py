@@ -22,7 +22,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Callable, Dict, List, Optional, Set
 from weakref import WeakSet
 
 logger = logging.getLogger("geox.acp")

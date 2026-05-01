@@ -3,8 +3,6 @@ from __future__ import annotations
 import pytest
 
 from arifosmcp.capability_map import (
-    CAPABILITY_MAP,
-    LEGACY_TOOLS,
     MEGA_TOOLS,
     MEGA_TOOL_MODES,
     iter_invalid_megatool_targets,

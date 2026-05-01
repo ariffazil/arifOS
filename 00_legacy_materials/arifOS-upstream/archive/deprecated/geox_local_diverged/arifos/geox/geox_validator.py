@@ -28,13 +28,12 @@ from typing import Any, Literal
 
 from arifos.geox.geox_schemas import (
     CoordinatePoint,
-    GeoPrediction,
     GeoInsight,
+    GeoPrediction,
     GeoQuantity,
     ProvenanceRecord,
 )
 from arifos.geox.geox_tools import BaseTool, GeoToolResult
-
 
 # ---------------------------------------------------------------------------
 # ValidationResult

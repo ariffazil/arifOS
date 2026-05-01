@@ -16,15 +16,14 @@ from pydantic import ValidationError
 
 from arifos.geox.geox_schemas import (
     CoordinatePoint,
-    GeoPrediction,
     GeoInsight,
+    GeoPrediction,
     GeoQuantity,
     GeoRequest,
     GeoResponse,
     ProvenanceRecord,
     export_json_schemas,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers / fixtures

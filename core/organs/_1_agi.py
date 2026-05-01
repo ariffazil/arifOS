@@ -19,14 +19,10 @@ from typing import Any, Literal
 from core.shared.atlas import Phi
 from core.shared.types import (
     AgiOutput,
-    DeltaBundle,
-    EurekaInsight,
-    FloorScores,
     ReasonMindAnswer,
     ReasonMindStep,
     Verdict
 )
-from core.shared.verdict_contract import normalize_verdict
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +84,6 @@ async def agi(
     # 2. Initialize Physics/Thermodynamics
     from core.physics.thermodynamics_hardened import (
         consume_reason_energy,
-        record_entropy_io,
         shannon_entropy,
     )
 

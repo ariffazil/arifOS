@@ -11,8 +11,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
-from typing import Any
+from unittest.mock import patch, AsyncMock
 
 
 class TestSystemHealthHardened:
@@ -337,7 +336,7 @@ class TestAllNineTools:
                 try:
                     result = await tool(*args)
                     results.append((tool.__name__, isinstance(result, RuntimeEnvelope)))
-                except Exception as e:
+                except Exception:
                     results.append((tool.__name__, False))
 
         # Check all returned RuntimeEnvelope

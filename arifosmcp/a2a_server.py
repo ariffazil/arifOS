@@ -20,19 +20,17 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, AsyncGenerator, Literal
-from dataclasses import dataclass, field
-from enum import Enum
+from collections.abc import AsyncGenerator
+from typing import Any
+
 from aiohttp import web
 
 from a2a_aligned import (
     AGENT_CARDS,
     ORTHOGONALITY_ROUTING,
     A2AMessage,
-    MessageRole,
     can_route,
 )
-
 
 # =============================================================================
 # AGENT IMPLEMENTATIONS

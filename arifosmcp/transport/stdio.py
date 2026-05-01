@@ -5,8 +5,6 @@ Runs the arifOS MCP server over standard input/output.
 """
 from __future__ import annotations
 
-import asyncio
-
 from arifosmcp.server import mcp
 
 

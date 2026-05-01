@@ -9,8 +9,6 @@ F2 Truth: Explicit QC findings, not hidden assumptions.
 from __future__ import annotations
 
 import statistics
-from datetime import datetime
-from typing import Any
 
 from arifos.geox.schemas.petrophysics.measurements import (
     LogBundle, WellLogCurve, QCReport, CurveQC

@@ -8,7 +8,7 @@ Anomalous Contrast is the systematic error that occurs when visual/display contr
 """
 
 from enum import Enum
-from typing import Any, List, Literal, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 
 

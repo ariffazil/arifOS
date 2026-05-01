@@ -8,7 +8,7 @@ Responsibility: Feasibility scoring, resource analysis, cost estimation
 """
 
 from fastmcp import Context
-from typing import Literal, Optional
+from typing import Literal
 
 
 def _estimate_cost(action: str, domain: str) -> float:

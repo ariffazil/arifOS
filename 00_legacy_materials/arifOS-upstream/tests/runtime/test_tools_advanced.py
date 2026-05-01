@@ -5,9 +5,7 @@ Verifies the consolidated 11-tool surface and dispatcher logic.
 """
 
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-from typing import Any
+from unittest.mock import patch, AsyncMock, MagicMock
 
 class TestMegaToolRegistration:
     """Test the registration of the 11 Mega-Tools"""

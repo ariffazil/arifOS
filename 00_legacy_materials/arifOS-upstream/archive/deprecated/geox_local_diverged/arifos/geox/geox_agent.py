@@ -26,12 +26,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from arifos.geox.geox_schemas import (
-    CoordinatePoint,
     GeoInsight,
     GeoPrediction,
     GeoQuantity,

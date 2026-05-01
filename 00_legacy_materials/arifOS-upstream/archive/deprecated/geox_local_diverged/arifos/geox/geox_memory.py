@@ -18,12 +18,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from arifos.geox.geox_schemas import GeoRequest, GeoResponse, CoordinatePoint
-
+from arifos.geox.geox_schemas import CoordinatePoint, GeoRequest, GeoResponse
 
 # ---------------------------------------------------------------------------
 # GeoMemoryEntry
@@ -63,7 +62,7 @@ class GeoMemoryEntry:
         return d
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "GeoMemoryEntry":
+    def from_dict(cls, d: dict[str, Any]) -> GeoMemoryEntry:
         """Deserialise from dict."""
         ts = d.get("timestamp")
         if isinstance(ts, str):

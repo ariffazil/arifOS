@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 import sys
 
@@ -19,13 +18,13 @@ async def run_test():
     query_2 = "..."
     res_2 = await hardened_agi_mind_dispatch('reason', {'query': query_2})
     
-    print(f"Test 1 (High Signal):")
+    print("Test 1 (High Signal):")
     print(f"  Input Len: {len(query_1)}")
     print(f"  Delta S:   {res_1['entropy']['delta_s']}")
     print(f"  G-Score:   {res_1['g_score']}")
     print(f"  Humility:  {res_1['humility_band']}")
     
-    print(f"\nTest 2 (Low Signal):")
+    print("\nTest 2 (Low Signal):")
     print(f"  Input Len: {len(query_2)}")
     print(f"  Delta S:   {res_2['entropy']['delta_s']}")
     print(f"  G-Score:   {res_2['g_score']}")

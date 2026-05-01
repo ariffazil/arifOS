@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any
 from abc import ABC, abstractmethod
 import uuid
 
@@ -30,7 +30,7 @@ from ...THEORY import (
     GEOX_HOLD,
     GEOX_SEAL,
 )
-from ...ENGINE import ContrastSpace, AnomalyDetector
+from ...ENGINE import AnomalyDetector
 
 
 @dataclass

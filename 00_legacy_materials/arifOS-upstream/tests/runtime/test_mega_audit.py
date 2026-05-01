@@ -12,8 +12,7 @@ Gate 7 — Execution hardening
 """
 
 import pytest
-import asyncio
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock
 from arifosmcp.runtime.public_registry import (
     public_tool_names,
     public_tool_specs,

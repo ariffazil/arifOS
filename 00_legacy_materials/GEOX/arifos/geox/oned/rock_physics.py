@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Literal
 
 from .canon9_profile import DepthSample
 

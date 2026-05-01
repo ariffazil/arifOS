@@ -8,7 +8,6 @@ from __future__ import annotations
 from fastmcp import FastMCP
 from fastmcp.resources.types import TextResource
 
-
 CIVILIZATION_TEXT = """\
 arifOS Civilization — Organs and Strata
 

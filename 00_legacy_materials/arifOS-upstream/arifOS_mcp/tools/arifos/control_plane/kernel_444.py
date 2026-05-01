@@ -8,7 +8,7 @@ Responsibility: Stage routing, organ boundary enforcement, sovereignty
 """
 
 from fastmcp import Context
-from typing import Literal, Optional
+from typing import Literal
 
 
 async def kernel_444(

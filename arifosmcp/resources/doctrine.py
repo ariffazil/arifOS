@@ -9,7 +9,6 @@ from __future__ import annotations
 from fastmcp import FastMCP
 from fastmcp.resources.types import TextResource
 
-
 DOCTRINE_TEXT = """\
 arifOS Doctrine — 13 Floors (F1–F13)
 

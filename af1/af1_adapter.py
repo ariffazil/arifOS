@@ -18,13 +18,12 @@ import hashlib
 import json
 import logging
 import os
-import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable, Awaitable
 
 # AF1 Validator
-from af1.af1_validator import AF1Validator, ToolRiskLevel
+from af1.af1_validator import AF1Validator
 
 # Receipt logger
 from af1.af1_receipt_logger import AF1ReceiptLogger, AF1Receipt

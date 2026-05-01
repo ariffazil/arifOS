@@ -7,10 +7,8 @@ does not use random selection or surface-prefix routing as primary logic.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.runtime.quote_retriever import retrieve_witnesses
-from arifosmcp.runtime.quote_ledger import load_quote_ledger
 
 
 class TestRetrieveWitnesses:

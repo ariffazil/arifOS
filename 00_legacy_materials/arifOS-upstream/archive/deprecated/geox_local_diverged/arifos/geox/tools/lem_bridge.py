@@ -10,15 +10,13 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import Any
 
-import httpx
-from arifos.geox.geox_schemas import GeoQuantity, ProvenanceRecord, CoordinatePoint
 from arifos.geox.base_tool import BaseTool, GeoToolResult, _make_provenance
+from arifos.geox.geox_schemas import CoordinatePoint, GeoQuantity
 
 
 class LEMBackend(ABC):
@@ -59,14 +57,14 @@ class MockLEMBackend(LEMBackend):
     async def embed(self, inputs: dict[str, Any]) -> dict[str, Any]:
         # Simulate network latency
         await asyncio.sleep(0.4)
-        
+
         location: CoordinatePoint = inputs.get("location", CoordinatePoint(0, 0))
         seed_str = f"{self.model_name}:{location.latitude}:{location.longitude}"
         seed = int(hashlib.sha256(seed_str.encode()).hexdigest(), 16) % (2**31)
-        
+
         # Deterministic but "noisy" uncertainty
         uncertainty = 0.08 + (seed % 100) / 1000.0  # 0.08 - 0.18
-        
+
         return {
             "embeddings": [0.0] * 768,  # Truncated for mock
             "uncertainty": uncertainty,
@@ -129,11 +127,11 @@ class LEMBridgeTool(BaseTool):
 
         start = time.perf_counter()
         location: CoordinatePoint = inputs["location"]
-        
+
         try:
             res = await self._backend.embed(inputs)
             card = self._backend.get_model_card()
-            
+
             uncertainty = res.get("uncertainty", 0.15)
             prov = _make_provenance(
                 source_id=f"lem-{card['model']}-{card['version']}",
@@ -141,8 +139,8 @@ class LEMBridgeTool(BaseTool):
                 confidence=1.0 - uncertainty,
                 citation=f"Foundation Model: {card['model']} ({card['version']})"
             )
-            
-            # Embeddings are stored in metadata/raw_output as they don't fit 
+
+            # Embeddings are stored in metadata/raw_output as they don't fit
             # into a single GeoQuantity value easily. The quantity acts as an anchor.
             quantities = [
                 GeoQuantity(
@@ -155,9 +153,9 @@ class LEMBridgeTool(BaseTool):
                     provenance=prov
                 )
             ]
-            
+
             latency_ms = (time.perf_counter() - start) * 1000
-            
+
             return GeoToolResult(
                 tool_name=self.name,
                 success=True,
@@ -169,7 +167,7 @@ class LEMBridgeTool(BaseTool):
                 },
                 latency_ms=round(latency_ms, 2)
             )
-            
+
         except Exception as e:
             return GeoToolResult(
                 tool_name=self.name,

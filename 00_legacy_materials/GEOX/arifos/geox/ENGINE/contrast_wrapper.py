@@ -21,8 +21,6 @@ from typing import Any, TypeVar
 from arifos.geox.schemas.continuity import ContinuityRecord, HardenedToolOutput
 from arifos.geox.geox_schemas import (
     ContrastMetadata,
-    GeoxGovernance,
-    GeoxUncertainty,
 )
 
 T = TypeVar("T")

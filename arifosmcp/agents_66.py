@@ -16,17 +16,15 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, Literal, TypedDict
-from dataclasses import dataclass
-from enum import Enum
-
-from fastmcp import FastMCP
-from pydantic import BaseModel, Field
-
+import inspect
 import os
 import sys
-import inspect
+from enum import Enum
 from pathlib import Path
+from typing import Any, Literal, TypedDict
+
+from fastmcp import FastMCP
+
 from .memory_engine import MemoryEngine
 
 # Add arifOS root to path for core imports

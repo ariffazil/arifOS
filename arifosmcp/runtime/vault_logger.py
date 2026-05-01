@@ -71,7 +71,6 @@ class VaultLogger:
         if not _VAULT_ENABLED or self._pool is None:
             return []
         try:
-            import asyncpg
             async with self._pool.acquire() as conn:
                 rows = await conn.fetch(
                     "SELECT entry_id, payload, session_id, created_at FROM vault_ledger ORDER BY created_at DESC LIMIT $1",

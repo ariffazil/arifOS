@@ -27,7 +27,6 @@ in SE Asian back-arc basin settings. References (open literature):
 from __future__ import annotations
 
 import hashlib
-import math
 import random
 import time
 from datetime import datetime, timezone
@@ -39,7 +38,6 @@ from arifos.geox.geox_schemas import (
     ProvenanceRecord,
 )
 from arifos.geox.geox_tools import BaseTool, GeoToolResult
-
 
 # ---------------------------------------------------------------------------
 # Malay Basin geophysical parameter ranges

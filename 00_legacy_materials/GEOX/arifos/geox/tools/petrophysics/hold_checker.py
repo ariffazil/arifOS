@@ -6,7 +6,6 @@ Full implementation in Phase B: geox_petrophysical_hold_check tool.
 """
 
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass

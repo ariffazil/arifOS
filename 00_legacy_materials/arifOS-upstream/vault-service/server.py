@@ -23,7 +23,6 @@ import json
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
 from contextlib import asynccontextmanager
 
 import asyncpg

@@ -9,7 +9,6 @@ This prevents the core contract layer from being polluted by backward compatibil
 
 import logging
 from fastmcp import FastMCP
-from contracts.tools import prospect, well
 
 logger = logging.getLogger("geox.compatibility")
 

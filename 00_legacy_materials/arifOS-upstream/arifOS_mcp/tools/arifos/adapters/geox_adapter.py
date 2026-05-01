@@ -6,7 +6,7 @@ Internal adapter (no external MCP calls).
 Accesses GEOX subdomain modules directly for Tri-Witness fusion.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 async def geox_observe(zone_id: str, query: str) -> Dict[str, Any]:

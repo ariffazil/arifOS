@@ -16,25 +16,17 @@ Fixtures defined in conftest.py:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
 
 import pytest
-import pytest_asyncio
 
+from arifos.geox.geox_agent import GeoXAgent
+from arifos.geox.geox_memory import GeoMemoryEntry, GeoMemoryStore
+from arifos.geox.geox_reporter import GeoXReporter
 from arifos.geox.geox_schemas import (
-    CoordinatePoint,
     GeoInsight,
     GeoRequest,
     GeoResponse,
 )
-from arifos.geox.geox_agent import GeoXAgent, GeoXConfig
-from arifos.geox.geox_memory import GeoMemoryStore, GeoMemoryEntry
-from arifos.geox.geox_reporter import GeoXReporter
-from arifos.geox.geox_validator import GeoXValidator
-from arifos.geox.geox_tools import ToolRegistry
-from arifos.geox.examples.mock_tools.mock_earthnet import MockEarthNetTool
-from arifos.geox.examples.mock_tools.mock_vlm import MockSeismicVLMTool
-
 
 # ---------------------------------------------------------------------------
 # Helpers

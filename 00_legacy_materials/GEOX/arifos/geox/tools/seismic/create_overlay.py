@@ -8,8 +8,8 @@ Uses Pillow (PIL) for image-only structural markup.
 import os
 import time
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from PIL import Image, ImageOps, ImageDraw
+from typing import List, Dict, Any
+from PIL import Image, ImageDraw
 
 OUTPUT_DIR = Path("geox_output")
 OUTPUT_DIR.mkdir(exist_ok=True, parents=True)

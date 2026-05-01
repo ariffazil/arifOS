@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 from fastmcp import FastMCP
 from fastmcp.resources.types import TextResource
 
-
 VITALS_TEXT = """\
 arifOS Vitals — Live System Metrics (Ω)
 

@@ -1,8 +1,7 @@
 import logging
-import os
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, ExecutionStatus, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
 
 logger = logging.getLogger("geox.physics")
 

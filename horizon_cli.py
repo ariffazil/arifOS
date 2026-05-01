@@ -15,8 +15,10 @@ Deprecated aliases removed — use mode params on canonical tools instead:
   arifos_monitor_metabolism → arifos_ops(mode="metabolism")
   arifos_get_vault_data    → arifos_vault(mode="read")
 """
-import sys, os, json, asyncio
-from pathlib import Path
+import sys
+import os
+import json
+import asyncio
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 TOKEN = os.environ.get("FASTMCP_API_KEY") or os.environ.get("MCP_API_KEY") or ""

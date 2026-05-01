@@ -10,7 +10,7 @@ Target: 90%+ coverage for Trinity architecture
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
+from unittest.mock import Mock, MagicMock, AsyncMock
 import sys
 from types import ModuleType
 

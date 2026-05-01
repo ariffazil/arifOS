@@ -5,7 +5,7 @@ DITEMPA BUKAN DIBERI
 Provides convenient AC_Risk calculation wrappers for vision tasks.
 """
 
-from ..ENGINE.ac_risk import ACRiskCalculator, ACRiskResult, Verdict
+from ..ENGINE.ac_risk import ACRiskCalculator, ACRiskResult
 
 
 class VisionGovernance:

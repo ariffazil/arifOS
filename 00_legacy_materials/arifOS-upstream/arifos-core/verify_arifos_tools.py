@@ -1,5 +1,4 @@
 import os
-import sys
 
 BASE = "/root/repos/arifOS/arifosmcp/tools"
 
@@ -36,7 +35,7 @@ PATHS = {
 }
 
 def verify():
-    print(f"--- arifOS Tool Verification Harness ---")
+    print("--- arifOS Tool Verification Harness ---")
     print(f"Base Path: {BASE}\n")
     
     missing = []

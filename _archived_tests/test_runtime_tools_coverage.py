@@ -3,9 +3,8 @@ Targeted tests for runtime/tools.py to boost coverage from 23% to 75%+
 Focus on tool wrappers, stage definitions, and core tool functions
 """
 import pytest
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-import asyncio
-from arifosmcp.runtime.model import Verdict, Stage, RuntimeEnvelope
+from unittest.mock import patch, AsyncMock, MagicMock
+from arifosmcp.runtime.model import Verdict, Stage
 
 
 class TestStageEnum:

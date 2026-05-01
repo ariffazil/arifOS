@@ -3,8 +3,7 @@ Focused coverage tests - targeting the 3 critical files with correct APIs
 """
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-import asyncio
+from unittest.mock import patch, AsyncMock
 
 
 class TestRealityGroundingRealAPI:

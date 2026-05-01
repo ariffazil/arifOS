@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-
 SESSION_STUB_TEXT = """\
 arifOS Session Manifest
 ═══════════════════════

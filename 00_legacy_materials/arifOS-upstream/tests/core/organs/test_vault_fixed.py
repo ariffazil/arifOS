@@ -5,7 +5,6 @@ Tests for unified_memory vault with CORRECT API
 """
 
 import pytest
-from unittest.mock import Mock, patch
 
 
 class TestVaultFixed:

@@ -6,16 +6,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL
 
 import asyncio
 import sys
-import json
 import time
 
 sys.path.insert(0, ".")
 
-from arifOS_mcp.tools.arifos.registry import (
-    register_arifos_tools,
-    register_arifos_prompts,
-    register_arifos_resources,
-)
 from arifOS_mcp.tools.arifos.compute_plane.mind_333 import mind_333
 from arifOS_mcp.tools.arifos.compute_plane.memory_555 import memory_555
 from arifOS_mcp.tools.arifos.compute_plane.heart_666 import heart_666

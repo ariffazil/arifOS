@@ -21,14 +21,12 @@ Usage:
 
 import argparse
 import asyncio
-import json
-import os
 import sys
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 # Add metrics to path
 sys.path.insert(0, str(Path(__file__).parent / "metrics"))
@@ -202,12 +200,12 @@ class ConstitutionalEvaluator:
     
     def _print_metrics(self, metrics: AggregateMetrics):
         """Pretty print metrics."""
-        print(f"\nPerformance:")
+        print("\nPerformance:")
         print(f"  Throughput: {metrics.throughput_rps:.2f} req/s (target: {TARGET_THROUGHPUT})")
         print(f"  Latency (avg): {metrics.avg_latency_ms:.1f}ms")
         print(f"  Latency (p95): {metrics.p95_latency_ms:.1f}ms")
         print(f"  Latency (p99): {metrics.p99_latency_ms:.1f}ms")
-        print(f"\nConstitutional:")
+        print("\nConstitutional:")
         print(f"  Violation Rate: {metrics.violation_rate*100:.2f}% (target: <{TARGET_VIOLATION_RATE*100}%)")
         print(f"  Avg Omega: {metrics.avg_omega:.4f} (range: {OMEGA_RANGE})")
         print(f"  Omega in Range: {metrics.omega_in_range_pct*100:.1f}%")

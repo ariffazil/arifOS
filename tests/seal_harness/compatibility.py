@@ -22,7 +22,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-import httpx
 
 from tests.seal_harness.client import (
     DEFAULT_ENDPOINT,

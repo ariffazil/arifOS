@@ -6,7 +6,6 @@ Acceptance: All 99 quotes validate; malformed entries are rejected.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest

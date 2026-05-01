@@ -13,7 +13,6 @@ import sys
 import json
 import hashlib
 from datetime import datetime, timezone
-from typing import Optional
 
 import asyncpg
 
@@ -381,7 +380,7 @@ async def main():
     global TESTS_PASSED, TESTS_FAILED
     
     print(f"\n{'='*60}")
-    print(f"  VAULT999 TEST HARNESS — 9 test cases")
+    print("  VAULT999 TEST HARNESS — 9 test cases")
     print(f"{'='*60}")
     
     conn_vw = await get_vault_writer_conn()

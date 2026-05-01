@@ -9,8 +9,6 @@ Responsibility: Epoch validation, session anchoring, doctrine/schema/session get
 
 from fastmcp import Context
 from typing import Optional
-import os
-from pathlib import Path
 
 from arifOS_mcp.runtime.governance import governed_return, ThermodynamicMetrics, Verdict
 

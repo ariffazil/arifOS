@@ -26,7 +26,7 @@ import math
 import sys
 import time
 import warnings
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from typing import Optional
 
 # LAS reading
@@ -41,8 +41,6 @@ from arifos.geox.init_000_anchor import (
     GEOX_VERSION,
     ARIFOS_VERSION,
     INIT_ANCHOR_VERSION,
-    EpistemicLevel,
-    GEOXAnchor,
     porosity_density,
     saturation_archie,
     bulk_volume_water,
@@ -714,7 +712,8 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
 
         # Parse LAS
         try:
-            import tempfile, os
+            import tempfile
+            import os
             # lasio 0.32 requires a file path or string stream, not bytes
             with tempfile.NamedTemporaryFile(suffix='.las', delete=False, mode='wb') as tmp:
                 tmp.write(las_data)
@@ -763,12 +762,12 @@ class LASIThreadedTCPServer(socketserver.ThreadingMixIn, http.server.HTTPServer)
 def run_server(port: int = DEFAULT_PORT):
     print(f"GEOX LAS Interpreter v{GEOX_VERSION} — DITEMPA BUKAN DIBERI")
     print(f"arifOS {ARIFOS_VERSION} | INIT {INIT_ANCHOR_VERSION}")
-    print(f"")
-    print(f"Endpoints:")
-    print(f"  POST /interpret  — Upload LAS → Interpreted JSON")
-    print(f"  GET  /health     — Health check")
-    print(f"  GET  /constants   — Well log constants")
-    print(f"")
+    print("")
+    print("Endpoints:")
+    print("  POST /interpret  — Upload LAS → Interpreted JSON")
+    print("  GET  /health     — Health check")
+    print("  GET  /constants   — Well log constants")
+    print("")
     print(f"Starting on port {port}...")
     with LASIThreadedTCPServer(('', port), LASIHandler) as httpd:
         print(f"Ready. Serving on port {port}")

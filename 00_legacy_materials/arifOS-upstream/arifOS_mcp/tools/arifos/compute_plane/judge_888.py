@@ -8,7 +8,7 @@ Responsibility: SEAL/VOID/SABAR verdict, floor checks, human approval gating
 """
 
 from fastmcp import Context
-from typing import Literal, Optional
+from typing import Optional
 
 from arifOS_mcp.runtime.governance import governed_return, ThermodynamicMetrics, Verdict
 

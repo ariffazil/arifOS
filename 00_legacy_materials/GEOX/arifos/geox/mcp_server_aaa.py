@@ -27,12 +27,9 @@ warnings.warn(
 )
 
 import argparse
-import asyncio
-import json
 import logging
-import os
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FastMCP Compatibility Layer

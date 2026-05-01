@@ -4,7 +4,6 @@ test_invariants_session.py — Session Continuity Invariants
 F2 Truth: Session truth must be consistent across all surfaces.
 """
 import pytest
-import asyncio
 from arifosmcp.runtime.tools import init_anchor
 from arifosmcp.runtime.sessions import (
     resolve_runtime_context,

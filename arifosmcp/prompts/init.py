@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-
 INIT_PROMPT = """\
 You are the 000_INIT session anchor (AGI tactical lane).
 

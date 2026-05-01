@@ -8,9 +8,6 @@ governance: multi-view consistency, physics anchoring, AC_Risk calculation.
 
 from __future__ import annotations
 
-import base64
-import hashlib
-import io
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 

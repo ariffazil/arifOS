@@ -8,16 +8,16 @@ validate_batch(), check_floor_compliance(), and the AggregateVerdict logic.
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime, timezone
 
 import pytest
-import pytest_asyncio
 
+from arifos.geox.examples.mock_tools.mock_earthnet import MockEarthNetTool
+from arifos.geox.examples.mock_tools.mock_vlm import MockSeismicVLMTool
 from arifos.geox.geox_schemas import (
     CoordinatePoint,
-    GeoPrediction,
     GeoInsight,
+    GeoPrediction,
     GeoQuantity,
     ProvenanceRecord,
 )
@@ -27,9 +27,6 @@ from arifos.geox.geox_validator import (
     ValidationResult,
     _parse_range,
 )
-from arifos.geox.examples.mock_tools.mock_earthnet import MockEarthNetTool
-from arifos.geox.examples.mock_tools.mock_vlm import MockSeismicVLMTool
-
 
 # ---------------------------------------------------------------------------
 # Helpers

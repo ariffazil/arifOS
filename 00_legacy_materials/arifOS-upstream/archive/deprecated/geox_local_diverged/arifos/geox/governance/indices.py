@@ -7,6 +7,7 @@ based on arifOS mechanical constraints (Tokens, Latency, Energy).
 
 from typing import Any
 
+
 def calculate_indices(kernel_state: dict[str, Any]) -> dict[str, float]:
     """
     Computes the Governance Grammar indices from raw arifOS telemetry.

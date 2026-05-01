@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 from arifosmcp.runtime.tools import init_anchor, arifos_kernel
-from arifosmcp.runtime.model import AuthorityLevel, ClaimStatus, Verdict
+from arifosmcp.runtime.model import AuthorityLevel, Verdict
 
 @pytest.mark.asyncio
 class TestAdversarialIdentity:

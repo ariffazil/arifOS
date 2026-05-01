@@ -1,6 +1,5 @@
 from arifosmcp.intelligence.tools.fs_inspector import inspect_path
 from arifosmcp.intelligence.tools.net_monitor import check_connectivity
-import os
 
 def test_aliases():
     print("Testing internal function aliases...")

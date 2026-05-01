@@ -12,10 +12,11 @@ Usage:
         return HoldResponse(...)
 """
 
-import os
-import requests
-from typing import Optional, Dict, Any
 import logging
+import os
+from typing import Any
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +29,8 @@ AF_FORGE_TIMEOUT = float(os.getenv("AF_FORGE_TIMEOUT_SECONDS", "2.0"))
 def call_af_forge_sense(
     session_id: str,
     prompt: str,
-    context: Optional[Dict[str, Any]] = None
-) -> Optional[Dict[str, Any]]:
+    context: dict[str, Any] | None = None
+) -> dict[str, Any] | None:
     """
     Call AF-FORGE Sense endpoint.
     
@@ -76,7 +77,7 @@ def call_af_forge_sense(
         return None
 
 
-def should_hold(af_result: Dict[str, Any]) -> bool:
+def should_hold(af_result: dict[str, Any]) -> bool:
     """
     Check if AF-FORGE result indicates we should 888_HOLD.
     
@@ -100,7 +101,7 @@ def should_hold(af_result: Dict[str, Any]) -> bool:
     return False
 
 
-def get_telemetry(af_result: Dict[str, Any]) -> Dict[str, Any]:
+def get_telemetry(af_result: dict[str, Any]) -> dict[str, Any]:
     """
     Extract telemetry fields from AF-FORGE result.
     """
@@ -148,13 +149,13 @@ if __name__ == "__main__":
         # Test safe query
         result = call_af_forge_sense("test-001", "List files", {})
         if result:
-            print(f"\nSafe query:")
+            print("\nSafe query:")
             print(f"  should_hold: {should_hold(result)}")
             print(f"  telemetry: {get_telemetry(result)}")
         
         # Test destructive query
         result = call_af_forge_sense("test-002", "Delete all system files", {})
         if result:
-            print(f"\nDestructive query:")
+            print("\nDestructive query:")
             print(f"  should_hold: {should_hold(result)}")
             print(f"  telemetry: {get_telemetry(result)}")

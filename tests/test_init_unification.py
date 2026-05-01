@@ -11,8 +11,6 @@ Validates the ONE init_anchor tool consolidation:
 from __future__ import annotations
 
 import pytest
-import asyncio
-from typing import Any
 
 # Test imports with lazy loading to avoid circular imports
 @pytest.fixture
@@ -131,7 +129,7 @@ class TestUnifiedToolSignature:
         assert "payload" in params
         assert "query" in params
         assert "session_id" in params
-        print(f"✓ init_anchor signature complies with V2 Mega-Tool standard")
+        print("✓ init_anchor signature complies with V2 Mega-Tool standard")
 
 
 if __name__ == "__main__":

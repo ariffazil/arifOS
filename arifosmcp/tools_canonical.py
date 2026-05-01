@@ -33,10 +33,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
-from typing import Any
+
 import math
 import random
-
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL COMPUTE ENGINE 1 — PHYSICS
@@ -648,8 +648,9 @@ def arifos_oracle_bio(
     Biological telemetry oracle.
     Modes: snapshot_read | readiness_check | floor_scan | log_update
     """
+    import datetime
+    import json
     from pathlib import Path
-    import json, datetime
 
     WELL_STATE = Path("/root/WELL/state.json")
 

@@ -16,7 +16,6 @@ URI Schemes:
 
 from __future__ import annotations
 
-import os
 import warnings
 warnings.warn(
     "mcp_petrophysics_server.py is deprecated. The canonical unified surface is geox_unified_mcp_server.py "
@@ -37,7 +36,6 @@ from arifos.geox.tools.petrophysics import (
     LogBundleLoader,
     load_bundle_from_store,
     store_bundle,
-    QCEngine,
     generate_qc_report,
 )
 from arifos.geox.tools.petrophysics.property_calculator import (
@@ -46,7 +44,6 @@ from arifos.geox.tools.petrophysics.property_calculator import (
     store_rock_state,
 )
 from arifos.geox.tools.petrophysics.cutoff_validator import (
-    CutoffValidator,
     load_cutoff_policy,
 )
 from arifos.geox.tools.petrophysics.hold_checker import PetrophysicalHoldChecker
@@ -217,7 +214,7 @@ async def geox_select_sw_model(
         interval_part = parts[2] if len(parts) > 2 else "0-0"
         top_str, base_str = interval_part.split("-")
         top, base = float(top_str), float(base_str)
-    except (IndexError, ValueError) as e:
+    except (IndexError, ValueError):
         return {
             "status": "ERROR",
             "error": f"Invalid interval_uri: {interval_uri}",
@@ -292,7 +289,7 @@ async def geox_compute_petrophysics(
         interval_part = parts[2] if len(parts) > 2 else "0-0"
         top_str, base_str = interval_part.split("-")
         top, base = float(top_str), float(base_str)
-    except (IndexError, ValueError) as e:
+    except (IndexError, ValueError):
         return {
             "status": "ERROR",
             "error": f"Invalid interval_uri: {interval_uri}",
@@ -474,14 +471,14 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    print(f"=" * 60)
+    print("=" * 60)
     print(f"GEOX Petrophysics MCP v{GEOX_VERSION}")
     print(f"{GEOX_SEAL}")
-    print(f"Phase: A (Schemas + Resources + Load/QC)")
-    print(f"=" * 60)
-    print(f"Resources: 5 URI schemes")
-    print(f"Tools: 6 petrophysics tools")
-    print(f"=" * 60)
+    print("Phase: A (Schemas + Resources + Load/QC)")
+    print("=" * 60)
+    print("Resources: 5 URI schemes")
+    print("Tools: 6 petrophysics tools")
+    print("=" * 60)
     
     if args.transport == "http":
         mcp.run(transport="http", host=args.host, port=args.port)

@@ -1,4 +1,3 @@
-import os
 import json
 from datasets import load_dataset
 from model_factory import get_arif_model

@@ -4,8 +4,7 @@ Focus on SearchResult, search functions, and result processing
 """
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-import json
+from unittest.mock import Mock, patch
 
 
 class TestSearchResult:

@@ -1,4 +1,3 @@
-import pytest
 
 from core.shared.physics import (
     ConstitutionalTensor,

@@ -4,12 +4,13 @@
 from .cycle3e import Cycle3E, MetabolicPhase
 
 # MGI (Machine -> Governance -> Intelligence)
-from .mgi import MGIEnvelope, MGIBaseResponse
+from .mgi import MGIBaseResponse, MGIEnvelope
+
 MGI = MGIEnvelope
 GovernanceInterface = MGIBaseResponse
 
 # Verdict models (v2.0 canonical)
-from .verdicts import SealType, VerdictState, FloorName, VerdictResult
+from .verdicts import FloorName, SealType, VerdictResult, VerdictState
 
 __all__ = [
     "SealType",

@@ -12,10 +12,10 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-from .system import register_system_prompt
-from .judge import register_judge_prompt
 from .init import register_init_prompt
+from .judge import register_judge_prompt
 from .meta_skills import register_meta_skill_prompts
+from .system import register_system_prompt
 
 CANONICAL_PROMPTS = ("system", "judge", "init", "rsi", "ortho", "epistemic", "governance", "entropy")
 

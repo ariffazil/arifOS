@@ -12,9 +12,6 @@ Covers:
 - F1/F2/F11/F13 constitutional invariants
 """
 
-import hashlib
-import json
-import time
 from copy import deepcopy
 
 import pytest

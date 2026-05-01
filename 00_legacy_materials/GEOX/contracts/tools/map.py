@@ -1,7 +1,6 @@
 import logging
 from fastmcp import FastMCP
-from typing import List, Dict, Any
-from contracts.enums.statuses import get_standard_envelope, ExecutionStatus, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
 
 logger = logging.getLogger("geox.map")
 

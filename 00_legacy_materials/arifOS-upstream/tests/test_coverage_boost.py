@@ -4,8 +4,7 @@ Focus on real, working tests that add meaningful coverage
 """
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-import asyncio
+from unittest.mock import patch, AsyncMock
 
 
 class TestRealityGroundingEngines:
@@ -369,7 +368,6 @@ class TestErrorCodes:
 
     def test_all_error_codes_exist(self):
         """Test all expected error codes exist"""
-        from arifosmcp.runtime.reality_models import ErrorCode
 
         # These are Literal types, so we test by creating instances
         codes = [
@@ -396,7 +394,6 @@ class TestStatusStates:
 
     def test_status_states(self):
         """Test StatusState values"""
-        from arifosmcp.runtime.reality_models import StatusState
 
         states = ["SUCCESS", "PARTIAL", "SABAR", "VOID", "ERROR"]
 
@@ -405,7 +402,6 @@ class TestStatusStates:
 
     def test_stages(self):
         """Test Stage values"""
-        from arifosmcp.runtime.reality_models import Stage
 
         stages = ["111_SENSE", "222_REALITY", "333_MIND"]
 
@@ -414,7 +410,6 @@ class TestStatusStates:
 
     def test_verdicts(self):
         """Test Verdict values"""
-        from arifosmcp.runtime.reality_models import Verdict
 
         verdicts = ["SEAL", "SABAR", "VOID"]
 

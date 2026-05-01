@@ -9,8 +9,8 @@ import numpy as np
 from pydantic import BaseModel, Field
 from typing import Literal
 
-from .canon9_profile import Canon9Profile, DepthSample
-from .synthetic import Wavelet, SyntheticSeismic, SyntheticCMP
+from .canon9_profile import Canon9Profile
+from .synthetic import Wavelet, SyntheticSeismic
 
 
 class Alert(BaseModel):

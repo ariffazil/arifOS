@@ -1,12 +1,11 @@
 
 import pytest
-import asyncio
 import json
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 from fastmcp import FastMCP
 from arifosmcp.runtime.resources import register_resources, read_resource_content
 from arifosmcp.runtime import tools
-from arifosmcp.runtime.model import Verdict, RuntimeEnvelope, CanonicalAuthority, RuntimeStatus, Stage
+from arifosmcp.runtime.model import Verdict, RuntimeEnvelope, RuntimeStatus, Stage
 
 @pytest.fixture
 def mcp():

@@ -18,12 +18,10 @@ Stack:
 
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+import json
 from dataclasses import dataclass, field
 from enum import Enum
-from pydantic import BaseModel, Field
-import json
-
+from typing import Any, Literal
 
 # =============================================================================
 # A2A CORE TYPES (simplified implementation)

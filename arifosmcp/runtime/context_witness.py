@@ -21,10 +21,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from .context_safety import validate_interpretation_safety
 from .quote_ledger import get_quote_by_id, load_quote_ledger
 from .quote_retriever import retrieve_witnesses
-from .sea_lion_interpreter import fallback_interpret, interpret_with_sea_lion, InterpretationError
-from .context_safety import validate_interpretation_safety
+from .sea_lion_interpreter import InterpretationError, fallback_interpret, interpret_with_sea_lion
 
 logger = logging.getLogger(__name__)
 GOVERNANCE_DOMAINS = {"governance", "ethics", "conflict", "identity", "authority"}

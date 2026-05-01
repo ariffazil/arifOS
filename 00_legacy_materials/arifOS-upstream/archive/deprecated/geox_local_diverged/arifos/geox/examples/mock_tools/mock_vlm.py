@@ -45,7 +45,6 @@ from arifos.geox.geox_schemas import (
 )
 from arifos.geox.geox_tools import BaseTool, GeoToolResult
 
-
 # ---------------------------------------------------------------------------
 # Perception bridge rule enforcement
 # ---------------------------------------------------------------------------
@@ -294,7 +293,7 @@ if __name__ == "__main__":
                 f"(uncertainty={qty.uncertainty:.2f} — {'✓ ≥0.15' if qty.uncertainty >= 0.15 else '✗ VIOLATION'})"
             )
 
-        print(f"\nPerception Bridge Rule enforced:")
+        print("\nPerception Bridge Rule enforced:")
         print(f"  multisensor_required: {result.metadata['multisensor_required']}")
         print(f"  perception_only: {result.metadata['perception_only']}")
         print(f"  uncertainty_floor: {result.metadata['uncertainty_floor']}")

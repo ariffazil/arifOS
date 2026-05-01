@@ -48,12 +48,9 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
-    Metric,
     Muted,
     Ring,
     Row,
-    Select,
-    SelectOption,
     Separator,
     Text,
 )

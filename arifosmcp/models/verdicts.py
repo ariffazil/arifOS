@@ -8,7 +8,7 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
 from enum import Enum
-from typing import List, Optional, Dict, Any
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -112,7 +112,7 @@ class FloorMetrics(BaseModel):
     floor_name: FloorName = Field(...)
     state: FloorState = Field(default=FloorState.INACTIVE)
     score: float = Field(default=0.0, ge=0.0, le=1.0)
-    violation: Optional[str] = None
+    violation: str | None = None
     
     @field_validator('floor_number')
     @classmethod
@@ -133,12 +133,12 @@ class KernelMetrics(BaseModel):
     w3: float = Field(default=1.0, ge=0.0, le=1.0)
     shadow_score: float = Field(default=0.0, ge=0.0, le=1.0)
     
-    witness_vector: Dict[str, float] = Field(
+    witness_vector: dict[str, float] = Field(
         default_factory=lambda: {"human": 1.0, "ai": 1.0, "earth": 1.0}
     )
     
-    floors_passed: List[FloorName] = Field(default_factory=list)
-    floors_violated: List[FloorName] = Field(default_factory=list)
+    floors_passed: list[FloorName] = Field(default_factory=list)
+    floors_violated: list[FloorName] = Field(default_factory=list)
     
     overall_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
 
@@ -153,7 +153,7 @@ class VerdictResult(BaseModel):
     state: VerdictState = Field(default=VerdictState.HOLD_888)
     metrics: KernelMetrics = Field(default_factory=KernelMetrics)
     explanation: str = Field(default="")
-    recommendations: List[str] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
     
     def is_sealed(self) -> bool:
         """Check if execution is authorized."""

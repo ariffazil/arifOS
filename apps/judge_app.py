@@ -37,7 +37,7 @@ from typing import Annotated, Any
 from fastmcp import FastMCP
 from fastmcp.tools import ToolResult
 
-from arifos.apps.surface_utils import envelope_error, normalize_state, safe_get
+from arifos.apps.surface_utils import normalize_state, safe_get
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -51,7 +51,6 @@ from prefab_ui.components import (
     Grid,
     Heading,
     If,
-    Metric,
     Muted,
     Ring,
     Row,

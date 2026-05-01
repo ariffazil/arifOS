@@ -6,12 +6,10 @@ Evaluates and selects appropriate saturation models based on rock properties.
 """
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from arifos.geox.physics.saturation_models import (
     ArchieModel,
     SimandouxModel,
-    select_model_for_rock,
 )
 from arifos.geox.tools.petrophysics.property_calculator import load_rock_state
 

@@ -3,7 +3,7 @@ FloorResult — Constitutional floor evaluation result
 DITEMPA BUKAN DIBERI
 """
 
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel
 
 

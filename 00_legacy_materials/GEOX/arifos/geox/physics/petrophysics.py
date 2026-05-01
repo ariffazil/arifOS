@@ -26,8 +26,7 @@ from arifos.geox.schemas.petrophysics_schemas import (
     PetrophysicsInput,
     PetrophysicsOutput,
     CutoffPolicy,
-    CutoffValidationResult,
-    PetrophysicsHold
+    CutoffValidationResult
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════

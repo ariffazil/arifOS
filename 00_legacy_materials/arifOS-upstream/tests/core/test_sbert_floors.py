@@ -284,7 +284,7 @@ class TestIntegrationSmoke:
 
     def test_classifier_singleton(self):
         """Test that classifier uses singleton pattern."""
-        from core.shared.sbert_floors import get_sbert_classifier, _classifier
+        from core.shared.sbert_floors import get_sbert_classifier
         
         # Get classifier twice
         clf1 = get_sbert_classifier()

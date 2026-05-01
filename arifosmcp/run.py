@@ -11,23 +11,22 @@ Usage:
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from arifosmcp.mcp_tools import (
+    TOOL_CATALOG,
+    create_execution_mcp,
+    create_governance_mcp,
+    create_meta_mcp,
     create_perception_mcp,
     create_transformation_mcp,
-    create_valuation_mcp,
-    create_governance_mcp,
-    create_execution_mcp,
-    create_meta_mcp,
     create_unified_mcp,
-    TOOL_CATALOG,
+    create_valuation_mcp,
 )
-
 
 AGENT_FACTORIES = {
     "P": create_perception_mcp,
@@ -49,7 +48,7 @@ def run_agent(agent_id: str):
     factory = AGENT_FACTORIES[agent_id]
     mcp = factory()
     print(f"Starting {agent_id} agent MCP server...")
-    print(f"  Transport: stdio")
+    print("  Transport: stdio")
     try:
         tools = mcp._tool_manager.tools
         print(f"  Tools: {len(tools)}")
@@ -63,7 +62,7 @@ def run_multiple_agents(agent_ids: list[str]):
     """Run multiple agent MCP servers combined."""
     mcp = create_unified_mcp(agents=agent_ids)
     print(f"Starting unified MCP server for agents: {agent_ids}")
-    print(f"  Transport: stdio")
+    print("  Transport: stdio")
     try:
         tools = mcp._tool_manager.tools
         print(f"  Tools: {len(tools)}")

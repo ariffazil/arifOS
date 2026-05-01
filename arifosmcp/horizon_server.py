@@ -33,9 +33,9 @@ from fastmcp import FastMCP
 mcp = FastMCP("arifOS-Horizon")
 
 from arifosmcp.tools_canonical import (
-    arifos_compute_physics,
-    arifos_compute_finance,
     arifos_compute_civilization,
+    arifos_compute_finance,
+    arifos_compute_physics,
     arifos_oracle_bio,
     arifos_oracle_world,
 )

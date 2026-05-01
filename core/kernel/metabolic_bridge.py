@@ -1,16 +1,12 @@
 import os
 import json
-import asyncio
 import httpx
-import hashlib
-from dataclasses import field
 from datetime import datetime
 from uuid import uuid4
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
 from arifosmcp.runtime.vault_postgres import VaultManager, VaultEvent
-from arifosmcp.runtime.vault_postgres import SealResult
 
 
 class OllamaClient:
@@ -154,10 +150,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
         from core.physics.thermodynamics_hardened import (
             check_landauer_bound,
             LandauerViolation,
-            K_BOLTZMANN,
-            T_ROOM,
         )
-        import math
 
         # Build F2 context from proposal
         f2_context = {
@@ -220,7 +213,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
         # (module not available or other error)
         if proposal.confidence < 0.95:
             f2_passed = False
-            f2_reason = f"F2 ERROR: Could not verify Landauer bound — treating as ungrounded"
+            f2_reason = "F2 ERROR: Could not verify Landauer bound — treating as ungrounded"
 
     if not f2_passed:
         violations.append({"floor": "F2", "reason": f2_reason, "verdict": "VOID"})
@@ -287,7 +280,7 @@ async def execute_consequence(proposal: ProposalObject, ctx: Dict[str, Any]) -> 
 
 async def vault_seal(proposal: ProposalObject, verdict: KernelVerdict, result: Any) -> Any:
     """Stage 999 — Write the Merkle seal."""
-    from arifosmcp.runtime.vault_postgres import VaultManager, VaultEvent
+    from arifosmcp.runtime.vault_postgres import VaultManager
 
     mgr = VaultManager()
     vault_event = VaultEvent(

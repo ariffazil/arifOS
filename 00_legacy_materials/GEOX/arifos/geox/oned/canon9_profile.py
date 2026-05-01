@@ -6,7 +6,7 @@ DITEMPA BUKAN DIBERI
 from __future__ import annotations
 
 import numpy as np
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 from typing import Literal
 
 

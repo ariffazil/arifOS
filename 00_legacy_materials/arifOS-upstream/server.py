@@ -146,7 +146,11 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
     import inspect
 
     async def _invoke_original(arguments: dict[str, Any]) -> Any:
-        import time, logging as _log, asyncio, threading, os
+        import time
+        import logging as _log
+        import asyncio
+        import threading
+        import os
 
         # ── F13 Kill-Switch: classify and hard-stop BEFORE execution ──
         risk_tier_label = "T1_REVERSIBLE"

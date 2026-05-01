@@ -31,9 +31,6 @@ from arifos.core.governance import (
     append_vault999_event,
     Verdict,
 )
-from arifos.integrations.minimax_mcp_bridge import (
-    MinimaxMCPBridge,
-)
 from arifos.tools._tool_support import invariant_fields
 
 logger = logging.getLogger(__name__)
@@ -558,7 +555,7 @@ async def execute(
                 "mode": mode,
             },
             assumptions=[
-                f"MIND stage inherits Gödel lock from 000 bind artifact.",
+                "MIND stage inherits Gödel lock from 000 bind artifact.",
                 "Confidence reflects reasoning scaffold completeness.",
                 "bind_artifact was validated at session start.",
             ],

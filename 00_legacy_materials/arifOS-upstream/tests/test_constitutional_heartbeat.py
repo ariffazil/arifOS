@@ -1,6 +1,6 @@
 import pytest
-from arifosmcp.runtime.tools import check_vital, init_anchor, forge, arifos_kernel
-from arifosmcp.runtime.model import Verdict, RuntimeStatus, Stage
+from arifosmcp.runtime.tools import check_vital, init_anchor, forge
+from arifosmcp.runtime.model import Verdict, RuntimeStatus
 
 @pytest.mark.asyncio
 async def test_constitutional_heartbeat_on_error():

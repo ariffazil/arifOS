@@ -6,7 +6,7 @@ and legacy aliases.
 """
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import patch, AsyncMock
 
 
 def _mock_envelope(tool: str, ok: bool = True, stage: str = "000_INIT"):

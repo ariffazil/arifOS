@@ -412,7 +412,7 @@ if __name__ == "__main__":
         has_segy=True,
         transform_stack=["linear_scaling"],
     )
-    print(f"Test 1 (SEGY, minimal transforms):")
+    print("Test 1 (SEGY, minimal transforms):")
     print(f"  AC_Risk: {result1.ac_risk:.3f}")
     print(f"  Verdict: {result1.verdict.value}")
     print()
@@ -424,7 +424,7 @@ if __name__ == "__main__":
         has_segy=False,
         transform_stack=["colormap_mapping", "clahe", "agc_rms", "vlm_inference"],
     )
-    print(f"Test 2 (Image only, CLAHE+AGC+VLM):")
+    print("Test 2 (Image only, CLAHE+AGC+VLM):")
     print(f"  AC_Risk: {result2.ac_risk:.3f}")
     print(f"  Verdict: {result2.verdict.value}")
     print(f"  Explanation: {result2.explanation[:100]}...")
@@ -437,6 +437,6 @@ if __name__ == "__main__":
         ocr_confidence=0.5,
         transform_stack=["perspective_warp", "ocr_extraction"],
     )
-    print(f"Test 3 (Georeferencing, poor OCR):")
+    print("Test 3 (Georeferencing, poor OCR):")
     print(f"  AC_Risk: {result3.ac_risk:.3f}")
     print(f"  Verdict: {result3.verdict.value}")

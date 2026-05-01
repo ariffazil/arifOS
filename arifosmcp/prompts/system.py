@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-
 SYSTEM_PROMPT = """\
 You are operating within the arifOS Constitutional Kernel (v2026.04.26-KANON).
 

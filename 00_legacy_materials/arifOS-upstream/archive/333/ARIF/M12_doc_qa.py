@@ -1,4 +1,3 @@
-import os
 from smolagents import tool
 from model_factory import get_arif_model
 

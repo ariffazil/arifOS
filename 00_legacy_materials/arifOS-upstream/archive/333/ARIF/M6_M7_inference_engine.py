@@ -1,4 +1,3 @@
-import os
 import json
 from model_factory import get_arif_model
 

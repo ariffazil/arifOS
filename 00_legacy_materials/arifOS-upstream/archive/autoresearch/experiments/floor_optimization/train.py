@@ -12,7 +12,7 @@ import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List
 
 # Add parent to path
 sys.path.insert(0, '/root/arifOS')
@@ -289,7 +289,7 @@ async def main():
     with open('/root/arifOS/autoresearch/results.tsv', 'a') as f:
         f.write(tsv_line)
     
-    print(f"\nAppended to results.tsv")
+    print("\nAppended to results.tsv")
     
     # Exit code based on score
     return 0 if result.score >= 0.80 else 1

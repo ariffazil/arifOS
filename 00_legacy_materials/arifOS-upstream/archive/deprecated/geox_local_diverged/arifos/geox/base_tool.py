@@ -16,6 +16,7 @@ from arifos.geox.geox_schemas import (
     ProvenanceRecord,
 )
 
+
 @dataclass
 class GeoToolResult:
     """Standardised output from any GEOX tool execution."""
@@ -59,7 +60,7 @@ def _make_provenance(
         citation=citation,
         floor_check={
             "F1_amanah": True, "F2_truth": True, "F4_clarity": True,
-            "F7_humility": True, "F9_anti_hantu": True, 
+            "F7_humility": True, "F9_anti_hantu": True,
             "F11_authority": True, "F13_sovereign": True,
         },
     )

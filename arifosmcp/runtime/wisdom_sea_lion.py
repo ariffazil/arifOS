@@ -16,12 +16,10 @@ It is retained only to avoid breaking legacy callers; it returns an error.
 
 from __future__ import annotations
 
-import os
 import json
 import logging
-import httpx
-from typing import Any, Optional
-from datetime import datetime
+import os
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,7 @@ MODEL = "aisingapore/Qwen-SEA-LION-v4-32B-IT"
 
 async def generate_nusantara_wisdom(
     context: str, 
-    agent_intent: Optional[str] = None
+    agent_intent: str | None = None
 ) -> dict[str, Any]:
     """
     DEPRECATED — Do not use.

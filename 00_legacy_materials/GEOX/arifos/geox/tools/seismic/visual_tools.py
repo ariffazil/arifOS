@@ -9,7 +9,7 @@ Returns base64-encoded contrast variants for MCP.
 import os
 import io
 import base64
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict
 import numpy as np
 from PIL import Image, ImageOps, ImageFilter
 
@@ -37,7 +37,7 @@ async def extract_seismic_views(seismic_data: str) -> List[Dict[str, str]]:
                 raw_img = Image.fromarray(arr).convert("L")
         else:
             raw_img = Image.open(seismic_data).convert("L")
-    except Exception as e:
+    except Exception:
         # Fallback to noise
         raw_img = Image.fromarray(np.random.randint(0, 255, (400, 600), dtype=np.uint8))
 

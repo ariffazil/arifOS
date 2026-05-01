@@ -13,18 +13,16 @@ MCP tool registrations via agent factory stubs + direct canonical engine registr
 
 from __future__ import annotations
 
-import os
-from typing import Annotated, Any
+from typing import Any
 
-from fastmcp import FastMCP, Context
-from pydantic import BaseModel, Field
+from fastmcp import FastMCP
 
 # Import canonical engines
 try:
     from arifosmcp.tools_canonical import (
-        arifos_compute_physics,
-        arifos_compute_finance,
         arifos_compute_civilization,
+        arifos_compute_finance,
+        arifos_compute_physics,
         arifos_oracle_bio,
         arifos_oracle_world,
     )

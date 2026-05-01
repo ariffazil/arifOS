@@ -4,7 +4,7 @@ DITEMPA BUKAN DIBERI
 """
 
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from arifos_types.epistemic import EpistemicTag
 
 

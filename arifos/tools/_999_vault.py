@@ -4,13 +4,11 @@ import hashlib
 import json
 import os
 import time
-from typing import Any, Optional
 
 from arifos.core.governance import (
     ThermodynamicMetrics,
     Verdict,
     governed_return,
-    append_vault999_event,
     VAULT999_LEDGER_PATH,
 )
 from arifos.tools._tool_support import invariant_fields

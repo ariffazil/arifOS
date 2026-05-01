@@ -2,8 +2,8 @@ import os
 import hashlib
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-from supabase import create_client, Client
+from typing import Any, Dict, List
+from supabase import create_client
 
 class VaultClient:
     """

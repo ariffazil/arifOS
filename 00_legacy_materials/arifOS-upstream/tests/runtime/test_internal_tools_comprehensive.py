@@ -11,11 +11,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock, mock_open
-import json
-import os
-from pathlib import Path
+from unittest.mock import Mock, patch, AsyncMock, mock_open
 
 
 class TestChromaQuery:

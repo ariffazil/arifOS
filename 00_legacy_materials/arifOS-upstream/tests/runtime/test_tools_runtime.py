@@ -8,8 +8,8 @@ Tests for arifos_* canonical tool handlers with proper object attribute access.
 import pytest
 from unittest.mock import patch, MagicMock
 from arifosmcp.runtime.tools import (
-    arifos_init, arifos_sense, arifos_mind, arifos_route, 
-    arifos_heart, arifos_ops, arifos_judge, arifos_memory, 
+    arifos_init, arifos_sense, arifos_route, 
+    arifos_ops, arifos_judge, arifos_memory, 
     arifos_vault, arifos_forge, arifos_health
 )
 

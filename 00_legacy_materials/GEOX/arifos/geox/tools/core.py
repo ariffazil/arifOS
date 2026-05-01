@@ -16,7 +16,6 @@ from .services.constitutional import (
     check_f4_clarity,
     check_f7_humility,
     check_f9_anti_hantu,
-    check_f11_authority,
     check_sw_model_admissibility,
     run_constitutional_checks,
 )
@@ -26,12 +25,7 @@ from .services.petrophysics import (
     SwInputParams,
 )
 from .services.views import (
-    build_feasibility_view,
-    build_geospatial_view,
-    build_prefab_view,
-    build_prospect_verdict_view,
     build_seismic_section_view,
-    build_structural_candidates_view,
 )
 
 # Contracts (type definitions)
@@ -452,7 +446,7 @@ async def geox_compute_petrophysics(
             vcl=vcl_fraction,
             bvw=phi_fraction,
             uncertainty=0.0,
-            audit_id=f"PETRO-UNAVAILABLE",
+            audit_id="PETRO-UNAVAILABLE",
         )
     
     # Validate sw_model

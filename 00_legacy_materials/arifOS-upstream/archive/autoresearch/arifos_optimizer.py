@@ -21,19 +21,14 @@ Ditempa Bukan Diberi [ΔΩΨ]
 """
 
 import asyncio
-import json
-import os
 import random
-import subprocess
-import sys
 import time
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 # Local imports
-from train import ExperimentConfig, apply_config, revert_config, BEST_KNOWN
+from train import ExperimentConfig, apply_config, revert_config
 from prepare import ConstitutionalEvaluator, TARGET_SCORE
 
 
@@ -160,7 +155,7 @@ class ArifOSOptimizer:
         for name, overrides in variations:
             desc = f"variation: {name}"
             if desc not in tried_variants:
-                return f"exp_next", overrides
+                return "exp_next", overrides
         
         # If all variations tried, pick the best kept and try to refine it
         return "exp_next", {
@@ -226,7 +221,7 @@ class ArifOSOptimizer:
         else:
             self.experiments_discarded += 1
             self.consecutive_failures += 1
-            print(f"❌ Experiment discarded. Reverting...")
+            print("❌ Experiment discarded. Reverting...")
             revert_config()
         
         return {
@@ -248,7 +243,7 @@ class ArifOSOptimizer:
         5 min per experiment × 20 = ~100 min of experiments
         With 10s between = ~3.5 hours total
         """
-        print(f"\n🌙 OVERNIGHT MODE")
+        print("\n🌙 OVERNIGHT MODE")
         print(f"Max experiments: {max_experiments}")
         print(f"Duration per experiment: {experiment_duration}s ({experiment_duration/60:.1f} min)")
         print(f"Total estimated time: {(experiment_duration + sleep_between) * max_experiments / 60:.1f} min")
@@ -259,7 +254,7 @@ class ArifOSOptimizer:
         for i in range(max_experiments):
             # Check time budget
             if datetime.now() >= target_end:
-                print(f"\n⏰ Time budget exhausted. Stopping.")
+                print("\n⏰ Time budget exhausted. Stopping.")
                 break
             
             # Check consecutive failures
@@ -293,7 +288,7 @@ class ArifOSOptimizer:
     def print_summary(self):
         """Print final summary."""
         print(f"\n{'='*70}")
-        print(f"OVERNIGHT SUMMARY")
+        print("OVERNIGHT SUMMARY")
         print(f"{'='*70}")
         print(f"Experiments run: {self.experiments_run}")
         print(f"Kept: {self.experiments_kept}")
@@ -314,10 +309,10 @@ class ArifOSOptimizer:
         # Check if target achieved
         if self.best_score >= TARGET_SCORE:
             print(f"🎉 TARGET ACHIEVED: {self.best_score:.4f} >= {TARGET_SCORE}")
-            print(f"✅ Ready for 888_JUDGE review for production promotion")
+            print("✅ Ready for 888_JUDGE review for production promotion")
         else:
             print(f"📈 Target not yet achieved: {self.best_score:.4f} < {TARGET_SCORE}")
-            print(f"💡建议: More experiments, or try different variation strategies")
+            print("💡建议: More experiments, or try different variation strategies")
         
         print(f"{'='*70}\n")
     
@@ -326,7 +321,7 @@ class ArifOSOptimizer:
         history = self.load_history()
         
         print(f"\n{'='*70}")
-        print(f"AUTORESEARCH STATUS")
+        print("AUTORESEARCH STATUS")
         print(f"{'='*70}")
         print(f"Experiments in history: {len(history)}")
         
@@ -344,8 +339,8 @@ class ArifOSOptimizer:
                 status = "✅" if exp["kept"] else "❌"
                 print(f"  {status} {exp['experiment_id']}: {exp['composite_score']:.4f} — {exp['change_description'][:40]}")
         else:
-            print(f"No experiments run yet.")
-            print(f"Run: python arifos_optimizer.py --runs 5")
+            print("No experiments run yet.")
+            print("Run: python arifos_optimizer.py --runs 5")
         
         print(f"{'='*70}\n")
 

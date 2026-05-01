@@ -10,11 +10,9 @@ Date: 2026-04-18
 """
 
 import os
-import sys
 import json
 import argparse
 from datetime import datetime, timezone
-from typing import Optional
 
 import asyncpg
 
@@ -113,7 +111,7 @@ async def cmd_inspect(conn, cooling_id: str):
         print(f"  review_notes:   {row['review_notes'] or 'n/a'}")
         print(f"  human_signature:{row['human_signature'] or 'n/a'}")
     
-    print(f"\n  payload:")
+    print("\n  payload:")
     try:
         payload = json.loads(row["payload_raw"]) if row["payload_raw"] else {}
         for k, v in payload.items():
@@ -252,7 +250,7 @@ async def cmd_recent_reviews(conn, limit: int = 10):
         print("No reviews yet")
         return
     
-    print(f"\nRecent reviews:")
+    print("\nRecent reviews:")
     for r in rows:
         print(f"  [{r['decision']}] {r['reviewed_at']} | {r['human_signature']} | {r['reason'][:60]}...")
 

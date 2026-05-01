@@ -80,19 +80,19 @@ class MacrostratTool(BaseTool):
 
         start = time.perf_counter()
         location: CoordinatePoint = inputs["location"]
-        
+
         try:
             # Query stratigraphic columns near location
             columns = await self._query_api("columns", location)
-            
+
             # Query rock units
             units = await self._query_api("units", location)
-            
+
             # Convert to GeoQuantity objects
             quantities = self._parse_to_quantities(columns, units, location)
-            
+
             latency_ms = (time.perf_counter() - start) * 1000
-            
+
             return GeoToolResult(
                 tool_name=self.name,
                 success=True,
@@ -129,22 +129,22 @@ class MacrostratTool(BaseTool):
             return resp.json()
 
     def _parse_to_quantities(
-        self, 
-        columns: dict[str, Any], 
-        units: dict[str, Any], 
+        self,
+        columns: dict[str, Any],
+        units: dict[str, Any],
         location: CoordinatePoint
     ) -> list[GeoQuantity]:
         """Convert Macrostrat data to GeoQuantity objects."""
         quantities = []
         now = datetime.now(timezone.utc)
-        
+
         # Parse units
         for unit in units.get("success", {}).get("data", []):
             # Age bounds (Ma)
             t_age = unit.get("t_age")  # Top age
             b_age = unit.get("b_age")  # Bottom age
             unit_id = unit.get("unit_id", "unknown")
-            
+
             if t_age is not None:
                 quantities.append(GeoQuantity(
                     value=float(t_age),
@@ -161,7 +161,7 @@ class MacrostratTool(BaseTool):
                         citation="Macrostrat API (units)"
                     )
                 ))
-            
+
             # Lithology (categorical)
             lith = unit.get("lith", "")
             if lith:
@@ -180,7 +180,7 @@ class MacrostratTool(BaseTool):
                         citation=f"Macrostrat Lithology Unit: {unit_id}"
                     )
                 ))
-        
+
         return quantities
 
     def health_check(self) -> bool:

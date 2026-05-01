@@ -7,10 +7,10 @@ from __future__ import annotations
 
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Literal, Callable
+from typing import Literal
 from dataclasses import dataclass
 
-from .canon9_profile import Canon9Profile, DepthSample
+from .canon9_profile import Canon9Profile
 from .rock_physics import GassmannModel
 from .synthetic import SyntheticSeismic, SyntheticCMP
 

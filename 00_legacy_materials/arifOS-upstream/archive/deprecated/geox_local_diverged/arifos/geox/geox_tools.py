@@ -23,32 +23,24 @@ Constitutional notes:
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import random
 import time
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Protocol
+from typing import Any
 
-from arifos.geox.geox_schemas import (
-    CoordinatePoint,
-    GeoQuantity,
-    ProvenanceRecord,
-)
 from arifos.geox.base_tool import (
     BaseTool,
     GeoToolResult,
     _make_provenance,
     _make_quantity,
 )
-from arifos.geox.tools.macrostrat_tool import MacrostratTool
+from arifos.geox.geox_schemas import (
+    CoordinatePoint,
+    GeoQuantity,
+)
 from arifos.geox.tools.lem_bridge import LEMBridgeTool
-
-
-
+from arifos.geox.tools.macrostrat_tool import MacrostratTool
 
 # ---------------------------------------------------------------------------
 # EarthModelTool
@@ -729,7 +721,7 @@ class ToolRegistry:
         return {name: tool.health_check() for name, tool in self._tools.items()}
 
     @classmethod
-    def default_registry(cls) -> "ToolRegistry":
+    def default_registry(cls) -> ToolRegistry:
         """
         Factory method that creates a ToolRegistry pre-populated
         with all five standard GEOX tools.

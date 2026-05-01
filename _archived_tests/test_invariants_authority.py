@@ -5,7 +5,7 @@ F11 + F13: Authority must be unambiguous, verifiable, and non-transferable.
 """
 import pytest
 from arifosmcp.runtime.tools import init_anchor, arifos_kernel
-from arifosmcp.runtime.model import AuthorityLevel, ClaimStatus, Verdict
+from arifosmcp.runtime.model import Verdict
 
 class TestAuthorityScopeInvariant:
     """Invariant: scope matches session class"""

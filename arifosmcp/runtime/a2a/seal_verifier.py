@@ -18,10 +18,10 @@ import json
 import logging
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+
+from pydantic import BaseModel, Field
 
 from arifosmcp.runtime.m01_correlation_auditor import get_auditor
-from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ class A2ASealVerifier:
         if request.state_hash:
             if len(request.state_hash) == 64:
                 state_hash_valid = True
-                trace.append(f"state_hash valid format (64 hex)")
+                trace.append("state_hash valid format (64 hex)")
             else:
                 state_hash_valid = False
                 trace.append(
@@ -130,7 +130,7 @@ class A2ASealVerifier:
         vault_entry_index = None
         if self._vault_path.exists():
             try:
-                with open(self._vault_path, "r") as f:
+                with open(self._vault_path) as f:
                     lines = f.readlines()
                 for idx, line in enumerate(reversed(lines)):
                     try:
@@ -159,7 +159,7 @@ class A2ASealVerifier:
             try:
                 import json as json_mod
 
-                with open(self._sessions_path, "r") as f:
+                with open(self._sessions_path) as f:
                     sessions = json_mod.load(f)
                 sess = sessions.get(request.session_id, {})
                 well_readiness = sess.get("well_readiness", 1.0)
@@ -203,7 +203,7 @@ class A2ASealVerifier:
             if well_path.exists():
                 import json as json_mod
 
-                with open(well_path, "r") as f:
+                with open(well_path) as f:
                     state = json_mod.load(f)
                 return WELLStateResponse(
                     operator_fatigue=state.get("fatigue"),

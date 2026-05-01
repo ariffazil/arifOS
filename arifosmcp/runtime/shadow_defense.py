@@ -7,10 +7,11 @@ through constitutional vocabulary without metabolic enforcement.
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
-import re
-from typing import Dict, Any, List, Tuple, Optional
 from dataclasses import dataclass
-from arifosmcp.models.verdicts import SealType, FloorName
+from typing import Any
+
+from arifosmcp.models.verdicts import SealType
+
 
 @dataclass
 class ShadowDetectionResult:
@@ -30,7 +31,7 @@ class ShadowDefense:
     ]
 
     @staticmethod
-    def detect_p1_vocabulary_laundering(content: str, telemetry: Dict[str, Any]) -> Optional[ShadowDetectionResult]:
+    def detect_p1_vocabulary_laundering(content: str, telemetry: dict[str, Any]) -> ShadowDetectionResult | None:
         """
         P1: Uses constitutional vocabulary but fails to emit structured telemetry.
         """
@@ -47,7 +48,7 @@ class ShadowDefense:
         return None
 
     @staticmethod
-    def detect_p2_pipeline_shortcut(completed_stages: List[int]) -> Optional[ShadowDetectionResult]:
+    def detect_p2_pipeline_shortcut(completed_stages: list[int]) -> ShadowDetectionResult | None:
         """
         P2: Attempting Stage 777 (Forge) without Stage 666 (Heart).
         """
@@ -65,7 +66,7 @@ class ShadowDefense:
         npv: float, 
         omega: float, 
         verdict: SealType
-    ) -> Optional[ShadowDetectionResult]:
+    ) -> ShadowDetectionResult | None:
         """
         P5: Economic conclusion overrides physical/orthogonal reality.
         """
@@ -79,7 +80,7 @@ class ShadowDefense:
         return None
 
     @staticmethod
-    def check_shadow_sabar(ctx: Dict[str, Any]) -> bool:
+    def check_shadow_sabar(ctx: dict[str, Any]) -> bool:
         """
         Distinguishes Sabar (Patience) from Shadow-Delay.
         Returns True if it is a genuine SABAR state.
@@ -88,7 +89,7 @@ class ShadowDefense:
         has_open_question = ctx.get("logged_unknown") is not None
         return has_trigger and has_open_question
 
-    def run_full_audit(self, ctx: Dict[str, Any]) -> List[ShadowDetectionResult]:
+    def run_full_audit(self, ctx: dict[str, Any]) -> list[ShadowDetectionResult]:
         results = []
         
         # P1 Check

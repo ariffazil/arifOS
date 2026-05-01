@@ -19,7 +19,7 @@ import json
 import uvicorn
 from fastmcp import FastMCP
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 from datetime import datetime, timezone
 from typing import Any

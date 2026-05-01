@@ -18,13 +18,12 @@ These reports are used for:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 from datetime import datetime
 
 from ..THEORY import ContrastTaxonomy
 from ..ENGINE import ContrastSpace, AnomalyDetector
-from .verdict_renderer import VerdictRenderer, GeoxVerdict
 
 
 @dataclass

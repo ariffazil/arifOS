@@ -26,7 +26,6 @@ importlib.reload(core)
 
 from core.physics.thermodynamics_hardened import (  # noqa: E402
     EntropyIncreaseError,
-    EntropyIncreaseViolation,
     LandauerError,
     LandauerViolation,
     ThermodynamicExhaustion,

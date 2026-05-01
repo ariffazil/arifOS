@@ -6,7 +6,6 @@ Detects display artifacts by checking feature consistency across contrast views.
 """
 
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass

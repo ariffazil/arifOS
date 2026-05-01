@@ -467,7 +467,6 @@ class ToolOutputEnvelope(BaseModel):
 
 def export_canonical_schemas() -> dict[str, Any]:
     """Export all canonical state schemas as JSON Schema dicts."""
-    from pydantic import BaseModel
 
     models: list[type[BaseModel]] = [
         GeoXIntent,

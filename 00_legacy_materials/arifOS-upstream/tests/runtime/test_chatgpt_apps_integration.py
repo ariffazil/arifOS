@@ -3,7 +3,6 @@ tests/runtime/test_chatgpt_apps_integration.py — ChatGPT Apps SDK Integration 
 """
 
 import pytest
-from unittest.mock import Mock
 
 
 class TestVaultSealWidget:

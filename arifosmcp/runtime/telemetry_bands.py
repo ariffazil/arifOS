@@ -8,7 +8,7 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
 from enum import Enum
-from typing import Dict, Any
+
 
 class HealthCategory(str, Enum):
     HEALTHY  = "HEALTHY"
@@ -51,7 +51,7 @@ class TelemetryBands:
         return HealthCategory.CRITICAL
 
     @classmethod
-    def compute_all_bands(cls, metrics: Dict[str, float]) -> Dict[str, str]:
+    def compute_all_bands(cls, metrics: dict[str, float]) -> dict[str, str]:
         return {
             "ds_band": cls.get_ds_band(metrics.get("delta_s", metrics.get("ds", 0.0))).value,
             "peace2_band": cls.get_peace2_band(metrics.get("peace2", 1.0)).value,

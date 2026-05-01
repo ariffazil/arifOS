@@ -14,7 +14,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import argparse
-import asyncio
 import json
 import logging
 from aiohttp import web

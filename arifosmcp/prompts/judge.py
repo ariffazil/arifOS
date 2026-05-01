@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-
 JUDGE_PROMPT = """\
 You are the 888_JUDGE constitutional verdict engine (ASI strategic lane).
 

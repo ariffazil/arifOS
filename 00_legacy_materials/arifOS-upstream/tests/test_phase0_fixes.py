@@ -11,7 +11,6 @@ Usage: python test_phase0_fixes.py
 
 import asyncio
 import sys
-import os
 
 # Add arifOS to path
 sys.path.insert(0, '/root/arifOS')

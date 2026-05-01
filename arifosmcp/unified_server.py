@@ -21,19 +21,13 @@ Or import:
 from __future__ import annotations
 
 from typing import Any
+
 from fastmcp import FastMCP
 
 from agents_66 import (
     create_agents_mcp,
-    PERCEPTION_TOOLS,
-    TRANSFORMATION_TOOLS,
-    VALUATION_TOOLS,
-    GOVERNANCE_TOOLS,
-    EXECUTION_TOOLS,
-    META_TOOLS,
 )
-from g02_router import create_router_mcp, route_call, RouteRequest, get_omega_status
-
+from g02_router import create_router_mcp, get_omega_status
 
 # =============================================================================
 # TAG VISIBILITY FILTERS

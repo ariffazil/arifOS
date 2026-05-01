@@ -12,7 +12,7 @@ from arifosmcp.apps.session_state import (
     SessionState,
     get_or_create_session,
 )
-from arifosmcp.apps.vault_chain import append_vault_record, get_last_hash, VAULT_PATH
+from arifosmcp.apps.vault_chain import VAULT_PATH, append_vault_record, get_last_hash
 
 __all__ = [
     "append_vault_record",

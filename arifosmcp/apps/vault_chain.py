@@ -14,7 +14,6 @@ import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 VAULT_PATH = Path(os.environ.get("VAULT999_PATH", "/root/VAULT999/outcomes.jsonl"))
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict, is_dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from arifos.core.governance import (
     Verdict,

@@ -13,7 +13,6 @@ DITEMPA BUKAN DIBERI
 
 from __future__ import annotations
 from typing import Any
-from ..core import geox_health
 
 class OpenAIAppAdapter:
     """

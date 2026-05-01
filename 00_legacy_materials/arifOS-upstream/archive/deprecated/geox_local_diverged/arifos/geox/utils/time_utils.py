@@ -13,9 +13,7 @@ on Stratigraphy (ICS) 2023/09 chart.
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone, timedelta
-from typing import Optional
-
+from datetime import datetime, timedelta, timezone
 
 # ---------------------------------------------------------------------------
 # Geological timescale — Ma boundaries for common epochs

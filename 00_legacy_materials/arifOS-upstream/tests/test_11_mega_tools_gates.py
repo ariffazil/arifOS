@@ -6,7 +6,6 @@ CI stops on failure.
 """
 
 import pytest
-from typing import Any
 
 # GATE 1: Public surface is exactly 11
 def test_public_registry_exposes_only_11():
@@ -22,7 +21,7 @@ def test_public_registry_exposes_only_11():
     drift = verify_no_drift()
 
     assert len(names) == EXPECTED_TOOL_COUNT, f"Expected {EXPECTED_TOOL_COUNT}, got {len(names)}"
-    assert set(names) == CANONICAL_PUBLIC_TOOLS, f"Names don't match canonical set"
+    assert set(names) == CANONICAL_PUBLIC_TOOLS, "Names don't match canonical set"
     assert drift["ok"], f"Drift detected: {drift}"
 
 
@@ -32,7 +31,6 @@ def test_capability_map_100_percent_coverage():
     from arifosmcp.capability_map import (
         LEGACY_TOOLS,
         CAPABILITY_MAP,
-        CANONICAL_TOOL_HANDLERS,
         iter_unmapped_legacy_tools,
         iter_invalid_megatool_targets,
         iter_invalid_modes,
@@ -162,7 +160,6 @@ def test_full_capability_map_integration():
     from arifosmcp.capability_map import (
         LEGACY_TOOLS,
         CAPABILITY_MAP,
-        CANONICAL_TOOL_HANDLERS,
     )
     from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as ALL_TOOL_HANDLERS
     from arifosmcp.runtime.contracts import TOOL_MODES

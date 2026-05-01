@@ -36,8 +36,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import sys
 import os
+import sys
 
 # ---------------------------------------------------------------------------
 # Path setup — allow running directly from examples/ or from package root
@@ -62,7 +62,6 @@ from arifos.geox.geox_validator import GeoXValidator
 sys.path.insert(0, os.path.join(_demo_dir, "mock_tools"))
 from mock_earthnet import MockEarthNetTool
 from mock_vlm import MockSeismicVLMTool
-
 
 # ---------------------------------------------------------------------------
 # Logging setup
@@ -106,7 +105,7 @@ def build_mock_registry() -> ToolRegistry:
       - MockSeismicVLMTool (replaces SeismicVLMTool in mock mode)
       - Standard SimulatorTool, GeoRAGTool, EOFoundationModelTool from package
     """
-    from geox.geox_tools import SimulatorTool, GeoRAGTool, EOFoundationModelTool
+    from geox.geox_tools import EOFoundationModelTool, GeoRAGTool, SimulatorTool
 
     registry = ToolRegistry()
     # Mock tools for LEM and VLM
@@ -220,7 +219,7 @@ async def run_demo() -> None:
 
     # Health checks
     health = registry.health_check_all()
-    print(f"\n  Tool health checks:")
+    print("\n  Tool health checks:")
     for tool_name, ok in health.items():
         status = "✓ READY" if ok else "✗ UNAVAILABLE"
         print(f"    {tool_name}: {status}")
@@ -234,8 +233,8 @@ async def run_demo() -> None:
         audit_sink=None,    # In production: inject arifOS vault_ledger
         memory_store=memory_store,
     )
-    print(f"\n  GeoXAgent initialised (heuristic planner mode).")
-    print(f"  [arifOS integration: inject llm_planner=agi_mind and audit_sink=vault_ledger]")
+    print("\n  GeoXAgent initialised (heuristic planner mode).")
+    print("  [arifOS integration: inject llm_planner=agi_mind and audit_sink=vault_ledger]")
 
     # ---- Build Request ----
     _section("STEP 1: GeoRequest — Blok Selatan Prospect")

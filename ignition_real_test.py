@@ -8,7 +8,6 @@ sys.path.append("/root/arifOS")
 
 from core.kernel.planner import Planner
 from core.kernel.loop_controller import SabarLoopController
-from core.shared.types import Verdict
 
 # Setup Logging to show the Real Metabolism
 logging.basicConfig(

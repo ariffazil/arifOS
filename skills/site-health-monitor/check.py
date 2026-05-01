@@ -54,7 +54,7 @@ def main():
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%Y-%m-%d %H:%M UTC")
     
-    print(f"=== arifOS Sites Health Check ===")
+    print("=== arifOS Sites Health Check ===")
     print(f"Time: {time_str}")
     print()
     

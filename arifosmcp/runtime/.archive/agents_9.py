@@ -16,15 +16,13 @@ Axes stay clean. Witness separation preserved.
 
 from __future__ import annotations
 
-from typing import Any, Literal
-from dataclasses import dataclass
+import os
 from enum import Enum
+from typing import Any, Literal
 
 from fastmcp import FastMCP
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-
-import os
 from .memory_engine import MemoryEngine
 
 # Global Memory Engine instance

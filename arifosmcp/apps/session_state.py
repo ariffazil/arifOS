@@ -14,7 +14,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
 
 STAGE_MIN_FORGE = 777  # Forge requires stage 777 or higher
 
@@ -37,9 +36,9 @@ class SessionState:
     stage: str = "000"
     lane: str = "AGI"
     lifecycle: LifecycleState = LifecycleState.DRAFT
-    plan_id: Optional[str] = None
-    last_verdict: Optional[str] = None
-    last_tool: Optional[str] = None
+    plan_id: str | None = None
+    last_verdict: str | None = None
+    last_tool: str | None = None
     tool_call_history: list[str] = field(default_factory=list)
     created_at: str = ""
 
@@ -99,7 +98,7 @@ def get_or_create_session(session_id: str, actor_id: str = "arif") -> SessionSta
 def advance_session(
     session_id: str,
     new_state: LifecycleState,
-    tool: Optional[str] = None,
+    tool: str | None = None,
 ) -> SessionState:
     """Advance a session to a new lifecycle state."""
     s = get_or_create_session(session_id)

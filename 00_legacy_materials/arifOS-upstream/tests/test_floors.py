@@ -10,9 +10,6 @@ Wire: Required check in GitHub Actions CI pipeline.
 
 import pytest
 import json
-import os
-import re
-from unittest.mock import MagicMock
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 

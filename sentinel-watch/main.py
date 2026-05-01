@@ -19,9 +19,9 @@ from pathlib import Path
 # Add sentinel-watch to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from vitals import ACKMachine, SLA_HARD_HOURS, SLA_SOFT_HOURS
+from vitals import ACKMachine
 from drift_detector import DriftDetector
-from alert_dispatcher import AlertDispatcher, AlertLevel
+from alert_dispatcher import AlertDispatcher
 
 
 # ── Config ────────────────────────────────────────────────────────────────────

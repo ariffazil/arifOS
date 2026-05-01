@@ -10,10 +10,9 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import patch, AsyncMock
 
 from arifosmcp.runtime.model import (
-    RuntimeEnvelope,
     RuntimeStatus,
     Verdict,
 )

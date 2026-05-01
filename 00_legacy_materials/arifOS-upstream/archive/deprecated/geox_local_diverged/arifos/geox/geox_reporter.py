@@ -21,7 +21,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from arifos.geox.geox_schemas import GeoInsight, GeoRequest, GeoResponse, GeoPrediction
+from arifos.geox.geox_schemas import GeoRequest, GeoResponse
 
 
 class GeoXReporter:
@@ -68,7 +68,7 @@ class GeoXReporter:
 
         # --- Header ---
         lines.append("# GEOX Geological Intelligence Report")
-        lines.append(f"> **DITEMPA BUKAN DIBERI** — arifOS Geological Coprocessor v0.1.0")
+        lines.append("> **DITEMPA BUKAN DIBERI** — arifOS Geological Coprocessor v0.1.0")
         lines.append("")
         lines.append(f"**Generated:** {now}")
         lines.append(f"**Response ID:** `{response.response_id}`")
@@ -93,8 +93,8 @@ class GeoXReporter:
         # --- Executive Summary ---
         lines.append("## Executive Summary")
         lines.append("")
-        lines.append(f"| Field | Value |")
-        lines.append(f"|-------|-------|")
+        lines.append("| Field | Value |")
+        lines.append("|-------|-------|")
         lines.append(f"| **Prospect** | {request.prospect_name} |")
         lines.append(f"| **Basin** | {request.basin} |")
         lines.append(f"| **Play Type** | {request.play_type} |")
@@ -120,7 +120,7 @@ class GeoXReporter:
         lines.append(
             "| SEAL | PARTIAL | SABAR | VOID |\n"
             "|------|---------|-------|------|\n"
-            f"| supported insights | ambiguous insights | insufficient data | contradicted |"
+            "| supported insights | ambiguous insights | insufficient data | contradicted |"
         )
         lines.append("")
 

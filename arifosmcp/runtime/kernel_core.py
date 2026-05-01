@@ -12,7 +12,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from core.kernel.pattern_registry import PatternRegistry
 from core.kernel.pattern_selector import PatternSelector
@@ -20,9 +20,9 @@ from core.kernel.planner import Planner
 from core.kernel.role_registry import AgentRoleRegistry
 from core.kernel.tool_registry import ToolContractRegistry
 
-from arifosmcp.runtime.shadow_defense import ShadowDefense
-from arifosmcp.models.verdicts import SealType, PipelineStage
+from arifosmcp.models.verdicts import PipelineStage
 from arifosmcp.runtime.sessions import get_session_continuity_state
+from arifosmcp.runtime.shadow_defense import ShadowDefense
 
 logger = logging.getLogger(__name__)
 
@@ -147,8 +147,8 @@ class KernelCore:
             return
         try:
             from arifosmcp.runtime.sessions import (
-                set_session_continuity_state,
                 get_session_continuity_state,
+                set_session_continuity_state,
             )
 
             current = get_session_continuity_state(session_id) or {}
@@ -161,8 +161,8 @@ class KernelCore:
             logger.warning(f"[G02] Failed to persist judge verdict: {e}")
 
     def verify_dag(
-        self, tool_name: str, session_id: str, context: Dict[str, Any]
-    ) -> Tuple[bool, str]:
+        self, tool_name: str, session_id: str, context: dict[str, Any]
+    ) -> tuple[bool, str]:
         """
         Enforces arifOS v2.0 DAG ordering and Omega gates.
         """
@@ -242,7 +242,7 @@ class KernelCore:
         # Layer 3 constitutional enforcement: axis classification, call graph,
         # and E-axis SEAL precondition. Every tool call passes through here.
         try:
-            from arifosmcp.runtime.agent_registry import RouteContext, RiskTier, Axis
+            from arifosmcp.runtime.agent_registry import Axis, RiskTier, RouteContext
             from arifosmcp.runtime.g02_router import get_router
 
             router = get_router()

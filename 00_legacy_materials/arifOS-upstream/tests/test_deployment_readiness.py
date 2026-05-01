@@ -6,17 +6,14 @@ Run this before deploying to A-FORGE to verify all components are ready.
 """
 
 import asyncio
-import sys
 
 def check_imports():
     """Verify all v2 modules can be imported."""
     print("Checking imports...")
     try:
-        from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS, v2_tool_names
+        from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS
         from arifosmcp.runtime.tools_v2 import V2_TOOL_HANDLERS
-        from arifosmcp.runtime.tools_v2_forge import arifos_forge, ExecutionManifest
-        from arifosmcp.runtime.philosophy_registry import inject_philosophy, FORGE_PRINCIPLE_S1
-        print(f"  ✅ All v2 modules imported successfully")
+        print("  ✅ All v2 modules imported successfully")
         print(f"  ✅ {len(V2_TOOLS)} tools in registry")
         print(f"  ✅ {len(V2_TOOL_HANDLERS)} tool handlers")
         return True
@@ -27,7 +24,7 @@ def check_imports():
 def check_tool_count():
     """Verify exactly 10 tools."""
     from arifosmcp.runtime.tool_specs_v2 import V2_TOOL_COUNT
-    print(f"\nChecking tool count...")
+    print("\nChecking tool count...")
     if V2_TOOL_COUNT == 10:
         print(f"  ✅ Exactly 10 tools (got {V2_TOOL_COUNT})")
         return True
@@ -38,7 +35,7 @@ def check_tool_count():
 def check_s1_quote():
     """Verify S1 quote exists."""
     from arifosmcp.runtime.philosophy_registry import FORGE_PRINCIPLE_S1
-    print(f"\nChecking S1 (Forge Principle)...")
+    print("\nChecking S1 (Forge Principle)...")
     if FORGE_PRINCIPLE_S1.get("text") == "DITEMPA, BUKAN DIBERI.":
         print(f"  ✅ S1 quote correct: '{FORGE_PRINCIPLE_S1['text']}'")
         return True
@@ -50,7 +47,7 @@ async def check_philosophy_injection():
     """Verify philosophy injection works correctly."""
     from arifosmcp.runtime.philosophy_registry import inject_philosophy
     
-    print(f"\nChecking philosophy injection...")
+    print("\nChecking philosophy injection...")
     
     # Mock envelope
     class MockTelemetry:
@@ -72,25 +69,25 @@ async def check_philosophy_injection():
     env = MockEnvelope("INIT", "PARTIAL", 0.5)
     result = inject_philosophy(env)
     if "DITEMPA" in result.get("entry", {}).get("text", ""):
-        print(f"  ✅ INIT override works")
+        print("  ✅ INIT override works")
     else:
-        print(f"  ❌ INIT override failed")
+        print("  ❌ INIT override failed")
         return False
     
     # Test SEAL override
     env = MockEnvelope("JUDGE", "SEAL", 0.3)
     result = inject_philosophy(env)
     if "DITEMPA" in result.get("entry", {}).get("text", ""):
-        print(f"  ✅ SEAL override works")
+        print("  ✅ SEAL override works")
     else:
-        print(f"  ❌ SEAL override failed")
+        print("  ❌ SEAL override failed")
         return False
     
     # Test G★ band mapping
     env = MockEnvelope("JUDGE", "PARTIAL", 0.1)
     result = inject_philosophy(env)
     if result.get("band") == 0:
-        print(f"  ✅ G★ band mapping works (0.1 → Band 0)")
+        print("  ✅ G★ band mapping works (0.1 → Band 0)")
     else:
         print(f"  ❌ G★ band mapping failed (expected Band 0, got {result.get('band')})")
         return False
@@ -101,7 +98,7 @@ def check_horizon_mapping():
     """Verify unified server legacy tool mappings."""
     try:
         from server import LEGACY_TOOL_MAP
-        print(f"\nChecking unified server legacy mappings...")
+        print("\nChecking unified server legacy mappings...")
         
         expected_mappings = {
             "init_anchor": "arifos_init",

@@ -26,7 +26,7 @@ except ImportError:
     import hashlib
 
 import asyncpg
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 # ============================================================
@@ -138,7 +138,7 @@ class VaultDB:
             """)
             prev_seal_id = prev_row["id"] if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
-            from datetime import datetime, timezone
+            from datetime import datetime
             epoch_val = datetime.fromisoformat(req.epoch) if isinstance(req.epoch, str) else req.epoch
             prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
 

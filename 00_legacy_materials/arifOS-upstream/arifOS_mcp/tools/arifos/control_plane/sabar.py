@@ -8,7 +8,7 @@ Responsibility: HOLD lifecycle manager, cooling period, human approval queue
 """
 
 from fastmcp import Context
-from typing import Literal, Optional
+from typing import Literal
 
 
 async def sabar(

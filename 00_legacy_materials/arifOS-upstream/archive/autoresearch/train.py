@@ -31,11 +31,9 @@ Ditempa Bukan Diberi [ΔΩΨ|888]
 """
 
 import json
-import os
-import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 
 # =============================================================================
 # EXPERIMENT CONFIGURATION
@@ -187,7 +185,7 @@ def apply_config(config: ExperimentConfig) -> bool:
     ARIFOS_CONFIG_CURRENT.write_text(json.dumps(config_payload, indent=2))
     print(f"📝 Updated current thresholds: {ARIFOS_CONFIG_CURRENT}")
     
-    print(f"\n✅ Config applied. Run prepare.py to evaluate.\n")
+    print("\n✅ Config applied. Run prepare.py to evaluate.\n")
     return True
 
 

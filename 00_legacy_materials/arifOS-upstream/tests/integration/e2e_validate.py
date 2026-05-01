@@ -77,8 +77,7 @@ class E2EValidator:
         log_section("TEST 1: Contracts v2 Module")
         
         from arifosmcp.runtime.contracts_v2 import (
-            ToolEnvelope, ToolStatus, RiskTier, HumanDecisionMarker,
-            TraceContext, EntropyBudget, generate_trace_context, validate_fail_closed
+            ToolEnvelope, ToolStatus, RiskTier, generate_trace_context, validate_fail_closed
         )
         
         # Test ToolEnvelope creation
@@ -109,7 +108,7 @@ class E2EValidator:
         log_section("TEST 2: Hardened Init Anchor")
         
         from arifosmcp.runtime.contracts_v2 import generate_trace_context, ToolStatus
-        from arifosmcp.runtime.init_anchor_hardened import HardenedInitAnchor, SessionClass
+        from arifosmcp.runtime.init_anchor_hardened import HardenedInitAnchor
         
         tool = HardenedInitAnchor()
         trace = generate_trace_context("000_INIT", "e2e-test")
@@ -459,7 +458,7 @@ class E2EValidator:
         )
         assert result9.status == ToolStatus.OK
         
-        log_pass(f"Full pipeline completed successfully")
+        log_pass("Full pipeline completed successfully")
         log_info(f"Decision ID: {result9.payload['decision_object']['decision_id']}")
         log_info(f"Seal Hash: {result9.payload['seal_hash']}")
     

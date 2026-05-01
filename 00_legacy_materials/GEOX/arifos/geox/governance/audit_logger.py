@@ -13,7 +13,7 @@ Every tool execution, verdict, and override is logged.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import Any
 from datetime import datetime
 from enum import Enum, auto

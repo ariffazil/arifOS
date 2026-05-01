@@ -13,23 +13,21 @@ Modules:
 from arifos.geox.utils.provenance import (
     build_provenance,
     compute_checksum,
-    verify_provenance_chain,
     merge_provenances,
+    verify_provenance_chain,
 )
-
-from arifos.geox.utils.units import (
-    GeoUnit,
-    convert,
-    parse_unit_string,
-    format_quantity,
-)
-
 from arifos.geox.utils.time_utils import (
-    now_utc,
-    parse_geo_time,
     format_time_window,
     geological_age_to_datetime,
     is_within_window,
+    now_utc,
+    parse_geo_time,
+)
+from arifos.geox.utils.units import (
+    GeoUnit,
+    convert,
+    format_quantity,
+    parse_unit_string,
 )
 
 __all__ = [

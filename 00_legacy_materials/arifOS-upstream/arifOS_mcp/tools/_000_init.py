@@ -1,5 +1,4 @@
 # arifosmcp/mcp/tools/_000_init.py
-import os
 from datetime import datetime
 from typing import Any, Dict
 

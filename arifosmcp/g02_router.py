@@ -16,13 +16,12 @@ Philosophy:
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal
 from dataclasses import dataclass
 from enum import Enum
-from pydantic import BaseModel, Field
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
-
+from pydantic import BaseModel, Field
 
 # =============================================================================
 # AXIS DEFINITIONS

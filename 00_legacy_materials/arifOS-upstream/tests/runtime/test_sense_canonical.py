@@ -19,10 +19,8 @@ import pytest
 
 from arifosmcp.runtime.sensing_protocol_v2 import (
     governed_sense,
-    normalize_query,
     TruthClass,
     RoutingTarget,
-    UncertaintyLevel,
     EvidenceItem,
     EvidenceRank,
     ExtractedClaim,
@@ -128,11 +126,6 @@ def test_conflicting_sources_unresolved():
     from arifosmcp.runtime.sensing_protocol_v2 import (
         detect_conflicts_from_items,
         ResolutionStatus,
-        compute_routing,
-        detect_ambiguity,
-        compute_uncertainty_band,
-        classify_truth_class,
-        build_evidence_plan,
     )
 
     item_a = EvidenceItem(

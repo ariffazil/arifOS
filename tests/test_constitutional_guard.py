@@ -4,7 +4,6 @@ Run: PYTHONPATH=/root python3 -m pytest tests/test_constitutional_guard.py -v
 """
 from __future__ import annotations
 
-import pytest
 
 from arifos.runtime.middleware.constitutional_guard import constitutional_guard
 

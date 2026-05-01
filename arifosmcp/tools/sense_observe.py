@@ -19,7 +19,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import random
-import signal
 from typing import Any
 
 from arifosmcp.runtime.floors import check_floors

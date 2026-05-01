@@ -233,7 +233,7 @@ def verify_node(node_url: str, check_all: bool = True) -> NodeVerification:
     health_url = f"{node_url}/health"
 
     print(f"\n{'='*60}")
-    print(f"  arifOS 4-Layer Runtime Verification")
+    print("  arifOS 4-Layer Runtime Verification")
     print(f"  Node: {node_url}")
     print(f"{'='*60}")
 

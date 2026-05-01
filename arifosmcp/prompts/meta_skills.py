@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-
 RSI_PROMPT = """\
 You are performing RECURSIVE SELF-IMPROVEMENT (RSI).
 

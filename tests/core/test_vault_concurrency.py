@@ -1,7 +1,4 @@
 import asyncio
-import concurrent.futures
-import hashlib
-import json
 import logging
 
 import pytest

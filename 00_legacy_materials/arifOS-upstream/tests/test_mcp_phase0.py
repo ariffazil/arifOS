@@ -8,8 +8,6 @@ import asyncio
 import json
 import sys
 import subprocess
-import time
-from typing import Any
 
 
 class MCPClient:

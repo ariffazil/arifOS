@@ -5,7 +5,6 @@ Tests the hardened error handling logic without full arifOS dependencies.
 """
 
 import sys
-import os
 from typing import Any
 from enum import Enum
 

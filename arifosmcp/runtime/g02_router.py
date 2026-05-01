@@ -302,7 +302,7 @@ class G02LayeredRouter:
             return False, "state_hash missing"
 
         if len(state_hash) != 64:
-            return False, f"state_hash malformed (expected 64 hex chars)"
+            return False, "state_hash malformed (expected 64 hex chars)"
 
         if not session_id:
             return False, "session_id missing"

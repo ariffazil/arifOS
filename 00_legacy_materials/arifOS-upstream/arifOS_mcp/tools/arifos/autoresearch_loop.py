@@ -12,14 +12,12 @@ Governance is NEVER embedded in tools — governance.py is the SES.
 Only domain-logic optimizations are evaluated here.
 """
 
-import json
 import os
 import sys
-import hashlib
 import time as time_module
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parents[1]

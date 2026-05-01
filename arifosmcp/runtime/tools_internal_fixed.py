@@ -15,6 +15,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from core.shared.mottos import (
+    MOTTO_000_INIT_HEADER,
+    MOTTO_999_SEAL_HEADER,
+    get_motto_for_stage,
+)
 from fastmcp.server.context import Context
 
 from arifosmcp.runtime.model import (
@@ -43,11 +48,6 @@ from arifosmcp.tools.agentzero_tools import (
 )
 from arifosmcp.tools.agentzero_tools import (
     agentzero_validate as _az_validate,
-)
-from core.shared.mottos import (
-    MOTTO_000_INIT_HEADER,
-    MOTTO_999_SEAL_HEADER,
-    get_motto_for_stage,
 )
 
 from .bridge import call_kernel

@@ -4,7 +4,6 @@ Focus on RealityDossier, DossierEngine, and verdict processing
 """
 import pytest
 from unittest.mock import Mock, patch
-import json
 
 
 class TestWitness:

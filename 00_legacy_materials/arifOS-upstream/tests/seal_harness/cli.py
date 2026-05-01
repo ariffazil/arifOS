@@ -20,11 +20,10 @@ Exit codes:
 import argparse
 import asyncio
 import json
-import os
 import subprocess
 import sys
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 
 from .client import MCPClient
 from .trinity_tests import TrinityTestHarness
@@ -198,7 +197,7 @@ async def run_seal_check(
         if schema_result.get("changed_tools"):
             print(f"    Changed: {schema_result['changed_tools']}")
 
-        print(f"\n  Trinity E2E:")
+        print("\n  Trinity E2E:")
         print(
             f"    anchor_session: {'✅' if trinity_result.get('anchor_session', {}).get('ok') else '❌'}"
         )
@@ -215,7 +214,7 @@ async def run_seal_check(
             f"    apex_judge (full): {'✅' if trinity_result.get('apex_judge_full', {}).get('ok') else '❌'}"
         )
 
-        print(f"\n  Thermodynamic:")
+        print("\n  Thermodynamic:")
         print(f"    dS: {trinity_result.get('reason_mind', {}).get('dS')} (F4 Clarity)")
         print(f"    peace²: {trinity_result.get('simulate_heart', {}).get('peace2')} (F5 Peace)")
 

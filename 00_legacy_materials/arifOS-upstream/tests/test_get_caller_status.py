@@ -1,6 +1,6 @@
 import pytest
 from arifosmcp.runtime.tools import init_anchor
-from arifosmcp.runtime.model import RuntimeStatus, Verdict, Stage, RuntimeEnvelope
+from arifosmcp.runtime.model import RuntimeStatus
 
 @pytest.mark.asyncio
 async def test_get_caller_status_decoration():

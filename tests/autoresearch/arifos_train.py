@@ -11,9 +11,7 @@ DITEMPA BUKAN DIBERI — Testing is forged, not given.
 """
 from __future__ import annotations
 import json
-import subprocess
 import time
-import os
 import sys
 
 from arifos_prepare import SCENARIOS, evaluate_score, TIME_BUDGET_SECONDS, ARIFOS_API_KEY, MCP_TOOL_TIMEOUT

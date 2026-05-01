@@ -13,9 +13,9 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
-from arifos.geox.geox_tools import ToolRegistry, GeoToolResult
+from arifos.geox.geox_tools import GeoToolResult, ToolRegistry
 
 # Sovereign Path Injection for arifOS alignment
 ARIFOS_PATH = r"C:\ariffazil\arifOS"
@@ -31,8 +31,8 @@ if ARIFOSMCP_PATH not in sys.path:
 logger = logging.getLogger("geox.hardened")
 
 try:
-    from arifosmcp.core.shared.physics import delta_S, genius_score, humility_band
     from arifosmcp.core.governance import get_governance_kernel
+    from arifosmcp.core.shared.physics import delta_S, genius_score, humility_band
 except ImportError:
     # Fallback/Shim if arifOS is genuinely missing (F9 Anti-Hantu warning)
     logger.warning("arifosmcp.core.shared.physics or governance not found. Using shims.")
@@ -49,6 +49,7 @@ except ImportError:
 
 from arifos.geox.governance import calculate_indices, get_verdict_advice
 
+
 class HardenedGeoxAgent:
     """The hardened Geological Intelligence Agent for the arifOS Trinity."""
 
@@ -59,14 +60,14 @@ class HardenedGeoxAgent:
         logger.info(f"HardenedGeoxAgent initialized [ID: {session_id}]")
 
     async def execute_tool(
-        self, 
-        tool_name: str, 
-        params: dict[str, Any], 
-        context: Optional[dict[str, Any]] = None
+        self,
+        tool_name: str,
+        params: dict[str, Any],
+        context: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """Execute a geological tool with arifOS hardening."""
         start_time = datetime.now(timezone.utc)
-        
+
         # 1. Fetch Tool
         tool = self.registry.get_tool(tool_name)
         if not tool:
@@ -93,7 +94,7 @@ class HardenedGeoxAgent:
         input_str = json.dumps(params, sort_keys=True, default=str)
         output_str = json.dumps(payload, sort_keys=True, default=str)
         ds = delta_S(input_str, output_str)
-        
+
         # Update Kernel State if available
         indices = {}
         verdict_advice = "No kernel feedback"
@@ -113,7 +114,7 @@ class HardenedGeoxAgent:
         # 5. Geox Eureka: Goldilocks & Godellock (The Paradox Eureka)
         omega_obj = humility_band(0.9)
         omega = omega_obj.omega_0 if hasattr(omega_obj, "omega_0") else 0.032
-        
+
         # Determine Habitability
         is_goldilocks = (ds <= 0) and (0.03 <= omega <= 0.05)
         is_godellock = (omega < 0.03)

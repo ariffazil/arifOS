@@ -11,7 +11,7 @@ Detects:
 import json
 import hashlib
 import os
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any
 from .client import MCPClient
 
 

@@ -12,7 +12,6 @@ CLAIM: A governed intelligence must assert its own legibility before it asserts 
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import logging

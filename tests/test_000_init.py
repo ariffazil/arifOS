@@ -42,7 +42,6 @@ _mock_gov.governed_return = _MockGovernedReturn()
 # Now import the module under test
 from arifos.tools._000_init import (
     execute,
-    _validate_bind_payload,
     _validate_ontology_lock,
     _validate_role_scope,
     _validate_sovereign_goal,
@@ -52,10 +51,8 @@ from arifos.tools._000_init import (
     _validate_continuity_contract,
     _validate_godel_lock,
     BindValidationError,
-    VALID_LANES,
     CANONICAL_FLOORS,
     GODEL_LOCK_ITEMS,
-    LIFECYCLE_PIPELINE,
     FLOOR_SUMMARY,
 )
 

@@ -8,14 +8,13 @@ arifOS Trinity sovereignty model (F1-F13).
 import asyncio
 import logging
 import sys
-from typing import List
 
 from mcp.server import Server
-from mcp.server.types import (
-    Tool,
-    TextContent,
-)
 from mcp.server.stdio import stdio_server
+from mcp.server.types import (
+    TextContent,
+    Tool,
+)
 
 # arifOS alignment
 sys.path.append(r"c:\ariffazil\GEOX")
@@ -33,7 +32,7 @@ agent = HardenedGeoxAgent(session_id="GEOX_PRODUCTION_SOVEREIGN")
 app = Server("geox-hardened")
 
 @app.list_tools()
-async def list_tools() -> List[Tool]:
+async def list_tools() -> list[Tool]:
     """Expose registered geological tools."""
     tools = []
     # registry._tools is the internal dict
@@ -45,37 +44,37 @@ async def list_tools() -> List[Tool]:
             description=tool_instance.description,
             inputSchema={"type": "object", "properties": {}}
         ))
-    
+
     # Add Foundation Health Tool
     tools.append(Tool(
         name="geox_health",
         description="Check GEOX foundation alignment and constitutional health.",
         inputSchema={"type": "object", "properties": {}}
     ))
-    
+
     return tools
 
 @app.call_tool()
-async def call_tool(name: str, arguments: dict) -> List[TextContent]:
+async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     """Execute tools with hardening."""
     if name == "geox_health":
         status = GEOXFoundation.ignite()
         return [TextContent(type="text", text=f"GEOX Health: {status['verdict']}\n{status}")]
-    
+
     # Delegate to hardened agent
     envelope = await agent.execute_tool(name, arguments)
-    
+
     # Check for 888_HOLD
     if envelope["verdict"] == "888_HOLD":
-        text = f"WARNING: 888_HOLD [SOVEREIGN APPROVAL REQUIRED]\n"
+        text = "WARNING: 888_HOLD [SOVEREIGN APPROVAL REQUIRED]\n"
         text += f"Reason: {envelope['explanation']}\n\n"
         text += f"Result Payload: {envelope['payload']}"
     else:
         text = f"Explanation: {envelope['explanation']}\n\nPayload: {envelope['payload']}"
-    
+
     # Inject arifOS branding
     text += f"\n\n---\nGEOX v{envelope['version']} | G-Score: {envelope['metrics']['genius_score']} | delta_S: {envelope['metrics']['delta_s']}"
-    
+
     return [TextContent(type="text", text=text)]
 
 async def main():

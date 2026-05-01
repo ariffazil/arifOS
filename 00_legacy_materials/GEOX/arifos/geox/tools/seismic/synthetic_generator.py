@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import numpy as np
 from scipy import signal
-from typing import Any
 
 
 class SeismicSyntheticGenerator:

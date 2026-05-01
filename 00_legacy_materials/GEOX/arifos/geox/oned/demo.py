@@ -11,7 +11,6 @@ DITEMPA BUKAN DIBERI
 
 import numpy as np
 from arifos.geox.oned.canon9_profile import Canon9Profile, DepthSample
-from arifos.geox.oned.rock_physics import GassmannModel
 from arifos.geox.oned.synthetic import SyntheticSeismic, Wavelet
 from arifos.geox.oned.inversion import JointInversion1D
 

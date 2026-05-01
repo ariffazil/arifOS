@@ -1,8 +1,6 @@
 import os
 import time
 import requests
-import json
-from datetime import datetime, timezone
 
 TOKEN = os.getenv('NOTIFIER_TELEGRAM_BOT_TOKEN')
 CHAT_ID = os.getenv('NOTIFIER_TELEGRAM_CHAT_ID')
@@ -38,7 +36,7 @@ def monitor_vault():
                         last_seal_id = latest['id']
                     elif latest['id'] != last_seal_id:
                         last_seal_id = latest['id']
-                        msg = f"🔔 *arifOS SEAL DETECTED*\n\n"
+                        msg = "🔔 *arifOS SEAL DETECTED*\n\n"
                         msg += f"*Action:* `{latest['action']}`\n"
                         msg += f"*Verdict:* `{latest['verdict']}`\n"
                         msg += f"*Hash:* `{latest['seal_hash'][:16]}...`"

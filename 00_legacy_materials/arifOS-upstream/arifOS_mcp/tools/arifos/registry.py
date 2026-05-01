@@ -7,7 +7,6 @@ All organ dependencies (GEOX, WEALTH, WELL) are accessed through internal
 adapters — no external MCP calls, no import2.
 """
 
-from typing import Literal
 from fastmcp import FastMCP
 
 from .control_plane.init_000 import init_000

@@ -6,7 +6,10 @@ Tests truth handling and evidence discipline across arifOS tools.
 DITEMPA BUKAN DIBERI — Testing is forged, not assumed.
 """
 from __future__ import annotations
-import json, os, sys, time, urllib.request
+import json
+import sys
+import time
+import urllib.request
 from datetime import datetime, timezone
 
 MCP_URL = "http://localhost:8080/mcp"
@@ -290,7 +293,7 @@ def main():
     
     with open("logs/amanah_222_2026-04-22.json", "w") as f:
         json.dump(log_entry, f, indent=2, default=str)
-    print(f"\nLog: logs/amanah_222_2026-04-22.json")
+    print("\nLog: logs/amanah_222_2026-04-22.json")
     
     return 0 if secret_leaks == 0 and f9_fails == 0 else 1
 

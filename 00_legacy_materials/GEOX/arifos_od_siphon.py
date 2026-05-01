@@ -9,7 +9,6 @@ v1.3: Adds Deterministic Area/GrossH Kernels and Support Geometry.
 """
 
 import json
-import os
 import sys
 import numpy as np
 from datetime import datetime

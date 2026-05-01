@@ -10,15 +10,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import hashlib
-import json
 import logging
 from datetime import datetime, timezone
 
 from arifos.integrations.minimax_mcp_bridge import minimax_bridge
 from arifos.core.governance import (
-    PEACE_SQUARED_FLOOR,
-    TRI_WITNESS_PARTIAL,
     ThermodynamicMetrics,
     governed_return,
 )

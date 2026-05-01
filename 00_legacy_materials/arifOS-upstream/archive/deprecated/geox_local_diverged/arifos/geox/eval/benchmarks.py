@@ -8,26 +8,26 @@ specifically focusing on the dual-memory architecture (discrete vs. continuous).
 
 import asyncio
 import logging
-import uuid
-import sys
 import os
+import sys
+import uuid
 from typing import Any
 
 # Standard imports for GEOX
 try:
-    from arifos.geox.geox_schemas import GeoRequest, CoordinatePoint
     from arifos.geox.geox_agent import GeoXAgent, GeoXConfig
+    from arifos.geox.geox_memory import DualMemoryStore
+    from arifos.geox.geox_schemas import CoordinatePoint, GeoRequest
     from arifos.geox.geox_tools import ToolRegistry
     from arifos.geox.geox_validator import GeoXValidator
-    from arifos.geox.geox_memory import DualMemoryStore
 except ImportError:
     # If not installed as a package, try relative or direct import setup
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
-    from arifos.geox.geox_schemas import GeoRequest, CoordinatePoint
     from arifos.geox.geox_agent import GeoXAgent, GeoXConfig
+    from arifos.geox.geox_memory import DualMemoryStore
+    from arifos.geox.geox_schemas import CoordinatePoint, GeoRequest
     from arifos.geox.geox_tools import ToolRegistry
     from arifos.geox.geox_validator import GeoXValidator
-    from arifos.geox.geox_memory import DualMemoryStore
 
 logger = logging.getLogger("geox.eval.benchmarks")
 
@@ -68,25 +68,25 @@ class MalayBasinAnalogBenchmark:
         )
 
         logger.info("Running Benchmark: MalayBasinAnalogBenchmark (TC-01)")
-        
+
         # 1. Plan
         plan = await self.agent.plan(request)
-       
+
         # 2. Execute (with dual-memory injection)
         results = await self.agent.execute(plan, request)
-       
+
         # 3. Synchronous Dual-Memory Query (Direct Validation)
         dual_results = await self.memory.query_dual(request.location)
-       
+
         # 4. Synthesise
         insights = await self.agent.synthesise(results, request)
-       
+
         # 5. Validate
         verdict = await self.agent.validate(insights)
-       
+
         # 6. Summarise
         response = await self.agent.summarise(request, insights, verdict)
-       
+
         # Success if we have fused results from both caches and a valid response
         # In mock state, this will be TRUE because our MockMemoryStore provides default data
         success = (
@@ -107,11 +107,11 @@ async def run_standalone():
     """Run all benchmarks."""
     logging.basicConfig(level=logging.INFO)
     benchmark = MalayBasinAnalogBenchmark()
-   
+
     print("\n" + "="*40)
     print("      GEOX BENCHMARK SUITE (FORGE 4)")
     print("="*40)
-   
+
     tc01 = await benchmark.run_test_case_01_fusion()
     print(f"Test Case 01 (Fusion): {'PASSED' if tc01['success'] else 'FAILED'}")
     print(f"  - Verdict: {tc01['verdict']}")
