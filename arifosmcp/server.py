@@ -167,9 +167,9 @@ def _safe_register(mcp, module_path: str, name: str) -> None:
 
 
 try:
-    _safe_register(mcp, "arifosmcp.apps.forge_app", "forge")
-    _safe_register(mcp, "arifosmcp.apps.vault_app", "vault")
-    _safe_register(mcp, "arifosmcp.apps.judge_app", "judge")
+    _safe_register(mcp, "arifosmcp.apps.command_center.forge_app", "forge")
+    # vault_app removed — vault_audit handles vault surface
+    _safe_register(mcp, "arifosmcp.apps.command_center.judge_app", "judge")
     _safe_register(mcp, "arifosmcp.apps.vault_audit", "vault_audit")
     _safe_register(mcp, "arifosmcp.apps.command_center", "command_center")
     print(
