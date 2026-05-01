@@ -253,5 +253,39 @@ class ForgeEnvelope(BaseModel):
     timestamp: str | None = None
 
 
+# P1-B APPLIED 2026-05-01: Unified Reversibility Schema
+class ReversibilityState(BaseModel):
+    """
+    Unified reversibility across all arifOS tools.
+    Detects contradictions between kernel_route inference and judge evaluation.
+    """
+    external_effect: bool = Field(
+        description="Does this action produce observable effects outside the system?"
+    )
+    vault_commit: bool = Field(
+        description="Will this be recorded permanently in VAULT999?"
+    )
+    artifact_type: str = Field(
+        description="'reversible_local_draft' | 'semi_irreversible' | 'irreversible' | 'catastrophic'"
+    )
+    permanent_seal_requires: str = Field(
+        description="'none' | 'human_ack' | '888_seal'"
+    )
+    level: IrreversibilityLevel = Field(
+        description="Numeric irreversibility level (0=REVERSIBLE through 3=CATASTROPHIC)"
+    )
+    level_rank: int = Field(
+        description="Numeric rank: 0=REVERSIBLE, 1=SEMI_IRREVERSIBLE, 2=IRREVERSIBLE, 3=CATASTROPHIC"
+    )
+
+    def is_contradictory(self, other: "ReversibilityState") -> bool:
+        """Detect reversibility contradiction between two assessments."""
+        return (
+            self.level_rank >= 2 and other.level_rank < 2
+        ) or (
+            other.level_rank >= 2 and self.level_rank < 2
+        )
+
+
 # Alias
 ForgeManifest2 = ForgeManifest

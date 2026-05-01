@@ -604,6 +604,20 @@ class VerdictOutput(BaseModel):
         description="F2 human-readable confidence declaration at judgment time"
     )
 
+    # P1-A APPLIED 2026-05-01: Constitutional vs factual confidence split
+    constitutional_pass_confidence: str | None = Field(
+        default=None,
+        description="F2 constitutional compliance level: CERTAIN | HIGH_CONFIDENCE | UNCERTAIN | FAIL"
+    )
+    factual_confidence: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="F2 factual/evidence confidence — independent of constitutional pass"
+    )
+    overall_confidence: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="Weighted composite: min(constitutional_pass_confidence_weighted, factual_confidence)"
+    )
+
     # Metadata
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

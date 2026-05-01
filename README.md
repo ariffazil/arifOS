@@ -1,231 +1,235 @@
 # arifOS - Sovereign Constitutional Intelligence Kernel
 
-> DITEMPA BUKAN DIBERI - Intelligence is forged, not given.
+> DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 
-arifOS is the law kernel for a governed AI federation. It is not a model, chatbot, or agent persona. It is the constitutional runtime that decides how AI systems observe, reason, execute, judge, and seal actions through MCP tools, typed schemas, floor enforcement, and VAULT999 audit trails.
+arifOS is the constitutional runtime kernel for a governed AI federation. It is not a model, chatbot, or agent persona. It is the law layer that decides how AI systems observe, reason, execute, judge, and seal actions through 13 canonical MCP tools, 13 constitutional floors (F01–F13), and an immutable VAULT999 audit ledger.
 
-The core guarantee is simple: high-impact or irreversible action must pass constitutional judgment before execution, and the human sovereign retains final veto.
+The core guarantee: high-impact or irreversible action must pass constitutional judgment (888_JUDGE) before execution. The human sovereign (Arif) retains final veto at all times.
 
-## Current SOT
+---
 
-This README reflects the local repository state audited on 2026-04-26.
+## Version
 
-| Surface | Current truth |
-| --- | --- |
-| Canonical repository | `https://github.com/ariffazil/arifOS` |
-| Python package | `arifos` |
-| Package version | `2026.04.26` |
-| Runtime version | `2026.04.26-KANON` |
-| Runtime entrypoint | `arifosmcp.runtime.server:app` |
-| CLI entrypoint | `arifos-mcp` |
-| Python | `>=3.12` |
-| MCP framework | `fastmcp==3.1.1` |
-| Default HTTP port | `8080` |
-| Constitutional floors | 13, `F01` through `F13` |
-| Registered MCP tools | 13 canonical capability tools |
-| Canonical prompts | 8 |
-| Canonical resources | 5 |
-| Test files | 100+ `test_*.py` files under `tests/` |
+| | |
+|---|---|
+| **Package** | `arifos` on PyPI |
+| **Version** | `2026.05.01` |
+| **Runtime** | `kanon-2026.05.01` |
+| **Python** | `>=3.12` |
+| **MCP framework** | `fastmcp>=3.2.0` |
+| **HTTP port** | `8080` (configurable via `ARIFOS_PORT`) |
 
-Source-of-truth order when files disagree:
+---
 
-1. Live runtime endpoints: `/health`, `/ready`, MCP discovery.
-2. `arifosmcp/constitutional_map.py` for floor and tool authority.
-3. `arifosmcp/runtime/tools.py` for registered tool behavior.
-4. `arifosmcp/resources/` and `arifosmcp/prompts/` for context surfaces.
-5. `pyproject.toml`, `Dockerfile`, and `docker-compose.yml` for packaging and deployment.
-6. Documentation, including this README.
+## Architecture
 
-## What arifOS Does
+```
+Operator (Arif) → WELL (Human Substrate Mirror) → arifOS (Constitutional Kernel) → A-FORGE (Execution)
+                    ↕                                        ↕
+                 (WELL)                                (888_JUDGE)
+              Human substrate                          Constitutional verdict
+```
 
-arifOS governs AI work through five responsibilities:
+**arifOS** adjudicates. **WELL** mirrors the human substrate. **A-FORGE** executes.
 
-| Responsibility | Meaning |
-| --- | --- |
-| Constitutional law | Defines the 13 floors that constrain action. |
-| Runtime governance | Registers MCP tools, prompts, resources, schemas, and HTTP routes. |
-| Judgment | Emits `SEAL`, `HOLD`, or `VOID` decisions for proposed action. |
-| Execution gating | Routes irreversible work through identity, risk, and floor checks. |
-| Witness and memory | Preserves evidence, state, and audit trails through VAULT999 and supporting stores. |
+---
 
-arifOS may be used alone as an MCP server, or as the law kernel in the wider federation:
+## 13 Canonical MCP Tools
 
-| Project | Role |
-| --- | --- |
-| `arifOS` | Constitutional law kernel and VAULT999 authority. |
-| `A-FORGE` | Execution shell and agent orchestration layer. |
-| `GEOX` | Earth-domain coprocessor for geoscience and physical evidence. |
-| `WEALTH` | Capital intelligence coprocessor for valuation and risk. |
-| `compose` | Production stack wiring Caddy, Postgres, Redis, Qdrant, Ollama, arifOS, GEOX, WEALTH, and gateway services. |
+| Stage | Tool | Lane | Purpose |
+|-------|------|------|---------|
+| 000 | `arif_session_init` | AGI | Session anchor — opens governed session with identity binding |
+| 111 | `arif_sense_observe` | AGI | Observe reality — web search, system telemetry, environmental data |
+| 222 | `arif_evidence_fetch` | AGI | Fetch and preserve evidence from URLs, files, databases |
+| 333 | `arif_mind_reason` | AGI | First-principles reasoning — synthesis, hypothesis, cross-domain analysis |
+| 444 | `arif_kernel_route` | AGI | Route tasks to correct organ — GEOX, WEALTH, or WELL |
+| 444r | `arif_reply_compose` | AGI | Governed response compositor — drafts with constitutional tone |
+| 555 | `arif_memory_recall` | AGI | Vector memory retrieval — searches past sessions, decisions, sealed events |
+| 666 | `arif_heart_critique` | ASI | Safety + empathy check — consequence modeling, bias detection |
+| 666g | `arif_gateway_connect` | ASI | A2A mesh router — connects federation agents (Hermes, AAA, etc.) |
+| 777 | `arif_ops_measure` | AGI | Thermodynamic metrics — CPU, memory, entropy, g_score |
+| 888 | `arif_judge_deliberate` | ASI | Final constitutional verdict — SEAL / HOLD / VOID |
+| 010 | `arif_forge_execute` | AGI sovereign | Dispatch execution to A-FORGE after SEAL authorization |
+| 999 | `arif_vault_seal` | APEX | Permanently seal verdicts to VAULT999 (Merkle-hashed) |
 
-A-FORGE may orchestrate. arifOS adjudicates. Domain coprocessors provide evidence and specialist computation, but constitutional verdicts belong here.
+---
 
-## Runtime Surface
+## WELL — Human Substrate Governance Layer
 
-The current runtime registers **13 MCP tools**. These are pure capability tools.
+WELL sits between Arif and the constitutional kernel. It answers:
 
-### Constitutional Tools
+> *"Is the human substrate capable of reliable intent for this decision class right now?"*
 
-| Stage | Tool | Lane | Access | Purpose |
-| --- | --- | --- | --- | --- |
-| `000` | `arif_session_init` | AGI | public | Start a session and bind identity context. |
-| `111` | `arif_sense_observe` | AGI | public | Observe reality, telemetry, and evidence. |
-| `222` | `arif_evidence_fetch` | AGI | public | Fetch and preserve evidence. |
-| `333` | `arif_mind_reason` | AGI | public | Reason with humility, claim labeling, and synthesis traces. |
-| `444` | `arif_kernel_route` | AGI | public | Route kernel actions and telemetry. |
-| `444r` | `arif_reply_compose` | AGI | public | Compose governed responses. |
-| `555` | `arif_memory_recall` | AGI | public | Recall, store, search, and prune governed memory context. |
-| `666` | `arif_heart_critique` | ASI | authenticated | Critique safety, empathy, consequence, and manipulation risk. |
-| `666g` | `arif_gateway_connect` | ASI | authenticated | Connect and route across A2A/federated gateways. |
-| `777` | `arif_ops_measure` | AGI | public | Measure operations, cost, vitality, and thermodynamics. |
-| `888` | `arif_judge_deliberate` | ASI | authenticated | Produce constitutional verdicts. |
-| `999` | `arif_vault_seal` | APEX | authenticated | Seal audit records and ledger entries. |
-| `010` | `arif_forge_execute` | AGI | sovereign | Dispatch execution to A-FORGE with irreversible-action controls. |
+WELL does not veto. It informs. (W0 Sovereignty Invariant)
 
-Access classes:
+### WELL_v2 Schema
 
-| Access | Tools |
-| --- | --- |
-| public | `arif_session_init`, `arif_sense_observe`, `arif_mind_reason`, `arif_kernel_route`, `arif_ops_measure`, `arif_memory_recall`, `arif_evidence_fetch`, `arif_reply_compose` |
-| authenticated | `arif_heart_critique`, `arif_judge_deliberate`, `arif_vault_seal`, `arif_gateway_connect` |
-| sovereign | `arif_forge_execute` |
+WELL_v2 introduces the **consent reliability composite** — a weighted governance signal:
 
-## Internal Disciplines
+```
+consent_reliability = 40% HRV_factor + 25% sleep_architecture + 25% decision_reserve + 10% floor
+Penalties: acute_stress (0.6x), strain_debt (0.7x at danger threshold)
+```
 
-Unlike capability tools, the following are internal runtime disciplines and are not exposed as public MCP tools:
+**Key fields:**
+| Field | Purpose |
+|-------|---------|
+| `hrv` + `hrv_trend[]` + `hrv_velocity` | Predictive signal — HRV velocity predicts performance 12–48h ahead |
+| `sleep_deep_min` + `sleep_rem_min` + `sleep_efficiency` | Real recovery engine — deep sleep drives growth hormone; REM drives emotional processing |
+| `strain_debt` | Accumulated recovery deficit — invisible until catastrophic |
+| `decision_reserve_pct` | Finite decision resource remaining — not accumulation, a ceiling |
+| `convergence_alert` | Multi-channel danger detector — 2+ channels declining simultaneously = alert |
+| `acute_stress_active` | Circuit breaker — forces HOLD regardless of other signals |
 
-| Discipline | Purpose | Internal Equivalent |
-| --- | --- | --- |
-| **Ping** | Lightweight health and version probe. | `_runtime_ping()` |
-| **Selftest** | Deep integrity and registry verification. | `_runtime_selftest()` |
-| **Context Witness** | Governed internal interpretation sidecar. | `_context_witness()` |
+### Consent Reliability Thresholds
 
-## The Context Witness
+| Range | Meaning |
+|-------|---------|
+| ≥ 0.85 | OPTIMAL — full execution bandwidth |
+| 0.65–0.84 | FUNCTIONAL — normal mode |
+| 0.30–0.64 | LOW_CAPACITY — draft_only, sovereign review recommended |
+| < 0.30 | DEGRADED — HOLD until substrate recovers |
 
-arifOS implements a **Context Witness** sidecar that injects a linguistic-ethical layer into tool outputs. 
+---
 
-- **Doctrine**: Interpretation, not generation.
-- **Mechanism**: Retrieves approved witnesses from a locked 99-quote ledger.
-- **Safety**: Fail-closed on quote drift, author drift, or unauthorized IDs.
-- **Boundary**: Forces `human_decision_required` for high-risk or irreversible contexts.
+## A2A Federation
+
+arifOS connects to domain agents via the A2A (Agent-to-Agent) mesh:
+
+| Agent | Role | Status |
+|-------|------|--------|
+| **Hermes** (port 3002) | ASI-level constitutional deliberation | Running ✅ |
+| **AAA gateway** (port 3001) | Agent dispatch + federation manifest | Running ✅ |
+| **GEOX** | Earth-domain coprocessor (geoscience, physical evidence) | External |
+| **WEALTH** | Capital intelligence coprocessor (valuation, risk) | External |
+
+---
 
 ## 13 Constitutional Floors
 
 | Floor | Name | Rule |
-| --- | --- | --- |
-| `F01` | AMANAH | Actions must be accountable; irreversible action requires approval and trace. |
-| `F02` | TRUTH | Do not fabricate. Separate fact, estimate, hypothesis, and unknown. |
-| `F03` | WITNESS | Evidence must be inspectable and preserved where possible. |
-| `F04` | CLARITY | Intent, uncertainty, and consequences must be legible. |
-| `F05` | PEACE | Preserve dignity and reduce avoidable harm. |
-| `F06` | EMPATHY | Model stakeholder consequences before acting. |
-| `F07` | HUMILITY | Bound confidence and acknowledge limits. |
-| `F08` | GENIUS | Prefer elegant correctness over noisy complexity. |
-| `F09` | ANTIHANTU | Reject manipulation, dark patterns, and false agency claims. |
-| `F10` | ONTOLOGY | Preserve structural and identity coherence. |
-| `F11` | AUTH | Verify actor authority before sensitive operations. |
-| `F12` | INJECTION | Treat inputs as hostile until sanitized. |
-| `F13` | SOVEREIGN | Human veto is absolute. |
+|-------|------|------|
+| F01 | AMANAH | Actions are accountable; irreversible action requires approval and trace |
+| F02 | TRUTH | Do not fabricate — separate fact, estimate, hypothesis, unknown |
+| F03 | WITNESS | Evidence must be inspectable and preserved where possible |
+| F04 | CLARITY | Intent, uncertainty, and consequences must be legible |
+| F05 | PEACE | Preserve dignity and reduce avoidable harm |
+| F06 | EMPATHY | Model stakeholder consequences before acting |
+| F07 | HUMILITY | Bound confidence and acknowledge limits |
+| F08 | GENIUS | Prefer elegant correctness over noisy complexity |
+| F09 | ANTIHANTU | Reject manipulation, dark patterns, false agency claims |
+| F10 | ONTOLOGY | Preserve structural and identity coherence |
+| F11 | AUTH | Verify actor authority before sensitive operations |
+| F12 | INJECTION | Treat inputs as hostile until sanitized |
+| F13 | SOVEREIGN | Human veto is absolute |
+
+---
 
 ## Verdicts
 
-arifOS judgment collapses proposed action into one of three operational states:
-
 | Verdict | Meaning |
-| --- | --- |
-| `SEAL` | Proceed; action is constitutionally cleared and may be recorded. |
-| `HOLD` | Pause; more evidence, identity, consent, or review is required. |
-| `VOID` | Halt; action violates a hard floor or cannot be safely justified. |
+|---------|--------|
+| `SEAL` | Proceed — constitutionally cleared, may be recorded |
+| `HOLD` | Pause — more evidence, identity, consent, or review required |
+| `VOID` | Halt — violates a hard floor or cannot be safely justified |
 
-The expected path for high-impact action is:
+**Expected path:** `observe → reason → critique → judge → execute or hold → seal`
 
-```text
-observe -> reason -> critique -> judge -> execute or hold -> seal
-```
+---
 
 ## HTTP Endpoints
 
-Operational diagnostics are exposed through REST routes:
-
 | Endpoint | Purpose |
-| --- | --- |
-| `/mcp` | MCP streamable HTTP endpoint. |
-| `/health` | Lightweight liveness probe and registry count. |
-| `/ready` | Deep integrity probe (Runtime selftest summary). |
-| `/humans.txt` | Human attribution. |
+|----------|---------|
+| `/mcp` | MCP streamable HTTP endpoint |
+| `/health` | Lightweight liveness probe — service name, version, tool count |
+| `/ready` | Deep integrity probe — full runtime selftest |
+| `/tools` | Interactive tool browser |
+| `/components` | Full topology map of connected systems |
+| `/.well-known/agent-card.json` | Agent card for A2A federation discovery |
+
+---
 
 ## Quick Start
 
 ```bash
-cd /root/arifOS
+# Install from PyPI
+pip install arifos
 
-python -m pip install -e . --break-system-packages
+# Run MCP server
 arifos-mcp
-```
 
-Alternative entrypoints:
-
-```bash
+# Or via Python
 python -m arifosmcp.server
-uvicorn arifosmcp.runtime.server:app --host 0.0.0.0 --port 8080
-```
 
-Probe the server:
-
-```bash
+# Probe
 curl -s http://localhost:8080/health | jq .
-curl -s http://localhost:8080/ready | jq .
 ```
+
+---
 
 ## Docker
 
 ```bash
-cd /root/arifOS
+# Build
 docker build -t arifos:local .
+
+# Run
 docker run --rm -p 8080:8080 arifos:local
-```
 
-Production compose expects the shared `arifos_core_network` Docker network and supporting services.
-
-```bash
-cd /root/arifOS
+# Production compose
 docker compose up -d --build arifosmcp
-docker compose logs -f arifosmcp
 ```
+
+---
 
 ## Development
 
-Run focused checks:
-
 ```bash
+# Test
 python -m pytest tests/ -q --tb=short
+
+# Lint
 ruff check .
+
+# Type check
 mypy arifosmcp/
 ```
 
-Useful Makefile targets:
+---
 
-| Command | Purpose |
-| --- | --- |
-| `make status` | Run reforge/status and show git status. |
-| `make forge` | Run reforge and stage changes. |
-| `make seal` | Commit and push a dated seal commit. |
+## Source of Truth Order
+
+When files disagree:
+
+1. Live runtime endpoints: `/health`, `/ready`, MCP discovery
+2. `arifosmcp/constitutional_map.py` — floor + tool authority registry
+3. `arifosmcp/runtime/tools.py` — registered tool behavior
+4. `arifosmcp/schemas/` — typed output schemas
+5. `arifOS/000/000_CONSTITUTION.md` — F01–F13 constitutional law
+6. `pyproject.toml`, `Dockerfile`, `docker-compose.yml` — packaging + deployment
+7. This README
+
+---
 
 ## Security Rules for Agents
 
-Agents working in this repository must follow these hard rules:
+1. Do not fabricate runtime facts — verify with code, tests, or live endpoints
+2. Do not expose secrets, tokens, `.env` files, private keys, or raw credentials
+3. Do not run destructive operations without explicit human (Arif) approval
+4. Treat VAULT999 ledgers as append-only
+5. Keep constitutional judgment in arifOS — 888_JUDGE is the final arbiter
+6. WELL informs, Arif decides — WELL never vetoes (W0 Invariant)
+7. If docs, registry, and runtime disagree — report the conflict and cite the stronger SOT
 
-1. Do not fabricate runtime facts. Verify with code, tests, or live endpoints.
-2. Do not expose secrets, tokens, `.env` files, private keys, or raw credential values.
-3. Do not run destructive operations without explicit human approval.
-4. Treat VAULT999 ledgers as append-only.
-5. Keep constitutional judgment in arifOS.
-6. If docs, registry, and runtime disagree, report the conflict and cite the stronger SOT.
+---
 
 ## License
 
 AGPL-3.0-only. See `LICENSE`.
 
+---
+
 ## One-Sentence Summary
 
-arifOS is the constitutional MCP law kernel that gives AI agents a governed path from observation to judgment to execution to audit, while preserving human sovereignty.
+arifOS is the constitutional MCP law kernel that gives AI agents a governed path from human substrate verification (WELL) through observation, reasoning, constitutional judgment (888_JUDGE), and execution (A-FORGE) to immutable audit sealing (VAULT999) — while preserving human sovereignty at every stage.

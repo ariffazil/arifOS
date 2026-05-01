@@ -3597,6 +3597,9 @@ def _arif_judge_deliberate(
                 genius_score=0.0,
             ),
             truth_band=truth_band or "UNKNOWN",
+            constitutional_pass_confidence="FAIL",
+            factual_confidence=0.0,
+            overall_confidence=0.0,
             confidence_note=confidence_note
             or "Verification state present; band derived from entropy/gap analysis",
             meta=meta_state,
@@ -3655,13 +3658,37 @@ def _arif_judge_deliberate(
             floors_passed=["F01", "F12"],
             genius_score=0.98,
         ),
-        truth_band=truth_band or "CERTAIN",
+        truth_band=truth_band or "UNCERTAIN",
         confidence_note=confidence_note
         or "Full constitutional floors passed; verification state clean",
+        constitutional_pass_confidence=truth_band or "UNCERTAIN",
+        factual_confidence=epistemic.confidence if epistemic else 0.5,
+        overall_confidence=min(
+            0.9 if (truth_band or "UNCERTAIN") == "CERTAIN" else 0.6 if (truth_band or "") == "HIGH_CONFIDENCE" else 0.3,
+            epistemic.confidence if epistemic else 0.5
+        ),
         judge_contract=contract,
         meta=meta_state,
         timestamp=verdict.timestamp,
     )
+
+    # P1-A contradiction guard: CERTAIN constitutional pass + low factual confidence → HOLD
+    eps_confidence = epistemic.confidence if epistemic else 0.5
+    truth_band_val = truth_band or "UNCERTAIN"
+    if truth_band_val == "CERTAIN" and eps_confidence < 0.6:
+        output.verdict = VerdictCode.HOLD
+        output.truth_band = "UNCERTAIN"
+        seal_output = output.model_dump(mode="json")
+        seal_output["nine_signal"] = _nine_signal_from_status("HOLD")
+        seal_output["contradiction_alert"] = {
+            "type": "truth_band_vs_confidence",
+            "truth_band": truth_band_val,
+            "factual_confidence": eps_confidence,
+            "severity": "warning",
+            "message": "Constitutional pass is CERTAIN but factual confidence is low — human review required before SEAL"
+        }
+        return seal_output
+
     seal_output = output.model_dump(mode="json")
     seal_output["nine_signal"] = _nine_signal_from_status("OK")
     return seal_output
@@ -4401,6 +4428,27 @@ def _arif_forge_execute(
         if lineage_contract is not None:
             constitutional_chain_id = lineage_contract.constitutional_chain_id
             judge_state_hash = lineage_contract.state_hash
+
+    # P1-B: Reversibility cross-check between kernel_route and judge
+    if lineage_contract is not None:
+        route_rank = _irreversibility_rank("IRREVERSIBLE")  # kernel default
+        judge_rank = _irreversibility_rank(lineage_contract.irreversibility_level.value)
+        if route_rank >= 2 and judge_rank < 2:
+            return _inject_nine_signal(
+                ForgeOutput(
+                    status="HOLD",
+                    result={},
+                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                    meta={
+                        "reason": "Reversibility conflict: kernel_route=IRREVERSIBLE, judge=REVERSIBLE — escalate before FORGE",
+                        "route_irreversibility": "IRREVERSIBLE",
+                        "judge_irreversibility": lineage_contract.irreversibility_level.value,
+                        "failed_floors": ["F01_AMANAH", "F02_TRUTH"],
+                    },
+                    timestamp=_now(),
+                ).model_dump(mode="json"),
+                "HOLD",
+            )
 
     if mode == "engineer":
         artifact_id_out = uuid.uuid4().hex[:16]
