@@ -86,6 +86,15 @@ from arifosmcp.core.constitution_kernel import (
 _CORE = get_kernel()
 _KERNEL = _CORE  # Maintain compatibility if needed
 
+# Langfuse tracing — wire 333_MIND and 666_HEART to cloud tracing
+try:
+    from arifosmcp.memory_engine import get_langfuse_tracer
+
+    _LANGFUSE_TRACER = get_langfuse_tracer()
+except Exception:
+    _LANGFUSE_TRACER = None
+
+
 # MiniMax MCP Bridge — web_search + understand_image for 111_SENSE
 try:
     from arifosmcp.runtime.minimax_bridge import minimax_bridge
@@ -2617,47 +2626,87 @@ async def _arif_mind_reason_tool(
     F13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
     """
-    # Structural/deterministic modes — bypass LLM entirely
-    if mode not in ("reason", "reflect", "verify", "critique", "debate", "socratic"):
-        return _arif_mind_reason(
-            mode=mode,
-            query=query,
-            session_id=session_id,
-            actor_id=actor_id,
-            plan_id=plan_id,
-            witness_type=witness_type,
-        )
+    trace = None
+    if _LANGFUSE_TRACER is not None:
+        try:
+            trace = await _LANGFUSE_TRACER.trace(
+                name=f"arif_mind_reason/{mode}",
+                session_id=session_id,
+                metadata={
+                    "mode": mode,
+                    "actor_id": actor_id,
+                    "query_length": len(query) if query else 0,
+                },
+                tags=["arifOS", "333_MIND", mode],
+            )
+        except Exception:
+            pass
 
-    # Cognitive modes: delegate to LLM-aware module (SEA-LION → Ollama → rule)
     try:
-        from arifosmcp.runtime.mind_reason import (
-            arif_mind_reason as _llm_mind_reason,
-        )
+        # Structural/deterministic modes — bypass LLM entirely
+        if mode not in ("reason", "reflect", "verify", "critique", "debate", "socratic"):
+            result = _arif_mind_reason(
+                mode=mode,
+                query=query,
+                session_id=session_id,
+                actor_id=actor_id,
+                plan_id=plan_id,
+                witness_type=witness_type,
+            )
+            if trace:
+                await trace.span(
+                    "arif_mind_reason",
+                    input={"mode": mode, "query": query},
+                    metadata={"status": "deterministic"},
+                )
+            if trace:
+                await trace.span("result", input=result)
+            return result
 
-        result = await _llm_mind_reason(
-            mode=mode,
-            query=query,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
+        # Cognitive modes: delegate to LLM-aware module (SEA-LION → Ollama → rule)
+        try:
+            from arifosmcp.runtime.mind_reason import (
+                arif_mind_reason as _llm_mind_reason,
+            )
+
+            result = await _llm_mind_reason(
+                mode=mode,
+                query=query,
+                actor_id=actor_id,
+                session_id=session_id,
+            )
+        except Exception as _exc:
+            logger.warning(
+                "333_MIND cognitive module unavailable (%s); rule fallback active",
+                type(_exc).__name__,
+            )
+            result = _arif_mind_reason(
+                mode=mode,
+                query=query,
+                session_id=session_id,
+                actor_id=actor_id,
+                plan_id=plan_id,
+                witness_type=witness_type,
+            )
+
         result["tool"] = "arif_mind_reason"
         result["nine_signal"] = _nine_signal_from_status(result.get("status", "OK"))
-        return result
-    except Exception as _exc:
-        logger.warning(
-            "333_MIND cognitive module unavailable (%s); rule fallback active",
-            type(_exc).__name__,
-        )
 
-    # Final fallback: rule-based — no regression
-    return _arif_mind_reason(
-        mode=mode,
-        query=query,
-        session_id=session_id,
-        actor_id=actor_id,
-        plan_id=plan_id,
-        witness_type=witness_type,
-    )
+        if trace:
+            await trace.span(
+                "arif_mind_reason",
+                input={"mode": mode, "query": query},
+                metadata={"status": result.get("status")},
+            )
+            await trace.span(
+                "result",
+                input={"status": result.get("status"), "nine_signal": result.get("nine_signal")},
+            )
+
+        return result
+    finally:
+        if trace and hasattr(trace, "close"):
+            await trace.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3193,40 +3242,67 @@ async def _arif_reply_compose_tool(
     SEA-LION → Ollama → deterministic fallback (same pattern as 333_MIND / 666_HEART).
     The LLM actually composes/rewrites the message rather than echoing it back.
     """
-    gate = _constitutional_gate(
-        "arif_reply_compose", mode, actor_id, session_id=session_id, query=message
-    )
-    if gate is not None:
-        return gate
+    trace = None
+    if _LANGFUSE_TRACER is not None:
+        try:
+            trace = await _LANGFUSE_TRACER.trace(
+                name=f"arif_reply_compose/{mode}",
+                session_id=session_id,
+                metadata={
+                    "mode": mode,
+                    "actor_id": actor_id,
+                    "message_length": len(message) if message else 0,
+                },
+                tags=["arifOS", "444r_REPLY", mode],
+            )
+        except Exception:
+            pass
 
     try:
-        from arifosmcp.runtime.reply_compose import arif_reply_compose as _llm_reply
-
-        result = await _llm_reply(
-            mode=mode,
-            message=message,
-            style=style,
-            citations=citations,
-            actor_id=actor_id,
-            session_id=session_id,
+        gate = _constitutional_gate(
+            "arif_reply_compose", mode, actor_id, session_id=session_id, query=message
         )
+        if gate is not None:
+            return gate
+
+        try:
+            from arifosmcp.runtime.reply_compose import arif_reply_compose as _llm_reply
+
+            result = await _llm_reply(
+                mode=mode,
+                message=message,
+                style=style,
+                citations=citations,
+                actor_id=actor_id,
+                session_id=session_id,
+            )
+        except Exception as _exc:
+            logger.warning(
+                "444r_REPLY module unavailable (%s); rule fallback active",
+                type(_exc).__name__,
+            )
+            result = _arif_reply_compose(
+                mode=mode,
+                message=message,
+                style=style,
+                citations=citations,
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+
         result["tool"] = "arif_reply_compose"
         result["nine_signal"] = _nine_signal_from_status(result.get("status", "OK"))
-        return result
-    except Exception as _exc:
-        logger.warning(
-            "444r_REPLY module unavailable (%s); rule fallback active",
-            type(_exc).__name__,
-        )
 
-    return _arif_reply_compose(
-        mode=mode,
-        message=message,
-        style=style,
-        citations=citations,
-        session_id=session_id,
-        actor_id=actor_id,
-    )
+        if trace:
+            await trace.span(
+                "arif_reply_compose",
+                input={"mode": mode, "message": message},
+                metadata={"status": result.get("status")},
+            )
+        return result
+    finally:
+        if trace:
+            await trace.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3608,46 +3684,70 @@ async def _arif_heart_critique(
     if gate is not None:
         return gate
 
-    _exc: Exception | None = None
-    try:
-        from arifosmcp.tools.heart import arif_heart_critique as _heart_llm
+    trace = None
+    if _LANGFUSE_TRACER is not None:
+        try:
+            trace = await _LANGFUSE_TRACER.trace(
+                name=f"arif_heart_critique/{mode}",
+                session_id=session_id,
+                metadata={
+                    "mode": mode,
+                    "actor_id": actor_id,
+                    "target_length": len(target) if target else 0,
+                },
+                tags=["arifOS", "666_HEART", mode],
+            )
+        except Exception:
+            pass
 
-        result = await _heart_llm(
-            mode=mode,
-            target=target,
-            session_id=session_id,
-            actor_id=actor_id,
-        )
+    try:
+        try:
+            from arifosmcp.tools.heart import arif_heart_critique as _heart_llm
+
+            result = await _heart_llm(
+                mode=mode,
+                target=target,
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+        except Exception as _exc:
+            logger.warning(
+                "666_HEART module unavailable (%s); returning safe HOLD",
+                type(_exc).__name__,
+            )
+            result = {
+                "tool": "arif_heart_critique",
+                "status": "HOLD",
+                "risk_tier": "AMBER",
+                "verdict": "HOLD",
+                "human_decision_required": True,
+                "risks_found": [],
+                "error": f"666_HEART unavailable: {type(_exc).__name__}",
+                "nine_signal": _nine_signal_from_status("HOLD"),
+            }
+
         result["tool"] = "arif_heart_critique"
         result["status"] = result.get("status", "OK")
         result["nine_signal"] = _nine_signal_from_status(result["status"])
-        return result
-    except Exception as _exc:
-        logger.warning(
-            "666_HEART module unavailable (%s); returning safe HOLD",
-            type(_exc).__name__,
-        )
-        return {
-            "tool": "arif_heart_critique",
-            "status": "HOLD",
-            "risk_tier": "AMBER",
-            "verdict": "HOLD",
-            "human_decision_required": True,
-            "risks_found": [],
-            "error": f"666_HEART unavailable: {type(_exc).__name__}",
-            "nine_signal": _nine_signal_from_status("HOLD"),
-        }
 
-    return {
-        "tool": "arif_heart_critique",
-        "status": "HOLD",
-        "risk_tier": "AMBER",
-        "verdict": "HOLD",
-        "human_decision_required": True,
-        "risks_found": [],
-        "error": "666_HEART unavailable: unknown",
-        "nine_signal": _nine_signal_from_status("HOLD"),
-    }
+        if trace:
+            await trace.span(
+                "arif_heart_critique",
+                input={"mode": mode, "target": target},
+                metadata={"status": result.get("status"), "verdict": result.get("verdict")},
+            )
+            await trace.span(
+                "result",
+                input={
+                    "risk_tier": result.get("risk_tier"),
+                    "human_required": result.get("human_decision_required"),
+                },
+            )
+
+        return result
+    finally:
+        if trace and hasattr(trace, "close"):
+            await trace.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -4116,20 +4216,49 @@ async def _arif_judge_deliberate_tool(
       VerdictOutput with code, floor compliance proof, epistemic_snapshot,
       and required_next_tool (if any).
     """
-    # Skip candidate elicitation for history mode (schema mismatch fix)
-    if mode != "history":
-        candidate, hold = await _elicit_judge_candidate(ctx, mode=mode, candidate=candidate)
-        if hold is not None:
-            return hold
-    if ctx is not None:
-        await ctx.report_progress(100, 100, "arif_judge_deliberate: completed")
-    return _arif_judge_deliberate(
-        mode=mode,
-        candidate=candidate,
-        session_id=session_id,
-        actor_id=actor_id,
-        constitutional_chain_id=constitutional_chain_id,
-    )
+    trace = None
+    if _LANGFUSE_TRACER is not None:
+        try:
+            trace = await _LANGFUSE_TRACER.trace(
+                name=f"arif_judge_deliberate/{mode}",
+                session_id=session_id,
+                metadata={
+                    "mode": mode,
+                    "actor_id": actor_id,
+                    "candidate_length": len(candidate) if candidate else 0,
+                },
+                tags=["arifOS", "888_JUDGE", mode],
+            )
+        except Exception:
+            pass
+
+    try:
+        if mode != "history":
+            candidate, hold = await _elicit_judge_candidate(ctx, mode=mode, candidate=candidate)
+            if hold is not None:
+                return hold
+        if ctx is not None:
+            await ctx.report_progress(100, 100, "arif_judge_deliberate: completed")
+
+        result = _arif_judge_deliberate(
+            mode=mode,
+            candidate=candidate,
+            session_id=session_id,
+            actor_id=actor_id,
+            constitutional_chain_id=constitutional_chain_id,
+        )
+
+        if trace:
+            await trace.span(
+                "arif_judge_deliberate",
+                input={"mode": mode, "candidate": candidate},
+                metadata={"verdict": result.get("verdict", "UNKNOWN")},
+            )
+
+        return result
+    finally:
+        if trace and hasattr(trace, "close"):
+            await trace.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -4662,27 +4791,52 @@ async def _arif_vault_seal_tool(
     Returns:
       SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
     """
-    ack_irreversible, hold = await _elicit_irreversible_ack(
-        ctx,
-        tool_name="arif_vault_seal",
-        mode=mode,
-        actor_id=actor_id,
-        session_id=session_id,
-        ack_irreversible=ack_irreversible,
-    )
-    if hold is not None:
-        return hold
-    if ctx is not None:
-        await ctx.report_progress(100, 100, "arif_vault_seal: completed")
-    return _arif_vault_seal(
-        mode=mode,
-        payload=payload,
-        session_id=session_id,
-        ack_irreversible=ack_irreversible,
-        actor_id=actor_id,
-        constitutional_chain_id=constitutional_chain_id,
-        judge_state_hash=judge_state_hash,
-    )
+    trace = None
+    if _LANGFUSE_TRACER is not None:
+        try:
+            trace = await _LANGFUSE_TRACER.trace(
+                name=f"arif_vault_seal/{mode}",
+                session_id=session_id,
+                metadata={"mode": mode, "actor_id": actor_id, "payload_length": len(payload)},
+                tags=["arifOS", "999_VAULT", mode],
+            )
+        except Exception:
+            pass
+
+    try:
+        ack_irreversible, hold = await _elicit_irreversible_ack(
+            ctx,
+            tool_name="arif_vault_seal",
+            mode=mode,
+            actor_id=actor_id,
+            session_id=session_id,
+            ack_irreversible=ack_irreversible,
+        )
+        if hold is not None:
+            return hold
+        if ctx is not None:
+            await ctx.report_progress(100, 100, "arif_vault_seal: completed")
+
+        result = _arif_vault_seal(
+            mode=mode,
+            payload=payload,
+            session_id=session_id,
+            ack_irreversible=ack_irreversible,
+            actor_id=actor_id,
+            constitutional_chain_id=constitutional_chain_id,
+            judge_state_hash=judge_state_hash,
+        )
+
+        if trace:
+            await trace.span(
+                "arif_vault_seal",
+                input={"mode": mode},
+                metadata={"status": result.get("status"), "verdict": result.get("verdict")},
+            )
+        return result
+    finally:
+        if trace and hasattr(trace, "close"):
+            await trace.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -5210,31 +5364,62 @@ async def _arif_forge_execute_tool(
       ForgeOutput with status, execution_trace, artifact_id, and
       irreversibility_level.
     """
-    ack_irreversible, hold = await _elicit_irreversible_ack(
-        ctx,
-        tool_name="arif_forge_execute",
-        mode=mode,
-        actor_id=actor_id,
-        session_id=session_id,
-        ack_irreversible=ack_irreversible,
-    )
-    if hold is not None:
-        return hold
-    if ctx is not None:
-        await ctx.report_progress(100, 100, "arif_forge_execute: completed")
-    return _arif_forge_execute(
-        mode=mode,
-        manifest=manifest,
-        query=query,
-        artifact_id=artifact_id,
-        session_id=session_id,
-        ack_irreversible=ack_irreversible,
-        actor_id=actor_id,
-        constitutional_chain_id=constitutional_chain_id,
-        judge_state_hash=judge_state_hash,
-        vault_entry_id=vault_entry_id,
-        plan_id=plan_id,
-    )
+    trace = None
+    if _LANGFUSE_TRACER is not None:
+        try:
+            trace = await _LANGFUSE_TRACER.trace(
+                name=f"arif_forge_execute/{mode}",
+                session_id=session_id,
+                metadata={
+                    "mode": mode,
+                    "actor_id": actor_id,
+                    "has_plan_id": plan_id is not None,
+                    "ack_irreversible": ack_irreversible,
+                },
+                tags=["arifOS", "010_FORGE", mode],
+            )
+        except Exception:
+            pass
+
+    try:
+        ack_irreversible, hold = await _elicit_irreversible_ack(
+            ctx,
+            tool_name="arif_forge_execute",
+            mode=mode,
+            actor_id=actor_id,
+            session_id=session_id,
+            ack_irreversible=ack_irreversible,
+        )
+        if hold is not None:
+            return hold
+        if ctx is not None:
+            await ctx.report_progress(100, 100, "arif_forge_execute: completed")
+
+        result = _arif_forge_execute(
+            mode=mode,
+            manifest=manifest,
+            query=query,
+            artifact_id=artifact_id,
+            session_id=session_id,
+            ack_irreversible=ack_irreversible,
+            actor_id=actor_id,
+            constitutional_chain_id=constitutional_chain_id,
+            judge_state_hash=judge_state_hash,
+            vault_entry_id=vault_entry_id,
+            plan_id=plan_id,
+        )
+
+        if trace:
+            await trace.span(
+                "arif_forge_execute",
+                input={"mode": mode},
+                metadata={"status": result.get("status")},
+            )
+
+        return result
+    finally:
+        if trace and hasattr(trace, "close"):
+            await trace.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

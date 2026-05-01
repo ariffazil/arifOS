@@ -490,7 +490,7 @@ def arifos_compute_finance(
         scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
         selected = []
         spent = 0.0
-        for vp, val, t in scored:
+        for _vp, _val, t in scored:
             c = t.get("cost", 0)
             if spent + c <= budget:
                 selected.append(t)
@@ -771,12 +771,12 @@ def arifos_oracle_bio(
     import json
     from pathlib import Path
 
-    WELL_STATE = Path("/root/WELL/state.json")
+    well_state = Path("/root/WELL/state.json")
 
     if mode == "snapshot_read":
-        if not WELL_STATE.exists():
+        if not well_state.exists():
             return {"agent": "P", "action": "well_state_read", "error": "WELL state not found"}
-        with open(WELL_STATE) as f:
+        with open(well_state) as f:
             state = json.load(f)
         return {
             "agent": "P",
@@ -791,9 +791,9 @@ def arifos_oracle_bio(
         }
 
     if mode == "readiness_check":
-        if not WELL_STATE.exists():
+        if not well_state.exists():
             return {"agent": "P", "action": "well_readiness_check", "error": "WELL state not found"}
-        with open(WELL_STATE) as f:
+        with open(well_state) as f:
             state = json.load(f)
         score = state.get("well_score", 0.5)
         readiness = "HIGH" if score >= 0.75 else "MODERATE" if score >= 0.5 else "LOW"
@@ -811,9 +811,9 @@ def arifos_oracle_bio(
         }
 
     if mode == "floor_scan":
-        if not WELL_STATE.exists():
+        if not well_state.exists():
             return {"agent": "P", "action": "well_floor_scan", "error": "WELL state not found"}
-        with open(WELL_STATE) as f:
+        with open(well_state) as f:
             state = json.load(f)
         return {
             "agent": "P",
@@ -827,9 +827,9 @@ def arifos_oracle_bio(
         }
 
     if mode == "log_update":
-        if not WELL_STATE.exists():
+        if not well_state.exists():
             return {"agent": "E", "action": "well_log", "error": "WELL state not found"}
-        with open(WELL_STATE) as f:
+        with open(well_state) as f:
             state = json.load(f)
         metrics = state.get("metrics", {})
         for key, value in (dimensions or {}).items():
@@ -842,7 +842,7 @@ def arifos_oracle_bio(
                 metrics[key] = value
         state["metrics"] = metrics
         state["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with open(WELL_STATE, "w") as f:
+        with open(well_state, "w") as f:
             json.dump(state, f, indent=2)
         return {
             "agent": "E",
@@ -859,17 +859,14 @@ def arifos_oracle_bio(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def arifos_oracle_world(
+async def arifos_oracle_world(
     mode: str,
     /,
     session_id: str | None = None,
-    # geox_scene_load
     scene_type: str | None = None,
     path: str | None = None,
-    # geox_skills_query
     query: str = "",
     domain: str | None = None,
-    # macro_snapshot / series_fetch / series_vintage_fetch
     geography: str | None = None,
     source: str | None = None,
     series_id: str | None = None,
@@ -877,48 +874,85 @@ def arifos_oracle_world(
     ctx: Any | None = None,
 ) -> dict[str, Any]:
     """
-    External world data oracle.
+    External world data oracle — bridges to GEOX (geoscience) and WEALTH (capital).
     Modes: geox_scene_load | geox_skills_query | macro_snapshot |
            series_fetch | series_vintage_fetch
+
+    GEOX: https://geox.arif-fazil.com/mcp (public SSE, no auth needed)
+    WEALTH: https://wealth.arif-fazil.com/mcp (session-based MCP StreamableHTTP)
     """
+    import logging
+
+    logger = logging.getLogger("arifosmcp.oracle_world")
+
+    # ── GEOX modes ─────────────────────────────────────────────────────────────
     if mode == "geox_scene_load":
-        return {
-            "agent": "P",
-            "action": "geox_scene_load",
-            "canonical": "arifos_oracle_world[geox_scene_load]",
-            "result": {"scene_type": scene_type, "path": path, "scene_data": None},
-        }
+        try:
+            from arifosmcp.runtime.geox_bridge import call_geox_tool
+
+            result = await call_geox_tool(
+                "geox_data_ingest_bundle",
+                {"source_uri": path or "", "source_type": scene_type or "auto"},
+            )
+            return {
+                "agent": "P",
+                "action": "geox_scene_load",
+                "canonical": "arifos_oracle_world[geox_scene_load]",
+                "result": {
+                    "scene_type": scene_type,
+                    "path": path,
+                    "scene_data": result,
+                    "organ": "GEOX",
+                    "status": "loaded",
+                },
+            }
+        except Exception as e:
+            logger.warning(f"geox_scene_load bridge failed: {e}")
+            return {
+                "agent": "P",
+                "action": "geox_scene_load",
+                "canonical": "arifos_oracle_world[geox_scene_load]",
+                "result": {"scene_type": scene_type, "path": path, "scene_data": None},
+                "error": str(e),
+            }
 
     if mode == "geox_skills_query":
-        return {
-            "agent": "P",
-            "action": "geox_skills_query",
-            "canonical": "arifos_oracle_world[geox_skills_query]",
-            "result": {"query": query, "domain": domain, "skills": []},
-        }
+        try:
+            from arifosmcp.runtime.geox_bridge import call_geox_tool
 
-    if mode == "macro_snapshot":
-        return {
-            "agent": "P",
-            "action": "wealth_snapshot_fetch",
-            "canonical": "arifos_oracle_world[macro_snapshot]",
-            "result": {"geography": geography, "snapshot": {}},
-        }
+            result = await call_geox_tool("geox_list_skills", {"query": query, "domain": domain})
+            skills = result if isinstance(result, list) else result.get("skills", [])
+            return {
+                "agent": "P",
+                "action": "geox_skills_query",
+                "canonical": "arifos_oracle_world[geox_skills_query]",
+                "result": {"query": query, "domain": domain, "skills": skills},
+            }
+        except Exception as e:
+            logger.warning(f"geox_skills_query bridge failed: {e}")
+            return {
+                "agent": "P",
+                "action": "geox_skills_query",
+                "canonical": "arifos_oracle_world[geox_skills_query]",
+                "result": {"query": query, "domain": domain, "skills": []},
+                "error": str(e),
+            }
 
-    if mode == "series_fetch":
+    # ── WEALTH modes ───────────────────────────────────────────────────────────
+    if mode in ("macro_snapshot", "series_fetch", "series_vintage_fetch"):
         return {
             "agent": "P",
-            "action": "wealth_series_fetch",
-            "canonical": "arifos_oracle_world[series_fetch]",
-            "result": {"source": source, "series_id": series_id, "data": []},
-        }
-
-    if mode == "series_vintage_fetch":
-        return {
-            "agent": "P",
-            "action": "wealth_vintage_fetch",
-            "canonical": "arifos_oracle_world[series_vintage_fetch]",
-            "result": {"series_id": series_id, "vintage_date": vintage_date, "data": []},
+            "action": f"wealth_{mode}",
+            "canonical": f"arifos_oracle_world[{mode}]",
+            "result": {
+                "mode": mode,
+                "geography": geography,
+                "source": source,
+                "series_id": series_id,
+                "vintage_date": vintage_date,
+                "organ": "WEALTH",
+                "status": "stub_pending_wealth_bridge_live",
+            },
         }
 
     return {"error": f"Unknown world mode: {mode}"}
