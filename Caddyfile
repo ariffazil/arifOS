@@ -124,6 +124,34 @@ arifos.arif-fazil.com {
         reverse_proxy arifosmcp:8080
     }
 
+    # Agent discovery + WebMCP routes (P0 fix)
+    handle /agent-card.json {
+        root * /var/www/html/arifos
+        file_server
+    }
+    handle /a2a/discovery {
+        root * /var/www/html/arifos/a2a
+        try_files {path} /discovery.json
+        file_server
+    }
+    handle /llms.txt {
+        root * /var/www/html/arifos
+        file_server
+    }
+    handle /llms.json {
+        root * /var/www/html/arifos
+        file_server
+    }
+    handle /webmcp {
+        reverse_proxy arifosmcp:8080 {
+            flush_interval 100ms
+        }
+    }
+    handle_path /.well-known/* {
+        root * /var/www/html/arifos/.well-known
+        file_server
+    }
+
     # Ω-Wiki merged from wiki.arif-fazil.com
     handle_path /wiki/* {
         root * /var/www/html/wiki
@@ -176,11 +204,22 @@ geox.arif-fazil.com {
     encode zstd gzip
     root * /var/www/html/geox
 
+    @well-known {
+        path /.well-known/*
+    }
+    handle @well-known {
+        root * /var/www/html/geox/.well-known
+        file_server
+        header Cache-Control "no-store, no-cache"
+        header Pragma "no-cache"
+    }
+
     handle /mcp* {
         reverse_proxy geox_eic:8081 {
             header_up Host {host}
             header_up X-Real-IP {remote_host}
-            flush_interval 100ms
+            header_up Accept "application/json, text/event-stream"
+            flush_interval -1
         }
     }
     handle /health {
@@ -273,8 +312,12 @@ mcp.arif-fazil.com {
     handle /mcp* {
         reverse_proxy arifosmcp:8080
     }
+    handle /.well-known/mcp/* {
+        root * /var/www/html/arifos
+        file_server
+    }
     handle {
-        redir https://arifos.arif-fazil.com permanent
+        redir https://arifos.arif-fazil.com{uri} permanent
     }
 }
 
