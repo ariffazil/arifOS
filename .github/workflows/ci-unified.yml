@@ -45,25 +45,25 @@ jobs:
     name: F4 Clarity - Code Quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      
+
       - name: Install Ruff
         run: pip install ruff
-      
+
       - name: Lint (Entropy Reduction Check)
         run: |
           echo "🔍 F4 Clarity: Checking code entropy..."
           ruff check core/ arifosmcp/ tests/ --line-length 100
-      
+
       - name: Format Check
         run: ruff format --check core/ arifosmcp/ tests/
-      
+
       - name: Import Organization
         run: ruff check --select I core/ arifosmcp/ tests/
 
@@ -71,19 +71,19 @@ jobs:
     name: F2 Truth - Type Correctness
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      
+
       - name: Install dependencies
         run: |
           pip install mypy
           pip install -e ".[dev]"
-      
+
       - name: Type Check (Truth Verification)
         run: |
           echo "🔍 F2 Truth: Verifying type contracts..."
@@ -101,31 +101,31 @@ jobs:
         python-version: ["3.12", "3.13"]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-      
+
       - name: Install dependencies
         run: uv pip install --system -e ".[dev]"
-      
+
       - name: Test Floor Mechanics (F1-F13)
         run: |
           echo "🧪 Testing constitutional floor logic..."
           pytest tests/test_constitutional_core.py -v --tb=short -k "TestThresholds or TestF1Amanah or TestF2Truth or TestF4Clarity or TestF12Injection"
           pytest tests/core/test_physics.py -v --tb=short
-      
+
       - name: Test Organ Functions (Δ·Ω·Ψ)
         run: |
           echo "🧪 Testing Trinity organs..."
           pytest tests/core/test_kernel_hardening.py tests/core/test_pipeline.py -v --tb=short
-      
+
       - name: Test State Transitions
         run: |
           echo "🧪 Testing state machine..."
@@ -138,7 +138,7 @@ jobs:
     name: Integration - Metabolic Loop
     runs-on: ubuntu-latest
     needs: [lint, typecheck, unit-tests]
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -153,7 +153,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         options: >-
@@ -163,27 +163,27 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-      
+
       qdrant:
         image: qdrant/qdrant:latest
         ports:
           - 6333:6333
-    
+
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-      
+
       - name: Install dependencies
         run: uv pip install --system -e ".[dev]"
-      
+
       - name: Test Metabolic Loop (000→999)
         env:
           DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
@@ -192,7 +192,7 @@ jobs:
         run: |
           echo "🔄 Testing metabolic loop transitions..."
           pytest tests/integration/test_health_metrics.py -v
-      
+
       - name: Test Trinity Synthesis
         env:
           DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
@@ -200,7 +200,7 @@ jobs:
         run: |
           echo "🔺 Testing Δ·Ω·Ψ synthesis..."
           pytest tests/test_homeostasis.py tests/test_trace_replay.py -v
-      
+
       - name: Test Governance Verdicts
         env:
           DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
@@ -215,7 +215,7 @@ jobs:
     name: F1-F13 Constitutional Enforcement
     runs-on: ubuntu-latest
     needs: integration-tests
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -225,27 +225,27 @@ jobs:
           POSTGRES_DB: arifos_test
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         ports:
           - 6379:6379
-    
+
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-      
+
       - name: Install dependencies
         run: uv pip install --system -e ".[dev]"
-      
+
       # ─────────────────────────────────────────────────────────────
       # F2 TRUTH: Anti-Hallucination
       # ─────────────────────────────────────────────────────────────
@@ -255,7 +255,7 @@ jobs:
         run: |
           echo "🛡️ F2 Truth: Testing hallucination detection..."
           pytest tests/03_constitutional/test_f2_truth.py -v
-      
+
       # ─────────────────────────────────────────────────────────────
       # F4 ENTROPY: Disorder Control
       # ─────────────────────────────────────────────────────────────
@@ -263,7 +263,7 @@ jobs:
         run: |
           echo "🧮 F4 Entropy: Testing ΔS ≤ 0 enforcement..."
           pytest tests/test_constitutional_core.py -v -k "TestF4Clarity"
-      
+
       # ─────────────────────────────────────────────────────────────
       # F7 HUMILITY: Gödel Uncertainty Band
       # ─────────────────────────────────────────────────────────────
@@ -271,7 +271,7 @@ jobs:
         run: |
           echo "📊 F7 Humility: Testing [0.03,0.05] band..."
           pytest tests/03_constitutional/test_f7_humility.py -v
-      
+
       # ─────────────────────────────────────────────────────────────
       # F8 GENIUS: Intelligence Threshold
       # ─────────────────────────────────────────────────────────────
@@ -279,7 +279,7 @@ jobs:
         run: |
           echo "🧠 F8 Genius: Testing G† threshold..."
           pytest tests/03_constitutional/test_f8_genius.py -v
-      
+
       # ─────────────────────────────────────────────────────────────
       # F1 AMANAH: Reversibility
       # ─────────────────────────────────────────────────────────────
@@ -297,32 +297,32 @@ jobs:
     name: F12 Defense - Security
     runs-on: ubuntu-latest
     needs: unit-tests
-    
+
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-      
+
       - name: Install dependencies
         run: uv pip install --system -e ".[dev]"
-      
+
       - name: F12 Defense - Injection Attacks
         run: |
           echo "🔒 F12 Defense: Testing injection resistance..."
           pytest tests/04_adversarial/test_injection_attacks.py -v
-      
+
       - name: F12 Defense - Boundary Violations
         run: |
           echo "🚧 F12 Defense: Testing boundary enforcement..."
           pytest tests/adversarial/judicial_orders/test_p0_orders.py -v
-      
+
       - name: F12 Defense - Resource Exhaustion
         run: |
           echo "⛽ F12 Defense: Testing resource limits..."
@@ -335,7 +335,7 @@ jobs:
     name: MCP Protocol - Transport
     runs-on: ubuntu-latest
     needs: [lint, typecheck]
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -345,22 +345,22 @@ jobs:
           POSTGRES_DB: arifos_test
         ports:
           - 5432:5432
-    
+
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-      
+
       - name: Install dependencies
         run: uv pip install --system -e ".[dev]"
-      
+
       - name: FastMCP Version Gate
         run: |
           echo "📋 Checking FastMCP version..."
@@ -371,19 +371,19 @@ jobs:
           assert (major, minor) >= (3, 0), f'FastMCP {version(\"fastmcp\")} < 3.0.0'
           print(f'✅ FastMCP {version(\"fastmcp\")} OK')
           "
-      
+
       - name: Test stdio Transport
         run: |
           echo "🔌 Testing stdio transport..."
           pytest tests/test_public_registry.py -v
-      
+
       - name: Test HTTP Transport
         env:
           DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
         run: |
           echo "🌐 Testing HTTP transport..."
           pytest tests/test_http_accept_compat.py -v
-      
+
       - name: Test Canonical 7 Tools
         env:
           DATABASE_URL: postgresql://arifos_test:test_password@localhost:5432/arifos_test
@@ -399,18 +399,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: [constitutional-tests, mcp-protocol-tests]
     if: github.event_name == 'push' || github.event_name == 'schedule'
-    
+
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-      
+
       - name: Build Docker Image
         run: |
           echo "🐳 Building Docker image..."
           docker build -t arifos:test -f Dockerfile .
-      
+
       - name: Test Container Health
         run: |
           echo "🏥 Testing container health..."
@@ -419,15 +419,15 @@ jobs:
             -e DATABASE_URL=sqlite:///tmp/test.db \
             -p 8080:8080 \
             arifos:test
-          
+
           sleep 10
-          
+
           # Test health endpoint
           curl -fsS http://localhost:8080/health || (docker logs arifos-test && exit 1)
-          
+
           # Test metrics endpoint
           curl -fsS http://localhost:8080/metrics > /dev/null || exit 1
-          
+
           docker stop arifos-test
           docker rm arifos-test
           echo "✅ Container health check passed"
@@ -440,12 +440,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, typecheck]
     if: always()
-    
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Full history for secret scan
-      
+
       # F12 Defense: Secret Detection
       - name: F12 Defense - Secret Scan
         uses: zricethezav/gitleaks-action@v2
@@ -453,13 +453,13 @@ jobs:
           args: detect --source . -v
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       # Dependency Vulnerabilities
       - name: Dependency Audit
         run: |
           pip install pip-audit
           pip-audit --ignore-vuln PYSEC-2022-43012
-      
+
       # Container Vulnerabilities
       - name: Container Scan
         uses: aquasecurity/trivy-action@master
@@ -467,7 +467,7 @@ jobs:
           scan-type: 'fs'
           format: 'sarif'
           output: 'trivy-results.sarif'
-      
+
       - name: Upload Trivy Results
         uses: github/codeql-action/upload-sarif@v4
         with:
@@ -482,36 +482,36 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, integration-tests, constitutional-tests]
     if: always()
-    
+
     steps:
-      - uses: actions/checkout@v6
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-      
+
       - name: Install dependencies
         run: uv pip install --system -e ".[dev]"
-      
+
       - name: Generate Coverage
         run: |
           pytest tests/ \
             --cov=core --cov=arifosmcp \
             --cov-report=xml --cov-report=term \
             --cov-fail-under=80
-      
+
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           fail_ci_if_error: false
-      
+
       - name: Constitutional Summary
         if: always()
         run: |

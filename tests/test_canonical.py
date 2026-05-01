@@ -26,11 +26,11 @@ from arifosmcp.runtime.tools import (
     _elicit_judge_candidate,
     register_tools,
 )
-from arifosmcp.tools.session_init import arif_session_init
+from arifosmcp.tools.session import arif_session_init
 from arifosmcp.tools.sense_observe import arif_sense_observe
-from arifosmcp.tools.vault_seal import arif_vault_seal
-from arifosmcp.tools.forge_execute import arif_forge_execute
-from arifosmcp.tools.judge_deliberate import arif_judge_deliberate
+from arifosmcp.tools.vault import arif_vault_seal
+from arifosmcp.tools.forge import arif_forge_execute
+from arifosmcp.tools.judge import arif_judge_deliberate
 
 
 def test_surface_partition():

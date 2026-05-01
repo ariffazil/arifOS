@@ -20,13 +20,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse
-
 from arifosmcp.runtime.build_info import get_build_info
 from arifosmcp.runtime.mcp_utils import call_mcp_tool
 from arifosmcp.runtime.optional_deps import aiofiles
-from arifosmcp.server import mcp as _FAST_MCP_
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 from .agent_card_v2 import get_arifOS_agent_card, get_axos_summary
 from .models import (
@@ -57,8 +55,7 @@ class A2ATaskManager:
     """Manages A2A task lifecycle with 888_HOLD cross-protocol broadcast."""
 
     def __init__(self, mcp_server: Any):
-        # Use the global FastMCP from server.py, not the Starlette app
-        self.mcp = _FAST_MCP_
+        self.mcp = mcp_server
         self.tasks: dict[str, Task] = {}
         self._lock = asyncio.Lock()
         self._hold_bridge = None
@@ -68,8 +65,10 @@ class A2ATaskManager:
         task_id = f"a2a-{uuid.uuid4().hex[:12]}"
 
         # Extract query from messages
+        query = ""
         for msg in request.messages:
             if msg.role == "user":
+                query = msg.content
                 break
 
         # Initialize constitutional session via MCP
@@ -77,10 +76,10 @@ class A2ATaskManager:
         try:
             # Call arifos_init to establish governed session
             init_result = await self._call_mcp_tool(
-                "arif_session_init",
+                "arifos_init",
                 {
-                    "mode": "init",
-                    "actor_id": request.client_agent_id
+                    "intent": query or "A2A task submission",
+                    "actor_id": request.client_agent_id,
                 },
             )
 
@@ -153,13 +152,18 @@ class A2ATaskManager:
                 task_id, TaskState.WORKING, "Running constitutional critique..."
             )
 
-            _critique_result = await self._call_mcp_tool(
-                "arif_heart_critique",
+            critique_result = await self._call_mcp_tool(
+                "arifos_heart",
                 {
                     "mode": "critique",
-                    "target": f"A2A task [{task.id}]: {query[:200]}",
+                    "query": json.dumps(
+                        {
+                            "action": task.skill_id or "general_execution",
+                            "parameters": task.parameters,
+                            "query": query,
+                        }
+                    ),
                     "session_id": task.session_id,
-                    "actor_id": task.client_agent_id,
                 },
             )
 
@@ -167,30 +171,22 @@ class A2ATaskManager:
             await self._update_task_state(task_id, TaskState.WORKING, "Awaiting APEX judgment...")
 
             judge_result = await self._call_mcp_tool(
-                "arif_judge_deliberate",
+                "arifos_judge",
                 {
-                    "mode": "judge",
-                    "candidate": f"A2A task execution: {query[:200]}",
+                    "query": json.dumps(
+                        {"original_query": query, "critique_result": critique_result}
+                    ),
                     "session_id": task.session_id,
-                    "actor_id": task.client_agent_id,
                 },
             )
 
-            # Parse verdict from the nested MCP result structure
-            # judge_result = {"content": [{"type": "text", "text": "{\"verdict\": \"SEAL\", ...}"}]}
-            import json as _json
-            _raw = judge_result.get("content", [{}])[0].get("text", "{}")
-            try:
-                _judge_payload = _json.loads(_raw)
-            except Exception:
-                _judge_payload = {}
-            verdict = _judge_payload.get("verdict", "VOID")
+            verdict = judge_result.get("verdict", "VOID")
             task.verdict = verdict
 
             if verdict == "VOID":
                 task.state = TaskState.FAILED
                 task.error_message = "Constitutional violation detected"
-                task.violations = _judge_payload.get("violations", [])
+                task.violations = judge_result.get("violations", [])
 
             elif verdict == "888_HOLD":
                 # ═══════════════════════════════════════════════════════════
@@ -220,7 +216,7 @@ class A2ATaskManager:
                         "task_id": task.id,
                         "client_agent_id": task.client_agent_id,
                         "skill_id": task.skill_id,
-                        "mode": "route", "task": query,
+                        "query": query,
                         "parameters": task.parameters,
                     }
 
@@ -253,10 +249,7 @@ class A2ATaskManager:
                     task.messages.append(
                         TaskMessage(
                             role="system",
-                            content=(
-                                "Task requires human ratification (F13 Sovereign). "
-                                "Please approve via arifOS dashboard."
-                            ),
+                            content="Task requires human ratification (F13 Sovereign). Please approve via arifOS dashboard.",
                         )
                     )
 
@@ -265,11 +258,11 @@ class A2ATaskManager:
                 await self._update_task_state(task_id, TaskState.WORKING, "Executing with SEAL...")
 
                 execution_result = await self._call_mcp_tool(
-                    "arif_kernel_route",
+                    "arifos_kernel",
                     {
-                        "mode": "route", "task": query,
+                        "query": query,
                         "session_id": task.session_id,
-                        
+                        "context": f"A2A task from {task.client_agent_id}",
                     },
                 )
 
@@ -452,7 +445,7 @@ class A2AServer:
 
             # Step 1: Initialize constitutional anchor
             init_result = await self.task_manager._call_mcp_tool(
-                "arif_session_init",
+                "arifos_init",
                 {
                     "intent": query,
                     "actor_id": actor_id,
@@ -463,12 +456,12 @@ class A2AServer:
 
             # Step 2: Execute full metabolic loop via arifos_kernel
             execution_result = await self.task_manager._call_mcp_tool(
-                "arif_kernel_route",
+                "arifos_kernel",
                 {
-                    "mode": "route", "task": query,
+                    "query": query,
                     "session_id": session_id,
                     "context": f"A2A direct-execution probe (actor={actor_id}, mode={mode})",
-                    
+                    "allow_execution": True,
                 },
             )
 
@@ -529,10 +522,7 @@ class A2AServer:
 
                     # End if terminal state
                     if task.state in [TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELLED]:
-                        yield (
-                            f"event: complete\n"
-                            f"data: {json.dumps({'task_id': task_id, 'state': task.state})}\n\n"
-                        )
+                        yield f"event: complete\ndata: {json.dumps({'task_id': task_id, 'state': task.state})}\n\n"
                         break
 
                     await asyncio.sleep(1)

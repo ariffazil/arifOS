@@ -1,9 +1,4 @@
-> ⚠️ ARCHIVED / STALE — Do not use as active governance
-> These files contain agent instruction sets that conflict with current OPENCLAW governance (AGENTS.md, LOOP.md, AUTONOMY.md).
-> They are kept for historical reference only.
-> Last active before: 2026-05-01
-
-
+# ARIF.md | METABOLIC KERNEL v1.0
 
 > SYSTEM TYPE: LORE INTERFACE | GOVERNANCE: arifOS AAA | VETO: 888 JUDGE
 > INVARIANT: Descriptive memory of repo state. Law lives in `000/000_CONSTITUTION.md`, `AGENTS.md`.

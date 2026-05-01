@@ -71,10 +71,7 @@ class AnomalousContrast(BaseModel):
 
     # Contrast type classification
     contrast_type: str = Field(
-        description=(
-            "'expected_vs_observed' | 'claimed_vs_verified' | "
-            "'shortterm_vs_entropy' | 'local_vs_civilizational'"
-        )
+        description="'expected_vs_observed' | 'claimed_vs_verified' | 'shortterm_vs_entropy' | 'local_vs_civilizational'"
     )
 
     # Resolution
@@ -160,10 +157,7 @@ class DecisionCollapse(BaseModel):
     # Prior state
     prior_distribution: dict[str, float] = Field(
         default_factory=dict,
-        description=(
-            "Probability distribution before decision "
-            "(e.g., {'SEAL': 0.3, 'SABAR': 0.5, 'VOID': 0.2})"
-        ),
+        description="Probability distribution before decision (e.g., {'SEAL': 0.3, 'SABAR': 0.5, 'VOID': 0.2})",
     )
 
     # Posterior state
@@ -489,16 +483,6 @@ class VerdictOutput(BaseModel):
     # Reasoning result
     result: dict[str, Any] = Field(default_factory=dict)
 
-    # Nine-Signal compliance (F2 addendum)
-    reasons: list[str] = Field(
-        default_factory=list,
-        description="Constitutional rationale for the verdict",
-    )
-    next_safe_action: str | None = Field(
-        default=None,
-        description="Recommended next step to resolve a HOLD or SABAR",
-    )
-
     # ── TOAC Layer ──
     anomalous_contrast: AnomalousContrast | None = Field(
         default=None, description="Contrast detection for manipulation/deception identification"
@@ -558,33 +542,28 @@ class VerdictOutput(BaseModel):
     # at judgment time. Not optional: every SEAL/HOLD/VOID must declare its band.
     truth_band: str | None = Field(
         default=None,
-        description="F2 truth: CERTAIN | HIGH_CONF | PLAUSIBLE | SPECULATIVE | UNKNOWN",
+        description="F2 truth declaration: CERTAIN | HIGH_CONFIDENCE | PLAUSIBLE | SPECULATIVE | UNKNOWN",
     )
     confidence_note: str | None = Field(
         default=None, description="F2 human-readable confidence declaration at judgment time"
     )
 
-    # ── Reversibility State (CRP v1.0) ──────────────────────────────────────
-    reversibility_state: dict[str, Any] = Field(
-        default_factory=lambda: {
-            "state": "REVERSIBLE",
-            "requires_human_seal": False,
-            "external_effect": False,
-            "vault_committed": False,
-        },
-        description="Structured reversibility tracking per CRP v1.0",
+    # P1-A APPLIED 2026-05-01: Constitutional vs factual confidence split
+    constitutional_pass_confidence: str | None = Field(
+        default=None,
+        description="F2 constitutional compliance level: CERTAIN | HIGH_CONFIDENCE | UNCERTAIN | FAIL",
     )
-
-    # ── Seal State ──────────────────────────────────────────────────────────
-    seal_state: dict[str, Any] = Field(
-        default_factory=lambda: {
-            "semantic_seal": False,
-            "procedural_seal": False,
-            "cryptographic_seal": False,
-            "vault_committed": False,
-            "human_approved": False,
-        },
-        description="Explicit seal semantics for the judgment",
+    factual_confidence: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="F2 factual/evidence confidence — independent of constitutional pass",
+    )
+    overall_confidence: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="Weighted composite: min(constitutional_pass_confidence_weighted, factual_confidence)",
     )
 
     # Metadata
@@ -669,19 +648,6 @@ class SealOutput(BaseModel):
     status: str = "OK"
     tool: str = "arif_vault_seal"
 
-    # Core verdict
-    verdict: VerdictCode = Field(default=VerdictCode.SEAL)
-
-    # Nine-Signal compliance (F2 addendum)
-    reasons: list[str] = Field(
-        default_factory=list,
-        description="Constitutional rationale for the seal status",
-    )
-    next_safe_action: str | None = Field(
-        default=None,
-        description="Recommended next step to resolve a HOLD",
-    )
-
     # Irreversibility
     irreversibility_bond: IrreversibilityBond = Field(
         default_factory=IrreversibilityBond,
@@ -748,7 +714,7 @@ class SealOutput(BaseModel):
     )
     truth_band: str | None = Field(
         default=None,
-        description="F2 truth: CERTAIN | HIGH_CONF | PLAUSIBLE | SPECULATIVE | UNKNOWN",
+        description="F2 truth declaration: CERTAIN | HIGH_CONFIDENCE | PLAUSIBLE | SPECULATIVE | UNKNOWN",
     )
     confidence_note: str | None = Field(
         default=None, description="F2 human-readable confidence declaration at seal time"

@@ -1,9 +1,10 @@
 # ── arifOS MCP Runtime — Lean Multi-Stage Build ──────────────────────────
-# Package truth: /app/arifosmcp/ is the Python package
-# PYTHONPATH=/app only — no multi-path chaos
+# Target size: ~300-500MB (vs 6GB with heavy ML deps)
+# Strategy: runtime deps only from requirements.txt (not full pyproject.toml)
+# Code is volume-mounted at /usr/src/app in production — image provides env only.
 #
-# Build:  docker build -t ghcr.io/ariffazil/arifos:latest -f arifosmcp/Dockerfile .
-# Run:    docker run --rm ghcr.io/ariffazil/arifos:latest python -m arifosmcp.runtime.__main__
+# Build:  docker build -t arifos/arifosmcp:latest .
+# Run:    docker compose up arifosmcp
 # ─────────────────────────────────────────────────────────────────────────
 
 # ── Stage 1: dependency installer ────────────────────────────────────────
@@ -16,6 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /install
 
+# System packages needed to build Python wheels
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -23,9 +25,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Install uv for fast installs
 RUN pip install uv
 
+# Copy only dependency manifest (cached unless requirements.txt changes)
 COPY requirements.txt .
+
+# Install runtime deps into a separate prefix for clean copy
 RUN uv pip install --system --no-cache -r requirements.txt
 
 
@@ -34,31 +40,38 @@ FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app \
+    PYTHONPATH=/usr/src/app \
     VPS_MODE=1 \
     ARIFOS_DEPLOYMENT=vps
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
+# Minimal runtime system packages only
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from deps stage
+# Copy installed Python packages from deps stage
 COPY --from=deps /usr/local/lib/python3.12 /usr/local/lib/python3.12
 COPY --from=deps /usr/local/bin /usr/local/bin
 
-# Copy package source as /app/arifosmcp (not nested under a subfolder)
-COPY arifosmcp /app/arifosmcp
-COPY core /app/core
-COPY pyproject.toml /app/
+# Copy package source (overridden by volume mount in production)
+# Copy arifosmcp package (build context is parent /arifOS/ directory)
+COPY arifosmcp ./arifosmcp/
 
-# Install runtime-only deps not in requirements.txt
-RUN pip install blake3==1.0.8 "fastapi>=0.100.0" "langfuse>=2.0.0"
+# Install the package itself (no deps — already installed above)
+RUN pip install --no-deps -e ./arifosmcp/
 
-# Non-root user
-RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /app
+# blake3 is required by core.organs._4_vault but not in requirements.txt
+# Install it directly from PyPI
+RUN pip install blake3==1.0.8
+
+# fastapi must be explicitly installed — uv resolves it but doesn't persist to COPY layer
+RUN pip install "fastapi>=0.100.0"
+
+# Non-root user for security
+RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /usr/src/app
 USER arifos
 
 EXPOSE 8080
@@ -66,4 +79,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-CMD ["python", "-m", "arifosmcp.runtime.__main__"]
+CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -1,9 +1,9 @@
 """
-ARIFOS CONSTITUTIONAL MAP (v2026.05.01)
+ARIFOS CONSTITUTIONAL MAP (v2026.04.26-KANON)
 ═══════════════════════════════════════════════
 
-Single source of truth for the active MCP surface: 13 canonical tools.
-All arif_verb_noun. No governance surface, no CC modes as separate tools.
+Single source of truth for the active MCP surface:
+- 13 canonical capability tools
 
 Ditempa Bukan Diberi.
 """
@@ -155,7 +155,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_judge_deliberate": {
         "name": "arif_judge_deliberate",
         "description": "888_JUDGE: < arbitrate — Final constitutional arbitration.",
-        "access": "authenticated",
+        "access": "public",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
         "floors": [Floor.F11_AUTH, Floor.F13_SOVEREIGN],
@@ -165,10 +165,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_vault_seal": {
         "name": "arif_vault_seal",
         "description": "999_VAULT: + seal finally — Immutable ledger anchoring.",
-        "access": "authenticated",
+        "access": "public",
         "stage": ToolStage.VAULT,
         "lane": TrinityLane.APEX,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH],
         "risk_tier": "critical",
         "irreversible": True,
     },
@@ -178,7 +178,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH],
         "risk_tier": "critical",
         "irreversible": True,
         "modes": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
@@ -264,279 +264,3 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         },
         "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given",
     }
-
-
-# ─── Schema Codegen ──────────────────────────────────────────────────────────
-# Auto-generate Pydantic models from CANONICAL_TOOLS I/O specs.
-# Any drift between canonical_map and handler signatures = CI failure.
-# ─────────────────────────────────────────────────────────────────────────────
-
-_TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
-    "arif_session_init": {
-        "mode": str,
-        "actor_id": str | None,
-        "ack_irreversible": bool,
-        "session_id": str | None,
-        "epoch_id": str | None,
-        "previous_session_hash": str | None,
-    },
-    "arif_sense_observe": {
-        "mode": str,
-        "query": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-        "url": str | None,
-        "layers": list[str] | None,
-    },
-    "arif_evidence_fetch": {
-        "mode": str,
-        "url": str | None,
-        "query": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-        "thinking_depth": int,
-    },
-    "arif_mind_reason": {
-        "mode": str,
-        "query": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-        "plan_id": str | None,
-        "witness_type": str,
-    },
-    "arif_heart_critique": {
-        "mode": str,
-        "target": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-    },
-    "arif_kernel_route": {
-        "mode": str,
-        "target": str | None,
-        "task": str | None,
-        "stage": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-    },
-    "arif_reply_compose": {
-        "mode": str,
-        "message": str | None,
-        "style": str | None,
-        "citations": list[str] | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-    },
-    "arif_memory_recall": {
-        "mode": str,
-        "query": str | None,
-        "memory_id": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-        "metadata": dict | None,
-    },
-    "arif_gateway_connect": {
-        "mode": str,
-        "target_agent": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-    },
-    "arif_judge_deliberate": {
-        "mode": str,
-        "candidate": str | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-        "constitutional_chain_id": str | None,
-    },
-    "arif_vault_seal": {
-        "mode": str,
-        "payload": str,
-        "session_id": str | None,
-        "ack_irreversible": bool,
-        "actor_id": str | None,
-        "constitutional_chain_id": str | None,
-        "judge_state_hash": str | None,
-    },
-    "arif_forge_execute": {
-        "mode": str,
-        "manifest": str,
-        "query": str | None,
-        "artifact_id": str | None,
-        "session_id": str | None,
-        "ack_irreversible": bool,
-        "actor_id": str | None,
-        "constitutional_chain_id": str | None,
-        "judge_state_hash": str | None,
-        "vault_entry_id": str | None,
-        "plan_id": str | None,
-    },
-    "arif_ops_measure": {
-        "mode": str,
-        "estimate": float | None,
-        "session_id": str | None,
-        "actor_id": str | None,
-    },
-}
-
-
-def generate_pydantic_models() -> dict[str, Any]:
-    """
-    Generate Pydantic BaseModel classes from CANONICAL_TOOLS I/O schemas.
-
-    Returns a dict: {tool_name: {"input_model": BaseModel, "output_model": BaseModel}}
-
-    Enforces:
-    - F10 Ontology: all tool I/O must have type annotations
-    - F11 Auth: authenticated tools must have actor_id in schema
-    - F12 Injection: all string inputs must be annotated
-
-    Codegen validation failures increment omega.schema_violations
-    and flip OMEGA → SESAT per KERNEL_EVALS.md §Schema.
-    """
-    from pydantic import BaseModel, ConfigDict, Field
-
-    models: dict[str, dict[str, Any]] = {}
-    violations: list[str] = []
-
-    for tool_name, input_spec in _TOOL_INPUT_SCHEMAS.items():
-        spec = CANONICAL_TOOLS.get(tool_name)
-        if spec is None:
-            violations.append(f"{tool_name}: not in CANONICAL_TOOLS")
-            continue
-
-        # Build input model
-        annotations: dict[str, Any] = {}
-        defaults: dict[str, Any] = {}
-
-        for param, type_hint in input_spec.items():
-            # F12: all string inputs are treated as potentially unsanitized
-            # Field default marks it for injection scanning
-            if type_hint is str | None:
-                annotations[param] = str
-                defaults[param] = Field(default=None, description=f"[F12: sanitized] {param}")
-            elif type_hint in (int, float, bool, list, dict):
-                annotations[param] = type_hint
-                defaults[param] = Field(default=None)
-            else:
-                annotations[param] = type_hint
-                defaults[param] = Field(default=None)
-
-        # F11: authenticated tools must include actor_id
-        if spec["access"] == "authenticated":
-            if "actor_id" not in annotations:
-                violations.append(f"{tool_name}: authenticated tool missing actor_id field [F11]")
-
-        model_name = _to_model_name(tool_name) + "Input"
-        model_dict = {"model_config": ConfigDict(arbitrary_types_allowed=True)}
-        model_dict.update({k: v for k, v in defaults.items()})
-
-        try:
-            input_model = type(model_name, (BaseModel,), model_dict)
-            # Attach annotations
-            input_model.__annotations__ = annotations
-        except Exception as e:
-            violations.append(f"{tool_name}: model generation failed — {e}")
-            continue
-
-        models[tool_name] = {
-            "input_model": input_model,
-            "spec": spec,
-        }
-
-    return {"models": models, "violations": violations}
-
-
-def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool, list[str]]:
-    """
-    Validate a tool response against its canonical schema.
-
-    Returns (is_valid, violations).
-
-    Violations include:
-    - Missing nine_signal block (Nine-Signal contract)
-    - Missing reasons[] on HOLD/VOID/SABAR
-    - output_policy absent when domain data present
-    """
-    violations: list[str] = []
-    spec = CANONICAL_TOOLS.get(tool_name)
-    if spec is None:
-        return False, [f"Unknown tool: {tool_name}"]
-
-    verdict = response.get("verdict", "")
-
-    # Nine-Signal block check
-    nine = response.get("nine_signal")
-    if nine is None:
-        violations.append(f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]")
-
-    # reasons[] check for non-SEAL verdicts
-    if verdict in ("HOLD", "VOID", "SABAR"):
-        reasons = response.get("reasons") or response.get("reason") or []
-        if not reasons:
-            violations.append(
-                f"{tool_name}: {verdict} verdict without reasons[] [F2 addendum / Nine-Signal]"
-            )
-
-    # output_policy check
-    if response.get("domain_payload_present") and not response.get("output_policy"):
-        violations.append(f"{tool_name}: domain payload without output_policy [F2 addendum]")
-
-    return len(violations) == 0, violations
-
-
-def _to_model_name(tool_name: str) -> str:
-    """Convert arif_tool_name → ArifToolNameInput"""
-    parts = tool_name.split("_")
-    # Capitalise each part, strip arif_ prefix
-    parts = [p.capitalize() for p in parts if p != "arif"]
-    return "".join(parts) + "Input"
-
-
-def check_schema_coverage() -> dict[str, Any]:
-    """
-    Verify every CANONICAL_TOOLS entry has an I/O schema defined.
-    Returns coverage report.
-    """
-    defined = set(_TOOL_INPUT_SCHEMAS.keys())
-    canonical = set(CANONICAL_TOOLS.keys())
-    missing = canonical - defined
-    extra = defined - canonical
-
-    return {
-        "canonical_tools": len(canonical),
-        "schemas_defined": len(defined),
-        "missing_schemas": list(missing),
-        "orphan_schemas": list(extra),
-        "coverage_pct": (len(canonical & defined) / len(canonical) * 100) if canonical else 0,
-        "PASS": len(missing) == 0,
-    }
-
-
-# ─── Irreversibility Enforcer ────────────────────────────────────────────────
-
-_IRREVERSIBLE_TOOLS = {
-    name for name, spec in CANONICAL_TOOLS.items() if spec.get("irreversible", False)
-}
-
-
-def enforce_irreversibility_guard(
-    tool_name: str,
-    ack_irreversible: bool,
-    mode: str | None = None,
-) -> tuple[bool, str | None]:
-    """
-    Enforce F1 Amanah irreversibility guard.
-
-    Returns (allowed, violation_msg).
-    allowed=True  → proceed (SEAL from gate)
-    allowed=False → blocked, caller must emit HOLD with msg
-    """
-    if tool_name not in _IRREVERSIBLE_TOOLS:
-        return True, None
-
-    if not ack_irreversible:
-        return False, (
-            f"F1: {tool_name} is irreversible — "
-            "ack_irreversible=True required. "
-            "Escalation: 888_HOLD"
-        )
-    return True, None

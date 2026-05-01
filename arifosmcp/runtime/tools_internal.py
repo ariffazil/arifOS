@@ -12,11 +12,25 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from typing import Any
 
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_armor_scan as _az_armor_scan,
+)
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_engineer as _az_engineer,
+)
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_hold_check as _az_hold_check,
+)
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_memory_query as _az_memory_query,
+)
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_validate as _az_validate,
+)
 from arifosmcp.runtime.model import (
     CallerContext,
     RuntimeEnvelope,
@@ -27,21 +41,6 @@ from arifosmcp.runtime.model import (
 from arifosmcp.runtime.schemas import IntentType
 from arifosmcp.runtime.sessions import (
     get_session_identity,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_armor_scan as _az_armor_scan,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_engineer as _az_engineer,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_hold_check as _az_hold_check,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_memory_query as _az_memory_query,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_validate as _az_validate,
 )
 from fastmcp.server.context import Context
 
@@ -94,23 +93,19 @@ async def _fetch_jwks() -> dict | None:
     if not JWT_SUPABASE_JWKS_URL:
         return None
     try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                r = await client.get(JWT_SUPABASE_JWKS_URL)
-                if r.status_code == 200:
-                    _jwt_cache = r.json()
-                    _jwt_cache_time = time.time()
-                    return _jwt_cache
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(JWT_SUPABASE_JWKS_URL)
+            if r.status_code == 200:
+                _jwt_cache = r.json()
+                _jwt_cache_time = time.time()
+                return _jwt_cache
     except Exception:  # nosec: B110 — network failures are non-fatal in observe mode
         pass
     return None
 
 
 def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
-    """Log JWT violation in observe mode. Escalates to error for F11/F12 severity.
-    
-    Writes to BOTH container logs AND the telemetry-data volume so violations
-    survive container restarts (fixes cron 24h observation window gap).
-    """
+    """Log JWT violation in observe mode. Escalates to error for F11/F12 severity."""
     payload = {
         "type": violation_type,
         "detail": detail,
@@ -122,18 +117,6 @@ def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
         logger.error(f"JWT_VIOLATION [{violation_type}]: {detail} context={context}")
     else:
         logger.warning(f"JWT_VIOLATION [{violation_type}]: {detail}")
-
-    # ── Persist to telemetry-data volume ─────────────────────────────────────
-    # Mount: telemetry-data:/app/telemetry (docker-compose.yml)
-    # Cron reads this file so violations survive container restarts.
-    try:
-        telemetry_path = os.environ.get("TELEMETRY_PATH", "/app/telemetry")
-        os.makedirs(telemetry_path, exist_ok=True)
-        violation_log = os.path.join(telemetry_path, "jwt_violations.jsonl")
-        with open(violation_log, "a", encoding="utf-8") as fh:
-            fh.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    except Exception as write_err:
-        logger.warning(f"JWT_VIOLATION: could not write to telemetry volume: {write_err}")
 
 
 async def vault_jwt_guard(
@@ -848,7 +831,9 @@ async def vault_ledger_dispatch_impl(
         jwt_sub = jwt_result.get("jwt_sub") or "unverified"
         logger.info(
             "vault_ledger seal | jwt_sub=%s actor=%s violations=%d",
-            jwt_sub, actor_id, len(jwt_result["violations"]),
+            jwt_sub,
+            actor_id,
+            len(jwt_result["violations"]),
         )
         # ── End JWT Guard ────────────────────────────────────────────────
 

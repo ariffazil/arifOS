@@ -75,12 +75,6 @@ class RuntimeState:
     gateway_handshakes: int = 0
     vault_dry_seals: int = 0
     ops_reads: int = 0
-    reality_checks: int = 0
-    fetch_calls: int = 0
-    reason_calls: int = 0
-    critique_calls: int = 0
-    reply_compositions: int = 0
-    memory_recalls: int = 0
 
     # v0.2: Session registry
     _sessions: dict[str, SessionAnchor] = field(default_factory=dict)

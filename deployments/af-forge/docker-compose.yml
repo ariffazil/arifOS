@@ -1,4 +1,4 @@
-# arifOS MCP - A-FORGE Docker Compose Stack
+# arifOS MCP — A-FORGE Docker Compose Stack
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # Usage:
@@ -12,20 +12,21 @@ version: "3.8"
 
 services:
   # ─── arifOS MCP Server ─────────────────────────────────────────────────────
-  # PRODUCTION: Build once → push immutable tag → VPS pulls by commit hash.
-  #   export IMAGE_TAG=$(git rev-parse --short HEAD)
-  #   docker buildx build -t ghcr.io/ariffazil/arifos:${IMAGE_TAG} \
-  #       -t ghcr.io/ariffazil/arifos:a-forge --push .
-  #   docker compose pull arifosmcp  # uses image: below + IMAGE_TAG
-  #   docker compose up -d --force-recreate arifosmcp
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:${IMAGE_TAG}
-    pull_policy: always  # always pull from registry; never use local cache
+    build:
+      context: ../..
+      dockerfile: deployments/af-forge/Dockerfile
+      args:
+        ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
+        ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
+        ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.26}
+    image: ghcr.io/ariffazil/arifos:a-forge
     container_name: arifosmcp
     restart: unless-stopped
 
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:8080:3000"
 
     environment:
       # Transport (HTTP/streamable-http for production)
@@ -33,57 +34,27 @@ services:
       ARIFOS_MCP_HOST: 0.0.0.0
       ARIFOS_MCP_PORT: 8080
       VAULT999_PATH: /app/VAULT999/outcomes.jsonl
-      TELEMETRY_PATH: /app/telemetry
 
-      # Python path (include /tmp/pylibs for runtime packages)
-      # /app must be first so volume-mounted code overrides image's editable install
-      PYTHONPATH: /app:/tmp/pylibs
-
-      # Build info (baked into image at build time; available at runtime)
-      # DEPLOY_GIT_COMMIT is the canonical identity — already set in image via Dockerfile ENV
-      # DEPLOY_GIT_BRANCH is already set in image via Dockerfile ENV
-      # DEPLOY_BUILD_TIME is already set in image via Dockerfile ENV
-      # ARIFOS_VERSION is the human-readable version — pre-set in Dockerfile
-      # GIT_SHA env override: forces _git_sha_short() to use image SHA not worktree git
-      ARIFOS_BUILD_SHA: "fb395507"
-
-      # Build info (runtime overrides — use only for canary/staging)
-      # DEPLOY_GIT_COMMIT: ${DEPLOY_GIT_COMMIT:-}   # leave empty; image ENV is authoritative
-      # DEPLOY_GIT_BRANCH: ${ARIFOS_BUILD_BRANCH:-}
-      # DEPLOY_BUILD_TIME: ${ARIFOS_BUILD_TIME:-}
-      # Human-readable version string shown in /health and /version
-      # NOTE: IMAGE_TAG is the Docker tag (short git SHA). For the full git SHA,
-      # the image's baked DEPLOY_GIT_COMMIT is authoritative — do NOT override it.
-      ARIFOS_VERSION: kanon-${IMAGE_TAG:-dev}
+      # Build info
+      ARIFOS_BUILD_SHA: ${ARIFOS_BUILD_SHA:-dev}
+      ARIFOS_BUILD_TIME: ${ARIFOS_BUILD_TIME:-unknown}
+      ARIFOS_APP_VERSION: ${ARIFOS_APP_VERSION:-2026.04.26}
+      GIT_COMMIT: ${ARIFOS_BUILD_SHA:-dev}
 
       # Federation endpoint (for reference)
       ARIFOS_VPS_URL: ${ARIFOS_VPS_URL:-https://arifos.federation}
       MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
 
-      # Supabase VAULT999 — cloud canonical ledger
-      SUPABASE_URL: https://utbmmjmbolmuahwixjqc.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
-
-      # LLM providers
-      SEA_LION_API_KEY: sk-znzfOJH_Yc7LKewfrfsl2A
-
-      # Memory engine (Postgres + Qdrant + Ollama)
-      DATABASE_URL: postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999
-      QDRANT_URL: http://qdrant:6333
-      OLLAMA_URL: http://ollama:11434
-      EMBEDDING_MODEL: bge-m3
+      # Secrets (mount via .env or Docker secrets - NOT in compose)
+      # ARIFOS_GOVERNANCE_SECRET: ${ARIFOS_GOVERNANCE_SECRET:-}
 
     volumes:
-      # Code mount for live updates
-      - ../../:/app:rw
       # Widget files for CSP-served content
       - ../../static/widgets:/app/static/widgets:ro
       # Vault999 persistence
       - vault999-data:/app/VAULT999
       # Telemetry
       - telemetry-data:/app/telemetry
-      # Session / runtime data
-      - session-data:/app/data
 
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
@@ -98,8 +69,30 @@ services:
         max-size: "10m"
         max-file: "3"
 
-    # Nginx service removed — Caddy handles all routing (see /root/arifOS/Caddyfile)
-    # Keeping service block as placeholder to prevent docker-compose from removing the named volume
+    networks:
+      - arifos-network
+      - arifos_core_network
+
+  # ─── Nginx Reverse Proxy ────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: arifos-nginx
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./widget-csp.conf:/etc/nginx/conf.d/widget-csp.conf:ro
+      - ../../static/widgets:/var/www/arifos/widgets:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - certbot-webroot:/var/www/certbot:ro
+
+    depends_on:
+      - arifosmcp
+
     networks:
       - arifos-network
       - arifos_core_network
@@ -109,8 +102,6 @@ volumes:
   vault999-data:
     driver: local
   telemetry-data:
-    driver: local
-  session-data:
     driver: local
   certbot-webroot:
     driver: local

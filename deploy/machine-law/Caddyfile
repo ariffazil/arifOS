@@ -179,14 +179,3 @@ dozzle.arif-fazil.com {
     import tls_origin
     reverse_proxy dozzle:8080
 }
-
-hermes.arif-fazil.com {
-    import tls_origin
-    reverse_proxy hermes-agent:3002
-}
-
-# AAA A2A Gateway
-aaa.arif-fazil.com {
-    import tls_origin
-    reverse_proxy aaa-a2a:3001
-}

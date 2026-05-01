@@ -24,40 +24,23 @@ async def test_seal_e2e():
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            # Get judge verdict first (required for vault seal)
-            res_judge = await session.call_tool(
-                "arif_judge_deliberate",
-                {
-                    "mode": "judge",
-                    "candidate": "seal test",
-                    "actor_id": "arif",
-                },
-            )
-            judge_payload = json.loads(res_judge.content[0].text)
-            cc_id = judge_payload.get("judge_contract", {}).get("constitutional_chain_id")
-            state_hash = judge_payload.get("judge_contract", {}).get("state_hash")
             res_seal = await session.call_tool(
-                "arif_vault_seal",
+                "arifos_vault",
                 {
-                    "mode": "seal",
-                    "payload": "E2E Test Evidence for output alignment",
+                    "verdict": "SEAL",
+                    "evidence": "E2E Test Evidence for output alignment",
                     "session_id": "e2e-seal-session",
-                    "ack_irreversible": True,
-                    "actor_id": "arif",
-                    "constitutional_chain_id": cc_id,
-                    "judge_state_hash": state_hash,
+                    "dry_run": True,
                 },
             )
 
             raw_text = res_seal.content[0].text
             payload = json.loads(raw_text)
 
-            assert (
-                payload.get("status") == "OK"
-            ), f"Expected OK, got {payload.get('status')}: {raw_text}"
-            output = payload.get("output", "")
-            assert "Vault" in output
-            assert "Verdict:" in output
+            assert list(payload.keys()) == ["output"]
+            assert "Vault" in payload["output"]
+            assert "Context: actor" in payload["output"]
+            assert "Verdict:" in payload["output"]
 
 
 if __name__ == "__main__":

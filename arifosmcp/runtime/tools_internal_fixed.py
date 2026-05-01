@@ -15,13 +15,21 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.shared.mottos import (
-    MOTTO_000_INIT_HEADER,
-    MOTTO_999_SEAL_HEADER,
-    get_motto_for_stage,
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_armor_scan as _az_armor_scan,
 )
-from fastmcp.server.context import Context
-
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_engineer as _az_engineer,
+)
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_hold_check as _az_hold_check,
+)
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_memory_query as _az_memory_query,
+)
+from arifosmcp.provisional.agentzero_tools import (
+    agentzero_validate as _az_validate,
+)
 from arifosmcp.runtime.model import (
     CallerContext,
     CanonicalError,
@@ -34,20 +42,12 @@ from arifosmcp.runtime.schemas import IntentType
 from arifosmcp.runtime.sessions import (
     get_session_identity,
 )
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_armor_scan as _az_armor_scan,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_engineer as _az_engineer,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_hold_check as _az_hold_check,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_memory_query as _az_memory_query,
-)
-from arifosmcp.tools.agentzero_tools import (
-    agentzero_validate as _az_validate,
+from fastmcp.server.context import Context
+
+from core.shared.mottos import (
+    MOTTO_000_INIT_HEADER,
+    MOTTO_999_SEAL_HEADER,
+    get_motto_for_stage,
 )
 
 from .bridge import call_kernel
@@ -56,6 +56,7 @@ from .bridge import call_kernel
 try:
     from .memory_hybrid import get_hybrid_memory
 except ImportError:
+
     async def get_hybrid_memory():
         raise RuntimeError("Hybrid memory not available")
 
@@ -69,6 +70,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 0 FIX: Safe envelope creation helper
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _create_error_envelope(
     tool_name: str,
@@ -96,10 +98,12 @@ def _create_error_envelope(
 # PHASE 0 FIX: Async boundary validator
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _validate_async_context() -> bool:
     """Check if we're in an async context that can await coroutines."""
     try:
         import asyncio
+
         loop = asyncio.get_running_loop()
         return loop is not None
     except RuntimeError:
@@ -110,6 +114,7 @@ def _validate_async_context() -> bool:
 # PHASE 0 FIX: Payload sanitization
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """Sanitize payload to ensure serializable types only."""
     sanitized = {}
@@ -118,14 +123,15 @@ def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
             sanitized[key] = None
         elif isinstance(value, (str, int, float, bool, list, dict)):
             sanitized[key] = value
-        elif hasattr(value, 'model_dump'):
+        elif hasattr(value, "model_dump"):
             # Pydantic model
-            sanitized[key] = value.model_dump(mode='json')
-        elif hasattr(value, '__dict__'):
+            sanitized[key] = value.model_dump(mode="json")
+        elif hasattr(value, "__dict__"):
             # Regular object - convert to dict carefully
             try:
                 sanitized[key] = {
-                    k: v for k, v in value.__dict__.items() 
+                    k: v
+                    for k, v in value.__dict__.items()
                     if isinstance(v, (str, int, float, bool, list, dict, type(None)))
                 }
             except Exception:
@@ -258,6 +264,7 @@ def _resolve_next_action(
 # PHASE 0 FIX: Hardened _wrap_call with kernel invocation validation
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def _wrap_call(
     tool_name: str,
     stage: Stage,
@@ -268,7 +275,7 @@ async def _wrap_call(
 ) -> RuntimeEnvelope:
     """
     Hardened wrapper for kernel calls with validation and graceful degradation.
-    
+
     PHASE 0 FIXES:
     - Payload sanitization before kernel call
     - Kernel response validation
@@ -279,10 +286,11 @@ async def _wrap_call(
     payload["session_id"] = session_id
     payload["tool"] = tool_name
     payload["stage"] = stage.value
-    
+
     # Propagate actor_id from session if missing in payload
     if "actor_id" not in payload:
         from arifosmcp.runtime.sessions import get_session_identity
+
         ident = get_session_identity(session_id)
         if ident:
             payload["actor_id"] = ident.get("actor_id")
@@ -302,31 +310,31 @@ async def _wrap_call(
     try:
         # PHASE 0 FIX: Kernel call with response validation
         kernel_res = await call_kernel(tool_name, session_id, sanitized_payload)
-        
+
         # Validate kernel response structure
         if not isinstance(kernel_res, dict):
             raise ValueError(f"Kernel returned non-dict: {type(kernel_res)}")
-        
+
         # ─── V1.0 VERDICT MAPPING ───
         from arifosmcp.runtime.model import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
-        
+
         # Convert legacy Verdict to VerdictCode with fallback
         legacy_v = kernel_res.get("verdict", "SABAR")
-        if legacy_v == "SEAL": 
+        if legacy_v == "SEAL":
             v_code = VerdictCode.SEAL
-        elif legacy_v == "VOID": 
+        elif legacy_v == "VOID":
             v_code = VerdictCode.VOID
-        elif legacy_v == "PARTIAL": 
+        elif legacy_v == "PARTIAL":
             v_code = VerdictCode.PARTIAL
-        else: 
+        else:
             v_code = VerdictCode.SABAR
-        
+
         # Build metrics with safe access
         metrics = CanonicalMetrics()
         metrics.telemetry.ds = kernel_res.get("delta_s", 0.0)
         metrics.telemetry.G_star = kernel_res.get("g_score", 0.0)
-        
+
         envelope = forge_verdict(
             tool_id=tool_name,
             stage=stage.value,
@@ -334,13 +342,13 @@ async def _wrap_call(
             session_id=session_id,
             metrics=metrics,
             override_code=v_code,
-            message=kernel_res.get("note")
+            message=kernel_res.get("note"),
         )
-        
+
         # PHASE 0 FIX: Safe trace access
         if "trace" in kernel_res and isinstance(kernel_res["trace"], dict):
             envelope.trace = kernel_res["trace"]
-        
+
         # PHASE 0 FIX: Safe motto resolution
         try:
             envelope.meta.motto = _resolve_motto(envelope.stage)
@@ -355,14 +363,16 @@ async def _wrap_call(
         envelope.caller_state, envelope.allowed_next_tools, envelope.blocked_tools = (
             _resolve_caller_state(session_id, envelope.authority)
         )
-        
+
         # PHASE 0 FIX: Safe next_action resolution
         try:
             if envelope.verdict in (Verdict.HOLD, Verdict.VOID) and not envelope.next_action:
                 ac_dict = (
                     envelope.auth_context.model_dump(mode="json")
                     if envelope.auth_context and hasattr(envelope.auth_context, "model_dump")
-                    else (envelope.auth_context if isinstance(envelope.auth_context, dict) else None)
+                    else (
+                        envelope.auth_context if isinstance(envelope.auth_context, dict) else None
+                    )
                 )
                 envelope.next_action = _resolve_next_action(
                     envelope.caller_state, envelope.blocked_tools, ac_dict
@@ -376,6 +386,7 @@ async def _wrap_call(
         # ── Philosophy Injection ──
         try:
             from arifosmcp.runtime.philosophy_registry import inject_philosophy
+
             envelope.philosophy = inject_philosophy(envelope)
         except Exception as phil_err:
             logger.debug(f"Philosophy injection failed: {phil_err}")
@@ -391,18 +402,19 @@ async def _wrap_call(
             await ctx.info(f"Metabolic transition complete: {envelope.verdict}")
 
         return envelope
-        
+
     except Exception as e:
         # PHASE 0 FIX: Enhanced error handling with structured envelope
         error_msg = str(e)
         logger.error(f"DEBUG: _wrap_call exception in {tool_name}: {e}")
         import traceback
+
         traceback.print_exc()
-        
+
         # Determine verdict based on error type
         verdict = Verdict.VOID if "AUTH_FAILURE" in error_msg else Verdict.HOLD
         error_code = "AUTH_FAILURE" if "AUTH_FAILURE" in error_msg else "KERNEL_ERROR"
-        
+
         if ctx and hasattr(ctx, "error"):
             await ctx.error(f"Metabolic failure in {tool_name}: {error_msg}")
 
@@ -418,6 +430,7 @@ async def _wrap_call(
         # ── Philosophy Injection (Failure Anchor) ──
         try:
             from arifosmcp.runtime.philosophy_registry import inject_philosophy
+
             envelope.philosophy = inject_philosophy(envelope)
         except Exception as phil_err:
             logger.debug(f"Philosophy injection on error failed: {phil_err}")
@@ -435,13 +448,13 @@ async def init_anchor_dispatch_impl(
     Internal dispatch implementation for init_anchor (session bootstrap).
     """
     session_id = _normalize_session_id(payload.get("session_id"))
-    
+
     # Ensure required fields in payload
     payload.setdefault("risk_tier", risk_tier)
     payload.setdefault("dry_run", dry_run)
     if auth_context:
         payload.setdefault("auth_context", auth_context)
-    
+
     if mode in ("init", None):
         return await _wrap_call("init_anchor", Stage.INIT_000, session_id, payload, ctx)
     elif mode == "revoke":
@@ -450,7 +463,7 @@ async def init_anchor_dispatch_impl(
         return await _wrap_call("init_refresh", Stage.INIT_000, session_id, payload, ctx)
     elif mode in ("state", "status"):
         return await _wrap_call("init_state", Stage.INIT_000, session_id, payload, ctx)
-    
+
     # PHASE 0 FIX: Return error envelope instead of raising
     return _create_error_envelope(
         tool_name="init_anchor",
@@ -501,7 +514,9 @@ async def apex_judge_dispatch_impl(
     elif mode == "rules":
         return await _wrap_call("audit_rules", Stage.INIT_000, session_id, payload, ctx)
     elif mode == "validate":
-        return await _az_validate(input_to_validate=payload.get("candidate", ""), session_id=session_id)
+        return await _az_validate(
+            input_to_validate=payload.get("candidate", ""), session_id=session_id
+        )
     elif mode == "hold":
         return await _az_hold_check(hold_id=payload.get("hold_id"), session_id=session_id)
     elif mode == "armor":
@@ -548,7 +563,7 @@ async def apex_judge_dispatch_impl(
     elif mode == "health":
         if ctx and hasattr(ctx, "info"):
             await ctx.info(f"Health check requested for session {session_id}")
-        
+
         health_payload = {
             "mode": "health",
             "floors_active": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
@@ -572,7 +587,7 @@ async def apex_judge_dispatch_impl(
             "session_id": session_id,
             "timestamp_utc": "2026-04-08T14:00:00Z",
         }
-        
+
         return RuntimeEnvelope(
             ok=True,
             tool="apex_judge",
@@ -664,7 +679,7 @@ async def vault_ledger_dispatch_impl(
             status=RuntimeStatus.SUCCESS,
             payload=res_payload,
         )
-    
+
     # PHASE 0 FIX: Return error envelope instead of raising
     return _create_error_envelope(
         tool_name="vault_ledger",
@@ -684,12 +699,12 @@ async def agi_mind_dispatch_impl(
 ) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened agi_mind dispatch with kernel validation.
-    
+
     Addresses: "kernel path had invocation issues"
     """
     session_id = payload.get("session_id")
     query = payload.get("query", "")
-    
+
     # PHASE 0 FIX: Validate required fields
     if not query:
         return _create_error_envelope(
@@ -700,7 +715,7 @@ async def agi_mind_dispatch_impl(
             error_code="MISSING_QUERY",
             verdict=Verdict.VOID,
         )
-    
+
     if mode == "reason":
         return await _wrap_call("agi_reason", Stage.MIND_333, session_id, {"query": query}, ctx)
     elif mode == "reflect":
@@ -727,7 +742,7 @@ async def agi_mind_dispatch_impl(
                 error_code="FORGE_ERROR",
                 verdict=Verdict.HOLD,
             )
-    
+
     # PHASE 0 FIX: Return error envelope instead of raising
     return _create_error_envelope(
         tool_name="agi_mind",
@@ -744,7 +759,7 @@ async def asi_heart_dispatch_impl(
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
     content = payload.get("content", "")
-    
+
     if not content:
         return _create_error_envelope(
             tool_name="asi_heart",
@@ -754,7 +769,7 @@ async def asi_heart_dispatch_impl(
             error_code="MISSING_CONTENT",
             verdict=Verdict.VOID,
         )
-    
+
     if mode == "critique":
         return await _wrap_call(
             "asi_critique", Stage.CRITIQUE_666, session_id, {"draft_output": content}, ctx
@@ -763,7 +778,7 @@ async def asi_heart_dispatch_impl(
         return await _wrap_call(
             "asi_simulate", Stage.HEART_666, session_id, {"scenario": content}, ctx
         )
-    
+
     return _create_error_envelope(
         tool_name="asi_heart",
         stage=Stage.CRITIQUE_666.value,
@@ -795,16 +810,17 @@ def _get_constitutional_memory_store():
 # PHASE 0 FIX: Hardened engineering_memory with filesystem error handling
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def engineering_memory_dispatch_impl(
     mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
 ) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened engineering_memory with graceful filesystem degradation.
-    
+
     Addresses: "memory engineer hit a filesystem error"
     """
     session_id = payload.get("session_id")
-    
+
     # PHASE 0 FIX: Validate mode parameter
     valid_modes = ["engineer", "write", "vector_query", "query", "vector_store", "vector_forget"]
     if mode not in valid_modes:
@@ -816,9 +832,9 @@ async def engineering_memory_dispatch_impl(
             error_code="INVALID_MODE",
             verdict=Verdict.VOID,
         )
-    
+
     store = _get_constitutional_memory_store()
-    
+
     if not store and mode in ("vector_forget", "vector_store", "vector_query"):
         # PHASE 0 FIX: Graceful degradation when Qdrant unavailable
         return RuntimeEnvelope(
@@ -834,7 +850,7 @@ async def engineering_memory_dispatch_impl(
                 "mode": mode,
             },
         )
-        
+
     if mode == "engineer":
         try:
             return await _az_engineer(
@@ -851,7 +867,7 @@ async def engineering_memory_dispatch_impl(
                 error_code="ENGINEER_ERROR",
                 verdict=Verdict.HOLD,
             )
-            
+
     elif mode == "write":
         content = payload.get("content") or payload.get("text") or "No content provided."
         project_id = payload.get("project_id", "default")
@@ -918,7 +934,7 @@ async def engineering_memory_dispatch_impl(
                     error_code="WRITE_ERROR",
                     verdict=Verdict.HOLD,
                 )
-        
+
         # Fallback: no Qdrant available
         return RuntimeEnvelope(
             ok=True,
@@ -934,7 +950,7 @@ async def engineering_memory_dispatch_impl(
                 "warning": "Qdrant not available",
             },
         )
-        
+
     elif mode == "vector_query":
         query = payload.get("query") or payload.get("task") or payload.get("content") or "No query"
         project_id = payload.get("project_id", "default")
@@ -978,8 +994,7 @@ async def engineering_memory_dispatch_impl(
                 else:
                     truncated = r.copy()
                     truncated["content"] = (
-                        r["content"][:budget_remaining]
-                        + "\n[...TRUNCATED — F4 context budget]"
+                        r["content"][:budget_remaining] + "\n[...TRUNCATED — F4 context budget]"
                     )
                     truncated["truncated"] = True
                     budgeted_results.append(truncated)
@@ -1075,8 +1090,7 @@ async def engineering_memory_dispatch_impl(
                 else:
                     truncated = r.copy()
                     truncated["content"] = (
-                        r["content"][:budget_remaining]
-                        + "\n[...TRUNCATED — F4 context budget]"
+                        r["content"][:budget_remaining] + "\n[...TRUNCATED — F4 context budget]"
                     )
                     truncated["truncated"] = True
                     budgeted_results.append(truncated)
@@ -1103,7 +1117,7 @@ async def engineering_memory_dispatch_impl(
                     },
                 },
             )
-        
+
         # Fallback to legacy memory query
         try:
             return await _az_memory_query(query=query, session_id=session_id)
@@ -1116,7 +1130,7 @@ async def engineering_memory_dispatch_impl(
                 error_code="QUERY_ERROR",
                 verdict=Verdict.SABAR,
             )
-            
+
     elif mode == "query":
         # Legacy alias — redirects to vector_query
         query = payload.get("query") or payload.get("task") or payload.get("content") or "No query"
@@ -1163,7 +1177,7 @@ async def engineering_memory_dispatch_impl(
                 error_code="QUERY_ERROR",
                 verdict=Verdict.SABAR,
             )
-            
+
     elif mode == "vector_store":
         content = payload.get("content") or payload.get("text") or ""
         if not content.strip():
@@ -1227,7 +1241,7 @@ async def engineering_memory_dispatch_impl(
                     error_code="STORE_ERROR",
                     verdict=Verdict.HOLD,
                 )
-        
+
         # Fallback: no Qdrant available
         return RuntimeEnvelope(
             ok=True,
@@ -1258,7 +1272,7 @@ async def engineering_memory_dispatch_impl(
 
         forgot_ids = []
         errors = []
-        
+
         store = _get_constitutional_memory_store()
         if store and memory_ids:
             for mid in memory_ids:
@@ -1271,7 +1285,7 @@ async def engineering_memory_dispatch_impl(
                         errors.append(f"Memory {mid} not found")
                 except Exception as e:
                     errors.append(f"Failed to delete {mid}: {e}")
-        
+
         return RuntimeEnvelope(
             ok=len(errors) == 0,
             tool="engineering_memory",
@@ -1286,7 +1300,7 @@ async def engineering_memory_dispatch_impl(
                 "reason": reason,
             },
         )
-    
+
     # Should not reach here due to mode validation at start
     return _create_error_envelope(
         tool_name="engineering_memory",
@@ -1302,16 +1316,17 @@ async def engineering_memory_dispatch_impl(
 # PHASE 0 FIX: Hardened math_estimator with async boundary guards
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def math_estimator_dispatch_impl(
     mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
 ) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened math_estimator with type validation and async guards.
-    
+
     Addresses: "ops health threw a typed validation/coroutine problem"
     """
     session_id = payload.get("session_id")
-    
+
     # PHASE 0 FIX: Validate mode
     valid_modes = ["cost", "health", "vitals", "entropy", "budget"]
     if mode not in valid_modes:
@@ -1323,27 +1338,27 @@ async def math_estimator_dispatch_impl(
             error_code="INVALID_MODE",
             verdict=Verdict.VOID,
         )
-    
+
     # PHASE 0 FIX: Safe payload extraction with defaults
     action = str(payload.get("action", payload.get("query", "unknown")))
-    
+
     if mode == "vitals":
         # PHASE 0 FIX: Wrapped vital signs computation with error handling
         try:
             import os
 
             import psutil
-            
+
             # Get system vitals
             cpu_percent = psutil.cpu_percent(interval=0.1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
-            
+            disk = psutil.disk_usage("/")
+
             # Calculate constitutional metrics
             entropy_delta = -0.32  # Placeholder - would be calculated
             peace2 = 1.21
             g_star = max(0.0, min(1.0, 1.0 - (cpu_percent / 100.0)))
-            
+
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
@@ -1404,13 +1419,13 @@ async def math_estimator_dispatch_impl(
                 error_code="VITALS_ERROR",
                 verdict=Verdict.SABAR,
             )
-    
+
     elif mode == "cost":
         # PHASE 0 FIX: Safe cost estimation
         try:
             # Estimate cost based on action complexity
             action_lower = action.lower()
-            
+
             # Simple heuristic cost model
             if "delete" in action_lower or "remove" in action_lower:
                 risk_score = 0.8
@@ -1424,7 +1439,7 @@ async def math_estimator_dispatch_impl(
             else:
                 risk_score = 0.4
                 cost_units = 50
-            
+
             return RuntimeEnvelope(
                 ok=True,
                 tool="math_estimator",
@@ -1457,7 +1472,7 @@ async def math_estimator_dispatch_impl(
                 error_code="COST_ERROR",
                 verdict=Verdict.SABAR,
             )
-    
+
     elif mode == "health":
         # PHASE 0 FIX: Safe health check
         try:
@@ -1489,7 +1504,7 @@ async def math_estimator_dispatch_impl(
                 error_code="HEALTH_ERROR",
                 verdict=Verdict.SABAR,
             )
-    
+
     # Fallback for unhandled modes (shouldn't reach here due to validation)
     return _create_error_envelope(
         tool_name="math_estimator",
@@ -1509,7 +1524,7 @@ async def physics_reality_dispatch_impl(
     """
     session_id = payload.get("session_id")
     query = payload.get("query") or payload.get("input", "")
-    
+
     if not query:
         return _create_error_envelope(
             tool_name="physics_reality",
@@ -1519,23 +1534,23 @@ async def physics_reality_dispatch_impl(
             error_code="MISSING_QUERY",
             verdict=Verdict.VOID,
         )
-    
+
     try:
         # Import and use reality handler
         from .reality_handlers import handler as reality_handler
         from .reality_models import BundleInput
-        
+
         bundle_input = BundleInput(
             type="query",
             value=query,
             mode=mode,
         )
-        
+
         bundle = await reality_handler.handle_compass(
             bundle_input,
             {"session_id": session_id or "physics_reality"},
         )
-        
+
         return RuntimeEnvelope(
             ok=True,
             tool="physics_reality",
@@ -1546,7 +1561,9 @@ async def physics_reality_dispatch_impl(
             payload={
                 "mode": mode,
                 "query": query,
-                "results": [r.to_dict() if hasattr(r, 'to_dict') else str(r) for r in bundle.results],
+                "results": [
+                    r.to_dict() if hasattr(r, "to_dict") else str(r) for r in bundle.results
+                ],
                 "result_count": len(bundle.results),
             },
         )
@@ -1567,7 +1584,7 @@ async def code_engine_dispatch_impl(
 ) -> RuntimeEnvelope:
     """Hardened code engine dispatch."""
     session_id = payload.get("session_id")
-    
+
     # PHASE 0 FIX: Validate mode
     valid_modes = ["execute", "validate", "sandbox"]
     if mode not in valid_modes:
@@ -1579,7 +1596,7 @@ async def code_engine_dispatch_impl(
             error_code="INVALID_MODE",
             verdict=Verdict.VOID,
         )
-    
+
     try:
         return await _wrap_call("code_engine", Stage.APEX_777, session_id, payload, ctx)
     except Exception as e:
@@ -1598,7 +1615,7 @@ async def architect_registry_dispatch_impl(
 ) -> RuntimeEnvelope:
     """Hardened architect registry dispatch."""
     session_id = payload.get("session_id")
-    
+
     try:
         return await _wrap_call("architect_registry", Stage.INIT_000, session_id, payload, ctx)
     except Exception as e:

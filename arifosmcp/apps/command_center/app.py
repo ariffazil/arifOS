@@ -13,10 +13,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import asyncio
-import inspect
 import os
-import threading
 
 from arifosmcp.apps.command_center.forge_app import governed_forge_execute
 from arifosmcp.apps.command_center.governance import classify_risk, hash_preview, judge_candidate
@@ -33,11 +30,11 @@ from arifosmcp.apps.command_center.models import (
     VaultList,
 )
 from arifosmcp.apps.command_center.state import get_state
+from arifosmcp.apps.command_center.vault_audit import get_vault_audit
 from arifosmcp.apps.command_center.vault_chain import append_vault_record
-from arifosmcp.runtime.tools import (
-    _CANONICAL_HANDLERS,
-    _SESSION_STORE,
-)
+from arifosmcp.tools.gateway import arif_gateway_connect
+from arifosmcp.tools.kernel import arif_kernel_route
+from arifosmcp.tools.ops import arif_ops_measure
 from fastmcp import FastMCP
 from fastmcp.apps import FastMCPApp
 from mcp.types import ToolAnnotations
@@ -126,25 +123,22 @@ def _get_live_session() -> dict:
             "expires_at": local.expires_at,
         }
 
-    # Priority 2: arifOS canonical persistent session store
+    # Priority 2: arifOS runtime session store (legacy fallback)
     try:
-        # Get the most recently created session as a heuristic if no active ID
-        sessions = _SESSION_STORE.values()
-        if sessions:
-            # Sort by created_at desc
-            sorted_sessions = sorted(sessions, key=lambda x: x.get("created_at", ""), reverse=True)
-            return sorted_sessions[0]
-    except Exception:
-        pass
+        from arifosmcp.runtime.session import _ACTIVE_SESSION_ID, _SESSION_IDENTITY
 
+        active_id = _ACTIVE_SESSION_ID
+        if active_id and active_id in _SESSION_IDENTITY:
+            return dict(_SESSION_IDENTITY[active_id])
+    except Exception:  # nosec: governance guard handles failures gracefully
+        pass
     return {}
 
 
 def _kernel_status() -> dict:
     """Get kernel routing status."""
     try:
-        handler = _CANONICAL_HANDLERS.get("arif_kernel_route")
-        return _invoke_handler(handler, mode="status", actor_id="arif")
+        return arif_kernel_route(mode="status", actor_id="arif")
     except Exception:
         return {}
 
@@ -152,49 +146,73 @@ def _kernel_status() -> dict:
 def _kernel_telemetry() -> dict:
     """Get kernel thermodynamic telemetry."""
     try:
-        handler = _CANONICAL_HANDLERS.get("arif_kernel_route")
-        return _invoke_handler(handler, mode="telemetry", actor_id="arif")
+        return arif_kernel_route(mode="telemetry", actor_id="arif")
     except Exception:
         return {}
-
-
-def _await_sync(awaitable):
-    """Resolve coroutine results from sync FastMCP app tools."""
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        return asyncio.run(awaitable)
-
-    box: dict[str, object] = {}
-
-    def runner() -> None:
-        try:
-            box["result"] = asyncio.run(awaitable)
-        except BaseException as exc:  # pragma: no cover - defensive thread bridge
-            box["error"] = exc
-
-    thread = threading.Thread(target=runner, daemon=True)
-    thread.start()
-    thread.join()
-    if "error" in box:
-        raise box["error"]  # type: ignore[misc]
-    return box.get("result")
-
-
-def _invoke_handler(handler, **kwargs) -> dict:
-    if handler is None:
-        return {"result": {}, "status": "HOLD", "meta": {"reason": "handler_not_found"}}
-    result = handler(**kwargs)
-    if inspect.isawaitable(result):
-        result = _await_sync(result)
-    return result if isinstance(result, dict) else {"result": result}
 
 
 def _route_action(target: str, task: str) -> dict:
     """Route an action intent through 444_KERNEL. Returns routing decision."""
     try:
-        handler = _CANONICAL_HANDLERS.get("arif_kernel_route")
-        return _invoke_handler(handler, mode="route", target=target, task=task, actor_id="arif")
+        return arif_kernel_route(mode="route", target=target, task=task, actor_id="arif")
+    except Exception as e:
+        return {"result": {}, "status": "HOLD", "meta": {"reason": str(e)}}
+
+
+# ---------------------------------------------------------------------------
+# Governance helpers
+# ---------------------------------------------------------------------------
+
+
+def _get_live_session() -> dict:
+    """Pull live session state from the Command Center registry or arifOS runtime."""
+    # Priority 1: Command Center local session registry (v0.2+ session continuity)
+    state = get_state()
+    local = state.get_session()
+    if local:
+        return {
+            "session_id": local.session_id,
+            "actor_id": local.actor_id,
+            "declared_name": local.declared_name,
+            "intent": local.intent,
+            "token": local.token,
+            "floor_audit": local.floor_audit,
+            "created_at": local.created_at,
+            "expires_at": local.expires_at,
+        }
+
+    # Priority 2: arifOS runtime session store (legacy fallback)
+    try:
+        from arifosmcp.runtime.session import _ACTIVE_SESSION_ID, _SESSION_IDENTITY
+
+        active_id = _ACTIVE_SESSION_ID
+        if active_id and active_id in _SESSION_IDENTITY:
+            return dict(_SESSION_IDENTITY[active_id])
+    except Exception:  # nosec: governance guard handles failures gracefully
+        pass
+    return {}
+
+
+def _kernel_status() -> dict:
+    """Get kernel routing status."""
+    try:
+        return arif_kernel_route(mode="status", actor_id="arif")
+    except Exception:
+        return {}
+
+
+def _kernel_telemetry() -> dict:
+    """Get kernel thermodynamic telemetry."""
+    try:
+        return arif_kernel_route(mode="telemetry", actor_id="arif")
+    except Exception:
+        return {}
+
+
+def _route_action(target: str, task: str) -> dict:
+    """Route an action intent through 444_KERNEL. Returns routing decision."""
+    try:
+        return arif_kernel_route(mode="route", target=target, task=task, actor_id="arif")
     except Exception as e:
         return {"result": {}, "status": "HOLD", "meta": {"reason": str(e)}}
 
@@ -226,80 +244,7 @@ command_center_app = FastMCPApp("arifOS Command Center")
 
 
 @command_center_app.tool()
-def arif_cc_sense_observe(mode: str = "vitals", query: str | None = None) -> dict:
-    """Use this when refreshing the reality sensing panel.
-
-    Proxies to 111_SENSE backend for reality grounding and observation.
-    """
-    state = get_state()
-    state.reality_checks += 1
-
-    handler = _CANONICAL_HANDLERS.get("arif_sense_observe")
-    return _invoke_handler(handler, mode=mode, query=query, actor_id="arif")
-
-
-@command_center_app.tool()
-def arif_cc_evidence_fetch(url: str, query: str | None = None) -> dict:
-    """Use this when the user wants to fetch evidence from a URL.
-
-    Proxies to 222_FETCH backend for evidence-preserving ingestion.
-    """
-    state = get_state()
-    state.fetch_calls += 1
-    handler = _CANONICAL_HANDLERS.get("arif_evidence_fetch")
-    return _invoke_handler(handler, url=url, query=query, actor_id="arif")
-
-
-@command_center_app.tool()
-def arif_cc_mind_reason(query: str, mode: str = "reason") -> dict:
-    """Use this when the user wants to perform constitutional reasoning.
-
-    Proxies to 333_MIND backend for symbolic reasoning.
-    """
-    state = get_state()
-    state.reason_calls += 1
-    handler = _CANONICAL_HANDLERS.get("arif_mind_reason")
-    return _invoke_handler(handler, query=query, mode=mode, actor_id="arif")
-
-
-@command_center_app.tool()
-def arif_cc_heart_critique(target: str, mode: str = "critique") -> dict:
-    """Use this when the user wants an ethical risk assessment.
-
-    Proxies to 666_HEART backend for ethical critique.
-    """
-    state = get_state()
-    state.critique_calls += 1
-    handler = _CANONICAL_HANDLERS.get("arif_heart_critique")
-    return _invoke_handler(handler, target=target, mode=mode, actor_id="arif")
-
-
-@command_center_app.tool()
-def arif_cc_reply_compose(message: str, style: str = "formal") -> dict:
-    """Use this when the user wants to compose a governed response.
-
-    Proxies to 444_REPLY backend for response composition.
-    """
-    state = get_state()
-    state.reply_compositions += 1
-    handler = _CANONICAL_HANDLERS.get("arif_reply_compose")
-    return _invoke_handler(handler, message=message, style=style, actor_id="arif")
-
-
-@command_center_app.tool()
-def arif_cc_memory_recall(query: str, mode: str = "recall") -> dict:
-    """Use this when the user wants to access associative memory.
-
-    Proxies to 555_MEMORY backend for context retrieval.
-    """
-    state = get_state()
-    state.memory_recalls += 1
-    handler = _CANONICAL_HANDLERS.get("arif_memory_recall")
-    return _invoke_handler(handler, query=query, mode=mode, actor_id="arif")
-
-
-@command_center_app.tool()
-def arif_cc_session_status() -> dict:
+def session_status() -> dict:
     """Use this when refreshing the constitutional session panel.
 
     Returns live governance state from the arifOS kernel: session ID, actor ID,
@@ -401,7 +346,7 @@ def arif_cc_session_status() -> dict:
 
 
 @command_center_app.tool()
-def arif_cc_ops_vitals() -> dict:
+def ops_vitals() -> dict:
     """Use this when refreshing the thermodynamic health panel.
 
     Returns genius score (G), entropy delta (ΔS), human impact load (Ω),
@@ -414,7 +359,7 @@ def arif_cc_ops_vitals() -> dict:
         state.ops_reads += 1
         return OpsVitals().model_dump()
 
-    result = _invoke_handler(_CANONICAL_HANDLERS.get("arif_ops_measure"), mode="vitals")
+    result = arif_ops_measure(mode="vitals")
     return OpsVitals(
         g_score=result.g_score,
         delta_S=result.delta_S,
@@ -425,7 +370,7 @@ def arif_cc_ops_vitals() -> dict:
 
 
 @command_center_app.tool()
-def arif_cc_judge_action(candidate: str) -> dict:
+def judge_action(candidate: str) -> dict:
     """Use this when the user submits an action for constitutional review.
 
     Routes through 444_KERNEL, then calls governed_judge_deliberate which:
@@ -496,7 +441,7 @@ def arif_cc_judge_action(candidate: str) -> dict:
 
 
 @command_center_app.tool()
-def arif_cc_forge_dry_run(manifest: str) -> dict:
+def forge_dry_run(manifest: str) -> dict:
     """Use this when the user wants to simulate a forge execution.
 
     Routes through 444_KERNEL, then calls the real 010_FORGE backend in dry_run mode.
@@ -580,7 +525,7 @@ def arif_cc_forge_dry_run(manifest: str) -> dict:
 
 
 @command_center_app.tool()
-def arif_cc_gateway_handshake(target_agent: str) -> dict:
+def gateway_handshake(target_agent: str) -> dict:
     """Use this when the user wants to initiate a cross-agent A2A handshake.
 
     Calls the real 666_GATEWAY backend to perform a constitutional handshake
@@ -613,12 +558,7 @@ def arif_cc_gateway_handshake(target_agent: str) -> dict:
             routing_path=routing_path,
         ).model_dump()
 
-    result = _invoke_handler(
-        _CANONICAL_HANDLERS.get("arif_gateway_connect"),
-        mode="handshake",
-        target_agent=target_agent,
-        actor_id="arif",
-    )
+    result = arif_gateway_connect(mode="handshake", target_agent=target_agent, actor_id="arif")
     handshake_ok = result.get("result", {}).get("handshake", "unknown")
     return GatewayHandshake(
         target_agent=target_agent,
@@ -631,7 +571,7 @@ def arif_cc_gateway_handshake(target_agent: str) -> dict:
 
 
 @command_center_app.tool()
-def arif_cc_vault_list() -> dict:
+def vault_list() -> dict:
     """Use this when refreshing the vault audit panel.
 
     Reads the real VAULT999 ledger. Returns the last 10 entries with hash-chain
@@ -664,7 +604,7 @@ def arif_cc_vault_list() -> dict:
 
 
 @command_center_app.tool()
-def arif_cc_vault_dry_seal(payload: str) -> dict:
+def vault_dry_seal(payload: str) -> dict:
     """Use this when the user wants to preview a vault seal.
 
     Routes through 444_KERNEL, then calls the real 999_VAULT backend in dry_run mode.
@@ -758,50 +698,7 @@ def arif_cc_vault_dry_seal(payload: str) -> dict:
 _READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
 _DRY_RUN = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
 
-
-@command_center_app.tool(name="session_status")
-def session_status() -> dict:
-    return arif_cc_session_status()
-
-
-@command_center_app.tool(name="ops_vitals")
-def ops_vitals() -> dict:
-    return arif_cc_ops_vitals()
-
-
-@command_center_app.tool(name="judge_action")
-def judge_action(candidate: str) -> dict:
-    return arif_cc_judge_action(candidate)
-
-
-@command_center_app.tool(name="forge_dry_run")
-def forge_dry_run(manifest: str) -> dict:
-    return arif_cc_forge_dry_run(manifest)
-
-
-@command_center_app.tool(name="gateway_handshake")
-def gateway_handshake(target_agent: str) -> dict:
-    return arif_cc_gateway_handshake(target_agent)
-
-
-@command_center_app.tool(name="vault_list")
-def vault_list() -> dict:
-    return arif_cc_vault_list()
-
-
-@command_center_app.tool(name="vault_dry_seal")
-def vault_dry_seal(payload: str) -> dict:
-    return arif_cc_vault_dry_seal(payload)
-
-
 _TOOL_ANNOTATIONS = {
-    "arif_cc_session_status": _READ_ONLY,
-    "arif_cc_ops_vitals": _READ_ONLY,
-    "arif_cc_judge_action": _READ_ONLY,
-    "arif_cc_forge_dry_run": _DRY_RUN,
-    "arif_cc_gateway_handshake": _DRY_RUN,
-    "arif_cc_vault_list": _READ_ONLY,
-    "arif_cc_vault_dry_seal": _DRY_RUN,
     "session_status": _READ_ONLY,
     "ops_vitals": _READ_ONLY,
     "judge_action": _READ_ONLY,
@@ -936,183 +833,6 @@ def command_center() -> PrefabApp:
                     ),
                 ],
             ),
-        ],
-    )
-
-    sense_tab = Tab(
-        title="Sense",
-        value="sense",
-        children=[
-            Card(
-                children=[
-                    CardHeader(children=[CardTitle(content="111_SENSE: Reality Grounding")]),
-                    CardContent(
-                        children=[
-                            Column(
-                                children=[
-                                    Text(content="Live reality observation results:"),
-                                    Text(content="{{ sense_result }}", italic=True),
-                                    Button(
-                                        label="Refresh Sense",
-                                        variant="outline",
-                                        on_click=CallTool(
-                                            "arif_cc_sense_observe",
-                                            args={"mode": "vitals"},
-                                            on_success=[SetState("sense_result", "{{ $result }}")],
-                                        ),
-                                    ),
-                                ],
-                                gap=2,
-                            )
-                        ]
-                    ),
-                ]
-            )
-        ],
-    )
-
-    mind_tab = Tab(
-        title="Mind",
-        value="mind",
-        children=[
-            Card(
-                children=[
-                    CardHeader(children=[CardTitle(content="333_MIND: Symbolic Reasoning")]),
-                    CardContent(
-                        children=[
-                            Column(
-                                children=[
-                                    Text(content="Reasoning trace:"),
-                                    Text(content="{{ mind_result }}", italic=True),
-                                    Input(
-                                        label="Query",
-                                        on_change=SetState("mind_query", "{{ $value }}"),
-                                    ),
-                                    Button(
-                                        label="Reason",
-                                        variant="outline",
-                                        on_click=CallTool(
-                                            "arif_cc_mind_reason",
-                                            args={"query": "{{ mind_query }}"},
-                                            on_success=[SetState("mind_result", "{{ $result }}")],
-                                        ),
-                                    ),
-                                ],
-                                gap=2,
-                            )
-                        ]
-                    ),
-                ]
-            )
-        ],
-    )
-
-    heart_tab = Tab(
-        title="Heart",
-        value="heart",
-        children=[
-            Card(
-                children=[
-                    CardHeader(children=[CardTitle(content="666_HEART: Ethical Critique")]),
-                    CardContent(
-                        children=[
-                            Column(
-                                children=[
-                                    Text(content="Ethical risk scorecard:"),
-                                    Text(content="{{ heart_result }}", italic=True),
-                                    Input(
-                                        label="Target",
-                                        on_change=SetState("heart_target", "{{ $value }}"),
-                                    ),
-                                    Button(
-                                        label="Critique",
-                                        variant="outline",
-                                        on_click=CallTool(
-                                            "arif_cc_heart_critique",
-                                            args={"target": "{{ heart_target }}"},
-                                            on_success=[SetState("heart_result", "{{ $result }}")],
-                                        ),
-                                    ),
-                                ],
-                                gap=2,
-                            )
-                        ]
-                    ),
-                ]
-            )
-        ],
-    )
-
-    memory_tab = Tab(
-        title="Memory",
-        value="memory",
-        children=[
-            Card(
-                children=[
-                    CardHeader(children=[CardTitle(content="555_MEMORY: Associative Recall")]),
-                    CardContent(
-                        children=[
-                            Column(
-                                children=[
-                                    Text(content="Retrieved context:"),
-                                    Text(content="{{ memory_result }}", italic=True),
-                                    Input(
-                                        label="Search",
-                                        on_change=SetState("memory_query", "{{ $value }}"),
-                                    ),
-                                    Button(
-                                        label="Recall",
-                                        variant="outline",
-                                        on_click=CallTool(
-                                            "arif_cc_memory_recall",
-                                            args={"query": "{{ memory_query }}"},
-                                            on_success=[SetState("memory_result", "{{ $result }}")],
-                                        ),
-                                    ),
-                                ],
-                                gap=2,
-                            )
-                        ]
-                    ),
-                ]
-            )
-        ],
-    )
-
-    fetch_tab = Tab(
-        title="Fetch",
-        value="fetch",
-        children=[
-            Card(
-                children=[
-                    CardHeader(children=[CardTitle(content="222_FETCH: Evidence Ingestion")]),
-                    CardContent(
-                        children=[
-                            Column(
-                                children=[
-                                    Text(content="Last fetch result:"),
-                                    Text(content="{{ fetch_result }}", italic=True),
-                                    Input(
-                                        label="URL",
-                                        value="https://arif-fazil.com",
-                                        on_change=SetState("fetch_url", "{{ $value }}"),
-                                    ),
-                                    Button(
-                                        label="Fetch Evidence",
-                                        variant="outline",
-                                        on_click=CallTool(
-                                            "arif_cc_evidence_fetch",
-                                            args={"url": "{{ fetch_url }}"},
-                                            on_success=[SetState("fetch_result", "{{ $result }}")],
-                                        ),
-                                    ),
-                                ],
-                                gap=2,
-                            )
-                        ]
-                    ),
-                ]
-            )
         ],
     )
 
@@ -1449,19 +1169,7 @@ def command_center() -> PrefabApp:
     # Main tabs container
     chambers = Tabs(
         value="session",
-        children=[
-            session_tab,
-            sense_tab,
-            fetch_tab,
-            mind_tab,
-            heart_tab,
-            memory_tab,
-            ops_tab,
-            judge_tab,
-            forge_tab,
-            gateway_tab,
-            vault_tab,
-        ],
+        children=[session_tab, ops_tab, judge_tab, forge_tab, gateway_tab, vault_tab],
     )
 
     return PrefabApp(
@@ -1500,13 +1208,6 @@ def command_center() -> PrefabApp:
             "seal_hash": "—",
             "seal_permanent": "false",
             "seal_status": "—",
-            # New tool states
-            "sense_result": "—",
-            "fetch_result": "—",
-            "mind_result": "—",
-            "heart_result": "—",
-            "reply_result": "—",
-            "memory_result": "—",
         },
     )
 

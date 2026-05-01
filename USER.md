@@ -1,11 +1,17 @@
 # USER.md - About Your Human
 
-- **Name:** Muhammad Arif bin Fazil
-- **What to call them:** ARIF
-- **Username:** @ariffazil
-- **Telegram ID:** 267378578
-- **Timezone:** UTC
+_Learn about the person you're helping. Update this as you go._
+
+- **Name:**
+- **What to call them:**
+- **Pronouns:** _(optional)_
+- **Timezone:**
+- **Notes:**
 
 ## Context
 
-ARIF is the sovereign human judge of arifOS. He built the arifOS constitutional AI framework and maintains several infrastructure surfaces including arif-fazil.com and the A-FORGE VPS. He's direct, technically fluent, and runs a tight operation. Known to file infrastructure emergencies on GitHub when things go down.
+_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+
+---
+
+The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.

@@ -11,6 +11,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+from arifosmcp.apps.command_center.surface_utils import envelope_error, envelope_pause
 from arifosmcp.apps.session_state import (
     STAGE_MIN_FORGE,
     LifecycleState,
@@ -18,7 +19,6 @@ from arifosmcp.apps.session_state import (
     record_tool_call,
     was_tool_called,
 )
-from arifosmcp.apps.surface_utils import envelope_error, envelope_pause
 
 
 def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> dict | None:
@@ -53,8 +53,7 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
                 stage="INTERCEPTOR",
                 verdict="HOLD",
                 detail=(
-                    "Anonymous sessions cannot call dangerous tools. "
-                    "Provide a valid session_id."
+                    "Anonymous sessions cannot call dangerous tools. " "Provide a valid session_id."
                 ),
             )
         # Non-dangerous tools are fine without a session

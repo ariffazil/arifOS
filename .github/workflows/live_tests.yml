@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: 🔥 Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: 📦 Install uv (Rust-based package manager)
         uses: astral-sh/setup-uv@v3
@@ -92,7 +92,7 @@ jobs:
 
       - name: 📤 Upload Test Results (JSON)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: constitutional-test-results-${{ matrix.python-version }}
           path: test-results.json
@@ -100,7 +100,7 @@ jobs:
 
       - name: 📤 Upload HTML Report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: constitutional-html-report-${{ matrix.python-version }}
           path: test-reports/
@@ -116,10 +116,10 @@ jobs:
   test-edge-cases:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: 🔥 Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v3
@@ -145,7 +145,7 @@ jobs:
 
       - name: 📤 Upload Edge Case Results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: edge-case-test-results
           path: test-results.json
@@ -154,10 +154,10 @@ jobs:
   benchmark-performance:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: 🔥 Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v3

@@ -4,6 +4,7 @@ arifosmcp/tools/session_init.py — 000_INIT
 
 Constitutional session bootstrap + identity binding.
 """
+
 from __future__ import annotations
 
 from arifosmcp.runtime.floors import check_floors
@@ -17,14 +18,6 @@ def arif_session_init(
     ack_irreversible: bool = False,
     session_id: str | None = None,
 ) -> SessionManifest:
-    if mode == "cleanup":
-        from arifosmcp.runtime.session import list_active_sessions_count
-
-        count_after = list_active_sessions_count()
-        return SessionManifest(
-            **_ok("arif_session_init", {"stale_swept": True, "active_count": count_after})
-        )
-
     floor_check = check_floors(
         "arif_session_init",
         {"mode": mode, "ack_irreversible": ack_irreversible},
@@ -41,23 +34,30 @@ def arif_session_init(
 
     if mode == "status":
         from arifosmcp.runtime.tools import _SESSIONS
+
         return SessionManifest(
-            **_ok("arif_session_init", {"active_sessions": len(_SESSIONS), "version": "2026.04.26-KANON"})
+            **_ok(
+                "arif_session_init",
+                {"active_sessions": len(_SESSIONS), "version": "2026.04.26-KANON"},
+            )
         )
 
     if mode == "discover":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
+
         return SessionManifest(
             **_ok("arif_session_init", {"canonical_tools": list(CANONICAL_TOOLS.keys())})
         )
 
     if mode == "handover":
         from arifosmcp.runtime.tools import _SESSIONS
+
         sess = _SESSIONS.get(session_id) if session_id else None
         return SessionManifest(**_ok("arif_session_init", {"session": sess, "handover": True}))
 
     if mode == "revoke":
         from arifosmcp.runtime.tools import _SESSIONS
+
         if session_id and session_id in _SESSIONS:
             del _SESSIONS[session_id]
             return SessionManifest(**_ok("arif_session_init", {"revoked": session_id}))
@@ -65,17 +65,10 @@ def arif_session_init(
 
     if mode == "refresh":
         from arifosmcp.runtime.tools import _SESSIONS, _now
+
         if session_id and session_id in _SESSIONS:
             _SESSIONS[session_id]["refreshed_at"] = _now()
             return SessionManifest(**_ok("arif_session_init", {"refreshed": session_id}))
         return SessionManifest(**_hold("arif_session_init", "session_id required for refresh"))
-
-    if mode == "cleanup":
-        from arifosmcp.runtime.session import list_active_sessions_count
-
-        count_after = list_active_sessions_count()
-        return SessionManifest(
-            **_ok("arif_session_init", {"stale_swept": True, "active_count": count_after})
-        )
 
     return SessionManifest(**_hold("arif_session_init", f"Unknown mode: {mode}"))

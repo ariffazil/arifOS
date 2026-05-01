@@ -135,9 +135,6 @@ def check_floors(
         elif floor_value == "F11":
             if spec.get("access") == "sovereign" and not actor_id:
                 failed.append("F11")
-            # H2: All F11-gated tools require identity binding (session_id or actor_id)
-            if not actor_id and not session_id and spec.get("access") != "public":
-                failed.append("F11")
 
         elif floor_value == "F12":
             for key, value in params.items():
@@ -148,19 +145,9 @@ def check_floors(
                         logger.warning(f"F12 INJECTION: pattern in {key}")
 
         elif floor_value == "F13":
-            # F13 fires when sovereign override is BYPASSED (not when used).
-            # sovereign_veto=True means Arif exercised his override — operation halts
-            # but this is F13 WORKING, not F13 BREACHING.
-            # We log it and return VOID so execution stops, but do NOT add to failed.
             if params.get("sovereign_veto"):
-                logger.critical("F13 SOVEREIGN VETO exercised by Arif — operation halted")
-                # Return VOID but do NOT append F13 to failed — veto usage is not a breach
-                return {
-                    "verdict": "VOID",
-                    "failed_floors": [],
-                    "reason": "Sovereign veto exercised — operation halted by Arif",
-                    "sovereign_veto_used": True,
-                }
+                failed.append("F13")
+                logger.critical("F13 SOVEREIGN VETO activated")
 
     if failed:
         if "F13" in failed:

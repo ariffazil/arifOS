@@ -7,7 +7,7 @@ from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
 # --- Thermodynamics & Physics Stubs ---
 try:
     from core.physics.thermodynamics_hardened import check_landauer_bound as landauer_limit
-    from core.shared.physics import build_qt_quad_proof, genius_score
+    from core.shared.physics import build_qt_quad_proof, delta_S, genius_score
 except ImportError:
 
     def landauer_limit(bits_erased: float) -> dict:
@@ -30,16 +30,11 @@ except ImportError:
 
 # --- Paradox Engine Primitives ---
 QUOTES = {
-    "triumph": (
-        "In the midst of winter, I found there was, within me, " "an invincible summer. (Camus)"
-    ),
+    "triumph": "In the midst of winter, I found there was, within me, an invincible summer. (Camus)",
     "wisdom": "He who knows others is wise; he who knows himself is enlightened. (Lao Tzu)",
-    "warning": (
-        "The first principle is that you must not fool yourself, "
-        "and you are the easiest person to fool. (Feynman)"
-    ),
-    "tension": ("Out of the strain of the doing, into the peace of the done. (St. Augustine)"),
-    "void": ("The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)"),
+    "warning": "The first principle is that you must not fool yourself, and you are the easiest person to fool. (Feynman)",
+    "tension": "Out of the strain of the doing, into the peace of the done. (St. Augustine)",
+    "void": "The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)",
 }
 
 
@@ -69,10 +64,7 @@ class ConstitutionalKernel:
 
     async def dispatch_with_fail_closed(self, tool_name: str, arguments: dict):
         """Fail-Closed Dispatch Gateway (F12/F13)."""
-        import time as _time
-
         from arifosmcp.runtime.output_formatter import format_output
-        from arifosmcp.runtime.telemetry import trace_tool_call
         from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, LEGACY_TOOL_ALIASES
 
         print(f"KERNEL: Dispatching {tool_name} through Fail-Closed Gates...")
@@ -80,75 +72,28 @@ class ConstitutionalKernel:
         canonical_name = LEGACY_TOOL_ALIASES.get(tool_name, tool_name)
         handler = FINAL_TOOL_IMPLEMENTATIONS.get(canonical_name)
         if handler is None:
-            result = {
+            return {
                 "tool": canonical_name,
                 "stage": "444_ROUTER",
                 "status": "error",
                 "summary": f"No canonical handler registered for {tool_name}.",
                 "result": {"error": "TOOL_NOT_FOUND", "requested_tool": tool_name},
             }
-            trace_tool_call(
-                tool_name=canonical_name,
-                arguments=arguments,
-                result=result,
-                session_id=arguments.get("session_id"),
-                actor_id=arguments.get("actor_id") or "system",
-                latency_ms=0.0,
-            )
-            return result
 
-        start_ns = _time.perf_counter_ns()
-        try:
-            result = handler(**arguments)
-            if inspect.isawaitable(result):
-                result = await result
-        except Exception as e:
-            result = {
-                "tool": canonical_name,
-                "stage": "444_KERNEL",
-                "status": "ERROR",
-                "error_message": str(e),
-                "result": {},
-            }
-        latency_ms = (_time.perf_counter_ns() - start_ns) / 1e6
+        result = handler(**arguments)
+        if inspect.isawaitable(result):
+            result = await result
 
         if result.__class__.__name__ == "RuntimeEnvelope":
             platform = arguments.get("platform", "mcp")
             if hasattr(result, "platform_context"):
                 result.platform_context = platform
-            formatted = format_output(
+            return format_output(
                 result,
                 {"verbose": False, "debug": bool(arguments.get("debug", False))},
             )
-            trace_tool_call(
-                tool_name=canonical_name,
-                arguments=arguments,
-                result=formatted,
-                session_id=arguments.get("session_id"),
-                actor_id=arguments.get("actor_id") or "system",
-                latency_ms=latency_ms,
-            )
-            return formatted
         if hasattr(result, "model_dump"):
-            dumped = result.model_dump(mode="json")
-            trace_tool_call(
-                tool_name=canonical_name,
-                arguments=arguments,
-                result=dumped,
-                session_id=arguments.get("session_id"),
-                actor_id=arguments.get("actor_id") or "system",
-                latency_ms=latency_ms,
-            )
-            return dumped
-
-        trace_tool_call(
-            tool_name=canonical_name,
-            arguments=arguments,
-            result=result,
-            session_id=arguments.get("session_id"),
-            actor_id=arguments.get("actor_id") or "system",
-            latency_ms=latency_ms,
-        )
+            return result.model_dump(mode="json")
         return result
 
     async def get_constitutional_context(self, session_id: str, actor_id: str) -> str:

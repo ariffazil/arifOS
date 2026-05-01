@@ -45,16 +45,16 @@ class InterceptorResult(str, Enum):
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Actions that require a valid session + actor
-_ACTOR_GATED = {"arif_cc_judge_action", "arif_cc_forge_dry_run", "arif_cc_vault_dry_seal", "arif_cc_gateway_handshake"}
+_ACTOR_GATED = {"judge_action", "forge_dry_run", "vault_dry_seal", "gateway_handshake"}
 
 # Actions that require an approved plan (plan_state == approved)
-_PLAN_GATED = {"arif_cc_forge_dry_run", "arif_cc_vault_dry_seal"}
+_PLAN_GATED = {"forge_dry_run", "vault_dry_seal"}
 
 # Actions that require a SEAL verdict
-_SEAL_GATED = {"arif_cc_forge_dry_run", "arif_cc_vault_dry_seal"}
+_SEAL_GATED = {"forge_dry_run", "vault_dry_seal"}
 
 # Actions that require explicit human acknowledgment
-_IRREVERSIBLE_GATED = {"arif_cc_forge_dry_run"}
+_IRREVERSIBLE_GATED = {"forge_dry_run"}
 
 
 @dataclass
@@ -100,7 +100,7 @@ def governance_guard(
             "action": action,
             "reason": "No valid session. Initialize a session first.",
             "gate": "session",
-            "required_next": "arif_cc_session_status",
+            "required_next": "session_status",
         }
 
     if session_expired or not session_token_valid:
@@ -109,7 +109,7 @@ def governance_guard(
             "action": action,
             "reason": "Session expired or token invalid. Reinitialize.",
             "gate": "session",
-            "required_next": "arif_cc_session_status",
+            "required_next": "session_status",
         }
 
     # ── Gate 2: Identity ──────────────────────────────────────────────────
@@ -119,7 +119,7 @@ def governance_guard(
             "action": action,
             "reason": f"{action} requires a declared actor identity. F11/F13.",
             "gate": "identity",
-            "required_next": "arif_cc_session_status",
+            "required_next": "session_status",
         }
 
     # ── Gate 3: Plan state ───────────────────────────────────────────────
@@ -130,7 +130,7 @@ def governance_guard(
                 "action": action,
                 "reason": "Plan is in DRAFT state. Submit intent to advance to PLANNED.",
                 "gate": "plan",
-                "required_next": "arif_cc_judge_action",
+                "required_next": "judge_action",
             }
         if plan_state == "blocked":
             return {
@@ -138,7 +138,7 @@ def governance_guard(
                 "action": action,
                 "reason": "Plan is BLOCKED. Create a new plan.",
                 "gate": "plan",
-                "required_next": "arif_cc_session_status",
+                "required_next": "session_status",
             }
         if plan_state not in ("approved", "executed"):
             return {
@@ -146,7 +146,7 @@ def governance_guard(
                 "action": action,
                 "reason": f"Plan is {plan_state}. Advance to APPROVED before {action}.",
                 "gate": "plan",
-                "required_next": "arif_cc_judge_action",
+                "required_next": "judge_action",
             }
 
     # ── Gate 4: Judge SEAL ───────────────────────────────────────────────
@@ -157,7 +157,7 @@ def governance_guard(
                 "action": action,
                 "reason": "No judge verdict yet. Route through 888_JUDGE first.",
                 "gate": "judge",
-                "required_next": "arif_cc_judge_action",
+                "required_next": "judge_action",
             }
         if judge_verdict not in ("SEAL", "SABAR"):
             return {
