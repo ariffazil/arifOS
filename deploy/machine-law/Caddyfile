@@ -1,5 +1,8 @@
-# arifOS Sovereign Caddyfile — Cloudflare Origin CA Edition
+# arifOS Sovereign Caddyfile
 # DITEMPA BUKAN DIBERI
+# 3 Main Sites: arif-fazil.com | arifos.arif-fazil.com | aaa.arif-fazil.com
+# Federation MCP: arifos (13) | geox (28) | wealth (40+) | well (30+)
+# Last reconcile: 2026-05-01
 
 {
     admin unix//var/run/caddy-admin.sock
@@ -8,64 +11,241 @@
 
 (tls_origin) {
     tls /data/cloudflare-origin/cert.pem /data/cloudflare-origin/key.pem
+    header {
+        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
 }
 
-# Shared snippet for design assets
 (shared_assets) {
     handle /_shared/* {
-        root * /var/www/html
+        root * /var/www/html/_shared
         file_server
     }
 }
 
+(cors_public) {
+    header Access-Control-Allow-Origin *
+    header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# MAIN SITE 1 — Ψ HUMAN SURFACE
+# ═══════════════════════════════════════════════════════════════════════
 arif-fazil.com, www.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
     root * /var/www/html/arif
-    file_server
-    try_files {path} /index.html
+
+    @well-known path /.well-known/*
+    handle @well-known {
+        uri strip_prefix /.well-known
+        root * /var/www/html/arif/.well-known
+        try_files {path} /index.html
+        file_server
+    }
+
+    @genesis path /000/*
+    handle @genesis {
+        uri strip_prefix /000
+        root * /var/www/html/arif/000
+        try_files {path} /index.html
+        file_server
+    }
+
+    @validation path /999/*
+    handle @validation {
+        uri strip_prefix /999
+        root * /var/www/html/arif/999
+        try_files {path} /index.html
+        file_server
+    }
+
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
 }
 
+# ═══════════════════════════════════════════════════════════════════════
+# MAIN SITE 2 — Ω ARIFOS OBSERVATORY
+# ═══════════════════════════════════════════════════════════════════════
 arifos.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
     root * /var/www/html/arifos
-    file_server
-    try_files {path} /index.html
+
+    handle /.well-known {
+        root * /var/www/html/arifos/.well-known
+        file_server
+    }
+
+    handle /.well-known/* {
+        uri strip_prefix /.well-known
+        root * /var/www/html/arifos/.well-known
+        file_server
+    }
+
+    handle /mcp* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /health {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /tools {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /tools.json {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /sse* {
+        reverse_proxy arifosmcp:8080
+    }
+
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
 }
 
+# ═══════════════════════════════════════════════════════════════════════
+# MAIN SITE 3 — Δ AAA COCKPIT
+# ═══════════════════════════════════════════════════════════════════════
+aaa.arif-fazil.com {
+    import tls_origin
+    import shared_assets
+    encode zstd gzip
+    root * /var/www/html/aaa
+
+    handle /a2a/* {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# THEORY / APEX
+# ═══════════════════════════════════════════════════════════════════════
 apex.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
     root * /var/www/html/apex
-    file_server
-    try_files {path} /index.html
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
 }
 
-forge.arif-fazil.com {
+# ═══════════════════════════════════════════════════════════════════════
+# FEDERATION MCP — GEOX
+# Keep at geox.arif-fazil.com — ChatGPT registered here
+# ═══════════════════════════════════════════════════════════════════════
+geox.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
-    root * /var/www/html/forge
-    file_server
-    try_files {path} /index.html
+    root * /var/www/html/geox
+
+    handle /mcp* {
+        import cors_public
+        reverse_proxy 172.19.0.5:8081 {
+            header_up Host geox.arif-fazil.com
+        }
+    }
+    handle /health {
+        import cors_public
+        reverse_proxy 172.19.0.5:8081 {
+            header_up Host geox.arif-fazil.com
+        }
+    }
+    handle /sse* {
+        reverse_proxy 172.19.0.5:8081 {
+            header_up Host geox.arif-fazil.com
+        }
+    }
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
 }
 
-waw.arif-fazil.com {
+# ═══════════════════════════════════════════════════════════════════════
+# FEDERATION MCP — WEALTH
+# Keep at wealth.arif-fazil.com — ChatGPT registered here
+# Note: wealth-organ internal port is 8082
+# ═══════════════════════════════════════════════════════════════════════
+wealth.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
-    root * /var/www/html/waw
-    file_server
-    try_files {path} /index.html
+    root * /var/www/html/wealth
+
+    handle /mcp* {
+        import cors_public
+        reverse_proxy 172.19.0.9:8082
+    }
+    handle /health {
+        import cors_public
+        reverse_proxy 172.19.0.9:8082
+    }
+    handle /sse* {
+        reverse_proxy wealth-organ:8082
+    }
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
 }
 
-wawa.arif-fazil.com {
+# ═══════════════════════════════════════════════════════════════════════
+# FEDERATION MCP — WELL
+# Add this — was completely missing from Caddyfile
+# ChatGPT registered at well.arif-fazil.com/mcp
+# ═══════════════════════════════════════════════════════════════════════
+well.arif-fazil.com {
     import tls_origin
-    redir https://waw.arif-fazil.com{uri} permanent
+    encode zstd gzip
+
+    handle /mcp* {
+        import cors_public
+        reverse_proxy 172.19.0.15:8083
+    }
+    handle /health {
+        import cors_public
+        reverse_proxy 172.19.0.15:8083
+    }
+    handle /sse* {
+        reverse_proxy 172.19.0.15:8083
+    }
+    handle {
+        redir https://arifos.arif-fazil.com permanent
+    }
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# LEGACY REDIRECTS — old subdomains → main sites
+# ═══════════════════════════════════════════════════════════════════════
+arifosmcp.arif-fazil.com {
+    import tls_origin
+    redir https://arifos.arif-fazil.com/mcp{uri} permanent
+}
+
+mcp.arif-fazil.com {
+    import tls_origin
+    handle /mcp* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle {
+        redir https://arifos.arif-fazil.com permanent
+    }
 }
 
 wiki.arif-fazil.com {
@@ -73,109 +253,21 @@ wiki.arif-fazil.com {
     import shared_assets
     encode zstd gzip
     root * /var/www/html/wiki
-    file_server
-    try_files {path} /index.html
-}
-
-mcp.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/mcp
-
-    handle /mcp* {
-        reverse_proxy arifosmcp:3000
-    }
-    handle /health {
-        reverse_proxy arifosmcp:3000
-    }
-    handle /tools {
-        reverse_proxy arifosmcp:3000
-    }
-    handle /metadata {
-        reverse_proxy arifosmcp:3000
-    }
-    handle /ready {
-        reverse_proxy arifosmcp:3000
-    }
-
-    # Static surfaces (Human readable)
-    handle / {
-        file_server
-    }
-    handle /privacy* {
-        file_server
-    }
-    handle /webmcp* {
-        file_server
-    }
-    handle /app* {
-        file_server
-    }
-    handle /apps* {
-        file_server
-    }
-
-    # Fallback
     handle {
-        reverse_proxy arifosmcp:3000
-    }
-}
-
-arifosmcp.arif-fazil.com {
-    import tls_origin
-    redir https://mcp.arif-fazil.com{uri} permanent
-}
-
-aaa.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/aaa
-    handle /a2a/* {
-        reverse_proxy aaa-a2a:3001
-    }
-    handle {
-        file_server
         try_files {path} /index.html
-    }
-}
-
-geox.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/geox
-    handle /mcp* {
-        reverse_proxy geox:8081
-    }
-    handle {
         file_server
-        try_files {path} /index.html
     }
 }
 
-wealth.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/wealth
-    handle /mcp* {
-        reverse_proxy wealth-organ:8000
-    }
-    handle /health {
-        reverse_proxy wealth-organ:8000
-    }
-    handle /ready {
-        reverse_proxy wealth-organ:8000
-    }
-    handle {
-        file_server
-        try_files {path} /index.html
-    }
-}
-
+# ═══════════════════════════════════════════════════════════════════════
+# INFRASTRUCTURE
+# ═══════════════════════════════════════════════════════════════════════
 dozzle.arif-fazil.com {
     import tls_origin
     reverse_proxy dozzle:8080
+}
+
+ollama.arif-fazil.com {
+    import tls_origin
+    reverse_proxy ollama-engine-prod:11434
 }
