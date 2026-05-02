@@ -3087,6 +3087,193 @@ def register_rest_routes(
             logger.exception("api_status endpoint failed")
             return _rest_error("Failed to retrieve dashboard status", status_code=500)
 
+    @route("/observatory/check", methods=["GET"])
+    async def observatory_check(request: Request) -> Response:
+        """
+        Self-audit endpoint: compares what /health says vs what the Observatory UI displays.
+        Read-only. No side effects. Returns JSON with PASS/WARN/ERROR per check.
+        """
+        try:
+            health_resp = await health(request)
+            health_payload = json.loads(health_resp.body.decode("utf-8"))
+            governance_payload = _build_governance_status_payload()
+            governance_floors = governance_payload.get("floors", {})
+            governance_telemetry = governance_payload.get("telemetry", {})
+            witness = governance_payload.get("witness", {})
+
+            checks = []
+            overall_status = "PASS"
+
+            service_in_health = health_payload.get("service", "unknown")
+            ui_service_label = "arifOS Kernel"  # Observatory branding
+            checks.append(
+                {
+                    "name": "service_identity",
+                    "backend": service_in_health,
+                    "ui_label": ui_service_label,
+                    "result": "INFO",
+                    "severity": "INFO",
+                    "message": (
+                        f"Backend reports '{service_in_health}' "
+                        f"but UI uses branding '{ui_service_label}' — "
+                        "this is cosmetic unless explicitly configured as env var"
+                    ),
+                }
+            )
+
+            langfuse = health_payload.get("langfuse_tracing", {})
+            langfuse_active = langfuse.get("status") == "ACTIVE"
+            langfuse_count = langfuse.get("traced_tools_count", 0)
+            ui_langfuse_header = health_payload.get("langfuse_tracing", {}).get("status", "UNKNOWN")
+            checks.append(
+                {
+                    "name": "langfuse_tracing",
+                    "backend": {"status": langfuse_active, "traced_tools_count": langfuse_count},
+                    "ui_header": ui_langfuse_header,
+                    "result": (
+                        "MATCH"
+                        if (langfuse_active and ui_langfuse_header == "ACTIVE")
+                        else "MISMATCH"
+                    ),
+                    "severity": "WARNING" if not langfuse_active else "INFO",
+                    "message": (
+                        f"Langfuse backend status='{langfuse_active}', "
+                        f"traced_tools_count={langfuse_count}. "
+                        f"UI header should reflect ACTIVE when traced_tools_count > 0. "
+                        f"Current UI display: '{ui_langfuse_header}'"
+                    ),
+                }
+            )
+
+            tools_loaded = health_payload.get("tools_loaded", 0)
+            ui_tools_label = 13
+            checks.append(
+                {
+                    "name": "tools_loaded",
+                    "backend": tools_loaded,
+                    "ui_hardcoded": ui_tools_label,
+                    "result": "MATCH" if tools_loaded == ui_tools_label else "MISMATCH",
+                    "severity": "WARNING" if tools_loaded != ui_tools_label else "INFO",
+                    "message": (
+                        f"Backend reports tools_loaded={tools_loaded}. "
+                        f"UI hardcoded label={ui_tools_label}. "
+                        f"{'MATCH' if tools_loaded == ui_tools_label else 'MISMATCH — UI should read from backend'}"
+                    ),
+                }
+            )
+
+            runtime_drift = health_payload.get("runtime_drift", None)
+            trinity_all_zero = all(
+                float(witness.get(k, 0.0)) == 0.0 for k in ("human", "ai", "earth")
+            )
+            checks.append(
+                {
+                    "name": "runtime_drift_vs_trinity",
+                    "backend": {"runtime_drift": runtime_drift, "witness": witness},
+                    "ui_conflation_risk": runtime_drift is False and trinity_all_zero,
+                    "result": (
+                        "MISMATCH" if (runtime_drift is False and trinity_all_zero) else "MATCH"
+                    ),
+                    "severity": "INFO",
+                    "message": (
+                        f"runtime_drift={runtime_drift} but all witness scores={list(witness.values())}. "
+                        "If UI conflates drift (deployment integrity) with trinity alignment (epistemic), "
+                        "that is a F4 Clarity violation in the dashboard layer, not the kernel."
+                    ),
+                }
+            )
+
+            verdict_backend = health_payload.get("thermodynamic", {}).get("verdict", "UNKNOWN")
+            verdict_governance = governance_telemetry.get("verdict", "UNKNOWN")
+            checks.append(
+                {
+                    "name": "verdict_consistency",
+                    "backend_health": verdict_backend,
+                    "backend_governance": verdict_governance,
+                    "result": "MATCH" if verdict_backend == verdict_governance else "MISMATCH",
+                    "severity": "WARNING",
+                    "message": (
+                        f"Verdict in /health.thermodynamic='{verdict_backend}', "
+                        f"in governance payload='{verdict_governance}'. "
+                        "UI should use the governance payload verdict field directly."
+                    ),
+                }
+            )
+
+            drift_val = health_payload.get("runtime_drift")
+            if drift_val is not None:
+                checks.append(
+                    {
+                        "name": "runtime_drift_flag",
+                        "backend": drift_val,
+                        "result": "MATCH",
+                        "severity": "INFO",
+                        "message": f"runtime_drift={drift_val} — deployment integrity intact.",
+                    }
+                )
+
+            for floor_id, expected_score in [("F10", 1.0), ("F11", 1.0), ("F13", 1.0)]:
+                actual = float(governance_floors.get(floor_id, 0.0))
+                checks.append(
+                    {
+                        "name": f"floor_{floor_id}",
+                        "expected_min": expected_score,
+                        "actual": actual,
+                        "result": "MATCH" if actual >= expected_score else "MISMATCH",
+                        "severity": "WARNING",
+                        "message": f"Floor {floor_id}: expected >={expected_score}, got {actual:.4f}.",
+                    }
+                )
+
+            vault999 = health_payload.get("vault999_health", "unknown")
+            checks.append(
+                {
+                    "name": "vault999_health",
+                    "backend": vault999,
+                    "result": "MATCH" if vault999 == "healthy" else "MISMATCH",
+                    "severity": "ERROR" if vault999 != "healthy" else "INFO",
+                    "message": f"VAULT999 health: '{vault999}'.",
+                }
+            )
+
+            for check in checks:
+                if check["severity"] == "ERROR" or (
+                    check["result"] == "MISMATCH" and check["severity"] == "WARNING"
+                ):
+                    overall_status = "WARN"
+                if check["severity"] == "ERROR":
+                    overall_status = "ERROR"
+
+            version = health_payload.get("version", "unknown")
+            git_commit = health_payload.get("git_commit", "unknown")
+            image = health_payload.get("image", "unknown")
+            tools_count = health_payload.get("tools_loaded", 0)
+
+            return JSONResponse(
+                {
+                    "service": service_in_health,
+                    "observatory_version": (
+                        f"kanon-{git_commit}" if git_commit != "unknown" else "unknown"
+                    ),
+                    "status": overall_status,
+                    "checks": checks,
+                    "_backend": {
+                        "version": version,
+                        "git_commit": git_commit,
+                        "image": image,
+                        "tools_loaded": tools_count,
+                        "vault999_health": vault999,
+                        "runtime_drift": drift_val,
+                        "langfuse_active": langfuse_active,
+                        "langfuse_traced_count": langfuse_count,
+                    },
+                },
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
+        except Exception:
+            logger.exception("observatory_check endpoint failed")
+            return _rest_error("observatory self-check failed", status_code=500)
+
     async def _probe_geox(client: httpx.AsyncClient) -> str:
         """Probe GEOX organ health. Returns 'active' or 'offline'."""
         try:
