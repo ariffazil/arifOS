@@ -654,6 +654,9 @@
                             { id: "F13", name: "Sovereign",   status: src.F13 >= 0.8 ? "human" : "band", score: src.F13 ?? 0 },
                         ];
 
+                        const passFloors = floors.filter(f => f.status === "pass" || f.status === "lock" || f.status === "human");
+                        const floorsActive = passFloors.length ? `${passFloors.length}/13` : null;
+
                         const machines = json.containers || [];
                         const cpu = machines.reduce((s, c) => s + (c.cpu_percent || 0), 0).toFixed(1);
                         const ram = machines.reduce((s, c) => s + (c.memory_percent || 0), 0).toFixed(1);
@@ -663,10 +666,10 @@
                             system: {
                                 status,
                                 version: h.version || "——.——.——",
-                                floors_active: `${floors.filter(f => f.status !== "band").length}/13`,
+                                floors_active: floorsActive || prev.system.floors_active,
                                 uptime: prev.system.uptime,
                             },
-                            vitals: { G_star, dS, peace2, kappa_r: gov.kappa_r || 0, psi_le: 0 },
+                            vitals: { G_star, dS, peace2, kappa_r: 0, psi_le: 0 },
                             witness: {
                                 human: witness.human ?? 0,
                                 ai: witness.ai ?? 0,
@@ -675,7 +678,7 @@
                             floors,
                             machine: { cpu, ram, latency: 0, energy_budget: 0 },
                         }));
-                    } catch (_) {}
+                    } catch (e) { console.error('poll error:', e); }
                 };
                 poll();
                 const id = setInterval(poll, 5000);
