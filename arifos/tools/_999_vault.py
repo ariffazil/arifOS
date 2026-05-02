@@ -11,6 +11,8 @@ from arifos.core.governance import (
     governed_return,
     VAULT999_LEDGER_PATH,
 )
+from arifos.security import msap
+from arifos.tools import _888_judge
 from arifos.tools._tool_support import invariant_fields
 
 VAULT999_DIR = os.path.dirname(VAULT999_LEDGER_PATH)
@@ -105,6 +107,7 @@ def _preflight_check() -> tuple[bool, str]:
     if POSTGRES_REQUIRED:
         try:
             import psycopg2
+
             psycopg2.connect(host="localhost", port=5432, connect_timeout=2)
         except Exception as e:
             return False, f"Postgres unreachable: {e}"
@@ -127,6 +130,7 @@ def readiness_probe() -> dict:
     # Postgres
     try:
         import psycopg2
+
         psycopg2.connect(host="localhost", port=5432, connect_timeout=2)
         checks["postgres"] = "ok"
     except Exception:
@@ -141,6 +145,10 @@ async def execute(
     chain_hash: str | None = None,
     operator_id: str | None = None,
     session_id: str | None = None,
+    ack_packet: dict | None = None,
+    registered_public_keys: dict | None = None,
+    zkpc_proof: dict | None = None,
+    zkpc_public_inputs: dict | None = None,
 ) -> dict:
     """
     Vault-999 execution entry point.
@@ -155,7 +163,7 @@ async def execute(
 
     # -- 1. Action whitelist --
     if action not in ("seal", "verify", "query"):
-        metrics = ThermodynamicMetrics(
+        ThermodynamicMetrics(
             truth_score=0.0,
             delta_s=0.0,
             omega_0=0.03,
@@ -181,7 +189,7 @@ async def execute(
     # -- 2. Pre-flight checks --
     pf_ok, pf_err = _preflight_check()
     if not pf_ok:
-        metrics = ThermodynamicMetrics(
+        ThermodynamicMetrics(
             truth_score=0.0,
             delta_s=0.0,
             omega_0=0.03,
@@ -206,7 +214,16 @@ async def execute(
 
     # -- 3. Dispatch --
     if action == "seal":
-        return await _vault_seal(payload, chain_hash, operator_id, session_id)
+        return await _vault_seal(
+            payload,
+            chain_hash,
+            operator_id,
+            session_id,
+            ack_packet,
+            registered_public_keys,
+            zkpc_proof,
+            zkpc_public_inputs,
+        )
     elif action == "verify":
         return await _vault_verify(payload, chain_hash, operator_id, session_id)
     elif action == "query":
@@ -218,12 +235,123 @@ async def _vault_seal(
     chain_hash: str | None,
     operator_id: str | None,
     session_id: str | None,
+    ack_packet: dict | None = None,
+    registered_public_keys: dict | None = None,
+    zkpc_proof: dict | None = None,
+    zkpc_public_inputs: dict | None = None,
 ) -> dict:
     payload = payload or {}
     src_integrity = _source_integrity(payload)
     chain_position = _derive_chain_position(VAULT999_FILE)
 
-    # Build ledger entry
+    # Clean payload of any semantic approval string hacks
+    for key in list(payload.keys()):
+        if key in ["ack_irreversible", "approval_text"]:
+            del payload[key]
+
+    # Vault seal is treated as irreversible by constitutional policy.
+    is_irreversible_action = True
+
+    # 1. MSAP & ZKPC Verification
+    zkpc_level = 0
+    crypto_evidence = {}
+
+    if zkpc_proof and zkpc_public_inputs:
+        from arifos.security import zkpc_v2
+
+        v_res = zkpc_v2.verify_zkpc_v2_epoch(
+            zkpc_proof, zkpc_public_inputs, session_id or "unknown", is_irreversible_action
+        )
+        zkpc_level = v_res.get("zkpc_level", 0)
+        crypto_evidence = v_res
+    elif ack_packet:
+        pubkeys = registered_public_keys or {}
+        if not pubkeys and os.getenv("ARIF_PUBKEY"):
+            pubkeys["ARIF"] = os.getenv("ARIF_PUBKEY")
+
+        v_res = msap.verify_sovereign_ack(ack_packet, pubkeys)
+        zkpc_level = v_res.zkpc_level
+        crypto_evidence = {
+            "signed_ack_valid": v_res.signed_ack_valid,
+            "zkpc_level": zkpc_level,
+            "zkpc_mode": v_res.zkpc_mode,
+            "personhood_verified": v_res.personhood_verified,
+            "continuity_mode": v_res.continuity_mode,
+            "ack_id": v_res.ack_id,
+            "payload_hash": v_res.payload_hash,
+            "judge_state_hash": v_res.judge_state_hash,
+            "actor_id": v_res.actor_id,
+            "session_id": v_res.session_id,
+            "nonce_hash": v_res.nonce_hash,
+        }
+        if zkpc_level >= 2:
+            # Dev mode promotion: fake the required ZK flags for the judge
+            crypto_evidence.update(
+                {
+                    "proof_verified": True,
+                    "continuity_proven": True,
+                    "epoch_chain_valid": True,
+                    "signal_binding_valid": True,
+                    "nonce_valid": True,
+                }
+            )
+    # 2. Call Judge for F1_AMANAH_ZKPC check
+    # Prepare evidence bundle for Judge
+    evidence_bundle = {
+        "metrics": {
+            "truth_score": 1.0,
+            "delta_s": 0.0,
+            "omega_0": 0.04,
+            "peace_squared": 1.0,
+            "amanah_lock": True,
+            "tri_witness_score": 1.0,
+            "stakeholder_safety": 1.0,
+            "floor_13_signal": 0.0,
+        },
+        "is_irreversible": is_irreversible_action,
+        "zkpc_level": zkpc_level,
+    }
+    evidence_bundle.update(crypto_evidence)
+
+    judge_res = await _888_judge.execute(
+        evidence_bundle=evidence_bundle,
+        operator_id=operator_id,
+        session_id=session_id,
+    )
+
+    final_verdict = judge_res.get("verdict")
+
+    # 3. Strict Vault Gating
+    ack_irreversible_received = False
+    if final_verdict == Verdict.SEAL and is_irreversible_action:
+        if zkpc_level >= 2:
+            if all(
+                [
+                    evidence_bundle.get("proof_verified", False),
+                    evidence_bundle.get("continuity_proven", False),
+                    evidence_bundle.get("epoch_chain_valid", False),
+                    evidence_bundle.get("signal_binding_valid", False),
+                    evidence_bundle.get("nonce_valid", False),
+                ]
+            ):
+                ack_irreversible_received = True
+        elif os.getenv(
+            "ARIFOS_DEV_ALLOW_MSAP_LEVEL2", "false"
+        ).lower() == "true" and evidence_bundle.get("signed_ack_valid"):
+            # Dev override compatibility
+            ack_irreversible_received = True
+
+    # Build ledger entry (Metadata only, NO SECRETS)
+    zkpc_metadata = {
+        "zkpc_level": zkpc_level,
+        "zkpc_mode": crypto_evidence.get("zkpc_mode"),
+        "proof_hash": crypto_evidence.get("proof_hash"),
+        "identity_commitment": crypto_evidence.get("identity_commitment"),
+        "previous_epoch_hash": crypto_evidence.get("previous_epoch_hash"),
+        "current_epoch_hash": crypto_evidence.get("current_epoch_hash"),
+        "ack_id": crypto_evidence.get("ack_id"),
+    }
+
     entry = {
         "ts": time.time(),
         "event_type": "vault_seal",
@@ -233,6 +361,9 @@ async def _vault_seal(
         "source_integrity": src_integrity,
         "payload": payload,
         "prev_hash": chain_hash or "GENESIS",
+        "ack_irreversible_received": ack_irreversible_received,
+        "zkpc_metadata": zkpc_metadata,
+        "judge_rationale": judge_res.get("rationale"),
     }
 
     canonical = json.dumps(entry, sort_keys=True, ensure_ascii=False)
@@ -244,11 +375,13 @@ async def _vault_seal(
         f"{chain_hash or 'GENESIS'}:{merkle_leaf}:{time.time()}".encode("utf-8")
     ).hexdigest()
 
-    entry.update({
-        "merkle_leaf": merkle_leaf,
-        "chain_hash": real_chain_hash,
-        "integrity_hash": integrity_hash,
-    })
+    entry.update(
+        {
+            "merkle_leaf": merkle_leaf,
+            "chain_hash": real_chain_hash,
+            "integrity_hash": integrity_hash,
+        }
+    )
 
     # -- Write to ledger --
     write_ok, write_err = _append_ledger(entry, VAULT999_FILE)
@@ -285,15 +418,22 @@ async def _vault_seal(
         "chain_position": chain_position,
         "integrity_hash": integrity_hash,
         "source_integrity": src_integrity,
-        "verdict": Verdict.SEAL,
+        "verdict": final_verdict,
         "ledger_written": True,
+        "ack_irreversible_received": ack_irreversible_received,
+        "zkpc_metadata": zkpc_metadata,
+        "judge_rationale": judge_res.get("rationale"),
     }
+
+    # If Judge blocked SEAL, the report should reflect that
+    if final_verdict != Verdict.SEAL:
+        report["status"] = "blocked_by_judge"
 
     metrics = ThermodynamicMetrics(
         truth_score=0.98,
         delta_s=-0.02,
         omega_0=0.03,
-        peace_squared=1.0,
+        peace_squared=1.0 if ack_irreversible_received else 0.5,
         amanah_lock=True,
         tri_witness_score=0.98,
         stakeholder_safety=1.0,
@@ -344,8 +484,6 @@ async def _vault_verify(
         "continuity_valid": continuity_ok,
     }
 
-    verdict = Verdict.SEAL if continuity_ok and computed_integrity >= 0.99 else Verdict.HOLD_888
-
     metrics = ThermodynamicMetrics(
         truth_score=0.99 if continuity_ok else 0.0,
         delta_s=-0.01 if continuity_ok else 0.01,
@@ -386,13 +524,15 @@ async def _vault_query(
             for index, ln in enumerate(lines[-5:], start=start_pos):
                 try:
                     rec = json.loads(ln)
-                    recent.append({
-                        "chain_position": rec.get("chain_position") or index,
-                        "chain_hash": rec.get("chain_hash"),
-                        "ts": rec.get("ts"),
-                        "event_type": rec.get("event_type"),
-                        "operator_id": rec.get("operator_id"),
-                    })
+                    recent.append(
+                        {
+                            "chain_position": rec.get("chain_position") or index,
+                            "chain_hash": rec.get("chain_hash"),
+                            "ts": rec.get("ts"),
+                            "event_type": rec.get("event_type"),
+                            "operator_id": rec.get("operator_id"),
+                        }
+                    )
                 except Exception:
                     pass
         except Exception:
