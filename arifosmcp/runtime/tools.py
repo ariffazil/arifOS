@@ -654,7 +654,7 @@ class _FileSessionStore:
         self._path = os.path.join(tempfile.gettempdir(), "arifos", "sessions.json")
         os.makedirs(os.path.dirname(self._path), exist_ok=True)
 
-    def _load(self) -> dict[str, dict[str, Any]]:
+    def _load(self) -> dict[str, Any]:
         try:
             with open(self._path, encoding="utf-8") as f:
                 fcntl.flock(f, fcntl.LOCK_SH)
@@ -668,7 +668,22 @@ class _FileSessionStore:
             pass
         return {}
 
-    def _save(self, data: dict[str, dict[str, Any]]) -> None:
+    def _get_session(self, key: str) -> dict[str, Any] | None:
+        data = self._load()
+        sessions = data.get("sessions", {})
+        if key in sessions:
+            return sessions[key]
+        return data.get(key)
+
+    def _set_session(self, key: str, value: dict[str, Any]) -> None:
+        data = self._load()
+        if key in data.get("sessions", {}) or "sessions" in data:
+            data.setdefault("sessions", {})[key] = value
+        else:
+            data[key] = value
+        self._save(data)
+
+    def _save(self, data: dict[str, Any]) -> None:
         try:
             with open(self._path, "w", encoding="utf-8") as f:
                 fcntl.flock(f, fcntl.LOCK_EX)
@@ -692,28 +707,31 @@ class _FileSessionStore:
                     fcntl.flock(f, fcntl.LOCK_UN)
 
     def get(self, key: str) -> dict[str, Any] | None:
-        return self._load().get(key)
+        return self._get_session(key)
 
     def set(self, key: str, value: dict[str, Any]) -> None:
-        data = self._load()
-        data[key] = value
-        self._save(data)
+        self._set_session(key, value)
 
     def delete(self, key: str) -> None:
         data = self._load()
-        if key in data:
+        if key in data.get("sessions", {}):
+            del data["sessions"][key]
+        elif key in data:
             del data[key]
-            self._save(data)
+        self._save(data)
 
     def keys(self) -> set[str]:
-        return set(self._load().keys())
+        data = self._load()
+        return set(data.get("sessions", {}).keys()) or set(data.keys())
 
     def values(self) -> list[dict[str, Any]]:
-        return list(self._load().values())
+        data = self._load()
+        sessions = data.get("sessions", {})
+        return list(sessions.values()) if sessions else list(data.values())
 
     def pop(self, key: str, default: Any = None) -> Any:
         data = self._load()
-        value = data.pop(key, default)
+        value = data.get("sessions", {}).pop(key, data.pop(key, default))
         self._save(data)
         return value
 
@@ -721,10 +739,10 @@ class _FileSessionStore:
         self._save({})
 
     def __contains__(self, key: str) -> bool:
-        return key in self._load()
+        return self._get_session(key) is not None
 
     def __getitem__(self, key: str) -> dict[str, Any]:
-        val = self._load().get(key)
+        val = self._get_session(key)
         if val is None:
             raise KeyError(key)
         return val
@@ -822,6 +840,19 @@ def _new_session(
         "entropy_delta": 0.0,
         "sealed": False,
         "epoch_id": epoch_id,
+        # ── Trace Spine (TRACE-SPINE-IMPL) — generate and store ──
+        "trace_packet": {
+            "trace_id": f"TRACE-{uuid.uuid4().hex[:12]}",
+            "parent_trace_id": None,
+            "session_id": sid,
+            "epoch_id": epoch_id,
+            "actor_id": actor_id or "anonymous",
+            "intent": "",
+            "decision_class": "C2",
+            "reversibility": "reversible",
+            "model_governance_card_hash": None,
+            "created_at": _now(),
+        },
     }
 
     # ── Model Registry Binding (v2 Deepening — Lazy Import) ──
@@ -851,7 +882,7 @@ def _new_session(
             ),
             auth_context={"source": "arif_session_init", "mode": "init"},
             stage="000",
-            governance={"verdict": "SEAL"},
+            governance={"verdict": "SEAL", "trace_packet": sess.get("trace_packet")},
         )
     except Exception as exc:
         logger.warning("Failed to persist session to identity store: %s", exc)
@@ -4469,6 +4500,13 @@ def _arif_vault_seal(
                 event["sealed_at"] = _now()
 
             sess.setdefault("drift_log", []).extend(drift_events)
+            # Persist drift_log to disk (F12 stewardship — mutations must survive process restart)
+            data = _SESSION_STORE._load()
+            if session_id in data.get("sessions", {}):
+                data["sessions"][session_id] = sess
+            else:
+                data[session_id] = sess
+            _SESSION_STORE._save(data)
 
         import hashlib as _hashlib
 
