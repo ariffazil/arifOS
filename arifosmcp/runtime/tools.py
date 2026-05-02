@@ -957,23 +957,27 @@ def _ok(
                     epoch["peace2"] = max(epoch.get("peace2", 0.0), 1.0)
                     epoch["verdict"] = "SEAL"
 
-    # F2 / Nine-Signal: inject nine_signal at TOP LEVEL so it is present in
-    # the MCP response text directly (not buried in result[]).  This ensures
-    # _enforce_nine_signal's early-exit fires and _nine_signal_compliant=True.
-    _ns = _nine_signal_from_status("OK")
-
-    return {
+    response = {
         "status": "OK",
         "tool": tool,
         "result": result,
         "meta": meta_payload,
         "delta_S": delta_S,
         "timestamp": _now(),
-        # Nine-Signal contract — top level so MCP response sees it directly
-        "nine_signal": _ns,
-        "reasons": [],
         "output_policy": "DOMAIN_SEAL",
+        "reasons": [
+            "Reversible operation — no irreversible state change",
+            f"tool={tool}",
+            f"delta_S={delta_S} within reversible thermodynamic bounds",
+        ],
     }
+    actor_id = meta_payload.get("actor_id")
+    return _enforce_nine_signal(
+        tool,
+        response,
+        session_id=session_id,
+        actor_id=actor_id,
+    )
 
 
 def _hold(
