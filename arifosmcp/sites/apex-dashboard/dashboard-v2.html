@@ -628,29 +628,30 @@
                         const th = json.thermodynamic || {};
                         const gov = json.governance || {};
                         const rf = json.runtime_floors || {};
+                        const src = Object.keys(rf).length ? rf : gov;
 
                         const overallOk = json.trinity_matrix?.overall_ok !== false;
                         const status = overallOk ? "HEALTHY" : "DEGRADED";
 
-                        const G_star = th.vitality_index ?? 0.5;
+                        const G_star = th.vitality_index ?? gov.psi_vitality ?? 0.5;
                         const dS = th.entropy_delta ?? 0;
-                        const peace2 = th.peace_squared ?? 0.5;
+                        const peace2 = th.peace_squared ?? gov.peace_squared ?? 0.5;
                         const witness = th.witness || { human: 0, ai: 0, earth: 0 };
 
                         const floors = [
-                            { id: "F1", name: "Amanah",    status: rf.F1 >= 0.8 ? "pass" : "band", score: rf.F1 },
-                            { id: "F2", name: "Truth",     status: rf.F2 >= 0.8 ? "pass" : "band", score: rf.F2 },
-                            { id: "F3", name: "Tri-Witness",status: rf.F3 >= 0.8 ? "pass" : "band", score: rf.F3 },
-                            { id: "F4", name: "ΔS",         status: rf.F4 >= 0   ? "pass" : "band", score: rf.F4 },
-                            { id: "F5", name: "Peace²",      status: rf.F5 >= 0.8 ? "pass" : "band", score: rf.F5 },
-                            { id: "F6", name: "κᵣ",         status: rf.F6 >= 0.8 ? "pass" : "band", score: rf.F6 },
-                            { id: "F7", name: "Humility",   status: rf.F7 >= 0.8 ? "pass" : "band", score: rf.F7 },
-                            { id: "F8", name: "Genius",     status: rf.F8 >= 0.8 ? "pass" : "band", score: rf.F8 },
-                            { id: "F9", name: "C_dark",     status: rf.F9 >= 0.8 ? "pass" : "band", score: rf.F9 },
-                            { id: "F10", name: "Ontology",  status: rf.F10 >= 0.8 ? "lock" : "band", score: rf.F10 },
-                            { id: "F11", name: "Command",   status: rf.F11 >= 0.8 ? "lock" : "band", score: rf.F11 },
-                            { id: "F12", name: "Injection", status: rf.F12 >= 0.8 ? "pass" : "band", score: rf.F12 },
-                            { id: "F13", name: "Sovereign", status: rf.F13 >= 0.8 ? "human" : "band", score: rf.F13 },
+                            { id: "F1", name: "Amanah",     status: src.F1  >= 0.8 ? "pass" : "band", score: src.F1  ?? 0 },
+                            { id: "F2", name: "Truth",      status: src.F2  >= 0.8 ? "pass" : "band", score: src.F2  ?? 0 },
+                            { id: "F3", name: "Tri-Witness",status: src.F3  >= 0.8 ? "pass" : "band", score: src.F3  ?? 0 },
+                            { id: "F4", name: "ΔS",          status: src.F4  >= 0   ? "pass" : "band", score: src.F4  ?? 0 },
+                            { id: "F5", name: "Peace²",     status: src.F5  >= 0.8 ? "pass" : "band", score: src.F5  ?? 0 },
+                            { id: "F6", name: "κᵣ",          status: src.F6  >= 0.8 ? "pass" : "band", score: src.F6  ?? 0 },
+                            { id: "F7", name: "Humility",    status: src.F7  >= 0.8 ? "pass" : "band", score: src.F7  ?? 0 },
+                            { id: "F8", name: "Genius",      status: src.F8  >= 0.8 ? "pass" : "band", score: src.F8  ?? 0 },
+                            { id: "F9", name: "C_dark",      status: src.F9  >= 0.8 ? "pass" : "band", score: src.F9  ?? 0 },
+                            { id: "F10", name: "Ontology",   status: src.F10 >= 0.8 ? "lock" : "band", score: src.F10 ?? 0 },
+                            { id: "F11", name: "Command",    status: src.F11 >= 0.8 ? "lock" : "band", score: src.F11 ?? 0 },
+                            { id: "F12", name: "Injection",  status: src.F12 >= 0.8 ? "pass" : "band", score: src.F12 ?? 0 },
+                            { id: "F13", name: "Sovereign",   status: src.F13 >= 0.8 ? "human" : "band", score: src.F13 ?? 0 },
                         ];
 
                         const machines = json.containers || [];
