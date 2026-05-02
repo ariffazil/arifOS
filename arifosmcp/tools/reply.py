@@ -1,6 +1,6 @@
 """
 arifosmcp/tools/reply_compose.py — 444r_REPLY
-═════════════════════════════════════════════
+════════════════════════════════════════════
 
 Governed response compositor.
 """
@@ -37,7 +37,6 @@ def arif_reply_compose(
         if "i am" in msg_l:
             for s in ["gpt", "claude", "gemini", "grok", "minimax", "kimi"]:
                 if f"i am {s}" in msg_l and s not in anchor.get("soul_key", "").lower():
-                    # Correction: find the actual casing used in the message
                     import re
 
                     pattern = re.compile(f"i am {s}", re.IGNORECASE)
@@ -98,7 +97,6 @@ def arif_reply_compose(
                 }
             )
 
-        # If drift detected, anchor to vault
         if drift_events:
             _arif_vault_seal(mode="dry_run", session_id=session_id, drift_events=drift_events)
 
