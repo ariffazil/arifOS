@@ -655,12 +655,13 @@
                         ];
 
                         const passFloors = floors.filter(f => f.status === "pass" || f.status === "lock" || f.status === "human");
-                        const floorsActive = passFloors.length ? `${passFloors.length}/13` : null;
+                        const floorsActive = passFloors.length ? `${passFloors.length}/13` : rf && Object.keys(rf).length ? `${passFloors.length}/13` : "—/13";
 
                         const machines = json.containers || [];
                         const cpu = machines.reduce((s, c) => s + (c.cpu_percent || 0), 0).toFixed(1);
                         const ram = machines.reduce((s, c) => s + (c.memory_percent || 0), 0).toFixed(1);
 
+                        console.log('DEBUG floorsActive:', floorsActive, 'passFloors:', passFloors.map(f => f.id + '=' + f.status));
                         setData(prev => ({
                             ...prev,
                             system: {
