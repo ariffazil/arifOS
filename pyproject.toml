@@ -69,12 +69,13 @@ asyncio_mode = "auto"
 line-length = 100
 target-version = "py312"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "arifosmcp/runtime/a2a/server.py" = ["N812"]
 "arifosmcp/runtime/rest_routes.py" = ["E501", "F841", "N806", "I001"]
 "arifosmcp/schemas/forge.py" = ["N815"]
 "arifosmcp/runtime/semantic_gate.py" = ["E501"]
 "arifosmcp/schemas/semantic_gate.py" = ["E501"]
+"arifosmcp/runtime/tools_internal.py" = ["UP038"]
 
 [tool.mypy]
 python_version = "3.12"

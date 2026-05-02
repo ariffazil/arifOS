@@ -77,7 +77,7 @@ repos:
     hooks:
       - id: ruff
         name: Lint with Ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--fix, --unsafe-fixes, --exit-non-zero-on-fix]
 
   # MyPy - Type checking (manual only: pre-existing namespace package conflicts)
   - repo: https://github.com/pre-commit/mirrors-mypy

@@ -15,11 +15,13 @@ from __future__ import annotations
 import json
 import logging
 import os
+from datetime import datetime, timezone
 from typing import Any
 
 from fastmcp.server.context import Context
 
 from arifosmcp.runtime.model import (
+    ArifOSError,
     CallerContext,
     RuntimeEnvelope,
     RuntimeStatus,
@@ -275,7 +277,7 @@ def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
     for key, value in payload.items():
         if value is None:
             sanitized[key] = None
-        elif isinstance(value, (str, int, float, bool, list, dict)):
+        elif isinstance(value, str | int | float | bool | list | dict):
             sanitized[key] = value
         elif hasattr(value, "model_dump"):
             # Pydantic model
@@ -286,7 +288,7 @@ def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 sanitized[key] = {
                     k: v
                     for k, v in value.__dict__.items()
-                    if isinstance(v, (str, int, float, bool, list, dict, type(None)))
+                    if isinstance(v, str | int | float | bool | list | dict | type(None))
                 }
             except Exception:
                 sanitized[key] = str(value)
@@ -367,7 +369,7 @@ def _resolve_caller_state(
     else:
         caller_state = "anonymous"
 
-    MEGA_TOOLS = [
+    mega_tools = [
         "arifos_init",
         "arifos_kernel",
         "arifos_judge",
@@ -400,8 +402,8 @@ def _resolve_caller_state(
                 "arifos_vault": "Requires verified identity.",
             },
         },
-        "anchored": {"allowed": MEGA_TOOLS, "blocked": {}},
-        "verified": {"allowed": MEGA_TOOLS, "blocked": {}},
+        "anchored": {"allowed": mega_tools, "blocked": {}},
+        "verified": {"allowed": mega_tools, "blocked": {}},
     }
 
     state_config = visibility.get(caller_state, visibility["anonymous"])
@@ -856,6 +858,7 @@ async def vault_ledger_dispatch_impl(
 
         # Route SEAL writes through vault999_writer (writer_service)
         writer_url = os.environ.get("VAULT999_WRITER_URL", "http://vault999-writer:5001")
+        writer_token = os.environ.get("VAULT_WRITER_TOKEN", "")
         verdict = payload.get("verdict", "SEAL")
         evidence = payload.get("evidence", "")
         agent_id = "arifOS_bot"
@@ -865,6 +868,10 @@ async def vault_ledger_dispatch_impl(
         now_iso = datetime.now(timezone.utc).isoformat()
         try:
             import httpx
+
+            headers = {}
+            if writer_token:
+                headers["X-Writer-Token"] = writer_token
 
             async with httpx.AsyncClient(timeout=15.0) as client:
                 r = await client.post(
@@ -886,6 +893,7 @@ async def vault_ledger_dispatch_impl(
                         },
                         "human_signature": human_signature,
                     },
+                    headers=headers,
                 )
             if r.status_code in (200, 201):
                 data = r.json()
@@ -1216,7 +1224,10 @@ async def engineering_memory_dispatch_impl(
             status=RuntimeStatus.SABAR,
             payload={
                 "error": "BACKEND_UNAVAILABLE",
-                "message": "Vector backend (Qdrant) is not configured or available. Falling back to legacy.",
+                "message": (
+                    "Vector backend (Qdrant) is not configured or available. "
+                    "Falling back to legacy."
+                ),
                 "mode": mode,
             },
         )
@@ -1561,7 +1572,7 @@ async def engineering_memory_dispatch_impl(
             )
         project_id = payload.get("project_id", "default")
         area_str = payload.get("area", "main")
-        metadata = payload.get("metadata", {})
+        _metadata = payload.get("metadata", {})
         store = _get_constitutional_memory_store()
         if store:
             try:
@@ -1715,8 +1726,6 @@ async def math_estimator_dispatch_impl(
     if mode == "vitals":
         # PHASE 0 FIX: Wrapped vital signs computation with error handling
         try:
-            import os
-
             import psutil
 
             # Get system vitals
