@@ -123,6 +123,9 @@ arifos.arif-fazil.com {
     handle /sse* {
         reverse_proxy arifosmcp:8080
     }
+    handle /api/status {
+        reverse_proxy arifosmcp:8080
+    }
 
     # Agent discovery + WebMCP routes (P0 fix)
     handle /agent-card.json {
@@ -263,18 +266,18 @@ wealth.arif-fazil.com {
 
     handle /mcp* {
         import cors_public
-        reverse_proxy 172.19.0.11:8082
+        reverse_proxy wealth-organ:8082
     }
     handle /health {
         import cors_public
-        reverse_proxy 172.19.0.11:8082
+        reverse_proxy wealth-organ:8082
     }
     handle /ready {
         import cors_public
-        reverse_proxy 172.19.0.11:8082
+        reverse_proxy wealth-organ:8082
     }
     handle /sse* {
-        reverse_proxy 172.19.0.11:8082
+        reverse_proxy wealth-organ:8082
     }
 
     handle {
