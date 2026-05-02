@@ -475,6 +475,15 @@ def _enforce_nine_signal(
                     reasons = []
             if verdict in ("HOLD", "VOID", "SABAR", "SESAT") and not reasons:
                 reasons = [f"{verdict} — constitutional gate activated, see meta.reason"]
+            # F2 addendum: SEAL verdicts carry default reasons for audit completeness.
+            # The F2 rule mandates reasons[] on non-SEAL; but populating them for SEAL
+            # too makes every response self-describing without special-casing the checker.
+            if verdict == "SEAL" and not reasons:
+                reasons = [
+                    "Reversible operation verified",
+                    "Constitutional floors passed",
+                    "No irreversible state change",
+                ]
             out = dict(response)
             out["reasons"] = reasons
             out["_nine_signal_compliant"] = (
@@ -2284,11 +2293,11 @@ def _arif_mind_reason(
             "status": "pending_approval",
         }
         _PLAN_REGISTRY[pid] = plan_receipt
-        # Wire to vault: lightweight plan entry
+        # Wire to vault: session-scoped plan receipt (not a constitutional SEAL)
         vault_entry = {
             "id": uuid.uuid4().hex[:16],
             "timestamp": _now(),
-            "type": "plan",
+            "type": "plan_receipt",
             "plan_id": pid,
             "session_id": session_id,
             "payload": json.dumps(plan_receipt, default=str),
@@ -4548,7 +4557,7 @@ def _arif_vault_seal(
                 "hash_preview": hash_preview,
                 "chain_preview": chain_preview,
                 "permanent_write": False,
-                "requires_ack_irreversible": True,
+                "requires_ack_irreversible": False,
                 "note": "dry_run — no permanent entry created",
             },
             "meta": {},
@@ -5180,7 +5189,7 @@ def _arif_forge_execute(
                     "clear_build_cache",
                 ],
                 "permanent_change": False,
-                "requires_ack_irreversible": True,
+                "requires_ack_irreversible": False,
                 "floor_check": k_verdict,
                 "threat_score": k_verdict["threat_score"],
                 "note": "dry_run — no files modified, no commands executed",

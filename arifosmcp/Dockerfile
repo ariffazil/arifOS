@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install uv
 
-COPY requirements.txt .
+COPY arifosmcp/requirements.txt requirements.txt
 RUN uv pip install --system --no-cache -r requirements.txt
 
 
