@@ -2,8 +2,17 @@
 # Package truth: /app/arifosmcp/ is the Python package
 # PYTHONPATH=/app only — no multi-path chaos
 #
-# Build:  docker build -t ghcr.io/ariffazil/arifos:latest -f arifosmcp/Dockerfile .
+# Build:  docker build \
+#           --build-arg ARIFOS_BUILD_SHA=$(git rev-parse --short HEAD) \
+#           --build-arg ARIFOS_BUILD_BRANCH=$(git rev-parse --abbrev-ref HEAD) \
+#           --build-arg ARIFOS_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+#           -t ghcr.io/ariffazil/arifos:latest \
+#           -f arifosmcp/Dockerfile .
 # Run:    docker run --rm ghcr.io/ariffazil/arifos:latest python -m arifosmcp.runtime.__main__
+#
+# Git metadata is baked in at build time and exposed via:
+#   ENV DEPLOY_GIT_COMMIT, DEPLOY_GIT_BRANCH, DEPLOY_BUILD_TIME
+#   LABEL io.modelcontextprotocol.server.version, org.opencontainers.image.revision
 # ─────────────────────────────────────────────────────────────────────────
 
 # ── Stage 1: dependency installer ────────────────────────────────────────
@@ -32,11 +41,21 @@ RUN uv pip install --system --no-cache -r requirements.txt
 # ── Stage 2: runtime image ────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime
 
+# Build-time git metadata — set via --build-arg at docker build
+ARG ARIFOS_BUILD_SHA=unknown
+ARG ARIFOS_BUILD_BRANCH=unknown
+ARG ARIFOS_BUILD_TIME=unknown
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     VPS_MODE=1 \
     ARIFOS_DEPLOYMENT=vps
+
+# Embed git metadata as runtime env vars (server.py reads DEPLOY_GIT_*)
+ENV DEPLOY_GIT_COMMIT=${ARIFOS_BUILD_SHA}
+ENV DEPLOY_GIT_BRANCH=${ARIFOS_BUILD_BRANCH}
+ENV DEPLOY_BUILD_TIME=${ARIFOS_BUILD_TIME}
 
 WORKDIR /app
 
@@ -65,5 +84,14 @@ EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
+
+# OCI metadata labels — immutable provenance baked at build time
+LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp" \
+      io.modelcontextprotocol.server.version="${ARIFOS_BUILD_SHA}" \
+      io.modelcontextprotocol.server.description="Constitutional AI governance server with 13 canonical MCP capability tools. Diagnostics are internal runtime only." \
+      org.opencontainers.image.revision="${ARIFOS_BUILD_SHA}" \
+      org.opencontainers.image.created="${ARIFOS_BUILD_TIME}" \
+      org.opencontainers.image.source="https://github.com/ariffazil/arifOS" \
+      org.opencontainers.image.licenses="MIT"
 
 CMD ["python", "-m", "arifosmcp.runtime.__main__"]

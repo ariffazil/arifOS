@@ -57,15 +57,25 @@ publish-pypi:
 	uv build --project arifosmcp && uv publish --project arifosmcp --token $(PYPI_TOKEN)
 	@echo "✅ PyPI: arifos $(shell grep '^version' arifosmcp/pyproject.toml | cut -d'\"' -f2) published"
 
-## GHCR: Build + push Docker image
+## GHCR: Build + push Docker image with embedded git metadata
 publish-ghcr:
-	@echo "🐳 Publishing to GHCR..."
-	@VERSION=2026.05.01; \
-	docker build -t ghcr.io/ariffazil/arifos:$$VERSION . && \
+	@echo "🐳 Publishing to GHCR with git provenance..."
+	@GIT_SHA=$$(git rev-parse --short HEAD); \
+	GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	BUILD_TIME=$$(date -u +%Y-%m-%dT%H:%M:%SZ); \
+	VERSION=$$(git rev-parse --short HEAD); \
+	docker build \
+		--build-arg ARIFOS_BUILD_SHA=$$GIT_SHA \
+		--build-arg ARIFOS_BUILD_BRANCH=$$GIT_BRANCH \
+		--build-arg ARIFOS_BUILD_TIME=$$BUILD_TIME \
+		-t ghcr.io/ariffazil/arifos:$$VERSION \
+		-t ghcr.io/ariffazil/arifos:$$GIT_SHA \
+		-f arifosmcp/Dockerfile . && \
 	docker push ghcr.io/ariffazil/arifos:$$VERSION && \
+	docker push ghcr.io/ariffazil/arifos:$$GIT_SHA && \
 	docker tag ghcr.io/ariffazil/arifos:$$VERSION ghcr.io/ariffazil/arifos:latest && \
 	docker push ghcr.io/ariffazil/arifos:latest && \
-	echo "✅ GHCR: arifos:$$VERSION and latest pushed"
+	echo "✅ GHCR: arifos:$$VERSION ($$GIT_SHA) pushed with embedded git metadata"
 
 ## GitGist: Sync 000_LAW.md to public gist
 publish-law:
