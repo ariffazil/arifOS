@@ -234,6 +234,9 @@ class ForgeOutput(BaseModel):
     # Nine-Signal / F2 addendum — reasons[] required for HOLD/VOID/SABAR
     reasons: list[str] = Field(default_factory=list)
 
+    # Constitutional health signal (delta/psi/omega/overall)
+    nine_signal: dict[str, Any] | None = Field(default=None)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BACKWARD-COMPATIBLE ENVELOPE

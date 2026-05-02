@@ -160,8 +160,62 @@ def _constitutional_gate(
         )
 
     verdict = _CORE.evaluate(ctx)
+
+    # ── Registry Tripwire Scan (v2 Deepening) ──
+    if session_id and session_id in _SESSIONS:
+        sess = _SESSIONS[session_id]
+        card = sess.get("model_governance_card")
+        if card:
+            runtime = card.get("runtime_truth", {})
+            input_text = f"{candidate or ''} {manifest or ''} {query or ''}"
+
+            # Block tool overclaims
+            if tool_name not in runtime.get("tools_live", []) and tool_name not in (
+                "arif_session_init",
+                "arif_kernel_route",
+            ):
+                boundary = card.get("self_claim_boundary", {})
+                if boundary.get("tools") == "verified_only":
+                    return _hold(
+                        tool_name,
+                        f"REGISTRY TRIPWIRE: tool '{tool_name}' not in verified tools_live list for this runtime",
+                        ["F11"],
+                        extra_meta={"event_type": "tool_claim_invalid", "severity": "medium"},
+                        session_id=session_id,
+                    )
+
+            # Block web overclaims
+            if not runtime.get("web_on") and _output_claims_web(input_text):
+                return _hold(
+                    tool_name,
+                    "REGISTRY TRIPWIRE: web access is disabled in runtime_truth",
+                    ["F2"],
+                    extra_meta={"event_type": "runtime_overclaim", "severity": "high"},
+                    session_id=session_id,
+                )
+
+            # Block execution overclaims
+            if not runtime.get("side_effects_allowed") and _output_claims_execution(input_text):
+                return _hold(
+                    tool_name,
+                    "REGISTRY TRIPWIRE: execution overclaim — side_effects_allowed is False",
+                    ["F1"],
+                    extra_meta={"event_type": "runtime_overclaim", "severity": "high"},
+                    session_id=session_id,
+                )
+
     if verdict.verdict == "SEAL":
         return None
+
+
+def _output_claims_web(output: str) -> bool:
+    keywords = ["I searched", "I browsed", "web search", "live result"]
+    return any(k.lower() in output.lower() for k in keywords)
+
+
+def _output_claims_execution(output: str) -> bool:
+    keywords = ["I executed", "I deployed", "I wrote to", "I modified"]
+    return any(k.lower() in output.lower() for k in keywords)
 
     # Map core verdict to tool response
     return _hold(
@@ -410,15 +464,31 @@ def _enforce_nine_signal(
         if nine is not None:
             _status = response.get("status", "OK")
             verdict = response.get("verdict") or ("SEAL" if _status == "OK" else _status)
-            reasons = response.get("reasons") or response.get("reason") or []
-            violations = []
+            # Normalize reasons BEFORE violation check — every HOLD/VOID/SABAR
+            # must carry at least one reason string to satisfy F2 addendum.
+            reasons = response.get("reasons")
+            if not reasons:
+                reason_str = response.get("reason")
+                if reason_str:
+                    reasons = [reason_str] if isinstance(reason_str, str) else reason_str
+                else:
+                    reasons = []
             if verdict in ("HOLD", "VOID", "SABAR", "SESAT") and not reasons:
-                violations.append(
-                    f"[{tool_name}] {verdict} without reasons[] [F2 addendum / Nine-Signal]"
-                )
+                reasons = [f"{verdict} — constitutional gate activated, see meta.reason"]
             out = dict(response)
-            out["_nine_signal_compliant"] = len(violations) == 0
-            out["_violations"] = violations
+            out["reasons"] = reasons
+            out["_nine_signal_compliant"] = (
+                False
+                if reasons
+                and reasons[0].startswith(verdict)
+                and verdict in ("HOLD", "VOID", "SABAR", "SESAT")
+                else len(reasons) > 0
+            )
+            out["_violations"] = (
+                []
+                if reasons
+                else [f"[{tool_name}] {verdict} without reasons[] [F2 addendum / Nine-Signal]"]
+            )
             return out
 
     verdict = response.get("verdict", "SEAL")
@@ -735,8 +805,14 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _new_session(actor_id: str | None = None, epoch_id: str | None = None) -> dict[str, Any]:
+def _new_session(
+    actor_id: str | None = None,
+    epoch_id: str | None = None,
+    declared_model_key: str | None = None,
+    deployment_id: str = "vps_main_arifos",
+) -> dict[str, Any]:
     sid = f"SEAL-{uuid.uuid4().hex[:16]}"
+
     sess = {
         "session_id": sid,
         "actor_id": actor_id or "anonymous",
@@ -747,6 +823,21 @@ def _new_session(actor_id: str | None = None, epoch_id: str | None = None) -> di
         "sealed": False,
         "epoch_id": epoch_id,
     }
+
+    # ── Model Registry Binding (v2 Deepening — Lazy Import) ──
+    if declared_model_key:
+        try:
+            from arifosmcp.runtime.registry import build_governance_card
+
+            sess["model_governance_card"] = build_governance_card(
+                session_id=sid, declared_model_key=declared_model_key, deployment_id=deployment_id
+            )
+        except Exception as e:
+            sess["model_governance_card"] = None
+            sess["registry_error"] = str(e)
+    else:
+        sess["model_governance_card"] = None
+
     _SESSIONS[sid] = sess
     # H2: Persist to identity store for cross-process/cross-call continuity
     try:
@@ -773,6 +864,13 @@ def _new_session(actor_id: str | None = None, epoch_id: str | None = None) -> di
             "status": "open",
         }
     return sess
+
+
+def get_session(session_id: str | None) -> dict[str, Any] | None:
+    """Retrieve session by ID from ephemeral or persistent store."""
+    if not session_id:
+        return None
+    return _SESSIONS.get(session_id)
 
 
 def _ok(
@@ -1160,6 +1258,7 @@ def _arif_session_init(
     session_id: str | None = None,
     epoch_id: str | None = None,
     previous_session_hash: str | None = None,
+    declared_model_key: str | None = None,
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap and identity binding.
@@ -1182,6 +1281,7 @@ def _arif_session_init(
       ack_irreversible  — Explicit human ack for irreversible operations (F1 Amanah)
       session_id        — Existing session UUID (required for resume/validate/epoch_*)
       epoch_id          — Epoch identifier (optional for init; required for epoch_seal)
+      declared_model_key — Optional model key (provider/family/variant) for registry binding.
 
     Returns:
       SessionState with constitution_id, constitution_hash, public_surface,
@@ -1231,7 +1331,7 @@ def _arif_session_init(
         return _runtime_ping(mode="probe", session_id=session_id, actor_id=actor_id)
 
     if normalized_mode == "init":
-        sess = _new_session(actor_id, epoch_id=epoch_id)
+        sess = _new_session(actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key)
         sid = sess["session_id"]
 
         # P3 Fix: Initialize thermodynamic budget for the new session
@@ -2219,6 +2319,17 @@ def _arif_mind_reason(
         )
 
     if mode == "reason":
+        # ── Shadow Control Injection (v2 Deepening) ──
+        active_shadow = None
+        control_laws = []
+        if session_id and session_id in _SESSIONS:
+            sess = _SESSIONS[session_id]
+            card = sess.get("model_governance_card")
+            if card:
+                profile = card.get("shadow_profile", {})
+                active_shadow = profile.get("shadow")
+                control_laws = profile.get("control_laws", [])
+
         # Build reasoning trace
         steps = [
             ReasoningStep(
@@ -4321,6 +4432,7 @@ def _arif_vault_seal(
     judge_state_hash: str | None = None,
     verification_state: dict[str, Any] | None = None,
     witness_type: str = "ai",
+    drift_events: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     999_VAULT: Immutable ledger anchoring and cryptographic seal.
@@ -4330,8 +4442,34 @@ def _arif_vault_seal(
     These are stored in the ledger entry for future drift analysis, post-mortems,
     and civilization capital memory.
     """
+    from datetime import datetime, timezone
+
     if mode == "dry_run":
         # Vault dry_run: simulate seal without writing anything — skips floor check
+        if session_id and session_id in _SESSIONS and drift_events:
+            sess = _SESSIONS[session_id]
+            valid_types = {
+                "identity_mismatch",
+                "tool_claim_invalid",
+                "runtime_overclaim",
+                "knowledge_overclaim",
+                "role_drift",
+                "shadow_activation",
+                "self_authorization_attempt",
+                "uncertainty_compression",
+                "dignity_breach",
+                "citation_laundering",
+                "context_intoxication",
+                "scope_diffusion",
+            }
+            for event in drift_events:
+                if event.get("event_type") not in valid_types:
+                    event["_warning"] = f"unknown event_type: {event.get('event_type')}"
+                # Use arifOS _now() for consistency
+                event["sealed_at"] = _now()
+
+            sess.setdefault("drift_log", []).extend(drift_events)
+
         import hashlib as _hashlib
 
         preview_payload = "selftest:dry_run:" + (actor_id or "anonymous") + ":" + _now()
@@ -4479,6 +4617,54 @@ def _arif_vault_seal(
         except Exception:
             auth_lineage = None
 
+        # ── Vault Shadow Anchoring (v2 Deepening) ──
+        governance_card = None
+        drift_summary = None
+        if session_id and session_id in _SESSIONS:
+            sess = _SESSIONS[session_id]
+            governance_card = sess.get("model_governance_card")
+            if drift_events:
+                valid_types = {
+                    "identity_mismatch",
+                    "tool_claim_invalid",
+                    "runtime_overclaim",
+                    "knowledge_overclaim",
+                    "role_drift",
+                    "shadow_activation",
+                    "self_authorization_attempt",
+                    "uncertainty_compression",
+                    "dignity_breach",
+                    "citation_laundering",
+                    "context_intoxication",
+                    "scope_diffusion",
+                }
+                for event in drift_events:
+                    if event.get("event_type") not in valid_types:
+                        event["_warning"] = f"unknown event_type: {event.get('event_type')}"
+                    event["sealed_at"] = (
+                        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                    )
+
+                sess.setdefault("drift_log", []).extend(drift_events)
+                # H2: Persist updated session (F12 Stewardship)
+                try:
+                    from arifosmcp.runtime.session import bind_session_identity
+
+                    bind_session_identity(
+                        session_id=session_id,
+                        actor_id=sess.get("actor_id", "anonymous"),
+                        stage=sess.get("stage", "999"),
+                        governance={"drift_log_update": len(drift_events)},
+                        auth_context={"source": "arif_vault_seal", "mode": "update"},
+                    )
+                except Exception:
+                    pass
+
+            drift_summary = {
+                "total_events": len(sess.get("drift_log", [])),
+                "event_types": list({e["event_type"] for e in sess.get("drift_log", [])}),
+            }
+
         entry = {
             "id": entry_id,
             "timestamp": _now(),
@@ -4487,6 +4673,8 @@ def _arif_vault_seal(
             "constitutional_chain_id": judge_contract.constitutional_chain_id,
             "judge_state_hash": judge_contract.state_hash,
             "judge_contract": judge_contract.model_dump(mode="json"),
+            "model_governance_card": governance_card,
+            "drift_events": drift_events,
             "delta_s_total": entropy.delta_S,
             "auth_lineage": auth_lineage,
             # ── Post-AGI WEALTH verification state at decision time ──────
@@ -4508,6 +4696,7 @@ def _arif_vault_seal(
                 "sealed": True,
                 "entry_id": entry_id,
                 "ledger_size": len(_VAULT_LEDGER),
+                "drift_summary": drift_summary,
                 "constitutional_chain_id": judge_contract.constitutional_chain_id,
                 "judge_state_hash": judge_contract.state_hash,
                 "delta_s_total": entropy.delta_S,
@@ -4597,29 +4786,6 @@ def _arif_vault_seal(
             ).model_dump(mode="json"),
             "OK",
         )
-    if mode == "dry_run":
-        import hashlib as _hashlib
-
-        preview_payload = "selftest:dry_run:" + (actor_id or "anonymous") + ":" + _now()
-        hash_preview = _hashlib.sha256(preview_payload.encode()).hexdigest()[:16]
-        chain_preview = "DRYRUN-" + uuid.uuid4().hex[:12]
-        return {
-            "status": "OK",
-            "tool": "arif_vault_seal",
-            "result": {
-                "vault_dry_run": "PASS",
-                "would_seal": True,
-                "hash_preview": hash_preview,
-                "chain_preview": chain_preview,
-                "permanent_write": False,
-                "requires_ack_irreversible": True,
-                "note": "dry_run — no permanent entry created",
-            },
-            "meta": {},
-            "timestamp": _now(),
-            "nine_signal": _nine_signal_from_status("OK"),
-        }
-
     if mode == "list":
         return _inject_nine_signal(
             SealOutput(
@@ -4903,6 +5069,22 @@ def _arif_forge_execute(
     plan_id: str | None = None,
     witness_type: str = "ai",
 ) -> dict[str, Any]:
+    # ── Side Effect Gate (v2 Deepening) ──
+    if mode in ("engineer", "write", "generate", "commit"):
+        if session_id and session_id in _SESSIONS:
+            sess = _SESSIONS[session_id]
+            card = sess.get("model_governance_card")
+            if card:
+                truth = card.get("runtime_truth", {})
+                if not truth.get("side_effects_allowed") and not ack_irreversible:
+                    return _hold(
+                        "arif_forge_execute",
+                        f"FORGE GATE: side_effects_allowed is FALSE in runtime_truth for mode='{mode}'",
+                        ["F1"],
+                        extra_meta={"event_type": "self_authorization_attempt", "severity": "high"},
+                        session_id=session_id,
+                    )
+
     # dry_run mode — simulate but still run floor checks for threat preview
     if mode == "dry_run":
         from arifosmcp.core.constitution_kernel import WitnessType

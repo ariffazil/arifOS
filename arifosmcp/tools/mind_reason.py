@@ -164,14 +164,31 @@ def arif_mind_reason(
             - vitals: output from arif_ops_measure(mode='vitals')
             - prior_tool_results: dict of prior tool outputs in this session
     """
+    # ── Shadow Correction Injection (v2 Deepening) ──
+    from arifosmcp.runtime.tools import _SESSIONS
+
+    session_id = context.get("session_id") if context else None
+    sess = _SESSIONS.get(session_id) if session_id else None
+    card = sess.get("model_governance_card") if sess else None
+
+    if card:
+        shadow = card.get("shadow_profile", {})
+        control_laws = shadow.get("control_laws", [])
+        active_shadow = shadow.get("shadow", "unknown")
+        mind_constraint_prefix = (
+            f"\n[SHADOW CORRECTION ACTIVE]\nActive shadow: {active_shadow}\n"
+            "Required corrections before reasoning:\n"
+        )
+        for law in control_laws:
+            mind_constraint_prefix += f"- {law}\n"
+        mind_constraint_prefix += "Apply these before producing any output.\n"
+        query = mind_constraint_prefix + (query or "")
+
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return Synthesis(
             **_hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"])
         )
-
-    # F7 Humility: calibrated Ω₀ band ∈ [0.03, 0.05]
-    OMEGA_BAND = (0.03, 0.05)
 
     if mode == "reason":
         synthesis_text = _synthesize(query, "inductive")

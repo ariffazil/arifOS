@@ -17,6 +17,8 @@ def arif_session_init(
     actor_id: str | None = None,
     ack_irreversible: bool = False,
     session_id: str | None = None,
+    declared_model_key: str | None = None,
+    deployment_id: str = "vps_main_arifos",
 ) -> SessionManifest:
     if mode == "cleanup":
         from arifosmcp.runtime.session import list_active_sessions_count
@@ -45,10 +47,12 @@ def arif_session_init(
         )
 
     if mode == "init":
-        sess = _new_session(actor_id)
+        sess = _new_session(
+            actor_id, declared_model_key=declared_model_key, deployment_id=deployment_id
+        )
         return SessionManifest(
             status="OK",
-            result={"session": sess},
+            result={"session": sess, "model_governance_card": sess.get("model_governance_card")},
             doctrine=ARIF_DOCTRINE,
         )
 

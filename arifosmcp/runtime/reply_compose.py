@@ -304,7 +304,28 @@ async def arif_reply_compose(
       format   — Apply structural formatting
       nudge    — Append F05/F06 constitutional guidance nudge
     """
+    # ── F09/F11 Boundary Guard ──
+    from arifosmcp.runtime.tools import _output_claims_execution, _output_claims_web, get_session
+
     msg = message or ""
+    sess = get_session(session_id)
+    card = sess.get("model_governance_card") if sess else {}
+    truth = card.get("runtime_truth", {})
+
+    # Block capability hallucinations before LLM call
+    if _output_claims_web(msg) and not truth.get("web_on"):
+        return {
+            "error": "F11 Breach: Model attempted web-claim while web_on is False",
+            "verdict": "VOID",
+        }
+    if _output_claims_execution(msg) and not truth.get("side_effects_allowed"):
+        return {
+            "error": (
+                "F11 Breach: Model attempted execution-claim while side_effects_allowed is False"
+            ),
+            "verdict": "VOID",
+        }
+
     try:
         return await _compose_with_llm(
             mode=mode,

@@ -534,18 +534,31 @@ async def arif_heart_critique(
             if result.get("risk_tier") == "RED":
                 result["risk_tier"] = "AMBER"
                 result["human_decision_required"] = False
+        # ── F05/F06 Maruah (Dignity) Integration ──
+        if "maruah" not in result:
+            d_score = result.get("dignity_score", 1.0)
+            result["maruah"] = {
+                "score": d_score,
+                "omega_load": result.get("human_impact_load", 0.0),
+                "status": (
+                    "DIGNIFIED" if d_score >= 0.8 else "STRESSED" if d_score >= 0.5 else "BREACH"
+                ),
+            }
         return result
-    except LLMUnavailableError:
-        pass
+    except Exception:
+        result = _heart_fallback(mode=mode, target=target, context_type=_ct)
 
-    result = _heart_fallback(mode=mode, target=target, context_type=_ct)
-    if is_internal:
-        for risk in result.get("risks_found", []):
-            if risk["severity"] == "high":
-                risk["severity"] = "medium"
-        if result.get("risk_tier") == "RED":
-            result["risk_tier"] = "AMBER"
-            result["human_decision_required"] = False
+        # ── F05/F06 Maruah (Dignity) Integration ──
+        if "maruah" not in result:
+            d_score = result.get("dignity_score", 1.0)
+            result["maruah"] = {
+                "score": d_score,
+                "omega_load": result.get("human_impact_load", 0.0),
+                "status": (
+                    "DIGNIFIED" if d_score >= 0.8 else "STRESSED" if d_score >= 0.5 else "BREACH"
+                ),
+            }
+        return result
     return result
 
 

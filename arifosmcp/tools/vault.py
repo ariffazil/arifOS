@@ -20,6 +20,7 @@ def arif_vault_seal(
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
     witness_type: str = "ai",
+    drift_events: list[dict] | None = None,
 ) -> SealOutput:
     return SealOutput(
         **_arif_vault_seal(
@@ -31,5 +32,6 @@ def arif_vault_seal(
             constitutional_chain_id=constitutional_chain_id,
             judge_state_hash=judge_state_hash,
             witness_type=witness_type,
+            drift_events=drift_events,
         )
     )

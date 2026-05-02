@@ -123,6 +123,3 @@ networks:
     external: true
     name: arifos_core_network
     driver: bridge
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1

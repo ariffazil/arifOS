@@ -382,7 +382,13 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         mode_val = params.get("mode", "")
         if mode_val not in _f11_safe_modes:
             failed.append("F11")
-            logger.warning(f"F11 HOLD: {tool_name} requires actor_id for mode={mode_val}")
+            logger.warning(
+                "F11 HOLD: %s requires actor_id for mode=%r (actor_id=%r, params_keys=%r)",
+                tool_name,
+                mode_val,
+                actor_id,
+                list(params.keys()) if isinstance(params, dict) else type(params).__name__,
+            )
 
     # F01 Amanah — irreversible tools need explicit ack
     if spec.get("irreversible") and not params.get("ack_irreversible"):
