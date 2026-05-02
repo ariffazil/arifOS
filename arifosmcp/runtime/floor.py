@@ -375,11 +375,14 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                 logger.warning(f"F12 BLOCK: injection pattern in param '{key}' for {tool_name}")
                 break
 
-    # F11 Authority — only for EXECUTE/VAULT_WRITE, not for reasoning
+    # F11 Authority — only for EXECUTE/VAULT_WRITE, not for read-only modes
     risk_tier = spec.get("risk_tier", "low")
+    _f11_safe_modes = {"query", "recall", "dry_run"}
     if risk_tier in ("critical", "sovereign") and not actor_id:
-        failed.append("F11")
-        logger.warning(f"F11 HOLD: {tool_name} requires actor_id")
+        mode_val = params.get("mode", "")
+        if mode_val not in _f11_safe_modes:
+            failed.append("F11")
+            logger.warning(f"F11 HOLD: {tool_name} requires actor_id for mode={mode_val}")
 
     # F01 Amanah — irreversible tools need explicit ack
     if spec.get("irreversible") and not params.get("ack_irreversible"):

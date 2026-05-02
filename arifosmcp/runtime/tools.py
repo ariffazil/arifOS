@@ -4139,13 +4139,28 @@ def _arif_judge_deliberate(
         omega_ortho=0.98,
         confidence_sources=["constitutional_kernel"],
     )
+    # Map threat-derived IrreversibilityLevel (int-based) → schema level (str-based)
+    # for downstream contract serialization. ThreatIL: NONE=0 LOW=1 HIGH=2 CRITICAL=3.
+    # ForgeIL: REVERSIBLE / SEMI_IRREVERSIBLE / IRREVERSIBLE / CATASTROPHIC.
+    from arifosmcp.schemas.forge import IrreversibilityLevel as ForgeIrrevLevel
+
+    _irrev_value = verdict.irreversibility.value
+    if _irrev_value == 0:
+        forge_irrev_level = ForgeIrrevLevel.REVERSIBLE
+    elif _irrev_value == 1:
+        forge_irrev_level = ForgeIrrevLevel.SEMI_IRREVERSIBLE
+    elif _irrev_value == 2:
+        forge_irrev_level = ForgeIrrevLevel.IRREVERSIBLE
+    else:
+        forge_irrev_level = ForgeIrrevLevel.CATASTROPHIC
+
     contract = _build_judge_contract(
         candidate=candidate,
         verdict=VerdictCode.SEAL,
         session_id=session_id,
         actor_id=actor_id,
         constitutional_chain_id=constitutional_chain_id,
-        irreversibility_level=IrreversibilityLevel.IRREVERSIBLE,
+        irreversibility_level=forge_irrev_level,
         delta_s=0.003,
         g_score=0.98,
         epistemic_snapshot=epistemic,
@@ -4177,6 +4192,36 @@ def _arif_judge_deliberate(
         meta=meta_state,
         timestamp=verdict.timestamp,
     )
+    # Actively populate reversibility_state from threat-derived irreversibility
+    _irrev = verdict.irreversibility
+    if _irrev.value == 0:  # NONE → fully reversible
+        output.reversibility_state = {
+            "state": "REVERSIBLE",
+            "requires_human_seal": False,
+            "external_effect": False,
+            "vault_committed": False,
+        }
+    elif _irrev.value == 1:  # LOW
+        output.reversibility_state = {
+            "state": "REVERSIBLE",
+            "requires_human_seal": False,
+            "external_effect": True,
+            "vault_committed": False,
+        }
+    elif _irrev.value == 2:  # HIGH
+        output.reversibility_state = {
+            "state": "IRREVERSIBLE",
+            "requires_human_seal": True,
+            "external_effect": True,
+            "vault_committed": True,
+        }
+    else:  # CRITICAL / 3+
+        output.reversibility_state = {
+            "state": "CATASTROPHIC",
+            "requires_human_seal": True,
+            "external_effect": True,
+            "vault_committed": True,
+        }
     seal_output = output.model_dump(mode="json")
     seal_output["nine_signal"] = _nine_signal_from_status("OK")
     return seal_output
@@ -4903,16 +4948,19 @@ def _arif_forge_execute(
     _PLAN_REQUIRED_MODES = {"engineer", "write", "generate"}
     if mode in _PLAN_REQUIRED_MODES:
         if not plan_id:
-            return ForgeOutput(
-                status="HOLD",
-                result={},
-                manifest=ForgeManifest(status=ManifestStatus.HOLD),
-                meta={
-                    "reason": f"mode='{mode}' requires an approved plan_id (H2 ratification). Use arif_mind_reason(mode='plan') first.",
-                    "failed_floors": ["F01_AMANAH", "F08_GENIUS"],
-                },
-                timestamp=_now(),
-            ).model_dump(mode="json")
+            return _inject_nine_signal(
+                ForgeOutput(
+                    status="HOLD",
+                    result={},
+                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                    meta={
+                        "reason": f"mode='{mode}' requires an approved plan_id (H2 ratification). Use arif_mind_reason(mode='plan') first.",
+                        "failed_floors": ["F01_AMANAH", "F08_GENIUS"],
+                    },
+                    timestamp=_now(),
+                ).model_dump(mode="json"),
+                "HOLD",
+            )
         plan = _PLAN_REGISTRY.get(plan_id)
         if plan is None:
             return _inject_nine_signal(
@@ -5299,7 +5347,7 @@ def _arif_forge_execute(
             _transition_plan_state(
                 plan_id, "completed", {"mode": "commit", "artifact_id": artifact_id_out}
             )
-        return output.model_dump(mode="json")
+        return _inject_nine_signal(output.model_dump(mode="json"), "OK")
 
     if plan_id:
         _transition_plan_state(plan_id, "aborted", {"reason": f"unknown_mode_{mode}"})

@@ -298,14 +298,14 @@ well.arif-fazil.com {
 
     handle /mcp* {
         import cors_public
-        reverse_proxy 172.19.0.7:8083
+        reverse_proxy well:8083
     }
     handle /health {
         import cors_public
-        reverse_proxy 172.19.0.7:8083
+        reverse_proxy well:8083
     }
     handle /sse* {
-        reverse_proxy 172.19.0.7:8083
+        reverse_proxy well:8083
     }
     handle {
         redir https://arifos.arif-fazil.com permanent

@@ -1,41 +1,770 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>arifOS APEX Sovereign | Realized Intelligence Dashboard</title>
-    <meta http-equiv="refresh" content="0;url=dashboard-v2.html">
-    <style>
-        body {
-            background: #050505;
-            color: #e0e0e0;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .loading {
-            text-align: center;
-        }
-        .loading h1 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-        .loading p {
-            color: #666;
-        }
-        a {
-            color: #00ffcc;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>arifOS Observatory · ΔΩΨ · Federation Governance Hub</title>
+<meta name="description" content="arifOS MCP Observatory v2.0 — Live constitutional governance dashboard. Federation hub for arifOS, GEOX, WEALTH, WELL, A-FORGE, and AAA.">
+<link rel="canonical" href="https://arifos.arif-fazil.com/">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@400,700,800&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{
+  --color-bg:#0d0c0b;
+  --color-surface:#121110;
+  --color-surface-2:#181614;
+  --color-surface-offset:#1e1c1a;
+  --color-divider:#2a2826;
+  --color-border:#333130;
+  --color-text:#d4d2ce;
+  --color-text-muted:#706e6b;
+  --color-text-faint:#484644;
+  --color-text-inverse:#0d0c0b;
+  --color-primary:#3a9ea8;
+  --color-primary-hover:#1e8a96;
+  --color-primary-active:#136e79;
+  --color-primary-highlight:#1a3035;
+  --color-success:#5a9e38;
+  --color-warning:#c46a1a;
+  --color-error:#b83060;
+  --color-hold:#e0922a;
+  --color-gold:#d4a853;
+  --color-gold-dim:#8f7030;
+  --radius-sm:0.25rem;
+  --radius-md:0.5rem;
+  --radius-lg:0.75rem;
+  --shadow-sm:0 1px 3px oklch(0 0 0 / 0.4);
+  --shadow-md:0 4px 16px oklch(0 0 0 / 0.5);
+  --font-display:'Cabinet Grotesk','Helvetica Neue',sans-serif;
+  --font-body:'Satoshi','Inter',sans-serif;
+  --font-mono:'JetBrains Mono','Fira Code',monospace;
+  --text-xs:clamp(0.65rem,0.6rem + 0.2vw,0.75rem);
+  --text-sm:clamp(0.75rem,0.7rem + 0.25vw,0.875rem);
+  --text-base:clamp(0.875rem,0.85rem + 0.2vw,1rem);
+  --text-lg:clamp(1rem,0.9rem + 0.5vw,1.25rem);
+  --text-xl:clamp(1.25rem,1rem + 1vw,1.75rem);
+  --text-2xl:clamp(1.75rem,1.2rem + 2vw,2.5rem);
+  --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-6:1.5rem;--space-8:2rem;--space-12:3rem;--space-16:4rem;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:var(--color-bg);min-height:100dvh;line-height:1.6}
+.mono{font-family:var(--font-mono);letter-spacing:-0.02em}
+a{color:var(--color-primary);text-decoration:none}
+a:hover{color:var(--color-gold)}
+
+/* LAYOUT */
+.shell{max-width:1100px;margin-inline:auto;padding:var(--space-8) var(--space-4)}
+.header{display:flex;align-items:center;justify-content:space-between;padding-block:var(--space-4);border-bottom:1px solid var(--color-divider);margin-bottom:var(--space-8)}
+.logo{display:flex;align-items:center;gap:var(--space-3)}
+.logo-mark{width:32px;height:32px;border-radius:6px;background:oklch(0.4 0.12 192 / 0.15);border:1px solid oklch(0.6 0.12 192 / 0.4);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:800;font-size:11px;color:oklch(0.7 0.14 192);flex-shrink:0}
+.logo-text{font-family:var(--font-display);font-weight:800;font-size:var(--text-lg);letter-spacing:-0.03em;color:var(--color-text)}
+.logo-sub{font-size:var(--text-xs);color:var(--color-text-muted);margin-top:1px}
+.header-right{display:flex;align-items:center;gap:var(--space-4)}
+.epoch{font-size:var(--text-xs);color:var(--color-text-faint);font-family:var(--font-mono)}
+
+/* NAV ROW */
+.nav-row{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-12)}
+.nav-chip{
+  display:inline-flex;align-items:center;gap:var(--space-2);
+  background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-md);padding:var(--space-2) var(--space-4);
+  font-size:var(--text-xs);font-weight:600;font-family:var(--font-display);
+  color:var(--color-text-muted);text-decoration:none;
+  transition:border-color 0.15s,color 0.15s,transform 0.1s;
+  letter-spacing:0.02em;
+}
+.nav-chip:hover{border-color:var(--color-primary);color:var(--color-primary);transform:translateY(-1px)}
+.nav-chip .icon{font-size:var(--text-sm)}
+.nav-chip .dot{display:inline-block;width:5px;height:5px;border-radius:50%}
+.nav-chip .dot-ok{background:var(--color-success);box-shadow:0 0 5px var(--color-success)}
+.nav-chip .dot-hold{background:var(--color-hold);box-shadow:0 0 5px var(--color-hold)}
+.nav-chip .dot-err{background:var(--color-error);box-shadow:0 0 5px var(--color-error)}
+.nav-chip.active{border-color:var(--color-primary);color:var(--color-primary);background:var(--color-primary-highlight)}
+
+/* STATUS BAR */
+.status-strip{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-8);padding:var(--space-3) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md)}
+.status-pill{display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);padding:2px 0}
+.status-pill .val{font-weight:700;color:var(--color-text)}
+.status-pill .val-ok{color:var(--color-success)}
+.status-pill .val-hold{color:var(--color-hold)}
+.status-pill .val-err{color:var(--color-error)}
+.status-pill .val-gold{color:var(--color-gold)}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.live-ok{background:var(--color-success);box-shadow:0 0 6px var(--color-success);animation:pulse 2s infinite}
+.live-hold{background:var(--color-hold);box-shadow:0 0 6px var(--color-hold)}
+.live-err{background:var(--color-error);box-shadow:0 0 6px var(--color-error)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* HERO */
+.hero{margin-bottom:var(--space-12);padding:var(--space-8) var(--space-6);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--color-primary),var(--color-gold),var(--color-primary));opacity:0.6}
+.hero-tag{display:inline-flex;align-items:center;gap:var(--space-2);background:var(--color-primary-highlight);color:var(--color-primary);border:1px solid oklch(from var(--color-primary) l c h / 0.25);border-radius:var(--radius-sm);padding:var(--space-1) var(--space-3);font-size:var(--text-xs);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:var(--space-4)}
+.hero h1{font-family:var(--font-display);font-weight:800;font-size:var(--text-2xl);letter-spacing:-0.04em;line-height:1.1;margin-bottom:var(--space-3)}
+.hero p{color:var(--color-text-muted);font-size:var(--text-base);max-width:65ch;line-height:1.7}
+.hero-divider{width:40px;height:2px;background:var(--color-primary);margin:var(--space-4) 0;opacity:0.6}
+.hero-pills{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-4)}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-4)}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:var(--space-4)}
+@media(max-width:700px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-sm)}
+.card-sm{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4)}
+.card-title{font-family:var(--font-display);font-weight:700;font-size:var(--text-base);letter-spacing:-0.02em;margin-bottom:var(--space-3);color:var(--color-text);display:flex;align-items:center;gap:var(--space-2)}
+.card-title .num{font-size:var(--text-xs);background:var(--color-surface-offset);color:var(--color-text-muted);border-radius:var(--radius-sm);padding:1px 6px;font-family:monospace;letter-spacing:0.05em}
+
+/* SECTION HEADER */
+.section-label{font-size:var(--text-xs);font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:var(--space-6);display:flex;align-items:center;gap:var(--space-3)}
+.section-label::after{content:'';flex:1;height:1px;background:var(--color-divider)}
+
+/* FEDERATION ARCHITECTURE */
+.arch-grid{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;gap:var(--space-3)}
+.arch-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-6);position:relative;transition:border-color 0.2s}
+.arch-card:hover{border-color:var(--color-border)}
+.arch-card.sovereign{border-color:oklch(from var(--color-gold) l c h / 0.4);background:oklch(from var(--color-gold) l c h / 0.04)}
+.arch-card.kernel{border-color:oklch(from var(--color-primary) l c h / 0.4);background:oklch(from var(--color-primary) l c h / 0.04)}
+.arch-label{font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-text-faint);margin-bottom:var(--space-2);font-family:var(--font-mono)}
+.arch-name{font-family:var(--font-display);font-weight:800;font-size:var(--text-lg);letter-spacing:-0.03em;margin-bottom:var(--space-1)}
+.arch-desc{font-size:var(--text-sm);color:var(--color-text-muted);line-height:1.5}
+.arch-psi{position:absolute;top:var(--space-4);right:var(--space-4);font-size:1.5rem;opacity:0.5}
+.arch-organs{grid-column:1/-1}
+.organ-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--space-2);margin-top:var(--space-4)}
+.organ-mini{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);display:flex;align-items:center;gap:var(--space-3)}
+.organ-mini-icon{font-size:1.2rem;flex-shrink:0}
+.organ-mini-name{font-weight:700;font-size:var(--text-sm)}
+.organ-mini-role{font-size:var(--text-xs);color:var(--color-text-muted);font-family:var(--font-mono)}
+@media(max-width:768px){.arch-grid{grid-template-columns:1fr}.arch-card.sovereign,.arch-card.kernel{grid-column:1}}
+
+/* METRIC ROWS */
+.metric-row{display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--color-divider);font-size:var(--text-sm)}
+.metric-row:last-child{border-bottom:none}
+.metric-label{color:var(--color-text-muted);font-family:var(--font-mono);font-size:var(--text-xs)}
+.metric-val{font-family:var(--font-mono);font-weight:700;font-size:var(--text-sm)}
+.metric-val.ok{color:var(--color-success)}
+.metric-val.hold{color:var(--color-hold)}
+.metric-val.err{color:var(--color-error)}
+.metric-val.primary{color:var(--color-primary)}
+.metric-val.gold{color:var(--color-gold)}
+
+/* BADGES */
+.badge{display:inline-block;font-size:0.6rem;padding:1px 6px;border-radius:2px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
+.badge-ok{background:oklch(from var(--color-success) l c h / 0.15);color:var(--color-success);border:1px solid oklch(from var(--color-success) l c h / 0.3)}
+.badge-hold{background:oklch(from var(--color-hold) l c h / 0.15);color:var(--color-hold);border:1px solid oklch(from var(--color-hold) l c h / 0.3)}
+.badge-err{background:oklch(from var(--color-error) l c h / 0.15);color:var(--color-error);border:1px solid oklch(from var(--color-error) l c h / 0.3)}
+.badge-gold{background:oklch(from var(--color-gold) l c h / 0.12);color:var(--color-gold);border:1px solid oklch(from var(--color-gold) l c h / 0.25)}
+.badge-primary{background:var(--color-primary-highlight);color:var(--color-primary);border:1px solid oklch(from var(--color-primary) l c h / 0.25)}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;gap:var(--space-1);font-size:var(--text-xs);font-weight:600;padding:3px 10px;border-radius:var(--radius-sm);background:var(--color-surface-offset);border:1px solid var(--color-border);color:var(--color-text-muted)}
+
+/* SITE MAP */
+.sitemap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--space-4)}
+.sitemap-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden}
+.sitemap-header{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-divider);display:flex;align-items:center;justify-content:space-between;background:var(--color-surface-2)}
+.sitemap-domain{font-family:var(--font-display);font-weight:700;font-size:var(--text-sm);display:flex;align-items:center;gap:var(--space-2)}
+.smap-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.smap-ok{background:var(--color-success);box-shadow:0 0 5px var(--color-success)}
+.smap-hold{background:var(--color-hold);box-shadow:0 0 5px var(--color-hold)}
+.smap-err{background:var(--color-error);box-shadow:0 0 5px var(--color-error)}
+.sitemap-body{padding:var(--space-4)}
+.sitemap-desc{font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-3);line-height:1.5}
+.sitemap-tag{font-size:0.6rem;padding:1px 6px;border-radius:2px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;background:var(--color-surface-offset);border:1px solid var(--color-border);color:var(--color-text-faint)}
+.route-list{display:flex;flex-direction:column;gap:3px}
+.route-item{display:flex;align-items:center;gap:var(--space-2);font-family:var(--font-mono);font-size:0.7rem;padding:3px 6px;border-radius:3px;background:var(--color-surface-offset);border:1px solid var(--color-border)}
+.route-item .method{font-weight:700;font-size:0.6rem;padding:1px 4px;border-radius:2px;text-transform:uppercase;letter-spacing:0.05em}
+.method-get{background:oklch(from var(--color-success) l c h / 0.15);color:var(--color-success)}
+.method-post{background:oklch(from var(--color-primary) l c h / 0.15);color:var(--color-primary)}
+.method-del{background:oklch(from var(--color-error) l c h / 0.15);color:var(--color-error)}
+
+/* FLOOR GRID */
+.floor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(180px,100%),1fr));gap:var(--space-2)}
+.floor-chip{background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);text-align:center;transition:border-color 0.15s,transform 0.1s}
+.floor-chip:hover{border-color:var(--color-border);transform:translateY(-1px)}
+.floor-chip.pass{border-color:oklch(from var(--color-success) l c h / 0.35);background:oklch(from var(--color-success) l c h / 0.05)}
+.floor-chip.lock{border-color:oklch(from var(--color-gold) l c h / 0.35);background:oklch(from var(--color-gold) l c h / 0.05)}
+.floor-chip.human{border-color:oklch(from var(--color-gold) l c h / 0.35);background:oklch(from var(--color-gold) l c h / 0.05)}
+.floor-chip.band{border-color:var(--color-border)}
+.floor-id{font-family:var(--font-mono);font-size:var(--text-base);font-weight:700}
+.floor-name{font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-muted);margin-top:2px}
+.floor-score{font-family:var(--font-mono);font-size:var(--text-xs);font-weight:700;margin-top:4px}
+.floor-chip.pass .floor-score{color:var(--color-success)}
+.floor-chip.lock .floor-score,.floor-chip.human .floor-score{color:var(--color-gold)}
+.floor-chip.band .floor-score{color:var(--color-text-faint)}
+
+/* TOOLS GRID */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--space-2)}
+.tool-chip{background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);display:flex;align-items:center;gap:var(--space-3);transition:border-color 0.15s,transform 0.1s}
+.tool-chip:hover{border-color:var(--color-border);transform:translateY(-1px)}
+.tool-ln{font-family:var(--font-mono);font-size:1.1rem;font-weight:700;width:24px;text-align:center;flex-shrink:0}
+.tool-ln.delta{color:var(--color-primary)}
+.tool-ln.omega{color:oklch(0.65 0.2 320)}
+.tool-ln.psi{color:var(--color-gold)}
+.tool-name{font-family:var(--font-mono);font-size:0.75rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool-stage{font-size:0.65rem;color:var(--color-text-muted);font-family:var(--font-mono);margin-top:1px}
+
+/* CAP TABLE */
+.cap-table{width:100%;border-collapse:collapse}
+.cap-table th{font-size:var(--text-xs);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-text-faint);text-align:left;padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--color-divider)}
+.cap-table td{padding:var(--space-3);font-size:var(--text-sm);border-bottom:1px solid oklch(from var(--color-divider) l c h / 0.5);vertical-align:top}
+.cap-table tr:last-child td{border-bottom:none}
+.cap-table tr:hover td{background:var(--color-surface-offset)}
+.cap-key{font-family:var(--font-mono);font-weight:700;color:var(--color-text);white-space:nowrap}
+.cap-val{color:var(--color-text-muted)}
+
+/* GAPS */
+.gaps-list{display:flex;flex-direction:column;gap:var(--space-2)}
+.gap-item{display:flex;align-items:flex-start;gap:var(--space-3);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4)}
+.gap-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.gap-title{font-weight:700;font-size:var(--text-sm);margin-bottom:3px}
+.gap-detail{font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5}
+.gap-sev{font-size:0.6rem;padding:1px 6px;border-radius:2px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0;align-self:flex-start;margin-top:2px}
+.sev-info{background:oklch(from var(--color-primary) l c h / 0.12);color:var(--color-primary);border:1px solid oklch(from var(--color-primary) l c h / 0.25)}
+.sev-warn{background:oklch(from var(--color-hold) l c h / 0.12);color:var(--color-hold);border:1px solid oklch(from var(--color-hold) l c h / 0.25)}
+
+/* FOOTER */
+.footer{text-align:center;padding:var(--space-8) var(--space-4);border-top:1px solid var(--color-divider);margin-top:var(--space-12)}
+.footer-logo{font-family:var(--font-display);font-weight:800;font-size:var(--text-lg);letter-spacing:0.03em;color:var(--color-text-muted)}
+.footer-sub{font-size:var(--text-xs);color:var(--color-text-faint);font-family:var(--font-mono);margin-top:var(--space-2);letter-spacing:0.08em}
+.footer-links{display:flex;justify-content:center;gap:var(--space-4);margin-top:var(--space-4)}
+.footer-links a{font-size:var(--text-xs);color:var(--color-text-faint);font-family:var(--font-mono);text-decoration:none}
+.footer-links a:hover{color:var(--color-primary)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.4s ease forwards;opacity:0}
+.fade-up:nth-child(1){animation-delay:0.05s}
+.fade-up:nth-child(2){animation-delay:0.10s}
+.fade-up:nth-child(3){animation-delay:0.15s}
+.fade-up:nth-child(4){animation-delay:0.20s}
+.fade-up:nth-child(5){animation-delay:0.25s}
+.fade-up:nth-child(6){animation-delay:0.30s}
+</style>
 </head>
 <body>
-    <div class="loading">
-        <h1>APEX Sovereign Dashboard</h1>
-        <p>Redirecting to <a href="dashboard-v2.html">dashboard-v2.html</a>...</p>
-        <p style="font-size: 0.8rem; margin-top: 20px; color: #444;">Ditempa Bukan Diberi</p>
+
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark">Ψ</div>
+      <div>
+        <div class="logo-text">arifOS Observatory</div>
+        <div class="logo-sub">ΔΩΨ · Federation Governance Hub</div>
+      </div>
     </div>
+    <div class="header-right">
+      <div class="epoch" id="clock">UTC —:——</div>
+    </div>
+  </header>
+
+  <!-- NAV ROW -->
+  <div class="nav-row" id="navRow">
+    <a class="nav-chip" href="https://arif-fazil.com/"><span class="icon">🏛️</span>arif-fazil.com</a>
+    <a class="nav-chip" href="https://aaa.arif-fazil.com/"><span class="dot dot-ok"></span>AAA Cockpit</a>
+    <a class="nav-chip active" href="https://arifos.arif-fazil.com/"><span class="dot dot-ok"></span>Observatory</a>
+    <a class="nav-chip" href="https://arifos.arif-fazil.com/dashboard-v2.html"><span class="icon">📊</span>Dashboard v2</a>
+    <a class="nav-chip" href="https://geox.arif-fazil.com/"><span class="dot dot-ok" id="geoxDot"></span>GEOX</a>
+    <a class="nav-chip" href="https://wealth.arif-fazil.com/"><span class="dot dot-ok" id="wealthDot"></span>WEALTH</a>
+    <a class="nav-chip" href="https://well.arif-fazil.com/"><span class="dot dot-ok" id="wellDot"></span>WELL</a>
+    <a class="nav-chip" href="https://mcp.arif-fazil.com/"><span class="icon">🔌</span>MCP Gateway</a>
+    <a class="nav-chip" href="https://wiki.arif-fazil.com/"><span class="icon">📖</span>Ω-Wiki</a>
+    <a class="nav-chip" href="https://apex.arif-fazil.com/"><span class="icon">⚡</span>APEX</a>
+  </div>
+
+  <!-- STATUS STRIP -->
+  <div class="status-strip" id="statusStrip">
+    <span class="status-pill"><span class="live-dot live-ok" id="statusDot"></span><span class="val" id="verdictVal">—</span></span>
+    <span class="status-pill"><span class="val-ok" id="toolsCount">—</span> <span>tools</span></span>
+    <span class="status-pill"><span class="val-gold" id="floorsActive">—/13</span> <span>floors</span></span>
+    <span class="status-pill"><span class="val" id="psiVital">—</span> <span>Ψ_v</span></span>
+    <span class="status-pill"><span class="val" id="vaultStatus">—</span> <span>VAULT999</span></span>
+    <span class="status-pill"><span class="val" id="langfuseStatus">—</span> <span>langfuse</span></span>
+    <span class="status-pill"><span class="val" id="runtimeDrift">—</span> <span>drift</span></span>
+    <span class="status-pill"><span class="val" id="trinityStatus">—</span> <span>trinity</span></span>
+  </div>
+
+  <!-- I. HERO -->
+  <section class="hero fade-up">
+    <div class="hero-tag">
+      <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor" opacity="0.8"/></svg>
+      FEDERATION GOVERNANCE HUB · LIVE
+    </div>
+    <h1>arifOS Observatory</h1>
+    <p>Live constitutional governance dashboard for the arifOS federation. Monitor F1–F13 compliance, thermodynamic vitals, organ health, and the 13 canonical tool registry across all sovereign sites in real time.</p>
+    <div class="hero-divider"></div>
+    <div class="hero-pills">
+      <span class="pill" id="heroVerdict">VERDICT: —</span>
+      <span class="pill">🛡️ F1–F13 Constitutional Floors</span>
+      <span class="pill">⚖️ ΔΩΨ Trinity Governance</span>
+      <span class="pill">🌐 3 Organs · 13 Tools</span>
+    </div>
+  </section>
+
+  <!-- II. SYSTEM ARCHITECTURE -->
+  <div class="section-label">II · System Architecture</div>
+  <div class="arch-grid fade-up" style="margin-bottom:var(--space-12)">
+
+    <div class="arch-card sovereign">
+      <div class="arch-psi">👤</div>
+      <div class="arch-label">APEX · SOVEREIGN</div>
+      <div class="arch-name">Human</div>
+      <div class="arch-desc">Final authority. Veto absolute. F13 Sovereign Floor. Constitutional witness to all terminal verdicts.</div>
+      <div style="margin-top:var(--space-3)"><span class="badge badge-gold">F13 SOVEREIGN</span></div>
+    </div>
+
+    <div class="arch-card kernel">
+      <div class="arch-psi">Ψ</div>
+      <div class="arch-label">GOVERNANCE KERNEL · ARIFOS</div>
+      <div class="arch-name">arifOS Kernel</div>
+      <div class="arch-desc">13-floor constitutional engine. F1 AMANAH → F13 SOVEREIGN. 13 canonical tools. VAULT999 ledger. Trinity lanes ΔΩΨ.</div>
+      <div style="margin-top:var(--space-3)"><span class="badge badge-primary">F1–F13 · 13 TOOLS</span></div>
+    </div>
+
+    <div class="arch-card">
+      <div class="arch-psi">🌐</div>
+      <div class="arch-label">PROTOCOL</div>
+      <div class="arch-name">MCP Gateway</div>
+      <div class="arch-desc">Streamable HTTP MCP endpoint. Tool discovery, capability negotiation, A2A mesh protocol.</div>
+      <div style="margin-top:var(--space-3)"><span class="badge badge-primary">mcp.arif-fazil.com</span></div>
+    </div>
+
+    <div class="arch-card arch-organs">
+      <div class="arch-label">FEDERATION ORGANS</div>
+      <div class="organ-mini-grid">
+        <div class="organ-mini"><span class="organ-mini-icon">🌍</span><div><div class="organ-mini-name">GEOX</div><div class="organ-mini-role">Earth · Ψ Node</div></div></div>
+        <div class="organ-mini"><span class="organ-mini-icon">💰</span><div><div class="organ-mini-name">WEALTH</div><div class="organ-mini-role">Capital · Ω Node</div></div></div>
+        <div class="organ-mini"><span class="organ-mini-icon">❤️</span><div><div class="organ-mini-name">WELL</div><div class="organ-mini-role">Biological · Substrate</div></div></div>
+        <div class="organ-mini"><span class="organ-mini-icon">🤖</span><div><div class="organ-mini-name">AAA</div><div class="organ-mini-role">Agent · Control Plane</div></div></div>
+        <div class="organ-mini"><span class="organ-mini-icon">⚡</span><div><div class="organ-mini-name">A-FORGE</div><div class="organ-mini-role">Metabolic Shell</div></div></div>
+        <div class="organ-mini"><span class="organ-mini-icon">📖</span><div><div class="organ-mini-name">Ω-Wiki</div><div class="organ-mini-role">Knowledge Base</div></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- III. LIVE DATA -->
+  <div class="section-label">III · Live Constitutional Data</div>
+  <div class="grid-2 fade-up" style="margin-bottom:var(--space-8)">
+
+    <!-- THERMO -->
+    <div class="card">
+      <div class="card-title"><span class="num">🔥</span> Thermodynamic Reality</div>
+      <div class="metric-row"><span class="metric-label">VERDICT</span><span class="metric-val" id="thermoVerdict">—</span></div>
+      <div class="metric-row"><span class="metric-label">ENTROPY ΔS</span><span class="metric-val" id="entropyVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">VITALITY Ψ</span><span class="metric-val primary" id="vitalityVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">PEACE²</span><span class="metric-val" id="peaceVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">CONFIDENCE</span><span class="metric-val" id="confVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">METABOLIC STAGE</span><span class="metric-val gold" id="metaStage">—</span></div>
+    </div>
+
+    <!-- GOVERNANCE -->
+    <div class="card">
+      <div class="card-title"><span class="num">⚖️</span> Governance Posture</div>
+      <div class="metric-row"><span class="metric-label">TAU CONFIDENCE</span><span class="metric-val" id="tauVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">F2 TRUTH THRESHOLD</span><span class="metric-val gold">0.99</span></div>
+      <div class="metric-row"><span class="metric-label">PSI VITALITY</span><span class="metric-val primary" id="psiVit">—</span></div>
+      <div class="metric-row"><span class="metric-label">VAULT999 HEALTH</span><span class="metric-val" id="vault999Val">—</span></div>
+      <div class="metric-row"><span class="metric-label">RUNTIME DRIFT</span><span class="metric-val" id="driftVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">SEAL READINESS</span><span class="metric-val hold" id="sealRec">—</span></div>
+    </div>
+
+    <!-- WITNESS -->
+    <div class="card">
+      <div class="card-title"><span class="num">👁️</span> Trinity Witness</div>
+      <div class="metric-row"><span class="metric-label">HUMAN WITNESS</span><span class="metric-val ok" id="wHuman">—</span></div>
+      <div class="metric-row"><span class="metric-label">AI WITNESS</span><span class="metric-val primary" id="wAi">—</span></div>
+      <div class="metric-row"><span class="metric-label">EARTH WITNESS</span><span class="metric-val gold" id="wEarth">—</span></div>
+      <div class="metric-row"><span class="metric-label">TRINITY MATRIX</span><span class="metric-val" id="trinityOk">—</span></div>
+      <div class="metric-row"><span class="metric-label">Δ EVIDENCE</span><span class="metric-val" id="deltaEv">—</span></div>
+      <div class="metric-row"><span class="metric-label">Ψ EVIDENCE</span><span class="metric-val" id="psiEv">—</span></div>
+    </div>
+
+    <!-- RUNTIME IDENTITY -->
+    <div class="card">
+      <div class="card-title"><span class="num">🛡️</span> Runtime Identity</div>
+      <div class="metric-row"><span class="metric-label">VERSION</span><span class="metric-val gold" id="runVer">—</span></div>
+      <div class="metric-row"><span class="metric-label">GIT COMMIT</span><span class="metric-val" id="gitCommit">—</span></div>
+      <div class="metric-row"><span class="metric-label">IMAGE</span><span class="metric-val" id="imageTag" style="font-size:0.72rem;word-break:break-all">—</span></div>
+      <div class="metric-row"><span class="metric-label">TOOLS LOADED</span><span class="metric-val ok" id="toolsLoaded">—</span></div>
+      <div class="metric-row"><span class="metric-label">BUILD TIME</span><span class="metric-val" id="buildTime" style="font-size:0.75rem">—</span></div>
+      <div class="metric-row"><span class="metric-label">LANGFUSE</span><span class="metric-val primary" id="langfuseVal">—</span></div>
+    </div>
+
+  </div>
+
+  <!-- IV. CONSTITUTIONAL FLOORS -->
+  <div class="section-label">IV · Constitutional Floors F1–F13</div>
+  <div class="floor-grid fade-up" id="floorGrid" style="margin-bottom:var(--space-12)">
+    <!-- JS populates -->
+  </div>
+
+  <!-- V. SITE MAP -->
+  <div class="section-label">V · Federation Site Map</div>
+  <div class="sitemap-grid fade-up" id="sitemapGrid" style="margin-bottom:var(--space-12)">
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-ok"></span> arifos.arif-fazil.com</span>
+        <span class="sitemap-tag">KERNEL</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">Constitutional AI governance kernel. 13 floors, 13 canonical tools, VAULT999 ledger. ΔΩΨ Trinity routing.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-get">GET</span>/api/status</div>
+          <div class="route-item"><span class="method method-get">GET</span>/health</div>
+          <div class="route-item"><span class="method method-get">GET</span>/tools</div>
+          <div class="route-item"><span class="method method-post">POST</span>/mcp</div>
+          <div class="route-item"><span class="method method-get">GET</span>/.well-known/mcp/server.json</div>
+          <div class="route-item"><span class="method method-get">GET</span>/dashboard-v2.html</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-ok" id="geoxSmDot"></span> geox.arif-fazil.com</span>
+        <span class="sitemap-tag">ORGAN Ψ</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">Earth intelligence organ. Subsurface interpretation, petrophysics, well log analysis. Physics-9 compliant Ψ node.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-get">GET</span>/health</div>
+          <div class="route-item"><span class="method method-post">POST</span>/mcp</div>
+          <div class="route-item"><span class="method method-get">GET</span>/.well-known/mcp/server.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-ok" id="wealthSmDot"></span> wealth.arif-fazil.com</span>
+        <span class="sitemap-tag">ORGAN Ω</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">Capital intelligence organ. NPV/EMV computation, risk scoring, Makcik² relational credit, crisis triage.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-get">GET</span>/health</div>
+          <div class="route-item"><span class="method method-post">POST</span>/mcp</div>
+          <div class="route-item"><span class="method method-get">GET</span>/ready</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-ok" id="wellSmDot"></span> well.arif-fazil.com</span>
+        <span class="sitemap-tag">SUBSTRATE</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">Biological substrate monitor. Operator cognitive pressure, thermodynamic WELL state.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-get">GET</span>/health</div>
+          <div class="route-item"><span class="method method-post">POST</span>/mcp</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-ok"></span> aaa.arif-fazil.com</span>
+        <span class="sitemap-tag">AGENT</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">Arif Autonomous Agent live cockpit. Agentic AI control plane. ΔΩΨ agent supervision, session anchoring.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-get">GET</span>/</div>
+          <div class="route-item"><span class="method method-get">GET</span>/.well-known/mcp/server.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-ok"></span> mcp.arif-fazil.com</span>
+        <span class="sitemap-tag">PROTOCOL</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">MCP protocol gateway. WebMCP bridge. Streamable HTTP MCP endpoint.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-post">POST</span>/mcp</div>
+          <div class="route-item"><span class="method method-get">GET</span>/webmcp/</div>
+          <div class="route-item"><span class="method method-get">GET</span>/.well-known/mcp/server.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-hold"></span> wiki.arif-fazil.com</span>
+        <span class="sitemap-tag">KNOWLEDGE</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">Ω-Wiki federation knowledge base. Persistent compiled knowledge. Text > Brain memory philosophy.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-get">GET</span>/</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sitemap-card">
+      <div class="sitemap-header">
+        <span class="sitemap-domain"><span class="smap-dot smap-ok"></span> apex.arif-fazil.com</span>
+        <span class="sitemap-tag">AUTHORITY</span>
+      </div>
+      <div class="sitemap-body">
+        <p class="sitemap-desc">APEX authority resolution. Human sovereign interface. Constitutional proof surfaces.</p>
+        <div class="route-list">
+          <div class="route-item"><span class="method method-get">GET</span>/</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VI. TOOL REGISTRY -->
+  <div class="section-label">VI · Constitutional Tool Registry (13)</div>
+  <div class="tools-grid fade-up" id="toolsGrid" style="margin-bottom:var(--space-12)">
+    <!-- JS populates -->
+  </div>
+
+  <!-- VII. CAPABILITY MAP -->
+  <div class="section-label">VII · Capability Map</div>
+  <div class="card fade-up" style="margin-bottom:var(--space-12);overflow:hidden;">
+    <table class="cap-table">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>Provider</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="capBody">
+        <tr><td colspan="4" style="text-align:center;color:var(--color-text-faint);padding:var(--space-6)">Loading capability map...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- VIII. KNOWN GAPS -->
+  <div class="section-label">VIII · Known Gaps</div>
+  <div class="gaps-list fade-up" id="gapsList" style="margin-bottom:var(--space-12)">
+    <!-- JS populates -->
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">arifOS Observatory</div>
+  <div class="footer-sub">DITEMPA BUKAN DIBERI · v2.0-KANON · FEDERATION GOVERNANCE HUB</div>
+  <div class="footer-links">
+    <a href="https://github.com/ariffazil/arifOS">GitHub</a>
+    <a href="https://arif-fazil.com/">arif-fazil.com</a>
+    <a href="https://aaa.arif-fazil.com/">AAA</a>
+    <a href="https://geox.arif-fazil.com/">GEOX</a>
+    <a href="https://wealth.arif-fazil.com/">WEALTH</a>
+    <a href="https://mcp.arif-fazil.com/">MCP</a>
+  </div>
+</div>
+
+<br><br>
+
+<script>
+const FLOOR_NAMES = {
+  F1:'AMANAH',F2:'TRUTH',F3:'WITNESS',F4:'ΔS',F5:'PEACE²',
+  F6:'EMPATHY',F7:'HUMILITY',F8:'GENIUS',F9:'ANTIHANTU',
+  F10:'ONTOLOGY',F11:'AUTH',F12:'INJECTION',F13:'SOVEREIGN'
+};
+
+function renderFloors(rf) {
+  const grid = document.getElementById('floorGrid');
+  let html = '', pass = 0;
+  for (let i = 1; i <= 13; i++) {
+    const fid = 'F' + i;
+    const score = rf[fid] ?? 0;
+    let status = 'band';
+    if (score >= 0.8) {
+      status = i >= 10 ? 'lock' : i === 13 ? 'human' : 'pass';
+      pass++;
+    }
+    html += `<div class="floor-chip ${status}">
+      <div class="floor-id">${fid}</div>
+      <div class="floor-name">${FLOOR_NAMES[fid]}</div>
+      <div class="floor-score">${score.toFixed(2)}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+  document.getElementById('floorsActive').textContent = pass + '/13';
+}
+
+function renderTools(tools) {
+  const grid = document.getElementById('toolsGrid');
+  const laneClass = { 'Δ':'delta', 'Ψ':'psi', 'Ω':'omega' };
+  const laneSym = { 'Δ':'Δ', 'Ψ':'Ψ', 'Ω':'Ω' };
+  let html = '';
+  tools.forEach(t => {
+    const lane = t.stage ? (String(t.stage).includes('Ψ') ? 'Ψ' : String(t.stage).includes('Ω') ? 'Ω' : 'Δ') : 'Δ';
+    const stageTag = (t.stage || '').split('·')[0].trim();
+    html += `<div class="tool-chip">
+      <span class="tool-ln ${laneClass[lane]}">${laneSym[lane]}</span>
+      <div style="flex:1;min-width:0">
+        <div class="tool-name">${t.name}</div>
+        <div class="tool-stage">${stageTag}</div>
+      </div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function renderGaps(gaps) {
+  const list = document.getElementById('gapsList');
+  if (!gaps || !gaps.length) { list.innerHTML = '<div class="card-sm" style="color:var(--color-text-faint)">No known gaps.</div>'; return; }
+  let html = '';
+  gaps.forEach(g => {
+    const icon = g.severity === 'warning' ? '⚠️' : 'ℹ️';
+    const cls = g.severity === 'warning' ? 'sev-warn' : 'sev-info';
+    const label = g.severity === 'warning' ? 'WARNING' : 'INFO';
+    html += `<div class="gap-item">
+      <span class="gap-icon">${icon}</span>
+      <div style="flex:1">
+        <div class="gap-title">${g.title}</div>
+        <div class="gap-detail">${g.detail}</div>
+      </div>
+      <span class="gap-sev ${cls}">${label}</span>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function renderCap(cap) {
+  const tbody = document.getElementById('capBody');
+  if (!cap) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--color-text-faint)">No data.</td></tr>'; return; }
+  const caps = cap.capabilities || {};
+  const storage = cap.storage || {};
+  const providers = cap.providers || {};
+  const subs = cap.substrates || {};
+  const rows = [
+    ['Governed Continuity', caps.governed_continuity || '—', caps.governed_continuity],
+    ['Vault Persistence', storage.vault_postgres || '—', storage.vault_postgres],
+    ['Vector Memory', storage.vector_memory || '—', storage.vector_memory],
+    ['Langfuse Tracing', caps.external_grounding ? 'enabled' : '—', caps.external_grounding ? 'configured' : '—'],
+    ['Model Providers', Object.values(providers).filter(v=>v==='configured').length + ' of 14', 'configured'],
+    ['Local Model Runtime', caps.local_model_runtime || '—', caps.local_model_runtime],
+    ['Git Substrate', subs.git ? 'configured' : '—', subs.git],
+    ['Fetch Substrate', subs.fetch ? 'configured' : '—', subs.fetch],
+    ['Memory Substrate', subs.memory ? 'configured' : '—', subs.memory],
+    ['Filesystem Substrate', subs.filesystem ? 'configured' : '—', subs.filesystem],
+    ['Webhook Deploy', caps.webhook_deploy || '—', caps.webhook_deploy],
+    ['Grafana Access', caps.grafana_access || '—', caps.grafana_access],
+  ];
+  const cls = v => v === 'enabled' || v === 'configured' || v === 'degraded' ? 'badge-ok' : v === 'disabled' || v === 'not_configured' ? 'badge-err' : 'badge-hold';
+  let html = '';
+  rows.forEach(([k, v, raw]) => {
+    html += `<tr><td class="cap-key">${k}</td><td class="cap-val">${v}</td><td><span class="badge ${cls(raw)}">${v}</span></td><td class="cap-val">—</td></tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toISOString().replace('T',' ').substring(0,19) + ' UTC';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+async function poll() {
+  try {
+    const res = await fetch('/api/status');
+    if (!res.ok) return;
+    const d = await res.json();
+    const h = d.health || {};
+    const th = h.thermodynamic || {};
+    const gov = h.governance || {};
+    const rf = h.runtime_floors || {};
+    const sr = h.seal_readiness || {};
+    const tm = d.trinity_matrix || {};
+    const cap = h.capability_map || {};
+
+    const ok = d.overall_ok !== false;
+    const verdict = th.verdict || 'HOLD';
+
+    // Status strip
+    document.getElementById('verdictVal').textContent = verdict;
+    document.getElementById('verdictVal').className = 'val ' + (verdict === 'SEAL' ? 'ok' : verdict === 'HOLD' ? 'hold' : 'err');
+    document.getElementById('statusDot').className = 'live-dot ' + (verdict === 'SEAL' ? 'live-ok' : verdict === 'HOLD' ? 'live-hold' : 'live-err');
+    document.getElementById('heroVerdict').textContent = 'VERDICT: ' + verdict;
+    document.getElementById('toolsCount').textContent = h.tools_loaded || '—';
+    document.getElementById('psiVital').textContent = (gov.psi_vitality || 0).toFixed(2);
+    document.getElementById('vaultStatus').textContent = (h.vault999_health || '—').toUpperCase();
+    document.getElementById('vaultStatus').className = 'val ' + (h.vault999_health === 'healthy' ? 'ok' : 'err');
+    const lf = h.langfuse_tracing || {};
+    document.getElementById('langfuseStatus').textContent = (lf.status || '—') + ' · ' + (lf.traced_tools_count || 0) + '/13';
+    document.getElementById('runtimeDrift').textContent = String(sr.runtime_drift || false).toUpperCase();
+    document.getElementById('runtimeDrift').className = 'val ' + (sr.runtime_drift ? 'err' : 'ok');
+    document.getElementById('trinityStatus').textContent = ok ? 'ALIGNED' : 'MISALIGNED';
+    document.getElementById('trinityStatus').className = 'val ' + (ok ? 'ok' : 'err');
+
+    // Thermo card
+    document.getElementById('thermoVerdict').textContent = verdict;
+    document.getElementById('thermoVerdict').className = 'metric-val ' + (verdict === 'SEAL' ? 'ok' : verdict === 'HOLD' ? 'hold' : 'err');
+    const dS = th.entropy_delta ?? 0;
+    document.getElementById('entropyVal').textContent = (dS >= 0 ? '+' : '') + dS.toFixed(3);
+    document.getElementById('entropyVal').className = 'metric-val ' + (Math.abs(dS) < 0.3 ? 'ok' : dS > 0 ? 'err' : 'hold');
+    const G = th.vitality_index ?? 0;
+    document.getElementById('vitalityVal').textContent = G.toFixed(4);
+    document.getElementById('vitalityVal').className = 'metric-val ' + (G >= 0.8 ? 'ok' : G >= 0.5 ? 'hold' : 'err');
+    const ps = th.peace_squared ?? 0;
+    document.getElementById('peaceVal').textContent = ps.toFixed(3);
+    document.getElementById('peaceVal').className = 'metric-val ' + (ps >= 1.0 ? 'ok' : ps >= 0.5 ? 'hold' : 'err');
+    document.getElementById('confVal').textContent = ((th.confidence ?? 0) * 100).toFixed(0) + '%';
+    document.getElementById('metaStage').textContent = 'STAGE ' + (th.metabolic_stage || '—');
+
+    // Governance card
+    document.getElementById('tauVal').textContent = (gov.tau_confidence_system || 0).toFixed(3);
+    document.getElementById('psiVit').textContent = (gov.psi_vitality || 0).toFixed(4);
+    document.getElementById('vault999Val').textContent = (h.vault999_health || '—').toUpperCase();
+    document.getElementById('vault999Val').className = 'metric-val ' + (h.vault999_health === 'healthy' ? 'ok' : 'err');
+    document.getElementById('driftVal').textContent = String(sr.runtime_drift || false).toUpperCase();
+    document.getElementById('driftVal').className = 'metric-val ' + (sr.runtime_drift ? 'err' : 'ok');
+    document.getElementById('sealRec').textContent = verdict;
+    document.getElementById('sealRec').className = 'metric-val ' + (verdict === 'SEAL' ? 'ok' : 'hold');
+
+    // Witness card
+    const wit = th.witness || {};
+    document.getElementById('wHuman').textContent = (wit.human ?? 0).toFixed(2);
+    document.getElementById('wAi').textContent = (wit.ai ?? 0).toFixed(2);
+    document.getElementById('wEarth').textContent = (wit.earth ?? 0).toFixed(2);
+    document.getElementById('trinityOk').textContent = ok ? 'ALIGNED' : 'MISALIGNED';
+    document.getElementById('trinityOk').className = 'metric-val ' + (ok ? 'ok' : 'err');
+    const deltaEv = (tm.delta || {}).evidence || [];
+    const psiEv = (tm.psi || {}).evidence || [];
+    document.getElementById('deltaEv').textContent = deltaEv.length > 0 ? deltaEv.length + ' ISSUES' : 'CLEAR';
+    document.getElementById('deltaEv').className = 'metric-val ' + (deltaEv.length > 0 ? 'err' : 'ok');
+    document.getElementById('psiEv').textContent = psiEv.length > 0 ? psiEv.length + ' ISSUES' : 'CLEAR';
+    document.getElementById('psiEv').className = 'metric-val ' + (psiEv.length > 0 ? 'err' : 'ok');
+
+    // Runtime identity
+    document.getElementById('runVer').textContent = h.version || '—';
+    document.getElementById('gitCommit').textContent = h.git_commit || '—';
+    document.getElementById('imageTag').textContent = (h.image || '—').replace('ghcr.io/ariffazil/', '');
+    document.getElementById('toolsLoaded').textContent = h.tools_loaded || '—';
+    document.getElementById('buildTime').textContent = (h.build_time || '—').substring(0, 19);
+    document.getElementById('langfuseVal').textContent = (lf.status || '—');
+
+    // Populate dynamic sections
+    if (d.tools && d.tools.length) renderTools(d.tools);
+    if (Object.keys(rf).length) renderFloors(rf);
+    if (h.known_gaps) renderGaps(h.known_gaps);
+    if (cap && Object.keys(cap).length) renderCap(cap);
+
+  } catch(e) { console.warn('poll error:', e); }
+}
+
+poll();
+setInterval(poll, 8000);
+</script>
 </body>
 </html>

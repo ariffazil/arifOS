@@ -40,7 +40,9 @@ def arif_forge_execute(
         actor_id,
     )
     if floor_check["verdict"] != "SEAL":
-        return ForgeOutput(
+        from arifosmcp.runtime.tools import _inject_nine_signal
+
+        raw = ForgeOutput(
             status="HOLD",
             result={},
             manifest=ForgeManifest(status=ManifestStatus.HOLD),
@@ -49,7 +51,8 @@ def arif_forge_execute(
                 "failed_floors": floor_check["failed_floors"],
             },
             timestamp=datetime.now(timezone.utc).isoformat(),
-        )
+        ).model_dump(mode="json")
+        return ForgeOutput(**_inject_nine_signal(raw, "HOLD"))
     return ForgeOutput(
         **_arif_forge_execute(
             mode=mode,

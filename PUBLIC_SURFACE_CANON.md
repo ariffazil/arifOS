@@ -164,4 +164,63 @@ If any of these disagree, **live runtime wins** on behavior, **this document win
 
 ---
 
+## Response Contract (v2026.05.02 — Post-Partial-SEAL Patch)
+
+This section records the stabilized behavioral guarantees added in the v2026.05.02 patch.
+
+### `nine_signal` Guarantee
+
+All tool responses — including `HOLD`, `SEAL`, `SABAR`, and `VOID` — carry a `nine_signal` block:
+
+```json
+"nine_signal": {
+  "delta":  "KUKUH" | "GANTUNG",
+  "psi":    "DITERIMA" | "GANTUNG",
+  "omega":  "BIJAK" | "SESAT",
+  "overall": "SELAMAT" | "RETAK" | "SABAR"
+}
+```
+
+- **Success (OK/SEAL):** `delta=KUKUH`, `psi=DITERIMA`, `omega=BIJAK`, `overall=SELAMAT`
+- **Halt (HOLD/VOID):** `delta=GANTUNG`, `psi=GANTUNG`, `omega=SESAT`, `overall=RETAK`
+- **Conditional (SABAR):** `delta=GANTUNG`, `psi=GANTUNG`, `omega=BIJAK`, `overall=SABAR`
+
+This applies to all 13 canonical tools. Any tool returning without this block should be treated as a kernel anomaly.
+
+### `reversibility_state` on `arif_judge_deliberate`
+
+Every `SEAL` verdict from `arif_judge_deliberate` includes an actively-populated `reversibility_state`:
+
+```json
+"reversibility_state": {
+  "state":               "REVERSIBLE" | "IRREVERSIBLE" | "CATASTROPHIC",
+  "requires_human_seal": true | false,
+  "external_effect":    true | false,
+  "vault_committed":    true | false
+}
+```
+
+- **Derivation:** `state` is mapped from the threat-derived `IrreversibilityLevel` (NONE→REVERSIBLE, LOW→SEMI_IRREVERSIBLE, HIGH→IRREVERSIBLE, CRITICAL→CATASTROPHIC). It is **not** hardcoded to `irreversible`.
+- **No contradiction rule:** `judge_contract.irreversibility_level` and `reversibility_state.state` must agree. A verdict with `irreversibility_level=irreversible` must have `state=IRREVERSIBLE`.
+
+### `arif_forge_execute` F11 Exemption for Read-Only Modes
+
+`query`, `recall`, and `dry_run` modes of `arif_forge_execute` are classified as **read-only** and do not trigger F11 AUTH even when `session_id` and `actor_id` are absent. These modes:
+
+- Carry `nine_signal` on both OK and HOLD paths
+- Do NOT mutate state or write to the ledger
+- Remain under F02/F03/F04/F12 (truth, witness, clarity, injection) — those floors are never bypassed
+
+`engineer`, `write`, `generate`, and `commit` modes retain full F11 AUTH enforcement.
+
+### Regression Tests
+
+| File | What It Tests |
+|------|---------------|
+| `tests/runtime/test_judge_reversibility.py` | No irreconcilable `irreversibility_level` vs `reversibility_state`; `nine_signal` on SEAL |
+| `tests/runtime/test_forge_ninesignal.py` | `nine_signal` on all FORGE modes including engineer HOLD; no F11 on query/recall/dry_run |
+| `tests/runtime/test_memory_asyncpg.py` | `asyncpg` importable; `arif_memory_recall` no ImportError; `nine_signal` present |
+
+---
+
 *DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*
