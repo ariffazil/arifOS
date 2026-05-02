@@ -625,17 +625,17 @@
                         if (!res.ok) return;
                         const json = await res.json();
                         const h = json.health || {};
-                        const th = json.thermodynamic || {};
-                        const gov = json.governance || {};
-                        const rf = json.runtime_floors || {};
+                        const th = h.thermodynamic || {};
+                        const gov = h.governance || {};
+                        const rf = h.runtime_floors || {};
                         const src = Object.keys(rf).length ? rf : gov;
 
-                        const overallOk = json.trinity_matrix?.overall_ok !== false;
+                        const overallOk = json.overall_ok !== false;
                         const status = overallOk ? "HEALTHY" : "DEGRADED";
 
                         const G_star = th.vitality_index ?? gov.psi_vitality ?? 0.5;
                         const dS = th.entropy_delta ?? 0;
-                        const peace2 = th.peace_squared ?? gov.peace_squared ?? 0.5;
+                        const peace2 = th.peace_squared ?? 0.5;
                         const witness = th.witness || { human: 0, ai: 0, earth: 0 };
 
                         const floors = [
