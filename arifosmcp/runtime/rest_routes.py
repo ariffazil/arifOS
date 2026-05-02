@@ -2148,7 +2148,7 @@ def register_rest_routes(
         return JSONResponse(
             {
                 "status": "healthy",
-                "service": "arifos-aaa-mcp",
+                "service": "arifOS-mcp",
                 "release_name": BUILD_INFO["version"],
                 "version": f"kanon-{BUILD_INFO['build']['commit']}",
                 "git_commit": BUILD_INFO["build"]["commit"],

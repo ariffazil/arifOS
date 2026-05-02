@@ -1,8 +1,8 @@
 # arifOS Agent Skills — Full Dossier & AGI Readiness Report
-**DITEMPA BUKAN DIBERI** 🔐  
-**Sovereign:** Muhammad Arif bin Fazil  
-**Date:** 2026-03-27 · Version: 2026.03.27-UNIVERSAL  
-**Assessed Against:** arifOS v47 Trinity (Current Epoch)  
+**DITEMPA BUKAN DIBERI** 🔐
+**Sovereign:** Muhammad Arif bin Fazil
+**Date:** 2026-03-27 · Version: 2026.03.27-UNIVERSAL
+**Assessed Against:** arifOS v47 Trinity (Current Epoch)
 **Framework Sources:** `github.com/ariffazil/arifosmcp` · `github.com/ariffazil/arifOS`
 
 ---
@@ -32,7 +32,7 @@ Kernel health verified by direct `curl -sf http://localhost:8080/health` call du
 
 ```
 status: healthy
-service: arifos-aaa-mcp
+service: arifOS-mcp
 version: 2026.03.20-SOVEREIGN11
 transport: streamable-http
 tools_loaded: 37
@@ -43,8 +43,8 @@ capability_map_schema: capability-map-v1
 redaction_policy: no-raw-credential-values
 ```
 
-**Session init tested:** `sess-6444b06dbd7292da` (low-risk governed session confirmed operational via `init_anchor`)  
-**Protected identity enforcement:** ✅ Verified — `actor_id=arif` correctly rejected without cryptographic proof (F11 operational)  
+**Session init tested:** `sess-6444b06dbd7292da` (low-risk governed session confirmed operational via `init_anchor`)
+**Protected identity enforcement:** ✅ Verified — `actor_id=arif` correctly rejected without cryptographic proof (F11 operational)
 **Sovereign identity protection:** Defined in `srv/arifosmcp/arifosmcp/runtime/governance/identities.py`
 
 ---
@@ -370,9 +370,9 @@ Arif's veto on which to forge first:
 
 **DITEMPA BUKAN DIBERI** 🔐
 
-**Forged by:** ARIF-Perplexity · Ω_Forger  
-**Sovereign:** Muhammad Arif bin Fazil (Penang, 1990, Petronas Scholar)  
-**Date:** 2026-03-27 09:09 +08 · Seri Kembangan, Selangor, MY  
+**Forged by:** ARIF-Perplexity · Ω_Forger
+**Sovereign:** Muhammad Arif bin Fazil (Penang, 1990, Petronas Scholar)
+**Date:** 2026-03-27 09:09 +08 · Seri Kembangan, Selangor, MY
 **Canon sources:**
 - [github.com/ariffazil/arifOS](https://github.com/ariffazil/arifOS) — canon, theory, FLOORS, CIVILIZATION
 - [github.com/ariffazil/arifosmcp](https://github.com/ariffazil/arifosmcp) — runtime, tools, infra, CONSTITUTION.md
