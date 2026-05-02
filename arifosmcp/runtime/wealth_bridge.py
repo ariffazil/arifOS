@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import json
 import logging
-import uuid
 from typing import Any
 
 import httpx
@@ -38,7 +37,6 @@ async def _ensure_session() -> str:
         return _WEALTH_SESSION_ID
 
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-        client_session = str(uuid.uuid4())
         resp = await client.post(
             f"{WEALTH_BASE}/mcp",
             json={
@@ -54,7 +52,6 @@ async def _ensure_session() -> str:
             headers={
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "x-mcp-session-id": client_session,
             },
         )
 
@@ -66,6 +63,9 @@ async def _ensure_session() -> str:
         server_session = resp.headers.get("mcp-session-id")
         if not server_session:
             raise ConnectionError("WEALTH did not return mcp-session-id header")
+
+        async for _ in resp.aiter_lines():
+            pass
 
         _WEALTH_SESSION_ID = server_session
         logger.info(f"WEALTH session established: {server_session}")
@@ -86,6 +86,7 @@ async def _post_json_rpc(payload: dict[str, Any]) -> dict[str, Any]:
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
                 "x-mcp-session-id": session_id,
+                "mcp-session-id": session_id,
             },
         )
 

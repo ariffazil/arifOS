@@ -19,7 +19,7 @@ class GEOXBridge:
         """Lazy-load an MCP client for GEOX."""
         if self._client is None:
             try:
-                from mcp import ClientSession
+                from mcp import ClientSession  # noqa: F401
                 from mcp.client.sse import sse_client
 
                 # NOTE: Async context manager usage required in actual runtime
@@ -31,7 +31,7 @@ class GEOXBridge:
     async def _judge_pre_check(self, operation: str, data_classification: str) -> dict[str, Any]:
         """Run arifOS Judge pre-check before delegating to GEOX."""
         try:
-            from arifosmcp.runtime.tools import get_tool_handler
+            from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
 
             handler = get_tool_handler("arifos_judge")
             result = handler(
@@ -40,14 +40,18 @@ class GEOXBridge:
             )
             if hasattr(result, "model_dump"):
                 return result.model_dump(mode="json")
-            return dict(result) if isinstance(result, dict) else {"verdict": "SEAL"}
+            return (
+                dict(result)
+                if isinstance(result, dict)
+                else {"verdict": "HOLD", "error": "judge_handler_failed"}
+            )
         except Exception as exc:
             return {"verdict": "HOLD", "error": str(exc)}
 
     async def _audit_post_check(self, result: dict[str, Any]) -> None:
         """Run arifOS Judge audit after GEOX returns."""
         try:
-            from arifosmcp.runtime.tools import get_tool_handler
+            from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
 
             handler = get_tool_handler("arifos_judge")
             handler(
@@ -76,7 +80,9 @@ class GEOXBridge:
         await self._audit_post_check(geox_result)
         return geox_result
 
-    async def render_well_section(self, well_id: str, section_params: dict[str, Any]) -> dict[str, Any]:
+    async def render_well_section(
+        self, well_id: str, section_params: dict[str, Any]
+    ) -> dict[str, Any]:
         """Delegate well section rendering to GEOX with governance gating."""
         verdict = await self._judge_pre_check(
             operation="render_well_section",

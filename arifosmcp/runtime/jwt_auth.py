@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import jwt as pyjwt
-from jwt.algorithms import RSAAlgorithm
+from jwt.algorithms import ECAlgorithm, RSAAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +170,20 @@ def _get_rsa_key(kid: str) -> Any | None:
     return None
 
 
+def _get_ec_key(kid: str) -> Any | None:
+    """Resolve Elliptic Curve public key from JWKS by kid."""
+    jwks = _fetch_jwks()
+    for key in jwks.get("keys", []):
+        if key.get("kid") == kid:
+            try:
+                return ECAlgorithm.from_jwk(json.dumps(key))
+            except Exception as e:
+                logger.error("Failed to parse EC JWK for kid=%s: %s", kid, e)
+                return None
+    logger.warning("No EC JWKS key found for kid=%s", kid)
+    return None
+
+
 # ── Token Verification ─────────────────────────────────────────────────────
 
 
@@ -225,9 +239,13 @@ def verify_jwt(token: str, expected_actor_id: str | None = None) -> JWTVerificat
 
     alg = unverified_header.get("alg", "")
 
-    # ── Route by algorithm ────────────────────────────────────────────────
+    # ── Route by algorithm ──────────────────────────────────────────────
     if alg == "RS256":
         return _verify_supabase_jwt(token, unverified_header, unverified_claims, expected_actor_id)
+    elif alg == "ES256":
+        return _verify_supabase_jwt_es256(
+            token, unverified_header, unverified_claims, expected_actor_id
+        )
     elif alg == "HS256":
         return _verify_internal_jwt(token, unverified_header, unverified_claims, expected_actor_id)
     else:
@@ -286,6 +304,61 @@ def _verify_supabase_jwt(
         valid=True,
         claims=verified,
         auth_method="jwt_supabase",
+    )
+
+
+def _verify_supabase_jwt_es256(
+    token: str,
+    header: dict[str, Any],
+    claims: dict[str, Any],
+    expected_actor_id: str | None,
+) -> JWTVerificationResult:
+    """Verify a Supabase-issued ES256 (Elliptic Curve) token."""
+    kid = header.get("kid", "")
+    if not kid:
+        return JWTVerificationResult(valid=False, error="missing_kid")
+
+    public_key = _get_ec_key(kid)
+    if not public_key:
+        return JWTVerificationResult(valid=False, error="jwks_ec_key_not_found")
+
+    try:
+        verified = pyjwt.decode(
+            token,
+            key=public_key,
+            algorithms=["ES256"],
+            audience=JWT_AUDIENCE,
+            issuer=(
+                "https://arifos.supabase.co" if "arifos.supabase.co" in TRUSTED_ISSUERS else None
+            ),
+            options={"require": ["exp", "iat", "sub", "iss"]},
+            leeway=CLOCK_SKEW_MAX,
+        )
+    except pyjwt.ExpiredSignatureError:
+        return JWTVerificationResult(valid=False, error="expired")
+    except pyjwt.InvalidAudienceError:
+        return JWTVerificationResult(valid=False, error="invalid_audience")
+    except pyjwt.InvalidIssuerError:
+        return JWTVerificationResult(valid=False, error="invalid_issuer")
+    except pyjwt.PyJWTError as e:
+        return JWTVerificationResult(valid=False, error=f"es256_verification_failed: {e}")
+
+    # ── Invariant checks ──────────────────────────────────────────────────
+    iss = verified.get("iss", "")
+    if iss not in TRUSTED_ISSUERS:
+        return JWTVerificationResult(valid=False, error="untrusted_issuer")
+
+    sub = verified.get("sub", "")
+    if expected_actor_id is not None and sub != expected_actor_id:
+        return JWTVerificationResult(
+            valid=False,
+            error=f"actor_id_mismatch: expected={expected_actor_id}, jwt.sub={sub}",
+        )
+
+    return JWTVerificationResult(
+        valid=True,
+        claims=verified,
+        auth_method="jwt_supabase_es256",
     )
 
 
@@ -348,11 +421,11 @@ _MAX_VIOLATION_LOG = 1000
 
 def log_violation_durable(
     error: str,
-    path: str = "",  # noqa: B107
+    path: str = "",  # nosec B107
     actor_id: str | None = None,
     session_id: str | None = None,
     jwt_sub: str | None = None,
-    token_preview: str = "",  # noqa: B107
+    token_preview: str = "",  # nosec B107
 ) -> bool:
     """
     Append a JWT violation record to the durable JSONL telemetry file.

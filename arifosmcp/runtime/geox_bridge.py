@@ -59,14 +59,19 @@ async def _post_json_rpc(endpoint: str, payload: dict[str, Any]) -> dict[str, An
                 msg = resp.text[:200]
             raise ConnectionError(f"GEOX HTTP {resp.status_code}: {msg}")
 
-        # Collect all SSE data: lines starting with "data: "
-        buffer = b""
-        async for line in resp.aiter_lines():
-            if line.startswith("data: "):
-                buffer += line[6:].encode()
+        content_type = resp.headers.get("content-type", "")
+        if "text/event-stream" in content_type:
+            buffer = b""
+            async for line in resp.aiter_lines():
+                if line.startswith("data: "):
+                    buffer += line[6:].encode()
+        else:
+            buffer = b""
+            async for chunk in resp.aiter_bytes():
+                buffer += chunk
 
         if not buffer:
-            raise ConnectionError("GEOX returned empty SSE response")
+            raise ConnectionError("GEOX returned empty response")
 
         parsed = json.loads(buffer)
         if parsed.get("error"):
@@ -115,15 +120,12 @@ async def list_geox_tools() -> list[dict[str, Any]]:
 
 
 async def geox_health_check() -> dict[str, Any]:
-    """Check GEOX server health via MCP ping."""
-    payload = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "ping",
-        "params": {},
-    }
+    """
+    Check GEOX server health via the geox_health_check tool.
+    Raw ping is not supported by GEOX (returns 404).
+    """
     try:
-        await _post_json_rpc("/mcp", payload)
+        await call_geox_tool("geox_health_check", {})
         return {"status": "healthy", "organ": "GEOX", "host": GEOX_HOST}
     except Exception as e:
         return {"status": "unhealthy", "organ": "GEOX", "error": str(e)}
