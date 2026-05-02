@@ -561,13 +561,12 @@
         const { useState, useEffect, useMemo } = React;
         const { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineChart, Line } = Recharts;
 
-        // Demo data representing healthy constitutional operation
         const DEMO_DATA = {
             system: {
                 status: "HEALTHY",
-                version: "2026.03.14-PRE-RELEASE",
-                floors_active: "13/13",
-                uptime: "48h 32m"
+                version: "——.——.——",
+                floors_active: "—/13",
+                uptime: "—"
             },
             vitals: {
                 G_star: 0.80,
@@ -619,6 +618,69 @@
         function Dashboard() {
             const [data, setData] = useState(DEMO_DATA);
 
+            useEffect(() => {
+                const poll = async () => {
+                    try {
+                        const res = await fetch('/api/status');
+                        if (!res.ok) return;
+                        const json = await res.json();
+                        const h = json.health || {};
+                        const th = json.thermodynamic || {};
+                        const gov = json.governance || {};
+                        const rf = json.runtime_floors || {};
+
+                        const overallOk = json.trinity_matrix?.overall_ok !== false;
+                        const status = overallOk ? "HEALTHY" : "DEGRADED";
+
+                        const G_star = th.vitality_index ?? 0.5;
+                        const dS = th.entropy_delta ?? 0;
+                        const peace2 = th.peace_squared ?? 0.5;
+                        const witness = th.witness || { human: 0, ai: 0, earth: 0 };
+
+                        const floors = [
+                            { id: "F1", name: "Amanah",    status: rf.F1 >= 0.8 ? "pass" : "band", score: rf.F1 },
+                            { id: "F2", name: "Truth",     status: rf.F2 >= 0.8 ? "pass" : "band", score: rf.F2 },
+                            { id: "F3", name: "Tri-Witness",status: rf.F3 >= 0.8 ? "pass" : "band", score: rf.F3 },
+                            { id: "F4", name: "ΔS",         status: rf.F4 >= 0   ? "pass" : "band", score: rf.F4 },
+                            { id: "F5", name: "Peace²",      status: rf.F5 >= 0.8 ? "pass" : "band", score: rf.F5 },
+                            { id: "F6", name: "κᵣ",         status: rf.F6 >= 0.8 ? "pass" : "band", score: rf.F6 },
+                            { id: "F7", name: "Humility",   status: rf.F7 >= 0.8 ? "pass" : "band", score: rf.F7 },
+                            { id: "F8", name: "Genius",     status: rf.F8 >= 0.8 ? "pass" : "band", score: rf.F8 },
+                            { id: "F9", name: "C_dark",     status: rf.F9 >= 0.8 ? "pass" : "band", score: rf.F9 },
+                            { id: "F10", name: "Ontology",  status: rf.F10 >= 0.8 ? "lock" : "band", score: rf.F10 },
+                            { id: "F11", name: "Command",   status: rf.F11 >= 0.8 ? "lock" : "band", score: rf.F11 },
+                            { id: "F12", name: "Injection", status: rf.F12 >= 0.8 ? "pass" : "band", score: rf.F12 },
+                            { id: "F13", name: "Sovereign", status: rf.F13 >= 0.8 ? "human" : "band", score: rf.F13 },
+                        ];
+
+                        const machines = json.containers || [];
+                        const cpu = machines.reduce((s, c) => s + (c.cpu_percent || 0), 0).toFixed(1);
+                        const ram = machines.reduce((s, c) => s + (c.memory_percent || 0), 0).toFixed(1);
+
+                        setData(prev => ({
+                            ...prev,
+                            system: {
+                                status,
+                                version: h.version || "——.——.——",
+                                floors_active: `${floors.filter(f => f.status !== "band").length}/13`,
+                                uptime: prev.system.uptime,
+                            },
+                            vitals: { G_star, dS, peace2, kappa_r: gov.kappa_r || 0, psi_le: 0 },
+                            witness: {
+                                human: witness.human ?? 0,
+                                ai: witness.ai ?? 0,
+                                earth: witness.earth ?? 0,
+                            },
+                            floors,
+                            machine: { cpu, ram, latency: 0, energy_budget: 0 },
+                        }));
+                    } catch (_) {}
+                };
+                poll();
+                const id = setInterval(poll, 5000);
+                return () => clearInterval(id);
+            }, []);
+
             // Calculate verdict from vitals
             const getVerdict = () => {
                 const { G_star, dS, peace2 } = data.vitals;
@@ -669,7 +731,7 @@
 
                     {/* Main Grid */}
                     <div className="dashboard-grid">
-                        
+
                         {/* Primary Metric: G★ */}
                         <div className="card card-4 metric-primary">
                             <div className="card-header">
@@ -696,7 +758,7 @@
                                     {verdict === 'Alive' ? '●' : verdict === 'Degraded' ? '◐' : '○'}
                                 </div>
                                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                    {verdict === 'Alive' 
+                                    {verdict === 'Alive'
                                         ? "All systems operational. Constitutional governance active."
                                         : verdict === 'Degraded'
                                         ? "Performance reduced but functional. Monitor closely."
@@ -774,7 +836,7 @@
                                 </div>
                             </div>
                             <div className="metric-insight" style={{marginTop: '20px'}}>
-                                <strong>What this means:</strong> The system is governing itself correctly. Every reply reduces confusion (ΔS {'<'} 0) 
+                                <strong>What this means:</strong> The system is governing itself correctly. Every reply reduces confusion (ΔS {'<'} 0)
                                 and respects regional context (κᵣ {'>'} 0.95). Ψ_LE at 1.09 indicates agent-grade reasoning — below AGI horizon.
                             </div>
                         </div>
@@ -796,7 +858,7 @@
                                 </ResponsiveContainer>
                             </div>
                             <div className="metric-insight">
-                                <strong>Consensus achieved.</strong> All three witnesses agree (Human 1.0, AI 0.97, Earth 0.91). 
+                                <strong>Consensus achieved.</strong> All three witnesses agree (Human 1.0, AI 0.97, Earth 0.91).
                                 Safe to SEAL decisions without human override.
                             </div>
                         </div>
@@ -868,7 +930,7 @@
                                 </div>
                             </div>
                             <div className="metric-insight">
-                                Machine is healthy. Low latency preserves "cheap truth" capability. 
+                                Machine is healthy. Low latency preserves "cheap truth" capability.
                                 94% energy budget remaining.
                             </div>
                         </div>
@@ -903,7 +965,7 @@
                                 </tbody>
                             </table>
                             <div className="metric-insight" style={{marginTop: '16px'}}>
-                                <strong>Trend:</strong> Consistent SEALs. G★ stable around 0.80-0.85. 
+                                <strong>Trend:</strong> Consistent SEALs. G★ stable around 0.80-0.85.
                                 Entropy always reducing (ΔS {'<'} 0). Constitutional operation verified.
                             </div>
                         </div>

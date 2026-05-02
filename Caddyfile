@@ -94,7 +94,7 @@ arif-fazil.com, www.arif-fazil.com {
 # MAIN SITE 2 — Ω ARIFOS OBSERVATORY
 # arifos.arif-fazil.com
 # Root: /var/www/html/arifos
-# MCP: /mcp*, /health, /tools, /sse → 172.19.0.4:8080
+# MCP: /mcp*, /health, /tools, /sse → arifosmcp:8080
 # Ω-Wiki: /wiki/*
 # ═══════════════════════════════════════════════════════════════════════
 arifos.arif-fazil.com {
@@ -109,19 +109,19 @@ arifos.arif-fazil.com {
     }
 
     handle /mcp* {
-        reverse_proxy 172.19.0.4:8080
+        reverse_proxy arifosmcp:8080
     }
     handle /health {
-        reverse_proxy 172.19.0.4:8080
+        reverse_proxy arifosmcp:8080
     }
     handle /tools {
-        reverse_proxy 172.19.0.4:8080
+        reverse_proxy arifosmcp:8080
     }
     handle /tools.json {
-        reverse_proxy 172.19.0.4:8080
+        reverse_proxy arifosmcp:8080
     }
     handle /sse* {
-        reverse_proxy 172.19.0.4:8080
+        reverse_proxy arifosmcp:8080
     }
 
     # Agent discovery + WebMCP routes (P0 fix)
@@ -147,7 +147,7 @@ arifos.arif-fazil.com {
         file_server
     }
     handle /webmcp {
-        reverse_proxy 172.19.0.4:8080 {
+        reverse_proxy arifosmcp:8080 {
             flush_interval 100ms
         }
     }
@@ -320,7 +320,7 @@ arifosmcp.arif-fazil.com {
 mcp.arif-fazil.com {
     import tls_origin
     handle /mcp* {
-        reverse_proxy 172.19.0.4:8080
+        reverse_proxy arifosmcp:8080
     }
     handle /.well-known/mcp/* {
         root * /var/www/html/arifos
