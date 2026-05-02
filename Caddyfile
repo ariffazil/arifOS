@@ -37,7 +37,12 @@
 # Root: /var/www/html/arif (static HTML — no React build)
 # Sub-pages: /apex | /wiki | /888 | /000 | /999 | /.well-known
 # ═══════════════════════════════════════════════════════════════════════
-arif-fazil.com, www.arif-fazil.com {
+www.arif-fazil.com {
+    import tls_origin
+    redir https://arif-fazil.com{uri} permanent
+}
+
+arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
