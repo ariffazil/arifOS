@@ -445,7 +445,7 @@ POST /mcp
 | `888` | `arif_judge_deliberate` | ASI | **The constitutional verdict engine.** Returns `SEAL` (proceed), `SABAR` (wait), or `VOID` (abort). |
 | `010` | `arif_forge_execute` | AGI | Gated action execution. Requires valid `cc_id` from `arif_judge_deliberate`. F13 SOVEREIGN always active. |
 | `999` | `arif_vault_seal` | APEX | Write the immutable outcome record to VAULT999. Irreversible. F01 AMANAH enforced. |
-| `APEX` | `arif_kernel_route` | AGI | Route internal kernel actions and telemetry. No user-facing direct call. |
+| `444` | `arif_kernel_route` | AGI | Route internal kernel actions and telemetry. No user-facing direct call. |
 
 ### AI Agent Protocol Notes
 
@@ -551,18 +551,6 @@ The arifOS Trinity is a federated system. Each organ has its own repository and 
 **Commit:** `83186c02` · **Container:** `ghcr.io/ariffazil/arifos:2026.05.01`
 
 - **13-tool canonical surface locked** — `mcp_health_check` moved from canonical to probe-only. Surface is now stable and audited.
-- **Pre-commit hooks hardened** — F1 Amanah check (no irreversible ops without ack), F9 Anti-Hantu (no consciousness claims)
-- **Makefile GHCR target fixed** — Docker tag now uses hardcoded version to avoid shell substitution errors
-- **VAULT999 ledger operational** — Append-only, hash-chained immutable record
-- **Legitimate tools confirmed:** arif_session_init, arif_sense_observe, arif_evidence_fetch, arif_mind_reason, arif_kernel_route, arif_reply_compose, arif_memory_recall, arif_heart_critique, arif_gateway_connect, arif_ops_measure, arif_judge_deliberate, arif_vault_seal, arif_forge_execute
-
-<!-- /SOT:changelog -->
-
----
-
-*DITEMPA BUKAN DIBERI — arifOS is forged by discipline, not granted by default.*
-*Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
-to probe-only. Surface is now stable and audited.
 - **Pre-commit hooks hardened** — F1 Amanah check (no irreversible ops without ack), F9 Anti-Hantu (no consciousness claims)
 - **Makefile GHCR target fixed** — Docker tag now uses hardcoded version to avoid shell substitution errors
 - **VAULT999 ledger operational** — Append-only, hash-chained immutable record
