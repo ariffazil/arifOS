@@ -34,31 +34,31 @@
 # ═══════════════════════════════════════════════════════════════════════
 # MAIN SITE 1 — Ψ HUMAN SURFACE
 # arif-fazil.com | www.arif-fazil.com
-# Root: /var/www/html/arif/dist (built React bundle — was source tree)
+# Root: /var/www/html/arif (static HTML — no React build)
 # Sub-pages: /apex | /wiki | /888 | /000 | /999 | /.well-known
 # ═══════════════════════════════════════════════════════════════════════
 arif-fazil.com, www.arif-fazil.com {
     import tls_origin
     import shared_assets
     encode zstd gzip
-    root * /var/www/html/arif/dist
+    root * /var/www/html/arif
 
     # ACME challenge + identity
     handle_path /.well-known/* {
-        root * /var/www/html/arif/dist/.well-known
+        root * /var/www/html/arif/.well-known
         file_server
     }
 
     # Constitutional genesis
     handle_path /000/* {
-        root * /var/www/html/arif/dist/000
+        root * /var/www/html/arif/000
         try_files {path} /index.html
         file_server
     }
 
     # Constitutional validation
     handle_path /999/* {
-        root * /var/www/html/arif/dist/999
+        root * /var/www/html/arif/999
         try_files {path} /index.html
         file_server
     }
@@ -315,6 +315,27 @@ well.arif-fazil.com {
 # ═══════════════════════════════════════════════════════════════════════
 # LEGACY REDIRECTS — consolidated to main sites
 # ═══════════════════════════════════════════════════════════════════════
+arifOS.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+    root * /var/www/html/arifOS
+    handle /.well-known/* {
+        header Cache-Control "no-cache, no-store, must-revalidate"
+        header Pragma "no-cache"
+        header Expires "0"
+        file_server
+    }
+    handle /observatory/* {
+        root * /var/www/arifos/observatory
+        try_files {path} /index.html
+        file_server
+    }
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
+}
+
 arifosmcp.arif-fazil.com {
     import tls_origin
     redir https://arifos.arif-fazil.com/mcp{uri} permanent
