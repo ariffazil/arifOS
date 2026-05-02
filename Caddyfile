@@ -221,7 +221,7 @@ geox.arif-fazil.com {
 
     # GEOX MCP — proxy /mcp to geox_eic, FastMCP serves at root
     handle /mcp* {
-        reverse_proxy geox_eic:8081 {
+        reverse_proxy 172.19.0.5:8081 {
             header_up Host {host}
             header_up X-Real-IP {remote_host}
             header_up Accept "text/event-stream, application/json"
@@ -230,18 +230,18 @@ geox.arif-fazil.com {
     }
     handle /health {
         import cors_public
-        reverse_proxy geox_eic:8081
+        reverse_proxy 172.19.0.5:8081
     }
     handle /ready {
         import cors_public
-        reverse_proxy geox_eic:8081
+        reverse_proxy 172.19.0.5:8081
     }
     handle /status {
         import cors_public
-        reverse_proxy geox_eic:8081
+        reverse_proxy 172.19.0.5:8081
     }
     handle /sse* {
-        reverse_proxy geox_eic:8081
+        reverse_proxy 172.19.0.5:8081
     }
 
     handle {
@@ -263,14 +263,14 @@ wealth.arif-fazil.com {
 
     handle /mcp* {
         import cors_public
-        reverse_proxy wealth-organ:8082
+        reverse_proxy 127.0.0.1:8082
     }
     handle /health {
         import cors_public
-        reverse_proxy wealth-organ:8082
+        reverse_proxy 127.0.0.1:8082
     }
     handle /sse* {
-        reverse_proxy wealth-organ:8082
+        reverse_proxy 127.0.0.1:8082
     }
 
     handle {
@@ -291,14 +291,14 @@ well.arif-fazil.com {
 
     handle /mcp* {
         import cors_public
-        reverse_proxy well:8083
+        reverse_proxy 172.19.0.7:8083
     }
     handle /health {
         import cors_public
-        reverse_proxy well:8083
+        reverse_proxy 172.19.0.7:8083
     }
     handle /sse* {
-        reverse_proxy well:8083
+        reverse_proxy 172.19.0.7:8083
     }
     handle {
         redir https://arifos.arif-fazil.com permanent
