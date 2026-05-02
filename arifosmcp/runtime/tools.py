@@ -1478,7 +1478,19 @@ def _arif_session_init(
             "peace2": 1.0,
             "verdict": "SEAL",
         }
-        return _ok(
+        actor = sess.get("actor_id", "unknown")
+        _arif_vault_seal(
+            mode="seal_receipt",
+            payload={
+                "type": "epoch_open",
+                "epoch_id": eid,
+                "session_id": session_id,
+                "actor_id": actor,
+            },
+            session_id=session_id,
+            actor_id=actor,
+        )
+        response = _ok(
             "arif_session_init",
             {
                 "mode": "epoch_open",
@@ -1487,6 +1499,16 @@ def _arif_session_init(
                 "status": "open",
             },
             delta_S=0.001,
+            session_id=session_id,
+        )
+        response["reasons"] = [
+            "Reversible epoch opening — no irreversible state change",
+            f"Session exists and actor_id={actor} is bound",
+            "delta_S=0.001 within reversible thermodynamic bounds",
+        ]
+        return _enforce_nine_signal(
+            "arif_session_init",
+            response,
             session_id=session_id,
         )
 
