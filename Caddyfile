@@ -263,14 +263,18 @@ wealth.arif-fazil.com {
 
     handle /mcp* {
         import cors_public
-        reverse_proxy 127.0.0.1:8082
+        reverse_proxy 172.19.0.11:8082
     }
     handle /health {
         import cors_public
-        reverse_proxy 127.0.0.1:8082
+        reverse_proxy 172.19.0.11:8082
+    }
+    handle /ready {
+        import cors_public
+        reverse_proxy 172.19.0.11:8082
     }
     handle /sse* {
-        reverse_proxy 127.0.0.1:8082
+        reverse_proxy 172.19.0.11:8082
     }
 
     handle {
