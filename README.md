@@ -533,11 +533,13 @@ The arifOS Trinity is a federated system. Each organ has its own repository and 
 
 | Surface | URL | Purpose |
 |---------|-----|---------|
-| Human (Theory) | https://arif-fazil.com/ | Philosophical and constitutional documentation |
-| arifOS Doctrine | https://arifos.arif-fazil.com/ | Kernel governance documentation |
-| MCP Observatory | https://observatory.arif-fazil.com/ | Live MCP tool registry and health |
+| Human (SOUL) | https://arif-fazil.com/ | Human anchor, portfolio, identity |
+| arifOS (MIND) | https://arifos.arif-fazil.com/ | Kernel governance documentation |
+| Cockpit (BODY) | https://aaa.arif-fazil.com/ | Agent workspace and A-FORGE cockpit |
+| MCP Canonical | https://mcp.arif-fazil.com/ | Production MCP Machine Endpoint |
 | GEOX | https://geox.arif-fazil.com/ | Earth intelligence coprocessor |
-| WEALTH | https://wealth.arif-fazil.com/ | Capital intelligence coprocessor |
+
+> **Note:** `https://arifosmcp.arif-fazil.com/` is a legacy 301 redirect to the canonical `mcp.arif-fazil.com` endpoint.
 
 ---
 
@@ -549,6 +551,18 @@ The arifOS Trinity is a federated system. Each organ has its own repository and 
 **Commit:** `83186c02` · **Container:** `ghcr.io/ariffazil/arifos:2026.05.01`
 
 - **13-tool canonical surface locked** — `mcp_health_check` moved from canonical to probe-only. Surface is now stable and audited.
+- **Pre-commit hooks hardened** — F1 Amanah check (no irreversible ops without ack), F9 Anti-Hantu (no consciousness claims)
+- **Makefile GHCR target fixed** — Docker tag now uses hardcoded version to avoid shell substitution errors
+- **VAULT999 ledger operational** — Append-only, hash-chained immutable record
+- **Legitimate tools confirmed:** arif_session_init, arif_sense_observe, arif_evidence_fetch, arif_mind_reason, arif_kernel_route, arif_reply_compose, arif_memory_recall, arif_heart_critique, arif_gateway_connect, arif_ops_measure, arif_judge_deliberate, arif_vault_seal, arif_forge_execute
+
+<!-- /SOT:changelog -->
+
+---
+
+*DITEMPA BUKAN DIBERI — arifOS is forged by discipline, not granted by default.*
+*Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
+to probe-only. Surface is now stable and audited.
 - **Pre-commit hooks hardened** — F1 Amanah check (no irreversible ops without ack), F9 Anti-Hantu (no consciousness claims)
 - **Makefile GHCR target fixed** — Docker tag now uses hardcoded version to avoid shell substitution errors
 - **VAULT999 ledger operational** — Append-only, hash-chained immutable record
