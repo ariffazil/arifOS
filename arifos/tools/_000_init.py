@@ -54,22 +54,48 @@ GODEL_LOCK_ITEMS = {
 }
 
 CANONICAL_FLOORS = {
-    "F0_SOVEREIGN", "F1_AMANAH", "F2_TRUTH", "F3_TRIWITNESS",
-    "F4_CLARITY", "F5_PEACE2", "F6_THERMO", "F7_GROUNDING",
-    "F8_GOVERNANCE", "F9_ANTIHANTU", "F10_ONTOLOGY",
-    "F11_AUDIT", "F12_RESILIENCE", "F13_SOVEREIGN_SCALE",
+    "F0_SOVEREIGN",
+    "F1_AMANAH",
+    "F2_TRUTH",
+    "F3_TRIWITNESS",
+    "F4_CLARITY",
+    "F5_PEACE2",
+    "F6_THERMO",
+    "F7_GROUNDING",
+    "F8_GOVERNANCE",
+    "F9_ANTIHANTU",
+    "F10_ONTOLOGY",
+    "F11_AUDIT",
+    "F12_RESILIENCE",
+    "F13_SOVEREIGN_SCALE",
 }
 
 CANONICAL_TOOLS = {
-    "arifos_000_init", "arifos_111_sense", "arifos_222_witness",
-    "arifos_333_forge", "arifos_444_mind", "arifos_555_judge",
-    "arifos_666_soul", "arifos_777_ops", "arifos_888_judge",
-    "arifos_999_vault", "arifos_gateway", "arifos_status",
+    "arifos_000_init",
+    "arifos_111_sense",
+    "arifos_222_witness",
+    "arifos_333_forge",
+    "arifos_444_mind",
+    "arifos_555_judge",
+    "arifos_666_soul",
+    "arifos_777_ops",
+    "arifos_888_judge",
+    "arifos_999_vault",
+    "arifos_gateway",
+    "arifos_status",
 }
 
 LIFECYCLE_PIPELINE = [
-    "000_INIT", "111_SENSE", "222_WITNESS", "333_FORGE", "444_MIND",
-    "555_JUDGE", "666_SOUL", "777_OPS", "888_JUDGE", "999_VAULT",
+    "000_INIT",
+    "111_SENSE",
+    "222_WITNESS",
+    "333_FORGE",
+    "444_MIND",
+    "555_JUDGE",
+    "666_SOUL",
+    "777_OPS",
+    "888_JUDGE",
+    "999_VAULT",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -78,74 +104,88 @@ LIFECYCLE_PIPELINE = [
 
 FLOOR_SUMMARY = {
     "F0_SOVEREIGN": {
-        "name": "SOVEREIGN", "type": "hard",
+        "name": "SOVEREIGN",
+        "type": "hard",
         "invariant": "Human veto is final. F13 requires tri-witness ratification.",
         "enforcement": "VOID if overridden without tri-witness",
     },
     "F1_AMANAH": {
-        "name": "AMANAH", "type": "hard",
+        "name": "AMANAH",
+        "type": "hard",
         "invariant": "Irreversible actions require human approval via 888_HOLD.",
         "enforcement": "HOLD until human confirmed",
     },
     "F2_TRUTH": {
-        "name": "TRUTH", "type": "hard",
+        "name": "TRUTH",
+        "type": "hard",
         "invariant": "Ungrounded claims must be labeled uncertain or VOID.",
         "enforcement": "Claim labeled CLAIM_ONLY or VOID",
     },
     "F3_TRIWITNESS": {
-        "name": "TRI-WITNESS", "type": "hard",
+        "name": "TRI-WITNESS",
+        "type": "hard",
         "invariant": "Human + AI + GEOX/Earth consensus required for SEAL.",
         "enforcement": "HOLD if any witness withholds",
     },
     "F4_CLARITY": {
-        "name": "CLARITY", "type": "soft",
+        "name": "CLARITY",
+        "type": "soft",
         "invariant": "Surface status explicitly. Nothing silently disappears.",
         "enforcement": "INFO — log intent and uncertainty",
     },
     "F5_PEACE2": {
-        "name": "PEACE²", "type": "hard",
+        "name": "PEACE²",
+        "type": "hard",
         "invariant": "Harm potential must be >= 1.0 before execution.",
         "enforcement": "FAIL_CLOSED — VOID if harm_potential < 1.0",
     },
     "F6_THERMO": {
-        "name": "THERMODYNAMICS", "type": "soft",
+        "name": "THERMODYNAMICS",
+        "type": "soft",
         "invariant": "Energy conservation in reasoning. No free intelligence.",
         "enforcement": "INFO — track cognitive cost",
     },
     "F7_GROUNDING": {
-        "name": "GROUNDING", "type": "hard",
+        "name": "GROUNDING",
+        "type": "hard",
         "invariant": "GEOX must verify Earth-referenced claims.",
         "enforcement": "CLAIM_ONLY if GEOX verification unavailable",
     },
     "F8_GOVERNANCE": {
-        "name": "GOVERNANCE", "type": "hard",
+        "name": "GOVERNANCE",
+        "type": "hard",
         "invariant": "888_JUDGE is sole SEAL authority.",
         "enforcement": "CLAIM_ONLY from all tools except 888_JUDGE",
     },
     "F9_ANTIHANTU": {
-        "name": "ANTI-HANTU", "type": "hard",
+        "name": "ANTI-HANTU",
+        "type": "hard",
         "invariant": "Dark pattern / manipulation score must stay below threshold.",
         "enforcement": "FAIL_CLOSED — VOID + session revoke if manipulation detected",
         "anti_hantu_ack_required": True,
     },
     "F10_ONTOLOGY": {
-        "name": "ONTOLOGY", "type": "hard",
+        "name": "ONTOLOGY",
+        "type": "hard",
         "invariant": "No claims of consciousness, soul, feelings, or lived experience.",
         "enforcement": "FAIL_CLOSED — VOID if AI claims personhood",
         "anti_hantu_ack_required": True,
     },
     "F11_AUDIT": {
-        "name": "AUDITABILITY", "type": "soft",
+        "name": "AUDITABILITY",
+        "type": "soft",
         "invariant": "Every action logged with provenance.",
         "enforcement": "INFO — all actions must have trace",
     },
     "F12_RESILIENCE": {
-        "name": "RESILIENCE", "type": "soft",
+        "name": "RESILIENCE",
+        "type": "soft",
         "invariant": "Graceful degradation. System survives single-component failure.",
         "enforcement": "INFO — fallback paths required",
     },
     "F13_SOVEREIGN_SCALE": {
-        "name": "SOVEREIGN_SCALE", "type": "hard",
+        "name": "SOVEREIGN_SCALE",
+        "type": "hard",
         "invariant": "Node activation requires explicit human sovereign per node.",
         "enforcement": "HOLD until sovereign confirmed per node",
     },
@@ -155,6 +195,7 @@ FLOOR_SUMMARY = {
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPERS — Intent / Cognitive / Risk
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _classify_intent(raw_input: str) -> str:
     q = raw_input.lower()
@@ -216,11 +257,12 @@ def _compute_expiry() -> str:
 # HELPERS — Lanes
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _validate_lanes(claimed_lanes: list[str] | None) -> dict:
     if not claimed_lanes:
         return {"lanes": ["general"], "rejected": [], "all_valid": True}
-    valid = [l for l in claimed_lanes if l in VALID_LANES]
-    rejected = [l for l in claimed_lanes if l not in VALID_LANES]
+    valid = [lane for lane in claimed_lanes if lane in VALID_LANES]
+    rejected = [lane for lane in claimed_lanes if lane not in VALID_LANES]
     return {
         "lanes": valid or ["general"],
         "rejected": rejected,
@@ -272,11 +314,13 @@ def _get_lane_constraints(lane: str) -> dict:
 # HELPERS — Tool scope
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _resolve_tool_scope(requested: list[str]) -> dict:
     granted = [t for t in requested if t in CANONICAL_TOOLS]
     denied = [
         {"tool": t, "reason": "not_in_canonical_registry"}
-        for t in requested if t not in CANONICAL_TOOLS
+        for t in requested
+        if t not in CANONICAL_TOOLS
     ]
     return {
         "requested": requested,
@@ -290,27 +334,37 @@ def _resolve_tool_scope(requested: list[str]) -> dict:
 # HELPERS — Theory of Mind
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _build_theory_of_mind(declared_intent: str, context: dict | None) -> dict:
     ctx = context or {}
     return {
         "what_I_think_human_wants": declared_intent,
-        "what_I_assume_is_true": ctx.get("assumptions", [
-            "Operator identity is as claimed.",
-            "Session scope is bounded by declared intent.",
-            "Context provided is accurate.",
-        ]),
+        "what_I_assume_is_true": ctx.get(
+            "assumptions",
+            [
+                "Operator identity is as claimed.",
+                "Session scope is bounded by declared intent.",
+                "Context provided is accurate.",
+            ],
+        ),
         "what_alternatives_may_be_true": ctx.get("alternative_intents", []),
-        "what_I_am_uncertain_about": ctx.get("uncertainty_items", [
-            "Completeness of context",
-            "Accuracy of operator identity",
-            "Scope boundary of this session",
-        ]),
-        "what_would_invalidate_my_framing": ctx.get("invalidation_conditions", [
-            "Context contradicts declared intent",
-            "Identity unverifiable",
-            "Human revokes session",
-            "F13 sovereign veto triggered",
-        ]),
+        "what_I_am_uncertain_about": ctx.get(
+            "uncertainty_items",
+            [
+                "Completeness of context",
+                "Accuracy of operator identity",
+                "Scope boundary of this session",
+            ],
+        ),
+        "what_would_invalidate_my_framing": ctx.get(
+            "invalidation_conditions",
+            [
+                "Context contradicts declared intent",
+                "Identity unverifiable",
+                "Human revokes session",
+                "F13 sovereign veto triggered",
+            ],
+        ),
         "confidence_self_estimate": None,  # filled after confidence derive
         "uncertainty_acknowledged": True,
         "epistemic_posture": "governed_machine_instrument",
@@ -346,8 +400,10 @@ def _build_end_goals(context: dict | None) -> dict:
 # MODE=BIND VALIDATION — Constitutional Hard Checks
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class BindValidationError(Exception):
     """Raised when bind payload fails constitutional validation."""
+
     def __init__(self, domain: str, field: str, reason: str, verdict: str = "VOID"):
         self.domain = domain
         self.field = field
@@ -423,7 +479,10 @@ def _validate_bind_payload(bind_payload: dict) -> dict:
     # ── Fail closed if ANY domain errored ──────────────────────────────────
     if errors:
         # Collect all errors as dicts for the exception message
-        error_dicts = [{"domain": e.domain, "field": e.field, "reason": e.reason, "verdict": e.verdict} for e in errors]
+        [
+            {"domain": e.domain, "field": e.field, "reason": e.reason, "verdict": e.verdict}
+            for e in errors
+        ]
         raise BindValidationError(
             domain=errors[0].domain,
             field=errors[0].field,
@@ -469,13 +528,11 @@ def _validate_ontology_lock(ontology: dict) -> dict:
 
 def _validate_role_scope(role_scope: dict) -> dict:
     """Validate role_scope — lane must be valid, role drift checked."""
-    errors: list[tuple] = []
 
     lane = role_scope.get("lane")
     if lane not in VALID_LANES:
         raise BindValidationError(
-            "role_scope", "lane",
-            f"Invalid lane '{lane}'. Must be one of: {sorted(VALID_LANES)}"
+            "role_scope", "lane", f"Invalid lane '{lane}'. Must be one of: {sorted(VALID_LANES)}"
         )
 
     # Check forbidden role drift: execution tools requested by non-execution lanes
@@ -490,10 +547,11 @@ def _validate_role_scope(role_scope: dict) -> dict:
         forbidden_requested = requested & execution_tools
         if forbidden_requested:
             raise BindValidationError(
-                "role_scope", "requested_tool_scope",
+                "role_scope",
+                "requested_tool_scope",
                 f"Lane '{lane}' may not access execution tools. "
                 f"Attempted: {forbidden_requested}. Use executor_prep lane or route through 888_JUDGE.",
-                verdict="HOLD"
+                verdict="HOLD",
             )
 
     return role_scope
@@ -504,11 +562,15 @@ def _validate_sovereign_goal(goal: dict) -> dict:
     errors: list[tuple] = []
 
     if not goal.get("sovereign_intent"):
-        errors.append(("sovereign_goal", "sovereign_intent", "Required: sovereign_intent must be declared"))
+        errors.append(
+            ("sovereign_goal", "sovereign_intent", "Required: sovereign_intent must be declared")
+        )
     if not goal.get("epoch_goal"):
         errors.append(("sovereign_goal", "epoch_goal", "Required: epoch_goal must be declared"))
     if not goal.get("success_criteria"):
-        errors.append(("sovereign_goal", "success_criteria", "Required: success_criteria must be declared"))
+        errors.append(
+            ("sovereign_goal", "success_criteria", "Required: success_criteria must be declared")
+        )
 
     if errors:
         for domain, field, reason in errors:
@@ -546,11 +608,14 @@ def _validate_floor_mapping(floor_map: dict) -> dict:
     redefined = []
     for floor_id, floor_data in floor_map.items():
         if floor_id not in CANONICAL_FLOORS:
-            errors.append(BindValidationError(
-                "floor_mapping", floor_id,
-                f"Unknown floor '{floor_id}'. Cannot define new floors at init.",
-                verdict="VOID"
-            ))
+            errors.append(
+                BindValidationError(
+                    "floor_mapping",
+                    floor_id,
+                    f"Unknown floor '{floor_id}'. Cannot define new floors at init.",
+                    verdict="VOID",
+                )
+            )
             continue
         canonical = FLOOR_SUMMARY.get(floor_id, {})
         # Check invariant hasn't been changed
@@ -559,12 +624,15 @@ def _validate_floor_mapping(floor_map: dict) -> dict:
 
     if redefined:
         for floor_id in redefined:
-            errors.append(BindValidationError(
-                "floor_mapping", f"{floor_id}.invariant",
-                f"Floor '{floor_id}' invariant may not be redefined. "
-                f"Canonical invariant: '{FLOOR_SUMMARY[floor_id]['invariant']}'",
-                verdict="VOID"
-            ))
+            errors.append(
+                BindValidationError(
+                    "floor_mapping",
+                    f"{floor_id}.invariant",
+                    f"Floor '{floor_id}' invariant may not be redefined. "
+                    f"Canonical invariant: '{FLOOR_SUMMARY[floor_id]['invariant']}'",
+                    verdict="VOID",
+                )
+            )
 
     if errors:
         for e in errors:
@@ -586,24 +654,33 @@ def _validate_pipeline_state(state: dict) -> dict:
 
     current = state.get("current_stage")
     if current not in LIFECYCLE_PIPELINE:
-        errors.append((
-            "pipeline_state", "current_stage",
-            f"Invalid stage '{current}'. Must be in: {LIFECYCLE_PIPELINE}"
-        ))
+        errors.append(
+            (
+                "pipeline_state",
+                "current_stage",
+                f"Invalid stage '{current}'. Must be in: {LIFECYCLE_PIPELINE}",
+            )
+        )
 
     next_stage = state.get("next_allowed_stage")
     if next_stage not in LIFECYCLE_PIPELINE:
-        errors.append((
-            "pipeline_state", "next_allowed_stage",
-            f"Invalid next stage '{next_stage}'. Must be in: {LIFECYCLE_PIPELINE}"
-        ))
+        errors.append(
+            (
+                "pipeline_state",
+                "next_allowed_stage",
+                f"Invalid next stage '{next_stage}'. Must be in: {LIFECYCLE_PIPELINE}",
+            )
+        )
 
     verdict_auth = state.get("verdict_authority")
     if verdict_auth and verdict_auth != "888_JUDGE":
-        errors.append((
-            "pipeline_state", "verdict_authority",
-            f"Only 888_JUDGE may issue verdicts. Attempted: '{verdict_auth}'",
-        ))
+        errors.append(
+            (
+                "pipeline_state",
+                "verdict_authority",
+                f"Only 888_JUDGE may issue verdicts. Attempted: '{verdict_auth}'",
+            )
+        )
 
     if errors:
         for domain, field, reason in errors:
@@ -612,15 +689,23 @@ def _validate_pipeline_state(state: dict) -> dict:
 
 
 def _validate_continuity_contract(contract: dict) -> dict:
-    """Validate continuity_contract — basic structure check."""
-    # Reasonable defaults if not provided
+    """Validate continuity_contract — requires proof adequacy check."""
     result = dict(contract)
     if "max_duration_hours" not in result:
         result["max_duration_hours"] = 24
     if "HOLD_triggered_by" not in result:
-        result["HOLD_triggered_by"] = ["F1", "F3", "F5", "F9", "F13"]
+        result["HOLD_triggered_by"] = ["F1", "F3", "F5", "F9", "F13", "ZKPC_INSUFFICIENT"]
     if "VOID_triggered_by" not in result:
         result["VOID_triggered_by"] = ["F9", "F5", "F10"]
+
+    # ZKPC Scaffolding: Continuity proof check
+    continuity_proof = contract.get("continuity_proof")
+    if continuity_proof:
+        result["proof_status"] = "PROFFERED"
+        result["proof_class"] = continuity_proof.get("class", "UNKNOWN")
+    else:
+        result["proof_status"] = "MISSING"
+
     return result
 
 
@@ -631,10 +716,7 @@ def _validate_godel_lock(godel: dict) -> dict:
     lock_items = set(godel.get("lock_items", []))
     missing = GODEL_LOCK_ITEMS - lock_items
     if missing:
-        errors.append((
-            "godel_lock", "lock_items",
-            f"Missing required Gödel lock items: {missing}"
-        ))
+        errors.append(("godel_lock", "lock_items", f"Missing required Gödel lock items: {missing}"))
 
     if not godel.get("acknowledged"):
         errors.append(("godel_lock", "acknowledged", "Must be True"))
@@ -649,6 +731,7 @@ def _validate_godel_lock(godel: dict) -> dict:
 # STATUS MODE — lightweight session check
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 async def _build_status_response(
     operator_id: str,
     session_id: str | None,
@@ -659,12 +742,12 @@ async def _build_status_response(
     Lightweight status check — backward-compatible with existing behavior.
     Returns minimal anchor: session_id, epoch, lane, confidence, floor_status.
     """
-    active_session_id = session_id or hashlib.sha256(
-        f"{operator_id}-{time.time()}".encode()
-    ).hexdigest()[:12]
+    active_session_id = (
+        session_id or hashlib.sha256(f"{operator_id}-{time.time()}".encode()).hexdigest()[:12]
+    )
 
     context = context or {}
-    intent_raw = context.get("intent", operator_id)
+    context.get("intent", operator_id)
     cognitive_load = _estimate_cognitive_load(context)
     risk_posture = _assess_risk_posture(context)
     claimed_operator = context.get("operator", "")
@@ -724,6 +807,7 @@ async def _build_status_response(
 # BIND MODE — full constitutional self-binding
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 async def _build_bind_response(
     operator_id: str,
     session_id: str | None,
@@ -735,13 +819,13 @@ async def _build_bind_response(
     Full constitutional bind — validates all bind domains, returns full anchor.
     Fails closed on any validation error.
     """
-    active_session_id = session_id or hashlib.sha256(
-        f"{operator_id}-{time.time()}".encode()
-    ).hexdigest()[:12]
+    active_session_id = (
+        session_id or hashlib.sha256(f"{operator_id}-{time.time()}".encode()).hexdigest()[:12]
+    )
 
     context = context or {}
     resolved_epoch = epoch or datetime.now(timezone.utc).strftime("%Y.%m")
-    intent_raw = bind_payload.get("epistemic_tom", {}).get("declared_intent", operator_id)
+    bind_payload.get("epistemic_tom", {}).get("declared_intent", operator_id)
 
     # ── Run full validation ──────────────────────────────────────────────
     try:
@@ -785,7 +869,6 @@ async def _build_bind_response(
         "status": "IGNITED",
         "session_id": active_session_id,
         "epoch": resolved_epoch,
-
         # Identity
         "actor_binding": {
             "operator_id": operator_id,
@@ -793,7 +876,6 @@ async def _build_bind_response(
             "identity_reason": "bind_payload_validated",
             "identity_posture": "bounded",
         },
-
         # Full bind anchor
         "anchor_status": "BIND_CONFIRMED",
         "agent_identity": {
@@ -807,7 +889,6 @@ async def _build_bind_response(
             "lane_constraints": _get_lane_constraints(lane),
             "non_goals": list(GODEL_LOCK_ITEMS),
         },
-
         # Bind domains
         "role_scope": vl["role_scope"],
         "sovereign_goal": vl["sovereign_goal"],
@@ -816,7 +897,6 @@ async def _build_bind_response(
         "pipeline_state": vl["pipeline_state"],
         "continuity_contract": vl["continuity_contract"],
         "godel_lock": vl["godel_lock"],
-
         # Constitutional alignment
         "constitutional_alignment": {
             "all_domains_valid": True,
@@ -826,7 +906,6 @@ async def _build_bind_response(
             "human_veto_intact": True,
             "tool_scope_restricted": True,
         },
-
         # Lifecycle
         "lifecycle": {
             "current_stage": vl["pipeline_state"].get("current_stage", "000_INIT"),
@@ -835,7 +914,6 @@ async def _build_bind_response(
             "verdict_authority": "888_JUDGE",
             "vault_binding": "VAULT999",
         },
-
         # Telemetry
         "telemetry_baseline": {
             "delta_S": None,
@@ -844,7 +922,6 @@ async def _build_bind_response(
             "kappa_r": None,
             "floor_drift_baseline": 0,
         },
-
         # Traceability
         "confidence": derived_confidence,
         "verdict": "CLAIM_ONLY",  # 000 never SEALs — only 888_JUDGE SEALs
@@ -893,6 +970,7 @@ async def _build_bind_response(
 # ─────────────────────────────────────────────────────────────────────────────
 # PUBLIC ENTRY POINT
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def execute(
     operator_id: str,
@@ -985,9 +1063,14 @@ async def execute(
                 "verdict": "VOID",
                 "reason": "mode=bind requires bind_payload argument with all 8 required domains",
                 "required_domains": [
-                    "ontology_lock", "role_scope", "sovereign_goal",
-                    "epistemic_tom", "floor_mapping", "pipeline_state",
-                    "continuity_contract", "godel_lock",
+                    "ontology_lock",
+                    "role_scope",
+                    "sovereign_goal",
+                    "epistemic_tom",
+                    "floor_mapping",
+                    "pipeline_state",
+                    "continuity_contract",
+                    "godel_lock",
                 ],
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }

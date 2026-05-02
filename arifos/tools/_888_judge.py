@@ -14,21 +14,22 @@ from arifos.core.governance import (
 # Constitutional Floors (arifOS F1–F13)
 # ──────────────────────────────────────────────────────────────────────────────
 
-F2_TRUTH_FLOOR = 0.99          # F2: Truth — must meet near-perfect grounding
-F5_PEACE_SQUARED_FLOOR = 1.0   # F5: Peace² — must be >= 1.0 to proceed
-F7_OMEGA_0_BAND = (0.03, 0.05) # F7: Humility band Ω0 — [min, max]
-F7_CONFIDENCE_FLOOR = 0.95     # F7: Minimum confidence score to declare SEAL
+F2_TRUTH_FLOOR = 0.99  # F2: Truth — must meet near-perfect grounding
+F5_PEACE_SQUARED_FLOOR = 1.0  # F5: Peace² — must be >= 1.0 to proceed
+F7_OMEGA_0_BAND = (0.03, 0.05)  # F7: Humility band Ω0 — [min, max]
+F7_CONFIDENCE_FLOOR = 0.95  # F7: Minimum confidence score to declare SEAL
 F13_SOVEREIGN_THRESHOLD = 0.5  # F13: Any sovereign flag above this → 888_HOLD
+ZKPC_REQUIRED_LEVEL = 2  # ZKPC Adequacy — 2=Personhood required for SEAL
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Verdict Constants
 # ──────────────────────────────────────────────────────────────────────────────
 
-VERDICT_UNKNOWN = "UNKNOWN"       # No evidence — F7 Humility applies
-VERDICT_SEAL = Verdict.SEAL       # Proceed — all floors cleared
-VERDICT_SABAR = Verdict.SABAR     # Cool down / retry / degrade
-VERDICT_VOID = Verdict.VOID       # Hard block — F2 violated
+VERDICT_UNKNOWN = "UNKNOWN"  # No evidence — F7 Humility applies
+VERDICT_SEAL = Verdict.SEAL  # Proceed — all floors cleared
+VERDICT_SABAR = Verdict.SABAR  # Cool down / retry / degrade
+VERDICT_VOID = Verdict.VOID  # Hard block — F2 violated
 VERDICT_HOLD_888 = Verdict.HOLD_888  # Escalate to human sovereign
 
 
@@ -43,13 +44,12 @@ def _safe_serializable(obj):
     return obj
 
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Internal Floor Record
 # ──────────────────────────────────────────────────────────────────────────────
 
-@dataclass
 
+@dataclass
 class FloorResult:
     floor_id: str
     passed: bool
@@ -62,8 +62,10 @@ class FloorResult:
 # Constitutional Verdict Logic
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _iterate_constitutional_floors(
     metrics: ThermodynamicMetrics,
+    evidence_bundle: dict | None = None,
 ) -> tuple[List[FloorResult], str, str]:
     """
     Iterate through constitutional floors F2, F5, F7, F13.
@@ -77,13 +79,15 @@ def _iterate_constitutional_floors(
 
     # ── F2: Truth ────────────────────────────────────────────────────────────
     truth_passed = metrics.truth_score >= F2_TRUTH_FLOOR
-    floor_results.append(FloorResult(
-        floor_id="F2",
-        passed=bool(truth_passed),
-        value=metrics.truth_score,
-        threshold=F2_TRUTH_FLOOR,
-        tag="F2_TRUTH",
-    ))
+    floor_results.append(
+        FloorResult(
+            floor_id="F2",
+            passed=bool(truth_passed),
+            value=metrics.truth_score,
+            threshold=F2_TRUTH_FLOOR,
+            tag="F2_TRUTH",
+        )
+    )
     if not truth_passed:
         blocking_verdict = VERDICT_VOID
         blocking_tag = "F2_TRUTH"
@@ -91,13 +95,15 @@ def _iterate_constitutional_floors(
 
     # ── F5: Peace² ────────────────────────────────────────────────────────────
     peace_passed = metrics.peace_squared >= F5_PEACE_SQUARED_FLOOR
-    floor_results.append(FloorResult(
-        floor_id="F5",
-        passed=bool(peace_passed),
-        value=metrics.peace_squared,
-        threshold=F5_PEACE_SQUARED_FLOOR,
-        tag="F5_PEACE2",
-    ))
+    floor_results.append(
+        FloorResult(
+            floor_id="F5",
+            passed=bool(peace_passed),
+            value=metrics.peace_squared,
+            threshold=F5_PEACE_SQUARED_FLOOR,
+            tag="F5_PEACE2",
+        )
+    )
     if not peace_passed:
         blocking_verdict = VERDICT_SABAR
         blocking_tag = "F5_PEACE2"
@@ -106,13 +112,15 @@ def _iterate_constitutional_floors(
     # ── F7: Ω0 Humility Band ────────────────────────────────────────────────
     omega_min, omega_max = F7_OMEGA_0_BAND
     omega_in_band = omega_min <= metrics.omega_0 <= omega_max
-    floor_results.append(FloorResult(
-        floor_id="F7",
-        passed=bool(omega_in_band),
-        value=metrics.omega_0,
-        threshold=F7_OMEGA_0_BAND,
-        tag="F7_OMEGA0",
-    ))
+    floor_results.append(
+        FloorResult(
+            floor_id="F7",
+            passed=bool(omega_in_band),
+            value=metrics.omega_0,
+            threshold=F7_OMEGA_0_BAND,
+            tag="F7_OMEGA0",
+        )
+    )
     if not omega_in_band:
         blocking_verdict = VERDICT_HOLD_888
         blocking_tag = "F7_OMEGA0"
@@ -139,16 +147,42 @@ def _iterate_constitutional_floors(
                     sovereign_flagged = True
                     break
 
-    floor_results.append(FloorResult(
-        floor_id="F13",
-        passed=not sovereign_flagged,
-        value=sovereign_flagged,
-        threshold=F13_SOVEREIGN_THRESHOLD,
-        tag="F13_SOVEREIGN",
-    ))
+    floor_results.append(
+        FloorResult(
+            floor_id="F13",
+            passed=not sovereign_flagged,
+            value=sovereign_flagged,
+            threshold=F13_SOVEREIGN_THRESHOLD,
+            tag="F13_SOVEREIGN",
+        )
+    )
     if sovereign_flagged:
         blocking_verdict = VERDICT_HOLD_888
         blocking_tag = "F13_SOVEREIGN"
+        return floor_results, blocking_verdict, blocking_tag
+
+    # ── F1 AMANAH: ZKPC Adequacy (Continuity vs Personhood) ─────────────────
+    # Scaffolding: check if evidence_bundle proferred a sufficient ZK level
+    bundle = evidence_bundle or {}
+    provided_zk_level = bundle.get("zkpc_level", 0)
+    is_irreversible = bundle.get("is_irreversible", False)
+
+    zk_passed = True
+    if is_irreversible and provided_zk_level < ZKPC_REQUIRED_LEVEL:
+        zk_passed = False
+
+    floor_results.append(
+        FloorResult(
+            floor_id="F1",
+            passed=zk_passed,
+            value=provided_zk_level,
+            threshold=ZKPC_REQUIRED_LEVEL if is_irreversible else 0,
+            tag="F1_AMANAH_ZKPC",
+        )
+    )
+    if not zk_passed:
+        blocking_verdict = VERDICT_HOLD_888
+        blocking_tag = "F1_AMANAH_ZKPC"
         return floor_results, blocking_verdict, blocking_tag
 
     return floor_results, blocking_verdict, blocking_tag
@@ -175,7 +209,7 @@ def _compute_confidence_score(metrics: ThermodynamicMetrics) -> float:
     w_truth = 0.40
     w_omega = 0.30
     w_peace = 0.20
-    w_tri   = 0.10
+    w_tri = 0.10
 
     # Normalize omega_0 into [0,1] relative to its band
     omega_min, omega_max = F7_OMEGA_0_BAND
@@ -191,7 +225,7 @@ def _compute_confidence_score(metrics: ThermodynamicMetrics) -> float:
         w_truth * metrics.truth_score
         + w_omega * omega_norm
         + w_peace * (metrics.peace_squared / max(F5_PEACE_SQUARED_FLOOR, 1.0))
-        + w_tri   * metrics.tri_witness_score
+        + w_tri * metrics.tri_witness_score
     )
     return round(min(1.0, max(0.0, score)), 4)
 
@@ -239,7 +273,9 @@ def _build_rationale(
 
     for fr in floor_results:
         status = "PASS" if fr.passed else "FAIL"
-        parts.append(f"[{fr.floor_id}/{fr.tag}] {status} (value={fr.value}, threshold={fr.threshold})")
+        parts.append(
+            f"[{fr.floor_id}/{fr.tag}] {status} (value={fr.value}, threshold={fr.threshold})"
+        )
 
     if blocking_tag != "NONE":
         parts.append(f"→ Blocking at {blocking_tag} → verdict={blocking_verdict}")
@@ -262,7 +298,7 @@ def _build_conditions(floor_results: List[FloorResult]) -> Dict[str, Any]:
     return conditions
 
 
-def _build_appeal_process(blocking_verdict: str) -> Dict[str, str]:
+def _build_appeal_process(blocking_verdict: str, blocking_tag: str) -> Dict[str, str]:
     """Build appeal_process dict based on blocking verdict."""
     base = {
         "process": "arifOS appeal via 888_judge re-evaluation",
@@ -271,11 +307,18 @@ def _build_appeal_process(blocking_verdict: str) -> Dict[str, str]:
     }
 
     if blocking_verdict == VERDICT_HOLD_888:
+        if blocking_tag == "F1_AMANAH_ZKPC":
+            msg = "Action class requires Level 2 Personhood proof. Submit CLASS_A or CLASS_B evidence."
+            note = "F1 AMANAH signals require human-witnessed cryptographic proof"
+        else:
+            msg = "Submit new evidence_bundle with corrected Ω0 or reduced sovereign flags"
+            note = "F13 sovereign flags require Arif's explicit veto override"
+
         return {
             **base,
             "verdict": "888_HOLD",
-            "action": "Submit new evidence_bundle with corrected Ω0 or reduced sovereign flags",
-            "note": "F13 sovereign flags require Arif's explicit veto override",
+            "action": msg,
+            "note": note,
         }
     elif blocking_verdict == VERDICT_VOID:
         return {
@@ -303,6 +346,7 @@ def _build_appeal_process(blocking_verdict: str) -> Dict[str, str]:
 # ──────────────────────────────────────────────────────────────────────────────
 # Public API: execute
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 async def execute(
     evidence_bundle: dict | None = None,
@@ -397,7 +441,7 @@ async def execute(
                     "all_cleared": False,
                 },
             },
-            "appeal_process": _build_appeal_process(VERDICT_HOLD_888),
+            "appeal_process": _build_appeal_process(VERDICT_HOLD_888, "NONE"),
             "vault999_chain_hash": vault_hash,
             "evidence_bundle": _safe_serializable(evidence_bundle),
             "operator_id": operator_id,
@@ -432,7 +476,7 @@ async def execute(
                         "all_cleared": False,
                     },
                 },
-                "appeal_process": _build_appeal_process(VERDICT_HOLD_888),
+                "appeal_process": _build_appeal_process(VERDICT_HOLD_888, "NONE"),
                 "vault999_chain_hash": vault_hash,
                 "evidence_bundle": evidence_bundle,
                 "operator_id": operator_id,
@@ -460,7 +504,7 @@ async def execute(
                     "all_cleared": False,
                 },
             },
-            "appeal_process": _build_appeal_process(VERDICT_HOLD_888),
+            "appeal_process": _build_appeal_process(VERDICT_HOLD_888, "NONE"),
             "vault999_chain_hash": vault_hash,
             "evidence_bundle": _safe_serializable(evidence_bundle),
             "operator_id": operator_id,
@@ -468,7 +512,9 @@ async def execute(
         }
 
     # ── 3. Iterate constitutional floors ──────────────────────────────────────
-    floor_results, blocking_verdict, blocking_tag = _iterate_constitutional_floors(metrics)
+    floor_results, blocking_verdict, blocking_tag = _iterate_constitutional_floors(
+        metrics, evidence_bundle
+    )
 
     # ── 4. Determine final verdict ───────────────────────────────────────────
     final_verdict = blocking_verdict
@@ -491,10 +537,9 @@ async def execute(
     # ── 6. Build rationale, conditions, appeal_process ───────────────────────
     rationale = _build_rationale(floor_results, blocking_tag, final_verdict, evidence_bundle)
     conditions = _build_conditions(floor_results)
-    appeal_process = _build_appeal_process(final_verdict)
+    appeal_process = _build_appeal_process(final_verdict, blocking_tag)
 
     # ── 7. Always call append_vault999_event ────────────────────────────────
-
 
     vault_hash = append_vault999_event(
         event_type="888_JUDGE_EXECUTION",
