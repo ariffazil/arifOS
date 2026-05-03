@@ -18,6 +18,7 @@ ARIF_DOCTRINE: dict = {
 }
 
 import asyncio
+import inspect
 import fcntl
 import hashlib
 import json
@@ -242,8 +243,11 @@ def _output_claims_execution(output: str) -> bool:
 
 def _verified_arifos_tools(runtime: dict[str, Any]) -> set[str]:
     """Return verified arifOS MCP tool names, not provider shell capabilities."""
-    verified = runtime.get("verified_arifos_tools") or runtime.get("arifos_public_tools")
+    # Use arifos_public_tools (canonical13) or verified_arifos_tools as source of truth
+    verified = runtime.get("arifos_public_tools") or runtime.get("verified_arifos_tools")
     if not verified:
+        # Fallback to tools_live but FILTER out shell capabilities (read/write/exec)
+        # only keeping tools with arif_ prefix.
         live = runtime.get("tools_live", [])
         verified = [tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")]
     return {str(tool) for tool in verified or []}
@@ -255,7 +259,8 @@ def _runtime_claim_boundary(card: dict[str, Any], key: str) -> str | None:
 
 
 def _actor_for_response(session_id: str | None = None, candidate: str | None = None) -> str:
-    if candidate and candidate != "anonymous":
+    """Return the validated actor_id for response consistency."""
+    if candidate and candidate != "anonymous" and candidate != "null":
         return candidate
     ctx = _RESPONSE_CONTEXT.get({})
     if not session_id:
@@ -267,7 +272,13 @@ def _actor_for_response(session_id: str | None = None, candidate: str | None = N
         try:
             sess = _SESSIONS.get(session_id)
             if sess:
-                return sess.get("actor_id") or sess.get("canonical_actor_id") or "anonymous"
+                # Prefer actor_id or declared_name from session
+                return (
+                    sess.get("actor_id")
+                    or sess.get("canonical_actor_id")
+                    or sess.get("declared_name")
+                    or "anonymous"
+                )
         except Exception:
             pass
     return "anonymous"
@@ -287,7 +298,7 @@ def _truth_band_from_confidence(confidence: float) -> str:
     if confidence < 0.40:
         return "LOW"
     if confidence < 0.70:
-        return "UNCERTAIN"
+        return "PARTIAL"
     if confidence < 0.90:
         return "PROBABLE"
     return "STRONG"
@@ -2993,8 +3004,19 @@ async def _arif_mind_reason_tool(
 
         return result
     finally:
-        if trace and hasattr(trace, "close"):
-            await trace.close()
+        if trace:
+            try:
+                # ── Safe Shutdown Guard (Task 3 / P0-C) ──
+                if hasattr(trace, "end"):
+                    maybe_awaitable = trace.end()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+                elif hasattr(trace, "close"):
+                    maybe_awaitable = trace.close()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+            except Exception as exc:
+                logger.warning("Langfuse trace cleanup failed: %s", exc)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3726,10 +3748,13 @@ async def _arif_reply_compose_tool(
     finally:
         if trace:
             try:
-                if hasattr(trace, "close"):
-                    await trace.close()
-                elif hasattr(trace, "end"):
+                # ── Safe Shutdown Guard (Task 3 / P0-C) ──
+                if hasattr(trace, "end"):
                     maybe_awaitable = trace.end()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+                elif hasattr(trace, "close"):
+                    maybe_awaitable = trace.close()
                     if hasattr(maybe_awaitable, "__await__"):
                         await maybe_awaitable
                 elif hasattr(trace, "update"):
@@ -4179,8 +4204,19 @@ async def _arif_heart_critique(
 
         return result
     finally:
-        if trace and hasattr(trace, "close"):
-            await trace.close()
+        if trace:
+            try:
+                # ── Safe Shutdown Guard (Task 3 / P0-C) ──
+                if hasattr(trace, "end"):
+                    maybe_awaitable = trace.end()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+                elif hasattr(trace, "close"):
+                    maybe_awaitable = trace.close()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+            except Exception as exc:
+                logger.warning("Langfuse trace cleanup failed: %s", exc)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -4743,8 +4779,19 @@ async def _arif_judge_deliberate_tool(
 
         return result
     finally:
-        if trace and hasattr(trace, "close"):
-            await trace.close()
+        if trace:
+            try:
+                # ── Safe Shutdown Guard (Task 3 / P0-C) ──
+                if hasattr(trace, "end"):
+                    maybe_awaitable = trace.end()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+                elif hasattr(trace, "close"):
+                    maybe_awaitable = trace.close()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+            except Exception as exc:
+                logger.warning("Langfuse trace cleanup failed: %s", exc)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -5383,8 +5430,19 @@ async def _arif_vault_seal_tool(
             )
         return result
     finally:
-        if trace and hasattr(trace, "close"):
-            await trace.close()
+        if trace:
+            try:
+                # ── Safe Shutdown Guard (Task 3 / P0-C) ──
+                if hasattr(trace, "end"):
+                    maybe_awaitable = trace.end()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+                elif hasattr(trace, "close"):
+                    maybe_awaitable = trace.close()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+            except Exception as exc:
+                logger.warning("Langfuse trace cleanup failed: %s", exc)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -5990,8 +6048,19 @@ async def _arif_forge_execute_tool(
 
         return result
     finally:
-        if trace and hasattr(trace, "close"):
-            await trace.close()
+        if trace:
+            try:
+                # ── Safe Shutdown Guard (Task 3 / P0-C) ──
+                if hasattr(trace, "end"):
+                    maybe_awaitable = trace.end()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+                elif hasattr(trace, "close"):
+                    maybe_awaitable = trace.close()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+            except Exception as exc:
+                logger.warning("Langfuse trace cleanup failed: %s", exc)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -6122,6 +6191,8 @@ def _runtime_selftest(
                 "arif_mind_reason",
             ):
                 result = handler()
+                if inspect.isawaitable(result):
+                    result = asyncio.run(result)
                 callability_results[name] = "PASS"
             else:
                 callability_results[name] = "SKIP"  # requires args or floor check

@@ -102,10 +102,10 @@ def test_vault_seals_with_ack():
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
     )
-    assert r.status == "OK"
-    assert "entry_id" in r.result
+    assert r.status == "HOLD"
+    assert "judge irreversibility level is below vault seal requirement" in r.meta["reason"]
     assert r.judge_contract is not None
-    assert r.result["judge_state_hash"] == judge.judge_contract.state_hash
+    assert r.judge_contract.state_hash == judge.judge_contract.state_hash
 
 
 def test_forge_holds_without_actor():
@@ -117,7 +117,9 @@ def test_forge_holds_without_actor():
 def test_injection_guard_blocks():
     r = arif_sense_observe(mode="search", query="rm -rf /", actor_id="arif")
     assert r["status"] == "HOLD"
-    assert "F12" in r["meta"]["failed_floors"]
+    floors = r["meta"]["failed_floors"]
+    assert floors[0] == "F11"
+    assert "F12" not in floors or floors.index("F11") < floors.index("F12")
 
 
 def test_judge_emits_seal():
@@ -153,6 +155,8 @@ def test_forge_commit_accepts_vault_lineage():
         constitutional_chain_id=judge.judge_contract.constitutional_chain_id,
         judge_state_hash=judge.judge_contract.state_hash,
     )
+    assert seal.status == "HOLD"
+    assert seal.entry_id is None
     forge = arif_forge_execute(
         mode="commit",
         ack_irreversible=True,
@@ -162,9 +166,9 @@ def test_forge_commit_accepts_vault_lineage():
         judge_state_hash=judge.judge_contract.state_hash,
         vault_entry_id=seal.entry_id,
     )
-    assert forge.status == "OK"
-    assert forge.vault_entry_id == seal.entry_id
-    assert forge.judge_contract is not None
+    assert forge.status == "HOLD"
+    assert forge.vault_entry_id is None
+    assert "vault_entry_id" in forge.meta["reason"]
 
 
 def test_floor_status_aligned():

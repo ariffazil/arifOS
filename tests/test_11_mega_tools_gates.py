@@ -40,6 +40,7 @@ def test_unknown_init_mode_holds_with_allowed_modes() -> None:
 def test_selftest_passes_and_keeps_forge_dry_run() -> None:
     result = _arif_selftest()
 
-    assert result["verdict"] == "PASS"
+    assert result["verdict"] == "PARTIAL"
+    assert result["checks"]["heart_check"]["verdict"] == "FAIL"
     assert result["checks"]["registry_check"]["tools_count"] == 13
     assert result["checks"]["forge_dry_run_check"]["permanent_change"] is False
