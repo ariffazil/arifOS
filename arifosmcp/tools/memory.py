@@ -17,7 +17,7 @@ import uuid
 from typing import Any
 
 from arifosmcp.runtime.floors import check_floors
-from arifosmcp.runtime.tools import _hold, _ok
+from arifosmcp.runtime.tools import _hold, _ok, _sync_trace
 
 
 def arif_memory_recall(
@@ -30,6 +30,14 @@ def arif_memory_recall(
     floor_check = check_floors("arif_memory_recall", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
+
+    # Langfuse sync trace — 555_MEMORY
+    _sync_trace(
+        f"arif_memory_recall/{mode}",
+        session_id=session_id,
+        metadata={"mode": mode, "actor_id": actor_id, "query_len": len(query) if query else 0},
+        tags=["arifOS", "555_MEMORY", mode],
+    )
 
     if mode == "init_recall":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS

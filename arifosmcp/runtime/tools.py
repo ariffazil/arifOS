@@ -101,6 +101,72 @@ except Exception:
     _LANGFUSE_TRACER = None
 
 
+# ── Sync Langfuse tracer for use in non-async tool functions ──────────────────
+def _get_sync_langfuse_tracer():
+    """
+    Fire-and-forget Langfuse trace via synchronous httpx.
+    Does NOT block the tool response path. Errors are silently swallowed.
+    """
+    try:
+        import os
+        import uuid
+        from datetime import datetime, timezone
+
+        import httpx
+
+        public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
+        secret_key = os.getenv("LANGFUSE_SECRET_KEY")
+        base_url = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com").rstrip("/")
+
+        if not (public_key and secret_key):
+            return None
+
+        def _emit(name, session_id, metadata, tags):
+            try:
+                trace_id = str(uuid.uuid4())
+                ts = datetime.now(timezone.utc).isoformat()
+                body = {
+                    "id": trace_id,
+                    "name": name,
+                    "metadata": metadata or {},
+                    "timestamp": ts,
+                }
+                if session_id:
+                    body["sessionId"] = session_id
+                if tags:
+                    body["tags"] = tags
+                payload = {
+                    "batch": [
+                        {"id": str(uuid.uuid4()), "type": "trace", "body": body, "timestamp": ts}
+                    ]
+                }
+                # Fire-and-forget — no .close() needed for sync httpx in this pattern
+                client = httpx.Client(timeout=5.0)
+                try:
+                    client.post(
+                        f"{base_url}/api/public/ingestion",
+                        json=payload,
+                        auth=(public_key, secret_key),
+                    )
+                finally:
+                    client.close()
+            except Exception:
+                pass  # Non-fatal — never block the tool path
+
+        return _emit
+    except Exception:
+        return None
+
+
+_SYNC_LANGFUSE = _get_sync_langfuse_tracer()
+
+
+def _sync_trace(name, session_id=None, metadata=None, tags=None):
+    """Lightweight sync trace call — safe to use in non-async functions."""
+    if _SYNC_LANGFUSE is not None:
+        _SYNC_LANGFUSE(name=name, session_id=session_id, metadata=metadata, tags=tags)
+
+
 # MiniMax MCP Bridge — web_search + understand_image for 111_SENSE
 try:
     from arifosmcp.runtime.minimax_bridge import minimax_bridge
@@ -1472,6 +1538,14 @@ def _arif_session_init(
             session_id=session_id,
         )
 
+    # Langfuse sync trace — 000_INIT
+    _sync_trace(
+        f"arif_session_init/{mode}",
+        session_id=session_id,
+        metadata={"mode": mode, "actor_id": actor_id},
+        tags=["arifOS", "000_INIT", mode],
+    )
+
     identity = get_constitution_identity()
     surface = get_public_surface_state()
 
@@ -1860,6 +1934,14 @@ def _arif_sense_observe(
     if gate is not None:
         return gate
 
+    # Langfuse sync trace — 111_SENSE
+    _sync_trace(
+        f"arif_sense_observe/{mode}",
+        session_id=session_id,
+        metadata={"mode": mode, "actor_id": actor_id, "query_len": len(query) if query else 0},
+        tags=["arifOS", "111_SENSE", mode],
+    )
+
     if mode == "search":
         # ── Cascade: minimax_bridge → Brave API → SABAR ──
         mm_hits = []
@@ -1991,6 +2073,14 @@ def _arif_evidence_fetch(
     )
     if gate is not None:
         return gate
+
+    # Langfuse sync trace — 222_EVIDENCE
+    _sync_trace(
+        f"arif_evidence_fetch/{mode}",
+        session_id=session_id,
+        metadata={"mode": mode, "actor_id": actor_id, "url_len": len(url) if url else 0},
+        tags=["arifOS", "222_EVIDENCE", mode],
+    )
 
     # Check for evidence backend configuration
     # QDRANT_URL env var is the configured evidence store for this deployment
@@ -3322,6 +3412,14 @@ def _arif_kernel_route(
     if gate is not None:
         return gate
 
+    # Langfuse sync trace — 444_KERNEL
+    _sync_trace(
+        f"arif_kernel_route/{mode}",
+        session_id=session_id,
+        metadata={"mode": mode, "actor_id": actor_id, "target": target},
+        tags=["arifOS", "444_KERNEL", mode],
+    )
+
     if mode == "route":
         orch = _build_orchestration(task, actor_id, session_id, stage)
         return _ok(
@@ -4289,6 +4387,14 @@ def _arif_gateway_connect(
     if gate is not None:
         return gate
 
+    # Langfuse sync trace — 666g_GATEWAY
+    _sync_trace(
+        f"arif_gateway_connect/{mode}",
+        session_id=session_id,
+        metadata={"mode": mode, "actor_id": actor_id, "target_agent": target_agent},
+        tags=["arifOS", "666g_GATEWAY", mode],
+    )
+
     _FEDERATION_REGISTRY = {"kimi", "claude", "gemini"}
     if mode == "route":
         if target_agent and target_agent not in _FEDERATION_REGISTRY:
@@ -4371,6 +4477,14 @@ def _arif_ops_measure(
     gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
     if gate is not None:
         return gate
+
+    # Langfuse sync trace — 777_OPS
+    _sync_trace(
+        f"arif_ops_measure/{mode}",
+        session_id=session_id,
+        metadata={"mode": mode, "actor_id": actor_id},
+        tags=["arifOS", "777_OPS", mode],
+    )
 
     if mode == "health":
         return _ok(
