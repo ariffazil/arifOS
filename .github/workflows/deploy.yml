@@ -19,16 +19,27 @@ jobs:
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            set -e
+            set -euo pipefail
             echo "[DEPLOY] Pulling latest main..."
             cd /root/arifOS
             git fetch origin main
             git reset --hard origin/main
-            echo "[DEPLOY] Restarting arifOS server..."
-            pkill -f "uvicorn|fastmcp|server.py" || true
-            sleep 2
-            nohup python server.py > /tmp/arifos_server.log 2>&1 &
-            sleep 3
+            GIT_SHA="$(git rev-parse --short HEAD)"
+            GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+            BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "[DEPLOY] Building arifOS image ${GIT_SHA}..."
+            docker build \
+              --build-arg ARIFOS_BUILD_SHA="${GIT_SHA}" \
+              --build-arg ARIFOS_BUILD_BRANCH="${GIT_BRANCH}" \
+              --build-arg ARIFOS_BUILD_TIME="${BUILD_TIME}" \
+              -t "ghcr.io/ariffazil/arifos:${GIT_SHA}" \
+              -t "ghcr.io/ariffazil/arifos:latest" \
+              -f arifosmcp/Dockerfile .
+            echo "[DEPLOY] Restarting Docker Compose arifosmcp service..."
+            cd /root/compose
+            DEPLOY_GIT_COMMIT="${GIT_SHA}" docker compose up -d --no-deps --force-recreate arifosmcp
+            sleep 5
             echo "[DEPLOY] Verifying server health..."
-            curl -sf http://localhost:8000/health || echo "WARNING: health check failed"
+            curl -fsS http://localhost:8080/health | python -m json.tool
+            curl -fsS http://localhost:8080/health | grep "\"git_commit\": \"${GIT_SHA}\""
             echo "[DEPLOY] SEAL COMPLETE — DITEMPA BUKAN DIBERI"

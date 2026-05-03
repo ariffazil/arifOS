@@ -3,7 +3,7 @@
 
 PYTHON = uv run python
 
-.PHONY: status forge seal health sync sot-check publish-check publish-pypi publish-ghcr publish-law publish-all verify-public
+.PHONY: status forge seal health sync sot-check deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
@@ -25,6 +25,27 @@ seal:
 health:
 	@echo "Verifying 111_SENSE..."
 	@curl -s http://localhost:8080/health | jq .
+
+deploy-local:
+	@echo "Deploying current arifOS HEAD to local VPS Docker Compose runtime..."
+	@git fetch origin main
+	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
+		(echo "888_HOLD: local HEAD is not origin/main; push or rebase before deploy-local" && exit 1)
+	@GIT_SHA=$$(git rev-parse --short HEAD); \
+	GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	BUILD_TIME=$$(date -u +%Y-%m-%dT%H:%M:%SZ); \
+	echo "Building ghcr.io/ariffazil/arifos:$$GIT_SHA and :latest"; \
+	docker build \
+		--build-arg ARIFOS_BUILD_SHA=$$GIT_SHA \
+		--build-arg ARIFOS_BUILD_BRANCH=$$GIT_BRANCH \
+		--build-arg ARIFOS_BUILD_TIME=$$BUILD_TIME \
+		-t ghcr.io/ariffazil/arifos:$$GIT_SHA \
+		-t ghcr.io/ariffazil/arifos:latest \
+		-f arifosmcp/Dockerfile .; \
+	cd /root/compose && DEPLOY_GIT_COMMIT=$$GIT_SHA docker compose up -d --no-deps --force-recreate arifosmcp; \
+	sleep 5; \
+	curl -fsS http://localhost:8080/health | python -m json.tool; \
+	curl -fsS http://localhost:8080/health | grep "\"git_commit\": \"$$GIT_SHA\""
 
 sot-check:
 	@echo "Auditing arifOS source-of-truth alignment..."
