@@ -718,15 +718,22 @@ def _enforce_nine_signal(
             delta_s=delta_s_proxy,
             omega_score=0.05,
         )
-        phi_quote = phi_result.get("primary_quote", {}) or phi_result
+        phi_quote = (
+            phi_result.get("atlas_result", {}).get("primary_quote", {})
+            or phi_result.get("agi")
+            or phi_result.get("asi")
+            or phi_result.get("apex")
+            or {}
+        )
         if phi_quote and phi_quote.get("quote"):
+            atlas_zone = phi_result.get("atlas_result", {}).get("zone", {})
             enforced["philosophical_anchor"] = {
                 "quote_id": phi_quote.get("quote_id", "NONE"),
                 "text": phi_quote.get("quote", ""),
                 "author": phi_quote.get("author", "arifOS"),
                 "source": phi_quote.get("source", ""),
-                "zone": phi_result.get("zone", {}).get("name", "Unknown"),
-                "zone_id": phi_result.get("zone", {}).get("id", "Z??"),
+                "zone": atlas_zone.get("name", "Unknown"),
+                "zone_id": atlas_zone.get("id", "Z??"),
                 "atlas_mode": phi_result.get("apex_mode", "atlas_27"),
             }
     except Exception:
