@@ -18,9 +18,9 @@ ARIF_DOCTRINE: dict = {
 }
 
 import asyncio
-import inspect
 import fcntl
 import hashlib
+import inspect
 import json
 import logging
 import os
@@ -78,9 +78,9 @@ from arifosmcp.schemas.verdict import (
 )
 
 logger = logging.getLogger(__name__)
-_RESPONSE_CONTEXT: ContextVar[dict[str, str | None]] = ContextVar(
+_RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
     "arifos_response_context",
-    default={},
+    default=None,
 )
 
 from arifosmcp.core.constitution_kernel import (
@@ -179,9 +179,14 @@ def _constitutional_gate(
             # Block tool overclaims against the arifOS MCP registry, not provider
             # shell/file capability labels such as read/write/exec.
             verified_tools = _verified_arifos_tools(runtime)
-            if verified_tools and tool_name not in verified_tools and tool_name not in (
-                "arif_session_init",
-                "arif_kernel_route",
+            if (
+                verified_tools
+                and tool_name not in verified_tools
+                and tool_name
+                not in (
+                    "arif_session_init",
+                    "arif_kernel_route",
+                )
             ):
                 if _runtime_claim_boundary(card, "tools") in (
                     "verified_only",
@@ -262,7 +267,7 @@ def _actor_for_response(session_id: str | None = None, candidate: str | None = N
     """Return the validated actor_id for response consistency."""
     if candidate and candidate != "anonymous" and candidate != "null":
         return candidate
-    ctx = _RESPONSE_CONTEXT.get({})
+    ctx = _RESPONSE_CONTEXT.get() or {}
     if not session_id:
         session_id = ctx.get("session_id")
     ctx_actor = ctx.get("actor_id")
@@ -446,9 +451,11 @@ class NineSignalOutput:
         """Enforce Nine-Signal contract. Mutates self.violations."""
         global _SESAT_COUNTER
 
-        # 1. nine_signal block must be present (top-level or nested in meta)
-        nine_signal = self.payload.get("nine_signal") or self.payload.get("meta", {}).get(
-            "nine_signal"
+        # 1. nine_signal block must be present (top-level or nested in meta/result)
+        nine_signal = (
+            self.payload.get("nine_signal")
+            or self.payload.get("meta", {}).get("nine_signal")
+            or self.payload.get("result", {}).get("nine_signal")
         )
         if not nine_signal:
             self.violations.append(f"[{self.tool_name}] nine_signal block absent [KERNEL_EVALS P0]")
@@ -918,7 +925,9 @@ def _new_session(
     sid = f"SEAL-{uuid.uuid4().hex[:16]}"
 
     import time
+
     from arifosmcp.runtime.session_auth import SESSION_TTL_SECONDS
+
     sess = {
         "session_id": sid,
         "actor_id": actor_id or "anonymous",
@@ -1058,7 +1067,7 @@ def _ok(
                     epoch["peace2"] = max(epoch.get("peace2", 0.0), 1.0)
                     epoch["verdict"] = "SEAL"
 
-    response_ctx = _RESPONSE_CONTEXT.get({})
+    response_ctx = _RESPONSE_CONTEXT.get() or {}
     if session_id is None:
         session_id = response_ctx.get("session_id")
     actor_id = _actor_for_response(session_id, meta_payload.get("actor_id"))
@@ -1114,7 +1123,7 @@ def _hold(
                 epoch["peace2"] = min(epoch.get("peace2", 1.0), 0.0)
     # F2 / Nine-Signal: inject nine_signal into HOLD payload (status=HOLD → RETAK)
     meta["nine_signal"] = _nine_signal_from_status("HOLD")
-    response_ctx = _RESPONSE_CONTEXT.get({})
+    response_ctx = _RESPONSE_CONTEXT.get() or {}
     if session_id is None:
         session_id = response_ctx.get("session_id")
     actor_id = _actor_for_response(session_id, meta.get("actor_id"))
@@ -3302,6 +3311,7 @@ def _arif_kernel_route(
       Routing decision with path, hops, stage, workflow, budget, and authority boundary.
     """
     from arifosmcp.runtime.session_auth import validate_session
+
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
@@ -3363,11 +3373,12 @@ def _arif_kernel_route(
             "arif_kernel_route",
             {"lane": "AGI", "previous_lane": None, "switch_allowed": True},
             delta_S=0.0,
-            session_id=session_id
+            session_id=session_id,
         )
 
     if mode == "session_probe":
         from arifosmcp.runtime.session_auth import validate_session
+
         results = {}
         floors_to_probe = [
             "000_INIT",
@@ -3408,13 +3419,31 @@ def _arif_kernel_route(
             manifest_path = os.path.join(
                 os.path.dirname(__file__), "..", "tools", "manifests", "tool_manifest.json"
             )
-            with open(manifest_path, "r", encoding="utf-8") as f:
+            with open(manifest_path, encoding="utf-8") as f:
                 manifest = json.load(f)
 
-            # Inject session-specific allowed modes
+            # Fetch governance info for availability checks
+            sess = _SESSIONS.get(session_id) if session_id else None
+            card = sess.get("model_governance_card", {}) if sess else {}
+            runtime = card.get("runtime_truth", {})
+            verified_tools = _verified_arifos_tools(runtime)
+
+            # Inject session-specific allowed modes and availability
             current_allowed_modes = {}
             for tool_data in manifest.get("tools", []):
                 tool_name = tool_data["name"]
+
+                # Check availability against registry tripwire (P1-C)
+                if (
+                    verified_tools
+                    and tool_name not in verified_tools
+                    and tool_name not in ("arif_session_init", "arif_kernel_route")
+                ):
+                    tool_data["available"] = False
+                    tool_data["current_status"] = "blocked_by_registry_tripwire"
+                else:
+                    tool_data["available"] = True
+
                 # For read-only list, we assume safe modes are allowed, dangerous modes require ack
                 current_allowed_modes[tool_name] = tool_data.get("safe_modes", [])
 
@@ -3502,7 +3531,9 @@ def _arif_kernel_route(
                     "depth_tier": orch["depth_tier"],
                     "risk_tier": orch["risk_tier"],
                     "judge_required": orch["judge_required"],
-                    "decision_basis": "read_only_status_probe" if not task else "task_orchestration",
+                    "decision_basis": (
+                        "read_only_status_probe" if not task else "task_orchestration"
+                    ),
                     "reversibility": "read_only" if orch["risk_tier"] == "low" else "evaluating",
                     "next_recommended_tool": "arif_kernel_route.list",
                 },
@@ -6476,7 +6507,6 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
 }
 
 import functools
-import inspect
 
 
 def _wrap_handler(handler: Any, tool_name: str) -> Any:

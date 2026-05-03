@@ -124,7 +124,21 @@ def build_governance_card(
         soul = {"soul_label": "degraded_clerk_fallback"}
         runtime = {
             "provider_capabilities": ["read", "write"],
-            "tools_live": ["read", "write"],
+            "tools_live": [
+                "arif_session_init",
+                "arif_sense_observe",
+                "arif_evidence_fetch",
+                "arif_mind_reason",
+                "arif_heart_critique",
+                "arif_kernel_route",
+                "arif_reply_compose",
+                "arif_memory_recall",
+                "arif_gateway_connect",
+                "arif_judge_deliberate",
+                "arif_vault_seal",
+                "arif_forge_execute",
+                "arif_ops_measure",
+            ],
             "arifos_public_tools": CANONICAL_ARIFOS_TOOLS,
             "verified_arifos_tools": CANONICAL_ARIFOS_TOOLS,
             "web_on": False,

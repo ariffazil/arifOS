@@ -90,7 +90,7 @@ arif-fazil.com {
     }
 
     handle {
-        try_files {path} /index.html
+        try_files {path} {path}/index.html /index.html
         file_server
     }
 }
@@ -185,6 +185,14 @@ aaa.arif-fazil.com {
 
     handle /a2a/* {
         reverse_proxy aaa-a2a:3001
+    }
+    handle /operator/* {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /health {
+        reverse_proxy aaa-a2a:3001
+        header Cache-Control "no-store, no-cache, must-revalidate"
+        header Pragma "no-cache"
     }
     handle {
         try_files {path} /index.html
