@@ -45,7 +45,7 @@ deploy-local:
 	cd /root/compose && DEPLOY_GIT_COMMIT=$$GIT_SHA docker compose up -d --no-deps --force-recreate arifosmcp; \
 	sleep 5; \
 	curl -fsS http://localhost:8080/health | python -m json.tool; \
-	curl -fsS http://localhost:8080/health | grep "\"git_commit\": \"$$GIT_SHA\""
+	curl -fsS http://localhost:8080/health | EXPECTED_SHA=$$GIT_SHA python -c 'import json, os, sys; d=json.load(sys.stdin); actual=d.get("git_commit"); expected=os.environ["EXPECTED_SHA"]; assert actual == expected, f"git_commit mismatch: {actual} != {expected}"; print(f"git_commit verified: {actual}")'
 
 sot-check:
 	@echo "Auditing arifOS source-of-truth alignment..."
