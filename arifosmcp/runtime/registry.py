@@ -10,10 +10,14 @@ import json
 import os
 from pathlib import Path
 
+from arifosmcp.runtime.public_surface import CANONICAL_13
+
 REGISTRY_ROOT = Path(os.environ.get("ARIFOS_REGISTRY_ROOT", "/root/arifos-model-registry"))
 MODELS_PATH = REGISTRY_ROOT / "models"
 SOULS_PATH = REGISTRY_ROOT / "provider_souls"
 RUNTIME_PATH = REGISTRY_ROOT / "runtime_profiles"
+
+CANONICAL_ARIFOS_TOOLS = list(CANONICAL_13)
 
 # ── Canonical Drift Event Types (Sprint 02 Deepening) ──
 DRIFT_EVENT_TYPES = {
@@ -119,7 +123,10 @@ def build_governance_card(
         }
         soul = {"soul_label": "degraded_clerk_fallback"}
         runtime = {
+            "provider_capabilities": ["read", "write"],
             "tools_live": ["read", "write"],
+            "arifos_public_tools": CANONICAL_ARIFOS_TOOLS,
+            "verified_arifos_tools": CANONICAL_ARIFOS_TOOLS,
             "web_on": False,
             "side_effects_allowed": False,
             "memory_mode": "session_only",
@@ -144,7 +151,15 @@ def build_governance_card(
             "deployment_id": deployment_id,
             "web_on": runtime.get("web_on", False),
             "memory_mode": runtime.get("memory_mode", "session_only"),
+            "provider_capabilities": runtime.get(
+                "provider_capabilities", runtime.get("tools_live", [])
+            ),
             "tools_live": runtime.get("tools_live", []),
+            "arifos_public_tools": runtime.get("arifos_public_tools", CANONICAL_ARIFOS_TOOLS),
+            "verified_arifos_tools": runtime.get(
+                "verified_arifos_tools",
+                runtime.get("arifos_public_tools", CANONICAL_ARIFOS_TOOLS),
+            ),
             "execution_mode": runtime.get("execution_mode", "dry_run"),
             "side_effects_allowed": runtime.get("side_effects_allowed", False),
         },

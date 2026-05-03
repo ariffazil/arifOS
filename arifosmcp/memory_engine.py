@@ -282,6 +282,10 @@ class LangfuseSpan:
                 ]
             )
 
+    async def close(self):
+        """Compatibility no-op for callers that close trace/span handles."""
+        return None
+
     async def __aenter__(self):
         return self
 

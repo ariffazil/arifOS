@@ -26,6 +26,7 @@ import os
 import random
 import time
 import uuid
+from contextvars import ContextVar
 from typing import Any
 
 from fastmcp import Context, FastMCP
@@ -76,6 +77,10 @@ from arifosmcp.schemas.verdict import (
 )
 
 logger = logging.getLogger(__name__)
+_RESPONSE_CONTEXT: ContextVar[dict[str, str | None]] = ContextVar(
+    "arifos_response_context",
+    default={},
+)
 
 from arifosmcp.core.constitution_kernel import (
     ActionContext,
@@ -159,6 +164,7 @@ def _constitutional_gate(
             tool_name, f"Constitutional gate blocked: {exc}", ["F12"], session_id=session_id
         )
 
+    _RESPONSE_CONTEXT.set({"actor_id": actor_id, "session_id": session_id})
     verdict = _CORE.evaluate(ctx)
 
     # ── Registry Tripwire Scan (v2 Deepening) ──
@@ -169,18 +175,26 @@ def _constitutional_gate(
             runtime = card.get("runtime_truth", {})
             input_text = f"{candidate or ''} {manifest or ''} {query or ''}"
 
-            # Block tool overclaims
-            if tool_name not in runtime.get("tools_live", []) and tool_name not in (
+            # Block tool overclaims against the arifOS MCP registry, not provider
+            # shell/file capability labels such as read/write/exec.
+            verified_tools = _verified_arifos_tools(runtime)
+            if verified_tools and tool_name not in verified_tools and tool_name not in (
                 "arif_session_init",
                 "arif_kernel_route",
             ):
-                boundary = card.get("self_claim_boundary", {})
-                if boundary.get("tools") == "verified_only":
+                if _runtime_claim_boundary(card, "tools") in (
+                    "verified_only",
+                    "runtime_truth_only",
+                ):
                     return _hold(
                         tool_name,
-                        f"REGISTRY TRIPWIRE: tool '{tool_name}' not in verified tools_live list for this runtime",
+                        f"REGISTRY TRIPWIRE: tool '{tool_name}' not in verified_arifos_tools for this runtime",
                         ["F11"],
-                        extra_meta={"event_type": "tool_claim_invalid", "severity": "medium"},
+                        extra_meta={
+                            "event_type": "tool_claim_invalid",
+                            "severity": "medium",
+                            "verified_arifos_tools_count": len(verified_tools),
+                        },
                         session_id=session_id,
                     )
 
@@ -224,6 +238,59 @@ def _output_claims_web(output: str) -> bool:
 def _output_claims_execution(output: str) -> bool:
     keywords = ["I executed", "I deployed", "I wrote to", "I modified"]
     return any(k.lower() in output.lower() for k in keywords)
+
+
+def _verified_arifos_tools(runtime: dict[str, Any]) -> set[str]:
+    """Return verified arifOS MCP tool names, not provider shell capabilities."""
+    verified = runtime.get("verified_arifos_tools") or runtime.get("arifos_public_tools")
+    if not verified:
+        live = runtime.get("tools_live", [])
+        verified = [tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")]
+    return {str(tool) for tool in verified or []}
+
+
+def _runtime_claim_boundary(card: dict[str, Any], key: str) -> str | None:
+    boundary = card.get("self_claim_boundary", {})
+    return boundary.get(key) or boundary.get(f"{key}_claim_policy")
+
+
+def _actor_for_response(session_id: str | None = None, candidate: str | None = None) -> str:
+    if candidate and candidate != "anonymous":
+        return candidate
+    ctx = _RESPONSE_CONTEXT.get({})
+    if not session_id:
+        session_id = ctx.get("session_id")
+    ctx_actor = ctx.get("actor_id")
+    if ctx_actor and ctx_actor != "anonymous":
+        return str(ctx_actor)
+    if session_id:
+        try:
+            sess = _SESSIONS.get(session_id)
+            if sess:
+                return sess.get("actor_id") or sess.get("canonical_actor_id") or "anonymous"
+        except Exception:
+            pass
+    return "anonymous"
+
+
+def _output_policy_for_verdict(verdict: str) -> str:
+    if verdict == "DRY_RUN":
+        return "SIMULATION_ONLY"
+    if verdict == "HOLD":
+        return "DOMAIN_HOLD"
+    if verdict in ("VOID", "SABAR", "SESAT"):
+        return "DOMAIN_VOID"
+    return "DOMAIN_SEAL"
+
+
+def _truth_band_from_confidence(confidence: float) -> str:
+    if confidence < 0.40:
+        return "LOW"
+    if confidence < 0.70:
+        return "UNCERTAIN"
+    if confidence < 0.90:
+        return "PROBABLE"
+    return "STRONG"
 
 
 def _kernel_eval(
@@ -304,6 +371,7 @@ def _inject_nine_signal(model_dump_json: dict, status: str) -> dict:
     """Inject nine_signal block into a raw model_dump(mode='json') dict."""
     out = dict(model_dump_json)
     out["nine_signal"] = _nine_signal_from_status(status)
+    out.setdefault("output_policy", _output_policy_for_verdict(status))
     return out
 
 
@@ -356,9 +424,7 @@ class NineSignalOutput:
         self.verdict = verdict
         self.payload = payload
         self.reasons = reasons or []
-        self.output_policy = output_policy or (
-            "SIMULATION_ONLY" if verdict == "DRY_RUN" else "DOMAIN_SEAL"
-        )
+        self.output_policy = output_policy or _output_policy_for_verdict(verdict)
         self.session_id = session_id
         self.actor_id = actor_id
         self.violations: list[str] = []
@@ -981,7 +1047,11 @@ def _ok(
                     epoch["peace2"] = max(epoch.get("peace2", 0.0), 1.0)
                     epoch["verdict"] = "SEAL"
 
-    actor_id = meta_payload.get("actor_id", "anonymous")
+    response_ctx = _RESPONSE_CONTEXT.get({})
+    if session_id is None:
+        session_id = response_ctx.get("session_id")
+    actor_id = _actor_for_response(session_id, meta_payload.get("actor_id"))
+    meta_payload.setdefault("actor_id", actor_id)
     response = {
         "status": "OK",
         "tool": tool,
@@ -992,6 +1062,7 @@ def _ok(
         "session_id": session_id,
         "actor_id": actor_id,
         "output_policy": "DOMAIN_SEAL",
+        "nine_signal": _nine_signal_from_status("OK"),
         "reasons": [
             "Reversible operation — no irreversible state change",
             f"tool={tool}",
@@ -1032,7 +1103,11 @@ def _hold(
                 epoch["peace2"] = min(epoch.get("peace2", 1.0), 0.0)
     # F2 / Nine-Signal: inject nine_signal into HOLD payload (status=HOLD → RETAK)
     meta["nine_signal"] = _nine_signal_from_status("HOLD")
-    actor_id = meta.get("actor_id") if extra_meta else "anonymous"
+    response_ctx = _RESPONSE_CONTEXT.get({})
+    if session_id is None:
+        session_id = response_ctx.get("session_id")
+    actor_id = _actor_for_response(session_id, meta.get("actor_id"))
+    meta.setdefault("actor_id", actor_id)
     response = {
         "status": "HOLD",
         "tool": tool,
@@ -1042,7 +1117,7 @@ def _hold(
         "timestamp": _now(),
         "session_id": session_id,
         "actor_id": actor_id,
-        "output_policy": "DOMAIN_VOID",
+        "output_policy": _output_policy_for_verdict("HOLD"),
         "reasons": reasons,
     }
     return _enforce_nine_signal(
@@ -3626,7 +3701,19 @@ async def _arif_reply_compose_tool(
                 actor_id=actor_id,
             )
 
+        result.setdefault("status", "OK")
         result["tool"] = "arif_reply_compose"
+        result.setdefault("session_id", session_id)
+        result.setdefault("actor_id", _actor_for_response(session_id, actor_id))
+        result.setdefault("output_policy", _output_policy_for_verdict(result["status"]))
+        result.setdefault(
+            "reasons",
+            [
+                "Reversible reply composition",
+                "No irreversible state change",
+                f"tool=arif_reply_compose mode={mode}",
+            ],
+        )
         result["nine_signal"] = _nine_signal_from_status(result.get("status", "OK"))
 
         if trace:
@@ -3638,7 +3725,17 @@ async def _arif_reply_compose_tool(
         return result
     finally:
         if trace:
-            await trace.close()
+            try:
+                if hasattr(trace, "close"):
+                    await trace.close()
+                elif hasattr(trace, "end"):
+                    maybe_awaitable = trace.end()
+                    if hasattr(maybe_awaitable, "__await__"):
+                        await maybe_awaitable
+                elif hasattr(trace, "update"):
+                    await trace.update(metadata={"status": "closed_by_safe_fallback"})
+            except Exception as exc:
+                logger.warning("Langfuse trace cleanup failed for arif_reply_compose: %s", exc)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -4455,6 +4552,9 @@ def _arif_judge_deliberate(
         )
         breach_output = output.model_dump(mode="json")
         breach_output["nine_signal"] = _nine_signal_from_status(verdict.status)
+        breach_output["session_id"] = session_id
+        breach_output["actor_id"] = _actor_for_response(session_id, actor_id)
+        breach_output["output_policy"] = _output_policy_for_verdict(verdict.status)
         return breach_output
 
     # Success / SEAL logic
@@ -4471,8 +4571,10 @@ def _arif_judge_deliberate(
         floors_invoked=["F01", "F11", "F12", "F13"],
         floor_results={f: "PASS" for f in ["F01", "F11", "F12", "F13"]},
     )
+    epistemic_confidence = 0.5
     epistemic = EpistemicSnapshot(
         omega_ortho=0.98,
+        confidence=epistemic_confidence,
         confidence_sources=["constitutional_kernel"],
     )
     # Map threat-derived IrreversibilityLevel (int-based) → schema level (str-based)
@@ -4521,7 +4623,7 @@ def _arif_judge_deliberate(
             floors_passed=["F01", "F12"],
             genius_score=0.98,
         ),
-        truth_band=truth_band or "CERTAIN",
+        truth_band=truth_band or _truth_band_from_confidence(epistemic_confidence),
         confidence_note=confidence_note
         or "Full constitutional floors passed; verification state clean",
         judge_contract=contract,
@@ -4560,6 +4662,9 @@ def _arif_judge_deliberate(
         }
     seal_output = output.model_dump(mode="json")
     seal_output["nine_signal"] = _nine_signal_from_status("OK")
+    seal_output["session_id"] = session_id
+    seal_output["actor_id"] = _actor_for_response(session_id, actor_id)
+    seal_output["output_policy"] = _output_policy_for_verdict("OK")
     return seal_output
 
 
@@ -5329,8 +5434,9 @@ def _arif_forge_execute(
             actor_id=actor_id,
             witness_type=wt,
         )
+        dry_status = "OK" if k_verdict["passed"] else "HOLD"
         return {
-            "status": "OK" if k_verdict["passed"] else "HOLD",
+            "status": dry_status,
             "tool": "arif_forge_execute",
             "result": {
                 "forge_dry_run": ("PASS" if k_verdict["passed"] else "FAIL"),
@@ -5355,7 +5461,8 @@ def _arif_forge_execute(
             },
             "meta": {},
             "timestamp": _now(),
-            "nine_signal": _nine_signal_from_status("OK" if k_verdict["passed"] else "HOLD"),
+            "nine_signal": _nine_signal_from_status(dry_status),
+            "output_policy": _output_policy_for_verdict(dry_status),
         }
 
     # H2 hard-gate: artifact-producing modes require an approved plan
@@ -5434,16 +5541,19 @@ def _arif_forge_execute(
                     "failed_floors": k_verdict["failed_floors"],
                 },
             )
-        return ForgeOutput(
-            status="HOLD",
-            result={},
-            manifest=ForgeManifest(status=ManifestStatus.HOLD),
-            meta={
-                "reason": k_verdict.get("reason", "Floor breach"),
-                "failed_floors": k_verdict.get("failed_floors", []),
-            },
-            timestamp=_now(),
-        ).model_dump(mode="json")
+        return _inject_nine_signal(
+            ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "reason": k_verdict.get("reason", "Floor breach"),
+                    "failed_floors": k_verdict.get("failed_floors", []),
+                },
+                timestamp=_now(),
+            ).model_dump(mode="json"),
+            "HOLD",
+        )
 
     # ── Build constitutional compliance ──────────────────────────────────────
     compliance = ConstitutionalCompliance(
