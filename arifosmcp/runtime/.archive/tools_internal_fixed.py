@@ -15,8 +15,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastmcp.server.context import Context
-
 from arifosmcp.runtime.model import (
     CallerContext,
     CanonicalError,
@@ -44,6 +42,8 @@ from arifosmcp.tools.agentzero_tools import (
 from arifosmcp.tools.agentzero_tools import (
     agentzero_validate as _az_validate,
 )
+from fastmcp.server.context import Context
+
 from core.shared.mottos import (
     MOTTO_000_INIT_HEADER,
     MOTTO_999_SEAL_HEADER,
@@ -121,7 +121,7 @@ def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
     for key, value in payload.items():
         if value is None:
             sanitized[key] = None
-        elif isinstance(value, (str, int, float, bool, list, dict)):
+        elif isinstance(value, str | int | float | bool | list | dict):
             sanitized[key] = value
         elif hasattr(value, "model_dump"):
             # Pydantic model
@@ -132,7 +132,7 @@ def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 sanitized[key] = {
                     k: v
                     for k, v in value.__dict__.items()
-                    if isinstance(v, (str, int, float, bool, list, dict, type(None)))
+                    if isinstance(v, str | int | float | bool | list | dict | type(None))
                 }
             except Exception:
                 sanitized[key] = str(value)
@@ -1191,7 +1191,7 @@ async def engineering_memory_dispatch_impl(
             )
         project_id = payload.get("project_id", "default")
         area_str = payload.get("area", "main")
-        metadata = payload.get("metadata", {})
+        payload.get("metadata", {})
         store = _get_constitutional_memory_store()
         if store:
             try:

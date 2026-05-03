@@ -1,8 +1,8 @@
 """
 arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 
-Tier 1: SEA-LION (https://api.sea-lion.ai/v1)
-Tier 2: Ollama local fallback
+Tier 1: SEA-LION (https://api.sea-lion.ai/v1) — PRIMARY sovereign model
+Tier 2: Ollama local fallback — qwen2.5:7b on VPS localhost:11434
 Tier 3: raises LLMUnavailableError — caller applies deterministic fallback
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -201,19 +201,20 @@ async def call_llm(
         temperature: Sampling temperature (0.1–0.3 for adjudication, 0.4–0.7 for reply)
         max_tokens: Maximum tokens in response
     """
-    # Tier 1 — Ollama local (qwen2.5:7b on ollama-engine-prod)
-    # Try Ollama first: it's confirmed working and has low latency
+    # Tier 1 — SEA-LION remote (PRIMARY sovereign model)
+    # SEA-LION is the sovereign model — Arif's constitutional AI baseline
     try:
-        result = await _call_ollama(system, user, response_schema, temperature, max_tokens)
-        if response_schema:
-            _validate_schema(result, set(response_schema.get("properties", {}).keys()))
+        result = await _call_sea_lion(system, user, response_schema, temperature, max_tokens)
         return result
     except LLMUnavailableError:
         pass
 
-    # Tier 2 — SEA-LION remote fallback (schema validation skipped — provider returns its own format)
+    # Tier 2 — Ollama local fallback (qwen2.5:7b on VPS localhost:11434)
+    # Local model used only when SEA-LION is unreachable
     try:
-        result = await _call_sea_lion(system, user, response_schema, temperature, max_tokens)
+        result = await _call_ollama(system, user, response_schema, temperature, max_tokens)
+        if response_schema:
+            _validate_schema(result, set(response_schema.get("properties", {}).keys()))
         return result
     except LLMUnavailableError:
         pass

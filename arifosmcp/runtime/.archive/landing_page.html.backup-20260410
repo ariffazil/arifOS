@@ -22,9 +22,9 @@
             --accent-psi: #ec4899;
             --border: #2a2a3a;
         }
-        
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
             background: var(--bg-primary);
@@ -32,27 +32,27 @@
             line-height: 1.6;
             min-height: 100vh;
         }
-        
+
         .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-        
+
         header {
             text-align: center;
             padding: 3rem 0;
             border-bottom: 1px solid var(--border);
             margin-bottom: 2rem;
         }
-        
-        .forge-mark { 
-            font-size: 4rem; 
+
+        .forge-mark {
+            font-size: 4rem;
             margin-bottom: 1rem;
             animation: pulse 3s ease-in-out infinite;
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
-        
+
         h1 {
             font-size: 2.5rem;
             background: linear-gradient(135deg, var(--accent-gold), #fff);
@@ -60,13 +60,13 @@
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
-        
+
         .subtitle {
             color: var(--text-secondary);
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
         }
-        
+
         .motto {
             font-size: 1.3rem;
             color: var(--accent-gold);
@@ -74,7 +74,7 @@
             margin: 1rem 0;
             letter-spacing: 0.1em;
         }
-        
+
         .live-status {
             display: inline-flex;
             align-items: center;
@@ -85,7 +85,7 @@
             border: 1px solid var(--border);
             margin-top: 1rem;
         }
-        
+
         .status-dot {
             width: 10px;
             height: 10px;
@@ -93,19 +93,19 @@
             background: var(--accent-seal);
             animation: blink 2s infinite;
         }
-        
+
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
         }
-        
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 1.5rem;
             margin: 2rem 0;
         }
-        
+
         .card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -113,11 +113,11 @@
             padding: 1.5rem;
             transition: border-color 0.3s;
         }
-        
+
         .card:hover {
             border-color: var(--accent-gold);
         }
-        
+
         .card h3 {
             color: var(--accent-gold);
             margin-bottom: 1rem;
@@ -125,51 +125,51 @@
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .metric-row {
             display: flex;
             justify-content: space-between;
             padding: 0.75rem 0;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .metric-row:last-child { border-bottom: none; }
-        
+
         .metric-label { color: var(--text-secondary); }
-        
+
         .metric-value {
             font-weight: bold;
             color: var(--accent-seal);
         }
-        
+
         .tools-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1rem;
         }
-        
+
         .tool-item {
             background: var(--bg-tertiary);
             padding: 1rem;
             border-radius: 8px;
             border-left: 4px solid var(--accent-gold);
         }
-        
+
         .tool-name {
             font-weight: bold;
             color: var(--accent-gold);
             margin-bottom: 0.25rem;
         }
-        
+
         .tool-stage {
             font-size: 0.9rem;
             color: var(--text-secondary);
         }
-        
+
         .trinity-delta { border-left-color: var(--accent-delta); }
         .trinity-omega { border-left-color: var(--accent-omega); }
         .trinity-psi { border-left-color: var(--accent-psi); }
-        
+
         .philosophy-box {
             background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
             border: 1px solid var(--accent-gold);
@@ -178,30 +178,30 @@
             text-align: center;
             margin: 2rem 0;
         }
-        
+
         .philosophy-text {
             font-size: 1.5rem;
             font-style: italic;
             color: var(--accent-gold);
             margin-bottom: 1rem;
         }
-        
+
         .philosophy-meta {
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
-        
+
         .quotes-section {
             margin: 2rem 0;
         }
-        
+
         .quotes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1rem;
             margin-top: 1rem;
         }
-        
+
         .quote-card {
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
@@ -209,7 +209,7 @@
             padding: 1rem;
             position: relative;
         }
-        
+
         .quote-card::before {
             content: '"';
             font-size: 3rem;
@@ -219,20 +219,20 @@
             top: -0.5rem;
             left: 0.5rem;
         }
-        
+
         .quote-text {
             font-style: italic;
             margin-bottom: 0.5rem;
             position: relative;
             z-index: 1;
         }
-        
+
         .quote-author {
             color: var(--text-secondary);
             font-size: 0.85rem;
             text-align: right;
         }
-        
+
         .quote-tool {
             font-size: 0.75rem;
             color: var(--accent-gold);
@@ -240,13 +240,13 @@
             padding-top: 0.5rem;
             border-top: 1px solid var(--border);
         }
-        
+
         .api-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1rem;
         }
-        
+
         .api-link {
             display: flex;
             align-items: center;
@@ -259,33 +259,33 @@
             border: 1px solid var(--border);
             transition: all 0.3s;
         }
-        
+
         .api-link:hover {
             border-color: var(--accent-gold);
             background: var(--bg-secondary);
         }
-        
+
         .api-method {
             font-weight: bold;
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
             font-size: 0.8rem;
         }
-        
+
         .api-method.get { background: var(--accent-delta); color: white; }
         .api-method.post { background: var(--accent-omega); color: white; }
-        
+
         .api-path {
             font-family: monospace;
             color: var(--accent-gold);
         }
-        
+
         .api-desc {
             color: var(--text-secondary);
             font-size: 0.9rem;
             margin-left: auto;
         }
-        
+
         .footer {
             text-align: center;
             padding: 2rem;
@@ -293,13 +293,13 @@
             margin-top: 2rem;
             color: var(--text-secondary);
         }
-        
+
         .last-updated {
             font-size: 0.85rem;
             color: var(--text-secondary);
             margin-top: 1rem;
         }
-        
+
         .section-title {
             font-size: 1.5rem;
             color: var(--accent-gold);
@@ -307,7 +307,7 @@
             padding-bottom: 0.5rem;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .corpus-badge {
             display: inline-flex;
             align-items: center;
@@ -318,7 +318,7 @@
             font-size: 0.9rem;
             margin: 0.5rem;
         }
-        
+
         .corpus-badge .count {
             background: var(--accent-gold);
             color: var(--bg-primary);
@@ -326,7 +326,7 @@
             border-radius: 10px;
             font-weight: bold;
         }
-        
+
         .sensing-flow {
             display: flex;
             flex-wrap: wrap;
@@ -334,7 +334,7 @@
             gap: 0.5rem;
             margin: 1rem 0;
         }
-        
+
         .flow-stage {
             background: var(--bg-tertiary);
             padding: 0.5rem 1rem;
@@ -342,7 +342,7 @@
             font-size: 0.85rem;
             border: 1px solid var(--border);
         }
-        
+
         .flow-arrow {
             color: var(--accent-gold);
             font-size: 1.2rem;
@@ -500,7 +500,7 @@
 
     <script>
         const API_BASE = window.location.origin;
-        
+
         // Core quotes data (embedded for instant render, updated via API)
         const CORE_QUOTES = [
             { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu", tool: "arifos.init", category: "origin_intent" },
@@ -514,7 +514,7 @@
             { text: "With great power comes great responsibility.", author: "Voltaire/Spiderman", tool: "arifos.judge", category: "power_restraint" },
             { text: "Those who cannot remember the past are condemned to repeat it.", author: "George Santayana", tool: "arifos.memory", category: "history_continuity" }
         ];
-        
+
         async function fetchStatus() {
             try {
                 // Fetch version info (includes commit hash)
@@ -528,42 +528,42 @@
                 } catch (e) {
                     console.log('Version endpoint not available');
                 }
-                
+
                 // Fetch health status
                 const healthRes = await fetch(`${API_BASE}/health`);
                 const health = await healthRes.json();
-                
+
                 document.getElementById('health').textContent = health.status || 'unknown';
                 document.getElementById('health').style.color = health.status === 'healthy' ? 'var(--accent-seal)' : 'var(--accent-void)';
                 document.getElementById('version').textContent = health.version || 'v2.0.0';
                 document.getElementById('floors').textContent = health.floors_active || '13';
                 document.getElementById('tool-count').textContent = health.tools_loaded || '10';
                 document.getElementById('status-text').textContent = 'A-FORGE Connected ✓';
-                
+
                 // Fetch tools list
                 const toolsRes = await fetch(`${API_BASE}/tools`);
                 const tools = await toolsRes.json();
-                
+
                 if (tools.tools && tools.tools.length > 0) {
                     renderTools(tools.tools);
                 }
-                
+
                 // Fetch philosophy via init endpoint (dry-run)
                 try {
                     const philRes = await fetch(`${API_BASE}/tools/arifos.init`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            actor_id: 'landing_page', 
+                        body: JSON.stringify({
+                            actor_id: 'landing_page',
                             intent: 'status_check',
-                            dry_run: true 
+                            dry_run: true
                         })
                     });
                     const phil = await philRes.json();
-                    
+
                     if (phil.philosophy && phil.philosophy.entry) {
                         document.getElementById('philosophy-text').textContent = `"${phil.philosophy.entry.text}"`;
-                        document.getElementById('philosophy-meta').textContent = 
+                        document.getElementById('philosophy-meta').textContent =
                             `${phil.philosophy.entry.author} | Band: ${phil.philosophy.band} | Mode: ${phil.philosophy.selection_mode}`;
                     }
                 } catch (e) {
@@ -571,14 +571,14 @@
                     document.getElementById('philosophy-text').textContent = '"DITEMPA, BUKAN DIBERI."';
                     document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
                 }
-                
+
                 document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString();
-                
+
             } catch (error) {
                 console.error('Fetch error:', error);
                 document.getElementById('status-text').textContent = 'A-FORGE Unreachable';
                 document.querySelector('.live-status').classList.add('error-state');
-                
+
                 // Show fallback data
                 document.getElementById('health').textContent = 'degraded';
                 document.getElementById('health').style.color = 'var(--accent-void)';
@@ -586,11 +586,11 @@
                 document.getElementById('philosophy-meta').textContent = 'arifOS Principle | S1 | Forge Identity';
             }
         }
-        
+
         function renderTools(tools) {
             const container = document.getElementById('tools-container');
             container.innerHTML = '';
-            
+
             const toolInfo = {
                 'arifos.init': { stage: '000_INIT', desc: 'Session establishment & anchoring', trinity: 'Δ', class: 'trinity-delta' },
                 'arifos.sense': { stage: '111_SENSE', desc: 'Reality intake & evidence grounding', trinity: 'Δ', class: 'trinity-delta' },
@@ -603,7 +603,7 @@
                 'arifos.forge': { stage: '888_FORGE', desc: 'Shape durable doctrine & artifact', trinity: 'Δ', class: 'trinity-delta' },
                 'arifos.vault': { stage: '999_VAULT', desc: 'Seal, preserve & archive', trinity: 'Ψ', class: 'trinity-psi' }
             };
-            
+
             tools.forEach(toolName => {
                 const info = toolInfo[toolName] || { stage: '--', desc: 'Tool', trinity: '', class: '' };
                 const div = document.createElement('div');
@@ -615,11 +615,11 @@
                 container.appendChild(div);
             });
         }
-        
+
         function renderQuotes() {
             const container = document.getElementById('quotes-container');
             container.innerHTML = '';
-            
+
             CORE_QUOTES.forEach(quote => {
                 const div = document.createElement('div');
                 div.className = 'quote-card';
@@ -631,11 +631,11 @@
                 container.appendChild(div);
             });
         }
-        
+
         // Initial load
         renderQuotes();
         fetchStatus();
-        
+
         // Auto-refresh every 30s
         setInterval(fetchStatus, 30000);
     </script>

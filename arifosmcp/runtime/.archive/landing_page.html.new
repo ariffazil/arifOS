@@ -475,7 +475,7 @@
     <section class="protocol-section">
       <h3>⚠️ Protocol Note: /mcp Endpoint</h3>
       <p class="protocol-note">
-        Direct browser navigation to /mcp returns 405 Method Not Allowed (per MCP spec). 
+        Direct browser navigation to /mcp returns 405 Method Not Allowed (per MCP spec).
         The endpoint expects JSON-RPC POST requests with proper headers.
       </p>
       <div class="protocol-example">

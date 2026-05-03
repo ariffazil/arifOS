@@ -190,7 +190,7 @@ async def _wrap_call(
     payload["session_id"] = session_id
     payload["tool"] = tool_name
     payload["stage"] = stage.value
-    
+
     # Propagate actor_id from session if missing in payload
     if "actor_id" not in payload:
         from arifosmcp.runtime.sessions import get_session_identity
@@ -205,23 +205,23 @@ async def _wrap_call(
 
     try:
         kernel_res = await call_kernel(tool_name, session_id, payload)
-        
+
         # ─── V1.0 VERDICT MAPPING ───
         from arifosmcp.runtime.models import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
-        
+
         # Convert legacy Verdict to VerdictCode
         legacy_v = kernel_res.get("verdict", "SABAR")
         if legacy_v == "SEAL": v_code = VerdictCode.SEAL
         elif legacy_v == "VOID": v_code = VerdictCode.VOID
         elif legacy_v == "PARTIAL": v_code = VerdictCode.PARTIAL
         else: v_code = VerdictCode.SABAR
-        
+
         # Build metrics
         metrics = CanonicalMetrics()
         metrics.telemetry.ds = kernel_res.get("delta_s", 0.0)
         metrics.telemetry.G_star = kernel_res.get("g_score", 0.0)
-        
+
         envelope = forge_verdict(
             tool_id=tool_name,
             stage=stage.value,
@@ -233,7 +233,7 @@ async def _wrap_call(
         )
         if "trace" in kernel_res and isinstance(kernel_res["trace"], dict):
             envelope.trace = kernel_res["trace"]
-        
+
         envelope.meta.motto = _resolve_motto(envelope.stage)
 
         # Ensure status matches dry_run intent
@@ -261,7 +261,7 @@ async def _wrap_call(
         # ── Philosophy Injection ──
         # Uses Hyperlattice v1: Ψ (Claim) × Ω (Stability) × Δ (Intervention)
         from arifosmcp.runtime.philosophy_registry import inject_philosophy
-        
+
         envelope.philosophy = inject_philosophy(envelope)
 
         # Final ABI Alignment: Sync flags from payload to authority
@@ -313,20 +313,20 @@ async def init_anchor_dispatch_impl(
 ) -> RuntimeEnvelope:
     """
     Internal dispatch implementation for init_anchor (session bootstrap).
-    
+
     Maps modes: init, revoke, refresh, state, status
     Follows the same pattern as apex_judge_dispatch_impl, agi_mind_dispatch_impl, etc.
-    
+
     This is the fallback path when HARDENED_DISPATCH_MAP is empty.
     """
     session_id = _normalize_session_id(payload.get("session_id"))
-    
+
     # Ensure required fields in payload
     payload.setdefault("risk_tier", risk_tier)
     payload.setdefault("dry_run", dry_run)
     if auth_context:
         payload.setdefault("auth_context", auth_context)
-    
+
     if mode in ("init", None):
         return await _wrap_call("init_anchor", Stage.INIT_000, session_id, payload, ctx)
     elif mode == "revoke":
@@ -432,7 +432,7 @@ async def apex_judge_dispatch_impl(
         # Phase 1 implementation: Synthetic health data based on session context
         if ctx and hasattr(ctx, "info"):
             await ctx.info(f"Health check requested for session {session_id}")
-        
+
         # Build health telemetry from available session/context data
         # Note: Real implementation would query Vault999 for actual verdict history
         health_payload = {
@@ -458,7 +458,7 @@ async def apex_judge_dispatch_impl(
             "session_id": session_id,
             "timestamp_utc": "2026-04-08T14:00:00Z",  # Placeholder
         }
-        
+
         return RuntimeEnvelope(
             ok=True,
             tool="apex_judge",
@@ -608,7 +608,7 @@ async def engineering_memory_dispatch_impl(
                 "message": "Vector backend (Qdrant) is not configured or available.",
             },
         )
-        
+
     if mode == "engineer":
         return await _az_engineer(
             task_description=payload.get("task") or payload.get("query") or "No task",
@@ -1151,12 +1151,12 @@ async def physics_reality_dispatch_impl(
 
         kl_offset = timezone(timedelta(hours=8))
         now_kl = now_utc.astimezone(kl_offset)
-        
+
         # Build metrics with 100% confidence for deterministic time query
         time_metrics = CanonicalMetrics()
         time_metrics.telemetry.confidence = 1.0  # Time is deterministic
         time_metrics.telemetry.ds = 0.0  # No entropy increase for time query
-        
+
         return RuntimeEnvelope(
             ok=True,
             tool="physics_reality",
@@ -1191,20 +1191,20 @@ async def physics_reality_dispatch_impl(
         # Aligns to whole-state intelligence across init→sense→mind→heart→judge→vault
         # ═══════════════════════════════════════════════════════════════════════
         from .governed_sense_impl import governed_sense_v2
-        
+
         # Get query (support both "input" and "query" fields)
         query_val = input_val or payload.get("query", "")
-        
+
         # Build structured input from legacy payload (backward compatibility)
         raw_input = payload.get("structured_input", query_val)
-        
+
         # Execute canonical governed sensing
         sense_packet, intelligence_state = await governed_sense_v2(
             raw_input=raw_input,
             session_id=session_id,
             execute_search=not dry_run,  # Respect dry_run flag
         )
-        
+
         # ═══════════════════════════════════════════════════════════════════════
         # VERDICT GATING — Constitutional rules, not just retrieval success
         # ═══════════════════════════════════════════════════════════════════════
@@ -1213,7 +1213,7 @@ async def physics_reality_dispatch_impl(
         unc = sense_packet.uncertainty
         conflict = sense_packet.conflict
         routing = sense_packet.routing
-        
+
         # SEAL: Classified, grounded enough for lane, uncertainty bounded, handoff valid
         if (tc.truth_class.value not in ("ambiguous_query", "unknown") and
             not (amb.detected and amb.needs_human_narrowing) and
@@ -1222,23 +1222,23 @@ async def physics_reality_dispatch_impl(
             unc.level.value != "extreme"):
             verdict = Verdict.SEAL
             status = RuntimeStatus.SUCCESS if not dry_run else RuntimeStatus.DRY_RUN
-        
+
         # HOLD: Ambiguity/conflict too high for safe progression
         elif (amb.detected and amb.needs_human_narrowing) or \
              (conflict.detected and routing.next_stage.value == "hold"):
             verdict = Verdict.HOLD
             status = RuntimeStatus.SABAR
-        
+
         # VOID: Invalid / prohibited / broken provenance
         elif tc.truth_class.value == "unknown" and not query_val:
             verdict = Verdict.VOID
             status = RuntimeStatus.ERROR
-        
+
         # SABAR: Sensing initiated but incomplete
         else:
             verdict = Verdict.SABAR
             status = RuntimeStatus.SABAR
-        
+
         # ═══════════════════════════════════════════════════════════════════════
         # BUILD RUNTIME ENVELOPE — Full state-aligned output
         # ═══════════════════════════════════════════════════════════════════════
@@ -1256,7 +1256,7 @@ async def physics_reality_dispatch_impl(
                 "version": "2.0.0-canonical",
             },
         )
-        
+
         # Attach intelligence state metadata for downstream consumption
         envelope.meta = type('Meta', (), {
             'truth_class': tc.truth_class.value,
@@ -1265,7 +1265,7 @@ async def physics_reality_dispatch_impl(
             'uncertainty_level': unc.level.value,
             'confidence': intelligence_state.confidence,
         })()
-        
+
         return envelope
     raise ValueError(f"Invalid mode for physics_reality: {mode}")
 
