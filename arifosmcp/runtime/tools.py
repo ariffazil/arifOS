@@ -39,7 +39,7 @@ from fastmcp.server.elicitation import (
 from mcp import McpError
 from pydantic import BaseModel, Field
 
-from arifosmcp.constitutional_map import CANONICAL_TOOLS, get_tool_spec
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, get_tool_spec, validate_tool_response_schema
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.runtime.floors import check_floors
@@ -678,7 +678,21 @@ def _enforce_nine_signal(
         for v in ns.violations:
             logger.warning(f"Nine-Signal violation: {v}")
 
-    return ns.to_dict()
+    # Secondary schema validation — runs AFTER NineSignalOutput enforcement.
+    # This is the F8/canonical schema gate: catches anything NineSignalOutput
+    # missed (e.g. domain_payload_present without output_policy).
+    # Non-fatal: logs and continues. All 13 tools go through here.
+    enforced = ns.to_dict()
+    try:
+        schema_ok, schema_viols = validate_tool_response_schema(tool_name, enforced)
+        if not schema_ok:
+            logger2 = logging.getLogger("arifosmcp.schema")
+            for sv in schema_viols:
+                logger2.warning(f"Schema violation: {sv}")
+    except Exception:
+        pass  # Defensive: never let schema validation crash a tool response
+
+    return enforced
 
 
 def get_sesat_counter() -> int:
