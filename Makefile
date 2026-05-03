@@ -31,7 +31,7 @@ deploy-local:
 	@git fetch origin main
 	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
 		(echo "888_HOLD: local HEAD is not origin/main; push or rebase before deploy-local" && exit 1)
-	@GIT_SHA=$$(git rev-parse --short HEAD); \
+	@GIT_SHA=$$(git rev-parse --short=7 HEAD); \
 	GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
 	BUILD_TIME=$$(date -u +%Y-%m-%dT%H:%M:%SZ); \
 	echo "Building ghcr.io/ariffazil/arifos:$$GIT_SHA and :latest"; \

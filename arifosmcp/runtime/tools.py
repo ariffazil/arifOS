@@ -207,6 +207,14 @@ def _constitutional_gate(
     if verdict.verdict == "SEAL":
         return None
 
+    # Map core verdict to tool response
+    return _hold(
+        tool_name,
+        f"Constitutional {verdict.verdict}: {', '.join(verdict.floors.failed_floors)}",
+        verdict.floors.failed_floors,
+        session_id=session_id,
+    )
+
 
 def _output_claims_web(output: str) -> bool:
     keywords = ["I searched", "I browsed", "web search", "live result"]
@@ -216,14 +224,6 @@ def _output_claims_web(output: str) -> bool:
 def _output_claims_execution(output: str) -> bool:
     keywords = ["I executed", "I deployed", "I wrote to", "I modified"]
     return any(k.lower() in output.lower() for k in keywords)
-
-    # Map core verdict to tool response
-    return _hold(
-        tool_name,
-        f"Constitutional {verdict.verdict}: {', '.join(verdict.floors.failed_floors)}",
-        verdict.floors.failed_floors,
-        session_id=session_id,
-    )
 
 
 def _kernel_eval(
