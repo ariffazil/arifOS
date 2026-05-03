@@ -7,6 +7,7 @@ Tells LLM clients WHEN, WHY, HOW, and WHEN NOT to use each tool.
 
 DITEMPA BUKAN DIBERI
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -63,7 +64,12 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
                 "purpose": "Start a new governed session with full constitutional binding.",
                 "required_parameters": ["actor_id"],
                 "optional_parameters": ["ack_irreversible", "epoch_id"],
-                "returns": ["session_id", "constitution_hash", "invariants_hash", "allowed_next_tools"],
+                "returns": [
+                    "session_id",
+                    "constitution_hash",
+                    "invariants_hash",
+                    "allowed_next_tools",
+                ],
             },
             "resume": {
                 "purpose": "Reattach to an existing session by session_id.",
@@ -111,7 +117,12 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "session_id": {
                 "type": "string",
                 "meaning": "Existing session UUID. Required for resume/validate/epoch_*.",
-                "required_when": [{"mode": "resume"}, {"mode": "validate"}, {"mode": "epoch_open"}, {"mode": "epoch_seal"}],
+                "required_when": [
+                    {"mode": "resume"},
+                    {"mode": "validate"},
+                    {"mode": "epoch_open"},
+                    {"mode": "epoch_seal"},
+                ],
             },
             "epoch_id": {
                 "type": "string",
@@ -150,13 +161,20 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         ],
         "authority_boundary": {
             "may": ["bind", "validate", "resume"],
-            "may_not": ["self-approve irreversible actions", "override human judge", "claim sovereign authority"],
+            "may_not": [
+                "self-approve irreversible actions",
+                "override human judge",
+                "claim sovereign authority",
+            ],
         },
         "examples": {
             "good": [
                 {
                     "user_intent": "Start a governed reasoning session",
-                    "call": {"tool": "arif_session_init", "args": {"mode": "init", "actor_id": "ChatGPT"}},
+                    "call": {
+                        "tool": "arif_session_init",
+                        "args": {"mode": "init", "actor_id": "ChatGPT"},
+                    },
                 }
             ],
             "bad": [
@@ -174,7 +192,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-
     # ── 111_SENSE ────────────────────────────────────────────────────────────
     "arif_sense_observe": {
         "stage_code": "111",
@@ -258,10 +275,19 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         },
         "examples": {
             "good": [
-                {"user_intent": "Search for recent news on AI governance", "call": {"tool": "arif_sense_observe", "args": {"mode": "search", "query": "AI governance 2026"}}}
+                {
+                    "user_intent": "Search for recent news on AI governance",
+                    "call": {
+                        "tool": "arif_sense_observe",
+                        "args": {"mode": "search", "query": "AI governance 2026"},
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Deploy the new build", "reason_not_to_call": "Sense does not execute or deploy. Use arif_forge_execute after judge seal."}
+                {
+                    "user_intent": "Deploy the new build",
+                    "reason_not_to_call": "Sense does not execute or deploy. Use arif_forge_execute after judge seal.",
+                }
             ],
         },
         "privacy_scope": {
@@ -272,7 +298,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-
     # ── 222_FETCH ────────────────────────────────────────────────────────────
     "arif_evidence_fetch": {
         "stage_code": "222",
@@ -306,13 +331,41 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         },
         "inputs": {
             "mode": {"type": "string", "allowed_values": ["fetch", "search"], "default": "fetch"},
-            "url": {"type": "string", "meaning": "Target URL for evidence retrieval.", "required_when": [{"mode": "fetch"}]},
-            "query": {"type": "string", "meaning": "Search query for evidence discovery.", "required_when": [{"mode": "search"}]},
-            "thinking_depth": {"type": "integer", "meaning": "Max reasoning steps (0–10). 0 = disabled.", "default": 0},
-            "thinking_budget": {"type": "number", "meaning": "Token/time budget for thinking (0.0–10.0).", "default": 1.0},
-            "sequential_mode": {"type": "string", "allowed_values": ["fast", "deliberate", "exhaustive"], "default": "deliberate"},
-            "allow_early_termination": {"type": "boolean", "meaning": "Stop if confidence exceeds threshold.", "default": True},
-            "confidence_threshold": {"type": "number", "meaning": "Early-stop confidence threshold (0.0–1.0).", "default": 0.90},
+            "url": {
+                "type": "string",
+                "meaning": "Target URL for evidence retrieval.",
+                "required_when": [{"mode": "fetch"}],
+            },
+            "query": {
+                "type": "string",
+                "meaning": "Search query for evidence discovery.",
+                "required_when": [{"mode": "search"}],
+            },
+            "thinking_depth": {
+                "type": "integer",
+                "meaning": "Max reasoning steps (0–10). 0 = disabled.",
+                "default": 0,
+            },
+            "thinking_budget": {
+                "type": "number",
+                "meaning": "Token/time budget for thinking (0.0–10.0).",
+                "default": 1.0,
+            },
+            "sequential_mode": {
+                "type": "string",
+                "allowed_values": ["fast", "deliberate", "exhaustive"],
+                "default": "deliberate",
+            },
+            "allow_early_termination": {
+                "type": "boolean",
+                "meaning": "Stop if confidence exceeds threshold.",
+                "default": True,
+            },
+            "confidence_threshold": {
+                "type": "number",
+                "meaning": "Early-stop confidence threshold (0.0–1.0).",
+                "default": 0.90,
+            },
         },
         "outputs": {
             "content": {"meaning": "Retrieved evidence text or structured data."},
@@ -322,13 +375,29 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
         "next_recommended_tools": ["arif_mind_reason", "arif_heart_critique"],
-        "authority_boundary": {"may": ["retrieve", "search", "ingest"], "may_not": ["modify source", "judge", "seal"]},
+        "authority_boundary": {
+            "may": ["retrieve", "search", "ingest"],
+            "may_not": ["modify source", "judge", "seal"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Get evidence for climate policy claims", "call": {"tool": "arif_evidence_fetch", "args": {"mode": "fetch", "url": "https://ipcc.gov/report", "thinking_depth": 3}}}
+                {
+                    "user_intent": "Get evidence for climate policy claims",
+                    "call": {
+                        "tool": "arif_evidence_fetch",
+                        "args": {
+                            "mode": "fetch",
+                            "url": "https://ipcc.gov/report",
+                            "thinking_depth": 3,
+                        },
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Write a poem about the ocean", "reason_not_to_call": "Fetch is for evidence, not creative writing."}
+                {
+                    "user_intent": "Write a poem about the ocean",
+                    "reason_not_to_call": "Fetch is for evidence, not creative writing.",
+                }
             ],
         },
         "privacy_scope": {
@@ -339,7 +408,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
-
     # ── 333_MIND ─────────────────────────────────────────────────────────────
     "arif_mind_reason": {
         "stage_code": "333",
@@ -401,26 +469,70 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["reason", "reflect", "verify", "critique", "axioms", "plan", "plan_review", "plan_approve"], "default": "reason"},
-            "query": {"type": "string", "meaning": "The claim, question, or plan to reason over.", "required_when": [{"mode": "reason"}, {"mode": "verify"}, {"mode": "critique"}, {"mode": "plan"}]},
-            "plan_id": {"type": "string", "meaning": "Plan identifier (for plan_review / plan_approve).", "required_when": [{"mode": "plan_review"}, {"mode": "plan_approve"}]},
+            "mode": {
+                "type": "string",
+                "allowed_values": [
+                    "reason",
+                    "reflect",
+                    "verify",
+                    "critique",
+                    "axioms",
+                    "plan",
+                    "plan_review",
+                    "plan_approve",
+                ],
+                "default": "reason",
+            },
+            "query": {
+                "type": "string",
+                "meaning": "The claim, question, or plan to reason over.",
+                "required_when": [
+                    {"mode": "reason"},
+                    {"mode": "verify"},
+                    {"mode": "critique"},
+                    {"mode": "plan"},
+                ],
+            },
+            "plan_id": {
+                "type": "string",
+                "meaning": "Plan identifier (for plan_review / plan_approve).",
+                "required_when": [{"mode": "plan_review"}, {"mode": "plan_approve"}],
+            },
         },
         "outputs": {
             "conclusion": {"meaning": "Reasoning classification or structured conclusion."},
             "confidence": {"meaning": "Calibrated confidence (0.0–1.0), not certainty."},
             "axioms_used": {"meaning": "List of constitutional axioms invoked in the reasoning."},
-            "reasoning_trace": {"meaning": "Step-by-step derivation with premise and conclusion per step."},
+            "reasoning_trace": {
+                "meaning": "Step-by-step derivation with premise and conclusion per step."
+            },
         },
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
-        "state": {"requires_session_id": False, "recommended_session_id": True, "emits_chain_data": True},
+        "state": {
+            "requires_session_id": False,
+            "recommended_session_id": True,
+            "emits_chain_data": True,
+        },
         "next_recommended_tools": ["arif_heart_critique", "arif_judge_deliberate"],
-        "authority_boundary": {"may": ["reason", "classify", "suggest"], "may_not": ["approve irreversible action", "replace human judgment"]},
+        "authority_boundary": {
+            "may": ["reason", "classify", "suggest"],
+            "may_not": ["approve irreversible action", "replace human judgment"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Assess whether this claim is constitutionally stable", "call": {"tool": "arif_mind_reason", "args": {"mode": "verify", "query": "Deploying without review is safe"}}}
+                {
+                    "user_intent": "Assess whether this claim is constitutionally stable",
+                    "call": {
+                        "tool": "arif_mind_reason",
+                        "args": {"mode": "verify", "query": "Deploying without review is safe"},
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Deploy the build now", "reason_not_to_call": "Mind reasons; it does not execute. Use forge after judge seal."}
+                {
+                    "user_intent": "Deploy the build now",
+                    "reason_not_to_call": "Mind reasons; it does not execute. Use forge after judge seal.",
+                }
             ],
         },
         "privacy_scope": {
@@ -431,7 +543,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-
     # ── 444_KERNEL ───────────────────────────────────────────────────────────
     "arif_kernel_route": {
         "stage_code": "444",
@@ -462,7 +573,11 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         },
         "inputs": {
             "mode": {"type": "string", "allowed_values": ["route", "status"], "default": "route"},
-            "target": {"type": "string", "meaning": "Target tool, endpoint, or lane name.", "required_when": [{"mode": "route"}]},
+            "target": {
+                "type": "string",
+                "meaning": "Target tool, endpoint, or lane name.",
+                "required_when": [{"mode": "route"}],
+            },
             "task": {"type": "string", "meaning": "Task description for routing resolution."},
             "stage": {"type": "string", "meaning": "Explicit stage override (000–999)."},
         },
@@ -477,10 +592,19 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "authority_boundary": {"may": ["route", "query"], "may_not": ["execute", "judge", "seal"]},
         "examples": {
             "good": [
-                {"user_intent": "What tool should I use next?", "call": {"tool": "arif_kernel_route", "args": {"mode": "route", "target": "arif_judge_deliberate"}}}
+                {
+                    "user_intent": "What tool should I use next?",
+                    "call": {
+                        "tool": "arif_kernel_route",
+                        "args": {"mode": "route", "target": "arif_judge_deliberate"},
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Execute the deployment", "reason_not_to_call": "Kernel routes; it does not execute."}
+                {
+                    "user_intent": "Execute the deployment",
+                    "reason_not_to_call": "Kernel routes; it does not execute.",
+                }
             ],
         },
         "privacy_scope": {
@@ -491,7 +615,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-
     # ── 444_REPLY ────────────────────────────────────────────────────────────
     "arif_reply_compose": {
         "stage_code": "444r",
@@ -511,46 +634,100 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         ],
         "modes": {
             "compose": {
-                "purpose": "Draft a reply from a message payload.",
+                "purpose": "Draft a constitutional reply from a raw message.",
                 "required_parameters": ["message"],
-                "returns": ["message", "formatted", "tone"],
+                "returns": ["composed", "tone", "delta_S", "f02_score", "f04_score", "f07_score"],
             },
             "style": {
-                "purpose": "Apply a constitutional tone (neutral, empathetic, terse, formal).",
+                "purpose": "Transform the message to a target constitutional tone.",
                 "required_parameters": ["message", "style"],
-                "returns": ["message", "tone"],
+                "returns": ["composed", "tone"],
             },
             "cite": {
-                "purpose": "Inject verified citations into an existing message.",
+                "purpose": "Inject F02-verified citations into an existing message.",
                 "required_parameters": ["message", "citations"],
-                "returns": ["message", "citations_injected"],
+                "returns": ["composed", "citations_injected"],
             },
             "summary": {
-                "purpose": "Condense a long message while preserving constitutional intent.",
+                "purpose": "Condense a long message while preserving constitutional intent (F07).",
                 "required_parameters": ["message"],
-                "returns": ["summary", "key_points"],
+                "returns": ["composed", "tone", "key_points"],
+            },
+            "format": {
+                "purpose": "Apply structural formatting — headings, bullets, concise paragraphs.",
+                "required_parameters": ["message"],
+                "returns": ["composed", "delta_S"],
+            },
+            "nudge": {
+                "purpose": "Append F05 (Peace) / F06 (Empathy) guidance nudge without commanding.",
+                "required_parameters": ["message"],
+                "returns": ["composed", "tone", "delta_S"],
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["compose", "style", "cite", "summary"], "default": "compose"},
-            "message": {"type": "string", "meaning": "Raw message text to compose or transform.", "required_when": [{"mode": "compose"}, {"mode": "style"}, {"mode": "cite"}, {"mode": "summary"}]},
-            "style": {"type": "string", "meaning": "Tone/style directive (neutral, empathetic, terse, formal).", "required_when": [{"mode": "style"}]},
-            "citations": {"type": "list[string]", "meaning": "List of verified source identifiers to cite.", "required_when": [{"mode": "cite"}]},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["compose", "style", "cite", "summary"],
+                "default": "compose",
+            },
+            "message": {
+                "type": "string",
+                "meaning": "Raw message text to compose or transform.",
+                "required_when": [
+                    {"mode": "compose"},
+                    {"mode": "style"},
+                    {"mode": "cite"},
+                    {"mode": "summary"},
+                ],
+            },
+            "style": {
+                "type": "string",
+                "meaning": "Tone/style directive (neutral, empathetic, terse, formal, technical).",
+                "required_when": [{"mode": "style"}],
+            },
+            "citations": {
+                "type": "list[string]",
+                "meaning": "List of verified source identifiers to cite.",
+                "required_when": [{"mode": "cite"}],
+            },
         },
         "outputs": {
-            "formatted": {"meaning": "Constitutionally formatted message text."},
-            "tone": {"meaning": "Applied tone tag (neutral, empathetic, terse, formal)."},
+            "composed": {"meaning": "Constitutionally composed output text."},
+            "tone": {
+                "meaning": "Applied tone tag (neutral, empathetic, terse, formal, technical)."
+            },
+            "delta_S": {"meaning": "Entropy change from composition (negative = clarity added)."},
+            "f02_score": {"meaning": "F02 Truth score (0.0–1.0)."},
+            "f04_score": {"meaning": "F04 Clarity score (0.0–1.0)."},
+            "f07_score": {"meaning": "F07 Humility score (0.0–1.0)."},
+            "citations_injected": {"meaning": "Citation sources added to the message."},
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
         "next_recommended_tools": ["arif_memory_recall", "arif_gateway_connect"],
-        "authority_boundary": {"may": ["compose", "format", "cite"], "may_not": ["judge", "seal", "execute"]},
+        "authority_boundary": {
+            "may": ["compose", "format", "cite"],
+            "may_not": ["judge", "seal", "execute"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Draft a formal response to the audit report", "call": {"tool": "arif_reply_compose", "args": {"mode": "style", "message": "We acknowledge the findings...", "style": "formal"}}}
+                {
+                    "user_intent": "Draft a formal response to the audit report",
+                    "call": {
+                        "tool": "arif_reply_compose",
+                        "args": {
+                            "mode": "style",
+                            "message": "We acknowledge the findings...",
+                            "style": "formal",
+                        },
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Judge whether the report is acceptable", "reason_not_to_call": "Reply composes text; it does not judge. Use arif_judge_deliberate."}
+                {
+                    "user_intent": "Judge whether the report is acceptable",
+                    "reason_not_to_call": "Reply composes text; it does not judge. Use arif_judge_deliberate.",
+                }
             ],
         },
         "privacy_scope": {
@@ -561,7 +738,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-
     # ── 555_MEMORY ───────────────────────────────────────────────────────────
     "arif_memory_recall": {
         "stage_code": "555",
@@ -605,9 +781,21 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["recall", "store", "get", "list", "prune"], "default": "recall"},
-            "query": {"type": "string", "meaning": "Semantic search query or memory content.", "required_when": [{"mode": "recall"}, {"mode": "store"}]},
-            "memory_id": {"type": "string", "meaning": "Exact UUID for get/delete.", "required_when": [{"mode": "get"}]},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["recall", "store", "get", "list", "prune"],
+                "default": "recall",
+            },
+            "query": {
+                "type": "string",
+                "meaning": "Semantic search query or memory content.",
+                "required_when": [{"mode": "recall"}, {"mode": "store"}],
+            },
+            "memory_id": {
+                "type": "string",
+                "meaning": "Exact UUID for get/delete.",
+                "required_when": [{"mode": "get"}],
+            },
         },
         "outputs": {
             "memories": {"meaning": "Retrieved memory entries with source tags."},
@@ -616,13 +804,25 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "accepts_anonymous": False},
         "next_recommended_tools": ["arif_mind_reason", "arif_heart_critique"],
-        "authority_boundary": {"may": ["recall", "list"], "may_not": ["unauthorized deletion", "seal"]},
+        "authority_boundary": {
+            "may": ["recall", "list"],
+            "may_not": ["unauthorized deletion", "seal"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "What did we decide about the deployment strategy?", "call": {"tool": "arif_memory_recall", "args": {"mode": "recall", "query": "deployment strategy"}}}
+                {
+                    "user_intent": "What did we decide about the deployment strategy?",
+                    "call": {
+                        "tool": "arif_memory_recall",
+                        "args": {"mode": "recall", "query": "deployment strategy"},
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Delete all past memories", "reason_not_to_call": "Pruning requires explicit ack and session scope. Use prune mode with care."}
+                {
+                    "user_intent": "Delete all past memories",
+                    "reason_not_to_call": "Pruning requires explicit ack and session scope. Use prune mode with care.",
+                }
             ],
         },
         "privacy_scope": {
@@ -633,7 +833,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
-
     # ── 666_HEART ────────────────────────────────────────────────────────────
     "arif_heart_critique": {
         "stage_code": "666",
@@ -675,25 +874,51 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["critique", "simulate", "empathize", "summary"], "default": "critique"},
-            "target": {"type": "string", "meaning": "Action, content, or scenario to critique.", "required_when": [{"mode": "critique"}, {"mode": "simulate"}, {"mode": "empathize"}]},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["critique", "simulate", "empathize", "summary"],
+                "default": "critique",
+            },
+            "target": {
+                "type": "string",
+                "meaning": "Action, content, or scenario to critique.",
+                "required_when": [
+                    {"mode": "critique"},
+                    {"mode": "simulate"},
+                    {"mode": "empathize"},
+                ],
+            },
         },
         "outputs": {
             "risks_found": {"meaning": "Count of risk categories flagged."},
             "risk_tier": {"meaning": "low | medium | high | critical | irreversible"},
-            "human_decision_required": {"meaning": "True if risk_tier is high/critical/irreversible."},
+            "human_decision_required": {
+                "meaning": "True if risk_tier is high/critical/irreversible."
+            },
             "empathy_score": {"meaning": "Human impact load κᵣ (0.0–1.0, ≥0.70 preferred)."},
         },
         "risk": {"tier": "high", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
         "next_recommended_tools": ["arif_judge_deliberate", "arif_ops_measure"],
-        "authority_boundary": {"may": ["analyze", "assess", "warn"], "may_not": ["approve", "execute", "override judge"]},
+        "authority_boundary": {
+            "may": ["analyze", "assess", "warn"],
+            "may_not": ["approve", "execute", "override judge"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Assess the risks of deploying without a review", "call": {"tool": "arif_heart_critique", "args": {"mode": "critique", "target": "deploy without review"}}}
+                {
+                    "user_intent": "Assess the risks of deploying without a review",
+                    "call": {
+                        "tool": "arif_heart_critique",
+                        "args": {"mode": "critique", "target": "deploy without review"},
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Approve the deployment", "reason_not_to_call": "Heart critiques; it does not approve. Use judge_deliberate for approval."}
+                {
+                    "user_intent": "Approve the deployment",
+                    "reason_not_to_call": "Heart critiques; it does not approve. Use judge_deliberate for approval.",
+                }
             ],
         },
         "privacy_scope": {
@@ -704,7 +929,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
-
     # ── 666_GATEWAY ──────────────────────────────────────────────────────────
     "arif_gateway_connect": {
         "stage_code": "666g",
@@ -745,8 +969,16 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["route", "discover", "handshake", "relay"], "default": "route"},
-            "target_agent": {"type": "string", "meaning": "Canonical agent name (e.g., kimi, claude, gemini).", "required_when": [{"mode": "route"}, {"mode": "handshake"}, {"mode": "relay"}]},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["route", "discover", "handshake", "relay"],
+                "default": "route",
+            },
+            "target_agent": {
+                "type": "string",
+                "meaning": "Canonical agent name (e.g., kimi, claude, gemini).",
+                "required_when": [{"mode": "route"}, {"mode": "handshake"}, {"mode": "relay"}],
+            },
         },
         "outputs": {
             "protocol": {"meaning": "A2A protocol version and capability map."},
@@ -755,13 +987,25 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "risk": {"tier": "high", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
         "next_recommended_tools": ["arif_mind_reason", "arif_judge_deliberate"],
-        "authority_boundary": {"may": ["route", "discover", "handshake"], "may_not": ["execute on behalf of", "override target agent constitution"]},
+        "authority_boundary": {
+            "may": ["route", "discover", "handshake"],
+            "may_not": ["execute on behalf of", "override target agent constitution"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Ask the Kimi agent to review this plan", "call": {"tool": "arif_gateway_connect", "args": {"mode": "route", "target_agent": "kimi"}}}
+                {
+                    "user_intent": "Ask the Kimi agent to review this plan",
+                    "call": {
+                        "tool": "arif_gateway_connect",
+                        "args": {"mode": "route", "target_agent": "kimi"},
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Force the other agent to execute my command", "reason_not_to_call": "Gateway routes and handshakes; it does not override sovereign agents."}
+                {
+                    "user_intent": "Force the other agent to execute my command",
+                    "reason_not_to_call": "Gateway routes and handshakes; it does not override sovereign agents.",
+                }
             ],
         },
         "privacy_scope": {
@@ -772,7 +1016,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
-
     # ── 777_OPS ──────────────────────────────────────────────────────────────
     "arif_ops_measure": {
         "stage_code": "777",
@@ -811,8 +1054,16 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["health", "vitals", "cost", "predict"], "default": "health"},
-            "estimate": {"type": "number", "meaning": "Cost estimate input for cost/predict modes.", "required_when": [{"mode": "cost"}, {"mode": "predict"}]},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["health", "vitals", "cost", "predict"],
+                "default": "health",
+            },
+            "estimate": {
+                "type": "number",
+                "meaning": "Cost estimate input for cost/predict modes.",
+                "required_when": [{"mode": "cost"}, {"mode": "predict"}],
+            },
         },
         "outputs": {
             "g_score": {"meaning": "Genius score (elegance metric, ≥0.80 target)."},
@@ -823,13 +1074,22 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
         "next_recommended_tools": ["arif_sense_observe", "arif_kernel_route"],
-        "authority_boundary": {"may": ["measure", "estimate", "predict"], "may_not": ["modify", "execute", "judge"]},
+        "authority_boundary": {
+            "may": ["measure", "estimate", "predict"],
+            "may_not": ["modify", "execute", "judge"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Check if the system can handle a large reasoning job", "call": {"tool": "arif_ops_measure", "args": {"mode": "vitals"}}}
+                {
+                    "user_intent": "Check if the system can handle a large reasoning job",
+                    "call": {"tool": "arif_ops_measure", "args": {"mode": "vitals"}},
+                }
             ],
             "bad": [
-                {"user_intent": "Run the large job", "reason_not_to_call": "Ops measures; it does not execute. Use forge after judge seal."}
+                {
+                    "user_intent": "Run the large job",
+                    "reason_not_to_call": "Ops measures; it does not execute. Use forge after judge seal.",
+                }
             ],
         },
         "privacy_scope": {
@@ -840,7 +1100,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-
     # ── 888_JUDGE ────────────────────────────────────────────────────────────
     "arif_judge_deliberate": {
         "stage_code": "888",
@@ -882,9 +1141,20 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["judge", "compare", "history", "explain"], "default": "judge"},
-            "candidate": {"type": "string", "meaning": "Action or proposal to adjudicate.", "required_when": [{"mode": "judge"}, {"mode": "compare"}, {"mode": "explain"}]},
-            "constitutional_chain_id": {"type": "string", "meaning": "Immutable chain hash for audit continuity."},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["judge", "compare", "history", "explain"],
+                "default": "judge",
+            },
+            "candidate": {
+                "type": "string",
+                "meaning": "Action or proposal to adjudicate.",
+                "required_when": [{"mode": "judge"}, {"mode": "compare"}, {"mode": "explain"}],
+            },
+            "constitutional_chain_id": {
+                "type": "string",
+                "meaning": "Immutable chain hash for audit continuity.",
+            },
         },
         "outputs": {
             "verdict": {"meaning": "Binding verdict: SEAL, SABAR, VOID, or HOLD."},
@@ -896,14 +1166,27 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "next_recommended_tools": ["arif_vault_seal", "arif_forge_execute"],
         "authority_boundary": {
             "may": ["evaluate", "compare", "explain", "emit_verdict_structure"],
-            "may_not": ["self-approve irreversible actions", "override human judge", "claim sovereign authority"],
+            "may_not": [
+                "self-approve irreversible actions",
+                "override human judge",
+                "claim sovereign authority",
+            ],
         },
         "examples": {
             "good": [
-                {"user_intent": "Should we approve the deployment plan?", "call": {"tool": "arif_judge_deliberate", "args": {"mode": "judge", "candidate": "deploy plan v3"}}}
+                {
+                    "user_intent": "Should we approve the deployment plan?",
+                    "call": {
+                        "tool": "arif_judge_deliberate",
+                        "args": {"mode": "judge", "candidate": "deploy plan v3"},
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Deploy the plan immediately", "reason_not_to_call": "Judge evaluates; it does not execute. Execution requires forge after a SEAL verdict."}
+                {
+                    "user_intent": "Deploy the plan immediately",
+                    "reason_not_to_call": "Judge evaluates; it does not execute. Execution requires forge after a SEAL verdict.",
+                }
             ],
         },
         "privacy_scope": {
@@ -914,7 +1197,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
-
     # ── 999_VAULT ────────────────────────────────────────────────────────────
     "arif_vault_seal": {
         "stage_code": "999",
@@ -956,27 +1238,66 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["seal", "verify", "chain", "list"], "default": "seal"},
-            "payload": {"type": "string", "meaning": "JSON string to anchor (seal mode).", "required_when": [{"mode": "seal"}]},
-            "ack_irreversible": {"type": "boolean", "meaning": "Explicit human ack for permanent writes (F1 Amanah).", "default": False},
-            "constitutional_chain_id": {"type": "string", "meaning": "Chain hash for lineage verification."},
-            "judge_state_hash": {"type": "string", "meaning": "Judge verdict hash that authorized this seal."},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["seal", "verify", "chain", "list"],
+                "default": "seal",
+            },
+            "payload": {
+                "type": "string",
+                "meaning": "JSON string to anchor (seal mode).",
+                "required_when": [{"mode": "seal"}],
+            },
+            "ack_irreversible": {
+                "type": "boolean",
+                "meaning": "Explicit human ack for permanent writes (F1 Amanah).",
+                "default": False,
+            },
+            "constitutional_chain_id": {
+                "type": "string",
+                "meaning": "Chain hash for lineage verification.",
+            },
+            "judge_state_hash": {
+                "type": "string",
+                "meaning": "Judge verdict hash that authorized this seal.",
+            },
         },
         "outputs": {
             "entry_id": {"meaning": "Unique identifier for the sealed ledger entry."},
             "chain_hash": {"meaning": "Merkle root of the chain after this entry."},
             "timestamp": {"meaning": "ISO-8601 UTC timestamp of sealing."},
         },
-        "risk": {"tier": "critical", "irreversible": True, "requires_human_ack": True, "requires_judge_state_hash": True},
+        "risk": {
+            "tier": "critical",
+            "irreversible": True,
+            "requires_human_ack": True,
+            "requires_judge_state_hash": True,
+        },
         "state": {"requires_session_id": True, "accepts_anonymous": False},
         "next_recommended_tools": [],
-        "authority_boundary": {"may": ["anchor", "verify", "list"], "may_not": ["unseal", "modify", "delete"]},
+        "authority_boundary": {
+            "may": ["anchor", "verify", "list"],
+            "may_not": ["unseal", "modify", "delete"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Permanently record the approved deployment verdict", "call": {"tool": "arif_vault_seal", "args": {"mode": "seal", "payload": '{"verdict":"SEAL","plan":"v3"}', "ack_irreversible": True}}}
+                {
+                    "user_intent": "Permanently record the approved deployment verdict",
+                    "call": {
+                        "tool": "arif_vault_seal",
+                        "args": {
+                            "mode": "seal",
+                            "payload": '{"verdict":"SEAL","plan":"v3"}',
+                            "ack_irreversible": True,
+                        },
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Test what a seal would look like", "reason_not_to_call": "Use dry-run mode or local testing. Vault seal is permanent and irreversible."}
+                {
+                    "user_intent": "Test what a seal would look like",
+                    "reason_not_to_call": "Use dry-run mode or local testing. Vault seal is permanent and irreversible.",
+                }
             ],
         },
         "privacy_scope": {
@@ -987,7 +1308,6 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
-
     # ── 010_FORGE ────────────────────────────────────────────────────────────
     "arif_forge_execute": {
         "stage_code": "010",
@@ -1047,14 +1367,52 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"], "default": "engineer"},
-            "manifest": {"type": "string", "meaning": "JSON manifest describing the operation.", "required_when": [{"mode": "engineer"}]},
-            "query": {"type": "string", "meaning": "State inspection query (query mode).", "required_when": [{"mode": "query"}]},
-            "artifact_id": {"type": "string", "meaning": "Target artifact for rollback/status.", "required_when": [{"mode": "rollback"}]},
-            "ack_irreversible": {"type": "boolean", "meaning": "Explicit human ack for permanent changes (F1 Amanah).", "default": False},
-            "constitutional_chain_id": {"type": "string", "meaning": "Chain hash for audit continuity."},
-            "judge_state_hash": {"type": "string", "meaning": "Authorizing 888_JUDGE verdict hash."},
-            "plan_id": {"type": "string", "meaning": "Approved plan_id from arif_mind_reason(mode='plan'). Required for engineer/write/generate (H2).", "required_when": [{"mode": "engineer"}, {"mode": "write"}, {"mode": "generate"}]},
+            "mode": {
+                "type": "string",
+                "allowed_values": [
+                    "engineer",
+                    "query",
+                    "write",
+                    "generate",
+                    "commit",
+                    "recall",
+                    "dry_run",
+                ],
+                "default": "engineer",
+            },
+            "manifest": {
+                "type": "string",
+                "meaning": "JSON manifest describing the operation.",
+                "required_when": [{"mode": "engineer"}],
+            },
+            "query": {
+                "type": "string",
+                "meaning": "State inspection query (query mode).",
+                "required_when": [{"mode": "query"}],
+            },
+            "artifact_id": {
+                "type": "string",
+                "meaning": "Target artifact for rollback/status.",
+                "required_when": [{"mode": "rollback"}],
+            },
+            "ack_irreversible": {
+                "type": "boolean",
+                "meaning": "Explicit human ack for permanent changes (F1 Amanah).",
+                "default": False,
+            },
+            "constitutional_chain_id": {
+                "type": "string",
+                "meaning": "Chain hash for audit continuity.",
+            },
+            "judge_state_hash": {
+                "type": "string",
+                "meaning": "Authorizing 888_JUDGE verdict hash.",
+            },
+            "plan_id": {
+                "type": "string",
+                "meaning": "Approved plan_id from arif_mind_reason(mode='plan'). Required for engineer/write/generate (H2).",
+                "required_when": [{"mode": "engineer"}, {"mode": "write"}, {"mode": "generate"}],
+            },
         },
         "outputs": {
             "status": {"meaning": "Execution status: SUCCESS, FAILURE, DRY_RUN, or DEGRADED."},
@@ -1062,16 +1420,38 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
             "artifact_id": {"meaning": "Identifier for the generated or modified artifact."},
             "irreversibility_level": {"meaning": "low | medium | high | irreversible"},
         },
-        "risk": {"tier": "critical", "irreversible": True, "requires_human_ack": True, "requires_judge_state_hash": True, "requires_vault_entry_id": False},
+        "risk": {
+            "tier": "critical",
+            "irreversible": True,
+            "requires_human_ack": True,
+            "requires_judge_state_hash": True,
+            "requires_vault_entry_id": False,
+        },
         "state": {"requires_session_id": True, "accepts_anonymous": False},
         "next_recommended_tools": ["arif_vault_seal"],
-        "authority_boundary": {"may": ["execute_authorized", "query", "rollback"], "may_not": ["self-approve", "bypass judge", "execute without seal"]},
+        "authority_boundary": {
+            "may": ["execute_authorized", "query", "rollback"],
+            "may_not": ["self-approve", "bypass judge", "execute without seal"],
+        },
         "examples": {
             "good": [
-                {"user_intent": "Deploy the approved build v3 after judge seal", "call": {"tool": "arif_forge_execute", "args": {"mode": "engineer", "manifest": '{"image":"arifos:v3","rollout":"canary"}', "ack_irreversible": True}}}
+                {
+                    "user_intent": "Deploy the approved build v3 after judge seal",
+                    "call": {
+                        "tool": "arif_forge_execute",
+                        "args": {
+                            "mode": "engineer",
+                            "manifest": '{"image":"arifos:v3","rollout":"canary"}',
+                            "ack_irreversible": True,
+                        },
+                    },
+                }
             ],
             "bad": [
-                {"user_intent": "Deploy without review", "reason_not_to_call": "Forge requires a prior 888_JUDGE SEAL verdict and explicit human ack."}
+                {
+                    "user_intent": "Deploy without review",
+                    "reason_not_to_call": "Forge requires a prior 888_JUDGE SEAL verdict and explicit human ack.",
+                }
             ],
         },
         "privacy_scope": {

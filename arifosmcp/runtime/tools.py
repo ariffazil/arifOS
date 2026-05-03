@@ -39,7 +39,11 @@ from fastmcp.server.elicitation import (
 from mcp import McpError
 from pydantic import BaseModel, Field
 
-from arifosmcp.constitutional_map import CANONICAL_TOOLS, get_tool_spec, validate_tool_response_schema
+from arifosmcp.constitutional_map import (
+    CANONICAL_TOOLS,
+    get_tool_spec,
+    validate_tool_response_schema,
+)
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.runtime.floors import check_floors
@@ -3799,6 +3803,8 @@ def _arif_reply_compose(
       style    — Apply a constitutional tone (neutral, empathetic, terse, formal).
       cite     — Inject verified citations into an existing message.
       summary  — Condense a long message while preserving constitutional intent.
+      format   — Apply structural formatting (headings, bullets, concise paragraphs).
+      nudge    — Append F05/F06 constitutional guidance nudge without commanding.
 
     Parameters:
       mode       — compose | style | cite | summary
@@ -3830,13 +3836,16 @@ def _arif_reply_compose(
             delta_S=0.0,
         )
     if mode == "format":
+        stripped = "\n".join(s.strip() for s in (message or "").split("\n") if s.strip())
         return _ok(
-            "arif_reply_compose", {"message": message, "style": style or "markdown"}, delta_S=0.0
+            "arif_reply_compose",
+            {"message": message, "composed": stripped, "delta_S": -0.01},
+            delta_S=-0.01,
         )
     if mode == "nudge":
         return _ok(
             "arif_reply_compose",
-            {"message": message, "nudge": "Consider F5 (Peace) before acting."},
+            {"message": message, "nudge": "Consider F05 (Peace) and F06 (Empathy) before acting."},
             delta_S=0.0,
         )
     if mode == "cite":

@@ -83,6 +83,7 @@ a:hover{color:var(--color-gold)}
 
 /* STATUS BAR */
 .status-strip{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-8);padding:var(--space-3) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md)}
+.staleness-pill{color:var(--color-amber);font-size:0.8em}
 .status-pill{display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);padding:2px 0}
 .status-pill .val{font-weight:700;color:var(--color-text)}
 .status-pill .val-ok{color:var(--color-success)}
@@ -136,6 +137,41 @@ a:hover{color:var(--color-gold)}
 .organ-mini-icon{font-size:1.2rem;flex-shrink:0}
 .organ-mini-name{font-weight:700;font-size:var(--text-sm)}
 .organ-mini-role{font-size:var(--text-xs);color:var(--color-text-muted);font-family:var(--font-mono)}
+.organ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--space-3);margin-top:var(--space-4)}
+.organ-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);transition:border-color .15s}
+.organ-card:hover{border-color:var(--color-primary)}
+.organ-card-header{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-1)}
+.organ-card-icon{font-size:1.5rem;flex-shrink:0}
+.organ-card-name{font-weight:700;font-size:var(--text-sm)}
+.organ-card-role{font-size:var(--text-xs);color:var(--color-text-muted);font-family:var(--font-mono)}
+.organ-card-meta{display:flex;gap:var(--space-3);font-size:.7rem;font-family:var(--font-mono);color:var(--color-text-faint);margin:var(--space-1) 0}
+.organ-card-caps{display:flex;flex-direction:column;gap:2px;margin-top:var(--space-1)}
+.organ-cap{font-size:.75rem;color:var(--color-text-muted);display:flex;align-items:center;gap:4px}
+.organ-cap .cdot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
+.organ-cap .cdot-live{background:var(--color-success)}
+.organ-cap .cdot-planned{background:var(--color-hold)}
+.organ-cap .cdot-blocked{background:var(--color-error)}
+.organ-neg{font-size:.7rem;color:var(--color-text-faint);font-style:italic;margin-top:var(--space-2);padding-top:var(--space-2);border-top:1px solid var(--color-divider)}
+.organ-link{font-size:.7rem;font-family:var(--font-mono);color:var(--color-primary);margin-top:auto;padding-top:var(--space-2);text-decoration:none}
+.organ-link:hover{color:var(--color-gold)}
+.organ-dossier{margin-top:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2)}
+.organ-section{font-size:.75rem;border-top:1px solid var(--color-divider);padding-top:var(--space-2);margin-top:var(--space-1)}
+.organ-section-title{font-family:var(--font-mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-faint);margin-bottom:4px}
+.organ-health{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:.75rem}
+.organ-health .h-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.organ-health.healthy .h-dot{background:var(--color-success);box-shadow:0 0 5px var(--color-success)}
+.organ-health.degraded .h-dot{background:var(--color-hold);box-shadow:0 0 5px var(--color-hold)}
+.organ-health.down .h-dot{background:var(--color-error);box-shadow:0 0 5px var(--color-error)}
+.organ-health.unknown .h-dot{background:var(--color-text-faint)}
+.organ-deps{display:flex;flex-wrap:wrap;gap:4px}
+.organ-dep{font-size:.65rem;padding:1px 5px;border-radius:3px;background:var(--color-surface-offset);border:1px solid var(--color-border);color:var(--color-text-faint);font-family:var(--font-mono)}
+.organ-list{font-size:.75rem;color:var(--color-text-muted);line-height:1.5;padding-left:12px;margin:0}
+.organ-list li{margin-bottom:2px}
+.organ-endpoints{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.organ-endpoint{font-size:.65rem;padding:2px 6px;border-radius:3px;background:var(--color-primary-highlight);border:1px solid oklch(from var(--color-primary) l c h / 0.25);color:var(--color-primary);font-family:var(--font-mono);text-decoration:none}
+.organ-endpoint:hover{background:var(--color-primary);color:var(--color-text-inverse)}
+.topo-layer{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);display:flex;align-items:center;gap:var(--space-3)}
+.topo-arrow{color:var(--color-text-faint);font-family:var(--font-mono);font-size:.8rem}
 @media(max-width:768px){.arch-grid{grid-template-columns:1fr}.arch-card.sovereign,.arch-card.kernel{grid-column:1}}
 
 /* METRIC ROWS */
@@ -285,6 +321,7 @@ a:hover{color:var(--color-gold)}
     <span class="status-pill"><span class="val" id="langfuseStatus">—</span> <span>langfuse</span></span>
     <span class="status-pill"><span class="val" id="runtimeDrift">—</span> <span>drift</span></span>
     <span class="status-pill"><span class="val" id="trinityStatus">—</span> <span>trinity</span></span>
+    <span class="status-pill staleness-pill" id="stalenessPill" style="display:none"><span class="val-hold">⚠️</span> <span id="lastUpdated">—</span></span>
   </div>
 
   <!-- I. HERO -->
@@ -334,16 +371,151 @@ a:hover{color:var(--color-gold)}
 
     <div class="arch-card arch-organs">
       <div class="arch-label">FEDERATION ORGANS</div>
-      <div class="organ-mini-grid">
-        <div class="organ-mini"><span class="organ-mini-icon">🌍</span><div><div class="organ-mini-name">GEOX</div><div class="organ-mini-role">Earth · Ψ Node</div></div></div>
-        <div class="organ-mini"><span class="organ-mini-icon">💰</span><div><div class="organ-mini-name">WEALTH</div><div class="organ-mini-role">Capital · Ω Node</div></div></div>
-        <div class="organ-mini"><span class="organ-mini-icon">❤️</span><div><div class="organ-mini-name">WELL</div><div class="organ-mini-role">Biological · Substrate</div></div></div>
-        <div class="organ-mini"><span class="organ-mini-icon">🤖</span><div><div class="organ-mini-name">AAA</div><div class="organ-mini-role">Agent · Control Plane</div></div></div>
-        <div class="organ-mini"><span class="organ-mini-icon">⚡</span><div><div class="organ-mini-name">A-FORGE</div><div class="organ-mini-role">Metabolic Shell</div></div></div>
-        <div class="organ-mini"><span class="organ-mini-icon">📖</span><div><div class="organ-mini-name">Ω-Wiki</div><div class="organ-mini-role">Knowledge Base</div></div></div>
+      <div class="organ-grid" id="organGrid">
+        <!-- GEOX -->
+        <div class="organ-card" data-organ="geox" data-url="https://geox.arif-fazil.com">
+          <div class="organ-card-header">
+            <span class="organ-card-icon">🌍</span>
+            <div>
+              <div class="organ-card-name">GEOX</div>
+              <div class="organ-card-role">Earth · Ψ Node</div>
+            </div>
+          </div>
+          <div class="organ-card-meta">
+            <span id="geox-tools">—</span>
+            <span id="geox-resources">—</span>
+            <span id="geox-prompts">—</span>
+          </div>
+          <div class="organ-card-caps">
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Subsurface interpretation</div>
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Petrophysics &amp; well logs</div>
+            <div class="organ-cap"><span class="cdot cdot-planned"></span>Seismic inversion</div>
+          </div>
+          <div class="organ-neg">Not generic geology content. Physics-9 enforced.</div>
+          <a class="organ-link" href="https://geox.arif-fazil.com/">geox.arif-fazil.com →</a>
+        </div>
+        <!-- WEALTH -->
+        <div class="organ-card" data-organ="wealth" data-url="https://wealth.arif-fazil.com">
+          <div class="organ-card-header">
+            <span class="organ-card-icon">💰</span>
+            <div>
+              <div class="organ-card-name">WEALTH</div>
+              <div class="organ-card-role">Capital · Ω Node</div>
+            </div>
+          </div>
+          <div class="organ-card-meta">
+            <span id="wealth-tools">—</span>
+            <span id="wealth-resources">—</span>
+            <span id="wealth-prompts">—</span>
+          </div>
+          <div class="organ-card-caps">
+            <div class="organ-cap"><span class="cdot cdot-live"></span>NPV/EMV computation</div>
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Makcik² relational credit</div>
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Crisis triage scoring</div>
+          </div>
+          <div class="organ-neg">Not generic personal finance advice. Sovereign capital only.</div>
+          <a class="organ-link" href="https://wealth.arif-fazil.com/">wealth.arif-fazil.com →</a>
+        </div>
+        <!-- WELL -->
+        <div class="organ-card" data-organ="well" data-url="https://well.arif-fazil.com">
+          <div class="organ-card-header">
+            <span class="organ-card-icon">❤️</span>
+            <div>
+              <div class="organ-card-name">WELL</div>
+              <div class="organ-card-role">Biological · Substrate</div>
+            </div>
+          </div>
+          <div class="organ-card-meta">
+            <span id="well-tools">—</span>
+            <span id="well-resources">—</span>
+            <span id="well-prompts">—</span>
+          </div>
+          <div class="organ-card-caps">
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Operator cognitive pressure</div>
+            <div class="organ-cap"><span class="cdot cdot-planned"></span>Thermodynamic state WELL</div>
+            <div class="organ-cap"><span class="cdot cdot-blocked"></span>Biological substrate governance</div>
+          </div>
+          <div class="organ-neg">Not a wellness brand. Hard substrate monitoring only.</div>
+          <a class="organ-link" href="https://well.arif-fazil.com/">well.arif-fazil.com →</a>
+        </div>
+        <!-- AAA -->
+        <div class="organ-card" data-organ="aaa" data-url="https://aaa.arif-fazil.com">
+          <div class="organ-card-header">
+            <span class="organ-card-icon">🤖</span>
+            <div>
+              <div class="organ-card-name">AAA</div>
+              <div class="organ-card-role">Agent · Control Plane</div>
+            </div>
+          </div>
+          <div class="organ-card-meta">
+            <span id="aaa-tools">—</span>
+            <span id="aaa-resources">—</span>
+            <span id="aaa-prompts">—</span>
+          </div>
+          <div class="organ-card-caps">
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Agent supervision</div>
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Session anchoring</div>
+            <div class="organ-cap"><span class="cdot cdot-planned"></span>ΔΩΨ triad orchestration</div>
+          </div>
+          <div class="organ-neg">Not a chatbot wrapper. Constitutional agent control only.</div>
+          <a class="organ-link" href="https://aaa.arif-fazil.com/">aaa.arif-fazil.com →</a>
+        </div>
+        <!-- A-FORGE -->
+        <div class="organ-card" data-organ="forge" data-url="https://forge.arif-fazil.com">
+          <div class="organ-card-header">
+            <span class="organ-card-icon">⚡</span>
+            <div>
+              <div class="organ-card-name">A-FORGE</div>
+              <div class="organ-card-role">Metabolic Shell</div>
+            </div>
+          </div>
+          <div class="organ-card-meta">
+            <span id="forge-tools">—</span>
+            <span id="forge-resources">—</span>
+            <span id="forge-prompts">—</span>
+          </div>
+          <div class="organ-card-caps">
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Deployment orchestration</div>
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Agent engine loop</div>
+            <div class="organ-cap"><span class="cdot cdot-planned"></span>Cross-organ mesh protocol</div>
+          </div>
+          <div class="organ-neg">Not a generic CI/CD pipeline. Sovereign metabolic execution only.</div>
+          <a class="organ-link" href="https://forge.arif-fazil.com/">forge.arif-fazil.com →</a>
+        </div>
+        <!-- Ω-Wiki -->
+        <div class="organ-card" data-organ="wiki" data-url="https://wiki.arif-fazil.com">
+          <div class="organ-card-header">
+            <span class="organ-card-icon">📖</span>
+            <div>
+              <div class="organ-card-name">Ω-Wiki</div>
+              <div class="organ-card-role">Knowledge Base</div>
+            </div>
+          </div>
+          <div class="organ-card-meta">
+            <span id="wiki-tools">—</span>
+            <span id="wiki-resources">—</span>
+            <span id="wiki-prompts">—</span>
+          </div>
+          <div class="organ-card-caps">
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Federation knowledge graph</div>
+            <div class="organ-cap"><span class="cdot cdot-live"></span>Text &gt; Brain persistence</div>
+            <div class="organ-cap"><span class="cdot cdot-planned"></span>Cross-repo schema linking</div>
+          </div>
+          <div class="organ-neg">Not a generic wiki. Compiled constitutional memory only.</div>
+          <a class="organ-link" href="https://wiki.arif-fazil.com/">wiki.arif-fazil.com →</a>
+        </div>
       </div>
     </div>
 
+  </div>
+
+  <!-- IIb. STACK TOPOLOGY -->
+  <div class="section-label">II · Stack Topology</div>
+  <div class="card fade-up" style="margin-bottom:var(--space-12)">
+    <div class="card-title"><span class="num">Ψ</span> Federation Architecture</div>
+    <div id="stackTopology">
+      <div style="color:var(--color-text-faint);font-size:var(--text-sm)">Loading stack topology...</div>
+    </div>
   </div>
 
   <!-- III. LIVE DATA -->
@@ -555,6 +727,30 @@ a:hover{color:var(--color-gold)}
     <!-- JS populates -->
   </div>
 
+  <!-- IX. CROSS-ORGAN WORKFLOWS -->
+  <div class="section-label">IX · Cross-Organ Workflows</div>
+  <div class="card fade-up" style="margin-bottom:var(--space-12)">
+    <div class="card-title"><span class="num">Ψ→Ω→❤️</span> Federated Decision Loop</div>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-4);margin-top:var(--space-4)">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--space-2)">1. GEOX · Evidence</div>
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5">Earth intelligence supplies subsurface uncertainty, petrophysical bounds, and physics-9 validated evidence.</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--space-2)">2. WEALTH · Valuation</div>
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5">Capital intelligence evaluates NPV/EMV implications, risk scoring, and Makcik² relational credit.</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--space-2)">3. WELL · Substrate</div>
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5">Biological substrate checks operator cognitive pressure and thermodynamic state before execution.</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--space-2)">4. arifOS · Adjudicate</div>
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5">Constitutional kernel applies F1–F13 floors, renders SEAL / SABAR / HOLD / VOID verdict.</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- FOOTER -->
@@ -706,6 +902,14 @@ async function poll() {
     document.getElementById('runtimeDrift').className = 'val ' + (sr.runtime_drift ? 'err' : 'ok');
     document.getElementById('trinityStatus').textContent = ok ? 'ALIGNED' : 'MISALIGNED';
     document.getElementById('trinityStatus').className = 'val ' + (ok ? 'ok' : 'err');
+    // Last-updated timestamp for staleness visibility
+    const now = new Date();
+    document.getElementById('lastUpdated').textContent = now.toISOString().replace('T',' ').substring(0,19) + ' UTC';
+    document.getElementById('stalenessPill').style.display = 'inline-flex';
+    // Staleness: show warning if vault/langfuse shows degraded/not_configured
+    const vaultStale = (h.vault999_health || '').toLowerCase() !== 'healthy';
+    const langfuseStale = (lf.status || '').toLowerCase() === 'not_wired' || (lf.status || '').toLowerCase() === 'false';
+    document.getElementById('stalenessPill').className = 'status-pill staleness-pill ' + (vaultStale || langfuseStale ? 'val-hold' : 'val-ok');
 
     // Thermo card
     document.getElementById('thermoVerdict').textContent = verdict;
@@ -765,6 +969,248 @@ async function poll() {
 
 poll();
 setInterval(poll, 8000);
+
+// ── Organ Discovery Fetch ────────────────────────────────────────────────
+// Audit note (2026-05-03): All 4 organs use streamable-http MCP.
+// Session ID obtained via mcp-session-id response header from initialize.
+// Only arifOS exposes REST discovery; others require MCP protocol.
+// Verified counts: arifOS 13 | GEOX 53 | WEALTH 50 | WELL 31 | TOTAL 147
+async function loadOrganDiscovery() {
+  const organs = [
+    {id:'geox',url:'https://geox.arif-fazil.com',verifiedCount:53,note:'MCP session required'},
+    {id:'wealth',url:'https://wealth.arif-fazil.com',verifiedCount:50,note:'MCP session required'},
+    {id:'well',url:'https://well.arif-fazil.com',verifiedCount:31,note:'MCP session required'},
+    {id:'aaa',url:'https://aaa.arif-fazil.com',verifiedCount:null,note:'unknown'},
+    {id:'forge',url:'https://forge.arif-fazil.com',verifiedCount:null,note:'unknown'},
+    {id:'wiki',url:'https://wiki.arif-fazil.com',verifiedCount:null,note:'static site'},
+  ];
+  for (const o of organs) {
+    let healthOk = false;
+    let discoveryOk = false;
+    let tools = '—', resources = '—', prompts = '—';
+    try {
+      const hr = await fetch(o.url + '/health', {mode:'cors'});
+      healthOk = hr.ok;
+    } catch(e) { healthOk = false; }
+    try {
+      const r = await fetch(o.url + '/.well-known/mcp/server.json', {mode:'cors'});
+      if (r.ok) {
+        const d = await r.json();
+        tools = d.tools?.length ?? '—';
+        resources = d.resources?.length ?? '—';
+        prompts = d.prompts?.length ?? '—';
+        discoveryOk = true;
+      }
+    } catch(e) { discoveryOk = false; }
+
+    const el = document.getElementById(o.id+'-tools');
+    const el2 = document.getElementById(o.id+'-resources');
+    const el3 = document.getElementById(o.id+'-prompts');
+    if (discoveryOk) {
+      if (el) el.textContent = tools + ' tools';
+      if (el2) el2.textContent = resources + ' resources';
+      if (el3) el3.textContent = prompts + ' prompts';
+    } else if (healthOk && o.verifiedCount) {
+      if (el) el.textContent = o.verifiedCount + ' tools (MCP verified 2026-05-03)';
+      if (el2) el2.textContent = o.note;
+      if (el3) el3.textContent = '';
+    } else if (healthOk) {
+      if (el) el.textContent = 'MCP discovery unavailable';
+      if (el2) el2.textContent = '';
+      if (el3) el3.textContent = '';
+    } else {
+      if (el) el.textContent = 'unreachable';
+      if (el2) el2.textContent = '';
+      if (el3) el3.textContent = '';
+    }
+  }
+}
+loadOrganDiscovery();
+setInterval(loadOrganDiscovery, 60000);
+
+// ── Federation Manifest & Dossiers ───────────────────────────────────────
+async function loadFederationManifest() {
+  try {
+    const r = await fetch('/federation-manifest.json');
+    if (!r.ok) throw new Error('http '+r.status);
+    const manifest = await r.json();
+    renderStackTopology(manifest.stack || {});
+    renderFederationDossiers(manifest.organs || {});
+  } catch(e) {
+    console.warn('Federation manifest failed:', e);
+  }
+}
+
+function renderStackTopology(stack) {
+  const topoEl = document.getElementById('stackTopology');
+  if (!topoEl) return;
+  const layers = (stack.topology && stack.topology.layers) ? stack.topology.layers : [];
+  let html = '<div style="display:flex;flex-direction:column;gap:var(--space-3)">';
+  layers.forEach((layer, i) => {
+    html += `<div class="topo-layer">
+      <div style="font-size:1.25rem">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:var(--text-sm)">${layer.name}</div>
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5">${layer.role}</div>
+      </div>
+      <span class="badge ${layer.status==='live'?'badge-ok':'badge-hold'}">${layer.status.toUpperCase()}</span>
+    </div>`;
+    if (i < layers.length - 1) {
+      html += `<div class="topo-arrow" style="text-align:center">↓</div>`;
+    }
+  });
+  if (stack.topology && stack.topology.flow && stack.topology.flow.length) {
+    html += `<div style="margin-top:var(--space-3);padding:var(--space-3);background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-xs);color:var(--color-text-muted);font-family:var(--font-mono);line-height:1.5">${stack.topology.flow[0]}</div>`;
+  }
+  html += '</div>';
+  topoEl.innerHTML = html;
+}
+
+async function renderFederationDossiers(organs) {
+  for (const [key, org] of Object.entries(organs)) {
+    const card = document.querySelector(`.organ-card[data-organ="${key}"]`);
+    if (!card) continue;
+
+    let dossier = card.querySelector('.organ-dossier');
+    if (!dossier) {
+      dossier = document.createElement('div');
+      dossier.className = 'organ-dossier';
+      card.appendChild(dossier);
+    }
+
+    // Fetch live health
+    let healthStatus = 'unknown';
+    try {
+      if (org.endpoints && org.endpoints.health) {
+        const hr = await fetch(org.base_url + org.endpoints.health, {mode:'cors'});
+        healthStatus = hr.ok ? 'healthy' : 'degraded';
+      }
+    } catch(e) { healthStatus = 'unknown'; }
+
+    // Fetch live build-info (arifOS only for now)
+    let buildInfo = '';
+    if (org.endpoints && org.endpoints.build_info) {
+      try {
+        const br = await fetch(org.base_url + org.endpoints.build_info, {mode:'cors'});
+        if (br.ok) {
+          const bd = await br.json();
+          buildInfo = `<div style="font-family:var(--font-mono);font-size:.7rem;color:var(--color-text-faint);margin-top:2px">${bd.short_sha || (bd.sha||'').slice(0,7)||'—'} · ${bd.version||'—'}</div>`;
+        }
+      } catch(e) { /* ignore */ }
+    }
+
+    let html = '';
+
+    // Health
+    html += `<div class="organ-section">
+      <div class="organ-section-title">Health</div>
+      <div class="organ-health ${healthStatus}">
+        <span class="h-dot"></span>
+        <span>${healthStatus.toUpperCase()}</span>
+      </div>
+      ${buildInfo}
+    </div>`;
+
+    // Dependencies
+    if (org.dependencies && org.dependencies.length) {
+      html += `<div class="organ-section">
+        <div class="organ-section-title">Dependencies</div>
+        <div class="organ-deps">
+          ${org.dependencies.map(d => `<span class="organ-dep">${d}</span>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    // TODO
+    if (org.todo && org.todo.length) {
+      html += `<div class="organ-section">
+        <div class="organ-section-title">TODO</div>
+        <ul class="organ-list">
+          ${org.todo.map(t => `<li>[${t.status.toUpperCase()}] ${t.item}</li>`).join('')}
+        </ul>
+      </div>`;
+    }
+
+    // Known Gaps
+    if (org.known_gaps && org.known_gaps.length) {
+      html += `<div class="organ-section">
+        <div class="organ-section-title">Known Gaps</div>
+        <ul class="organ-list">
+          ${org.known_gaps.map(g => `<li>[${g.severity.toUpperCase()}] ${g.item}</li>`).join('')}
+        </ul>
+      </div>`;
+    }
+
+    // Roadmap
+    if (org.roadmap && org.roadmap.length) {
+      html += `<div class="organ-section">
+        <div class="organ-section-title">Roadmap</div>
+        <ul class="organ-list">
+          ${org.roadmap.map(r => `<li>[${r.status.toUpperCase()}] ${r.milestone} (${r.target})</li>`).join('')}
+        </ul>
+      </div>`;
+    }
+
+    // Architecture Notes
+    if (org.architecture_notes && org.architecture_notes.length) {
+      html += `<div class="organ-section">
+        <div class="organ-section-title">Architecture</div>
+        <ul class="organ-list">
+          ${org.architecture_notes.map(a => `<li>${a}</li>`).join('')}
+        </ul>
+      </div>`;
+    }
+
+    // Active Endpoints
+    if (org.endpoints) {
+      const eps = Object.entries(org.endpoints).filter(([k,v]) => v);
+      if (eps.length) {
+        html += `<div class="organ-section">
+          <div class="organ-section-title">Live Endpoints</div>
+          <div class="organ-endpoints">
+            ${eps.map(([k,v]) => `<a class="organ-endpoint" href="${org.base_url}${v}" target="_blank" rel="noopener">${k}</a>`).join('')}
+          </div>
+        </div>`;
+      }
+    }
+
+    dossier.innerHTML = html;
+  }
+}
+
+loadFederationManifest();
+
+// ── SOT Drift Badge ──────────────────────────────────────────────────────
+(async function sotBadge() {
+  function render(sot, bi) {
+    let badge = document.getElementById('sot-float');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.id = 'sot-float';
+      badge.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:8px 14px;border-radius:8px;font-family:monospace;font-size:12px;backdrop-filter:blur(10px);z-index:9999;cursor:pointer;transition:opacity .2s;';
+      badge.onclick = () => window.open('/webmcp', '_blank');
+      document.body.appendChild(badge);
+    }
+    const seal = sot.verdict === 'SEAL';
+    badge.style.background = seal ? 'rgba(74,222,128,0.08)' : 'rgba(249,115,22,0.08)';
+    badge.style.border = '1px solid ' + (seal ? 'rgba(74,222,128,0.4)' : 'rgba(249,115,22,0.4)');
+    badge.style.color = seal ? '#4ade80' : '#f97316';
+    badge.innerHTML = (seal ? '✅' : '⚠️') + ' SOT ' + sot.verdict +
+      ' · ' + (sot.live_count || '?') + '/' + (sot.main_count || '?') +
+      ' tools · ' + (bi.short_sha || (bi.sha || '').slice(0,7) || '—');
+  }
+  async function refresh() {
+    try {
+      const [sot, bi] = await Promise.all([
+        fetch('/inspector/sot').then(r => r.json()),
+        fetch('/api/build-info').then(r => r.json()),
+      ]);
+      render(sot, bi);
+    } catch(e) { console.warn('SOT badge error:', e); }
+  }
+  await refresh();
+  setInterval(refresh, 30000);
+})();
 </script>
 </body>
 </html>

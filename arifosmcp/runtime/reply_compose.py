@@ -15,7 +15,11 @@ import datetime
 import logging
 from typing import Any
 
-from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
+try:
+    from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
+except ImportError:
+    # Relative import when running as part of the arifosmcp package
+    from .llm_client import LLMUnavailableError, call_llm  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 

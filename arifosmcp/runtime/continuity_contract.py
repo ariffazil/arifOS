@@ -185,6 +185,16 @@ def seal_runtime_envelope(
             _earth_score += 0.3
         envelope.metrics.witness.earth = round(min(_earth_score, 1.0), 3)
 
+    # ── Human Witness — Sovereign Presence (F3) ───────────────────────────
+    # Human witness reflects whether a sovereign actor is actively bound
+    # to this session. A non-zero score means the pipeline has human
+    # accountability, not just machine autonomy.
+    if envelope.metrics and envelope.metrics.witness.human == 0.0:
+        _human_score = 0.5  # baseline: session present (asynchronous)
+        if resolved_session_id and not resolved_session_id.startswith("global"):
+            _human_score = 1.0
+        envelope.metrics.witness.human = round(min(_human_score, 1.0), 3)
+
     payload.setdefault(
         "continuity",
         {
@@ -403,9 +413,11 @@ def _build_governance_closure(envelope: RuntimeEnvelope, payload: dict[str, Any]
     return {
         "operational_status": operational_status,
         "proof_status": proof_status,
-        "verdict": envelope.verdict_detail.code.value
-        if envelope.verdict_detail
-        else envelope.verdict.value,
+        "verdict": (
+            envelope.verdict_detail.code.value
+            if envelope.verdict_detail
+            else envelope.verdict.value
+        ),
     }
 
 
@@ -413,9 +425,9 @@ def _build_reasoning_state(envelope: RuntimeEnvelope, payload: dict[str, Any]) -
     telemetry = _as_dict(envelope.metrics.telemetry)
     data = _as_dict(payload.get("data"))
     return {
-        "reasoning_quality_state": "stable"
-        if telemetry.get("confidence", 0.0) >= 0.7
-        else "caution",
+        "reasoning_quality_state": (
+            "stable" if telemetry.get("confidence", 0.0) >= 0.7 else "caution"
+        ),
         "confidence": telemetry.get("confidence", 0.0),
         "entropy_delta": telemetry.get("ds", 0.0),
         "coherence": data.get("coherence") or payload.get("coherence"),
@@ -535,9 +547,9 @@ def _build_operator_summary(
         "identity": identity_text,
         "session": f"{session_binding.get('session_binding_state', 'unknown')} and {session_binding.get('continuity_status', 'unknown')}",
         "authority": authority_text,
-        "privilege_drift": "Detected"
-        if diagnostics["hard_guardrails"]["privilege_drift_detected"]
-        else "None",
+        "privilege_drift": (
+            "Detected" if diagnostics["hard_guardrails"]["privilege_drift_detected"] else "None"
+        ),
         "next_action": (handoff.get("consumable_by") or [None])[0],
         "governance": f"{governance_closure['operational_status']} / proof {governance_closure['proof_status']}",
     }
