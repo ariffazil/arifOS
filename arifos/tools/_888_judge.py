@@ -168,8 +168,21 @@ def _iterate_constitutional_floors(
     is_irreversible = bundle.get("is_irreversible", False)
 
     zk_passed = True
-    if is_irreversible and provided_zk_level < ZKPC_REQUIRED_LEVEL:
-        zk_passed = False
+    if is_irreversible:
+        if provided_zk_level < ZKPC_REQUIRED_LEVEL:
+            zk_passed = False
+        else:
+            # Full ZKPC v2 continuity checks
+            if not bundle.get("proof_verified", False):
+                zk_passed = False
+            if not bundle.get("continuity_proven", False):
+                zk_passed = False
+            if not bundle.get("epoch_chain_valid", False):
+                zk_passed = False
+            if not bundle.get("signal_binding_valid", False):
+                zk_passed = False
+            if not bundle.get("nonce_valid", False):
+                zk_passed = False
 
     floor_results.append(
         FloorResult(

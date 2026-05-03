@@ -56,6 +56,7 @@ from core.shared.floors import (
 from .build_info import get_build_info
 from .capability_map import build_runtime_capability_map
 from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
+from .floors import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -3055,11 +3056,36 @@ def register_rest_routes(
                 _local_service_connect_latency_ms(port=int(os.getenv("PORT", "8080"))) or 999.0
             )
             matrix = _build_trinity_matrix(health_payload, containers, latency_ms=latency_ms)
+
+            # TASK 3: Wire Trinity Witness values
+            from arifosmcp.runtime.tools import _SESSIONS
+
+            session_active = bool(_SESSIONS)
+            actor_id = None
+            model_card = None
+            if session_active:
+                last_sess = list(_SESSIONS.values())[-1]
+                actor_id = last_sess.get("actor_id")
+                model_card = last_sess.get("model_governance_card")
+
+            any_organ_up = any(
+                "Up" in str(c.get("status", ""))
+                for c in containers
+                if c.get("name") in {"geox", "wealth", "well"}
+            )
+
+            trinity_witness = {
+                "human": 1.0 if actor_id and actor_id != "anonymous" else 0.0,
+                "ai": 1.0 if model_card is not None else 0.5,
+                "earth": 1.0 if any_organ_up else 0.0,
+            }
+
             payload = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "health": health_payload,
                 "git": _collect_git_snapshot(),
                 "trinity_matrix": matrix,
+                "trinity_witness": trinity_witness,
                 "overall_ok": matrix["overall_ok"],
                 "manifest": {
                     "tools_count": len(public_specs),
@@ -3146,7 +3172,7 @@ def register_rest_routes(
             )
 
             tools_loaded = health_payload.get("tools_loaded", 0)
-            ui_tools_label = 13
+            ui_tools_label = get_floor_count()
             checks.append(
                 {
                     "name": "tools_loaded",

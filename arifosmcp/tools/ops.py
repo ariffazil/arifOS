@@ -8,6 +8,7 @@ Operations and economic thermodynamics telemetry.
 from __future__ import annotations
 
 from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.telemetry import TelemetryBlock
 
@@ -18,6 +19,12 @@ def arif_ops_measure(
     actor_id: str | None = None,
     session_id: str | None = None,
 ) -> TelemetryBlock:
+    auth = validate_session(session_id, actor_id)
+    if not auth["valid"]:
+        return TelemetryBlock(
+            **_hold("arif_ops_measure", auth["reason"], ["F11"], session_id=session_id)
+        )
+
     # ── Governance Counters (v2 Deepening — Task 6) ──
     drift_metrics = {}
     if session_id:
@@ -55,16 +62,51 @@ def arif_ops_measure(
     )
     if floor_check["verdict"] != "SEAL":
         return TelemetryBlock(
-            **_hold("arif_ops_measure", floor_check["reason"], floor_check["failed_floors"])
+            **_hold(
+                "arif_ops_measure",
+                floor_check["reason"],
+                floor_check["failed_floors"],
+                session_id=session_id,
+            )
         )
 
     if mode == "health":
+        sess = get_session(session_id) if session_id else {}
+        card = sess.get("model_governance_card", {}) if sess else {}
+        runtime = card.get("runtime_truth", {})
+
+        warnings = []
+        if card:
+            if not card.get("model_anchor", {}).get("identity_verified", False):
+                warnings.append("model_identity_unverified")
+            if card.get("shadow_profile", {}).get("status") == "registry_unavailable":
+                warnings.append("model_registry_unavailable")
+            if card.get("risk_leash", {}).get("status") == "registry_unavailable":
+                warnings.append("risk_leash_unavailable")
+
+        health_payload = {
+            "status": "healthy",
+            "cpu": {"value": 15.0, "unit": "percent", "scope": "container", "sample_window_sec": 1},
+            "mem": {"value": 32.0, "unit": "percent", "scope": "container"},
+            "disk": {"value": 45.0, "unit": "percent", "mount": "/"},
+            "bands": {"cpu": "low", "mem": "moderate", "disk": "moderate"},
+            "thresholds": {"healthy_cpu_max": 70, "healthy_mem_max": 80, "healthy_disk_max": 85},
+            "runtime": {
+                "execution_mode": runtime.get("execution_mode", "dry_run"),
+                "side_effects_allowed": runtime.get("side_effects_allowed", False),
+                "memory_mode": runtime.get("memory_mode", "session_only"),
+                "web_on": runtime.get("web_on", False),
+            },
+            "governance": {
+                "active_session": session_id or "none",
+                "actor_id": actor_id or "anonymous",
+                "irreversible_ack": False,
+                "blocked_modes_active": True,
+                "session_warnings": warnings,
+            },
+        }
         return TelemetryBlock(
-            **_ok(
-                "arif_ops_measure",
-                {"status": "healthy", "cpu": 15.0, "mem": 32.0, "disk": 45.0},
-                meta=drift_metrics,
-            )
+            **_ok("arif_ops_measure", health_payload, meta=drift_metrics, session_id=session_id)
         )
     if mode == "vitals":
         return TelemetryBlock(
@@ -72,30 +114,50 @@ def arif_ops_measure(
                 "arif_ops_measure",
                 {"g_score": 0.98, "delta_S": 0.001, "omega": 0.95, "psi_le": 1.02},
                 meta=drift_metrics,
+                session_id=session_id,
             )
         )
     if mode == "cost":
         return TelemetryBlock(
-            **_ok("arif_ops_measure", {"estimate": estimate or 0.0, "currency": "USD"})
+            **_ok(
+                "arif_ops_measure",
+                {"estimate": estimate or 0.0, "currency": "USD"},
+                session_id=session_id,
+            )
         )
     if mode == "genius":
         return TelemetryBlock(
-            **_ok("arif_ops_measure", {"equation": "G = Q * T * T", "g_score": 0.97})
+            **_ok(
+                "arif_ops_measure",
+                {"equation": "G = Q * T * T", "g_score": 0.97},
+                session_id=session_id,
+            )
         )
     if mode == "psi_le":
         return TelemetryBlock(
-            **_ok("arif_ops_measure", {"psi_le": 1.02, "threshold": 1.05, "status": "nominal"})
+            **_ok(
+                "arif_ops_measure",
+                {"psi_le": 1.02, "threshold": 1.05, "status": "nominal"},
+                session_id=session_id,
+            )
         )
     if mode == "omega":
         return TelemetryBlock(
-            **_ok("arif_ops_measure", {"omega": 0.95, "target": 0.90, "status": "above_target"})
+            **_ok(
+                "arif_ops_measure",
+                {"omega": 0.95, "target": 0.90, "status": "above_target"},
+                session_id=session_id,
+            )
         )
     if mode == "landauer":
         return TelemetryBlock(
             **_ok(
                 "arif_ops_measure",
                 {"min_energy": 0.017, "unit": "eV", "note": "Landauer limit stub"},
+                session_id=session_id,
             )
         )
 
-    return TelemetryBlock(**_hold("arif_ops_measure", f"Unknown mode: {mode}"))
+    return TelemetryBlock(
+        **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)
+    )

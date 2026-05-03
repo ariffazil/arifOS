@@ -1,0 +1,147 @@
+{
+  "authority_boundary": {
+    "human_sovereign": "arif",
+    "assistant_role": "instrument",
+    "self_approval_forbidden": true,
+    "irreversible_requires_ack": true
+  },
+  "blocked_without_explicit_approval": [
+    "arif_vault_seal.seal",
+    "arif_forge_execute.write",
+    "arif_forge_execute.commit",
+    "arif_memory_recall.prune",
+    "arif_gateway_connect.relay"
+  ],
+  "tools": [
+    {
+      "name": "arif_session_init",
+      "floor": "000",
+      "available": true,
+      "safe_modes": ["init", "resume", "validate", "status", "discover", "handover"],
+      "dangerous_modes": ["revoke", "epoch_open", "epoch_seal"],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_sense_observe",
+      "floor": "111",
+      "available": true,
+      "safe_modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+      "dangerous_modes": [],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_evidence_fetch",
+      "floor": "222",
+      "available": true,
+      "safe_modes": ["fetch", "search", "verify"],
+      "dangerous_modes": ["archive"],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_mind_reason",
+      "floor": "333",
+      "available": true,
+      "safe_modes": ["reason", "reflect", "verify", "critique", "debate", "socratic", "plan", "plan_review", "plan_ready", "axioms"],
+      "dangerous_modes": [],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_kernel_route",
+      "floor": "444",
+      "available": true,
+      "safe_modes": ["route", "stage", "lane", "list", "status"],
+      "dangerous_modes": [],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_reply_compose",
+      "floor": "444r",
+      "available": true,
+      "safe_modes": ["compose"],
+      "dangerous_modes": [],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_memory_recall",
+      "floor": "555",
+      "available": true,
+      "safe_modes": ["recall", "get", "list", "search", "context", "dry_run"],
+      "dangerous_modes": ["store", "prune"],
+      "requires_ack_irreversible": true,
+      "requires_judge_state_hash": false,
+      "current_status": "gated"
+    },
+    {
+      "name": "arif_heart_critique",
+      "floor": "666",
+      "available": true,
+      "safe_modes": ["critique", "simulate", "empathize", "redteam", "maruah", "deescalate", "summary"],
+      "dangerous_modes": [],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_gateway_connect",
+      "floor": "666g",
+      "available": true,
+      "safe_modes": ["discover", "handshake"],
+      "dangerous_modes": ["route", "relay"],
+      "requires_ack_irreversible": true,
+      "requires_judge_state_hash": true,
+      "current_status": "gated"
+    },
+    {
+      "name": "arif_ops_measure",
+      "floor": "777",
+      "available": true,
+      "safe_modes": ["health", "vitals", "cost", "predict", "genius", "psi_le", "omega", "landauer"],
+      "dangerous_modes": [],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_judge_deliberate",
+      "floor": "888",
+      "available": true,
+      "safe_modes": ["judge", "compare", "history", "explain"],
+      "dangerous_modes": [],
+      "requires_ack_irreversible": false,
+      "requires_judge_state_hash": false,
+      "current_status": "active"
+    },
+    {
+      "name": "arif_vault_seal",
+      "floor": "999",
+      "available": true,
+      "safe_modes": ["list", "verify", "chain", "dry_run"],
+      "dangerous_modes": ["seal"],
+      "requires_ack_irreversible": true,
+      "requires_judge_state_hash": true,
+      "current_status": "gated"
+    },
+    {
+      "name": "arif_forge_execute",
+      "floor": "010",
+      "available": true,
+      "safe_modes": ["query", "recall", "dry_run"],
+      "dangerous_modes": ["engineer", "write", "generate", "commit"],
+      "requires_ack_irreversible": true,
+      "requires_judge_state_hash": true,
+      "current_status": "gated"
+    }
+  ]
+}

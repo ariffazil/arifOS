@@ -21,6 +21,8 @@ from typing import Any
 
 import httpx
 
+from arifosmcp.runtime.floors import get_floor_count
+
 try:
     import psutil
 
@@ -76,7 +78,7 @@ class GovernanceMetrics:
 
     # 13 Floors status
     floors: dict[str, dict] = field(default_factory=dict)
-    floors_active: int = 13
+    floors_active: int = field(default_factory=get_floor_count)
     floors_passing: int = 13
     floors_failing: int = 0
 

@@ -7,12 +7,14 @@ Immutable ledger and audit engine.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from arifosmcp.runtime.tools import _arif_vault_seal
 from arifosmcp.schemas.verdict import SealOutput
 
 
 def arif_vault_seal(
-    mode: str = "seal",
+    mode: Literal["seal", "verify", "chain", "list", "dry_run"] = "seal",
     payload: str = "",
     session_id: str | None = None,
     ack_irreversible: bool = False,

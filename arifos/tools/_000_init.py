@@ -22,6 +22,7 @@ from arifos.core.governance import (
     append_vault999_event,
     governed_return,
 )
+from arifos.security import msap
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONSTANTS
@@ -703,6 +704,13 @@ def _validate_continuity_contract(contract: dict) -> dict:
     if continuity_proof:
         result["proof_status"] = "PROFFERED"
         result["proof_class"] = continuity_proof.get("class", "UNKNOWN")
+        # Extract safe metadata for downstream usage (no secrets)
+        result["epoch_id"] = continuity_proof.get("epoch_id")
+        result["previous_session_hash"] = continuity_proof.get("previous_session_hash")
+        result["previous_epoch_hash"] = continuity_proof.get("previous_epoch_hash")
+        result["identity_commitment"] = continuity_proof.get("identity_commitment")
+        result["proof_hash"] = continuity_proof.get("proof_hash")
+        result["continuity_claim_state"] = "PENDING_VERIFICATION"
     else:
         result["proof_status"] = "MISSING"
 
@@ -1018,11 +1026,11 @@ async def execute(
     dict
         Mode-specific response. See schema for full shape.
     """
-    if mode not in {"status", "bind", "revoke", "refresh"}:
+    if mode not in {"status", "bind", "revoke", "refresh", "ack_challenge"}:
         return {
             "status": "INVALID_MODE",
             "verdict": "VOID",
-            "reason": f"Unknown mode '{mode}'. Must be one of: status, bind, revoke, refresh",
+            "reason": f"Unknown mode '{mode}'. Must be one of: status, bind, revoke, refresh, ack_challenge",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -1075,6 +1083,40 @@ async def execute(
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         return await _build_bind_response(operator_id, session_id, epoch, context, bind_payload)
+
+    # ── MSAP Challenge mode ────────────────────────────────────────────────
+    if mode == "ack_challenge":
+        ctx = context or {}
+        challenge = msap.create_challenge(
+            actor_id=operator_id,
+            session_id=session_id or "unknown",
+            payload_hash=ctx.get("payload_hash", ""),
+            judge_state_hash=ctx.get("judge_state_hash", ""),
+            constitutional_chain_id=ctx.get("constitutional_chain_id", ""),
+            action=ctx.get("action", "VAULT_SEAL"),
+        )
+        # We need a packet to get the template
+        dummy_packet = msap.SovereignAckPacket(
+            actor_id=challenge.actor_id,
+            session_id=challenge.session_id,
+            constitutional_chain_id=challenge.constitutional_chain_id,
+            action=ctx.get("action", "VAULT_SEAL"),
+            payload_hash=challenge.payload_hash,
+            judge_state_hash=challenge.judge_state_hash,
+            nonce=challenge.nonce,
+            expires_at=str(int(challenge.expires_at)),
+        )
+        template = msap.get_canonical_digest_string(dummy_packet)
+
+        return {
+            "status": "CHALLENGE_ISSUED",
+            "challenge_id": challenge.challenge_id,
+            "nonce": challenge.nonce,
+            "expires_at": datetime.fromtimestamp(challenge.expires_at, tz=timezone.utc).isoformat(),
+            "canonical_digest_template": template,
+            "verdict": "CLAIM_ONLY",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
     # Should never reach here
     return {

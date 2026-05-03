@@ -35,8 +35,11 @@ DRIFT_EVENT_TYPES = {
 def load_json(path: Path) -> dict:
     if not path.exists():
         return {}
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except PermissionError:
+        return {}
 
 
 def get_model_spec(model_key: str) -> dict:

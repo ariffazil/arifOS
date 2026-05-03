@@ -16,17 +16,20 @@ QUANTUM SABAR PROTOCOL (from archive/333/QUANTUM_SABAR_PROTOCOL.md):
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import random
 from typing import Any
 
 from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok
 
 
 class TimeoutError(Exception):
     """Raised when SENSE operation exceeds partition timeout."""
+
     pass
 
 
@@ -40,8 +43,9 @@ def arif_sense_observe(
     url: str | None = None,
     layers: list[str] | None = None,
     actor_id: str | None = None,
-    partition_mode: str = "ONLINE",   # ONLINE | PURGATORY | DEAD
-    partition_timeout: int = 30,        # seconds before partition triggers
+    session_id: str | None = None,
+    partition_mode: str = "ONLINE",  # ONLINE | PURGATORY | DEAD
+    partition_timeout: int = 30,  # seconds before partition triggers
 ) -> dict[str, Any]:
     """
     partition_mode: Byzantine continuity parameter.
@@ -51,6 +55,10 @@ def arif_sense_observe(
 
     Quantum Sabar Protocol ensures arif_sense_observe never hangs indefinitely.
     """
+    auth = validate_session(session_id, actor_id)
+    if not auth["valid"]:
+        return _hold("arif_sense_observe", auth["reason"], ["F11"], session_id=session_id)
+
     floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"])
@@ -70,48 +78,76 @@ def arif_sense_observe(
                 },
             }
         if partition_mode == "PURGATORY":
-            return _ok("arif_sense_observe", {
+            return _ok(
+                "arif_sense_observe",
+                {
+                    "query": query,
+                    "results": [],
+                    "source": "purgatory_ledger",
+                    "omega_0": 0.04,
+                    "partition": "PURGATORY",
+                    "note": "Witness unreachable — entry cached in Purgatory Ledger",
+                },
+            )
+        # ONLINE — normal
+        return _ok(
+            "arif_sense_observe",
+            {
                 "query": query,
                 "results": [],
-                "source": "purgatory_ledger",
+                "source": "sense",
                 "omega_0": 0.04,
-                "partition": "PURGATORY",
-                "note": "Witness unreachable — entry cached in Purgatory Ledger",
-            })
-        # ONLINE — normal
-        return _ok("arif_sense_observe", {
-            "query": query,
-            "results": [],
-            "source": "sense",
-            "omega_0": 0.04,
-            "partition": "ONLINE",
-            "note": "Qdrant AAA index not yet loaded — P1 tracked in wiki/RECURSIVE_IMPROVEMENT_LOG.md",
-        })
+                "partition": "ONLINE",
+                "note": "Qdrant AAA index not yet loaded — P1 tracked in wiki/RECURSIVE_IMPROVEMENT_LOG.md",
+            },
+        )
     if mode == "ingest":
-        return _ok("arif_sense_observe", {
-            "url": url, "ingested": False, "note": "stub",
-            "partition": partition_mode,
-        })
+        return _ok(
+            "arif_sense_observe",
+            {
+                "url": url,
+                "ingested": False,
+                "note": "stub",
+                "partition": partition_mode,
+            },
+        )
     if mode == "compass":
-        return _ok("arif_sense_observe", {
-            "heading": "north", "confidence": 0.95,
-            "partition": partition_mode,
-        })
+        return _ok(
+            "arif_sense_observe",
+            {
+                "heading": "north",
+                "confidence": 0.95,
+                "partition": partition_mode,
+            },
+        )
     if mode == "atlas":
-        return _ok("arif_sense_observe", {
-            "map": {}, "layers": layers or [],
-            "partition": partition_mode,
-        })
+        return _ok(
+            "arif_sense_observe",
+            {
+                "map": {},
+                "layers": layers or [],
+                "partition": partition_mode,
+            },
+        )
     if mode == "entropy_dS":
         dS = random.uniform(-0.1, 0.1)
-        return _ok("arif_sense_observe", {
-            "delta_S": round(dS, 6), "trend": "stable",
-            "partition": partition_mode,
-        })
+        return _ok(
+            "arif_sense_observe",
+            {
+                "delta_S": round(dS, 6),
+                "trend": "stable",
+                "partition": partition_mode,
+            },
+        )
     if mode == "vitals":
-        return _ok("arif_sense_observe", {
-            "cpu": 12.5, "mem": 34.0, "io": "normal",
-            "partition": partition_mode,
-        })
+        return _ok(
+            "arif_sense_observe",
+            {
+                "cpu": 12.5,
+                "mem": 34.0,
+                "io": "normal",
+                "partition": partition_mode,
+            },
+        )
 
     return _hold("arif_sense_observe", f"Unknown mode: {mode}")

@@ -30,11 +30,15 @@ We will not implement the ZK circuits themselves in this phase. Instead, we are 
 
 ## 3. Implementation Staircase (Phases)
 
-### Phase 0: Scaffolding (Current)
-- [ ] Create `zkpc_policy_zero_state.json`.
+### Phase 0: Scaffolding (In Progress)
+- [x] Create `zkpc_policy_zero_state.json`.
 - [ ] Define `ZKP_Evidence` schema in `schemas.py`.
-- [ ] Add `zk_proof_adequacy` check to `_888_judge.py`.
-- [ ] Add `continuity_proof` field to `_000_init.py` binding.
+- [x] Add `zk_proof_adequacy` check to `_888_judge.py` (mapped to `F1_AMANAH_ZKPC`).
+- [x] Add `continuity_proof` field to `_000_init.py` binding.
+- [x] Implement **MSAP v0.1** (Minimal Sovereign ACK Protocol):
+    - [x] Nonce-bound signed ACK challenge/verify logic in `security/msap.py`.
+    - [x] Integrated `ack_challenge` mode in `arif_session_init`.
+    - [x] Integrated `F1_AMANAH_ZKPC` verification in `arif_vault_seal`.
 
 ### Phase 1: VC 2.0 Normalization
 - [ ] Upgrade credential models to W3C VC 2.0 Standard.

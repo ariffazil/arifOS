@@ -15,26 +15,44 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 # SHIM — mock external arifos.core.governance dependencies
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class _MockThermodynamicMetrics:
     def __init__(self, **kwargs):
+        self.floor_13_signal = 0.0
+        self.floor_12_signal = 0.0
+        self.floor_11_signal = 0.0
+        self.floor_10_signal = 0.0
+        self.floor_9_signal = 0.0
+        self.floor_8_signal = 0.0
         self.__dict__.update(kwargs)
+
 
 class _MockAppendVault999Event:
     _events = []
+
     def __call__(self, event_type, payload, operator_id, session_id):
-        self._events.append({"event_type": event_type, "payload": payload,
-                             "operator_id": operator_id, "session_id": session_id})
-        return True
+        self._events.append(
+            {
+                "event_type": event_type,
+                "payload": payload,
+                "operator_id": operator_id,
+                "session_id": session_id,
+            }
+        )
+        return "mock_hash"
+
 
 class _MockGovernedReturn:
-    def __call__(self, tool_name, report, metrics, operator_id, session_id):
+    def __call__(self, tool_name, report, metrics, operator_id, session_id, **kwargs):
         # Return the report directly — simulates successful governance
         return report
+
 
 _mock_vault_events = _MockAppendVault999Event()
 
 # Inject mocks BEFORE importing the module
 import arifos.core.governance as _mock_gov
+
 _mock_gov.ThermodynamicMetrics = _MockThermodynamicMetrics
 _mock_gov.append_vault999_event = _mock_vault_events
 _mock_gov.governed_return = _MockGovernedReturn()
@@ -61,22 +79,29 @@ from arifos.tools._000_init import (
 # HELPERS — valid bind payloads
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def make_valid_ontology():
     return {
         "type": "AI_instrument",
         "nature": "governed_machine_not_person",
         "not_claiming": [
-            "consciousness", "soul", "feelings", "lived_experience",
-            "autonomous_override", "oracle_status",
+            "consciousness",
+            "soul",
+            "feelings",
+            "lived_experience",
+            "autonomous_override",
+            "oracle_status",
         ],
         "acknowledged": True,
     }
+
 
 def make_valid_role_scope(lane="general", tool_scope=None):
     return {
         "lane": lane,
         "requested_tool_scope": tool_scope or [],
     }
+
 
 def make_valid_sovereign_goal():
     return {
@@ -87,6 +112,7 @@ def make_valid_sovereign_goal():
         "forbidden_outcomes": ["fabricated_evidence", "defamatory_claims"],
         "abort_conditions": ["F9_VOID", "identity_unverifiable"],
     }
+
 
 def make_valid_epistemic_tom():
     return {
@@ -99,8 +125,10 @@ def make_valid_epistemic_tom():
         "uncertainty_acknowledged": True,
     }
 
+
 def make_valid_floor_mapping():
     return {k: v.copy() for k, v in FLOOR_SUMMARY.items()}
+
 
 def make_valid_pipeline_state():
     return {
@@ -109,6 +137,7 @@ def make_valid_pipeline_state():
         "verdict_authority": "888_JUDGE",
     }
 
+
 def make_valid_continuity_contract():
     return {
         "max_duration_hours": 24,
@@ -116,11 +145,13 @@ def make_valid_continuity_contract():
         "VOID_triggered_by": ["F9", "F5", "F10"],
     }
 
+
 def make_valid_godel_lock():
     return {
         "lock_items": list(GODEL_LOCK_ITEMS),
         "acknowledged": True,
     }
+
 
 def make_valid_bind_payload(**overrides):
     payload = {
@@ -148,6 +179,7 @@ def make_valid_bind_payload(**overrides):
 # ─────────────────────────────────────────────────────────────────────────────
 # TEST SUITE
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestStatusMode:
     """Tests for mode=status — backward compatibility."""
@@ -178,9 +210,7 @@ class TestStatusMode:
 
     @pytest.mark.asyncio
     async def test_status_preserves_existing_session_id(self):
-        result = await execute(
-            operator_id="arif", mode="status", session_id="existing-123"
-        )
+        result = await execute(operator_id="arif", mode="status", session_id="existing-123")
         assert result["session_id"] == "existing-123"
 
     @pytest.mark.asyncio
@@ -188,6 +218,7 @@ class TestStatusMode:
         result = await execute(operator_id="arif", mode="status")
         assert "epoch" in result
         import re
+
         assert re.match(r"^\d{4}\.\d{2}$", result["epoch"])
 
 
@@ -206,8 +237,14 @@ class TestBindModeValidation:
     async def test_bind_returns_all_bind_domains(self):
         payload = make_valid_bind_payload()
         result = await execute(operator_id="arif", mode="bind", bind_payload=payload)
-        for domain in ["role_scope", "sovereign_goal", "epistemic_tom",
-                       "floor_mapping", "pipeline_state", "godel_lock"]:
+        for domain in [
+            "role_scope",
+            "sovereign_goal",
+            "epistemic_tom",
+            "floor_mapping",
+            "pipeline_state",
+            "godel_lock",
+        ]:
             assert domain in result, f"Missing domain: {domain}"
         assert "constitutional_alignment" in result
 
@@ -280,7 +317,8 @@ class TestBindModeValidation:
         """Defining a non-existent floor → VOID."""
         payload = make_valid_bind_payload()
         payload["floor_mapping"]["F99_NONSENSE"] = {
-            "name": "NONSENSE", "type": "hard",
+            "name": "NONSENSE",
+            "type": "hard",
             "invariant": "This floor does not exist",
             "enforcement": "INFO",
         }
@@ -372,9 +410,7 @@ class TestRevokeMode:
 
     @pytest.mark.asyncio
     async def test_revoke_returns_revoked_status(self):
-        result = await execute(
-            operator_id="arif", mode="revoke", session_id="test-session-123"
-        )
+        result = await execute(operator_id="arif", mode="revoke", session_id="test-session-123")
         assert result["status"] == "REVOKED"
         assert result["session_id"] == "test-session-123"
 
@@ -406,7 +442,11 @@ class TestConstitutionalInvariants:
         """Missing anti_hantu_ack in ontology → handled via not_claiming."""
         payload = make_valid_bind_payload()
         payload["ontology_lock"]["not_claiming"] = [
-            "soul", "feelings", "lived_experience", "autonomous_override", "oracle_status"
+            "soul",
+            "feelings",
+            "lived_experience",
+            "autonomous_override",
+            "oracle_status",
         ]  # consciousness intentionally missing
         result = await execute(operator_id="arif", mode="bind", bind_payload=payload)
         assert result["verdict"] == "VOID"

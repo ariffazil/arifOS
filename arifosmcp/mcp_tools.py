@@ -26,6 +26,7 @@ try:
         arifos_oracle_bio,
         arifos_oracle_world,
     )
+
     CANONICAL_AVAILABLE = True
 except ImportError:
     CANONICAL_AVAILABLE = False
@@ -35,19 +36,26 @@ except ImportError:
 # PERCEPTION AGENT — oracle_bio (WELL state)
 # =============================================================================
 
+
 def create_perception_mcp() -> FastMCP:
     """Perception Agent MCP tools — arifos_oracle_bio for WELL state."""
     mcp = FastMCP("arifOS-P")
 
     if CANONICAL_AVAILABLE:
-        @mcp.tool(name="arifos_oracle_bio", description="WELL state oracle: snapshot_read, readiness_check, floor_scan, log_update")
+
+        @mcp.tool(
+            name="arifos_oracle_bio",
+            description="WELL state oracle: snapshot_read | readiness_check | floor_scan | log_update | deltascan (Proof-of-Friction gate: pass action_weight + kappa_r via dimensions)",
+        )
         async def oracle_bio(
             mode: str,
             session_id: str | None = None,
             ctx: Any = None,
             dimensions: dict[str, Any] | None = None,
         ) -> dict[str, Any]:
-            return await arifos_oracle_bio(mode=mode, session_id=session_id, ctx=ctx, dimensions=dimensions)
+            return await arifos_oracle_bio(
+                mode=mode, session_id=session_id, ctx=ctx, dimensions=dimensions
+            )
 
     return mcp
 
@@ -56,12 +64,17 @@ def create_perception_mcp() -> FastMCP:
 # TRANSFORMATION AGENT — compute_physics (petrophysics, stratigraphy, geometry, monte_carlo, entropy, growth)
 # =============================================================================
 
+
 def create_transformation_mcp() -> FastMCP:
     """Transformation Agent MCP tools — arifos_compute_physics for physics/math."""
     mcp = FastMCP("arifOS-T")
 
     if CANONICAL_AVAILABLE:
-        @mcp.tool(name="arifos_compute_physics", description="Physics engine: petrophysics | stratigraphy_correlate | geometry_build | monte_carlo | entropy_audit | growth_runway")
+
+        @mcp.tool(
+            name="arifos_compute_physics",
+            description="Physics engine: petrophysics | stratigraphy_correlate | geometry_build | monte_carlo | entropy_audit | growth_runway",
+        )
         async def compute_physics(
             mode: str,
             session_id: str | None = None,
@@ -79,11 +92,20 @@ def create_transformation_mcp() -> FastMCP:
             ctx: Any = None,
         ) -> dict[str, Any]:
             return await arifos_compute_physics(
-                mode=mode, session_id=session_id, well_id=well_id,
-                computation=computation, params=params, wells=wells,
-                section_id=section_id, horizons=horizons, outcomes=outcomes,
-                probabilities=probabilities, iterations=iterations,
-                cashflows=cashflows, burn_rate=burn_rate, ctx=ctx,
+                mode=mode,
+                session_id=session_id,
+                well_id=well_id,
+                computation=computation,
+                params=params,
+                wells=wells,
+                section_id=section_id,
+                horizons=horizons,
+                outcomes=outcomes,
+                probabilities=probabilities,
+                iterations=iterations,
+                cashflows=cashflows,
+                burn_rate=burn_rate,
+                ctx=ctx,
             )
 
     return mcp
@@ -93,12 +115,17 @@ def create_transformation_mcp() -> FastMCP:
 # VALUATION AGENT — compute_finance (npv, irr, dscr, emv, payback, etc.)
 # =============================================================================
 
+
 def create_valuation_mcp() -> FastMCP:
     """Valuation Agent MCP tools — arifos_compute_finance for finance/economic."""
     mcp = FastMCP("arifOS-V")
 
     if CANONICAL_AVAILABLE:
-        @mcp.tool(name="arifos_compute_finance", description="Finance engine: npv | irr | mirr | emv | dscr | payback | profitability_index | allocation_rank | personal_decision_rank | budget_optimize | civilization_sustainability")
+
+        @mcp.tool(
+            name="arifos_compute_finance",
+            description="Finance engine: npv | irr | mirr | emv | dscr | payback | profitability_index | allocation_rank | personal_decision_rank | budget_optimize | civilization_sustainability",
+        )
         async def compute_finance(
             mode: str,
             session_id: str | None = None,
@@ -121,15 +148,25 @@ def create_valuation_mcp() -> FastMCP:
             ctx: Any = None,
         ) -> dict[str, Any]:
             return await arifos_compute_finance(
-                mode=mode, session_id=session_id,
-                initial_investment=initial_investment, cash_flows=cash_flows,
-                discount_rate=discount_rate, terminal_value=terminal_value,
-                finance_rate=finance_rate, reinvest_rate=reinvest_rate,
-                outcomes=outcomes, probabilities=probabilities,
-                ebitda=ebitda, debt_service=debt_service,
-                candidates=candidates, constraints=constraints,
-                alternatives=alternatives, tasks=tasks,
-                resources=resources, current_state=current_state, ctx=ctx,
+                mode=mode,
+                session_id=session_id,
+                initial_investment=initial_investment,
+                cash_flows=cash_flows,
+                discount_rate=discount_rate,
+                terminal_value=terminal_value,
+                finance_rate=finance_rate,
+                reinvest_rate=reinvest_rate,
+                outcomes=outcomes,
+                probabilities=probabilities,
+                ebitda=ebitda,
+                debt_service=debt_service,
+                candidates=candidates,
+                constraints=constraints,
+                alternatives=alternatives,
+                tasks=tasks,
+                resources=resources,
+                current_state=current_state,
+                ctx=ctx,
             )
 
     return mcp
@@ -139,12 +176,17 @@ def create_valuation_mcp() -> FastMCP:
 # GOVERNANCE AGENT — compute_civilization (sustainability, game_theory, cross_evidence)
 # =============================================================================
 
+
 def create_governance_mcp() -> FastMCP:
     """Governance Agent MCP tools — arifos_compute_civilization for civilization-level compute."""
     mcp = FastMCP("arifOS-G")
 
     if CANONICAL_AVAILABLE:
-        @mcp.tool(name="arifos_compute_civilization", description="Civilization engine: sustainability_path | game_theory | cross_evidence_synthesize")
+
+        @mcp.tool(
+            name="arifos_compute_civilization",
+            description="Civilization engine: sustainability_path | game_theory | cross_evidence_synthesize",
+        )
         async def compute_civilization(
             mode: str,
             session_id: str | None = None,
@@ -155,9 +197,13 @@ def create_governance_mcp() -> FastMCP:
             ctx: Any = None,
         ) -> dict[str, Any]:
             return await arifos_compute_civilization(
-                mode=mode, session_id=session_id,
-                agents=agents, payoff_matrix=payoff_matrix,
-                scene_id=scene_id, current_state=current_state, ctx=ctx,
+                mode=mode,
+                session_id=session_id,
+                agents=agents,
+                payoff_matrix=payoff_matrix,
+                scene_id=scene_id,
+                current_state=current_state,
+                ctx=ctx,
             )
 
     return mcp
@@ -167,12 +213,17 @@ def create_governance_mcp() -> FastMCP:
 # EXECUTION AGENT — oracle_world (geox, wealth series)
 # =============================================================================
 
+
 def create_execution_mcp() -> FastMCP:
     """Execution Agent MCP tools — arifos_oracle_world for geox/wealth scene + series data."""
     mcp = FastMCP("arifOS-E")
 
     if CANONICAL_AVAILABLE:
-        @mcp.tool(name="arifos_oracle_world", description="World oracle: geox_scene_load | geox_skills_query | macro_snapshot | series_fetch | series_vintage_fetch")
+
+        @mcp.tool(
+            name="arifos_oracle_world",
+            description="World oracle: geox_scene_load | geox_skills_query | macro_snapshot | series_fetch | series_vintage_fetch",
+        )
         async def oracle_world(
             mode: str,
             session_id: str | None = None,
@@ -187,10 +238,17 @@ def create_execution_mcp() -> FastMCP:
             ctx: Any = None,
         ) -> dict[str, Any]:
             return await arifos_oracle_world(
-                mode=mode, session_id=session_id,
-                scene_type=scene_type, path=path, query=query,
-                domain=domain, geography=geography, source=source,
-                series_id=series_id, vintage_date=vintage_date, ctx=ctx,
+                mode=mode,
+                session_id=session_id,
+                scene_type=scene_type,
+                path=path,
+                query=query,
+                domain=domain,
+                geography=geography,
+                source=source,
+                series_id=series_id,
+                vintage_date=vintage_date,
+                ctx=ctx,
             )
 
     return mcp
@@ -199,6 +257,7 @@ def create_execution_mcp() -> FastMCP:
 # =============================================================================
 # META AGENT — stub (no separate tools; arifos_vault handles metabolic state via mode="read")
 # =============================================================================
+
 
 def create_meta_mcp() -> FastMCP:
     """Meta Agent MCP tools — stub (metabolic state routed through arifos_vault with mode='read')."""
@@ -209,6 +268,7 @@ def create_meta_mcp() -> FastMCP:
 # =============================================================================
 # UNIFIED MCP SERVER
 # =============================================================================
+
 
 def create_unified_mcp(agents: list[str] | None = None, visibility: str = "public_only") -> FastMCP:
     """Create unified MCP server with all or selected agents."""
@@ -224,27 +284,27 @@ def create_unified_mcp(agents: list[str] | None = None, visibility: str = "publi
 
     if "P" in agents:
         perception = create_perception_mcp()
-        for key, tool in _get_tools(perception).items():
+        for _key, tool in _get_tools(perception).items():
             mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
     if "T" in agents:
         transformation = create_transformation_mcp()
-        for key, tool in _get_tools(transformation).items():
+        for _key, tool in _get_tools(transformation).items():
             mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
     if "V" in agents:
         valuation = create_valuation_mcp()
-        for key, tool in _get_tools(valuation).items():
+        for _key, tool in _get_tools(valuation).items():
             mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
     if "G" in agents:
         governance = create_governance_mcp()
-        for key, tool in _get_tools(governance).items():
+        for _key, tool in _get_tools(governance).items():
             mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
     if "E" in agents:
         execution = create_execution_mcp()
-        for key, tool in _get_tools(execution).items():
+        for _key, tool in _get_tools(execution).items():
             mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
     if "M" in agents:
         meta = create_meta_mcp()
-        for key, tool in _get_tools(meta).items():
+        for _key, tool in _get_tools(meta).items():
             mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
 
     return mcp

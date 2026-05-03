@@ -840,10 +840,14 @@ def _new_session(
 ) -> dict[str, Any]:
     sid = f"SEAL-{uuid.uuid4().hex[:16]}"
 
+    import time
+    from arifosmcp.runtime.session_auth import SESSION_TTL_SECONDS
     sess = {
         "session_id": sid,
         "actor_id": actor_id or "anonymous",
         "created_at": _now(),
+        "created_at_unix": time.time(),
+        "expires_at_unix": time.time() + SESSION_TTL_SECONDS,
         "stage": "000",
         "lane": "AGI",
         "entropy_delta": 0.0,
@@ -865,6 +869,7 @@ def _new_session(
     }
 
     # ── Model Registry Binding (v2 Deepening — Lazy Import) ──
+    sess["session_warnings"] = []
     if declared_model_key:
         try:
             from arifosmcp.runtime.registry import build_governance_card
@@ -872,11 +877,21 @@ def _new_session(
             sess["model_governance_card"] = build_governance_card(
                 session_id=sid, declared_model_key=declared_model_key, deployment_id=deployment_id
             )
+            if not sess["model_governance_card"]:
+                sess["session_warnings"].append(
+                    "model_governance_card_unbound — F3_TRI_WITNESS degraded. Bind a model identity for full governance."
+                )
         except Exception as e:
             sess["model_governance_card"] = None
             sess["registry_error"] = str(e)
+            sess["session_warnings"].append(
+                "model_governance_card_unbound — F3_TRI_WITNESS degraded. Bind a model identity for full governance."
+            )
     else:
         sess["model_governance_card"] = None
+        sess["session_warnings"].append(
+            "model_governance_card_unbound — F3_TRI_WITNESS degraded. Bind a model identity for full governance."
+        )
 
     _SESSIONS[sid] = sess
     # H2: Persist to identity store for cross-process/cross-call continuity
@@ -966,6 +981,7 @@ def _ok(
                     epoch["peace2"] = max(epoch.get("peace2", 0.0), 1.0)
                     epoch["verdict"] = "SEAL"
 
+    actor_id = meta_payload.get("actor_id", "anonymous")
     response = {
         "status": "OK",
         "tool": tool,
@@ -973,6 +989,8 @@ def _ok(
         "meta": meta_payload,
         "delta_S": delta_S,
         "timestamp": _now(),
+        "session_id": session_id,
+        "actor_id": actor_id,
         "output_policy": "DOMAIN_SEAL",
         "reasons": [
             "Reversible operation — no irreversible state change",
@@ -980,7 +998,6 @@ def _ok(
             f"delta_S={delta_S} within reversible thermodynamic bounds",
         ],
     }
-    actor_id = meta_payload.get("actor_id")
     return _enforce_nine_signal(
         tool,
         response,
@@ -1015,15 +1032,25 @@ def _hold(
                 epoch["peace2"] = min(epoch.get("peace2", 1.0), 0.0)
     # F2 / Nine-Signal: inject nine_signal into HOLD payload (status=HOLD → RETAK)
     meta["nine_signal"] = _nine_signal_from_status("HOLD")
-    return {
+    actor_id = meta.get("actor_id") if extra_meta else "anonymous"
+    response = {
         "status": "HOLD",
         "tool": tool,
         "result": {},
         "meta": meta,
+        "delta_S": 0.0,
         "timestamp": _now(),
-        "reasons": reasons,
+        "session_id": session_id,
+        "actor_id": actor_id,
         "output_policy": "DOMAIN_VOID",
+        "reasons": reasons,
     }
+    return _enforce_nine_signal(
+        tool,
+        response,
+        session_id=session_id,
+        actor_id=actor_id,
+    )
 
 
 def _require_session(
@@ -1387,6 +1414,15 @@ def _arif_session_init(
         if previous_session_hash:
             sess["previous_session_hash"] = previous_session_hash
             _SESSIONS[sid] = sess
+
+        # TASK 4: Inject model_governance_card warning
+        session_warnings = sess.get("session_warnings", [])
+        if not sess.get("model_governance_card"):
+            warning_msg = "model_governance_card_unbound — F3_TRI_WITNESS degraded. Bind model identity for full constitutional governance."
+            if warning_msg not in session_warnings:
+                session_warnings.append(warning_msg)
+        sess["session_warnings"] = session_warnings
+
         # H2: Store write acknowledgment
         store_ack = {"_SESSIONS": False, "_SESSION_IDENTITY": False}
         if sid in _SESSIONS:
@@ -3168,6 +3204,11 @@ def _arif_kernel_route(
     Returns:
       Routing decision with path, hops, stage, workflow, budget, and authority boundary.
     """
+    from arifosmcp.runtime.session_auth import validate_session
+    auth = validate_session(session_id, actor_id)
+    if not auth["valid"]:
+        return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
+
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
     )
@@ -3225,34 +3266,152 @@ def _arif_kernel_route(
             "arif_kernel_route",
             {"lane": "AGI", "previous_lane": None, "switch_allowed": True},
             delta_S=0.0,
+            session_id=session_id
+        )
+
+    if mode == "session_probe":
+        from arifosmcp.runtime.session_auth import validate_session
+        results = {}
+        floors_to_probe = [
+            "000_INIT",
+            "111_SENSE",
+            "222_FETCH",
+            "333_MIND",
+            "444_KERNEL",
+            "555_MEMORY",
+            "777_OPS",
+            "888_JUDGE",
+            "999_VAULT",
+            "010_FORGE",
+        ]
+        auth = validate_session(session_id, actor_id)
+        # All floors share same validator — single result
+        status = "pass" if auth["valid"] else "fail"
+        for floor in floors_to_probe:
+            results[floor] = status
+
+        return _ok(
+            "arif_kernel_route",
+            {
+                "session_id": session_id,
+                "session_valid": auth["valid"],
+                "auth_detail": auth,
+                "validators": results,
+                "note": "All floors use unified F11 validator after coherence fix",
+            },
+            delta_S=0.0,
+            session_id=session_id,
         )
 
     if mode == "list":
-        return _ok("arif_kernel_route", {"tools": list(CANONICAL_TOOLS.keys())}, delta_S=0.0)
+        try:
+            import json
+            import os
+
+            manifest_path = os.path.join(
+                os.path.dirname(__file__), "..", "tools", "manifests", "tool_manifest.json"
+            )
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                manifest = json.load(f)
+
+            # Inject session-specific allowed modes
+            current_allowed_modes = {}
+            for tool_data in manifest.get("tools", []):
+                tool_name = tool_data["name"]
+                # For read-only list, we assume safe modes are allowed, dangerous modes require ack
+                current_allowed_modes[tool_name] = tool_data.get("safe_modes", [])
+
+            manifest["current_allowed_modes"] = current_allowed_modes
+            return _ok("arif_kernel_route", manifest, delta_S=0.0, session_id=session_id)
+        except Exception as e:
+            return _hold(
+                "arif_kernel_route",
+                f"Failed to load tool manifest: {e}",
+                ["F11"],
+                session_id=session_id,
+            )
 
     if mode == "status":
         orch = _build_orchestration(task, actor_id, session_id, stage)
+        # Fetch governance warnings
+        sess = _SESSIONS.get(session_id) if session_id else None
+        card = sess.get("model_governance_card", {}) if sess else {}
+        warnings = []
+        if card:
+            if not card.get("model_anchor", {}).get("identity_verified", False):
+                warnings.append("model_identity_unverified")
+            if card.get("shadow_profile", {}).get("status") == "registry_unavailable":
+                warnings.append("model_registry_unavailable")
+            if card.get("risk_leash", {}).get("status") == "registry_unavailable":
+                warnings.append("risk_leash_unavailable")
+
+        # Dynamically evaluate policy hashes (as requested, don't hardcode fake hashes)
+        # We'll use get_constitution_identity()
+        identity = get_constitution_identity()
+
         return _ok(
             "arif_kernel_route",
             {
                 "active_sessions": len(_SESSIONS),
                 "stage": stage or "000",
+                "status_level": "liveness",
+                "attestation_level": "declared_runtime_flags_not_independently_verified",
+                "kernel_hash": identity.get("constitution_hash", "unknown"),
+                "policy_hash": identity.get("invariants_hash", "unknown"),
+                "session_warnings": warnings,
+                "dangerous_modes_blocked_without_ack": [
+                    "arif_vault_seal.seal",
+                    "arif_forge_execute.write",
+                    "arif_forge_execute.commit",
+                    "arif_memory_recall.prune",
+                    "arif_gateway_connect.relay",
+                ],
                 "orchestration_maturity": {
-                    "depth_routing": True,
-                    "risk_gating": True,
-                    "budget_enforcement": True,
-                    "authority_boundary": True,
-                    "workflow_generation": True,
-                    "judge_integration": True,
+                    "depth_routing": {
+                        "enabled": True,
+                        "policy": "depth_v1",
+                        "proof_level": "runtime_declared",
+                    },
+                    "risk_gating": {
+                        "enabled": True,
+                        "policy": "risk_gate_v1",
+                        "proof_level": "runtime_declared",
+                        "last_risk_tier": orch.get("risk_tier", "unknown"),
+                    },
+                    "budget_enforcement": {
+                        "enabled": True,
+                        "policy": "budget_v1",
+                        "proof_level": "runtime_declared",
+                    },
+                    "authority_boundary": {
+                        "enabled": True,
+                        "policy": "human_sovereign_required",
+                        "proof_level": "runtime_declared",
+                    },
+                    "workflow_generation": {
+                        "enabled": True,
+                        "policy": "workflow_v1",
+                        "proof_level": "runtime_declared",
+                    },
+                    "judge_integration": {
+                        "enabled": True,
+                        "policy": "judge_v1",
+                        "proof_level": "runtime_declared",
+                    },
                 },
                 "last_orchestration": {
                     "route_id": orch["route_id"],
+                    "route_for": task or "kernel.status",
                     "depth_tier": orch["depth_tier"],
                     "risk_tier": orch["risk_tier"],
                     "judge_required": orch["judge_required"],
+                    "decision_basis": "read_only_status_probe" if not task else "task_orchestration",
+                    "reversibility": "read_only" if orch["risk_tier"] == "low" else "evaluating",
+                    "next_recommended_tool": "arif_kernel_route.list",
                 },
             },
             delta_S=0.0,
+            session_id=session_id,
         )
 
     if mode == "telemetry":
@@ -3324,7 +3483,7 @@ def _arif_kernel_route(
             delta_S=0.0,
         )
 
-    return _hold("arif_kernel_route", f"Unknown mode: {mode}")
+    return _hold("arif_kernel_route", f"Unknown mode: {mode}", session_id=session_id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

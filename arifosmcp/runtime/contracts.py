@@ -23,17 +23,20 @@ from pydantic import BaseModel, ConfigDict, Field
 # ENUMERATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class VerdictCode(str, Enum):
     """Canonical constitutional verdict codes."""
-    SEAL = "SEAL"       # Approved, attested
-    PARTIAL = "PARTIAL" # Approved with reservations
-    VOID = "VOID"       # Rejected, failed floors
-    SABAR = "SABAR"     # Pending, needs more info
-    HOLD = "888_HOLD"   # High-risk, requires human
+
+    SEAL = "SEAL"  # Approved, attested
+    PARTIAL = "PARTIAL"  # Approved with reservations
+    VOID = "VOID"  # Rejected, failed floors
+    SABAR = "SABAR"  # Pending, needs more info
+    HOLD = "888_HOLD"  # High-risk, requires human
 
 
 class RiskTier(str, Enum):
     """Risk classification tiers."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -48,6 +51,7 @@ class RiskTier(str, Enum):
 
 class SessionState(str, Enum):
     """Session lifecycle states."""
+
     ANONYMOUS = "anonymous"
     CLAIMED = "claimed"
     ANCHORED = "anchored"
@@ -58,7 +62,8 @@ class SessionState(str, Enum):
 
 class TrinityAspect(str, Enum):
     """The three governing principles."""
-    PSI = "PSI"      # Will, identity, sovereignty
+
+    PSI = "PSI"  # Will, identity, sovereignty
     DELTA = "DELTA"  # Change, reason, action
     OMEGA = "OMEGA"  # End state, empathy, memory
 
@@ -67,11 +72,13 @@ class TrinityAspect(str, Enum):
 # IDENTITY CONTRACTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SessionAnchor(BaseModel):
     """
     SessionAnchor — Established by init_session_anchor.
     Used by: init_session_anchor, session resources, prompts.
     """
+
     session_id: str = Field(..., description="Unique session identifier (UUID)")
     actor_id: str = Field(..., description="Human sovereign or agent identity")
     declared_name: str | None = Field(None, description="Optional display name")
@@ -88,6 +95,7 @@ class ToolAuthContext(BaseModel):
     ToolAuthContext — Restricted tool authorization.
     Used by: restricted tools (memory, vault, VPS execution).
     """
+
     session_id: str = Field(..., description="Bound session ID")
     token: str = Field(..., description="Session token")
     actor_id: str = Field(..., description="Verified actor identity")
@@ -100,10 +108,12 @@ class ToolAuthContext(BaseModel):
 # TELEMETRY CONTRACTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class WitnessTriple(BaseModel):
     """
     The three-witness attestation model.
     """
+
     human: float = Field(default=1.0, ge=0.0, le=1.0)
     ai: float = Field(default=0.0, ge=0.0, le=1.0)
     earth: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -113,10 +123,11 @@ class TelemetryEnvelope(BaseModel):
     """
     TelemetryEnvelope — Standard telemetry packet for all arifOS operations.
     """
+
     session_id: str = Field(..., description="Source session")
     epoch: str = Field(default="2026-04-06", description="Governance epoch")
     timestamp: str | None = Field(None, description="ISO 8601 timestamp")
-    
+
     # Six canonical constitutional metrics
     tau_truth: float = Field(default=0.95, ge=0.0, le=1.0, description="F2: Truth alignment")
     omega_0: float = Field(default=0.05, ge=0.0, description="F7: Humility level")
@@ -124,10 +135,13 @@ class TelemetryEnvelope(BaseModel):
     peace2: float = Field(default=1.0, ge=0.0, description="F5: Peace² factor")
     kappa_r: float = Field(default=0.9, ge=0.0, le=1.0, description="F6: Empathy/Care level")
     tri_witness: float = Field(default=0.0, ge=0.0, le=1.0, description="F3: Witness coherence")
-    
+
     # Derived
     psi_le: float | None = Field(None, description="Ψ Life-Energy index")
     verdict_hint: VerdictCode | None = Field(None, description="Indicative verdict")
+
+
+from arifosmcp.runtime.floors import get_floor_count
 
 
 class ConstitutionalHealthView(BaseModel):
@@ -135,9 +149,10 @@ class ConstitutionalHealthView(BaseModel):
     ConstitutionalHealthView — Dashboard view.
     Used by: ChatGPT render path and widget.
     """
+
     session_id: str
     status: str = Field(..., description="HEALTHY, DEGRADED, CRITICAL, or VOID")
-    floors_active: int = Field(default=13, ge=0, le=13)
+    floors_active: int = Field(default_factory=get_floor_count, ge=0, le=13)
     telemetry: TelemetryEnvelope | None = None
     recent_verdicts: list[Any] = Field(default_factory=list)
     widget_uri: str | None = Field(None, description="Widget render URI")
@@ -147,10 +162,12 @@ class ConstitutionalHealthView(BaseModel):
 # VERDICT CONTRACTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class VerdictRecord(BaseModel):
     """
     VerdictRecord — Immutable vault record for constitutional decisions.
     """
+
     record_id: str = Field(..., description="Unique record identifier")
     session_id: str = Field(..., description="Source session")
     timestamp: str = Field(..., description="ISO 8601 seal time")
@@ -167,6 +184,7 @@ class VerdictRecord(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 # TOOL INPUT CONTRACTS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class InitSessionAnchorInput(BaseModel):
     actor_id: str = Field(..., description="Identity claim (human or agent)")
@@ -294,9 +312,9 @@ AAA_TOOL_STAGE_MAP = {
     "arifos_memory": "555_MEMORY",
     "arifos_fetch": None,
     "arifos_reply": None,
-    "arifos_gateway": "888_OMEGA",
-    "arif_ping":             "PROBE",
-    "arif_selftest":         "PROBE",
+    "arifos_gateway": "666g_GATEWAY",
+    "arif_ping": "PROBE",
+    "arif_selftest": "PROBE",
     "arifos_health": "111_SENSE",
 }
 
@@ -326,8 +344,8 @@ TRINITY_BY_TOOL = {
     "arifos_fetch": "DELTA Δ",
     "arifos_reply": "PSI Ψ",
     "arifos_gateway": "OMEGA Ω",
-    "arif_ping":             "PROBE",
-    "arif_selftest":         "PROBE",
+    "arif_ping": "PROBE",
+    "arif_selftest": "PROBE",
     "arifos_health": "DELTA Δ",
 }
 
@@ -369,7 +387,16 @@ DOMAIN_PAYLOAD_GATES = {
     "arifos_judge": {"required": ["query", "risk_tier"]},
     "arifos_memory": {"required": ["query"]},
     "arifos_vault": {"required": ["verdict"]},
-    "arifos_forge": {"required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star", "judge_state_hash"]},
+    "arifos_forge": {
+        "required": [
+            "action",
+            "payload",
+            "session_id",
+            "judge_verdict",
+            "judge_g_star",
+            "judge_state_hash",
+        ]
+    },
     "arifos_gateway": {"required": ["session_id"]},
     "arifos_health": {"required": []},
 }
@@ -388,7 +415,14 @@ LAW_13_CATALOG = {
     "F12": "Injection defense",
     "F13": "Sovereign ratification",
 }
-READ_ONLY_TOOLS = ["arifos_sense", "arifos_mind", "arifos_kernel", "arifos_ops", "arifos_gateway", "arifos_health"]
+READ_ONLY_TOOLS = [
+    "arifos_sense",
+    "arifos_mind",
+    "arifos_kernel",
+    "arifos_ops",
+    "arifos_gateway",
+    "arifos_health",
+]
 REQUIRES_SESSION = [
     "arifos_sense",
     "arifos_mind",
@@ -416,6 +450,7 @@ TOOL_MODES = {
     "arifos_gateway": {"guard", "audit", "correlate"},
     "arifos_health": {"health"},
 }
+
 
 # Runtime helper contracts
 class ToolStatus(str, Enum):
@@ -506,7 +541,9 @@ class ToolEnvelope(BaseModel):
         payload = {
             "tool": self.tool,
             "session_id": self.session_id,
-            "risk_tier": self.risk_tier.value if isinstance(self.risk_tier, Enum) else self.risk_tier,
+            "risk_tier": (
+                self.risk_tier.value if isinstance(self.risk_tier, Enum) else self.risk_tier
+            ),
         }
         return f"sha256:{hash(str(payload)) & 0xffffffff:08x}"
 
@@ -516,7 +553,9 @@ class ToolEnvelope(BaseModel):
 
     @property
     def human_decision(self) -> HumanDecisionMarker:
-        explicit = self.__pydantic_extra__.get("human_decision") if self.__pydantic_extra__ else None
+        explicit = (
+            self.__pydantic_extra__.get("human_decision") if self.__pydantic_extra__ else None
+        )
         if explicit is not None:
             return explicit
         if self.status in {ToolStatus.HOLD, ToolStatus.VOID}:
@@ -555,10 +594,12 @@ class ValidationResult:
             payload={"error": self.reason, "valid": self.valid},
         )
 
+
 # Utils
 def make_telemetry_seed(session_id: str) -> TelemetryEnvelope:
     """Generate a fresh telemetry seed."""
     from datetime import datetime, timezone
+
     return TelemetryEnvelope(
         session_id=session_id,
         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -568,13 +609,14 @@ def make_telemetry_seed(session_id: str) -> TelemetryEnvelope:
         peace2=1.0,
         kappa_r=0.9,
         tri_witness=0.0,
-        verdict_hint=VerdictCode.SABAR
+        verdict_hint=VerdictCode.SABAR,
     )
 
 
 def compute_psi_le(telemetry: TelemetryEnvelope) -> float:
     """Compute life-energy index."""
     import math
+
     truth = telemetry.tau_truth
     entropy = 1 - abs(telemetry.delta_s)
     peace = min(telemetry.peace2 / 2.0, 1.0)
@@ -594,7 +636,7 @@ def calculate_entropy_budget(
 ) -> EntropyBudget:
     if not isinstance(assumptions, list):
         assumptions = []
-    if isinstance(confidence, (int, float)) and confidence > 1.0:
+    if isinstance(confidence, int | float) and confidence > 1.0:
         confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
     elif confidence is None:
         confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
@@ -632,7 +674,9 @@ def determine_human_marker(risk_tier: RiskTier | str, human_approval: bool = Fal
     return None
 
 
-def generate_trace_context(stage: str, session_id: str, parent_trace_id: str | None = None) -> TraceContext:
+def generate_trace_context(
+    stage: str, session_id: str, parent_trace_id: str | None = None
+) -> TraceContext:
     return TraceContext(
         stage=stage,
         session_id=session_id,
@@ -670,7 +714,9 @@ def verify_contract(*args: Any, **kwargs: Any) -> dict[str, Any]:
         "trinity_map_complete": public_tools.issubset(TRINITY_BY_TOOL.keys()),
         "law_bindings_complete": public_tools.issubset(AAA_TOOL_LAW_BINDINGS.keys()),
         "tool_modes_complete": public_tools.issubset(TOOL_MODES.keys()),
-        "session_requirements_cover_public_non_init": public_tools.difference({"arifos_init"}).issubset(REQUIRES_SESSION),
+        "session_requirements_cover_public_non_init": public_tools.difference(
+            {"arifos_init"}
+        ).issubset(REQUIRES_SESSION),
     }
     missing = {
         "stage": sorted(public_tools.difference(AAA_TOOL_STAGE_MAP.keys())),
@@ -685,24 +731,60 @@ def verify_contract(*args: Any, **kwargs: Any) -> dict[str, Any]:
         "missing": missing,
     }
 
+
 class EvidenceBundle(BaseModel):
     bundle_id: str
     session_id: str
     sources: list[dict[str, Any]] = []
 
+
 __all__ = [
-    "VerdictCode", "RiskTier", "SessionState", "TrinityAspect",
-    "SessionAnchor", "ToolAuthContext", "WitnessTriple", 
-    "TelemetryEnvelope", "ConstitutionalHealthView", "VerdictRecord",
-    "InitSessionAnchorInput", "JudgeVerdictInput", "SenseRealityInput",
-    "ReasonSynthesisInput", "CritiqueSafetyInput", "LoadMemoryContextInput",
-    "EstimateOpsInput", "RouteExecutionInput",
-    "AAA_CANONICAL_TOOLS", "AAA_PUBLIC_TOOLS", "AAA_TOOL_ALIASES",
-    "AAA_TOOL_STAGE_MAP", "TRINITY_BY_TOOL", "AAA_TOOL_LAW_BINDINGS",
-    "DOMAIN_PAYLOAD_GATES", "LAW_13_CATALOG", "READ_ONLY_TOOLS", "REQUIRES_SESSION", "TOOL_MODES",
-    "ToolEnvelope", "ToolStatus", "OutputPolicy", "VerdictScope", "HumanDecisionMarker", 
-    "SessionClass", "TraceContext", "EntropyBudget",
-    "make_telemetry_seed", "compute_psi_le", "calculate_entropy_budget", "check_domain_gate",
-    "determine_human_marker", "generate_trace_context", "public_tool_input_contracts",
-    "require_session", "validate_fail_closed", "verify_contract", "EvidenceBundle"
+    "VerdictCode",
+    "RiskTier",
+    "SessionState",
+    "TrinityAspect",
+    "SessionAnchor",
+    "ToolAuthContext",
+    "WitnessTriple",
+    "TelemetryEnvelope",
+    "ConstitutionalHealthView",
+    "VerdictRecord",
+    "InitSessionAnchorInput",
+    "JudgeVerdictInput",
+    "SenseRealityInput",
+    "ReasonSynthesisInput",
+    "CritiqueSafetyInput",
+    "LoadMemoryContextInput",
+    "EstimateOpsInput",
+    "RouteExecutionInput",
+    "AAA_CANONICAL_TOOLS",
+    "AAA_PUBLIC_TOOLS",
+    "AAA_TOOL_ALIASES",
+    "AAA_TOOL_STAGE_MAP",
+    "TRINITY_BY_TOOL",
+    "AAA_TOOL_LAW_BINDINGS",
+    "DOMAIN_PAYLOAD_GATES",
+    "LAW_13_CATALOG",
+    "READ_ONLY_TOOLS",
+    "REQUIRES_SESSION",
+    "TOOL_MODES",
+    "ToolEnvelope",
+    "ToolStatus",
+    "OutputPolicy",
+    "VerdictScope",
+    "HumanDecisionMarker",
+    "SessionClass",
+    "TraceContext",
+    "EntropyBudget",
+    "make_telemetry_seed",
+    "compute_psi_le",
+    "calculate_entropy_budget",
+    "check_domain_gate",
+    "determine_human_marker",
+    "generate_trace_context",
+    "public_tool_input_contracts",
+    "require_session",
+    "validate_fail_closed",
+    "verify_contract",
+    "EvidenceBundle",
 ]

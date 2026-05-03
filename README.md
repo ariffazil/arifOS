@@ -601,7 +601,7 @@ Every governed session follows this sequence:
 | `888` | `arif_judge_deliberate` | ASI | **The constitutional verdict engine.** Returns `SEAL` (proceed), `HOLD` (wait/missing evidence), or `VOID` (abort/floor breach). |
 | `010` | `arif_forge_execute` | AGI | Gated action execution. Requires valid `judge_state_hash` from `arif_judge_deliberate`. F13 SOVEREIGN always active. |
 | `999` | `arif_vault_seal` | APEX | Write the immutable outcome record to VAULT999. Irreversible. F01 AMANAH enforced. |
-| `444` | `arif_kernel_route` | AGI | Internal kernel routing and telemetry. Not for direct external calls. |
+| `444` | `arif_kernel_route` | AGI | Internal kernel routing and telemetry. If called externally, returns VOID (F12 INJECTION breach). |
 
 ### AI Agent Protocol Notes
 
@@ -621,6 +621,8 @@ arifOS is designed to be **fail-secure**, not fail-safe. When the kernel cannot 
 ### Floor Enforcement
 
 Every tool has a declared floor coverage. A tool covering F01 + F11 + F12 will reject any request that violates any of those floors, regardless of the other 10 floors passing.
+
+> **Transparency Note:** While the doctrinal framework lists 13 floors, dynamic `floors_active` enforcement across the entire cluster is a known open gap (currently hardcoded as `None` or `13` in some environments). Full semantic enforcement of all 13 floors simultaneously is under active development.
 
 ### F13 — The Human Veto
 
@@ -647,7 +649,7 @@ arifOS **never** logs, stores, or transmits credentials through the kernel. Secr
 - **Observatory:** [arifos.arif-fazil.com](https://arifos.arif-fazil.com) — governance dashboard showing live verdict, floor scores, Trinity witness lanes, and tool registry. Renders a snapshot from the last data-plane hydration cycle; add `?refresh=1` or reload for latest.
 - **Langfuse tracing:** active for 5/13 tools (in progress — target ≥10/13)
 - **`/api/status`:** live runtime SOT for vault health, tools loaded, drift, and verdict posture
-- **`/health`:** lightweight liveness check
+- **`/health`:** lightweight liveness check (`curl http://localhost:8080/health` → returns `{"status":"healthy",...}`)
 
 ---
 
@@ -753,4 +755,14 @@ Human / Agent request
 ---
 
 *DITEMPA BUKAN DIBERI — arifOS is forged by discipline, not granted by default.*
+*Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
+ arif_memory_recall, arif_heart_critique, arif_gateway_connect, arif_ops_measure, arif_judge_deliberate, arif_vault_seal, arif_forge_execute
+
+<!-- /SOT:changelog -->
+
+---
+
+*DITEMPA BUKAN DIBERI — arifOS is forged by discipline, not granted by default.*
+*Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
+by default.*
 *Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*

@@ -1,3 +1,4 @@
+# pragma: allowlist secret
 {"timestamp": "2026-04-07T03:58:17.329636", "vault_checksum_sha256": "44832c99adc9747ed3be182f79ad7cc1d4109cc0a9c3e29a81f0c4f5eced2979", "secret_count": 14, "vault_path": "/root/.secrets/vault.env", "authority": "888_JUDGE", "seal": "999_SEAL", "schema_version": "1.0"}
 {"timestamp": "2026-04-07T04:13:59.214062+00:00", "vault_checksum_sha256": "46137baa455bfc865c645330b40755a4c67bb12a8e951318ed4f55d4e5de9d82", "secret_count": 17, "vault_path": "/root/.secrets/vault.env", "authority": "888_JUDGE", "seal": "999_SEAL", "schema_version": "1.0"}
 {"timestamp": "2026-04-08T03:00:01.175222+00:00", "vault_checksum_sha256": "46137baa455bfc865c645330b40755a4c67bb12a8e951318ed4f55d4e5de9d82", "secret_count": 17, "vault_path": "/root/.secrets/vault.env", "authority": "888_JUDGE", "seal": "999_SEAL", "schema_version": "1.0"}
@@ -11,3 +12,4 @@
 {"timestamp": "2026-04-29T03:00:01.775066+00:00", "vault_checksum_sha256": "b6ec821b0368a7f95f3534bebbb9bf7424d2b7e0025b53e07b93f65d2bf1dc48", "secret_count": 25, "vault_path": "/root/.secrets/vault.env", "authority": "888_JUDGE", "seal": "999_SEAL", "schema_version": "1.0"}
 {"timestamp": "2026-05-01T03:00:02.435182+00:00", "vault_checksum_sha256": "b6ec821b0368a7f95f3534bebbb9bf7424d2b7e0025b53e07b93f65d2bf1dc48", "secret_count": 25, "vault_path": "/root/.secrets/vault.env", "authority": "888_JUDGE", "seal": "999_SEAL", "schema_version": "1.0"}
 {"timestamp": "2026-05-02T03:00:01.873590+00:00", "vault_checksum_sha256": "b6ec821b0368a7f95f3534bebbb9bf7424d2b7e0025b53e07b93f65d2bf1dc48", "secret_count": 25, "vault_path": "/root/.secrets/vault.env", "authority": "888_JUDGE", "seal": "999_SEAL", "schema_version": "1.0"}
+{"timestamp": "2026-05-03T03:00:01.228927+00:00", "vault_checksum_sha256": "b6ec821b0368a7f95f3534bebbb9bf7424d2b7e0025b53e07b93f65d2bf1dc48", "secret_count": 25, "vault_path": "/root/.secrets/vault.env", "authority": "888_JUDGE", "seal": "999_SEAL", "schema_version": "1.0"}

@@ -851,6 +851,118 @@ def arifos_oracle_bio(
             "result": {"updated_state": metrics},
         }
 
+    if mode == "deltascan":
+        # Proof-of-Friction (PoF) gate.
+        # Measures whether the biological sovereign is paying the thermodynamic cost
+        # of a governed decision proportional to its irreversibility weight (W_scar).
+        #
+        # Inputs via dimensions dict:
+        #   action_weight       float [0,1]  — irreversibility weight from arif_ops_measure
+        #   kappa_r             float [0,1]  — reversibility coefficient
+        #   baseline_well_score float        — optional prior snapshot score
+        #   current_bio_delta   dict         — optional caller-provided sensor deltas
+        #
+        # Formula: friction_ratio = actual_delta_magnitude / expected_delta_threshold
+        #   expected_delta_threshold = action_weight * (1 - kappa_r) * BASE_THETA
+        #   BASE_THETA = 10.0 (calibrated to 100-point well_score scale)
+        #
+        # Sovereignty verdicts:
+        #   friction_ratio > 1.0  → SEAL    (body engaged; cost being paid)
+        #   friction_ratio > 0.3  → CAUTION (partial engagement; log and notify)
+        #   friction_ratio ≤ 0.3  → 888_HOLD (anomaly: coercion, detachment, or spoofing)
+
+        if not well_state.exists():
+            return {"agent": "P", "action": "well_deltascan", "error": "WELL state not found"}
+
+        with open(well_state) as f:
+            current = json.load(f)
+
+        dims = dimensions or {}
+        action_weight = float(dims.get("action_weight", 0.5))
+        kappa_r = float(dims.get("kappa_r", current.get("kappa_r", 0.7)))
+        baseline_score = float(dims.get("baseline_well_score", current.get("well_score", 70.0)))
+        current_score = float(current.get("well_score", 70.0))
+
+        raw_delta = current_score - baseline_score
+
+        caller_delta = dims.get("current_bio_delta", {})
+        delta_stress = float(caller_delta.get("delta_stress_proxy", 0.0))
+        delta_cognitive = float(caller_delta.get("delta_cognitive_load", 0.0))
+
+        # Composite magnitude: well_score delta + weighted sub-metric deltas
+        actual_delta_magnitude = (
+            abs(raw_delta) + abs(delta_stress) * 5.0 + abs(delta_cognitive) * 5.0
+        )
+
+        # W_scar: stake weight = action irreversibility * (1 - reversibility)
+        w_scar = action_weight * (1.0 - kappa_r)
+
+        # Trivially reversible actions (W_scar < 0.1) auto-SEAL — no metabolic proof required
+        MIN_STAKE = 0.1
+        if w_scar < MIN_STAKE:
+            return {
+                "agent": "P",
+                "action": "well_deltascan",
+                "canonical": "arifos_oracle_bio[deltascan]",
+                "proof_of_friction": True,
+                "result": {
+                    "action_weight": action_weight,
+                    "kappa_r": kappa_r,
+                    "w_scar": round(w_scar, 4),
+                    "sovereignty_validity": "SEAL",
+                    "anomaly_flags": [],
+                    "bypass": "trivial_action",
+                    "bypass_reason": f"W_scar={w_scar:.4f} < {MIN_STAKE} — action is reversible; PoF gate not required",
+                    "attestation_mode": "self_reported_well_state",
+                },
+            }
+
+        # Higher irreversibility + lower reversibility → higher expected engagement
+        BASE_THETA = 10.0
+        expected_threshold = w_scar * BASE_THETA
+
+        friction_ratio = actual_delta_magnitude / expected_threshold
+
+        if friction_ratio > 1.0:
+            sovereignty_validity = "SEAL"
+            anomaly_flags: list[str] = []
+        elif friction_ratio > 0.3:
+            sovereignty_validity = "CAUTION"
+            anomaly_flags = ["friction_ratio_sub_threshold"]
+        else:
+            sovereignty_validity = "888_HOLD"
+            anomaly_flags = [
+                "anomaly_low_friction",
+                "possible_coercion_or_detachment",
+                "require_human_review",
+            ]
+
+        return {
+            "agent": "P",
+            "action": "well_deltascan",
+            "canonical": "arifos_oracle_bio[deltascan]",
+            "proof_of_friction": True,
+            "result": {
+                "action_weight": action_weight,
+                "kappa_r": kappa_r,
+                "baseline_well_score": baseline_score,
+                "current_well_score": current_score,
+                "raw_well_delta": raw_delta,
+                "delta_stress_proxy": delta_stress,
+                "delta_cognitive_load": delta_cognitive,
+                "actual_delta_magnitude": round(actual_delta_magnitude, 4),
+                "expected_delta_threshold": round(expected_threshold, 4),
+                "friction_ratio": round(friction_ratio, 4),
+                "sovereignty_validity": sovereignty_validity,
+                "anomaly_flags": anomaly_flags,
+                "attestation_mode": "self_reported_well_state",
+                "attestation_note": (
+                    "Current reading uses self-reported WELL state. "
+                    "Hardware biometric (HRV/TPM) would strengthen this proof."
+                ),
+            },
+        }
+
     return {"error": f"Unknown bio mode: {mode}"}
 
 

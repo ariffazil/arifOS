@@ -79,7 +79,7 @@ Claude follows the **Unidirectional Authority Chain**:
 | arifos_memory | 555_MEMORY | OMEGA Ω | Vector memory / git_read |
 | arifos_fetch | null | null | Web fetch |
 | arifos_reply | null | null | Dual-axis reply |
-| arifos_gateway | 888_OMEGA | OMEGA Ω | A2A routing |
+| arifos_gateway | 666g_GATEWAY | OMEGA Ω | A2A routing |
 
 ---
 

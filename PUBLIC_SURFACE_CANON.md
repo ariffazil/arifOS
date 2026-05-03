@@ -24,15 +24,15 @@ These are the only tools exposed on the default public discovery surface.
 | 1 | `arif_session_init` | 000_INIT | `init`, `resume`, `validate`, `epoch_open`, `epoch_seal` | Session anchor + identity binding |
 | 2 | `arif_sense_observe` | 111_SENSE | `search`, `ingest`, `compass`, `atlas`, `entropy_dS`, `vitals` | Reality grounding |
 | 3 | `arif_evidence_fetch` | 111_SENSE | `fetch` | Evidence-preserving web ingestion |
-| 4 | `arif_mind_reason` | 333_MIND | `reason`, `reflect`, `verify`, `critique`, `debate`, `socratic`, `plan`, `plan_review`, `plan_approve`, `axioms` | Constitutional reasoning |
+| 4 | `arif_mind_reason` | 333_MIND | `reason`, `reflect`, `verify`, `critique`, `debate`, `socratic`, `plan`, `plan_review`, `plan_ready`, `axioms` | Constitutional reasoning |
 | 5 | `arif_kernel_route` | 444_KERNEL | `route`, `stage`, `lane`, `list`, `status` | Metabolic orchestration |
 | 6 | `arif_reply_compose` | 444r_REPLY | `compose` | Message composition |
 | 7 | `arif_memory_recall` | 555_MEMORY | `recall`, `store`, `get`, `list`, `prune`, `search`, `context`, `dry_run` | Vector + associative memory |
 | 8 | `arif_heart_critique` | 666_HEART | `critique`, `simulate`, `empathize`, `redteam`, `maruah`, `deescalate`, `summary` | Ethical risk assessment |
-| 9 | `arif_gateway_connect` | 666_GATEWAY | `route`, `discover`, `handshake`, `relay` | Cross-agent federation |
+| 9 | `arif_gateway_connect` | 666g_GATEWAY | `route`, `discover`, `handshake`, `relay` | Cross-agent federation |
 | 10 | `arif_ops_measure` | 777_OPS | `health`, `vitals`, `cost`, `predict` | Thermodynamic telemetry |
 | 11 | `arif_judge_deliberate` | 888_JUDGE | `judge`, `compare`, `history`, `explain` | Constitutional arbitration |
-| 12 | `arif_vault_seal` | 999_VAULT | `seal`, `verify`, `chain`, `list` | Immutable ledger anchoring |
+| 12 | `arif_vault_seal` | 999_VAULT | `seal`, `verify`, `chain`, `list`, `dry_run` | Immutable ledger anchoring |
 | 13 | `arif_forge_execute` | 010_FORGE | `engineer`, `query`, `write`, `generate`, `commit`, `recall`, `dry_run` | Metabolic execution |
 
 ### Diagnostic / Probe Tools
@@ -224,3 +224,5 @@ Every `SEAL` verdict from `arif_judge_deliberate` includes an actively-populated
 ---
 
 *DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*
+9 SEAL ALIVE*
+�� 999 SEAL ALIVE*

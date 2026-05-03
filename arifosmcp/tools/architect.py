@@ -16,6 +16,8 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+from arifosmcp.runtime.floors import get_active_floors
+
 # ─────────────────────────────────────────────────────────────
 # A-ARCHITECT Tool Manifest
 # ─────────────────────────────────────────────────────────────
@@ -55,7 +57,7 @@ ARCHITECT_TOOL_SPEC = {
         },
         "required": ["query"],
     },
-    "floors_active": ["F1", "F2", "F4", "F7", "F9", "F13"],
+    "floors_active": get_active_floors(),
     "trinity": "DELTA Δ",
     "layer": "GOVERNANCE",
     "stage": "M-4_ARCH",

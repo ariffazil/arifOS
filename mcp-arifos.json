@@ -73,7 +73,7 @@
     {"name": "arifos_memory", "stage": "555_MEMORY", "lane": "OMEGA"},
     {"name": "arifos_fetch", "stage": null, "lane": null},
     {"name": "arifos_reply", "stage": null, "lane": null},
-    {"name": "arifos_gateway", "stage": "888_OMEGA", "lane": "OMEGA"}
+    {"name": "arifos_gateway", "stage": "666g_GATEWAY", "lane": "OMEGA"}
   ],
   "constitutional_floors": {
     "count": 13,
