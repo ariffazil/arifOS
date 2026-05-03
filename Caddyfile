@@ -194,6 +194,12 @@ aaa.arif-fazil.com {
         header Cache-Control "no-store, no-cache, must-revalidate"
         header Pragma "no-cache"
     }
+    handle /.well-known/* {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /aaa-card-treaty {
+        reverse_proxy aaa-a2a:3001
+    }
     handle {
         try_files {path} /index.html
         file_server
