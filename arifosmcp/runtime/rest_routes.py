@@ -3193,7 +3193,9 @@ def register_rest_routes(
         server-side (via httpx) and returns a combined status dict.
         """
 
-        MANIFEST_PATH = "/root/arifOS/arifosmcp/sites/apex-dashboard/federation-manifest.json"
+        MANIFEST_PATH = (
+            Path(__file__).parents[2] / "sites" / "apex-dashboard" / "federation-manifest.json"
+        )
 
         try:
             # Load federation manifest
