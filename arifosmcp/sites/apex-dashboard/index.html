@@ -1029,13 +1029,28 @@ loadOrganDiscovery();
 setInterval(loadOrganDiscovery, 60000);
 
 // ── Federation Manifest & Dossiers ───────────────────────────────────────
+// loadFederationProbe() fetches organ health/build-info server-side,
+// bypassing Cloudflare CORS restrictions that block browser-side cross-origin fetches.
+async function loadFederationProbe() {
+  try {
+    const r = await fetch('/api/federation-probe');
+    if (!r.ok) throw new Error('http ' + r.status);
+    const data = await r.json();
+    return data.probed || {};
+  } catch (e) {
+    console.warn('Federation probe failed (will use unknown):', e);
+    return {};
+  }
+}
+
 async function loadFederationManifest() {
   try {
-    const r = await fetch('/federation-manifest.json');
-    if (!r.ok) throw new Error('http '+r.status);
-    const manifest = await r.json();
+    const [manifest, probeResults] = await Promise.all([
+      fetch('/federation-manifest.json').then(r => { if (!r.ok) throw new Error('http '+r.status); return r.json(); }),
+      loadFederationProbe(),
+    ]);
     renderStackTopology(manifest.stack || {});
-    renderFederationDossiers(manifest.organs || {});
+    renderFederationDossiers(manifest.organs || {}, probeResults);
   } catch(e) {
     console.warn('Federation manifest failed:', e);
   }
@@ -1066,7 +1081,8 @@ function renderStackTopology(stack) {
   topoEl.innerHTML = html;
 }
 
-async function renderFederationDossiers(organs) {
+async function renderFederationDossiers(organs, probeResults) {
+  probeResults = probeResults || {};
   for (const [key, org] of Object.entries(organs)) {
     const card = document.querySelector(`.organ-card[data-organ="${key}"]`);
     if (!card) continue;
@@ -1078,26 +1094,14 @@ async function renderFederationDossiers(organs) {
       card.appendChild(dossier);
     }
 
-    // Fetch live health
-    let healthStatus = 'unknown';
-    try {
-      if (org.endpoints && org.endpoints.health) {
-        const hr = await fetch(org.base_url + org.endpoints.health, {mode:'cors'});
-        healthStatus = hr.ok ? 'healthy' : 'degraded';
-      }
-    } catch(e) { healthStatus = 'unknown'; }
+    // Use server-side probe results (bypasses Cloudflare CORS block)
+    const probed = probeResults[key] || {};
+    const healthStatus = probed.health || 'unknown';
 
-    // Fetch live build-info (arifOS only for now)
-    let buildInfo = '';
-    if (org.endpoints && org.endpoints.build_info) {
-      try {
-        const br = await fetch(org.base_url + org.endpoints.build_info, {mode:'cors'});
-        if (br.ok) {
-          const bd = await br.json();
-          buildInfo = `<div style="font-family:var(--font-mono);font-size:.7rem;color:var(--color-text-faint);margin-top:2px">${bd.short_sha || (bd.sha||'').slice(0,7)||'—'} · ${bd.version||'—'}</div>`;
-        }
-      } catch(e) { /* ignore */ }
-    }
+    const buildInfo = probed.build_info || {};
+    const buildInfoHtml = Object.keys(buildInfo).length
+      ? `<div style="font-family:var(--font-mono);font-size:.7rem;color:var(--color-text-faint);margin-top:2px">${buildInfo.short_sha || (buildInfo.sha||'').slice(0,7)||'—'} · ${buildInfo.version||'—'}</div>`
+      : '';
 
     let html = '';
 
@@ -1108,7 +1112,7 @@ async function renderFederationDossiers(organs) {
         <span class="h-dot"></span>
         <span>${healthStatus.toUpperCase()}</span>
       </div>
-      ${buildInfo}
+      ${buildInfoHtml}
     </div>`;
 
     // Dependencies

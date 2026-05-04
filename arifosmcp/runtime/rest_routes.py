@@ -2001,7 +2001,7 @@ def _compute_known_gaps(
             {
                 "id": "langfuse_tool_traces",
                 "title": "Langfuse tool traces: all 13 canonical tools wired (6 async _LANGFUSE_TRACER.trace + 7 sync _sync_trace)",
-                "detail": f"SDK active with 13/13 tools traced",
+                "detail": "SDK active with 13/13 tools traced",
                 "severity": "info",
                 "floors": [],
             }
@@ -3179,6 +3179,105 @@ def register_rest_routes(
         except Exception:
             logger.exception("api_status endpoint failed")
             return _rest_error("Failed to retrieve dashboard status", status_code=500)
+
+    @route("/api/federation-probe", methods=["GET"])
+    async def api_federation_probe(request: Request) -> Response:
+        """
+        Server-side organ health probe — bypasses browser CORS restrictions.
+
+        Replaces the browser-side CORS fetches in renderFederationDossiers()
+        that were failing due to Cloudflare anti-bot blocking cross-origin
+        requests from the Observatory page.
+
+        Probes each organ's /health and /api/build-info endpoints
+        server-side (via httpx) and returns a combined status dict.
+        """
+
+        MANIFEST_PATH = "/root/arifOS/arifosmcp/sites/apex-dashboard/federation-manifest.json"
+
+        try:
+            # Load federation manifest
+            with open(MANIFEST_PATH) as f:
+                manifest = json.load(f)
+
+            organs = manifest.get("organs", {})
+            results: dict[str, dict] = {}
+
+            async def probe_organ(key: str, org: dict) -> tuple[str, dict]:
+                base = org.get("base_url", "")
+                eps = org.get("endpoints", {})
+                health_ep = eps.get("health") if eps else None
+                build_ep = eps.get("build_info") if eps else None
+
+                health_status = "unknown"
+                build_info: dict = {}
+
+                if base and health_ep:
+                    # Probe health endpoint
+                    try:
+                        # Use sync urllib for simplicity in async context — quick timeout
+                        import urllib.request
+
+                        req = urllib.request.Request(
+                            base + health_ep,
+                            headers={
+                                "Accept": "application/json",
+                                "User-Agent": "arifOS-FederationProbe/1.0",
+                            },
+                        )
+                        with urllib.request.urlopen(req, timeout=5) as r:
+                            if r.status in (200, 201):
+                                health_status = "healthy"
+                            else:
+                                health_status = "degraded"
+                    except urllib.error.HTTPError:
+                        health_status = "degraded"
+                    except (urllib.error.URLError, TimeoutError, OSError):
+                        health_status = "unreachable"
+                    except Exception:
+                        health_status = "unknown"
+
+                if base and build_ep:
+                    try:
+                        import urllib.request
+
+                        req = urllib.request.Request(
+                            base + build_ep,
+                            headers={
+                                "Accept": "application/json",
+                                "User-Agent": "arifOS-FederationProbe/1.0",
+                            },
+                        )
+                        with urllib.request.urlopen(req, timeout=5) as r:
+                            body = r.read().decode("utf-8")
+                            build_info = json.loads(body)
+                    except Exception:
+                        pass  # build_info stays empty
+
+                return key, {"health": health_status, "build_info": build_info}
+
+            # Probe all organs concurrently
+            tasks = [probe_organ(k, v) for k, v in organs.items()]
+            probed = await asyncio.gather(*tasks, return_exceptions=True)
+
+            for item in probed:
+                if isinstance(item, tuple) and len(item) == 2:
+                    k, v = item
+                    results[k] = v
+                else:
+                    logger.warning("Federation probe item failed: %s", item)
+
+            return JSONResponse(
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "probed": results,
+                },
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
+
+        except Exception:
+            logger.exception("api_federation_probe endpoint failed")
+            return _rest_error("Failed to probe federation organs", status_code=500)
 
     @route("/api/build-info", methods=["GET"])
     async def api_build_info(request: Request) -> Response:
