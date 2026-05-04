@@ -37,27 +37,29 @@ F4_ENTROPY_TOLERANCE = 0.02  # Allow small positive ΔS for honest failure recor
 # Verdicts (888)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class Verdict:
     CLAIM_ONLY = "CLAIM_ONLY"  # Tool claims success; guard/invariants must ratify
-    PARTIAL = "PARTIAL"        # Proceed with remediation noted
-    SABAR = "SABAR"           # Cooling / retry / downgrade
-    VOID = "VOID"             # Hard block
-    HOLD_888 = "888_HOLD"     # Escalate to human sovereign
-    SEAL = "SEAL"             # 888_JUDGE only — do not use elsewhere
+    PARTIAL = "PARTIAL"  # Proceed with remediation noted
+    SABAR = "SABAR"  # Cooling / retry / downgrade
+    VOID = "VOID"  # Hard block
+    HOLD_888 = "888_HOLD"  # Escalate to human sovereign
+    SEAL = "SEAL"  # 888_JUDGE only — do not use elsewhere
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Thermodynamic & Constitutional Metrics
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class ThermodynamicMetrics:
-    truth_score: float           # F2: Truth / factual grounding (0–1, must be high)
-    delta_s: float              # F4: Entropy change (ΔS). Must be ≤ 0 for clarity.
-    omega_0: float              # F7: Humility band Ω0. Must be in [0.03, 0.05].
-    peace_squared: float         # F5: Stability metric (Peace²). Must be ≥ 1.0.
-    amanah_lock: bool           # F1: Amanah Lock — True if action is reversible.
-    tri_witness_score: float    # F3: Tri-Witness consensus (Human / AI / Earth).
+    truth_score: float  # F2: Truth / factual grounding (0–1, must be high)
+    delta_s: float  # F4: Entropy change (ΔS). Must be ≤ 0 for clarity.
+    omega_0: float  # F7: Humility band Ω0. Must be in [0.03, 0.05].
+    peace_squared: float  # F5: Stability metric (Peace²). Must be ≥ 1.0.
+    amanah_lock: bool  # F1: Amanah Lock — True if action is reversible.
+    tri_witness_score: float  # F3: Tri-Witness consensus (Human / AI / Earth).
     stakeholder_safety: float = 1.0  # F6: Stakeholder harm floor (0–1, 1 = no harm).
     floor_8_signal: Union[str, float, None] = "not_evaluated"
     floor_9_signal: Union[str, float, None] = "not_evaluated"
@@ -71,6 +73,7 @@ class ThermodynamicMetrics:
 # Vault-999: Cryptographic Immutability (Cooling Ledger)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _default_vault999_ledger_path() -> str:
     repo_root = Path(os.getenv("ARIFOS_WORKDIR", Path(__file__).resolve().parents[2]))
     return str(repo_root / "VAULT999" / "SEALED_EVENTS.jsonl")
@@ -80,10 +83,7 @@ VAULT999_LEDGER_PATH = os.getenv("ARIFOS_VAULT999_LEDGER", _default_vault999_led
 
 
 def seal_to_vault999(
-    tool_name: str,
-    payload: Dict[str, Any],
-    verdict: str,
-    previous_hash: str = "GENESIS"
+    tool_name: str, payload: Dict[str, Any], verdict: str, previous_hash: str = "GENESIS"
 ) -> str:
     entry = {
         "ts": time.time(),
@@ -126,9 +126,7 @@ def append_vault999_event(
     }
     entry_str = json.dumps(entry, sort_keys=True, ensure_ascii=False)
     merkle_leaf = hashlib.sha256(entry_str.encode("utf-8")).hexdigest()
-    chain_hash = hashlib.sha256(
-        f"{previous_hash}:{merkle_leaf}".encode("utf-8")
-    ).hexdigest()
+    chain_hash = hashlib.sha256(f"{previous_hash}:{merkle_leaf}".encode("utf-8")).hexdigest()
 
     record = {
         **entry,
@@ -146,13 +144,14 @@ def append_vault999_event(
 # Public API for Tools: governed_return
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def governed_return(
     tool_name: str,
     raw_output: Any,
     metrics: ThermodynamicMetrics,
     operator_id: Optional[str] = None,
     session_id: Optional[str] = None,
-    previous_hash: str = "GENESIS"
+    previous_hash: str = "GENESIS",
 ) -> Dict[str, Any]:
     """
     Wrap a tool's raw_output with constitutional review and Vault-999 sealing.
@@ -193,13 +192,18 @@ def governed_return(
         previous_hash=previous_hash,
     )
 
+    # Include zkpc_receipt in metrics so constitutional_guard's _extract_metrics
+    # (which scans nested dicts, not envelope top-level) can find it for F11 AUTH.
+    metrics_dict = asdict(metrics)
+    metrics_dict["zkpc_receipt"] = receipt_hash
+
     envelope: Dict[str, Any] = {
         "status": "success",
         "verdict": verdict,
         "tool": tool_name,
         "output": raw_output if verdict in (Verdict.CLAIM_ONLY, Verdict.PARTIAL) else None,
         "raw_output": raw_output,
-        "metrics": asdict(metrics),
+        "metrics": metrics_dict,
         "identity": identity,
         "zkpc_receipt": receipt_hash,
         "invariant_failures": invariant_failures,
@@ -210,9 +214,13 @@ def governed_return(
 
     if verdict == Verdict.PARTIAL:
         envelope["status"] = "partial"
-        actual_failures = raw_output.get("invariant_failures", []) if isinstance(raw_output, dict) else []
+        actual_failures = (
+            raw_output.get("invariant_failures", []) if isinstance(raw_output, dict) else []
+        )
         if actual_failures:
-            envelope["error"] = "AGI invariants failed: " + ", ".join(str(f) for f in actual_failures)
+            envelope["error"] = "AGI invariants failed: " + ", ".join(
+                str(f) for f in actual_failures
+            )
         return envelope
 
     envelope["status"] = "blocked"
