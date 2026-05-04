@@ -5250,6 +5250,9 @@ async def _arif_judge_deliberate_tool(
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
     ctx: Context | None = None,
+    # ── F-WEB Evidence Gate ──
+    evidence_receipt: dict[str, Any] | None = None,
+    claimed_evidence_level: str | None = None,
 ) -> dict[str, Any]:
     """
     888_JUDGE: Final constitutional arbitration and verdict sealing.
@@ -5266,12 +5269,14 @@ async def _arif_judge_deliberate_tool(
       explain   — Generate a human-readable rationale for a verdict.
 
     Parameters:
-      mode                  — judge | compare | history | explain
-      candidate             — Action or proposal to adjudicate
-      constitutional_chain_id — Immutable chain hash for audit continuity
-      session_id            — Governed session ID
-      actor_id              — Sovereign actor identifier
-      ctx                   — FastMCP Context for progress reporting and elicitation
+      mode                     — judge | compare | history | explain
+      candidate                — Action or proposal to adjudicate
+      constitutional_chain_id  — Immutable chain hash for audit continuity
+      session_id               — Governed session ID
+      actor_id                 — Sovereign actor identifier
+      ctx                      — FastMCP Context for progress reporting and elicitation
+      evidence_receipt         — F-WEB receipt; triggers deterministic evidence gate
+      claimed_evidence_level   — LLM's claimed level; tested against receipt max
 
     Returns:
       VerdictOutput with code, floor compliance proof, epistemic_snapshot,
@@ -5307,6 +5312,8 @@ async def _arif_judge_deliberate_tool(
             session_id=session_id,
             actor_id=actor_id,
             constitutional_chain_id=constitutional_chain_id,
+            evidence_receipt=evidence_receipt,
+            claimed_evidence_level=claimed_evidence_level,
         )
 
         if trace:

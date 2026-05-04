@@ -18,11 +18,8 @@ What ZKPC v2 does NOT prove:
 Honest claim: "ZKPC v2 proves continuity of control, not full personhood."
 
 Artifact layout:
-  zkp_artifacts/
-    circuit_final.zkey     — proving key
-    verification_key.json  — verifying key (pkcs8-style public params)
-    proof.json             — pre-generated proof for test inputs
-    public.json            — public signals [d, a, b, c] matching proof.json
+  verification_key.json  — verifying key (commits to repo, 3.5KB)
+  zkp_artifacts/        — proving key + proof samples (gitignored, generated)
     circuit_js/circuit.wasm — compiled witness calculator
 """
 
@@ -36,7 +33,7 @@ from typing import Any
 # ── Artifact paths ─────────────────────────────────────────────────────────────
 _ZKPC_DIR = os.path.dirname(__file__)
 _ZKPC_ARTIFACTS = os.path.join(_ZKPC_DIR, "zkp_artifacts")
-_VERIFICATION_KEY = os.path.join(_ZKPC_ARTIFACTS, "verification_key.json")
+_VERIFICATION_KEY = os.path.join(_ZKPC_DIR, "verification_key.json")
 _CIRCUIT_DIR = "/usr/lib/node_modules/snarkjs/node_modules/circom_runtime/test/circuit"
 # Note: circuit_final.zkey lives in zkp_artifacts; wasm must match
 _WASM_PATH = os.path.join(_CIRCUIT_DIR, "circuit_js", "circuit.wasm")

@@ -243,7 +243,7 @@ geox.arif-fazil.com {
 
     # GEOX MCP — proxy /mcp to geox_eic, FastMCP serves at root
     handle /mcp* {
-        reverse_proxy 172.19.0.5:8081 {
+        reverse_proxy 172.19.0.7:8081 {
             header_up Host {host}
             header_up X-Real-IP {remote_host}
             header_up Accept "text/event-stream, application/json"
@@ -252,18 +252,18 @@ geox.arif-fazil.com {
     }
     handle /health {
         import cors_public
-        reverse_proxy 172.19.0.5:8081
+        reverse_proxy 172.19.0.7:8081
     }
     handle /ready {
         import cors_public
-        reverse_proxy 172.19.0.5:8081
+        reverse_proxy 172.19.0.7:8081
     }
     handle /status {
         import cors_public
-        reverse_proxy 172.19.0.5:8081
+        reverse_proxy 172.19.0.7:8081
     }
     handle /sse* {
-        reverse_proxy 172.19.0.5:8081
+        reverse_proxy 172.19.0.7:8081
     }
 
     handle {

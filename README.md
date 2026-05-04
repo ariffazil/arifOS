@@ -1,6 +1,6 @@
 <!--
   arifOS README — Constitutional Intelligence Kernel
-  Version: 2026.05.01
+  Version: 2026.05.04
   Canonical: https://github.com/ariffazil/arifOS
   SOT marker — do not remove
 -->
@@ -46,7 +46,7 @@
 <br>
 
 <!-- SOT:badges -->
-[![arifOS](https://img.shields.io/badge/arifOS-KANON_2026.05.01-FF6B00?style=flat-square)](https://github.com/ariffazil/arifOS)
+[![arifOS](https://img.shields.io/badge/arifOS-KANON_2026.05.04-FF6B00?style=flat-square)](https://github.com/ariffazil/arifOS)
 [![MCP](https://img.shields.io/badge/MCP-FastMCP_3.2-7C3AED?style=flat-square)](https://github.com/ariffazil/arifOS)
 [![Constitution](https://img.shields.io/badge/Constitution-13_Floors_Enforced-1a1a1a?style=flat-square)](./arifosmcp/constitutional_map.py)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python)](https://python.org)
@@ -638,6 +638,39 @@ Every SEAL, HOLD, or VOID verdict is written to VAULT999 as an immutable JSON re
 
 **Current state:** VAULT999 service is healthy. Durable Postgres writer (`vault999-writer`) is in deployment (`DRIFT-WITNESS-INFRA` sprint). Until then, receipts write to a process-local ledger that does not persist across process restarts.
 
+### Zero-Knowledge Proof of Continuity (ZKPC v2)
+
+arifOS enforces cryptographic proof verification for irreversible actions via Groth16 (snarkjs).
+
+**What ZKPC v2 proves:**
+- Same hidden continuity secret was used across an epoch boundary
+- Actor continuity is preserved through the proof chain
+- Payload hash and judge state are bound to this proof
+
+**What ZKPC v2 does NOT prove:**
+- Human physically present right now (needs liveness + device binding — v3)
+- Biometric / full personhood
+
+**Honest claim:** *"ZKPC v2 proves continuity of control, not full personhood."*
+
+**How it works:**
+```
+User submits proof
+  → snarkjs groth16 verify [VK] [public.json] [proof.json]
+    → stdout contains "OK" → proof_verified = True
+    → else → proof_verified = False
+  → Judge: if zkpc_level < 2 + irreversible → HOLD
+  → Vault: SEAL only if eligible + proof_verified
+```
+
+**Implementation:** `arifos/security/zkpc_v2.py`
+
+**Verification key:** `arifos/security/verification_key.json`
+
+**Tests:** `tests/runtime/test_zkpc_v2.py` — 25/25 pass
+
+**ZKPC Readiness: ~65%** (real Groth16 verify + fail-closed pipeline; circuit-specific identity binding remains v3)
+
 ### Secrets and Credentials
 
 arifOS **never** logs, stores, or transmits credentials through the kernel. Secrets are injected at runtime via environment variables. If a credential appears in any arifOS log or output, treat it as compromised and rotate immediately.
@@ -739,6 +772,17 @@ Human / Agent request
 ## Changelog
 
 <!-- SOT:changelog -->
+### v2026.05.04 — ZKPC Cryptographic Enforcement
+
+**Commit:** `67b99886` · **Container:** `ghcr.io/ariffazil/arifos:fweb-receipts`
+
+- **ZKPC v2 real Groth16 verify** — `arifos/security/zkpc_v2.py` now calls `snarkjs groth16 verify` as sole truth source. No simulation. Fail-closed on error.
+- **25 ZKPC tests pass** — fake proof blocked, real proof passes, missing snarkjs → HOLD, all flags tested
+- **F-WEB Evidence Mode** — 111_SENSE now returns L1 receipt, 888_JUDGE has deterministic evidence sufficiency gate, 666_HEART has external-instruction detection
+- **VerdictOutput schema extended** — `max_evidence_level`, `sufficiency_verdict`, `sufficiency_reason`, `injection_detected`
+- **Caddyfile geox routing fix** — geox container IP updated to 172.19.0.7
+- **ZKPC Readiness: ~65%** — real Groth16 + fail-closed pipeline; v3 (liveness + device binding) remains
+
 ### v2026.05.01 — KANON Lock Release
 
 **Commit:** `83186c02` · **Container:** `ghcr.io/ariffazil/arifos:2026.05.01`
@@ -755,7 +799,7 @@ Human / Agent request
 ---
 
 *DITEMPA BUKAN DIBERI — arifOS is forged by discipline, not granted by default.*
-*Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
+*Version 2026.05.04 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
  arif_memory_recall, arif_heart_critique, arif_gateway_connect, arif_ops_measure, arif_judge_deliberate, arif_vault_seal, arif_forge_execute
 
 <!-- /SOT:changelog -->
@@ -763,6 +807,6 @@ Human / Agent request
 ---
 
 *DITEMPA BUKAN DIBERI — arifOS is forged by discipline, not granted by default.*
-*Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
+*Version 2026.05.04 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
 by default.*
-*Version 2026.05.01 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*
+*Version 2026.05.04 · 13 Tools · 13 Floors · Zero Delegation of Sovereignty*

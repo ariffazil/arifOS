@@ -149,3 +149,5 @@ skills/github-readme-dynamic/
 
 # Runtime evidence outputs (not source)
 evidence/
+*.zkey
+zkp_artifacts/

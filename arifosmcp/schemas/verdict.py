@@ -590,6 +590,26 @@ class VerdictOutput(BaseModel):
 
     # Metadata
     meta: dict[str, Any] = Field(default_factory=dict)
+
+    # ── F-WEB Evidence Sufficiency (Blueprint §9) ─────────────────────────────
+    # Deterministic max evidence level computed from receipt fields — NOT LLM-claimed
+    max_evidence_level: str | None = Field(
+        default=None,
+        description="L0–L5. Deterministically computed from evidence receipt fields.",
+    )
+    sufficiency_verdict: str | None = Field(
+        default=None,
+        description="SEAL | HOLD | VOID. Result of comparing claimed vs max level.",
+    )
+    sufficiency_reason: str | None = Field(
+        default=None,
+        description="Human-readable reason when sufficiency check fails.",
+    )
+    injection_detected: bool = Field(
+        default=False,
+        description="True if indirect prompt injection detected in evidence.",
+    )
+
     timestamp: str | None = None
 
 
