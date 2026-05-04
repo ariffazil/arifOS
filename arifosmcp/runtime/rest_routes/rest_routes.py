@@ -56,7 +56,7 @@ from core.shared.floors import (
 from arifosmcp.runtime.build_info import get_build_info
 from arifosmcp.runtime.capability_map import build_runtime_capability_map
 from arifosmcp.runtime.contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
-from .floors import get_floor_count
+from arifosmcp.runtime.floors import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
