@@ -54,6 +54,38 @@ class GPV(BaseModel):
 
     model_config = ConfigDict(validate_by_name=True)
 
+    @property
+    def risk_level(self) -> float:
+        return self.rho
+
+    @property
+    def truth_demand(self) -> float:
+        return self.tau
+
+    def can_use_fast_path(self) -> bool:
+        if self.rho >= 0.2 or self.tau >= 0.8:
+            return False
+        if str(self.lane) == "SOCIAL":
+            return True
+        return self.query_type in (
+            QueryType.PROCEDURAL,
+            QueryType.OPINION,
+            QueryType.CONVERSATIONAL,
+            QueryType.TEST,
+        )
+
+    def f2_threshold(self) -> float:
+        thresholds = {
+            QueryType.PROCEDURAL: 0.70,
+            QueryType.OPINION: 0.60,
+            QueryType.COMPARATIVE: 0.85,
+            QueryType.FACTUAL: 0.99,
+            QueryType.CONVERSATIONAL: 0.50,
+            QueryType.TEST: 0.50,
+            QueryType.EXPLORATORY: 0.80,
+        }
+        return thresholds.get(self.query_type, 0.95)
+
 
 # ============================================================================
 # EMD STACK — Energy-Metabolism-Decision Layer

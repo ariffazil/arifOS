@@ -171,6 +171,45 @@ arifos.arif-fazil.com {
 		reverse_proxy 127.0.0.1:8080
 	}
 
+	handle /api/* {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /components {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /capability {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /version {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /runtime_fingerprint {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /openapi.json {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /registry.json {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /ready {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /discovery {
+		reverse_proxy 127.0.0.1:8080
+	}
+
 	handle /agent-card.json {
 		root * /var/www/html/arifos
 		file_server
@@ -410,6 +449,33 @@ aaa.arif-fazil.com {
 	handle {
 		try_files {path} /index.html
 		file_server
+	}
+}
+
+# ═══════════════════════════════════════════════════════════════
+# forge.arif-fazil.com — A-FORGE metabolic shell
+# ═══════════════════════════════════════════════════════════════
+forge.arif-fazil.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-cf-ray
+		-cf-request-id
+		-server
+	}
+
+	handle /health {
+		reverse_proxy 127.0.0.1:7071
+	}
+	handle /contract {
+		reverse_proxy 127.0.0.1:7071
+	}
+	handle {
+		reverse_proxy 127.0.0.1:7071
 	}
 }
 

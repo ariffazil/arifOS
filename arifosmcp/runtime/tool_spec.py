@@ -116,9 +116,9 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["init", "refresh", "state", "status", "probe"],
+                    "enum": ["init", "refresh", "state", "status", "probe", "revoke"],
                     "default": "init",
-                    "description": "Session operation mode. probe=diagnostic compatibility check. init=new session, refresh=extend existing, state=query current state, status=lightweight health check.",
+                    "description": "Session operation mode. probe=diagnostic compatibility check. init=new session, refresh=extend existing, state=query current state, status=lightweight health check. revoke=terminate session (requires human approval).",
                 },
             },
         },
@@ -434,7 +434,15 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["vector_query", "vector_store", "engineer", "query", "ingest", "asset_store", "asset_query"],
+                    "enum": [
+                        "vector_query",
+                        "vector_store",
+                        "engineer",
+                        "query",
+                        "ingest",
+                        "asset_store",
+                        "asset_query",
+                    ],
                     "default": "vector_query",
                     "description": "vector_query=semantic search, vector_store=store new memory, engineer=engineering context retrieval, query=exact-match query, ingest=governed ingestion, asset_store=store GEOX asset-scoped memory, asset_query=retrieve GEOX asset-scoped memory.",
                 },
@@ -547,7 +555,14 @@ TOOLS: tuple[ToolSpec, ...] = (
         floors=("F1", "F2", "F7", "F13"),
         input_schema={
             "type": "object",
-            "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star", "judge_state_hash"],
+            "required": [
+                "action",
+                "payload",
+                "session_id",
+                "judge_verdict",
+                "judge_g_star",
+                "judge_state_hash",
+            ],
             "properties": {
                 "action": {
                     "type": "string",

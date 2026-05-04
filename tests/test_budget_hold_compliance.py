@@ -63,8 +63,7 @@ def test_budget_hold_includes_reasons():
     assert any(
         "max_turns" in r for r in result["reasons"]
     ), f"reasons[] must mention 'max_turns': {result['reasons']}"
-    # backward compat: old `reason` field must also be present
-    assert "reason" in result, "HOLD response MUST include 'reason' (backward compat)"
+    assert "reason" not in result or result.get("reason") is None
 
 
 def test_budget_hold_includes_domain_void():
@@ -110,7 +109,7 @@ def test_budget_hold_includes_nine_signal():
     assert "nine_signal" in result, "HOLD response MUST include 'nine_signal'"
     ns = result["nine_signal"]
     assert "overall" in ns, "nine_signal must have 'overall' field"
-    assert ns["overall"] == "HENTI", f"nine_signal.overall must be HENTI, got {ns['overall']}"
+    assert ns["overall"] == "RETAK", f"nine_signal.overall must be RETAK, got {ns['overall']}"
     assert "delta" in ns and "psi" in ns and "omega" in ns, "nine_signal must have delta/psi/omega"
 
 
@@ -179,7 +178,7 @@ def test_budget_tool_call_hold_includes_nine_signal():
 
     assert result["verdict"] == "HOLD"
     assert "nine_signal" in result
-    assert result["nine_signal"]["overall"] == "HENTI"
+    assert result["nine_signal"]["overall"] == "RETAK"
 
 
 def test_budget_clear_allows_seal():

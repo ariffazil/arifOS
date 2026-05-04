@@ -118,7 +118,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.KERNEL,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F04_CLARITY],
+        "floors": [Floor.F01_AMANAH, Floor.F04_CLARITY, Floor.F10_ONTOLOGY],
         "risk_tier": "medium",
         "irreversible": False,
     },

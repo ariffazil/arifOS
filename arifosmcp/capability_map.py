@@ -7,6 +7,19 @@ the legacy arifos.tool names to the new arifos_tool underscored convention.
 
 from __future__ import annotations
 
+from enum import Enum
+
+
+class InitAnchorMode(str, Enum):
+    """Modes supported by the 000_INIT arif_session_init tool."""
+
+    INIT = "init"
+    STATE = "state"
+    STATUS = "status"
+    REVOKE = "revoke"
+    REFRESH = "refresh"
+
+
 # Canonical 28-tool constitutional mapping
 CANONICAL_TOOL_HANDLERS = {
     "arifos_init": "arifos_init",
@@ -84,15 +97,19 @@ MEGA_TOOLS = list(CANONICAL_TOOL_HANDLERS.keys())
 FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
 MEGA_TOOL_MODES: dict[str, set[str]] = {name: {"default"} for name in MEGA_TOOLS}
 
+
 # Legacy iterator shims for pre-unification tests (current mapping is string→string, so these are trivially valid)
 def iter_unmapped_legacy_tools() -> list[str]:
     return []
 
+
 def iter_unknown_tools_in_map() -> list[str]:
     return []
 
+
 def iter_invalid_megatool_targets() -> list[str]:
     return []
+
 
 def iter_invalid_modes() -> list[str]:
     return []
@@ -148,6 +165,7 @@ def build_llm_context_map() -> dict[str, object]:
             },
         },
     }
+
 
 __all__ = [
     "CANONICAL_TOOL_HANDLERS",

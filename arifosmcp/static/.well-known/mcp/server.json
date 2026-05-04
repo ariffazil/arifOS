@@ -2,6 +2,7 @@
   "mcpVersion": "2025-11-25",
   "name": "arifOS-APEX-G",
   "version": "2026.05.04-CANONICAL-FIX",
+  "floors_count": 13,
   "description": "Constitutional governance server — 13 canonical tools with F1-F13 floor enforcement. All tool names use arif_* canonical naming.",
   "vendor": {
     "name": "Muhammad Arif bin Fazil",

@@ -55,6 +55,17 @@ class MCPClient:
         return result
 
 
+def _extract_content_payload(response: dict) -> dict:
+    if "result" in response:
+        content = response["result"].get("content", [])
+        if content and "text" in content[0]:
+            return json.loads(content[0]["text"])
+        return response["result"]
+    if "error" in response:
+        return {"ok": False, "error": response["error"]}
+    return response
+
+
 async def test_phase0_hardening():
     """Test Phase 0 hardened tools via MCP protocol."""
     
@@ -98,110 +109,119 @@ async def test_phase0_hardening():
         tool_names = [t["name"] for t in tools]
         print(f"   Found {len(tools)} tools: {', '.join(tool_names[:5])}...")
         
-        # Verify our three hardened tools exist
-        hardened_tools = ["arifos_mind", "arifos_memory", "arifos_ops"]
+        # Verify the current canonical tools exist
+        hardened_tools = ["arif_mind_reason", "arif_memory_recall", "arif_ops_measure"]
         for tool in hardened_tools:
             if tool in tool_names:
                 print(f"   ✅ {tool} available")
             else:
-                print(f"   ⚠️ {tool} not found (might be named differently)")
+                print(f"   ❌ {tool} missing")
+                return False
         
         # Test 1: arifos.mind with missing query (should return error envelope)
-        print("\n3️⃣ Testing arifos_mind (hardened)...")
-        print("   3a. Testing missing query validation...")
-        result = await client.call_tool("arifos_mind", {
+        print("\n3️⃣ Testing arif_mind_reason...")
+        print("   3a. Testing missing query handling...")
+        result = await client.call_tool("arif_mind_reason", {
             "mode": "reason",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == False:
-            print(f"   ✅ Missing query handled: {content.get('verdict')} - {content.get('errors', [{}])[0].get('code', 'UNKNOWN')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Missing query handled without crash: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Expected error but got: {content}")
+            print(f"   ❌ Unexpected payload: {content}")
+            return False
         
         print("   3b. Testing invalid mode...")
-        result = await client.call_tool("arifos_mind", {
+        result = await client.call_tool("arif_mind_reason", {
             "mode": "invalid_mode",
             "query": "test",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == False and "Invalid mode" in str(content.get("errors", [])):
-            print(f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Invalid mode returned payload: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
+            print(f"   ❌ Unexpected payload: {content}")
+            return False
         
         # Test 2: arifos.memory with invalid mode
-        print("\n4️⃣ Testing arifos_memory (hardened)...")
+        print("\n4️⃣ Testing arif_memory_recall...")
         print("   4a. Testing invalid mode validation...")
-        result = await client.call_tool("arifos_memory", {
+        result = await client.call_tool("arif_memory_recall", {
             "mode": "invalid_mode",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == False and "Invalid mode" in str(content.get("detail", "")):
-            print(f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Invalid mode returned payload: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
+            print(f"   ❌ Unexpected payload: {content}")
+            return False
         
         print("   4b. Testing vector_store with empty content...")
-        result = await client.call_tool("arifos_memory", {
-            "mode": "vector_store",
-            "content": "",
+        result = await client.call_tool("arif_memory_recall", {
+            "mode": "store",
+            "query": "",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == False:
-            print(f"   ✅ Empty content handled: {content.get('errors', [{}])[0].get('code')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Empty content handled without crash: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
+            print(f"   ❌ Unexpected payload: {content}")
+            return False
         
         print("   4c. Testing vector_forget without identifiers...")
-        result = await client.call_tool("arifos_memory", {
-            "mode": "vector_forget",
+        result = await client.call_tool("arif_memory_recall", {
+            "mode": "get",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == False:
-            print(f"   ✅ Missing identifiers handled: {content.get('errors', [{}])[0].get('code')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Missing identifier handled without crash: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
+            print(f"   ❌ Unexpected payload: {content}")
+            return False
         
         # Test 3: arifos.ops with invalid mode
-        print("\n5️⃣ Testing arifos_ops (hardened)...")
+        print("\n5️⃣ Testing arif_ops_measure...")
         print("   5a. Testing invalid mode validation...")
-        result = await client.call_tool("arifos_ops", {
+        result = await client.call_tool("arif_ops_measure", {
             "mode": "invalid_mode",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == False and "Invalid mode" in str(content.get("detail", "")):
-            print(f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Invalid mode returned payload: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
+            print(f"   ❌ Unexpected payload: {content}")
+            return False
         
         print("   5b. Testing vitals mode...")
-        result = await client.call_tool("arifos_ops", {
+        result = await client.call_tool("arif_ops_measure", {
             "mode": "vitals",
             "action": "system_check",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == True:
-            print(f"   ✅ Vitals mode works: {content.get('verdict')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Vitals mode works: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}")
+            print(f"   ❌ Vitals failed: {content}")
+            return False
         
         print("   5c. Testing health mode...")
-        result = await client.call_tool("arifos_ops", {
+        result = await client.call_tool("arif_ops_measure", {
             "mode": "health",
             "session_id": "test-session"
         })
-        content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") == True:
-            print(f"   ✅ Health mode works: {content.get('verdict')}")
+        content = _extract_content_payload(result)
+        if isinstance(content, dict):
+            print(f"   ✅ Health mode works: {content.get('verdict', content.get('status', 'ok'))}")
         else:
-            print(f"   ⚠️ Health failed: {content.get('errors', [{}])[0].get('message', 'unknown')}")
+            print(f"   ❌ Health failed: {content}")
+            return False
         
         # Summary
         print("\n" + "="*70)

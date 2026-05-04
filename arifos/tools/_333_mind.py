@@ -608,6 +608,16 @@ async def execute(
     )
 
     result = governed_return("arifos_333_mind", report, metrics, operator_id, session_id)
+    if not isinstance(result, dict):
+        result = {"status": "ACTIVE", "verdict": "CLAIM_ONLY", "output": report, "raw_output": report}
+    elif "output" not in result and "status" not in result:
+        result = {
+            "status": "ACTIVE",
+            "verdict": result.get("verdict", "CLAIM_ONLY"),
+            "tool": "arifos_333_mind",
+            "output": result,
+            "raw_output": result,
+        }
     if result.get("verdict") == "CLAIM_ONLY":
         result["status"] = "ACTIVE"
     elif result.get("status") == "partial":

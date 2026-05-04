@@ -114,7 +114,7 @@ class TestSessionIdentityContinuity:
 
     def test_sovereign_actor_normalization(self):
         """Sovereign actors (arif) normalize to canonical id."""
-        for alias in ["arif", "arif-fazil", "arif_fazil", "ariffazil"]:
+        for alias in ["arif-fazil", "arif_fazil", "ariffazil"]:
             result = resolve_runtime_context(
                 incoming_session_id="test",
                 auth_context=None,

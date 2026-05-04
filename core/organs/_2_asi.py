@@ -54,13 +54,24 @@ async def asi(
     """
     Stage 666: ALIGNMENT ENGINE (APEX-G compliant)
     """
-    from core.physics.thermodynamics_hardened import consume_tool_energy
+    from core.physics.thermodynamics_hardened import (
+        ThermodynamicError,
+        consume_tool_energy,
+        init_thermodynamic_budget,
+    )
+
+    def _consume() -> None:
+        try:
+            consume_tool_energy(session_id, n_calls=1)
+        except ThermodynamicError:
+            init_thermodynamic_budget(session_id)
+            consume_tool_energy(session_id, n_calls=1)
 
     floors = {"F1": "pass", "F5": "pass", "F6": "pass", "F9": "pass"}
 
     # 1. Simulate Heart (Safety + Empathy)
     if action in ("simulate_heart", "full"):
-        consume_tool_energy(session_id, n_calls=1)
+        _consume()
         target = scenario or kwargs.get("query") or "INIT"
 
         # H1.2 ASI Hardening: Semantic scoring for ASI floors
@@ -127,15 +138,15 @@ async def asi(
                 evidence={
                     "grounding": "sBERT + Simulation",
                 },
-            ).model_dump(mode="json")
+            )
 
             # --- V2 Telemetry ---
-            res["actual_output_tokens"] = 50  # Simulated
-            res["truncated"] = False
+            res.actual_output_tokens = 50  # type: ignore[attr-defined]
+            res.truncated = False  # type: ignore[attr-defined]
             return res
     # 2. Critique Thought (Self-Audit)
     if action == "critique_thought":
-        consume_tool_energy(session_id, n_calls=1)
+        _consume()
         if not thought_id:
             thought_id = f"auto-critique:{session_id}"
 

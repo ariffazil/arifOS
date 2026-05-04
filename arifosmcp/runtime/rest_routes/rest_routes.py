@@ -2543,7 +2543,10 @@ def register_rest_routes(
         import httpx
 
         base = os.getenv("INTERNAL_BASE", "http://arifosmcp:8080")
-        url = f"{base}{path}"
+        if path.startswith("http://") or path.startswith("https://"):
+            url = path
+        else:
+            url = f"{base}{path}"
         start = time.perf_counter()
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
@@ -2555,6 +2558,7 @@ def register_rest_routes(
                     data = {"raw": r.text[:200]}
                 return {
                     "url": url,
+                    "status": "ON" if r.status_code in (200, 201) else "OFF",
                     "status_code": r.status_code,
                     "response_ms": round(response_ms, 2),
                     "data": data,
@@ -2587,13 +2591,13 @@ def register_rest_routes(
 
         # --- Layer 1: MCP Servers ---
         mcp_tasks = [
-            _probe_http("/health", timeout=3.0),  # arifOS self
-            _probe_http("/health", timeout=3.0, path="http://geox:8081/health"),
-            _probe_http("/health", timeout=3.0, path="http://wealth-organ:8082/health"),
-            _probe_http("/health", timeout=3.0, path="http://well:8083/health"),
-            _probe_http("/health", timeout=3.0, path="http://af-bridge-prod:7071/health"),
-            _probe_http("/health", timeout=3.0, path="http://aaa-a2a:3001/health"),
-            _probe_http("/health", timeout=3.0, path="http://hermes-agent:3002/health"),
+            _probe_http(path="/health", timeout=3.0),  # arifOS self
+            _probe_http(path="http://geox:8081/health", timeout=3.0),
+            _probe_http(path="http://wealth-organ:8082/health", timeout=3.0),
+            _probe_http(path="http://well:8083/health", timeout=3.0),
+            _probe_http(path="http://af-bridge-prod:7071/health", timeout=3.0),
+            _probe_http(path="http://aaa-a2a:3001/health", timeout=3.0),
+            _probe_http(path="http://hermes-agent:3002/health", timeout=3.0),
             _probe_tcp_port("ollama", 11434),
         ]
 
@@ -2603,8 +2607,8 @@ def register_rest_routes(
 
         external_tasks = [
             _probe_tcp_port("ollama", 11434),
-            _probe_http("/health", timeout=5.0, path=sea_lion_base),
-            _probe_http("/api/public/health", timeout=5.0, path=langfuse_base),
+            _probe_http(path=sea_lion_base, timeout=5.0),
+            _probe_http(path=langfuse_base + "/api/public/health", timeout=5.0),
         ]
 
         infra_results = await asyncio.gather(*infra_tasks)

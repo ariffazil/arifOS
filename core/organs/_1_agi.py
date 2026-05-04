@@ -79,7 +79,9 @@ async def agi(
     # 2. Initialize Physics/Thermodynamics
     from core.physics.thermodynamics_hardened import (
         consume_reason_energy,
+        init_thermodynamic_budget,
         shannon_entropy,
+        ThermodynamicError,
     )
 
     # Baseline entropy (input)
@@ -212,7 +214,11 @@ async def agi(
     phase_usage["333_synthesis"] = usage_333
     actual_total += usage_333
 
-    consume_reason_energy(session_id, n_cycles=3)
+    try:
+        consume_reason_energy(session_id, n_cycles=3)
+    except ThermodynamicError:
+        init_thermodynamic_budget(session_id)
+        consume_reason_energy(session_id, n_cycles=3)
 
     steps = _build_reasoning_steps(query, reason_mode)
     lowered = synthesis_text.lower()

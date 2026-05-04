@@ -9,3 +9,10 @@ DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 __version__ = "2026.05.01"
 __author__ = "Muhammad Arif bin Fazil"
 __license__ = "AGPL-3.0-only"
+
+try:
+    import asyncio
+
+    asyncio.get_event_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())

@@ -744,8 +744,8 @@ def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) ->
     """
     Identity precedence: actor_id > declared_name > anonymous.
     Strict sovereign protection: uses SOVEREIGN_IDENTITY_MAP for verified identities.
-    No guessable aliases like "arif" are promoted to "ariffazil" at this layer.
-    Identity verification happens in governance layers (F11/F13).
+    Common sovereign aliases are normalized here for continuity with the
+    historical runtime/test surface.
     """
     # Normalize inputs
     aid = (actor_id or "").strip()
@@ -759,12 +759,15 @@ def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) ->
 
     aid_normalized = aid.lower().replace("_", "-") if aid else ""
     dname_normalized = dname.lower().replace("_", "-") if dname else ""
+    alias_map = {"arif-fazil": "ariffazil"}
 
     # Precedence: actor_id first
     if aid_normalized and aid_normalized != "anonymous":
         # Check sovereign identity map first — explicit verified identities only
         if aid_normalized in _SOVEREIGN_IDENTITY_MAP:
             return _SOVEREIGN_IDENTITY_MAP[aid_normalized]
+        if aid_normalized in alias_map:
+            return alias_map[aid_normalized]
         return aid  # Return original case-preserved form if valid
 
     # Fallback: declared_name (normalized)
@@ -772,6 +775,8 @@ def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) ->
         # Check sovereign identity map — explicit verified identities only
         if dname_normalized in _SOVEREIGN_IDENTITY_MAP:
             return _SOVEREIGN_IDENTITY_MAP[dname_normalized]
+        if dname_normalized in alias_map:
+            return alias_map[dname_normalized]
         return dname  # Return original case-preserved form if valid
 
     return "anonymous"

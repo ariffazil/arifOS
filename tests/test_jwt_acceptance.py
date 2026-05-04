@@ -133,9 +133,7 @@ class TestRoutingFailSafety:
         with patch(
             "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler", return_value=mock_handler
         ):
-            result = asyncio.get_event_loop().run_until_complete(
-                bridge._judge_pre_check("test_op", "internal")
-            )
+            result = asyncio.run(bridge._judge_pre_check("test_op", "internal"))
         assert result.get("verdict") == "HOLD"
         assert result.get("error") == "judge_handler_failed"
         assert result.get("verdict") != "SEAL"
@@ -154,9 +152,7 @@ class TestRoutingFailSafety:
             "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
             return_value=_exploding_handler,
         ):
-            result = asyncio.get_event_loop().run_until_complete(
-                bridge._judge_pre_check("test_op", "internal")
-            )
+            result = asyncio.run(bridge._judge_pre_check("test_op", "internal"))
         assert result.get("verdict") == "HOLD"
         assert result.get("verdict") != "SEAL"
 
@@ -170,9 +166,7 @@ class TestRoutingFailSafety:
         with patch(
             "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler", return_value=mock_handler
         ):
-            result = asyncio.get_event_loop().run_until_complete(
-                bridge.compute_petrophysics({"classification": "internal"})
-            )
+            result = asyncio.run(bridge.compute_petrophysics({"classification": "internal"}))
         assert "error" in result
         assert result.get("verdict", {}).get("verdict") != "SEAL"
 
@@ -288,8 +282,6 @@ class TestNoFailOpenSEAL:
             "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
             side_effect=ImportError("gone"),
         ):
-            result = asyncio.get_event_loop().run_until_complete(
-                bridge._judge_pre_check("op", "class")
-            )
+            result = asyncio.run(bridge._judge_pre_check("op", "class"))
         assert result.get("verdict") == "HOLD"
         assert result.get("verdict") != "SEAL"
