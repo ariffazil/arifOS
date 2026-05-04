@@ -975,6 +975,10 @@ setInterval(poll, 8000);
 // Session ID obtained via mcp-session-id response header from initialize.
 // Only arifOS exposes REST discovery; others require MCP protocol.
 // Verified counts: arifOS 13 | GEOX 53 | WEALTH 50 | WELL 31 | TOTAL 147
+//
+// FIX (2026-05-04): Browser-side CORS fetches to organ subdomains fail behind
+// Cloudflare. We now use the same-origin /api/federation-probe as primary
+// health source, and only attempt CORS discovery when probe confirms healthy.
 async function loadOrganDiscovery() {
   const organs = [
     {id:'geox',url:'https://geox.arif-fazil.com',verifiedCount:53,note:'MCP session required'},
@@ -984,42 +988,63 @@ async function loadOrganDiscovery() {
     {id:'forge',url:'https://forge.arif-fazil.com',verifiedCount:null,note:'unknown'},
     {id:'wiki',url:'https://wiki.arif-fazil.com',verifiedCount:null,note:'static site'},
   ];
+
+  // Primary health source: same-origin server-side probe (bypasses CORS)
+  let probeResults = {};
+  try {
+    const pr = await fetch('/api/federation-probe');
+    if (pr.ok) {
+      const pd = await pr.json();
+      probeResults = pd.probed || {};
+    }
+  } catch(e) { /* probe failed — fall through to degraded display */ }
+
   for (const o of organs) {
-    let healthOk = false;
+    const probed = probeResults[o.id] || {};
+    const healthStatus = probed.health || 'unknown';
+    const isHealthy = healthStatus === 'healthy';
+    const isDegraded = healthStatus === 'degraded';
+
     let discoveryOk = false;
     let tools = '—', resources = '—', prompts = '—';
-    try {
-      const hr = await fetch(o.url + '/health', {mode:'cors'});
-      healthOk = hr.ok;
-    } catch(e) { healthOk = false; }
-    try {
-      const r = await fetch(o.url + '/.well-known/mcp/server.json', {mode:'cors'});
-      if (r.ok) {
-        const d = await r.json();
-        tools = d.tools?.length ?? '—';
-        resources = d.resources?.length ?? '—';
-        prompts = d.prompts?.length ?? '—';
-        discoveryOk = true;
-      }
-    } catch(e) { discoveryOk = false; }
+
+    // Only attempt CORS discovery if server-side probe says organ is up
+    if (isHealthy || isDegraded) {
+      try {
+        const r = await fetch(o.url + '/.well-known/mcp/server.json', {mode:'cors'});
+        if (r.ok) {
+          const d = await r.json();
+          tools = d.tools?.length ?? '—';
+          resources = d.resources?.length ?? '—';
+          prompts = d.prompts?.length ?? '—';
+          discoveryOk = true;
+        }
+      } catch(e) { discoveryOk = false; }
+    }
 
     const el = document.getElementById(o.id+'-tools');
     const el2 = document.getElementById(o.id+'-resources');
     const el3 = document.getElementById(o.id+'-prompts');
+
     if (discoveryOk) {
       if (el) el.textContent = tools + ' tools';
       if (el2) el2.textContent = resources + ' resources';
       if (el3) el3.textContent = prompts + ' prompts';
-    } else if (healthOk && o.verifiedCount) {
+    } else if (isHealthy && o.verifiedCount) {
       if (el) el.textContent = o.verifiedCount + ' tools (MCP verified 2026-05-03)';
       if (el2) el2.textContent = o.note;
       if (el3) el3.textContent = '';
-    } else if (healthOk) {
+    } else if (isHealthy) {
       if (el) el.textContent = 'MCP discovery unavailable';
       if (el2) el2.textContent = '';
       if (el3) el3.textContent = '';
+    } else if (isDegraded) {
+      if (el) el.textContent = 'degraded';
+      if (el2) el2.textContent = '';
+      if (el3) el3.textContent = '';
     } else {
-      if (el) el.textContent = 'unreachable';
+      // unknown or unreachable
+      if (el) el.textContent = healthStatus === 'unreachable' ? 'unreachable' : 'unknown';
       if (el2) el2.textContent = '';
       if (el3) el3.textContent = '';
     }

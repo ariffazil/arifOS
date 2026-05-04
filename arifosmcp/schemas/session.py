@@ -15,6 +15,10 @@ class SessionState(BaseModel):
     lane: str = "AGI"
     entropy_delta: float = 0.0
     sealed: bool = False
+    actor_signature: str | None = None
+    nonce: str | None = None
+    signature_verified: bool = False
+    constitution_bound: bool = False
 
 
 class SessionManifest(BaseModel):
@@ -25,3 +29,8 @@ class SessionManifest(BaseModel):
     meta: dict[str, Any] = Field(default_factory=dict)
     doctrine: dict[str, Any] | None = None  # DITEMPA BUKAN DIBERI — coded constant
     timestamp: str | None = None
+    actor_signature: str | None = None
+    nonce: str | None = None
+    signature_verified: bool = False
+    constitution_bound: bool = False
+    invariants_checked: list[str] = Field(default_factory=list)

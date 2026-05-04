@@ -22,8 +22,8 @@ async def test_arifosmcp_stdio_e2e_protocol():
             **os.environ,
             "ARIFOS_PHYSICS_DISABLED": "1",
             "AAA_MCP_OUTPUT_MODE": "debug",
-            "ARIFOS_DEV_MODE": "1"
-        }
+            "ARIFOS_DEV_MODE": "1",
+        },
     )
 
     # 2. Start the stdio client
@@ -36,17 +36,15 @@ async def test_arifosmcp_stdio_e2e_protocol():
             tools_response = await session.list_tools()
             tool_names = [t.name for t in tools_response.tools]
 
-            assert "arifos_init" in tool_names
-            assert "arifos_kernel" in tool_names
-            assert "arifos_vault" in tool_names
+            assert "arif_session_init" in tool_names
+            assert "arif_kernel_route" in tool_names
+            assert "arif_vault_seal" in tool_names
 
-            # 4. Call arifos_init through the real stdio MCP lane
+            # 4. Call arif_session_init through the real stdio MCP lane
             result = await session.call_tool(
-                "arifos_init",
+                "arif_session_init",
                 {
                     "actor_id": "protocol-tester",
-                    "intent": "Validate the stdio output contract.",
-                    "platform": "stdio",
                 },
             )
 
@@ -54,10 +52,11 @@ async def test_arifosmcp_stdio_e2e_protocol():
             content_text = result.content[0].text
             payload = json.loads(content_text)
 
-            assert list(payload.keys()) == ["output"]
-            assert "Context: actor" in payload["output"]
-            assert "tool arifos_init." in payload["output"]
-            assert "Verdict:" in payload["output"]
+            assert payload["status"] == "OK"
+            assert payload["tool"] == "arif_session_init"
+            assert "session" in payload["result"]
+            assert payload["result"]["session"]["actor_id"] == "protocol-tester"
+
 
 if __name__ == "__main__":
     asyncio.run(test_arifosmcp_stdio_e2e_protocol())

@@ -10,394 +10,460 @@
 #   wealth.arif-fazil.com → WEALTH MCP
 #   well.arif-fazil.com   → WELL MCP
 #   aaa.arif-fazil.com    → AAA cockpit
-
 {
-    admin unix//var/run/caddy-admin.sock
-    email arif@arif-fazil.com
+	admin unix//var/run/caddy-admin.sock
+	email arif@arif-fazil.com
 }
 
 # ═══════════════════════════════════════════════════════════════
 # arif-fazil.com — Human surface
 # ═══════════════════════════════════════════════════════════════
 arif-fazil.com, www.arif-fazil.com {
-    encode zstd gzip
-    root * /var/www/html/arif
+	encode zstd gzip
+	root * /var/www/html/arif
 
-    header {
-        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        # Remove Cloudflare headers so bots/agents see clean origin
-        -cf-ray
-        -cf-request-id
-        -server
-    }
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Remove Cloudflare headers so bots/agents see clean origin
+		-cf-ray
+		-cf-request-id
+		-server
+	}
 
-    handle_path /.well-known/* {
-        root * /var/www/html/arif/.well-known
-        file_server
-    }
-    handle_path /000/* {
-        root * /var/www/html/arif/000
-        try_files {path} /index.html
-        file_server
-    }
-    handle_path /999/* {
-        root * /var/www/html/arif/999
-        try_files {path} /index.html
-        file_server
-    }
-    handle_path /888/* {
-        root * /var/www/html/arif/888
-        try_files {path} /index.html
-        file_server
-    }
-    handle_path /apex/* {
-        root * /var/www/html/apex
-        try_files {path} /index.html
-        file_server
-    }
-    handle_path /wiki/* {
-        root * /var/www/html/wiki
-        try_files {path} /index.html
-        file_server
-    }
-    handle {
-        try_files {path} {path}/index.html /index.html
-        file_server
-    }
+	handle_path /.well-known/* {
+		root * /var/www/html/arif/.well-known
+		file_server
+	}
+	handle_path /000/* {
+		root * /var/www/html/arif/000
+		try_files {path} /index.html
+		file_server
+	}
+	handle_path /999/* {
+		root * /var/www/html/arif/999
+		try_files {path} /index.html
+		file_server
+	}
+	handle_path /888/* {
+		root * /var/www/html/arif/888
+		try_files {path} /index.html
+		file_server
+	}
+	handle_path /apex/* {
+		root * /var/www/html/apex
+		try_files {path} /index.html
+		file_server
+	}
+	handle_path /wiki/* {
+		root * /var/www/html/wiki
+		try_files {path} /index.html
+		file_server
+	}
+	handle {
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════
 # arifos.arif-fazil.com — Constitutional kernel + Observatory
 # ═══════════════════════════════════════════════════════════════
 arifos.arif-fazil.com {
-    encode zstd gzip
-    root * /var/www/html/arifos
+	encode zstd gzip
+	root * /var/www/html/arifos
 
-    header {
-        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -cf-ray
-        -cf-request-id
-        -server
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, OPTIONS"
-    }
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-cf-ray
+		-cf-request-id
+		-server
+	}
 
-    handle /.well-known/* {
-        root * /var/www/html/arifos/.well-known
-        file_server
-    }
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8080 {
-            header_up Host {host}
-            header_up X-Real-IP {remote_host}
-            flush_interval -1
-        }
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /tools {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /tools.json {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8080 {
-            flush_interval -1
-        }
-    }
-    handle /api/status {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /api/federation-probe {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /agent-card.json {
-        root * /var/www/html/arifos
-        file_server
-    }
-    handle /a2a/discovery {
-        root * /var/www/html/arifos/a2a
-        try_files {path} /discovery.json
-        file_server
-    }
-    handle /llms.txt {
-        root * /var/www/html/arifos
-        file_server
-    }
-    handle /llms.json {
-        root * /var/www/html/arifos
-        file_server
-    }
-    handle /llms-full.txt {
-        root * /var/www/html/arifos
-        file_server
-    }
-    handle /webmcp {
-        reverse_proxy 127.0.0.1:8080 {
-            flush_interval 100ms
-        }
-    }
-    handle /wiki/* {
-        root * /var/www/html/wiki
-        try_files {path} /index.html
-        file_server
-    }
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	# P2: Bot scanner paths → cheap 404
+	@badpaths {
+		path /.env /.git/* /wp-login /phpmyadmin /admin /swagger /api-docs /server-status /debug
+	}
+	handle @badpaths {
+		respond "Not found" 404
+	}
+
+	# P1: Metrics → arifOS (before SPA fallback swallows them)
+	@metrics {
+		path /metrics /metrics/json
+	}
+	handle @metrics {
+		reverse_proxy 127.0.0.1:8080 {
+			header_down -Access-Control-Allow-Origin
+		}
+	}
+
+	handle /.well-known/* {
+		root * /var/www/html/arifos/.well-known
+		file_server
+	}
+
+	handle /mcp* {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			header_down -Access-Control-Allow-Origin
+			flush_interval -1
+		}
+	}
+
+	handle /health {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080 {
+			header_down -Access-Control-Allow-Origin
+		}
+	}
+
+	handle /tools {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080 {
+			header_down -Access-Control-Allow-Origin
+		}
+	}
+
+	handle /tools.json {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /sse* {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080 {
+			header_down -Access-Control-Allow-Origin
+			flush_interval -1
+		}
+	}
+
+	handle /api/status {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080 {
+			header_down -Access-Control-Allow-Origin
+		}
+	}
+
+	handle /api/federation-probe {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /agent-card.json {
+		root * /var/www/html/arifos
+		file_server
+	}
+
+	handle /a2a/discovery {
+		root * /var/www/html/arifos/a2a
+		try_files {path} /discovery.json
+		file_server
+	}
+
+	handle /llms.txt {
+		root * /var/www/html/arifos
+		file_server
+	}
+
+	handle /llms.json {
+		root * /var/www/html/arifos
+		file_server
+	}
+
+	handle /llms-full.txt {
+		root * /var/www/html/arifos
+		file_server
+	}
+
+	handle /webmcp {
+		header Access-Control-Allow-Origin "https://arifos.arif-fazil.com https://arif-fazil.com https://aaa.arif-fazil.com"
+		header Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		reverse_proxy 127.0.0.1:8080 {
+			header_down -Access-Control-Allow-Origin
+			flush_interval 100ms
+		}
+	}
+
+	handle /wiki/* {
+		root * /var/www/html/wiki
+		try_files {path} /index.html
+		file_server
+	}
+
+	# P1: CSP for SPA only
+	handle {
+		header {
+			Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://arifos.arif-fazil.com https://mcp.arif-fazil.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"
+		}
+		try_files {path} /index.html
+		file_server
+	}
 }
 
+# ═══════════════════════════════════════════════════════════════
+# geox.arif-fazil.com
 # ═══════════════════════════════════════════════════════════════
 # geox.arif-fazil.com — Earth intelligence MCP
 # ═══════════════════════════════════════════════════════════════
 geox.arif-fazil.com {
-    encode zstd gzip
-    root * /var/www/html/geox
+	encode zstd gzip
+	root * /var/www/html/geox
 
-    header {
-        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -cf-ray
-        -cf-request-id
-        -server
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, OPTIONS"
-    }
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-cf-ray
+		-cf-request-id
+		-server
+		Access-Control-Allow-Origin *
+		Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	}
 
-    @las_files path *.las
-    handle @las_files {
-        header Content-Type application/octet-stream
-        file_server
-    }
+	@las_files path *.las
+	handle @las_files {
+		header Content-Type application/octet-stream
+		file_server
+	}
 
-    handle /panels/* {
-        root * /data/geox_panels
-        file_server
-        header Cache-Control "no-store, no-cache"
-    }
+	handle /panels/* {
+		root * /data/geox_panels
+		file_server
+		header Cache-Control "no-store, no-cache"
+	}
 
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host {host}
-            header_up X-Real-IP {remote_host}
-            flush_interval -1
-            transport http {
-                dial_timeout 10s
-                read_timeout 30s
-            }
-        }
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:8081 {
-            transport http {
-                dial_timeout 5s
-                read_timeout 10s
-            }
-        }
-    }
-    handle /ready {
-        reverse_proxy 127.0.0.1:8081 {
-            transport http {
-                dial_timeout 5s
-                read_timeout 10s
-            }
-        }
-    }
-    handle /status {
-        reverse_proxy 127.0.0.1:8081 {
-            transport http {
-                dial_timeout 5s
-                read_timeout 10s
-            }
-        }
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8081 {
-            flush_interval -1
-            transport http {
-                dial_timeout 5s
-                read_timeout 30s
-            }
-        }
-    }
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			flush_interval -1
+			transport http {
+				dial_timeout 10s
+				read_timeout 30s
+			}
+		}
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:8081 {
+			transport http {
+				dial_timeout 5s
+				read_timeout 10s
+			}
+		}
+	}
+	handle /ready {
+		reverse_proxy 127.0.0.1:8081 {
+			transport http {
+				dial_timeout 5s
+				read_timeout 10s
+			}
+		}
+	}
+	handle /status {
+		reverse_proxy 127.0.0.1:8081 {
+			transport http {
+				dial_timeout 5s
+				read_timeout 10s
+			}
+		}
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:8081 {
+			flush_interval -1
+			transport http {
+				dial_timeout 5s
+				read_timeout 30s
+			}
+		}
+	}
 
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════
 # wealth.arif-fazil.com — Capital intelligence MCP
 # ═══════════════════════════════════════════════════════════════
 wealth.arif-fazil.com {
-    encode zstd gzip
-    root * /var/www/html/wealth
+	encode zstd gzip
+	root * /var/www/html/wealth
 
-    header {
-        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -cf-ray
-        -cf-request-id
-        -server
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, OPTIONS"
-    }
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-cf-ray
+		-cf-request-id
+		-server
+		Access-Control-Allow-Origin *
+		Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	}
 
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /ready {
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8082
-    }
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /ready {
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:8082
+	}
 
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════
 # well.arif-fazil.com — Operator cognitive pressure
 # ═══════════════════════════════════════════════════════════════
 well.arif-fazil.com {
-    header {
-        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        -cf-ray
-        -cf-request-id
-        -server
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, OPTIONS"
-    }
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		-cf-ray
+		-cf-request-id
+		-server
+		Access-Control-Allow-Origin *
+		Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	}
 
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle {
-        respond "WELL — Operator Cognitive Pressure Monitor"
-    }
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle {
+		respond "WELL — Operator Cognitive Pressure Monitor"
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════
 # aaa.arif-fazil.com — Agent cockpit
 # ═══════════════════════════════════════════════════════════════
 aaa.arif-fazil.com {
-    encode zstd gzip
-    root * /var/www/html/aaa
+	encode zstd gzip
+	root * /var/www/html/aaa
 
-    header {
-        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -cf-ray
-        -cf-request-id
-        -server
-    }
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-cf-ray
+		-cf-request-id
+		-server
+	}
 
-    handle /a2a/* {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle /operator/* {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:3001
-        header Cache-Control "no-store, no-cache, must-revalidate"
-        header Pragma "no-cache"
-    }
-    handle /.well-known/* {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle /aaa-card-treaty {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle /a2a/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /operator/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:3001
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		header Pragma "no-cache"
+	}
+	handle /.well-known/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /aaa-card-treaty {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # Legacy redirects
 apex.arif-fazil.com {
-    redir https://arif-fazil.com/apex{uri} permanent
+	redir https://arif-fazil.com/apex{uri} permanent
 }
 arifOS.arif-fazil.com {
-    root * /var/www/html/arifOS
-    handle /.well-known/* {
-        header Cache-Control "no-cache, no-store, must-revalidate"
-        header Pragma "no-cache"
-        header Expires "0"
-        file_server
-    }
-    handle /observatory/* {
-        root * /var/www/arifos/observatory
-        try_files {path} /index.html
-        file_server
-    }
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	root * /var/www/html/arifOS
+	handle /.well-known/* {
+		header Cache-Control "no-cache, no-store, must-revalidate"
+		header Pragma "no-cache"
+		header Expires "0"
+		file_server
+	}
+	handle /observatory/* {
+		root * /var/www/arifos/observatory
+		try_files {path} /index.html
+		file_server
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 arifosmcp.arif-fazil.com {
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /.well-known/mcp/* {
-        root * /var/www/html/arifos
-        file_server
-    }
-    handle {
-        redir https://arifos.arif-fazil.com{uri} permanent
-    }
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /.well-known/mcp/* {
+		root * /var/www/html/arifos
+		file_server
+	}
+	handle {
+		redir https://arifos.arif-fazil.com{uri} permanent
+	}
 }
 mcp.arif-fazil.com {
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /.well-known/mcp/* {
-        root * /var/www/html/arifos
-        file_server
-    }
-    handle {
-        redir https://arifos.arif-fazil.com{uri} permanent
-    }
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /.well-known/mcp/* {
+		root * /var/www/html/arifos
+		file_server
+	}
+	handle {
+		redir https://arifos.arif-fazil.com{uri} permanent
+	}
 }
 wiki.arif-fazil.com {
-    redir https://arifos.arif-fazil.com/wiki{uri} permanent
+	redir https://arifos.arif-fazil.com/wiki{uri} permanent
 }
 
 # Infrastructure (internal only)
-dozzle.arif-fazil.com {
-    reverse_proxy dozzle:8080
-}
 ollama.arif-fazil.com {
-    reverse_proxy ollama-engine-prod:11434
+	reverse_proxy ollama-engine-prod:11434
 }

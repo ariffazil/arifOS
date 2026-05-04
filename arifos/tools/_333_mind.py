@@ -54,6 +54,7 @@ GODEL_LOCK_INVARIANTS = {
 
 class BindArtifactError(Exception):
     """Raised when bind_artifact fails validation."""
+
     def __init__(self, field: str, reason: str):
         self.field = field
         self.reason = reason
@@ -72,13 +73,18 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
         raise BindArtifactError(
             "schema_version",
             f"Expected v{BIND_SCHEMA_VERSION} or compatible, "
-            f"got: {bind_artifact.get('schema_version')}"
+            f"got: {bind_artifact.get('schema_version')}",
         )
 
     # Check required top-level fields
     required = {
-        "session_id", "epoch", "actor_binding", "agent_identity",
-        "godel_lock", "floors", "lifecycle",
+        "session_id",
+        "epoch",
+        "actor_binding",
+        "agent_identity",
+        "godel_lock",
+        "floors",
+        "lifecycle",
     }
     missing = required - set(bind_artifact.keys())
     if missing:
@@ -93,12 +99,16 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
     # Verify Gödel lock acknowledged
     godel = bind_artifact.get("godel_lock", {})
     if not godel.get("acknowledged"):
-        raise BindArtifactError("godel_lock.acknowledged", "Gödel lock not acknowledged in bind_artifact")
+        raise BindArtifactError(
+            "godel_lock.acknowledged", "Gödel lock not acknowledged in bind_artifact"
+        )
 
     lock_items = set(godel.get("lock_items", []))
     if not GODEL_LOCK_INVARIANTS.issubset(lock_items):
         missing_locks = GODEL_LOCK_INVARIANTS - lock_items
-        raise BindArtifactError("godel_lock.lock_items", f"Missing required Gödel lock items: {missing_locks}")
+        raise BindArtifactError(
+            "godel_lock.lock_items", f"Missing required Gödel lock items: {missing_locks}"
+        )
 
     # Verify lifecycle stage
     lifecycle = bind_artifact.get("lifecycle", {})
@@ -106,7 +116,7 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
     if "333" not in current_stage and "MIND" not in current_stage:
         raise BindArtifactError(
             "lifecycle.current_stage",
-            f"Expected 333_MIND or compatible stage, got: {current_stage}"
+            f"Expected 333_MIND or compatible stage, got: {current_stage}",
         )
 
     return bind_artifact
@@ -148,6 +158,7 @@ async def _get_mcp_bridge() -> MiniMaxMCPBridge:
 # CAPABILITY: Web Search
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 async def _web_search(query: str, max_results: int = 5) -> dict[str, Any]:
     """
     Perform web search via MiniMax MCP.
@@ -179,6 +190,7 @@ async def _web_search(query: str, max_results: int = 5) -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────────────────
 # CAPABILITY: Image Understanding
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def _understand_image(image_url: str, question: str | None = None) -> dict[str, Any]:
     """
@@ -215,6 +227,7 @@ async def _understand_image(image_url: str, question: str | None = None) -> dict
 # CAPABILITY: Text-to-Image
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 async def _text_to_image(prompt: str, model: str = "MiniMax-Image-01") -> dict[str, Any]:
     """Generate image from text prompt via MiniMax MCP."""
     try:
@@ -243,6 +256,7 @@ async def _text_to_image(prompt: str, model: str = "MiniMax-Image-01") -> dict[s
 # ─────────────────────────────────────────────────────────────────────────────
 # CAPABILITY: Text-to-Speech Audio
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def _text_to_audio(
     text: str,
@@ -279,6 +293,7 @@ async def _text_to_audio(
 # CAPABILITY: Music Generation
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 async def _music_generation(prompt: str, lyrics: str = "") -> dict[str, Any]:
     """Generate music from text prompt via MiniMax MCP."""
     try:
@@ -307,6 +322,7 @@ async def _music_generation(prompt: str, lyrics: str = "") -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────────────────
 # CAPABILITY: Video Generation
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def _generate_video(
     prompt: str,
@@ -367,19 +383,27 @@ def _evaluate_reasoning_lanes(problem_set: dict | None) -> dict[str, dict]:
     """Evaluate which reasoning lanes are relevant to the problem_set."""
     ps = problem_set or {}
     query = ps.get("query", "").lower()
-    ctx = ps.get("context", "").lower()
+    ps.get("context", "").lower()
 
     active = {}
     for lane_id, lane_def in REASONING_LANES.items():
         score = 0.5  # default
         # Score based on keyword hints in query/context
-        if lane_id == "logic" and any(w in query for w in ["analyze", "logic", "compute", "derive"]):
+        if lane_id == "logic" and any(
+            w in query for w in ["analyze", "logic", "compute", "derive"]
+        ):
             score = 0.8
-        elif lane_id == "safety" and any(w in query for w in ["safe", "risk", "manipul", "attack", "inject"]):
+        elif lane_id == "safety" and any(
+            w in query for w in ["safe", "risk", "manipul", "attack", "inject"]
+        ):
             score = 0.9
-        elif lane_id == "sovereignty" and any(w in query for w in ["veto", "human", "override", "authorize"]):
+        elif lane_id == "sovereignty" and any(
+            w in query for w in ["veto", "human", "override", "authorize"]
+        ):
             score = 0.9
-        elif lane_id == "physics" and any(w in query for w in ["geo", "earth", "subsurface", "seismic", "well"]):
+        elif lane_id == "physics" and any(
+            w in query for w in ["geo", "earth", "subsurface", "seismic", "well"]
+        ):
             score = 0.85
         active[lane_id] = {
             "status": "ACTIVE" if score > 0.5 else "DORMANT",
@@ -392,6 +416,7 @@ def _evaluate_reasoning_lanes(problem_set: dict | None) -> dict[str, dict]:
 # ─────────────────────────────────────────────────────────────────────────────
 # MAIN EXECUTE
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def execute(
     bind_artifact: dict | None = None,
@@ -445,9 +470,11 @@ async def execute(
     # ── 2. Extract inherited state ─────────────────────────────────────────
     godel_invariants = _extract_godel_invariants(validated_bind)
     telemetry_baseline = _extract_telemetry_baseline(validated_bind)
-    lane_constraints = _extract_lane_constraints(validated_bind)
+    _extract_lane_constraints(validated_bind)
     session_id = session_id or validated_bind.get("session_id", "unknown")
-    operator_id = operator_id or validated_bind.get("actor_binding", {}).get("operator_id", "unknown")
+    operator_id = operator_id or validated_bind.get("actor_binding", {}).get(
+        "operator_id", "unknown"
+    )
     epoch = validated_bind.get("epoch")
 
     # ── 3. Pre-flight readiness ───────────────────────────────────────────
@@ -456,7 +483,7 @@ async def execute(
 
     # Check MiniMax MCP availability (lightweight health check)
     try:
-        bridge = await _get_mcp_bridge()
+        await _get_mcp_bridge()
         readiness_parts.append("minimax:ok")
     except Exception as e:
         readiness_parts.append(f"minimax:WARN({str(e)[:40]})")
@@ -581,6 +608,11 @@ async def execute(
     )
 
     result = governed_return("arifos_333_mind", report, metrics, operator_id, session_id)
+    if result.get("verdict") == "CLAIM_ONLY":
+        result["status"] = "ACTIVE"
+    elif result.get("status") == "partial":
+        result["status"] = "ACTIVE"
+        result["verdict"] = "CLAIM_ONLY"
 
     # ── 8. Metabolic metadata ───────────────────────────────────────────────
     output_str = json.dumps(report, sort_keys=True, ensure_ascii=False)

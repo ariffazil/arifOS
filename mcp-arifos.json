@@ -2,7 +2,7 @@
   "$schema": "https://modelcontextprotocol.io/specification",
   "server_info": {
     "name": "arifOS MCP",
-    "version": "2026.04.19-UNIFIED",
+    "version": "2026.05.04-MANIFEST-FIX",
     "description": "Constitutional governance kernel MCP. Enforces F1-F13 floors, VAULT999 audit, 888_HOLD human veto. 13 canonical tools."
   },
   "source": {
@@ -61,19 +61,19 @@
     }
   },
   "tools": [
-    {"name": "arifos_init", "stage": "000_INIT", "lane": "PSI"},
-    {"name": "arifos_vault", "stage": "999_VAULT", "lane": "PSI"},
-    {"name": "arifos_sense", "stage": "111_SENSE", "lane": "DELTA"},
-    {"name": "arifos_heart", "stage": "666_HEART", "lane": "OMEGA"},
-    {"name": "arifos_forge", "stage": "010_FORGE", "lane": "DELTA"},
-    {"name": "arifos_mind", "stage": "333_MIND", "lane": "DELTA"},
-    {"name": "arifos_judge", "stage": "888_JUDGE", "lane": "PSI"},
-    {"name": "arifos_kernel", "stage": "444_ROUTER", "lane": "DELTA/PSI"},
-    {"name": "arifos_ops", "stage": "777_OPS", "lane": "DELTA"},
-    {"name": "arifos_memory", "stage": "555_MEMORY", "lane": "OMEGA"},
-    {"name": "arifos_fetch", "stage": null, "lane": null},
-    {"name": "arifos_reply", "stage": null, "lane": null},
-    {"name": "arifos_gateway", "stage": "666g_GATEWAY", "lane": "OMEGA"}
+    {"name": "arif_session_init", "stage": "000_INIT", "lane": "AGI", "floors": ["F01", "F11", "F12"], "risk_tier": "critical"},
+    {"name": "arif_vault_seal", "stage": "999_VAULT", "lane": "APEX", "floors": ["F01", "F11", "F13"], "risk_tier": "critical"},
+    {"name": "arif_sense_observe", "stage": "111_SENSE", "lane": "AGI", "floors": ["F02"], "risk_tier": "low"},
+    {"name": "arif_heart_critique", "stage": "666_HEART", "lane": "ASI", "floors": ["F05", "F06"], "risk_tier": "medium"},
+    {"name": "arif_forge_execute", "stage": "010_FORGE", "lane": "AGI", "floors": ["F01", "F11", "F13"], "risk_tier": "critical"},
+    {"name": "arif_mind_reason", "stage": "333_MIND", "lane": "AGI", "floors": ["F02", "F07", "F08"], "risk_tier": "medium"},
+    {"name": "arif_judge_deliberate", "stage": "888_JUDGE", "lane": "ASI", "floors": ["F11", "F13"], "risk_tier": "critical"},
+    {"name": "arif_kernel_route", "stage": "444_KERNEL", "lane": "AGI", "floors": ["F01", "F04"], "risk_tier": "medium"},
+    {"name": "arif_ops_measure", "stage": "777_OPS", "lane": "AGI", "floors": ["F04"], "risk_tier": "low"},
+    {"name": "arif_memory_recall", "stage": "555_MEMORY", "lane": "AGI", "floors": ["F01", "F08"], "risk_tier": "low"},
+    {"name": "arif_evidence_fetch", "stage": "222_FETCH", "lane": "AGI", "floors": ["F02", "F03"], "risk_tier": "low"},
+    {"name": "arif_reply_compose", "stage": "444r_REPLY", "lane": "AGI", "floors": ["F04", "F06", "F09"], "risk_tier": "low"},
+    {"name": "arif_gateway_connect", "stage": "666g_GATEWAY", "lane": "ASI", "floors": ["F01", "F03"], "risk_tier": "medium"}
   ],
   "constitutional_floors": {
     "count": 13,

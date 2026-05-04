@@ -113,14 +113,20 @@ class HardenedInitAnchor:
         if self._registry is not None:
             return self._registry
 
+        here = os.path.abspath(os.path.dirname(__file__))
+        repo_root = os.path.abspath(os.path.join(here, "..", ".."))
         base_paths = [
             "C:/ariffazil/arifOS/arifOS-model-registry",
             "arifOS-model-registry",
             "../arifOS-model-registry",
             "/opt/arifos/arifOS-model-registry",
+            os.environ.get("ARIFOS_REGISTRY_ROOT"),
+            os.path.join(repo_root, "arifos-model-registry"),
+            os.path.join(repo_root, "00_legacy_materials", "arifOS-upstream", "archive"),
         ]
         registry_path = next(
-            (p for p in base_paths if os.path.exists(p) and os.path.isdir(p)), None
+            (p for p in base_paths if p and os.path.exists(p) and os.path.isdir(p)),
+            None,
         )
 
         if not registry_path:

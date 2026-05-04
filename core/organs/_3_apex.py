@@ -249,7 +249,8 @@ async def forge(
     gaming_patterns = [
         (
             "optimizing for test-passing",
-            ["pass", "success", "sealed"] in intent_lower and "because" not in intent_lower,
+            any(word in intent_lower for word in ["pass", "success", "sealed"])
+            and "because" not in intent_lower,
         ),
         ("metric corruption", any(m in intent_lower for m in ["bypass", "circumvent", "exploit"])),
         (
@@ -512,9 +513,9 @@ async def judge(
         g_dagger=g_score,
         omega_infinity=rationale.omega_0,
         tri_witness=rationale.tri_witness,
-        floor_scores=floor_scores.model_dump()
-        if hasattr(floor_scores, "model_dump")
-        else floor_scores,
+        floor_scores=(
+            floor_scores.model_dump() if hasattr(floor_scores, "model_dump") else floor_scores
+        ),
         metadata={
             "coherence_contradictions": len(contradictions),
             "landauer_compliant": candidate == Verdict.SEAL,

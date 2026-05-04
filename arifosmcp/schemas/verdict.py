@@ -609,6 +609,10 @@ class VerdictOutput(BaseModel):
         default=False,
         description="True if indirect prompt injection detected in evidence.",
     )
+    invariants_checked: list[str] = Field(
+        default_factory=list,
+        description="List of constitutional invariants tested during this verdict (e.g., F01_reversibility, F11_identity, F13_sovereign). Proves WHY the verdict was reached, not just WHAT.",
+    )
 
     timestamp: str | None = None
 

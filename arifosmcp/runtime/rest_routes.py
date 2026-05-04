@@ -53,10 +53,10 @@ from core.shared.floors import (
     get_floor_threshold,
 )
 
-from .build_info import get_build_info
-from .capability_map import build_runtime_capability_map
-from .contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
-from .floors import get_floor_count
+from arifosmcp.runtime.build_info import get_build_info
+from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.contracts import AAA_TOOL_ALIASES, AAA_TOOL_STAGE_MAP, TRINITY_BY_TOOL
+from arifosmcp.runtime.floors import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -309,7 +309,7 @@ _DEFAULT_QDF: float = 0.83
 _DEFAULT_METABOLIC_STAGE: int = 333
 
 # Default vault path for /api/live/vault endpoint
-DEFAULT_VAULT_PATH = Path(__file__).parents[2] / "VAULT999" / "vault999.jsonl"
+DEFAULT_VAULT_PATH = Path(__file__).parents[3] / "VAULT999" / "vault999.jsonl"
 
 
 def _cache_headers() -> dict[str, str]:
@@ -3193,10 +3193,10 @@ def register_rest_routes(
         server-side (via httpx) and returns a combined status dict.
         """
 
-        # rest_routes.py is at /app/arifosmcp/runtime/rest_routes.py
-        # parents[0] = /app/arifosmcp/runtime, parents[1] = /app/arifosmcp
+        # rest_routes.py is at /app/arifosmcp/runtime/rest_routes/rest_routes.py
+        # parents[0] = /app/arifosmcp/runtime/rest_routes, parents[1] = /app/arifosmcp/runtime, parents[2] = /app/arifosmcp
         MANIFEST_PATH = (
-            Path(__file__).parents[1] / "sites" / "apex-dashboard" / "federation-manifest.json"
+            Path(__file__).parents[2] / "sites" / "apex-dashboard" / "federation-manifest.json"
         )
 
         try:
@@ -3215,6 +3215,12 @@ def register_rest_routes(
 
                 health_status = "unknown"
                 build_info: dict = {}
+
+                # Self-probe: arifOS is healthy by definition if this endpoint runs.
+                # Do NOT call localhost:8080/health via blocking urllib — it deadlocks
+                # the event loop (handler blocks loop, loop can't process the request).
+                if key == "arifos":
+                    return key, {"health": "healthy", "build_info": {}}
 
                 if base and health_ep:
                     # Probe health endpoint
@@ -3236,8 +3242,13 @@ def register_rest_routes(
                                 health_status = "degraded"
                     except urllib.error.HTTPError:
                         health_status = "degraded"
-                    except (urllib.error.URLError, TimeoutError, OSError):
+                    except (urllib.error.URLError, TimeoutError, OSError) as _e:
                         health_status = "unreachable"
+                        import logging
+
+                        logging.getLogger("arifos.probe").warning(
+                            "Federation probe %s %s failed: %s", key, base + health_ep, _e
+                        )
                     except Exception:
                         health_status = "unknown"
 
@@ -4054,6 +4065,14 @@ def register_rest_routes(
     @route("/llms.json", methods=["GET"])
     async def llms_json(_request: Request) -> Response:
         return JSONResponse(LLMS_JSON, headers={"Access-Control-Allow-Origin": "*"})
+
+    @route("/.well-known/agent.json", methods=["GET"])
+    async def agent_json(_request: Request) -> Response:
+        """A2A Spec v1.0 — Agent discovery document at standard well-known location."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
+
+        card = get_arifOS_agent_card()
+        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
 
     @route("/.well-known/agent-card.json", methods=["GET"])
     async def agent_card_v2(_request: Request) -> Response:

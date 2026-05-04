@@ -41,6 +41,7 @@ VAULT_VERSION = "v1"
 # Cross-process serialisation is achieved by routing all callers (WEALTH, GEOX)
 # through the arifos_vault HTTP endpoint, which funnels them through this lock.
 _vault_write_lock = asyncio.Lock()
+_LEGACY_COMMITS: dict[str, list[dict[str, Any]]] = {}
 
 
 def _canonical_entry_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -195,9 +196,7 @@ async def get_last_seal_root() -> str:
         import asyncpg
 
         conn = await asyncpg.connect(_pg_url)
-        root = await conn.fetchval(
-            "SELECT merkle_root FROM vault_seals ORDER BY id DESC LIMIT 1"
-        )
+        root = await conn.fetchval("SELECT merkle_root FROM vault_seals ORDER BY id DESC LIMIT 1")
         await conn.close()
         return root or _CHAIN_SEED
     except Exception:
@@ -246,7 +245,7 @@ def _check_vault_postgres_required() -> None:
 
 async def seal(
     session_id: str,
-    summary: str,
+    summary: str | None = None,
     verdict: str = "SEAL",
     approved_by: str | None = None,
     approval_reference: str | None = None,
@@ -270,6 +269,76 @@ async def seal(
                         '999_VAULT', 'geox_evaluate_prospect'). Written to
                         every ledger entry for causal chain reconstruction.
     """
+    action = kwargs.pop("action", None) or kwargs.pop("operation", None)
+    payload = kwargs.pop("payload", None)
+    metadata = kwargs.pop("metadata", None)
+    commit_id = kwargs.pop("commit_id", None)
+
+    if action in {"commit", "seal", "retrieve", "list", "verify"}:
+        bucket = _LEGACY_COMMITS.setdefault(session_id, [])
+        if action == "commit":
+            record = {
+                "commit_id": f"CMT-{secrets.token_hex(6)}",
+                "session_id": session_id,
+                "data": payload or {},
+                "metadata": metadata or {},
+                "timestamp": datetime.now(UTC).isoformat(),
+                "sealed": False,
+            }
+            bucket.append(record)
+            return {
+                "session_id": session_id,
+                "commit_id": record["commit_id"],
+                "status": "committed",
+            }
+        if action == "seal":
+            record = {
+                "commit_id": f"CMT-{secrets.token_hex(6)}",
+                "session_id": session_id,
+                "data": payload or {},
+                "metadata": metadata or {},
+                "timestamp": datetime.now(UTC).isoformat(),
+                "sealed": True,
+            }
+            bucket.append(record)
+            return {
+                "session_id": session_id,
+                "commit_id": record["commit_id"],
+                "status": "committed",
+                "sealed": True,
+            }
+        if action == "retrieve":
+            match = next((item for item in bucket if item["commit_id"] == commit_id), None)
+            return {
+                "session_id": session_id,
+                "found": match is not None,
+                "data": (match or {}).get("data", {}),
+            }
+        if action == "list":
+            return {
+                "session_id": session_id,
+                "commits": [
+                    {
+                        "commit_id": item["commit_id"],
+                        "session_id": item["session_id"],
+                        "sealed": item["sealed"],
+                        "timestamp": item["timestamp"],
+                    }
+                    for item in bucket
+                ],
+            }
+        if action == "verify":
+            match = next((item for item in bucket if item["commit_id"] == commit_id), None)
+            return {"session_id": session_id, "commit_id": commit_id, "valid": match is not None}
+
+    if action == "chain_tip":
+        return await chain_tip(n=int(kwargs.get("n", 3)))
+
+    if summary is None:
+        summary = (
+            json.dumps(payload, sort_keys=True, ensure_ascii=False) if payload is not None else ""
+        )
+
     # C2 — hard-fail guard for VAULT_POSTGRES_REQUIRED
     _check_vault_postgres_required()
 
@@ -305,7 +374,9 @@ async def seal(
             logger.error(
                 "F5 PEACE VIOLATION: source_agent=%s pipeline_stage=%s peace2=%.3f "
                 "— downgrading verdict to HOLD",
-                source_agent, pipeline_stage, peace2_value,
+                source_agent,
+                pipeline_stage,
+                peace2_value,
             )
             # Downgrade: SEAL → HOLD. Do not raise — let the entry be recorded
             # as HOLD so the operator can audit it. Raising would swallow evidence.
@@ -469,6 +540,7 @@ async def seal(
 
             async def _pg_write():
                 import uuid
+
                 conn = await asyncpg.connect(_pg_url)
                 try:
                     # 1. Ensure 999 Schema exists
@@ -527,17 +599,15 @@ async def seal(
                         (auth_context or {}).get("actor_id", "anonymous"),
                         pipeline_stage,
                         verdict,
-                        _json.dumps({
-                            "summary": summary,
-                            "telemetry": telemetry or {},
-                            "floors": floors
-                        }),
+                        _json.dumps(
+                            {"summary": summary, "telemetry": telemetry or {}, "floors": floors}
+                        ),
                         kwargs.get("risk_tier", "medium"),
-                        entry_hash,           # merkle_leaf
-                        prev_hash,            # prev_hash
-                        entry_chain_hash,     # chain_hash
+                        entry_hash,  # merkle_leaf
+                        prev_hash,  # prev_hash
+                        entry_chain_hash,  # chain_hash
                         zkpc_receipt.signature if hasattr(zkpc_receipt, "signature") else signature,
-                        pubkey                # signed_by
+                        pubkey,  # signed_by
                     )
 
                     # 3. Check if batch seal (vault_seals) is warranted
@@ -546,22 +616,27 @@ async def seal(
                     event_count = await conn.fetchval("SELECT count(*) FROM vault_events")
                     if event_count >= 5:
                         # Only seal if there are unsealed events
-                        last_seal = await conn.fetchrow("SELECT * FROM vault_seals ORDER BY id DESC LIMIT 1")
-                        first_id = (last_seal['last_event_id'] + 1) if last_seal else 1
-                        last_id = row['id']
-                        
+                        last_seal = await conn.fetchrow(
+                            "SELECT * FROM vault_seals ORDER BY id DESC LIMIT 1"
+                        )
+                        first_id = (last_seal["last_event_id"] + 1) if last_seal else 1
+                        last_id = row["id"]
+
                         if last_id >= first_id:
                             # Compute simple root hash for the batch
                             batch_hashes = await conn.fetch(
                                 "SELECT merkle_leaf FROM vault_events WHERE id BETWEEN $1 AND $2 ORDER BY id",
-                                first_id, last_id
+                                first_id,
+                                last_id,
                             )
                             # Filter out empty leaves (from manual/failed entries)
-                            valid_hashes = [r['merkle_leaf'] for r in batch_hashes if r['merkle_leaf']]
+                            valid_hashes = [
+                                r["merkle_leaf"] for r in batch_hashes if r["merkle_leaf"]
+                            ]
                             if valid_hashes:
                                 combined = "".join(valid_hashes)
                                 merkle_root = hashlib.sha256(combined.encode()).hexdigest()
-                                
+
                                 await conn.execute(
                                     """
                                     INSERT INTO vault_seals (
@@ -572,13 +647,16 @@ async def seal(
                                     """,
                                     len(valid_hashes),
                                     merkle_root,
-                                    last_seal['merkle_root'] if last_seal else _CHAIN_SEED,
+                                    last_seal["merkle_root"] if last_seal else _CHAIN_SEED,
                                     first_id,
                                     last_id,
-                                    signature, # Batch signature
-                                    "888_AUDITOR"
+                                    signature,  # Batch signature
+                                    "888_AUDITOR",
                                 )
-                                logger.info("Vault-999 Checkpoint: Merkle Root %s anchored", merkle_root[:16])
+                                logger.info(
+                                    "Vault-999 Checkpoint: Merkle Root %s anchored",
+                                    merkle_root[:16],
+                                )
 
                 finally:
                     await conn.close()
@@ -586,7 +664,8 @@ async def seal(
             await _pg_write()
             logger.info(
                 "Vault event written to 999 SQL (ledger_id=%s session_id=%s)",
-                ledger_id, session_id,
+                ledger_id,
+                session_id,
             )
         except Exception as _pg_exc:
             logger.warning("Postgres 999 SQL write failed (non-critical): %s", _pg_exc)
@@ -661,30 +740,19 @@ async def chain_tip(
     }
 
 
-async def vault(
-    operation: str = "seal",
-    **kwargs: Any,
-) -> Any:
-    """Unified Vault Interface."""
-    if operation == "seal":
-        return await seal(**kwargs)
-    if operation == "chain_tip":
-        return await chain_tip(n=int(kwargs.get("n", 3)))
-
-    from .unified_memory import vault as memory_vault
-
-    return await memory_vault(operation=operation, **kwargs)
-
-
-# Unified alias
 SealReceipt = SealRecord
+vault = seal
+commit = seal
+retrieve = seal
 seal_vault = seal
 
 
 __all__ = [
     "SealReceipt",
     "chain_tip",
+    "commit",
     "compute_vault_seal_hash",
+    "retrieve",
     "seal",
     "seal_vault",
     "vault",

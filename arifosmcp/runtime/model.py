@@ -5,10 +5,11 @@ Runtime Pydantic Models
 Single source of truth for all runtime type definitions.
 DITEMPA BUKAN DIBERI.
 """
+
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -46,18 +47,29 @@ class RuntimeStatus(str, Enum):
 
 class Stage(str, Enum):
     INIT = "000"
+    INIT_000 = "000"
     SENSE = "111"
+    SENSE_111 = "111"
     FETCH = "222"
+    REALITY_222 = "222"
     MIND = "333"
+    MIND_333 = "333"
     KERNEL = "444"
+    ROUTER_444 = "444"
     REPLY = "444r"
     MEMORY = "555"
+    MEMORY_555 = "555"
     HEART = "666"
+    HEART_666 = "666"
+    CRITIQUE_666 = "666c"
     GATEWAY = "666g"
     OPS = "777"
+    FORGE_777 = "777"
     JUDGE = "888"
+    JUDGE_888 = "888"
     FORGE = "010"
     VAULT = "999"
+    VAULT_999 = "999"
 
 
 class ExecutionStatus(str, Enum):
@@ -91,10 +103,11 @@ class ArtifactStatus(str, Enum):
 
 class VerdictScope(str, Enum):
     """Scope of verdict authority."""
-    SELF = "self"          # Self-judgment only
-    LOCAL = "local"        # Tool-level
-    SESSION = "session"    # Session-level
-    GLOBAL = "global"      # System-wide
+
+    SELF = "self"  # Self-judgment only
+    LOCAL = "local"  # Tool-level
+    SESSION = "session"  # Session-level
+    GLOBAL = "global"  # System-wide
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -128,6 +141,25 @@ class Verdict(BaseModel):
     floor: str | None = None
     reason: str = ""
     authorized_by: str | None = None
+    SEAL: ClassVar[str] = "SEAL"
+    PROVISIONAL: ClassVar[str] = "PROVISIONAL"
+    SABAR: ClassVar[str] = "SABAR"
+    PARTIAL: ClassVar[str] = "PARTIAL"
+    HOLD: ClassVar[str] = "HOLD"
+    HOLD_888: ClassVar[str] = "HOLD_888"
+    DEGRADED: ClassVar[str] = "DEGRADED"
+    VOID: ClassVar[str] = "VOID"
+
+
+class SacredStage(str, Enum):
+    INIT_ANCHOR = "init_anchor"
+    AGI_REASON = "agi_reason"
+    AGI_REFLECT = "agi_reflect"
+    ASI_SIMULATE = "asi_simulate"
+    ASI_CRITIQUE = "asi_critique"
+    AGI_ASI_FORGE = "agi_asi_forge"
+    APEX_JUDGE = "apex_judge"
+    VAULT_SEAL = "vault_seal"
 
 
 class SessionState(BaseModel):
@@ -186,6 +218,26 @@ class Artifact(BaseModel):
     sealed: bool = False
 
 
+class CanonicalError(BaseModel):
+    code: str
+    message: str
+    stage: str | None = None
+
+
+class PNSSignal(BaseModel):
+    source: str
+    status: str | None = None
+    score: float | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class PNSContext(BaseModel):
+    shield: PNSSignal | None = None
+    search: PNSSignal | None = None
+    vision: PNSSignal | None = None
+    health: PNSSignal | None = None
+
+
 class RuntimeEnvelope(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -215,7 +267,7 @@ class RuntimeEnvelope(BaseModel):
     session_id: str | None = None
     actor_id: str | None = None
 
-    verdict: Verdict | None = None
+    verdict: Verdict | str | None = None
     status: RuntimeStatus = RuntimeStatus.SUCCESS
     authority: CanonicalAuthority | None = None
 
@@ -226,7 +278,47 @@ class RuntimeEnvelope(BaseModel):
     handoff: dict[str, Any] = Field(default_factory=dict)
     payload: dict[str, Any] = Field(default_factory=dict)
     diagnostics: dict[str, Any] = Field(default_factory=dict)
+    errors: list[CanonicalError] = Field(default_factory=list)
     contract_version: str = "0.1.0"
+
+
+class VerdictCode(str, Enum):
+    SEAL = "SEAL"
+    SABAR = "SABAR"
+    PARTIAL = "PARTIAL"
+    VOID = "VOID"
+
+
+class TelemetryMetrics(BaseModel):
+    ds: float = 0.0
+    confidence: float = 0.85
+    G_star: float = 0.0
+
+
+class TelemetryBasis(BaseModel):
+    source: str | None = None
+    mode: str | None = None
+
+
+class TripleWitness(BaseModel):
+    human: float = 0.0
+    ai: float = 0.0
+    earth: float = 0.0
+
+
+class TelemetryVitals(BaseModel):
+    metrics: TelemetryMetrics
+    basis: TelemetryBasis = Field(default_factory=TelemetryBasis)
+    witness: TripleWitness = Field(default_factory=TripleWitness)
+
+
+class CanonicalMetrics(BaseModel):
+    telemetry: TelemetryMetrics = Field(default_factory=TelemetryMetrics)
+
+
+class PhilosophyState(BaseModel):
+    confidence_cap: float = 1.0
+    posture: str = "SEAL"
 
 
 class ArifOSError(BaseModel):

@@ -17,12 +17,7 @@ import logging
 from typing import Any, Literal
 
 from core.shared.atlas import Phi
-from core.shared.types import (
-    AgiOutput,
-    ReasonMindAnswer,
-    ReasonMindStep,
-    Verdict
-)
+from core.shared.types import AgiOutput, EurekaInsight, ReasonMindAnswer, ReasonMindStep, Verdict
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +74,7 @@ async def agi(
     Prepended to each reasoning phase to enforce constitutional physics.
     """
     # 1. Query Analysis (ATLAS)
-    gpv = Phi(query)
+    Phi(query)
 
     # 2. Initialize Physics/Thermodynamics
     from core.physics.thermodynamics_hardened import (
@@ -88,23 +83,30 @@ async def agi(
     )
 
     # Baseline entropy (input)
-    h_in = shannon_entropy(query)
+    shannon_entropy(query)
 
     # 3. Initialize State
-    floors = {"F2": "pass", "F4": "pass", "F7": "pass", "F10": "pass"}
 
     # 4. Sequential Reasoning via Real Intelligence Fallback (Minimax 111→222→333)
-    from core.organs.minimax_agent import minimax_generate
-
     async def llm_call(prompt: str, max_tokens: int):
-        envelope = await minimax_generate(prompt=prompt, max_tokens=max_tokens)
-        
-        class MockResult:
-            def __init__(self, ok, text):
-                self.ok = ok
-                self.payload = {"response": text, "usage": {"completion_tokens": len(text) // 4}}
-        
-        return MockResult(envelope.ok, envelope.text)
+        try:
+            from arifosmcp.intelligence.tools.ollama_local import ollama_local_generate
+
+            return await ollama_local_generate(prompt=prompt, max_tokens=max_tokens)
+        except Exception:
+            from core.organs.minimax_agent import minimax_generate
+
+            envelope = await minimax_generate(prompt=prompt, max_tokens=max_tokens)
+
+            class MockResult:
+                def __init__(self, ok, text):
+                    self.ok = ok
+                    self.payload = {
+                        "response": text,
+                        "usage": {"completion_tokens": len(text) // 4},
+                    }
+
+            return MockResult(envelope.ok, envelope.text)
 
     # --- ADAPTIVE BUDGET SPLIT ---
     # Phase 111 (20%, min 80), 222 (30%, min 120), 333 (50%, min 180)
@@ -146,8 +148,10 @@ async def agi(
             verdict=Verdict.SABAR,
             status="SABAR",
             stage="111",
-            answer=ReasonMindAnswer(summary="Reasoning failed at 111", confidence=0.0, verdict="needs_evidence"),
-            error=f"LLM_UNREACHABLE_PHASE_111: {search_env.payload.get('response', '')}"
+            answer=ReasonMindAnswer(
+                summary="Reasoning failed at 111", confidence=0.0, verdict="needs_evidence"
+            ),
+            error=f"LLM_UNREACHABLE_PHASE_111: {search_env.payload.get('response', '')}",
         )
     search_text = _f12_scrub(search_env.payload.get("response", ""), "111")
     usage_111 = search_env.payload.get("usage", {}).get("completion_tokens", len(search_text) // 4)
@@ -169,8 +173,10 @@ async def agi(
             verdict=Verdict.SABAR,
             status="SABAR",
             stage="222",
-            answer=ReasonMindAnswer(summary=search_text[:200], confidence=0.3, verdict="needs_evidence"),
-            error=f"LLM_UNREACHABLE_PHASE_222: {analyze_env.payload.get('response', '')}"
+            answer=ReasonMindAnswer(
+                summary=search_text[:200], confidence=0.3, verdict="needs_evidence"
+            ),
+            error=f"LLM_UNREACHABLE_PHASE_222: {analyze_env.payload.get('response', '')}",
         )
     analyze_text = _f12_scrub(analyze_env.payload.get("response", ""), "222")
     usage_222 = analyze_env.payload.get("usage", {}).get(
@@ -194,8 +200,10 @@ async def agi(
             verdict=Verdict.SABAR,
             status="SABAR",
             stage="333",
-            answer=ReasonMindAnswer(summary=analyze_text[:200], confidence=0.5, verdict="needs_evidence"),
-            error=f"LLM_UNREACHABLE_PHASE_333: {synthesis_env.payload.get('response', '')}"
+            answer=ReasonMindAnswer(
+                summary=analyze_text[:200], confidence=0.5, verdict="needs_evidence"
+            ),
+            error=f"LLM_UNREACHABLE_PHASE_333: {synthesis_env.payload.get('response', '')}",
         )
     synthesis_text = synthesis_env.payload.get("response", "")
     usage_333 = synthesis_env.payload.get("usage", {}).get(
@@ -206,11 +214,21 @@ async def agi(
 
     consume_reason_energy(session_id, n_cycles=3)
 
+    steps = _build_reasoning_steps(query, reason_mode)
+    lowered = synthesis_text.lower()
+    has_eureka = ("eureka" in lowered) or ("aha moment" in lowered)
+    eureka = EurekaInsight(
+        has_eureka=has_eureka,
+        summary=synthesis_text[:200] if has_eureka else None,
+    )
+
     return AgiOutput(
         session_id=session_id,
         verdict=Verdict.SEAL,
         status="SUCCESS",
         stage="333",
+        steps=steps,
+        eureka=eureka,
         answer=ReasonMindAnswer(summary=synthesis_text, confidence=0.99, verdict="ready"),
     )
 

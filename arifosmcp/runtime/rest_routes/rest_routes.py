@@ -3216,6 +3216,12 @@ def register_rest_routes(
                 health_status = "unknown"
                 build_info: dict = {}
 
+                # Self-probe: arifOS is healthy by definition if this endpoint runs.
+                # Do NOT call localhost:8080/health via blocking urllib — it deadlocks
+                # the event loop (handler blocks loop, loop can't process the request).
+                if key == "arifos":
+                    return key, {"health": "healthy", "build_info": {}}
+
                 if base and health_ep:
                     # Probe health endpoint
                     try:
@@ -3236,8 +3242,13 @@ def register_rest_routes(
                                 health_status = "degraded"
                     except urllib.error.HTTPError:
                         health_status = "degraded"
-                    except (urllib.error.URLError, TimeoutError, OSError):
+                    except (urllib.error.URLError, TimeoutError, OSError) as _e:
                         health_status = "unreachable"
+                        import logging
+
+                        logging.getLogger("arifos.probe").warning(
+                            "Federation probe %s %s failed: %s", key, base + health_ep, _e
+                        )
                     except Exception:
                         health_status = "unknown"
 
@@ -4054,6 +4065,14 @@ def register_rest_routes(
     @route("/llms.json", methods=["GET"])
     async def llms_json(_request: Request) -> Response:
         return JSONResponse(LLMS_JSON, headers={"Access-Control-Allow-Origin": "*"})
+
+    @route("/.well-known/agent.json", methods=["GET"])
+    async def agent_json(_request: Request) -> Response:
+        """A2A Spec v1.0 — Agent discovery document at standard well-known location."""
+        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
+
+        card = get_arifOS_agent_card()
+        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
 
     @route("/.well-known/agent-card.json", methods=["GET"])
     async def agent_card_v2(_request: Request) -> Response:

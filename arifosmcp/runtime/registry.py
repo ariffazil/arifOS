@@ -12,10 +12,39 @@ from pathlib import Path
 
 from arifosmcp.runtime.public_surface import CANONICAL_13
 
-REGISTRY_ROOT = Path(os.environ.get("ARIFOS_REGISTRY_ROOT", "/root/arifos-model-registry"))
-MODELS_PATH = REGISTRY_ROOT / "models"
-SOULS_PATH = REGISTRY_ROOT / "provider_souls"
-RUNTIME_PATH = REGISTRY_ROOT / "runtime_profiles"
+_HERE = Path(__file__).resolve()
+_REPO_ROOT = _HERE.parents[2]
+
+
+def _candidate_registry_roots() -> list[Path]:
+    env_root = os.environ.get("ARIFOS_REGISTRY_ROOT")
+    candidates = [
+        Path(env_root).expanduser() if env_root else None,
+        Path("/root/arifos-model-registry"),
+        _REPO_ROOT / "arifos-model-registry",
+        _REPO_ROOT / "00_legacy_materials" / "arifOS-upstream" / "archive",
+    ]
+    return [path for path in candidates if path is not None]
+
+
+def _resolve_registry_paths() -> tuple[Path, Path, Path, Path]:
+    for root in _candidate_registry_roots():
+        models = root / "models"
+        souls = root / "provider_souls"
+        runtime = root / "runtime_profiles"
+        if models.exists() and souls.exists():
+            return root, models, souls, runtime
+
+    fallback_root = _candidate_registry_roots()[0]
+    return (
+        fallback_root,
+        fallback_root / "models",
+        fallback_root / "provider_souls",
+        fallback_root / "runtime_profiles",
+    )
+
+
+REGISTRY_ROOT, MODELS_PATH, SOULS_PATH, RUNTIME_PATH = _resolve_registry_paths()
 
 CANONICAL_ARIFOS_TOOLS = list(CANONICAL_13)
 
