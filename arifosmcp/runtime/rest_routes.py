@@ -3193,8 +3193,14 @@ def register_rest_routes(
         server-side (via httpx) and returns a combined status dict.
         """
 
+        # rest_routes.py is at /app/arifosmcp/runtime/rest_routes.py
+        # parents[0] = /app/arifosmcp/runtime, parents[1] = /app/arifosmcp, parents[2] = /app
         MANIFEST_PATH = (
-            Path(__file__).parents[2] / "sites" / "apex-dashboard" / "federation-manifest.json"
+            Path(__file__).parents[3]
+            / "arifosmcp"
+            / "sites"
+            / "apex-dashboard"
+            / "federation-manifest.json"
         )
 
         try:
