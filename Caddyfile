@@ -306,6 +306,20 @@ geox.arif-fazil.com {
 			}
 		}
 	}
+	handle /tools {
+		reverse_proxy 127.0.0.1:8081 {
+			transport http {
+				dial_timeout 5s
+			}
+		}
+	}
+	handle /tools.json {
+		reverse_proxy 127.0.0.1:8081 {
+			transport http {
+				dial_timeout 5s
+			}
+		}
+	}
 	handle /health {
 		reverse_proxy 127.0.0.1:8081 {
 			transport http {
