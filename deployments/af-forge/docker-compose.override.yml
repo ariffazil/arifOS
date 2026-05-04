@@ -9,4 +9,3 @@ services:
     networks:
       - arifos_core_network
       - arifos-network
-      - bridge
