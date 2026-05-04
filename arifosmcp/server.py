@@ -230,7 +230,7 @@ async def federation_status_json(request: Request) -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
-app = mcp.http_app(transport="streamable-http")
+app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
 if app:
     app.add_middleware(GlobalPanicMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
