@@ -87,6 +87,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js 22 for snarkjs Groth16 verification (ZKPC v2)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g snarkjs && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy artifacts from build stage
 COPY --from=build /usr/local /usr/local
 COPY . .
