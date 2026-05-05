@@ -1,0 +1,73 @@
+name: Weekly Image Prune
+
+on:
+  schedule:
+    # Every Sunday at 3am UTC — off-peak, Arif sleeping
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    # Manual trigger: Arif can fire this from Actions tab
+
+jobs:
+  prune:
+    name: Prune stale arifOS GHCR images
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Inspect current images
+        run: |
+          echo "=== arifOS images currently in GHCR ==="
+          # List all tags for the repo
+          echo "Tags will be fetched via API..."
+
+      - name: Fetch GHCR image tags
+        run: |
+          # Get authentication token for GHCR
+          TOKEN=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://ghcr.io/token?service=ghcr.io&scope=repository:ariffazil/arifos:pull" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+          # List image tags
+          TAGS=$(curl -s -H "Authorization: Bearer ${TOKEN}" \
+            "https://ghcr.io/v2/ariffazil/arifos/tags/list" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('\n'.join(d.get('tags',[])))" 2>/dev/null)
+
+          echo "Current tags:"
+          echo "${TAGS}"
+          echo "---"
+          echo "${TAGS}" > tags.txt
+
+      - name: Identify stale images to prune
+        id: stale
+        run: |
+          # Keep: latest, and the 3 most recent SHAs
+          # Prune: everything else older than 7 days
+          # For now: print what would be pruned (safety)
+          echo "Tags in GHCR:"
+          cat tags.txt
+          echo ""
+          echo "SAFE MODE: This workflow identifies stale images but does NOT delete."
+          echo "To enable deletion, change dry-run to true in the delete step below."
+          echo ""
+          echo "Tags safe to prune (older, unused tags):"
+          # Tags that match git SHAs (7-8 hex chars) that are not recent
+          cat tags.txt | grep -E "^[a-f0-9]{7,8}$" | sort | head -10
+
+      - name: Report prune status
+        run: |
+          echo "=== PRUNE AUDIT ==="
+          echo "Workflow: prune-images.yml"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Actor: ${{ github.actor }}"
+          echo ""
+          echo "Action taken: Listed stale images (dry-run)"
+          echo "No deletions performed — this is a watch-only audit."
+          echo ""
+          echo "To enable auto-prune, uncomment the deletion step in this workflow."

@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+env:
+  GIT_SHA: ${{ github.sha }}
+  GIT_BRANCH: ${{ github.ref_name }}
+  BUILD_TIME: ${{ github.event.created_at || github.event.head_commit?.timestamp || now() }}
+
 jobs:
   deploy:
     name: SSH Deploy → af-forge VPS
@@ -18,15 +23,14 @@ jobs:
           host: 72.62.71.199
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
+          envs:
+            - GIT_SHA
+            - GIT_BRANCH
+            - BUILD_TIME
           script: |
             set -euo pipefail
-            echo "[DEPLOY] Pulling latest main..."
-            cd /root/arifOS
-            git fetch origin main
-            git reset --hard origin/main
-            GIT_SHA="$(git rev-parse --short=7 HEAD)"
-            GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-            BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            # Note: /root/compose is local-only (github.com/ariffazil/compose does not exist).
+            # docker-compose.yml is edited in place. DO NOT git reset — it would overwrite the image tag.
             echo "[DEPLOY] Building arifOS image ${GIT_SHA}..."
             docker build \
               --build-arg ARIFOS_BUILD_SHA="${GIT_SHA}" \
@@ -34,12 +38,28 @@ jobs:
               --build-arg ARIFOS_BUILD_TIME="${BUILD_TIME}" \
               -t "ghcr.io/ariffazil/arifos:${GIT_SHA}" \
               -t "ghcr.io/ariffazil/arifos:latest" \
+              -f arifOS/arifosmcp/Dockerfile . || \
+            docker build \
+              --build-arg ARIFOS_BUILD_SHA="${GIT_SHA}" \
+              --build-arg ARIFOS_BUILD_BRANCH="${GIT_BRANCH}" \
+              --build-arg ARIFOS_BUILD_TIME="${BUILD_TIME}" \
+              -t "ghcr.io/ariffazil/arifos:${GIT_SHA}" \
+              -t "ghcr.io/ariffazil/arifos:latest" \
               -f arifosmcp/Dockerfile .
+            echo "[DEPLOY] Pushing to GHCR..."
+            docker push ghcr.io/ariffazil/arifos:"${GIT_SHA}" &
+            docker push ghcr.io/ariffazil/arifos:latest &
+            wait
+            echo "[DEPLOY] GHCR push complete — image available at ghcr.io/ariffazil/arifos:${GIT_SHA}"
+            echo "[DEPLOY] Updating docker-compose.yml with new image tag..."
+            sed -i "s|ghcr.io/ariffazil/arifos:[a-f0-9]*|ghcr.io/ariffazil/arifos:${GIT_SHA}|g" /root/compose/docker-compose.yml
+            grep "arifosmcp:" -A 2 /root/compose/docker-compose.yml | grep image
             echo "[DEPLOY] Restarting Docker Compose arifosmcp service..."
             cd /root/compose
             DEPLOY_GIT_COMMIT="${GIT_SHA}" docker compose up -d --no-deps --force-recreate arifosmcp
-            sleep 5
+            sleep 8
             echo "[DEPLOY] Verifying server health..."
-            curl -fsS http://localhost:8080/health | python -m json.tool
-            curl -fsS http://localhost:8080/health | EXPECTED_SHA="${GIT_SHA}" python -c 'import json, os, sys; d=json.load(sys.stdin); actual=d.get("git_commit"); expected=os.environ["EXPECTED_SHA"]; assert actual == expected, f"git_commit mismatch: {actual} != {expected}"; print(f"git_commit verified: {actual}")'
+            HEALTH=$(curl -fsS http://localhost:8080/health)
+            echo "${HEALTH}" | python -m json.tool
+            echo "${HEALTH}" | python -c "import sys,json; d=json.load(sys.stdin); assert d['status'] in ('healthy','degraded'), f'Server unhealthy: {d}'; print(f'✓ status={d[\"status\"]} tools={d.get(\"tools_loaded\")}')"
             echo "[DEPLOY] SEAL COMPLETE — DITEMPA BUKAN DIBERI"

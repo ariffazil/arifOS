@@ -41,7 +41,7 @@ RUN python -m pip install --upgrade pip && \
     pip install --no-cache-dir .
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
-RUN pip install --no-cache-dir itsdangerous prefab-ui fastapi uvicorn redis python-multipart psutil
+RUN pip install --no-cache-dir itsdangerous prefab-ui fastapi uvicorn redis python-multipart psutil playwright
 RUN pip install --no-cache-dir "fastapi>=0.100.0"
 # NOTE: fastmcp >=3.2.4 function_parsing.py is fragile.
 # Do NOT patch it with sed — use a pinned version or upstream fix instead.
