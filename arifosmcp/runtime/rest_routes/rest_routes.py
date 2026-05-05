@@ -1612,7 +1612,9 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
         }
         for alias, alias_schema in alias_overrides.get(tool_name, {}).items():
             alias_entry = json.loads(json.dumps(paths[f"/tools/{tool_name}"]))
-            alias_entry["post"]["requestBody"]["content"]["application/json"]["schema"] = alias_schema
+            alias_entry["post"]["requestBody"]["content"]["application/json"][
+                "schema"
+            ] = alias_schema
             paths[f"/tools/{alias}"] = alias_entry
 
     return paths
@@ -1885,6 +1887,12 @@ def _compute_runtime_drift() -> dict[str, Any]:
                 break
         except Exception:
             continue
+    # Fallback: use DEPLOY_GIT_COMMIT if no mounted .git found
+    if live_commit == "unknown":
+        deploy_commit = os.environ.get("DEPLOY_GIT_COMMIT", "")
+        if deploy_commit and deploy_commit not in ("unknown", ""):
+            live_commit = deploy_commit[:7]
+
     return {
         "runtime_drift": build_commit != live_commit
         and build_commit != "unknown"
