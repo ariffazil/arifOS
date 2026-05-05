@@ -1,9 +1,12 @@
 # arifOS 13-Tool Canonical Manifest v1.0.0
 
-**Status:** SEALED — 2026-04-19  
-**Author:** Arif Fazil — Human Architect, Seri Kembangan, MY  
-**Version:** 1.0.0  
-**Constitutional basis:** F1–F13 · Trinity ΔΩΨ · 000–999 Pipeline  
+> ⚠️ **STATUS: SUPERSEDED** — This document is outdated.
+> **Canonical tool names are now defined in:** `arifOS_Space_Description_v2026.05.02.3.md`
+> **Live runtime truth:** `mcp.list_tools()` returns `arif_<noun>_<verb>` names (14 tools).
+> **Do not use the `arifos_*` names in this document — they are deprecated.**
+**Author:** Arif Fazil — Human Architect, Seri Kembangan, MY
+**Version:** 1.0.0
+**Constitutional basis:** F1–F13 · Trinity ΔΩΨ · 000–999 Pipeline
 **Consolidation:** 44 tools → 13 canonical tools (zero capability loss)
 
 ---
@@ -31,7 +34,7 @@ These five tools are the metabolic invariants. They cannot be merged further —
 
 **Description:** Opens a governed session, binds actor identity via JWT or equivalent, issues session token, performs initial safety and intent classification scan.
 
-**Inputs:** `identity_token`, `client_metadata`, `raw_intent`  
+**Inputs:** `identity_token`, `client_metadata`, `raw_intent`
 **Outputs:** `session_id`, `safety_profile`, `initial_intent_class`
 
 ---
@@ -47,7 +50,7 @@ These five tools are the metabolic invariants. They cannot be merged further —
 
 **Description:** 8-stage grounding pipeline: PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → NORMALIZE → GATE → HANDOFF. Live web and data access is gated by truth classification — invariants use offline reasoning; time-sensitive facts trigger live retrieval; ambiguous queries HOLD for narrowing.
 
-**Inputs:** `session_id`, `query`, `context_hint`  
+**Inputs:** `session_id`, `query`, `context_hint`
 **Outputs:** `grounded_scene`, `evidence_bundle`, `truth_class`, `retrieval_plan`
 
 ---
@@ -63,7 +66,7 @@ These five tools are the metabolic invariants. They cannot be merged further —
 
 **Description:** Runs the full sense→mind→heart→judge reasoning pipeline. Supports sequential constitutional thinking with branching and merging. Produces a narrow `decision_packet` for the operator and a full `audit_packet` for the vault.
 
-**Inputs:** `session_id`, `grounded_scene`, `reasoning_goal`  
+**Inputs:** `session_id`, `grounded_scene`, `reasoning_goal`
 **Outputs:** `reasoning_graph`, `candidate_plans`, `audit_packet`
 
 ---
@@ -79,7 +82,7 @@ These five tools are the metabolic invariants. They cannot be merged further —
 
 **Description:** Red-teams candidate plans and proposals. Simulates downstream consequences, evaluates against constitutional floors, and identifies failure modes before execution is authorised.
 
-**Inputs:** `session_id`, `candidate_plans`, `impact_scope`  
+**Inputs:** `session_id`, `candidate_plans`, `impact_scope`
 **Outputs:** `risk_assessment`, `failure_modes`, `mitigations`
 
 ---
@@ -96,7 +99,7 @@ These five tools are the metabolic invariants. They cannot be merged further —
 
 **Description:** Issues the final constitutional verdict. No action may proceed to execution without a SEAL from this tool. Accepts probabilistic domain evidence, accounts for disagreement spread and timing risk.
 
-**Inputs:** `session_id`, `reasoning_graph`, `risk_assessment`, `mitigations`  
+**Inputs:** `session_id`, `reasoning_graph`, `risk_assessment`, `mitigations`
 **Outputs:** `verdict`, `verdict_rationale`, `allowed_actions`, `constraints`, `g_star_score`
 
 ---
@@ -116,8 +119,8 @@ These three tools merge routing, memory, and audit into governed infrastructure 
 
 **Description:** Unified routing, risk classification, and orthogonality enforcement. Routes requests to the correct computation or oracle tool. Enforces AGI/ASI lane separation. Computes thermodynamic operation cost via Landauer gate estimation. Blocks requests that would cause physics collapse, governance collapse, or ontology collapse. Self-exclusion guard: `arifos_kernel` is excluded from its own correlation matrix.
 
-**Modes:** `route`, `orthogonality_check`, `ops_cost`, `status`  
-**Inputs:** `session_id`, `task_spec`, `risk_profile`, `tool_trace`  
+**Modes:** `route`, `orthogonality_check`, `ops_cost`, `status`
+**Inputs:** `session_id`, `task_spec`, `risk_profile`, `tool_trace`
 **Outputs:** `selected_tool`, `route_plan`, `ops_cost_estimate`, `orthogonality_status`
 
 ---
@@ -132,8 +135,8 @@ These three tools merge routing, memory, and audit into governed infrastructure 
 
 **Description:** Semantic vector memory and skill registry in a single context retrieval organ. Stores and retrieves governed engineering context. Searches available skills by keyword or domain. Returns detailed skill metadata on request. Supports asset-scoped GEOX memory.
 
-**Modes:** `store`, `retrieve`, `search_skills`, `get_skill_metadata`, `asset_store`, `asset_query`  
-**Inputs:** `session_id`, `mode`, `query`, `content`, `tags`, `asset_id`  
+**Modes:** `store`, `retrieve`, `search_skills`, `get_skill_metadata`, `asset_store`, `asset_query`
+**Inputs:** `session_id`, `mode`, `query`, `content`, `tags`, `asset_id`
 **Outputs:** `memory_handle`, `retrieved_items`, `skill_list`, `skill_metadata`
 
 ---
@@ -149,8 +152,8 @@ These three tools merge routing, memory, and audit into governed infrastructure 
 
 **Description:** Immutable Merkle-hashed audit ledger and state recording organ. Appends verdict records, queries ledger history, anchors WELL biological state, reads metabolic monitor dashboard (F1–F13 + ΔS + Peace² + Ω₀). Builds BLS seal card from ledger.
 
-**Modes:** `append_verdict`, `read_ledger`, `anchor_well_state`, `read_metabolic_state`, `build_seal_card`  
-**Inputs:** `session_id`, `mode`, `record_payload`, `verdict`, `since`, `until`  
+**Modes:** `append_verdict`, `read_ledger`, `anchor_well_state`, `read_metabolic_state`, `build_seal_card`
+**Inputs:** `session_id`, `mode`, `record_payload`, `verdict`, `since`, `until`
 **Outputs:** `ledger_entry_id`, `ledger_view`, `anchor_id`, `metabolic_snapshot`, `seal_card`
 
 ---
@@ -169,8 +172,8 @@ All T* and V* tools collapse into three domain-orthogonal engines. Each engine i
 
 **Description:** Physics-grounded numerical computation engine. Covers subsurface earth science (petrophysics, stratigraphy, geometry) and stochastic/information-theoretic mathematics (Monte Carlo, entropy audit). All results carry uncertainty metrics.
 
-**Modes:** `petrophysics`, `stratigraphy_correlate`, `geometry_build`, `monte_carlo`, `entropy_audit`  
-**Inputs:** `session_id`, `mode`, `model_spec`, `input_data`, `iterations`  
+**Modes:** `petrophysics`, `stratigraphy_correlate`, `geometry_build`, `monte_carlo`, `entropy_audit`
+**Inputs:** `session_id`, `mode`, `model_spec`, `input_data`, `iterations`
 **Outputs:** `physics_results`, `uncertainty_metrics`, `p10_p50_p90`, `audit_flags`
 
 ---
@@ -185,8 +188,8 @@ All T* and V* tools collapse into three domain-orthogonal engines. Each engine i
 
 **Description:** Full financial valuation and decision engine. Covers discounted cash flow analysis, probabilistic valuation, debt coverage, portfolio ranking, budget optimisation, and personal decision analysis. Outputs include sensitivity analysis and entropy-flagged warnings on ambiguous cash flows.
 
-**Modes:** `npv`, `irr`, `mirr`, `emv`, `dscr`, `payback`, `profitability_index`, `allocation_rank`, `growth_runway`, `budget_optimize`, `personal_decision_rank`  
-**Inputs:** `session_id`, `mode`, `cash_flows`, `discount_rate`, `initial_investment`, `probabilities`, `outcomes`, `constraints`, `candidates`, `tasks`, `resources`  
+**Modes:** `npv`, `irr`, `mirr`, `emv`, `dscr`, `payback`, `profitability_index`, `allocation_rank`, `growth_runway`, `budget_optimize`, `personal_decision_rank`
+**Inputs:** `session_id`, `mode`, `cash_flows`, `discount_rate`, `initial_investment`, `probabilities`, `outcomes`, `constraints`, `candidates`, `tasks`, `resources`
 **Outputs:** `finance_metrics`, `ranking`, `sensitivity_analysis`, `warnings`, `payback_period`
 
 ---
@@ -201,8 +204,8 @@ All T* and V* tools collapse into three domain-orthogonal engines. Each engine i
 
 **Description:** Long-horizon civilisation, sustainability, and multi-agent strategic modelling. Covers sustainability path analysis, macro-energy-carbon trajectories, game-theoretic allocation (LP, Shapley, Nash), and causal scene synthesis for JUDGE. Operates at civilisational scale.
 
-**Modes:** `sustainability_path`, `macro_energy_carbon`, `scenario_compare`, `game_theory`, `cross_evidence_synthesize`  
-**Inputs:** `session_id`, `mode`, `current_state`, `scenario_definitions`, `agents`, `payoff_matrix`, `scene_id`  
+**Modes:** `sustainability_path`, `macro_energy_carbon`, `scenario_compare`, `game_theory`, `cross_evidence_synthesize`
+**Inputs:** `session_id`, `mode`, `current_state`, `scenario_definitions`, `agents`, `payoff_matrix`, `scene_id`
 **Outputs:** `path_trajectories`, `sustainability_scores`, `tradeoff_surfaces`, `game_solution`, `causal_scene`
 
 ---
@@ -221,8 +224,8 @@ All P* tools collapse into two clean oracles: biological telemetry and external 
 
 **Description:** Biological telemetry and readiness oracle. Reads WELL state, checks biological readiness for high-stakes decisions, scans all W-Floor dimensions (sleep, stress, cognitive load), and logs telemetry updates. The readiness verdict feeds directly into `arifos_judge` — a low readiness score can trigger a HOLD on critical decisions.
 
-**Modes:** `snapshot_read`, `readiness_check`, `floor_scan`, `log_update`  
-**Inputs:** `session_id`, `mode`, `bio_payload`, `dimensions`  
+**Modes:** `snapshot_read`, `readiness_check`, `floor_scan`, `log_update`
+**Inputs:** `session_id`, `mode`, `bio_payload`, `dimensions`
 **Outputs:** `well_snapshot`, `readiness_score`, `floor_state`, `log_id`, `readiness_verdict`
 
 ---
@@ -237,8 +240,8 @@ All P* tools collapse into two clean oracles: biological telemetry and external 
 
 **Description:** External world data oracle. Loads seismic, well, and volume data into witness context. Queries GEOX skill registry. Fetches cross-source macro, energy, and carbon snapshots by geography. Retrieves live FRED/World Bank/EIA time series and specific vintage data for real-as-of analysis.
 
-**Modes:** `geox_scene_load`, `geox_skills_query`, `macro_snapshot`, `series_fetch`, `series_vintage_fetch`  
-**Inputs:** `session_id`, `mode`, `query`, `scene_type`, `path`, `geography`, `source`, `series_id`, `vintage_date`  
+**Modes:** `geox_scene_load`, `geox_skills_query`, `macro_snapshot`, `series_fetch`, `series_vintage_fetch`
+**Inputs:** `session_id`, `mode`, `query`, `scene_type`, `path`, `geography`, `source`, `series_id`, `vintage_date`
 **Outputs:** `geox_scene`, `geox_skill_list`, `macro_snapshot`, `time_series`, `vintage_series`
 
 ---
@@ -318,5 +321,5 @@ Register old tool names as thin shims calling new tools. Keep shims live until z
 
 ---
 
-*Forged by Arif Fazil · Seri Kembangan, MY · April 2026*  
+*Forged by Arif Fazil · Seri Kembangan, MY · April 2026*
 *DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*
