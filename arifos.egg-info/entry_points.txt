@@ -1,2 +1,0 @@
-[console_scripts]
-arifos-mcp = arifosmcp.server:main

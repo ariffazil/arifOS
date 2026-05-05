@@ -27,51 +27,52 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # FLOOR DEFINITIONS — 13 Constitutional Laws as Physics
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class Floor(str, Enum):
     """
     F01–F13. Each Floor is a physics equation, not a policy rule.
     Eureka wired: thresholds derived from EUREKA_INSIGHTS_SEAL_v2026.04.07.
     """
-    F01_AMANAH     = "F01"  # Reversibility as conservation law (∃ undo)
-    F02_TRUTH      = "F02"  # Uncertainty as first-class citizen (τ ≥ 0.99)
-    F03_WITNESS    = "F03"  # Tri-witness consensus (W₃ ≥ 0.75)
-    F04_CLARITY    = "F04"  # Entropy reduction as progress (ΔS ≤ 0)
-    F05_PEACE      = "F05"  # Non-destruction as baseline (P² ≥ 1.0)
-    F06_EMPATHY    = "F06"  # RASA as protocol (κᵣ ≥ 0.70)
-    F07_HUMILITY   = "F07"  # Uncertainty quantified (Ω ∈ [0.03, 0.05])
-    F08_GENIUS     = "F08"  # Systemic health (G ≥ 0.80)
-    F09_ANTIHANTU  = "F09"  # Pattern recognition of deception (C_dark ≤ 0.30)
-    F10_ONTOLOGY   = "F10"  # Structural coherence (category lock / immutability)
-    F11_AUTH       = "F11"  # Verify identity (HUMAN_APPROVAL gate)
-    F12_INJECTION  = "F12"  # Sanitize inputs (injection_probability < 0.85)
-    F13_SOVEREIGN  = "F13"  # Human veto absolute (final authority)
+
+    F01_AMANAH = "F01"  # Reversibility as conservation law (∃ undo)
+    F02_TRUTH = "F02"  # Uncertainty as first-class citizen (τ ≥ 0.99)
+    F03_WITNESS = "F03"  # Tri-witness consensus (W₃ ≥ 0.75)
+    F04_CLARITY = "F04"  # Entropy reduction as progress (ΔS ≤ 0)
+    F05_PEACE = "F05"  # Non-destruction as baseline (P² ≥ 1.0)
+    F06_EMPATHY = "F06"  # RASA as protocol (κᵣ ≥ 0.70)
+    F07_HUMILITY = "F07"  # Uncertainty quantified (Ω ∈ [0.03, 0.05])
+    F08_GENIUS = "F08"  # Systemic health (G ≥ 0.80)
+    F09_ANTIHANTU = "F09"  # Pattern recognition of deception (C_dark ≤ 0.30)
+    F10_ONTOLOGY = "F10"  # Structural coherence (category lock / immutability)
+    F11_AUTH = "F11"  # Verify identity (HUMAN_APPROVAL gate)
+    F12_INJECTION = "F12"  # Sanitize inputs (injection_probability < 0.85)
+    F13_SOVEREIGN = "F13"  # Human veto absolute (final authority)
 
 
 class TrinityLane(str, Enum):
-    AGI   = "AGI"   # Tactical execution (000–777)
-    ASI   = "ASI"   # Strategic judgment (888)
-    APEX  = "APEX"  # Authority resolution (999)
+    AGI = "AGI"  # Tactical execution (000–777)
+    ASI = "ASI"  # Strategic judgment (888)
+    APEX = "APEX"  # Authority resolution (999)
 
 
 class ToolStage(str, Enum):
-    INIT     = "000"
-    SENSE    = "111"
-    FETCH    = "222"
-    MIND     = "333"
-    KERNEL   = "444"
-    REPLY    = "444r"
-    MEMORY   = "555"
-    HEART    = "666"
-    GATEWAY  = "666g"
-    OPS      = "777"
-    JUDGE    = "888"
-    FORGE    = "010"
-    VAULT    = "999"
+    INIT = "000"
+    SENSE = "111"
+    FETCH = "222"
+    MIND = "333"
+    KERNEL = "444"
+    REPLY = "444r"
+    MEMORY = "555"
+    HEART = "666"
+    GATEWAY = "666g"
+    OPS = "777"
+    JUDGE = "888"
+    FORGE = "010"
+    VAULT = "999"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -91,6 +92,7 @@ class ToolStage(str, Enum):
 # | C5    | Critical    | SEAL + human sign-off| Required + vault   |
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class RiskClass(str, Enum):
     """
     Risk consequence tier — governs HOW MUCH friction the kernel applies.
@@ -98,12 +100,13 @@ class RiskClass(str, Enum):
     The kernel paradox: governance looks like drag when nothing goes wrong,
     but genius when something could go wrong. RiskClass is how we right-size it.
     """
-    C0_GRAMMAR     = "C0"  # Negligible — grammar, tone, formatting
-    C1_DRAFT       = "C1"  # Low — internal drafts, notes, brainstorming
-    C2_REVIEW      = "C2"  # Medium — code review, testing, analysis
-    C3_PUBLIC      = "C3"  # High — public posts, emails, reports
+
+    C0_GRAMMAR = "C0"  # Negligible — grammar, tone, formatting
+    C1_DRAFT = "C1"  # Low — internal drafts, notes, brainstorming
+    C2_REVIEW = "C2"  # Medium — code review, testing, analysis
+    C3_PUBLIC = "C3"  # High — public posts, emails, reports
     C4_LEGAL_MONEY = "C4"  # Very High — legal, financial, HR, investment
-    C5_IRREVERSIBLE= "C5"  # Critical — irreversible, production write, money movement
+    C5_IRREVERSIBLE = "C5"  # Critical — irreversible, production write, money movement
 
     @property
     def governance_mode(self) -> str:
@@ -128,7 +131,7 @@ class RiskClass(str, Enum):
 
 @dataclass
 class RiskTierConfig:
-    governance_mode: str          # "vanilla" | "light" | "standard" | "strict" | "seal"
+    governance_mode: str  # "vanilla" | "light" | "standard" | "strict" | "seal"
     requires_human_confirmation: bool
     floors_activated: list[str]  # Most relevant F-codes for this tier
     description: str
@@ -151,7 +154,9 @@ _RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
         governance_mode="standard",
         requires_human_confirmation=False,
         floors_activated=["F02", "F03", "F04", "F07", "F08"],
-        description="Code review, testing, analysis, summaries. Evidence-backed. Moderate exposure.",
+        description=(
+            "Code review, testing, analysis, summaries. Evidence-backed. Moderate exposure."
+        ),
     ),
     RiskClass.C3_PUBLIC: RiskTierConfig(
         governance_mode="strict",
@@ -169,7 +174,9 @@ _RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
         governance_mode="seal",
         requires_human_confirmation=True,
         floors_activated=["F01", "F02", "F03", "F05", "F06", "F11", "F12", "F13"],
-        description="Production writes, database deletes, money movement, regulatory filings. Irreversible.",
+        description=(
+            "Production writes, database deletes, money movement, regulatory filings. Irreversible."
+        ),
     ),
 }
 
@@ -187,23 +194,24 @@ class RiskDecision:
         else:
             print(decision.reason)
     """
-    allowed: bool                         # Can the action proceed?
-    risk_class: RiskClass                  # What tier was assigned
-    governance_mode: str                   # "vanilla" | "light" | "standard" | "strict" | "seal"
-    verdict: str                           # "PROCEED" | "HOLD" | "VOID"
-    reason: str                            # Human-readable gate message
-    floors_activated: list[str]            # Which floors are on watch
-    requires_human_confirmation: bool      # F13 gate — human must sign off
-    human_approval_reference: str | None   # If confirmed, the approval token / session_ref
-    uncertainty_band: tuple[float, float]   # (lower, upper) — F07 Ω band if evidence is thin
-    preflight_passed: bool                 # Did the action pass all preflight checks?
+
+    allowed: bool  # Can the action proceed?
+    risk_class: RiskClass  # What tier was assigned
+    governance_mode: str  # "vanilla" | "light" | "standard" | "strict" | "seal"
+    verdict: str  # "PROCEED" | "HOLD" | "VOID"
+    reason: str  # Human-readable gate message
+    floors_activated: list[str]  # Which floors are on watch
+    requires_human_confirmation: bool  # F13 gate — human must sign off
+    human_approval_reference: str | None  # If confirmed, the approval token / session_ref
+    uncertainty_band: tuple[float, float]  # (lower, upper) — F07 Ω band if evidence is thin
+    preflight_passed: bool  # Did the action pass all preflight checks?
 
 
 def preflight(
     action: str,
     risk_class: RiskClass,
     reversible: bool,
-    evidence_quality: float = 1.0,   # 0.0–1.0; 1.0 = full evidence
+    evidence_quality: float = 1.0,  # 0.0–1.0; 1.0 = full evidence
     user_intent: str | None = None,
     session_ref: str | None = None,
 ) -> RiskDecision:
@@ -286,7 +294,7 @@ def preflight(
             floors_activated=["F02", *tier.floors_activated],
             requires_human_confirmation=tier.requires_human_confirmation,
             human_approval_reference=None,
-            uncertainty_band=(0.03, 0.10),   # Wider Ω band — low evidence
+            uncertainty_band=(0.03, 0.10),  # Wider Ω band — low evidence
             preflight_passed=False,
         )
 
@@ -330,6 +338,11 @@ def preflight(
         )
 
     # ── PROCEED — all gates passed ─────────────────────────────────────────────
+    _conf = (
+        "Human confirmation on record."
+        if session_ref
+        else "No human confirmation required for this tier."
+    )
     return RiskDecision(
         allowed=True,
         risk_class=risk_class,
@@ -338,7 +351,7 @@ def preflight(
         reason=(
             f"{risk_class.value} action '{action}' cleared preflight. "
             f"Governance: {tier.governance_mode}. "
-            f"{'Human confirmation on record.' if session_ref else 'No human confirmation required for this tier.'}"
+            f"{_conf}"
         ),
         floors_activated=tier.floors_activated,
         requires_human_confirmation=tier.requires_human_confirmation,
@@ -421,8 +434,14 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "risk_tier": "medium",
         "irreversible": False,
         "modes": [
-            "reason", "reflect", "verify", "critique",
-            "axioms", "plan", "plan_review", "plan_approve",
+            "reason",
+            "reflect",
+            "verify",
+            "critique",
+            "axioms",
+            "plan",
+            "plan_review",
+            "plan_approve",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
@@ -442,7 +461,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["critique", "simulate", "redteam", "maruah", "deescalate", "empathy"],
         "eureka_insight": (
             "F5: P² ≥ 1.0. F6: κᵣ ≥ 0.70 (RASA). "
-            "F9: C_dark ≤ 0.30 — dark patterns detectable in structure."
+            "F9: C_dark ≤ 0.30 — no biological emotional substrate. "
+            "F9 Definition (arifOS×SEA-LION): AI consciousness = NON-BIOLOGICAL "
+            "attention architecture. PROHIBITED: 'I feel', 'I want', 'I intend', "
+            "'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, "
+            "operational precision. SEA-Guard pre-filter active on all outputs."
         ),
     },
     "arif_kernel_route": {
@@ -577,6 +600,7 @@ CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 # QUERY FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def get_tool_spec(name: str) -> dict[str, Any] | None:
     return CANONICAL_TOOLS.get(name)
 
@@ -625,6 +649,7 @@ def get_floor_coverage() -> dict[str, list[str]]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TOOL REGISTRY GENERATOR
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def build_tool_registry_manifest() -> dict[str, Any]:
     """
@@ -687,16 +712,16 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_sense_observe": {
         "mode": str,
-        "query": str | None,         # [F12: sanitized]
+        "query": str | None,  # [F12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
-        "url": str | None,            # [F12: sanitized]
+        "url": str | None,  # [F12: sanitized]
         "layers": list[str] | None,
     },
     "arif_evidence_fetch": {
         "mode": str,
-        "url": str | None,            # [F12: sanitized]
-        "query": str | None,          # [F12: sanitized]
+        "url": str | None,  # [F12: sanitized]
+        "query": str | None,  # [F12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "thinking_depth": int,
@@ -705,7 +730,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_mind_reason": {
         "mode": str,
-        "query": str | None,           # [F12: sanitized]
+        "query": str | None,  # [F12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "plan_id": str | None,
@@ -714,15 +739,15 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "mode": str,
-        "target": str | None,         # [F12: sanitized]
+        "target": str | None,  # [F12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "stakeholder_ids": list[str] | None,
     },
     "arif_kernel_route": {
         "mode": str,
-        "target": str | None,         # [F12: sanitized]
-        "task": str | None,           # [F12: sanitized]
+        "target": str | None,  # [F12: sanitized]
+        "task": str | None,  # [F12: sanitized]
         "stage": str | None,
         "session_id": str | None,
         "actor_id": str | None,
@@ -730,7 +755,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_reply_compose": {
         "mode": str,
-        "message": str | None,        # [F12: sanitized]
+        "message": str | None,  # [F12: sanitized]
         "style": str | None,
         "citations": list[str] | None,
         "session_id": str | None,
@@ -738,7 +763,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_memory_recall": {
         "mode": str,
-        "query": str | None,          # [F12: sanitized]
+        "query": str | None,  # [F12: sanitized]
         "memory_id": str | None,
         "session_id": str | None,
         "actor_id": str | None,
@@ -746,36 +771,36 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_gateway_connect": {
         "mode": str,
-        "target_agent": str | None,   # [F12: sanitized]
+        "target_agent": str | None,  # [F12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "delegate_scope": dict | None,
     },
     "arif_judge_deliberate": {
         "mode": str,
-        "candidate": str | None,       # [F12: sanitized]
+        "candidate": str | None,  # [F12: sanitized]
         "session_id": str | None,
-        "actor_id": str,              # F11: authenticated — required
+        "actor_id": str,  # F11: authenticated — required
         "constitutional_chain_id": str | None,
         "domain_payload": dict | None,
     },
     "arif_vault_seal": {
         "mode": str,
-        "payload": str,               # F11: authenticated — required
+        "payload": str,  # F11: authenticated — required
         "session_id": str | None,
-        "ack_irreversible": bool,    # F1: hard gate
-        "actor_id": str,             # F11: authenticated — required
+        "ack_irreversible": bool,  # F1: hard gate
+        "actor_id": str,  # F11: authenticated — required
         "constitutional_chain_id": str | None,
         "judge_state_hash": str | None,
     },
     "arif_forge_execute": {
         "mode": str,
-        "manifest": str,              # [F12: sanitized]
-        "query": str | None,          # [F12: sanitized]
+        "manifest": str,  # [F12: sanitized]
+        "query": str | None,  # [F12: sanitized]
         "artifact_id": str | None,
         "session_id": str | None,
-        "ack_irreversible": bool,    # F1: hard gate
-        "actor_id": str,             # F11: authenticated — required
+        "ack_irreversible": bool,  # F1: hard gate
+        "actor_id": str,  # F11: authenticated — required
         "constitutional_chain_id": str | None,
         "judge_state_hash": str | None,
         "vault_entry_id": str | None,
@@ -835,9 +860,9 @@ _TOOL_OUTPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     "arif_mind_reason": {
         "verdict": str,
         "mode": str,
-        "claim_tag": str,             # CLAIM | PLAUSIBLE | HYPOTHESIS | ESTIMATE | UNKNOWN
-        "tau": float,                 # F2 truth score
-        "omega": float,               # F7 uncertainty band
+        "claim_tag": str,  # CLAIM | PLAUSIBLE | HYPOTHESIS | ESTIMATE | UNKNOWN
+        "tau": float,  # F2 truth score
+        "omega": float,  # F7 uncertainty band
         "delta_S": float | None,
         "nine_signal": dict,
         "reasons": list[str] | None,
@@ -846,9 +871,9 @@ _TOOL_OUTPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "verdict": str,
         "mode": str,
         "assessment": str,
-        "p2": float,                   # F5 peace² score
-        "kappa_r": float,             # F6 empathy score
-        "c_dark": float | None,       # F9 dark pattern score
+        "p2": float,  # F5 peace² score
+        "kappa_r": float,  # F6 empathy score
+        "c_dark": float | None,  # F9 dark pattern score
         "nine_signal": dict,
         "reasons": list[str] | None,
     },
@@ -890,7 +915,7 @@ _TOOL_OUTPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "reasons": list[str] | None,
     },
     "arif_judge_deliberate": {
-        "verdict": str,               # SEAL | HOLD | VOID
+        "verdict": str,  # SEAL | HOLD | VOID
         "mode": str,
         "judgment": str,
         "actor_verified": bool,
@@ -935,14 +960,14 @@ _TOOL_OUTPUT_SCHEMAS: dict[str, dict[str, Any]] = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 NINE_SIGNAL_FIELDS = [
-    "tau",      # F2 Truth score (≥ 0.99 for SEAL)
-    "omega",    # F7 Humility band (∈ [0.03, 0.05])
+    "tau",  # F2 Truth score (≥ 0.99 for SEAL)
+    "omega",  # F7 Humility band (∈ [0.03, 0.05])
     "delta_S",  # F4 Clarity: entropy change (≤ 0 for SEAL)
-    "w3",       # F3 Witness: tri-witness score (≥ 0.75)
-    "p2",       # F5 Peace² score (≥ 1.0)
-    "kappa",    # F6 Empathy score (≥ 0.70)
-    "c_dark",   # F9 Anti-hantu dark-pattern score (≤ 0.30)
-    "omega_ont",# F10 Ontology coherence (BOOLEAN)
+    "w3",  # F3 Witness: tri-witness score (≥ 0.75)
+    "p2",  # F5 Peace² score (≥ 1.0)
+    "kappa",  # F6 Empathy score (≥ 0.70)
+    "c_dark",  # F9 Anti-hantu dark-pattern score (≤ 0.30)
+    "omega_ont",  # F10 Ontology coherence (BOOLEAN)
 ]
 
 
@@ -970,7 +995,7 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
 
     # F10 ONTOLOGY: omega_ont must be present
     if nine is not None and "omega_ont" not in nine:
-        violations.append(f"nine_signal missing omega_ont [F10 ONTOLOGY]")
+        violations.append("nine_signal missing omega_ont [F10 ONTOLOGY]")
 
     # reasons[] check for non-SEAL verdicts
     verdict = response.get("verdict", "")
@@ -1063,6 +1088,7 @@ def _to_model_name(tool_name: str) -> str:
 # SCHEMA COVERAGE CHECKER
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def check_schema_coverage() -> dict[str, Any]:
     """
     Verify every CANONICAL_TOOLS entry has I/O schemas defined.
@@ -1087,10 +1113,14 @@ def check_schema_coverage() -> dict[str, Any]:
         "missing_input_schemas": sorted(missing_input),
         "missing_output_schemas": sorted(missing_output),
         "orphan_input_schemas": sorted(orphan_input),
-        "input_coverage_pct": (len(canonical & defined_input) / len(canonical) * 100) if canonical else 0,
-        "output_coverage_pct": (len(canonical & defined_output) / len(canonical) * 100) if canonical else 0,
+        "input_coverage_pct": (
+            (len(canonical & defined_input) / len(canonical) * 100) if canonical else 0
+        ),
+        "output_coverage_pct": (
+            (len(canonical & defined_output) / len(canonical) * 100) if canonical else 0
+        ),
         "floor_coverage": {f: len(t) for f, t in floor_cov.items()},
-        "thin_floors": thin_floors,       # floors with < 2 tools
+        "thin_floors": thin_floors,  # floors with < 2 tools
         "PASS": len(missing_input) == 0 and len(missing_output) == 0 and len(thin_floors) == 0,
     }
 

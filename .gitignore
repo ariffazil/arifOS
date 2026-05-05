@@ -151,3 +151,4 @@ skills/github-readme-dynamic/
 evidence/
 *.zkey
 zkp_artifacts/
+arifos.egg-info/

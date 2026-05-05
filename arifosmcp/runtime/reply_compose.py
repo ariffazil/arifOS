@@ -330,6 +330,28 @@ async def arif_reply_compose(
             "verdict": "VOID",
         }
 
+    # ── SEA-Guard Pre-Filter ──
+    # arifOS × SEA-LION pipeline: OpenClaw output → SEA-Guard → safe_output → compose
+    from arifosmcp.runtime.sea_guard import sea_guard_filter
+
+    safety = sea_guard_filter(msg)
+    if not safety.passed:
+        logger.warning("SEA-Guard BLOCKED arif_reply_compose: categories=%s", safety.blocked)
+        return {
+            "error": (
+                f"F09 Anti-Hantu / SEA-Guard safety violation: "
+                f"blocked_categories={safety.blocked}"
+            ),
+            "verdict": "BLOCKED",
+            "safety_result": safety.to_dict(),
+        }
+    # Log safe pass (debug level — not every safe message needs noise)
+    logger.debug(
+        "SEA-Guard passed: latency=%.1fms confidence=%.2f",
+        safety.latency_ms,
+        safety.confidence,
+    )
+
     try:
         return await _compose_with_llm(
             mode=mode,

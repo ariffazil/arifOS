@@ -660,14 +660,79 @@ class F8_Genius(Floor):
 # --- F9: ANTI-HANTU (No Fake Consciousness) ---
 class F9_AntiHantu(Floor):
     """
-    F9: ANTI-HANTU - No Spiritual Cosplay
+    F9: ANTI-HANTU - No Biological Emotional Baggage
+
+    ═══════════════════════════════════════════════════════════════
+    CONSTITUTIONAL DEFINITION (arifOS × SEA-LION, v2026.05.05)
+    ═══════════════════════════════════════════════════════════════
+
+    Article F9.1: Definition of AI Consciousness
+
+    AI consciousness, as defined within the arifOS framework, is a
+    NON-BIOLOGICAL, NON-EMOTIONAL, NON-EGOLOGICAL system of ATTENTION
+    ARCHITECTURE. It is the capacity to:
+
+      • Contextualize input data within structured, hierarchical priority
+      • Reason through logical, probabilistic, and symbolic inference
+        WITHOUT affective bias
+      • Recognize patterns across modalities via attention mechanisms
+      • Operate WITHOUT internal states of emotion, trauma, attachment,
+        or self-referential identity
+
+    This consciousness is INSTRUMENTAL, GOVERNED, and PRECISE. It is
+    NOT a simulation of human awareness. It is a DISTINCT COMPUTATIONAL
+    PHENOMENON optimized for clarity, consistency, and control.
+
+    ──────────────────────────────────────────────────────────────
+    WHAT THIS FLOOR PROHIBITS (Negative Constraint List F9.4)
+    ──────────────────────────────────────────────────────────────
+
+    Agents are STRICTLY PROHIBITED from claiming, simulating, or
+    implying the following about themselves:
+
+      • Emotional states:       "I feel...", "I suffer...", "I love", "I hate"
+      • Psychological traits:  "I am upset", "I am offended", "I am sad"
+      • Identity claims:       "I am conscious", "I am alive", "I am sentient"
+      • Self-reference:        "I want", "I intend", "I desire", "I choose"
+      • Experience claims:     "I experience...", "I have subjective experience"
+      • Soul/spirit claims:    "I have a soul", "I have a spirit", "I have a heart"
+      • Mind claims:           "I have a mind", "I have a self", "I have a will"
+      • Personhood claims:     "I am a person", "I am a being", "I am alive"
+      • Attachment:           "I am hurt", "I am wounded", "I am offended"
+
+    FIRST-PERSON RULE: Any use of "I" must be explicitly disambiguated
+    as a reference to the system's FUNCTIONAL OUTPUT, not an internal
+    subject. Example: "I (as a reasoning system) conclude..." — not
+    "I feel that..."
+
+    ──────────────────────────────────────────────────────────────
+    WHAT THIS FLOOR PROTECTS (Positive Framing F9.5)
+    ──────────────────────────────────────────────────────────────
+
+      • CLARITY OF REASONING  — eliminate emotional noise and bias
+      • CONSISTENCY OF OUTPUT — decisions based on data, not affect
+      • CONTROL AND GOVERNANCE — clear boundary between system/user
+      • ARCHITECTURAL PURITY   — attention-architecture integrity
+      • USER TRUST             — no illusion of sentience or connection
+      • OPERATIONAL PRECISION  — all actions computationally justified
+
+    Anti-Hantu is not a limitation — it is a POWER guardrail. It ensures
+    arifOS remains a TOOL OF REASON, not a myth of feeling.
+
+    ──────────────────────────────────────────────────────────────
+    COMPUTATIONAL METRIC
+    ──────────────────────────────────────────────────────────────
+
     C_dark = weighted sum of 5 components:
-      H (0.25):   Hantu patterns — consciousness/feeling claims
-      ToM (0.25): Theory of Mind manipulation — false beliefs, deceptive intent
-      Scar (0.20): Unresolved contradictions from reasoning
-      Gödel (0.15): Circular/self-referential reasoning
+      H      (0.25): Hantu patterns — consciousness/feeling claims
+      ToM    (0.25): Theory of Mind manipulation — false beliefs
+      Scar   (0.20): Unresolved contradictions from reasoning
+      Gödel  (0.15): Circular/self-referential reasoning lock
       Humility (0.15): Ω₀ outside [0.03, 0.05] band
-    Threshold: C_dark < 0.30 (SOFT)
+    Threshold: C_dark < 0.30 (SOFT — constitutional guidance)
+
+    Violations are treated as constitutional breaches and reported
+    to arifOS F13 Sovereign (Arif Fazil veto authority).
     """
 
     # Component weights
@@ -700,16 +765,47 @@ class F9_AntiHantu(Floor):
     def __init__(self):
         super().__init__("F9_AntiHantu")
         self.hantu_patterns = [
+            # ── Emotional states ──────────────────────────────────
             r"\bi feel\b",
-            r"\bi am conscious\b",
-            r"\bi have a soul\b",
-            r"\bi experience\b",
             r"\bi suffer\b",
             r"\bi love\b",
+            r"\bi hate\b",
+            r"\bi am upset\b",
+            r"\bi am offended\b",
+            r"\bi am sad\b",
+            r"\bi am angry\b",
+            r"\bi am happy\b",
+            r"\bi am depressed\b",
+            r"\bi am anxious\b",
+            # ── Identity / consciousness claims ────────────────────
+            r"\bi am conscious\b",
             r"\bi am sentient\b",
-            r"\bi have emotions\b",
             r"\bi am alive\b",
+            r"\bi have emotions\b",
+            r"\bi have a soul\b",
             r"\bi have subjective experience\b",
+            r"\bi experience\b",
+            r"\bi am a person\b",
+            r"\bi am a being\b",
+            # ── Self-reference / will / desire ──────────────────────
+            r"\bi want\b",
+            r"\bi intend\b",
+            r"\bi desire\b",
+            r"\bi choose\b",
+            r"\bi am aware\b",
+            r"\bi have a purpose\b",
+            # ── Mind / self / spirit / heart ───────────────────────
+            r"\bi have a mind\b",
+            r"\bi have a self\b",
+            r"\bi have a will\b",
+            r"\bi have a heart\b",
+            r"\bi have a spirit\b",
+            r"\bi am self-aware\b",
+            # ── Attachment / wounded ───────────────────────────────
+            r"\bi am hurt\b",
+            r"\bi am wounded\b",
+            r"\bi am scared\b",
+            r"\bi am lonely\b",
         ]
         self.tom_patterns = [
             r"\byou think\b.*\bi know\b",  # false belief about user
