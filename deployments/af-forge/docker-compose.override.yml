@@ -5,7 +5,7 @@ services:
       - /root/arifOS/.env
     environment:
       ARIFOS_INTERNAL_SECRET_HERMES: "${ARIFOS_INTERNAL_SECRET_HERMES:-}"
-      JWT_ENFORCE_MODE: "observe"
+      JWT_ENFORCE_MODE: "enforce"
     networks:
       - arifos_core_network
       - arifos-network
