@@ -62,6 +62,27 @@ def _git_sha_short() -> str:
     return "unknown"
 
 
+def _image_tag() -> str:
+    """Resolve container image tag from env vars."""
+    for key in ("ARIFOS_IMAGE", "DEPLOY_IMAGE", "IMAGE_TAG"):
+        val = os.environ.get(key, "").strip()
+        if val and val not in ("unknown", "", "not-injected"):
+            return val
+    commit = _git_sha_short()
+    if commit and commit not in ("unknown", "not-injected"):
+        return f"ghcr.io/ariffazil/arifos:{commit}"
+    return "not-injected"
+
+
+def _build_time() -> str:
+    """Resolve build timestamp from env vars."""
+    for key in ("ARIFOS_BUILD_TIME", "BUILD_TIME", "DEPLOY_BUILD_TIME"):
+        val = os.environ.get(key, "").strip()
+        if val and val not in ("unknown", "", "not-injected"):
+            return val
+    return datetime.now(timezone.utc).isoformat()
+
+
 def _pyproject_version() -> str:
     dna_version = str(DNA_VERSION).strip()
     if dna_version:
@@ -111,7 +132,8 @@ def get_build_info() -> dict[str, Any]:
         "build": {
             "commit": commit,
             "commit_short": commit,
-            "built_at": datetime.now(timezone.utc).isoformat(),
+            "image": _image_tag(),
+            "built_at": _build_time(),
             "branch": "main",
         },
         "release_tag": app_version,

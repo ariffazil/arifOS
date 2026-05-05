@@ -71,6 +71,9 @@ def arif_kernel_route(
     if mode == "bridge":
         return _bridge_organ_call(organ, tool_name, arguments)
 
+    if mode == "command_center":
+        return _command_center_cockpit()
+
     return _hold("arif_kernel_route", f"Unknown mode: {mode}")
 
 
@@ -118,3 +121,35 @@ async def _bridge_organ_call(
             return _hold("arif_kernel_route", f"WEALTH bridge failed: {e}")
 
     return _hold("arif_kernel_route", f"Unknown organ: {organ}")
+
+
+def _command_center_cockpit() -> dict[str, Any]:
+    """Return command center cockpit data (read-only, no mutation)."""
+    from arifosmcp.runtime.rest_routes import _build_governance_status_payload
+
+    payload = _build_governance_status_payload()
+    return _ok(
+        "arif_kernel_route",
+        {
+            "mode": "command_center",
+            "session_status": {
+                "active_sessions": payload.get("session_count", 0),
+                "stage": "000",
+            },
+            "vitals": payload.get("telemetry", {}),
+            "floors": payload.get("floors", {}),
+            "witness": payload.get("witness", {}),
+            "tabs": [
+                "session_status",
+                "vitals",
+                "judge",
+                "forge",
+                "gateway",
+                "vault",
+            ],
+            "доступ": (
+                "Use arif_judge_deliberate for judge, arif_forge_execute for forge, "
+                "arif_gateway_connect for gateway, arif_vault_seal for vault"
+            ),
+        },
+    )

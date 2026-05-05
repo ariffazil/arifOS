@@ -39,14 +39,15 @@ def arif_judge_deliberate(
 
     _evidence: dict = {}
 
-    if _evidence.get("vitals") is None:
-        try:
-            vitals_result = arif_ops_measure(mode="vitals")
-            _evidence["vitals"] = getattr(vitals_result, "__dict__", {}) or {
-                "status": "unavailable"
-            }
-        except Exception:
-            _evidence["vitals"] = {"status": "unavailable"}
+    if mode != "history":
+        if _evidence.get("vitals") is None:
+            try:
+                vitals_result = arif_ops_measure(mode="vitals")
+                _evidence["vitals"] = getattr(vitals_result, "__dict__", {}) or {
+                    "status": "unavailable"
+                }
+            except Exception:
+                _evidence["vitals"] = {"status": "unavailable"}
 
     audit_entropy = _evidence.get("vitals", {}).get("audit_entropy")
     result = _arif_judge_deliberate(

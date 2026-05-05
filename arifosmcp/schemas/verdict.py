@@ -720,6 +720,8 @@ class SealOutput(BaseModel):
     result: dict[str, Any] = Field(default_factory=dict)
     entry_id: str | None = None
     ledger_size: int = 0
+    chain_hash: str | None = None
+    permanence_flag: bool = False
 
     # Constitutional compliance
     constitutional_compliance: ConstitutionalCompliance = Field(
@@ -742,6 +744,8 @@ class SealOutput(BaseModel):
 
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
+    mode: str | None = None
+    seal_data: dict[str, Any] | None = None
 
     # ── Post-AGI WEALTH verification governance (Phase 2) ─────────────────────
     # Captured at decision time, stored in ledger for drift analysis / post-mortems

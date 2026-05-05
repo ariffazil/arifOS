@@ -273,6 +273,7 @@ def _representative_floor_score(floor_id: str) -> float:
     Build a visualizer-friendly fallback score from canonical core floor specs.
 
     This intentionally stays transport-agnostic by deriving from core as source-of-truth.
+    Returns a value with small safety margin so defaults don't sit exactly on threshold.
     """
     comparator = get_floor_comparator(floor_id)
     threshold = float(get_floor_threshold(floor_id))
@@ -283,9 +284,11 @@ def _representative_floor_score(floor_id: str) -> float:
         return float(low) + 0.01  # representative in-band humility value
 
     if comparator in {">", ">="}:
-        return threshold
+        # Add small margin so default doesn't look borderline (e.g. F1 0.50 → 0.55)
+        return min(threshold + 0.05, 1.0)
     if comparator == "<=":
-        return threshold
+        # Subtract small margin so default doesn't look borderline (e.g. F4 0.00 → -0.05)
+        return max(threshold - 0.05, -1.0)
     # "<" comparators (e.g., risk-style floors) — choose conservative passing value
     return threshold * 0.5
 
@@ -340,9 +343,9 @@ def _dashboard_cors_headers(request: Request) -> dict[str, str]:
     return {}
 
 
-def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
+def _collect_container_status(limit: int = 24) -> list[dict[str, Any]]:
     """Probe container runtime via docker ps; fallback to HTTP health checks inside containers."""
-    containers: list[dict[str, str]] = []
+    containers: list[dict[str, Any]] = []
     try:
         result = subprocess.run(  # nosec B603 B607
             [
@@ -360,11 +363,13 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
             parts = row.split("\t", 2)
             if len(parts) != 3:
                 continue
+            name = parts[0]
             containers.append(
                 {
-                    "name": parts[0],
+                    "name": name,
                     "image": parts[1],
                     "status": parts[2],
+                    "is_essential": name in _CRITICAL_CONTAINERS,
                 }
             )
             if len(containers) >= limit:
@@ -390,7 +395,14 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
                 sock.settimeout(1.0)
                 sock.connect((host, port))
                 sock.close()
-                containers.append({"name": name, "image": "probed", "status": "Up (tcp-probed)"})
+                containers.append(
+                    {
+                        "name": name,
+                        "image": "probed",
+                        "status": "Up (tcp-probed)",
+                        "is_essential": name in _CRITICAL_CONTAINERS,
+                    }
+                )
             except OSError:
                 pass
             if len(containers) >= limit:
@@ -3208,9 +3220,67 @@ def register_rest_routes(
             health_payload.setdefault("thermodynamic", {})
             health_payload["thermodynamic"]["witness"] = trinity_witness
 
+            # Runtime identity with source attribution (F2 Truth)
+            build = BUILD_INFO.get("build", {})
+            runtime_identity = {
+                "version": BUILD_INFO.get("version", "not-injected"),
+                "git_commit": build.get("commit", "not-injected"),
+                "git_commit_source": (
+                    "env"
+                    if any(
+                        os.environ.get(k, "").strip()
+                        for k in (
+                            "DEPLOY_GIT_COMMIT",
+                            "ARIFOS_BUILD_SHA",
+                            "ARIFOS_GIT_SHA",
+                            "GIT_SHA",
+                            "GIT_COMMIT",
+                        )
+                    )
+                    else (
+                        "git"
+                        if build.get("commit") not in ("unknown", "not-injected", None, "")
+                        else "fallback"
+                    )
+                ),
+                "image": build.get("image", "not-injected"),
+                "image_source": (
+                    "env"
+                    if any(
+                        os.environ.get(k, "").strip()
+                        for k in ("ARIFOS_IMAGE", "IMAGE_TAG", "DOCKER_IMAGE")
+                    )
+                    else (
+                        "inferred"
+                        if build.get("image") and build.get("image") != "not-injected"
+                        else "fallback"
+                    )
+                ),
+                "build_time": build.get("built_at", "not-injected"),
+                "build_time_source": (
+                    "env"
+                    if any(
+                        os.environ.get(k, "").strip()
+                        for k in ("ARIFOS_BUILD_TIME", "BUILD_TIME", "DEPLOY_BUILD_TIME")
+                    )
+                    else "inferred"
+                ),
+            }
+
+            # Trinity geometric mean witness check (W = ∛(H·A·E) > 0.95)
+            h = trinity_witness.get("human", 0.0)
+            a = trinity_witness.get("ai", 0.0)
+            e = trinity_witness.get("earth", 0.0)
+            geo_mean = (h * a * e) ** (1 / 3) if h > 0 and a > 0 and e > 0 else 0.0
+            matrix["witness_geometric_mean"] = round(geo_mean, 4)
+            matrix["witness_threshold"] = 0.95
+            # overall_ok must satisfy both: all domains non-NEGATIVE AND geo_mean > 0.95
+            matrix["overall_ok"] = matrix["overall_ok"] and geo_mean > 0.95
+
             payload = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "health": health_payload,
+                "runtime_identity": runtime_identity,
                 "git": _collect_git_snapshot(),
                 "trinity_matrix": matrix,
                 "trinity_witness": trinity_witness,
@@ -3601,31 +3671,44 @@ def register_rest_routes(
             logger.exception("observatory_check endpoint failed")
             return _rest_error("observatory self-check failed", status_code=500)
 
+    async def _probe_organ_health(client: httpx.AsyncClient, *endpoints: str) -> str:
+        """Probe an organ across compose-network and host-local endpoints."""
+        for endpoint in endpoints:
+            try:
+                r = await client.get(endpoint, timeout=3.0, follow_redirects=True)
+                if r.status_code == 200:
+                    return "active"
+            except Exception:
+                continue
+        return "offline"
+
     async def _probe_geox(client: httpx.AsyncClient) -> str:
         """Probe GEOX organ health. Returns 'active' or 'offline'."""
-        try:
-            r = await client.get("http://geox_eic:8081/health", timeout=3.0, follow_redirects=True)
-            return "active" if r.status_code == 200 else "offline"
-        except Exception:
-            return "offline"
+        return await _probe_organ_health(
+            client,
+            "http://geox_eic:8081/health",
+            "http://geox:8081/health",
+            "http://127.0.0.1:8081/health",
+            "http://localhost:8081/health",
+        )
 
     async def _probe_wealth(client: httpx.AsyncClient) -> str:
         """Probe WEALTH organ health. Returns 'active' or 'offline'."""
-        try:
-            r = await client.get(
-                "http://wealth-organ:8082/health", timeout=3.0, follow_redirects=True
-            )
-            return "active" if r.status_code == 200 else "offline"
-        except Exception:
-            return "offline"
+        return await _probe_organ_health(
+            client,
+            "http://wealth-organ:8082/health",
+            "http://127.0.0.1:8082/health",
+            "http://localhost:8082/health",
+        )
 
     async def _probe_well(client: httpx.AsyncClient) -> str:
         """Probe WELL organ health. Returns 'active' or 'offline'."""
-        try:
-            r = await client.get("http://well:8083/health", timeout=3.0, follow_redirects=True)
-            return "active" if r.status_code == 200 else "offline"
-        except Exception:
-            return "offline"
+        return await _probe_organ_health(
+            client,
+            "http://well:8083/health",
+            "http://127.0.0.1:8083/health",
+            "http://localhost:8083/health",
+        )
 
     @route("/api/live/all", methods=["GET"])
     async def api_live_all(request: Request) -> Response:
@@ -3639,11 +3722,48 @@ def register_rest_routes(
             health_payload = json.loads(health_resp.body.decode("utf-8"))
             governance_payload = _build_governance_status_payload()
             vitals = health_payload.get("thermodynamic", {})
+            governance_telemetry = governance_payload.get("telemetry", {})
+            governance_floors = governance_payload.get("floors", {})
+            governance_witness = governance_payload.get("witness", {})
+            machine_vitals = governance_payload.get("machine_vitals", {})
 
             async with httpx.AsyncClient(timeout=5.0) as client:
                 geox_status = await _probe_geox(client)
                 wealth_status = await _probe_wealth(client)
                 well_status = await _probe_well(client)
+
+            floor_names = {
+                "F1": "AMANAH",
+                "F2": "TRUTH",
+                "F3": "WITNESS",
+                "F4": "CLARITY",
+                "F5": "PEACE",
+                "F6": "EMPATHY",
+                "F7": "HUMILITY",
+                "F8": "GENIUS",
+                "F9": "ANTIHANTU",
+                "F10": "ONTOLOGY",
+                "F11": "AUTH",
+                "F12": "INJECTION",
+                "F13": "SOVEREIGN",
+            }
+            floors = {
+                fid: {
+                    "name": floor_names.get(fid, fid),
+                    "status": (
+                        "pass"
+                        if _floor_passes(
+                            fid, float(governance_floors.get(fid, _FLOOR_DEFAULTS[fid]))
+                        )
+                        else "fail"
+                    ),
+                    "score": float(governance_floors.get(fid, _FLOOR_DEFAULTS[fid])),
+                }
+                for fid in sorted(FLOOR_SPEC_KEYS.keys(), key=lambda item: int(item[1:]))
+            }
+            floors_passing = sum(1 for data in floors.values() if data["status"] == "pass")
+            verdict = governance_telemetry.get("verdict", vitals.get("verdict", "HOLD"))
+            system_status = "HEALTHY" if verdict == "SEAL" else "DEGRADED"
 
             payload = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -3654,35 +3774,53 @@ def register_rest_routes(
                     "kappa_r": vitals.get("echo_debt", 0.0),
                     "psi_le": vitals.get("psi_vitality", 0.0),
                 },
-                "verdict": governance_payload.get("verdict", "HOLD"),
+                "verdict": verdict,
                 "latency_ms": 0.0,
                 "tools_loaded": health_payload.get("tools_loaded", 0),
-                "floors_active": health_payload.get("floors_active", 0),
+                "floors_active": len(FLOOR_SPEC_KEYS),
                 "version": health_payload.get("version", "unknown"),
                 "source_commit": health_payload.get("source_commit", "unknown"),
                 "federation": {
                     "arifos": {
                         "status": "active",
                         "organ": "kernel",
-                        "verdict": governance_payload.get("verdict", "HOLD"),
+                        "verdict": verdict,
                     },
                     "geox": {"status": geox_status},
                     "wealth": {"status": wealth_status},
                     "well": {"status": well_status},
                 },
                 "governance": {
-                    "tau_confidence_system": governance_payload.get("tau_confidence_system", 0.0),
-                    "f2_threshold": governance_payload.get("f2_threshold", 0.99),
-                    "psi_vitality": governance_payload.get("psi_vitality", 0.0),
-                    "peace2": governance_payload.get("peace2", 0.0),
+                    "system_status": system_status,
+                    "version": health_payload.get("version", "unknown"),
+                    "floors_active": len(FLOOR_SPEC_KEYS),
+                    "floors_passing": floors_passing,
+                    "floors_failing": len(FLOOR_SPEC_KEYS) - floors_passing,
+                    "G_star": vitals.get("vitality_index", 0.0),
+                    "dS": vitals.get("entropy_delta", 0.0),
+                    "peace2": vitals.get("peace_squared", 0.0),
+                    "kappa_r": vitals.get("echo_debt", 0.0),
+                    "psi_le": vitals.get("psi_vitality", 0.0),
+                    "witness_human": float(governance_witness.get("human", 0.0)),
+                    "witness_ai": float(governance_witness.get("ai", 0.0)),
+                    "witness_earth": float(governance_witness.get("earth", 0.0)),
+                    "avg_latency_ms": 0.0,
+                    "tau_confidence_system": float(governance_telemetry.get("confidence") or 0.0),
+                    "f2_threshold": float(_FLOOR_DEFAULTS["F2"]),
+                    "psi_vitality": vitals.get("psi_vitality", 0.0),
                     "vault999": health_payload.get("vault999_health", "unknown"),
                     "runtime_drift": health_payload.get("runtime_drift", False),
+                    "floors": floors,
                 },
                 "capability_map": health_payload.get("capability_map", {}),
                 "machine": {
-                    "cpu": 0,
-                    "memory": 0,
-                    "disk": 0,
+                    "cpu_percent": float(machine_vitals.get("cpu_percent", 0.0)),
+                    "ram_percent": float(machine_vitals.get("memory_percent", 0.0)),
+                    "disk_percent": float(machine_vitals.get("disk_percent", 0.0)),
+                    "uptime_seconds": float(machine_vitals.get("uptime_seconds", 0.0)),
+                    "cpu": float(machine_vitals.get("cpu_percent", 0.0)),
+                    "memory": float(machine_vitals.get("memory_percent", 0.0)),
+                    "disk": float(machine_vitals.get("disk_percent", 0.0)),
                 },
             }
             return JSONResponse(

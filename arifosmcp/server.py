@@ -218,7 +218,19 @@ async def horizon_health(request: Request) -> JSONResponse:
 
 
 async def horizon_ready(request: Request) -> JSONResponse:
-    return JSONResponse({"status": "pass"})
+    from arifosmcp.runtime.tools import _runtime_selftest
+
+    readiness = _runtime_selftest()
+    verdict = str(readiness.get("verdict", "FAIL")).lower()
+    payload = {
+        "status": verdict,
+        "checks": readiness.get("checks", {}),
+        "failures": readiness.get("failed_checks", []),
+        "warnings": readiness.get("warnings", []),
+        "timestamp": readiness.get("timestamp"),
+    }
+    status_code = 200 if verdict in {"pass", "partial"} else 503
+    return JSONResponse(payload, status_code=status_code)
 
 
 async def horizon_metadata(request: Request) -> JSONResponse:
@@ -235,23 +247,9 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
 
 
 async def tools_with_meta(request: Request) -> JSONResponse:
-    legacy_aliases = {
-        "init_anchor": "arif_session_init",
-        "vault_ledger": "arif_vault_seal",
-        "agi_mind": "arif_mind_reason",
-        "asi_heart": "arif_heart_critique",
-        "engineering_memory": "arif_memory_recall",
-        "physics_reality": "arif_sense_observe",
-        "math_estimator": "arif_ops_measure",
-        "code_engine": "arif_forge_execute",
-        "shared_memory": "arif_memory_recall",
-        "vault_seal": "arif_vault_seal",
-    }
-    tools_payload = [{"name": name, "canonical": name} for name in v2_tools_registered]
-    tools_payload.extend(
-        {"name": alias, "canonical": canonical, "legacy": True}
-        for alias, canonical in legacy_aliases.items()
-    )
+    from arifosmcp.runtime.public_registry import public_tool_names
+
+    tools_payload = [{"name": name, "canonical": name} for name in public_tool_names()]
     return JSONResponse(
         {
             "tools": tools_payload,

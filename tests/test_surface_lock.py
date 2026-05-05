@@ -107,9 +107,9 @@ def test_meta_skills_registered():
 
 
 def test_version_string():
-    """Version must be 2026.05.01."""
+    """Version must match the current sealed runtime release."""
     from arifosmcp import __version__
 
     assert (
-        __version__ == "2026.05.01"
-    ), f"Version drift: expected 2026.05.01, got {__version__}. VOID."
+        __version__ == "2026.05.05-SSCT"
+    ), f"Version drift: expected 2026.05.05-SSCT, got {__version__}. VOID."

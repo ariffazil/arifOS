@@ -52,6 +52,7 @@ env:
   PYTHONUNBUFFERED: "1"
   ARIFOS_ENV: "ci"
   ARIFOS_EPOCH: "${{ github.run_id }}"
+  WORKDIR: "${{ github.workspace }}"
 
 jobs:
 
@@ -74,7 +75,7 @@ jobs:
 
       - name: Verify 13 canonical tools load
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import sys, warnings
             sys.path.insert(0, '.')
@@ -109,7 +110,7 @@ jobs:
 
       - name: Tool registry integrity
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import json
             with open('arifosmcp/tool_registry.json') as f:
@@ -146,7 +147,7 @@ jobs:
 
       - name: 000_INIT manifest signature
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import sys; sys.path.insert(0,'.')
             from arifosmcp.tools import init as init_mod
@@ -164,7 +165,7 @@ jobs:
 
       - name: 888_JUDGE trust_state contract
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import sys; sys.path.insert(0,'.')
             from arifosmcp.tools.judge import run as judge_run
@@ -178,7 +179,7 @@ jobs:
 
       - name: Vault seal path
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import sys; sys.path.insert(0,'.')
             from arifosmcp.tools.vault import run as vault_run
@@ -209,7 +210,7 @@ jobs:
 
       - name: All 9 runtime shims resolve
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import sys, warnings
             sys.path.insert(0, '.')
@@ -241,7 +242,7 @@ jobs:
 
       - name: All 17 tool shims resolve
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import sys, warnings
             sys.path.insert(0, '.')
@@ -292,7 +293,7 @@ jobs:
 
       - name: No consciousness claims in tool sources
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           PATTERNS="I feel|I am sentient|I experience|I suffer|I believe|conscious awareness|self-awareness"
           FOUND=$(grep -rEi "$PATTERNS" arifosmcp/tools/ --include="*.py" 2>/dev/null | grep -v "__pycache__" | grep -v ".archive" | grep -v "00_legacy" || true)
           if [ -n "$FOUND" ]; then
@@ -318,7 +319,7 @@ jobs:
 
       - name: F1-F13 Floor Audit
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           echo "=== F1 Amanah: No irreversible changes ==="
           # Check for destructive patterns
           echo "=== F3 Witness: Multi-source verification ==="
@@ -334,7 +335,7 @@ jobs:
 
       - name: 888_JUDGE verdict gate
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -c "
             import sys; sys.path.insert(0,'.')
             from arifosmcp.tools.judge import run as judge_run
@@ -376,12 +377,12 @@ jobs:
 
       - name: Install
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv sync --all-extras
 
       - name: MCP health endpoint
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           timeout 5 uv run python3 -c "
             import sys, asyncio, json
             sys.path.insert(0, '.')
@@ -413,12 +414,12 @@ jobs:
 
       - name: Install
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv sync --all-extras
 
       - name: Run core tests (exclude MCP server subprocess tests)
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           uv run python3 -m pytest \
             tests/test_phase0_standalone.py \
             tests/test_mcp_inspector.py \
@@ -461,7 +462,7 @@ jobs:
 
       - name: System health check
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           echo "=== arifOS Daily Health Report ==="
           echo "Epoch: $(date -u +%Y.%m.%d-%H%M%S)"
           echo "Branch: $(git branch --show-current)"

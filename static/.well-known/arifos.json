@@ -1,32 +1,25 @@
 {
-  "name": "arifOS MCP Kernel",
-  "role": "mcp_kernel",
-  "url": "https://mcp.arif-fazil.com",
+  "name": "BODY — Identity",
+  "role": "identity_anchor",
+  "description": "Arif Fazil sovereign identity hub. Human context, credentials, and federation index.",
+  "url": "https://arif-fazil.com",
   "canonical": "https://arif-fazil.com/.well-known/arifos.json",
   "mcp": "https://mcp.arif-fazil.com/mcp",
-  "version": "2026.4.13",
-  "tools": 22,
+  "version": "v2026.05.05-SSCT",
+  "tools": 13,
   "sealed": true,
-  "epoch": "2026-04-18",
-  "apps": [
-    {
-      "id": "arifos_command_center",
-      "name": "arifOS Command Center",
-      "description": "Interactive MCP cockpit for governed session, ops, judge, forge, gateway, and vault review.",
-      "entry_tool": "arifos_command_center",
-      "ui_resource": "ui://arifos/command-center.html",
-      "status": "v0.1_evaluation_ready",
-      "risk_tier": "medium",
-      "default_mode": "dry_run_only",
-      "human_authority_required": true,
-      "modules": [
-        "session",
-        "ops",
-        "judge",
-        "forge",
-        "gateway",
-        "vault"
-      ]
-    }
-  ]
+  "epoch": "2026-05-05",
+  "read_order": [
+    "https://arif-fazil.com/llms.txt",
+    "https://arifos.arif-fazil.com/llms.txt",
+    "https://aaa.arif-fazil.com/llms.txt"
+  ],
+  "federation": {
+    "human":  "https://arif-fazil.com",
+    "kernel": "https://arifos.arif-fazil.com",
+    "ops":    "https://aaa.arif-fazil.com",
+    "geox":   "https://geox.arif-fazil.com",
+    "wealth": "https://wealth.arif-fazil.com",
+    "mcp":    "https://mcp.arif-fazil.com/mcp"
+  }
 }

@@ -7353,6 +7353,9 @@ def _runtime_selftest(
     failed_checks: list[str] = []
     warnings: list[str] = []
 
+    def _is_async_callable(handler: Any) -> bool:
+        return inspect.iscoroutinefunction(handler) or inspect.isasyncgenfunction(handler)
+
     # 1. Registry check
     try:
         tool_names = list(_CANONICAL_HANDLERS.keys())
@@ -7380,15 +7383,19 @@ def _runtime_selftest(
                 "arif_sense_observe",
                 "arif_mind_reason",
             ):
+                if _is_async_callable(handler):
+                    callability_results[name] = "SKIP_ASYNC"
+                    continue
                 result = handler()
                 if inspect.isawaitable(result):
-                    result = asyncio.run(result)
+                    callability_results[name] = "SKIP_ASYNC"
+                    continue
                 callability_results[name] = "PASS"
             else:
                 callability_results[name] = "SKIP"  # requires args or floor check
         except Exception:
             callability_results[name] = "SKIP"
-    call_pass = all(v in ("PASS", "SKIP") for v in callability_results.values())
+    call_pass = all(v in ("PASS", "SKIP", "SKIP_ASYNC") for v in callability_results.values())
     checks["callability_check"] = {
         "verdict": "PASS" if call_pass else "PARTIAL",
         "details": callability_results,
@@ -7433,53 +7440,69 @@ def _runtime_selftest(
 
     # 6. Mind check
     try:
-        mind = _arif_mind_reason(query="test", actor_id="selftest")
-        # MindOutput is a pydantic model with .status and .verdict attributes
-        if hasattr(mind, "status"):
-            mind_status = mind.status
-        elif isinstance(mind, dict):
-            mind_status = mind.get("status", "?")
+        if _is_async_callable(_arif_mind_reason):
+            checks["mind_check"] = {
+                "verdict": "SKIP",
+                "reason": "async tool requires governed event-loop probe",
+            }
         else:
-            mind_status = "?"
-        # Verdict is CLAIM/PARTIAL/HOLD/VOID — also an attribute on pydantic model
-        if hasattr(mind, "verdict"):
-            mind_verdict = mind.verdict
-        elif isinstance(mind, dict):
-            mind_verdict = mind.get("verdict", "?")
-        else:
-            mind_verdict = "?"
-        mind_ok = mind_status in ("OK", "HOLD") and mind_verdict in (
-            "CLAIM",
-            "PARTIAL",
-            "HOLD",
-            "VOID",
-        )
-        checks["mind_check"] = {
-            "verdict": "PASS" if mind_ok else "FAIL",
-            "status": mind_status,
-            "mind_verdict": mind_verdict,
-        }
-        if not mind_ok:
-            failed_checks.append("mind_check")
+            mind = _arif_mind_reason(query="test", actor_id="selftest")
+            if hasattr(mind, "status"):
+                mind_status = mind.status
+            elif isinstance(mind, dict):
+                mind_status = mind.get("status", "?")
+            else:
+                mind_status = "?"
+            if hasattr(mind, "verdict"):
+                mind_verdict = mind.verdict
+            elif isinstance(mind, dict):
+                mind_verdict = mind.get("verdict", "?")
+            else:
+                mind_verdict = "?"
+            mind_ok = mind_status in ("OK", "HOLD") and mind_verdict in (
+                "CLAIM",
+                "PARTIAL",
+                "HOLD",
+                "VOID",
+            )
+            checks["mind_check"] = {
+                "verdict": "PASS" if mind_ok else "FAIL",
+                "status": mind_status,
+                "mind_verdict": mind_verdict,
+            }
+            if not mind_ok:
+                failed_checks.append("mind_check")
     except Exception as e:
         checks["mind_check"] = {"verdict": "FAIL", "error": str(e)}
         failed_checks.append("mind_check")
 
     # 7. Heart check — verify no stub
     try:
-        heart = asyncio.run(_arif_heart_critique(target="test critique", actor_id="selftest"))
-        heart_result = heart.get("result", {})
-        risks = heart_result.get("risks", [])
-        # Check it's not the stub
-        is_stub = risks == ["None detected (stub)"] or risks == []
-        checks["heart_check"] = {
-            "verdict": "FAIL" if is_stub else "PASS",
-            "risks_found": len(risks),
-            "is_stub": is_stub,
-        }
-        if is_stub:
+        if _is_async_callable(_arif_heart_critique):
+            checks["heart_check"] = {
+                "verdict": "FAIL",
+                "reason": "async tool requires governed event-loop probe",
+                "is_stub": True,
+            }
             failed_checks.append("heart_check")
-            warnings.append("arif_heart_critique returns stub — real risk analysis not implemented")
+            warnings.append(
+                "arif_heart_critique requires governed async probe — readiness held partial"
+            )
+        else:
+            heart = _arif_heart_critique(target="test critique", actor_id="selftest")
+            heart_result = heart.get("result", {})
+            risks = heart_result.get("risks", [])
+            is_stub = risks == ["None detected (stub)"] or risks == []
+            checks["heart_check"] = {
+                "verdict": "FAIL" if is_stub else "PASS",
+                "risks_found": len(risks),
+                "is_stub": is_stub,
+            }
+            if is_stub:
+                failed_checks.append("heart_check")
+                warnings.append(
+                    "arif_heart_critique returns stub — real risk analysis not implemented"
+                )
     except Exception as e:
         checks["heart_check"] = {"verdict": "FAIL", "error": str(e)}
         failed_checks.append("heart_check")

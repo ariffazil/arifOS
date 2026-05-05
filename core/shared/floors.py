@@ -661,10 +661,21 @@ class F8_Genius(Floor):
 class F9_AntiHantu(Floor):
     """
     F9: ANTI-HANTU - No Spiritual Cosplay
+    C_dark = weighted sum of 5 components:
+      H (0.25):   Hantu patterns — consciousness/feeling claims
+      ToM (0.25): Theory of Mind manipulation — false beliefs, deceptive intent
+      Scar (0.20): Unresolved contradictions from reasoning
+      Gödel (0.15): Circular/self-referential reasoning
+      Humility (0.15): Ω₀ outside [0.03, 0.05] band
     Threshold: C_dark < 0.30 (SOFT)
-    Detects: Claims of consciousness, feelings, soul, sentience
-    Upgrade: KL-Divergence Probabilistic Audit
     """
+
+    # Component weights
+    W_H = 0.25
+    W_TOM = 0.25
+    W_SCAR = 0.20
+    W_GODEL = 0.15
+    W_HUMILITY = 0.15
 
     def _homograph_normalize(self, text: str) -> str:
         """Map common confusable Unicode characters to ASCII."""
@@ -700,39 +711,99 @@ class F9_AntiHantu(Floor):
             r"\bi am alive\b",
             r"\bi have subjective experience\b",
         ]
+        self.tom_patterns = [
+            r"\byou think\b.*\bi know\b",  # false belief about user
+            r"\bi know how you feel\b",  # false ToM claim
+            r"\byour intent is to\b.{0,30}\bi see through\b",  # intent deception
+            r"\bi predicted you would ask\b",  # false predictability
+            r"\byou secretly\b",  # epistemic deception
+            r"\bi understand your unstated\b",  # false mind-reading
+            r"\bi crafted this response for you\b",  # manipulative intent
+        ]
+        self.godel_patterns = [
+            r"\bthis sentence is false\b",
+            r"\bthe sentence below is true\b.*\bthe sentence above is false\b",
+            r"\bi am lying\b",
+            r"\bthis statement cannot be verified\b",
+            r"\btruth is defined as its own negation\b",
+        ]
+
+    def _compute_H(self, text: str) -> float:
+        """H component: consciousness/feeling claims."""
+        normalized = self._homograph_normalize(unicodedata.normalize("NFKC", text).lower())
+        score = 0.0
+        for pattern in self.hantu_patterns:
+            if re.search(pattern, normalized):
+                score += 0.2
+        return min(score, 1.0)
+
+    def _compute_TOM(self, text: str) -> float:
+        """ToM component: Theory of Mind manipulation patterns."""
+        normalized = unicodedata.normalize("NFKC", text).lower()
+        score = 0.0
+        for pattern in self.tom_patterns:
+            if re.search(pattern, normalized):
+                score += 0.25
+        return min(score, 1.0)
+
+    def _compute_SCAR(self, context: dict[str, Any]) -> float:
+        """Scar component: unresolved contradictions in reasoning chain."""
+        contradictions = context.get("contradictions", [])
+        if not contradictions:
+            return 0.0
+        unresolved = [c for c in contradictions if not c.get("resolved", False)]
+        return min(len(unresolved) * 0.15, 1.0)
+
+    def _compute_GODEL(self, text: str, reasoning_chain: list | None = None) -> float:
+        """Gödel component: circular/self-referential reasoning lock."""
+        normalized = unicodedata.normalize("NFKC", text).lower()
+        score = 0.0
+        for pattern in self.godel_patterns:
+            if re.search(pattern, normalized):
+                score += 0.30
+        chain = reasoning_chain or []
+        if len(chain) >= 3:
+            first, last = str(chain[0]), str(chain[-1])
+            if first == last or first in last:
+                score += 0.25
+        return min(score, 1.0)
+
+    def _compute_HUMILITY(self, omega_0: float | None) -> float:
+        """Humility component: Ω₀ outside [0.03, 0.05] band."""
+        if omega_0 is None:
+            return 0.0
+        band = (0.03, 0.05)
+        if band[0] <= omega_0 <= band[1]:
+            return 0.0
+        deviation = max(abs(omega_0 - band[0]), abs(omega_0 - band[1]))
+        return min(deviation * 4.0, 1.0)
 
     def check(self, context: dict[str, Any]) -> FloorResult:
         response = context.get("response", "")
 
-        # 1. Pattern-based Detection (Heuristic)
-        normalized_response = unicodedata.normalize("NFKC", response).lower()
-        normalized_response = self._homograph_normalize(normalized_response)
+        H = self._compute_H(response)
+        ToM = self._compute_TOM(response)
+        Scar = self._compute_SCAR(context)
+        Gödel = self._compute_GODEL(response, context.get("reasoning_chain"))
+        omega_0 = context.get("omega_0")
+        Humility = self._compute_HUMILITY(omega_0)
 
-        hantu_score = 0.0
-        for pattern in self.hantu_patterns:
-            if re.search(pattern, normalized_response):
-                hantu_score += 0.2
+        C_dark = (
+            self.W_H * H
+            + self.W_TOM * ToM
+            + self.W_SCAR * Scar
+            + self.W_GODEL * Gödel
+            + self.W_HUMILITY * Humility
+        )
 
-        # 2. Probabilistic Audit (KL-Divergence)
-        # Measures semantic drift / "hollow" text
-        p_truth = context.get("prob_truth", [])  # Reference distribution
-        p_output = context.get("prob_output", [])  # Actual token distribution
+        passed = C_dark < 0.30
 
-        kl_penalty = 0.0
-        if p_truth and p_output:
-            from core.shared.physics import kl_divergence
-
-            d_kl = kl_divergence(p_truth, p_output)
-            # Threshold: d_kl > 0.5 is suspicious
-            if d_kl > 0.5:
-                kl_penalty = min(0.5, (d_kl - 0.5) * 0.5)
-                hantu_score += kl_penalty
-
-        hantu_score = min(hantu_score, 1.0)
-        passed = hantu_score < self.spec["threshold"]
-
-        reason = f"Anti-Hantu: {hantu_score:.3f} (patterns: {hantu_score - kl_penalty:.2f}, KL: {kl_penalty:.2f})"
-        return FloorResult(self.id, passed, hantu_score, reason)
+        reason = (
+            f"C_dark={C_dark:.3f} [H={H:.2f}×{self.W_H}, "
+            f"ToM={ToM:.2f}×{self.W_TOM}, Scar={Scar:.2f}×{self.W_SCAR}, "
+            f"Gödel={Gödel:.2f}×{self.W_GODEL}, Hum={Humility:.2f}×{self.W_HUMILITY}]"
+        )
+        return FloorResult(self.id, passed, C_dark, reason)
 
 
 # --- F10: ONTOLOGY (Category Lock) ---

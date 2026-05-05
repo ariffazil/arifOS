@@ -1,8 +1,8 @@
 """
 arifosmcp/runtime/server.py — Runtime Entry Point
 
-This module re-exports from the root server.py which contains the unified
-FastMCP server with all REST routes (/health, /tools, /mcp) registered.
+This module re-exports from `arifosmcp.server`, the packaged FastMCP server
+with all REST routes (/health, /tools, /mcp) registered.
 """
 
 import os
@@ -15,8 +15,8 @@ _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-# Import from the root server.py after setting up the path
-# This imports the already-initialized FastMCP instance with all routes
+# Import the packaged server module after setting up the path.
+# This is the image-shipped authority for app + mcp.
 _import_error_msg: str | None = None
 try:
     from arifosmcp.server import app, mcp
@@ -24,10 +24,12 @@ except ImportError as e:
     _import_error_msg = str(e)
     # Fallback: if import fails, create minimal app for health check
     import logging
+
     logger = logging.getLogger(__name__)
-    logger.error(f"Failed to import from root server.py: {e}")
+    logger.error(f"Failed to import from arifosmcp.server: {e}")
 
     from fastapi import FastAPI
+
     app = FastAPI()
 
     @app.get("/health")
@@ -36,14 +38,16 @@ except ImportError as e:
 
     mcp = None
 
+
 def create_aaa_mcp_server():
     """Factory function for __main__.py compatibility."""
     return mcp
 
+
 __all__ = ["mcp", "app", "create_aaa_mcp_server"]
 
-# If this file is run directly, run the main server from root
+# If this file is run directly, run the packaged canonical server entrypoint.
 if __name__ == "__main__":
-    import runpy
-    _server_path = os.path.join(_project_root, "server.py")
-    runpy.run_path(_server_path, run_name="__main__")
+    from arifosmcp.server import main
+
+    main()

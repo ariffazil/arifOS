@@ -158,6 +158,23 @@ def arif_ops_measure(
             )
         )
 
+    if mode == "constitutional_health":
+        from arifosmcp.runtime.rest_routes import _build_governance_status_payload
+
+        payload = _build_governance_status_payload()
+        return TelemetryBlock(
+            **_ok(
+                "arif_ops_measure",
+                {
+                    "floors": payload.get("floors", {}),
+                    "witness": payload.get("witness", {}),
+                    "verdict": payload.get("telemetry", {}).get("verdict", "UNKNOWN"),
+                    "telemetry": payload.get("telemetry", {}),
+                },
+                session_id=session_id,
+            )
+        )
+
     return TelemetryBlock(
         **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)
     )

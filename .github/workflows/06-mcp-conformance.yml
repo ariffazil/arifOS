@@ -18,6 +18,9 @@ concurrency:
   group: mcp-conformance-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  WORKDIR: "${{ github.workspace }}"
+
 jobs:
   conformance:
     name: 🔌 MCP Spec Compliance
@@ -34,12 +37,12 @@ jobs:
 
       - name: Install
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           pip install -e ".[dev]" 2>/dev/null || pip install -e .
 
       - name: Transport initialization
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           python3 -c "
             import sys; sys.path.insert(0, '.')
             from arifosmcp.transport.stdio import create_server
@@ -48,7 +51,7 @@ jobs:
 
       - name: Protocol handshake (JSON-RPC)
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           python3 -c "
             import json, sys
             # Send a valid JSON-RPC initialize request
@@ -64,7 +67,7 @@ jobs:
 
       - name: Registry compliance
         run: |
-          cd /tmp/arifos-cleanup
+          cd "$WORKDIR"
           python3 -c "
             import json
             with open('arifosmcp/tool_registry.json') as f:

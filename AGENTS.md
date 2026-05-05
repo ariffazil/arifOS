@@ -1,7 +1,7 @@
 # AGENTS.md — arifOS Workspace Governance
 
 **Canonical Source:** `https://github.com/ariffazil/arifOS`
-**Version:** 2026.05.04-KANON
+**Version:** 2026.05.05-KANON-SSCT
 
 ## Source of Truth Declaration
 

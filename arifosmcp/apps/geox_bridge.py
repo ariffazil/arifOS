@@ -147,7 +147,10 @@ class GEOXBridge:
             pass
 
     async def compute_petrophysics(
-        self, well_id: str, computation: str, params: dict[str, Any]
+        self,
+        well_id: str | dict[str, Any],
+        computation: str | None = None,
+        params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Delegate petrophysics computation to GEOX with governance gating.
@@ -157,6 +160,14 @@ class GEOXBridge:
             computation: Computation type (e.g. "rhob", "phi", "sw")
             params:     Computation parameters
         """
+        if isinstance(well_id, dict):
+            legacy_payload = dict(well_id)
+            params = legacy_payload
+            computation = computation or legacy_payload.get("computation")
+            well_id = str(legacy_payload.get("well_id", "unknown"))
+
+        params = dict(params or {})
+
         verdict = await self._judge_pre_check(
             operation="compute_petrophysics",
             data_classification="well_log",
@@ -172,6 +183,7 @@ class GEOXBridge:
                     "arguments": {
                         "target_class": "petrophysics",
                         "well_id": well_id,
+                        **({"computation": computation} if computation else {}),
                         **params,
                     },
                 },
