@@ -231,6 +231,26 @@ def preflight(
     """
     tier = _RISK_GOVERNANCE_TABLE[risk_class]
 
+    # ── C5 special: vault seal required — check FIRST before F01 gate ───────
+    if risk_class == RiskClass.C5_IRREVERSIBLE:
+        return RiskDecision(
+            allowed=False,
+            risk_class=risk_class,
+            governance_mode="seal",
+            verdict="VOID",
+            reason=(
+                f"C5 CRITICAL: '{action}' is class {risk_class.value} — irreversible, "
+                f"high-consequence. arifOS will not execute this autonomously. "
+                f"Required: (1) human confirmation, (2) VAULT999 seal entry, "
+                f"(3) rollback plan on record. Contact Arif for C5 authorization."
+            ),
+            floors_activated=["F01", "F11", "F12", "F13"],
+            requires_human_confirmation=True,
+            human_approval_reference=None,
+            uncertainty_band=(0.03, 0.05),
+            preflight_passed=False,
+        )
+
     # ── Irreversibility override (F01 AMANAH) ─────────────────────────────────
     if not reversible and tier.governance_mode in ("strict", "seal"):
         # Irreversible + high-risk → always HOLD
