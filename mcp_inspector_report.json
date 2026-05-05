@@ -1,0 +1,218 @@
+{
+  "timestamp": "2026-05-05T15:17:31.027502+00:00",
+  "git_sha": "f803076f4a24",
+  "transport": "http",
+  "summary": {
+    "pass": 7,
+    "fail": 10,
+    "skip": 0,
+    "total": 17,
+    "all_passed": false
+  },
+  "results": [
+    {
+      "substrate": "time",
+      "test_name": "health_check",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 134.00699999999998,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "time",
+      "test_name": "tool_discovery",
+      "status": "PASS",
+      "expected": "PASS",
+      "actual": "PASS",
+      "duration_ms": 10.016,
+      "error": null,
+      "details": {
+        "note": "Discovery via health endpoint"
+      }
+    },
+    {
+      "substrate": "time",
+      "test_name": "tool_execution",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 9.673,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "filesystem",
+      "test_name": "health_check",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 7.119000000000001,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "filesystem",
+      "test_name": "tool_discovery",
+      "status": "PASS",
+      "expected": "PASS",
+      "actual": "PASS",
+      "duration_ms": 10.336,
+      "error": null,
+      "details": {
+        "note": "Discovery via health endpoint"
+      }
+    },
+    {
+      "substrate": "filesystem",
+      "test_name": "tool_execution",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 14.597999999999999,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "filesystem",
+      "test_name": "f1_amanah_protection",
+      "status": "PASS",
+      "expected": "PASS",
+      "actual": "PASS",
+      "duration_ms": 7.428,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "git",
+      "test_name": "health_check",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 9.29,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "git",
+      "test_name": "tool_discovery",
+      "status": "PASS",
+      "expected": "PASS",
+      "actual": "PASS",
+      "duration_ms": 10.576,
+      "error": null,
+      "details": {
+        "note": "Discovery via health endpoint"
+      }
+    },
+    {
+      "substrate": "git",
+      "test_name": "tool_execution",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 7.482,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "memory",
+      "test_name": "health_check",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 7.554,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "memory",
+      "test_name": "tool_discovery",
+      "status": "PASS",
+      "expected": "PASS",
+      "actual": "PASS",
+      "duration_ms": 10.075000000000001,
+      "error": null,
+      "details": {
+        "note": "Discovery via health endpoint"
+      }
+    },
+    {
+      "substrate": "memory",
+      "test_name": "tool_execution",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 8.267999999999999,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "fetch",
+      "test_name": "health_check",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 19.511,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "fetch",
+      "test_name": "tool_discovery",
+      "status": "PASS",
+      "expected": "PASS",
+      "actual": "PASS",
+      "duration_ms": 9.671000000000001,
+      "error": null,
+      "details": {
+        "note": "Discovery via health endpoint"
+      }
+    },
+    {
+      "substrate": "fetch",
+      "test_name": "tool_execution",
+      "status": "FAIL",
+      "expected": "PASS",
+      "actual": "FAIL",
+      "duration_ms": 7.655,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    },
+    {
+      "substrate": "fetch",
+      "test_name": "f9_hantu_protection",
+      "status": "PASS",
+      "expected": "PASS",
+      "actual": "PASS",
+      "duration_ms": 7.590000000000001,
+      "error": null,
+      "details": {
+        "error": "All connection attempts failed"
+      }
+    }
+  ]
+}

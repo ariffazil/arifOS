@@ -1,0 +1,19 @@
+{
+  "block": "all",
+  "targets": [
+    "tests/runtime/test_live_metrics_contract.py",
+    "tests/integration/test_health_metrics.py",
+    "tests/runtime/test_discovery_routes.py",
+    "tests/test_runtime_health.py"
+  ],
+  "summary": {
+    "total_tests": 0,
+    "passed": 0,
+    "failed": 0,
+    "pass_rate": 0.0,
+    "avg_genius": 0.0,
+    "total_delta_s": -0.0,
+    "avg_latency_ms": 0.0,
+    "total_duration_s": 10.34
+  }
+}

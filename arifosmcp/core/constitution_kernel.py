@@ -456,6 +456,50 @@ class ConstitutionKernel:
             irreversibility=threat.irreversibility,
         )
 
+    def preflight(
+        self,
+        action: str,
+        risk_class: "RiskClass",
+        reversible: bool,
+        evidence_quality: float = 1.0,
+        user_intent: str | None = None,
+        session_ref: str | None = None,
+    ) -> "RiskDecision":
+        """
+        Public preflight API — the arifOS kernel's right-sized governance check.
+
+        This is the entry point the external AI described:
+            from arifos import Kernel, RiskClass
+            kernel = Kernel()
+            decision = kernel.preflight(
+                user_intent="Send this email to the CEO",
+                action="send_email",
+                risk=RiskClass.C3,
+                reversible=False,
+            )
+            if decision.allowed:
+                result = send_email()
+                kernel.audit(result)
+            else:
+                print(decision.reason)
+
+        Delegates to the constitutional_map.preflight() function which
+        implements the C0-C5 tier logic, F01 irreversibility guard,
+        F02 evidence gate, and F13 human confirmation requirement.
+
+        Returns a RiskDecision — the kernel's pre-flight judgment.
+        """
+        from arifosmcp.constitutional_map import preflight as _preflight
+
+        return _preflight(
+            action=action,
+            risk_class=risk_class,
+            reversible=reversible,
+            evidence_quality=evidence_quality,
+            user_intent=user_intent,
+            session_ref=session_ref,
+        )
+
 
 class SchemaContractValidator:
     @staticmethod

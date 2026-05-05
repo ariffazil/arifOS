@@ -23,6 +23,7 @@ EUREKA INSIGHTS WIRING (from EUREKA_INSIGHTS_SEAL_v2026.04.07):
 Ditempa Bukan Diberi.
 """
 
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -71,6 +72,260 @@ class ToolStage(str, Enum):
     JUDGE    = "888"
     FORGE    = "010"
     VAULT    = "999"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RISK CLASSIFICATION TIER (C0–C5) — Right-sized governance mapper
+# Derived from LLM_INVARIANTS_SEAL_v2026.05.05 / Agent Kernel Paradox
+#
+# arifOS line: "Right governance at the right time."
+# Governance is not maximum everywhere — it is right-sized per consequence.
+#
+# | Class | Consequence  | Governance Mode       | Human Confirmation |
+# |-------|-------------|----------------------|--------------------|
+# | C0    | Negligible  | Vanilla-like         | Not required       |
+# | C1    | Low         | Light trace          | Not required       |
+# | C2    | Medium      | Trace + self-review  | Optional            |
+# | C3    | High        | Evidence gate + hold | Required           |
+# | C4    | Very High   | Full floor review    | Required (F13)     |
+# | C5    | Critical    | SEAL + human sign-off| Required + vault   |
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class RiskClass(str, Enum):
+    """
+    Risk consequence tier — governs HOW MUCH friction the kernel applies.
+
+    The kernel paradox: governance looks like drag when nothing goes wrong,
+    but genius when something could go wrong. RiskClass is how we right-size it.
+    """
+    C0_GRAMMAR     = "C0"  # Negligible — grammar, tone, formatting
+    C1_DRAFT       = "C1"  # Low — internal drafts, notes, brainstorming
+    C2_REVIEW      = "C2"  # Medium — code review, testing, analysis
+    C3_PUBLIC      = "C3"  # High — public posts, emails, reports
+    C4_LEGAL_MONEY = "C4"  # Very High — legal, financial, HR, investment
+    C5_IRREVERSIBLE= "C5"  # Critical — irreversible, production write, money movement
+
+    @property
+    def governance_mode(self) -> str:
+        """What governance posture does this class demand?"""
+        return _RISK_GOVERNANCE_TABLE[self].governance_mode
+
+    @property
+    def requires_human_confirmation(self) -> bool:
+        """Does this class require human approval before action?"""
+        return _RISK_GOVERNANCE_TABLE[self].requires_human_confirmation
+
+    @property
+    def floors_activated(self) -> list[str]:
+        """Which floors are most critical at this risk tier?"""
+        return _RISK_GOVERNANCE_TABLE[self].floors_activated
+
+    @property
+    def description(self) -> str:
+        """Human-readable consequence description."""
+        return _RISK_GOVERNANCE_TABLE[self].description
+
+
+@dataclass
+class RiskTierConfig:
+    governance_mode: str          # "vanilla" | "light" | "standard" | "strict" | "seal"
+    requires_human_confirmation: bool
+    floors_activated: list[str]  # Most relevant F-codes for this tier
+    description: str
+
+
+_RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
+    RiskClass.C0_GRAMMAR: RiskTierConfig(
+        governance_mode="vanilla",
+        requires_human_confirmation=False,
+        floors_activated=["F09", "F10"],
+        description="Grammar, spelling, tone, formatting. Zero irreversible consequence.",
+    ),
+    RiskClass.C1_DRAFT: RiskTierConfig(
+        governance_mode="light",
+        requires_human_confirmation=False,
+        floors_activated=["F04", "F09", "F10"],
+        description="Internal drafts, brainstorming, notes. Reversible. No external exposure.",
+    ),
+    RiskClass.C2_REVIEW: RiskTierConfig(
+        governance_mode="standard",
+        requires_human_confirmation=False,
+        floors_activated=["F02", "F03", "F04", "F07", "F08"],
+        description="Code review, testing, analysis, summaries. Evidence-backed. Moderate exposure.",
+    ),
+    RiskClass.C3_PUBLIC: RiskTierConfig(
+        governance_mode="strict",
+        requires_human_confirmation=True,
+        floors_activated=["F01", "F02", "F03", "F04", "F05", "F06", "F09", "F12"],
+        description="Public posts, emails to third parties, published documents. Reputation risk.",
+    ),
+    RiskClass.C4_LEGAL_MONEY: RiskTierConfig(
+        governance_mode="strict",
+        requires_human_confirmation=True,
+        floors_activated=["F01", "F02", "F03", "F05", "F06", "F11", "F12", "F13"],
+        description="Legal claims, financial decisions, HR actions, investments. High consequence.",
+    ),
+    RiskClass.C5_IRREVERSIBLE: RiskTierConfig(
+        governance_mode="seal",
+        requires_human_confirmation=True,
+        floors_activated=["F01", "F02", "F03", "F05", "F06", "F11", "F12", "F13"],
+        description="Production writes, database deletes, money movement, regulatory filings. Irreversible.",
+    ),
+}
+
+
+@dataclass
+class RiskDecision:
+    """
+    Return type for preflight() — the kernel's pre-flight check result.
+
+    This is what the external AI described as:
+        decision = kernel.preflight(action="send_email", risk=RiskClass.C3, reversible=False)
+        if decision.allowed:
+            result = send_email()
+            kernel.audit(result)
+        else:
+            print(decision.reason)
+    """
+    allowed: bool                         # Can the action proceed?
+    risk_class: RiskClass                  # What tier was assigned
+    governance_mode: str                   # "vanilla" | "light" | "standard" | "strict" | "seal"
+    verdict: str                           # "PROCEED" | "HOLD" | "VOID"
+    reason: str                            # Human-readable gate message
+    floors_activated: list[str]            # Which floors are on watch
+    requires_human_confirmation: bool      # F13 gate — human must sign off
+    human_approval_reference: str | None   # If confirmed, the approval token / session_ref
+    uncertainty_band: tuple[float, float]   # (lower, upper) — F07 Ω band if evidence is thin
+    preflight_passed: bool                 # Did the action pass all preflight checks?
+
+
+def preflight(
+    action: str,
+    risk_class: RiskClass,
+    reversible: bool,
+    evidence_quality: float = 1.0,   # 0.0–1.0; 1.0 = full evidence
+    user_intent: str | None = None,
+    session_ref: str | None = None,
+) -> RiskDecision:
+    """
+    arifOS preflight check — the public API for right-sized governance.
+
+    This is the function the external AI described:
+        from arifos import Kernel, RiskClass
+        kernel = Kernel(policy="arifos.yaml")
+        decision = kernel.preflight(
+            user_intent="Send this email to the CEO",
+            action="send_email",
+            risk=RiskClass.C3,
+            reversible=False,
+        )
+
+    Returns a RiskDecision that tells the caller:
+      - allowed: can this proceed?
+      - verdict: PROCEED / HOLD / VOID
+      - reason: why
+      - requires_human_confirmation: does F13 SOVEREIGN require human sign-off?
+      - governance_mode: how much governance was applied
+      - floors_activated: which floors are on watch
+      - uncertainty_band: F07 Ω range if evidence is weak
+    """
+    tier = _RISK_GOVERNANCE_TABLE[risk_class]
+
+    # ── Irreversibility override (F01 AMANAH) ─────────────────────────────────
+    if not reversible and tier.governance_mode in ("strict", "seal"):
+        # Irreversible + high-risk → always HOLD
+        return RiskDecision(
+            allowed=False,
+            risk_class=risk_class,
+            governance_mode="seal",
+            verdict="HOLD",
+            reason=(
+                f"F01 AMANAH: {action} is irreversible and class {risk_class.value}. "
+                f"Evidence gate + human confirmation required. "
+                f"Escalation: 888_HOLD"
+            ),
+            floors_activated=["F01", *tier.floors_activated],
+            requires_human_confirmation=True,
+            human_approval_reference=None,
+            uncertainty_band=(0.03, 0.05),
+            preflight_passed=False,
+        )
+
+    # ── Evidence quality check (F02 TRUTH) ────────────────────────────────────
+    if evidence_quality < 0.5 and tier.governance_mode in ("strict", "seal"):
+        return RiskDecision(
+            allowed=False,
+            risk_class=risk_class,
+            governance_mode="strict",
+            verdict="HOLD",
+            reason=(
+                f"F02 TRUTH: evidence quality {evidence_quality:.0%} is insufficient for "
+                f"{risk_class.value} actions. Required: ≥50% evidence confidence. "
+                f"Reduce claim strength or gather more evidence."
+            ),
+            floors_activated=["F02", *tier.floors_activated],
+            requires_human_confirmation=tier.requires_human_confirmation,
+            human_approval_reference=None,
+            uncertainty_band=(0.03, 0.10),   # Wider Ω band — low evidence
+            preflight_passed=False,
+        )
+
+    # ── Human confirmation gate (F13 SOVEREIGN) ───────────────────────────────
+    if tier.requires_human_confirmation and not session_ref:
+        return RiskDecision(
+            allowed=False,
+            risk_class=risk_class,
+            governance_mode=tier.governance_mode,
+            verdict="HOLD",
+            reason=(
+                f"F13 SOVEREIGN: {risk_class.value} action '{action}' requires human "
+                f"confirmation before execution. Provide session_ref to proceed. "
+                f"Compute can advise. Human must decide."
+            ),
+            floors_activated=["F13", *tier.floors_activated],
+            requires_human_confirmation=True,
+            human_approval_reference=None,
+            uncertainty_band=(0.03, 0.05),
+            preflight_passed=False,
+        )
+
+    # ── C5 special: vault seal required ──────────────────────────────────────
+    if risk_class == RiskClass.C5_IRREVERSIBLE:
+        return RiskDecision(
+            allowed=False,
+            risk_class=risk_class,
+            governance_mode="seal",
+            verdict="VOID",
+            reason=(
+                f"C5 CRITICAL: '{action}' is class {risk_class.value} — irreversible, "
+                f"high-consequence. arifOS will not execute this autonomously. "
+                f"Required: (1) human confirmation, (2) VAULT999 seal entry, "
+                f"(3) rollback plan on record. Contact Arif for C5 authorization."
+            ),
+            floors_activated=["F01", "F11", "F12", "F13"],
+            requires_human_confirmation=True,
+            human_approval_reference=None,
+            uncertainty_band=(0.03, 0.05),
+            preflight_passed=False,
+        )
+
+    # ── PROCEED — all gates passed ─────────────────────────────────────────────
+    return RiskDecision(
+        allowed=True,
+        risk_class=risk_class,
+        governance_mode=tier.governance_mode,
+        verdict="PROCEED",
+        reason=(
+            f"{risk_class.value} action '{action}' cleared preflight. "
+            f"Governance: {tier.governance_mode}. "
+            f"{'Human confirmation on record.' if session_ref else 'No human confirmation required for this tier.'}"
+        ),
+        floors_activated=tier.floors_activated,
+        requires_human_confirmation=tier.requires_human_confirmation,
+        human_approval_reference=session_ref,
+        uncertainty_band=(0.03, 0.05),
+        preflight_passed=True,
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -870,6 +1125,9 @@ __all__ = [
     "Floor",
     "TrinityLane",
     "ToolStage",
+    "RiskClass",
+    "RiskDecision",
+    "preflight",
     "CANONICAL_TOOLS",
     "CONSTITUTIONAL_TOOLS",
     "PROBE_TOOLS",
