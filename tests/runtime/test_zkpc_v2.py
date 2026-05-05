@@ -166,15 +166,18 @@ async def test_vault_rejects_natural_language_and_actor_id(monkeypatch):
         action="seal", payload=payload, operator_id="ARIF", session_id="SESS-1"
     )
     # Vault envelope verdict is PARTIAL or CLAIM_ONLY (never SEAL for invalid auth)
-    assert res["verdict"] != "SEAL", \
-        f"Natural language should not produce SEAL verdict. Got: {res.get('verdict')}"
+    assert (
+        res["verdict"] != "SEAL"
+    ), f"Natural language should not produce SEAL verdict. Got: {res.get('verdict')}"
 
 
 @pytest.mark.asyncio
 async def test_vault_zkpc_v2_success(monkeypatch):
     """Vault seals only with REAL Groth16 proof — structural bypass removed."""
     import importlib
-    import sys; sys.path.insert(0, "/root/arifOS")
+    import sys
+
+    sys.path.insert(0, "/root/arifOS")
     from arifos.security.zkpc_v2 import generate_zkpc_proof
 
     monkeypatch.setenv("ARIFOS_DEV_MODE", "0")
@@ -213,8 +216,11 @@ async def test_vault_zkpc_v2_success(monkeypatch):
     # or be promoted to SEAL depending on surrounding runtime policy. The
     # deterministic contract here is simply "real proof is accepted", while the
     # fake-proof tests below ensure non-proof paths never seal.
-    assert res["verdict"] in ("CLAIM_ONLY", "PARTIAL", "SEAL"), \
-        f"Real proof should produce an accepted verdict. Got: {res.get('verdict')}"
+    assert res["verdict"] in (
+        "CLAIM_ONLY",
+        "PARTIAL",
+        "SEAL",
+    ), f"Real proof should produce an accepted verdict. Got: {res.get('verdict')}"
 
     # ack_irreversible_received is set only when ack_irreversible:True is in payload
     # (not set in THIS test because we didn't pass it — vault still works correctly)
@@ -231,12 +237,12 @@ async def test_vault_zkpc_v2_success(monkeypatch):
                 assert zkpc_meta.get("proof_hash") is not None, "Proof hash must be stored"
 
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # REAL Groth16 ZKPC Verification Tests (snarkjs, no simulation)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import sys
+
 sys.path.insert(0, "/root/arifOS")
 
 from arifos.security.zkpc_v2 import (
@@ -276,8 +282,9 @@ class TestRealGroth16Verification:
 
         result = verify_zkpc_v2_epoch(proof, public_inputs, "SESS-REAL", is_irreversible=True)
 
-        assert result["proof_verified"] is True, \
-            f"Real proof must verify! error_reason={result.get('error_reason')}"
+        assert (
+            result["proof_verified"] is True
+        ), f"Real proof must verify! error_reason={result.get('error_reason')}"
         assert result["zkpc_level"] == 2
         assert result["continuity_proven"] is True
         assert result["epoch_chain_valid"] is True
@@ -350,8 +357,7 @@ class TestRealGroth16Verification:
         }
         result = verify_zkpc_v2_epoch(gen["proof"], tampered_inputs, "SESS-TAMPER")
 
-        assert result["proof_verified"] is False, \
-            "Tampered inputs must cause verification to fail"
+        assert result["proof_verified"] is False, "Tampered inputs must cause verification to fail"
         assert result["continuity_proven"] is False
 
     def test_fail_closed_all_flags_false_on_error(self):
@@ -393,12 +399,6 @@ class TestRealGroth16Verification:
 
     def test_reversible_action_no_zkpc_needed(self):
         """T8: is_irreversible=False + no proof → still zkpc_level=0 (no ZKPC gate)."""
-        public_inputs = {
-            "identity_commitment": "999",
-            "previous_epoch_hash": "888",
-            "current_epoch_hash": "777",
-            "nonce": "666",
-        }
         # No proof provided at all
         result = verify_zkpc_v2_epoch(None, None, "SESS-REV")
         # Without proof data, it returns fail-closed
@@ -418,9 +418,13 @@ class TestRealProofJudgeIntegration:
             "is_irreversible": True,
             "zkpc_level": 0,
             "metrics": {
-                "truth_score": 1.0, "delta_s": 0.0, "omega_0": 0.04,
-                "peace_squared": 1.0, "amanah_lock": True,
-                "tri_witness_score": 1.0, "stakeholder_safety": 1.0,
+                "truth_score": 1.0,
+                "delta_s": 0.0,
+                "omega_0": 0.04,
+                "peace_squared": 1.0,
+                "amanah_lock": True,
+                "tri_witness_score": 1.0,
+                "stakeholder_safety": 1.0,
                 "floor_13_signal": 0.0,
             },
         }
@@ -440,9 +444,13 @@ class TestRealProofJudgeIntegration:
             "signal_binding_valid": False,
             "nonce_valid": False,
             "metrics": {
-                "truth_score": 1.0, "delta_s": 0.0, "omega_0": 0.04,
-                "peace_squared": 1.0, "amanah_lock": True,
-                "tri_witness_score": 1.0, "stakeholder_safety": 1.0,
+                "truth_score": 1.0,
+                "delta_s": 0.0,
+                "omega_0": 0.04,
+                "peace_squared": 1.0,
+                "amanah_lock": True,
+                "tri_witness_score": 1.0,
+                "stakeholder_safety": 1.0,
                 "floor_13_signal": 0.0,
             },
         }
@@ -463,9 +471,13 @@ class TestRealProofJudgeIntegration:
             "signal_binding_valid": True,
             "nonce_valid": True,
             "metrics": {
-                "truth_score": 1.0, "delta_s": 0.0, "omega_0": 0.04,
-                "peace_squared": 1.0, "amanah_lock": True,
-                "tri_witness_score": 1.0, "stakeholder_safety": 1.0,
+                "truth_score": 1.0,
+                "delta_s": 0.0,
+                "omega_0": 0.04,
+                "peace_squared": 1.0,
+                "amanah_lock": True,
+                "tri_witness_score": 1.0,
+                "stakeholder_safety": 1.0,
                 "floor_13_signal": 0.0,
             },
         }
@@ -479,9 +491,13 @@ class TestRealProofJudgeIntegration:
             "is_irreversible": False,
             "zkpc_level": 0,
             "metrics": {
-                "truth_score": 1.0, "delta_s": 0.0, "omega_0": 0.04,
-                "peace_squared": 1.0, "amanah_lock": True,
-                "tri_witness_score": 1.0, "stakeholder_safety": 1.0,
+                "truth_score": 1.0,
+                "delta_s": 0.0,
+                "omega_0": 0.04,
+                "peace_squared": 1.0,
+                "amanah_lock": True,
+                "tri_witness_score": 1.0,
+                "stakeholder_safety": 1.0,
                 "floor_13_signal": 0.0,
             },
         }
@@ -526,10 +542,12 @@ class TestVaultZKPCIntegration:
         )
 
         # Vault must not seal with fake proof — PARTIAL or HOLD are both acceptable non-seal verdicts
-        assert res["verdict"] != "SEAL", \
-            f"Fake proof should not seal! Got verdict={res.get('verdict')}"
-        assert res.get("zkpc_metadata", {}).get("zkpc_level", 0) < 2, \
-            "zkpc_level must be < 2 when proof fails"
+        assert (
+            res["verdict"] != "SEAL"
+        ), f"Fake proof should not seal! Got verdict={res.get('verdict')}"
+        assert (
+            res.get("zkpc_metadata", {}).get("zkpc_level", 0) < 2
+        ), "zkpc_level must be < 2 when proof fails"
 
     @pytest.mark.asyncio
     async def test_vault_actor_id_only_fails(self, monkeypatch):
@@ -545,8 +563,9 @@ class TestVaultZKPCIntegration:
         )
         # Without any crypto proof, Vault cannot seal irreversible action
         # PARTIAL or HOLD are both acceptable — only SEAL is forbidden
-        assert res["verdict"] != "SEAL", \
-            f"actor_id-only without proof should not seal. Got: {res.get('verdict')}"
+        assert (
+            res["verdict"] != "SEAL"
+        ), f"actor_id-only without proof should not seal. Got: {res.get('verdict')}"
 
     @pytest.mark.asyncio
     async def test_vault_natural_language_approval_fails(self, monkeypatch):
@@ -561,5 +580,6 @@ class TestVaultZKPCIntegration:
         )
         # Natural language approval cannot seal irreversible action
         # PARTIAL or HOLD are both acceptable — only SEAL is forbidden
-        assert res["verdict"] != "SEAL", \
-            f"Natural language approval should not seal. Got: {res.get('verdict')}"
+        assert (
+            res["verdict"] != "SEAL"
+        ), f"Natural language approval should not seal. Got: {res.get('verdict')}"

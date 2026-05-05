@@ -193,7 +193,9 @@ def get_unified_memory() -> UnifiedMemory:
 
 
 async def vault(
-    operation: Literal["store", "recall", "search", "forget", "seal", "retrieve", "list"] = "search",
+    operation: Literal[
+        "store", "recall", "search", "forget", "seal", "retrieve", "list"
+    ] = "search",
     session_id: str = "global",
     content: str | None = None,
     memory_ids: list[str] | None = None,
@@ -257,7 +259,11 @@ async def vault(
     return VaultOutput(
         session_id=session_id,
         verdict=Verdict.SEAL,
-        operation="search" if normalized_operation == "search" and operation == "list" else normalized_operation,
+        operation=(
+            "search"
+            if normalized_operation == "search" and operation == "list"
+            else normalized_operation
+        ),
         status="SUCCESS",
         result=res,
     )

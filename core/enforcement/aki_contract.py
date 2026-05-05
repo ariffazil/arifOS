@@ -12,4 +12,3 @@ class AKIContract:
 CONTRACT = AKIContract()
 
 __all__ = ["AKIContract", "CONTRACT"]
-

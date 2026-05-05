@@ -446,6 +446,9 @@ aaa.arif-fazil.com {
 	handle /a2a/* {
 		reverse_proxy 127.0.0.1:3001
 	}
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
 	handle /operator/* {
 		reverse_proxy 127.0.0.1:3001
 	}

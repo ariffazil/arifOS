@@ -2727,7 +2727,9 @@ def _arif_evidence_fetch(
 
         # SSRF validation
         parsed = urllib.parse.urlparse(url)
-        if parsed.hostname in ("127.0.0.1", "localhost", "0.0.0.0") or parsed.hostname.startswith(("10.", "192.168.", "172.")):
+        if parsed.hostname in ("127.0.0.1", "localhost", "0.0.0.0") or parsed.hostname.startswith(
+            ("10.", "192.168.", "172.")
+        ):
             risk_flags.append("private_ip_access")
         if parsed.scheme not in ("http", "https"):
             risk_flags.append("scheme_blocked")

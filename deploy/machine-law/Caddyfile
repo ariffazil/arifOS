@@ -135,6 +135,12 @@ aaa.arif-fazil.com {
     handle /a2a/* {
         reverse_proxy aaa-a2a:3001
     }
+    handle /api/* {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /health {
+        reverse_proxy aaa-a2a:3001
+    }
     handle {
         file_server
         try_files {path} /index.html

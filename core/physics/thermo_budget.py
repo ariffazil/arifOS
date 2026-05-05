@@ -33,4 +33,3 @@ class ThermoBudget:
 
 
 __all__ = ["LANDAUER_LIMIT_JOULES", "ThermoBudget", "ThermoSnapshot"]
-

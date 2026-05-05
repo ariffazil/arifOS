@@ -42,7 +42,7 @@ if os.path.exists(_env_path):
 
 _llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
 if _llm_client is not None:
-    setattr(_llm_client, "SEA_LION_API_KEY", os.getenv("SEA_LION_API_KEY"))
+    _llm_client.SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")
 
 # Fix sys.path so arifOS packages resolve correctly inside Docker
 _apply_path_priority()

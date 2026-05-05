@@ -17,6 +17,7 @@ Plus F-WEB Evidence Resource families:
   contrast://{id}        — Cross-source contrast report
   void://{id}            — Missing data taxonomy report
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

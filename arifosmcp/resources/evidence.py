@@ -13,6 +13,7 @@ Tools act (write), Resources expose (read), Kernel intercepts (validates).
 
 DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """
+
 from __future__ import annotations
 
 import json
