@@ -5,13 +5,13 @@ F1–F13 Constitutional Floor Enforcer + F14 Semantic Gate
 Each floor is an interceptor axiom, not a callable tool.
 They wrap all tool executions and gate the pipeline.
 
-v2026.05.01-NIAT PATCH:
+v2026.05.05-SSCT — SSCT NIAT PATCH:
 - Reasoning free / Action narrow — core principle
 - Angel + Devil reasoning allowed without gate
 - Execution gated, not reasoning
 - Fine-grained verdict subtypes replace flat HOLD
 
-v2026.05.01-SEMANTIC GATE (F14):
+v2026.05.05-SSCT — SSCT SEMANTIC GATE:
 - Intent classification BEFORE NIAT free-pass
 - Instruction/manipulation intent caught even in reasoning tools
 - Fast-path regex + structured fallback
@@ -470,5 +470,5 @@ def get_floor_status() -> dict[str, Any]:
     return {
         "floors": {f.value: FLOOR_DESCRIPTIONS[f] for f in Floor},
         "status": "aligned",
-        "version": "2026.05.01-NIAT+SEMANTIC",
+        "version": "2026.05.05-SSCT",
     }

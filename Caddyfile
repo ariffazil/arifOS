@@ -443,6 +443,13 @@ aaa.arif-fazil.com {
 		-server
 	}
 
+	# Cache control: HTML always revalidate, hashed assets immutable
+	@html path *.html /
+	header @html Cache-Control "no-cache, must-revalidate"
+	header @html CDN-Cache-Control "no-cache"
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
 	handle /a2a/* {
 		reverse_proxy 127.0.0.1:3001
 	}

@@ -982,7 +982,7 @@ def get_constitution_identity() -> dict[str, Any]:
     FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auth, F12: Injection, F13: Sovereign"""
     c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
     return {
-        "constitution_id": "arifos-constitution-v2026.04.26",
+        "constitution_id": "arifos-constitution-v2026.05.05-SSCT",
         "constitution_hash": f"sha256:{c_hash}",
         "invariants_hash": "sha256:4d7a8e23b7b...",
         "kernel": "canonical13",
@@ -6322,7 +6322,7 @@ def _arif_vault_seal(
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
-                result={"changes": [], "version": "2026.04.26-KANON"},
+                result={"changes": [], "version": "2026.05.05-SSCT"},
                 ledger_size=len(_VAULT_LEDGER),
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0
@@ -7308,7 +7308,7 @@ def _arif_ping(
     payload = {
         "ok": True,
         "service": "arifOS MCP",
-        "version": os.environ.get("ARIFOS_VERSION", "v2026.04.26"),
+        "version": os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT"),
         "runtime": "ready",
         "tools_registered": public_surface["tools_registered"],
         "session_required": True,

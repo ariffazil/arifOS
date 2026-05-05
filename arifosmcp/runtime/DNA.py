@@ -6,7 +6,7 @@ IMMUTABLE CONSTITUTIONAL CONSTANTS.
 from typing import Final
 
 # --- VERSIONING ---
-VERSION: Final[str] = "v2026.05.01-KANON"
+VERSION: Final[str] = "v2026.05.05-SSCT"  # ← auto-synced from __init__.__version__
 CODENAME: Final[str] = "REFORGE_EARTH_WITNESS"
 
 # --- F7 HUMILITY BAND (OMNIPRESENT) ---

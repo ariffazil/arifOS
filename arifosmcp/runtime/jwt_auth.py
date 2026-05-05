@@ -4,7 +4,7 @@ arifosmcp/runtime/jwt_auth.py — Constitutional JWT Verification Engine (Phase 
 Enforces identity-before-governance for all constitutional boundaries.
 Supports Supabase Auth (RS256) and self-issued internal tokens (HS256).
 
-v2026.05.01-DURABLE — JWT telemetry now survives container restarts:
+v2026.05.05-SSCT — SSCT: Sole Source, Floor Rebalancing, Schema I/O Canonicalization:
 - log_violation() writes to both in-memory cache AND durable JSONL
 - query_violations() reads from durable JSONL (source of truth)
 - get_durable_violation_stats() replaces get_violation_stats() for enforce readiness

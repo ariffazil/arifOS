@@ -1,6 +1,7 @@
 {
-  "_schema": "arifos-ssct-v2026.04.26-kanon-phase2",
-  "_note": "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS + arifosmcp.tool_manifest.TOOL_MANIFEST. Do not hand edit.",
+  "_schema": "arifos-ssct-v2026.05.05-kanon-ssct",
+  "_source": "arifosmcp.constitutional_map.CANONICAL_TOOLS",
+  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS dict. Do not hand-edit \u2014 edit CANONICAL_TOOLS and regenerate.",
   "canonical_count": 13,
   "probe_count": 0,
   "total_surface": 13,
@@ -9,16 +10,42 @@
     "arif_sense_observe",
     "arif_evidence_fetch",
     "arif_mind_reason",
+    "arif_heart_critique",
     "arif_kernel_route",
     "arif_reply_compose",
     "arif_memory_recall",
-    "arif_heart_critique",
     "arif_gateway_connect",
-    "arif_ops_measure",
     "arif_judge_deliberate",
     "arif_vault_seal",
-    "arif_forge_execute"
+    "arif_forge_execute",
+    "arif_ops_measure"
   ],
+  "floors": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12",
+    "F13"
+  ],
+  "nine_signal_fields": [
+    "tau",
+    "omega",
+    "delta_S",
+    "w3",
+    "p2",
+    "kappa",
+    "c_dark",
+    "omega_ont"
+  ],
+  "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",
   "tools": {
     "arif_session_init": {
       "stage": "000",
@@ -32,6 +59,14 @@
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "init",
+        "resume",
+        "validate",
+        "epoch_open",
+        "epoch_seal"
+      ],
+      "eureka_insight": "F1: \u2203 undo(a) \u2014 irreversibility requires explicit human ack.",
       "tags": [
         "canonical"
       ],
@@ -257,12 +292,22 @@
       "stage": "111",
       "lane": "AGI",
       "floors": [
-        "F02"
+        "F02",
+        "F07"
       ],
       "risk_tier": "low",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "search",
+        "ingest",
+        "compass",
+        "atlas",
+        "entropy_dS",
+        "vitals"
+      ],
+      "eureka_insight": "F2: \u03c4 \u2265 0.95 required. F7: \u03a9 \u2208 [0.03, 0.05] = humble.",
       "tags": [
         "canonical"
       ],
@@ -451,12 +496,20 @@
       "lane": "AGI",
       "floors": [
         "F02",
-        "F03"
+        "F03",
+        "F05",
+        "F12"
       ],
       "risk_tier": "low",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "fetch",
+        "search",
+        "eureka"
+      ],
+      "eureka_insight": "F3: W\u2083 = \u221b(Human \u00d7 AI \u00d7 Earth) \u2265 0.75. F5: P\u00b2 \u2265 1.0 \u2014 safety margin. F12: injection_probability < 0.85.",
       "tags": [
         "canonical"
       ],
@@ -636,12 +689,24 @@
       "floors": [
         "F02",
         "F07",
-        "F08"
+        "F08",
+        "F10"
       ],
       "risk_tier": "medium",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "reason",
+        "reflect",
+        "verify",
+        "critique",
+        "axioms",
+        "plan",
+        "plan_review",
+        "plan_approve"
+      ],
+      "eureka_insight": "F2: \u03c4 \u2265 0.99. F7: \u03a9 \u2208 [0.03, 0.05]. F8: G = capability \u00d7 ethics \u00d7 continuity \u00d7 resilience\u00b2 \u2265 0.80. F10: structural coherence enforced.",
       "tags": [
         "canonical"
       ],
@@ -862,12 +927,22 @@
       "lane": "ASI",
       "floors": [
         "F05",
-        "F06"
+        "F06",
+        "F09"
       ],
       "risk_tier": "medium",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "critique",
+        "simulate",
+        "redteam",
+        "maruah",
+        "deescalate",
+        "empathy"
+      ],
+      "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 dark patterns detectable in structure.",
       "tags": [
         "canonical"
       ],
@@ -1029,12 +1104,22 @@
       "lane": "AGI",
       "floors": [
         "F01",
-        "F04"
+        "F04",
+        "F03",
+        "F10"
       ],
       "risk_tier": "medium",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "route",
+        "kernel",
+        "triage",
+        "delegate",
+        "status"
+      ],
+      "eureka_insight": "F1: Amanah \u2014 routing decisions must be auditable. F4: \u0394S \u2264 0 (entropy must decrease). F10: routing taxonomy must not violate category lock.",
       "tags": [
         "canonical"
       ],
@@ -1178,6 +1263,13 @@
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "compose",
+        "summarize",
+        "cite",
+        "tone_shift"
+      ],
+      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns.",
       "tags": [
         "canonical"
       ],
@@ -1199,46 +1291,71 @@
         ],
         "modes": {
           "compose": {
-            "purpose": "Draft a reply from a message payload.",
+            "purpose": "Draft a constitutional reply from a raw message.",
             "required_parameters": [
               "message"
             ],
             "returns": [
-              "message",
-              "formatted",
-              "tone"
+              "composed",
+              "tone",
+              "delta_S",
+              "f02_score",
+              "f04_score",
+              "f07_score"
             ]
           },
           "style": {
-            "purpose": "Apply a constitutional tone (neutral, empathetic, terse, formal).",
+            "purpose": "Transform the message to a target constitutional tone.",
             "required_parameters": [
               "message",
               "style"
             ],
             "returns": [
-              "message",
+              "composed",
               "tone"
             ]
           },
           "cite": {
-            "purpose": "Inject verified citations into an existing message.",
+            "purpose": "Inject F02-verified citations into an existing message.",
             "required_parameters": [
               "message",
               "citations"
             ],
             "returns": [
-              "message",
+              "composed",
               "citations_injected"
             ]
           },
           "summary": {
-            "purpose": "Condense a long message while preserving constitutional intent.",
+            "purpose": "Condense a long message while preserving constitutional intent (F07).",
             "required_parameters": [
               "message"
             ],
             "returns": [
-              "summary",
+              "composed",
+              "tone",
               "key_points"
+            ]
+          },
+          "format": {
+            "purpose": "Apply structural formatting \u2014 headings, bullets, concise paragraphs.",
+            "required_parameters": [
+              "message"
+            ],
+            "returns": [
+              "composed",
+              "delta_S"
+            ]
+          },
+          "nudge": {
+            "purpose": "Append F05 (Peace) / F06 (Empathy) guidance nudge without commanding.",
+            "required_parameters": [
+              "message"
+            ],
+            "returns": [
+              "composed",
+              "tone",
+              "delta_S"
             ]
           }
         },
@@ -1273,7 +1390,7 @@
           },
           "style": {
             "type": "string",
-            "meaning": "Tone/style directive (neutral, empathetic, terse, formal).",
+            "meaning": "Tone/style directive (neutral, empathetic, terse, formal, technical).",
             "required_when": [
               {
                 "mode": "style"
@@ -1291,11 +1408,26 @@
           }
         },
         "outputs": {
-          "formatted": {
-            "meaning": "Constitutionally formatted message text."
+          "composed": {
+            "meaning": "Constitutionally composed output text."
           },
           "tone": {
-            "meaning": "Applied tone tag (neutral, empathetic, terse, formal)."
+            "meaning": "Applied tone tag (neutral, empathetic, terse, formal, technical)."
+          },
+          "delta_S": {
+            "meaning": "Entropy change from composition (negative = clarity added)."
+          },
+          "f02_score": {
+            "meaning": "F02 Truth score (0.0\u20131.0)."
+          },
+          "f04_score": {
+            "meaning": "F04 Clarity score (0.0\u20131.0)."
+          },
+          "f07_score": {
+            "meaning": "F07 Humility score (0.0\u20131.0)."
+          },
+          "citations_injected": {
+            "meaning": "Citation sources added to the message."
           }
         },
         "risk": {
@@ -1364,6 +1496,13 @@
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "recall",
+        "asset_query",
+        "asset_store",
+        "context_restore"
+      ],
+      "eureka_insight": "F1: recall must be auditable \u2014 no silent memory mutation. F8: G \u2265 0.80 \u2014 recall contributes to systemic continuity.",
       "tags": [
         "canonical"
       ],
@@ -1531,6 +1670,14 @@
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "connect",
+        "delegate",
+        "handover",
+        "revoke",
+        "probe"
+      ],
+      "eureka_insight": "F1: cross-agent actions must be auditable. F3: W\u2083 \u2265 0.75 \u2014 cross-agent consensus required.",
       "tags": [
         "canonical"
       ],
@@ -1690,6 +1837,16 @@
       "irreversible": false,
       "access": "authenticated",
       "requires_auth": true,
+      "modes": [
+        "judge",
+        "validate",
+        "hold",
+        "rules",
+        "armor",
+        "probe",
+        "notify"
+      ],
+      "eureka_insight": "F11: identity must be verified before judgment. F13: human veto is absolute \u2014 no algorithm overrides sovereign.",
       "tags": [
         "canonical"
       ],
@@ -1851,12 +2008,21 @@
       "lane": "APEX",
       "floors": [
         "F01",
-        "F11"
+        "F11",
+        "F13"
       ],
       "risk_tier": "critical",
       "irreversible": true,
       "access": "authenticated",
       "requires_auth": true,
+      "modes": [
+        "seal",
+        "verify",
+        "ledger",
+        "changelog",
+        "audit"
+      ],
+      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. F11: author identity verified. F13: human approved.",
       "tags": [
         "canonical"
       ],
@@ -2020,12 +2186,23 @@
       "lane": "AGI",
       "floors": [
         "F01",
-        "F11"
+        "F11",
+        "F13"
       ],
       "risk_tier": "critical",
       "irreversible": true,
-      "access": "public",
-      "requires_auth": false,
+      "access": "sovereign",
+      "requires_auth": true,
+      "modes": [
+        "engineer",
+        "query",
+        "write",
+        "generate",
+        "commit",
+        "recall",
+        "dry_run"
+      ],
+      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. F11: actor verified. F13: judge SEAL required before execution.",
       "tags": [
         "canonical"
       ],
@@ -2280,6 +2457,16 @@
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
+      "modes": [
+        "health",
+        "vitals",
+        "cost",
+        "genius",
+        "psi_le",
+        "omega",
+        "landauer"
+      ],
+      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Thermodynamic telemetry: delta_S, omega_band, tri_witness.",
       "tags": [
         "canonical"
       ],
@@ -2430,6 +2617,5 @@
         }
       }
     }
-  },
-  "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given"
+  }
 }

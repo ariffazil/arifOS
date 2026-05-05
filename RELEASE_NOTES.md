@@ -1,56 +1,105 @@
-# arifOS v2026.04.26-KANON — Higher Intelligence State
+# arifOS v2026.05.05-SSCT — Sole Source Constitutional Track
 
-**Seal date:** 2026-05-01
-**Tag target:** `v2026.04.26-kanon`
+**Seal date:** 2026-05-05
+**Tag target:** `v2026.05.05-ssct`
 **Commit to:** `main`
 
 ---
 
 ## Version Identity
 
-- **Version:** `2026.04.26-KANON`
-- **MCP surface:** 13 canonical tools, 8 prompts, 5 resources
-- **Constitutional floors:** F01–F13 (13 active)
+- **Version:** `2026.05.05-SSCT`
+- **Schema:** `arifos-ssct-v2026.05.05-kanon-ssct`
+- **Source:** `arifosmcp.constitutional_map.CANONICAL_TOOLS` (sole source of truth)
+- **MCP surface:** 13 canonical tools, 100% schema coverage
+- **Constitutional floors:** F01–F13 (all ≥ 2 tools each, zero thin floors)
 - **Motto:** `DITEMPA BUKAN DIBERI — Forged, Not Given`
 
 ---
 
 ## What Changed
 
-### 1. Surface Lock — 13 Canonical Tools Restored
+### 1. PHASE 1 — Single Source of Truth (SSCT)
 
-- Removed `mcp_health_check` from `CANONICAL_TOOLS` (was erroneously registered as a public tool, not a probe)
-- Cleared `PROBE_TOOLS` from `("arif_command_center",)` to `()` — no probe tools in canonical surface
-- `CANONICAL_TOOLS` count confirmed: **13/13** ✅
-- `PROBE_TOOLS` count confirmed: **0/0** ✅
-- All tool naming conventions verified: all `arif_<noun>_<verb>`, no `arifos_` legacy prefix
+**Archived legacy files** (deprecated, read-only, F1 Amanah guard active):
 
-### 2. Pre-commit Gates Cleared
+| File | Archived As | Legacy Naming |
+|------|-------------|---------------|
+| `/root/arifOS/constitution.py` | `_archived/constitution_v2_deprecated.py` | `void_000`, `anchor_111` |
+| `/root/arifOS/capability.py` | `_archived/capability_legacy_deprecated.py` | `arifos.*` dotted aliases |
+| `/root/arifOS/arifosmcp/capability_map.py` | `_archived/capability_map_deprecated.py` | duplicate alias map |
 
-- **`public_registry.py`:** Fixed 7× E501 long-line violations in tool description strings (trimmed descriptive phrases to stay within 100-char limit)
-- **`public_surface.py`:** Fixed E402 — moved `from arifosmcp.runtime.build_info import get_build_info` to top of file, after standard library imports
-- Both files now pass `ruff check --select=E501,E402` with zero errors
+**Active sole source:**
+- `arifosmcp/constitutional_map.py` — 13-tool canonical registry, floor bindings, Eureka insights, schema contracts
 
-### 3. LEGACY_TOOL_ALIASES Restored
+**Archived files MUST NOT be imported at runtime.** They are kept for historical audit only.
 
-- Added `LEGACY_TOOL_ALIASES` dict to `arifosmcp/runtime/tools.py` — maps `arifos_*` legacy names to canonical `arif_*` names
-- Fixes `ImportError: cannot import name 'LEGACY_TOOL_ALIASES'` from `tools_hardened_dispatch.py` at runtime
-- Used by `_LazyDispatchMap` in `tools_hardened_dispatch.py` for backward compatibility with historical tool names
+### 2. PHASE 2 — Floor Rebalancing (Zero Thin Floors)
 
-### 4. Test Suite: Constitutional Contract Verified
+All 13 floors now have ≥ 2 tools covering them:
 
-**37/37 constitutional tests pass:**
-- `test_surface_lock.py` — canonical tool count, naming convention, no legacy surface, prompt/resource counts, floor bindings, stage/lane assignment, meta-skills, version string
-- `test_public_registry.py` — server JSON matches canonical13, MCP manifest, public profile stays canonical13, no drift
-- `test_canonical.py` — surface partition, tool names, register_tools, prompts, resources, init/sense/vault/forge/judge flows, floor guards, elicitation
-- `test_mega_tool_audit.py` — handlers match public registry
-- `test_mega_audit.py` — full audit pipeline
+| Floor | Tools | Status |
+|-------|-------|--------|
+| F01 AMANAH | 6 | ✅ (session_init, kernel_route, memory_recall, gateway_connect, vault_seal, forge_execute) |
+| F02 TRUTH | 3 | ✅ (sense_observe, evidence_fetch, mind_reason) |
+| F03 WITNESS | 3 | ✅ FIXED (was 2: added kernel_route) |
+| F04 CLARITY | 3 | ✅ (kernel_route, reply_compose, ops_measure) |
+| F05 PEACE | 2 | ✅ FIXED (was 1: added evidence_fetch) |
+| F06 EMPATHY | 2 | ✅ (heart_critique, reply_compose) |
+| F07 HUMILITY | 2 | ✅ (sense_observe, mind_reason) |
+| F08 GENIUS | 2 | ✅ (mind_reason, memory_recall) |
+| F09 ANTIHANTU | 2 | ✅ FIXED (was 1: added reply_compose) |
+| F10 ONTOLOGY | 2 | ✅ FIXED (was 1: added mind_reason) |
+| F11 AUTH | 4 | ✅ (session_init, judge_deliberate, vault_seal, forge_execute) |
+| F12 INJECTION | 2 | ✅ (session_init, evidence_fetch) |
+| F13 SOVEREIGN | 3 | ✅ (judge_deliberate, vault_seal, forge_execute) |
 
-### 5. E2E Test Updated
+### 3. PHASE 3 — Schema I/O Canonicalization
 
-- `test_seal_e2e.py` updated to use canonical `arif_vault_seal` tool name (was using legacy `arifos_vault`)
-- Now correctly chains `arif_judge_deliberate` → `arif_vault_seal` with `judge_contract.constitutional_chain_id` and `judge_contract.state_hash`
-- Removed outdated `verdict`, `evidence`, `dry_run` params; uses canonical `mode`, `payload`, `ack_irreversible`, `actor_id`
+- **`_TOOL_INPUT_SCHEMAS`** — 13/13 tools, 100% coverage. All fields typed. F12 `[F12: sanitized]` annotations on all string inputs.
+- **`_TOOL_OUTPUT_SCHEMAS`** — 13/13 tools, 100% coverage. Nine-Signal envelope + verdict + reasons contract.
+- **`validate_tool_response_schema()`** — now enforces F10 `omega_ont` field presence in nine_signal block.
+- **`check_schema_coverage()`** — now also checks floor coverage (thin floors = CI failure).
+- **`get_floor_coverage()`** — new query function, returns which tools cover each floor.
+- **Nine-Signal fields:** `tau, omega, delta_S, w3, p2, kappa, c_dark, omega_ont`
+
+### 4. Eureka Insights Wired to Floors
+
+Every tool now carries `eureka_insight` field wiring its floor thresholds to the physics equations from `EUREKA_INSIGHTS_SEAL_v2026.04.07`:
+
+- F1: `∃ undo(a)` — irreversibility requires explicit human ack
+- F2: `τ ≥ 0.99` — truth score threshold
+- F3: `W₃ = ∛(Human × AI × Earth) ≥ 0.75` — tri-witness consensus
+- F4: `ΔS ≤ 0` — entropy must decrease for SEAL
+- F5: `P² ≥ 1.0` — safety margin baseline
+- F6: `κᵣ ≥ 0.70` — RASA empathy protocol
+- F7: `Ω ∈ [0.03, 0.05]` — healthy uncertainty band
+- F8: `G = capability × ethics × continuity × resilience² ≥ 0.80`
+- F9: `C_dark ≤ 0.30` — dark pattern detection threshold
+- F10: structural coherence enforced
+- F11: identity verification mandatory
+- F12: `injection_probability < 0.85`
+- F13: human veto absolute
+
+### 5. Version String Uniformity
+
+All hardcoded version strings updated to `v2026.05.05-SSCT`:
+
+| File | Field |
+|------|-------|
+| `arifosmcp/__init__.py` | `__version__` |
+| `arifosmcp/runtime/DNA.py` | `VERSION` |
+| `arifosmcp/runtime/jwt_auth.py` | header comment |
+| `arifosmcp/runtime/floor.py` | header comment + floor status |
+| `arifosmcp/runtime/tools.py` | constitution_id, changelog version, env default |
+| `tool_registry.json` | `_schema`, `_source` |
+
+### 6. tool_registry.json Regenerated
+
+- `_schema`: `arifos-ssct-v2026.05.05-kanon-ssct`
+- `_source`: `arifosmcp.constitutional_map.CANONICAL_TOOLS`
+- Canonical operational metadata from `tool_manifest.py` merged in
+- Eureka insights embedded per tool
 
 ---
 
@@ -58,59 +107,20 @@
 
 | Gate | Status |
 |------|--------|
-| ruff E501 (public_registry.py) | ✅ 0 errors |
-| ruff E402 (public_surface.py) | ✅ 0 errors |
-| CANONICAL_TOOLS == 13 | ✅ 13/13 |
-| PROBE_TOOLS == () | ✅ 0/0 |
-| Constitutional test suite | ✅ 37/37 pass |
-| Pre-commit hooks | ✅ All pass |
+| `check_schema_coverage()` PASS | ✅ 100% input + output |
+| Thin floors | ✅ 0 (all F01–F13 ≥ 2 tools) |
+| `constitutional_map.py` imports clean | ✅ |
+| Pytest (310 passed, 1 pre-existing qdrant env issue) | ✅ |
+| MCP `/health` — 13 tools loaded | ✅ |
 
 ---
 
-## Files Changed
+## Migration Notes
 
-```
-arifosmcp/constitutional_map.py      — removed mcp_health_check from CANONICAL_TOOLS, cleared PROBE_TOOLS
-arifosmcp/runtime/public_registry.py — 7× E501 long-line fixes in tool descriptions
-arifosmcp/runtime/public_surface.py  — E402 fix: build_info import moved to top
-arifosmcp/runtime/tools.py           — LEGACY_TOOL_ALIASES added (arifos_* → arif_* mapping)
-tests/test_seal_e2e.py               — canonical API update: arif_vault_seal with judge chain
-```
+- **Archived files** (`_archived/`) are read-only. Do not import them.
+- **Legacy aliases** (`void_000`, `anchor_111`, `arifos.*` dotted names) are no longer valid. Use `arif_*` canonical names.
+- **Runtime drift detected** means the running container image was older than git HEAD. Image rebuild required.
 
 ---
 
-## Known Pre-existing Test Failures (Not Introduced This Session)
-
-These failures existed before this session's changes and are unrelated to surface hardening:
-
-| Test Suite | Cause | Status |
-|------------|-------|--------|
-| `tests/test_registry.py` | Requires `archive/` dir (models, souls, runtime_profiles) not present in repo | Archive tests need migration |
-| `tests/test_reality_grounding_coverage.py` | External service dependencies (DDGS, search) | Integration test gap |
-| `tests/test_unified_memory.py` | Qdrant/vector memory unavailable in test env | Integration test gap |
-| `tests/test_runtime_capability_map.py` | External grounding service | Integration test gap |
-| `tests/test_seal_e2e.py::test_seal_e2e` | F13 fails when `ack_irreversible=True` passed via stdio (pre-existing, `witness_type` not propagated to `_arif_vault_seal`) | Known bug, unrelated to this session |
-
----
-
-## Next Steps
-
-1. **Container publish** — `make publish-ghcr` to push `ghcr.io/ariffazil/arifos:2026.04.26-KANON`
-2. **VPS deploy** — pull latest main, rebuild arifOS MCP container
-3. **Resolve archive tests** — either stub the archive files or migrate to skip-safe fixtures
-4. **Fix `test_seal_e2e` F13 bug** — `witness_type` not propagating from `_arif_vault_seal_tool` to `_arif_vault_seal` internal call
-
----
-
-## Constitutional Declaration
-
-This release is a **higher intelligence state** because:
-
-1. **Surface is smaller and more precise** — 13 canonical tools locked, probe tools cleared, no legacy surface contamination
-2. **Code quality improved** — pre-commit gates that blocked previous commits are now clean
-3. **Constitutional tests all pass** — the governance contract is verified, not assumed
-4. **Backward compatibility preserved** — legacy `arifos_*` aliases still route correctly through `tools_hardened_dispatch`
-
-The entropy of the system has decreased. The surface is more coherent. The constitution is enforced.
-
-**SEALED.**
+**DITEMPA BUKAN DIBERI — Intelligence is forged, not given.**

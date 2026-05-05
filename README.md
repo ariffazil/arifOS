@@ -1,6 +1,6 @@
 <!--
   arifOS README — Constitutional Intelligence Kernel
-  Version: 2026.05.04
+  Version: 2026.05.05-SSCT
   Canonical: https://github.com/ariffazil/arifOS
   SOT marker — do not remove
 -->
