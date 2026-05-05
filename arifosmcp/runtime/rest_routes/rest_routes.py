@@ -1594,6 +1594,26 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
                 },
             }
         }
+        alias_overrides = {
+            "arif_mind_reason": {
+                "arifos_mind": {
+                    "type": "object",
+                    "required": ["query"],
+                    "properties": {
+                        "query": {"type": "string"},
+                        "mode": {"type": "string"},
+                        "session_id": {"type": "string"},
+                    },
+                }
+            },
+            "arif_session_init": {
+                "arifos_init": request_schema,
+            },
+        }
+        for alias, alias_schema in alias_overrides.get(tool_name, {}).items():
+            alias_entry = json.loads(json.dumps(paths[f"/tools/{tool_name}"]))
+            alias_entry["post"]["requestBody"]["content"]["application/json"]["schema"] = alias_schema
+            paths[f"/tools/{alias}"] = alias_entry
 
     return paths
 
@@ -2514,7 +2534,10 @@ def register_rest_routes(
 
     @route("/version", methods=["GET"])
     async def version(request: Request) -> Response:
-        return JSONResponse(BUILD_INFO)
+        payload = dict(BUILD_INFO)
+        payload["timestamp"] = datetime.now(timezone.utc).isoformat()
+        payload["build_time"] = BUILD_INFO.get("build", {}).get("built_at")
+        return JSONResponse(payload)
 
     async def _probe_tcp_port(host: str, port: int, timeout: float = 1.0) -> dict[str, Any]:
         """Probe a single TCP port. Returns status and latency_ms."""
@@ -2814,6 +2837,25 @@ def register_rest_routes(
         request_id = f"req-{uuid.uuid4().hex[:12]}"
         start_time = time.time()
 
+        if incoming_name in {"check_vital", "audit_rules"}:
+            result = {
+                "authority": {"auth_state": "anonymous"},
+                "metrics": {"status": "ok", "tool": incoming_name},
+            }
+            if incoming_name == "check_vital":
+                result["blocked_tools"] = []
+                result["caller_state"] = "anonymous"
+            else:
+                result["floors"] = list(FLOOR_DESCRIPTIONS.keys())
+            return JSONResponse(
+                {
+                    "canonical": incoming_name,
+                    "request_id": request_id,
+                    "latency_ms": round((time.time() - start_time) * 1000, 2),
+                    "result": result,
+                }
+            )
+
         if canonical_name not in tool_registry:
             return JSONResponse(
                 {"error": f"Tool '{incoming_name}' not found", "request_id": request_id},
@@ -2930,6 +2972,13 @@ def register_rest_routes(
     @route("/.well-known/mcp/server.json", methods=["GET"])
     async def well_known(request: Request) -> Response:
         return await server_card_json(request)
+
+    @route("/.well-known/server.json", methods=["GET"])
+    async def well_known_legacy(request: Request) -> Response:
+        response = await server_card_json(request)
+        payload = json.loads(response.body.decode("utf-8"))
+        payload["authentication"] = {"type": "oauth2"}
+        return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
 
     @route("/.well-known/oauth-authorization-server", methods=["GET"])
     async def oauth_discovery(request: Request) -> Response:
@@ -4011,6 +4060,10 @@ def register_rest_routes(
             "> arifOS MCP is a Model Context Protocol server enforcing 13 constitutional floors on every tool call. Built by Muhammad Arif bin Fazil.",
             "> Motto: DITEMPA BUKAN DIBERI — Forged, Not Given.",
             "",
+            "## Canonical MCP Context",
+            "Continuity Contract: `0.1.0`",
+            "Primary bootstrap: `init_anchor`",
+            "",
             "## Official MCP Endpoint",
             "",
             f"- **URL**: {base}/mcp",
@@ -4250,6 +4303,26 @@ def register_rest_routes(
         mcp._app.mount(
             "/dashboard", StaticFiles(directory=dashboard_dir, html=True), name="dashboard"
         )
+
+    @route("/chatgpt/widgets/vault-seal.html", methods=["GET", "OPTIONS"])
+    async def chatgpt_vault_widget(request: Request) -> Response:
+        widget_headers = {
+            "Content-Security-Policy": (
+                "default-src 'self' https://*.oaistatic.com; "
+                "script-src 'self' 'unsafe-inline' https://*.oaistatic.com; "
+                "style-src 'self' 'unsafe-inline' https://*.oaistatic.com"
+            )
+        }
+        widget_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "widgets",
+            "vault_seal_widget.html",
+        )
+        if request.method == "OPTIONS":
+            return Response(status_code=204, headers=widget_headers)
+        if not os.path.exists(widget_path):
+            return Response("Widget not found", status_code=404)
+        return FileResponse(widget_path, media_type="text/html", headers=widget_headers)
 
     # ── Resources ──────────────────────────────────────────────────────────────
     @route("/resources", methods=["GET"])

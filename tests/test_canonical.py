@@ -17,7 +17,7 @@ from arifosmcp.constitutional_map import (
     list_probe_tools,
 )
 from arifosmcp.prompts import CANONICAL_PROMPTS, register_prompts
-from arifosmcp.resources import CANONICAL_RESOURCES, register_resources
+from arifosmcp.resources import CANONICAL_RESOURCES, EVIDENCE_RESOURCES, register_resources
 from arifosmcp.runtime.floors import get_floor_status
 from arifosmcp.runtime.tools import (
     IrreversibleConfirmation,
@@ -31,6 +31,11 @@ from arifosmcp.tools.sense_observe import arif_sense_observe
 from arifosmcp.tools.vault import arif_vault_seal
 from arifosmcp.tools.forge import arif_forge_execute
 from arifosmcp.tools.judge import arif_judge_deliberate
+
+
+@pytest.fixture(autouse=True)
+def _stable_runtime_env(monkeypatch):
+    monkeypatch.setenv("ARIFOS_DEV_MODE", "0")
 
 
 def test_surface_partition():
@@ -76,7 +81,8 @@ def test_register_prompts_matches_canonical_prompt_surface():
 def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
-    assert tuple(registered) == CANONICAL_RESOURCES
+    registered_tuple = tuple(registered)
+    assert registered_tuple == CANONICAL_RESOURCES + EVIDENCE_RESOURCES
 
 
 def test_init_creates_session():

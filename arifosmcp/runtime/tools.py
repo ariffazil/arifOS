@@ -47,6 +47,7 @@ from arifosmcp.constitutional_map import (
 )
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
 from arifosmcp.core.threat_engine import ThreatTier
+from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
 from arifosmcp.runtime.floors import check_floors
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
@@ -2275,74 +2276,15 @@ def _arif_sense_observe(
                 result = asyncio.run(minimax_bridge.web_search(query or ""))
                 mm_hits = result.get("hits", [])
                 if mm_hits:
-                    return _ok(
-                        "arif_sense_observe",
-                        {
-                            "query": query,
-                            "results": mm_hits,
-                            "source": "minimax",
-                            "omega_0": 0.04,
-                            "verdict": result.get("verdict", "SEAL"),
-                            "metrics": result.get("metrics", {}),
-                            "witness_debug": result.get("witness_debug", {}),
-                            # ── F-WEB Evidence Receipt (L1) ──
-                            "evidence_receipt": {
-                                "tool": "111_SENSE",
-                                "mode": "search",
-                                "provider": "minimax_bridge",
-                                "bridge": "mcp_http_sse",
-                                "query_sent": query or "",
-                                "results_returned": len(mm_hits),
-                                "urls_returned": len(mm_hits),
-                                "urls_ingested": 0,
-                                "independent_sources_compared": 0,
-                                "rendered_inspection": False,
-                                "pdf_inspection": False,
-                                "screenshot_inspection": False,
-                                "deep_research_plan_completed": False,
-                                "contradiction_audit_completed": False,
-                                "void_report_completed": False,
-                                "void": [
-                                    "snippets_only",
-                                    "no_full_page_ingestion",
-                                    "no_cross_source_verification",
-                                    "no_rendered_inspection",
-                                ],
-                                "risk_flags": [],
-                                "max_evidence_level": "L1",
-                                "claimed_evidence_level": None,
-                                "human_judgment_required": False,
-                            },
-                        },
-                        delta_S=0.002,
-                    )
-                mm_error = "zero_hits"
-            except Exception as exc:
-                mm_error = str(exc)
-                logger.error("minimax_bridge.web_search failed: %s", exc)
-
-        # ── Brave cascade (F7 Humility) ──
-        brave = _brave_web_search(query or "", max_results=5)
-        if brave.get("hits"):
-            return _ok(
-                "arif_sense_observe",
-                {
-                    "query": query,
-                    "results": brave["hits"],
-                    "source": "brave",
-                    "omega_0": 0.06,
-                    "verdict": brave.get("verdict", "SEAL"),
-                    "cascade": True,
-                    "minimax_note": mm_error,
                     # ── F-WEB Evidence Receipt (L1) ──
-                    "evidence_receipt": {
+                    evidence_receipt = {
                         "tool": "111_SENSE",
                         "mode": "search",
-                        "provider": "brave_api",
+                        "provider": "minimax_bridge",
                         "bridge": "mcp_http_sse",
                         "query_sent": query or "",
-                        "results_returned": len(brave["hits"]),
-                        "urls_returned": len(brave["hits"]),
+                        "results_returned": len(mm_hits),
+                        "urls_returned": len(mm_hits),
                         "urls_ingested": 0,
                         "independent_sources_compared": 0,
                         "rendered_inspection": False,
@@ -2361,12 +2303,131 @@ def _arif_sense_observe(
                         "max_evidence_level": "L1",
                         "claimed_evidence_level": None,
                         "human_judgment_required": False,
-                    },
+                        "session_id": session_id,
+                        "actor_id": actor_id,
+                    }
+                    try:
+                        store = get_evidence_store()
+                        receipt_id = store.store_receipt(evidence_receipt)
+                        evidence_receipt["receipt_id"] = receipt_id
+                    except Exception as exc:
+                        logger.warning(f"Evidence store unavailable: {exc}")
+                        receipt_id = evidence_receipt.get("receipt_id", "receipt://web/local")
+
+                    return _ok(
+                        "arif_sense_observe",
+                        {
+                            "query": query,
+                            "results": mm_hits,
+                            "source": "minimax",
+                            "omega_0": 0.04,
+                            "verdict": result.get("verdict", "SEAL"),
+                            "metrics": result.get("metrics", {}),
+                            "witness_debug": result.get("witness_debug", {}),
+                            "evidence_receipt": evidence_receipt,
+                            "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",
+                        },
+                        delta_S=0.002,
+                    )
+                mm_error = "zero_hits"
+            except Exception as exc:
+                mm_error = str(exc)
+                logger.error("minimax_bridge.web_search failed: %s", exc)
+
+        # ── Brave cascade (F7 Humility) ──
+        brave = _brave_web_search(query or "", max_results=5)
+        if brave.get("hits"):
+            evidence_receipt = {
+                "tool": "111_SENSE",
+                "mode": "search",
+                "provider": "brave_api",
+                "bridge": "mcp_http_sse",
+                "query_sent": query or "",
+                "results_returned": len(brave["hits"]),
+                "urls_returned": len(brave["hits"]),
+                "urls_ingested": 0,
+                "independent_sources_compared": 0,
+                "rendered_inspection": False,
+                "pdf_inspection": False,
+                "screenshot_inspection": False,
+                "deep_research_plan_completed": False,
+                "contradiction_audit_completed": False,
+                "void_report_completed": False,
+                "void": [
+                    "snippets_only",
+                    "no_full_page_ingestion",
+                    "no_cross_source_verification",
+                    "no_rendered_inspection",
+                ],
+                "risk_flags": [],
+                "max_evidence_level": "L1",
+                "claimed_evidence_level": None,
+                "human_judgment_required": False,
+                "session_id": session_id,
+                "actor_id": actor_id,
+            }
+            try:
+                store = get_evidence_store()
+                receipt_id = store.store_receipt(evidence_receipt)
+                evidence_receipt["receipt_id"] = receipt_id
+            except Exception as exc:
+                logger.warning(f"Evidence store unavailable: {exc}")
+                receipt_id = evidence_receipt.get("receipt_id", "receipt://web/local")
+
+            return _ok(
+                "arif_sense_observe",
+                {
+                    "query": query,
+                    "results": brave["hits"],
+                    "source": "brave",
+                    "omega_0": 0.06,
+                    "verdict": brave.get("verdict", "SEAL"),
+                    "cascade": True,
+                    "minimax_note": mm_error,
+                    "evidence_receipt": evidence_receipt,
+                    "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",
                 },
                 delta_S=0.004,
             )
 
         # Both failed → SABAR
+        evidence_receipt = {
+            "tool": "111_SENSE",
+            "mode": "search",
+            "provider": "none",
+            "bridge": "mcp_http_sse",
+            "query_sent": query or "",
+            "results_returned": 0,
+            "urls_returned": 0,
+            "urls_ingested": 0,
+            "independent_sources_compared": 0,
+            "rendered_inspection": False,
+            "pdf_inspection": False,
+            "screenshot_inspection": False,
+            "deep_research_plan_completed": False,
+            "contradiction_audit_completed": False,
+            "void_report_completed": False,
+            "void": [
+                "search_failed",
+                "no_snippets_returned",
+                "no_full_page_ingestion",
+                "no_cross_source_verification",
+            ],
+            "risk_flags": [],
+            "max_evidence_level": "L0",
+            "claimed_evidence_level": None,
+            "human_judgment_required": False,
+            "session_id": session_id,
+            "actor_id": actor_id,
+        }
+        try:
+            store = get_evidence_store()
+            receipt_id = store.store_receipt(evidence_receipt)
+            evidence_receipt["receipt_id"] = receipt_id
+        except Exception as exc:
+            logger.warning(f"Evidence store unavailable: {exc}")
+            receipt_id = evidence_receipt.get("receipt_id", "receipt://web/local")
+
         return _ok(
             "arif_sense_observe",
             {
@@ -2377,34 +2438,8 @@ def _arif_sense_observe(
                 "note": "cascade_exhausted",
                 "minimax_note": mm_error,
                 "brave_error": brave.get("error", ""),
-                # ── F-WEB Evidence Receipt (L0) ──
-                "evidence_receipt": {
-                    "tool": "111_SENSE",
-                    "mode": "search",
-                    "provider": "none",
-                    "bridge": "mcp_http_sse",
-                    "query_sent": query or "",
-                    "results_returned": 0,
-                    "urls_returned": 0,
-                    "urls_ingested": 0,
-                    "independent_sources_compared": 0,
-                    "rendered_inspection": False,
-                    "pdf_inspection": False,
-                    "screenshot_inspection": False,
-                    "deep_research_plan_completed": False,
-                    "contradiction_audit_completed": False,
-                    "void_report_completed": False,
-                    "void": [
-                        "search_failed",
-                        "no_snippets_returned",
-                        "no_full_page_ingestion",
-                        "no_cross_source_verification",
-                    ],
-                    "risk_flags": [],
-                    "max_evidence_level": "L0",
-                    "claimed_evidence_level": None,
-                    "human_judgment_required": False,
-                },
+                "evidence_receipt": evidence_receipt,
+                "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",
             },
             delta_S=0.02,
         )
@@ -2442,6 +2477,107 @@ def _arif_sense_observe(
         )
     if mode == "vitals":
         return _ok("arif_sense_observe", {"cpu": 12.5, "mem": 34.0, "io": "normal"}, delta_S=0.001)
+
+    if mode == "extract_claims":
+        text = query or ""
+        store = get_evidence_store()
+        triples = EvidenceStore.extract_claims_from_text(text)
+        claims_stored = []
+        for t in triples:
+            source = {
+                "source_hash": None,
+                "url": "",
+                "content_hash": "",
+                "raw_content": text,
+                "sanitized_markdown": text,
+                "claims": [t],
+            }
+            try:
+                sh = store.store_source(source)
+                t["source_hash"] = sh
+            except Exception:
+                pass
+            claims_stored.append(t)
+        return _ok(
+            "arif_sense_observe",
+            {
+                "mode": "extract_claims",
+                "claims": claims_stored,
+                "claims_count": len(claims_stored),
+                "query": query,
+            },
+            delta_S=0.005,
+        )
+
+    if mode == "contrast":
+        queries = (query or "").split("||")
+        if len(queries) < 2:
+            return _hold(
+                "arif_sense_observe",
+                "contrast mode requires 2+ queries separated by '||'",
+                ["F10"],
+                session_id=session_id,
+            )
+        all_results = []
+        for q in queries:
+            q = q.strip()
+            if not q:
+                continue
+            brave = _brave_web_search(q, max_results=3)
+            all_results.append({"query": q, "hits": brave.get("hits", [])})
+        agreements = []
+        contradictions = []
+        all_claims: dict[str, list] = {}
+        for res in all_results:
+            for hit in res.get("hits", []):
+                snippet = hit.get("snippet", "")
+                triples = EvidenceStore.extract_claims_from_text(snippet)
+                for t in triples:
+                    key = f"{t['subject']}|{t['predicate']}"
+                    if key not in all_claims:
+                        all_claims[key] = []
+                    all_claims[key].append({**t, "query": res["query"]})
+        for key, claim_group in all_claims.items():
+            if len(claim_group) >= 2:
+                obj_values = set(c["obj"] for c in claim_group)
+                if len(obj_values) == 1:
+                    agreements.append(claim_group[0])
+                else:
+                    contradictions.append(claim_group)
+        try:
+            store = get_evidence_store()
+            contrast = {
+                "contrast_id": f"contrast://{uuid.uuid4().hex[:12]}",
+                "sources": [r["query"] for r in all_results],
+                "claims_compared": len(all_claims),
+                "agreements": agreements,
+                "contradictions": contradictions,
+                "unresolved": [],
+                "confidence_label": "UNCERTAIN" if contradictions else "CONSISTENT",
+                "evidence_level": "L3",
+                "human_review_required": bool(contradictions),
+            }
+            contrast_id = store.store_contrast(contrast)
+        except Exception as exc:
+            logger.warning(f"Evidence store unavailable: {exc}")
+            contrast_id = f"contrast://{uuid.uuid4().hex[:12]}"
+
+        return _ok(
+            "arif_sense_observe",
+            {
+                "mode": "contrast",
+                "contrast_id": contrast_id,
+                "contrast_url": f"contrast://{contrast_id.split('/')[-1]}",
+                "queries": queries,
+                "all_results": all_results,
+                "agreements_count": len(agreements),
+                "contradictions_count": len(contradictions),
+                "confidence_label": "UNCERTAIN" if contradictions else "CONSISTENT",
+                "human_review_required": bool(contradictions),
+            },
+            delta_S=0.01,
+        )
+
     return _hold("arif_sense_observe", f"Unknown mode: {mode}", session_id=session_id)
 
 
@@ -2580,10 +2716,108 @@ def _arif_evidence_fetch(
                 delta_S=0.003,
             )
 
+        # ── Actual HTTP fetch + store ──
+        import urllib.parse
+        import urllib.request
+
+        raw_content = ""
+        fetch_status = 200
+        fetch_error = None
+        risk_flags: list[str] = []
+
+        # SSRF validation
+        parsed = urllib.parse.urlparse(url)
+        if parsed.hostname in ("127.0.0.1", "localhost", "0.0.0.0") or parsed.hostname.startswith(("10.", "192.168.", "172.")):
+            risk_flags.append("private_ip_access")
+        if parsed.scheme not in ("http", "https"):
+            risk_flags.append("scheme_blocked")
+
+        if not risk_flags:
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "arifOS/1.0 F-WEB"})
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    raw_content = resp.read(1024 * 512).decode("utf-8", errors="replace")
+                    fetch_status = resp.status
+            except Exception as exc:
+                fetch_error = str(exc)
+                fetch_status = 0
+
+        sanitized = raw_content[:5000] if raw_content else ""
+        content_hash = hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
+
+        source = {
+            "source_hash": content_hash,
+            "url": url,
+            "content_hash": content_hash,
+            "raw_content": raw_content[:100000] if raw_content else "",
+            "sanitized_markdown": sanitized,
+            "mime_type": "text/html",
+            "fetch_status": fetch_status,
+            "fetched_at": _now(),
+            "content_length": len(raw_content),
+            "claims": [],
+            "risk_flags": risk_flags,
+            "warnings": [fetch_error] if fetch_error else [],
+        }
+
+        source_hash = content_hash
+        try:
+            store = get_evidence_store()
+            source_hash = store.store_source(source)
+        except Exception as exc:
+            logger.warning(f"Evidence store unavailable: {exc}")
+
+        evidence_receipt = {
+            "tool": "222_FETCH",
+            "mode": "fetch",
+            "provider": "urllib",
+            "bridge": "mcp_http_sse",
+            "query_sent": query or "",
+            "payload_sent_known": True,
+            "payload_sent": None,
+            "payload_inferred": None,
+            "result_type": "source_stored",
+            "urls_returned": 1,
+            "urls_ingested": 1 if raw_content else 0,
+            "independent_sources_compared": 0,
+            "rendered_inspection": False,
+            "pdf_inspection": False,
+            "screenshot_inspection": False,
+            "deep_research_plan_completed": False,
+            "contradiction_audit_completed": False,
+            "void_report_completed": False,
+            "risk_flags": risk_flags,
+            "max_evidence_level": "L2" if raw_content else "L0",
+            "claimed_evidence_level": None,
+            "human_judgment_required": bool(risk_flags),
+            "void": ["no_rendered_inspection"] if not risk_flags else [],
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "source_hash": source_hash,
+        }
+        receipt_id = source_hash
+        try:
+            store = get_evidence_store()
+            receipt_id = store.store_receipt(evidence_receipt)
+            evidence_receipt["receipt_id"] = receipt_id
+        except Exception as exc:
+            logger.warning(f"Evidence store unavailable: {exc}")
+
         return _ok(
             "arif_evidence_fetch",
-            {"url": url, "content": "", "status": 200, "archived": False},
-            delta_S=0.001,
+            {
+                "url": url,
+                "content": "",
+                "content_hash": source_hash,
+                "source_url": f"source://{source_hash}",
+                "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",
+                "status": fetch_status,
+                "fetch_error": fetch_error,
+                "archived": False,
+                "risk_flags": risk_flags,
+                "evidence_receipt": evidence_receipt,
+            },
+            delta_S=0.005,
         )
 
     if mode == "search":
@@ -2614,6 +2848,43 @@ def _arif_evidence_fetch(
     if mode == "verify":
         return _ok(
             "arif_evidence_fetch", {"url": url, "verified": False, "note": "stub"}, delta_S=0.001
+        )
+
+    if mode == "void_audit":
+        receipts = []
+        try:
+            store = get_evidence_store()
+            receipts = store.list_receipts(limit=50, session_id=session_id)
+        except Exception as exc:
+            logger.warning(f"Evidence store unavailable: {exc}")
+
+        if not receipts:
+            return _ok(
+                "arif_evidence_fetch",
+                {"mode": "void_audit", "status": "no_receipts", "report": None},
+                delta_S=0.001,
+            )
+
+        from arifosmcp.evidence.validator import build_void_report
+
+        void_report = build_void_report(receipts)
+        try:
+            store = get_evidence_store()
+            void_id = store.store_void(void_report)
+            void_report["void_id"] = void_id
+        except Exception as exc:
+            logger.warning(f"Evidence store unavailable: {exc}")
+            void_id = void_report.get("void_id", f"void://{uuid.uuid4().hex[:12]}")
+
+        return _ok(
+            "arif_evidence_fetch",
+            {
+                "mode": "void_audit",
+                "void_url": f"void://{void_id.split('/')[-1]}",
+                "receipts_audited": len(receipts),
+                "void_report": void_report,
+            },
+            delta_S=0.01,
         )
 
     return _hold("arif_evidence_fetch", f"Unknown mode: {mode}", session_id=session_id)
@@ -2924,7 +3195,7 @@ def _arif_mind_reason(
         vault_entry = {
             "id": uuid.uuid4().hex[:16],
             "timestamp": _now(),
-            "type": "plan_receipt",
+            "type": "plan",
             "plan_id": pid,
             "session_id": session_id,
             "payload": json.dumps(plan_receipt, default=str),
@@ -6122,6 +6393,7 @@ def _arif_vault_seal(
     # ── Structured seal modes ──────────────────────────────────────────────────
     if mode == "seal_trace":
         entry = {
+            "id": uuid.uuid4().hex[:16],
             "type": "trace",
             "payload": payload,
             "session_id": session_id,
@@ -6147,6 +6419,7 @@ def _arif_vault_seal(
 
     if mode == "seal_receipt":
         entry = {
+            "id": uuid.uuid4().hex[:16],
             "type": "receipt",
             "payload": payload,
             "session_id": session_id,
@@ -6172,6 +6445,7 @@ def _arif_vault_seal(
 
     if mode == "seal_scar":
         entry = {
+            "id": uuid.uuid4().hex[:16],
             "type": "scar",
             "payload": payload,
             "session_id": session_id,
@@ -6197,6 +6471,7 @@ def _arif_vault_seal(
 
     if mode == "seal_decision":
         entry = {
+            "id": uuid.uuid4().hex[:16],
             "type": "decision",
             "payload": payload,
             "session_id": session_id,

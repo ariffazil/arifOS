@@ -341,6 +341,9 @@ async def _vault_seal(
             # Dev override compatibility
             ack_irreversible_received = True
 
+    if is_irreversible_action and not ack_irreversible_received:
+        final_verdict = Verdict.HOLD_888
+
     # Build ledger entry (Metadata only, NO SECRETS)
     zkpc_metadata = {
         "zkpc_level": zkpc_level,
@@ -428,6 +431,7 @@ async def _vault_seal(
     # If Judge blocked SEAL, the report should reflect that
     if final_verdict != Verdict.SEAL:
         report["status"] = "blocked_by_judge"
+        report["invariant_failures"] = ["F1_AMANAH_ZKPC"]
 
     metrics = ThermodynamicMetrics(
         truth_score=0.98,

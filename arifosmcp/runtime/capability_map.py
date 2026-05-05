@@ -99,7 +99,11 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
         "perplexity": _configured("PPLX_API_KEY", "PERPLEXITY_API_KEY"),
         "firecrawl": _configured("FIRECRAWL_API_KEY"),
         "browserless": _url_configured("BROWSERLESS_URL"),
-        "ddgs_local": "configured" if _module_available("duckduckgo_search") else "not_configured",
+        "ddgs_local": (
+            "configured"
+            if _module_available("duckduckgo_search") or _module_available("ddgs")
+            else "not_configured"
+        ),
     }
 
     substrates = {

@@ -25,4 +25,3 @@ async def execute_skill(
         reality_bridge=reality_bridge,
         checkpoint=checkpoint,
     )
-

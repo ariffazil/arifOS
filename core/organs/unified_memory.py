@@ -9,6 +9,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import secrets
@@ -192,7 +193,7 @@ def get_unified_memory() -> UnifiedMemory:
 
 
 async def vault(
-    operation: Literal["store", "recall", "search", "forget", "seal"] = "search",
+    operation: Literal["store", "recall", "search", "forget", "seal", "retrieve", "list"] = "search",
     session_id: str = "global",
     content: str | None = None,
     memory_ids: list[str] | None = None,
@@ -208,17 +209,22 @@ async def vault(
     res = VectorMemoryResult()
 
     # 2. Map Operation to Implementation
-    if operation == "store":
+    normalized_operation = {"retrieve": "recall", "list": "search"}.get(operation, operation)
+
+    if normalized_operation == "store":
         if not content:
             # Fallback to query if content is missing but query exists (legacy)
             content = kwargs.get("query")
+        if not content and kwargs.get("key") is not None:
+            value = kwargs.get("value")
+            content = json.dumps({"key": kwargs.get("key"), "value": value}, default=str)
         if not content:
             raise ValueError("Operation 'store' requires 'content' or 'query'")
 
         res.stored_ids = get_unified_memory().store(session_id=session_id, content=content)
 
-    elif operation in ("recall", "search"):
-        search_query = content or kwargs.get("query") or "INIT"
+    elif normalized_operation in ("recall", "search"):
+        search_query = content or kwargs.get("query") or kwargs.get("key") or session_id or "INIT"
 
         internal_results = get_unified_memory().search(
             search_query, top_k=top_k, session_id=session_id
@@ -234,10 +240,10 @@ async def vault(
             for r in internal_results
         ]
 
-    elif operation == "forget":
+    elif normalized_operation == "forget":
         res.forgot_ids = get_unified_memory().forget(memory_ids or [])
 
-    elif operation == "seal":
+    elif normalized_operation == "seal":
         # Stage 999: VAULT SEAL logic
         return VaultOutput(
             session_id=session_id,
@@ -251,7 +257,7 @@ async def vault(
     return VaultOutput(
         session_id=session_id,
         verdict=Verdict.SEAL,
-        operation=operation,
+        operation="search" if normalized_operation == "search" and operation == "list" else normalized_operation,
         status="SUCCESS",
         result=res,
     )

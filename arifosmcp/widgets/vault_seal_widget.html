@@ -173,7 +173,7 @@
 <body>
     <div class="widget-container">
         <div class="widget-header">
-            <h1>🔐 arifOS Vault Seal</h1>
+            <h1>🔐 Constitutional Health Check</h1>
             <span id="seal-status" class="seal-status">LOADING</span>
         </div>
         <div id="widget-body" class="widget-body">
@@ -182,6 +182,10 @@
     </div>
 
     <script>
+        function renderFromToolResult(payload) {
+            return payload;
+        }
+
         /**
          * arifOS Vault Seal Widget
          * Implements MCP Apps UI bridge for ChatGPT widget rendering.

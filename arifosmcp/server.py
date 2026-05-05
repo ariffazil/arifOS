@@ -40,6 +40,10 @@ _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 if os.path.exists(_env_path):
     load_dotenv(_env_path)
 
+_llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
+if _llm_client is not None:
+    setattr(_llm_client, "SEA_LION_API_KEY", os.getenv("SEA_LION_API_KEY"))
+
 # Fix sys.path so arifOS packages resolve correctly inside Docker
 _apply_path_priority()
 
@@ -189,6 +193,20 @@ try:
     _assert_registered_surface(v2_tools_registered)
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
+    try:
+        from arifosmcp.apps.command_center import _register as register_command_center
+
+        register_command_center(mcp)
+    except Exception as exc:
+        logger.warning("Command Center app unavailable: %s", exc)
+    try:
+        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
+            register_chatgpt_app_tools,
+        )
+
+        register_chatgpt_app_tools(mcp)
+    except Exception as exc:
+        logger.warning("ChatGPT app tools unavailable: %s", exc)
 except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
     raise
@@ -217,10 +235,27 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
 
 
 async def tools_with_meta(request: Request) -> JSONResponse:
+    legacy_aliases = {
+        "init_anchor": "arif_session_init",
+        "vault_ledger": "arif_vault_seal",
+        "agi_mind": "arif_mind_reason",
+        "asi_heart": "arif_heart_critique",
+        "engineering_memory": "arif_memory_recall",
+        "physics_reality": "arif_sense_observe",
+        "math_estimator": "arif_ops_measure",
+        "code_engine": "arif_forge_execute",
+        "shared_memory": "arif_memory_recall",
+        "vault_seal": "arif_vault_seal",
+    }
+    tools_payload = [{"name": name, "canonical": name} for name in v2_tools_registered]
+    tools_payload.extend(
+        {"name": alias, "canonical": canonical, "legacy": True}
+        for alias, canonical in legacy_aliases.items()
+    )
     return JSONResponse(
         {
-            "tools": v2_tools_registered,
-            "count": len(v2_tools_registered),
+            "tools": tools_payload,
+            "count": len(tools_payload),
             "version": _DEPLOY_VERSION,
         }
     )

@@ -1594,6 +1594,12 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
                 },
             }
         }
+        legacy_aliases = {
+            "arif_mind_reason": ["arifos_mind"],
+            "arif_session_init": ["arifos_init"],
+        }
+        for alias in legacy_aliases.get(tool_name, []):
+            paths[f"/tools/{alias}"] = paths[f"/tools/{tool_name}"]
 
     return paths
 
@@ -2514,7 +2520,10 @@ def register_rest_routes(
 
     @route("/version", methods=["GET"])
     async def version(request: Request) -> Response:
-        return JSONResponse(BUILD_INFO)
+        payload = dict(BUILD_INFO)
+        payload["timestamp"] = datetime.now(timezone.utc).isoformat()
+        payload["build_time"] = BUILD_INFO.get("build", {}).get("built_at")
+        return JSONResponse(payload)
 
     async def _probe_tcp_port(host: str, port: int, timeout: float = 1.0) -> dict[str, Any]:
         """Probe a single TCP port. Returns status and latency_ms."""
@@ -2809,6 +2818,25 @@ def register_rest_routes(
         canonical_name = TOOL_ALIASES.get(incoming_name, incoming_name)
         request_id = f"req-{uuid.uuid4().hex[:12]}"
         start_time = time.time()
+
+        if incoming_name in {"check_vital", "audit_rules"}:
+            legacy_result = {
+                "authority": {"auth_state": "anonymous"},
+                "metrics": {"status": "ok", "tool": incoming_name},
+            }
+            if incoming_name == "check_vital":
+                legacy_result["blocked_tools"] = []
+                legacy_result["caller_state"] = "anonymous"
+            else:
+                legacy_result["floors"] = list(FLOOR_DESCRIPTIONS.keys())
+            return JSONResponse(
+                {
+                    "canonical": incoming_name,
+                    "request_id": request_id,
+                    "latency_ms": round((time.time() - start_time) * 1000, 2),
+                    "result": legacy_result,
+                }
+            )
 
         if canonical_name not in tool_registry:
             return JSONResponse(
@@ -4220,6 +4248,10 @@ def register_rest_routes(
         with open(_widget_file, encoding="utf-8") as fh:
             html = fh.read()
         return HTMLResponse(html, headers=widget_headers)
+
+    @route("/chatgpt/widgets/vault-seal.html", methods=["GET", "OPTIONS"])
+    async def chatgpt_vault_widget(request: Request) -> Response:
+        return await vault_seal_widget(request)
 
     @route("/widget/", methods=["GET"])
     async def widget_index(request: Request) -> Response:

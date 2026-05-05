@@ -47,7 +47,7 @@ def test_build_vps_overlay_script_contains_full_build_and_mount_check():
         required_tools=module.PUBLIC_DEPLOYMENT_TOOLS,
     )
 
-    assert "docker build \" in script
+    assert "docker build \\" in script
     assert '-t "$IMAGE_TAG" \\' in script
     assert '--build-arg ARIFOS_VERSION="$VERSION" \\' in script
     assert 'docker inspect "$CONTAINER_NAME" --format' in script

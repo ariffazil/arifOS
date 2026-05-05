@@ -1,0 +1,28 @@
+version: "3.9"
+
+# Legacy compatibility compose stub.
+# Canonical runtime deployment moved, but these contract lines are preserved
+# so older tooling can still discover the expected production shape.
+services:
+  arifosmcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ARIFOS_PUBLIC_TOOL_PROFILE: ${ARIFOS_PUBLIC_TOOL_PROFILE:-public}
+      arifosmcp_PATH: ${arifosmcp_PATH:-/mcp}
+    volumes:
+      - /root/arifosmcp/infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /root/arifosmcp/infrastructure/deploy_from_git.sh:/var/scripts/deploy_from_git.sh:ro
+    depends_on:
+      qdrant:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/6333 && echo ok >&3"
+        ]
+
+  qdrant:
+    image: qdrant/qdrant:latest

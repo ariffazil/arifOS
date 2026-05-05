@@ -94,14 +94,68 @@ class UncertaintyEngine:
         return list(self._history)
 
 
-def calculate_uncertainty(evidence: Any) -> float:
-    """Calculate scalar uncertainty from evidence string or dict."""
+def calculate_uncertainty(
+    evidence: Any = None,
+    *,
+    evidence_count: int | None = None,
+    evidence_relevance: float | None = None,
+    reasoning_consistency: float | None = None,
+    knowledge_gaps: Sequence[str] | None = None,
+    model_logits_confidence: float | None = None,
+) -> dict[str, float]:
+    """Calculate auditable uncertainty metrics for legacy and structured callers."""
+    if any(
+        value is not None
+        for value in (
+            evidence_count,
+            evidence_relevance,
+            reasoning_consistency,
+            knowledge_gaps,
+            model_logits_confidence,
+        )
+    ):
+        count = max(0, evidence_count or 0)
+        relevance = max(0.0, min(1.0, evidence_relevance if evidence_relevance is not None else 0.5))
+        consistency = max(
+            0.0, min(1.0, reasoning_consistency if reasoning_consistency is not None else 0.5)
+        )
+        gaps = len(knowledge_gaps or [])
+        logits = max(
+            0.0, min(1.0, model_logits_confidence if model_logits_confidence is not None else 0.5)
+        )
+        safety_omega = round(
+            max(
+                0.0,
+                min(
+                    1.0,
+                    0.55 * (1.0 - relevance)
+                    + 0.25 * (1.0 - consistency)
+                    + 0.10 * (1.0 - logits)
+                    + 0.10 * min(1.0, gaps / max(1, count + 1)),
+                ),
+            ),
+            4,
+        )
+        return {
+            "uncertainty": safety_omega,
+            "safety_omega": safety_omega,
+            "confidence": round(1.0 - safety_omega, 4),
+            "entropy": round(max(0.0, min(1.0, gaps / max(1, count + 1))), 4),
+            "claim_density": round(relevance, 4),
+            "source_diversity": round(min(1.0, count / 3 if count else 0.0), 4),
+        }
+
     if isinstance(evidence, dict):
-        return UncertaintyEngine().evaluate(
+        result = UncertaintyEngine().evaluate(
             content=evidence.get("content", ""),
             context=evidence,
-        )["uncertainty"]
-    return UncertaintyEngine().evaluate(content=str(evidence or ""))["uncertainty"]
+        )
+    else:
+        result = UncertaintyEngine().evaluate(content=str(evidence or ""))
+    return {
+        **result,
+        "safety_omega": result["uncertainty"],
+    }
 
 
 __all__ = ["UncertaintyEngine", "calculate_uncertainty"]

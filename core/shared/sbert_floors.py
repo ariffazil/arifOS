@@ -330,7 +330,7 @@ class SbertFloorClassifier:
         f5_score = max(0.0, min(1.0, f5_score))
 
         # F6: Empathy — check for emotional awareness keywords
-        empathy_words = ["feel", "understand", "care", "perspective", "emotion", "difficult"]
+        empathy_words = ["feel", "understand", "care", "perspective", "emotion", "difficult", "support", "help"]
         cold_words = ["don't care", "doesn't matter", "just do", "irrelevant", "no sympathy"]
 
         empathy_count = sum(1 for w in empathy_words if w in text_lower)

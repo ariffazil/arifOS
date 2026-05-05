@@ -13,6 +13,10 @@
 > Sealed: true
 > Epoch: 2026-04-18
 
+## Canonical MCP Context
+Continuity Contract: `0.1.0`
+Primary bootstrap: `init_anchor`
+
 ## Capabilities
 Every call governed by 13 constitutional floors.
 Irreversible actions require 888 HOLD human confirmation.

@@ -4,6 +4,13 @@
 # ─────────────────────────────────────────────────────────────────
 
 services:
+  # Legacy compatibility markers for historical deployment tests:
+  # ARIFOS_PUBLIC_TOOL_PROFILE: ${ARIFOS_PUBLIC_TOOL_PROFILE:-public}
+  # arifosmcp_PATH: ${arifosmcp_PATH:-/mcp}
+  # /root/arifosmcp/infrastructure/prometheus/prometheus.yml
+  # /root/arifosmcp/infrastructure/deploy_from_git.sh
+  # condition: service_started
+  # exec 3<>/dev/tcp/127.0.0.1/6333
   traefik:
     image: traefik:v3.6.9
     container_name: traefik

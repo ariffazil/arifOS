@@ -50,7 +50,9 @@ class ExecutionValidator:
                     lineterm="",
                 )
             )
-        w3 = compute_w3(1.0 if human_approved else 0.8, 0.95 if actual.get("success") else 0.3, integrity_score)
+        w3 = compute_w3(
+            1.0 if human_approved else 0.8, 0.95 if actual.get("success") else 0.3, integrity_score
+        )
         return ValidationResult(
             w3_score=w3,
             verification=VerificationReport(
@@ -75,4 +77,3 @@ def validate(
         human_approved=True,
         compute_diff=compute_diff,
     )
-

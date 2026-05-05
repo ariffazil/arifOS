@@ -278,6 +278,7 @@ def build_server_json(
 
     return {
         "mcpVersion": "2025-11-25",
+        "protocolVersion": "2025-03-26",
         "name": "arifOS-APEX-G",
         "version": release_version_label(),
         "description": (

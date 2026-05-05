@@ -112,8 +112,8 @@ RUN mkdir -p /ms-playwright && chown -R arifos:arifos /app /ms-playwright
 RUN echo -e "import sys, os\\n\\n# /app is the canonical volume mount\\napp_pth = '/app'\\nif app_pth not in sys.path:\\n    sys.path.insert(0, app_pth)" > "/usr/local/lib/python3.12/site-packages/arifos-app-override.pth"
 
 # Install Playwright browser deterministically
-#RUN python -m playwright install --with-deps chromium && \
-#    chown -R arifos:arifos /ms-playwright
+RUN python -m playwright install --with-deps chromium && \
+    chown -R arifos:arifos /ms-playwright
 
 # Switch to non-root user for runtime (F11 Authority / F1 Law)
 USER arifos
