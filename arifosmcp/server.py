@@ -2,7 +2,7 @@
 arifOS MCP Server — Canonical Entry Point
 ═══════════════════════════════════════════
 
-13-tool capability surface | internal ping/selftest | 13 Floors (F1–F13) | Trinity ΔΩΨ
+13-canonical constitutional tools (arif_noun_verb) | streamable-http | F1–F13 | Trinity ΔΩΨ
 FastMCP 3.2.0 + MCP Apps + Streamable HTTP
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -155,8 +155,8 @@ mcp = FastMCP(
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
         "Golden path: init → sense → mind → heart → judge → vault\n\n"
-        "Runtime surface: 13 public capability tools.\n"
-        f"Tools (arif_noun_verb):\n  {_canonical_tool_names_text}\n\n"
+        "Canonical surface: 13 public capability tools (arif_noun_verb naming).\n"
+        f"Tools:\n  {', '.join(sorted(list_canonical_tools()))}\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
@@ -193,20 +193,6 @@ try:
     _assert_registered_surface(v2_tools_registered)
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
-    try:
-        from arifosmcp.apps.command_center import _register as register_command_center
-
-        register_command_center(mcp)
-    except Exception as exc:
-        logger.warning("Command Center app unavailable: %s", exc)
-    try:
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
-            register_chatgpt_app_tools,
-        )
-
-        register_chatgpt_app_tools(mcp)
-    except Exception as exc:
-        logger.warning("ChatGPT app tools unavailable: %s", exc)
 except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
     raise

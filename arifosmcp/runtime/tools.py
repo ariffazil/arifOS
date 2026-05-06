@@ -49,6 +49,7 @@ from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_bu
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
 from arifosmcp.runtime.floors import check_floors
+from arifosmcp.schemas.evidence import EvidenceOutput
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
     DeltaSEvidence,
@@ -60,7 +61,13 @@ from arifosmcp.schemas.forge import (
     IrreversibilityLevel,
     ManifestStatus,
 )
+from arifosmcp.schemas.gateway import GatewayOutput
+from arifosmcp.schemas.heart import HeartOutput
+from arifosmcp.schemas.kernel import KernelOutput
 from arifosmcp.schemas.lineage import JudgeSealContract
+from arifosmcp.schemas.memory import MemoryOutput
+from arifosmcp.schemas.reply import ReplyOutput
+from arifosmcp.schemas.sense import SenseOutput
 from arifosmcp.schemas.synthesis import (
     AxiomSource,
     AxiomsUsed,
@@ -4700,9 +4707,9 @@ def _arif_memory_recall(
     if _memory_engine is None:
         import os
 
-        from arifosmcp.memory_engine import MemoryEngine
-
         try:
+            from arifosmcp.memory_engine import MemoryEngine
+
             _memory_engine = MemoryEngine(
                 postgres_url=os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL"),
                 qdrant_url=os.getenv("QDRANT_URL", "http://qdrant:6333"),

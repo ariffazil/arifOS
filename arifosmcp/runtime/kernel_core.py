@@ -12,8 +12,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import Any
 
+from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight
 from arifosmcp.models.verdicts import PipelineStage
 from arifosmcp.runtime.sessions import get_session_continuity_state
 from arifosmcp.runtime.shadow_defense import ShadowDefense
@@ -581,6 +583,64 @@ class KernelCore:
             pass  # WELL offline is non-fatal — W0 sovereignty invariant
 
         return final_result
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PREFLIGHT — Right-sized governance gate (C0–C5 RiskClass)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def preflight(
+        self,
+        action: str,
+        risk_class: RiskClass,
+        reversible: bool,
+        evidence_quality: float = 1.0,
+        user_intent: str | None = None,
+        session_ref: str | None = None,
+    ) -> RiskDecision:
+        """
+        Kernel.preflight() — arifOS right-sized governance gate.
+
+        Determines whether an action can proceed based on its consequence class
+        (C0–C5), reversibility, evidence quality, and human confirmation status.
+
+        Usage:
+            from arifosmcp.runtime.kernel_core import get_kernel_core
+            kernel = get_kernel_core()
+            decision = kernel.preflight(
+                action="send_email",
+                risk_class=RiskClass.C3_PUBLIC,
+                reversible=False,
+                user_intent="Notify team of deployment",
+                session_ref="sess_abc123",
+            )
+            if decision.allowed:
+                do_the_thing()
+            else:
+                print(decision.reason)
+
+        Args:
+            action:       Name of the operation being preflighted.
+            risk_class:   RiskClass enum (C0–C5) — consequence tier.
+            reversible:   True if the action can be undone after execution.
+            evidence_quality: 0.0–1.0. 1.0 = fully evidenced. <0.5 triggers HOLD
+                              for strict/seal tiers.
+            user_intent:  Optional human-readable intent description.
+            session_ref:  Optional human approval token. Required for
+                          C3/C4/C5 without existing session.
+
+        Returns:
+            RiskDecision with allowed, verdict, reason, governance_mode,
+            floors_activated, requires_human_confirmation,
+            uncertainty_band, preflight_passed.
+        """
+        return preflight(
+            action=action,
+            risk_class=risk_class,
+            reversible=reversible,
+            evidence_quality=evidence_quality,
+            user_intent=user_intent,
+            session_ref=session_ref,
+        )
 
 
 _kernel_core: KernelCore | None = None

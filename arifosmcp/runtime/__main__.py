@@ -99,9 +99,13 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
 def _run_minimal_stdio_server() -> None:
     from mcp import types as mcp_types
 
+    from .server import create_aaa_mcp_server
     from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
     from .tools import CANONICAL_TOOL_HANDLERS
     from .tools_hardened_dispatch import get_tool_handler
+
+    # FastMCP instance for resources + prompts (all three surfaces)
+    _mcp = create_aaa_mcp_server()
 
     # tool_handlers uses arif_* names (CANONICAL_TOOL_HANDLERS keys)
     tool_handlers: dict[str, Any] = CANONICAL_TOOL_HANDLERS.copy()
@@ -127,6 +131,64 @@ def _run_minimal_stdio_server() -> None:
         sys.stdout.write(json.dumps(message, default=_json_default) + "\n")
         sys.stdout.flush()
 
+    # ── Async helpers for resources + prompts (delegate to FastMCP) ──────────
+
+    async def _list_resources() -> list[dict[str, Any]]:
+        resources = await _mcp.list_resources()
+        return [
+            {
+                "uri": str(r.uri),
+                "name": r.name,
+                "description": r.description or "",
+                "mimeType": getattr(r, "mime_type", None) or "text/plain",
+            }
+            for r in resources
+        ]
+
+    async def _read_resource(uri: str) -> dict[str, Any]:
+        result = await _mcp.read_resource(uri)
+        contents = []
+        if hasattr(result, "contents"):
+            for c in result.contents:
+                if hasattr(c, "text"):
+                    contents.append({"uri": str(c.uri), "mimeType": getattr(c, "mime_type", "text/plain") or "text/plain", "text": c.text})
+                elif hasattr(c, "data"):
+                    contents.append({"uri": str(c.uri), "mimeType": "application/octet-stream", "data": c.data})
+        return {"contents": contents}
+
+    async def _list_prompts() -> list[dict[str, Any]]:
+        prompts = await _mcp.list_prompts()
+        return [
+            {
+                "name": p.name,
+                "description": p.description or "",
+                "arguments": [
+                    {"name": a.name, "description": a.description or "", "required": getattr(a, "required", False)}
+                    for a in (getattr(p, "arguments", []) or [])
+                ],
+            }
+            for p in prompts
+        ]
+
+    async def _get_prompt(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        prompt = await _mcp.get_prompt(name, arguments or {})
+        messages = []
+        if hasattr(prompt, "messages"):
+            for m in prompt.messages:
+                if hasattr(m, "role"):
+                    role = m.role
+                elif hasattr(m, "_role"):
+                    role = m._role
+                else:
+                    role = "system"
+                content = getattr(m, "content", "")
+                if hasattr(content, "text"):
+                    content = content.text
+                elif hasattr(content, "texts"):
+                    content = "".join(getattr(t, "text", str(t)) for t in content.texts)
+                messages.append({"role": role, "content": {"type": "text", "text": content}})
+        return {"description": getattr(prompt, "description", "") or "", "messages": messages}
+
     while True:
         line = sys.stdin.buffer.readline()
         if not line:
@@ -148,6 +210,7 @@ def _run_minimal_stdio_server() -> None:
         if method == "notifications/initialized":
             continue
 
+        # ── initialize — declare ALL THREE surfaces ───────────────────────────
         if method == "initialize":
             send(
                 {
@@ -155,7 +218,11 @@ def _run_minimal_stdio_server() -> None:
                     "id": request_id,
                     "result": {
                         "protocolVersion": mcp_types.LATEST_PROTOCOL_VERSION,
-                        "capabilities": {"tools": {"listChanged": True}},
+                        "capabilities": {
+                            "tools": {"listChanged": True},
+                            "resources": {"subscribe": True, "listChanged": True},
+                            "prompts": {"listChanged": True},
+                        },
                         "serverInfo": {
                             "name": "arifOS Sovereign Intelligence Kernel",
                             "version": "2026.03.24-HARDENED",
@@ -165,6 +232,52 @@ def _run_minimal_stdio_server() -> None:
             )
             continue
 
+        # ── resources/list ───────────────────────────────────────────────────
+        if method == "resources/list":
+            try:
+                resources = asyncio.run(_list_resources())
+                send({"jsonrpc": "2.0", "id": request_id, "result": {"resources": resources}})
+            except Exception as exc:
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+            continue
+
+        # ── resources/read ───────────────────────────────────────────────────
+        if method == "resources/read":
+            uri = params.get("uri")
+            if not uri:
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "Missing uri"}})
+                continue
+            try:
+                result = asyncio.run(_read_resource(uri))
+                send({"jsonrpc": "2.0", "id": request_id, "result": result})
+            except Exception as exc:
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+            continue
+
+        # ── prompts/list ─────────────────────────────────────────────────────
+        if method == "prompts/list":
+            try:
+                prompts = asyncio.run(_list_prompts())
+                send({"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}})
+            except Exception as exc:
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+            continue
+
+        # ── prompts/get ─────────────────────────────────────────────────────
+        if method == "prompts/get":
+            name = params.get("name")
+            if not name:
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "Missing name"}})
+                continue
+            try:
+                arguments = params.get("arguments") or {}
+                result = asyncio.run(_get_prompt(name, arguments))
+                send({"jsonrpc": "2.0", "id": request_id, "result": result})
+            except Exception as exc:
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+            continue
+
+        # ── tools/list ───────────────────────────────────────────────────────
         if method == "tools/list":
             send(
                 {
@@ -175,6 +288,7 @@ def _run_minimal_stdio_server() -> None:
             )
             continue
 
+        # ── tools/call ──────────────────────────────────────────────────────
         if method == "tools/call":
             name = normalize_tool_name(params.get("name", ""))
             name = LEGACY_NAME_MAP.get(name, name)
