@@ -143,6 +143,7 @@ class Verdict(BaseModel):
     authorized_by: str | None = None
     SEAL: ClassVar[str] = "SEAL"
     PROVISIONAL: ClassVar[str] = "PROVISIONAL"
+    ALIVE: ClassVar[str] = "ALIVE"
     SABAR: ClassVar[str] = "SABAR"
     PARTIAL: ClassVar[str] = "PARTIAL"
     HOLD: ClassVar[str] = "HOLD"
