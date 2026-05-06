@@ -1,6 +1,6 @@
 fastmcp==3.2.4
 duckduckgo-search
 langfuse>=4.5.1
-prometheus-client>=0.19.0
+prometheus-client>=0.25.0
 blake3>=1.0.8
 fastapi>=0.100.0
