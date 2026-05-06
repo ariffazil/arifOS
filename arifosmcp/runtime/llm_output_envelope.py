@@ -267,8 +267,25 @@ def wrap_llm_output(
         latency_ms=latency_ms,
         timestamp=datetime.now(timezone.utc).isoformat(),
         human_decision_required=human_decision_required,
-        authority_level="instrument_only",
+        authority_level=_governance_of(model),  # F11: looked up from model_governance.yaml
     )
+
+
+def _governance_of(model: str) -> str:
+    """F11 Model Governance — look up authority level from model_governance.yaml.
+
+    Every model in arifOS has a governance card. Unlisted models default
+    to instrument_only. The model_governance.yaml is the SoT.
+    "The model said it is authoritative" is not evidence of authority.
+    "The governance card says instrument_only" is the evidence.
+    """
+    try:
+        from arifosmcp.core.model_governance import get_governance_card
+
+        card = get_governance_card(model)
+        return card.get("authority", "instrument_only")
+    except Exception:
+        return "instrument_only"
 
 
 def wrap_llm_error(

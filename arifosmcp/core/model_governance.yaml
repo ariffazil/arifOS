@@ -1,0 +1,101 @@
+# arifosmcp/core/model_governance.yaml — 777_WITNESS F11 Model Governance
+# ================================================================
+#
+# Eureka 4: Put LLM output under F11 Model Governance.
+# Every model used by arifOS MUST have an entry here.
+# Unlisted models default to instrument_only + all_tools_forbidden.
+#
+# DITEMPA BUKAN DIBERI — Forged, Not Given
+
+models:
+
+  # ── Tier 1: SEA-LION (Primary sovereign model, remote) ──────────────────────
+  aisingapore/Qwen-SEA-LION-v4-32B-IT:
+    provider: AI Singapore
+    role: reasoning_witness
+    authority: instrument_only        # F13: LLM can never be sovereign
+    allowed_tools:
+      - arif_mind_reason             # reasoning tool
+      - arif_heart_critique          # risk critique tool
+      - arif_reply_compose           # language shaping tool
+      - sea_lion_interpreter         # SEA-LION-specific tool
+    forbidden_roles:
+      - sovereign_judge             # never adjudicate (F888_JUDGE is ASI/APEX)
+      - irreversible_executor        # never forge without human (F1/F13)
+      - vault_sealer                 # never seal vault without APEX (999_VAULT)
+    rate_limit: 10_req_per_min       # managed externally at gateway level
+    fallback:
+      - ollama:qwen2.5:7b           # Tier 2 fallback
+      - deterministic               # Tier 3 fallback
+    output_required:                # These fields MUST be present in every output
+      - schema_valid
+      - uncertainty
+      - human_decision_required
+      - raw_output_hash
+
+  # ── Tier 2: Ollama (Local fallback, qwen2.5:7b) ─────────────────────────────
+  qwen2.5:7b:
+    provider: Ollama
+    role: local_witness
+    authority: instrument_only
+    allowed_tools:
+      - arif_mind_reason
+      - arif_heart_critique
+    forbidden_roles:
+      - sovereign_judge
+      - vault_sealer
+    rate_limit: local_unlimited
+    fallback:
+      - deterministic
+    output_required:
+      - uncertainty
+      - human_decision_required
+      - raw_output_hash
+
+  # ── Tier 3: Deterministic (Rule-based fallback) ─────────────────────────────
+  deterministic:
+    provider: arifOS
+    role: deterministic_witness
+    authority: advisory               # deterministic outputs can be advisory
+    allowed_tools:
+      - arif_mind_reason
+    forbidden_roles:
+      - sovereign_judge             # rules cannot adjudicate
+      - vault_sealer
+    rate_limit: unlimited
+    fallback: []                     # No further fallback
+    output_required:
+      - human_decision_required
+      - uncertainty
+
+# ── Global constraints (apply to all models) ─────────────────────────────────
+global_constraints:
+  max_recursive_calls: 3            # Prevent LLM loops (F07 Humility)
+  max_token_budget_per_call: 1200   # Prevent runaway generation
+  require_uncertainty_field: true   # Every output must declare what it doesn't know
+  require_raw_output_hash: true     # Tamper evidence for all outputs
+  enforce_injection_scan: true      # F12: quarantine scan before release
+  human_decision_required_default: true  # Safe default (F13 SOVEREIGN)
+  authority_always: instrument_only # LLM outputs are testimony, not commands
+
+# ── Evidence level ladder ─────────────────────────────────────────────────────
+evidence_levels:
+  claimed:    "LLM self-report only (default)"
+  cited:      "References external sources (not independently verified)"
+  verified:   "Arif or ASI has confirmed the content"
+  none:       "No meaningful output / LLM unavailable"
+
+# ── Uncertainty vocabulary (F07 HUMILITY) ───────────────────────────────────
+uncertainty_tags:
+  - confidence_field_missing
+  - confidence_unrealistically_high_F07
+  - confidence_very_low_acknowledged
+  - verdict_VOID_escalated
+  - verdict_HOLD_escalated
+  - HOLD_VOID_without_explicit_reasons
+  - LOW_EMPATHY_SCORE_F06
+  - HIGH_RISK_FLAG
+  - high_entropy_delta_S
+  - LLM_unavailable_F07_Humility_acknowledged
+  - runtime_not_independently_verified
+  - model_outputs_are_testimony_not_verdict
