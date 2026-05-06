@@ -6,6 +6,8 @@ Tier 1: SEA-LION (api.sea-lion.ai)
 Tier 2: Ollama local fallback
 Tier 3: Deterministic fallback (pass-through with constitutional annotations)
 
+777_WITNESS: All LLM output passes through LLMOutputEnvelope before tool logic.
+
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
@@ -18,7 +20,6 @@ from typing import Any
 try:
     from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
 except ImportError:
-    # Relative import when running as part of the arifosmcp package
     from .llm_client import LLMUnavailableError, call_llm  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
@@ -133,13 +134,19 @@ async def _compose_with_llm(
     )
 
     try:
-        result = await call_llm(
+        # call_llm now returns LLMOutputEnvelope (777_WITNESS)
+        envelope = await call_llm(
             system=SYSTEM_PROMPT,
             user=user,
             response_schema=None,
             temperature=0.4,
             max_tokens=800,
+            tool_origin="444r_REPLY",
+            mode=mode,
         )
+
+        # Extract parsed output from envelope
+        result = envelope.parsed_output
 
         composed = str(result.get("composed", message))
         tone = str(result.get("tone", "neutral"))
@@ -152,6 +159,7 @@ async def _compose_with_llm(
         f07 = max(0.0, min(1.0, float(result.get("f07_score", 0.90))))
 
         return {
+            # Tool result fields
             "composed": composed,
             "tone": tone,
             "delta_S": delta_s,
@@ -160,13 +168,32 @@ async def _compose_with_llm(
             "f07_score": f07,
             "citations": result.get("citations") or citations or [],
             "caveats": result.get("caveats") or [],
-            "_llm_tier": "sea_lion",
+            # Metadata
+            "_llm_tier": envelope.provider,
+            "_llm_available": True,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            # 777_WITNESS envelope metadata (for judge/vault)
+            "_envelope": {
+                "provider": envelope.provider,
+                "model": envelope.model,
+                "tool_origin": envelope.tool_origin,
+                "mode": envelope.mode,
+                "raw_output_hash": envelope.raw_output_hash,
+                "schema_valid": envelope.schema_valid,
+                "confidence_claimed": envelope.confidence_claimed,
+                "evidence_level": envelope.evidence_level,
+                "uncertainty": envelope.uncertainty,
+                "risk_flags": envelope.risk_flags,
+                "human_decision_required": envelope.human_decision_required,
+                "authority_level": envelope.authority_level,
+                "timestamp": envelope.timestamp,
+                "wrapper_version": "777_WITNESS_v1.0",
+            },
         }
 
-    except LLMUnavailableError:
-        logger.warning("LLM unavailable for arif_reply_compose, using deterministic fallback")
-        raise
+    except Exception as exc:
+        logger.warning("444r_REPLY LLM call failed: %s", exc)
+        raise LLMUnavailableError("444r_REPLY LLM unavailable") from exc
 
 
 # ── Deterministic Fallback ───────────────────────────────────────────────────
@@ -194,6 +221,21 @@ def _compose_fallback(
             "f07_score": 0.85,
             "citations": citations or [],
             "caveats": caveats,
+            "_llm_tier": "none",
+            "_llm_available": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "_envelope": {
+                "provider": "none",
+                "tool_origin": "444r_REPLY",
+                "mode": mode,
+                "schema_valid": False,
+                "evidence_level": "claimed",
+                "uncertainty": ["LLM_unavailable_F07"],
+                "risk_flags": [],
+                "human_decision_required": False,
+                "authority_level": "advisory",
+                "wrapper_version": "777_WITNESS_v1.0",
+            },
         }
 
     if mode == "style":
@@ -215,6 +257,9 @@ def _compose_fallback(
             "f07_score": 0.90,
             "citations": [],
             "caveats": [],
+            "_llm_tier": "none",
+            "_llm_available": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
     if mode == "cite":
@@ -229,6 +274,9 @@ def _compose_fallback(
             "f07_score": 0.90,
             "citations": cited,
             "caveats": [],
+            "_llm_tier": "none",
+            "_llm_available": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
     if mode == "summary":
@@ -243,6 +291,9 @@ def _compose_fallback(
             "f07_score": 0.90,
             "citations": [],
             "caveats": ["Summary may omit context — consult original for full detail"],
+            "_llm_tier": "none",
+            "_llm_available": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
     if mode == "format":
@@ -255,6 +306,9 @@ def _compose_fallback(
             "f07_score": 0.90,
             "citations": [],
             "caveats": [],
+            "_llm_tier": "none",
+            "_llm_available": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
     if mode == "nudge":
@@ -268,6 +322,9 @@ def _compose_fallback(
             "f07_score": 0.90,
             "citations": [],
             "caveats": [],
+            "_llm_tier": "none",
+            "_llm_available": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
     return {
@@ -279,6 +336,9 @@ def _compose_fallback(
         "f07_score": 0.80,
         "citations": citations or [],
         "caveats": [f"Unknown mode: {mode}"],
+        "_llm_tier": "none",
+        "_llm_available": False,
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
 
 
@@ -300,6 +360,9 @@ async def arif_reply_compose(
     Tier 2: Ollama local fallback
     Tier 3: Deterministic pass-through with constitutional annotations
 
+    777_WITNESS: All LLM output returns via LLMOutputEnvelope. The tool result
+    includes _envelope metadata for downstream judge/vault processing.
+
     Modes:
       compose  — Draft a constitutional reply from a raw message
       style    — Transform to a specific tone
@@ -316,11 +379,15 @@ async def arif_reply_compose(
     card = sess.get("model_governance_card") if sess else {}
     truth = card.get("runtime_truth", {})
 
-    # Block capability hallucinations before LLM call
     if _output_claims_web(msg) and not truth.get("web_on"):
         return {
             "error": "F11 Breach: Model attempted web-claim while web_on is False",
             "verdict": "VOID",
+            "_llm_available": False,
+            "_envelope": {
+                "authority_level": "instrument_only",
+                "wrapper_version": "777_WITNESS_v1.0",
+            },
         }
     if _output_claims_execution(msg) and not truth.get("side_effects_allowed"):
         return {
@@ -328,10 +395,14 @@ async def arif_reply_compose(
                 "F11 Breach: Model attempted execution-claim while side_effects_allowed is False"
             ),
             "verdict": "VOID",
+            "_llm_available": False,
+            "_envelope": {
+                "authority_level": "instrument_only",
+                "wrapper_version": "777_WITNESS_v1.0",
+            },
         }
 
     # ── SEA-Guard Pre-Filter ──
-    # arifOS × SEA-LION pipeline: OpenClaw output → SEA-Guard → safe_output → compose
     from arifosmcp.runtime.sea_guard import sea_guard_filter
 
     safety = sea_guard_filter(msg)
@@ -344,8 +415,12 @@ async def arif_reply_compose(
             ),
             "verdict": "BLOCKED",
             "safety_result": safety.to_dict(),
+            "_llm_available": False,
+            "_envelope": {
+                "authority_level": "instrument_only",
+                "wrapper_version": "777_WITNESS_v1.0",
+            },
         }
-    # Log safe pass (debug level — not every safe message needs noise)
     logger.debug(
         "SEA-Guard passed: latency=%.1fms confidence=%.2f",
         safety.latency_ms,

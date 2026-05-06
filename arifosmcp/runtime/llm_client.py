@@ -5,17 +5,27 @@ Tier 1: SEA-LION (https://api.sea-lion.ai/v1) — PRIMARY sovereign model
 Tier 2: Ollama local fallback — qwen2.5:7b on VPS localhost:11434
 Tier 3: raises LLMUnavailableError — caller applies deterministic fallback
 
+ALL LLM output passes through 777_WITNESS envelope before reaching tool logic.
+Raw LLM text never enters judgment, memory, vault, or external action directly.
+
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
 from typing import Any
 
 import httpx
+
+from arifosmcp.runtime.llm_output_envelope import (
+    LLMOutputEnvelope,
+    wrap_llm_error,
+    wrap_llm_output,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +47,10 @@ class LLMUnavailableError(Exception):
 # ── Internal Helpers ───────────────────────────────────────────────────────────
 
 
+def _sha256(text: str) -> str:
+    return f"sha256:{hashlib.sha256(text.encode()).hexdigest()[:16]}"
+
+
 def _strip_markdown(content: str) -> str:
     """Strip markdown code fences from LLM output."""
     content = content.strip()
@@ -55,14 +69,22 @@ def _validate_schema(parsed: dict[str, Any], required_fields: set[str]) -> None:
         raise LLMUnavailableError(f"LLM output missing required fields: {sorted(missing)}")
 
 
+# ── Core LLM Call Helpers ─────────────────────────────────────────────────────
+
+
 async def _call_sea_lion(
     system: str,
     user: str,
     response_schema: dict[str, Any] | None,
     temperature: float,
     max_tokens: int = 1200,
-) -> dict[str, Any]:
-    """Tier 1 — call SEA-LION chat completions API."""
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 1 — call SEA-LION chat completions API.
+
+    Returns (raw_output_str, parsed_output_dict).
+    The raw_output is preserved for envelope integrity hashing.
+    """
     if not SEA_LION_API_KEY:
         raise LLMUnavailableError("SEA_LION_API_KEY not configured")
 
@@ -102,12 +124,12 @@ async def _call_sea_lion(
         logger.warning("SEA-LION parse error: %s", exc)
         raise LLMUnavailableError(f"SEA-LION response parse error: {exc}") from exc
 
-    content = _strip_markdown(content)
+    raw_output = _strip_markdown(content)
 
     try:
-        parsed = json.loads(content)
+        parsed = json.loads(raw_output)
     except json.JSONDecodeError as exc:
-        logger.warning("SEA-LION returned invalid JSON: %s", content[:200])
+        logger.warning("SEA-LION returned invalid JSON: %s", raw_output[:200])
         raise LLMUnavailableError(f"SEA-LION returned invalid JSON: {exc}") from exc
 
     if not isinstance(parsed, dict):
@@ -115,13 +137,11 @@ async def _call_sea_lion(
             f"SEA-LION output must be a JSON object, got {type(parsed).__name__}"
         )
 
-    # Strip response_format schema enforcement — SEA-LION returns its own
-    # JSON structure. Validate only that at least some content is present.
     if not parsed:
         raise LLMUnavailableError("SEA-LION returned empty JSON object")
 
     logger.debug("SEA-LION inference complete")
-    return parsed
+    return raw_output, parsed
 
 
 async def _call_ollama(
@@ -130,8 +150,12 @@ async def _call_ollama(
     response_schema: dict[str, Any] | None,
     temperature: float,
     max_tokens: int = 1200,
-) -> dict[str, Any]:
-    """Tier 2 — call local Ollama as fallback."""
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 2 — call local Ollama as fallback.
+
+    Returns (raw_output_str, parsed_output_dict).
+    """
     prompt = f"{system}\n\n{user}" if user else system
 
     payload: dict[str, Any] = {
@@ -162,9 +186,10 @@ async def _call_ollama(
         if isinstance(parsed, str):
             parsed = json.loads(parsed)
         if isinstance(parsed, dict) and "response" in parsed:
-            raw = parsed["response"]
-            raw = _strip_markdown(raw)
-            parsed = json.loads(raw)
+            raw_output = _strip_markdown(parsed["response"])
+            parsed = json.loads(raw_output)
+        else:
+            raw_output = _strip_markdown(json.dumps(parsed))
     except Exception as exc:
         raise LLMUnavailableError(f"Ollama parse error: {exc}") from exc
 
@@ -174,7 +199,7 @@ async def _call_ollama(
         )
 
     logger.debug("Ollama inference complete")
-    return parsed
+    return raw_output, parsed
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -186,47 +211,107 @@ async def call_llm(
     response_schema: dict[str, Any] | None = None,
     temperature: float = 0.3,
     max_tokens: int = 1200,
-) -> dict[str, Any]:
+    tool_origin: str = "UNKNOWN",
+    mode: str = "infer",
+) -> LLMOutputEnvelope:
     """
     Call SEA-LION with Ollama fallback.
 
-    Returns a dict matching the response_schema (if provided).
-    Raises LLMUnavailableError if both tiers fail — caller falls back to
-    deterministic logic.
+    Returns LLMOutputEnvelope — the single legal form of LLM output in arifOS.
+    The envelope is the ONLY thing that should reach tool logic, judgment, or memory.
 
     Args:
-        system:     Constitutional system prompt
-        user:       User query / task description
+        system:       Constitutional system prompt
+        user:         User query / task description
         response_schema: JSON schema describing required output fields
-        temperature: Sampling temperature (0.1–0.3 for adjudication, 0.4–0.7 for reply)
-        max_tokens: Maximum tokens in response
+        temperature:  Sampling temperature (0.1–0.3 for adjudication, 0.4–0.7 for reply)
+        max_tokens:   Maximum tokens in response
+        tool_origin:  Canonical tool name calling this LLM (e.g. "333_MIND")
+        mode:         Cognitive mode of the call (e.g. "reason", "critique")
     """
+    # Build combined prompt string for audit trail
+    combined_prompt = f"{system}\n\n{user}"
+
     # Tier 1 — SEA-LION remote (PRIMARY sovereign model)
-    # SEA-LION is the sovereign model — Arif's constitutional AI baseline
     try:
-        result = await _call_sea_lion(system, user, response_schema, temperature, max_tokens)
-        return result
+        raw_output, parsed = await _call_sea_lion(
+            system, user, response_schema, temperature, max_tokens
+        )
+        envelope = wrap_llm_output(
+            raw_output=raw_output,
+            parsed_output=parsed,
+            provider="sea_lion",
+            model=SEA_LION_MODEL,
+            tool_origin=tool_origin,
+            mode=mode,
+            prompt=combined_prompt,
+            schema_valid=True,
+            confidence=parsed.get("confidence") if isinstance(parsed, dict) else None,
+        )
+        if response_schema:
+            _validate_schema(
+                envelope.parsed_output, set(response_schema.get("properties", {}).keys())
+            )
+        return envelope
     except LLMUnavailableError:
         pass
 
     # Tier 2 — Ollama local fallback (qwen2.5:7b on VPS localhost:11434)
-    # Local model used only when SEA-LION is unreachable
     try:
-        result = await _call_ollama(system, user, response_schema, temperature, max_tokens)
+        raw_output, parsed = await _call_ollama(
+            system, user, response_schema, temperature, max_tokens
+        )
+        envelope = wrap_llm_output(
+            raw_output=raw_output,
+            parsed_output=parsed,
+            provider="ollama",
+            model=OLLAMA_MODEL,
+            tool_origin=tool_origin,
+            mode=mode,
+            prompt=combined_prompt,
+            schema_valid=True,
+            confidence=parsed.get("confidence") if isinstance(parsed, dict) else None,
+        )
         if response_schema:
-            _validate_schema(result, set(response_schema.get("properties", {}).keys()))
-        return result
+            _validate_schema(
+                envelope.parsed_output, set(response_schema.get("properties", {}).keys())
+            )
+        return envelope
     except LLMUnavailableError:
         pass
 
     # Tier 3 — no LLM available
-    raise LLMUnavailableError(
-        "All LLM tiers exhausted (SEA-LION + Ollama). "
-        "Caller should apply deterministic fallback."
+    return wrap_llm_error(
+        provider="none",
+        model="none",
+        tool_origin=tool_origin,
+        mode=mode,
+        prompt=combined_prompt,
+        error_message="All LLM tiers exhausted (SEA-LION + Ollama)",
     )
+
+
+async def call_llm_raw(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None = None,
+    temperature: float = 0.3,
+    max_tokens: int = 1200,
+) -> dict[str, Any]:
+    """
+    Legacy raw call — returns parsed dict directly.
+    DEPRECATED: Use call_llm() which returns LLMOutputEnvelope.
+
+    Kept only for internal callers that have not yet migrated to envelope pattern.
+    """
+    logger.warning("call_llm_raw is deprecated — use call_llm() returning LLMOutputEnvelope")
+    envelope = await call_llm(system, user, response_schema, temperature, max_tokens)
+    return envelope.parsed_output
 
 
 __all__ = [
     "call_llm",
+    "call_llm_raw",  # deprecated
     "LLMUnavailableError",
+    "LLMOutputEnvelope",
 ]
