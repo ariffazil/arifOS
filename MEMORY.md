@@ -62,3 +62,71 @@ API token lacks "Cache Purge" permission — manual purge required via Cloudflar
 ## Archived Logs
 
 *Older entries in memory/*.md*
+
+## 777_WITNESS — LLM Output Envelope (committed 2026-05-06)
+
+**Commits:** d83d0f1b (envelope + 3 tools), e90b0256 (judge/vault wired)
+
+**Eureka:** "LLM output is entropy-shaped testimony — not truth, not command, not verdict."
+
+**Full constitutional membrane (complete):**
+  LLM → wrap_llm_output() → LLMOutputEnvelope (SHA-256 tamper evidence)
+    → 333_MIND / 444r_REPLY / 666_HEART tool logic
+    → evidence_receipt (mind_envelope + heart_envelope attached)
+    → 888_JUDGE: _777_invariants records LLM output hashes
+    → invariants_checked (F01–F13 + 777_witness_mind/heart hash prefixes)
+    → 999_VAULT: _777_witness block in payload (mind_raw_hash, heart_raw_hash,
+      mind_evidence_level, heart_evidence_level, human_decision_required)
+    → Human 888 final decision
+
+**What was built:**
+
+d83d0f1b — envelope creation + 3 tools wired:
+- llm_output_envelope.py: Canonical Pydantic envelope (LLMOutputEnvelope)
+  Fields: provider, model, tool_origin, mode, raw_output, raw_output_hash (SHA-256),
+  parsed_output, schema_valid, confidence_claimed, evidence_level (F2: claimed/cited/
+  verified), uncertainty[] (F7 Humility), risk_flags[] (F6/F9/F13), prompt_hash,
+  timestamp, human_decision_required (always True), authority_level (always
+  instrument_only per F13), wrapper_version. Factories: wrap_llm_output(),
+  wrap_llm_error(). Helpers: envelope_to_judge_summary(), envelope_to_memory_storable().
+
+- witness_packet.py: Bugfixed parallel envelope (html.normalize_idna → re.sub;
+  F12 injection scanner fixed; model ID pragma allowlist added).
+
+- llm_client.py: call_llm() now returns LLMOutputEnvelope automatically.
+  wrap_llm_output() wraps every response. call_llm_raw() deprecated.
+
+- mind_reason.py (333_MIND): async, envelope-wrapped.
+- reply_compose.py (444r_REPLY): async, envelope-wrapped.
+- tools/heart.py (666_HEART): async, envelope-wrapped.
+
+e90b0256 — judge and vault integration:
+- tools.py _arif_judge_deliberate_tool: auto-chain extracts _envelope from
+  mind_reason + heart_critique outputs, attaches to evidence_receipt as
+  mind_envelope + heart_envelope, _777_invariants records SHA-256 hashes.
+- tools.py _arif_judge_deliberate (sync): reads _777_invariants from
+  evidence_receipt, appends to top-level invariants_checked.
+- tools.py _arif_vault_seal_tool (auto-seal): vault payload now includes
+  _777_witness block with mind_raw_hash, heart_raw_hash, evidence_levels.
+- 555_MEMORY auto-chain store: structured content dict with _envelope_hash
+  and _evidence_level (not raw LLM output), tags include 777_WITNESS.
+- B104 nosec on SSRF validation (false positive), B007 fixed, F401 cleaned.
+
+**Evidence level (F2 Truth):**
+- claimed: LLM self-reported, no citation
+- cited: LLM cited external evidence
+- verified: arifOS F-WEB deterministic gate passed
+
+**Authority level (F13 Sovereign):**
+- All LLM output: always "instrument_only" — never sovereign, never command
+
+**Correct placement by floor:**
+  333_MIND  ✅ Reasoning witness (envelope at LLM output)
+  444r_REPLY ✅ Language shaping (envelope at LLM output)
+  666_HEART  ✅ Risk witness (envelope at LLM output)
+  555_MEMORY ⚠️ Only after envelope (stores envelope hash, not raw output)
+  888_JUDGE  ✅ Reads envelope hashes via _777_invariants
+  999_VAULT  ⚠️ Anchors envelope SHA-256 in payload (post-hoc verifiable)
+  010_FORGE  ❌ Never directly — always through 888_HOLD
+
+**GitHub push:** d83d0f1b → e90b0256 → main
