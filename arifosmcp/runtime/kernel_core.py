@@ -12,7 +12,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight
@@ -243,7 +242,7 @@ class KernelCore:
         # Layer 3 constitutional enforcement: axis classification, call graph,
         # and E-axis SEAL precondition. Every tool call passes through here.
         try:
-            from arifosmcp.runtime.agent_registry import Axis, RiskTier, RouteContext
+            from arifosmcp.runtime.agent_registry import RiskTier, RouteContext
             from arifosmcp.runtime.g02_router import get_router
 
             router = get_router()

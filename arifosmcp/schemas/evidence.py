@@ -31,4 +31,4 @@ class EvidenceOutput(BaseModel):
     nine_signal: dict[str, Any] = Field(default_factory=dict)
     output_policy: str = "DOMAIN_SEAL"
     reasons: list[str] = Field(default_factory=list)
-    model_config = {"extra": "allow"}
+    model_config = {"extra": "forbid"}

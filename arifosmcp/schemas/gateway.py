@@ -1,4 +1,5 @@
 """Gateway output schemas — 666g_GATEWAY"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -8,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class GatewayBlock(BaseModel):
     """Original untyped block — preserved for schemas/__init__.py compatibility."""
+
     status: str = "OK"
     tool: str = "arif_gateway_connect"
     result: dict[str, Any] = Field(default_factory=dict)
@@ -17,6 +19,7 @@ class GatewayBlock(BaseModel):
 
 class GatewayResult(BaseModel):
     """Typed execution result for arif_gateway_connect handler."""
+
     target: str | None = None
     protocol: str = "A2A"
     status: str | None = None
@@ -29,6 +32,7 @@ class GatewayResult(BaseModel):
 
 class GatewayOutput(BaseModel):
     """Typed output envelope for arif_gateway_connect — replaces dict[str, Any]."""
+
     status: str = "OK"
     tool: str = "arif_gateway_connect"
     result: GatewayResult = Field(default_factory=GatewayResult)
@@ -40,4 +44,4 @@ class GatewayOutput(BaseModel):
     nine_signal: dict[str, Any] = Field(default_factory=dict)
     output_policy: str = "DOMAIN_SEAL"
     reasons: list[str] = Field(default_factory=list)
-    model_config = {"extra": "allow"}
+    model_config = {"extra": "forbid"}
