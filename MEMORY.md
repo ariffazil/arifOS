@@ -177,3 +177,20 @@ LLM output → _scan_injection() → schema validation → _assess_uncertainty_a
 - Eureka 4: model_governance.yaml + get_governance_card() ✅
 - Eureka 5: _scan_injection() gates every LLM output ✅
 - Eureka 6: Two outputs (human answer + governance envelope) ✅
+
+## Partial SEAL Close-out (2026-05-06 21:00 UTC)
+
+Arif's verdict: "Partial SEAL — architecturally approved as a reversible blueprint.
+Execution should wait until F11 model governance card binding is fixed."
+
+**Status**: F11 binding is LIVE.
+- get_governance_card("SEA-LION-MODEL-ID") → instrument_only  # pragma: allowlist secret
+- _governance_of(model) in envelope.py → reads from model_governance.yaml ✅
+- Unknown models: conservative default (instrument_only + all forbidden) ✅
+- 15-pattern F12 injection scan: active on every LLM output ✅
+- latency_ms tracking: active at Tier 1 (SEA-LION) and Tier 2 (Ollama) ✅
+
+No AI output enters memory, judge, vault, forge, gateway, or user reply
+unless wrapped, hashed, schema-validated, risk-scanned, and authority-bounded.
+
+Partial SEAL → **FULL SEAL** pending deployment verification.
