@@ -74,6 +74,7 @@ target-version = "py312"
 "arifosmcp/runtime/rest_routes.py" = ["E501", "F841", "N806", "I001"]
 "arifosmcp/schemas/forge.py" = ["N815"]
 "arifosmcp/runtime/semantic_gate.py" = ["E501"]
+"arifosmcp/runtime/tools.py" = ["N802", "B007"]
 "arifosmcp/schemas/semantic_gate.py" = ["E501"]
 "arifosmcp/runtime/tools_internal.py" = ["UP038"]
 

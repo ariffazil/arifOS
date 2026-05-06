@@ -49,7 +49,6 @@ from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_bu
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
 from arifosmcp.runtime.floors import check_floors
-from arifosmcp.schemas.evidence import EvidenceOutput
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
     DeltaSEvidence,
@@ -61,13 +60,7 @@ from arifosmcp.schemas.forge import (
     IrreversibilityLevel,
     ManifestStatus,
 )
-from arifosmcp.schemas.gateway import GatewayOutput
-from arifosmcp.schemas.heart import HeartOutput
-from arifosmcp.schemas.kernel import KernelOutput
 from arifosmcp.schemas.lineage import JudgeSealContract
-from arifosmcp.schemas.memory import MemoryOutput
-from arifosmcp.schemas.reply import ReplyOutput
-from arifosmcp.schemas.sense import SenseOutput
 from arifosmcp.schemas.synthesis import (
     AxiomSource,
     AxiomsUsed,
@@ -108,6 +101,8 @@ class Stage:
     FORGE_777 = "777_FORGE"
     JUDGE_888 = "888_JUDGE"
     VAULT_999 = "999_VAULT"
+
+
 _SABAR_TIMESTAMPS: dict[str, float] = {}
 
 
@@ -143,43 +138,49 @@ def check_adaptation_status() -> dict[str, Any]:
     }
 
 
-async def INIT_ANCHOR(raw_input: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def INIT_ANCHOR(  # noqa: N802
+    raw_input: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:  # noqa: N802
     del ctx
     return await _wrap_call("INIT_ANCHOR", raw_input=raw_input, **kwargs)
 
 
-async def AGI_REASON(query: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def AGI_REASON(  # noqa: N802
+    query: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:  # noqa: N802
     del ctx
     return await _wrap_call("AGI_REASON", query=query, **kwargs)
 
 
-async def AGI_REFLECT(topic: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def AGI_REFLECT(  # noqa: N802
+    topic: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:  # noqa: N802
     del ctx
     return await _wrap_call("AGI_REFLECT", topic=topic, **kwargs)
 
 
-async def ASI_CRITIQUE(
+async def ASI_CRITIQUE(  # noqa: N802
     draft_output: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("ASI_CRITIQUE", draft_output=draft_output, **kwargs)
 
 
-async def ASI_SIMULATE(
+async def ASI_SIMULATE(  # noqa: N802
     scenario: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("ASI_SIMULATE", scenario=scenario, **kwargs)
 
 
-async def APEX_JUDGE(
+async def APEX_JUDGE(  # noqa: N802
     candidate_output: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("APEX_JUDGE", candidate_output=candidate_output, **kwargs)
 
 
-async def VAULT_SEAL(
+async def VAULT_SEAL(  # noqa: N802
     verdict: Any = None, evidence: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
@@ -2545,7 +2546,7 @@ def _arif_sense_observe(
                     if key not in all_claims:
                         all_claims[key] = []
                     all_claims[key].append({**t, "query": res["query"]})
-        for key, claim_group in all_claims.items():
+        for _key, claim_group in all_claims.items():
             if len(claim_group) >= 2:
                 obj_values = set(c["obj"] for c in claim_group)
                 if len(obj_values) == 1:
@@ -2735,7 +2736,11 @@ def _arif_evidence_fetch(
 
         # SSRF validation
         parsed = urllib.parse.urlparse(url)
-        if parsed.hostname in ("127.0.0.1", "localhost", "0.0.0.0") or parsed.hostname.startswith(
+        if parsed.hostname in (
+            "127.0.0.1",
+            "localhost",
+            "0.0.0.0",
+        ) or parsed.hostname.startswith(  # nosec: B104
             ("10.", "192.168.", "172.")
         ):
             risk_flags.append("private_ip_access")
@@ -4109,10 +4114,14 @@ def _arif_kernel_route(
     if session_id and session_id in _SABAR_TIMESTAMPS:
         time_since = _now() - _SABAR_TIMESTAMPS[session_id]
         if time_since < 300:
-            return _hold("arif_kernel_route", f"CRP Active: Session under SABAR cooling period. Wait {int(300 - time_since)}s.", ["F13"], session_id=session_id)
+            return _hold(
+                "arif_kernel_route",
+                f"CRP Active: Session under SABAR cooling period. Wait {int(300 - time_since)}s.",
+                ["F13"],
+                session_id=session_id,
+            )
         else:
             del _SABAR_TIMESTAMPS[session_id]
-
 
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
@@ -5729,7 +5738,7 @@ def _arif_judge_deliberate(
             v_code = VerdictCode.SABAR
             if session_id:
                 _SABAR_TIMESTAMPS[session_id] = _now()
-        
+
         output = VerdictOutput(
             status=verdict.status,
             verdict=v_code,
