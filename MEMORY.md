@@ -130,3 +130,50 @@ e90b0256 — judge and vault integration:
   010_FORGE  ❌ Never directly — always through 888_HOLD
 
 **GitHub push:** d83d0f1b → e90b0256 → main
+
+## 777_WITNESS — Constitutional Epistemology (2026-05-06)
+
+### The shift: "AI tool orchestration" → constitutional epistemology
+
+arifOS no longer treats LLM output as function results.
+Every LLM output is **witness testimony** — it must answer:
+- **What** did it claim? (parsed_output)
+- **Under what prompt**? (prompt_hash)
+- **With what uncertainty**? (uncertainty[])
+- **Under what model identity**? (model + governance_card authority)
+- **At what cost**? (latency_ms)
+- **With what risk**? (risk_flags[] + injection_detected)
+
+This turns arifOS from "MCP with AI tools" into a constitutional epistemology system.
+
+### Canonical structures
+
+**LLMOutputEnvelope** (Pydantic, arifosmcp/runtime/llm_output_envelope.py):
+The WitnessPacket. 19 fields: provider, model, tool_origin, mode, raw_output,
+raw_output_hash, parsed_output, schema_valid, confidence_claimed, evidence_level,
+uncertainty[], risk_flags[], injection_detected, latency_ms, prompt_hash,
+timestamp, human_decision_required, authority_level, wrapper_version.
+
+**call_llm()** → always returns LLMOutputEnvelope. Never raw JSON.
+
+**witness_packet.py** (dataclass WitnessPacket) — parallel implementation.
+Two implementations of the same concept. Current: LLMOutputEnvelope is canonical.
+
+**model_governance.yaml** (arifosmcp/core/):
+F11 Model Governance SoT. SEA-LION, Ollama, Deterministic cards.
+get_governance_card(model) → authority, allowed_tools, forbidden_roles.
+
+**model_governance.py**: YAML loader with lazy cache, case-insensitive lookup,
+unknown-model safe default (instrument_only + all forbidden roles).
+
+### Quarantine pipeline
+LLM output → _scan_injection() → schema validation → _assess_uncertainty_and_risk()
+→ envelope → human_decision_required gate → release or HOLD.
+
+### Eureka moments addressed
+- Eureka 1-6: All implemented in envelope + call_llm + model_governance
+- Eureka 2: WitnessPacket = LLMOutputEnvelope (atomic unit ✅)
+- Eureka 3: Generate → Interpret → Judge separated (333_MIND → 888_JUDGE)
+- Eureka 4: model_governance.yaml + get_governance_card() ✅
+- Eureka 5: _scan_injection() gates every LLM output ✅
+- Eureka 6: Two outputs (human answer + governance envelope) ✅
