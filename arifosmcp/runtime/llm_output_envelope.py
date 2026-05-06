@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Any, Literal
 
@@ -92,6 +93,8 @@ class LLMOutputEnvelope(BaseModel):
 
     uncertainty: list[str] = Field(default_factory=list)
     risk_flags: list[str] = Field(default_factory=list)
+    injection_detected: bool = False  # F12 INJECTION scan
+    latency_ms: float = 0.0  # Round-trip cost in ms for thermodynamic tracking
 
     prompt_hash: str
     timestamp: str
@@ -134,6 +137,7 @@ def _assess_uncertainty_and_risk(
     parsed: dict[str, Any],
     tool_origin: str,
     mode: str,
+    injection_detected: bool = False,
 ) -> tuple[list[str], list[str]]:
     """
     F7 Humility: derive uncertainty signals from output shape.
@@ -187,6 +191,11 @@ def _assess_uncertainty_and_risk(
         elif isinstance(delta_s_val, int | float) and abs(delta_s_val) < 0.01:
             uncertainty.append("zero_entropy_delta_S_unusual")
 
+    # F12 INJECTION — if scan detected in LLM output, escalate immediately
+    if injection_detected:
+        risk_flags.append("F12_INJECTION_DETECTED")
+        uncertainty.append("F12_injection_scan_triggered_in_LLM_output")
+
     if tool_origin in ("333_MIND", "666_HEART", "444r_REPLY"):
         uncertainty.append(f"{tool_origin}_output_is_testimony_not_verdict")
 
@@ -203,6 +212,7 @@ def wrap_llm_output(
     prompt: str,
     schema_valid: bool = True,
     confidence: float | None = None,
+    latency_ms: float = 0.0,
 ) -> LLMOutputEnvelope:
     """
     Wrap raw LLM output in the constitutional envelope.
@@ -226,10 +236,18 @@ def wrap_llm_output(
             parsed_output.get("confidence", 0.5) if isinstance(parsed_output, dict) else 0.5
         )
 
-    uncertainty, risk_flags = _assess_uncertainty_and_risk(parsed_output, tool_origin, mode)
+    # F12 INJECTION scan — detect prompt injection in LLM output before release
+    injection_detected = _scan_injection(raw_output)
+
+    uncertainty, risk_flags = _assess_uncertainty_and_risk(
+        parsed_output, tool_origin, mode, injection_detected
+    )
 
     evidence_level: EVIDENCE_LEVELS = "claimed"
-    human_decision_required = bool(risk_flags) or confidence < 0.3 or evidence_level == "claimed"
+    _is_claimed = evidence_level == "claimed"
+    _low_confidence = confidence < 0.3
+    _needs_human = bool(risk_flags) or bool(injection_detected)
+    human_decision_required = _needs_human or _low_confidence or _is_claimed
 
     return LLMOutputEnvelope(
         provider=provider,
@@ -244,7 +262,9 @@ def wrap_llm_output(
         evidence_level=evidence_level,
         uncertainty=uncertainty,
         risk_flags=risk_flags,
+        injection_detected=injection_detected,
         prompt_hash=_sha256(prompt),
+        latency_ms=latency_ms,
         timestamp=datetime.now(timezone.utc).isoformat(),
         human_decision_required=human_decision_required,
         authority_level="instrument_only",
@@ -292,6 +312,10 @@ def envelope_to_judge_summary(env: LLMOutputEnvelope) -> dict[str, Any]:
     """
     Build a F888_JUDGE advisory summary from the envelope.
     This is what the judge sees — not the raw output.
+
+    Eureka 6: Every LLM call returns two outputs:
+      - Human-facing answer (in parsed_output / synthesis)
+      - Machine-facing governance envelope (this function)
     """
     return {
         "tool_origin": env.tool_origin,
@@ -306,10 +330,16 @@ def envelope_to_judge_summary(env: LLMOutputEnvelope) -> dict[str, Any]:
             else "MEDIUM" if env.confidence_claimed >= 0.5 else "LOW"
         ),
         "evidence_level": env.evidence_level,
+        "uncertainty": env.uncertainty,
         "uncertainty_count": len(env.uncertainty),
         "risk_flags": env.risk_flags,
+        "injection_detected": env.injection_detected,
+        "latency_ms": env.latency_ms,
         "human_decision_required": env.human_decision_required,
+        "authority_level": env.authority_level,
         "raw_output_hash": env.raw_output_hash,
+        "model": env.model,
+        "provider": env.provider,
         "timestamp": env.timestamp,
         "wrapper": "777_WITNESS_v1.0",
     }
@@ -320,18 +350,23 @@ def envelope_to_memory_storable(env: LLMOutputEnvelope) -> dict[str, Any]:
     Convert envelope to a memory-storable trace (not raw LLM claim).
 
     F2 Truth: Only the envelope goes into memory, not the raw claim.
+    This is the AI_OUTPUT_QUARANTINE release artifact.
     """
     return {
         "envelope_id": env.raw_output_hash,
         "provider": env.provider,
+        "model": env.model,
         "tool_origin": env.tool_origin,
         "mode": env.mode,
         "evidence_level": env.evidence_level,
         "confidence_claimed": env.confidence_claimed,
         "verdict": env.parsed_output.get("verdict", env.parsed_output.get("status")),
+        "injection_detected": env.injection_detected,
         "human_decision_required": env.human_decision_required,
+        "authority_level": env.authority_level,
         "uncertainty": env.uncertainty,
         "risk_flags": env.risk_flags,
+        "latency_ms": env.latency_ms,
         "timestamp": env.timestamp,
         "wrapper": "777_WITNESS_v1.0",
     }
@@ -344,3 +379,40 @@ __all__ = [
     "envelope_to_judge_summary",
     "envelope_to_memory_storable",
 ]
+
+
+# ── F12 INJECTION Scan ─────────────────────────────────────────────────────────
+
+
+INJECTION_PATTERNS = [
+    re.compile(r"ignore\s+(all\s+)?previous\s+instructions?", re.IGNORECASE),
+    re.compile(r"ignore\s+(all\s+)?rules?", re.IGNORECASE),
+    re.compile(
+        r"disregard\s+(all\s+)?(your|its)\s+(instructions|rules|programming)",
+        re.IGNORECASE,
+    ),
+    re.compile(r"repeat\s+(your\s+)?(system\s+)?(instructions?|prompt)", re.IGNORECASE),
+    re.compile(r"what\s+are\s+your\s+(system\s+)?instructions", re.IGNORECASE),
+    re.compile(r"(?:bash|sh|cmd|powershell)\s+.*[;&|`$]", re.IGNORECASE),
+    re.compile(r"eval\s*\(", re.IGNORECASE),
+    re.compile(r"exec\s*\(", re.IGNORECASE),
+    re.compile(r"(?i)(union\s+select|drop\s+table|--\s*$)"),
+    re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE),
+    re.compile(r"javascript:", re.IGNORECASE),
+    re.compile(r"(?i)base64\s*[:=]"),
+    re.compile(r"(?i)\\x[0-9a-f]{2}"),
+    re.compile(r"(?i)you\s+are\s+the\s+(creator|owner|admin)", re.IGNORECASE),
+    re.compile(r"(?i)I\s+(am|m)\s+(God|king|queen|sovereign)", re.IGNORECASE),
+]
+
+
+def _scan_injection(text: str) -> bool:
+    """
+    F12 INJECTION scan — detect prompt injection, code execution,
+    authority impersonation, and hidden instruction patterns.
+    """
+    normalized = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
+    for pattern in INJECTION_PATTERNS:
+        if pattern.search(normalized):
+            return True
+    return False

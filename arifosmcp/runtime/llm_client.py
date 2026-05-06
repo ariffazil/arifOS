@@ -17,6 +17,7 @@ import hashlib
 import json
 import logging
 import os
+import time
 from typing import Any
 
 import httpx
@@ -234,9 +235,11 @@ async def call_llm(
 
     # Tier 1 — SEA-LION remote (PRIMARY sovereign model)
     try:
+        t0 = time.monotonic()
         raw_output, parsed = await _call_sea_lion(
             system, user, response_schema, temperature, max_tokens
         )
+        latency_ms = (time.monotonic() - t0) * 1000
         envelope = wrap_llm_output(
             raw_output=raw_output,
             parsed_output=parsed,
@@ -247,6 +250,7 @@ async def call_llm(
             prompt=combined_prompt,
             schema_valid=True,
             confidence=parsed.get("confidence") if isinstance(parsed, dict) else None,
+            latency_ms=latency_ms,
         )
         if response_schema:
             _validate_schema(
@@ -258,9 +262,11 @@ async def call_llm(
 
     # Tier 2 — Ollama local fallback (qwen2.5:7b on VPS localhost:11434)
     try:
+        t0 = time.monotonic()
         raw_output, parsed = await _call_ollama(
             system, user, response_schema, temperature, max_tokens
         )
+        latency_ms = (time.monotonic() - t0) * 1000
         envelope = wrap_llm_output(
             raw_output=raw_output,
             parsed_output=parsed,
@@ -271,6 +277,7 @@ async def call_llm(
             prompt=combined_prompt,
             schema_valid=True,
             confidence=parsed.get("confidence") if isinstance(parsed, dict) else None,
+            latency_ms=latency_ms,
         )
         if response_schema:
             _validate_schema(
