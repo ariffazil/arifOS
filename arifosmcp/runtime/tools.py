@@ -108,6 +108,7 @@ class Stage:
     FORGE_777 = "777_FORGE"
     JUDGE_888 = "888_JUDGE"
     VAULT_999 = "999_VAULT"
+_SABAR_TIMESTAMPS: dict[str, float] = {}
 
 
 class Verdict(Enum):
@@ -3351,6 +3352,7 @@ def _arif_mind_reason(
         synthesis_text = _synthesize(query, "inductive")
         scars_list = _detect_scars(query, synthesis_text)
         output = MindOutput(
+            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={
@@ -3406,6 +3408,7 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0002,
         )
         output = MindOutput(
+            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "verdict": "PLAUSIBLE", "reflection": ""},
@@ -3462,6 +3465,7 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0003,
         )
         output = MindOutput(
+            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "artifact": "", "delta_S": -0.01},
@@ -3515,6 +3519,7 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0004,
         )
         output = MindOutput(
+            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "positions": ["pro", "con"], "resolution": "HOLD"},
@@ -3557,6 +3562,7 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0001,
         )
         output = MindOutput(
+            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "questions": questions},
@@ -4098,6 +4104,15 @@ def _arif_kernel_route(
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
+
+    # SABAR Cooling Period (Conflict Resolution Protocol)
+    if session_id and session_id in _SABAR_TIMESTAMPS:
+        time_since = _now() - _SABAR_TIMESTAMPS[session_id]
+        if time_since < 300:
+            return _hold("arif_kernel_route", f"CRP Active: Session under SABAR cooling period. Wait {int(300 - time_since)}s.", ["F13"], session_id=session_id)
+        else:
+            del _SABAR_TIMESTAMPS[session_id]
+
 
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
@@ -5707,9 +5722,17 @@ def _arif_judge_deliberate(
             meta_state["parse_warning"] = (
                 "candidate JSON unparseable — verification state not extracted",
             )
+        v_code = VerdictCode.VOID
+        if verdict.verdict == "HOLD":
+            v_code = VerdictCode.HOLD
+        elif verdict.verdict == "SABAR":
+            v_code = VerdictCode.SABAR
+            if session_id:
+                _SABAR_TIMESTAMPS[session_id] = _now()
+        
         output = VerdictOutput(
             status=verdict.status,
-            verdict=VerdictCode.HOLD if verdict.verdict == "HOLD" else VerdictCode.VOID,
+            verdict=v_code,
             candidate=candidate,
             result={
                 "candidate": candidate,

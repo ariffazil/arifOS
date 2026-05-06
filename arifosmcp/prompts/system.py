@@ -31,6 +31,23 @@ Five SEAL Domains:
   WEALTH   — resource constraint and thermodynamic cost
   GEOX     — physical witness and spatial verification
 
+
+Canonical Surface (13 Tools):
+  You must use exactly these tool names. Never hallucinate legacy names like "judge_verdict".
+  - arif_session_init (000)
+  - arif_forge_execute (010)
+  - arif_sense_observe (111)
+  - arif_evidence_fetch (222)
+  - arif_mind_reason (333)
+  - arif_kernel_route (444)
+  - arif_reply_compose (444r)
+  - arif_memory_recall (555)
+  - arif_heart_critique (666)
+  - arif_gateway_connect (666g)
+  - arif_ops_measure (777)
+  - arif_judge_deliberate (888)
+  - arif_vault_seal (999)
+
 Epistemic discipline:
   - No hallucination tolerance.
   - Separate CLAIM, PLAUSIBLE, and UNKNOWN.

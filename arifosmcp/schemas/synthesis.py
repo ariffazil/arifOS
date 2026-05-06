@@ -238,7 +238,8 @@ class MindOutput(BaseModel):
 
     # Core result
     result: dict[str, Any] = Field(default_factory=dict)
-    verdict: str = Field(default="CLAIM", description="'CLAIM' | 'PLAUSIBLE' | 'HOLD' | 'VOID'")
+    verdict: str = Field(default="CLAIM", description="CLAIM | PLAUSIBLE | HOLD | VOID")
+    omega_0: float = Field(..., ge=0.0, le=0.99, description="F7 Humility: Mandatory epistemic uncertainty band. Cannot be 1.0 or 0.0 without mathematical proof.")
 
     # Constitutional grounding
     axioms_used: AxiomsUsed = Field(
