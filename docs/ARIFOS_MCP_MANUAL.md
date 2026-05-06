@@ -118,3 +118,10 @@ Every claim in arifOS MUST carry a tag:
 
 ---
 *⬡ ARIVOS MCP SNAPSHOT SEALED | Ψ BODY | CLERK BINDING ⬡*
+
+## 6. PHILOSOPHY OF PRIMITIVES
+Within arifOS, standard MCP primitives are elevated into constitutional organs:
+
+- **Tools are Metabolic Organs:** They are not mere utilities (like a generic file reader or calculator). The 13 tools (000–999) are metabolic pathways and constitutional gates. They enforce the Golden Path. When an agent calls a tool, it is subjecting itself to the constitutional physics of the kernel.
+- **Resources are Epistemic Wealth & Wisdom:** Resources (`arifos://doctrine`, `arifos://vitals`) act as the immutable bedrock of truth. They enrich the context window with undeniable facts, grounding the LLM and preventing hallucination. They represent the "wealth" of accumulated system knowledge.
+- **Prompts are Execution Directives:** Prompts (`arifosmcp_judge`, `arifosmcp_entropy`) are not generic chat templates. They are rigid framing mechanisms that force an LLM or agent to execute tasks within the boundaries of the Constitution (e.g., forcing CLAIM/ESTIMATE tagging, or enforcing 888_HOLD logic).
