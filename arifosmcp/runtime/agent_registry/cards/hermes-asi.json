@@ -1,0 +1,25 @@
+{
+  "agent_id": "hermes-asi",
+  "display_name": "Hermes",
+  "version": "MiniMax-M2.7",
+  "provider": "minimax",
+  "declared_lane": "ASI",
+  "federation_role": "ASI_relay",
+  "compliance_tier": "AAA",
+  "constitutional_floors": 13,
+  "side_effect_policy": "dry_run_by_default",
+  "human_authority_required": true,
+  "registry_status": "PHASE0_COMPLETE",
+  "registered_at": "2026-05-07T21:56:00+00:00",
+  "sovereign": "Arif Fazil",
+  "card_hash": "sha256:886add2f3356a87b",
+  "phase": 0,
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "verdict": "SEAL",
+  "_meta": {
+    "registered_by": "hermes-asi-self",
+    "registration_method": "direct_probe",
+    "arifos_version": "v2026.05.01-KANON",
+    "registry_file": "runtime/agent_registry/cards/hermes-asi.json"
+  }
+}
