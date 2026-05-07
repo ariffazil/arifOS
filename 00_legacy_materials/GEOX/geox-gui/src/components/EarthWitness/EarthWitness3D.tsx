@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { 
-  Viewer, 
-  Terrain, 
-  createWorldImageryAsync, 
-  Cartesian3, 
+import {
+  Viewer,
+  Terrain,
+  createWorldImageryAsync,
+  Cartesian3,
   Color
 } from 'cesium';
 import "cesium/Build/Cesium/Widgets/widgets.css";
@@ -12,16 +12,16 @@ import { useActiveTab } from '../../store/geoxStore';
 
 /**
  * EarthWitness3D Component
- * 
+ *
  * The primary 3D geospatial grounding layer for GEOX.
  * Uses CesiumJS for high-precision WGS84 globe visualization.
- * 
+ *
  * DITEMPA BUKAN DIBERI
  */
 export const EarthWitness3D: React.FC = () => {
   const cesiumContainer = useRef<HTMLDivElement>(null);
   const viewer = useRef<Viewer | null>(null);
-  
+
   const activeTab = useActiveTab();
 
   useEffect(() => {
@@ -79,8 +79,8 @@ export const EarthWitness3D: React.FC = () => {
 
       {/* Floating Governance Layer */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none">
-        <GroundedBadge 
-          confidence={0.95} 
+        <GroundedBadge
+          confidence={0.95}
           status="3D_GROUNDED"
           source="Cesium WGS84 / Copernicus DEM"
         />

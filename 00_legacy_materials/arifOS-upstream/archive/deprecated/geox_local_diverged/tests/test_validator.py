@@ -32,6 +32,7 @@ from arifos.geox.geox_validator import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _coord(lat: float = 4.5, lon: float = 104.2, depth: float = 2500.0) -> CoordinatePoint:
     return CoordinatePoint(latitude=lat, longitude=lon, depth_m=depth)
 
@@ -107,6 +108,7 @@ def _insight(
 # _parse_range (unit tests for the internal helper)
 # ---------------------------------------------------------------------------
 
+
 class TestParseRange:
 
     def test_single_value(self):
@@ -138,6 +140,7 @@ class TestParseRange:
 # ---------------------------------------------------------------------------
 # GeoXValidator.extract_predictions()
 # ---------------------------------------------------------------------------
+
 
 class TestExtractPredictions:
 
@@ -242,6 +245,7 @@ class TestExtractPredictions:
 # GeoXValidator.verify_prediction()
 # ---------------------------------------------------------------------------
 
+
 class TestVerifyPrediction:
 
     def setup_method(self):
@@ -332,6 +336,7 @@ class TestVerifyPrediction:
 # GeoXValidator.validate_batch() — SEAL path
 # ---------------------------------------------------------------------------
 
+
 class TestValidateBatch:
 
     def setup_method(self):
@@ -386,9 +391,7 @@ class TestValidateBatch:
         # Build insights whose predictions fall within mock data ranges
         # MockEarthNetTool returns porosity in [0.08, 0.28] and velocity in [2200, 3800]
         pred1 = _pred(target="porosity", lo=0.01, hi=0.35, units="fraction", confidence=0.80)
-        pred2 = _pred(
-            target="seismic_velocity", lo=1000.0, hi=5000.0, units="m/s", confidence=0.80
-        )
+        pred2 = _pred(target="seismic_velocity", lo=1000.0, hi=5000.0, units="m/s", confidence=0.80)
         # Craft insights with very broad ranges to ensure mock tool values land inside
         i1 = _insight(
             text="Porosity measured at 15-28 fraction in the reservoir interval.",
@@ -423,9 +426,7 @@ class TestValidateBatch:
             requires_human_signoff=False,
             support=[pred_impossible],
         )
-        result = await self.validator.validate_batch(
-            [insight_contradicted], [self.mock_earthnet]
-        )
+        result = await self.validator.validate_batch([insight_contradicted], [self.mock_earthnet])
         # match_ratio will be 0 → contradicted → VOID
         assert result.overall == "VOID"
         assert result.void_count >= 1
@@ -464,6 +465,7 @@ class TestValidateBatch:
 # ---------------------------------------------------------------------------
 # GeoXValidator.check_floor_compliance()
 # ---------------------------------------------------------------------------
+
 
 class TestCheckFloorCompliance:
 

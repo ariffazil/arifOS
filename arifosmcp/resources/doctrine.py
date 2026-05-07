@@ -4,6 +4,7 @@ arifos://doctrine — Immutable Law (Ψ)
 The 13 Constitutional Floors (F1–F13).
 Ditempa Bukan Diberi.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

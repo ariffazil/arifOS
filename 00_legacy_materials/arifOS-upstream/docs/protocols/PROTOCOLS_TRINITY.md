@@ -1,7 +1,7 @@
 # arifOS Protocol Trinity
 ## MCP + A2A + WebMCP — The Complete Interface
 
-> **DITEMPA BUKAN DIBERI** — Forged, Not Given  
+> **DITEMPA BUKAN DIBERI** — Forged, Not Given
 > *ΔΩΨ | ARIF*
 
 ---
@@ -175,7 +175,7 @@ status = httpx.get(f"https://arifosmcp.arif-fazil.com/a2a/status/{task_id}")
 
 ### MCP (Model Context Protocol)
 
-**Purpose**: Universal tool interface for AI systems  
+**Purpose**: Universal tool interface for AI systems
 **By**: Anthropic (Nov 2024) → Linux Foundation (Dec 2025)
 
 **Key Features**:
@@ -196,7 +196,7 @@ status = httpx.get(f"https://arifosmcp.arif-fazil.com/a2a/status/{task_id}")
 
 ### A2A (Agent-to-Agent Protocol)
 
-**Purpose**: Let agents collaborate across platforms  
+**Purpose**: Let agents collaborate across platforms
 **By**: Google (Apr 2025) + 50+ partners
 
 **Key Features**:
@@ -234,7 +234,7 @@ submitted → working → input_required → completed
 
 ### WebMCP (Web Model Context Protocol)
 
-**Purpose**: Browser-native AI interface  
+**Purpose**: Browser-native AI interface
 **By**: Google + Microsoft (Feb 2026) → W3C Standard
 
 **Key Features**:
@@ -334,5 +334,5 @@ curl https://arifosmcp.arif-fazil.com/webmcp/tools.json
 
 *Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]*
 
-**Version**: 2026.03.14-VALIDATED  
+**Version**: 2026.03.14-VALIDATED
 **Protocols**: MCP ✅ | A2A ✅ | WebMCP ✅

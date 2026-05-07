@@ -5,7 +5,7 @@
 > **Doctrine:** DITEMPA BUKAN DIBERI
 
 ## 1. Architectural Pivot: The Canonical 13
-We have completed the "Surface Purge." The public MCP tool registry is now locked to exactly **13 capability tools**. 
+We have completed the "Surface Purge." The public MCP tool registry is now locked to exactly **13 capability tools**.
 
 **The Logic:**
 - **Capabilities** are public tools.

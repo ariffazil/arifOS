@@ -30,7 +30,7 @@ confidence: 0.96
 
 ## Definition
 
-The **Metabolic Pipeline** is the 9-stage thermodynamic execution path of arifOS (8 active processing stages + vault seal). It transforms raw, high-entropy user intent into "cooled," audited, and sealed intelligence. 
+The **Metabolic Pipeline** is the 9-stage thermodynamic execution path of arifOS (8 active processing stages + vault seal). It transforms raw, high-entropy user intent into "cooled," audited, and sealed intelligence.
 
 The pipeline supports two primary execution modes: **Sequence Mode** (Manual) and **Integrative Mode** (Auto-AGI).
 

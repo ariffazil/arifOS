@@ -1,6 +1,6 @@
 /**
  * GEOX GUI Types — DITEMPA BUKAN DIBERI
- * 
+ *
  * TypeScript type definitions for the GEOX Geologist GUI.
  */
 
@@ -415,12 +415,12 @@ export interface GEOXState {
 // UI Bridge Event Types (JSON-RPC)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type GeoxMethod = 
-  | 'app.initialize' 
-  | 'app.context.patch' 
-  | 'ui.action' 
-  | 'ui.state.sync' 
-  | 'tool.request' 
+export type GeoxMethod =
+  | 'app.initialize'
+  | 'app.context.patch'
+  | 'ui.action'
+  | 'ui.state.sync'
+  | 'tool.request'
   | 'tool.response';
 
 export interface GeoxEvent<T = any> {
@@ -467,7 +467,7 @@ export interface ToolResponseParams {
   error?: string;
 }
 
-export type GEOXAction = 
+export type GEOXAction =
   | { type: 'SET_ACTIVE_TAB'; payload: Tab }
   | { type: 'SET_VIEW_MODE'; payload: ViewMode }
   | { type: 'SELECT_COORDINATE'; payload: Coordinate | null }

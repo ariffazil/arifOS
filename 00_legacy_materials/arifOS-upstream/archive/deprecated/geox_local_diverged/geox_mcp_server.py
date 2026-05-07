@@ -31,6 +31,7 @@ agent = HardenedGeoxAgent(session_id="GEOX_PRODUCTION_SOVEREIGN")
 # Create MCP Server
 app = Server("geox-hardened")
 
+
 @app.list_tools()
 async def list_tools() -> list[Tool]:
     """Expose registered geological tools."""
@@ -39,20 +40,25 @@ async def list_tools() -> list[Tool]:
     for name, tool_instance in agent.registry._tools.items():
         # Attempt to get schema from tool metadata if it exists
         # Falling back to generic schema for now
-        tools.append(Tool(
-            name=name,
-            description=tool_instance.description,
-            inputSchema={"type": "object", "properties": {}}
-        ))
+        tools.append(
+            Tool(
+                name=name,
+                description=tool_instance.description,
+                inputSchema={"type": "object", "properties": {}},
+            )
+        )
 
     # Add Foundation Health Tool
-    tools.append(Tool(
-        name="geox_health",
-        description="Check GEOX foundation alignment and constitutional health.",
-        inputSchema={"type": "object", "properties": {}}
-    ))
+    tools.append(
+        Tool(
+            name="geox_health",
+            description="Check GEOX foundation alignment and constitutional health.",
+            inputSchema={"type": "object", "properties": {}},
+        )
+    )
 
     return tools
+
 
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
@@ -77,14 +83,12 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
     return [TextContent(type="text", text=text)]
 
+
 async def main():
     logger.info("Starting sovereign GEOX MCP server...")
     async with stdio_server() as (read_stream, write_stream):
-        await app.run(
-            read_stream,
-            write_stream,
-            app.create_initialization_options()
-        )
+        await app.run(read_stream, write_stream, app.create_initialization_options())
+
 
 if __name__ == "__main__":
     asyncio.run(main())

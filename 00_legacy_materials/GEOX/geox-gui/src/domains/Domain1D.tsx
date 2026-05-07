@@ -29,13 +29,13 @@ export const Domain1D: React.FC = () => {
   const syntheticLogs = Array.from({ length: depthPoints }, (_, i) => {
     let gr, resDeep, resShal, den, neu;
     const noise = () => (Math.random() - 0.5) * 0.1;
-    
+
     if (i >= 40 && i < 60) {
       gr = 30 + noise() * 50;
       resDeep = 200 + noise() * 500;
       resShal = 180 + noise() * 400;
-      den = 2.05 + noise() * 0.1; 
-      neu = 0.12 + noise() * 0.05; 
+      den = 2.05 + noise() * 0.1;
+      neu = 0.12 + noise() * 0.05;
     } else if (i >= 60 && i < 80) {
       gr = 35 + noise() * 50;
       resDeep = 2 + noise() * 5;
@@ -56,8 +56,8 @@ export const Domain1D: React.FC = () => {
     return syntheticLogs.map((p, i) => {
       const y = (i / (depthPoints - 1)) * trackHeight;
       const val = p[dataKey] as number;
-      let x = isLog 
-        ? ((Math.log10(val) - Math.log10(minX)) / (Math.log10(maxX) - Math.log10(minX))) * trackWidth 
+      let x = isLog
+        ? ((Math.log10(val) - Math.log10(minX)) / (Math.log10(maxX) - Math.log10(minX))) * trackWidth
         : ((val - minX) / (maxX - minX)) * trackWidth;
       x = Math.max(0, Math.min(trackWidth, x));
       return `${x},${y}`;
@@ -95,9 +95,9 @@ export const Domain1D: React.FC = () => {
     await interpretTool.call({ domain: 'dim1', user_query: 'Phase tie analysis' });
   };
 
-  const simulateCalibration = () => { 
-    setIsCalibrating(true); 
-    setTimeout(() => { setIsCalibrating(false); setCalibrated(true); }, 1500); 
+  const simulateCalibration = () => {
+    setIsCalibrating(true);
+    setTimeout(() => { setIsCalibrating(false); setCalibrated(true); }, 1500);
   };
 
   const isBlocked = interpretTool.data?.includes('HOLD');
@@ -117,11 +117,11 @@ export const Domain1D: React.FC = () => {
           <Badge color="emerald">F2: TRUTH</Badge>
         </div>
       </div>
-      
+
       <div className="flex-1 flex gap-4 overflow-hidden relative">
         <div className={`flex-1 glass-panel p-2 flex gap-1 relative h-full ${isCalibrating ? 'gcp-active' : ''}`}>
           <div className="scanline" />
-          
+
           <div className="flex-1 border-r border-gray-800 flex flex-col">
              <div className="h-12 border-b border-gray-800 flex flex-col justify-between p-1 bg-black/40">
                 <div className="text-[10px] font-mono text-center text-green-500 font-bold">GR (API)</div>
@@ -133,7 +133,7 @@ export const Domain1D: React.FC = () => {
                 </svg>
              </div>
           </div>
-          
+
           <div className="w-16 border-r border-gray-800 flex flex-col bg-gray-900/80 z-10 shadow-lg">
              <div className="h-12 border-b border-gray-800 flex flex-col justify-center items-center bg-black/40 gap-1">
                 <div className="flex flex-col text-[9px] font-mono text-gray-400 items-center"><Ruler size={12} className="text-cyan-500 mb-1"/> MD(m)</div>
@@ -143,7 +143,7 @@ export const Domain1D: React.FC = () => {
                 {[...Array(13)].map((_, i) => <div key={i} className="px-1"><span className={calibrated ? "text-cyan-500 font-bold" : "text-gray-600"}>{calibrated ? 1500 + i * 10 : '----'}</span></div>)}
              </div>
           </div>
-          
+
           <div className="flex-1 border-r border-gray-800 flex flex-col">
              <div className="h-12 border-b border-gray-800 flex flex-col justify-between p-1 bg-black/40">
                 <div className="text-[10px] font-mono text-center text-red-500 font-bold">RES (Ωm)</div>
@@ -174,28 +174,28 @@ export const Domain1D: React.FC = () => {
           <div className="text-xs font-mono text-gray-500 border-b border-gray-800 pb-2 flex justify-between items-center">
             SCALE INTELLIGENCE <ScanFace className="w-4 h-4 text-cyan-500" />
           </div>
-          <button 
-            onClick={simulateCalibration} 
-            disabled={isCalibrating || calibrated} 
+          <button
+            onClick={simulateCalibration}
+            disabled={isCalibrating || calibrated}
             className={`w-full py-2 border text-[10px] font-mono uppercase flex justify-center items-center gap-2 ${
               calibrated ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-gray-800/50 border-gray-700 text-gray-400'
             }`}
           >
             {isCalibrating ? 'EXTRACTING...' : calibrated ? 'GEOREFERENCED' : 'CALIBRATE'}
           </button>
-          
-          <button 
-            onClick={handleAutoInterpret} 
-            disabled={interpretTool.status === 'loading' || !calibrated} 
+
+          <button
+            onClick={handleAutoInterpret}
+            disabled={interpretTool.status === 'loading' || !calibrated}
             className="w-full py-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[10px] font-mono uppercase flex justify-center items-center gap-2"
           >
             {interpretTool.status === 'loading' ? 'ANALYZING...' : '✨ SOVEREIGN INTERPRET'}
           </button>
-          
+
           {interpretTool.data && (
             <div className={`mt-2 p-3 border font-mono text-[11px] leading-relaxed ${isBlocked ? 'border-red-500/30 bg-red-500/5 text-red-200' : 'border-purple-500/30 bg-purple-500/5 text-purple-200'}`}>
               <div className="text-[9px] mb-2 flex items-center gap-2">
-                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />} 
+                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />}
                 {isBlocked ? '888_JUDGE HOLD' : 'INTERPRETATION'}
               </div>
               <pre className="whitespace-pre-wrap">{interpretTool.data}</pre>

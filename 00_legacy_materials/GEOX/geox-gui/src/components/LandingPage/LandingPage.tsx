@@ -50,7 +50,7 @@ const Hero: React.FC<{ onEnterCockpit: () => void }> = ({ onEnterCockpit }) => {
         </h1>
 
         <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Physics9 Intelligence Core. Seven essential tools. Seven dimensions. 
+          Physics9 Intelligence Core. Seven essential tools. Seven dimensions.
           Constitutional governance F1-F13. Theory of Anomalous Contrast (ToAC) at the center.
         </p>
 
@@ -190,7 +190,7 @@ const WorkspacesSection: React.FC = () => (
       <div className="text-center mb-16">
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Seven Sovereign Dimensions</h2>
         <p className="text-slate-400 max-w-2xl mx-auto">
-          Deterministic subsurface dimensions that reside inside MCP hosts or standalone cockpits. 
+          Deterministic subsurface dimensions that reside inside MCP hosts or standalone cockpits.
           Each dimension routes through AC_Risk for constitutional governance.
         </p>
       </div>
@@ -230,7 +230,7 @@ const WorkspacesSection: React.FC = () => (
               </div>
             </div>
             <p className="text-slate-400 mb-4 text-sm leading-relaxed">
-              Browser apps that also speak MCP, acting as both UI and server client. 
+              Browser apps that also speak MCP, acting as both UI and server client.
               Use WebMCP to plug GEOX tools into other systems or drive GEOX from external AI.
             </p>
           </div>
@@ -251,7 +251,7 @@ const WorkspacesSection: React.FC = () => (
 
 const PlatformSection: React.FC = () => {
   const metaLinks = useGEOXStore((state) => state.metaLinks);
-  
+
   return (
     <section className="py-20 px-6 bg-slate-900 border-y border-slate-800">
       <div className="max-w-6xl mx-auto">
@@ -272,7 +272,7 @@ const PlatformSection: React.FC = () => {
               <h4 className="font-bold text-white mb-2">Interfaces</h4>
               <p className="text-xs text-slate-500">MCP Apps · Web Cockpit · Hybrid Bridge</p>
             </div>
-            
+
             <div className="relative">
               <div className="p-8 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-center relative z-10">
                 <CpuIcon className="w-8 h-8 text-blue-400 mx-auto mb-4" />
@@ -281,7 +281,7 @@ const PlatformSection: React.FC = () => {
               </div>
               <div className="absolute top-1/2 left-0 w-full h-px bg-blue-500/20 -translate-y-1/2 hidden md:block" />
             </div>
-            
+
             <div className="text-center p-6 rounded-2xl bg-slate-900 border border-slate-800">
               <Database className="w-6 h-6 text-slate-400 mx-auto mb-4" />
               <h4 className="font-bold text-white mb-2">Data Fabric</h4>
@@ -325,7 +325,7 @@ const PlatformSection: React.FC = () => {
   );
 };
 
-const PlatformCard: React.FC<{ icon: any, title: string, description: string, link: string, href: string }> = 
+const PlatformCard: React.FC<{ icon: any, title: string, description: string, link: string, href: string }> =
 ({ icon: Icon, title, description, link, href }) => (
   <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800 hover:border-slate-700 transition-colors">
     <div className="flex items-center gap-3 mb-3">
@@ -335,8 +335,8 @@ const PlatformCard: React.FC<{ icon: any, title: string, description: string, li
       <h3 className="font-bold text-white">{title}</h3>
     </div>
     <p className="text-sm text-slate-400 mb-4 leading-relaxed">{description}</p>
-    <a 
-      href={href} 
+    <a
+      href={href}
       target={href !== '#' ? "_blank" : undefined}
       rel={href !== '#' ? "noopener noreferrer" : undefined}
       className="inline-flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest"
@@ -418,8 +418,8 @@ const EvidenceSection: React.FC = () => (
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Proven in the Malay Basin</h2>
           <p className="text-slate-400 mb-6 leading-relaxed">
-            GEOX is currently piloted on Malay Basin exploration data. 
-            The basin has produced 12+ billion barrels of oil equivalent across 
+            GEOX is currently piloted on Malay Basin exploration data.
+            The basin has produced 12+ billion barrels of oil equivalent across
             142 discovered fields.
           </p>
           <div className="grid grid-cols-2 gap-4">

@@ -202,7 +202,10 @@ class JudgmentKernel:
             min(
                 0.99,
                 (
-                    sum((g.get("relevance", 0.9) if isinstance(g, dict) else 0.9) for g in (grounding or []))
+                    sum(
+                        (g.get("relevance", 0.9) if isinstance(g, dict) else 0.9)
+                        for g in (grounding or [])
+                    )
                     / max(1, len(grounding or []))
                 )
                 - (safety_omega * 0.1),

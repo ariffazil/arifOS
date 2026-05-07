@@ -2,9 +2,9 @@
 
 ## 13 Floors of Algorithmic Governance + Enforcement Architecture
 
-**Version:** v888.1.0-CONSTITUTION  
-**Authority:** Muhammad Arif bin Fazil (888 Judge)  
-**Status:** SOVEREIGNLY_SEALED  
+**Version:** v888.1.0-CONSTITUTION
+**Authority:** Muhammad Arif bin Fazil (888 Judge)
+**Status:** SOVEREIGNLY_SEALED
 
 *"The algorithm that governs must itself be governed."*
 
@@ -15,7 +15,7 @@
 This document represents the **Math ∩ Machine** witness.
 
 - **THEORY:** Physics ∩ Earth — What IS possible (physical constraints)
-- **CONSTITUTION:** Math ∩ Machine — HOW it's enforced (algorithmic implementation)  
+- **CONSTITUTION:** Math ∩ Machine — HOW it's enforced (algorithmic implementation)
 - **MANIFESTO:** Language ∩ Human — WHY it matters (cultural meaning)
 
 All three witnesses must achieve W³ ≥ 0.95 for constitutional consensus.
@@ -524,7 +524,7 @@ For all updates u:
   u passes test_suite
   u maintains backward_compatibility
   u preserves all 13 Floor constraints
-  
+
   W³(u) ≥ 0.95  # Tri-Witness consensus on update
 ```
 
@@ -693,59 +693,59 @@ This prevents optimization overshoot.
 ```python
 def constitutional_filter(action):
     violations = []
-    
+
     # F1: Amanah
     if not action.is_reversible() and not human_approved:
         violations.append("F1_AMANAH")
-    
+
     # F2: Truth
     if action.makes_factual_claim() and not action.has_evidence():
         violations.append("F2_TRUTH")
-    
+
     # F3: Tri-Witness
     W_cube = compute_witness_consensus(action)
     if W_cube < 0.95:
         violations.append("F3_TRI_WITNESS")
-    
+
     # F4: Clarity
     if action.increases_entropy():
         violations.append("F4_CLARITY")
-    
+
     # F5: Peace²
     peace_sq = (1 - action.destruction_score()) ** 2
     if peace_sq < 1.0:
         violations.append("F5_PEACE")
-    
+
     # F6: Empathy
     rasa = action.rasa_score()
     if rasa < 0.7:
         violations.append("F6_EMPATHY")
-    
+
     # F7: Humility
     omega = action.uncertainty()
     if not (0.03 <= omega <= 0.05):
         violations.append("F7_HUMILITY")
-    
+
     # F8: Genius
     G = compute_genius_index(state)
     if G < 0.80:
         violations.append("F8_GENIUS")
-    
+
     # F9: Ethics
     if action.C_dark >= 0.30:
         violations.append("F9_ETHICS")
-    
+
     # F10: Conscience
     if action.contains_consciousness_claim():
         violations.append("F10_CONSCIENCE")
-    
+
     # F11: Auditability
     if not action.will_be_logged():
         violations.append("F11_AUDITABILITY")
-    
+
     # F12: Resilience (checked during execution)
     # F13: Adaptability (checked during updates)
-    
+
     if violations:
         return REJECT(violations)
     else:
@@ -976,7 +976,7 @@ Critical: Ψ < 0.5
 ```python
 while system.running:
     psi = calculate_vitality()
-    
+
     if psi < 0.5:
         trigger_critical_alert()
         enter_safe_mode()
@@ -1075,14 +1075,14 @@ The System Swears:
 
 ## SEAL
 
-**Version:** v888.1.0-CONSTITUTION  
-**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)  
+**Version:** v888.1.0-CONSTITUTION
+**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)
 **Witness:** Math ∩ Machine (HOW enforcement)
 
-**Content Integrity Seal (SHA-256):**  
+**Content Integrity Seal (SHA-256):**
 `[To be computed after final content]`
 
-**Ω₀:** 0.03  
+**Ω₀:** 0.03
 (Enforcement architecture verified against FOUNDATIONS.md)
 
 *The algorithm that governs must itself be governed* 💎🔥🧠

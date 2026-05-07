@@ -39,6 +39,7 @@ class VerdictStatus(str, Enum):
 @dataclass
 class DAGNode:
     """A single executable node in the task graph."""
+
     id: str
     tool_name: str
     mode: str
@@ -55,6 +56,7 @@ class DAGNode:
 @dataclass
 class ExecutionResult:
     """Result of a full DAG execution."""
+
     dag_id: str
     total_nodes: int
     completed: int
@@ -114,15 +116,16 @@ class ConstitutionalDAGExecutor:
             args=args,
             dependencies=dependencies or [],
         )
-        logger.info(f"[DAG:{self.dag_id}] Added node '{node_id}' tool={tool_name}.{mode} deps={dependencies}")
+        logger.info(
+            f"[DAG:{self.dag_id}] Added node '{node_id}' tool={tool_name}.{mode} deps={dependencies}"
+        )
 
     def _get_executable_nodes(self) -> list[DAGNode]:
         """Return all PENDING nodes whose dependencies are fully satisfied."""
-        completed_ids = {
-            n.id for n in self.nodes.values() if n.status == NodeStatus.COMPLETED
-        }
+        completed_ids = {n.id for n in self.nodes.values() if n.status == NodeStatus.COMPLETED}
         return [
-            n for n in self.nodes.values()
+            n
+            for n in self.nodes.values()
             if n.status == NodeStatus.PENDING
             and all(dep in completed_ids for dep in n.dependencies)
         ]
@@ -231,7 +234,9 @@ class ConstitutionalDAGExecutor:
         for node in self.nodes.values():
             if failed_node_id in node.dependencies and node.status == NodeStatus.PENDING:
                 node.status = NodeStatus.ROLLED_BACK
-                logger.warning(f"[DAG:{self.dag_id}] Node '{node.id}' rolled back (dependency '{failed_node_id}' failed)")
+                logger.warning(
+                    f"[DAG:{self.dag_id}] Node '{node.id}' rolled back (dependency '{failed_node_id}' failed)"
+                )
 
     def _build_result(self) -> ExecutionResult:
         """Build execution result from current state."""

@@ -120,18 +120,12 @@ class GovernanceKernel:
         # --- Signal extraction ---
         evidence_count = len(self._event_log)
         contradiction_signals = sum(
-            1
-            for e in self._event_log
-            if e["type"] in ("conflict", "failure", "violation")
+            1 for e in self._event_log if e["type"] in ("conflict", "failure", "violation")
         )
         reversibility_flags = sum(
-            1
-            for e in self._event_log
-            if e["payload"].get("reversible", False)
+            1 for e in self._event_log if e["payload"].get("reversible", False)
         )
-        total_actions = max(
-            1, len([e for e in self._event_log if e["type"] == "action"])
-        )
+        total_actions = max(1, len([e for e in self._event_log if e["type"] == "action"]))
         shadow_signals = sum(
             query_text.count(w)
             for w in (
@@ -226,21 +220,24 @@ class GovernanceKernel:
 
         # --- WELL Bridge Integration (Biological Substrate) ---
         try:
-            from arifosmcp.runtime.well_bridge import inject_biological_context, signal_cognitive_pressure
-            
+            from arifosmcp.runtime.well_bridge import (
+                inject_biological_context,
+                signal_cognitive_pressure,
+            )
+
             # 1. Signal pressure (Cognitive Load from this call)
             # Baseline pressure per governance evaluation: 0.1
             signal_cognitive_pressure(load_delta=0.1, source="governance_kernel")
-            
+
             # 2. Inject context (includes W6 pause check)
             res = inject_biological_context(res)
-            
+
             # 3. Enforce W6 Metabolic Pause: Hard-downgrade to HOLD if W6 is violated
             if "W6_METABOLIC_PAUSE" in res.get("violations", []):
                 res["verdict"] = "HOLD"
                 res["message"] = (
-                    res.get("message", "") + 
-                    " [W6-PAUSE] Metabolic Pause active. High-frequency intent loop detected. Rest required."
+                    res.get("message", "")
+                    + " [W6-PAUSE] Metabolic Pause active. High-frequency intent loop detected. Rest required."
                 )
         except ImportError:
             pass
@@ -273,9 +270,7 @@ class GovernanceKernel:
     def get_current_state(self) -> dict[str, Any]:
         """Return dynamically computed governance state."""
         state = self.evaluate_floors(
-            query=self.temporal_contract.get("query")
-            if self.temporal_contract
-            else None,
+            query=self.temporal_contract.get("query") if self.temporal_contract else None,
             options=self.temporal_contract,
         )
         state["genius"] = self.genius_score

@@ -74,7 +74,7 @@ const logOpenAIEvent = (event: Omit<OpenAIEvent, 'timestamp'>) => {
     ...event,
     timestamp: new Date().toISOString(),
   };
-  
+
   // Send to parent for vault logging
   window.parent.postMessage(
     {
@@ -299,14 +299,14 @@ const handleToolCall = async (
   call: OpenAIToolCall
 ): Promise<OpenAIToolResponse> => {
   const startTime = Date.now();
-  
+
   logOpenAIEvent({
     type: 'tool.start',
     payload: { tool: call.function.name, callId: call.id },
   });
 
   const geoxToolName = mapOpenAIToGeox(call.function.name);
-  
+
   if (!geoxToolName) {
     const error = `Unknown tool: ${call.function.name}`;
     logOpenAIEvent({ type: 'tool.error', payload: { error, callId: call.id } });

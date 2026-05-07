@@ -7,7 +7,7 @@ Every HTTP request passes through the 000→999 metabolic loop.
 
 Usage:
     from arifosmcp.runtime.webmcp import WebMCPGateway
-    
+
     gateway = WebMCPGateway(mcp_server)
     app = gateway.app  # FastAPI app with web routes
 

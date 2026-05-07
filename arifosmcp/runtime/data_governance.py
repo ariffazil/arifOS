@@ -518,14 +518,12 @@ class DataGovernanceEnforcer:
             reasons["F01"] = "F01 AMANAH: No named custodian for this asset"
 
         # ── F2 TRUTH: Source must be verified before ingestion ──────────────
-        source_trust = 0.0
         if source_verification:
             if source_verification.verification_method == "unverified":
                 failed_floors.append("F02")
                 reasons["F02"] = "F02 TRUTH: Source is unverified — hold for manual confirmation"
-                source_trust = 0.0
             else:
-                source_trust = source_verification.trust_score
+                pass
         else:
             # No source provided — conservative hold
             failed_floors.append("F02")
@@ -548,7 +546,6 @@ class DataGovernanceEnforcer:
                 reasons["F03"] = f"F03 WITNESS: Passed with {witness_bundle.witness_count} sources"
 
         # ── F4 CLARITY: Contract/schema must be present for reusable assets ──
-        contract_passed = True
         if contract is not None:
             for req_field in contract.required_fields:
                 if req_field not in sanitized:
@@ -556,7 +553,6 @@ class DataGovernanceEnforcer:
                     reasons["F04"] = (
                         f"F04 CLARITY: Required field '{req_field}' missing from ingestion"
                     )
-                    contract_passed = False
         # No contract is acceptable for ad-hoc assets (pass)
 
         # ── F5 PEACE: Mask sensitive fields at ingestion ────────────────────

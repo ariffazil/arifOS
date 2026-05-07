@@ -165,9 +165,11 @@ def build_human_view(
                 "status": "✅ SAFE TO PROCEED" if is_safe else "⚠️ PROCEED WITH CAUTION",
                 "verdict": verdict,
                 "confidence": "High" if is_safe else "Moderate",
-                "one_liner": "All constitutional floors passed. Truth verified. Care confirmed. Reality aligned."
-                if is_safe
-                else "Some floors missed thresholds. Proceed conditionally.",
+                "one_liner": (
+                    "All constitutional floors passed. Truth verified. Care confirmed. Reality aligned."
+                    if is_safe
+                    else "Some floors missed thresholds. Proceed conditionally."
+                ),
             },
             "checks": checks,
             "warnings": warnings,

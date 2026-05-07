@@ -24,7 +24,7 @@
       line-height: 1.8;
       overflow-x: auto;
     }
-    
+
     .arch-box {
       border: 1px solid var(--border-hover);
       border-radius: var(--radius-md);
@@ -33,22 +33,22 @@
       text-align: center;
       min-width: 120px;
     }
-    
+
     .arch-box.primary {
       border-color: var(--color-apps);
       background: var(--color-apps-dim);
     }
-    
+
     .arch-box.secondary {
       border-color: var(--color-agility);
       background: rgba(255, 210, 74, 0.05);
     }
-    
+
     .arch-box.storage {
       border-color: var(--color-human);
       background: rgba(255, 77, 79, 0.05);
     }
-    
+
     .arch-row {
       display: flex;
       align-items: center;
@@ -56,11 +56,11 @@
       gap: var(--space-6);
       margin: var(--space-4) 0;
     }
-    
+
     .arch-arrow {
       color: var(--text-dim);
     }
-    
+
     .arch-label {
       text-align: center;
       color: var(--text-muted);
@@ -159,7 +159,7 @@
     </div>
 
     <h2 id="vps-architecture">VPS Architecture</h2>
-    
+
     <p>
       For production deployments, we recommend the following VPS architecture:
     </p>
@@ -184,11 +184,11 @@
           <span style="color: var(--text-muted)">Persistent Disk</span>
         </div>
       </div>
-      
+
       <div class="arch-row">
         <span class="arch-arrow">↑</span>
       </div>
-      
+
       <div class="arch-row">
         <div class="arch-box" style="border-color: var(--color-success)">
           <strong>Nginx</strong><br>
@@ -196,11 +196,11 @@
           <span style="color: var(--text-muted)">TLS Termination</span>
         </div>
       </div>
-      
+
       <div class="arch-row">
         <span class="arch-arrow">↑</span>
       </div>
-      
+
       <div class="arch-row">
         <div style="color: var(--text-muted)">
           Internet ← MCP clients connect here
@@ -408,7 +408,7 @@ arifos_latency_seconds_bucket{le="1.0"} 1659</code></pre>
     <div class="callout callout-success">
       <div class="callout-title">Next Steps</div>
       <p>
-        Your arifOS MCP server is now ready for production! Check the 
+        Your arifOS MCP server is now ready for production! Check the
         <a href="integrations.html">integrations guide</a> to connect your MCP clients.
       </p>
     </div>

@@ -1,6 +1,6 @@
 # arifosmcp Code Coverage Report
-**Date:** 2026-03-14  
-**Total Tests Run:** 409 passed, 2 failed  
+**Date:** 2026-03-14
+**Total Tests Run:** 409 passed, 2 failed
 **Overall Coverage:** 49% (7,383 / 15,221 lines)
 
 ---
@@ -272,8 +272,8 @@
 
 ## Test Files Analysis
 
-**Total Test Files Found:** 50+  
-**Tests Passing:** 409  
+**Total Test Files Found:** 50+
+**Tests Passing:** 409
 **Tests Failing:** 2 (both due to missing Qdrant connection)
 
 **Strongest Test Coverage:**

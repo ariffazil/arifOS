@@ -13,7 +13,7 @@ export const ChronosHistory: React.FC = () => {
            </div>
            <h2 className="text-lg font-black text-white leading-none uppercase tracking-tighter italic">Active_Sequence_001</h2>
         </div>
-        
+
         {/* Playback Controls */}
         <div className="flex items-center gap-3 bg-slate-900/80 border border-slate-800 rounded-full px-4 py-1.5 shadow-xl shadow-blue-500/5">
            <button className="text-slate-500 hover:text-white transition-colors"><SkipBack className="w-4 h-4" /></button>
@@ -37,8 +37,8 @@ export const ChronosHistory: React.FC = () => {
          {/* Waveform / Activity Mock */}
          <div className="w-full max-w-2xl h-32 flex items-end gap-1 mb-8">
             {[...Array(40)].map((_, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="flex-1 bg-blue-500/20 rounded-t-sm hover:bg-blue-500/40 transition-all cursor-crosshair"
                 style={{ height: `${Math.random() * 100 + 10}%` }}
               />

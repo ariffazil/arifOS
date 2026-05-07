@@ -25,6 +25,7 @@ from typing import List
 @dataclass
 class AC_RiskResult:
     """Result of AC_Risk calculation."""
+
     ac_risk: float
     verdict: str
     explanation: str
@@ -41,19 +42,19 @@ def compute_ac_risk(
 ) -> AC_RiskResult:
     """
     Calculate Theory of Anomalous Contrast (ToAC) risk score.
-    
+
     Args:
         u_phys: Physical ambiguity [0.0, 1.0]
         transform_stack: List of applied transforms
         bias_scenario: Cognitive bias scenario
         custom_b_cog: Override B_cog value
-    
+
     Returns:
         AC_RiskResult with score, verdict, and explanation
     """
     # Validate inputs
     u_phys = max(0.0, min(1.0, u_phys))
-    
+
     # Calculate D_transform (display distortion factor)
     transform_risk_map = {
         "linear_scaling": 1.0,
@@ -66,12 +67,12 @@ def compute_ac_risk(
         "ai_segmentation": 1.40,
         "depth_conversion": 1.30,
     }
-    
+
     d_transform = 1.0
     for transform in transform_stack:
         d_transform *= transform_risk_map.get(transform, 1.25)
     d_transform = min(d_transform, 3.0)  # Cap at 3x
-    
+
     # Calculate B_cog (cognitive bias factor)
     bias_map = {
         "unaided_expert": 0.35,
@@ -82,15 +83,17 @@ def compute_ac_risk(
     }
     b_cog = custom_b_cog if custom_b_cog is not None else bias_map.get(bias_scenario, 0.42)
     b_cog = max(0.0, min(1.0, b_cog))
-    
+
     # Calculate AC_Risk
     ac_risk = u_phys * d_transform * b_cog
     ac_risk = max(0.0, min(1.0, ac_risk))
-    
+
     # Determine verdict
     if ac_risk < 0.15:
         verdict = "SEAL"
-        explanation = f"AC_Risk={ac_risk:.3f}: Low risk. Physical grounding strong. Proceed with standard QC."
+        explanation = (
+            f"AC_Risk={ac_risk:.3f}: Low risk. Physical grounding strong. Proceed with standard QC."
+        )
     elif ac_risk < 0.35:
         verdict = "QUALIFY"
         explanation = f"AC_Risk={ac_risk:.3f}: Moderate risk. Proceed with caveats. Document assumptions per F2 Truth."
@@ -100,7 +103,7 @@ def compute_ac_risk(
     else:
         verdict = "VOID"
         explanation = f"AC_Risk={ac_risk:.3f}: Critical risk. Interpretation unsafe. Acquire better data or ground-truth validation."
-    
+
     return AC_RiskResult(
         ac_risk=round(ac_risk, 4),
         verdict=verdict,

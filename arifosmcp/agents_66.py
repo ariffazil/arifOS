@@ -1317,7 +1317,7 @@ def _register_tool(
     output_model: type,
 ) -> None:
     """Register a single tool with FastMCP."""
-    tags_set = set(tags)
+    set(tags)
 
     @governed_tool
     async def governed_wrapped_handler(req: dict[str, Any]):

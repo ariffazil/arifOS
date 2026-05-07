@@ -1,9 +1,9 @@
 /**
  * GEOX UI Event Bus — Host-agnostic communication layer for GEOX Apps.
- * 
+ *
  * Implements the canonical event protocol over postMessage/JSON-RPC.
  * Works in both inline (iframe) and external (popup/window) modes.
- * 
+ *
  * DITEMPA BUKAN DIBERI
  */
 
@@ -20,29 +20,29 @@ export enum EventType {
   APP_INITIALIZE = 'app.initialize',
   APP_CONTEXT_PATCH = 'app.context.patch',
   APP_STATE_SYNC = 'app.state.sync',
-  
+
   // Tool interaction
   TOOL_REQUEST = 'tool.request',
   TOOL_RESULT = 'tool.result',
   TOOL_PROGRESS = 'tool.progress',
-  
+
   // UI interaction
   UI_ACTION = 'ui.action',
   UI_STATE_CHANGE = 'ui.state.change',
   UI_ERROR = 'ui.error',
-  
+
   // Auth
   AUTH_CHALLENGE = 'auth.challenge',
   AUTH_RESULT = 'auth.result',
   AUTH_REFRESH = 'auth.refresh',
-  
+
   // Host
   HOST_CAPABILITY_REPORT = 'host.capability.report',
   HOST_RESIZE = 'host.resize',
   HOST_FOCUS = 'host.focus',
   HOST_OPEN_EXTERNAL = 'host.open.external',
   HOST_CLOSE = 'host.close',
-  
+
   // Telemetry
   TELEMETRY_EMIT = 'telemetry.emit',
   TELEMETRY_FLUSH = 'telemetry.flush',
@@ -147,7 +147,7 @@ export type EventFilter = (event: GeoXEvent) => boolean;
 
 /**
  * GEOX Event Bus — Central communication hub for GEOX Apps.
- * 
+ *
  * Handles:
  * - Sending/receiving events via postMessage
  * - Event routing and filtering
@@ -167,7 +167,7 @@ export class GeoXEventBus {
 
   /**
    * Create a new event bus.
-   * 
+   *
    * @param targetWindow - Window to send messages to (parent for inline, opener for external)
    * @param targetOrigin - Expected origin of messages (for security)
    * @param traceId - Optional trace ID for distributed tracing
@@ -176,7 +176,7 @@ export class GeoXEventBus {
     this.targetWindow = targetWindow;
     this.targetOrigin = targetOrigin;
     this.traceId = traceId || this.generateTraceId();
-    
+
     this.setupMessageListener();
   }
 
@@ -220,7 +220,7 @@ export class GeoXEventBus {
     }
 
     const event = data as Partial<GeoXEvent>;
-    
+
     return (
       typeof event.type === 'string' &&
       typeof event.source === 'string' &&
@@ -312,14 +312,14 @@ export class GeoXEventBus {
 
   /**
    * Subscribe to events of a specific type.
-   * 
+   *
    * @param type - Event type to subscribe to, or '*' for all events
    * @param handler - Handler function
    * @returns Unsubscribe function
    */
   on<T = unknown>(type: EventType | '*', handler: EventHandler<T>): () => void {
     const eventType = type === '*' ? '*': type;
-    
+
     if (!this.handlers.has(eventType)) {
       this.handlers.set(eventType, new Set());
     }
@@ -335,7 +335,7 @@ export class GeoXEventBus {
 
   /**
    * Subscribe to a single event of a specific type.
-   * 
+   *
    * @param type - Event type to wait for
    * @param timeoutMs - Optional timeout in milliseconds
    * @returns Promise that resolves with the event
@@ -358,7 +358,7 @@ export class GeoXEventBus {
 
   /**
    * Send a tool request and wait for the result.
-   * 
+   *
    * @param tool - Tool name
    * @param args - Tool arguments
    * @param timeoutMs - Timeout in milliseconds
@@ -464,7 +464,7 @@ export class GeoXEventBus {
 
 /**
  * Host-side event bus for embedding GEOX Apps.
- * 
+ *
  * Used by hosts (Copilot, Claude, etc.) to communicate with embedded apps.
  */
 export class GeoXHostBus {
@@ -481,7 +481,7 @@ export class GeoXHostBus {
    */
   attach(iframe: HTMLIFrameElement): GeoXEventBus {
     this.iframe = iframe;
-    
+
     if (!iframe.contentWindow) {
       throw new Error('Iframe content window not available');
     }
@@ -552,7 +552,7 @@ export class GeoXHostBus {
 
 /**
  * Create an event bus for an inline (iframe) app.
- * 
+ *
  * @param hostOrigin - Origin of the host window
  * @returns GeoXEventBus instance
  */
@@ -562,7 +562,7 @@ export function createInlineBus(hostOrigin: string = '*'): GeoXEventBus {
 
 /**
  * Create an event bus for an external (popup) app.
- * 
+ *
  * @param opener - Opener window
  * @param hostOrigin - Origin of the host
  * @returns GeoXEventBus instance
@@ -573,7 +573,7 @@ export function createExternalBus(opener: Window, hostOrigin: string): GeoXEvent
 
 /**
  * Create a host bus for embedding apps.
- * 
+ *
  * @param appOrigin - Origin of the embedded app
  * @returns GeoXHostBus instance
  */

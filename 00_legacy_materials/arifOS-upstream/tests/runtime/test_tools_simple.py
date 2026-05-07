@@ -12,6 +12,7 @@ from unittest.mock import patch, AsyncMock
 def _mock_envelope(tool: str, ok: bool = True, stage: str = "000_INIT"):
     from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus
     from core.shared.types import Verdict
+
     return RuntimeEnvelope(
         ok=ok,
         tool=tool,
@@ -65,7 +66,9 @@ class TestArifosInit:
 
         handler = CANONICAL_TOOL_HANDLERS["arifos_init"]
 
-        with patch("arifosmcp.runtime.tools._mega_init_anchor", new_callable=AsyncMock) as mock_mega:
+        with patch(
+            "arifosmcp.runtime.tools._mega_init_anchor", new_callable=AsyncMock
+        ) as mock_mega:
             mock_mega.return_value = _mock_envelope("arifos_init", stage="000_INIT")
 
             result = await handler(actor_id="test", intent="test", risk_tier="medium")
@@ -360,7 +363,7 @@ class TestLegacyAliases:
 
         with patch("arifosmcp.runtime.tools.arifos_init") as mock_init:
             mock_init.return_value = AsyncMock()
-            result = await init_anchor(raw_input="test")
+            await init_anchor(raw_input="test")
             mock_init.assert_called_once()
 
     @pytest.mark.asyncio

@@ -84,9 +84,7 @@ def main() -> int:
         ok("registered tool count matches constitutional map")
 
     if constitutional_tools != 13 or probe_tools != 2 or total_tools != 15:
-        failures.append(
-            "tool partition mismatch: expected 15 total, 13 constitutional, 2 probes"
-        )
+        failures.append("tool partition mismatch: expected 15 total, 13 constitutional, 2 probes")
         fail(failures[-1])
     else:
         ok("tool partition is 15 total / 13 constitutional / 2 probes")

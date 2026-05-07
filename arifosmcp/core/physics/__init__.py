@@ -1,4 +1,5 @@
 """arifosmcp.core.physics — Thermodynamic physics module."""
+
 from __future__ import annotations
 
 from arifosmcp.core.physics.thermodynamics_hardened import (

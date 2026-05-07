@@ -267,5 +267,3 @@ The intelligence is you calling it (via Claude or any LLM). ArifOS wraps that in
 That's actually a very smart architectural decision. 🤔
 
 Arif — is the semantic backend intentionally offline, or is that a deployment gap you're still building out?
-
-

@@ -663,7 +663,7 @@
     <script>
         // State
         let history = [];
-        
+
         // Bias scenario mapping
         const biasMap = {
             'ai_vision_only': 0.42,
@@ -715,7 +715,7 @@
             // Get values
             const uphys = parseFloat(uphysSlider.value);
             const bCog = biasMap[biasSelect.value];
-            
+
             // Calculate D_transform
             let dTransform = 1.0;
             const activeTransforms = [];
@@ -800,7 +800,7 @@
 
         function updateHistory() {
             if (history.length === 0) return;
-            
+
             historyList.innerHTML = history.map(h => `
                 <div class="history-item">
                     <div class="verdict-dot ${h.verdict}"></div>

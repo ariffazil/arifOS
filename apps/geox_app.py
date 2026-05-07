@@ -44,16 +44,18 @@ geox_app = FastMCP("GeoxApp")
 if not hasattr(geox_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     geox_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
+
 @geox_app.tool(name="arifos_verify_location", tags={"hold", "internal", "geox"})
 async def verify_location(
     lat: Annotated[float, Field(description="Latitude in decimal degrees")],
-    lon: Annotated[float, Field(description="Longitude in decimal degrees")]
+    lon: Annotated[float, Field(description="Longitude in decimal degrees")],
 ) -> ToolResult:
     """
     Verify a geospatial location against the constitutional Earth Witness.
     """
     try:
         from core.organs import verify_geospatial
+
         res = verify_geospatial(lat, lon)
         return ToolResult(
             content=[
@@ -84,6 +86,7 @@ async def verify_location(
             meta={"is_error": True},
         )
 
+
 @geox_app.ui(title="@GEOX Earth Witness")
 def geox_map_surface() -> PrefabApp:
     """
@@ -96,19 +99,19 @@ def geox_map_surface() -> PrefabApp:
         "valid": False,
         "jurisdiction": "Unknown",
         "crs": "WGS84",
-        "verified": False
+        "verified": False,
     }
 
     on_verify = CallTool(
         verify_location,
-        args={"lat": 3.139, "lon": 101.686}, # Kuala Lumpur default
+        args={"lat": 3.139, "lon": 101.686},  # Kuala Lumpur default
         on_success=[
-            SetState("lat",          RESULT["lat"]),
-            SetState("lon",          RESULT["lon"]),
-            SetState("valid",        RESULT["valid"]),
+            SetState("lat", RESULT["lat"]),
+            SetState("lon", RESULT["lon"]),
+            SetState("valid", RESULT["valid"]),
             SetState("jurisdiction", RESULT["jurisdiction"]),
-            SetState("crs",          RESULT["crs"]),
-            SetState("verified",     True),
+            SetState("crs", RESULT["crs"]),
+            SetState("verified", True),
             ShowToast("Location verified by Earth Witness", variant="success"),
         ],
         on_error=ShowToast("Verification failed", variant="destructive"),
@@ -135,12 +138,8 @@ def geox_map_surface() -> PrefabApp:
                     with Column(gap=1):
                         Text("Verify Coordinate", css_class="font-semibold")
                         Muted("Ensure interpreted prospects are physically grounded")
-                    
-                    Button(
-                        "Verify (Kuala Lumpur)",
-                        on_click=on_verify,
-                        variant="default"
-                    )
+
+                    Button("Verify (Kuala Lumpur)", on_click=on_verify, variant="default")
 
         # ── Results ─────────────────────────────────────────────────────────
         with If(STATE["verified"]):
@@ -157,7 +156,7 @@ def geox_map_surface() -> PrefabApp:
                     with Row(gap=2, align="center"):
                         Badge(
                             STATE["valid"].then("VALID", "INVALID"),
-                            variant=STATE["valid"].then("success", "destructive")
+                            variant=STATE["valid"].then("success", "destructive"),
                         )
                         Text(STATE["jurisdiction"])
                     Muted(f"Coordinate Reference System: {STATE['crs']}", css_class="text-xs mt-2")
@@ -178,6 +177,7 @@ def geox_map_surface() -> PrefabApp:
         Muted("arifOS · @GEOX · Earth Witness Protocol", css_class="text-xs text-center")
 
     return PrefabApp(view=view, state=initial_state)
+
 
 def _register(mcp: FastMCP) -> None:
     """Mount GeoxApp onto the platform FastMCP server."""

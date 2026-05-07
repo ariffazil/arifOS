@@ -1,7 +1,7 @@
 # Orthogonal 33-Tool Matrix (3 × 11)
 
-> **Doctrine:** `Ω_ortho >= 0.95`  
-> **SEAL:** `999_SEAL_ALIVE`  
+> **Doctrine:** `Ω_ortho >= 0.95`
+> **SEAL:** `999_SEAL_ALIVE`
 > **Motto:** *Ditempa Bukan Diberi*
 
 ---
@@ -56,8 +56,8 @@ No two tools answer the same question at the same abstraction level. Cross-talk 
 
 ### Verdict Gates
 
-Only `arifos_judge` may emit terminal verdicts.  
-Only `arifos_vault` may persist to `VAULT999`.  
+Only `arifos_judge` may emit terminal verdicts.
+Only `arifos_vault` may persist to `VAULT999`.
 GEOX and WEALTH outputs are **advisory kernels**, not executable verdicts.
 
 ### Reversibility & F13 Sovereignty

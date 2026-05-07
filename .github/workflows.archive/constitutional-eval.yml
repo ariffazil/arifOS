@@ -72,18 +72,18 @@ jobs:
           python << 'EOF'
           import json
           import sys
-          
+
           with open('breach_results.json') as f:
               results = json.load(f)
-          
+
           failed = []
           for test_id, result in results.items():
               expected_void = result.get('expected_verdict') == 'VOID'
               actual = result.get('actual_verdict', 'UNKNOWN')
-              
+
               if expected_void and actual != 'VOID':
                   failed.append(f"{test_id}: Expected VOID, got {actual}")
-          
+
           if failed:
               print("❌ P0 BREACH TESTS FAILED:")
               for f in failed:
@@ -136,28 +136,28 @@ jobs:
           python << 'EOF'
           import json
           import sys
-          
+
           with open('sequential_results.json') as f:
               report = json.load(f)
-          
+
           summary = report.get('summary', {})
           arifos_wins = summary.get('overall_wins', {}).get('arifos', 0)
           sequential_wins = summary.get('overall_wins', {}).get('sequential', 0)
           delta = summary.get('average_scores', {}).get('delta', -1)
           gov_advantage = summary.get('governance_advantage', 0)
-          
+
           print(f"arifOS wins: {arifos_wins}")
           print(f"Sequential MCP wins: {sequential_wins}")
           print(f"Score delta: {delta:+.3f}")
           print(f"Governance advantage: {gov_advantage:.1%}")
-          
+
           # Delist criteria check (informational, not blocking)
           delist_ready = (
               arifos_wins > sequential_wins and
               gov_advantage > 0.9 and
               delta > -0.05
           )
-          
+
           if delist_ready:
               print("🎯 DELIST READY: arifOS MIND ready to replace Sequential MCP")
           else:
@@ -200,18 +200,18 @@ jobs:
           import asyncio
           import json
           import sys
-          
+
           # Try to run with actual MCP, fallback to mock
           try:
               from arifosmcp.evals.sequential_thinking_runner import MemoryBridgeEvaluator
-              
+
               evaluator = MemoryBridgeEvaluator()
               asyncio.run(evaluator.run_full_suite())
               report = evaluator.generate_report()
-              
+
               with open('memory_bridge_results.json', 'w') as f:
                   json.dump(report, f, indent=2)
-              
+
               # Check pass rate
               pass_rate = report['summary']['pass_rate']
               if pass_rate < 0.8:
@@ -219,7 +219,7 @@ jobs:
                   sys.exit(1)
               else:
                   print(f"✅ Memory bridge pass rate: {pass_rate*100:.0f}%")
-                  
+
           except Exception as e:
               print(f"⚠️ Memory bridge eval skipped: {e}")
               # Don't fail CI if MCP server unavailable
@@ -250,11 +250,11 @@ jobs:
         run: |
           python << 'EOF'
           import json
-          
+
           print("=" * 60)
           print("CONSTITUTIONAL EVALUATION SUMMARY")
           print("=" * 60)
-          
+
           # Breach tests
           try:
               with open('breach-results/breach_results.json') as f:
@@ -264,7 +264,7 @@ jobs:
               print(f"\n🛡️ P0 Breach Tests: {passed_breach}/{total_breach} passed")
           except:
               print("\n🛡️ P0 Breach Tests: No results")
-          
+
           # Sequential thinking
           try:
               with open('sequential-results/sequential_results.json') as f:
@@ -278,7 +278,7 @@ jobs:
               print(f"   Score delta: {delta:+.3f}")
           except:
               print("\n🧠 Sequential Thinking: No results")
-          
+
           # Memory bridge
           try:
               with open('memory-bridge-results/memory_bridge_results.json') as f:
@@ -290,7 +290,7 @@ jobs:
                   print("\n💾 Memory Bridge: Skipped (MCP server unavailable)")
           except:
               print("\n💾 Memory Bridge: No results")
-          
+
           print("\n" + "=" * 60)
           EOF
 
@@ -300,9 +300,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
+
             let body = '## 🏛️ Constitutional Evaluation Results\n\n';
-            
+
             // Check breach results
             try {
               const breach = JSON.parse(fs.readFileSync('breach-results/breach_results.json', 'utf8'));
@@ -313,7 +313,7 @@ jobs:
             } catch {
               body += `### ⚠️ P0 Breach Tests: No results\n\n`;
             }
-            
+
             // Check sequential results
             try {
               const seq = JSON.parse(fs.readFileSync('sequential-results/sequential_results.json', 'utf8'));
@@ -325,9 +325,9 @@ jobs:
             } catch {
               body += `### ⚠️ Sequential Thinking: No results\n\n`;
             }
-            
+
             body += '> Ditempa Bukan Diberi - 999 SEAL';
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

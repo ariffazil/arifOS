@@ -1,8 +1,8 @@
 # Subagent Handoff Protocol
 
-**Authority:** arifOS_bot  
-**Version:** 1.0  
-**Status:** ACTIVE  
+**Authority:** arifOS_bot
+**Version:** 1.0
+**Status:** ACTIVE
 
 ---
 
@@ -36,7 +36,7 @@ Clear statement of:
 
 ### 2. Workspace Root (inherited automatically)
 
-`cwd` is passed automatically to child sessions.  
+`cwd` is passed automatically to child sessions.
 Child reads and writes within the same workspace tree.
 
 ### 3. Constitutional Tags
@@ -47,7 +47,7 @@ Example: `floors_active: [F1, F2, F9]` — means the child must not make unverif
 
 ### 4. Relevant Context (minimal sufficient)
 
-Pass only what the child needs to do the job.  
+Pass only what the child needs to do the job.
 Do NOT pass:
 - Full session history
 - Sovereign's private communications
@@ -75,7 +75,7 @@ If the child encountered a situation requiring human sovereignty:
 
 ### 3. New Memory Artifacts
 
-Child writes session output to the workspace.  
+Child writes session output to the workspace.
 Parent is responsible for curating this into `memory/YYYY-MM-DD.md` and `MEMORY.md`.
 
 ---
@@ -189,5 +189,5 @@ Default: `mode=run, cleanup=delete`
 
 ---
 
-*Ditempa Bukan Diberi*  
+*Ditempa Bukan Diberi*
 arifOS_bot | arifOS v2026.04.19

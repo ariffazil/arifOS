@@ -27,9 +27,9 @@ confidence: 0.98
 
 # Open Questions & Ghosts
 
-> Living page — append items as they arise. Remove when resolved.  
-> **Ghost** = concept referenced across wiki but not yet defined as a page.  
-> **Blocker** = something external that must happen before progress.  
+> Living page — append items as they arise. Remove when resolved.
+> **Ghost** = concept referenced across wiki but not yet defined as a page.
+> **Blocker** = something external that must happen before progress.
 > **Unknown** = internally unresolved design question.
 
 ---

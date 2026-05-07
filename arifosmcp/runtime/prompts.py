@@ -1,6 +1,15 @@
 # Fix the runtime/prompts.py stub to have proper V2_PROMPT_SPECS
 
-CANONICAL_PROMPTS = ("system", "judge", "init", "rsi", "ortho", "epistemic", "governance", "entropy")
+CANONICAL_PROMPTS = (
+    "system",
+    "judge",
+    "init",
+    "rsi",
+    "ortho",
+    "epistemic",
+    "governance",
+    "entropy",
+)
 
 # Proper prompt specs that public_registry.py expects
 V2_PROMPT_SPECS = (
@@ -62,10 +71,13 @@ V2_PROMPT_SPECS = (
     },
 )
 
+
 def register_v2_prompts(mcp):
     """Stub — delegate to register_prompts."""
     from arifosmcp.prompts import register_prompts
+
     return register_prompts(mcp)
+
 
 def register_v2_tools(mcp, **kwargs):
     """Stub — use register_tools from runtime/tools.py instead."""

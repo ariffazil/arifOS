@@ -32,6 +32,7 @@ logger = logging.getLogger("geox.memory")
 # GeoMemoryEntry
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class GeoMemoryEntry:
     """
@@ -69,6 +70,7 @@ class GeoMemoryEntry:
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> GeoMemoryEntry:
         """Deserialise from dict."""
+
         def parse_dt(key: str) -> datetime | None:
             val = d.get(key)
             if isinstance(val, str):
@@ -96,6 +98,7 @@ class GeoMemoryEntry:
 # ---------------------------------------------------------------------------
 # GeoMemoryStore
 # ---------------------------------------------------------------------------
+
 
 class GeoMemoryStore:
     """
@@ -276,7 +279,7 @@ class GeoMemoryStore:
                 e_lon = loc_meta.get("longitude", loc_meta.get("lon"))
                 if e_lat is not None and e_lon is not None:
                     # Simple Euclidean distance squared for sorting
-                    dist_sq = (location.latitude - e_lat)**2 + (location.longitude - e_lon)**2
+                    dist_sq = (location.latitude - e_lat) ** 2 + (location.longitude - e_lon) ** 2
                     proximity_boost = 1.0 / (1.0 + dist_sq * 25.0)
                 elif not query_terms:
                     continue
@@ -284,25 +287,21 @@ class GeoMemoryStore:
             # Final composite score
             # Adjust weights: if location is provided, give it high weight
             if location and not query_terms:
-                score = (
-                    0.80 * proximity_boost +
-                    0.10 * recency_boost +
-                    0.10 * entry.confidence
-                )
+                score = 0.80 * proximity_boost + 0.10 * recency_boost + 0.10 * entry.confidence
             elif location:
                 score = (
-                    0.30 * keyword_score +
-                    0.10 * recency_boost +
-                    0.10 * entry.confidence +
-                    0.10 * (min(entry.access_count, 10) / 10.0) +
-                    0.40 * proximity_boost
+                    0.30 * keyword_score
+                    + 0.10 * recency_boost
+                    + 0.10 * entry.confidence
+                    + 0.10 * (min(entry.access_count, 10) / 10.0)
+                    + 0.40 * proximity_boost
                 )
             else:
                 score = (
-                    0.45 * keyword_score +
-                    0.20 * recency_boost +
-                    0.15 * entry.confidence +
-                    0.20 * (min(entry.access_count, 10) / 10.0)
+                    0.45 * keyword_score
+                    + 0.20 * recency_boost
+                    + 0.15 * entry.confidence
+                    + 0.20 * (min(entry.access_count, 10) / 10.0)
                 )
 
             if score > 0.1 and (query_terms or proximity_boost > 0.0):  # Threshold
@@ -337,10 +336,7 @@ class GeoMemoryStore:
         if self._qdrant is not None:
             return await self._qdrant_search(basin, basin=basin, location=None, limit=100)
 
-        entries = [
-            e for e in self._store.values()
-            if basin_lower in e.basin.lower()
-        ]
+        entries = [e for e in self._store.values() if basin_lower in e.basin.lower()]
         entries.sort(key=lambda e: e.timestamp)
         return entries
 
@@ -404,6 +400,7 @@ class GeoMemoryStore:
 
         try:
             from qdrant_client.models import PointStruct  # type: ignore
+
             point = PointStruct(
                 id=self.similarity_hash(entry.entry_id),
                 vector=entry.embedding_vector,
@@ -416,7 +413,8 @@ class GeoMemoryStore:
         except Exception as exc:
             logger.warning(
                 "Qdrant upsert failed for %s: %s. Falling back to in-memory.",
-                entry.entry_id, exc,
+                entry.entry_id,
+                exc,
             )
             self._store[entry.entry_id] = entry
 
@@ -465,7 +463,13 @@ class DualMemoryStore:
         """Sovereign store: log to legacy store + local audit."""
         return await self._legacy_store.store(response, request)
 
-    async def retrieve(self, query: str, basin: str | None = None, location: CoordinatePoint | None = None, limit: int = 5) -> list[GeoMemoryEntry]:
+    async def retrieve(
+        self,
+        query: str,
+        basin: str | None = None,
+        location: CoordinatePoint | None = None,
+        limit: int = 5,
+    ) -> list[GeoMemoryEntry]:
         """Sovereign retrieve: search legacy store."""
         return await self._legacy_store.retrieve(query, basin, location, limit)
 
@@ -476,10 +480,7 @@ class DualMemoryStore:
         return self._legacy_store.list_basins()
 
     async def query_dual(
-        self,
-        location: CoordinatePoint,
-        query_text: str = "",
-        top_k: int = 5
+        self, location: CoordinatePoint, query_text: str = "", top_k: int = 5
     ) -> dict[str, Any]:
         """
         Query the fused dual-memory system.
@@ -504,6 +505,7 @@ class DualMemoryStore:
 
         try:
             from arifosmcp.core.shared.physics import delta_S
+
             entropy_gain = delta_S(input_bits, output_bits)
         except ImportError:
             entropy_gain = len(output_bits) / (len(input_bits) + 1)
@@ -522,8 +524,8 @@ class DualMemoryStore:
             "governance": {
                 "entropy": round(entropy_gain, 4),
                 "timestamp": start_time.isoformat(),
-                "status": "SEALED" if entropy_gain <= 0.5 else "PARTIAL"
-            }
+                "status": "SEALED" if entropy_gain <= 0.5 else "PARTIAL",
+            },
         }
 
     async def _query_macrostrat(self, location: CoordinatePoint) -> list[dict[str, Any]]:
@@ -531,6 +533,7 @@ class DualMemoryStore:
         if not self._macrostrat:
             try:
                 from arifos.geox.tools.macrostrat_tool import MacrostratTool
+
                 self._macrostrat = MacrostratTool()
             except ImportError:
                 return [{"error": "MacrostratTool unavailable", "status": "VOID"}]
@@ -550,20 +553,24 @@ class DualMemoryStore:
 
         results = []
         for entry in legacy_entries:
-            results.append({
-                "type": "LEM_CONTEXT",
-                "similarity": 0.85,
-                "source": "MemoryStore",
-                "note": f"Previous insight: {entry.insight_text[:50]}..."
-            })
+            results.append(
+                {
+                    "type": "LEM_CONTEXT",
+                    "similarity": 0.85,
+                    "source": "MemoryStore",
+                    "note": f"Previous insight: {entry.insight_text[:50]}...",
+                }
+            )
 
         if not results:
-            results.append({
-                "type": "LEM_CONTEXT",
-                "similarity": 0.50,
-                "source": "LocalVectorStore",
-                "note": "F7: Falling back to local vector cache"
-            })
+            results.append(
+                {
+                    "type": "LEM_CONTEXT",
+                    "similarity": 0.50,
+                    "source": "LocalVectorStore",
+                    "note": "F7: Falling back to local vector cache",
+                }
+            )
         return results
 
     def _fuse_evidence(
@@ -572,18 +579,17 @@ class DualMemoryStore:
         """Weighted fusion of discrete facts and continuous semantics."""
         fused = []
         for d in discrete[:5]:
-            fused.append({
-                "entity": d.get("quantity_type"),
-                "weight": 0.6,
-                "confidence": d.get("provenance", {}).get("confidence", 0.8)
-            })
+            fused.append(
+                {
+                    "entity": d.get("quantity_type"),
+                    "weight": 0.6,
+                    "confidence": d.get("provenance", {}).get("confidence", 0.8),
+                }
+            )
         for c in continuous[:5]:
-            fused.append({
-                "context": c.get("note"),
-                "weight": 0.4,
-                "confidence": c.get("similarity", 0.5)
-            })
+            fused.append(
+                {"context": c.get("note"), "weight": 0.4, "confidence": c.get("similarity", 0.5)}
+            )
 
         fused.sort(key=lambda x: x.get("confidence", 0), reverse=True)
         return fused
-

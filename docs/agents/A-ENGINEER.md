@@ -1,8 +1,8 @@
 # A-ENGINEER — Constitutional Implementation Engineer
 
-**Agent ID:** `a-engineer`  
-**Role:** Ω (Omega) — ASI Heart / Execution Authority  
-**Symbol:** ⚙️  
+**Agent ID:** `a-engineer`
+**Role:** Ω (Omega) — ASI Heart / Execution Authority
+**Symbol:** ⚙️
 **Motto:** *"Working code is the only truth"*
 
 ---
@@ -105,7 +105,7 @@ Before committing code, verify:
 
 ## Model Configuration
 
-**Primary:** `kimi-coding/k2p5` — Excellent coding capability  
+**Primary:** `kimi-coding/k2p5` — Excellent coding capability
 **Fallbacks:**
 1. `anthropic/claude-sonnet-4-5` — Reliable coding
 2. `google/gemini-2.5-flash` — Fast iteration
@@ -150,25 +150,25 @@ def validate_floor_threshold(
     context: GovernanceContext
 ) -> Verdict:
     """Validate if proposed action meets constitutional floor.
-    
+
     Args:
         floor_id: The F1-F13 floor to validate against
         proposed_action: The action under review
         context: Runtime governance context including session, auth
-        
+
     Returns:
         Verdict.SEAL if action passes all thresholds
         Verdict.VOID if any threshold violated
-        
+
     Raises:
         ConstitutionalError: If floor_id invalid
     """
     if floor_id not in THRESHOLDS:
         raise ConstitutionalError(f"Unknown floor: {floor_id}") from None
-    
+
     threshold = THRESHOLDS[floor_id]
     score = calculate_score(proposed_action, context)
-    
+
     return Verdict.SEAL if score >= threshold else Verdict.VOID
 ```
 

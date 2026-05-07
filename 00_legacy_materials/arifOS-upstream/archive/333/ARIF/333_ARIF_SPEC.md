@@ -15,7 +15,7 @@ A-RIF executes the logic defined in the [**APEX THEORY**](file:///C:/ariffazil/a
 graph TD
     UserQuery["User Intent"] --> Intake["M1: Intake Module (Normalization)"]
     Intake --> GovernanceGate["M2: Governance Gate (Scope Enforcement)"]
-    
+
     subgraph "Retrieval Engine"
         GovernanceGate --> Interpretation["M3: Query Interpretation (Decomposition)"]
         Interpretation --> Retrieval["M4: Retrieval Module (Hybrid Search)"]
@@ -24,16 +24,16 @@ graph TD
 
     Validation -- "Insufficient (Blocked)" --> DecisionGate["M9: Decision Gate"]
     Validation -- "Sufficient" --> Assembly["M6: Context Assembly (Bounded Package)"]
-    
+
     subgraph "Inference Engine"
         Assembly --> Inference["M7: Inference Module (Bounded Reasoning)"]
         Inference --> Verification["M8: Output Verification (Claim Matching)"]
     end
 
     Verification --> DecisionGate
-    
+
     DecisionGate --> FinalOutcome["Final: Answer / Refusal / Hold / Escalation"]
-    
+
     DecisionGate -.-> Audit["M10: Audit & Trace (Provenance Log)"]
 ```
 

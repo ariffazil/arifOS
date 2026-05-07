@@ -3,6 +3,7 @@ arifosmcp/contracts/ — Legacy redirect.
 Canonical contracts are now at repository root: /contracts/
 This package is kept for import compatibility only.
 """
+
 from contracts import *  # noqa: F401,F403
 from contracts.artifacts import *  # noqa: F401,F403
 from contracts.continuity import *  # noqa: F401,F403

@@ -1,6 +1,6 @@
 # GEOX Site Map — Visual Reference
 
-> **Status:** 888 HOLD  
+> **Status:** 888 HOLD
 > **Purpose:** Quick reference for site structure
 
 ---

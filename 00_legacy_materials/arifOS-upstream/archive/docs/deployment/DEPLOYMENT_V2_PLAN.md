@@ -1,14 +1,14 @@
 # V2 Hardened Organs — Deployment Plan
-> **Status:** PHASE 0 — Bootstrap Repair  
-> **Authority:** 888_JUDGE  
+> **Status:** PHASE 0 — Bootstrap Repair
+> **Authority:** 888_JUDGE
 > **Classification:** CRITICAL PATH
 
 ---
 
 ## Root Cause: INIT_KERNEL_500
 
-**Fault:** `HARDENED_DISPATCH_MAP` was empty  
-**Effect:** `arifos.init` → `init_anchor` fails with kernel panic  
+**Fault:** `HARDENED_DISPATCH_MAP` was empty
+**Effect:** `arifos.init` → `init_anchor` fails with kernel panic
 **Fix:** Populate dispatch map with canonical aliases
 
 ---
@@ -316,8 +316,8 @@ curl -s http://localhost:8080/mcp/tools/call \
 
 ---
 
-**Current Status:** Phase 0 complete — bootstrap fixed  
-**Next Action:** Deploy compatibility layer  
+**Current Status:** Phase 0 complete — bootstrap fixed
+**Next Action:** Deploy compatibility layer
 **ETA to Production:** 14 days (with shadow validation)
 
 *DITEMPA BUKAN DIBERI* 🔥

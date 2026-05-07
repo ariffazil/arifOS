@@ -1,9 +1,9 @@
 # arifOS Release Notes v2026.04.06
 ## Clean Architecture + Docker + ChatGPT Apps SDK
 
-**Release Date:** 2026-04-06  
-**Version:** 2026.4.6  
-**Codename:** HORIZON-II.1-CLEAN  
+**Release Date:** 2026-04-06
+**Version:** 2026.4.6
+**Codename:** HORIZON-II.1-CLEAN
 **Build SHA:** 0bad3e1
 
 ---
@@ -16,7 +16,7 @@ Separated MCP primitives per the Model Context Protocol specification:
 **New Package:** `arifosmcp.specs/`
 - `contracts.py` — Shared JSON schemas (SessionAnchor, TelemetryEnvelope, VerdictRecord)
 - `tool_specs.py` — 11 canonical tools with functional names
-- `resource_specs.py` — 9 read-only resources  
+- `resource_specs.py` — 9 read-only resources
 - `prompt_specs.py` — 10 workflow prompt templates
 - `chatgpt_subset.py` — Apps SDK-safe adapter
 

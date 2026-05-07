@@ -13,7 +13,7 @@
 arifOS is LLM-agnostic and platform-agnostic by design. The question is **how** to surface that agnosticism. Four paths, ranked by Expected Monetary Value × Net Present Value:
 
 ### Path A — Tool `platform=` Mode Parameter *(Foundation Shipped — Dispatch Pending)*
-`platform: str` param added to all 10 tools (ff78faef). `_stamp_platform()` stamps context on every envelope.  
+`platform: str` param added to all 10 tools (ff78faef). `_stamp_platform()` stamps context on every envelope.
 **Remaining:** Literal type in tool_specs, output_formatter dispatch, ToolExecutionContext field.
 
 | | Value |
@@ -24,7 +24,7 @@ arifOS is LLM-agnostic and platform-agnostic by design. The question is **how** 
 | **Risk** | Low — additive change, no breaking surface |
 
 ### Path B — MCP Profile Gateway *(H2 2026)*
-Single `/mcp` endpoint with client-profile detection via header (`X-Arifos-Platform`).  
+Single `/mcp` endpoint with client-profile detection via header (`X-Arifos-Platform`).
 Each profile gates tool subset + output format + rate policy.
 
 | Profile | Tools exposed | Use case |
@@ -42,8 +42,8 @@ Each profile gates tool subset + output format + rate policy.
 | **Risk** | Medium — profile management infra needed |
 
 ### Path C — REST Constitutional API *(2027)*
-Expose arifOS judgment as standard REST endpoints ANY LLM can call via HTTP.  
-MCP becomes one transport, not the only one.  
+Expose arifOS judgment as standard REST endpoints ANY LLM can call via HTTP.
+MCP becomes one transport, not the only one.
 OpenAI custom actions, Anthropic tool use, and raw HTTP all point to the same API.
 
 ```
@@ -86,7 +86,7 @@ MID (1–4 months):   B      →  MCP Profile Gateway (clean architecture)
 LONG (4–12 months): C      →  REST Constitutional API (true platform agnosticism)
 ```
 
-**Total NPV trajectory:** $35k (A) + $40k (D) + $180k (B) + $600k (C) = **~$855k addressable over 24 months**  
+**Total NPV trajectory:** $35k (A) + $40k (D) + $180k (B) + $600k (C) = **~$855k addressable over 24 months**
 *Conservative estimates. Enterprise licensing (CaaS) would 3–5× the long-term figure.*
 
 ---
@@ -200,7 +200,7 @@ Markets pay for **IP, Revenue, and Lock-in**. However, arifOS targets **Civiliza
 
 The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability cone toward **$50M+** as it lands real-world institutional pilots.
 
-**Next Milestone:** Trinity Swarm v2.0 (Dec 2026)  
+**Next Milestone:** Trinity Swarm v2.0 (Dec 2026)
 *"Action without Law is Chaos. Law without Action is Calcification."*
 
 ---
@@ -227,12 +227,12 @@ The Body (arifosmcp) is currently a **~$5M USD kernel** with a wide probability 
 
 ## 🔥 EXECUTIVE VERDICT
 
-✅ Structural maturation — not cosmetic  
-✅ Governance-strengthening  
-✅ Institution-ready direction  
-✅ No negative drift detected  
+✅ Structural maturation — not cosmetic
+✅ Governance-strengthening
+✅ Institution-ready direction
+✅ No negative drift detected
 
-**Maturity band:** Advanced Research → Early Institutional Grade  
+**Maturity band:** Advanced Research → Early Institutional Grade
 **Target:** 95–97/100 readiness (Next phase: Governance Robustness)
 
 ---

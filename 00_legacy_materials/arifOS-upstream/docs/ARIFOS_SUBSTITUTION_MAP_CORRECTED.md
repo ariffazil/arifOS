@@ -1,15 +1,15 @@
 # arifOS MCP Substitution Map — CORRECTED
 ## Governance Consolidation, Not Tool Replacement
 
-**Epoch:** 2026-04-09  
-**Status:** Corrected against canonical README  
+**Epoch:** 2026-04-09
+**Status:** Corrected against canonical README
 **Motto:** *DITEMPA, BUKAN DIBERI* — Forged, Not Given [ΔΩΨ | ARIF]
 
 ---
 
 ## Critical Correction: "Governs" ≠ "Replaces"
 
-**Original (Incorrect):** arifOS "replaces" 10+ MCP servers  
+**Original (Incorrect):** arifOS "replaces" 10+ MCP servers
 **Corrected:** arifOS **governs and gates** the ecosystem — raw execution MCPs remain as substrate
 
 ### The Real Architecture

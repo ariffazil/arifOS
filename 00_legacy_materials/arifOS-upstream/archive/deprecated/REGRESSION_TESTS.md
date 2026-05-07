@@ -1,6 +1,6 @@
 # Constitutional GitOps Regression Test Specification
 
-**Version:** 2026.03.24  
+**Version:** 2026.03.24
 **Scope:** Validate F1-F13 enforcement across filesystem, local evaluation, and CI layers
 
 ---
@@ -240,7 +240,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: T-01: Low-risk docs
         run: |
           ./scripts/constitutional-gitops/arifos-worktree-add.sh ci docs-test
@@ -248,7 +248,7 @@ jobs:
           echo "# CI Test" >> README.md
           git add . && git commit -m "docs: ci test"
           ./arifos_f3_eval.py --worktree .
-      
+
       - name: T-04: Missing manifest
         run: |
           git worktree add ../ci-no-manifest -b feature/ci-test

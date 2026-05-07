@@ -26,9 +26,9 @@ confidence: 0.96
 
 # Philosophy Registry
 
-> **Version**: v1.2.0  
-> **Total Quotes**: 83 (core: 50, extended: 33)  
-> **Selection**: Deterministic  
+> **Version**: v1.2.0
+> **Total Quotes**: 83 (core: 50, extended: 33)
+> **Selection**: Deterministic
 > **Authority**: `arifosmcp/prompts.py`
 
 ---

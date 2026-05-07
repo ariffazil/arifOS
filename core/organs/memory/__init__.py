@@ -22,7 +22,7 @@ __all__ = [
     "MemoryOrgan",
     "get_memory_organ",
     "WorkingMemoryLane",
-    "EpisodicMemoryLane", 
+    "EpisodicMemoryLane",
     "SemanticMemoryLane",
     "ConstitutionalMemoryLane",
     "HybridRetrieval",

@@ -202,7 +202,7 @@ Coupling adds:
 ## Next Steps
 
 1. **Improve inversion**: MCMC or neural surrogate vs gradient descent
-2. **Add well-tie**: Real check-shot depth-time calibration  
+2. **Add well-tie**: Real check-shot depth-time calibration
 3. **Extend to 2D**: Line-based migration + tomography
 4. **Couple columns**: Lateral flow, stress, wave propagation
 

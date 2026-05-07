@@ -63,14 +63,19 @@ try:
 except ImportError:
     # Fallback/Shim if arifOS is genuinely missing (F9 Anti-Hantu warning)
     logger.warning("arifosmcp.core.shared.physics or governance not found. Using shims.")
+
     def delta_S(i: str, o: str) -> float:
         return 0.0
+
     def genius_score(**kwargs) -> float:
         return 0.0
+
     class HumilityShim:
         omega_0 = "UNKNOWN"
+
     def humility_band(c: float) -> Any:
         return HumilityShim()
+
     def get_governance_kernel(sid: str) -> Any:
         return None
 
@@ -85,10 +90,7 @@ class HardenedGeoxAgent:
         logger.info(f"HardenedGeoxAgent initialized [ID: {session_id}]")
 
     async def execute_tool(
-        self,
-        tool_name: str,
-        params: dict[str, Any],
-        context: dict[str, Any] | None = None
+        self, tool_name: str, params: dict[str, Any], context: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """Execute a geological tool with arifOS hardening."""
         start_time = datetime.now(timezone.utc)
@@ -101,7 +103,7 @@ class HardenedGeoxAgent:
                 "tool": tool_name,
                 "payload": {"error": f"Tool {tool_name} not found in GEOX registry."},
                 "verdict": "VOID",
-                "risk_tier": "low"
+                "risk_tier": "low",
             }
 
         # 2. Execution (The 'FORGE' step - Aligned with BaseTool.run)
@@ -127,7 +129,9 @@ class HardenedGeoxAgent:
         if self.kernel:
             # P0: Fix missing attribute error by calling the newly implemented method
             try:
-                self.kernel.apply_temporal_grounding({"latency_ms": (datetime.now(timezone.utc) - start_time).total_seconds() * 1000})
+                self.kernel.apply_temporal_grounding(
+                    {"latency_ms": (datetime.now(timezone.utc) - start_time).total_seconds() * 1000}
+                )
                 k_state = self.kernel.get_current_state()
                 indices = calculate_indices(k_state)
                 verdict_advice = get_verdict_advice(indices)
@@ -135,7 +139,9 @@ class HardenedGeoxAgent:
                 logger.error(f"Kernel sync failed: {k_err}")
 
         # 4. Genius Score Calculation (F8)
-        g = indices.get("apex_readiness", genius_score(A=0.9, P=1.0, X=1.0, E=1.0 if ds <= 0 else 0.8))
+        g = indices.get(
+            "apex_readiness", genius_score(A=0.9, P=1.0, X=1.0, E=1.0 if ds <= 0 else 0.8)
+        )
 
         # 5. Geox Eureka: Goldilocks & Godellock (The Paradox Eureka)
         omega_obj = humility_band(0.9)
@@ -143,7 +149,7 @@ class HardenedGeoxAgent:
 
         # Determine Habitability
         is_goldilocks = (ds <= 0) and (0.03 <= omega <= 0.05)
-        is_godellock = (omega < 0.03)
+        is_godellock = omega < 0.03
 
         # 6. Construct Envelope (F11 Authority)
         envelope = {
@@ -165,18 +171,25 @@ class HardenedGeoxAgent:
                 "geox_eureka": {
                     "is_goldilocks": is_goldilocks,
                     "is_godellock": is_godellock,
-                    "verdict": "HABITABLE" if is_goldilocks else ("LOCKED" if is_godellock else "UNSTABLE"),
-                }
+                    "verdict": (
+                        "HABITABLE" if is_goldilocks else ("LOCKED" if is_godellock else "UNSTABLE")
+                    ),
+                },
             },
-            "floors": [4, 7, 8, 9, 11]
+            "floors": [4, 7, 8, 9, 11],
         }
 
         # Proactive 888_HOLD if discovery is high risk or uncertain (F13)
-        if (indices.get("no_risk_threshold", 1.0) < 0.5 or ds > 2.0 or tool_name == "macrostrat_query") and verdict == "OK":
+        if (
+            indices.get("no_risk_threshold", 1.0) < 0.5
+            or ds > 2.0
+            or tool_name == "macrostrat_query"
+        ) and verdict == "OK":
             envelope["verdict"] = "888_HOLD"
             envelope["explanation"] += " [Sovereign verification required: Low No-Risk Threshold]"
 
         return envelope
+
 
 def get_hardened_agent(session_id: str) -> HardenedGeoxAgent:
     """Factory to get the hardened agent."""

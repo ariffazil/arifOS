@@ -88,9 +88,9 @@ engines_used: list[str] = []
 
 ## 🚀 DEPLOYMENT STATUS
 
-**URL:** https://arifosmcp.arif-fazil.com/  
-**Version:** 2026.03.09-SEAL  
-**Status:** All tools functional  
+**URL:** https://arifosmcp.arif-fazil.com/
+**Version:** 2026.03.09-SEAL
+**Status:** All tools functional
 **ChatGPT Compatible:** ✅ YES
 
 ### Ready for ChatGPT
@@ -110,16 +110,16 @@ Add this MCP server to ChatGPT:
 
 ### Commits
 - `91116637` - fix: Correct function call signatures for search_reality and ingest_evidence
-- `6cd0818a` - fix: Remove sources parameter from reality_check call  
+- `6cd0818a` - fix: Remove sources parameter from reality_check call
 - `85f3ecbd` - fix: Initialize engines_failed and engines_used lists
 
 ---
 
 ## 🎯 SUMMARY
 
-✅ **All MCP tools are now working correctly**  
-✅ **ChatGPT can successfully call all tools**  
-✅ **Constitutional governance (F1-F13) enforced on all calls**  
+✅ **All MCP tools are now working correctly**
+✅ **ChatGPT can successfully call all tools**
+✅ **Constitutional governance (F1-F13) enforced on all calls**
 ✅ **Deployed to production with fixes**
 
 **The arifOS MCP server is now fully operational and ChatGPT-ready!**

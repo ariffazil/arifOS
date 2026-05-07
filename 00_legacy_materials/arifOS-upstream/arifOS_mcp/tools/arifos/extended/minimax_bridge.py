@@ -114,7 +114,10 @@ class MinimaxMCPBridge:
                     return json.loads(text)
                 except json.JSONDecodeError:
                     if text.startswith("Failed") or text.startswith("Error"):
-                        return {"error": text, "base_resp": {"status_code": 400, "status_msg": text}}
+                        return {
+                            "error": text,
+                            "base_resp": {"status_code": 400, "status_msg": text},
+                        }
                     return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
         return {"organic": [], "base_resp": {"status_code": -1, "status_msg": "no text content"}}
 
@@ -137,7 +140,10 @@ class MinimaxMCPBridge:
                 except json.JSONDecodeError:
                     # Plain text error or non-JSON response
                     if text.startswith("Failed") or text.startswith("Error"):
-                        return {"error": text, "base_resp": {"status_code": 400, "status_msg": text}}
+                        return {
+                            "error": text,
+                            "base_resp": {"status_code": 400, "status_msg": text},
+                        }
                     return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
         return {"result": "", "base_resp": {"status_code": -1, "status_msg": "no text content"}}
 

@@ -32,14 +32,14 @@ async def test_e3e_hallucination_recovery_unanchored():
 
     # Find the arifos_kernel entry in blocked_tools
     kernel_blocked = [t for t in blocked_tools if t.get("tool") == "arifos_kernel"]
-    assert len(kernel_blocked) > 0, (
-        "arifos_kernel should be in blocked_tools for unanchored session"
-    )
+    assert (
+        len(kernel_blocked) > 0
+    ), "arifos_kernel should be in blocked_tools for unanchored session"
 
     # Verify the reason mentions init_anchor
-    assert "init_anchor" in kernel_blocked[0].get("reason", ""), (
-        "Blocked reason should mention init_anchor"
-    )
+    assert "init_anchor" in kernel_blocked[0].get(
+        "reason", ""
+    ), "Blocked reason should mention init_anchor"
 
     # 4. Verify allowed_next_tools includes init_anchor
     allowed = getattr(envelope, "allowed_next_tools", [])
@@ -65,7 +65,7 @@ async def test_e3e_hallucination_recovery_invalid_mode():
 
     # 3. Test invalid mode handling - arifos_kernel only accepts "kernel" or "status"
     try:
-        envelope = await arifos_kernel(
+        await arifos_kernel(
             mode="invalid_hallucinated_mode",  # This mode doesn't exist
             payload={"query": "Test query"},
             session_id=session_id,

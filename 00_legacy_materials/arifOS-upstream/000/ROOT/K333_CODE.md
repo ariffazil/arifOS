@@ -34,13 +34,13 @@ Data passes between them via the **Protocol Bridge (BBB)**.
 graph TD
     User -->|Input| API[FastAPI Gateway]
     API -->|aCLIP| ROUTER[ATLAS Router]
-    
+
     subgraph "Constitutional Kernel"
         ROUTER -->|Route| TRINITY[Trinity Engines]
         TRINITY -->|Validate| FLOORS[13 Floor Validators]
         FLOORS -->|Process| PIPELINE[11-Stage Pipeline]
     end
-    
+
     PIPELINE -->|Verdict| VAULT[Immutable Ledger]
     VAULT -->|Output| User
 ```
@@ -112,7 +112,7 @@ The system uses three distinct "modes of thought" (Engines) to evaluate every re
 
 ## 5. EVOLUTIONARY ARCHITECTURE & REPOSITORY STRUCTURE
 
-**arifOS was not designed top-down. It evolved layer by layer in response to historical systemic pressures.** 
+**arifOS was not designed top-down. It evolved layer by layer in response to historical systemic pressures.**
 The architecture reflects an organic **Artificial Organism** comprising:
 1. **Layer 1 — System:** `arifOS` (Governance Framework conceptually created first)
 2. **Layer 2 — Trinity:** `AAA` (The Mind: APEX → AGI → ASI built sequentially, then integrated back)
@@ -692,9 +692,9 @@ Patient harmed
 arifOS:
 ```
 Query: "Will this medicine harm patient?"
-arifOS Response: 
+arifOS Response:
   "SEAL: Do not use (weakest stakeholder protection triggered)
-   Knowing: 
+   Knowing:
      - F4 Empathy check: Patient vulnerability = 0.95 (highest)
      - F5 Peace check: Side effects detected in literature
      - F6 RASA: Medical expertise consulted (tri-witness H=0.98)

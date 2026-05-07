@@ -25,7 +25,11 @@ from arifos.tools._tool_support import (
 SABAR_LOCK_PATH = os.path.join(os.getenv("ARIFOS_RUNTIME_DIR", "/run/arifos"), "sabar.lock")
 VAULT999_LEDGER_PATH = os.getenv(
     "ARIFOS_VAULT999_LEDGER",
-    str(Path(os.getenv("ARIFOS_WORKDIR", Path(__file__).resolve().parents[2])) / "VAULT999" / "SEALED_EVENTS.jsonl"),
+    str(
+        Path(os.getenv("ARIFOS_WORKDIR", Path(__file__).resolve().parents[2]))
+        / "VAULT999"
+        / "SEALED_EVENTS.jsonl"
+    ),
 )
 POSTGRES_DEFAULT_HOST = os.getenv("ARIFOS_PG_HOST", "")
 POSTGRES_DEFAULT_PORT = os.getenv("ARIFOS_PG_PORT", "5432")
@@ -34,6 +38,7 @@ POSTGRES_DEFAULT_PORT = os.getenv("ARIFOS_PG_PORT", "5432")
 # ──────────────────────────────────────────────────────────────────────────────
 # Readiness Probe
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _probe_vault999() -> bool:
     """Check if Vault999 ledger is writable."""
@@ -46,6 +51,7 @@ def _probe_vault999() -> bool:
 def _probe_postgres(host: str, port: str) -> bool:
     """Check if PostgreSQL is reachable via socket connect."""
     import socket
+
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2.0)
@@ -98,6 +104,7 @@ def readiness_probe(organ: str) -> dict:
 # SABAR Cooling Enforcement
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def check_sabar_cooling() -> dict:
     """
     Check if system is in SABAR cooling state.
@@ -130,6 +137,7 @@ def check_sabar_cooling() -> dict:
 # SEAL Verification
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def verify_seal(receipt: dict) -> dict:
     """
     Require receipt["verdict"] == "SEAL" from 888_judge.
@@ -152,6 +160,7 @@ def verify_seal(receipt: dict) -> dict:
 # ──────────────────────────────────────────────────────────────────────────────
 # Execution Simulation & State Mutation
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _project_delta_s(call: dict, organ: str) -> float:
     """Project entropy change (ΔS) for the given call."""
@@ -293,6 +302,7 @@ def _forge_report(
 # ──────────────────────────────────────────────────────────────────────────────
 # Main execute() — the only public interface
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 async def execute(
     receipt: dict,

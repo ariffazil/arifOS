@@ -1,7 +1,7 @@
 # arifOS Hardened MCP Server
 # ═══════════════════════════════════════════════════════════════════════════════
 # LAYER 2: Blast Radius Isolation
-# 
+#
 # Principles:
 # - No root access
 # - No shell

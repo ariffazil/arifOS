@@ -26,7 +26,7 @@ from .security.prompt_armor import PromptArmor
 
 __all__ = [
     "ConstitutionalAgent",
-    "TrinityRole", 
+    "TrinityRole",
     "Verdict",
     "ValidatorAgent",
     "EngineerAgent",

@@ -2,10 +2,10 @@
 
 ## ✅ STATUS: CONFIGURED AND LIVE
 
-**Time:** 2026-03-09  
-**Container:** openclaw (healthy)  
-**Access Level:** ROOT (full system access)  
-**Sandbox:** OFF  
+**Time:** 2026-03-09
+**Container:** openclaw (healthy)
+**Access Level:** ROOT (full system access)
+**Sandbox:** OFF
 **Auto-approve:** ON
 
 ---
@@ -167,19 +167,19 @@ sudo cat /etc/nginx/nginx.conf
 
 OpenClaw has access to these command types:
 
-**Shell:** bash, sh  
-**System:** sudo, systemctl, service, reboot, shutdown  
-**Docker:** docker, docker-compose  
-**Package:** apt, apt-get  
-**User:** useradd, userdel, usermod, passwd  
-**Network:** netstat, ss, ip, ifconfig, ping, curl, wget  
-**File:** cat, ls, cp, mv, rm, mkdir, chmod, chown, find, grep  
-**Text:** nano, vim, vi, tail, head, less, more  
-**Archive:** tar, gzip, zip, unzip  
-**Remote:** ssh, scp, rsync  
-**Schedule:** crontab  
-**Monitor:** ps, top, htop, df, du, free, uptime  
-**Git:** git  
+**Shell:** bash, sh
+**System:** sudo, systemctl, service, reboot, shutdown
+**Docker:** docker, docker-compose
+**Package:** apt, apt-get
+**User:** useradd, userdel, usermod, passwd
+**Network:** netstat, ss, ip, ifconfig, ping, curl, wget
+**File:** cat, ls, cp, mv, rm, mkdir, chmod, chown, find, grep
+**Text:** nano, vim, vi, tail, head, less, more
+**Archive:** tar, gzip, zip, unzip
+**Remote:** ssh, scp, rsync
+**Schedule:** crontab
+**Monitor:** ps, top, htop, df, du, free, uptime
+**Git:** git
 **And 50+ more...**
 
 ---
@@ -212,13 +212,13 @@ OpenClaw Gateway:
   Elevated: enabled
   Auto-approve: on
   Model: venice/kimi-k2-5
-  
+
 Security:
   Telegram: DM pairing enabled
   Account: 267378578 approved
   Constitutional: F1-F13 active
   Audit: All commands logged
-  
+
 Capabilities:
   Sudo: YES
   Docker: YES

@@ -49,9 +49,11 @@ def register_all(server: Any) -> None:
 
     # ── Prompts ─────────────────────────────────────────────────────────────
     for name, template in PROMPTS.items():
+
         def _make_prompt(text: str):
             def prompt_fn() -> str:
                 return text
+
             return prompt_fn
 
         server.prompt(name=name)(_make_prompt(template))

@@ -9,12 +9,12 @@
 ## The 4 Pillars
 
 ### 1. arifOS — The Conscience
-**Repository:** github.com/ariffazil/arifOS  
-**Language:** Python  
-**License:** AGPL-3.0  
+**Repository:** github.com/ariffazil/arifOS
+**Language:** Python
+**License:** AGPL-3.0
 **Stars:** 27 | **Forks:** 3
 
-**Purpose:**  
+**Purpose:**
 AAA MCP-governed constitutional kernel for AI agents. The implementation layer of APEX-THEORY.
 
 **Key Components:**
@@ -33,11 +33,11 @@ AAA MCP-governed constitutional kernel for AI agents. The implementation layer o
 ---
 
 ### 2. APEX-THEORY — The Soul
-**Repository:** github.com/ariffazil/APEX-THEORY  
-**Language:** TypeScript (docs/site)  
+**Repository:** github.com/ariffazil/APEX-THEORY
+**Language:** TypeScript (docs/site)
 **License:** CC0 / Public Domain
 
-**Purpose:**  
+**Purpose:**
 The Physics of Governed Intelligence. Thermodynamic AI governance framework grounded in Landauer, Wscar, Gödel.
 
 **Key Components:**
@@ -56,11 +56,11 @@ The Physics of Governed Intelligence. Thermodynamic AI governance framework grou
 ---
 
 ### 3. ariffazil — The Human
-**Repository:** github.com/ariffazil/ariffazil  
-**Language:** TypeScript  
+**Repository:** github.com/ariffazil/ariffazil
+**Language:** TypeScript
 **License:** MIT
 
-**Purpose:**  
+**Purpose:**
 About ARIF FAZIL (HUMAN). The epistemic layer — ground truth, biography, constitutional witness.
 
 **Key Components:**
@@ -78,11 +78,11 @@ About ARIF FAZIL (HUMAN). The epistemic layer — ground truth, biography, const
 ---
 
 ### 4. oo0-STATE — The Trinity
-**Repository:** github.com/ariffazil/oo0-STATE  
-**Language:** TypeScript  
+**Repository:** github.com/ariffazil/oo0-STATE
+**Language:** TypeScript
 **License:** (specify)
 
-**Purpose:**  
+**Purpose:**
 Mind (Agent Zero) + Heart (OpenClaw) + Conscience (arifOS). The unified state management across the Trinity architecture.
 
 **Key Components:**

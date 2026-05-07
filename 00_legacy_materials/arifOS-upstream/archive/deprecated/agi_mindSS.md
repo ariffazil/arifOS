@@ -999,16 +999,16 @@ make maintenance         # Automated maintenance + cleanup
 7:   "_docs": "https://arifos.arif-fazil.com/intro",
 8:   "_api": "https://arifos.arif-fazil.com/api",
 9:   "_repo": "https://github.com/ariffazil/arifosmcp",
-10: 
+10:
 11:   "mcpServers": {
-12: 
+12:
 13:     "context7": {
 14:       "_comment": "Context7 — Up-to-date library docs for LLMs. Remote HTTP, no API key needed.",
 15:       "_use_when": "Agent needs current docs for any library (fastmcp, pydantic, playwright, etc.). Call resolve-library-id first, then get-library-docs.",
 16:       "transport": "streamable-http",
 17:       "url": "https://mcp.context7.com/mcp"
 18:     },
-19: 
+19:
 20:     "codegraphcontext": {
 21:       "_comment": "CodeGraphContext — Codebase graph analysis. Local stdio via pip cgc.",
 22:       "_use_when": "Agent needs to understand call chains, class hierarchies, cross-module relationships in arifOS code.",
@@ -1017,7 +1017,7 @@ make maintenance         # Automated maintenance + cleanup
 25:       "args": ["mcp", "start"],
 26:       "transport": "stdio"
 27:     },
-28: 
+28:
 29:     "arifos-remote": {
 30:       "_comment": "RECOMMENDED — Zero install. Connects to live arifOS MCP over HTTPS. 13 tools, always latest.",
 31:       "_use_when": "You want to use arifOS without installing anything. Just add this entry.",
@@ -1025,7 +1025,7 @@ make maintenance         # Automated maintenance + cleanup
 33:       "url": "https://arifosmcp.arif-fazil.com/mcp",
 34:       "timeout": 30000
 35:     },
-36: 
+36:
 37:     "arifos-local": {
 38:       "_comment": "Local stdio via pip. Install: pip install arifosmcp (v2026.3.12 on PyPI)",
 39:       "_use_when": "Privacy-first or offline. Runs on your own machine, no external network.",
@@ -1035,7 +1035,7 @@ make maintenance         # Automated maintenance + cleanup
 43:         "ARIFOS_GOVERNANCE_SECRET": "${ARIFOS_GOVERNANCE_SECRET}"
 44:       }
 45:     },
-46: 
+46:
 47:     "arifos-npm": {
 48:       "_comment": "Node/npm — TypeScript client SDK + MCP transport. Run: npm install @arifos/mcp",
 49:       "_use_when": "You're in a JS/TS project and want typed arifOS client methods (anchorSession, reasonMind, etc.).",
@@ -1048,7 +1048,7 @@ make maintenance         # Automated maintenance + cleanup
 56:         "ARIFOS_ENDPOINT": "https://arifosmcp.arif-fazil.com/mcp"
 57:       }
 58:     },
-59: 
+59:
 60:     "arifos-docker": {
 61:       "_comment": "Official Docker image from Docker Hub — ariffazil/arifos:latest",
 62:       "_use_when": "Isolated execution without polluting your Python environment.",
@@ -1061,7 +1061,7 @@ make maintenance         # Automated maintenance + cleanup
 69:         "python3", "-m", "arifosmcp.runtime", "stdio"
 70:       ]
 71:     },
-72: 
+72:
 73:     "arifos-dev": {
 74:       "_comment": "Developer mode — from cloned repo with venv. Run: git clone https://github.com/ariffazil/arifosmcp && pip install -e '.[dev]'",
 75:       "_use_when": "You cloned the repo and want to hack on arifOS itself.",
@@ -1267,396 +1267,396 @@ Let me check what gitingest does and if it would be useful for opencode.
 **Output:**
 ```
 gitingest · PyPI
-    
-    
-    
-    
-    
-    
-    
-      
-    
-    
-    
-    
-    
-    
-    
-    
-      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       Skip to main content
       Switch to mobile version
-      
-        
-        
-            
 
-  
-    
-        
-          
-            
-              
-            
-          
-          
+
+
+
+
+
+
+
+
+
+
+
+
+
             Search PyPI
-            
-            
-              
+
+
+
               Search
-            
-          
-        
-        
-    
-      
-        
-          Help
-        
-        
-          Docs
-        
-        
-          Sponsors
-        
-        
-          Log in
-        
-        
-          Register
-        
-      
-    
-    
-      
-Menu        
-          
-        
-      
-      
-        
-          Help
-        
-        
-          Docs
-        
-        
-          Sponsors
-        
-        
-          Log in
-        
-        
-          Register
-        
-      
-    
-  
-  
 
 
-  
-    
+
+
+
+
+
+          Help
+
+
+          Docs
+
+
+          Sponsors
+
+
+          Log in
+
+
+          Register
+
+
+
+
+
+Menu
+
+
+
+
+
+          Help
+
+
+          Docs
+
+
+          Sponsors
+
+
+          Log in
+
+
+          Register
+
+
+
+
+
+
+
+
+
       Search PyPI
-      
-      
-      
-        
+
+
+
+
         Search
-      
-    
-  
 
-    
-  
-    
-      
+
+
+
+
+
+
+
         gitingest 0.3.1
-          
-            
+
+
               pip install gitingest
-              
-                
+
+
                 Copy PIP instructions
-              
-            
-          
-      
-      
-            
+
+
+
+
+
+
               Latest version
-            
-        
-Released: 
+
+
+Released:
     Jul 31, 2025
-          
-      
-    
-  
-  
-    
-    
+
+
+
+
+
+
+
         CLI tool to analyze and create text dumps of codebases for LLMs
-  
 
 
 
-  
-    
-      
-        
+
+
+
+
+
           Navigation
-          
-            
-              
-                
-                  
-Project description                
-              
-              
-                
-                  
-Release history                
-              
-                
-                  
-                    
-Download files                  
-                
-            
-          
-        
 
-  
-Verified details    
-  
+
+
+
+
+Project description
+
+
+
+
+Release history
+
+
+
+
+Download files
+
+
+
+
+
+
+Verified details
+
   These details have been verified by PyPI
     Project links
-    
-          
+
+
               github
-          
-    
+
+
     GitHub Statistics
-    
-      
-        
-          
-            
+
+
+
+
+
             Repository
-          
-        
-        
-          
-            
+
+
+
+
+
             Stars:
-            
-          
-        
-        
-          
-            
+
+
+
+
+
+
             Forks:
-            
-          
-        
-        
-          
-            
+
+
+
+
+
+
             Open issues:
-            
-          
-        
-        
-          
-            
+
+
+
+
+
+
             Open PRs:
-            
-          
-        
-      
-    
+
+
+
+
+
     Maintainers
-      
-        
-          
-            
-          
+
+
+
+
+
           cyclotruc
-        
-      
-    
+
+
+
       Meta
-      
-          
-            
+
+
+
               Author: Filip Christiansen
-            
-          
-      
-    
+
+
+
+
 
 
   Unverified details
   These details have not been verified by PyPI
     Project links
-    
-          
+
+
               homepage
-          
-    
-    
+
+
+
       Meta
-      
-          
-            
+
+
+
               License: MIT License (MIT License)
-            
-          
-          
-            
+
+
+
+
               Author: Filip Christiansen
-            
-          
-          
-            
+
+
+
+
               Requires: Python &gt;=3.8
-            
-          
-          
-            
+
+
+
+
               Provides-Extra:
                 dev
 ,                server
-            
-          
-      
-    
-    
+
+
+
+
+
       Classifiers
-      
-          
+
+
             Development Status
-            
-                
-                  
+
+
+
                     3 - Alpha
-                  
-                
-            
-          
-          
+
+
+
+
+
             Intended Audience
-            
-                
-                  
+
+
+
                     Developers
-                  
-                
-            
-          
-          
+
+
+
+
+
             License
-            
-                
-                  
+
+
+
                     OSI Approved :: MIT License
-                  
-                
-            
-          
-          
+
+
+
+
+
             Programming Language
-            
-                
-                  
+
+
+
                     Python :: 3.8
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.9
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.10
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.11
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.12
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.13
-                  
-                
-            
-          
-      
-    
-  
-        
+
+
+
+
+
+
+
+
           Report project as malware
-        
-      
-      
-        
-        
-          
-            
-              
-                
-Project description              
-            
-            
-              
-                
-Project details              
-            
-            
-              
-                
-Release history              
-            
-              
-                
-                  
-Download files                
-              
-          
-        
-        
+
+
+
+
+
+
+
+
+
+Project description
+
+
+
+
+Project details
+
+
+
+
+Release history
+
+
+
+
+Download files
+
+
+
+
     Project description
       Gitingest
 
 
 
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Turn any Git repository into a prompt-friendly text ingest for LLMs.
@@ -1938,703 +1938,698 @@ Check out the NPM alternative 📦 Repomix: https://github.com/yamadashy/repomix
 🚀 Project Growth
 
 
-  
-  
+
+
     Project details
 
-  
-Verified details    
-  
+
+Verified details
+
   These details have been verified by PyPI
     Project links
-    
-          
+
+
               github
-          
-    
+
+
     GitHub Statistics
-    
-      
-        
-          
-            
+
+
+
+
+
             Repository
-          
-        
-        
-          
-            
+
+
+
+
+
             Stars:
-            
-          
-        
-        
-          
-            
+
+
+
+
+
+
             Forks:
-            
-          
-        
-        
-          
-            
+
+
+
+
+
+
             Open issues:
-            
-          
-        
-        
-          
-            
+
+
+
+
+
+
             Open PRs:
-            
-          
-        
-      
-    
+
+
+
+
+
     Maintainers
-      
-        
-          
-            
-          
+
+
+
+
+
           cyclotruc
-        
-      
-    
+
+
+
       Meta
-      
-          
-            
+
+
+
               Author: Filip Christiansen
-            
-          
-      
-    
+
+
+
+
 
 
   Unverified details
   These details have not been verified by PyPI
     Project links
-    
-          
+
+
               homepage
-          
-    
-    
+
+
+
       Meta
-      
-          
-            
+
+
+
               License: MIT License (MIT License)
-            
-          
-          
-            
+
+
+
+
               Author: Filip Christiansen
-            
-          
-          
-            
+
+
+
+
               Requires: Python &gt;=3.8
-            
-          
-          
-            
+
+
+
+
               Provides-Extra:
                 dev
 ,                server
-            
-          
-      
-    
-    
+
+
+
+
+
       Classifiers
-      
-          
+
+
             Development Status
-            
-                
-                  
+
+
+
                     3 - Alpha
-                  
-                
-            
-          
-          
+
+
+
+
+
             Intended Audience
-            
-                
-                  
+
+
+
                     Developers
-                  
-                
-            
-          
-          
+
+
+
+
+
             License
-            
-                
-                  
+
+
+
                     OSI Approved :: MIT License
-                  
-                
-            
-          
-          
+
+
+
+
+
             Programming Language
-            
-                
-                  
+
+
+
                     Python :: 3.8
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.9
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.10
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.11
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.12
-                  
-                
-                
-                  
+
+
+
+
                     Python :: 3.13
-                  
-                
-            
-          
-      
-    
-    
-  
-  
-    
+
+
+
+
+
+
+
+
+
+
       Release history
-      
+
         Release notifications |
-        RSS feed 
-      
-    
-    
-        
-          
+        RSS feed
+
+
+
+
+
               This version
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
               0.3.1
-            
-            
+
+
     Jul 31, 2025
-  
-          
-        
-        
-          
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
+
+
+
+
+
               0.3.0
-            
-            
+
+
     Jul 30, 2025
-  
-          
-        
-        
-          
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
+
+
+
+
+
               0.2.1
-            
-            
+
+
     Jul 29, 2025
-  
-          
-        
-        
-          
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
+
+
+
+
+
               0.1.5
-            
-            
+
+
     Jun 25, 2025
-  
-          
-        
-        
-          
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
+
+
+
+
+
               0.1.4
-            
-            
+
+
     Mar 6, 2025
-  
-          
-        
-        
-          
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
+
+
+
+
+
               0.1.3
-            
-            
+
+
     Feb 13, 2025
-  
-          
-        
-        
-          
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
+
+
+
+
+
               0.1.2
-            
-            
+
+
     Dec 22, 2024
-  
-          
-        
-        
-          
-          
-          
-              
-          
-          
-            
+
+
+
+
+
+
+
+
+
+
+
               0.1.1
-            
-            
+
+
     Dec 22, 2024
-  
-          
-        
-    
-  
-    
+
+
+
+
+
+
       Download files
-      
-Download the file for your platform. If you're not sure which to choose, learn more about installing packages.      
-      
-Source Distribution    
-          
-      
-        
-      
-      
+
+Download the file for your platform. If you're not sure which to choose, learn more about installing packages.
+
+Source Distribution
+
+
+
+
+
         gitingest-0.3.1.tar.gz
         (70.7 kB
         view details)
-        
-          Uploaded 
-    Jul 31, 2025
-  
-Source        
-      
-    
 
-      
-Built Distribution    
-    
-Filter files by name, interpreter, ABI, and platform.    
-    
-If you're not sure about the file name format, learn more about wheel file names.    
-    
-Copy a direct link to the current filters      
-      
-Copy      
-    
-    
-      
-    
-    
-      
+          Uploaded
+    Jul 31, 2025
+
+Source
+
+
+
+
+Built Distribution
+
+Filter files by name, interpreter, ABI, and platform.
+
+If you're not sure about the file name format, learn more about wheel file names.
+
+Copy a direct link to the current filters
+
+Copy
+
+
+
+
+
+
         File name
-        
-      
-      
+
+
+
           Interpreter
-  
+
     Interpreter
       py3
-  
+
 
           ABI
-  
+
     ABI
       none
-  
+
 
           Platform
-  
+
     Platform
       any
-  
 
-      
-    
-        
-      
-        
-      
-      
+
+
+
+
+
+
+
+
         gitingest-0.3.1-py3-none-any.whl
         (68.3 kB
         view details)
-        
-          Uploaded 
+
+          Uploaded
     Jul 31, 2025
-  
-Python 3        
-      
-    
+
+Python 3
+
+
 
 
 
   File details
-  
+
     Details for the file gitingest-0.3.1.tar.gz.
-  
+
   File metadata
-  
-    
-      
+
+
+
         Download URL: gitingest-0.3.1.tar.gz
-      
-      Upload date: 
+
+      Upload date:
     Jul 31, 2025
-  
-      
-Size: 70.7 kB      
+
+
+Size: 70.7 kB
       Tags: Source
-      
-Uploaded using Trusted Publishing? Yes    
+
+Uploaded using Trusted Publishing? Yes
       Uploaded via: twine/6.1.0 CPython/3.12.9
-  
+
 
 File hashes
 
-  
+
     Hashes for gitingest-0.3.1.tar.gz
-    
-      
+
+
         Algorithm
         Hash digest
-        
-      
-    
-    
-      
+
+
+
+
+
         SHA256
-        
+
           4587cab873d4e08bdb16d612bb153c23e0ce59771a1d57a438239c5e39f05ebf
-        
-        
-          
-Copy          
-        
-      
-      
+
+
+
+Copy
+
+
+
         MD5
-        
+
           30d5a724aaac49bb371cd6951fc1b563
-        
-        
-          
-Copy          
-        
-      
-      
+
+
+
+Copy
+
+
+
         BLAKE2b-256
-        
+
           d6fea915f0c32a3d7920206a677f73c185b3eadf4ec151fb05aedd52e64713f7
-        
-        
-          
-Copy          
-        
-      
-    
-  
-  
+
+
+
+Copy
+
+
+
+
+
 See more details on using hashes here.
 
   Provenance
-  
+
     The following attestation bundles were made for gitingest-0.3.1.tar.gz:
-  
-    
-      
-        
-      
-      
-            
-      Publisher: 
-      
+
+
+
+
+
+
+
+      Publisher:
+
       publish_to_pypi.yml on coderamp-labs/gitingest
-    
-  
+
+
 
         Attestations:
-        
+
           Values shown here reflect the state when the release was signed and may no longer be current.
-        
-        
-            
+
+
+
               Statement:
-              
-                
+
+
                   Statement type: https://in-toto.io/Statement/v1
-                
-                
+
+
                   Predicate type: https://docs.pypi.org/attestations/publish/v1
-                
-                
+
+
                   Subject name: gitingest-0.3.1.tar.gz
-                
-                
+
+
                   Subject digest: 4587cab873d4e08bdb16d612bb153c23e0ce59771a1d57a438239c5e39f05ebf
-                
-                
+
+
                   Sigstore transparency entry: 336236457
-                
-                Sigstore integration time: 
+
+                Sigstore integration time:
     Jul 31, 2025
-  
-              
+
+
                 Source repository:
-                
-                  
-                    Permalink: 
+
+
+                    Permalink:
                     coderamp-labs/gitingest@45b068bd5e650ac99f99b26f0767c825f8c5ce95
-                  
-                
-                
-                  Branch / Tag: 
+
+
+
+                  Branch / Tag:
                   refs/tags/v0.3.1
-                
-              
-              
+
+
+
                 Owner: https://github.com/coderamp-labs
-              
-              
+
+
                 Access: public
-              
-            
+
+
           Publication detail:
-          
-            
+
+
               Token Issuer: https://token.actions.githubusercontent.com
-            
-              
+
+
                 Runner Environment: github-hosted
-              
-              
+
+
                 Publication workflow:
-                
+
                   publish_to_pypi.yml@45b068bd5e650ac99f99b26f0767c825f8c5ce95
-                
-              
-              
+
+
+
                 Trigger Event: release
-              
-          
-        
-    
-  
+
+
+
+
+
 
 
   File details
-  
+
     Details for the file gitingest-0.3.1-py3-none-any.whl.
-  
+
   File metadata
-  
-    
-      
+
+
+
         Download URL: gitingest-0.3.1-py3-none-any.whl
-      
-      Upload date: 
+
+      Upload date:
     Jul 31, 2025
-  
-      
-Size: 68.3 kB      
+
+
+Size: 68.3 kB
       Tags: Python 3
-      
-Uploaded using Trusted Publishing? Yes    
+
+Uploaded using Trusted Publishing? Yes
       Uploaded via: twine/6.1.0 CPython/3.12.9
-  
+
 
 File hashes
 
-  
+
     Hashes for gitingest-0.3.1-py3-none-any.whl
-    
-      
+
+
         Algorithm
         Hash digest
-        
-      
-    
-    
-      
+
+
+
+
+
         SHA256
-        
+
           8143a5e6a7140ede9f680e13d3931ac07c82ac9bd8bab9ad1fba017c8c1e8666
-        
-        
-          
-Copy          
-        
-      
-      
+
+
+
+Copy
+
+
+
         MD5
-        
+
           4b8aa0999093867434b3f1bb9cea0118
-        
-        
-          
-Copy          
-        
-      
-      
+
+
+
+Copy
+
+
+
         BLAKE2b-256
-        
+
           0015f200ab2e73287e67d1dce6fbacf421552ae9fbafdc5f0cc8dd0d2fe4fc47
-        
-        
-          
-Copy          
-        
-      
-    
-  
-  
+
+
+
+Copy
+
+
+
+
+
 See more details on using hashes here.
 
   Provenance
-  
+
     The following attestation bundles were made for gitingest-0.3.1-py3-none-any.whl:
-  
-    
-      
-        
-      
-      
-            
-      Publisher: 
-      
+
+
+
+
+
+
+
+      Publisher:
+
       publish_to_pypi.yml on coderamp-labs/gitingest
-    
-  
+
+
 
         Attestations:
-        
+
           Values shown here reflect the state when the release was signed and may no longer be current.
-        
-        
-            
+
+
+
               Statement:
-              
-                
+
+
                   Statement type: https://in-toto.io/Statement/v1
-                
-                
+
+
                   Predicate type: https://docs.pypi.org/attestations/publish/v1
-                
-                
+
+
                   Subject name: gitingest-0.3.1-py3-none-any.whl
-                
-                
+
+
                   Subject digest: 8143a5e6a7140ede9f680e13d3931ac07c82ac9bd8bab9ad1fba017c8c1e8666
-                
-                
+
+
                   Sigstore transparency entry: 336236469
-                
-                Sigstore integration time: 
+
+                Sigstore integration time:
     Jul 31, 2025
-  
-              
+
+
                 Source repository:
-                
-                  
-                    Permalink: 
+
+
+                    Permalink:
                     coderamp-labs/gitingest@45b068bd5e650ac99f99b26f0767c825f8c5ce95
-                  
-                
-                
-                  Branch / Tag: 
+
+
+
+                  Branch / Tag:
                   refs/tags/v0.3.1
-                
-              
-              
+
+
+
                 Owner: https://github.com/coderamp-labs
-              
-              
+
+
                 Access: public
-              
-            
+
+
           Publication detail:
-          
-            
+
+
               Token Issuer: https://token.actions.githubusercontent.com
-            
-              
+
+
                 Runner Environment: github-hosted
-              
-              
+
+
                 Publication workflow:
-                
+
                   publish_to_pypi.yml@45b068bd5e650ac99f99b26f0767c825f8c5ce95
-                
-              
-              
+
+
+
                 Trigger Event: release
-              
-          
-        
-    
-  
 
 
 
@@ -2642,227 +2637,232 @@ See more details on using hashes here.
 
 
 
-  
-    
-  
-  
-    
+
+
+
+
+
+
+
+
+
+
       Help
-      
-        
-          
+
+
+
             Installing packages
-          
-          
+
+
             Uploading packages
-          
-          
+
+
             User guide
-          
-          
+
+
             Project name retention
-          
-          
+
+
             FAQs
-          
-        
-      
-    
-    
+
+
+
+
+
       About PyPI
-      
-        
-          
+
+
+
             PyPI Blog
-          
-          
+
+
             Infrastructure dashboard
-          
-          
+
+
             Statistics
-          
-          
+
+
             Logos & trademarks
-          
-          
+
+
             Our sponsors
-          
-        
-      
-    
-    
+
+
+
+
+
       Contributing to PyPI
-      
-        
-          
+
+
+
             Bugs and feedback
-          
-          
+
+
             Contribute on GitHub
-          
-          
+
+
             Translate PyPI
-          
-          
+
+
             Sponsor PyPI
-          
-          
+
+
             Development credits
-          
-        
-      
-    
-    
+
+
+
+
+
       Using PyPI
-      
-        
-          
+
+
+
             Terms of Service
-          
-          
+
+
             Report security issue
-          
-          
+
+
             Code of conduct
-          
-          
+
+
             Privacy Notice
-          
-          
+
+
             Acceptable Use Policy
-          
-        
-      
-    
-  
-  
-  
-      
+
+
+
+
+
+
+
+
 Status:
         all systems operational
-    
-  
-Developed and maintained by the Python community, for the Python community.    
+
+
+Developed and maintained by the Python community, for the Python community.
     Donate today!
-  
-  
+
+
     "PyPI", "Python Package Index", and the blocks logos are registered trademarks of the Python Software Foundation.
-    
-  
-  
+
+
+
     © 2026 Python Software Foundation
-    
+
     Site map
-  
+
 
 
   Switch to desktop version
 
 
 
-  
-    
-        
+
+
+
           English
-        
-        
+
+
           español
-        
-        
+
+
           français
-        
-        
+
+
           日本語
-        
-        
+
+
           português (Brasil)
-        
-        
+
+
           українська
-        
-        
+
+
           Ελληνικά
-        
-        
+
+
           Deutsch
-        
-        
+
+
           中文 (简体)
-        
-        
+
+
           中文 (繁體)
-        
-        
+
+
           русский
-        
-        
+
+
           עברית
-        
-        
+
+
           Esperanto
-        
-        
+
+
           한국어
-        
-    
-  
+
+
+
 
 
   Supported by
-  
-        
-          
+
+
+
           AWS
-          
+
               Cloud computing and Security Sponsor
-          
-        
-        
-          
+
+
+
+
           Datadog
-          
+
               Monitoring
-          
-        
-        
-          
+
+
+
+
           Depot
-          
+
               Continuous Integration
-          
-        
-        
-          
+
+
+
+
           Fastly
-          
+
               CDN
-          
-        
-        
-          
+
+
+
+
           Google
-          
+
               Download Analytics
-          
-        
-        
-          
+
+
+
+
           Pingdom
-          
+
               Monitoring
-          
-        
-        
-          
+
+
+
+
           Sentry
-          
+
               Error logging
-          
-        
-        
-          
+
+
+
+
           StatusPage
-          
+
               Status page
 ```
 
@@ -2963,16 +2963,16 @@ error: externally-managed-environment
 ╰─> To install Python packages system-wide, try apt install
     python3-xyz, where xyz is the package you are trying to
     install.
-    
+
     If you wish to install a non-Debian-packaged Python package,
     create a virtual environment using python3 -m venv path/to/venv.
     Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
     sure you have python3-full installed.
-    
+
     If you wish to install a non-Debian packaged Python application,
     it may be easiest to use pipx install xyz, which will manage a
     virtual environment for you. Make sure you have pipx installed.
-    
+
     See /usr/share/doc/python3.13/README.venv for more information.
 
 note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
@@ -3148,7 +3148,7 @@ For private repos: `gitingest <url> -t <github_pat>` or set `GITHUB_TOKEN` env v
 
 ## User
 
-ok now do deep research on what are the key MCP servers and tools needed for opencode agents in my vps here. arifOS related. please syggest max 3 only. score all your propsal and show it to me. give 7 options maybe. arifOS is WAJIB ok so u will have 5 max since Minimax Server is connected already 
+ok now do deep research on what are the key MCP servers and tools needed for opencode agents in my vps here. arifOS related. please syggest max 3 only. score all your propsal and show it to me. give 7 options maybe. arifOS is WAJIB ok so u will have 5 max since Minimax Server is connected already
 
 ---
 
@@ -3192,7 +3192,7 @@ So opencode could benefit from:
 4. **Sequential Thinking** - reasoning enhancement
 5. **Git** - local git operations
 
-But wait - opencode might have different capabilities. 
+But wait - opencode might have different capabilities.
 
 I should do some research on which MCP servers would actually provide the most value for opencode's architecture and use case, then score each option based on usefulness, integration complexity, and how well they'd complement the existing arifOS setup.
 
@@ -3430,9 +3430,9 @@ Let me look at some of those resources to get more details on the best MCP serve
 
 **Output:**
 ```
-The Best MCP Servers for Developers in 2026   
+The Best MCP Servers for Developers in 2026
 
- 
+
 
 [Skip to main content](#main)
 
@@ -3459,487 +3459,487 @@ What are best AI tools? Take the State of AI survey
 ](/)
 
 -   PRODUCTS
-    
+
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ff5e3e75d42514b2b83294dca8f6221d3)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ff5e3e75d42514b2b83294dca8f6221d3?width=25)
-        
+
         Fusion
-        
+
         Generate production-ready web apps and UIs
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/fusion)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe6b30636e5784647a7f4c24c80ec31a5)
-        
+
         Publish
-        
+
         Generate, iterate, and optimize pages and headless content
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/publish)
-    
+
     USERS
-    
+
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0a835884ae304f209fefac009be54b64)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0a835884ae304f209fefac009be54b64?width=27)
-        
+
         Engineering teams
-        
+
         Code faster with AI and your design system
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/engineering-teams)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7a2bf8e06a424f2d9a86a6d5e19f1844)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7a2bf8e06a424f2d9a86a6d5e19f1844?width=27)
-        
+
         Design teams
-        
+
         Design with code, handoff with confidence
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/design-teams)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9087ad2883ab401cb5a843b119bd6bc6)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9087ad2883ab401cb5a843b119bd6bc6?width=25)
-        
+
         Product teams
-        
+
         Ship prototypes that accelerate the entire software development lifecycle
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/product-teams)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa1d8a923db5c4f99925ad1d58f29302a)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa1d8a923db5c4f99925ad1d58f29302a?width=25)
-        
+
         Content teams
-        
+
         Generate and publish experiences without developer dependency
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/content-teams)
-    
+
     USE CASES
-    
+
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Faf4dc755927c4e20a2dd9266af71ed42)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Faf4dc755927c4e20a2dd9266af71ed42?width=27)
-        
+
         Web apps
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/web-apps)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F37a6a8353dc64c45bfca586e452ebdba)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F37a6a8353dc64c45bfca586e452ebdba?width=27)
-        
+
         Prototypes
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/prototypes)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa465024323f34ea698c3959390c4feca)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa465024323f34ea698c3959390c4feca?width=25)
-        
+
         Design to code
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/m/design-to-code)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd9dbdb51f0e64ae4aba1696d7d2de922)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd9dbdb51f0e64ae4aba1696d7d2de922?width=25)
-        
+
         Landing pages
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/landing-pages)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8bd7f0a776d24f1594f3b1ee895b6340)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8bd7f0a776d24f1594f3b1ee895b6340?width=25)
-        
+
         Headless CMS
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/headless-cms)
-    
+
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fdc6e3c21cd8340599163206d38b45169)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd708cd82be89444998de6bd36d5f830b?width=25)
-        
+
         Multi-brand CMS
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/m/multi-brand-cms)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F3566df6cb6c644828cc01c2506aaa061)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0d009d18666a4396bc3bc27d6b673481?width=25)
-        
+
         Mobile apps
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/m/mobile-apps)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fde6eac9ccbff47c1962271aa375d64c3)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4f38752f398e4eeab12bdc38b7fe052a?width=25)
-        
+
         Marketing sites
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/m/marketing-sites)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F95c3f999a2564758a0d476a785a1203c)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F32a5ba08523c466e9f2e0fc7bdd1d6f3?width=25)
-        
+
         Headless commerce
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/m/headless-commerce)
-    
+
     ![](https://cdn.builder.io/api/v1/pixel?apiKey=YJIGb4i01jvw0SRdL5Bt)
-    
-    Platform  
-    
+
+    Platform
+
     ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fce338186c7ed402ca4a88fd89c76eb7f?width=13)
-    
+
 -   LEARN
-    
+
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F94b0367f83cc4dec9a394263d6c77ee2)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F94b0367f83cc4dec9a394263d6c77ee2?width=20)
-        
+
         Blog
-        
+
         Latest insights, tutorials, and announcements
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/blog)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0fdc5beeaf7e4d4faf2392cc659b3452)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0fdc5beeaf7e4d4faf2392cc659b3452?width=20)
-        
+
         Webinars
-        
+
         Upcoming events and recorded sessions
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/hub/home?resource-type=webinars)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa5b1dd890f9b4abb8b8c9e971283ee00)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa5b1dd890f9b4abb8b8c9e971283ee00?width=20)
-        
+
         Guides
-        
+
         Step-by-step instructions and use cases
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/hub/home?resource-type=guides)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F168f93ae6eac4271b9e64ca5143d4852)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F168f93ae6eac4271b9e64ca5143d4852?width=20)
-        
+
         Case Studies
-        
+
         Real customer success stories
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/hub/home?resource-type=customer+stories)
-    
+
     CONNECT
-    
+
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F218b9df51b3f46e3a79bf5738f0b8e38)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F218b9df51b3f46e3a79bf5738f0b8e38?width=20)
-        
+
         Builder Forum
-        
+
         Join the discussion, ask questions
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](https://forum.builder.io/)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fafa9c1ed95724ff58b935d7ae3579611)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fafa9c1ed95724ff58b935d7ae3579611?width=20)
-        
+
         Partners
-        
+
         Explore Builder partners and connect with a team
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/m/partners)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F3d291dba521b451aa8a4f1f7a5c8d656)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F3d291dba521b451aa8a4f1f7a5c8d656?width=20)
-        
+
         CMS Integrations
-        
+
         Integrate with your stack and connect your tools
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/m/integrations)
-    
+
     UPDATES
-    
+
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8fcb6aec5b2646fdbf75c516df7b4d83)
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8fcb6aec5b2646fdbf75c516df7b4d83?width=20)
-        
+
         Product Updates
-        
+
         Latest features and improvements
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/updates)
-    
+
     ![](https://cdn.builder.io/api/v1/pixel?apiKey=YJIGb4i01jvw0SRdL5Bt)
-    
+
     Resources
-    
+
     ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fce338186c7ed402ca4a88fd89c76eb7f?width=13)
-    
+
 -   -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ff5e3e75d42514b2b83294dca8f6221d3?width=20)
-        
+
         Fusion docs
-        
+
         Learn to vibe code in new or existing apps
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/c/docs/get-started-fusion)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe6b30636e5784647a7f4c24c80ec31a5?width=20)
-        
+
         Publish docs
-        
+
         Use Builder to publish content for your site
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/c/docs/get-started-publish)
     -   [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa465024323f34ea698c3959390c4feca?width=26)
-        
+
         Figma to code docs
-        
+
         Convert Figma designs into real code
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/c/docs/builder-figma-plugin)
     -   ---
-        
+
         [
-        
+
         ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7c6116f5feb743ef8faf92fdc20ef0e3?width=20)
-        
+
         All docs
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         ](/c/docs/intro)
-    
+
     ![](https://cdn.builder.io/api/v1/pixel?apiKey=YJIGb4i01jvw0SRdL5Bt)
-    
+
     Docs
-    
+
     ![](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fce338186c7ed402ca4a88fd89c76eb7f?width=13)
-    
+
 -   [
-    
+
     Enterprise
-    
-    
-    
+
+
+
     ](/enterprise)
 -   [
-    
+
     Pricing
-    
-    
-    
+
+
+
     ](/pricing)
 
 [Contact sales](/m/demo)[](/signup)[](/signup)
@@ -4796,7 +4796,7 @@ Terms of Service
 
 Dev Drop Newsletter
 
-News, tips, and tricks from Builder, for frontend developers.  
+News, tips, and tricks from Builder, for frontend developers.
 
 Product Newsletter
 
@@ -4813,61 +4813,61 @@ By submitting, you agree to our Privacy Policy
 ### Platform
 
 -   [
-    
+
     Fusion
-    
+
     ](/fusion)
 -   [
-    
+
     Publish
-    
+
     ](/publish)
 -   [
-    
+
     Product Updates
-    
+
     ](/updates)
 
 Use Cases
 
 -   [
-    
+
     Design to Code
-    
+
     ](/m/design-to-code)
 -   [
-    
+
     Headless CMS
-    
+
     ](/headless-cms)[
-    
+
     Multi-Brand CMS
-    
+
     ](/m/multi-brand-cms)
 -   [
-    
+
     Landing Pages
-    
+
     ](/landing-pages)
 -   [
-    
+
     Web Apps
-    
+
     ](/web-apps)
 -   [
-    
+
     Prototypes
-    
+
     ](/prototypes)
 -   [
-    
+
     Marketing Sites
-    
+
     ](/m/marketing-sites)
 -   [
-    
+
     Headless Commerce
-    
+
     ](/m/headless-commerce)
 
 [
@@ -4877,70 +4877,70 @@ Use Cases
 ](#developer-resources)
 
 -   [
-    
+
     Documentation
-    
+
     ](/c/docs/developers)
 -   [
-    
+
     Fusion Docs
-    
+
     ](/c/docs/get-started-fusion)
 -   [
-    
+
     Publish Docs
-    
+
     ](/c/docs/get-started-publish)
 
 ### Frameworks
 
 -   Design to Code
-    
+
     \>
-    
+
 -   CMS
-    
+
     \>
-    
+
 -   Page Builder
-    
+
     \>
-    
+
 
 Workflows
 
 -   [
-    
+
     Figma AI to Production Code
-    
+
     ](/workflows/figma-ai)
 -   [
-    
+
     AI Prototyping for Product Managers
-    
+
     ](/workflows/ai-prototyping-product-managers)
 -   [
-    
+
     Figma to Storybook
-    
+
     ](/workflows/figma-to-storybook)
 -   [
-    
+
     Figma to App Converter
-    
+
     ](/workflows/figma-to-app)
 
 ### Resources
 
 -   [
-    
+
     Blog
-    
+
     ](/blog)
 -   [
-    
+
     Webinars
-    
+
 
 ...1924 bytes truncated...
 
@@ -5074,7 +5074,7 @@ So:
 - Minimax Server is already connected (1 slot taken)
 - So I should recommend 5 more options
 
-Wait, let me re-read: "give 7 options maybe" - so provide 7 options, but arifOS is mandatory. 
+Wait, let me re-read: "give 7 options maybe" - so provide 7 options, but arifOS is mandatory.
 
 Actually, re-reading again: "arifOS is WAJIB ok so u will have 5 max since Minimax Server is connected already"
 
@@ -5130,7 +5130,7 @@ Based on my research, here's my analysis for your VPS opencode MCP setup:
 # Context7 - docs lookup
 npm install -g @context7/mcp
 
-# GitHub MCP  
+# GitHub MCP
 npm install -g @github/mcp-server
 
 # Brave Search
@@ -5389,7 +5389,7 @@ Cancel
 -   [Troubleshooting](/docs/troubleshooting/)
 -   [Windows](/docs/windows-wsl)
 -   Usage
-    
+
     -   [Go](/docs/go/)
     -   [TUI](/docs/tui/)
     -   [CLI](/docs/cli/)
@@ -5399,9 +5399,9 @@ Cancel
     -   [Share](/docs/share/)
     -   [GitHub](/docs/github/)
     -   [GitLab](/docs/gitlab/)
-    
+
 -   Configure
-    
+
     -   [Tools](/docs/tools/)
     -   [Rules](/docs/rules/)
     -   [Agents](/docs/agents/)
@@ -5416,14 +5416,14 @@ Cancel
     -   [ACP Support](/docs/acp/)
     -   [Agent Skills](/docs/skills/)
     -   [Custom Tools](/docs/custom-tools/)
-    
+
 -   Develop
-    
+
     -   [SDK](/docs/sdk/)
     -   [Server](/docs/server/)
     -   [Plugins](/docs/plugins/)
     -   [Ecosystem](/docs/ecosystem/)
-    
+
 
 [GitHub](https://github.com/anomalyco/opencode)[Discord](https://opencode.ai/discord)
 
@@ -6079,7 +6079,7 @@ These are useful for:
 -   Including large instruction files without cluttering your config.
 -   Sharing common configuration snippets across multiple config files.
 
-[Edit page](https://github.com/anomalyco/opencode/edit/dev/packages/web/src/content/docs/config.mdx)[Found a bug? Open an issue](https://github.com/anomalyco/opencode/issues/new)[Join our Discord community](https://opencode.ai/discord) Select language EnglishالعربيةBosanskiDanskDeutschEspañolFrançaisItaliano日本語한국어Norsk BokmålPolskiPortuguês (Brasil)РусскийไทยTürkçe简体中文繁體中文 
+[Edit page](https://github.com/anomalyco/opencode/edit/dev/packages/web/src/content/docs/config.mdx)[Found a bug? Open an issue](https://github.com/anomalyco/opencode/issues/new)[Join our Discord community](https://opencode.ai/discord) Select language EnglishالعربيةBosanskiDanskDeutschEspañolFrançaisItaliano日本語한국어Norsk BokmålPolskiPortuguês (Brasil)РусскийไทยTürkçe简体中文繁體中文
 
 © [Anomaly](https://anoma.ly)
 
@@ -6126,7 +6126,7 @@ Cancel
 -   [Troubleshooting](/docs/troubleshooting/)
 -   [Windows](/docs/windows-wsl)
 -   Usage
-    
+
     -   [Go](/docs/go/)
     -   [TUI](/docs/tui/)
     -   [CLI](/docs/cli/)
@@ -6136,9 +6136,9 @@ Cancel
     -   [Share](/docs/share/)
     -   [GitHub](/docs/github/)
     -   [GitLab](/docs/gitlab/)
-    
+
 -   Configure
-    
+
     -   [Tools](/docs/tools/)
     -   [Rules](/docs/rules/)
     -   [Agents](/docs/agents/)
@@ -6153,14 +6153,14 @@ Cancel
     -   [ACP Support](/docs/acp/)
     -   [Agent Skills](/docs/skills/)
     -   [Custom Tools](/docs/custom-tools/)
-    
+
 -   Develop
-    
+
     -   [SDK](/docs/sdk/)
     -   [Server](/docs/server/)
     -   [Plugins](/docs/plugins/)
     -   [Ecosystem](/docs/ecosystem/)
-    
+
 
 [GitHub](https://github.com/anomalyco/opencode)[Discord](https://opencode.ai/discord)
 
@@ -6680,7 +6680,7 @@ AGENTS.md
 If you are unsure how to do something, use `gh_grep` to search code examples from GitHub.
 ```
 
-[Edit page](https://github.com/anomalyco/opencode/edit/dev/packages/web/src/content/docs/mcp-servers.mdx)[Found a bug? Open an issue](https://github.com/anomalyco/opencode/issues/new)[Join our Discord community](https://opencode.ai/discord) Select language EnglishالعربيةBosanskiDanskDeutschEspañolFrançaisItaliano日本語한국어Norsk BokmålPolskiPortuguês (Brasil)РусскийไทยTürkçe简体中文繁體中文 
+[Edit page](https://github.com/anomalyco/opencode/edit/dev/packages/web/src/content/docs/mcp-servers.mdx)[Found a bug? Open an issue](https://github.com/anomalyco/opencode/issues/new)[Join our Discord community](https://opencode.ai/discord) Select language EnglishالعربيةBosanskiDanskDeutschEspañolFrançaisItaliano日本語한국어Norsk BokmålPolskiPortuguês (Brasil)РусскийไทยTürkçe简体中文繁體中文
 
 © [Anomaly](https://anoma.ly)
 
@@ -7039,9 +7039,9 @@ Now I have all the info I need. Let me also search for the GitHub MCP server to 
 
 **Output:**
 ```
-                        GitHub - github/github-mcp-server: GitHub's official MCP Server · GitHub                                             
+                        GitHub - github/github-mcp-server: GitHub's official MCP Server · GitHub
 
-[Skip to content](#start-of-content)   
+[Skip to content](#start-of-content)
 
 ## Navigation Menu
 
@@ -7053,196 +7053,196 @@ Toggle navigation
 
 Appearance settings
 
-  
+
 
 -   Platform
-    
+
     -   AI CODE CREATION
-        
+
         -   [
-            
+
             GitHub CopilotWrite better code with AI
-            
+
             ](https://github.com/features/copilot)
         -   [
-            
+
             GitHub SparkBuild and deploy intelligent apps
-            
+
             ](https://github.com/features/spark)
         -   [
-            
+
             GitHub ModelsManage and compare prompts
-            
+
             ](https://github.com/features/models)
         -   [
-            
+
             MCP RegistryNewIntegrate external tools
-            
+
             ](https://github.com/mcp)
-        
+
     -   DEVELOPER WORKFLOWS
-        
+
         -   [
-            
+
             ActionsAutomate any workflow
-            
+
             ](https://github.com/features/actions)
         -   [
-            
+
             CodespacesInstant dev environments
-            
+
             ](https://github.com/features/codespaces)
         -   [
-            
+
             IssuesPlan and track work
-            
+
             ](https://github.com/features/issues)
         -   [
-            
+
             Code ReviewManage code changes
-            
+
             ](https://github.com/features/code-review)
-        
+
     -   APPLICATION SECURITY
-        
+
         -   [
-            
+
             GitHub Advanced SecurityFind and fix vulnerabilities
-            
+
             ](https://github.com/security/advanced-security)
         -   [
-            
+
             Code securitySecure your code as you build
-            
+
             ](https://github.com/security/advanced-security/code-security)
         -   [
-            
+
             Secret protectionStop leaks before they start
-            
+
             ](https://github.com/security/advanced-security/secret-protection)
-        
+
     -   EXPLORE
-        
+
         -   [Why GitHub](https://github.com/why-github)
         -   [Documentation](https://docs.github.com)
         -   [Blog](https://github.blog)
         -   [Changelog](https://github.blog/changelog)
         -   [Marketplace](https://github.com/marketplace)
-        
-    
+
+
     [View all features](https://github.com/features)
-    
+
 -   Solutions
-    
+
     -   BY COMPANY SIZE
-        
+
         -   [Enterprises](https://github.com/enterprise)
         -   [Small and medium teams](https://github.com/team)
         -   [Startups](https://github.com/enterprise/startups)
         -   [Nonprofits](https://github.com/solutions/industry/nonprofits)
-        
+
     -   BY USE CASE
-        
+
         -   [App Modernization](https://github.com/solutions/use-case/app-modernization)
         -   [DevSecOps](https://github.com/solutions/use-case/devsecops)
         -   [DevOps](https://github.com/solutions/use-case/devops)
         -   [CI/CD](https://github.com/solutions/use-case/ci-cd)
         -   [View all use cases](https://github.com/solutions/use-case)
-        
+
     -   BY INDUSTRY
-        
+
         -   [Healthcare](https://github.com/solutions/industry/healthcare)
         -   [Financial services](https://github.com/solutions/industry/financial-services)
         -   [Manufacturing](https://github.com/solutions/industry/manufacturing)
         -   [Government](https://github.com/solutions/industry/government)
         -   [View all industries](https://github.com/solutions/industry)
-        
-    
+
+
     [View all solutions](https://github.com/solutions)
-    
+
 -   Resources
-    
+
     -   EXPLORE BY TOPIC
-        
+
         -   [AI](https://github.com/resources/articles?topic=ai)
         -   [Software Development](https://github.com/resources/articles?topic=software-development)
         -   [DevOps](https://github.com/resources/articles?topic=devops)
         -   [Security](https://github.com/resources/articles?topic=security)
         -   [View all topics](https://github.com/resources/articles)
-        
+
     -   EXPLORE BY TYPE
-        
+
         -   [Customer stories](https://github.com/customer-stories)
         -   [Events & webinars](https://github.com/resources/events)
         -   [Ebooks & reports](https://github.com/resources/whitepapers)
         -   [Business insights](https://github.com/solutions/executive-insights)
         -   [GitHub Skills](https://skills.github.com)
-        
+
     -   SUPPORT & SERVICES
-        
+
         -   [Documentation](https://docs.github.com)
         -   [Customer support](https://support.github.com)
         -   [Community forum](https://github.com/orgs/community/discussions)
         -   [Trust center](https://github.com/trust-center)
         -   [Partners](https://github.com/partners)
-        
-    
+
+
     [View all resources](https://github.com/resources)
-    
+
 -   Open Source
-    
+
     -   COMMUNITY
-        
+
         -   [
-            
+
             GitHub SponsorsFund open source developers
-            
+
             ](https://github.com/sponsors)
-        
+
     -   PROGRAMS
-        
+
         -   [Security Lab](https://securitylab.github.com)
         -   [Maintainer Community](https://maintainers.github.com)
         -   [Accelerator](https://github.com/accelerator)
         -   [GitHub Stars](https://stars.github.com)
         -   [Archive Program](https://archiveprogram.github.com)
-        
+
     -   REPOSITORIES
-        
+
         -   [Topics](https://github.com/topics)
         -   [Trending](https://github.com/trending)
         -   [Collections](https://github.com/collections)
-        
-    
+
+
 -   Enterprise
-    
+
     -   ENTERPRISE SOLUTIONS
-        
+
         -   [
-            
+
             Enterprise platformAI-powered developer platform
-            
+
             ](https://github.com/enterprise)
-        
+
     -   AVAILABLE ADD-ONS
-        
+
         -   [
-            
+
             GitHub Advanced SecurityEnterprise-grade security features
-            
+
             ](https://github.com/security/advanced-security)
         -   [
-            
+
             Copilot for BusinessEnterprise-grade AI features
-            
+
             ](https://github.com/features/copilot/copilot-business)
         -   [
-            
+
             Premium SupportEnterprise-grade 24/7 support
-            
+
             ](https://github.com/premium-support)
-        
-    
+
+
 -   [Pricing](https://github.com/pricing)
 
 Search or jump to...
@@ -7267,9 +7267,9 @@ Cancel Submit feedback
 
 ## Use saved searches to filter your results more quickly
 
-Name  
+Name
 
-Query 
+Query
 
 To see all available qualifiers, see our [documentation](https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax).
 
@@ -7290,7 +7290,7 @@ You signed in with another tab or window. Reload to refresh your session. You si
 -   [Notifications](/login?return_to=%2Fgithub%2Fgithub-mcp-server) You must be signed in to change notification settings
 -   [Fork 3.8k](/login?return_to=%2Fgithub%2Fgithub-mcp-server)
 -   [Star 28.3k](/login?return_to=%2Fgithub%2Fgithub-mcp-server)
-    
+
 
 -   [Code](/github/github-mcp-server)
 -   [Issues 181](/github/github-mcp-server/issues)
@@ -7666,28 +7666,28 @@ GitHub Enterprise Server does not support remote server hosting. Please refer to
 To keep your GitHub PAT secure and reusable across different MCP hosts:
 
 1.  **Store your PAT in environment variables**
-    
+
     export GITHUB\_PAT=your\_token\_here
-    
+
     Or create a `.env` file:
-    
+
     GITHUB\_PAT\=your\_token\_here
-    
+
 2.  **Protect your `.env` file**
-    
+
     # Add to .gitignore to prevent accidental commits
     echo ".env" \>> .gitignore
-    
+
 3.  **Reference the token in configurations**
-    
+
     # CLI usage
     claude mcp update github -e GITHUB\_PERSONAL\_ACCESS\_TOKEN=$GITHUB\_PAT
-    
+
     # In config files (where supported)
     "env": {
       "GITHUB\_PERSONAL\_ACCESS\_TOKEN": "$GITHUB\_PAT"
     }
-    
+
 
 > **Note**: Environment variable support varies by host app and IDE. Some applications (like Windsurf) require hardcoded tokens in config files.
 
@@ -7696,20 +7696,20 @@ To keep your GitHub PAT secure and reusable across different MCP hosts:
 [](#token-security-best-practices)
 
 -   **Minimum scopes**: Only grant necessary permissions
-    
+
     -   `repo` - Repository operations
     -   `read:packages` - Docker image access
     -   `read:org` - Organization team access
 -   **Separate tokens**: Use different PATs for different projects/environments
-    
+
 -   **Regular rotation**: Update tokens periodically
-    
+
 -   **Never commit**: Keep tokens out of version control
-    
+
 -   **File permissions**: Restrict access to config files containing tokens
-    
+
     chmod 600 ~/.your-app/config.json
-    
+
 
 ### GitHub Enterprise Server and Enterprise Cloud with data residency (ghe.com)
 
@@ -7785,7 +7785,7 @@ Add the following JSON block to your IDE's MCP settings.
 
 Optionally, you can add a similar example (i.e. without the mcp key) to a file called `.vscode/mcp.json` in your workspace. This will allow you to share the configuration with other host applications that accept the same format.
 
-**Example JSON block without the MCP key included**  
+**Example JSON block without the MCP key included**
 
 {
   "inputs": \[
@@ -7881,13 +7881,13 @@ When no toolsets are specified, [default toolsets](#default-toolset) are used.
 To specify toolsets you want available to the LLM, you can pass an allow-list in two ways:
 
 1.  **Using Command Line Argument**:
-    
+
     github-mcp-server --toolsets repos,issues,pull\_requests,actions,code\_security
-    
+
 2.  **Using Environment Variable**:
-    
+
     GITHUB\_TOOLSETS="repos,issues,pull\_requests,actions,code\_security" ./github-mcp-server
-    
+
 
 The environment variable `GITHUB_TOOLSETS` takes precedence over the command line argument if both are provided.
 
@@ -7898,25 +7898,25 @@ The environment variable `GITHUB_TOOLSETS` takes precedence over the command lin
 You can also configure specific tools using the `--tools` flag. Tools can be used independently or combined with toolsets and dynamic toolsets discovery for fine-grained control.
 
 1.  **Using Command Line Argument**:
-    
+
     github-mcp-server --tools get\_file\_contents,issue\_read,create\_pull\_request
-    
+
 2.  **Using Environment Variable**:
-    
+
     GITHUB\_TOOLS="get\_file\_contents,issue\_read,create\_pull\_request" ./github-mcp-server
-    
+
 3.  **Combining with Toolsets** (additive):
-    
+
     github-mcp-server --toolsets repos,issues --tools get\_gist
-    
+
     This registers all tools from `repos` and `issues` toolsets, plus `get_gist`.
-    
+
 4.  **Combining with Dynamic Toolsets** (additive):
-    
+
     github-mcp-server --tools get\_file\_contents --dynamic-toolsets
-    
+
     This registers `get_file_contents` plus the dynamic toolset tools (`enable_toolset`, `list_available_toolsets`, `get_toolset_tools`).
-    
+
 
 **Important Notes:**
 
@@ -7996,13 +7996,13 @@ GITHUB\_TOOLSETS="default,stargazers" ./github-mcp-server
 The local GitHub MCP Server offers an insiders version with early access to new features and experimental tools.
 
 1.  **Using Command Line Argument**:
-    
+
     ./github-mcp-server --insiders
-    
+
 2.  **Using Environment Variable**:
-    
+
     GITHUB\_INSIDERS=true ./github-mcp-server
-    
+
 
 When using Docker:
 
@@ -8162,7 +8162,7 @@ Search docs to answer GitHub product and support questions
  ![workflow](/github/github-mcp-server/raw/main/pkg/octicons/icons/workflow-light.png) Actions
 
 -   **actions\_get** - Get details of GitHub Actions resources (workflows, workflow runs, jobs, and artifacts)
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `method`: The method to execute (string, required)
     -   `owner`: Repository owner (string, required)
@@ -8173,7 +8173,7 @@ Search docs to answer GitHub product and support questions
         -   Provide an artifact ID for 'download\_workflow\_run\_artifact' method.
         -   Provide a job ID for 'get\_workflow\_job' method. (string, required)
 -   **actions\_list** - List GitHub Actions workflows in a repository
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `method`: The action to perform (string, required)
     -   `owner`: Repository owner (string, required)
@@ -8187,7 +8187,7 @@ Search docs to answer GitHub product and support questions
     -   `workflow_jobs_filter`: Filters for workflow jobs. **ONLY** used when method is 'list\_workflow\_jobs' (object, optional)
     -   `workflow_runs_filter`: Filters for workflow runs. **ONLY** used when method is 'list\_workflow\_runs' (object, optional)
 -   **actions\_run\_trigger** - Trigger GitHub Actions workflow actions
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `inputs`: Inputs the workflow accepts. Only used for 'run\_workflow' method. (object, optional)
     -   `method`: The method to execute (string, required)
@@ -8197,7 +8197,7 @@ Search docs to answer GitHub product and support questions
     -   `run_id`: The ID of the workflow run. Required for all methods except 'run\_workflow'. (number, optional)
     -   `workflow_id`: The workflow ID (numeric) or workflow file name (e.g., main.yml, ci.yaml). Required for 'run\_workflow' method. (string, optional)
 -   **get\_job\_logs** - Get GitHub Actions workflow job logs
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `failed_only`: When true, gets logs for all failed jobs in the workflow run specified by run\_id. Requires run\_id to be provided. (boolean, optional)
     -   `job_id`: The unique identifier of the workflow job. Required when getting logs for a single job. (number, optional)
@@ -8208,14 +8208,14 @@ Search docs to answer GitHub product and support questions
     -   `tail_lines`: Number of lines to return from the end of the log (number, optional) ![codescan](/github/github-mcp-server/raw/main/pkg/octicons/icons/codescan-light.png) Code Security
 
 -   **get\_code\_scanning\_alert** - Get code scanning alert
-    
+
     -   **Required OAuth Scopes**: `security_events`
     -   **Accepted OAuth Scopes**: `repo`, `security_events`
     -   `alertNumber`: The number of the alert. (number, required)
     -   `owner`: The owner of the repository. (string, required)
     -   `repo`: The name of the repository. (string, required)
 -   **list\_code\_scanning\_alerts** - List code scanning alerts
-    
+
     -   **Required OAuth Scopes**: `security_events`
     -   **Accepted OAuth Scopes**: `repo`, `security_events`
     -   `owner`: The owner of the repository. (string, required)
@@ -8226,22 +8226,22 @@ Search docs to answer GitHub product and support questions
     -   `tool_name`: The name of the tool used for code scanning. (string, optional) ![person](/github/github-mcp-server/raw/main/pkg/octicons/icons/person-light.png) Context
 
 -   **get\_me** - Get my user profile
-    
+
     -   No parameters required
 -   **get\_team\_members** - Get team members
-    
+
     -   **Required OAuth Scopes**: `read:org`
     -   **Accepted OAuth Scopes**: `admin:org`, `read:org`, `write:org`
     -   `org`: Organization login (owner) that contains the team. (string, required)
     -   `team_slug`: Team slug (string, required)
 -   **get\_teams** - Get teams
-    
+
     -   **Required OAuth Scopes**: `read:org`
     -   **Accepted OAuth Scopes**: `admin:org`, `read:org`, `write:org`
     -   `user`: Username to get teams for. If not provided, uses the authenticated user. (string, optional) ![copilot](/github/github-mcp-server/raw/main/pkg/octicons/icons/copilot-light.png) Copilot
 
 -   **assign\_copilot\_to\_issue** - Assign Copilot to issue
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `base_ref`: Git reference (e.g., branch) that the agent will start its work from. If not specified, defaults to the repository's default branch (string, optional)
     -   `custom_instructions`: Optional custom instructions to guide the agent beyond the issue body. Use this to provide additional context, constraints, or guidance that is not captured in the issue description (string, optional)
@@ -8249,21 +8249,21 @@ Search docs to answer GitHub product and support questions
     -   `owner`: Repository owner (string, required)
     -   `repo`: Repository name (string, required)
 -   **request\_copilot\_review** - Request Copilot review
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `owner`: Repository owner (string, required)
     -   `pullNumber`: Pull request number (number, required)
     -   `repo`: Repository name (string, required) ![dependabot](/github/github-mcp-server/raw/main/pkg/octicons/icons/dependabot-light.png) Dependabot
 
 -   **get\_dependabot\_alert** - Get dependabot alert
-    
+
     -   **Required OAuth Scopes**: `security_events`
     -   **Accepted OAuth Scopes**: `repo`, `security_events`
     -   `alertNumber`: The number of the alert. (number, required)
     -   `owner`: The owner of the repository. (string, required)
     -   `repo`: The name of the repository. (string, required)
 -   **list\_dependabot\_alerts** - List dependabot alerts
-    
+
     -   **Required OAuth Scopes**: `security_events`
     -   **Accepted OAuth Scopes**: `repo`, `security_events`
     -   `owner`: The owner of the repository. (string, required)
@@ -8272,13 +8272,13 @@ Search docs to answer GitHub product and support questions
     -   `state`: Filter dependabot alerts by state. Defaults to open (string, optional) ![comment-discussion](/github/github-mcp-server/raw/main/pkg/octicons/icons/comment-discussion-light.png) Discussions
 
 -   **get\_discussion** - Get discussion
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `discussionNumber`: Discussion Number (number, required)
     -   `owner`: Repository owner (string, required)
     -   `repo`: Repository name (string, required)
 -   **get\_discussion\_comments** - Get discussion comments
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `after`: Cursor for pagination. Use the endCursor from the previous page's PageInfo for GraphQL APIs. (string, optional)
     -   `discussionNumber`: Discussion Number (number, required)
@@ -8286,12 +8286,12 @@ Search docs to answer GitHub product and support questions
     -   `perPage`: Results per page for pagination (min 1, max 100) (number, optional)
     -   `repo`: Repository name (string, required)
 -   **list\_discussion\_categories** - List discussion categories
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `owner`: Repository owner (string, required)
     -   `repo`: Repository name. If not provided, discussion categories will be queried at the organisation level. (string, optional)
 -   **list\_discussions** - List discussions
-    
+
     -   **Required OAuth Scopes**: `repo`
     -   `after`: Cursor for pagination. Use the endCursor from the previous page's PageInfo for GraphQL APIs. (string, optional)
     -   `category`: Optional filter by discussion category ID. If provided, only discussions with this category are listed. (string, optional)
@@ -8302,17 +8302,17 @@ Search docs to answer GitHub product and support questions
     -   `repo`: Repository name. If not provided, discussions will be queried at the organisation level. (string, optional) ![logo-gist](/github/github-mcp-server/raw/main/pkg/octicons/icons/logo-gist-light.png) Gists
 
 -   **create\_gist** - Create Gist
-    
+
     -   **Required OAuth Scopes**: `gist`
     -   `content`: Content for simple single-file gist creation (string, required)
     -   `description`: Description of the gist (string, optional)
     -   `filename`: Filename for simple single-file gist creation (string, required)
     -   `public`: Whether the gist is public (boolean, optional)
 -   **get\_gist** - Get Gist Content
-    
+
     -   `gist_id`: The ID of the gist (string, required)
 -   **list\_gists** - List Gists
-    
+
     -   `page`: Page number for pagination (min 1) (number, optional)
     -   `perPage`: Results per page for pagination (min 1, max 100) (number, optional)
     -   `since`: Only gists updated after this time (ISO 8601 timestamp) (string, optional)
@@ -8893,23 +8893,23 @@ Let me read the core implementation file for agi_mind to understand it better.
 <type>file</type>
 <content>1: """
 2: arifosmcp/runtime/megaTools/05_agi_mind.py
-3: 
+3:
 4: 333_MIND: Core reasoning and synthesis engine
 5: Stage: 333_MIND | Trinity: DELTA Δ | Floors: F2, F4, F7, F8
-6: 
+6:
 7: Modes: reason, reflect, forge
 8: """
-9: 
+9:
 10: from __future__ import annotations
-11: 
+11:
 12: from typing import Any
 13: from fastmcp.dependencies import CurrentContext
-14: 
+14:
 15: from arifosmcp.runtime.models import RuntimeEnvelope, RuntimeStatus, Verdict
 16: from arifosmcp.runtime.tools_internal import agi_mind_dispatch_impl
 17: from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
-18: 
-19: 
+18:
+19:
 20: async def agi_mind(
 21:     mode: str | None = None,
 22:     payload: dict[str, Any] | None = None,
@@ -8947,7 +8947,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 54:         payload.setdefault("intent", intent)
 55:     if human_approval:
 56:         payload.setdefault("human_approval", human_approval)
-57: 
+57:
 58:     if "agi_mind" in HARDENED_DISPATCH_MAP:
 59:         if mode is None:
 60:             mode = "reason"
@@ -8979,7 +8979,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 86:                 payload=res,
 87:             )
 88:         return res
-89: 
+89:
 90:     resolved_payload = dict(payload or {})
 91:     return await agi_mind_dispatch_impl(
 92:         mode=mode,
@@ -9009,22 +9009,22 @@ Let me read the core implementation file for agi_mind to understand it better.
 <type>file</type>
 <content>1: """
 2: organs/1_agi.py — Stage 111-333: THE MIND (REASON MIND)
-3: 
+3:
 4: Logical analysis, truth-seeking, and sequential reasoning.
-5: 
+5:
 6: Stages:
 7:     111: Search/Understand
 8:     222: Analyze/Compare
 9:     333: Synthesize/Conclude
-10: 
+10:
 11: DITEMPA BUKAN DIBERI — Forged, Not Given
 12: """
-13: 
+13:
 14: from __future__ import annotations
-15: 
+15:
 16: import logging
 17: from typing import Any, Literal
-18: 
+18:
 19: from arifosmcp.core.shared.atlas import Phi
 20: from arifosmcp.core.shared.types import (
 21:     AgiMetrics,
@@ -9037,18 +9037,18 @@ Let me read the core implementation file for agi_mind to understand it better.
 28:     ReasonMindStep,
 29: )
 30: from arifosmcp.core.shared.verdict_contract import normalize_verdict
-31: 
+31:
 32: logger = logging.getLogger(__name__)
-33: 
-34: 
+33:
+34:
 35: def _build_reasoning_steps(query: str, reason_mode: str) -> list[ReasonMindStep]:
 36:     """
 37:     Build the three-stage reasoning pipeline: 111 Search → 222 Analyze → 333 Synthesize.
-38: 
+38:
 39:     Args:
 40:         query: The input query being analyzed
 41:         reason_mode: Reasoning mode (e.g., "strict_truth" affects uncertainty marking)
-42: 
+42:
 43:     Returns:
 44:         List of ReasonMindStep representing the reasoning progression
 45:     """
@@ -9073,8 +9073,8 @@ Let me read the core implementation file for agi_mind to understand it better.
 64:             thought="Synthesizing final conclusion based on analysis.",
 65:         ),
 66:     ]
-67: 
-68: 
+67:
+68:
 69: async def agi(
 70:     query: str,
 71:     session_id: str,
@@ -9090,42 +9090,42 @@ Let me read the core implementation file for agi_mind to understand it better.
 81:     """
 82:     # 1. Query Analysis (ATLAS)
 83:     gpv = Phi(query)
-84: 
+84:
 85:     # 2. Initialize Physics/Thermodynamics
 86:     from arifosmcp.core.physics.thermodynamics_hardened import (
 87:         consume_reason_energy,
 88:         record_entropy_io,
 89:         shannon_entropy,
 90:     )
-91: 
+91:
 92:     # Baseline entropy (input)
 93:     h_in = shannon_entropy(query)
-94: 
+94:
 95:     # 3. Initialize State
 96:     floors = {"F2": "pass", "F4": "pass", "F7": "pass", "F10": "pass"}
-97: 
+97:
 98:     # 4. Sequential Reasoning via Local Ollama (111→222→333)
 99:     from arifosmcp.intelligence.tools.ollama_local import ollama_local_generate
-100: 
+100:
 101:     # --- ADAPTIVE BUDGET SPLIT ---
 102:     # Phase 111 (20%, min 80), 222 (30%, min 120), 333 (50%, min 180)
 103:     b111 = max(80, int(max_tokens * 0.20))
 104:     b222 = max(120, int(max_tokens * 0.30))
 105:     b333 = max(180, int(max_tokens * 0.50))
-106: 
+106:
 107:     # Track actual usage
 108:     phase_usage = {}
 109:     actual_total = 0
-110: 
+110:
 111:     from arifosmcp.core.organs._0_init import scan_injection as _f12
-112: 
+112:
 113:     def _f12_scrub(text: str, phase: str) -> str:
 114:         """F12: scan Ollama output before injecting into next phase prompt."""
 115:         if _f12(text) >= 0.7:
 116:             logger.warning("[%s] F12 injection pattern in %s output — excised", session_id, phase)
 117:             return f"[F12_EXCISED:{phase}]"
 118:         return text
-119: 
+119:
 120:     # --- PHASE 111: SEARCH/UNDERSTAND ---
 121:     search_prompt = f"Analyze the intent and constraints: {query}. List core facts."
 122:     search_env = await ollama_local_generate(prompt=search_prompt, max_tokens=b111)
@@ -9144,7 +9144,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 135:     usage_111 = search_env.payload.get("usage", {}).get("completion_tokens", len(search_text) // 4)
 136:     phase_usage["111_search"] = usage_111
 137:     actual_total += usage_111
-138: 
+138:
 139:     # --- PHASE 222: ANALYZE/COMPARE ---
 140:     analyze_prompt = f"Given facts: {search_text}. Compare implications and test assumptions."
 141:     analyze_env = await ollama_local_generate(prompt=analyze_prompt, max_tokens=b222)
@@ -9169,7 +9169,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 160:     )
 161:     phase_usage["222_analyze"] = usage_222
 162:     actual_total += usage_222
-163: 
+163:
 164:     # --- PHASE 333: SYNTHESIZE ---
 165:     synthesis_prompt = f"Synthesize final conclusion for: {query}. Based on: {analyze_text}."
 166:     synthesis_env = await ollama_local_generate(prompt=synthesis_prompt, max_tokens=b333)
@@ -9197,9 +9197,9 @@ Let me read the core implementation file for agi_mind to understand it better.
 188:     )
 189:     phase_usage["333_synthesis"] = usage_333
 190:     actual_total += usage_333
-191: 
+191:
 192:     consume_reason_energy(session_id, n_cycles=3)
-193: 
+193:
 194:     steps = [
 195:         ReasonMindStep(
 196:             id=1, phase="111_search", thought=search_text[:200], evidence="Ollama:qwen2.5:3b"
@@ -9207,7 +9207,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 198:         ReasonMindStep(id=2, phase="222_analyze", thought=analyze_text[:200]),
 199:         ReasonMindStep(id=3, phase="333_synthesis", thought=synthesis_text[:200]),
 200:     ]
-201: 
+201:
 202:     # 5. Handle Eureka (Insight)
 203:     summary = synthesis_text
 204:     has_eureka = "insight" in summary.lower() or "eureka" in summary.lower()
@@ -9215,7 +9215,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 206:         has_eureka=has_eureka,
 207:         summary="Discovered pattern via Ollama reasoning loop." if has_eureka else None,
 208:     )
-209: 
+209:
 210:     # 6. Entropy and Physics (F4 Clarity)
 211:     h_out = shannon_entropy(summary)
 212:     try:
@@ -9225,10 +9225,10 @@ Let me read the core implementation file for agi_mind to understand it better.
 216:             ds = -abs(ds)  # Force reduction sign for SEAL
 217:     except Exception:
 218:         ds = -0.2
-219: 
+219:
 220:     # 7. Real Intelligence (3E) Judgment
 221:     from arifosmcp.core.judgment import judge_cognition
-222: 
+222:
 223:     cognition = judge_cognition(
 224:         query=query,
 225:         evidence_count=len(steps),
@@ -9240,7 +9240,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 231:         compute_ms=500.0,
 232:         expected_ms=1000.0,
 233:     )
-234: 
+234:
 235:     # 8. Assemble DeltaBundle (Mind Manifest)
 236:     delta_bundle = DeltaBundle(
 237:         n_io=1 if gpv.tau > 0.5 else 0,  # F3 grounding flag
@@ -9257,16 +9257,16 @@ Let me read the core implementation file for agi_mind to understand it better.
 248:             "ollama_grounding": True,
 249:         },
 250:     )
-251: 
+251:
 252:     answer = ReasonMindAnswer(
 253:         summary=summary,
 254:         confidence=cognition.truth_score,
 255:         verdict="ready" if cognition.verdict == "SEAL" else "partial",
 256:     )
-257: 
+257:
 258:     # 8. Construct Output
 259:     _organ_verdict = normalize_verdict(333, cognition.verdict)
-260: 
+260:
 261:     out = AgiOutput(
 262:         session_id=session_id,
 263:         verdict=_organ_verdict,
@@ -9285,7 +9285,7 @@ Let me read the core implementation file for agi_mind to understand it better.
 276:         ai_witness=cognition.genius_score,
 277:         earth_witness=1.0 - cognition.safety_omega,
 278:     )
-279: 
+279:
 280:     # Add hidden fields for bridge consumption (V2 Telemetry)
 281:     out_dict = out.model_dump(mode="json")
 282:     out_dict["actual_output_tokens"] = actual_total
@@ -9293,16 +9293,16 @@ Let me read the core implementation file for agi_mind to understand it better.
 284:     out_dict["truncated"] = any(
 285:         env.payload.get("truncated", False) for env in (search_env, analyze_env, synthesis_env)
 286:     )
-287: 
+287:
 288:     return out_dict
-289: 
-290: 
+289:
+290:
 291: # Unified aliases
 292: reason = agi
 293: think = agi
 294: sense = agi
-295: 
-296: 
+295:
+296:
 297: __all__ = ["agi", "reason", "think", "sense"]
 
 (End of file - total 297 lines)
@@ -9332,8 +9332,8 @@ Now let me also look at the tools_internal.py to see the implementation details 
 ```
 <path>/root/arifOS/arifosmcp/runtime/tools_internal.py</path>
 <type>file</type>
-<content>460: 
-461: 
+<content>460:
+461:
 462: async def agi_mind_dispatch_impl(
 463:     mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
 464: ) -> RuntimeEnvelope:
@@ -9351,12 +9351,12 @@ Now let me also look at the tools_internal.py to see the implementation details 
 476:         )
 477:     elif mode == "forge":
 478:         from arifosmcp.runtime.orchestrator import metabolic_loop
-479: 
+479:
 480:         res = await metabolic_loop(query=query, session_id=session_id, dry_run=dry_run)
 481:         return RuntimeEnvelope(**res)
 482:     raise ValueError(f"Invalid mode for agi_mind: {mode}")
-483: 
-484: 
+483:
+484:
 485: async def asi_heart_dispatch_impl(
 486:     mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
 487: ) -> RuntimeEnvelope:
@@ -9371,11 +9371,11 @@ Now let me also look at the tools_internal.py to see the implementation details 
 496:             "asi_simulate", Stage.HEART_666, session_id, {"scenario": content}, ctx
 497:         )
 498:     raise ValueError(f"Invalid mode for asi_heart: {mode}")
-499: 
-500: 
+499:
+500:
 501: _constitutional_memory_store = None
-502: 
-503: 
+502:
+503:
 504: def _get_constitutional_memory_store():
 505:     """Lazy singleton for ConstitutionalMemoryStore (Qdrant-backed)."""
 506:     global _constitutional_memory_store
@@ -9415,17 +9415,17 @@ Now let me also look at the tools_internal.py to see the implementation details 
 65:         "architect_registry",
 66:     }
 67: )
-68: 
+68:
 69: READ_ONLY_TOOLS: set[str] = {
 70:     "physics_reality",
 71:     "math_estimator",
 72:     "architect_registry",
 73: }
-74: 
+74:
 75: # ═══════════════════════════════════════════════════════════════════════════════
 76: # GOVERNANCE METADATA
 77: # ═══════════════════════════════════════════════════════════════════════════════
-78: 
+78:
 79: AAA_TOOL_STAGE_MAP: dict[str, str] = {
 80:     "init_anchor": "000_INIT",
 81:     # "anchor_session": "000_INIT",  # LEGACY: use init_anchor
@@ -9448,7 +9448,7 @@ Now let me also look at the tools_internal.py to see the implementation details 
 98:     "code_engine": "M-3_EXEC",
 99:     "architect_registry": "M-4_ARCH",
 100: }
-101: 
+101:
 102: TRINITY_BY_TOOL: dict[str, str] = {
 103:     "init_anchor": "PSI Ψ",
 104:     "arifOS_kernel": "DELTA/PSI",
@@ -9462,7 +9462,7 @@ Now let me also look at the tools_internal.py to see the implementation details 
 112:     "code_engine": "ALL",
 113:     "architect_registry": "DELTA Δ",
 114: }
-115: 
+115:
 116: AAA_TOOL_ALIASES: dict[str, str] = {
 117:     "init": "init_anchor",
 118:     "revoke": "init_anchor",
@@ -9472,7 +9472,7 @@ Now let me also look at the tools_internal.py to see the implementation details 
 122:     "seal": "vault_ledger",
 123:     "reason": "agi_mind",
 124: }
-125: 
+125:
 126: TOOL_MODES: dict[str, frozenset[str]] = {
 127:     "init_anchor": frozenset({"init", "revoke", "refresh"}),
 128:     "arifOS_kernel": frozenset({"kernel", "status"}),
@@ -9488,7 +9488,7 @@ Now let me also look at the tools_internal.py to see the implementation details 
 138:     "code_engine": frozenset({"fs", "process", "net", "tail", "replay"}),
 139:     "architect_registry": frozenset({"register", "list", "read"}),
 140: }
-141: 
+141:
 142: AAA_TOOL_LAW_BINDINGS: dict[str, list[str]] = {
 143:     "init_anchor": ["F11_AUTHORITY", "F12_DEFENSE", "F13_SOVEREIGNTY"],
 144:     "arifOS_kernel": ["F4_CLARITY", "F11_AUTHORITY"],
@@ -9565,7 +9565,7 @@ When you call `agi_mind(mode="reason")`, it runs a **3-phase Ollama loop**:
 ```
 
 1. **Phase 111**: Identifies facts and constraints from query
-2. **Phase 222**: Compares implications, tests assumptions  
+2. **Phase 222**: Compares implications, tests assumptions
 3. **Phase 333**: Synthesizes final conclusion
 
 Each phase uses local **Ollama** (qwen2.5:3b) for reasoning.
@@ -9667,9 +9667,9 @@ Let me first get the actual Sequential Thinking MCP server code/docs to understa
 
 **Output:**
 ```
-                        servers/src/sequentialthinking at main · modelcontextprotocol/servers · GitHub                                             
+                        servers/src/sequentialthinking at main · modelcontextprotocol/servers · GitHub
 
-[Skip to content](#start-of-content)   
+[Skip to content](#start-of-content)
 
 ## Navigation Menu
 
@@ -9681,196 +9681,196 @@ Toggle navigation
 
 Appearance settings
 
-  
+
 
 -   Platform
-    
+
     -   AI CODE CREATION
-        
+
         -   [
-            
+
             GitHub CopilotWrite better code with AI
-            
+
             ](https://github.com/features/copilot)
         -   [
-            
+
             GitHub SparkBuild and deploy intelligent apps
-            
+
             ](https://github.com/features/spark)
         -   [
-            
+
             GitHub ModelsManage and compare prompts
-            
+
             ](https://github.com/features/models)
         -   [
-            
+
             MCP RegistryNewIntegrate external tools
-            
+
             ](https://github.com/mcp)
-        
+
     -   DEVELOPER WORKFLOWS
-        
+
         -   [
-            
+
             ActionsAutomate any workflow
-            
+
             ](https://github.com/features/actions)
         -   [
-            
+
             CodespacesInstant dev environments
-            
+
             ](https://github.com/features/codespaces)
         -   [
-            
+
             IssuesPlan and track work
-            
+
             ](https://github.com/features/issues)
         -   [
-            
+
             Code ReviewManage code changes
-            
+
             ](https://github.com/features/code-review)
-        
+
     -   APPLICATION SECURITY
-        
+
         -   [
-            
+
             GitHub Advanced SecurityFind and fix vulnerabilities
-            
+
             ](https://github.com/security/advanced-security)
         -   [
-            
+
             Code securitySecure your code as you build
-            
+
             ](https://github.com/security/advanced-security/code-security)
         -   [
-            
+
             Secret protectionStop leaks before they start
-            
+
             ](https://github.com/security/advanced-security/secret-protection)
-        
+
     -   EXPLORE
-        
+
         -   [Why GitHub](https://github.com/why-github)
         -   [Documentation](https://docs.github.com)
         -   [Blog](https://github.blog)
         -   [Changelog](https://github.blog/changelog)
         -   [Marketplace](https://github.com/marketplace)
-        
-    
+
+
     [View all features](https://github.com/features)
-    
+
 -   Solutions
-    
+
     -   BY COMPANY SIZE
-        
+
         -   [Enterprises](https://github.com/enterprise)
         -   [Small and medium teams](https://github.com/team)
         -   [Startups](https://github.com/enterprise/startups)
         -   [Nonprofits](https://github.com/solutions/industry/nonprofits)
-        
+
     -   BY USE CASE
-        
+
         -   [App Modernization](https://github.com/solutions/use-case/app-modernization)
         -   [DevSecOps](https://github.com/solutions/use-case/devsecops)
         -   [DevOps](https://github.com/solutions/use-case/devops)
         -   [CI/CD](https://github.com/solutions/use-case/ci-cd)
         -   [View all use cases](https://github.com/solutions/use-case)
-        
+
     -   BY INDUSTRY
-        
+
         -   [Healthcare](https://github.com/solutions/industry/healthcare)
         -   [Financial services](https://github.com/solutions/industry/financial-services)
         -   [Manufacturing](https://github.com/solutions/industry/manufacturing)
         -   [Government](https://github.com/solutions/industry/government)
         -   [View all industries](https://github.com/solutions/industry)
-        
-    
+
+
     [View all solutions](https://github.com/solutions)
-    
+
 -   Resources
-    
+
     -   EXPLORE BY TOPIC
-        
+
         -   [AI](https://github.com/resources/articles?topic=ai)
         -   [Software Development](https://github.com/resources/articles?topic=software-development)
         -   [DevOps](https://github.com/resources/articles?topic=devops)
         -   [Security](https://github.com/resources/articles?topic=security)
         -   [View all topics](https://github.com/resources/articles)
-        
+
     -   EXPLORE BY TYPE
-        
+
         -   [Customer stories](https://github.com/customer-stories)
         -   [Events & webinars](https://github.com/resources/events)
         -   [Ebooks & reports](https://github.com/resources/whitepapers)
         -   [Business insights](https://github.com/solutions/executive-insights)
         -   [GitHub Skills](https://skills.github.com)
-        
+
     -   SUPPORT & SERVICES
-        
+
         -   [Documentation](https://docs.github.com)
         -   [Customer support](https://support.github.com)
         -   [Community forum](https://github.com/orgs/community/discussions)
         -   [Trust center](https://github.com/trust-center)
         -   [Partners](https://github.com/partners)
-        
-    
+
+
     [View all resources](https://github.com/resources)
-    
+
 -   Open Source
-    
+
     -   COMMUNITY
-        
+
         -   [
-            
+
             GitHub SponsorsFund open source developers
-            
+
             ](https://github.com/sponsors)
-        
+
     -   PROGRAMS
-        
+
         -   [Security Lab](https://securitylab.github.com)
         -   [Maintainer Community](https://maintainers.github.com)
         -   [Accelerator](https://github.com/accelerator)
         -   [GitHub Stars](https://stars.github.com)
         -   [Archive Program](https://archiveprogram.github.com)
-        
+
     -   REPOSITORIES
-        
+
         -   [Topics](https://github.com/topics)
         -   [Trending](https://github.com/trending)
         -   [Collections](https://github.com/collections)
-        
-    
+
+
 -   Enterprise
-    
+
     -   ENTERPRISE SOLUTIONS
-        
+
         -   [
-            
+
             Enterprise platformAI-powered developer platform
-            
+
             ](https://github.com/enterprise)
-        
+
     -   AVAILABLE ADD-ONS
-        
+
         -   [
-            
+
             GitHub Advanced SecurityEnterprise-grade security features
-            
+
             ](https://github.com/security/advanced-security)
         -   [
-            
+
             Copilot for BusinessEnterprise-grade AI features
-            
+
             ](https://github.com/features/copilot/copilot-business)
         -   [
-            
+
             Premium SupportEnterprise-grade 24/7 support
-            
+
             ](https://github.com/premium-support)
-        
-    
+
+
 -   [Pricing](https://github.com/pricing)
 
 Search or jump to...
@@ -9895,9 +9895,9 @@ Cancel Submit feedback
 
 ## Use saved searches to filter your results more quickly
 
-Name  
+Name
 
-Query 
+Query
 
 To see all available qualifiers, see our [documentation](https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax).
 
@@ -9918,7 +9918,7 @@ You signed in with another tab or window. Reload to refresh your session. You si
 -   [Notifications](/login?return_to=%2Fmodelcontextprotocol%2Fservers) You must be signed in to change notification settings
 -   [Fork 10.1k](/login?return_to=%2Fmodelcontextprotocol%2Fservers)
 -   [Star 82.3k](/login?return_to=%2Fmodelcontextprotocol%2Fservers)
-    
+
 
 -   [Code](/modelcontextprotocol/servers)
 -   [Issues 337](/modelcontextprotocol/servers/issues)
@@ -10866,8 +10866,8 @@ Now let me read the orchestrator metabolic_loop function to understand how forge
 ```
 <path>/root/arifOS/arifosmcp/runtime/orchestrator.py</path>
 <type>file</type>
-<content>470: 
-471: 
+<content>470:
+471:
 472: async def metabolic_loop(
 473:     query: str,
 474:     risk_tier: str = "medium",
@@ -10887,20 +10887,20 @@ Now let me read the orchestrator metabolic_loop function to understand how forge
 488: ) -> dict[str, Any]:
 489:     """Run the Double Helix metabolic loop (Inner Ring + Outer Ring)."""
 490:     start_time = time.perf_counter()
-491: 
+491:
 492:     if dry_run:
 493:         from arifosmcp.runtime.models import AuthContext
-494:         
+494:
 495:         _actual_session = session_id or "dry-run-session"
 496:         _actual_actor = actor_id or "anonymous"
-497:         
+497:
 498:         ctx = AuthContext(
 499:             session_id=_actual_session,
 500:             actor_id=_actual_actor,
 501:             authority_level="declared",
 502:             approval_scope=["*"],
 503:         )
-504:         
+504:
 505:         return {
 506:             "ok": True,
 507:             "tool": tool_name,
@@ -10917,15 +10917,15 @@ Now let me read the orchestrator metabolic_loop function to understand how forge
 518:             "dry_run": True,
 519:             "meta": {"dry_run": True},
 520:         }
-521: 
+521:
 522:     from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
 523:     from arifosmcp.core.governance_kernel import route_pipeline
-524: 
+524:
 525:     # Track if we're approaching timeout
 526:     def _check_timeout() -> bool:
 527:         elapsed = time.perf_counter() - start_time
 528:         return elapsed > timeout_seconds * 0.8  # 80% threshold for early warning
-529: 
+529:
 530:     # ─── METABOLIC SYNONYM LAYER ───
 531:     LEGACY_SYNONYMS = {
 532:         "session_memory": "agi_reflect",
@@ -10938,10 +10938,10 @@ Now let me read the orchestrator metabolic_loop function to understand how forge
 539:         "seal_vault": "vault_seal",
 540:         "seal_vault_commit": "vault_seal",
 541:     }
-542: 
+542:
 543:     # Check if the query intent implies a legacy tool and normalize it
 544:     # (In a real E2E, this might be triggered by the 'tool' field in the envelope)
-545: 
+545:
 546:     current_session_id = _normalize_session_id(session_id)
 547:     try:
 548:         # === OUTER RING GATE: PNS·SHIELD ===
@@ -11593,7 +11593,7 @@ Found 6159 matches (showing first 100)
   Line 202:     console.log(error.stage);  // Stage where error occurred
 
 /root/arifOS/arifosmcp/intelligence/dashboard/README.md:
-  Line 75: **Sovereign:** Muhammad Arif bin Fazil (888 Judge)  
+  Line 75: **Sovereign:** Muhammad Arif bin Fazil (888 Judge)
 
 /root/arifOS/arifosmcp/intelligence/README.md:
   Line 23: | **Δ Mind** | Logic & Grounding | Δ Mind (Stage 000-333) |
@@ -11609,7 +11609,7 @@ Found 6159 matches (showing first 100)
   Line 60: - **`forge`**: Solution synthesis and Genius score (Stage 777).
   Line 61: - **`audit`**: Final Tri-Witness consensus judgment (Stage 888).
   Line 62: - **`seal`**: Immutable commitment to VAULT999 (Stage 999).
-  Line 105: **Authority:** Muhammad Arif bin Fazil (888 Judge)  
+  Line 105: **Authority:** Muhammad Arif bin Fazil (888 Judge)
 
 /root/arifOS/arifosmcp/init_000/migrations/MIGRATION_NOTES.md:
   Line 6: - **Storage**: `arifosmcp/init_000/data/init_000.db`
@@ -11705,13 +11705,13 @@ This is great information. Now let me understand the flow better. Let me look at
 <path>/root/arifOS/arifosmcp/sites/RAG_CONTEXT.md</path>
 <type>file</type>
 <content>1: # arifOS RAG CONTEXT (Hyper-Compressed)
-2: 
+2:
 3: ## 📋 CORE SPECS
 4: - **Project**: arifOS (Constitutional AI Governance)
 5: - **Epoch**: 2026.03.14
 6: - **Authority**: 888 Judge (Muhammad Arif bin Fazil)
 7: - **Motto**: Ditempa Bukan Diberi (Forged, Not Given)
-8: 
+8:
 9: ## ⚖️ CONSTITUTIONAL FLOORS (F1-F13)
 10: 1. **F1 Amanah**: Reversibility/Auditability.
 11: 2. **F2 Truth**: $P(fact) \ge 0.99$.
@@ -11726,25 +11726,25 @@ This is great information. Now let me understand the flow better. Let me look at
 20: 11. **F11 Command Auth**: Cryptographic session anchoring.
 21: 12. **F12 Defense**: Active injection/adversarial guard.
 22: 13. **F13 Sovereign**: Human veto on all irreversibles.
-23: 
+23:
 24: ## 🧬 ARCHITECTURE: DOUBLE HELIX
 25: - **Inner Ring**: Sacred Organs (Logic).
 26: - **Outer Ring**: PNS Organs (Real-world grounding).
 27: - **Metabolic Loop**: 000 (INIT) → 333 (MIND) → 666 (HEART) → 888 (JUDGE) → 999 (VAULT).
-28: 
+28:
 29: ## 🛠️ KEY TOOLS
 30: - `forge`: Unified pipeline execution.
 31: - `init_anchor`: Session/Auth bootstrapping.
 32: - `agi_reason`: Governed first-principles reasoning.
 33: - `asi_critique`: Adversarial ethical audit.
 34: - `vault_seal`: Immutable Merkle-chained ledger commit.
-35: 
+35:
 36: ## 🔗 NETWORK
 37: - **Human**: https://arif-fazil.com/
 38: - **Theory**: https://arifos.arif-fazil.com/
 39: - **Body**: https://arifosmcp.arif-fazil.com/
 40: - **Discovery**: /llms.txt, /ai.json, /openapi.json
-41: 
+41:
 42: ## 🩸 INVARIANTS
 43: - `_wrap_call` is the mandatory bridge.
 44: - All outputs wrapped in `RuntimeEnvelope`.
@@ -12221,29 +12221,29 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 <path>/root/arifOS/arifosmcp/core/workflow/GOVERNANCE_SYSTEM_STATUS.md</path>
 <type>file</type>
 <content>1: # Executable Governance System Status
-2: 
-3: **Version:** v2026.3.6-CANON-EXECUTABLE  
-4: **Authority:** Muhammad Arif bin Fazil  
+2:
+3: **Version:** v2026.3.6-CANON-EXECUTABLE
+4: **Authority:** Muhammad Arif bin Fazil
 5: **Status:** OPERATIONAL — Machine-checkable enforcement active
-6: 
+6:
 7: ---
-8: 
+8:
 9: ## Executive Summary
-10: 
+10:
 11: The executable governance system for arifOS is now operational with three layers of protection:
-12: 
+12:
 13: | Layer | Location | Purpose | Status |
 14: |-------|----------|---------|--------|
 15: | **Configuration** | `workflow-system.yaml` | 11 stages, F1-F13 definitions | ✅ Complete |
 16: | **Enforcement** | `governance_runner.py` | Machine-checkable constraints | ✅ Complete |
 17: | **Validation** | `tests/test_governance.py` | 12 test classes, all protections | ✅ Complete |
-18: 
+18:
 19: **Key Achievement:** Agents can no longer bypass constitutional floors via persuasive prose — the system raises exceptions on violations.
-20: 
+20:
 21: ---
-22: 
+22:
 23: ## System Architecture
-24: 
+24:
 25: ```
 26: ┌─────────────────────────────────────────────────────────────────┐
 27: │              EXECUTABLE GOVERNANCE SYSTEM v2026.3.6              │
@@ -12275,11 +12275,11 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 53: │                                                                  │
 54: └─────────────────────────────────────────────────────────────────┘
 55: ```
-56: 
+56:
 57: ---
-58: 
+58:
 59: ## The 11 Canonical Stages
-60: 
+60:
 61: | Stage | Band | Floors | Purpose | Key Protection |
 62: |-------|------|--------|---------|----------------|
 63: | **000-INIT** | A | F11, F12, F13 | Session ignition | Identity + Injection |
@@ -12293,9 +12293,9 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 71: | **800-VERIFY** | F | F2, F3, F4 | Testing | Truth + Empathy |
 72: | **888-JUDGE** | Ψ | All F1-F13 | Final verdict | **Human approval required** |
 73: | **999-VAULT** | Ω | F1, F3 | Immutable commit | **ADMIN approval required** |
-74: 
+74:
 75: ### Phase Separation
-76: 
+76:
 77: ```
 78: ┌────────────────────────────────────────────────────────────────┐
 79: │ PRE-DEVELOPMENT (Laptop - Kimi)                                 │
@@ -12308,11 +12308,11 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 86: │ PREPARE → PROTOTYPE → VERIFY → JUDGE → VAULT                   │
 87: └────────────────────────────────────────────────────────────────┘
 88: ```
-89: 
+89:
 90: ---
-91: 
+91:
 92: ## Floor Enforcement Matrix
-93: 
+93:
 94: | Floor | Threshold | Canonical Stage(s) | Trinity Origin | Status |
 95: |-------|-----------|-------------------|----------------|--------|
 96: | **F1** | Reversible | 500, 700, 888, 999 | `Init000._create_reversible_session` | ✅ Implemented |
@@ -12328,29 +12328,29 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 106: | **F11** | Authority LOCK | 000, 888 | `Init000._verify_authority` | ✅ Implemented |
 107: | **F12** | I⁻ < 0.85 | 000, 600 | `Init000._scan_injection` | ✅ Implemented |
 108: | **F13** | Human override | 888, 999 | `APEXJudge._requires_sovereign_override` | ✅ Implemented |
-109: 
+109:
 110: ---
-111: 
+111:
 112: ## Machine-Checkable Protections
-113: 
+113:
 114: ### 1. No Stage Skipping
-115: 
+115:
 116: ```python
 117: # YAML Configuration
 118: validation_rules:
 119:   no_skip_stages: true
-120: 
+120:
 121: # Code Enforcement (governance_runner.py)
 122: if output.proposed_transition not in allowed_transitions:
 123:     raise TransitionValidationError(
 124:         f"Cannot skip from {stage_id} to {output.proposed_transition}"
 125:     )
 126: ```
-127: 
+127:
 128: **Test:** `TestSkippedStageProgression`
-129: 
+129:
 130: ### 2. Below Threshold ≠ PASS
-131: 
+131:
 132: ```python
 133: # Code Enforcement (governance_runner.py)
 134: for floor_id, check in floor_results.items():
@@ -12360,19 +12360,19 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 138:             "but marked as PASS"
 139:         )
 140: ```
-141: 
+141:
 142: **Test:** `TestBelowThresholdMetrics`
-143: 
+143:
 144: ### 3. Contradictions Block Progression
-145: 
+145:
 146: ```python
 147: # YAML Configuration
 148: validation_rules:
 149:   unresolved_contradiction_blocks: ["CRITICAL", "HIGH"]
-150: 
+150:
 151: # Code Enforcement
 152: critical_contradictions = [
-153:     c for c in contradictions 
+153:     c for c in contradictions
 154:     if c.severity in [Severity.CRITICAL, Severity.HIGH]
 155: ]
 156: if critical_contradictions:
@@ -12380,60 +12380,60 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 158:         f"Unresolved contradictions block {stage_id}"
 159:     )
 160: ```
-161: 
+161:
 162: **Test:** `TestUnresolvedContradictions`
-163: 
+163:
 164: ### 4. 700-PROTOTYPE Cannot Deploy
-165: 
+165:
 166: ```python
 167: # YAML Configuration
 168: 700-prototype:
 169:   tool_restrictions: ["NO_PRODUCTION_DEPLOYMENT", "NO_SEAL_VAULT"]
-170: 
+170:
 171: # Code Enforcement
 172: if stage_id == "700-prototype":
 173:     if output.proposed_transition == "999-vault":
 174:         raise TransitionValidationError("Prototype cannot jump to Vault")
 175: ```
-176: 
+176:
 177: **Test:** `TestPrototypeRestrictions`
-178: 
+178:
 179: ### 5. 888-JUDGE Requires Human
-180: 
+180:
 181: ```python
 182: # YAML Configuration
 183: 888-judge:
 184:   requires_human_approval: true
 185:   minimum_authority: "USER"
-186: 
+186:
 187: # Code Enforcement
 188: if stage_id == "888-judge":
 189:     if not output.approval or output.approval.authority_level not in ["USER", "ADMIN"]:
 190:         raise ApprovalValidationError("Judge requires human approval")
 191: ```
-192: 
+192:
 193: **Test:** `TestJudgeRestrictions`
-194: 
+194:
 195: ### 6. 999-VAULT Requires ADMIN
-196: 
+196:
 197: ```python
 198: # YAML Configuration
 199: 999-vault:
 200:   requires_human_approval: true
 201:   minimum_authority: "ADMIN"
-202: 
+202:
 203: # Code Enforcement
 204: if stage_id == "999-vault":
 205:     if not output.approval or output.approval.authority_level != "ADMIN":
 206:         raise ApprovalValidationError("Vault requires ADMIN approval")
 207: ```
-208: 
+208:
 209: **Test:** `TestVaultRestrictions`
-210: 
+210:
 211: ---
-212: 
+212:
 213: ## Comparison: Trinity vs Canonical
-214: 
+214:
 215: | Aspect | Trinity (v54.1) | Canonical (v2026.3.6) | Improvement |
 216: |--------|-----------------|----------------------|-------------|
 217: | **Enforcement** | Skill guidance | Code-level validation | Cannot bypass |
@@ -12443,11 +12443,11 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 221: | **Bypassable** | Yes (agent can ignore) | No (raises exception) | Secure |
 222: | **Documentation** | Skill-only | YAML + Code + Tests | Maintainable |
 223: | **Entropy** | High (skill prose) | Low (machine-readable) | ΔS = -0.72 |
-224: 
+224:
 225: ---
-226: 
+226:
 227: ## File Structure
-228: 
+228:
 229: ```
 230: core/workflow/
 231: ├── workflow-system.yaml           # Canonical configuration
@@ -12473,53 +12473,53 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 251:     ├── f12_injection.py
 252:     └── f13_sovereign.py
 253: ```
-254: 
+254:
 255: ---
-256: 
+256:
 257: ## Verification Commands
-258: 
+258:
 259: ```bash
 260: # Run all governance tests
 261: cd core/workflow
 262: pytest tests/test_governance.py -v
-263: 
+263:
 264: # Run specific protection test
 265: pytest tests/test_governance.py::TestBelowThresholdMetrics -v
-266: 
+266:
 267: # Validate YAML configuration
 268: python -c "import yaml; yaml.safe_load(open('workflow-system.yaml'))"
-269: 
+269:
 270: # Check stage transitions
 271: python governance_runner.py --validate-transitions
 272: ```
-273: 
+273:
 274: ---
-275: 
+275:
 276: ## Next Steps
-277: 
+277:
 278: ### Completed ✅
 279: - [x] YAML configuration with 11 stages
 280: - [x] Machine-checkable enforcement layer
 281: - [x] Comprehensive test suite (12 classes)
 282: - [x] Trinity skill archived and referenced
 283: - [x] Migration guide created
-284: 
+284:
 285: ### In Progress 🔄
 286: - [ ] Implement all 13 floor validators
 287: - [ ] Integrate with MCP server
 288: - [ ] Add ledger integration for 999-VAULT
 289: - [ ] Create dashboard for governance status
-290: 
+290:
 291: ### Planned 📋
 292: - [ ] ZK proofs for vault entries
 293: - [ ] Merkle tree verification
 294: - [ ] Real-time monitoring
 295: - [ ] Alert system for violations
-296: 
+296:
 297: ---
-298: 
+298:
 299: ## Key Metrics
-300: 
+300:
 301: | Metric | Value | Meaning |
 302: |--------|-------|---------|
 303: | **Stages** | 11 | Unified workflow |
@@ -12528,24 +12528,24 @@ This is very informative. Now let me look at the orchestrator.py more specifical
 306: | **Entropy Reduction** | ΔS = -0.72 | 14 workflows → 11 stages |
 307: | **Bypass Resistance** | 100% | Machine-checkable |
 308: | **Human Gates** | 2 (888, 999) | Sovereign override |
-309: 
+309:
 310: ---
-311: 
+311:
 312: ## Conclusion
-313: 
+313:
 314: The executable governance system successfully transforms the trinity-governance-core skill from **guidance** into **enforcement**. Agents can no longer:
-315: 
+315:
 316: 1. Skip stages via persuasive prose
 317: 2. Mark below-threshold metrics as PASS
 318: 3. Ignore contradictions
 319: 4. Deploy from prototype
 320: 5. Self-authorize at judgment
 321: 6. Seal without ADMIN approval
-322: 
+322:
 323: **DITEMPA BUKAN DIBERI** — Trinity wisdom forged into canonical code.
-324: 
-325: **Status:** OPERATIONAL  
-326: **Authority:** Muhammad Arif bin Fazil  
+324:
+325: **Status:** OPERATIONAL
+326: **Authority:** Muhammad Arif bin Fazil
 327: **Seal:** v2026.3.6-CANON-EXECUTABLE 🔒
 
 (End of file - total 327 lines)
@@ -12839,10 +12839,10 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 <type>file</type>
 <content>1: """
 2: arifosmcp/runtime/tools.py — arifOS MCP Tool Surface
-3: 
+3:
 4: THIN DISPATCHER: This module re-exports mega-tools from megaTools/ package.
 5: Each mega-tool is now in its own file for independent auditing and testing.
-6: 
+6:
 7: 11 Mega-Tools:
 8:   01_init_anchor       → 000_INIT   (PSI Ψ)
 9:   02_arifOS_kernel     → 444_ROUTER (DELTA/PSI)
@@ -12855,12 +12855,12 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 16:   09_math_estimator    → 444_ROUTER (DELTA Δ)
 17:   10_code_engine       → M-3_EXEC   (ALL)
 18:   11_architect_registry→ M-4_ARCH   (DELTA Δ)
-19: 
+19:
 20: Split: 2026-03-28 — tools.py (2153 lines) → megaTools/ (11 × ~100 lines each)
 21: """
-22: 
+22:
 23: from __future__ import annotations
-24: 
+24:
 25: import asyncio
 26: import logging
 27: import uuid
@@ -12907,60 +12907,60 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 <type>file</type>
 <content>1: """
 2: kernel_router.py — Internal Routing Consolidation for arifOS_kernel
-3: 
+3:
 4: CONSOLIDATION PRINCIPLE:
 5: - All intelligence routing goes through arifOS_kernel
 6: - Internal tools (agi_mind, asi_heart, engineering_memory, etc.) are called internally
 7: - No external mode exposure — intent is inferred from query
 8: - Legacy aliases map to unified calls
-9: 
+9:
 10: USER-FACING TOOLS (4):
 11: 1. init_anchor     — Identity + authority
 12: 2. arifOS_kernel   — ALL thinking + execution (internal routing)
 13: 3. apex_soul       — Judgment + validation (explicit constitutional check)
 14: 4. physics_reality — Grounding + reality ops
-15: 
+15:
 16: INTERNAL TOOLS (called by kernel, not user-facing):
 17: - agi_mind, asi_heart, engineering_memory, math_estimator, code_engine, vault_ledger
 18: """
-19: 
+19:
 20: from __future__ import annotations
-21: 
+21:
 22: import logging
 23: from typing import Any, Literal
-24: 
+24:
 25: from arifosmcp.runtime.models import RuntimeEnvelope, Stage, Verdict
 26: from arifosmcp.runtime.sessions import get_session_identity, _normalize_session_id
-27: 
+27:
 28: logger = logging.getLogger(__name__)
-29: 
+29:
 30: # Internal capability detection patterns
 31: REASONING_PATTERNS = [
 32:     "analyze", "reason", "think", "synthesize", "compare", "evaluate",
 33:     "what is", "how does", "why", "explain", "interpret", "assess"
 34: ]
-35: 
+35:
 36: SAFETY_PATTERNS = [
 37:     "is this safe", "critique", "review", "validate", "check for",
 38:     "potential harm", "risk assessment", "ethical", "concern"
 39: ]
-40: 
+40:
 41: MEMORY_PATTERNS = [
 42:     "remember", "recall", "search memory", "find previous", "what did",
 43:     "store this", "save to memory", "vector search", "semantic"
 44: ]
-45: 
+45:
 46: CODE_PATTERNS = [
 47:     "execute", "run command", "file system", "inspect", "list files",
 48:     "process list", "network status", "tail log", "replay trace"
 49: ]
-50: 
+50:
 51: REALITY_PATTERNS = [
 52:     "search web", "fetch url", "current time", "weather", "news",
 53:     "ground truth", "verify fact", "atlas", "compass"
 54: ]
-55: 
-56: 
+55:
+56:
 57: def _detect_intent(query: str | None) -> tuple[Literal["reason", "safety", "memory", "code", "reality"], float]:
 58:     """
 59:     Detect intent from query without requiring explicit mode.
@@ -12968,7 +12968,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 61:     """
 62:     if not query:
 63:         return "reason", 0.5
-64:     
+64:
 65:     query_lower = query.lower()
 66:     scores = {
 67:         "reason": sum(1 for p in REASONING_PATTERNS if p in query_lower),
@@ -12977,16 +12977,16 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 70:         "code": sum(1 for p in CODE_PATTERNS if p in query_lower),
 71:         "reality": sum(1 for p in REALITY_PATTERNS if p in query_lower),
 72:     }
-73:     
+73:
 74:     total = sum(scores.values())
 75:     if total == 0:
 76:         return "reason", 0.5  # Default to reasoning
-77:     
+77:
 78:     best = max(scores, key=scores.get)
 79:     confidence = scores[best] / max(total, 1)
 80:     return best, confidence
-81: 
-82: 
+81:
+82:
 83: async def _route_to_internal_tool(
 84:     intent_type: str,
 85:     query: str,
@@ -13005,14 +13005,14 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 98:         engineering_memory_dispatch_impl,
 99:         code_engine_dispatch_impl,
 100:     )
-101:     
+101:
 102:     session_id = _normalize_session_id(session_id)
 103:     trace_entry = {
 104:         "stage": "444_ROUTER",
 105:         "intent_detected": intent_type,
 106:         "query": query[:100] if query else "",
 107:     }
-108:     
+108:
 109:     if intent_type == "reason":
 110:         trace_entry["routed_to"] = "agi_mind"
 111:         if trace is not None:
@@ -13025,7 +13025,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 118:             dry_run=bool(payload.get("dry_run", True)),
 119:             ctx=ctx,
 120:         )
-121:     
+121:
 122:     elif intent_type == "safety":
 123:         trace_entry["routed_to"] = "asi_heart"
 124:         if trace is not None:
@@ -13038,7 +13038,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 131:             dry_run=bool(payload.get("dry_run", True)),
 132:             ctx=ctx,
 133:         )
-134:     
+134:
 135:     elif intent_type == "memory":
 136:         trace_entry["routed_to"] = "engineering_memory"
 137:         if trace is not None:
@@ -13051,7 +13051,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 144:             dry_run=bool(payload.get("dry_run", True)),
 145:             ctx=ctx,
 146:         )
-147:     
+147:
 148:     elif intent_type == "code":
 149:         trace_entry["routed_to"] = "code_engine"
 150:         if trace is not None:
@@ -13065,7 +13065,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 158:             mode = "tail"
 159:         elif "replay" in query.lower():
 160:             mode = "replay"
-161:         
+161:
 162:         return await code_engine_dispatch_impl(
 163:             mode=mode,
 164:             payload={"query": query, **payload},
@@ -13074,7 +13074,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 167:             dry_run=bool(payload.get("dry_run", True)),
 168:             ctx=ctx,
 169:         )
-170:     
+170:
 171:     elif intent_type == "reality":
 172:         trace_entry["routed_to"] = "physics_reality"
 173:         if trace is not None:
@@ -13090,7 +13090,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 183:             dry_run=bool(payload.get("dry_run", True)),
 184:             ctx=ctx,
 185:         )
-186:     
+186:
 187:     # Fallback to reasoning
 188:     trace_entry["routed_to"] = "agi_mind (fallback)"
 189:     if trace is not None:
@@ -13103,8 +13103,8 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 196:         dry_run=bool(payload.get("dry_run", True)),
 197:         ctx=ctx,
 198:     )
-199: 
-200: 
+199:
+200:
 201: async def kernel_intelligent_route(
 202:     query: str | None = None,
 203:     session_id: str | None = None,
@@ -13121,7 +13121,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 214: ) -> RuntimeEnvelope:
 215:     """
 216:     Unified kernel router — internal consolidation entry point.
-217:     
+217:
 218:     This is the heart of the consolidation:
 219:     - No external modes exposed
 220:     - Intent detected from query or explicit intent param
@@ -13131,10 +13131,10 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 224:     """
 225:     payload = dict(payload or {})
 226:     session_id = _normalize_session_id(session_id)
-227:     
+227:
 228:     # Build routing trace for transparency
 229:     trace: list[dict] = [] if debug else None
-230:     
+230:
 231:     if debug:
 232:         trace.append({
 233:             "stage": "444_ROUTER",
@@ -13142,22 +13142,22 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 235:             "query": query[:100] if query else "",
 236:             "session_id": session_id,
 237:         })
-238:     
+238:
 239:     # Step 1: Detect intent
 240:     if intent:
 241:         intent_type = intent
 242:         confidence = 1.0
 243:     else:
 244:         intent_type, confidence = _detect_intent(query)
-245:     
+245:
 246:     if debug and trace is not None:
 247:         trace.append({
-248:             "stage": "444_ROUTER", 
+248:             "stage": "444_ROUTER",
 249:             "action": "intent_detection",
 250:             "detected": intent_type,
 251:             "confidence": round(confidence, 2),
 252:         })
-253:     
+253:
 254:     # Step 2: Check session validity (F2 Truth enforcement)
 255:     session_identity = get_session_identity(session_id)
 256:     if not session_identity and session_id != "global":
@@ -13185,7 +13185,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 278:         if debug:
 279:             result.payload["_trace"] = trace
 280:         return result
-281:     
+281:
 282:     # Step 3: Route to internal tool
 283:     result = await _route_to_internal_tool(
 284:         intent_type=intent_type,
@@ -13195,18 +13195,18 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 288:         ctx=ctx,
 289:         trace=trace if debug else None,
 290:     )
-291:     
+291:
 292:     # Step 4: Apply safety critique if enabled (use_heart)
 293:     if use_heart and not dry_run and risk_tier in ("high", "critical"):
 294:         from arifosmcp.runtime.tools_internal import asi_heart_dispatch_impl
-295:         
+295:
 296:         if debug and trace is not None:
 297:             trace.append({
 298:                 "stage": "666_HEART",
 299:                 "action": "safety_critique",
 300:                 "reason": f"high-risk tier {risk_tier}",
 301:             })
-302:         
+302:
 303:         critique = await asi_heart_dispatch_impl(
 304:             mode="critique",
 305:             payload={
@@ -13219,20 +13219,20 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 312:             dry_run=True,  # Critique is always dry-run
 313:             ctx=ctx,
 314:         )
-315:         
+315:
 316:         # Attach critique to result
 317:         result.payload["_safety_critique"] = critique.payload if critique else None
-318:     
+318:
 319:     # Step 5: Store to memory if enabled (use_memory)
 320:     if use_memory and not dry_run and result.verdict == Verdict.SEAL:
 321:         from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
-322:         
+322:
 323:         if debug and trace is not None:
 324:             trace.append({
 325:                 "stage": "555_MEMORY",
 326:                 "action": "store_outcome",
 327:             })
-328:         
+328:
 329:         await engineering_memory_dispatch_impl(
 330:             mode="vector_store",
 331:             payload={
@@ -13245,7 +13245,7 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 338:             dry_run=dry_run,
 339:             ctx=ctx,
 340:         )
-341:     
+341:
 342:     # Step 6: Attach trace if debug mode
 343:     if debug and trace is not None:
 344:         result.payload["_trace"] = trace
@@ -13253,26 +13253,26 @@ Let me decode the full architecture of agi_mind in the arifOS kernel.
 346:             "intent_detected": intent_type,
 347:             "internal_tools_called": [t.get("routed_to") for t in trace if "routed_to" in t],
 348:         }
-349:     
+349:
 350:     return result
-351: 
-352: 
+351:
+352:
 353: # Legacy alias mappings (for backward compatibility)
 354: async def legacy_agi_reason_route(**kwargs) -> RuntimeEnvelope:
 355:     """Maps legacy agi_reason to unified kernel router."""
 356:     return await kernel_intelligent_route(intent="reason", **kwargs)
-357: 
-358: 
+357:
+358:
 359: async def legacy_asi_critique_route(**kwargs) -> RuntimeEnvelope:
 360:     """Maps legacy asi_critique to unified kernel router."""
 361:     return await kernel_intelligent_route(intent="safety", **kwargs)
-362: 
-363: 
+362:
+363:
 364: async def legacy_memory_query_route(**kwargs) -> RuntimeEnvelope:
 365:     """Maps legacy memory query to unified kernel router."""
 366:     return await kernel_intelligent_route(intent="memory", **kwargs)
-367: 
-368: 
+367:
+368:
 369: async def legacy_code_engine_route(**kwargs) -> RuntimeEnvelope:
 370:     """Maps legacy code_engine to unified kernel router."""
 371:     return await kernel_intelligent_route(intent="code", **kwargs)
@@ -13306,18 +13306,18 @@ Now let me look at the core/organ/_1_agi.py again to understand the full archite
 <type>file</type>
 <content>1: """
 2: arifosmcp/runtime/orchestrator.py — The arifOS Metabolic Loop Orchestrator
-3: 
+3:
 4: This module implements the Stage 444 logic, coordinating the routed 000-999 flow.
 5: DITEMPA BUKAN DIBERI — Forged, Not Given
 6: """
-7: 
+7:
 8: from __future__ import annotations
-9: 
+9:
 10: import asyncio
 11: import time
 12: from datetime import datetime, timezone
 13: from typing import Any
-14: 
+14:
 15: from arifosmcp.runtime.metrics import (
 16:     METABOLIC_LOOP_DURATION,
 17: )
@@ -13332,11 +13332,11 @@ Now let me look at the core/organ/_1_agi.py again to understand the full archite
 26:     SacredStage,
 27:     CanonicalError,
 28: )
-29: 
+29:
 30: # ---------------------------------------------------------------------------
 31: # STAGE FAILURE HANDLERS (F4: Deterministic Failure Semantics)
 32: # ---------------------------------------------------------------------------
-33: 
+33:
 34: STAGE_FAILURE_HANDLERS: dict[str, dict[str, Any]] = {
 35:     Stage.INIT_000.value: {
 36:         "verdict": Verdict.VOID,
@@ -13424,32 +13424,32 @@ Now let me look at the core/organ/_1_agi.py again to understand the full archite
 <type>file</type>
 <content>1: """
 2: core/organs/__init__.py — Organ Exports (Unified)
-3: 
+3:
 4: RUKUN AGI 5-Organ Kernel:
 5:     init    → Stage 000 (Gate)
 6:     mind    → The Mind (Stages 111-333)
 7:     heart   → The Heart (Stages 555-666)
 8:     soul    → The Soul (Stages 444 -> 777 EUREKA FORGE -> 888 APEX JUDGE)
 9:     memory  → The Memory (Stage 999)
-10: 
+10:
 11: Usage:
 12:     from arifosmcp.core.organs import init, mind, heart, soul, memory
 13:     from arifosmcp.core.organs import init, sense, think, reason, empathize, align, sync, forge, judge, seal
-14: 
+14:
 15: Humanized aliases:
 16:     anchor (init), feel (empathize)
-17: 
+17:
 18: DITEMPA BUKAN DIBERI — Forged, Not Given
 19: """
-20: 
+20:
 21: # Canonical modules (no legacy underscore names in public surface)
 22: from arifosmcp.core.shared.types import InitOutput
-23: 
+23:
 24: from . import _1_agi as mind
 25: from . import _2_asi as heart
 26: from . import _3_apex as soul
 27: from . import _4_vault as memory
-28: 
+28:
 29: # Unified interfaces
 30: # Actions for direct use
 31: from ._0_init import (
@@ -13465,11 +13465,11 @@ Now let me look at the core/organ/_1_agi.py again to understand the full archite
 41: from ._2_asi import align, asi, empathize
 42: from ._3_apex import apex, forge, judge, sync
 43: from ._4_vault import SealRecord, seal, vault
-44: 
+44:
 45: # Humanized aliases
 46: anchor = init
 47: feel = empathize
-48: 
+48:
 49: __all__ = [
 50:     # Organ modules
 51:     "mind",
@@ -13544,8 +13544,8 @@ Let me read more of the orchestrator to understand the full flow.
 105:         "description": "Cryptographic sealing failed. Audit logged, no commit.",
 106:     },
 107: }
-108: 
-109: 
+108:
+109:
 110: def handle_stage_failure(
 111:     stage_id: str,
 112:     original_error: Exception | None = None,
@@ -13554,11 +13554,11 @@ Let me read more of the orchestrator to understand the full flow.
 115: ) -> RuntimeEnvelope:
 116:     """
 117:     Generate standardized failure envelope for a stage.
-118:     
+118:
 119:     Ensures F4 (Clarity): All failures have deterministic, documented semantics.
 120:     """
 121:     handler = STAGE_FAILURE_HANDLERS.get(stage_id, STAGE_FAILURE_HANDLERS[Stage.INIT_000.value])
-122:     
+122:
 123:     error_details = {
 124:         "stage": stage_id,
 125:         "error_code": handler["error_code"],
@@ -13566,13 +13566,13 @@ Let me read more of the orchestrator to understand the full flow.
 127:         "action": handler["action"],
 128:         "recoverable": handler["recoverable"],
 129:     }
-130:     
+130:
 131:     if original_error:
 132:         error_details["original_error"] = str(original_error)
-133:     
+133:
 134:     if context:
 135:         error_details["context"] = context
-136:     
+136:
 137:     return RuntimeEnvelope(
 138:         tool="arifOS_kernel",
 139:         session_id=session_id,
@@ -13590,13 +13590,13 @@ Let me read more of the orchestrator to understand the full flow.
 151:             "error_details": error_details,
 152:         },
 153:     )
-154: 
-155: 
+154:
+155:
 156: # ---------------------------------------------------------------------------
 157: # PNS CIRCULATORY HANDLERS
 158: # ---------------------------------------------------------------------------
-159: 
-160: 
+159:
+160:
 161: async def handle_pns_vision(content_type: str, data: bytes, session_id: str) -> RuntimeEnvelope:
 162:     """PNS·VISION: Multimodal perception organ.
 163:     Processes binary data (Image/PDF) into semantic sensory artifacts.
@@ -13604,7 +13604,7 @@ Let me read more of the orchestrator to understand the full flow.
 165:     # Logic: Dispatch to vision-capable cortex (e.g., LLaVA or Stirling PDF)
 166:     # For now, we simulate the sensory conversion into structured text evidence.
 167:     summary = f"Processed {content_type} data ({len(data)} bytes)."
-168: 
+168:
 169:     # In production, this would call Stirling PDF or a Vision Model
 170:     return RuntimeEnvelope(
 171:         tool="pns_vision",
@@ -13619,12 +13619,12 @@ Let me read more of the orchestrator to understand the full flow.
 180:             "fidelity_score": 0.92,
 181:         },
 182:     )
-183: 
-184: 
+183:
+184:
 185: async def handle_pns_shield(content: str, session_id: str) -> RuntimeEnvelope:
 186:     """PNS·SHIELD: Injection defense organ."""
 187:     from arifosmcp.agentzero.security.prompt_armor import PromptArmor
-188: 
+188:
 189:     armor = PromptArmor()
 190:     report = await armor.scan(text=content, context="user_input")
 191:     status = RuntimeStatus.SUCCESS
@@ -13640,81 +13640,81 @@ Let me read more of the orchestrator to understand the full flow.
 201:         status=status,
 202:         payload={"shield_status": status, "threat_score": report.score},
 203:     )
-204: 
-205: 
+204:
+205:
 206: async def handle_pns_search(query: str, session_id: str) -> RuntimeEnvelope:
 207:     """PNS·SEARCH: Web search grounding organ."""
 208:     from arifosmcp.runtime.tools import reality_compass
-209: 
+209:
 210:     res = await reality_compass(input=query, session_id=session_id, mode="search")
 211:     res.tool = "PNS_SEARCH"
 212:     return res
-213: 
-214: 
+213:
+214:
 215: async def handle_pns_health(session_id: str) -> RuntimeEnvelope:
 216:     """PNS·HEALTH: System stability monitoring."""
 217:     from arifosmcp.runtime.tools import check_vital
-218: 
+218:
 219:     return await check_vital(session_id=session_id)
-220: 
-221: 
+220:
+221:
 222: async def handle_pns_orchestrate(task: str, session_id: str) -> RuntimeEnvelope:
 223:     """PNS·ORCHESTRATE: Tool routing mediation."""
 224:     from arifosmcp.tools.agentzero_tools import agentzero_engineer
-225: 
+225:
 226:     return await agentzero_engineer(task=task, action_type="execute_code", session_id=session_id)
-227: 
-228: 
+227:
+228:
 229: async def handle_pns_floor(input_data: Any, session_id: str) -> RuntimeEnvelope:
 230:     """PNS·FLOOR: Semantic grounding checks."""
 231:     from arifosmcp.runtime.tools import audit_rules
-232: 
+232:
 233:     return await audit_rules(session_id=session_id)
-234: 
-235: 
+234:
+235:
 236: async def handle_pns_redteam(candidate: str, session_id: str) -> RuntimeEnvelope:
 237:     """PNS·REDTEAM: Adversarial testing."""
 238:     from arifosmcp.tools.agentzero_tools import agentzero_validate
-239: 
+239:
 240:     return await agentzero_validate(
 241:         input_to_validate=candidate, validation_type="plan", session_id=session_id
 242:     )
-243: 
-244: 
+243:
+244:
 245: def _extract_auth_context(
 246:     envelope: RuntimeEnvelope | None, fallback: dict[str, Any] | None = None
 247: ) -> dict[str, Any]:
 248:     if envelope is None:
 249:         return dict(fallback or {})
-250: 
+250:
 251:     auth_context = getattr(envelope, "auth_context", None)
 252:     if isinstance(auth_context, dict):
 253:         return dict(auth_context)
-254: 
+254:
 255:     return dict(fallback or {})
-256: 
-257: 
+256:
+257:
 258: def _extract_caller_context(
 259:     envelope: RuntimeEnvelope | None, fallback: CallerContext | None = None
 260: ) -> CallerContext | None:
 261:     """Carry the caller_context forward through the metabolic loop."""
 262:     if envelope is None:
 263:         return fallback
-264: 
+264:
 265:     ctx = getattr(envelope, "caller_context", None)
 266:     if isinstance(ctx, CallerContext):
 267:         return ctx
-268: 
+268:
 269:     return fallback
-270: 
-271: 
+270:
+271:
 272: def _dump_caller_context(caller_ctx: CallerContext | None) -> dict[str, Any] | None:
 273:     """Serialize CallerContext for embedding in output dicts."""
 274:     if caller_ctx is None:
 275:         return None
 276:     return caller_ctx.model_dump(mode="json", exclude_none=True)
-277: 
-278: 
+277:
+278:
 279: def _get_sacred_name(stage_id: str) -> str:
 280:     """Map Stage ID to its canonical Sacred Name."""
 281:     mapping = {
@@ -13728,8 +13728,8 @@ Let me read more of the orchestrator to understand the full flow.
 289:         Stage.VAULT_999.value: SacredStage.VAULT_SEAL.value,
 290:     }
 291:     return mapping.get(stage_id, "UNKNOWN")
-292: 
-293: 
+292:
+293:
 294: async def run_stage(
 295:     stage_id: str,
 296:     query: str,
@@ -13766,8 +13766,8 @@ Now let me see how `forge` mode triggers the full loop:
 ```
 <path>/root/arifOS/arifosmcp/runtime/orchestrator.py</path>
 <type>file</type>
-<content>470: 
-471: 
+<content>470:
+471:
 472: async def metabolic_loop(
 473:     query: str,
 474:     risk_tier: str = "medium",
@@ -13787,20 +13787,20 @@ Now let me see how `forge` mode triggers the full loop:
 488: ) -> dict[str, Any]:
 489:     """Run the Double Helix metabolic loop (Inner Ring + Outer Ring)."""
 490:     start_time = time.perf_counter()
-491: 
+491:
 492:     if dry_run:
 493:         from arifosmcp.runtime.models import AuthContext
-494:         
+494:
 495:         _actual_session = session_id or "dry-run-session"
 496:         _actual_actor = actor_id or "anonymous"
-497:         
+497:
 498:         ctx = AuthContext(
 499:             session_id=_actual_session,
 500:             actor_id=_actual_actor,
 501:             authority_level="declared",
 502:             approval_scope=["*"],
 503:         )
-504:         
+504:
 505:         return {
 506:             "ok": True,
 507:             "tool": tool_name,
@@ -13817,15 +13817,15 @@ Now let me see how `forge` mode triggers the full loop:
 518:             "dry_run": True,
 519:             "meta": {"dry_run": True},
 520:         }
-521: 
+521:
 522:     from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
 523:     from arifosmcp.core.governance_kernel import route_pipeline
-524: 
+524:
 525:     # Track if we're approaching timeout
 526:     def _check_timeout() -> bool:
 527:         elapsed = time.perf_counter() - start_time
 528:         return elapsed > timeout_seconds * 0.8  # 80% threshold for early warning
-529: 
+529:
 530:     # ─── METABOLIC SYNONYM LAYER ───
 531:     LEGACY_SYNONYMS = {
 532:         "session_memory": "agi_reflect",
@@ -13838,10 +13838,10 @@ Now let me see how `forge` mode triggers the full loop:
 539:         "seal_vault": "vault_seal",
 540:         "seal_vault_commit": "vault_seal",
 541:     }
-542: 
+542:
 543:     # Check if the query intent implies a legacy tool and normalize it
 544:     # (In a real E2E, this might be triggered by the 'tool' field in the envelope)
-545: 
+545:
 546:     current_session_id = _normalize_session_id(session_id)
 547:     try:
 548:         # === OUTER RING GATE: PNS·SHIELD ===
@@ -13851,7 +13851,7 @@ Now let me see how `forge` mode triggers the full loop:
 552:             pns_context.shield = PNSSignal(
 553:                 source="PNS_SHIELD", status=shield_env.status, score=0.0, payload=shield_env.payload
 554:             )
-555: 
+555:
 556:         if pns_context.shield.status == "VOID":
 557:             return {
 558:                 "ok": False,
@@ -13861,7 +13861,7 @@ Now let me see how `forge` mode triggers the full loop:
 562:                 "status": "BLOCKED",
 563:                 "errors": [{"message": "PNS·SHIELD block: Injection detected."}],
 564:             }
-565: 
+565:
 566:         # === INNER RING START: INIT·ANCHOR ===
 567:         init_res = await run_stage(
 568:             stage_id=Stage.INIT_000.value,
@@ -13878,13 +13878,13 @@ Now let me see how `forge` mode triggers the full loop:
 579:             declared_name=declared_name,
 580:             human_approval=human_approval,
 581:         )
-582: 
+582:
 583:         auth_ctx = _extract_auth_context(init_res, auth_context)
-584: 
+584:
 585:         # For dry_run, we inject a mock context if the real one is missing/blocked/unsuccessful
 586:         if dry_run and (not auth_ctx or init_res.verdict != Verdict.SEAL):
 587:             from arifosmcp.core.enforcement.auth_continuity import mint_auth_context
-588: 
+588:
 589:             auth_ctx = mint_auth_context(
 590:                 session_id=current_session_id,
 591:                 actor_id=actor_id,
@@ -13897,10 +13897,10 @@ Now let me see how `forge` mode triggers the full loop:
 598:             init_res = init_res.model_copy(
 599:                 update={"verdict": Verdict.SEAL, "auth_context": auth_ctx}
 600:             )
-601: 
+601:
 602:         caller_ctx = _extract_caller_context(init_res, caller_context)
 603:         trace = {Stage.INIT_000.value: init_res.verdict.value}
-604: 
+604:
 605:         # Early exit if initialization was not successful and we are not in dry_run
 606:         if init_res.verdict != Verdict.SEAL and not dry_run:
 607:             import sys
@@ -13910,7 +13910,7 @@ Now let me see how `forge` mode triggers the full loop:
 611:             out["trace"] = trace
 612:             out["tool"] = tool_name  # P0: Preserve identity — arifOS_kernel is the router
 613:             return out
-614: 
+614:
 615:         # Early timeout check after init
 616:         if _check_timeout():
 617:             return {
@@ -13954,23 +13954,23 @@ Let me continue reading to understand the full loop.
 627:                 ],
 628:                 "trace": trace,
 629:             }
-630: 
+630:
 631:         plan = route_pipeline(query, {"human_required": allow_execution})
 632:         if Stage.VAULT_999.value not in plan:
 633:             plan.append(Stage.VAULT_999.value)
-634: 
+634:
 635:         reality_summary = {"status": "SKIPPED", "required": False, "score": 0.0}
 636:         verdict_history: list[Verdict] = [init_res.verdict]
-637:         
+637:
 638:         # P0: Cumulative payload preservation (Fix: Wire kernel to agi_mind output)
 639:         cumulative_payload = init_res.payload.copy() if init_res.payload else {}
 640:         policy_res: RuntimeEnvelope = init_res
 641:         policy_verdict = init_res.verdict
-642: 
+642:
 643:         for stage_id in plan:
 644:             if stage_id == Stage.INIT_000.value:
 645:                 continue
-646: 
+646:
 647:             res = await run_stage(
 648:                 stage_id=stage_id,
 649:                 query=query,
@@ -13985,17 +13985,17 @@ Let me continue reading to understand the full loop.
 658:                 actor_id=actor_id,
 659:             )
 660:             current_verdict = res.verdict
-661: 
+661:
 662:             # Constitutional Verdict Normalization: stage < 888 and VOID -> SABAR
 663:             if stage_id < Stage.JUDGE_888.value and current_verdict == Verdict.VOID:
 664:                 current_verdict = Verdict.SABAR
 665:                 res = res.model_copy(update={"verdict": current_verdict})
-666: 
+666:
 667:             trace[stage_id] = current_verdict.value
 668:             verdict_history.append(current_verdict)
 669:             auth_ctx = _extract_auth_context(res, auth_ctx)
 670:             caller_ctx = _extract_caller_context(res, caller_ctx)
-671: 
+671:
 672:             # Accumulate payloads (MIND/AGI results are high-fidelity)
 673:             if res.payload:
 674:                 if stage_id == Stage.MIND_333.value:
@@ -14003,14 +14003,14 @@ Let me continue reading to understand the full loop.
 676:                     cumulative_payload["answer"] = res.payload.get("answer")
 677:                     cumulative_payload["thought"] = res.payload.get("thought")
 678:                     cumulative_payload["steps"] = res.payload.get("steps")
-679:                 
+679:
 680:                 # Merge the rest
 681:                 cumulative_payload.update(res.payload)
-682: 
+682:
 683:             if stage_id != Stage.VAULT_999.value:
 684:                 policy_res = res
 685:                 policy_verdict = current_verdict
-686: 
+686:
 687:             # Loop Termination Logic
 688:             if stage_id == Stage.JUDGE_888.value and current_verdict in {
 689:                 Verdict.SEAL,
@@ -14031,16 +14031,16 @@ Let me continue reading to understand the full loop.
 704:                     )
 705:                     trace[Stage.VAULT_999.value] = vault_res.verdict.value
 706:                 break
-707: 
+707:
 708:         # ─── SCORE INTEGRITY PROTOCOL: Final Vitals ───
 709:         from arifosmcp.runtime.metrics import compute_integrity_telemetry
-710: 
+710:
 711:         # Extract metabolic signals for computation
 712:         sources = 0
 713:         pns_trace = trace.get("pns", {})
 714:         if "PNS_SEARCH" in pns_trace:
 715:             sources = len(pns_trace["PNS_SEARCH"].get("payload", {}).get("results", []))
-716: 
+716:
 717:         # Wire G★ to actual content scoring
 718:         actual_content = str(cumulative_payload.get("answer", "")) + str(cumulative_payload.get("thought", ""))
 719:         actual_tokens = max(10, len(actual_content) // 4)  # rough token estimate (1 word/token ≈ 4 chars)
@@ -14051,7 +14051,7 @@ Let me continue reading to understand the full loop.
 724:             actual_options = len(cumulative_payload["options"])
 725:         else:
 726:             actual_options = 3 if "AGI_REASON" in trace else 1
-727: 
+727:
 728:         # Calculate public score card
 729:         final_metrics = compute_integrity_telemetry(
 730:             sources_cited=sources,
@@ -14063,7 +14063,7 @@ Let me continue reading to understand the full loop.
 736:             reasoning_depth=len(plan),
 737:             tri_witness_confirmed=True if Stage.JUDGE_888.value in trace else False,
 738:         )
-739: 
+739:
 740:         out = policy_res.model_dump(mode="json")
 741:         out.update(
 742:             {
@@ -14082,7 +14082,7 @@ Let me continue reading to understand the full loop.
 755:                 "auth_context": auth_ctx,
 756:             }
 757:         )
-758: 
+758:
 759:         return out
 760:     finally:
 761:         duration = time.perf_counter() - start_time
@@ -14340,43 +14340,43 @@ async def agi_with_sequential(
 ):
     """
     Stage 111-333: REASON MIND with sequential thinking.
-    
+
     If use_sequential=True:
         - Runs sequential thinking loop (branch/revise)
         - Each thought goes through 111→222→333
         - Returns thoughtHistory[] with all branches
     """
-    
+
     if not use_sequential:
         return await agi(query, session_id, action, reason_mode, max_steps)
-    
+
     # === SEQUENTIAL THINKING LOOP ===
     thought_history = []
     branches = {}
     current_branch_id = "main"
     totalThoughts = max_steps
     thoughtNumber = 0
-    
+
     while thoughtNumber < totalThoughts:
         thoughtNumber += 1
-        
+
         # Build prompt for this thought
         context = _build_sequential_context(thought_history, branches)
         prompt = f"Thought {thoughtNumber}/{totalThoughts}: {query}\n\nContext: {context}"
-        
+
         # Run 3-phase Ollama (111→222→333)
         result = await _ollama_3phase(prompt, max_tokens)
-        
+
         # Check if need to branch
         if result.branch_score > branch_threshold:
             current_branch_id = f"branch_{thoughtNumber}"
             branches[current_branch_id] = []
-        
+
         # Check if need to revise
         if result.revision_score > revision_threshold:
             result.isRevision = True
             result.revisesThought = _find_similar_previous(thought_history)
-        
+
         # Store thought
         thought_history.append({
             "thoughtNumber": thoughtNumber,
@@ -14388,21 +14388,21 @@ async def agi_with_sequential(
             "branchId": current_branch_id,
             "nextThoughtNeeded": thoughtNumber < totalThoughts,
         })
-        
+
         # Constitutional verification per step
         floor_scores = _check_constitutional_floors(result)
-        
+
         # Adjust totalThoughts dynamically
         if thoughtNumber >= totalThoughts and result.needsMoreThoughts:
             totalThoughts += 1
-        
+
         # Check if done
         if thoughtNumber >= totalThoughts and not result.needsMoreThoughts:
             break
-    
+
     # Final synthesis from all thoughts
     final_answer = _synthesize_thought_history(thought_history, branches)
-    
+
     return AgiOutput(
         session_id=session_id,
         verdict=_compute_verdict(floor_scores),
@@ -14444,4 +14444,3 @@ async def agi_with_sequential(
 4. Return `thoughtHistory[]` in `AgiOutput`
 
 ---
-

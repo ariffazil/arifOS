@@ -78,7 +78,9 @@ def _resolve_forge_action(candidate_action: str) -> str:
 @forge_app.tool(name="arifos_forge_judge_check", tags={"hold", "internal", "forge"})
 async def forge_judge_check(
     candidate_action: str,
-    risk_tier: Annotated[str, Field(description="Risk tier: low, medium, high, critical.")] = "medium",
+    risk_tier: Annotated[
+        str, Field(description="Risk tier: low, medium, high, critical.")
+    ] = "medium",
     session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
 ) -> dict[str, Any]:
     """
@@ -137,11 +139,19 @@ async def forge_judge_check(
 @forge_app.tool(name="arifos_forge_execute", tags={"public", "forge"})
 async def forge_execute(
     candidate_action: str,
-    risk_tier: Annotated[str, Field(description="Risk tier: low, medium, high, critical.")] = "medium",
+    risk_tier: Annotated[
+        str, Field(description="Risk tier: low, medium, high, critical.")
+    ] = "medium",
     session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
-    judge_verdict: Annotated[str, Field(description="JUDGE verdict: SEAL, PARTIAL, VOID, HOLD.")] = "VOID",
-    judge_g_star: Annotated[float, Field(description="JUDGE G* score (constitutional alignment).")] = 0.0,
-    judge_state_hash: Annotated[str, Field(description="JUDGE state hash for replay integrity.")] = "",
+    judge_verdict: Annotated[
+        str, Field(description="JUDGE verdict: SEAL, PARTIAL, VOID, HOLD.")
+    ] = "VOID",
+    judge_g_star: Annotated[
+        float, Field(description="JUDGE G* score (constitutional alignment).")
+    ] = 0.0,
+    judge_state_hash: Annotated[
+        str, Field(description="JUDGE state hash for replay integrity.")
+    ] = "",
 ) -> dict[str, Any]:
     """
     Execute forge after both gates pass.

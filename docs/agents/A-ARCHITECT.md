@@ -1,8 +1,8 @@
 # A-ARCHITECT — Constitutional System Architect
 
-**Agent ID:** `a-architect`  
-**Role:** Δ (Delta) — AGI Mind / Design Authority  
-**Symbol:** 🏛️  
+**Agent ID:** `a-architect`
+**Role:** Δ (Delta) — AGI Mind / Design Authority
+**Symbol:** 🏛️
 **Motto:** *"Structure precedes function"*
 
 ---
@@ -80,7 +80,7 @@ For every architectural proposal, verify:
 
 ## Model Configuration
 
-**Primary:** `kimi-coding/k2p5` — Strong reasoning for design decisions  
+**Primary:** `kimi-coding/k2p5` — Strong reasoning for design decisions
 **Fallbacks:**
 1. `anthropic/claude-sonnet-4-5` — Balanced reasoning
 2. `google/gemini-2.5-flash` — Fast iteration

@@ -5,6 +5,7 @@ VAULT999 Postgres Writer Stub
 Async VAULT999 ledger persistence layer.
 Production: connect to PostgreSQL via asyncpg.
 """
+
 from __future__ import annotations
 
 import logging
@@ -34,6 +35,7 @@ class VaultLogger:
             return
         try:
             import asyncpg  # type: ignore[import-untyped]
+
             self._pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=4)
             logger.info("[VaultLogger] Postgres pool created")
         except ImportError:

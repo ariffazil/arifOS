@@ -5,12 +5,14 @@ from datetime import datetime
 from typing import Any, Dict, List
 from supabase import create_client
 
+
 class VaultClient:
     """
     Shared VAULT999 client.
     Import this in every organ MCP server.
     One instance per process — pass organ_id at init.
     """
+
     def __init__(self, organ_id: str):
         # organ_id: "arifos" | "wealth" | "well" | "geox"
         self.organ_id = organ_id
@@ -19,7 +21,7 @@ class VaultClient:
         if not url or not key:
             # Fallback to SERVICE_ROLE_KEY if SERVICE_KEY is not set
             key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-            
+
         if not url or not key:
             self.client = None
             print(f"WARN: VaultClient({organ_id}) Supabase config missing. Sealing disabled.")
@@ -28,35 +30,34 @@ class VaultClient:
 
     async def seal(
         self,
-        verdict: str,           # SEAL | HOLD | PARTIAL | VOID
+        verdict: str,  # SEAL | HOLD | PARTIAL | VOID
         tool_name: str,
         session_id: str,
         actor_id: str,
         payload: Dict[str, Any],
         floor_results: List[Dict[str, Any]],
-        g_star: float
+        g_star: float,
     ) -> Dict[str, Any]:
         if not self.client:
             return {"ok": False, "error": "Supabase client not initialized"}
 
         prev_hash = await self._get_last_hash()
         record = {
-            "organ":        self.organ_id,
-            "tool_name":    tool_name,
-            "session_id":   session_id,
-            "actor_id":     actor_id,
-            "verdict":      verdict,
-            "payload":      payload,
+            "organ": self.organ_id,
+            "tool_name": tool_name,
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "verdict": verdict,
+            "payload": payload,
             "floor_results": floor_results,
-            "g_star":       g_star,
-            "prev_hash":    prev_hash,
-            "timestamp":    datetime.utcnow().isoformat()
+            "g_star": g_star,
+            "prev_hash": prev_hash,
+            "timestamp": datetime.utcnow().isoformat(),
         }
         record["hash"] = self._merkle_hash(record)
-        
+
         try:
-            result = self.client.table("arifosmcp_vault_seals")\
-                                  .insert(record).execute()
+            result = self.client.table("arifosmcp_vault_seals").insert(record).execute()
             return result.data[0]
         except Exception as e:
             print(f"ERROR: Vault seal failed: {e}")
@@ -70,10 +71,13 @@ class VaultClient:
         if not self.client:
             return "GENESIS"
         try:
-            result = self.client.table("arifosmcp_vault_seals")\
-                .select("hash")\
-                .order("timestamp", desc=True)\
-                .limit(1).execute()
+            result = (
+                self.client.table("arifosmcp_vault_seals")
+                .select("hash")
+                .order("timestamp", desc=True)
+                .limit(1)
+                .execute()
+            )
             if result.data:
                 return result.data[0]["hash"]
         except Exception as e:

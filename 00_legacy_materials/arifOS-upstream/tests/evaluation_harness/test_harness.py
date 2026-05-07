@@ -12,6 +12,7 @@ from core.kernel.planner import Planner
 from core.kernel.tool_registry import ToolContractRegistry
 from core.kernel.role_registry import AgentRoleRegistry
 
+
 class TestKernelPrimitives(unittest.TestCase):
     """Scenario-based evaluation of the arifOS kernel primitives."""
 
@@ -45,10 +46,10 @@ class TestKernelPrimitives(unittest.TestCase):
     def test_planner_tasks_and_dependencies(self):
         """Test planning and task dependency tracking."""
         plan = self.planner.create_plan(goal="Deploy service")
-        
+
         t1 = self.planner.add_task(plan.id, "Build image")
         t2 = self.planner.add_task(plan.id, "Push image", dependencies=[t1])
-        t3 = self.planner.add_task(plan.id, "Run container", dependencies=[t2])
+        self.planner.add_task(plan.id, "Run container", dependencies=[t2])
 
         # Initially, only t1 should be ready
         ready_tasks = self.planner.get_current_tasks(plan.id)
@@ -67,12 +68,9 @@ class TestKernelPrimitives(unittest.TestCase):
             "name": "calculate",
             "parameters": {
                 "type": "object",
-                "properties": {
-                    "expression": {"type": "string"},
-                    "precision": {"type": "integer"}
-                },
-                "required": ["expression"]
-            }
+                "properties": {"expression": {"type": "string"}, "precision": {"type": "integer"}},
+                "required": ["expression"],
+            },
         }
         self.tool_registry.register_tool("calculate", "Evaluate math expression", schema)
 
@@ -91,6 +89,7 @@ class TestKernelPrimitives(unittest.TestCase):
         self.assertIsNotNone(role)
         self.assertEqual(role.name, "Engineer")
         self.assertIn("write", role.permissions)
+
 
 if __name__ == "__main__":
     unittest.main()

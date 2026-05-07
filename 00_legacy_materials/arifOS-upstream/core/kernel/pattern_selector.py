@@ -58,6 +58,6 @@ class PatternSelector:
         applied_state["applied_pattern"] = {
             "name": pattern.name,
             "description": pattern.description,
-            "schema": pattern.schema
+            "schema": pattern.schema,
         }
         return applied_state

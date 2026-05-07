@@ -24,9 +24,9 @@ from typing import Any
 class ResourceSpec:
     """
     Clean resource specification following MCP protocol.
-    
+
     Resources are read-only context accessed by URI.
-    
+
     Fields:
         uri: Unique resource identifier (arifos://...)
         name: Human-readable name
@@ -36,6 +36,7 @@ class ResourceSpec:
         dynamic: True if content changes (requires fetch)
         auth_required: Minimum authority level
     """
+
     uri: str
     name: str
     description: str

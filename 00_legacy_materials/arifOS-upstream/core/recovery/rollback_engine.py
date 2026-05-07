@@ -43,7 +43,9 @@ class RollbackEngine:
 
         # Perform deep copy to ensure isolation
         snapshot = copy.deepcopy(kernel)
-        checkpoint_id = f"cp-{session_id}-{int(time.time() * 1000)}-{len(self._checkpoints[session_id])}"
+        checkpoint_id = (
+            f"cp-{session_id}-{int(time.time() * 1000)}-{len(self._checkpoints[session_id])}"
+        )
         self._checkpoints[session_id].append(snapshot)
         self._checkpoint_meta[session_id].append(
             {
@@ -188,9 +190,7 @@ class OutcomeLedger:
 
         harm_count = sum(1 for r in records if r.harm_detected)
         pending = sum(1 for r in records if r.outcome_status == OutcomeStatus.PENDING)
-        false_seals = sum(
-            1 for r in records if r.verdict_issued == "SEAL" and r.harm_detected
-        )
+        false_seals = sum(1 for r in records if r.verdict_issued == "SEAL" and r.harm_detected)
         return {
             "total": len(records),
             "harm_count": harm_count,
@@ -228,9 +228,7 @@ class OutcomeLedger:
             status = (
                 OutcomeStatus.OVERRIDDEN
                 if operator_override
-                else OutcomeStatus.FAILURE
-                if harm_detected
-                else OutcomeStatus.SUCCESS
+                else OutcomeStatus.FAILURE if harm_detected else OutcomeStatus.SUCCESS
             )
         else:
             status = OutcomeStatus.PENDING
@@ -278,9 +276,7 @@ class OutcomeLedger:
                 r.outcome_status = (
                     OutcomeStatus.OVERRIDDEN
                     if operator_override
-                    else OutcomeStatus.FAILURE
-                    if harm_detected
-                    else OutcomeStatus.SUCCESS
+                    else OutcomeStatus.FAILURE if harm_detected else OutcomeStatus.SUCCESS
                 )
                 self._save_record(r)
                 logger.info(

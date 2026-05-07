@@ -50,5 +50,5 @@
 
 ---
 
-**Validator:** External POV (Zero Context)  
+**Validator:** External POV (Zero Context)
 **Generated:** 2026-04-01 10:27 UTC

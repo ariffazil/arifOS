@@ -1,22 +1,22 @@
 # WORKFLOW_CLAWHUB_SETUP.md
 
-**Purpose:** Guide for setting up ClawHub CLI and browsing skills  
-**Status:** ACTIVE (2026-02-11)  
+**Purpose:** Guide for setting up ClawHub CLI and browsing skills
+**Status:** ACTIVE (2026-02-11)
 **Ω₀:** 0.04
 
 ---
 
 ## Summary
 
-✅ **Task 3: Browse Skills** — COMPLETED  
+✅ **Task 3: Browse Skills** — COMPLETED
 ✅ **Task 4: Setup CLI** — PARTIAL (CLI installed, auth pending)
 
 ---
 
 ## ClawHub CLI Status
 
-**Installation:** ✅ Installed via npx  
-**Version:** v0.6.0  
+**Installation:** ✅ Installed via npx
+**Version:** v0.6.0
 **Usage:** `npx clawhub [command]`
 
 ---

@@ -13,6 +13,7 @@ These are pre-invocation hooks, not tools.
 
 Ditempa Bukan Diberi — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

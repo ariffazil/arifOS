@@ -1,7 +1,7 @@
-﻿with open('arifosmcp/runtime/tool_specs.py', 'r', encoding='utf-8') as f:
+﻿with open("arifosmcp/runtime/tool_specs.py", "r", encoding="utf-8") as f:
     lines = f.readlines()
 
-new_block = '''    # -------------------------------------------------------------------------
+new_block = """    # -------------------------------------------------------------------------
     # 15. arifos.probe -- System Health Probe
     # -------------------------------------------------------------------------
     ToolSpec(
@@ -52,11 +52,11 @@ new_block = '''    # -----------------------------------------------------------
     # -------------------------------------------------------------------------
     # 17. arifos.git_commit -- Governed Repository Mutation (Substrate)
     # -------------------------------------------------------------------------
-'''
+"""
 
 new_lines = lines[:529] + [new_block] + lines[592:]
 
-with open('arifosmcp/runtime/tool_specs.py', 'w', encoding='utf-8') as f:
+with open("arifosmcp/runtime/tool_specs.py", "w", encoding="utf-8") as f:
     f.writelines(new_lines)
 
-print('Replaced lines 530-592')
+print("Replaced lines 530-592")

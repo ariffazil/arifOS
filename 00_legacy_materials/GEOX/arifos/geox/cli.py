@@ -34,8 +34,12 @@ def main():
     eval_parser.add_argument("--lat", type=float, required=True, help="Latitude")
     eval_parser.add_argument("--lon", type=float, required=True, help="Longitude")
     eval_parser.add_argument("--basin", required=True, help="Sedimentary basin name")
-    eval_parser.add_argument("--risk", default="low", choices=["low", "medium", "high"], help="Risk level")
-    eval_parser.add_argument("--output", default="markdown", choices=["json", "markdown"], help="Output format")
+    eval_parser.add_argument(
+        "--risk", default="low", choices=["low", "medium", "high"], help="Risk level"
+    )
+    eval_parser.add_argument(
+        "--output", default="markdown", choices=["json", "markdown"], help="Output format"
+    )
 
     # ── command: health ──────────────────────────
     subparsers.add_parser("health", help="Check system health")
@@ -55,10 +59,11 @@ def main():
 
     elif args.command == "config":
         if args.show:
-                print(yaml.dump(GeoXConfig().model_dump(), sort_keys=False))
+            print(yaml.dump(GeoXConfig().model_dump(), sort_keys=False))
 
     else:
         parser.print_help()
+
 
 async def run_evaluate(args):
     """Execution wrapper for eval command."""
@@ -70,7 +75,7 @@ async def run_evaluate(args):
         location=CoordinatePoint(latitude=args.lat, longitude=args.lon),
         basin=args.basin,
         risk_tolerance=args.risk,
-        requester_id="geox-cli"
+        requester_id="geox-cli",
     )
 
     print(f"[*] Initializing GEOX Pipeline for: {args.basin}...")
@@ -79,13 +84,14 @@ async def run_evaluate(args):
     if args.output == "json":
         print(response.model_dump_json(indent=2))
     else:
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print(f" GEOX VERDICT: {response.verdict}")
-        print("="*80)
+        print("=" * 80)
         for insight in response.insights:
             print(f"- {insight.text} (Risk: {insight.risk_level})")
 
         print("\n---\n" + response.arifos_telemetry["seal"])
+
 
 if __name__ == "__main__":
     main()

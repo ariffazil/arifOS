@@ -8,12 +8,12 @@ requirements:
     authority_verification: strict
     approval_scope_check: true
     operator_identity: required
-  
+
   F1_Amanah:
     blue_green: true
     rollback_plan: required
     health_checks: true
-  
+
   F13_Sovereign:
     human_approval: required
     veto_capability: true

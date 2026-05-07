@@ -48,13 +48,13 @@ class TestChromaQuery:
             with patch("arifosmcp.intelligence.embeddings.embed") as mock_embed:
                 mock_embed.return_value = [0.1, 0.2, 0.3]
                 mock_client_instance = mock_client.return_value
-                
+
                 mock_point = Mock()
                 mock_point.id = "doc1"
                 mock_point.score = 0.9
                 mock_point.payload = {"content": "text1", "key": "value"}
                 mock_point.vector = None
-                
+
                 mock_client_instance.query_points.return_value = Mock(points=[mock_point])
 
                 result = query_memory("test query")
@@ -71,15 +71,15 @@ class TestChromaQuery:
             with patch("arifosmcp.intelligence.embeddings.embed") as mock_embed:
                 mock_embed.return_value = [0.1, 0.2, 0.3]
                 mock_client_instance = mock_client.return_value
-                
+
                 mock_point = Mock()
                 mock_point.id = "doc1"
                 mock_point.score = 0.9
                 mock_point.payload = {"content": "text1"}
                 mock_point.vector = [0.1, 0.2, 0.3]
-                
+
                 mock_client_instance.query_points.return_value = Mock(points=[mock_point])
-                
+
                 result = query_memory(
                     query="semantic search",
                     collection="default",
@@ -656,24 +656,6 @@ class TestInternalToolsDocumentationAccuracy:
         """Cross-reference documented tools with actual available tools"""
 
         # List of tools documented as INTERNAL in TOOL_INVENTORY.md
-        documented_internal_tools = [
-            "chroma_query",
-            "config_flags",  # May be check_adaptation_status
-            "cost_estimator",  # May not exist
-            "forge_guard",  # May not exist standalone
-            "fs_inspect",
-            "list_resources",
-            "log_tail",
-            "metabolic_loop",
-            "metabolic_loop_router",
-            "net_status",
-            "process_list",
-            "read_resource",
-            "register_tools",
-            "stage_pipeline_app",
-            "system_health",
-            "trace_replay",
-        ]
 
         # Check which ones actually exist
         available_tools = []

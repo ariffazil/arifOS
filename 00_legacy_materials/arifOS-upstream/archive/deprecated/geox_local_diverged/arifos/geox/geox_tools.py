@@ -46,6 +46,7 @@ from arifos.geox.tools.macrostrat_tool import MacrostratTool
 # EarthModelTool
 # ---------------------------------------------------------------------------
 
+
 class EarthModelTool(BaseTool):
     """
     Adapter for a Large Earth Model (LEM).
@@ -84,7 +85,7 @@ class EarthModelTool(BaseTool):
         if not isinstance(inputs["location"], CoordinatePoint):
             return False
         dr = inputs["depth_range_m"]
-        if not (isinstance(dr, (list, tuple)) and len(dr) == 2):
+        if not (isinstance(dr, list | tuple) and len(dr) == 2):
             return False
         return True
 
@@ -152,6 +153,7 @@ class EarthModelTool(BaseTool):
 # ---------------------------------------------------------------------------
 # EOFoundationModelTool
 # ---------------------------------------------------------------------------
+
 
 class EOFoundationModelTool(BaseTool):
     """
@@ -224,9 +226,18 @@ class EOFoundationModelTool(BaseTool):
         thermal_anomaly = rng.uniform(-2.5, 8.0)
 
         quantities = [
-            _make_quantity(round(surface_reflectance, 4), "fraction", "surface_reflectance", location, prov, 0.07),
+            _make_quantity(
+                round(surface_reflectance, 4),
+                "fraction",
+                "surface_reflectance",
+                location,
+                prov,
+                0.07,
+            ),
             _make_quantity(round(ndvi, 4), "fraction", "ndvi", location, prov, 0.09),
-            _make_quantity(round(thermal_anomaly, 2), "degC", "thermal_anomaly", location, prov, 0.12),
+            _make_quantity(
+                round(thermal_anomaly, 2), "degC", "thermal_anomaly", location, prov, 0.12
+            ),
         ]
 
         raw_output = {
@@ -255,6 +266,7 @@ class EOFoundationModelTool(BaseTool):
 # ---------------------------------------------------------------------------
 # SeismicVLMTool
 # ---------------------------------------------------------------------------
+
 
 class SeismicVLMTool(BaseTool):
     """
@@ -326,16 +338,28 @@ class SeismicVLMTool(BaseTool):
 
         quantities = [
             _make_quantity(
-                round(structural_conf, 3), "fraction", "structural_interpretation",
-                location, prov, vlm_uncertainty
+                round(structural_conf, 3),
+                "fraction",
+                "structural_interpretation",
+                location,
+                prov,
+                vlm_uncertainty,
             ),
             _make_quantity(
-                round(fault_prob, 3), "fraction", "fault_probability",
-                location, prov, vlm_uncertainty
+                round(fault_prob, 3),
+                "fraction",
+                "fault_probability",
+                location,
+                prov,
+                vlm_uncertainty,
             ),
             _make_quantity(
-                round(amplitude_anomaly, 3), "fraction", "amplitude_anomaly",
-                location, prov, vlm_uncertainty
+                round(amplitude_anomaly, 3),
+                "fraction",
+                "amplitude_anomaly",
+                location,
+                prov,
+                vlm_uncertainty,
             ),
         ]
 
@@ -374,6 +398,7 @@ class SeismicVLMTool(BaseTool):
 # SimulatorTool
 # ---------------------------------------------------------------------------
 
+
 class SimulatorTool(BaseTool):
     """
     Basin simulator / Pressure-Volume-Temperature (PVT) tool adapter.
@@ -409,7 +434,7 @@ class SimulatorTool(BaseTool):
             return False
         if not isinstance(inputs["scenario"], dict):
             return False
-        if not isinstance(inputs["timesteps_ma"], (list, tuple)):
+        if not isinstance(inputs["timesteps_ma"], list | tuple):
             return False
         return True
 
@@ -449,7 +474,7 @@ class SimulatorTool(BaseTool):
         prov = _make_provenance(source_id, "simulator", confidence=0.78)
 
         # Simulate at the youngest (shallowest burial) timestep for present-day output
-        present_age_ma = min(timesteps)
+        min(timesteps)
 
         # Simple geothermal gradient model
         geothermal_gradient = scenario.get("geothermal_gradient_degc_km", 30.0)
@@ -500,6 +525,7 @@ class SimulatorTool(BaseTool):
 # ---------------------------------------------------------------------------
 # GeoRAGTool
 # ---------------------------------------------------------------------------
+
 
 class GeoRAGTool(BaseTool):
     """
@@ -598,10 +624,7 @@ class GeoRAGTool(BaseTool):
         candidates = self._LITERATURE_DB
         if basin:
             basin_lower = basin.lower()
-            candidates = [
-                d for d in candidates
-                if basin_lower in d.get("basin", "").lower()
-            ]
+            candidates = [d for d in candidates if basin_lower in d.get("basin", "").lower()]
         # Fall back to all if no match
         if not candidates:
             candidates = self._LITERATURE_DB
@@ -618,9 +641,7 @@ class GeoRAGTool(BaseTool):
             citation = f"{hit['authors']} ({hit['year']}). {hit['title']}. DOI: {hit['doi']}"
             citations_used.append(citation)
             source_id = f"LIT-{hit['doi'].replace('/', '-')}"
-            prov = _make_provenance(
-                source_id, "literature", confidence=0.70, citation=citation
-            )
+            prov = _make_provenance(source_id, "literature", confidence=0.70, citation=citation)
             location = CoordinatePoint(latitude=4.5, longitude=103.7)  # basin centroid
 
             # Sample mid-range values from literature ranges
@@ -634,7 +655,9 @@ class GeoRAGTool(BaseTool):
                 lo, hi = hit["velocity_range"]
                 velocity = rng.uniform(lo, hi)
                 quantities.append(
-                    _make_quantity(round(velocity, 1), "m/s", "seismic_velocity", location, prov, 0.10)
+                    _make_quantity(
+                        round(velocity, 1), "m/s", "seismic_velocity", location, prov, 0.10
+                    )
                 )
 
         raw_output = {
@@ -664,6 +687,7 @@ class GeoRAGTool(BaseTool):
 # ---------------------------------------------------------------------------
 # ToolRegistry
 # ---------------------------------------------------------------------------
+
 
 class ToolRegistry:
     """
@@ -707,8 +731,7 @@ class ToolRegistry:
         """
         if name not in self._tools:
             raise KeyError(
-                f"Tool '{name}' not found in registry. "
-                f"Available tools: {self.list_tools()}"
+                f"Tool '{name}' not found in registry. " f"Available tools: {self.list_tools()}"
             )
         return self._tools[name]
 

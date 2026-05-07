@@ -14,6 +14,7 @@ from typing import Literal
 try:
     from cyclopts import App, Parameter
     from cyclopts.types import ExistingPath
+
     CYCLOPTS_AVAILABLE = True
 except ImportError:
     CYCLOPTS_AVAILABLE = False
@@ -40,27 +41,27 @@ logger = logging.getLogger(__name__)
 def create_cyclopts_app() -> App:
     """
     Create a Cyclopts App for arifOS CLI.
-    
+
     Returns:
         Configured Cyclopts App
-        
+
     Example:
         app = create_cyclopts_app()
         app()
     """
     if not CYCLOPTS_AVAILABLE:
         raise RuntimeError("Cyclopts not installed. Run: pip install cyclopts")
-    
+
     app = App(
         name="arifos",
         help="arifOS Sovereign Intelligence Kernel CLI",
         version="2026.03.28",
     )
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # 000_INIT: init_anchor
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     async def init(
         mode: Literal["init", "state", "revoke", "refresh"] = "init",
@@ -72,7 +73,7 @@ def create_cyclopts_app() -> App:
     ):
         """
         Initialize or manage an arifOS session.
-        
+
         Parameters
         ----------
         mode
@@ -96,18 +97,18 @@ def create_cyclopts_app() -> App:
             risk_tier=risk_tier,
             dry_run=dry_run,
         )
-        
+
         print(f"Verdict: {result.verdict}")
         print(f"Stage: {result.stage}")
         if result.session_id:
             print(f"Session: {result.session_id}")
         if result.payload:
             print(f"Payload: {json.dumps(result.payload, indent=2)}")
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # 111_SENSE: physics_reality
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     async def search(
         query: str,
@@ -118,7 +119,7 @@ def create_cyclopts_app() -> App:
     ):
         """
         Search and acquire ground truth from reality.
-        
+
         Parameters
         ----------
         query
@@ -139,17 +140,17 @@ def create_cyclopts_app() -> App:
             session_id=session_id,
             dry_run=dry_run,
         )
-        
+
         print(f"Verdict: {result.verdict}")
         if result.verdict == Verdict.SEAL:
             print(f"Results: {json.dumps(result.payload, indent=2)}")
         else:
             print(f"Error: {result.payload.get('error', 'Unknown')}")
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # 333_MIND: agi_mind
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     async def reason(
         query: str,
@@ -159,7 +160,7 @@ def create_cyclopts_app() -> App:
     ):
         """
         AGI Reasoning - think, reflect, or forge solutions.
-        
+
         Parameters
         ----------
         query
@@ -177,15 +178,15 @@ def create_cyclopts_app() -> App:
             session_id=session_id,
             dry_run=dry_run,
         )
-        
+
         print(f"Verdict: {result.verdict}")
-        if hasattr(result, 'payload'):
+        if hasattr(result, "payload"):
             print(json.dumps(result.payload, indent=2, default=str))
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # 666_HEART: asi_heart
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     async def critique(
         proposal: str,
@@ -194,7 +195,7 @@ def create_cyclopts_app() -> App:
     ):
         """
         ASI Safety - critique proposals or simulate consequences.
-        
+
         Parameters
         ----------
         proposal
@@ -210,14 +211,14 @@ def create_cyclopts_app() -> App:
             session_id=session_id,
             dry_run=False,
         )
-        
+
         print(f"Verdict: {result.verdict}")
         print(f"Assessment: {json.dumps(result.payload, indent=2, default=str)}")
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # 888_JUDGE: apex_soul
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     async def judge(
         candidate: str,
@@ -226,7 +227,7 @@ def create_cyclopts_app() -> App:
     ):
         """
         APEX Judgment - validate, judge, or probe candidates.
-        
+
         Parameters
         ----------
         candidate
@@ -241,14 +242,14 @@ def create_cyclopts_app() -> App:
             payload={"candidate": candidate},
             session_id=session_id,
         )
-        
+
         print(f"Verdict: {result.verdict}")
         print(json.dumps(result.payload, indent=2, default=str))
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # 999_VAULT: vault_ledger
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     async def seal(
         data: str,
@@ -257,7 +258,7 @@ def create_cyclopts_app() -> App:
     ):
         """
         Seal data to immutable vault or verify integrity.
-        
+
         Parameters
         ----------
         data
@@ -271,20 +272,20 @@ def create_cyclopts_app() -> App:
             payload = json.loads(data)
         except json.JSONDecodeError:
             payload = {"content": data}
-        
+
         result = await vault_ledger(
             mode=mode,
             payload=payload,
             session_id=session_id,
         )
-        
+
         print(f"Verdict: {result.verdict}")
         print(json.dumps(result.payload, indent=2, default=str))
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # M-4_ARCH: architect_registry
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     def tools():
         """List all available arifOS tools."""
@@ -294,28 +295,28 @@ def create_cyclopts_app() -> App:
             print(f"  • {name}")
         print()
         print("Use --help with any command for details.")
-    
+
     @app.command
     async def health(
         session_id: str | None = None,
     ):
         """Check arifOS system health."""
-        
+
         result = await math_estimator(
             mode="health",
             session_id=session_id,
         )
-        
+
         print(f"Status: {result.verdict}")
-        if hasattr(result, 'payload'):
-            vitals = result.payload.get('vitals', {})
+        if hasattr(result, "payload"):
+            vitals = result.payload.get("vitals", {})
             for key, value in vitals.items():
                 print(f"  {key}: {value}")
-    
+
     # ═══════════════════════════════════════════════════════════════════════
     # 444_ROUTER: arifos_kernel
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     @app.command
     async def kernel(
         intent: str,
@@ -324,7 +325,7 @@ def create_cyclopts_app() -> App:
     ):
         """
         Direct call to arifOS kernel router.
-        
+
         Parameters
         ----------
         intent
@@ -339,10 +340,10 @@ def create_cyclopts_app() -> App:
             payload={"intent": intent},
             session_id=session_id,
         )
-        
+
         print(f"Verdict: {result.verdict}")
         print(json.dumps(result.payload, indent=2, default=str))
-    
+
     return app
 
 

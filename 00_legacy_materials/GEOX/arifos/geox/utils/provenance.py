@@ -35,6 +35,7 @@ _DEFAULT_FLOOR_CHECK: dict[str, bool] = {
 # build_provenance()
 # ---------------------------------------------------------------------------
 
+
 def build_provenance(
     source_id: str,
     source_type: Literal["LEM", "VLM", "sensor", "simulator", "human", "literature"],
@@ -104,6 +105,7 @@ def build_provenance(
 # compute_checksum()
 # ---------------------------------------------------------------------------
 
+
 def compute_checksum(data: Any) -> str:
     """
     Compute a SHA-256 checksum of arbitrary data.
@@ -122,6 +124,7 @@ def compute_checksum(data: Any) -> str:
         checksum = compute_checksum({"velocity_ms": 2450.0, "depth_m": 2500.0})
         prov = build_provenance("LEM-001", "LEM", 0.82, checksum=checksum)
     """
+
     def _default_serialiser(obj: Any) -> str:
         if hasattr(obj, "model_dump"):
             return obj.model_dump(mode="json")
@@ -136,6 +139,7 @@ def compute_checksum(data: Any) -> str:
 # ---------------------------------------------------------------------------
 # verify_provenance_chain()
 # ---------------------------------------------------------------------------
+
 
 def verify_provenance_chain(chain: list[ProvenanceRecord]) -> bool:
     """
@@ -199,6 +203,7 @@ def verify_provenance_chain(chain: list[ProvenanceRecord]) -> bool:
 # merge_provenances()
 # ---------------------------------------------------------------------------
 
+
 def merge_provenances(records: list[ProvenanceRecord]) -> ProvenanceRecord:
     """
     Merge multiple ProvenanceRecords into a single aggregate record.
@@ -249,9 +254,7 @@ def merge_provenances(records: list[ProvenanceRecord]) -> ProvenanceRecord:
     # Floor check: AND across all records
     merged_floors: dict[str, bool] = dict(_DEFAULT_FLOOR_CHECK)
     for floor_id in merged_floors:
-        merged_floors[floor_id] = all(
-            r.floor_check.get(floor_id, True) for r in records
-        )
+        merged_floors[floor_id] = all(r.floor_check.get(floor_id, True) for r in records)
 
     # Combine citations
     citations = [r.citation for r in records if r.citation]

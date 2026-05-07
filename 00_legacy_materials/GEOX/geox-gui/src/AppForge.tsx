@@ -2,15 +2,15 @@
  * GEOX GUI App — Design Forge Edition
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Earth Intelligence Core with 000-999 Dimensional Architecture.
- * 
+ *
  * Architecture:
  * - DomainVoid (000-249): Risk & Decision
- * - Domain1D (250-499): Borehole Intelligence  
+ * - Domain1D (250-499): Borehole Intelligence
  * - Domain2D (500-749): Seismic & Planar
  * - Domain3D (750-999): Volume & Basin
- * 
+ *
  * Integrates:
  * - Scale-Aware Georeferencing Engine
  * - Gemini LLM Intelligence Bridge
@@ -31,7 +31,7 @@ import './styles/designSystem.css';
 const StyleInject = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
-    
+
     :root {
       --geox-void-900: #0A0C0E;
       --geox-void-800: #111418;
@@ -42,11 +42,11 @@ const StyleInject = () => (
       --geox-violet-500: #8B5CF6;
       --geox-cyan-500: #06B6D4;
     }
-    
+
     * {
       box-sizing: border-box;
     }
-    
+
     body {
       margin: 0;
       padding: 0;
@@ -57,26 +57,26 @@ const StyleInject = () => (
       -moz-osx-font-smoothing: grayscale;
       overflow: hidden;
     }
-    
+
     /* Scrollbar Styling */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
-    
+
     ::-webkit-scrollbar-track {
       background: #111418;
     }
-    
+
     ::-webkit-scrollbar-thumb {
       background: #2D353D;
       border-radius: 3px;
     }
-    
+
     ::-webkit-scrollbar-thumb:hover {
       background: #37414A;
     }
-    
+
     /* Selection Styling */
     ::selection {
       background: rgba(245, 158, 11, 0.3);

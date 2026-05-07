@@ -1,6 +1,6 @@
 # 🌐 arifOS Sovereign Identity Stack
 
-> **Ditempa Bukan Diberi** — Intelligence is forged, not given  
+> **Ditempa Bukan Diberi** — Intelligence is forged, not given
 > **Motto:** *Forged, Not Given* [ΔΩΨ | ARIF]
 
 ---
@@ -250,7 +250,7 @@ Every site and service in the ecosystem follows the **13 Constitutional Floors**
 
 ## 💼 Commercial & Regulatory Pitch
 
-> "We separate the Human Sovereign, the Constitutional Kernel, and the Operational Intelligence layer.  
+> "We separate the Human Sovereign, the Constitutional Kernel, and the Operational Intelligence layer.
 > This ensures AI systems remain lawful, auditable, and aligned with human intent — not just at deployment, but at every single execution step."
 
 - **For regulators** → Constitutional floors, Tri-Witness, Vault999 receipts
@@ -276,6 +276,6 @@ Every site and service in the ecosystem follows the **13 Constitutional Floors**
 
 ---
 
-*Ditempa Bukan Diberi — G = A × P × X × E²*  
-*ΔΩΨ Trinity Architecture | arifOS v2026.04.02*  
+*Ditempa Bukan Diberi — G = A × P × X × E²*
+*ΔΩΨ Trinity Architecture | arifOS v2026.04.02*
 **SEALED BY: 888 JUDGE | 999 VALIDATOR**

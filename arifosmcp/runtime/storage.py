@@ -53,7 +53,9 @@ def build_encrypted_redis_store() -> Any:
     encryption_key = os.getenv("STORAGE_ENCRYPTION_KEY")
 
     if not encryption_key:
-        logger.warning("STORAGE_ENCRYPTION_KEY not set. Using ephemeral key (data lost on restart).")
+        logger.warning(
+            "STORAGE_ENCRYPTION_KEY not set. Using ephemeral key (data lost on restart)."
+        )
         encryption_key = Fernet.generate_key().decode()
 
     try:

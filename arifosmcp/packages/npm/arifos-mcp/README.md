@@ -2,8 +2,8 @@
 
 **L2 Skills Adapter** — TypeScript client for the arifOS Constitutional AI Governance System.
 
-> **F4 CLARITY:** This package is a **CABLE**, not the **KERNEL**.  
-> Governance authority resides exclusively in the PyPI [`arifosmcp`](https://pypi.org/project/arifosmcp/) package.  
+> **F4 CLARITY:** This package is a **CABLE**, not the **KERNEL**.
+> Governance authority resides exclusively in the PyPI [`arifosmcp`](https://pypi.org/project/arifosmcp/) package.
 > This npm package only provides TypeScript types and a thin MCP transport client.
 
 ---
@@ -136,7 +136,7 @@ interface ArifOSClientConfig {
 ### Types
 
 ```typescript
-import type { 
+import type {
   Verdict,        // 'SEAL' | 'PROVISIONAL' | 'PARTIAL' | 'SABAR' | 'HOLD' | 'HOLD_888' | 'VOID'
   FloorCode,      // 'F1' | 'F2' | ... | 'F13'
   Stage,          // public stage string or runtime stage string

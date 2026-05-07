@@ -1,9 +1,10 @@
 from arifosmcp.intelligence.tools.fs_inspector import inspect_path
 from arifosmcp.intelligence.tools.net_monitor import check_connectivity
 
+
 def test_aliases():
     print("Testing internal function aliases...")
-    
+
     # Test inspect_path
     res_fs = inspect_path(path=".", depth=1)
     if res_fs.get("status") in ["SEAL", "ok"]:
@@ -17,6 +18,7 @@ def test_aliases():
         print("✅ check_connectivity alias works")
     else:
         print(f"❌ check_connectivity failed: {res_net}")
+
 
 if __name__ == "__main__":
     test_aliases()

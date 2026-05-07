@@ -210,6 +210,6 @@ quickstart → MCP_Tools → Reference_MCP_Servers → Audit_999_SEAL_Runtime_Co
 
 ---
 
-**Registry Version**: 2026.04.11  
-**Total Pages**: 47  
+**Registry Version**: 2026.04.11
+**Total Pages**: 47
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.

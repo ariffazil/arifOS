@@ -1,8 +1,8 @@
 # arifOS Architecture
 
-> **System:** Constitutional AI Governance Framework  
-> **Version:** 2026.04.06 (Horizon II.1)  
-> **Protocol:** MCP (Model Context Protocol)  
+> **System:** Constitutional AI Governance Framework
+> **Version:** 2026.04.06 (Horizon II.1)
+> **Protocol:** MCP (Model Context Protocol)
 > **License:** AGPL-3.0-only
 
 ---

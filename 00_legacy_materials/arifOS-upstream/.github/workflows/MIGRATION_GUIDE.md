@@ -110,17 +110,17 @@ class F2_TRUTH:
 
 class F7_HUMILITY:
     def apply_lock(self, confidence): ...
-    
+
 class F8_GENIUS:
     def calculate_genius(self, dials): ...
-    
+
 class F12_DEFENSE:
     def classify_attack(self, query): ...
 
 # core/judgment.py needs:
 class JudgmentEngine:
     def evaluate(self, request) -> Verdict: ...
-    
+
 class Verdict:
     status: str  # "SEAL", "PARTIAL", "SABAR", "VOID"
     violations: list[str]
@@ -149,7 +149,7 @@ git commit -m "ci: unified constitutional CI workflow
 
 - 9 stage pipeline with constitutional enforcement tests
 - F2 Truth: Anti-hallucination verification
-- F7 Humility: Gödel band [0.03,0.05] enforcement  
+- F7 Humility: Gödel band [0.03,0.05] enforcement
 - F8 Genius: G† ≥ 0.80 threshold verification
 - F12 Defense: Injection attack blocking
 - Replaces 5 fragmented workflows"

@@ -10,7 +10,7 @@ console.log('[arifOS MCP] Checking Python environment...');
 
 function findPython() {
   const commands = ['python3.12', 'python3', 'python', 'py'];
-  
+
   for (const cmd of commands) {
     try {
       execSync(`${cmd} --version`, { stdio: 'ignore' });
@@ -19,7 +19,7 @@ function findPython() {
       continue;
     }
   }
-  
+
   console.warn('[arifOS MCP] Warning: Python not found. Please install Python 3.12+ and arifosmcp:');
   console.warn('  https://python.org');
   console.warn('  pip install arifosmcp');
@@ -37,11 +37,11 @@ function checkArifOS(python) {
 
 try {
   const python = findPython();
-  
+
   if (!checkArifOS(python)) {
     console.log('[arifOS MCP] Installing arifosmcp Python package...');
     try {
-      execSync(`${python} -m pip install arifosmcp`, { 
+      execSync(`${python} -m pip install arifosmcp`, {
         stdio: 'inherit',
         timeout: 300000
       });

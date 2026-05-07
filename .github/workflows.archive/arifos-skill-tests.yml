@@ -11,21 +11,21 @@ jobs:
   constitutional-tests:
     name: Constitutional Compliance
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: '3.11'
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
+
     - name: F1 Reversibility Test
       run: |
         echo "Testing F1: All skills must create checkpoints"
@@ -36,7 +36,7 @@ jobs:
             assert hasattr(skill, 'checkpoint'), f'{name} missing checkpoint'
         print('F1: PASS')
         "
-        
+
     - name: F2 Truth Verification Test
       run: |
         echo "Testing F2: All outputs must be verifiable"
@@ -50,7 +50,7 @@ jobs:
         assert result.earth_witness > 0, 'F2 verification failed'
         print('F2: PASS')
         "
-        
+
     - name: F3 Tri-Witness Test
       run: |
         echo "Testing F3: W3 must be calculable"
@@ -60,7 +60,7 @@ jobs:
         assert w3 >= 0.95, f'W3 too low: {w3}'
         print(f'F3: PASS (W3={w3:.3f})')
         "
-        
+
     - name: F7 Humility Test
       run: |
         echo "Testing F7: Dry run must be default"
@@ -70,7 +70,7 @@ jobs:
         assert bridge.dry_run == True, 'F7: dry_run not default'
         print('F7: PASS')
         "
-        
+
     - name: F12 Injection Defense Test
       run: |
         echo "Testing F12: Dangerous commands must be blocked"
@@ -82,7 +82,7 @@ jobs:
         assert not result.success, 'F12: Dangerous command allowed'
         print('F12: PASS')
         "
-        
+
     - name: Skill Import Test
       run: |
         echo "Testing all 9 skills import correctly"
@@ -94,7 +94,7 @@ jobs:
             print(f'  - {name}: OK')
         print('Skills: PASS')
         "
-        
+
     - name: Integration Test - Docker Check
       run: |
         echo "Integration: vps-docker skill (dry run)"
@@ -110,18 +110,18 @@ jobs:
     name: Trinity Loop Validation
     runs-on: ubuntu-latest
     needs: constitutional-tests
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Test Human-AI-Runtime Loop
       run: |
         echo "Testing full Trinity Loop"
         python -c "
         import asyncio
         from core.skill_bridge import execute_skill
-        
+
         # Simulate skill execution
         result = asyncio.run(execute_skill(
             'vps-docker',
@@ -131,13 +131,13 @@ jobs:
             dry_run=True,
             operator='ci'
         ))
-        
+
         # Verify W3 present
         assert 'w3_score' in result or result.get('verdict') == 'SEAL'
         print(f'Verdict: {result[\"verdict\"]}')
         print('Trinity Loop: PASS')
         "
-        
+
     - name: Generate Report
       run: |
         echo "## arifOS Skill Test Results" >> $GITHUB_STEP_SUMMARY
@@ -157,7 +157,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [constitutional-tests, trinity-loop-test]
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
     - name: 888_JUDGE Verdict
       run: |

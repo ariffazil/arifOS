@@ -1,4 +1,3 @@
-
 import pytest
 import json
 from unittest.mock import AsyncMock, patch
@@ -7,14 +6,17 @@ from arifosmcp.runtime.resources import register_resources, read_resource_conten
 from arifosmcp.runtime import tools
 from arifosmcp.runtime.model import Verdict, RuntimeEnvelope, RuntimeStatus, Stage
 
+
 @pytest.fixture
 def mcp():
     return FastMCP("test-server")
+
 
 @pytest.fixture
 def registered_mcp(mcp):
     register_resources(mcp)
     return mcp
+
 
 class TestResourceAlignment:
     @pytest.mark.asyncio
@@ -39,16 +41,20 @@ class TestResourceAlignment:
     async def test_prompts_registered(self):
         """Verify prompt templates are defined in the registry."""
         from arifosmcp.runtime.public_registry import public_prompt_specs
+
         prompts = public_prompt_specs()
         assert len(prompts) == 5
         assert any(p.name == "constitutional.analysis" for p in prompts)
+
 
 class TestToolPayloadAlignment:
     @pytest.mark.asyncio
     async def test_init_anchor_enriched_payload(self):
         """P1: Verify arifos_init enriched payload with authority and next_action."""
         # Patch the mega tool that arifos_init calls
-        with patch("arifosmcp.runtime.tools._mega_init_anchor", new_callable=AsyncMock) as mock_mega:
+        with patch(
+            "arifosmcp.runtime.tools._mega_init_anchor", new_callable=AsyncMock
+        ) as mock_mega:
             mock_envelope = RuntimeEnvelope(
                 tool="arifos.init",
                 canonical_tool_name="arifos.init",
@@ -61,13 +67,13 @@ class TestToolPayloadAlignment:
                     "caller_state": "anchored",
                     "authority": "OPERATOR",
                     "auth_context": {"actor_id": "test-actor"},
-                    "next_action": "Use arifos.kernel"
-                }
+                    "next_action": "Use arifos.kernel",
+                },
             )
             mock_mega.return_value = mock_envelope
-            
+
             result = await tools.arifos_init(actor_id="test-actor")
-            
+
             # seal_runtime_envelope will process this
             assert result.payload["caller_state"] == "anchored"
             assert result.payload["canonical_tool_name"] == "arifos.init"
@@ -88,27 +94,28 @@ class TestToolPayloadAlignment:
                 "bootstrap": {
                     "current_state": "READY",
                     "operator_guidance": "Awaiting intent",
-                    "ladder_resource": "canon://states"
+                    "ladder_resource": "canon://states",
                 }
-            }
+            },
         )
-        
+
         with patch("arifosmcp.runtime.tools.arifos_health", new_callable=AsyncMock) as mock_tool:
             mock_tool.return_value = mock_envelope
-            
+
             result = await tools.arifos_health()
-            
+
             assert "bootstrap" in result.payload
             bootstrap = result.payload["bootstrap"]
             assert bootstrap["current_state"] == "READY"
             assert "canon://states" in bootstrap["ladder_resource"]
+
 
 class TestErrorRemediationAlignment:
     @pytest.mark.asyncio
     async def test_remediation_first_error_response(self):
         """P1: Verify remediation-first error responses in unified_tool_output."""
         from core.enforcement.governance_engine import wrap_tool_output
-        
+
         # Simulate a failing case (VOID verdict)
         payload = {
             "verdict": "VOID",
@@ -120,14 +127,11 @@ class TestErrorRemediationAlignment:
             "grounded": True,
             "stage": "444_ROUTER",
         }
-        
+
         # wrap_tool_output is synchronous in governance_engine.py
         # Correctly call with only tool and payload
-        result = wrap_tool_output(
-            tool="test_tool",
-            payload=payload
-        )
-        
+        result = wrap_tool_output(tool="test_tool", payload=payload)
+
         assert "errors" in result
         error = result["errors"][0]
         assert "remediation" in error
@@ -136,4 +140,3 @@ class TestErrorRemediationAlignment:
         assert "required_args" in remediation
         assert "example_payload" in remediation
         assert remediation["retry_safe"] is True
-

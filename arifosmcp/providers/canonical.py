@@ -1,4 +1,5 @@
 """CanonicalProvider scaffold for future provider composition."""
+
 from __future__ import annotations
 
 from fastmcp.server.providers import LocalProvider

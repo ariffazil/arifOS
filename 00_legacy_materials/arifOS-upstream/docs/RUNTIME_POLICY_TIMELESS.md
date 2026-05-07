@@ -1,8 +1,8 @@
 # arifOS Runtime Policy — Timeless / Inflation-Resilient
 ## Token Budget Law & Call Rules
 
-**Version:** Timeless (EPOCH-AGNOSTIC)  
-**Status:** CONSTITUTIONAL DOCTRINE  
+**Version:** Timeless (EPOCH-AGNOSTIC)
+**Status:** CONSTITUTIONAL DOCTRINE
 **Motto:** *DITEMPA, BUKAN DIBERI* — Forged, Not Given [ΔΩΨ | ARIF]
 
 ---
@@ -23,7 +23,7 @@ Tokens are not neutral:
 - **Useful tokens** ↓ entropy
 - **Irrelevant tokens** ↑ entropy
 
-**System must enforce:** ΔS_context ≤ 0  
+**System must enforce:** ΔS_context ≤ 0
 *(net entropy must not increase)*
 
 **Maps to F4:** ΔS Clarity Constitutional Floor
@@ -40,7 +40,7 @@ Tokens are not neutral:
 ### 4. Workspace Primacy Law
 > Intelligence operates in a small active workspace; all else must be externalized.
 
-**Never design for:** maximal context  
+**Never design for:** maximal context
 **Always design for:** minimal sufficient context
 
 **Maps to:** arifOS externalized memory (VAULT999)
@@ -338,8 +338,8 @@ This policy enforces:
 
 ### Core Principle
 
-> **Tokens are not knowledge.**  
-> **Attention is not free.**  
+> **Tokens are not knowledge.**
+> **Attention is not free.**
 > **Context is not intelligence.**
 
 ### Operational Truth
@@ -376,7 +376,7 @@ Where:
 
 > **A system does not become powerful by increasing context, but by reducing the entropy required to reach correct action.**
 
-**DITEMPA, BUKAN DIBERI** — Forged, Not Given  
+**DITEMPA, BUKAN DIBERI** — Forged, Not Given
 **ΔΩΨ | ARIF**
 
 ---
@@ -397,6 +397,6 @@ Where:
 
 ---
 
-**Status:** CONSTITUTIONAL DOCTRINE  
-**Epoch:** TIMELESS  
+**Status:** CONSTITUTIONAL DOCTRINE
+**Epoch:** TIMELESS
 **Verdict:** SEAL

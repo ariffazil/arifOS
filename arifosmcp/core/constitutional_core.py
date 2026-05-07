@@ -133,9 +133,20 @@ class ActionContext(BaseModel):
         parsed = urllib.parse.urlparse(v)
         hostname = parsed.hostname or ""
         blocked_hostnames = {
-            "localhost", "127.0.0.1", "0.0.0.0", "::1",
-            "postgres", "redis", "qdrant", "vault999", "arifosmcp",
-            "ollama", "geox", "wealth-organ", "aaa", "caddy",
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0",
+            "::1",
+            "postgres",
+            "redis",
+            "qdrant",
+            "vault999",
+            "arifosmcp",
+            "ollama",
+            "geox",
+            "wealth-organ",
+            "aaa",
+            "caddy",
         }
         if hostname.lower() in blocked_hostnames:
             raise ValueError(f"SSRF blocked: internal hostname '{hostname}' is not reachable.")

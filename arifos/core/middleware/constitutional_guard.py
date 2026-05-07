@@ -19,7 +19,6 @@ from datetime import datetime, timezone
 from typing import Any
 
 
-
 logger = logging.getLogger(__name__)
 
 # ── Domain Contracts: required output fields per canonical tool ──────────────
@@ -245,8 +244,17 @@ def _extract_metrics(output: dict[str, Any]) -> dict[str, Any]:
         if "witness" in payload and isinstance(payload["witness"], dict):
             metrics["witness"] = payload["witness"]
         # Also pull direct payload fields that might be metrics
-        for key in ("truth_score", "G_star", "confidence", "omega_0", "shadow",
-                    "floor_9_signal", "zkpc_receipt", "amanah_lock", "recoverable"):
+        for key in (
+            "truth_score",
+            "G_star",
+            "confidence",
+            "omega_0",
+            "shadow",
+            "floor_9_signal",
+            "zkpc_receipt",
+            "amanah_lock",
+            "recoverable",
+        ):
             if key in payload and key not in metrics:
                 metrics[key] = payload[key]
 

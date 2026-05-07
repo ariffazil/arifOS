@@ -20,6 +20,7 @@ from arifos.geox.geox_schemas import (
 @dataclass
 class GeoToolResult:
     """Standardised output from any GEOX tool execution."""
+
     quantities: list[GeoQuantity] = field(default_factory=list)
     raw_output: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -28,8 +29,10 @@ class GeoToolResult:
     success: bool = True
     error: str | None = None
 
+
 class BaseTool(ABC):
     """Abstract base class for all GEOX tool adapters."""
+
     @property
     @abstractmethod
     def name(self) -> str: ...
@@ -40,8 +43,10 @@ class BaseTool(ABC):
     async def run(self, inputs: dict[str, Any]) -> GeoToolResult: ...
     def validate_inputs(self, inputs: dict[str, Any]) -> bool:
         return isinstance(inputs, dict)
+
     def health_check(self) -> bool:
         return True
+
 
 def _make_provenance(
     source_id: str,
@@ -59,11 +64,16 @@ def _make_provenance(
         checksum=checksum,
         citation=citation,
         floor_check={
-            "F1_amanah": True, "F2_truth": True, "F4_clarity": True,
-            "F7_humility": True, "F9_anti_hantu": True,
-            "F11_authority": True, "F13_sovereign": True,
+            "F1_amanah": True,
+            "F2_truth": True,
+            "F4_clarity": True,
+            "F7_humility": True,
+            "F9_anti_hantu": True,
+            "F11_authority": True,
+            "F13_sovereign": True,
         },
     )
+
 
 def _make_quantity(
     value: float,

@@ -33,7 +33,7 @@ DEFAULT_SIDE_EFFECT_TOOLS = {
     "arifos_forge",
     "arifos_repo_seal",
     "arifos_memory",  # can write in vector_store mode
-    "arifos_vault",   # immutable append/write
+    "arifos_vault",  # immutable append/write
 }
 
 
@@ -44,7 +44,10 @@ class ToolCallRequest(BaseModel):
     requestId: str | int | None = None
     confirmationStep: bool = False
     approvalUx: str = Field(default="none", pattern="^(none|manual-confirmation|adaptive-card)$")
-    retryOnVoid: str = Field(default="prompt-confirmation", pattern="^(stop|prompt-confirmation|retry-once-after-confirmation)$")
+    retryOnVoid: str = Field(
+        default="prompt-confirmation",
+        pattern="^(stop|prompt-confirmation|retry-once-after-confirmation)$",
+    )
 
 
 class McpContent(BaseModel):
@@ -428,15 +431,35 @@ def law_capsule() -> dict[str, Any]:
 
 
 @app.post("/tools/call", response_model=McpStyleResponse)
-def tools_call(payload: ToolCallRequest, authorization: str | None = Header(default=None)) -> McpStyleResponse:
+def tools_call(
+    payload: ToolCallRequest, authorization: str | None = Header(default=None)
+) -> McpStyleResponse:
     _require_auth(authorization)
 
     side_effect_tools = _get_side_effect_tools()
     if payload.name in side_effect_tools:
         if not payload.humanRatified:
-            return _mcp_error(json.dumps(_void_payload("F13_RATIFICATION_REQUIRED", "F13: humanRatified=true required for side-effect tool", payload), ensure_ascii=True))
+            return _mcp_error(
+                json.dumps(
+                    _void_payload(
+                        "F13_RATIFICATION_REQUIRED",
+                        "F13: humanRatified=true required for side-effect tool",
+                        payload,
+                    ),
+                    ensure_ascii=True,
+                )
+            )
         if not payload.confirmationStep:
-            return _mcp_error(json.dumps(_void_payload("CONFIRMATION_REQUIRED", "Side-effect tool requires confirmationStep=true", payload), ensure_ascii=True))
+            return _mcp_error(
+                json.dumps(
+                    _void_payload(
+                        "CONFIRMATION_REQUIRED",
+                        "Side-effect tool requires confirmationStep=true",
+                        payload,
+                    ),
+                    ensure_ascii=True,
+                )
+            )
 
     timeout_seconds = _env_int(MCP_TIMEOUT_ENV, 20)
     rpc_result = _call_mcp_stdio(payload.name, payload.arguments, timeout_seconds)

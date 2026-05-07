@@ -6,7 +6,7 @@ Design Principle: "One screen = one decision"
 
 Three views:
 - Operator (default): Action-oriented, minimal, clean
-- System (verbose=true): Engineering + governance details  
+- System (verbose=true): Engineering + governance details
 - Forensic (debug=true): Full investigation state
 
 Input: Small, explicit, unambiguous
@@ -27,8 +27,10 @@ from pydantic import BaseModel, Field
 # INPUT SCHEMAS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class QueryOptions(BaseModel):
     """Optional controls for output verbosity."""
+
     verbose: bool = Field(default=False, description="Include governance + system details")
     debug: bool = Field(default=False, description="Include full forensic state")
     include: list[str] = Field(default_factory=list, description="Specific sections to include")
@@ -37,13 +39,14 @@ class QueryOptions(BaseModel):
 class CleanInput(BaseModel):
     """
     Minimal, explicit input schema.
-    
+
     Before (noisy):
         actor_id, declared_name, risk_tier, session_id, human_approved, ...
-    
+
     After (clean):
         actor, intent, risk, session, options
     """
+
     actor: str = Field(default="anonymous", description="Who is asking")
     intent: str = Field(description="What they want to accomplish")
     risk: Literal["low", "medium", "high", "critical"] = Field(default="low")
@@ -55,11 +58,13 @@ class CleanInput(BaseModel):
 # OUTPUT SCHEMAS — FIXED BLOCKS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ExecutionResult(BaseModel):
     """
     Execution truth: Did the tool run successfully?
     Separated from governance truth to avoid confusion.
     """
+
     ok: bool = Field(description="Did the tool execute without error?")
     status: Literal["OK", "ERROR", "PARTIAL", "HOLD", "TIMEOUT"] = Field(
         description="Execution status"
@@ -72,6 +77,7 @@ class GovernanceVerdict(BaseModel):
     Governance truth: Should this proceed?
     Constitutional judgment separate from execution.
     """
+
     verdict: Literal["APPROVED", "PARTIAL", "PAUSE", "VOID", "HOLD", "SEAL"] = Field(
         description="Constitutional verdict"
     )
@@ -83,6 +89,7 @@ class OperatorAction(BaseModel):
     Operator truth: What do I do now?
     Action-oriented summary for human decision.
     """
+
     summary: str = Field(description="What happened in plain language")
     next_step: str | None = Field(default=None, description="What to do next")
     retryable: bool = Field(default=False, description="Can operator retry?")
@@ -93,6 +100,7 @@ class ContextSummary(BaseModel):
     Minimal context: Who, what, where, verified?
     No internals, no handoff, no continuity state.
     """
+
     actor: str = Field(description="Who made the request")
     session: str | None = Field(default=None, description="Session ID")
     verified: bool = Field(default=False, description="Identity verified?")
@@ -104,6 +112,7 @@ class CleanError(BaseModel):
     Error details when things fail.
     Only present when execution.ok = false.
     """
+
     code: str = Field(description="Typed error code")
     message: str = Field(description="Human-readable error")
 
@@ -111,12 +120,13 @@ class CleanError(BaseModel):
 class DebugForensics(BaseModel):
     """
     Full forensic state — only when options.debug = true.
-    
+
     Includes everything hidden in default view:
     - telemetry, trace, handoff, continuity
     - raw_payload, diagnostics, state
     - blocked_tools, allowed_next_tools
     """
+
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     caller_state: str | None = None
     allowed_next_tools: list[str] = Field(default_factory=list)
@@ -133,12 +143,13 @@ class DebugForensics(BaseModel):
 # CLEAN OUTPUT — FIXED STRUCTURE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class CleanOutput(BaseModel):
     """
     Clean 3-tier output following fixed block structure.
-    
+
     Structure: [execution, governance, operator, context, error, debug]
-    
+
     Example (operator view, default):
         {
           "execution": {"ok": false, "status": "ERROR", "stage": "INIT"},
@@ -152,6 +163,7 @@ class CleanOutput(BaseModel):
           "error": {"code": "INIT_KERNEL_500", "message": "Dispatch map missing init_anchor"}
         }
     """
+
     execution: ExecutionResult
     governance: GovernanceVerdict
     operator: OperatorAction
@@ -163,6 +175,7 @@ class CleanOutput(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 # VIEW GENERATORS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def build_operator_view(
     ok: bool,
@@ -182,7 +195,7 @@ def build_operator_view(
 ) -> CleanOutput:
     """
     Build minimal operator view (default).
-    
+
     Answers only:
     - Did it work?
     - What stage failed?
@@ -220,7 +233,7 @@ def build_system_view(
 ) -> dict[str, Any]:
     """
     Add system/governance details for verbose=true.
-    
+
     Extends operator view with:
     - system block (kernel_version, adapter, env)
     - governance authority
@@ -252,7 +265,7 @@ def build_forensic_view(
 ) -> dict[str, Any]:
     """
     Add full forensic state for debug=true.
-    
+
     Includes everything:
     - telemetry, trace, handoff
     - raw_payload, continuity
@@ -277,10 +290,11 @@ def build_forensic_view(
 # MIGRATION UTILITIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def migrate_from_legacy_input(legacy: dict[str, Any]) -> CleanInput:
     """
     Migrate old verbose input to clean input.
-    
+
     Legacy: actor_id, declared_name, risk_tier, session_id, dry_run, debug
     Clean:  actor, intent, risk, session, options
     """
@@ -309,10 +323,14 @@ def migrate_to_legacy_output(clean: CleanOutput) -> dict[str, Any]:
         "session_id": clean.context.session,
         "actor_id": clean.context.actor,
         "risk_tier": clean.context.risk,
-        "error": {
-            "code": clean.error.code if clean.error else None,
-            "message": clean.error.message if clean.error else None,
-        } if clean.error else None,
+        "error": (
+            {
+                "code": clean.error.code if clean.error else None,
+                "message": clean.error.message if clean.error else None,
+            }
+            if clean.error
+            else None
+        ),
         "debug": clean.debug.model_dump() if clean.debug else None,
     }
 
@@ -320,6 +338,7 @@ def migrate_to_legacy_output(clean: CleanOutput) -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXAMPLE USAGE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def example_failed_init() -> CleanOutput:
     """Example: Clean output for failed arifos.init"""
@@ -366,7 +385,7 @@ __all__ = [
     # Output blocks
     "CleanOutput",
     "ExecutionResult",
-    "GovernanceVerdict", 
+    "GovernanceVerdict",
     "OperatorAction",
     "ContextSummary",
     "CleanError",

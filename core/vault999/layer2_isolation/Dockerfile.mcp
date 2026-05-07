@@ -1,5 +1,5 @@
 # Layer 2: Blast Radius Isolation — MCP Container
-# 
+#
 # Design principles:
 # - Read-only root filesystem
 # - No new privileges

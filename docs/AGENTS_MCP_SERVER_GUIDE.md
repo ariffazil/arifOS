@@ -463,6 +463,5 @@ Phase 1 is intentionally **read-only** — no vault writes, no VPS execution, no
 
 *Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]*
 
-**Version:** 2026.03.14-CANON  
+**Version:** 2026.03.14-CANON
 **Constitutional Status:** 13/13 Floors Enforced
-

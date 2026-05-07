@@ -36,13 +36,13 @@ async def web_search(query: str) -> dict[str, Any]:
 
         hits = len(results.get("organic", []))
         metrics = ThermodynamicMetrics(
-            truth_score=0.95,      # F2: externally grounded
-            delta_s=-0.10,         # F4: structured results reduce entropy
-            peace_squared=1.0,     # F7: read-only
-            stakeholder_safety=1.0, # F5: no harm
-            omega_0=0.04,          # F12: query validated
-            amanah_lock=True,      # F1: reversible
-            tri_witness_score=0.95, # F3: multi-source
+            truth_score=0.95,  # F2: externally grounded
+            delta_s=-0.10,  # F4: structured results reduce entropy
+            peace_squared=1.0,  # F7: read-only
+            stakeholder_safety=1.0,  # F5: no harm
+            omega_0=0.04,  # F12: query validated
+            amanah_lock=True,  # F1: reversible
+            tri_witness_score=0.95,  # F3: multi-source
         )
 
         return governed_return(

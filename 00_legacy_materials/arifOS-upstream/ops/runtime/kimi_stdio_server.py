@@ -30,29 +30,29 @@ def translate_tool_name(name: str) -> str:
 
 class KimiCompatibleMCPServer:
     """Wrapper that translates tool names between Kimi API and arifOS MCP."""
-    
+
     def __init__(self, mcp_server):
         self._mcp = mcp_server
         self._original_tools = {}
-        
+
     def _translate_tools(self, tools: list) -> list:
         """Translate all tool names in a list."""
         translated = []
         for tool in tools:
-            if hasattr(tool, 'name'):
+            if hasattr(tool, "name"):
                 original_name = tool.name
                 translated_name = translate_tool_name(original_name)
                 self._original_tools[translated_name] = original_name
                 tool.name = translated_name
                 translated.append(tool)
-            elif isinstance(tool, dict) and 'name' in tool:
-                original_name = tool['name']
+            elif isinstance(tool, dict) and "name" in tool:
+                original_name = tool["name"]
                 translated_name = translate_tool_name(original_name)
                 self._original_tools[translated_name] = original_name
-                tool['name'] = translated_name
+                tool["name"] = translated_name
                 translated.append(tool)
         return translated
-    
+
     def __getattr__(self, name):
         """Delegate to wrapped MCP server."""
         return getattr(self._mcp, name)
@@ -66,7 +66,7 @@ def main():
     print("   Server: Unified (root server.py)", file=sys.stderr)
     print("   Tool Translation: arifos.* → arifos_*", file=sys.stderr)
     print("   Floors: F1-F13 (constitutional governance enabled)", file=sys.stderr)
-    
+
     # Run the canonical MCP server in stdio mode.
     try:
         mcp.run(transport="stdio", show_banner=False)

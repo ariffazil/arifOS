@@ -125,13 +125,13 @@ Use arifOS.kernel to initialize a constitutional session for "deployment verific
 ```
 1. "Search for latest FastMCP documentation using arifOS"
    → arifOS.search_reality(query="FastMCP v3 stdio transport")
-   
+
 2. "Ingest this URL into constitutional context"
    → arifOS.ingest_evidence(url="...")
-   
+
 3. "Check deployment readiness"
    → arifOS.check_vital()
-   
+
 4. "Run full constitutional review"
    → arifOS.arifOS.kernel(intent={query: "review deployment", mode: "audit"})
 ```
@@ -144,7 +144,7 @@ User: "Plan a new feature for arifOS"
 1. 000 INIT → arifOS.kernel initializes session
 2. I (Kimi) analyze codebase using my tools
 3. 111 MIND → arifOS.reason_mind_synthesis
-4. 666 HEART → arifOS.assess_heart_impact  
+4. 666 HEART → arifOS.assess_heart_impact
 5. 777 APEX → arifOS.quantum_eureka_forge
 6. 888 JUDGE → arifOS.apex_judge_verdict
 7. I implement based on SEAL verdict
@@ -280,5 +280,5 @@ Please:
 
 ---
 
-**Motto:** *DITEMPA BUKAN DIBERI — Forged, Not Given*  
+**Motto:** *DITEMPA BUKAN DIBERI — Forged, Not Given*
 **Seal:** 2026.03.12-SEAL

@@ -1,9 +1,9 @@
 /**
  * arifOS WebMCP Bridge — The Agent-Native Browser Layer
- * 
+ *
  * This script transforms the trinity sites into WebMCP-enabled environments.
  * It registers structured tools via navigator.modelContext for AI agents.
- * 
+ *
  * DITEMPA BUKAN DIBERI — Forged, Not Given
  */
 
@@ -27,10 +27,10 @@
             {
                 name: "explain_constitutional_floor",
                 description: "Explain one of the 13 Constitutional Floors of arifOS (F1-F13).",
-                parameters: { 
-                    type: "object", 
-                    properties: { 
-                        floor_id: { type: "string", description: "e.g., F2 or F7" } 
+                parameters: {
+                    type: "object",
+                    properties: {
+                        floor_id: { type: "string", description: "e.g., F2 or F7" }
                     },
                     required: ["floor_id"]
                 },
@@ -44,10 +44,10 @@
             {
                 name: "execute_governed_forge",
                 description: "Execute a full metabolic loop (000-999) for a given intent under arifOS governance.",
-                parameters: { 
-                    type: "object", 
-                    properties: { 
-                        intent: { type: "string" } 
+                parameters: {
+                    type: "object",
+                    properties: {
+                        intent: { type: "string" }
                     },
                     required: ["intent"]
                 },
@@ -94,7 +94,7 @@
         else if (hostname.includes("arif-fazil.com") && !hostname.includes("arifos")) node = "HUMAN";
 
         const tools = TOOLS_CONFIG[node] || [];
-        
+
         tools.forEach(tool => {
             try {
                 navigator.modelContext.registerTool(tool);

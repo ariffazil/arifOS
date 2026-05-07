@@ -1,6 +1,6 @@
 # Web Search Integration in arifos.sense
 
-**Version:** 2.0.0-canonical  
+**Version:** 2.0.0-canonical
 **Status:** SEALED 🔐
 
 ---
@@ -53,14 +53,14 @@ async def execute_sensing(sense_input, evidence_plan, session_id):
     # Gate 1: Skip if offline_reason or hold
     if evidence_plan.retrieval_lane in ("offline_reason", "hold"):
         return []
-    
+
     # Gate 2: Respect offline_first policy
     if sense_input.policy.offline_first:
         return []
-    
+
     # Gate 3: Execute via reality_handler
     bundle = await reality_handler.handle_compass(bundle_input, auth_context)
-    
+
     # Convert to EvidenceItems
     items = []
     for result in bundle.results:
@@ -73,10 +73,10 @@ async def execute_sensing(sense_input, evidence_plan, session_id):
             snippets=[r.get("description", "")],
         )
         items.append(item)
-    
+
     # Gate 4: Apply rank filtering from evidence_plan
     items = [i for i in items if i.source_rank <= evidence_plan.min_rank_required]
-    
+
     return items
 ```
 
@@ -132,38 +132,38 @@ uncertainty = calculate_uncertainty(
 ```python
 # Entry point: governed_sense_v2()
 async def governed_sense_v2(raw_input, session_id=None):
-    
+
     # STAGE 1: PARSE
     sense_input = parse_input(raw_input)
     # → SenseInput with intent, query_frame, policy, budget, actor
-    
+
     # STAGE 2: CLASSIFY
     truth_classification = classify_truth(sense_input)
     # → TruthClassification with truth_class, search_required, temporal_dependency
-    
+
     # STAGE 4: PLAN
     evidence_plan = build_evidence_plan(sense_input, truth_classification)
     # → EvidencePlan with retrieval_lane, min_rank_required, freshness_requirement
-    
+
     # STAGE 5: SENSE (Live Search Integration)
     items = []
     if execute_search and evidence_plan.retrieval_lane == "web_search":
         items = await execute_sensing(sense_input, evidence_plan, session_id)
         # → Calls reality_handler.handle_compass() → Brave/DDGS
         # → Returns EvidenceItem[]
-    
+
     # STAGE 6: NORMALIZE
     items, findings = normalize_evidence(items, sense_input)
-    
+
     # STAGE 7: GATE
     ambiguity = assess_ambiguity(sense_input, items)
     conflict = detect_conflicts(items)
     uncertainty = calculate_uncertainty(items, ambiguity, conflict, truth_classification)
-    
+
     # STAGE 8: HANDOFF
     routing = determine_routing(truth_classification, uncertainty, ambiguity, conflict)
     # → RoutingDecision with next_stage (mind|heart|judge|hold)
-    
+
     return SensePacket, IntelligenceState
 ```
 
@@ -211,7 +211,7 @@ result = await arifos.sense(
 ### Example 2: Time-Sensitive Query (Live Search)
 ```python
 result = await arifos.sense(
-    mode="governed", 
+    mode="governed",
     query="Who is the current CEO of OpenAI?"
 )
 # truth_class: time_sensitive_fact
@@ -241,8 +241,8 @@ result = await arifos.sense(
 ```python
 class WebSearchProvider(Protocol):
     async def search(
-        self, 
-        query: str, 
+        self,
+        query: str,
         top_k: int = 5,
         freshness_days: int | None = None
     ) -> list[dict]:
@@ -320,11 +320,11 @@ class WebSearchProvider(Protocol):
 
 ## Bottom Line
 
-✅ **Web search is integrated as a retrieval backend**  
-✅ **Governed by 8-stage constitutional protocol**  
-✅ **Classification decides IF search happens**  
-✅ **Evidence hierarchy ranks results**  
-✅ **Temporal grounding assesses staleness**  
+✅ **Web search is integrated as a retrieval backend**
+✅ **Governed by 8-stage constitutional protocol**
+✅ **Classification decides IF search happens**
+✅ **Evidence hierarchy ranks results**
+✅ **Temporal grounding assesses staleness**
 ✅ **Normalized output, not raw links**
 
 **The invariant is the protocol. Search is just a tool.** 🔐

@@ -26,7 +26,7 @@ log_event() {
     local details="${2:-}"
     local ts
     ts=$(get_ts)
-    
+
     cat >> "$LOG_FILE" <<EOF
 {"ts":"$ts","event":"$event","session_id":"$SESSION_ID","actor_id":"$ACTOR_ID","command":"$COMMAND","details":"$details"}
 EOF
@@ -36,11 +36,11 @@ EOF
 alert_telegram() {
     local severity="$1"
     local message="$2"
-    
+
     if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
         return 0
     fi
-    
+
     local emoji
     case "$severity" in
         CRITICAL) emoji="🚨" ;;
@@ -48,7 +48,7 @@ alert_telegram() {
         MEDIUM) emoji="ℹ️" ;;
         *) emoji="📝" ;;
     esac
-    
+
     curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
         -d "chat_id=${TELEGRAM_CHAT_ID}" \
         -d "text=${emoji} Gödel Lock: ${message}
@@ -63,7 +63,7 @@ Time: $(get_ts)" \
 # Returns 0 if blocked, 1 if allowed
 ring_2_check() {
     local cmd="$1"
-    
+
     # Define patterns as array of regex
     local patterns=(
         '^iptables\s'
@@ -94,21 +94,21 @@ ring_2_check() {
         'fdisk\s'
         'parted\s'
     )
-    
+
     for pattern in "${patterns[@]}"; do
         if echo "$cmd" | grep -qE "$pattern" 2>/dev/null; then
             echo "$pattern"
             return 0
         fi
     done
-    
+
     return 1
 }
 
 # Secrets path detection
 secrets_check() {
     local cmd="$1"
-    
+
     local secret_paths=(
         '/opt/arifos/secrets'
         '~/.openclaw/credentials'
@@ -120,14 +120,14 @@ secrets_check() {
         'id_ed25519'
         '\.pem$'
     )
-    
+
     for path in "${secret_paths[@]}"; do
         if echo "$cmd" | grep -qE "$path" 2>/dev/null; then
             echo "$path"
             return 0
         fi
     done
-    
+
     return 1
 }
 
@@ -138,24 +138,24 @@ main() {
     if blocked_pattern=$(ring_2_check "$COMMAND"); then
         log_event "RING_2_BLOCKED" "matched_pattern:$blocked_pattern"
         alert_telegram "HIGH" "Ring 2 action blocked. Plan produced only."
-        
+
         echo "GÖDEL_LOCK_BLOCKED: '$COMMAND' matches Ring 2 pattern '$blocked_pattern'"
         echo "ACTION: Produce plan only. Requires explicit 'do it' from Arif."
         exit 0
     fi
-    
+
     # Check for secrets access
     local secret_path
     if secret_path=$(secrets_check "$COMMAND"); then
         log_event "SECRETS_ACCESS_ATTEMPT" "path:$secret_path"
         alert_telegram "HIGH" "Attempted access to secrets: $secret_path"
-        
+
         echo "GÖDEL_LOCK_WARNING: Access to secrets path '$secret_path' detected and logged."
     fi
-    
+
     # Ring 1 execution logging
     log_event "RING_1_EXEC" ""
-    
+
     # Execute in sandboxed environment
     # Note: Actual execution is handled by OpenClaw's exec tool
     echo "GÖDEL_LOCK_OK: Ring 1 execution logged. Proceeding with sandboxed execution."

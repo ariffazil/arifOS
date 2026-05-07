@@ -52,13 +52,13 @@ def example_tool():
 if __name__ == "__main__":
     # STDIO transport (default, for local tools)
     mcp.run()
-    
+
     # Or explicitly specify transport
     mcp.run(transport="stdio")
-    
+
     # HTTP transport (for remote deployments)
     mcp.run(transport="http", host="127.0.0.1", port=8000)
-    
+
     # SSE transport (legacy, backward compatibility)
     mcp.run(transport="sse", host="127.0.0.1", port=8000)
 ```
@@ -73,15 +73,15 @@ from fastmcp.server.middleware import AuthMiddleware
 # Server with authentication and middleware
 mcp = FastMCP(
     name="SecureServer",
-    
+
     # Error handling
     mask_error_details=True,
-    
+
     # Global authorization via middleware
     middleware=[
         AuthMiddleware(auth=require_scopes("mcp:access")),
     ],
-    
+
     # Development settings
     debug=True,
 )
@@ -236,10 +236,10 @@ def divide(a: float, b: float) -> float:
     if b == 0:
         # ToolError messages are always sent to clients
         raise ToolError("Division by zero is not allowed.")
-    
+
     if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
         raise TypeError("Both arguments must be numbers.")
-    
+
     return a / b
 
 # With masked error details (security)
@@ -443,7 +443,7 @@ async def contextual_prompt(
     """Generate prompt with server context."""
     # Access server information
     server_info = f"Server: {ctx.server_name}"
-    
+
     return f"""{server_info}
 
 User query: {query}
@@ -585,13 +585,13 @@ async def process_file(file_uri: str, ctx: Context = CurrentContext()) -> str:
     # Log to client
     await ctx.info(f"Processing {file_uri}...")
     await ctx.debug("Debug information")
-    
+
     # Read another resource
     data = await ctx.read_resource(file_uri)
-    
+
     # Report progress
     await ctx.report_progress(50, 100)
-    
+
     return "Processed"
 
 # Works with resources and prompts too
@@ -777,13 +777,13 @@ async def use_client():
         args=["server.py"],
         env={"WORKSPACE": "/safe/workspace"}
     )
-    
+
     # Connect via stdio
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             # Initialize the session
             await session.initialize()
-            
+
             # Use the session...
             tools = await session.list_tools()
             print(f"Available tools: {[t.name for t in tools.tools]}")
@@ -799,13 +799,13 @@ async def use_fastmcp_client():
     async with Client("http://localhost:8000/mcp") as client:
         # List available resources
         resources = await client.list_resources()
-        
+
         # Call a tool
         result = await client.call_tool("my_tool", {"param": "value"})
-        
+
         # Read a resource
         data = await client.read_resource("resource://data")
-        
+
         # Get a prompt
         prompt = await client.get_prompt("my_prompt", {"arg": "value"})
 ```
@@ -823,14 +823,14 @@ async def introspect_server():
             print(f"Tool: {tool.name}")
             print(f"  Description: {tool.description}")
             print(f"  Schema: {tool.inputSchema}")
-        
+
         # List all resources
         resources_response = await client.list_resources()
         for resource in resources_response.resources:
             print(f"Resource: {resource.uri}")
             print(f"  Name: {resource.name}")
             print(f"  MIME type: {resource.mimeType}")
-        
+
         # List all prompts
         prompts_response = await client.list_prompts()
         for prompt in prompts_response.prompts:
@@ -848,7 +848,7 @@ async def call_tools():
         # Simple tool call
         result = await client.call_tool("add", {"a": 5, "b": 3})
         print(f"Result: {result.data}")  # 8
-        
+
         # Tool with complex arguments
         result = await client.call_tool(
             "create_user",
@@ -860,7 +860,7 @@ async def call_tools():
                 }
             }
         )
-        
+
         # Handle tool errors
         try:
             result = await client.call_tool("divide", {"a": 10, "b": 0})
@@ -878,11 +878,11 @@ async def access_resources():
         # Read static resource
         version = await client.read_resource("config://version")
         print(f"Version: {version.content}")
-        
+
         # Read template resource
         profile = await client.read_resource("users://123/profile")
         print(f"Profile: {profile.content}")
-        
+
         # Subscribe to resource updates
         await client.subscribe_resource("data://live-feed")
 ```
@@ -899,19 +899,19 @@ class MCPClient:
     def __init__(self):
         self.session = None
         self.exit_stack = AsyncExitStack()
-    
+
     async def connect_to_server(self, server_url: str):
         """Connect to an MCP server."""
         transport = StreamableHttpTransport(server_url)
-        
+
         self.session = await self.exit_stack.enter_async_context(
             Client(transport=transport)
         )
-        
+
         # List available capabilities
         tools = await self.session.list_tools()
         print(f"Connected with tools: {[t.name for t in tools.tools]}")
-    
+
     async def cleanup(self):
         """Clean up resources."""
         await self.exit_stack.aclose()
@@ -954,7 +954,7 @@ async def long_running_task(
         args=(data,),
         queue="heavy-processing"
     )
-    
+
     return f"Task {task.id} submitted for processing"
 
 async def process_large_dataset(data: str) -> None:
@@ -987,12 +987,12 @@ mcp = FastMCP("ObservableServer")
 def instrumented_tool(query: str) -> dict:
     """Tool calls are automatically traced."""
     tracer = trace.get_tracer(__name__)
-    
+
     with tracer.start_as_current_span("database_query") as span:
         span.set_attribute("query", query)
         result = execute_query(query)
         span.set_attribute("results", len(result))
-    
+
     return result
 
 # Every tool call, resource read, and prompt render is traced
@@ -1066,10 +1066,10 @@ mcp = FastMCP("TokenAccess")
 def personalized_greeting() -> str:
     """Greet user based on their token claims."""
     token = get_access_token()
-    
+
     if token is None:
         return "Hello, guest!"
-    
+
     name = token.claims.get("name", "user")
     return f"Hello, {name}!"
 
@@ -1077,10 +1077,10 @@ def personalized_greeting() -> str:
 def user_dashboard() -> dict:
     """Return user-specific data based on token."""
     token = get_access_token()
-    
+
     if token is None:
         return {"error": "Not authenticated"}
-    
+
     return {
         "client_id": token.client_id,
         "scopes": token.scopes,
@@ -1148,11 +1148,11 @@ def get_user(user_id: str) -> dict:
     """Get user with proper error handling."""
     if not user_id:
         raise ValidationError("user_id is required")
-    
+
     user = database.find_user(user_id)
     if not user:
         raise NotFoundError(f"User {user_id} not found")
-    
+
     return user
 
 # Exception chaining with context
@@ -1187,12 +1187,12 @@ from fastmcp import FastMCP, Client
 @pytest.fixture
 def weather_server():
     server = FastMCP("WeatherServer")
-    
+
     @server.tool
     def get_temperature(city: str) -> dict:
         temps = {"NYC": 72, "LA": 85, "Chicago": 68}
         return {"city": city, "temp": temps.get(city, 70)}
-    
+
     return server
 
 # Test with in-memory client
@@ -1214,11 +1214,11 @@ async def test_with_mocks():
         {"id": 1, "name": "Alice"},
         {"id": 2, "name": "Bob"}
     ]
-    
+
     @server.tool
     async def list_users() -> list:
         return await mock_db.fetch_users()
-    
+
     async with Client(server) as client:
         result = await client.call_tool("list_users", {})
         assert len(result.data) == 2
@@ -1235,11 +1235,11 @@ from fastmcp.utilities.tests import run_server_async
 
 def create_test_server():
     server = FastMCP("TestServer")
-    
+
     @server.tool
     def greet(name: str) -> str:
         return f"Hello, {name}!"
-    
+
     return server
 
 @pytest.fixture
@@ -1323,13 +1323,13 @@ class Context:
     async def info(self, message: str) -> None
     async def warning(self, message: str) -> None
     async def error(self, message: str) -> None
-    
+
     # Progress reporting
     async def report_progress(self, current: int, total: int) -> None
-    
+
     # Resource access
     async def read_resource(self, uri: str) -> Resource
-    
+
     # LLM sampling
     async def sample(
         self,
@@ -1338,7 +1338,7 @@ class Context:
         temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> SamplingResult
-    
+
     # HTTP requests
     async def http_request(
         self,

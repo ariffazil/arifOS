@@ -53,13 +53,13 @@ def canonicalize_identity_claim(text: str | None) -> str | None:
     """
     if not text:
         return None
-    
+
     clean_text = text.lower().strip().rstrip(".!?")
-    
+
     for pattern, canonical_id in IDENTITY_PHRASES:
         if re.match(pattern, clean_text):
             return canonical_id
-            
+
     return None
 
 

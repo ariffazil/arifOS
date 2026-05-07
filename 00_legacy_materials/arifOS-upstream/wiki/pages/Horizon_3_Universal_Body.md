@@ -26,9 +26,9 @@ confidence: 0.6
 
 # Horizon 3: The Universal Body
 
-> **Goal**: Hardware-Anchored Sovereignty  
-> **Timeline**: Long-Term (2027+)  
-> **Status**: 📋 Research Phase (0/4 complete)  
+> **Goal**: Hardware-Anchored Sovereignty
+> **Timeline**: Long-Term (2027+)
+> **Status**: 📋 Research Phase (0/4 complete)
 > **Risk Tier**: High (speculative, capital intensive)
 
 ---

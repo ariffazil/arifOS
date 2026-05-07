@@ -1,8 +1,8 @@
 # ChatGPT App Store Submission Audit — arifOS Command Center MCP
 
-> Audit date: 2026-04-26  
-> App version: v0.1.1-evaluation  
-> Auditor: arifOS 888 Judge (self-audit)  
+> Audit date: 2026-04-26
+> App version: v0.1.1-evaluation
+> Auditor: arifOS 888 Judge (self-audit)
 > Guidelines source: OpenAI ChatGPT Apps SDK Developer Guidelines (2026)
 
 ---
@@ -305,5 +305,5 @@
 
 ---
 
-*Sealed under VAULT999 chain: v0.1.1-evaluation-audit-20260426*  
+*Sealed under VAULT999 chain: v0.1.1-evaluation-audit-20260426*
 *Next review: After v0.2 hybrid backend wiring or App Store submission attempt.*

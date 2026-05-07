@@ -32,20 +32,37 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["ADD", "REMOVE", "VIEW", "CHECK_TODAY", "CHECK_TOMORROW", "CONFLICT_SCAN"],
+                    "enum": [
+                        "ADD",
+                        "REMOVE",
+                        "VIEW",
+                        "CHECK_TODAY",
+                        "CHECK_TOMORROW",
+                        "CONFLICT_SCAN",
+                    ],
                 },
                 "class_data": {
                     "type": "object",
                     "properties": {
                         "subject_code": {"type": "string", "description": "e.g. SOS3002"},
                         "subject_name": {"type": "string"},
-                        "day": {"type": "string", "enum": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]},
+                        "day": {
+                            "type": "string",
+                            "enum": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
+                        },
                         "start_time": {"type": "string", "description": "HH:MM"},
                         "end_time": {"type": "string", "description": "HH:MM"},
                         "room": {"type": "string"},
                         "lecturer": {"type": "string"},
                     },
-                    "required": ["subject_code", "subject_name", "day", "start_time", "end_time", "room"],
+                    "required": [
+                        "subject_code",
+                        "subject_name",
+                        "day",
+                        "start_time",
+                        "end_time",
+                        "room",
+                    ],
                 },
             },
             "required": ["action"],
@@ -70,7 +87,10 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
                     "properties": {
                         "subject_code": {"type": "string"},
                         "title": {"type": "string"},
-                        "due_date": {"type": "string", "description": "YYYY-MM-DD or YYYY-MM-DDTHH:MM"},
+                        "due_date": {
+                            "type": "string",
+                            "description": "YYYY-MM-DD or YYYY-MM-DDTHH:MM",
+                        },
                         "priority": {"type": "string", "enum": ["LOW", "MED", "HIGH", "URGENT"]},
                         "description": {"type": "string"},
                         "submission_link": {"type": "string"},
@@ -97,8 +117,15 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
                 },
                 "subject_code": {"type": "string"},
                 "title": {"type": "string"},
-                "content": {"type": "string", "description": "Raw note content or lecture transcript"},
-                "topics": {"type": "array", "items": {"type": "string"}, "description": "Key topics covered"},
+                "content": {
+                    "type": "string",
+                    "description": "Raw note content or lecture transcript",
+                },
+                "topics": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Key topics covered",
+                },
             },
             "required": ["action", "subject_code"],
         },
@@ -115,7 +142,14 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["CREATE", "ADD_MEMBER", "ADD_TASK", "UPDATE_TASK", "VIEW_BOARD", "MEMBER_REPORT"],
+                    "enum": [
+                        "CREATE",
+                        "ADD_MEMBER",
+                        "ADD_TASK",
+                        "UPDATE_TASK",
+                        "VIEW_BOARD",
+                        "MEMBER_REPORT",
+                    ],
                 },
                 "project": {
                     "type": "object",
@@ -143,7 +177,10 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
                                     "task_id": {"type": "string"},
                                     "title": {"type": "string"},
                                     "assigned_to": {"type": "string"},
-                                    "status": {"type": "string", "enum": ["TODO", "IN_PROGRESS", "DONE"]},
+                                    "status": {
+                                        "type": "string",
+                                        "enum": ["TODO", "IN_PROGRESS", "DONE"],
+                                    },
                                     "due_date": {"type": "string"},
                                 },
                             },
@@ -220,7 +257,11 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
     "description": "Core student data schema for WAWA personal academic OS",
     "type": "object",
     "properties": {
-        "student_id": {"type": "string", "format": "uuid", "description": "F13 sovereign — student owns this"},
+        "student_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "F13 sovereign — student owns this",
+        },
         "name": {"type": "string"},
         "university": {"type": "string"},
         "programme": {"type": "string"},
@@ -264,7 +305,10 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
                 "due_date": {"type": "string", "format": "date-time"},
                 "priority": {"enum": ["LOW", "MED", "HIGH", "URGENT"]},
                 "status": {"enum": ["PENDING", "IN_PROGRESS", "DONE", "OVERDUE"]},
-                "reminder_log": {"type": "array", "items": {"type": "string", "format": "date-time"}},
+                "reminder_log": {
+                    "type": "array",
+                    "items": {"type": "string", "format": "date-time"},
+                },
             },
             "required": ["deadline_id", "subject_id", "title", "due_date", "priority", "status"],
         },
@@ -277,7 +321,11 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
                 "members": {
                     "type": "array",
                     "items": {
-                        "properties": {"student_id": {"type": "string"}, "name": {"type": "string"}, "role": {"type": "string"}},
+                        "properties": {
+                            "student_id": {"type": "string"},
+                            "name": {"type": "string"},
+                            "role": {"type": "string"},
+                        },
                         "required": ["student_id", "name"],
                     },
                 },
@@ -378,6 +426,7 @@ WAWA_ESCALATION_MATRIX: list[dict[str, Any]] = [
 # =============================================================================
 # REGISTER WAWA INTO ARIFOS MCP
 # =============================================================================
+
 
 def register_wawa_prompts(mcp: FastMCP) -> list[str]:
     """
@@ -526,7 +575,9 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
 
     # ── wawa.lecture_companion ───────────────────────────────────────────────
     @mcp.prompt("wawa.lecture_companion")
-    def wawa_lecture_companion(action: str, subject_code: str, title: str = "", content: str = "", topics: list = None) -> str:
+    def wawa_lecture_companion(
+        action: str, subject_code: str, title: str = "", content: str = "", topics: list = None
+    ) -> str:
         """
         WAWA Lecture Companion — store, summarise, and retrieve lecture notes.
         F4: clarity | F7: minimise raw data retention | F11: log note additions
@@ -566,7 +617,9 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
 
     # ── wawa.exam_prep ──────────────────────────────────────────────────────
     @mcp.prompt("wawa.exam_prep")
-    def wawa_exam_prep(action: str, subject_code: str, quiz_results: list = None, question_count: int = 10) -> str:
+    def wawa_exam_prep(
+        action: str, subject_code: str, quiz_results: list = None, question_count: int = 10
+    ) -> str:
         """
         WAWA Exam Prep — AI quiz generation and weak area identification.
         F2: truth (based on actual results) | F8: maximum insight from minimal data
@@ -594,12 +647,16 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
             ),
         }
         return templates.get(action, templates["IDENTIFY_WEAK"]).format(
-            subject_code=subject_code, quiz_results=quiz_results or [], question_count=question_count
+            subject_code=subject_code,
+            quiz_results=quiz_results or [],
+            question_count=question_count,
         )
 
     # ── wawa.wellness_check ───────────────────────────────────────────────────
     @mcp.prompt("wawa.wellness_check")
-    def wawa_wellness_check(action: str, student_id: str, subject_code: str = "", status: str = "", notes: str = "") -> str:
+    def wawa_wellness_check(
+        action: str, student_id: str, subject_code: str = "", status: str = "", notes: str = ""
+    ) -> str:
         """
         WAWA Wellness Check — attendance monitoring and wellbeing nudges.
         F5: caring tone | F6: acknowledge stress first | F11: log patterns | 888_HOLD before escalation
@@ -636,7 +693,10 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
             ),
         }
         return templates.get(action, templates["WELLNESS_REPORT"]).format(
-            student_id=student_id, subject_code=subject_code or "", status=status or "", notes=notes or ""
+            student_id=student_id,
+            subject_code=subject_code or "",
+            status=status or "",
+            notes=notes or "",
         )
 
     registered = [
@@ -669,7 +729,7 @@ def register_wawa_resources(mcp: FastMCP) -> list[str]:
         """WAWA-specific constitutional floor emphasis — student data governance."""
         lines = ["# WAWA Constitutional Floor Overlay\n"]
         lines.append("WAWA operates under full F1-F13, with these student-domain emphases:\n")
-        for key, floor in WAWA_FLOOR_OVERLAY.items():
+        for _key, floor in WAWA_FLOOR_OVERLAY.items():
             lines.append(f"## {floor['name']} ({floor['floor']})\n")
             lines.append(f"**Principle:** {floor['principle']}\n")
             lines.append(f"**Question:** {floor['question']}\n")
@@ -680,6 +740,7 @@ def register_wawa_resources(mcp: FastMCP) -> list[str]:
     def wawa_escalation_matrix() -> str:
         """WAWA escalation rules — when to nudge, when to HOLD, when to escalate to human."""
         import json
+
         return json.dumps(WAWA_ESCALATION_MATRIX, indent=2)
 
     @mcp.resource("wawa://doctype")

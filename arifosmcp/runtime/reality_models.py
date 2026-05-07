@@ -52,16 +52,16 @@ class BundleStatus(BaseModel):
 
     # Legacy attributes for test compatibility
     @classproperty
-    def COMPLETE(cls):
-        return cls(state="SUCCESS", stage="222_REALITY", verdict="SEAL", label="COMPLETE")
+    def COMPLETE(self):
+        return self(state="SUCCESS", stage="222_REALITY", verdict="SEAL", label="COMPLETE")
 
     @classproperty
-    def PENDING(cls):
-        return cls(state="SABAR", stage="111_SENSE", verdict="SABAR", label="PENDING")
+    def PENDING(self):
+        return self(state="SABAR", stage="111_SENSE", verdict="SABAR", label="PENDING")
 
     @classproperty
-    def ERROR(cls):
-        return cls(state="ERROR", stage="111_SENSE", verdict="VOID", label="ERROR")
+    def ERROR(self):
+        return self(state="ERROR", stage="111_SENSE", verdict="VOID", label="ERROR")
 
 
 class Policy(BaseModel):

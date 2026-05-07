@@ -15,6 +15,7 @@ from typing import Optional
 try:
     import telegram
     from telegram import Bot
+
     TELEGRAM_AVAILABLE = True
 except ImportError:
     TELEGRAM_AVAILABLE = False
@@ -22,6 +23,7 @@ except ImportError:
 
 
 # ── Alert Priority ─────────────────────────────────────────────────────────────
+
 
 class AlertLevel:
     INFO = "INFO"
@@ -40,6 +42,7 @@ ALERT_EMOJI = {
 
 # ── Alert Templates ────────────────────────────────────────────────────────────
 
+
 def format_hard_sla_alert(verdict_entry: dict, age_hours: float) -> str:
     chain = verdict_entry.get("chain_hash", verdict_entry.get("merkle_leaf", "?")[:12])
     tool = verdict_entry.get("tool", verdict_entry.get("payload", {}).get("tool", "?"))
@@ -55,11 +58,7 @@ def format_hard_sla_alert(verdict_entry: dict, age_hours: float) -> str:
 
 def format_drift_alert(flags: list[str]) -> str:
     lines = "\n".join(f"  • {f}" for f in flags)
-    return (
-        f"🚨 SLA NORM DRIFT DETECTED\n"
-        f"{lines}\n"
-        f"Sovereign re-baselining required."
-    )
+    return f"🚨 SLA NORM DRIFT DETECTED\n" f"{lines}\n" f"Sovereign re-baselining required."
 
 
 def format_flood_attack_alert(density: float, soft_count: int, hard_count: int) -> str:
@@ -95,6 +94,7 @@ def format_vitals_snapshot(vitals: dict) -> str:
 
 # ── Async Telegram Sender ─────────────────────────────────────────────────────
 
+
 async def _send_telegram_async(bot_token: str, chat_id: str, text: str) -> bool:
     """Send a Telegram message asynchronously."""
     try:
@@ -105,11 +105,13 @@ async def _send_telegram_async(bot_token: str, chat_id: str, text: str) -> bool:
         return True
     except Exception as e:
         import sys
+
         print(f"[SENTINEL:ALERT_FAIL] {e}", file=sys.stderr)
         return False
 
 
 # ── Dispatcher ────────────────────────────────────────────────────────────────
+
 
 class AlertDispatcher:
     """
@@ -216,12 +218,14 @@ class AlertDispatcher:
 
 if __name__ == "__main__":
     d = AlertDispatcher()
-    d.alert_vitals({
-        "hard_latency_hours": 2.3,
-        "soft_latency_hours": 8.1,
-        "hard_ack_rate": 0.95,
-        "anomaly_density_per_day": 0.4,
-        "drift_flags": [],
-    })
+    d.alert_vitals(
+        {
+            "hard_latency_hours": 2.3,
+            "soft_latency_hours": 8.1,
+            "hard_ack_rate": 0.95,
+            "anomaly_density_per_day": 0.4,
+            "drift_flags": [],
+        }
+    )
     d.alert_reminder(pending_hard=2, oldest_hours=1.2)
     print(f"Queue depth: {d.get_queue_depth()}")

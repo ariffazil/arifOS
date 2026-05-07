@@ -9,7 +9,7 @@ interface AppIframeHostProps {
 
 /**
  * AppIframeHost Component
- * 
+ *
  * Host component that renders an external GEOX App in a sandboxed iframe
  * and establishes the bidirectional event bridge.
  */
@@ -26,7 +26,7 @@ export const AppIframeHost: React.FC<AppIframeHostProps> = ({ src, title, appId:
           {title}
         </span>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => sendToApp('app.context.patch', { force_sync: true })}
             className="text-[9px] text-slate-500 hover:text-white transition-colors"
           >

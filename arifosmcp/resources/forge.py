@@ -3,6 +3,7 @@ arifos://forge — Execution Bridge
 ══════════════════════════════════
 Runtime contract and A-FORGE boundary specification.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

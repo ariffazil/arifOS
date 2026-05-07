@@ -20,15 +20,17 @@ from typing import Any
 
 class VaultRecordType(Enum):
     """Types of vault records."""
-    VERDICT = "verdict"       # Final judgment
-    POLICY = "policy"         # Policy decision
-    RELEASE = "release"       # Release milestone
-    OVERRIDE = "override"     # 888_JUDGE override
-    AUDIT = "audit"           # Audit event
+
+    VERDICT = "verdict"  # Final judgment
+    POLICY = "policy"  # Policy decision
+    RELEASE = "release"  # Release milestone
+    OVERRIDE = "override"  # 888_JUDGE override
+    AUDIT = "audit"  # Audit event
 
 
 class Verdict(Enum):
     """Possible verdicts."""
+
     APPROVED = "Approved"
     PARTIAL = "Partial"
     PAUSE = "Pause"
@@ -39,6 +41,7 @@ class Verdict(Enum):
 @dataclass
 class Evidence:
     """Evidence supporting the vault entry."""
+
     summary: str
     evidence_refs: list[str]  # References to memory records, docs, etc.
     evidence_hash: str  # SHA256 of evidence content
@@ -47,6 +50,7 @@ class Evidence:
 @dataclass
 class Governance:
     """Governance metadata for the decision."""
+
     risk_tier: str  # low, medium, high, critical
     judgment_required: bool
     human_confirmed: bool
@@ -57,6 +61,7 @@ class Governance:
 @dataclass
 class Integrity:
     """Cryptographic integrity proofs."""
+
     prev_hash: str  # Hash of previous vault entry
     record_hash: str  # Hash of this record
     merkle_root: str | None = None  # Periodic Merkle root
@@ -65,6 +70,7 @@ class Integrity:
 @dataclass
 class VaultLineage:
     """Lineage tracking for vault entries."""
+
     session_id: str
     derived_from: list[str]  # Parent records (memory or vault)
     supersedes: str | None = None  # Previous version if superseded
@@ -74,31 +80,32 @@ class VaultLineage:
 class VaultEntry:
     """
     The canonical vault record.
-    
+
     Immutable once sealed. Never edited — only superseded by new entry.
     """
+
     vault_id: str
     record_type: VaultRecordType
-    
+
     # The judgment
     verdict: Verdict
     candidate_action: str  # What was being judged
-    
+
     # Supporting evidence
     evidence: Evidence
-    
+
     # Governance context
     governance: Governance
-    
+
     # Timing
     sealed_at: datetime = field(default_factory=datetime.utcnow)
-    
+
     # Integrity
     integrity: Integrity | None = None
-    
+
     # Lineage
     lineage: VaultLineage = field(default_factory=lambda: VaultLineage(session_id=""))
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "vault_id": self.vault_id,
@@ -129,12 +136,12 @@ class VaultEntry:
                 "supersedes": self.lineage.supersedes,
             },
         }
-    
+
     def compute_hash(self) -> str:
         """Compute canonical hash of this entry."""
         import hashlib
         import json
-        
+
         # Hash everything except integrity itself
         content = {
             "vault_id": self.vault_id,
@@ -157,15 +164,14 @@ class VaultEntry:
                 "derived_from": self.lineage.derived_from,
             },
         }
-        
-        return hashlib.sha256(
-            json.dumps(content, sort_keys=True).encode()
-        ).hexdigest()
+
+        return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
 
 
 @dataclass
 class SealReceipt:
     """Receipt for a successful vault seal."""
+
     vault_id: str
     record_hash: str
     merkle_root: str | None
@@ -176,6 +182,7 @@ class SealReceipt:
 @dataclass
 class VerifyReport:
     """Report from vault verification."""
+
     vault_id: str
     valid: bool
     chain_continuity: bool

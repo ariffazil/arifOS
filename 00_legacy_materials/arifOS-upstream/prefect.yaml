@@ -27,15 +27,15 @@ deployments:
       - governance
       - constitutional-ai
     schedule: null  # Manual trigger only
-    
+
     # Entry point
     entrypoint: arifosmcp/integrations/prefect/tasks.py:constitutional_flow
-    
+
     # Work pool
     work_pool:
       name: arifos-pool
       work_queue_name: default
-      
+
     # Infrastructure (managed by Prefect)
     infrastructure:
       type: docker
@@ -46,25 +46,25 @@ deployments:
         REDIS_URL: "{{ $REDIS_URL }}"
         HOST: "{{ $HOST }}"
         PORT: "{{ $PORT }}"
-        
+
         # Optional LLM keys
         OPENAI_API_KEY: "{{ $OPENAI_API_KEY }}"
         ANTHROPIC_API_KEY: "{{ $ANTHROPIC_API_KEY }}"
         GEMINI_API_KEY: "{{ $GEMINI_API_KEY }}"
         PPLX_API_KEY: "{{ $PPLX_API_KEY }}"
         BRAVE_API_KEY: "{{ $BRAVE_API_KEY }}"
-        
+
         # Runtime config
         AAA_MCP_TRANSPORT: http
         ARIFOS_VERSION: "2026.03.25"
         ARIFOS_PUBLIC_TOOL_PROFILE: public
-        
+
     # Concurrency limits
     concurrency_limit: 10
-    
+
     # Job variables
     job_variables:
       image: "{{ build-image.image }}"
-      
+
     # Enforcement
     enforce_parameter_schema: true

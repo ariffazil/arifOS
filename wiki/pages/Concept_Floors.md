@@ -23,8 +23,8 @@ confidence: 1.0
 
 # The 13 Constitutional Floors (F1–F13)
 
-> **Source:** `wiki/raw/K000_LAW.md` — arifOS Constitutional Law v2026.03.07-ARCH-SEAL  
-> **Motto:** *Ditempa Bukan Diberi* — Forged, Not Given  
+> **Source:** `wiki/raw/K000_LAW.md` — arifOS Constitutional Law v2026.03.07-ARCH-SEAL
+> **Motto:** *Ditempa Bukan Diberi* — Forged, Not Given
 > **Doctrine:** `G = A × P × X × E²` · `ΔS ≤ 0` · `Peace² ≥ 1` · `Ω₀ ∈ [0.03, 0.05]`
 
 ---
@@ -165,7 +165,7 @@ Triggers when any floor violation detected:
 
 The **888 Judge** (Muhammad Arif bin Fazil) sits **outside** the 13 floors — not as Floor 14, but as external oracle (required by Gödel's Incompleteness: the system cannot validate itself).
 
-888 Judge **can:** override verdicts, resolve paradoxes, inject external truth, amend constitution via Phoenix-72.  
+888 Judge **can:** override verdicts, resolve paradoxes, inject external truth, amend constitution via Phoenix-72.
 888 Judge **cannot:** violate constitution without amendment, delegate sovereignty to AI, erase audit logs.
 
 ---
@@ -198,8 +198,8 @@ Require explicit human confirmation before proceeding:
 
 ---
 
-> [!NOTE]  
-> The full floor specifications with physics foundations, code examples, and violation responses are in `wiki/raw/K000_LAW.md`.  
+> [!NOTE]
+> The full floor specifications with physics foundations, code examples, and violation responses are in `wiki/raw/K000_LAW.md`.
 > Telemetry schema: `{ dS, peace2, kappa_r, omega_0, C_dark, G, E_eff, P_truth, TW, verdict }`
 
 **Related:** [[Concept_Architecture]] | [[What-is-arifOS]] | [[Roadmap]] | [[Changelog]]

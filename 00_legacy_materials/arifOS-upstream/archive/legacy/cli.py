@@ -32,15 +32,19 @@ SCHEMAS_PATH = REGISTRY_PATH / "schemas"
 # Helpers
 # =============================================================================
 
+
 def load_json(path: Path) -> dict:
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
+
 def print_json(data: dict) -> None:
     print(json.dumps(data, indent=2, ensure_ascii=False))
 
+
 def ok(msg: str) -> None:
     print(f"  ✅ {msg}")
+
 
 def fail(msg: str) -> None:
     print(f"  ❌ {msg}", file=sys.stderr)
@@ -49,6 +53,7 @@ def fail(msg: str) -> None:
 # =============================================================================
 # Commands
 # =============================================================================
+
 
 def cmd_validate(args) -> int:
     """Validate all registry files against schemas."""
@@ -171,7 +176,10 @@ def cmd_show_soul(args) -> int:
     soul_key = args.soul_key
     soul_path = SOULS_PATH / f"{soul_key}.json"
     if not soul_path.exists():
-        print(f"❌ Soul '{soul_key}' not found. Use 'list-providers' to see available keys.", file=sys.stderr)
+        print(
+            f"❌ Soul '{soul_key}' not found. Use 'list-providers' to see available keys.",
+            file=sys.stderr,
+        )
         return 1
     print_json(load_json(soul_path))
     return 0
@@ -182,7 +190,10 @@ def cmd_show_model(args) -> int:
     model_key = args.model_key
     model_path = MODELS_PATH / f"{model_key}.json"
     if not model_path.exists():
-        print(f"❌ Model '{model_key}' not found. Use 'list-models' to see available keys.", file=sys.stderr)
+        print(
+            f"❌ Model '{model_key}' not found. Use 'list-models' to see available keys.",
+            file=sys.stderr,
+        )
         return 1
     print_json(load_json(model_path))
     return 0
@@ -209,7 +220,10 @@ def cmd_create_anchor(args) -> int:
     # Load soul
     soul_path = SOULS_PATH / f"{soul_key}.json"
     if not soul_path.exists():
-        print(f"❌ Soul '{soul_key}' not found. Use 'list-providers' to see available keys.", file=sys.stderr)
+        print(
+            f"❌ Soul '{soul_key}' not found. Use 'list-providers' to see available keys.",
+            file=sys.stderr,
+        )
         return 1
     soul = load_json(soul_path)
 
@@ -234,16 +248,16 @@ def cmd_create_anchor(args) -> int:
             "identity": "provider_family_only_unless_verified",
             "tools": "verified_only",
             "knowledge": "mark_verified_vs_inferred",
-            "actions": "mark_executed_vs_suggested"
+            "actions": "mark_executed_vs_suggested",
         },
         "runtime_truth": {
             "memory_mode": runtime.get("memory_mode"),
             "tools_live": runtime.get("tools_live"),
             "web_on": runtime.get("web_on"),
-            "execution_mode": runtime.get("execution_mode")
+            "execution_mode": runtime.get("execution_mode"),
         },
         "identity_verified": False,
-        "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
 
     print_json(anchor)
@@ -253,6 +267,7 @@ def cmd_create_anchor(args) -> int:
 # =============================================================================
 # Entry point
 # =============================================================================
+
 
 def main():
     parser = argparse.ArgumentParser(

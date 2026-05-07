@@ -23,12 +23,13 @@ from ..THEORY import ContrastTaxonomy, ContrastVerdict, assess_conflation_risk
 class ContrastFeature:
     """
     A feature in Contrast Space.
-    
+
     Every feature has:
       - coordinates: Position in contrast space (physical, display, perceptual dims)
       - taxonomy: Complete source→transform→proxy→confidence chain
       - uncertainty: Error ellipsoid in contrast space
     """
+
     feature_id: str
     feature_type: str  # "fault", "horizon", "edge", "blob", etc.
 
@@ -70,7 +71,7 @@ class ContrastFeature:
     def anomalous_score(self) -> float:
         """
         Anomalous contrast score: high when display dominates physical.
-        
+
         Score = display_component / (physical_component + epsilon)
         """
         epsilon = 0.01
@@ -90,7 +91,7 @@ class ContrastFeature:
         """Mahalanobis distance to another feature in contrast space."""
         diff = self.coordinates - other.coordinates
         # Simplified: use Euclidean for now
-        return float(np.sqrt(np.sum(diff ** 2)))
+        return float(np.sqrt(np.sum(diff**2)))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -110,7 +111,7 @@ class ContrastFeature:
 class ContrastSpace:
     """
     A space of contrast features with operations for governance.
-    
+
     The ContrastSpace maintains a population of ContrastFeatures and
     provides operations to:
       - Detect anomalous features (display >> physical)
@@ -136,7 +137,7 @@ class ContrastSpace:
     def assess_feature(self, feature_id: str) -> dict[str, Any]:
         """
         Full governance assessment of a feature.
-        
+
         Returns assessment including verdict, risk, and recommendations.
         """
         feature = self.features.get(feature_id)
@@ -148,9 +149,7 @@ class ContrastSpace:
             verdict, metadata = self._verdict_cache[feature_id]
         else:
             # Run full assessment
-            verdict, triggers, metadata = assess_conflation_risk(
-                feature.taxonomy, self.domain
-            )
+            verdict, triggers, metadata = assess_conflation_risk(feature.taxonomy, self.domain)
             self._verdict_cache[feature_id] = (verdict, metadata)
 
         return {
@@ -167,13 +166,10 @@ class ContrastSpace:
     def find_anomalous(self, threshold: float = 2.0) -> list[ContrastFeature]:
         """
         Find all features with anomalous contrast ratio above threshold.
-        
+
         Threshold of 2.0 means display_component > 2 * physical_component.
         """
-        return [
-            f for f in self.features.values()
-            if f.anomalous_score > threshold
-        ]
+        return [f for f in self.features.values() if f.anomalous_score > threshold]
 
     def get_population_stats(self) -> dict[str, Any]:
         """Statistics about the feature population."""

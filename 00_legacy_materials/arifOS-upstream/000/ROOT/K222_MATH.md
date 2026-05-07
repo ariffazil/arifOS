@@ -100,7 +100,7 @@
 
 ---
 
-**Authority:** Muhammad Arif bin Fazil  
-**T000 Version:** 2026.02.15-FORGE-TRINITY-SEAL  
-**Code Version:** 2026.02.15-FORGE-TRINITY-SEAL  
+**Authority:** Muhammad Arif bin Fazil
+**T000 Version:** 2026.02.15-FORGE-TRINITY-SEAL
+**Code Version:** 2026.02.15-FORGE-TRINITY-SEAL
 **Creed:** *DITEMPA BUKAN DIBERI*

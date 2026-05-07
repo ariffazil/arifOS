@@ -22,12 +22,7 @@ from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 class FloorResult:
     """Result of floor evaluation."""
 
-    def __init__(
-        self,
-        verdict: Verdict,
-        violations: list[str],
-        message: str = ""
-    ):
+    def __init__(self, verdict: Verdict, violations: list[str], message: str = ""):
         self.verdict = verdict
         self.violations = violations
         self.message = message
@@ -123,10 +118,7 @@ class Tool(ABC):
         pass
 
     async def run(
-        self,
-        payload: dict,
-        session_id: str | None = None,
-        auth_context: dict | None = None
+        self, payload: dict, session_id: str | None = None, auth_context: dict | None = None
     ) -> RuntimeEnvelope:
         """
         Run the tool with full governance.
@@ -135,6 +127,7 @@ class Tool(ABC):
         It handles validation, floor checking, and execution.
         """
         import time
+
         start_time = time.time()
 
         try:
@@ -153,12 +146,12 @@ class Tool(ABC):
                     verdict=Verdict.VOID,
                     payload={"error": floor_result.message},
                     session_id=session_id,
-                    latency_ms=(time.time() - start_time) * 1000
+                    latency_ms=(time.time() - start_time) * 1000,
                 )
 
             # 4. Execute
             result = await self.execute(
-                validated.dict() if hasattr(validated, 'dict') else validated
+                validated.dict() if hasattr(validated, "dict") else validated
             )
 
             # 5. If already a RuntimeEnvelope (from legacy delegates), pass through
@@ -174,7 +167,7 @@ class Tool(ABC):
                 verdict=floor_result.verdict,
                 payload=result,
                 session_id=session_id,
-                latency_ms=(time.time() - start_time) * 1000
+                latency_ms=(time.time() - start_time) * 1000,
             )
 
         except Exception as e:
@@ -186,7 +179,7 @@ class Tool(ABC):
                 payload={"error": str(e)},
                 session_id=session_id,
                 errors=[{"code": "EXECUTION_ERROR", "message": str(e)}],
-                latency_ms=(time.time() - start_time) * 1000
+                latency_ms=(time.time() - start_time) * 1000,
             )
 
 

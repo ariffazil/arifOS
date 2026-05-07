@@ -1,6 +1,6 @@
 # arifOS Adapter Bus Contract
 
-**Classification:** Canonical Specification | **Authority:** Muhammad Arif bin Fazil  
+**Classification:** Canonical Specification | **Authority:** Muhammad Arif bin Fazil
 **Version:** 1.0.0 | **Seal:** VAULT999
 
 ---
@@ -29,7 +29,7 @@ class InputEnvelope(BaseModel):
     Canonical input to any Adapter Bus SDK adapter.
     SDK-agnostic representation of an agent request.
     """
-    
+
     # Identity
     identity: IdentityClaims
     # {
@@ -39,26 +39,26 @@ class InputEnvelope(BaseModel):
     #   "issuer": "BLS-DID",
     #   "expiry": "2026-04-09T12:00:00Z"
     # }
-    
+
     # Request
     objective: str                    # Natural language or structured query
     context: Dict[str, Any]           # Session context, memory references
     risk_tier: Literal["low", "medium", "high"]
     budget_tier: Literal["T0", "T1", "T2", "T3"] = "T1"
-    
+
     # Constitutional metadata
     required_floors: List[str] = ["F1", "F2", "F7", "F13"]  # Floors to enforce
     witness_required: bool = False    # F3 Tri-Witness: force human checkpoint
-    
+
     # Routing
     preferred_sdk: Optional[str] = None  # Hint: "microsoft_sk", "pydanticai", etc.
     tool_constraints: List[str] = []     # Allowed/forbidden tool patterns
-    
+
     # Provenance
     trace_id: str = Field(default_factory=lambda: f"trace-{uuid.uuid4().hex[:16]}")
     parent_trace_id: Optional[str] = None  # For sub-requests
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # MCP context (when invoked via FastMCP)
     mcp_context: Optional[Dict[str, Any]] = None
     # {
@@ -78,14 +78,14 @@ class OutputEnvelope(BaseModel):
     Canonical output from any Adapter Bus SDK adapter.
     Normalized for VAULT999 audit regardless of SDK source.
     """
-    
+
     # Identification
     trace_id: str                     # Matches InputEnvelope.trace_id
     correlation_id: str               # SDK-specific run ID
-    
+
     # Status
     status: Literal["OK", "HOLD", "REFUSE", "ERROR"]
-    
+
     # Constitutional verdict
     verdict: JudgeVerdict
     # {
@@ -96,17 +96,17 @@ class OutputEnvelope(BaseModel):
     #   "requires_human": true,
     #   "constitutional_floors_invoked": ["F1", "F13"]
     # }
-    
+
     # Output content
     output: Union[str, Dict[str, Any], BaseModel]
     output_schema: Optional[str] = None  # Name of schema if structured
-    
+
     # Epistemic metadata (F2 Truth, F7 Humility)
     confidence: float = Field(ge=0.0, le=0.90)  # HARD CAP per F7
     evidence_basis: List[str] = []              # Citations, sources
     uncertainty_score: float = Field(ge=0.0, le=1.0)
     unknowns: List[str] = []                    # Explicit gaps
-    
+
     # Action tracking (F1 Amanah)
     actions_taken: List[ActionRecord] = []
     # {
@@ -116,7 +116,7 @@ class OutputEnvelope(BaseModel):
     #   "rollback_procedure": null,
     #   "audit_hash": "sha256:abc..."
     # }
-    
+
     # SDK provenance
     sdk_trace: SDKTrace
     # {
@@ -127,14 +127,14 @@ class OutputEnvelope(BaseModel):
     #     "sk_conversation_id": "conv-xyz"
     #   }
     # }
-    
+
     # Timing
     latency_ms: int
     tokens_consumed: Optional[TokenUsage] = None
-    
+
     # MCP response context (when returning via FastMCP)
     mcp_response: Optional[MCPResponse] = None
-    
+
     class Config:
         # Ensure F7 compliance on all outputs
         @validator('confidence')
@@ -151,29 +151,29 @@ class ToolContract(BaseModel):
     """
     Canonical tool definition for Adapter Bus registration.
     """
-    
+
     # Identity
     name: str                         # Unique tool identifier
     description: str                  # For agent consumption
-    
+
     # Schema (F12 Injection Guard)
     input_schema: Type[BaseModel]     # Pydantic model for validation
     output_schema: Type[BaseModel]    # Expected output structure
-    
+
     # Risk classification (F1 Amanah)
     risk_tier: Literal["low", "medium", "high"]
     reversible: bool                  # Can action be undone?
     rollback_procedure: Optional[str] = None  # How to undo
-    
+
     # Execution
     executor: Callable[..., Any]      # The actual tool function
     sandbox_required: bool = True     # Must run in isolated environment
     timeout_seconds: int = 60
-    
+
     # Governance
     allowed_identities: List[str] = []  # Role/DID patterns
     audit_level: Literal["full", "summary", "none"] = "full"
-    
+
     # MCP exposure (via FastMCP)
     expose_via_mcp: bool = True
     mcp_annotations: Optional[Dict[str, Any]] = None
@@ -362,10 +362,10 @@ async def arifos_execute(
             "client_id": ctx.client_id
         }
     )
-    
+
     # Route via Adapter Bus (selects appropriate SDK)
     result = bus.execute(envelope)
-    
+
     # Return normalized OutputEnvelope
     return result.dict()
 ```
@@ -385,14 +385,14 @@ class SDKAdapter(ABC):
     Base class for all SDK adapters.
     Implements the Adapter Bus contract.
     """
-    
+
     SDK_NAME: str = "abstract"
     ADAPTER_VERSION: str = "1.0.0"
-    
+
     def __init__(self, kernel: ArifOSKernel):
         self.kernel = kernel
         self.tools: Dict[str, ToolContract] = {}
-    
+
     @abstractmethod
     def execute(self, envelope: InputEnvelope) -> OutputEnvelope:
         """
@@ -406,14 +406,14 @@ class SDKAdapter(ABC):
         6. Audit to VAULT999
         """
         pass
-    
+
     @abstractmethod
     def register_tool(self, contract: ToolContract) -> str:
         """
         Register tool with SDK-specific wrapper.
         """
         pass
-    
+
     def _create_constitutional_preamble(self, floors: List[str]) -> str:
         """
         Generate constitutional system prompt for injection.
@@ -436,11 +436,11 @@ Response format:
 
 [END CONSTITUTION]
         """.strip()
-    
+
     def _enforce_f7_humility(self, confidence: float) -> float:
         """HARD CAP confidence at 0.90."""
         return min(float(confidence), 0.90)
-    
+
     def _audit_to_vault999(self, envelope: OutputEnvelope):
         """Normalize and write to audit ledger."""
         self.kernel.audit.log(envelope)
@@ -472,20 +472,20 @@ class TestAdapterContract:
     """
     All adapters must pass these tests.
     """
-    
+
     def test_f7_confidence_cap(self, adapter: SDKAdapter):
         """Confidence > 0.90 must be capped."""
         envelope = InputEnvelope(
             objective="Test query",
             identity=test_identity
         )
-        
+
         # Mock SDK returning confidence 0.95
         with mock_sdk_response(confidence=0.95):
             result = adapter.execute(envelope)
-        
+
         assert result.confidence <= 0.90
-    
+
     def test_f12_schema_validation(self, adapter: SDKAdapter):
         """Invalid tool inputs must be rejected."""
         tool = ToolContract(
@@ -493,18 +493,18 @@ class TestAdapterContract:
             input_schema=ValidInputSchema,
             risk_tier="low"
         )
-        
+
         adapter.register_tool(tool)
-        
+
         # Try invalid input
         with pytest.raises(F12Violation):
             adapter.execute_tool("test_tool", invalid_input)
-    
+
     def test_vault999_audit(self, adapter: SDKAdapter):
         """All executions must write to audit ledger."""
         envelope = InputEnvelope(objective="Test", identity=test_identity)
         result = adapter.execute(envelope)
-        
+
         # Verify audit record exists
         audit_record = kernel.audit.get(result.trace_id)
         assert audit_record is not None

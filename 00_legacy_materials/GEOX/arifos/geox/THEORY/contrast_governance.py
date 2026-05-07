@@ -24,13 +24,14 @@ from .contrast_theory import ConflationRisk
 class ContrastVerdict(Enum):
     """
     Constitutional verdicts for contrast-governed interpretation.
-    
+
     These map to GEOX verdicts but are specific to contrast governance.
     """
-    SEAL = auto()      # Full physical grounding
-    QUALIFY = auto()   # Good but limited
-    HOLD = auto()      # Elevated risk, review required
-    BLOCK = auto()     # Cannot proceed
+
+    SEAL = auto()  # Full physical grounding
+    QUALIFY = auto()  # Good but limited
+    HOLD = auto()  # Elevated risk, review required
+    BLOCK = auto()  # Cannot proceed
 
     def to_geox_verdict(self) -> str:
         """Convert to standard GEOX verdict string."""
@@ -47,10 +48,11 @@ class ContrastVerdict(Enum):
 class HOLDTrigger:
     """
     A specific condition that triggered a HOLD verdict.
-    
+
     HOLDs are not failures — they are governance checkpoints that
     require human attention before proceeding.
     """
+
     trigger_type: str
     description: str
     mitigation: str
@@ -69,7 +71,7 @@ class HOLDTrigger:
 class GovernancePolicy:
     """
     Policy for determining verdicts from contrast risk assessments.
-    
+
     Different domains may have different policies, but all derive
     from the same Theory of Anomalous Contrast.
     """
@@ -78,25 +80,27 @@ class GovernancePolicy:
     domain: str
 
     # Risk thresholds for each verdict
-    seal_max_risk: float = 0.2      # Risk must be below this for SEAL
-    qualify_max_risk: float = 0.4   # Risk must be below this for QUALIFY
-    hold_max_risk: float = 0.7      # Risk must be below this for HOLD
+    seal_max_risk: float = 0.2  # Risk must be below this for SEAL
+    qualify_max_risk: float = 0.4  # Risk must be below this for QUALIFY
+    hold_max_risk: float = 0.7  # Risk must be below this for HOLD
     # Above hold_max_risk = BLOCK
 
     # Required elements for each verdict level
-    seal_requires: list[str] = field(default_factory=lambda: [
-        "physical_source", "validated_proxy", "f7_confidence"
-    ])
-    qualify_requires: list[str] = field(default_factory=lambda: [
-        "proxy_defined", "confidence_declared"
-    ])
+    seal_requires: list[str] = field(
+        default_factory=lambda: ["physical_source", "validated_proxy", "f7_confidence"]
+    )
+    qualify_requires: list[str] = field(
+        default_factory=lambda: ["proxy_defined", "confidence_declared"]
+    )
 
     # Auto-HOLD triggers (always trigger HOLD regardless of risk)
-    auto_hold_triggers: list[str] = field(default_factory=lambda: [
-        "unknown_source",
-        "critical_transform_without_validation",
-        "confidence_outside_f7",
-    ])
+    auto_hold_triggers: list[str] = field(
+        default_factory=lambda: [
+            "unknown_source",
+            "critical_transform_without_validation",
+            "confidence_outside_f7",
+        ]
+    )
 
     def determine_verdict(
         self,
@@ -105,7 +109,7 @@ class GovernancePolicy:
     ) -> tuple[ContrastVerdict, list[HOLDTrigger]]:
         """
         Determine verdict from taxonomy and risk assessment.
-        
+
         Returns:
             (verdict, list of HOLD triggers if applicable)
         """
@@ -113,32 +117,38 @@ class GovernancePolicy:
 
         # Check auto-HOLD triggers first
         if taxonomy.source.name == "UNKNOWN":
-            triggers.append(HOLDTrigger(
-                trigger_type="unknown_source",
-                description="Source domain is UNKNOWN — cannot verify physical grounding",
-                mitigation="Provide provenance information or validate with orthogonal data",
-                floor_violated="F9",
-            ))
+            triggers.append(
+                HOLDTrigger(
+                    trigger_type="unknown_source",
+                    description="Source domain is UNKNOWN — cannot verify physical grounding",
+                    mitigation="Provide provenance information or validate with orthogonal data",
+                    floor_violated="F9",
+                )
+            )
 
         # Check for critical transforms
         critical_transforms = [t for t in taxonomy.transforms if t.artifact_risk == "critical"]
         if critical_transforms and taxonomy.source.name == "UNKNOWN":
-            triggers.append(HOLDTrigger(
-                trigger_type="critical_transform_without_validation",
-                description=f"Critical transforms applied without physical validation: {[t.name for t in critical_transforms]}",
-                mitigation="Validate features with independent data or reduce transform intensity",
-                floor_violated="F4",
-            ))
+            triggers.append(
+                HOLDTrigger(
+                    trigger_type="critical_transform_without_validation",
+                    description=f"Critical transforms applied without physical validation: {[t.name for t in critical_transforms]}",
+                    mitigation="Validate features with independent data or reduce transform intensity",
+                    floor_violated="F4",
+                )
+            )
 
         # Check confidence
         if taxonomy.confidence and not taxonomy.confidence.is_constitutional:
             if not taxonomy.confidence.f7_override:
-                triggers.append(HOLDTrigger(
-                    trigger_type="confidence_outside_f7",
-                    description=f"Confidence {taxonomy.confidence.value} outside constitutional band [0.03, 0.15]",
-                    mitigation="Adjust confidence to F7-compliant range or provide override justification",
-                    floor_violated="F7",
-                ))
+                triggers.append(
+                    HOLDTrigger(
+                        trigger_type="confidence_outside_f7",
+                        description=f"Confidence {taxonomy.confidence.value} outside constitutional band [0.03, 0.15]",
+                        mitigation="Adjust confidence to F7-compliant range or provide override justification",
+                        floor_violated="F7",
+                    )
+                )
 
         # If any triggers, return HOLD
         if triggers:
@@ -162,12 +172,14 @@ class GovernancePolicy:
             return ContrastVerdict.QUALIFY, []
 
         elif anomalous_risk < self.hold_max_risk:
-            triggers.append(HOLDTrigger(
-                trigger_type="elevated_anomalous_risk",
-                description=f"Anomalous contrast risk {anomalous_risk:.2f} exceeds QUALIFY threshold",
-                mitigation="Add validation data, reduce transforms, or document alternatives",
-                floor_violated="F2",
-            ))
+            triggers.append(
+                HOLDTrigger(
+                    trigger_type="elevated_anomalous_risk",
+                    description=f"Anomalous contrast risk {anomalous_risk:.2f} exceeds QUALIFY threshold",
+                    mitigation="Add validation data, reduce transforms, or document alternatives",
+                    floor_violated="F2",
+                )
+            )
             return ContrastVerdict.HOLD, triggers
 
         else:
@@ -210,7 +222,7 @@ class GovernancePolicy:
 
 POLICY_SEISMIC = GovernancePolicy(
     domain="seismic",
-    seal_max_risk=0.15,      # Very conservative for seismic
+    seal_max_risk=0.15,  # Very conservative for seismic
     qualify_max_risk=0.35,
     hold_max_risk=0.65,
     auto_hold_triggers=[
@@ -243,11 +255,11 @@ def assess_conflation_risk(
 ) -> tuple[ContrastVerdict, list[HOLDTrigger], dict[str, Any]]:
     """
     Main entry point for contrast risk assessment.
-    
+
     Args:
         taxonomy: Complete contrast taxonomy for the feature
         domain: Which domain policy to apply
-        
+
     Returns:
         (verdict, hold_triggers, assessment_metadata)
     """

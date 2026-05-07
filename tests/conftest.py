@@ -31,6 +31,10 @@ os.environ.setdefault("ARIFOS_ALLOW_LEGACY_SPEC", "1")
 os.environ.setdefault("ARIFOS_PHYSICS_DISABLED", "1")
 # Default to debug output in tests to preserve rich contracts for assertions.
 os.environ.setdefault("AAA_MCP_OUTPUT_MODE", "debug")
+# Include the legacy arifos.supabase.co issuer for JWT acceptance tests
+# (overrides .env which uses the utbmmjmbolmuahwixjqc project instance)
+_original_jti = os.environ.get("JWT_TRUSTED_ISSUERS", "")
+os.environ["JWT_TRUSTED_ISSUERS"] = "https://arifos.supabase.co,arifos-internal"
 
 
 class SyncASGIClient:

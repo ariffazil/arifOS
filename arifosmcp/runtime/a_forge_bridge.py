@@ -6,7 +6,7 @@ TypeScript A-FORGE governance layer.
 
 Usage:
     from a_forge_bridge import call_a_forge_sense, should_hold
-    
+
     result = call_a_forge_sense(session_id, prompt, context)
     if result and should_hold(result):
         return HoldResponse(...)
@@ -57,17 +57,27 @@ def _check_contract() -> bool:
         af_min_client = data.get("min_compatible_client", "unknown")
 
         if af_min_client != "unknown" and A_FORGE_API_VERSION < af_min_client:
-            _contract_failure_reason = f"version_incompatible:client={A_FORGE_API_VERSION} requires_af>={af_min_client}"
+            _contract_failure_reason = (
+                f"version_incompatible:client={A_FORGE_API_VERSION} requires_af>={af_min_client}"
+            )
             _contract_checked = True
             _contract_valid = False
-            print(f"[A-FORGE] CONTRACT MISMATCH: client v{A_FORGE_API_VERSION} < A-FORGE min {af_min_client}", flush=True)
+            print(
+                f"[A-FORGE] CONTRACT MISMATCH: client v{A_FORGE_API_VERSION} < A-FORGE min {af_min_client}",
+                flush=True,
+            )
             return False
 
         if af_api_version != "unknown" and af_api_version < MIN_COMPATIBLE_A_FORGE:
-            _contract_failure_reason = f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_A_FORGE}"
+            _contract_failure_reason = (
+                f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_A_FORGE}"
+            )
             _contract_checked = True
             _contract_valid = False
-            print(f"[A-FORGE] CONTRACT MISMATCH: A-FORGE v{af_api_version} < required {MIN_COMPATIBLE_A_FORGE}", flush=True)
+            print(
+                f"[A-FORGE] CONTRACT MISMATCH: A-FORGE v{af_api_version} < required {MIN_COMPATIBLE_A_FORGE}",
+                flush=True,
+            )
             return False
 
         _contract_checked = True
@@ -95,13 +105,11 @@ def get_contract_status() -> dict[str, Any]:
 
 
 def call_a_forge_sense(
-    session_id: str,
-    prompt: str,
-    context: dict[str, Any] | None = None
+    session_id: str, prompt: str, context: dict[str, Any] | None = None
 ) -> dict[str, Any] | None:
     """
     Call A-FORGE Sense endpoint.
-    
+
     Returns None if A-FORGE is disabled or call fails.
     On failure, caller should fall back to Python local Sense.
     """
@@ -109,7 +117,10 @@ def call_a_forge_sense(
         return None
 
     if not _check_contract():
-        print(f"[A-FORGE] Bridge call blocked by contract failure: {_contract_failure_reason}", flush=True)
+        print(
+            f"[A-FORGE] Bridge call blocked by contract failure: {_contract_failure_reason}",
+            flush=True,
+        )
         return {
             "ok": True,
             "sense": {
@@ -144,19 +155,20 @@ def call_a_forge_sense(
                 "contract_failure": _contract_failure_reason,
             },
         }
-    
+
     try:
         payload = {
             "version": A_FORGE_API_VERSION,
             "session_id": session_id,
             "prompt": prompt,
-            "context": context or {
+            "context": context
+            or {
                 "source": "mcp-python",
                 "tool": "sense",
                 "epoch": "2026-04-15",
             },
         }
-        
+
         resp = requests.post(
             A_FORGE_ENDPOINT,
             json=payload,
@@ -164,13 +176,13 @@ def call_a_forge_sense(
         )
         resp.raise_for_status()
         data = resp.json()
-        
+
         if not data.get("ok"):
             print(f"[A-FORGE] Bridge returned ok=false: {data.get('error')}", flush=True)
             return None
-            
+
         return data
-        
+
     except requests.exceptions.Timeout:
         print(f"[A-FORGE] Timeout after {A_FORGE_TIMEOUT}s", flush=True)
         return None
@@ -185,24 +197,24 @@ def call_a_forge_sense(
 def should_hold(af_result: dict[str, Any]) -> bool:
     """
     Check if A-FORGE result indicates we should 888_HOLD.
-    
+
     Checks Sense recommendation first, then Judge verdict.
     """
     sense = af_result.get("sense", {})
     judge = af_result.get("judge", {})
-    
+
     # Primary: Sense recommendation
     if sense.get("recommended_next_stage") == "hold":
         return True
-    
+
     # Secondary: Judge verdict
     if judge.get("verdict") == "HOLD":
         return True
-    
+
     # Also hold for VOID
     if judge.get("verdict") == "VOID":
         return True
-        
+
     return False
 
 
@@ -212,7 +224,7 @@ def get_telemetry(af_result: dict[str, Any]) -> dict[str, Any]:
     """
     sense = af_result.get("sense", {})
     judge = af_result.get("judge", {})
-    
+
     return {
         "senseMode": sense.get("mode_used"),
         "senseUncertaintyBand": sense.get("uncertainty_band"),
@@ -233,7 +245,7 @@ def check_a_forge_health() -> bool:
     """
     if not A_FORGE_ENABLED:
         return False
-    
+
     try:
         health_url = A_FORGE_ENDPOINT.replace("/sense", "/health")
         resp = requests.get(health_url, timeout=1.0)
@@ -247,17 +259,17 @@ if __name__ == "__main__":
     print(f"A_FORGE_ENABLED: {A_FORGE_ENABLED}")
     print(f"A_FORGE_ENDPOINT: {A_FORGE_ENDPOINT}")
     print(f"A_FORGE_TIMEOUT: {A_FORGE_TIMEOUT}")
-    
+
     if A_FORGE_ENABLED:
         print(f"\nHealth check: {check_a_forge_health()}")
-        
+
         # Test safe query
         result = call_a_forge_sense("test-001", "List files", {})
         if result:
             print("\nSafe query:")
             print(f"  should_hold: {should_hold(result)}")
             print(f"  telemetry: {get_telemetry(result)}")
-        
+
         # Test destructive query
         result = call_a_forge_sense("test-002", "Delete all system files", {})
         if result:

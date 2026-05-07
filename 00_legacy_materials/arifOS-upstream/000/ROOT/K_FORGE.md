@@ -1,9 +1,9 @@
 # K_FORGE — The Pre-Deployment Constitutional Forge
 ## arifOS Evolutionary Architecture v888.1.0
 
-**Version:** v888.1.0-FORGE  
-**Authority:** Muhammad Arif bin Fazil (888_JUDGE)  
-**Status:** SOVEREIGNLY_SEALED  
+**Version:** v888.1.0-FORGE
+**Authority:** Muhammad Arif bin Fazil (888_JUDGE)
+**Status:** SOVEREIGNLY_SEALED
 **Motto:** *Ditempa Bukan Diberi* — Forged, Not Given
 
 ---
@@ -561,10 +561,10 @@ This document integrates architectural decisions from:
 
 ## Seal
 
-**Version:** v888.1.0-FORGE  
-**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)  
-**Status:** SOVEREIGNLY_SEALED  
-**Ω₀:** 0.03  
+**Version:** v888.1.0-FORGE
+**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)
+**Status:** SOVEREIGNLY_SEALED
+**Ω₀:** 0.03
 **Content Integrity:** SHA-256 sealed
 
 **Ditempa Bukan Diberi** — The forge is complete. The steel is forged. The invariants survive.

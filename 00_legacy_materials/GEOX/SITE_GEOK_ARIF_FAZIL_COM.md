@@ -1,8 +1,8 @@
 # geox.arif-fazil.com — Site Specification
 
-> **Status:** SPECIFICATION READY  
-> **Authority:** Muhammad Arif bin Fazil  
-> **Seal:** 999_VAULT  
+> **Status:** SPECIFICATION READY
+> **Authority:** Muhammad Arif bin Fazil
+> **Seal:** 999_VAULT
 > **Motto:** *DITEMPA BUKAN DIBERI*
 
 ---
@@ -135,7 +135,7 @@ Subheadline: "Physics over narrative. Audit over guess. Decision discipline over
 
 Three Pillars:
 1. Intelligence — Models, vision, reasoning
-2. Tools — MCP APIs and operator apps  
+2. Tools — MCP APIs and operator apps
 3. Governance — ToAC, AC_Risk, 888_HOLD
 
 CTA Buttons:
@@ -177,7 +177,7 @@ Verdict Examples:
 #### App 1: Georeference Map
 - **Status:** 🟡 Scaffold
 - **Function:** Upload map → detect/select GCPs → warp → GeoTIFF
-- **Outputs:** 
+- **Outputs:**
   - GeoTIFF with embedded transform
   - GCP residual table
   - AC_Risk score + verdict
@@ -237,7 +237,7 @@ Core Geospatial:
   - geox_georeference_raster:
       input: image_path, claimed_bounds
       output: geotiff_path, gcp_list, ac_risk, verdict
-  
+
   - geox_detect_gcp_candidates:
       input: image_path
       output: candidate_points, ocr_confidence
@@ -246,7 +246,7 @@ Petrophysics:
   - geox_digitize_chart:
       input: image_path, chart_type
       output: traced_curves, uncertainty, ratlas_validation
-  
+
   - geox_compute_petrophysics:
       input: interval_uri, model_id
       output: vsh, phi_t, phi_e, sw, uncertainty_envelopes
@@ -255,11 +255,11 @@ Seismic:
   - geox_generate_contrast_canon:
       input: seismic_image
       output: 5_contrast_views, transform_metadata
-  
+
   - geox_interpret_with_governance:
       input: seismic_image, interpretation_goal
       output: hypotheses, consistency_score, ac_risk, verdict
-  
+
   - geox_extract_attributes:
       input: seismic_data, attribute_list
       output: attribute_maps, source_attribution, risk_flags
@@ -268,11 +268,11 @@ Governance:
   - geox_compute_ac_risk:
       input: operation_type, transform_stack, evidence_quality
       output: ac_risk, verdict, explanation, mitigation_suggestions
-  
+
   - geox_emit_verdict:
       input: evidence_bundle, confidence
       output: seal/qualify/hold/void, 888_hold_triggers
-  
+
   - geox_get_transform_log:
       input: operation_id
       output: full_transform_chain, provenance
@@ -311,7 +311,7 @@ if interpretation.verdict == "HOLD":
 ```
 The Problem:
 79% of expert interpreters fail on synthetic seismic data.
-Not because data is poor — because display artifacts 
+Not because data is poor — because display artifacts
 are mistaken for geological signal.
 
 The Solution:
@@ -326,7 +326,7 @@ AC_Risk = U_phys × D_transform × B_cog
 
 Where:
 - U_phys: Non-uniqueness of inverse problem
-- D_transform: Non-invertibility of display operations  
+- D_transform: Non-invertibility of display operations
 - B_cog: Observer overconfidence (Bond et al. 2007)
 ```
 
@@ -398,7 +398,7 @@ Governance:
 ## What NOT to Include
 
 ### ❌ No Hype SaaS Copy
-- "Revolutionizing subsurface intelligence" 
+- "Revolutionizing subsurface intelligence"
 - "AI-powered insights"
 - "Transform your workflow"
 
@@ -493,5 +493,5 @@ Site content pulls from:
 
 ---
 
-*DITEMPA BUKAN DIBERI*  
+*DITEMPA BUKAN DIBERI*
 *The site is the trust surface. Make it honest.*

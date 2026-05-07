@@ -1,4 +1,5 @@
 """Compatibility shim for the package resource authority."""
+
 from __future__ import annotations
 
 from arifosmcp.resources import CANONICAL_RESOURCES, EVIDENCE_RESOURCES, register_resources
@@ -12,5 +13,5 @@ def manifest_resources() -> list[str]:
 
 
 def apex_tools_markdown_table() -> str:
-    '''Stub for the apex tools markdown table.'''
-    return ''
+    """Stub for the apex tools markdown table."""
+    return ""

@@ -20,6 +20,7 @@ SCHEMAS_PATH = REGISTRY_PATH / "schemas"
 # Fixtures
 # =============================================================================
 
+
 @pytest.fixture(scope="session")
 def catalog():
     with open(CATALOG_PATH, encoding="utf-8") as f:
@@ -48,6 +49,7 @@ def load_json(path: Path) -> dict:
 # =============================================================================
 # Catalog tests
 # =============================================================================
+
 
 class TestCatalog:
     def test_catalog_loads(self, catalog):
@@ -95,19 +97,29 @@ class TestCatalog:
         """Every soul file should be registered in the catalog."""
         catalog_archetypes = set(catalog["soul_archetypes"])
         for soul_file in SOULS_PATH.glob("*.json"):
-            assert soul_file.stem in catalog_archetypes, (
-                f"Soul file '{soul_file.name}' not listed in catalog.soul_archetypes"
-            )
+            assert (
+                soul_file.stem in catalog_archetypes
+            ), f"Soul file '{soul_file.name}' not listed in catalog.soul_archetypes"
 
 
 # =============================================================================
 # Provider soul tests
 # =============================================================================
 
+
 class TestProviderSouls:
-    REQUIRED_FIELDS = ["provider_key", "family_key", "soul_label", "in_one_sentence",
-                       "communication_style", "reasoning_style", "best_fit_roles",
-                       "worst_fit_roles", "when_to_use", "when_not_to_use"]
+    REQUIRED_FIELDS = [
+        "provider_key",
+        "family_key",
+        "soul_label",
+        "in_one_sentence",
+        "communication_style",
+        "reasoning_style",
+        "best_fit_roles",
+        "worst_fit_roles",
+        "when_to_use",
+        "when_not_to_use",
+    ]
 
     def _soul_files(self):
         return [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
@@ -115,42 +127,43 @@ class TestProviderSouls:
     def test_soul_files_exist(self):
         assert len(list(SOULS_PATH.glob("*.json"))) > 0
 
-    @pytest.mark.parametrize("soul_file", [
-        f for f in SOULS_PATH.glob("*.json")
-        if not f.stem.startswith("wrong_")
-    ])
+    @pytest.mark.parametrize(
+        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+    )
     def test_soul_required_fields(self, soul_file):
         data = load_json(soul_file)
         for field in self.REQUIRED_FIELDS:
             assert field in data, f"{soul_file.name}: missing field '{field}'"
 
-    @pytest.mark.parametrize("soul_file", [
-        f for f in SOULS_PATH.glob("*.json")
-        if not f.stem.startswith("wrong_")
-    ])
+    @pytest.mark.parametrize(
+        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+    )
     def test_soul_provider_key_no_underscore(self, soul_file):
         data = load_json(soul_file)
         provider_key = data.get("provider_key", "")
-        assert "_" not in provider_key, (
-            f"{soul_file.name}: provider_key '{provider_key}' must not contain underscore"
-        )
+        assert (
+            "_" not in provider_key
+        ), f"{soul_file.name}: provider_key '{provider_key}' must not contain underscore"
 
-    @pytest.mark.parametrize("soul_file", [
-        f for f in SOULS_PATH.glob("*.json")
-        if not f.stem.startswith("wrong_")
-    ])
+    @pytest.mark.parametrize(
+        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+    )
     def test_soul_array_fields(self, soul_file):
         data = load_json(soul_file)
-        for field in ["communication_style", "reasoning_style", "best_fit_roles", "worst_fit_roles"]:
+        for field in [
+            "communication_style",
+            "reasoning_style",
+            "best_fit_roles",
+            "worst_fit_roles",
+        ]:
             if field in data:
-                assert isinstance(data[field], list), (
-                    f"{soul_file.name}: field '{field}' must be an array"
-                )
+                assert isinstance(
+                    data[field], list
+                ), f"{soul_file.name}: field '{field}' must be an array"
 
-    @pytest.mark.parametrize("soul_file", [
-        f for f in SOULS_PATH.glob("*.json")
-        if not f.stem.startswith("wrong_")
-    ])
+    @pytest.mark.parametrize(
+        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+    )
     def test_soul_schema_validation(self, soul_file, soul_schema):
         jsonschema = pytest.importorskip("jsonschema")
         data = load_json(soul_file)
@@ -160,6 +173,7 @@ class TestProviderSouls:
 # =============================================================================
 # Model file tests
 # =============================================================================
+
 
 class TestModelFiles:
     MODEL_REQUIRED = ["provider", "model_family", "model_variant", "soul_archetype"]
@@ -183,14 +197,15 @@ class TestModelFiles:
                 if soul.get("soul_label") == soul_archetype:
                     matched = True
                     break
-            assert matched, (
-                f"{model_file.name}: soul_archetype '{soul_archetype}' not found in any provider soul"
-            )
+            assert (
+                matched
+            ), f"{model_file.name}: soul_archetype '{soul_archetype}' not found in any provider soul"
 
 
 # =============================================================================
 # Runtime profile tests
 # =============================================================================
+
 
 class TestRuntimeProfiles:
     def test_runtime_profiles_exist(self):
@@ -216,6 +231,7 @@ class TestRuntimeProfiles:
 # Self-claim boundary tests
 # =============================================================================
 
+
 class TestSelfClaimBoundary:
     """Verify self_claim_boundary enforcement logic."""
 
@@ -226,8 +242,12 @@ class TestSelfClaimBoundary:
     def test_self_claim_boundary_fields(self):
         data = load_json(RUNTIME_PATH / "vps_main_arifos.json")
         boundary = data.get("self_claim_boundary", {})
-        for field in ["identity_claim_policy", "tool_claim_policy",
-                      "knowledge_claim_policy", "execution_claim_policy"]:
+        for field in [
+            "identity_claim_policy",
+            "tool_claim_policy",
+            "knowledge_claim_policy",
+            "execution_claim_policy",
+        ]:
             assert field in boundary, f"self_claim_boundary missing field: {field}"
 
     def test_identity_claim_policy_is_valid(self):
@@ -246,6 +266,7 @@ class TestSelfClaimBoundary:
 # =============================================================================
 # Verify identity claim logic (unit test of the business logic)
 # =============================================================================
+
 
 class TestIdentityClaimLogic:
     """Test the identity verification logic used in main.py."""

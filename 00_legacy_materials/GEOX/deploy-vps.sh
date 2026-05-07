@@ -33,30 +33,30 @@ echo "Step 3: Deploying on VPS..."
 ssh ${VPS_USER}@${VPS_HOST} << EOF
   mkdir -p ${DEPLOY_DIR}
   cd ${DEPLOY_DIR}
-  
+
   # Pull latest code
   if [ -d ".git" ]; then
     git pull origin main
   else
     git clone https://github.com/ariffazil/GEOX.git .
   fi
-  
+
   # Ensure Traefik network exists
   docker network create traefik_network 2>/dev/null || true
-  
+
   # Stop existing containers
   docker compose down 2>/dev/null || true
-  
+
   # Start with new images
   docker compose up -d
-  
+
   # Wait for health check
   echo "Waiting for health check (Expecting v0.6.0)..."
   sleep 5
   curl -s https://${DOMAIN}/health/details | grep "0.6.0" || { echo "❌ Version Mismatch or 504. Still stale!"; exit 1; }
   echo "✅ v0.6.0 Verified Live"
   curl -s http://localhost:8000/health || echo "Health check failed"
-  
+
   echo ""
   echo "Server info:"
   curl -s http://localhost:8000/health/details 2>/dev/null | head -20 || echo "Details unavailable"

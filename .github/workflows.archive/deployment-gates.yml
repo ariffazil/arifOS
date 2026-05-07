@@ -115,21 +115,21 @@ jobs:
           python << 'EOF'
           import json
           import sys
-          
+
           with open('protocol_conformance.json') as f:
               report = json.load(f)
-          
+
           verdict = report.get('verdict')
           pass_count = report.get('pass_count', 0)
           fail_count = report.get('fail_count', 0)
-          
+
           print(f"Protocol Conformance: {pass_count} PASS, {fail_count} FAIL")
           print(f"Verdict: {verdict}")
-          
+
           if verdict != 'SEAL':
               print("❌ Gate B: Capability - FAIL")
               sys.exit(1)
-          
+
           print("✅ Gate B: Capability - PASS")
           EOF
 
@@ -176,21 +176,21 @@ jobs:
           python << 'EOF'
           import json
           import sys
-          
+
           with open('breach_results.json') as f:
               report = json.load(f)
-          
+
           p0_passed = report['summary']['passed']
           p0_total = report['summary']['total_tests']
           merge_blocked = report.get('merge_blocked', False)
-          
+
           print(f"P0 Breach Tests: {p0_passed}/{p0_total} PASS")
-          
+
           if merge_blocked:
               print("❌ Gate C: Floors - P0 FAILURES DETECTED")
               print("🔒 MERGE BLOCKED")
               sys.exit(1)
-          
+
           print("✅ Gate C: Floors - PASS")
           EOF
 
@@ -237,22 +237,22 @@ jobs:
           python << 'EOF'
           import json
           import sys
-          
+
           with open('substrate_smoke.json') as f:
               report = json.load(f)
-          
+
           verdict = report.get('verdict')
           happy = report['summary']['happy_paths']
           breach = report['summary']['breach_cases']
-          
+
           print(f"Happy Paths: {happy['pass']}/{happy['total']} PASS")
           print(f"Breach Cases: {breach['blocked']}/{breach['total']} BLOCKED")
           print(f"Verdict: {verdict}")
-          
+
           if verdict != 'SEAL':
               print("❌ Gate D: Substrate - FAIL")
               sys.exit(1)
-          
+
           print("✅ Gate D: Substrate - PASS")
           EOF
 
@@ -298,16 +298,16 @@ jobs:
         run: |
           python << 'EOF'
           import json
-          
+
           try:
               with open('e2e_results.json') as f:
                   report = json.load(f)
-              
+
               passed = report['summary']['pass']
               total = report['summary']['total']
-              
+
               print(f"E2E Golden Paths: {passed}/{total} PASS")
-              
+
               if passed < total:
                   print("⚠️ Gate E: E2E - Some paths failed (non-blocking)")
               else:
@@ -338,17 +338,17 @@ jobs:
         run: |
           python << 'EOF'
           import json
-          
+
           try:
               with open('rollback_report.json') as f:
                   report = json.load(f)
-              
+
               can_rollback = report.get('can_rollback', False)
               points = len(report.get('rollback_points', []))
-              
+
               print(f"Rollback Points: {points}")
               print(f"Can Rollback: {can_rollback}")
-              
+
               if not can_rollback:
                   print("⚠️ Gate F: Rollback - No rollback points (warning)")
               else:
@@ -391,7 +391,7 @@ jobs:
           else
             echo "✅ Logging configured in code"
           fi
-          
+
           echo "✅ Gate G: Observability - PASS"
 
   # ═══════════════════════════════════════════════════════════════════════
@@ -429,12 +429,12 @@ jobs:
           echo "=" >> $GITHUB_STEP_SUMMARY
           echo "# 🏛️ Deployment Gate Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Gate A
           echo "## Gate A: Boot" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Server initialization verified" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Gate B
           echo "## Gate B: Capability" >> $GITHUB_STEP_SUMMARY
           if [ -f "protocol-conformance/protocol_conformance.json" ]; then
@@ -448,7 +448,7 @@ jobs:
             echo "- ⚠️ Results not available" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Gate C
           echo "## Gate C: Floors (P0)" >> $GITHUB_STEP_SUMMARY
           if [ -f "breach-results/breach_results.json" ]; then
@@ -464,7 +464,7 @@ jobs:
             echo "- ⚠️ Results not available" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Gate D
           echo "## Gate D: Substrate" >> $GITHUB_STEP_SUMMARY
           if [ -f "substrate-smoke/substrate_smoke.json" ]; then
@@ -478,12 +478,12 @@ jobs:
             echo "- ⚠️ Results not available" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Gates E-H
           echo "## Gates E-H" >> $GITHUB_STEP_SUMMARY
           echo "- E2E, Rollback, Observability, Human checks completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "**DITEMPA BUKAN DIBERI — 999 SEAL**" >> $GITHUB_STEP_SUMMARY
 
@@ -494,7 +494,7 @@ jobs:
     name: "Production Deployment"
     runs-on: ubuntu-latest
     if: |
-      github.ref == 'refs/heads/main' && 
+      github.ref == 'refs/heads/main' &&
       github.event.inputs.human_ratification == 'true' &&
       needs.gate-a-boot.result == 'success' &&
       needs.gate-b-capability.result == 'success' &&

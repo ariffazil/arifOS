@@ -53,6 +53,7 @@ logger = logging.getLogger("geox.agent")
 # GeoXConfig
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class GeoXConfig:
     """
@@ -69,26 +70,31 @@ class GeoXConfig:
 
     lem_confidence_threshold: float = 0.75
     max_tool_retries: int = 3
-    allowed_tools: list[str] = field(default_factory=lambda: [
-        "EarthModelTool",
-        "EOFoundationModelTool",
-        "SeismicVLMTool",
-        "SimulatorTool",
-        "GeoRAGTool",
-    ])
+    allowed_tools: list[str] = field(
+        default_factory=lambda: [
+            "EarthModelTool",
+            "EOFoundationModelTool",
+            "SeismicVLMTool",
+            "SimulatorTool",
+            "GeoRAGTool",
+        ]
+    )
     provenance_required: bool = True
-    auto_risk_levels: dict[str, str] = field(default_factory=lambda: {
-        "low": "auto",
-        "medium": "human_signoff",
-        "high": "regulator_required",
-        "critical": "888_HOLD",
-    })
+    auto_risk_levels: dict[str, str] = field(
+        default_factory=lambda: {
+            "low": "auto",
+            "medium": "human_signoff",
+            "high": "regulator_required",
+            "critical": "888_HOLD",
+        }
+    )
     pipeline_id: str = "geox-v0.1"
 
 
 # ---------------------------------------------------------------------------
 # GeoXAgent
 # ---------------------------------------------------------------------------
+
 
 class GeoXAgent:
     """
@@ -148,13 +154,15 @@ class GeoXAgent:
         Returns:
             Ordered list of tool names to execute.
         """
-        await self._emit_audit({
-            "event": "plan_start",
-            "stage": "111 THINK",
-            "request_id": request.request_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "detail": f"Planning for prospect '{request.prospect_name}'",
-        })
+        await self._emit_audit(
+            {
+                "event": "plan_start",
+                "stage": "111 THINK",
+                "request_id": request.request_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "detail": f"Planning for prospect '{request.prospect_name}'",
+            }
+        )
 
         if self.llm_planner is not None:
             try:
@@ -234,9 +242,7 @@ class GeoXAgent:
     # execute()
     # ------------------------------------------------------------------
 
-    async def execute(
-        self, plan: list[str], request: GeoRequest
-    ) -> list[GeoToolResult]:
+    async def execute(self, plan: list[str], request: GeoRequest) -> list[GeoToolResult]:
         """
         Execute tools in plan order with retry logic.
 
@@ -252,13 +258,15 @@ class GeoXAgent:
         Returns:
             List of GeoToolResult objects (one per tool, including failures).
         """
-        await self._emit_audit({
-            "event": "execute_start",
-            "stage": "333 EXPLORE",
-            "request_id": request.request_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "detail": f"Executing {len(plan)} tools: {plan}",
-        })
+        await self._emit_audit(
+            {
+                "event": "execute_start",
+                "stage": "333 EXPLORE",
+                "request_id": request.request_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "detail": f"Executing {len(plan)} tools: {plan}",
+            }
+        )
 
         results: list[GeoToolResult] = []
 
@@ -267,36 +275,42 @@ class GeoXAgent:
                 tool = self.tool_registry.get(tool_name)
             except KeyError:
                 logger.warning("Tool '%s' not in registry. Skipping.", tool_name)
-                results.append(GeoToolResult(
-                    tool_name=tool_name,
-                    success=False,
-                    error=f"Tool '{tool_name}' not registered.",
-                ))
+                results.append(
+                    GeoToolResult(
+                        tool_name=tool_name,
+                        success=False,
+                        error=f"Tool '{tool_name}' not registered.",
+                    )
+                )
                 continue
 
             tool_inputs = self._build_tool_inputs(tool_name, request)
             result = await self._run_with_retry(tool, tool_inputs)
             results.append(result)
 
-            await self._emit_audit({
-                "event": "tool_executed",
-                "stage": "333 EXPLORE",
-                "tool": tool_name,
-                "success": result.success,
-                "latency_ms": result.latency_ms,
-                "quantity_count": len(result.quantities),
-                "error": result.error,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+            await self._emit_audit(
+                {
+                    "event": "tool_executed",
+                    "stage": "333 EXPLORE",
+                    "tool": tool_name,
+                    "success": result.success,
+                    "latency_ms": result.latency_ms,
+                    "quantity_count": len(result.quantities),
+                    "error": result.error,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            )
 
-        await self._emit_audit({
-            "event": "execute_complete",
-            "stage": "333 EXPLORE",
-            "request_id": request.request_id,
-            "tools_run": len(plan),
-            "successful": sum(1 for r in results if r.success),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._emit_audit(
+            {
+                "event": "execute_complete",
+                "stage": "333 EXPLORE",
+                "request_id": request.request_id,
+                "tools_run": len(plan),
+                "successful": sum(1 for r in results if r.success),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         return results
 
@@ -330,9 +344,7 @@ class GeoXAgent:
         }
         return common
 
-    async def _run_with_retry(
-        self, tool: BaseTool, inputs: dict[str, Any]
-    ) -> GeoToolResult:
+    async def _run_with_retry(self, tool: BaseTool, inputs: dict[str, Any]) -> GeoToolResult:
         """Run a tool with retry logic up to max_retries."""
         last_result: GeoToolResult | None = None
         for attempt in range(1, self.config.max_tool_retries + 1):
@@ -343,7 +355,10 @@ class GeoXAgent:
                 last_result = result
                 logger.warning(
                     "Tool '%s' attempt %d/%d failed: %s",
-                    tool.name, attempt, self.config.max_tool_retries, result.error,
+                    tool.name,
+                    attempt,
+                    self.config.max_tool_retries,
+                    result.error,
                 )
             except Exception as exc:
                 last_result = GeoToolResult(
@@ -353,7 +368,10 @@ class GeoXAgent:
                 )
                 logger.warning(
                     "Tool '%s' attempt %d/%d exception: %s",
-                    tool.name, attempt, self.config.max_tool_retries, exc,
+                    tool.name,
+                    attempt,
+                    self.config.max_tool_retries,
+                    exc,
                 )
             if attempt < self.config.max_tool_retries:
                 await asyncio.sleep(0.5 * attempt)
@@ -385,12 +403,14 @@ class GeoXAgent:
         Returns:
             List of GeoInsight objects ready for validation.
         """
-        await self._emit_audit({
-            "event": "synthesise_start",
-            "stage": "555 HEART",
-            "request_id": request.request_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._emit_audit(
+            {
+                "event": "synthesise_start",
+                "stage": "555 HEART",
+                "request_id": request.request_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         # Gather all quantities from successful tools
         all_quantities: list[GeoQuantity] = []
@@ -417,19 +437,16 @@ class GeoXAgent:
         porosity_qtys = [q for q in all_quantities if "porosity" in q.quantity_type]
         velocity_qtys = [q for q in all_quantities if "velocity" in q.quantity_type]
         if porosity_qtys or velocity_qtys:
-            insights.append(
-                self._make_reservoir_insight(porosity_qtys + velocity_qtys, request)
-            )
+            insights.append(self._make_reservoir_insight(porosity_qtys + velocity_qtys, request))
 
         # --- Insight 3: VLM Structural Interpretation (perception bridge rule) ---
         if vlm_only_quantities:
-            insights.append(
-                self._make_vlm_insight(vlm_only_quantities, request)
-            )
+            insights.append(self._make_vlm_insight(vlm_only_quantities, request))
 
         # --- Insight 4: Pressure / Temperature (maturity) ---
         pt_qtys = [
-            q for q in all_quantities
+            q
+            for q in all_quantities
             if any(t in q.quantity_type for t in ("pressure", "temperature", "maturity"))
         ]
         if pt_qtys:
@@ -443,18 +460,18 @@ class GeoXAgent:
         if not insights:
             insights.append(self._make_no_data_insight(request))
 
-        await self._emit_audit({
-            "event": "synthesise_complete",
-            "stage": "555 HEART",
-            "insight_count": len(insights),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._emit_audit(
+            {
+                "event": "synthesise_complete",
+                "stage": "555 HEART",
+                "insight_count": len(insights),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         return insights
 
-    def _risk_level_for_request(
-        self, request: GeoRequest, base_level: str = "medium"
-    ) -> str:
+    def _risk_level_for_request(self, request: GeoRequest, base_level: str = "medium") -> str:
         """Map request risk_tolerance to insight risk_level."""
         risk_map = {"low": "low", "medium": "medium", "high": "high"}
         req_risk = risk_map.get(request.risk_tolerance, "medium")
@@ -468,9 +485,7 @@ class GeoXAgent:
         action = self.config.auto_risk_levels.get(risk_level, "human_signoff")
         return action != "auto"
 
-    def _make_prov_from_tool_result(
-        self, tool_name: str, confidence: float
-    ) -> ProvenanceRecord:
+    def _make_prov_from_tool_result(self, tool_name: str, confidence: float) -> ProvenanceRecord:
         source_type_map = {
             "EarthModelTool": "LEM",
             "SeismicVLMTool": "VLM",
@@ -486,9 +501,7 @@ class GeoXAgent:
             confidence=confidence,
         )
 
-    def _make_lem_insight(
-        self, quantities: list[GeoQuantity], request: GeoRequest
-    ) -> GeoInsight:
+    def _make_lem_insight(self, quantities: list[GeoQuantity], request: GeoRequest) -> GeoInsight:
         """Build a LEM physics assessment insight."""
         velocity_vals = [q.value for q in quantities if "velocity" in q.quantity_type]
         porosity_vals = [q.value for q in quantities if "porosity" in q.quantity_type]
@@ -522,15 +535,17 @@ class GeoXAgent:
                 provenance=prov,
             )
             try:
-                predictions.append(GeoPrediction(
-                    target="porosity",
-                    location=request.location,
-                    expected_range=(max(0.01, p * 0.8), p * 1.2),
-                    units="fraction",
-                    confidence=0.80,
-                    supporting_quantities=[qty],
-                    method="LEM_ensemble",
-                ))
+                predictions.append(
+                    GeoPrediction(
+                        target="porosity",
+                        location=request.location,
+                        expected_range=(max(0.01, p * 0.8), p * 1.2),
+                        units="fraction",
+                        confidence=0.80,
+                        supporting_quantities=[qty],
+                        method="LEM_ensemble",
+                    )
+                )
             except Exception:
                 pass
 
@@ -580,9 +595,7 @@ class GeoXAgent:
             requires_human_signoff=signoff,
         )
 
-    def _make_vlm_insight(
-        self, quantities: list[GeoQuantity], request: GeoRequest
-    ) -> GeoInsight:
+    def _make_vlm_insight(self, quantities: list[GeoQuantity], request: GeoRequest) -> GeoInsight:
         """
         Build a VLM structural insight.
 
@@ -622,9 +635,7 @@ class GeoXAgent:
             requires_human_signoff=signoff,
         )
 
-    def _make_pt_insight(
-        self, quantities: list[GeoQuantity], request: GeoRequest
-    ) -> GeoInsight:
+    def _make_pt_insight(self, quantities: list[GeoQuantity], request: GeoRequest) -> GeoInsight:
         """Build a pressure-temperature-maturity insight."""
         pres_vals = [q.value for q in quantities if "pressure" in q.quantity_type]
         temp_vals = [q.value for q in quantities if "temperature" in q.quantity_type]
@@ -669,7 +680,7 @@ class GeoXAgent:
         text = (
             f"Multi-tool geophysical assessment for '{request.prospect_name}' "
             f"({request.basin}): {len(quantities)} geophysical measurements "
-            f"acquired across {len(set(q.quantity_type for q in quantities))} "
+            f"acquired across {len({q.quantity_type for q in quantities})} "
             f"parameter types. Detailed reservoir characterisation requires "
             f"additional data integration and expert review."
         )
@@ -715,12 +726,14 @@ class GeoXAgent:
         Returns:
             AggregateVerdict with SEAL | PARTIAL | SABAR | VOID.
         """
-        await self._emit_audit({
-            "event": "validate_start",
-            "stage": "777 REASON",
-            "insight_count": len(insights),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._emit_audit(
+            {
+                "event": "validate_start",
+                "stage": "777 REASON",
+                "insight_count": len(insights),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         tools = [
             self.tool_registry.get(name)
@@ -730,17 +743,19 @@ class GeoXAgent:
 
         verdict = await self.validator.validate_batch(insights, tools)
 
-        await self._emit_audit({
-            "event": "validate_complete",
-            "stage": "888 AUDIT",
-            "verdict": verdict.overall,
-            "confidence": verdict.confidence,
-            "seal": verdict.seal_count,
-            "partial": verdict.partial_count,
-            "void": verdict.void_count,
-            "requires_audit": verdict.requires_audit,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._emit_audit(
+            {
+                "event": "validate_complete",
+                "stage": "888 AUDIT",
+                "verdict": verdict.overall,
+                "confidence": verdict.confidence,
+                "seal": verdict.seal_count,
+                "partial": verdict.partial_count,
+                "void": verdict.void_count,
+                "requires_audit": verdict.requires_audit,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         return verdict
 
@@ -825,14 +840,16 @@ class GeoXAgent:
             arifos_telemetry=arifos_telemetry,
         )
 
-        await self._emit_audit({
-            "event": "response_sealed",
-            "stage": "999 SEAL",
-            "response_id": response.response_id,
-            "verdict": verdict.overall,
-            "hold": hold_status,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._emit_audit(
+            {
+                "event": "response_sealed",
+                "stage": "999 SEAL",
+                "response_id": response.response_id,
+                "verdict": verdict.overall,
+                "hold": hold_status,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         return response
 
@@ -859,14 +876,16 @@ class GeoXAgent:
         """
         self._audit_log = []  # Reset for new request
 
-        await self._emit_audit({
-            "event": "pipeline_start",
-            "stage": "000 INIT",
-            "request_id": request.request_id,
-            "prospect": request.prospect_name,
-            "basin": request.basin,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._emit_audit(
+            {
+                "event": "pipeline_start",
+                "stage": "000 INIT",
+                "request_id": request.request_id,
+                "prospect": request.prospect_name,
+                "basin": request.basin,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         logger.info(
             "[GEOX] Starting evaluation: %s | %s | %s",

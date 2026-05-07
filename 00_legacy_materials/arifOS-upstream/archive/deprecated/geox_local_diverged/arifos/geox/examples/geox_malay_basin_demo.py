@@ -96,6 +96,7 @@ BANNER = """
 # Build mock tool registry
 # ---------------------------------------------------------------------------
 
+
 def build_mock_registry() -> ToolRegistry:
     """
     Build a ToolRegistry using mock tools for the demo.
@@ -122,17 +123,18 @@ def build_mock_registry() -> ToolRegistry:
 # Build GeoXConfig for demo
 # ---------------------------------------------------------------------------
 
+
 def build_demo_config() -> GeoXConfig:
     """Build GeoXConfig for the demo, using mock tool names."""
     return GeoXConfig(
         lem_confidence_threshold=0.70,  # Slightly relaxed for demo
         max_tool_retries=2,
         allowed_tools=[
-            "MockEarthNetTool",       # Mock LEM
-            "MockSeismicVLMTool",     # Mock VLM
-            "SimulatorTool",          # Standard mock basin simulator
+            "MockEarthNetTool",  # Mock LEM
+            "MockSeismicVLMTool",  # Mock VLM
+            "SimulatorTool",  # Standard mock basin simulator
             "EOFoundationModelTool",  # Standard mock EO
-            "GeoRAGTool",             # Standard mock RAG
+            "GeoRAGTool",  # Standard mock RAG
         ],
         provenance_required=True,
         auto_risk_levels={
@@ -148,6 +150,7 @@ def build_demo_config() -> GeoXConfig:
 # ---------------------------------------------------------------------------
 # Build GeoRequest for Blok Selatan
 # ---------------------------------------------------------------------------
+
 
 def build_blok_selatan_request() -> GeoRequest:
     """
@@ -187,6 +190,7 @@ def build_blok_selatan_request() -> GeoRequest:
 # Print helpers
 # ---------------------------------------------------------------------------
 
+
 def _section(title: str, width: int = 72) -> None:
     print(f"\n{'='*width}")
     print(f"  {title}")
@@ -200,6 +204,7 @@ def _subsection(title: str) -> None:
 # ---------------------------------------------------------------------------
 # Main demo coroutine
 # ---------------------------------------------------------------------------
+
 
 async def run_demo() -> None:
     print(BANNER)
@@ -229,8 +234,8 @@ async def run_demo() -> None:
         config=config,
         tool_registry=registry,
         validator=validator,
-        llm_planner=None,   # In production: inject arifOS agi_mind
-        audit_sink=None,    # In production: inject arifOS vault_ledger
+        llm_planner=None,  # In production: inject arifOS agi_mind
+        audit_sink=None,  # In production: inject arifOS vault_ledger
         memory_store=memory_store,
     )
     print("\n  GeoXAgent initialised (heuristic planner mode).")
@@ -269,24 +274,31 @@ async def run_demo() -> None:
 
     _subsection("arifOS Telemetry Block")
     import json
+
     print(json.dumps(response.arifos_telemetry, indent=2, default=str))
 
     _subsection("Insights Summary")
     for i, insight in enumerate(response.insights, 1):
         signoff_flag = "⚠️ SIGNOFF REQUIRED" if insight.requires_human_signoff else ""
-        print(f"\n  [{i}] Risk: {insight.risk_level.upper()} | Status: {insight.status} {signoff_flag}")
+        print(
+            f"\n  [{i}] Risk: {insight.risk_level.upper()} | Status: {insight.status} {signoff_flag}"
+        )
         print(f"       {insight.text[:300]}{'...' if len(insight.text) > 300 else ''}")
 
     if response.predictions:
         _subsection("Predictions")
         for pred in response.predictions:
             lo, hi = pred.expected_range
-            print(f"  {pred.target}: {lo:.3g}–{hi:.3g} {pred.units} ({pred.confidence:.0%} confidence, method: {pred.method})")
+            print(
+                f"  {pred.target}: {lo:.3g}–{hi:.3g} {pred.units} ({pred.confidence:.0%} confidence, method: {pred.method})"
+            )
 
     _subsection("Provenance Chain")
     if response.provenance_chain:
         for i, prov in enumerate(response.provenance_chain, 1):
-            print(f"  [{i}] {prov.source_type} | {prov.source_id[:30]} | conf={prov.confidence:.0%}")
+            print(
+                f"  [{i}] {prov.source_type} | {prov.source_id[:30]} | conf={prov.confidence:.0%}"
+            )
             if prov.citation:
                 print(f"       Citation: {prov.citation[:80]}")
     else:
@@ -312,7 +324,9 @@ async def run_demo() -> None:
     similar = await memory_store.retrieve("Malay Basin structural closure", basin="Malay Basin")
     print(f"  Similar prospects retrieved: {len(similar)}")
     for entry in similar:
-        print(f"    [{entry.entry_id}] {entry.prospect_name} | {entry.verdict} | conf={entry.confidence:.0%}")
+        print(
+            f"    [{entry.entry_id}] {entry.prospect_name} | {entry.verdict} | conf={entry.confidence:.0%}"
+        )
 
     # ---- Markdown Report ----
     _section("STEP 6: Full Markdown Audit Report")
@@ -341,7 +355,8 @@ async def run_demo() -> None:
 
     # ---- Demo Complete ----
     _section("DEMO COMPLETE — 999 SEAL")
-    print(f"""
+    print(
+        f"""
   Verdict:    {response.verdict}
   Confidence: {response.confidence_aggregate:.1%}
   Hold:       {response.arifos_telemetry.get('hold', 'UNKNOWN')}
@@ -357,7 +372,8 @@ async def run_demo() -> None:
     3. Inject llm_planner=agi_mind and audit_sink=vault_ledger into GeoXAgent
 
   DITEMPA BUKAN DIBERI
-""")
+"""
+    )
 
 
 # ---------------------------------------------------------------------------

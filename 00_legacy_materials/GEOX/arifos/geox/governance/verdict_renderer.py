@@ -21,43 +21,44 @@ from enum import Enum
 
 class GeoxVerdict(Enum):
     """GEOX verdict types."""
-    SEAL = "SEAL"           # All checks passed, proceed
-    SABAR = "SABAR"         # Proceed with documented reservations
-    PARTIAL = "PARTIAL"     # Partial compliance, review required
-    REVIEW = "REVIEW"       # Explicit human review required
-    HOLD = "HOLD"           # Pause pending resolution
-    VOID = "VOID"           # Reject, fundamental violation
-    PENDING = "PENDING"     # Not yet assessed
+
+    SEAL = "SEAL"  # All checks passed, proceed
+    SABAR = "SABAR"  # Proceed with documented reservations
+    PARTIAL = "PARTIAL"  # Partial compliance, review required
+    REVIEW = "REVIEW"  # Explicit human review required
+    HOLD = "HOLD"  # Pause pending resolution
+    VOID = "VOID"  # Reject, fundamental violation
+    PENDING = "PENDING"  # Not yet assessed
 
 
 @dataclass
 class RenderedVerdict:
     """A fully rendered GEOX verdict."""
-    
+
     # Core verdict
     verdict: str
     verdict_enum: GeoxVerdict
-    
+
     # Justification
     primary_reason: str
     constitutional_basis: list[str] = field(default_factory=list)
-    
+
     # Details
     confidence: float = 0.0
     risk_level: str = "UNKNOWN"  # LOW, MEDIUM, HIGH, CRITICAL
-    
+
     # Human review
     human_review_required: bool = False
     override_available: bool = True
-    
+
     # Recommendations
     recommendations: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
-    
+
     # Source
     source_operation: str | None = None
     source_tool: str | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "verdict": self.verdict,
@@ -70,7 +71,7 @@ class RenderedVerdict:
             "recommendation_count": len(self.recommendations),
             "warning_count": len(self.warnings),
         }
-    
+
     def to_human_readable(self) -> str:
         """Generate human-readable verdict report."""
         lines = [
@@ -81,48 +82,50 @@ class RenderedVerdict:
             f"Reason: {self.primary_reason}",
             "",
         ]
-        
+
         if self.constitutional_basis:
             lines.append("Constitutional Basis:")
             for basis in self.constitutional_basis:
                 lines.append(f"  • {basis}")
             lines.append("")
-        
-        lines.extend([
-            f"Confidence: {self.confidence:.1%}",
-            f"Risk Level: {self.risk_level}",
-            "",
-        ])
-        
+
+        lines.extend(
+            [
+                f"Confidence: {self.confidence:.1%}",
+                f"Risk Level: {self.risk_level}",
+                "",
+            ]
+        )
+
         if self.warnings:
             lines.append("Warnings:")
             for warning in self.warnings:
                 lines.append(f"  ⚠ {warning}")
             lines.append("")
-        
+
         if self.recommendations:
             lines.append("Recommendations:")
             for rec in self.recommendations:
                 lines.append(f"  → {rec}")
             lines.append("")
-        
+
         if self.human_review_required:
             lines.append("⚠ HUMAN REVIEW REQUIRED ⚠")
             lines.append(f"Override available: {self.override_available}")
-        
+
         lines.append("=" * 60)
-        
+
         return "\n".join(lines)
 
 
 class VerdictRenderer:
     """
     Renders GEOX verdicts with full context.
-    
+
     Converts internal verdict states to human-reviewable formats
     with constitutional justification.
     """
-    
+
     VERDICT_DESCRIPTIONS = {
         GeoxVerdict.SEAL: {
             "description": "All constitutional checks passed. Proceed with confidence.",
@@ -153,7 +156,7 @@ class VerdictRenderer:
             "human_review": False,
         },
     }
-    
+
     def render(
         self,
         verdict: str | GeoxVerdict,
@@ -168,7 +171,7 @@ class VerdictRenderer:
     ) -> RenderedVerdict:
         """
         Render a complete verdict.
-        
+
         Args:
             verdict: The verdict type
             reason: Primary reason for this verdict
@@ -179,7 +182,7 @@ class VerdictRenderer:
             warnings: Warning messages
             source_operation: ID of operation that generated this
             source_tool: Name of tool that generated this
-            
+
         Returns:
             Fully rendered verdict
         """
@@ -192,9 +195,9 @@ class VerdictRenderer:
         else:
             verdict_enum = verdict
             verdict = verdict.value
-        
+
         desc = self.VERDICT_DESCRIPTIONS.get(verdict_enum, {})
-        
+
         return RenderedVerdict(
             verdict=verdict,
             verdict_enum=verdict_enum,
@@ -209,7 +212,7 @@ class VerdictRenderer:
             source_operation=source_operation,
             source_tool=source_tool,
         )
-    
+
     def render_from_checkpoints(
         self,
         checkpoint_results: list[dict[str, Any]],
@@ -217,13 +220,13 @@ class VerdictRenderer:
     ) -> RenderedVerdict:
         """
         Render verdict from checkpoint results.
-        
+
         Automatically determines verdict based on checkpoint states.
         """
         passed = sum(1 for c in checkpoint_results if c.get("passed"))
         total = len(checkpoint_results)
         overridden = sum(1 for c in checkpoint_results if c.get("overridden"))
-        
+
         # Determine verdict
         if total == 0:
             verdict = GeoxVerdict.PENDING
@@ -243,13 +246,13 @@ class VerdictRenderer:
         else:
             verdict = GeoxVerdict.HOLD
             reason = f"Critical failures: only {passed}/{total} checkpoints passed"
-        
+
         # Collect warnings
         warnings = []
         for c in checkpoint_results:
             if not c.get("passed") and not c.get("overridden"):
                 warnings.append(f"Checkpoint {c.get('checkpoint_id')}: Failed")
-        
+
         return self.render(
             verdict=verdict,
             reason=reason,

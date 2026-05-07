@@ -1,7 +1,7 @@
 # GEOX Deployment Status
 
-> **Version:** 0.6.1 · **Status:** 🟢 ACTIVE (Heavy Witness Ignited)  
-> **Seal:** DITEMPA BUKAN DIBERI  
+> **Version:** 0.6.1 · **Status:** 🟢 ACTIVE (Heavy Witness Ignited)
+> **Seal:** DITEMPA BUKAN DIBERI
 > **Last Updated:** 2026-04-10
 
 ```
@@ -243,5 +243,5 @@ docker compose logs geox_server | grep -i error
 
 ---
 
-*Last verified: 2026-04-09 01:37 UTC*  
+*Last verified: 2026-04-09 01:37 UTC*
 *Constitutional State: DITEMPA BUKAN DIBERI — 999 SEAL*

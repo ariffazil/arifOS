@@ -4,8 +4,8 @@
 
 Successfully integrated **Theory of Mind (ToM)** structured inputs with **Philosophy Registry** (83 quotes) into the **9+1 Constitutional Architecture**.
 
-**Version**: 1.2.0  
-**Date**: 2026-04-06  
+**Version**: 1.2.0
+**Date**: 2026-04-06
 **Status**: OPERATIONAL
 
 ---
@@ -117,7 +117,7 @@ arifos.judge (Constitutional verdict)
     → arifos.forge (Execution bridge)
       → A-FORGE Substrate (spawn, write, send)
     → arifos.vault (Immutable receipt)
-  
+
   IF verdict == "VOID":
     → Blocked. No execution.
 ```

@@ -21,13 +21,14 @@ from typing import Optional
 HARD_TIERS = {"F13", "F1", "F2", "F6", "F9", "F10"}  # Irreversible
 SOFT_TIERS = {"F3", "F4", "F5", "F7", "F8", "F11", "F12"}  # Reversible/soft
 
-SLA_HARD_HOURS = 4   # Hard-tier: ACK required within 4 hours
+SLA_HARD_HOURS = 4  # Hard-tier: ACK required within 4 hours
 SLA_SOFT_HOURS = 24  # Soft-tier: ACK required within 24 hours
 DRIFT_THRESHOLD = 0.20  # 20% deviation from rolling baseline → alert
 ROLLING_WINDOW_DAYS = 30  # Baseline window
 
 
 # ── Vault999 Reader ────────────────────────────────────────────────────────────
+
 
 def vault999_path() -> Path:
     return Path(os.getenv("SENTINEL_VAULT999", "/root/.agent-workbench/vault999.jsonl"))
@@ -48,6 +49,7 @@ def read_vault999(limit: Optional[int] = None) -> list[dict]:
 
 
 # ── ACK State Machine ───────────────────────────────────────────────────────────
+
 
 @dataclass
 class VerdictEntry:
@@ -145,8 +147,12 @@ class ACKMachine:
 
     def get_stats(self) -> dict:
         now = time.time()
-        pending_hard_count = len([v for v in self.pending_hard if v.consequence_tier == "HARD_TIER"])
-        pending_soft_count = len([v for v in self.pending_hard if v.consequence_tier == "SOFT_TIER"])
+        pending_hard_count = len(
+            [v for v in self.pending_hard if v.consequence_tier == "HARD_TIER"]
+        )
+        pending_soft_count = len(
+            [v for v in self.pending_hard if v.consequence_tier == "SOFT_TIER"]
+        )
         expired_count = len(self.hard_sla_expired)
         acked_count = len(self.acked)
 

@@ -2,10 +2,10 @@
  * Domain1D — Borehole Intelligence (250-499)
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Well Context Desk & RATLAS implementation.
  * Surgical precision with JetBrains Mono typography. High-density data strips.
- * 
+ *
  * Features:
  * - LAS log track visualization with SVG
  * - Material calibration overlays
@@ -159,7 +159,7 @@ const LogTrackSVG: React.FC<{
   const curvePaths = useMemo(() => {
     return track.curves.map((curve) => {
       if (curve.data.length < 2) return null;
-      
+
       let path = `M ${xScale(curve.data[0].value)} ${yScale(curve.data[0].depth)}`;
       for (let i = 1; i < curve.data.length; i++) {
         path += ` L ${xScale(curve.data[i].value)} ${yScale(curve.data[i].depth)}`;

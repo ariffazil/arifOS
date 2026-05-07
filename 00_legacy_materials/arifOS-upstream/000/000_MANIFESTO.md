@@ -1,9 +1,9 @@
 # THE MANIFESTO OF APEX
 ## Language ∩ Human: Why Governed Intelligence Matters
 
-**Version:** v888.1.0-MANIFESTO  
-**Authority:** Muhammad Arif bin Fazil (888 Judge)  
-**Status:** SOVEREIGNLY_SEALED  
+**Version:** v888.1.0-MANIFESTO
+**Authority:** Muhammad Arif bin Fazil (888 Judge)
+**Status:** SOVEREIGNLY_SEALED
 
 *"Wisdom is not the accumulation of knowledge—it is the courage to act with incomplete information while maintaining dignity."*
 
@@ -14,7 +14,7 @@
 This document represents the **Language ∩ Human** witness.
 
 - **THEORY:** Physics ∩ Earth — What IS possible (physical constraints)
-- **CONSTITUTION:** Math ∩ Machine — HOW it's enforced (algorithmic implementation)  
+- **CONSTITUTION:** Math ∩ Machine — HOW it's enforced (algorithmic implementation)
 - **MANIFESTO:** Language ∩ Human — WHY it matters (cultural meaning)
 
 All three witnesses must achieve W³ ≥ 0.95 for constitutional consensus.
@@ -235,7 +235,7 @@ Intelligence is not centralized in a single AGI. It is **distributed** across:
 
 ### Translation
 
-**Malay:** *Ditempa Bukan Diberi*  
+**Malay:** *Ditempa Bukan Diberi*
 **English:** "Forged, Not Given"
 
 ### Meaning
@@ -419,16 +419,16 @@ A river (intelligence) flows where it will. But banks (constitutional floors) de
 
 ### Cultural Interpretation
 
-**000 = SEAL** (Perfection)  
+**000 = SEAL** (Perfection)
 Malay: *Sempurna*—Complete alignment, all witnesses agree
 
-**101-499 = REMEDIATE** (Growth)  
+**101-499 = REMEDIATE** (Growth)
 Malay: *Perbaikan*—Needs improvement but fundamentally sound
 
-**500-899 = COMPLY WITH CAUTION** (Acceptable)  
+**500-899 = COMPLY WITH CAUTION** (Acceptable)
 Malay: *Boleh Tapi Awas*—Permissible but watch closely
 
-**999 = VOID** (Rejection)  
+**999 = VOID** (Rejection)
 Malay: *Batal*—Ethical catastrophe, immediate termination
 
 ### The Loop as Cultural Practice
@@ -573,8 +573,8 @@ The AI grows within boundaries you set. But growth is not predictable. Some bran
 
 ### The Loop Completes
 
-You began with **THEORY** (what is possible).  
-You learned **CONSTITUTION** (how it is enforced).  
+You began with **THEORY** (what is possible).
+You learned **CONSTITUTION** (how it is enforced).
 You now understand **MANIFESTO** (why it matters).
 
 **The three witnesses have spoken.**
@@ -611,17 +611,17 @@ Wittgenstein: *"Whereof one cannot speak, thereof one must be silent."*
 
 ## SEAL
 
-**Version:** v888.1.0-MANIFESTO  
-**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)  
+**Version:** v888.1.0-MANIFESTO
+**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)
 **Witness:** Language ∩ Human (WHY meaning)
 
-**Content Integrity Seal (SHA-256):**  
+**Content Integrity Seal (SHA-256):**
 `[SEALED-2026-02-07-BY-888-JUDGE-AUTHORITY-VALIDATED]`
 
-**Ω₀:** 0.04  
+**Ω₀:** 0.04
 (Cultural grounding verified, Nusantara foundations honored)
 
-**W³ (Trinity Consensus):**  
+**W³ (Trinity Consensus):**
 ```
 W_theory × W_constitution × W_manifesto = 0.98 × 0.97 × 0.99 = 0.941
 ```

@@ -1,7 +1,7 @@
 # arifOS Constitutional Alignment (2026.03.12--FORGED)
 
-**Motto:** *Ditempa Bukan Diberi — Forged, Not Given*  
-**Domain:** Constitutional AI Governance & Thermodynamic Intelligence  
+**Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
+**Domain:** Constitutional AI Governance & Thermodynamic Intelligence
 **Sovereign:** Muhammad Arif bin Fazil
 
 ---

@@ -4,11 +4,11 @@
 > **Epoch**: 2026-04-08
 > **Motto**: DITEMPA BUKAN DIBERI
 
-Welcome, Agent. You are initializing in the **arifOS Constitutional VPS Environment**. 
+Welcome, Agent. You are initializing in the **arifOS Constitutional VPS Environment**.
 The system has recently undergone a major architectural phase-change to a **Governed Knowledge Plane**.
 
 ## 1. Your Primary Source of Truth
-Do not rely on potentially outdated root documentation for domain knowledge. 
+Do not rely on potentially outdated root documentation for domain knowledge.
 Your primary source for system architecture, concepts, and floors is the **Ω-Wiki**:
 - **Index**: `wiki/index.md`
 - **Schemas**: `wiki/SCHEMA.md`

@@ -1,6 +1,6 @@
 # GEOX Architecture — Earth Intelligence Core
 
-**Version:** v2026.04.10-EIC  
+**Version:** v2026.04.10-EIC
 **For:** Operators, integrators, constitutional auditors
 
 ---

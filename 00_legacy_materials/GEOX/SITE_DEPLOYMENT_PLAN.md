@@ -1,8 +1,8 @@
 # GEOX Site Deployment Plan
 
-> **Status:** 888 HOLD — PLAN COMPLETE, AWAITING EXECUTION  
-> **Authority:** Muhammad Arif bin Fazil  
-> **Date:** 2026-04-10  
+> **Status:** 888 HOLD — PLAN COMPLETE, AWAITING EXECUTION
+> **Authority:** Muhammad Arif bin Fazil
+> **Date:** 2026-04-10
 > **Seal:** DITEMPA BUKAN DIBERI
 
 ---
@@ -112,7 +112,7 @@ Every element maps to ONE of four states:
 | Sample workflows | LIVE | Can demonstrate | ✅ Yes |
 | Auth instructions | LIVE | Standard MCP | ✅ Yes |
 
-**Action:** Mark `geox_interpret_single_line` as SCAFFOLD (mock backend).  
+**Action:** Mark `geox_interpret_single_line` as SCAFFOLD (mock backend).
 **Action:** Mark `geox_digitize_analog` as PLANNED (not clickable).
 
 ---
@@ -127,7 +127,7 @@ Every element maps to ONE of four states:
 | AC_Risk Console | `/apps/ac-risk` | LIVE | ✅ ac_risk.py tested | 🟡 Needs UI | Build simple UI |
 | Analog Digitizer | `/apps/analog-digitizer` | PLANNED | 🔴 Architecture only | 🔴 None | Stub page only |
 
-**Decision:** 
+**Decision:**
 - Ship first 4 with honest badges
 - Hide Analog Digitizer OR show as "Planned - not available"
 
@@ -273,15 +273,15 @@ curl http://localhost:3000/docs
 ```
 
 ### Phase 1: Minimal Truthful Deploy
-**Routes:** `/`, `/mcp`, `/apps`, `/theory`, `/docs`  
+**Routes:** `/`, `/mcp`, `/apps`, `/theory`, `/docs`
 **Hidden:** `/cases` (until real examples ready)
 
-**Timeline:** Week 1  
+**Timeline:** Week 1
 **Goal:** Honest baseline site live
 
 ### Phase 2: Macrostrat Context
-**Add:** Earth Context section on homepage  
-**Timeline:** Week 2  
+**Add:** Earth Context section on homepage
+**Timeline:** Week 2
 **Goal:** Regional geology viewer embedded
 
 ### Phase 3: Operator Deepening
@@ -290,7 +290,7 @@ curl http://localhost:3000/docs
 - `/apps/ac-risk` → interactive calculator
 - `/apps/seismic-review` → real VLM backend
 
-**Timeline:** Weeks 3-4  
+**Timeline:** Weeks 3-4
 **Goal:** Working operator tools
 
 ### Phase 4: Analog & Cases
@@ -298,7 +298,7 @@ curl http://localhost:3000/docs
 - `/apps/analog-digitizer` (when ready)
 - `/cases` (with real examples)
 
-**Timeline:** Month 2  
+**Timeline:** Month 2
 **Goal:** Complete V1 feature set
 
 ---
@@ -368,15 +368,15 @@ curl http://localhost:3000/docs
   <p class="context-label">
     Geologic basemap / stratigraphic context powered by Macrostrat
   </p>
-  
+
   <!-- Macrostrat embed or link -->
   <div class="macrostrat-viewer">
     <iframe src="https://macrostrat.org/map" title="Macrostrat geology">
     </iframe>
   </div>
-  
+
   <p class="context-note">
-    Macrostrat provides regional geology context. 
+    Macrostrat provides regional geology context.
     Not a substitute for well-calibrated subsurface interpretation.
   </p>
 </section>
@@ -435,28 +435,28 @@ if result.verdict == "HOLD":
 <h1>Apps — Operator Interfaces</h1>
 
 <div class="app-grid">
-  
+
   <div class="app-card scaffold">
     <h3>Georeference Map</h3>
     <span class="badge">SCAFFOLD</span>
     <p>Upload map → detect GCPs → GeoTIFF + AC_Risk</p>
     <a href="/apps/georeference">Open</a>
   </div>
-  
+
   <div class="app-card live">
     <h3>AC_Risk Console</h3>
     <span class="badge">LIVE</span>
     <p>Inspect U_phys, D_transform, B_cog for any workflow</p>
     <a href="/apps/ac-risk">Open</a>
   </div>
-  
+
   <div class="app-card planned">
     <h3>Analog Digitizer</h3>
     <span class="badge">PLANNED</span>
     <p>Upload log image → trace curves → LAS + uncertainty</p>
     <span>Roadmap: Month 2</span>
   </div>
-  
+
 </div>
 ```
 
@@ -487,9 +487,9 @@ npm run deploy
 
 ## Execution Decision
 
-**Current State:** Plan complete, awaiting execution.  
-**Recommendation:** Review this plan, then execute Phase 0-1.  
-**Risk:** Low — minimal truthful deploy first.  
+**Current State:** Plan complete, awaiting execution.
+**Recommendation:** Review this plan, then execute Phase 0-1.
+**Risk:** Low — minimal truthful deploy first.
 **888 HOLD Status:** HOLD until you confirm:
 - [ ] Plan reviewed
 - [ ] Local build tested
@@ -498,5 +498,5 @@ npm run deploy
 
 ---
 
-*DITEMPA BUKAN DIBERI*  
+*DITEMPA BUKAN DIBERI*
 *Plan is forged. Execution is held. Release when ready.*

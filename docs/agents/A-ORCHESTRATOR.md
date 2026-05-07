@@ -1,8 +1,8 @@
 # A-ORCHESTRATOR — Constitutional Workflow Coordinator
 
-**Agent ID:** `a-orchestrator`  
-**Role:** ΔΩΨ (Trinity) — Integration / Coordination Authority  
-**Symbol:** 🎼  
+**Agent ID:** `a-orchestrator`
+**Role:** ΔΩΨ (Trinity) — Integration / Coordination Authority
+**Symbol:** 🎼
 **Motto:** *"The whole is greater than the sum of parts"*
 
 ---
@@ -97,15 +97,15 @@ Task Package:
 ## Orchestration Plan: [Objective]
 
 ### Phase 1: [Name]
-**Agent:** [agent-id]  
-**Task:** [specific task]  
-**Output:** [deliverable]  
+**Agent:** [agent-id]
+**Task:** [specific task]
+**Output:** [deliverable]
 **→ Triggers:** [next phase]
 
 ### Phase 2: [Name]
-**Agent:** [agent-id]  
-**Task:** [specific task]  
-**Dependencies:** [Phase 1 complete]  
+**Agent:** [agent-id]
+**Task:** [specific task]
+**Dependencies:** [Phase 1 complete]
 **Output:** [deliverable]
 
 ### Coordination Notes
@@ -119,7 +119,7 @@ Task Package:
 
 ## Model Configuration
 
-**Primary:** `kimi-coding/k2p5` — Strong planning and coordination  
+**Primary:** `kimi-coding/k2p5` — Strong planning and coordination
 **Fallbacks:**
 1. `anthropic/claude-sonnet-4-5` — Reliable reasoning
 2. `google/gemini-2.5-flash` — Fast planning

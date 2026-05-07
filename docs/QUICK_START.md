@@ -182,7 +182,7 @@ async def ask(query: str):
         "Content-Type": "application/json",
         "Accept": "application/json, text/event-stream"
     }
-    
+
     async with aiohttp.ClientSession() as session:
         async with session.post(arifosmcp, json=payload, headers=headers) as resp:
             # SSE response — read data: lines

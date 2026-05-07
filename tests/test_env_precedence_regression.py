@@ -23,7 +23,7 @@ def test_env_precedence_docker_compose_wins_over_dotenv_file(tmp_path: Path) -> 
     dotenv_file = tmp_path / ".env"
     dotenv_file.write_text(f'SEA_LION_API_KEY="{stale_key}"\n')
 
-    with tempfile.TemporaryDirectory() as old_cwd:
+    with tempfile.TemporaryDirectory():
         server_path = Path(__file__).resolve().parents[1] / "arifosmcp" / "server.py"
         assert server_path.exists(), f"server.py not found at {server_path}"
 

@@ -60,6 +60,7 @@ VLM_MAXIMUM_CONFIDENCE: float = 0.70
 # MockSeismicVLMTool
 # ---------------------------------------------------------------------------
 
+
 class MockSeismicVLMTool(BaseTool):
     """
     Mock Vision Language Model for seismic structural interpretation.
@@ -153,7 +154,9 @@ class MockSeismicVLMTool(BaseTool):
 
         # --- Build provenance (F11 Authority) ---
         source_id = f"MOCK-VLM-SEI-{seed % 100000:05d}"
-        prov = _build_vlm_prov(source_id, confidence=min(structural_confidence, VLM_MAXIMUM_CONFIDENCE))
+        prov = _build_vlm_prov(
+            source_id, confidence=min(structural_confidence, VLM_MAXIMUM_CONFIDENCE)
+        )
 
         # Default location: no geographic anchor from VLM perception alone
         # (F9 Anti-Hantu: do not fabricate coordinates from an image)
@@ -218,8 +221,8 @@ class MockSeismicVLMTool(BaseTool):
                 "model_version": "MockVLM-SEISMIC-GEOX-v0.1",
                 "seed": seed,
                 # Perception Bridge Rule enforcement metadata
-                "multisensor_required": True,         # ALWAYS True for VLM
-                "perception_only": True,               # ALWAYS True for VLM
+                "multisensor_required": True,  # ALWAYS True for VLM
+                "perception_only": True,  # ALWAYS True for VLM
                 "uncertainty_floor": VLM_MINIMUM_UNCERTAINTY,
                 "max_confidence": VLM_MAXIMUM_CONFIDENCE,
                 "corroboration_required": [
@@ -240,6 +243,7 @@ class MockSeismicVLMTool(BaseTool):
 # Provenance builder
 # ---------------------------------------------------------------------------
 
+
 def _build_vlm_prov(source_id: str, confidence: float) -> ProvenanceRecord:
     """Build a ProvenanceRecord for VLM outputs with F11 compliance."""
     # Cap confidence at VLM_MAXIMUM_CONFIDENCE (epistemic limit of visual-only)
@@ -257,7 +261,7 @@ def _build_vlm_prov(source_id: str, confidence: float) -> ProvenanceRecord:
             "F1_amanah": True,
             "F2_truth": True,
             "F4_clarity": True,
-            "F7_humility": True,    # Enforced via uncertainty ≥ 0.15
+            "F7_humility": True,  # Enforced via uncertainty ≥ 0.15
             "F9_anti_hantu": True,  # perception_bridge_warning included
             "F11_authority": True,
             "F13_sovereign": True,

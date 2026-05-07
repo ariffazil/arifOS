@@ -2,6 +2,7 @@ from functools import wraps
 import os
 
 from core.shared.vault_client import VaultClient
+
 # Use core.floors as the source for tool call evaluation
 try:
     from core.floors import evaluate_tool_call, Verdict
@@ -11,13 +12,17 @@ except ImportError:
         SEAL = "SEAL"
         HOLD = "HOLD"
         VOID = "VOID"
-    
+
     def evaluate_tool_call(**kwargs):
         class MockGov:
             verdict = Verdict.SEAL
             message = "PASSED"
-            def to_dict(self): return {"verdict": self.verdict, "message": self.message}
+
+            def to_dict(self):
+                return {"verdict": self.verdict, "message": self.message}
+
         return MockGov()
+
 
 # Initialize VaultClient with ORGAN_ID from environment
 ORGAN_ID = os.getenv("ORGAN_ID", "unknown")
@@ -42,17 +47,18 @@ def governed_tool(fn):
     3. Execute if SEAL
     4. Vault seal regardless of verdict
     """
+
     @wraps(fn)
     async def wrapper(*args, **kwargs):
         # Extract context if present, else use default
         ctx = kwargs.get("ctx", {})
         if not isinstance(ctx, dict):
             ctx = {}
-        
+
         actor_id = ctx.get("actor_id", "anonymous")
         session_id = ctx.get("session_id", "unknown")
         tool_name = fn.__name__
-        
+
         # ── 1. F11 Session Gate (Option C) ─────────────────────────────────
         is_anonymous = not actor_id or actor_id.strip().lower() in {"anonymous", "", "none"}
         if is_anonymous and tool_name not in ANONYMOUS_ALLOWED_TOOLS:
@@ -78,7 +84,7 @@ def governed_tool(fn):
             actor_id=actor_id,
             session_id=session_id,
         )
-        
+
         verdict = "SEAL" if gov.verdict == Verdict.SEAL else "HOLD"
         if gov.verdict == Verdict.VOID:
             verdict = "VOID"
@@ -90,13 +96,18 @@ def governed_tool(fn):
 
         # ── 4. Always seal — even HOLDs get logged ─────────────────────────
         floor_results = []
-        if hasattr(gov, 'floor_results'):
-             floor_results = [
-                 {"id": r.floor_id, "name": r.name, "status": "PASS" if r.passed else "FAIL", "score": r.score}
-                 for r in gov.floor_results
-             ]
+        if hasattr(gov, "floor_results"):
+            floor_results = [
+                {
+                    "id": r.floor_id,
+                    "name": r.name,
+                    "status": "PASS" if r.passed else "FAIL",
+                    "score": r.score,
+                }
+                for r in gov.floor_results
+            ]
         else:
-             floor_results = [{"verdict": str(gov.verdict), "message": gov.message}]
+            floor_results = [{"verdict": str(gov.verdict), "message": gov.message}]
 
         # Thread plan metadata if present in context (repaired Planning Organ)
         plan_meta = ctx.get("_plan_metadata") if isinstance(ctx, dict) else None
@@ -118,9 +129,9 @@ def governed_tool(fn):
                 "ok": False,
                 "verdict": verdict,
                 "message": f"Governance {verdict}: {gov.message}",
-                "floors": floor_results
+                "floors": floor_results,
             }
-            
+
         return result
 
     return wrapper

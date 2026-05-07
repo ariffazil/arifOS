@@ -1,17 +1,17 @@
 # SPRINT-2026-05-03-DRIFT-LEDGER-CLOSURE
 ## OpenCode Execution Prompt — Final Seal Test
 
-**Status:** PARTIAL SEAL → targeting FULL SEAL  
-**Epoch:** 2026-05-03T01:07:00+08:00  
-**Actor:** Arif Fazil (Sovereign Judge)  
+**Status:** PARTIAL SEAL → targeting FULL SEAL
+**Epoch:** 2026-05-03T01:07:00+08:00
+**Actor:** Arif Fazil (Sovereign Judge)
 **Repo HEAD:** cac09202 (main, origin aligned)
 
 ---
 
 ## MISSION
 
-Close the three remaining 888_HOLD items from the prior sprint.  
-Prove vault drift persistence end-to-end.  
+Close the three remaining 888_HOLD items from the prior sprint.
+Prove vault drift persistence end-to-end.
 No new features. No architectural expansion. Proof only.
 
 ---
@@ -136,7 +136,7 @@ SEAL: VAULT_DRIFT_PERSISTENCE_SEAL
 | `VAULT_DRIFT_PERSISTENCE_SEAL` | drift_count >= 1 after init → emit → seal → readback |
 | `.bak cleanup` | reply.py.bak removed or archived |
 
-When all four pass → sprint is FULL SEAL.  
+When all four pass → sprint is FULL SEAL.
 Report each gate result explicitly. Do not mark FULL SEAL unless all four are verified.
 
 ---

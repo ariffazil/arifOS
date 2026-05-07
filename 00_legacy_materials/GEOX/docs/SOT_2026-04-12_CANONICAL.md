@@ -1,7 +1,7 @@
 # GEOX State of the Tree (SOT) — 2026-04-12 (Post-Refactor)
 
-> **Canonical reference for GEOX repository state after Anti-Chaos Refactor**  
-> **Seal:** DITEMPA BUKAN DIBERI  
+> **Canonical reference for GEOX repository state after Anti-Chaos Refactor**
+> **Seal:** DITEMPA BUKAN DIBERI
 > **Version:** v2.1.0-MULTI-PLANE
 > **Architecture:** Multi-Plane Contract (Contract / Control / Execution / Domain / Governance)
 
@@ -32,7 +32,7 @@ The repository has been restructured to enforce a strict separation of concerns 
 | `map_transform_coordinates` | Map | ✅ FULL PARITY |
 | `physics_judge_verdict` | Physics | ✅ FULL PARITY |
 
-**Naming Law:** `<dimension>_<action>` (e.g., `well_qc_logs`).  
+**Naming Law:** `<dimension>_<action>` (e.g., `well_qc_logs`).
 **Return Law:** Standardized Artifact Envelope with `execution_status`, `tool_class`, and `governance_status`.
 
 ---

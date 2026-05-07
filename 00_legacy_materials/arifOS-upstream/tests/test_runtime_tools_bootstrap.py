@@ -3,7 +3,7 @@ tests/test_runtime_tools_bootstrap.py — Runtime Tools Bootstrap & State Ladder
 
 Tests for critical runtime tools:
 - init_anchor: bootstrap guidance, authority, auth_context
-- check_vital: state ladder, operator guidance  
+- check_vital: state ladder, operator guidance
 - audit_rules: tool contract table, canon://states reference
 - Remediation-first error responses
 
@@ -28,6 +28,7 @@ from arifosmcp.runtime.model import (
 # =============================================================================
 # init_anchor Tests
 # =============================================================================
+
 
 @pytest.mark.asyncio
 class TestInitAnchorBootstrap:
@@ -117,6 +118,7 @@ class TestInitAnchorBootstrap:
 # check_vital Tests
 # =============================================================================
 
+
 @pytest.mark.asyncio
 class TestCheckVitalBootstrap:
     """Test check_vital returns proper bootstrap guidance and state ladder."""
@@ -126,7 +128,7 @@ class TestCheckVitalBootstrap:
         envelope = await check_vital(session_id="global")
         assert envelope.ok is True
         assert "bootstrap" in envelope.payload, f"Keys: {list(envelope.payload.keys())}"
-        
+
         bootstrap = envelope.payload["bootstrap"]
         assert "current_state" in bootstrap
         assert "operator_guidance" in bootstrap
@@ -135,7 +137,7 @@ class TestCheckVitalBootstrap:
         """check_vital with global session should show anonymous state."""
         envelope = await check_vital(session_id="global")
         assert envelope.ok is True
-        
+
         bootstrap = envelope.payload.get("bootstrap", {})
         current_state = bootstrap.get("current_state", "")
         # global session is anonymous
@@ -145,31 +147,38 @@ class TestCheckVitalBootstrap:
         """Anonymous state should suggest init_anchor."""
         envelope = await check_vital(session_id="global")
         assert envelope.ok is True
-        
+
         bootstrap = envelope.payload.get("bootstrap", {})
         guidance = bootstrap.get("operator_guidance", {})
-        
+
         # Should point to init_anchor as next step
         action = str(guidance.get("action", "")).upper()
         tool = str(guidance.get("tool", ""))
         example = str(guidance.get("example", ""))
-        
+
         assert "INIT" in action or "init" in tool.lower() or "anchor" in tool.lower()
-        assert "init_anchor" in tool.lower() or "init_anchor" in example.lower() or "anchor" in example.lower()
+        assert (
+            "init_anchor" in tool.lower()
+            or "init_anchor" in example.lower()
+            or "anchor" in example.lower()
+        )
 
     async def test_check_vital_returns_ladder_resource(self):
         """check_vital should reference canon://states."""
         envelope = await check_vital(session_id="global")
         assert envelope.ok is True
-        
+
         # Should reference the states resource somewhere
         payload_str = str(envelope.payload).lower()
-        assert "canon://states" in payload_str or "ladder" in payload_str or "bootstrap" in payload_str
+        assert (
+            "canon://states" in payload_str or "ladder" in payload_str or "bootstrap" in payload_str
+        )
 
 
 # =============================================================================
 # audit_rules Tests
 # =============================================================================
+
 
 @pytest.mark.asyncio
 class TestAuditRulesBootstrap:
@@ -206,6 +215,7 @@ class TestAuditRulesBootstrap:
 # Remediation-First Error Tests
 # =============================================================================
 
+
 @pytest.mark.asyncio
 class TestRemediationErrors:
     """Test error responses include remediation guidance."""
@@ -218,14 +228,14 @@ class TestRemediationErrors:
             session_id="global",  # anonymous session
             risk_tier="high",  # high risk requires auth
         )
-        
+
         # Should be HOLD or VOID
         assert envelope.verdict in [Verdict.HOLD, Verdict.VOID, Verdict.SABAR]
-        
+
         # Verify we have some remediation info
         has_remediation = (
-            envelope.next_action is not None 
-            or len(envelope.errors) > 0 
+            envelope.next_action is not None
+            or len(envelope.errors) > 0
             or envelope.verdict == Verdict.HOLD
         )
         assert has_remediation
@@ -237,9 +247,11 @@ class TestRemediationErrors:
             session_id="global",
             risk_tier="high",
         )
-        
+
         # Should point to anchor or init
-        guidance = str(envelope.next_action) + str(envelope.errors) + str(envelope.allowed_next_tools)
+        guidance = (
+            str(envelope.next_action) + str(envelope.errors) + str(envelope.allowed_next_tools)
+        )
         assert "init_anchor" in guidance.lower() or "anchor" in guidance.lower()
 
     async def test_error_includes_required_fields(self):
@@ -249,7 +261,7 @@ class TestRemediationErrors:
             session_id="global",
             risk_tier="high",
         )
-        
+
         # Should have some explanatory content
         assert envelope.verdict in [Verdict.HOLD, Verdict.VOID, Verdict.SABAR]
         assert len(str(envelope.payload)) > 10
@@ -259,6 +271,7 @@ class TestRemediationErrors:
 # State Ladder Tests
 # =============================================================================
 
+
 @pytest.mark.asyncio
 class TestStateLadder:
     """Test the 6-stage state ladder is properly implemented."""
@@ -266,7 +279,7 @@ class TestStateLadder:
     async def test_canon_states_resource_registered(self):
         """canon://states should be in public resources."""
         from arifosmcp.runtime.public_registry import public_resource_uris
-        
+
         resources = public_resource_uris()
         # Some implementations might use different URIs for discovery
         assert len(resources) >= 0
@@ -274,11 +287,11 @@ class TestStateLadder:
     async def test_state_ladder_has_all_six_states(self):
         """State ladder should have all 6 states."""
         envelope = await check_vital(session_id="global")
-        
+
         # Check that all states are referenced somewhere
         payload_str = str(envelope.payload).lower()
         expected_states = ["anonymous", "claimed", "anchored", "verified"]
-        
+
         found_states = [s for s in expected_states if s in payload_str]
         assert len(found_states) >= 2
 
@@ -297,6 +310,7 @@ class TestStateLadder:
 # Integration Tests
 # =============================================================================
 
+
 @pytest.mark.asyncio
 class TestBootstrapFlowIntegration:
     """Test the full bootstrap sequence works end-to-end."""
@@ -306,10 +320,10 @@ class TestBootstrapFlowIntegration:
         # Phase 1: Discovery
         vital1 = await check_vital(session_id="global")
         assert vital1.ok is True
-        
+
         audit = await audit_rules(session_id="global")
         assert audit.ok is True
-        
+
         # Phase 2: Identity
         anchor = await init_anchor(
             raw_input="Test full bootstrap",
@@ -318,7 +332,7 @@ class TestBootstrapFlowIntegration:
         )
         assert anchor.ok is True
         assert anchor.session_id != "global"
-        
+
         # Phase 3: Verify state change
         vital2 = await check_vital(session_id=anchor.session_id)
         assert vital2.ok is True
@@ -333,7 +347,7 @@ class TestBootstrapFlowIntegration:
             declared_name="Kernel Test",
         )
         assert anchor.ok is True
-        
+
         # Try low-risk kernel call with anchored session
         kernel = await arifos_kernel(
             query="analyze system health",
@@ -341,5 +355,5 @@ class TestBootstrapFlowIntegration:
             risk_tier="low",
             dry_run=True,
         )
-        
+
         assert kernel.session_id == anchor.session_id

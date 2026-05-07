@@ -40,11 +40,11 @@ mcp = FastMCP(
     version=GEOX_VERSION,
     on_duplicate="error",
     instructions="""Canonical GEOX Registry & MCP App Control Plane.
-    
+
     This server acts as the dashboard-ready entry point for all GEOX dimensions.
     It provides discovery for Prospect, Well, Earth3D, Section, Time4D, Physics, Map, and Cross.
-    
-    All tools follow the <dimension>_<action> naming convention and return 
+
+    All tools follow the <dimension>_<action> naming convention and return
     standardized artifact envelopes.
     """,
 )
@@ -58,10 +58,21 @@ sys.path.append(os.getcwd())
 DIMENSION_GATES = {
     "core": ["physics", "map"],
     "vps": ["prospect", "well", "earth3d", "map", "cross", "dashboard"],
-    "full": ["prospect", "well", "section", "earth3d", "time4d", "physics", "map", "cross", "dashboard"]
+    "full": [
+        "prospect",
+        "well",
+        "section",
+        "earth3d",
+        "time4d",
+        "physics",
+        "map",
+        "cross",
+        "dashboard",
+    ],
 }
 
 ENABLED_DIMENSIONS = DIMENSION_GATES.get(GEOX_PROFILE, ["physics", "map", "dashboard"])
+
 
 def bootstrap_registries():
     registry_map = {
@@ -73,7 +84,7 @@ def bootstrap_registries():
         "physics": "contracts.tools.physics",
         "map": "contracts.tools.map",
         "cross": "contracts.tools.cross",
-        "dashboard": "contracts.tools.dashboard"
+        "dashboard": "contracts.tools.dashboard",
     }
 
     for dim in ENABLED_DIMENSIONS:
@@ -81,6 +92,7 @@ def bootstrap_registries():
             module_name = registry_map[dim]
             try:
                 import importlib
+
                 module = importlib.import_module(module_name)
                 func_name = f"register_{dim}_tools"
                 if hasattr(module, func_name):
@@ -90,11 +102,13 @@ def bootstrap_registries():
             except Exception as e:
                 logger.error(f"Failed to bootstrap {dim} registry: {e}")
 
+
 bootstrap_registries()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DASHBOARD / MCP APTS METADATA
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @mcp.resource("geox://registry/apps")
 async def list_geox_apps() -> list[dict]:
@@ -111,6 +125,7 @@ async def list_geox_apps() -> list[dict]:
                     logger.error(f"Failed to load manifest {filename}: {e}")
     return apps
 
+
 @mcp.resource("geox://profile/status")
 async def get_profile_status() -> dict:
     return {
@@ -119,8 +134,9 @@ async def get_profile_status() -> dict:
         "profile": GEOX_PROFILE,
         "enabled_dimensions": ENABLED_DIMENSIONS,
         "version": GEOX_VERSION,
-        "seal": GEOX_SEAL
+        "seal": GEOX_SEAL,
     }
+
 
 @mcp.resource("ui://{app_id}")
 async def get_ui_resource(app_id: str) -> str:
@@ -129,22 +145,24 @@ async def get_ui_resource(app_id: str) -> str:
     # Map app_id to filename if needed, or assume app_id.html
     filename = f"{app_id}.html"
     file_path = os.path.join(ui_dir, filename)
-    
+
     if os.path.exists(file_path):
         with open(file_path, "r") as f:
             return f.read()
-    
+
     # Fallback to a generic well-dashboard if app_id not found for demo purposes
     fallback_path = os.path.join(ui_dir, "well-dashboard.html")
     if os.path.exists(fallback_path):
         with open(fallback_path, "r") as f:
             return f.read()
-            
+
     return f"Error: UI resource {app_id} not found."
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HEALTH & LEGACY BRIDGE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def build_status_payload() -> dict:
     return {
@@ -158,8 +176,10 @@ def build_status_payload() -> dict:
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
+
 async def health_handler(request):
     return JSONResponse(build_status_payload())
+
 
 async def run_legacy_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     # This server uses the canonical tools directly from registries
@@ -167,12 +187,13 @@ async def run_legacy_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any
     # FastMCP call_tool returns a ToolResult object
     return {"success": True, "data": tool_result.content[0].text if tool_result.content else {}}
 
+
 async def legacy_mcp_handler(request):
     try:
         payload = await request.json()
     except:
         return JSONResponse({"error": "Parse error"}, status_code=400)
-    
+
     method = payload.get("method")
     params = payload.get("params", {})
     response_id = payload.get("id")
@@ -180,14 +201,21 @@ async def legacy_mcp_handler(request):
     if method == "tools/list":
         tools = [{"name": t.name, "description": t.description} for t in await mcp.list_tools()]
         return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}})
-    
+
     if method == "tools/call":
         name = params.get("name")
         args = params.get("arguments", {})
         result = await run_legacy_tool(name, args)
-        return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"content": [{"type": "text", "text": json.dumps(result)}]}})
+        return JSONResponse(
+            {
+                "jsonrpc": "2.0",
+                "id": response_id,
+                "result": {"content": [{"type": "text", "text": json.dumps(result)}]},
+            }
+        )
 
     return JSONResponse({"error": "Method not found"}, status_code=404)
+
 
 def create_app():
     mcp_app = mcp.http_app(path="/mcp/stream", transport="streamable-http")
@@ -195,10 +223,11 @@ def create_app():
         routes=[
             Route("/health", health_handler, methods=["GET"]),
             Route("/mcp", legacy_mcp_handler, methods=["POST"]),
-            Mount("/", mcp_app)
+            Mount("/", mcp_app),
         ],
         lifespan=getattr(mcp_app, "lifespan", None),
     )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -207,6 +236,7 @@ def main() -> None:
     args = parser.parse_args()
     app = create_app()
     uvicorn.run(app, host=args.host, port=args.port)
+
 
 if __name__ == "__main__":
     main()

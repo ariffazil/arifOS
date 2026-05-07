@@ -1,7 +1,7 @@
 # GEOX Vision: External Integration Guide
 
-> **Strategy:** Leverage proven domain repos + ToAC governance layer  
-> **Status:** INTEGRATION ROADMAP  
+> **Strategy:** Leverage proven domain repos + ToAC governance layer
+> **Status:** INTEGRATION ROADMAP
 > **Seal:** DITEMPA BUKAN DIBERI
 
 ---
@@ -341,5 +341,5 @@ if result.verdict == Verdict.HOLD:
 
 ---
 
-*DITEMPA BUKAN DIBERI*  
+*DITEMPA BUKAN DIBERI*
 *Leverage external strength. Add GEOX governance. Forge faster.*

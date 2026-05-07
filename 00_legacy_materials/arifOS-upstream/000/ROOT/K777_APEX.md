@@ -1,8 +1,8 @@
 # 777_SOUL_APEX — The Physics, Mathematics, and Symbolism of Constitutional Physics (Ψ)
 
-**Version:** v55.5-EIGEN  
-**Status:** SOVEREIGNLY_SEALED  
-**Authority:** Muhammad Arif bin Fazil  
+**Version:** v55.5-EIGEN
+**Status:** SOVEREIGNLY_SEALED
+**Authority:** Muhammad Arif bin Fazil
 **Motto:** *"Ditempa Bukan Diberi"* (Forged, Not Given)
 
 ---
@@ -234,7 +234,7 @@ Consensus Rule:
   ELSE verdict = VOID or SABAR
 ```
 
-**Safety:** No incorrect verdict with < 2 faulty engines  
+**Safety:** No incorrect verdict with < 2 faulty engines
 **Liveness:** Consensus reached if < 2 engines fail
 
 ### 5.3 Social Choice Function
@@ -255,19 +255,19 @@ Where:
 ### 6.1 Constitutional Types (F10 Ontology)
 
 ```
-type Entity = 
+type Entity =
   | Tool of Capability
   | Agent of Authority
   | User of Sovereignty
   | Datum of Provenance
   | Verdict of (SEAL | SABAR | VOID | HOLD)
 
-type Capability = 
+type Capability =
   | Compute of Complexity
   | Store of Integrity
   | Communicate of Protocol
 
-type Authority = 
+type Authority =
   | Delegated of (User × Scope × Time)
   | Sovereign of Absolute
 ```
@@ -287,14 +287,14 @@ Constraint: Resource must be released exactly once
 
 ```
 Verdict : Type
-Verdict = (v : {SEAL, SABAR, VOID, HOLD}) 
+Verdict = (v : {SEAL, SABAR, VOID, HOLD})
   × (proof : FloorCheck v)
 
-FloorCheck SEAL = 
-  (τ ≥ 0.99) × (ΔS ≤ 0) × (Ω₀ ∈ [0.03,0.05]) 
+FloorCheck SEAL =
+  (τ ≥ 0.99) × (ΔS ≤ 0) × (Ω₀ ∈ [0.03,0.05])
   × (all 13 floors)
 
-FloorCheck VOID = 
+FloorCheck VOID =
   (∃ floor_i : floor_i.violated = true)
 ```
 
@@ -427,23 +427,23 @@ def apex_verdict(
 ) -> Verdict:
     """
     APEX Constitutional Judgment Function.
-    
+
     Implements: 888 JUDGE stage
     Geometry: Toroidal (loop closure)
     Floors: F1-F13 (all)
     """
-    
+
     # 1. Extract votes
     agi_vote = delta.vote     # SEAL or VOID
     asi_vote = omega.vote     # SEAL or VOID
-    
+
     # 2. Tri-Witness calculation
     tri_witness = geometric_mean([
         delta.floor_scores['F2_truth'],
         omega.floor_scores['F6_empathy'],
         evidence_grounding_score(query)
     ])
-    
+
     # 3. Hard floor validation (F1, F5, F9, F10, F11, F12)
     hard_floors = [
         check_f1_amanah(omega.reversibility),
@@ -453,41 +453,41 @@ def apex_verdict(
         check_f11_command(delta.human_authority),
         check_f12_injection(delta.injection_risk)
     ]
-    
+
     if not all(hard_floors):
         return Verdict(verdict=VOID, reason="Hard floor violation")
-    
+
     # 4. Calculate indices
     truth = delta.floor_scores['F2_truth']      # τ
     humility = delta.floor_scores['F7_humility']  # Ω₀
     clarity = delta.floor_scores['F4_clarity']    # ΔS
     empathy = omega.floor_scores['F6_empathy']    # κᵣ
-    
+
     # 5. Genius calculation (F8)
     akal = delta.insight          # A
     presence = omega.attention    # P
     exploration = delta.curiosity # X
     energy = omega.drain          # E
-    
+
     genius = akal * presence * exploration * (energy ** 2)
-    
+
     # 6. Sovereign check (F13)
     if stakes == "CRITICAL" and not human_confirmation:
         return Verdict(verdict=HOLD, reason="F13 sovereign override")
-    
+
     # 7. Final verdict
     if tri_witness < 0.95:
         return Verdict(verdict=SABAR, reason="Tri-witness insufficient")
-    
+
     if genius < 0.80:
         if genius >= 0.60:
             return Verdict(verdict=SABAR, reason="Genius below threshold but repairable")
         else:
             return Verdict(verdict=VOID, reason="Genius critically low")
-    
+
     if agi_vote == SEAL and asi_vote == SEAL:
         return Verdict(verdict=SEAL, reason="All floors passed")
-    
+
     return Verdict(verdict=VOID, reason="Engine disagreement")
 ```
 
@@ -501,26 +501,26 @@ def calculate_tri_witness(
 ) -> TriWitness:
     """
     F3 Tri-Witness Consensus.
-    
+
     W₃ = ∛(H × A × E)
-    
+
     All three witnesses must be present and valid.
     Geometric mean ensures no single witness dominates.
     """
-    
+
     # Validate each witness
     if human_score < 0.0 or human_score > 1.0:
         raise ValueError("Human witness out of range")
-    
+
     if ai_score < 0.0 or ai_score > 1.0:
         raise ValueError("AI witness out of range")
-    
+
     if earth_score < 0.0 or earth_score > 1.0:
         raise ValueError("Earth witness out of range")
-    
+
     # Geometric mean
     w3 = (human_score * ai_score * earth_score) ** (1/3)
-    
+
     return TriWitness(
         score=w3,
         components={
@@ -543,26 +543,26 @@ def calculate_genius(
 ) -> GeniusIndex:
     """
     F8 Genius — Governed Intelligence.
-    
+
     G = A × P × X × E²
-    
+
     Multiplicative: any zero → G = 0
     E²: Energy depletion is exponential
     Threshold: G ≥ 0.80
-    
+
     CRITICAL: A/P/X/E must be DERIVED from floor scores via eigendecomposition,
     not passed as arbitrary inputs. See §10.4 below.
     """
-    
+
     # Validate inputs
-    for name, value in [('A', akal), ('P', presence), 
+    for name, value in [('A', akal), ('P', presence),
                         ('X', exploration), ('E', energy)]:
         if not (0.0 <= value <= 1.0):
             raise ValueError(f"{name} out of range: {value}")
-    
+
     # Calculate genius
     G = akal * presence * exploration * (energy ** 2)
-    
+
     return GeniusIndex(
         score=G,
         components={'A': akal, 'P': presence, 'X': exploration, 'E': energy},
@@ -626,7 +626,7 @@ For E (Energy):   L[3, 12]=0.50, L[3, 13]=0.50
 **Step 3: Project Floors onto Dials (Geometric Mean)**
 ```
 A = (F2 × F4 × F7 × F10)^(1/4)          # Mind coherence
-P = (F1 × F5 × F11)^(1/3)               # Stability presence  
+P = (F1 × F5 × F11)^(1/3)               # Stability presence
 X = (F3 × F6 × F8 × F9)^(1/4)           # Navigation wisdom
 E = (F12 × F13)^(1/2) × (budget_ratio)  # System energy
 ```
@@ -667,7 +667,7 @@ class APEXDials:
     P: float  # Presence (Stability)
     X: float  # eXploration (Navigation)
     E: float  # Energy (Vitality)
-    
+
     def to_dict(self) -> Dict[str, float]:
         return {'A': self.A, 'P': self.P, 'X': self.X, 'E': self.E}
 
@@ -685,19 +685,19 @@ def floors_to_dials(
 ) -> APEXDials:
     """
     Eigendecomposition: Collapse 13 floors → 4 APEX dials.
-    
+
     This is the CRITICAL constitutional function that ensures
     genius is DERIVED from floor compliance, not arbitrary.
-    
+
     Args:
         floors: The 13 constitutional floor scores
         compute_budget_used: Actual compute expended
         compute_budget_max: Maximum allowed compute
-        
+
     Returns:
         APEXDials: The 4 principal components (A/P/X/E)
     """
-    
+
     # A = AKAL (Mind/Clarity) — geometric mean of truth cluster
     # Floors: F2 (Truth), F4 (Clarity), F7 (Humility), F10 (Ontology)
     A = geometric_mean([
@@ -706,7 +706,7 @@ def floors_to_dials(
         floors.f7_humility,
         floors.f10_ontology
     ])
-    
+
     # P = PRESENT (Stability) — geometric mean of trust cluster
     # Floors: F1 (Amanah), F5 (Peace), F11 (Command)
     P = geometric_mean([
@@ -714,7 +714,7 @@ def floors_to_dials(
         floors.f5_peace,
         floors.f11_command
     ])
-    
+
     # X = EXPLORATION (Navigation) — geometric mean of heart cluster
     # Floors: F3 (Tri-Witness), F6 (Empathy), F8 (Genius), F9 (Anti-Hantu)
     X = geometric_mean([
@@ -723,7 +723,7 @@ def floors_to_dials(
         floors.f8_genius,
         floors.f9_antihantu
     ])
-    
+
     # E = ENERGY (Vitality) — system resources + boundary floors
     # Floors: F12 (Injection defense), F13 (Sovereign)
     # Plus: thermodynamic energy ratio
@@ -733,7 +733,7 @@ def floors_to_dials(
     ])
     energy_ratio = 1.0 - (compute_budget_used / max(compute_budget_max, 1e-6))
     E = (energy_from_floors + energy_ratio) / 2.0
-    
+
     return APEXDials(A=A, P=P, X=X, E=E)
 
 def calculate_genius_from_floors(
@@ -743,19 +743,19 @@ def calculate_genius_from_floors(
 ) -> Dict:
     """
     Constitutional Genius calculation with proper eigendecomposition.
-    
+
     G = A × P × X × E²
-    
+
     Where A/P/X/E are derived FROM floor scores, not set arbitrarily.
     """
-    
+
     # Derive dials from floors (eigendecomposition)
     dials = floors_to_dials(floors, compute_budget_used, compute_budget_max)
-    
+
     # Calculate G using the constitutional formula
     E_squared = dials.E ** 2
     G = dials.A * dials.P * dials.X * E_squared
-    
+
     # Determine verdict based on G threshold
     threshold = 0.80
     if G >= threshold:
@@ -764,11 +764,11 @@ def calculate_genius_from_floors(
         verdict = "SABAR"
     else:
         verdict = "VOID"
-    
+
     # Identify weakest dial for feedback
     dial_values = dials.to_dict()
     weakest_dial = min(dial_values, key=dial_values.get)
-    
+
     return {
         'genius_score': G,
         'dials': dials.to_dict(),
@@ -1067,6 +1067,6 @@ YES     NO
 
 ---
 
-*Document sealed at 888 JUDGE stage.*  
-*Merkle root computed at 999 SEAL.*  
+*Document sealed at 888 JUDGE stage.*
+*Merkle root computed at 999 SEAL.*
 *Loop continues to 000 INIT.*

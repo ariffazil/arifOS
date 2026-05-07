@@ -1,7 +1,7 @@
 # Vibe Coder Brief — arifOS Autoresearch
 
-**Date:** 2026-04-22  
-**Author:** OpenClaw (arifOS_bot)  
+**Date:** 2026-04-22
+**Author:** OpenClaw (arifOS_bot)
 **For:** Mistral Vibe (autonomous coder)
 
 ---

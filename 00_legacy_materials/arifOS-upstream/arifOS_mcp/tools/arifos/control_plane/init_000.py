@@ -56,8 +56,8 @@ async def init_000(
         }
 
     # Get constitutional doctrine
-    doctrine = await get_doctrine()
-    floor_doc = await get_doctrine_floor("F1")
+    await get_doctrine()
+    await get_doctrine_floor("F1")
 
     # Session anchoring
     session_id = f"{operator_id}@{epoch}"

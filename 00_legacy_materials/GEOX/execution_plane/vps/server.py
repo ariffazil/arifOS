@@ -33,6 +33,7 @@ try:
     from prefab_ui.components.cards import StatCard
     from prefab_ui.actions.mcp import CallTool
     from prefab_ui.actions import ShowToast, SetState
+
     HAS_FASTMCP_APPS = True
 except Exception:
     FastMCPApp = None
@@ -62,10 +63,10 @@ _mcp_kwargs = dict(
     version=GEOX_VERSION,
     on_duplicate="error",
     instructions="""Sovereign GEOX Execution Plane.
-    
+
     This server provides high-integrity governed execution for geological tools.
     It enforces constitutional floors F1-F13 and embeds 888_HOLD logic.
-    
+
     Dimensions: Prospect, Well, Earth3D, Map, Cross.
     """,
 )
@@ -94,13 +95,14 @@ DIMENSION_GATES = {
 # Ensure we use the curated VPS dimension list
 ENABLED_DIMENSIONS = DIMENSION_GATES.get("vps")
 
+
 def bootstrap_registries():
     registry_map = {
         "prospect": "contracts.tools.prospect",
         "well": "contracts.tools.well",
         "earth3d": "contracts.tools.earth3d",
         "map": "contracts.tools.map",
-        "cross": "contracts.tools.cross"
+        "cross": "contracts.tools.cross",
     }
 
     for dim in ENABLED_DIMENSIONS:
@@ -108,6 +110,7 @@ def bootstrap_registries():
             module_name = registry_map[dim]
             try:
                 import importlib
+
                 module = importlib.import_module(module_name)
                 func_name = f"register_{dim}_tools"
                 if hasattr(module, func_name):
@@ -118,26 +121,32 @@ def bootstrap_registries():
             except Exception as e:
                 logger.error(f"Failed to bootstrap sovereign {dim} registry: {e}")
 
+
 bootstrap_registries()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SOVEREIGN HEALTH & STATUS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @mcp.resource("geox://profile/status")
 async def get_profile_status() -> str:
     """Get profile status
     Resource"""
     import json
-    return json.dumps({
-        "status": "healthy",
-        "service": "geox-dimension-native",
-        "profile": "vps",
-        "enabled_dimensions": ENABLED_DIMENSIONS,
-        "version": GEOX_VERSION,
-        "seal": GEOX_SEAL,
-        "constitutional_floors": "F1-F13 ACTIVE"
-    })
+
+    return json.dumps(
+        {
+            "status": "healthy",
+            "service": "geox-dimension-native",
+            "profile": "vps",
+            "enabled_dimensions": ENABLED_DIMENSIONS,
+            "version": GEOX_VERSION,
+            "seal": GEOX_SEAL,
+            "constitutional_floors": "F1-F13 ACTIVE",
+        }
+    )
+
 
 @mcp.resource("geox://ui/{app_name}")
 async def get_ui_resource(app_name: str) -> str:
@@ -150,11 +159,13 @@ async def get_ui_resource(app_name: str) -> str:
     except Exception as e:
         return f"Error loading UI resource: {e}"
 
+
 @mcp.resource("geox://apps/list")
 async def list_geox_apps() -> str:
     """List geox apps
     Return the list of dashboard-ready GEOX applications from manifests."""
     import json
+
     try:
         manifest_path = os.path.join(os.getcwd(), "app.json")
         if os.path.exists(manifest_path):
@@ -166,17 +177,31 @@ async def list_geox_apps() -> str:
     except Exception as e:
         return json.dumps({"error": str(e)})
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # FAST MCP APP IMPL: GEOX Mission Board
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if HAS_FASTMCP_APPS:
+
     @geox_app.tool()
     async def evaluate_mission_trajectories(mission_id: str) -> list[dict]:
         """Generates feasible trajectories based on the selected AOI."""
         return [
-            {"id": "TRJ-A", "name": "Delta-9 Anticline", "risk": "Low", "eta": "2 Days", "seal": "Required"},
-            {"id": "TRJ-B", "name": "Deepwater Carbonate", "risk": "High", "eta": "14 Days", "seal": "Required (888_HOLD)"}
+            {
+                "id": "TRJ-A",
+                "name": "Delta-9 Anticline",
+                "risk": "Low",
+                "eta": "2 Days",
+                "seal": "Required",
+            },
+            {
+                "id": "TRJ-B",
+                "name": "Deepwater Carbonate",
+                "risk": "High",
+                "eta": "14 Days",
+                "seal": "Required (888_HOLD)",
+            },
         ]
 
     @geox_app.tool()
@@ -188,15 +213,27 @@ if HAS_FASTMCP_APPS:
     def mission_board(mission: str) -> PrefabApp:
         """The entry point UI for the Mission Board."""
         options = [
-            {"id": "TRJ-A", "name": "Delta-9 Anticline", "risk": "Low", "eta": "2 Days", "seal": "Required"},
-            {"id": "TRJ-B", "name": "Deepwater Carbonate", "risk": "High", "eta": "14 Days", "seal": "Required (888_HOLD)"}
+            {
+                "id": "TRJ-A",
+                "name": "Delta-9 Anticline",
+                "risk": "Low",
+                "eta": "2 Days",
+                "seal": "Required",
+            },
+            {
+                "id": "TRJ-B",
+                "name": "Deepwater Carbonate",
+                "risk": "High",
+                "eta": "14 Days",
+                "seal": "Required (888_HOLD)",
+            },
         ]
-        
+
         with Column(gap=4, css_class="p-6") as view:
             Heading(f"GEOX Mission Board: {mission}")
             Badge("DITEMPA BUKAN DIBERI - 999 SEAL ALIVE", variant="outline")
             Separator()
-            
+
             with Row(gap=4):
                 StatCard(label="Trajectories", value=len(options))
                 StatCard(label="Subsurface Risk", value="Moderate")
@@ -211,9 +248,9 @@ if HAS_FASTMCP_APPS:
                 ],
                 row_actions=[
                     CallTool(
-                        "trigger_hold_seal", 
-                        arguments={"trajectory_id": "{id}"}, 
-                        on_success=[ShowToast("999_SEAL Lifted", variant="success")]
+                        "trigger_hold_seal",
+                        arguments={"trajectory_id": "{id}"},
+                        on_success=[ShowToast("999_SEAL Lifted", variant="success")],
                     )
                 ],
             )
@@ -237,7 +274,7 @@ if HAS_FASTMCP_APPS:
             Heading(f"Well Desk: {well_id}")
             Badge("999 SEAL READY - Petrophysics Active", variant="outline")
             Separator()
-            
+
             with Row(gap=4):
                 StatCard(label="Porosity (\u03c6)", value="22%")
                 StatCard(label="Water Sat (Sw)", value="45%")
@@ -245,9 +282,9 @@ if HAS_FASTMCP_APPS:
 
             # Action demanding Approval provider before allowing execution
             CallTool(
-                "trigger_well_seal", 
-                arguments={"well_id": well_id, "signature": "Awaits Human Veto"}, 
-                on_success=[ShowToast("Well Log Sealed", variant="success")]
+                "trigger_well_seal",
+                arguments={"well_id": well_id, "signature": "Awaits Human Veto"},
+                on_success=[ShowToast("Well Log Sealed", variant="success")],
             )
 
         return PrefabApp(view=view, state={"well_active": True})
@@ -262,6 +299,7 @@ async def get_earth_panel() -> str:
             return f.read()
     except Exception as e:
         return f"Error loading earth panel UI: {e}"
+
 
 def build_status_payload() -> dict:
     return {
@@ -286,23 +324,26 @@ def build_status_payload() -> dict:
             "F9": "active",
             "F11": "active",
             "F13": "active",
-        }
+        },
     }
+
 
 async def health_handler(request):
     return JSONResponse(build_status_payload())
+
 
 async def run_legacy_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     # This server uses the canonical tools directly from registries
     tool_result = await mcp.call_tool(name, arguments)
     return {"success": True, "data": tool_result.content[0].text if tool_result.content else {}}
 
+
 async def legacy_mcp_handler(request):
     try:
         payload = await request.json()
     except:
         return JSONResponse({"error": "Parse error"}, status_code=400)
-    
+
     method = payload.get("method")
     params = payload.get("params", {})
     response_id = payload.get("id")
@@ -310,14 +351,21 @@ async def legacy_mcp_handler(request):
     if method == "tools/list":
         tools = [{"name": t.name, "description": t.description} for t in await mcp.list_tools()]
         return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}})
-    
+
     if method == "tools/call":
         name = params.get("name")
         args = params.get("arguments", {})
         result = await run_legacy_tool(name, args)
-        return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"content": [{"type": "text", "text": json.dumps(result)}]}})
+        return JSONResponse(
+            {
+                "jsonrpc": "2.0",
+                "id": response_id,
+                "result": {"content": [{"type": "text", "text": json.dumps(result)}]},
+            }
+        )
 
     return JSONResponse({"error": "Method not found"}, status_code=404)
+
 
 def create_app():
     mcp_app = mcp.http_app(path="/mcp", transport="streamable-http")
@@ -325,10 +373,11 @@ def create_app():
         routes=[
             Route("/health", health_handler, methods=["GET"]),
             Route("/mcp", legacy_mcp_handler, methods=["POST"]),
-            Mount("/", mcp_app)
+            Mount("/", mcp_app),
         ],
         lifespan=getattr(mcp_app, "lifespan", None),
     )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -337,6 +386,7 @@ def main() -> None:
     args = parser.parse_args()
     app = create_app()
     uvicorn.run(app, host=args.host, port=args.port)
+
 
 if __name__ == "__main__":
     main()

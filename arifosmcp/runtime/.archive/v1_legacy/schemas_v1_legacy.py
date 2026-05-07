@@ -99,9 +99,14 @@ class IdentityResolution(BaseModel):
     claimed_actor_id: str = Field(description="What the caller claimed")
     resolved_actor_id: str | None = Field(description="What the system accepted")
     claim_status: Literal[
-        "anonymous", "claimed", "anchored", "verified", "rejected", "demoted", "rejected_protected_id"
-    ] = Field(
-description="Resolution status of identity claim")
+        "anonymous",
+        "claimed",
+        "anchored",
+        "verified",
+        "rejected",
+        "demoted",
+        "rejected_protected_id",
+    ] = Field(description="Resolution status of identity claim")
     why_demoted: str | None = Field(
         default=None,
         description="Explanation if identity was demoted",

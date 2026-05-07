@@ -3,6 +3,7 @@ arifos://session/{id} — Ephemeral Instance
 ═══════════════════════════════════════════
 Dynamic resource template for per-session manifest retrieval.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

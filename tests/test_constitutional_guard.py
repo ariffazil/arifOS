@@ -2,6 +2,7 @@
 Quick unit test for constitutional_guard.
 Run: PYTHONPATH=/root python3 -m pytest tests/test_constitutional_guard.py -v
 """
+
 from __future__ import annotations
 
 

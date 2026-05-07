@@ -60,7 +60,7 @@ Hero
 
 Value Proposition (Why arifOS?)
 ├── Mathematical Enforcement
-├── Immutable Audit Trail  
+├── Immutable Audit Trail
 └── FastMCP Native
 
 Architecture

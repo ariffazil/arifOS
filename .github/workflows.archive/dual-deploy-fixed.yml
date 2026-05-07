@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -82,7 +82,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
       - name: Deploy to VPS via SSH (FIXED)
         uses: appleboy/ssh-action@v1.0.0
@@ -92,28 +92,28 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             echo "🚀 Deploying arifOS Sovereign Kernel to VPS..."
-            
+
             # FIXED: Use /root/arifosmcp (actual git repo), not /root/arifOS
             cd /root/arifosmcp
-            
+
             # Pull latest code
             git fetch origin
             git reset --hard origin/main
-            
+
             # Initialize submodules (arifosmcp + arifOS-model-registry)
             git submodule update --init --recursive
-            
+
             # Ensure docker-compose.yml has volume mounts for new files
             if ! grep -q "server.py:/usr/src/app/server.py" docker-compose.yml; then
               echo "Adding volume mounts for new entry point files..."
               sed -i '/- \/srv\/arifosmcp\/arifosmcp:/a\      - /root/arifosmcp/server.py:/usr/src/app/server.py:ro\n      - /root/arifosmcp/stdio_server.py:/usr/src/app/stdio_server.py:ro\n      - /root/arifosmcp/fastmcp.json:/usr/src/app/fastmcp.json:ro\n      - /root/arifosmcp/mcp.json:/usr/src/app/mcp.json:ro' docker-compose.yml
             fi
-            
+
             # Restart container to pick up new code
             docker compose stop arifosmcp
             docker compose rm -f arifosmcp
             docker compose up -d --no-deps arifosmcp
-            
+
             # Health check
             sleep 10
             if curl -fsS http://localhost:8080/health > /dev/null; then
@@ -123,7 +123,7 @@ jobs:
               docker compose logs arifosmcp --tail 20
               exit 1
             fi
-            
+
             echo "✅ VPS Sovereign Kernel updated to $(git rev-parse --short HEAD)"
 
   # ========================================================================
@@ -134,14 +134,14 @@ jobs:
   # 2. Connect GitHub repo
   # 3. Configure server with entrypoint: server.py:mcp
   # 4. Set environment variables
-  # 
+  #
   # This step only validates the setup. Actual deployment is triggered by
   # GitHub push to main (auto-deploy) or manual button in dashboard.
   deploy-horizon:
     needs: build
     runs-on: ubuntu-latest
     environment: horizon
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -167,21 +167,21 @@ jobs:
           echo "📦 Current commit: ${{ github.sha }}"
           echo "🌐 Target URL: https://arifos.fastmcp.app"
           echo ""
-          
+
           # Validate server.py exists and has mcp
           if grep -q "mcp = FastMCP" server.py; then
             echo "✅ server.py has mcp instance"
           else
             echo "⚠️ server.py may be missing mcp instance"
           fi
-          
+
           # Validate FastMCP compatibility layer
           if [ -f "arifosmcp/runtime/fastmcp_version.py" ]; then
             echo "✅ FastMCP 2.x/3.x compatibility layer present"
           else
             echo "❌ Missing fastmcp_version.py"
           fi
-          
+
           echo ""
           echo "Horizon auto-deploys on push to main (if configured)"
           echo "Or deploy manually from fastmcp.cloud dashboard"
@@ -192,7 +192,7 @@ jobs:
   verify:
     needs: [deploy-vps, deploy-horizon]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Verify VPS Deployment
         run: |

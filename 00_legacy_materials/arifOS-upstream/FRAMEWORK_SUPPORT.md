@@ -1,6 +1,6 @@
 # arifOS Framework Support Matrix
 
-**Classification:** Technical Reference | **Authority:** Muhammad Arif bin Fazil  
+**Classification:** Technical Reference | **Authority:** Muhammad Arif bin Fazil
 **Last Updated:** 2026-04-09 | **Seal:** VAULT999
 
 ---

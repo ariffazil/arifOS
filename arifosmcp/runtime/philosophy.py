@@ -271,7 +271,9 @@ def get_philosophical_bias(category: str) -> dict[str, float]:
     from arifosmcp.runtime.philosophy_registry import PHILOSOPHY_TELOS_MODIFIERS
 
     # Default to neutral if category not found
-    return PHILOSOPHY_TELOS_MODIFIERS.get(category.lower(), {"A": 0.0, "P": 0.0, "X": 0.0, "E": 0.0})
+    return PHILOSOPHY_TELOS_MODIFIERS.get(
+        category.lower(), {"A": 0.0, "P": 0.0, "X": 0.0, "E": 0.0}
+    )
 
 
 def _get_zone_quote_for_motto(

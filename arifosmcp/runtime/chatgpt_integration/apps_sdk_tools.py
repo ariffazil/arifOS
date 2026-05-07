@@ -210,11 +210,21 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True},
     )
     async def vault_seal_card(
-        verdict: Annotated[str, Field(description="Constitutional verdict: SEAL, PARTIAL, VOID, or HOLD.")] = "SEAL",
-        floors: Annotated[dict[str, Any] | None, Field(description="Floor scores F1-F13 as dict of float values.")] = None,
-        witness: Annotated[dict[str, Any] | None, Field(description="Tri-witness scores: human, ai, earth.")] = None,
-        trace_root: Annotated[str | None, Field(description="Trace root hash for audit trail.")] = None,
-        policy_digest: Annotated[str | None, Field(description="Policy digest for constitutional verification.")] = None,
+        verdict: Annotated[
+            str, Field(description="Constitutional verdict: SEAL, PARTIAL, VOID, or HOLD.")
+        ] = "SEAL",
+        floors: Annotated[
+            dict[str, Any] | None, Field(description="Floor scores F1-F13 as dict of float values.")
+        ] = None,
+        witness: Annotated[
+            dict[str, Any] | None, Field(description="Tri-witness scores: human, ai, earth.")
+        ] = None,
+        trace_root: Annotated[
+            str | None, Field(description="Trace root hash for audit trail.")
+        ] = None,
+        policy_digest: Annotated[
+            str | None, Field(description="Policy digest for constitutional verification.")
+        ] = None,
     ) -> dict[str, Any]:
         data = _build_vault_seal_structured_content(
             verdict=verdict,

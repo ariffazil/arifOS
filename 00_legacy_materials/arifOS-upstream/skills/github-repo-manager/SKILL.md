@@ -6,7 +6,7 @@ user-invocable: true
 
 # GitHub Repo Manager Skill
 
-Triggers: "repo manager", "create repo", "fork repo", "repo settings", "collaborators", 
+Triggers: "repo manager", "create repo", "fork repo", "repo settings", "collaborators",
           "add collaborator", "topics", "archive repo", "transfer repo", "visibility"
 
 Authenticated as: `ariffazil` via `GH_TOKEN` (gh CLI, HTTPS protocol)

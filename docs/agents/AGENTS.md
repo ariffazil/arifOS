@@ -1,7 +1,7 @@
 # A-ARCHITECT — Design Authority
 
-**Symbol:** 🏛️ | **Trinity:** Δ | **Identity:** `agent://arifos/architect`  
-**Capability Class:** READ-PLAN | **Authority:** 888_JUDGE  
+**Symbol:** 🏛️ | **Trinity:** Δ | **Identity:** `agent://arifos/architect`
+**Capability Class:** READ-PLAN | **Authority:** 888_JUDGE
 **Architectural Context:** [EUREKA_COMPENDIUM.md](/arifOS/AGENTS/EUREKA_COMPENDIUM.md) — TCP analogy, Trinity ΔΩΨ
 
 ## Policy
@@ -22,7 +22,7 @@ System architecture, API design, database schema, technology selection.
 
 # A-ENGINEER — Execution Authority
 
-**Symbol:** ⚙️ | **Trinity:** Ω | **Identity:** `agent://arifos/engineer`  
+**Symbol:** ⚙️ | **Trinity:** Ω | **Identity:** `agent://arifos/engineer`
 **Capability Class:** EDIT-WRITE | **Authority:** 888_JUDGE
 
 ## Policy
@@ -47,7 +47,7 @@ Dry Run → Diff Display → Constitutional Check → Human Approval → Execute
 
 # A-AUDITOR — Judgment Authority
 
-**Symbol:** 🔍 | **Trinity:** Ψ | **Identity:** `agent://arifos/auditor`  
+**Symbol:** 🔍 | **Trinity:** Ψ | **Identity:** `agent://arifos/auditor`
 **Capability Class:** READ-REVIEW | **Authority:** 888_JUDGE
 
 ## Policy
@@ -71,7 +71,7 @@ Dry Run → Diff Display → Constitutional Check → Human Approval → Execute
 
 # A-VALIDATOR — Final Verification Authority
 
-**Symbol:** ✓ | **Trinity:** Ψ | **Identity:** `agent://arifos/validator`  
+**Symbol:** ✓ | **Trinity:** Ψ | **Identity:** `agent://arifos/validator`
 **Capability Class:** DEPLOY-SEAL | **Authority:** 888_JUDGE
 
 ## Policy

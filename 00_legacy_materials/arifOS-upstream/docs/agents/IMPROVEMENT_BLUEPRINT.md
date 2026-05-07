@@ -195,7 +195,7 @@ FastMCP Server (arifosmcp)
 # Proposed: AGENTS/WIRE_PROTOCOL.md
 AgentMessage:
   - sender: AgentID
-  - receiver: AgentID  
+  - receiver: AgentID
   - action: Task | Query | Response
   - payload: Dict
   - context: SessionContext
@@ -216,10 +216,10 @@ Communication Flow:
 class AgentRegistry:
     def register(self, agent: Agent) -> None:
         """Register agent with capabilities"""
-        
+
     def discover(self, capability: str) -> List[Agent]:
         """Find agents with required capability"""
-        
+
     def delegate(self, task: Task, to: Agent) -> Result:
         """Delegate task to specific agent"""
 ```
@@ -232,10 +232,10 @@ class AgentContext:
     def __init__(self):
         self.memory = EngineeringMemory()  # Vector store
         self.governance = GovernanceEngine()
-        
+
     def recall(self, query: str) -> List[Memory]:
         """Semantic search of past implementations"""
-        
+
     def store(self, result: ImplementationResult) -> None:
         """Save successful implementations"""
 ```
@@ -268,6 +268,6 @@ class AgentContext:
 
 ---
 
-**Document Status:** Planning Only  
-**Created:** 2026-04-01  
+**Document Status:** Planning Only
+**Created:** 2026-04-01
 **Review Required:** A-ARCHITECT → A-VALIDATOR

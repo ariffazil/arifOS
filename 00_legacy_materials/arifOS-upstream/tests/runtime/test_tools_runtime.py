@@ -1,4 +1,3 @@
-
 """
 tests/runtime/test_tools_runtime.py — Runtime Tools Test Suite (Hardened v3)
 
@@ -8,10 +7,17 @@ Tests for arifos_* canonical tool handlers with proper object attribute access.
 import pytest
 from unittest.mock import patch, MagicMock
 from arifosmcp.runtime.tools import (
-    arifos_init, arifos_sense, arifos_route, 
-    arifos_ops, arifos_judge, arifos_memory, 
-    arifos_vault, arifos_forge, arifos_health
+    arifos_init,
+    arifos_sense,
+    arifos_route,
+    arifos_ops,
+    arifos_judge,
+    arifos_memory,
+    arifos_vault,
+    arifos_forge,
+    arifos_health,
 )
+
 
 @pytest.mark.asyncio
 async def test_arifos_init_basic():
@@ -21,12 +27,14 @@ async def test_arifos_init_basic():
     assert result.session_id is not None
     assert result.status.value == "SUCCESS"
 
+
 @pytest.mark.asyncio
 async def test_arifos_init_payload_compat():
     """Test arifos_init with payload dict (backward compatibility)."""
     result = await arifos_init(payload={"actor_id": "test-user", "intent": "payload test"})
     assert result.ok is True
     assert result.session_id is not None
+
 
 @pytest.mark.asyncio
 async def test_arifos_sense_basic():
@@ -40,15 +48,16 @@ async def test_arifos_sense_basic():
         mock_packet.uncertainty.level.value = "low"
         mock_packet.handoff.to_dict.return_value = {}
         mock_packet.evidence_items = []
-        
+
         mock_intel = MagicMock()
         mock_intel.to_dict.return_value = {}
-        
+
         mock_sense.return_value = (mock_packet, mock_intel)
-        
+
         result = await arifos_sense(query="What is the time?", dry_run=True)
         assert result.ok is True
         assert result.tool == "arifos_sense"
+
 
 @pytest.mark.asyncio
 async def test_arifos_route_basic():
@@ -56,6 +65,7 @@ async def test_arifos_route_basic():
     result = await arifos_route(request="Check health", dry_run=True)
     assert result.ok is True
     assert result.tool == "arifos_route"
+
 
 @pytest.mark.asyncio
 async def test_arifos_health_dry_run():
@@ -65,11 +75,13 @@ async def test_arifos_health_dry_run():
     # We accept either as long as the tool name is correct.
     assert result.canonical_tool_name == "arifos_health"
 
+
 @pytest.mark.asyncio
 async def test_arifos_ops_basic():
     """Test arifos_ops cost estimation."""
     result = await arifos_ops(action="deploy", dry_run=True)
     assert result.ok is True
+
 
 @pytest.mark.asyncio
 async def test_arifos_judge_basic():
@@ -86,6 +98,7 @@ async def test_arifos_judge_accepts_debug_kwarg():
     assert result.ok is True
     assert result.verdict.value == "SEAL"
 
+
 @pytest.mark.asyncio
 async def test_arifos_vault_basic():
     """Test arifos_vault sealing."""
@@ -95,11 +108,13 @@ async def test_arifos_vault_basic():
     assert result.status.value == "SUCCESS"
     assert result.canonical_tool_name == "arifos_vault"
 
+
 @pytest.mark.asyncio
 async def test_arifos_memory_basic():
     """Test arifos_memory query with mocks."""
     with patch("arifosmcp.runtime.tools._mega_engineering_memory") as mock_mega:
         from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
+
         mock_mega.return_value = RuntimeEnvelope(
             ok=True,
             tool="engineering_memory",
@@ -107,7 +122,7 @@ async def test_arifos_memory_basic():
             stage="555_MEM",
             status=RuntimeStatus.SUCCESS,
             verdict=Verdict.SEAL,
-            payload={"results": []}
+            payload={"results": []},
         )
         result = await arifos_memory(query="test query", dry_run=True)
         assert result.ok is True
@@ -129,4 +144,7 @@ async def test_arifos_forge_dry_run_includes_rollback_plan():
     rollback = result["payload"]["rollback"]
     assert rollback["rollback_supported"] is True
     assert rollback["checkpoint_id"].startswith("cp-sess-forge-001-")
-    assert result["payload"]["manifest"]["constraints"]["rollback_plan"]["checkpoint_id"] == rollback["checkpoint_id"]
+    assert (
+        result["payload"]["manifest"]["constraints"]["rollback_plan"]["checkpoint_id"]
+        == rollback["checkpoint_id"]
+    )

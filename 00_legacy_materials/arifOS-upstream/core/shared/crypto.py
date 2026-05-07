@@ -365,6 +365,7 @@ class NonceManager:
 # VAULT999 SIGNATURE & ZKPC RECEIPT
 # ============================================================================
 
+
 class VaultSigner:
     """
     Cryptographic Signer for Vault999.
@@ -383,8 +384,7 @@ class VaultSigner:
     def public_key_hex(self) -> str:
         """Return the hex representation of the Signer's public key."""
         return self._public_key.public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         ).hex()
 
     def sign_hash(self, blake3_hash_hex: str) -> str:
@@ -426,7 +426,7 @@ def generate_zkpc_receipt(
         policy_digest=blake3.blake3(f"policy-{verdict}-{signature}".encode()).hexdigest(),
         trace_root=blake3.blake3(f"trace-{hash_commitment}".encode()).hexdigest(),
         program_id="arifOS-TPCP-Circuit-v1",
-        output_commitment=blake3.blake3(f"out-{hash_commitment}".encode()).hexdigest()
+        output_commitment=blake3.blake3(f"out-{hash_commitment}".encode()).hexdigest(),
     )
 
 

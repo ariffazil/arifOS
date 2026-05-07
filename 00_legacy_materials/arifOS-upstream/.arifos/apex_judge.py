@@ -78,15 +78,11 @@ def run_verdict(
     coherence = estimate_coherence(arif_data, adam_data)
     stability = estimate_stability(adam_data)
 
-    g_dagger = metrics.compute_apex_g(
-        accuracy, penetration, coherence, stability, delta_s
-    )
+    g_dagger = metrics.compute_apex_g(accuracy, penetration, coherence, stability, delta_s)
     npv = metrics.compute_temporal_npv(delta_s, elapsed_seconds)
 
     stability_pass = adam_data.get("passes", False) if adam_data else True
-    passes, violations = metrics.check_constitutional_floors(
-        g_dagger, npv, stability_pass
-    )
+    passes, violations = metrics.check_constitutional_floors(g_dagger, npv, stability_pass)
 
     verdict_scope = "DOMAIN_SEAL" if passes else "DOMAIN_VOID"
 
@@ -123,9 +119,7 @@ def main():
     output = run_verdict(arif_data, adam_data, args.elapsed)
 
     summary = metrics.format_metrics_summary(
-        arif_data.get("entropy_delta", {}).get("total_delta_s", 0.0)
-        if arif_data
-        else 0.0,
+        arif_data.get("entropy_delta", {}).get("total_delta_s", 0.0) if arif_data else 0.0,
         0.0,
         output.g_dagger,
         output.npv,

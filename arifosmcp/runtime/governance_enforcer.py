@@ -31,22 +31,27 @@ _AMANAH_SCORER = AmanahIrreversibilityScorer()
 
 class QueryClass(str, Enum):
     """Query classification for governance routing."""
+
     INFORMATIONAL = "informational"  # Class A: No state change, model can respond directly
-    GOVERNED = "governed"            # Class B: State mutation, full F1-F13 required
-    CRITICAL = "critical"            # Class C: Irreversible, requires F11 verified identity
+    GOVERNED = "governed"  # Class B: State mutation, full F1-F13 required
+    CRITICAL = "critical"  # Class C: Irreversible, requires F11 verified identity
 
 
 class PropagationDecision(str, Enum):
     """Propagation decision for audit trail."""
+
     ALLOWED = "ALLOWED"
     BLOCKED_HOLD = "BLOCKED_HOLD"
     BLOCKED_VOID = "BLOCKED_VOID"
+    BLOCKED_SABAR = "BLOCKED_SABAR"
     BLOCKED_F1 = "BLOCKED_F1_VIOLATION"
     BLOCKED_INJECTION = "BLOCKED_INJECTION"
     BLOCKED_UNVERIFIED = "BLOCKED_UNVERIFIED_ACTOR"
 
 
-def _select_leaf_tool(query: str, query_class: QueryClass, context: dict[str, Any] | None = None) -> str:
+def _select_leaf_tool(
+    query: str, query_class: QueryClass, context: dict[str, Any] | None = None
+) -> str:
     """Resolve a non-recursive organ for governed kernel routing."""
     context = context or {}
     requested_mode = str(context.get("mode") or "").lower()
@@ -101,12 +106,30 @@ class GovernanceEnforcer:
         context = context or {}
 
         governed_keywords = [
-            "seal", "commit", "write", "execute", "spawn", "deploy",
-            "modify", "delete", "create", "sign", "authorize", "approve"
+            "seal",
+            "commit",
+            "write",
+            "execute",
+            "spawn",
+            "deploy",
+            "modify",
+            "delete",
+            "create",
+            "sign",
+            "authorize",
+            "approve",
         ]
         critical_keywords = [
-            "irreversible", "permanent", "sovereign", "vault", "forge",
-            "system", "kernel", "shutdown", "format", "wipe"
+            "irreversible",
+            "permanent",
+            "sovereign",
+            "vault",
+            "forge",
+            "system",
+            "kernel",
+            "shutdown",
+            "format",
+            "wipe",
         ]
 
         query_lower = query.lower()
@@ -164,7 +187,7 @@ class GovernanceEnforcer:
     ) -> tuple[PropagationDecision, dict | None]:
         """
         Evaluate tool verdict and return propagation decision.
-        
+
         Returns:
             (decision, response_or_none)
             If decision is BLOCKED_* → response contains error
@@ -181,6 +204,12 @@ class GovernanceEnforcer:
 
         if verdict == Verdict.HOLD:
             decision = PropagationDecision.BLOCKED_HOLD
+            response = self._create_block_response(decision, tool_name, envelope)
+            self._log_audit(query_hash, tool_name, verdict, decision, actor_id)
+            return decision, response
+
+        if verdict == Verdict.SABAR:
+            decision = PropagationDecision.BLOCKED_SABAR
             response = self._create_block_response(decision, tool_name, envelope)
             self._log_audit(query_hash, tool_name, verdict, decision, actor_id)
             return decision, response
@@ -211,12 +240,16 @@ class GovernanceEnforcer:
         )
         if irreversibility_result.triggers_888_hold:
             decision = PropagationDecision.BLOCKED_HOLD
-            response = self._create_block_response(PropagationDecision.BLOCKED_HOLD, tool_name, envelope)
+            response = self._create_block_response(
+                PropagationDecision.BLOCKED_HOLD, tool_name, envelope
+            )
             response["_amanah_score"] = irreversibility_result.score
             response["_floor_violations"] = irreversibility_result.floor_violations
             response["_reason"] = irreversibility_result.reason
             response["_detail"] = irreversibility_result.detail
-            response["error"] = f"888_HOLD (Amanah): {irreversibility_result.reason} — score={irreversibility_result.score} — {irreversibility_result.detail}"
+            response["error"] = (
+                f"888_HOLD (Amanah): {irreversibility_result.reason} — score={irreversibility_result.score} — {irreversibility_result.detail}"
+            )
             self._log_audit(query_hash, tool_name, verdict, decision, actor_id)
             return decision, response
 
@@ -243,6 +276,11 @@ class GovernanceEnforcer:
                 "detail": "This action violates F1-F13 constitutional floors.",
                 "action_required": "Redesign action to satisfy constitutional constraints",
             },
+            PropagationDecision.BLOCKED_SABAR: {
+                "error": "888_SABAR: Action under review / cooling period",
+                "detail": "This action has triggered a conditional hold (SABAR).",
+                "action_required": "Initiate cooling period (300s) or escalate for human review.",
+            },
             PropagationDecision.BLOCKED_F1: {
                 "error": "F1 Amanah: Irreversible action without acknowledgment",
                 "detail": "Irreversible actions require explicit irreversibility_acknowledged=true",
@@ -260,11 +298,14 @@ class GovernanceEnforcer:
             },
         }
 
-        message = block_messages.get(decision, {
-            "error": "GOVERNANCE_BLOCK: Action blocked",
-            "detail": "Unknown governance violation",
-            "action_required": "Contact administrator",
-        })
+        message = block_messages.get(
+            decision,
+            {
+                "error": "GOVERNANCE_BLOCK: Action blocked",
+                "detail": "Unknown governance violation",
+                "action_required": "Contact administrator",
+            },
+        )
 
         # Select contextually relevant philosophy for the block
         from arifosmcp.runtime.philosophy import AtlasScores, select_atlas_philosophy
@@ -272,13 +313,26 @@ class GovernanceEnforcer:
         # Map decision to philosophical coordinates proxy
         # BLOCKED_VOID/HOLD -> Void/Paradox zone
         # BLOCKED_F1/UNVERIFIED -> Discipline zone
-        phi_category = "void" if decision in (PropagationDecision.BLOCKED_VOID, PropagationDecision.BLOCKED_HOLD) else "discipline"
+        phi_category = (
+            "void"
+            if decision
+            in (
+                PropagationDecision.BLOCKED_VOID,
+                PropagationDecision.BLOCKED_HOLD,
+                PropagationDecision.BLOCKED_SABAR,
+            )
+            else "discipline"
+        )
         scores = AtlasScores(
             delta_s=1.0,
             g_score=0.2,
             omega_score=0.9,
             lyapunov_sign="stable",
-            verdict=envelope.verdict.value if hasattr(envelope.verdict, "value") else str(envelope.verdict),
+            verdict=(
+                envelope.verdict.value
+                if hasattr(envelope.verdict, "value")
+                else str(envelope.verdict)
+            ),
             session_stage=envelope.stage,
         )
         phi_result = select_atlas_philosophy(scores, contrast_override=phi_category)
@@ -289,7 +343,11 @@ class GovernanceEnforcer:
             "governance_block": True,
             "decision": decision.value,
             "tool": tool_name,
-            "verdict": envelope.verdict.value if hasattr(envelope.verdict, "value") else str(envelope.verdict),
+            "verdict": (
+                envelope.verdict.value
+                if hasattr(envelope.verdict, "value")
+                else str(envelope.verdict)
+            ),
             "stage": envelope.stage,
             **message,
             "philosophy": {
@@ -364,16 +422,16 @@ async def classify_and_route(
 ) -> dict[str, Any]:
     """
     Classify query and determine if tool invocation is required.
-    
+
     Accepts optional kwargs (actor_id, session_id, etc.) from kernel_core
     to maintain adapter compatibility without bloating the core router.
-    
+
     Returns:
         dict with routing result (tool_name, ok, etc.) for kernel compatibility
     """
     enforcer = get_enforcer()
     query_class = enforcer.classify_query(query, context)
-    
+
     # Informational queries don't require tools; governed queries must resolve to a leaf organ.
     requires_tool = query_class != QueryClass.INFORMATIONAL
     tool_name = _select_leaf_tool(query, query_class, context)
@@ -398,7 +456,7 @@ def enforce_tool_verdict(
 ) -> tuple[bool, dict | None]:
     """
     HARD STOP enforcement wrapper.
-    
+
     Returns:
         (allowed, response_or_none)
         allowed=True → continue to model
@@ -406,14 +464,14 @@ def enforce_tool_verdict(
     """
     enforcer = get_enforcer()
     query_hash = hashlib.sha256(query.encode()).hexdigest()[:16]
-    
+
     decision, response = enforcer.evaluate_tool_verdict(
         tool_name=tool_name,
         envelope=envelope,
         query_hash=query_hash,
         actor_id=actor_id,
     )
-    
+
     allowed = decision == PropagationDecision.ALLOWED
     return allowed, response
 

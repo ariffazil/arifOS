@@ -1,8 +1,8 @@
 # SYSTEM: The Unified Runtime & Execution Engine
 
-**Canon ID:** `ARIF-OS::SYSTEM::400-700::v1.0`  
-**Zone:** `400_FORGE` to `700_OPS`  
-**Status:** `OPERATIONAL · ΔΩΨ · F1-F13 ENFORCED`  
+**Canon ID:** `ARIF-OS::SYSTEM::400-700::v1.0`
+**Zone:** `400_FORGE` to `700_OPS`
+**Status:** `OPERATIONAL · ΔΩΨ · F1-F13 ENFORCED`
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
 ---
@@ -70,5 +70,5 @@ Execution results are fed into the W³ matrix to determine the final **Witness S
 ---
 
 **OPERATIONAL** ⚙️
-`ΔΩΨ | 700_OPS | 888_JUDGE`  
+`ΔΩΨ | 700_OPS | 888_JUDGE`
 *Ditempa Bukan Diberi*

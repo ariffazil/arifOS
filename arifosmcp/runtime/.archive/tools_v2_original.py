@@ -59,10 +59,14 @@ logger = logging.getLogger(__name__)
 # INTERNAL HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _make_f12_block_envelope(injection_score: float, threats: list[str], session_id: str | None) -> Any:
+
+def _make_f12_block_envelope(
+    injection_score: float, threats: list[str], session_id: str | None
+) -> Any:
     """Return a VOID RuntimeEnvelope blocking an F12 injection attempt."""
     from arifosmcp.runtime.models import RuntimeEnvelope as _RE
     from arifosmcp.runtime.models import RuntimeStatus, Verdict
+
     return _RE(
         ok=False,
         tool="arifos.init",
@@ -91,6 +95,7 @@ def _make_f12_block_envelope(injection_score: float, threats: list[str], session
 # V2 TOOL IMPLEMENTATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def arifos_init(
     actor_id: str,
     intent: str,
@@ -104,12 +109,14 @@ async def arifos_init(
     """Initialize constitutional session."""
     # ── F12: Injection Guard ──────────────────────────────────────────────
     from arifosmcp.runtime.webmcp.security import WebInjectionGuard
+
     _guard = WebInjectionGuard()
     _injection_score, _threats = _guard._scan_text(intent)
     if _injection_score >= 0.85:
         logger.warning(
             "F12 BLOCK: injection detected in arifos.init intent (score=%.2f, threats=%s)",
-            _injection_score, _threats,
+            _injection_score,
+            _threats,
         )
         return seal_runtime_envelope(
             _make_f12_block_envelope(_injection_score, _threats, session_id),
@@ -127,9 +134,9 @@ async def arifos_init(
     )
     # Stamp F12 result into policy so floors_checked is never empty
     if hasattr(envelope, "policy") and isinstance(envelope.policy, dict):
-        envelope.policy["floors_checked"] = list(dict.fromkeys(
-            ["F12"] + envelope.policy.get("floors_checked", [])
-        ))
+        envelope.policy["floors_checked"] = list(
+            dict.fromkeys(["F12"] + envelope.policy.get("floors_checked", []))
+        )
         envelope.policy["injection_score"] = round(_injection_score, 4)
     elif hasattr(envelope, "policy"):
         envelope.policy = {"floors_checked": ["F12"], "injection_score": round(_injection_score, 4)}
@@ -232,7 +239,9 @@ async def arifos_sense(
 
         # Derive verdict
         route_reason = sense_packet.routing.route_reason
-        verdict_tag = route_reason.split("]")[0].lstrip("[") if route_reason.startswith("[") else "SABAR"
+        verdict_tag = (
+            route_reason.split("]")[0].lstrip("[") if route_reason.startswith("[") else "SABAR"
+        )
         if verdict_tag == "SEAL":
             verdict = Verdict.SEAL
             ok = True
@@ -350,9 +359,7 @@ async def arifos_mind(
         intel = sealed.setdefault("intelligence_state", {})
         intel["decision_packet"] = decision_packet
         intel["audit_packet"] = audit_packet
-        intel["chaos_score"] = audit_packet.get(
-            "constitutional_checks", {}
-        ).get("chaos_score", 0.0)
+        intel["chaos_score"] = audit_packet.get("constitutional_checks", {}).get("chaos_score", 0.0)
         intel["pipeline_trace"] = audit_packet.get("pipeline_trace", [])
     return sealed
 
@@ -452,7 +459,7 @@ async def arifos_memory(
     debug: bool = False,
 ) -> RuntimeEnvelope:
     """Retrieve governed memory from vector store or update the continuous world model."""
-    
+
     # Karpathy Injection: Continuous Learning (Animal Archetype vs Ghost)
     # Overcoming Anterograde Amnesia through active world model updates.
     payload = {"query": query}
@@ -524,7 +531,7 @@ def register_v2_tools(mcp: FastMCP) -> list[str]:
         if not handler:
             logger.warning(f"No handler for v2 tool: {spec.name}")
             continue
-        
+
         ft = FunctionTool.from_function(
             handler,
             name=spec.name,

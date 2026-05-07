@@ -28,11 +28,11 @@ confidence: 0.95
 
 # ToolSpec: `arifos_judge`
 
-> **Canonical Name**: `arifos_judge`  
-> **Legacy Names**: `apex_soul`, `apex_judge`  
-> **Stage**: 888_JUDGE  
-> **Trinity**: Ψ (Soul/Authority)  
-> **Layer**: GOVERNANCE  
+> **Canonical Name**: `arifos_judge`
+> **Legacy Names**: `apex_soul`, `apex_judge`
+> **Stage**: 888_JUDGE
+> **Trinity**: Ψ (Soul/Authority)
+> **Layer**: GOVERNANCE
 > **Purpose**: Constitutional verdict engine — sole authority for SEAL/VOID/SABAR/HOLD
 
 ---
@@ -290,29 +290,29 @@ class RuntimeEnvelope:
     status: RuntimeStatus             # SUCCESS, ERROR, DRY_RUN, SABAR, HOLD
     verdict: Verdict                  # SEAL, PARTIAL, VOID, HOLD, SABAR
     verdict_detail: VerdictDetail     # Structured verdict with reason_code
-    
+
     # Governance
     metrics: CanonicalMetrics         # Telemetry block (ΔS, G★, witness)
     authority: CanonicalAuthority     # Actor identity and level
     policy: dict                      # Floors checked/failed
-    
+
     # Context
     session_id: str | None
     timestamp: str                    # ISO-8601 UTC
     trace_id: str | None
     duration_ms: int | None
     platform_context: str | None
-    
+
     # Action guidance
     next_action: dict | None          # Recommended next step
     sabar_step: str | None            # Cooling protocol step
     allowed_next_tools: list[str]     # ["arifos_vault", "arifos_forge"]
     blocked_tools: list[dict]         # [{"tool": "...", "reason": "..."}]
-    
+
     # Philosophy
     philosophy: dict | None           # Governed quote injection
     motto: str | None                 # Stage motto
-    
+
     # Payload
     payload: dict                     # Mode-specific result data
     errors: list[CanonicalError]      # Error details if any

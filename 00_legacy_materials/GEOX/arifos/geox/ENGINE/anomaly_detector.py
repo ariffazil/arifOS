@@ -19,13 +19,14 @@ import numpy as np
 class ConflationAlert:
     """
     Alert for a detected conflation anomaly.
-    
+
     A conflation alert includes:
       - The type of anomaly detected
       - Confidence in the detection
       - Recommended action
       - Explanation for human review
     """
+
     alert_id: str
     feature_id: str
 
@@ -59,7 +60,7 @@ class ConflationAlert:
 class AnomalyDetector:
     """
     Detects conflation anomalies in ContrastSpace.
-    
+
     Uses multiple detection strategies:
       1. Anomalous contrast ratio (display >> physical)
       2. Circular references in transform chains
@@ -94,7 +95,7 @@ class AnomalyDetector:
     ) -> ConflationAlert | None:
         """
         Check if a feature exhibits anomalous contrast.
-        
+
         Returns ConflationAlert if anomalous, None otherwise.
         """
         # Calculate anomalous score
@@ -112,9 +113,13 @@ class AnomalyDetector:
 
         # Determine recommendation
         if score > 5.0:
-            recommendation = "REJECT — Feature likely represents display artifact, not physical signal"
+            recommendation = (
+                "REJECT — Feature likely represents display artifact, not physical signal"
+            )
         elif score > 3.0:
-            recommendation = "REVIEW REQUIRED — High anomalous contrast. Verify against raw data before use"
+            recommendation = (
+                "REVIEW REQUIRED — High anomalous contrast. Verify against raw data before use"
+            )
         else:
             recommendation = "FLAG — Moderate anomaly. Document transform chain for audit"
 
@@ -151,7 +156,7 @@ class AnomalyDetector:
     ) -> ConflationAlert | None:
         """
         Check if a transform chain contains circular references.
-        
+
         A circular reference is when the same transform type appears
         multiple times in ways that create feedback loops.
         """
@@ -175,7 +180,7 @@ class AnomalyDetector:
             threshold=1.0,
             recommendation="REVIEW — Duplicate transforms in chain may indicate processing error",
             explanation=f"Transform(s) {duplicates} appear multiple times in chain: {transform_chain}. "
-                       "This may create feedback loops that amplify artifacts.",
+            "This may create feedback loops that amplify artifacts.",
         )
 
     def check_population_anomaly(
@@ -185,7 +190,7 @@ class AnomalyDetector:
     ) -> ConflationAlert | None:
         """
         Check if a population of features has unusual anomalous score distribution.
-        
+
         This detects systematic issues in processing pipelines.
         """
         if len(anomalous_scores) < 10:
@@ -208,8 +213,8 @@ class AnomalyDetector:
             threshold=self.anomaly_threshold,
             recommendation="SYSTEM REVIEW — Population shows systematic high anomalous scores. Review processing pipeline",
             explanation=f"Population of {len(feature_ids)} features has mean anomalous score of {mean_score:.2f} "
-                       f"(±{std_score:.2f}). This suggests the processing pipeline may systematically "
-                       f"amplify display contrast beyond physical signal.",
+            f"(±{std_score:.2f}). This suggests the processing pipeline may systematically "
+            f"amplify display contrast beyond physical signal.",
         )
 
     def generate_summary(

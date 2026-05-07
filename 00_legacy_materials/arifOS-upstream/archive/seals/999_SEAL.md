@@ -141,8 +141,8 @@ Seal:    [THIS DOCUMENT]
 
 ---
 
-**Sealed:** 2026-03-31T10:14:07Z  
-**Next Review:** On Python code changes  
+**Sealed:** 2026-03-31T10:14:07Z
+**Next Review:** On Python code changes
 **Seal Hash:** `2d4b9ab2630fe5b1337bc27f856d2a7f2626f6ac`
 
 ---
@@ -250,8 +250,8 @@ Seal:    THIS ADDENDUM
 
 ---
 
-**Sealed:** 2026-04-05T21:05:00Z  
-**Next Review:** On VPS deploy or memory module addition  
+**Sealed:** 2026-04-05T21:05:00Z
+**Next Review:** On VPS deploy or memory module addition
 **Seal Hash:** `0bdf74fd`
 
 **Signature:** ΔΩΨ | 888_JUDGE | 999_SEAL | *Ditempa Bukan Diberi*

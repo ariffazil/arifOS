@@ -27,7 +27,7 @@ jobs:
       contents: read
       deployments: write
     name: Build & Deploy Constitutional Dashboard
-    
+
     steps:
       - name: 🔥 Checkout Repository
         uses: actions/checkout@v4

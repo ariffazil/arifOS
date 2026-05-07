@@ -19,7 +19,7 @@ from .contrast_essential import (
 
 __all__ = [
     "Canon9Profile",
-    "DepthSample", 
+    "DepthSample",
     "GassmannModel",
     "ZoeppritzModel",
     "SyntheticSeismic",

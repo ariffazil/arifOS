@@ -53,7 +53,7 @@ async def physics_compute_stoiip(inputs: dict) -> dict:
 
 Domains (8):
   prospect_  — Play fairway, structural candidates
-  well_      — Borehole, logs, petrophysics  
+  well_      — Borehole, logs, petrophysics
   section_   — 2D correlation, profiles
   earth3d_   — 3D seismic, volumes
   time4d_    — Basin modeling, timing

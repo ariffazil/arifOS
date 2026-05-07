@@ -25,10 +25,11 @@ RuntimeEnvelope = dict[str, Any]
 # EXECUTION MANIFEST SCHEMA
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ExecutionManifest:
     """
     Signed execution request for A-FORGE substrate.
-    
+
     Structure:
         manifest_id: SHA256 hash of canonical JSON
         session_id: Source session
@@ -41,7 +42,7 @@ class ExecutionManifest:
         expires_at: Validity window
         signature: HMAC-SHA256 (session_key + manifest_id)
     """
-    
+
     def __init__(
         self,
         session_id: str,
@@ -67,10 +68,10 @@ class ExecutionManifest:
             "disk_write_allowed": False,
         }
         self.issued_at = datetime.now(timezone.utc).isoformat()
-        self.expires_at = (datetime.now(timezone.utc).timestamp() + ttl_seconds)
+        self.expires_at = datetime.now(timezone.utc).timestamp() + ttl_seconds
         self.manifest_id = self._compute_id()
         self.signature: str | None = None
-    
+
     def _compute_id(self) -> str:
         """Compute canonical manifest ID (SHA-256)."""
         canonical = {
@@ -83,16 +84,14 @@ class ExecutionManifest:
             "issued_at": self.issued_at,
             "expires_at": self.expires_at,
         }
-        canonical_json = json.dumps(canonical, sort_keys=True, separators=(',', ':'))
-        return hashlib.sha256(canonical_json.encode('utf-8')).hexdigest()
-    
+        canonical_json = json.dumps(canonical, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
+
     def sign(self, session_key: str) -> str:
         """Sign manifest with session key (HMAC-SHA256)."""
-        self.signature = hashlib.sha256(
-            f"{self.manifest_id}:{session_key}".encode()
-        ).hexdigest()
+        self.signature = hashlib.sha256(f"{self.manifest_id}:{session_key}".encode()).hexdigest()
         return self.signature
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Export manifest to dict for serialization."""
         return {
@@ -114,6 +113,7 @@ class ExecutionManifest:
 # ARIFOS.FORGE — THE 10TH TOOL
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def arifos_forge(
     action: str,
     payload: dict[str, Any],
@@ -127,19 +127,19 @@ async def arifos_forge(
 ) -> RuntimeEnvelope:
     """
     Delegated Execution Bridge — The 10th Tool.
-    
+
     This tool does NOT execute directly. It:
         1. Validates judge verdict is SEAL
         2. Constructs signed execution manifest
         3. Dispatches to A-FORGE substrate
         4. Returns execution receipt
-    
+
     Constitutional Guarantee:
         • No execution without judge SEAL
         • No self-authorization
         • All actions logged to vault
         • Separation of powers preserved
-    
+
     Args:
         action: Execution type ("shell", "api_call", "contract", "compute")
         payload: Action-specific parameters
@@ -150,17 +150,17 @@ async def arifos_forge(
         ttl_seconds: Manifest validity window
         dry_run: If True, generate manifest but don't dispatch
         a_forge_endpoint: Target substrate (default from config)
-    
+
     Returns:
         RuntimeEnvelope with:
             - verdict: SEAL (manifest valid) or VOID (rejected)
             - payload: Execution manifest or error
             - receipt_hash: Future reference for audit
-    
+
     Raises:
         ValueError: If judge_verdict is not SEAL
     """
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # FLOOR F1: AMANAH — Trust Validation
     # ─────────────────────────────────────────────────────────────────────────
@@ -171,7 +171,7 @@ async def arifos_forge(
             message="Execution requires judge verdict SEAL. Governance layer must approve before executive action.",
             judge_verdict=judge_verdict,
         )
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # FLOOR F2: TRUTH — Input Validation
     # ─────────────────────────────────────────────────────────────────────────
@@ -181,7 +181,7 @@ async def arifos_forge(
             code="F2_VIOLATION",
             message="Malformed execution request: action and payload required.",
         )
-    
+
     allowed_actions = {"shell", "api_call", "contract", "compute", "container", "vm"}
     if action not in allowed_actions:
         return _forge_error(
@@ -189,7 +189,7 @@ async def arifos_forge(
             code="F2_INVALID_ACTION",
             message=f"Action '{action}' not in allowed set: {allowed_actions}",
         )
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # CONSTRUCT EXECUTION MANIFEST
     # ─────────────────────────────────────────────────────────────────────────
@@ -202,12 +202,12 @@ async def arifos_forge(
         constraints=constraints,
         ttl_seconds=ttl_seconds,
     )
-    
+
     # In production: Sign with session-specific HMAC key from vault
     # For now: Use deterministic placeholder (session_id hash)
     session_key = hashlib.sha256(f"{session_id}:forge_key".encode()).hexdigest()[:32]
     manifest.sign(session_key)
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # DRY RUN: Generate manifest only
     # ─────────────────────────────────────────────────────────────────────────
@@ -218,18 +218,18 @@ async def arifos_forge(
             status="MANIFEST_GENERATED",
             note="F7 Humility: Dry run. Manifest valid but not dispatched.",
         )
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # DISPATCH TO A-FORGE SUBSTRATE
     # ─────────────────────────────────────────────────────────────────────────
     # In production: HTTP POST to A-FORGE endpoint with manifest
     # For now: Simulate dispatch and return receipt hash
-    
+
     receipt_hash = _simulate_a_forge_dispatch(
         manifest=manifest,
         endpoint=a_forge_endpoint or "https://forge.a-forge.io/v1/execute",
     )
-    
+
     return _forge_success(
         session_id=session_id,
         manifest=manifest,
@@ -253,12 +253,14 @@ def _forge_error(
         "session_id": session_id,
         "verdict": "VOID",
         "status": "ERROR",
-        "errors": [{
-            "code": code,
-            "message": message,
-            "stage": "FORGE_010",
-            "judge_verdict": judge_verdict,
-        }],
+        "errors": [
+            {
+                "code": code,
+                "message": message,
+                "stage": "FORGE_010",
+                "judge_verdict": judge_verdict,
+            }
+        ],
         "payload": {
             "error": message,
             "resolution": "Route through arifos.judge first to obtain SEAL verdict.",
@@ -280,11 +282,11 @@ def _forge_success(
         "status": status,
         "note": note,
     }
-    
+
     if receipt_hash:
         payload["receipt_hash"] = receipt_hash
         payload["vault_log"] = f"vault://executions/{receipt_hash}"
-    
+
     return {
         "ok": True,
         "tool": "arifos.forge",
@@ -303,7 +305,7 @@ def _simulate_a_forge_dispatch(
 ) -> str:
     """
     Simulate A-FORGE dispatch receipt.
-    
+
     In production:
         1. POST manifest to endpoint
         2. Receive execution receipt
@@ -314,7 +316,7 @@ def _simulate_a_forge_dispatch(
     # Simulate receipt hash: SHA256(manifest_id + endpoint + timestamp)
     timestamp = str(int(time.time()))
     receipt = f"{manifest.manifest_id}:{endpoint}:{timestamp}"
-    return hashlib.sha256(receipt.encode('utf-8')).hexdigest()
+    return hashlib.sha256(receipt.encode("utf-8")).hexdigest()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

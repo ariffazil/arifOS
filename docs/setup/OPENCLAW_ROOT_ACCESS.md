@@ -2,9 +2,9 @@
 
 ## ⚠️ SECURITY STATUS: MAXIMUM PRIVILEGES ENABLED
 
-**Configured:** 2026-03-09  
-**User:** root (full system access)  
-**Sandbox:** OFF  
+**Configured:** 2026-03-09
+**User:** root (full system access)
+**Sandbox:** OFF
 **Auto-approve:** ON
 
 ---
@@ -280,8 +280,8 @@ sudo systemctl status docker
 
 ---
 
-**🔓 FULL ROOT ACCESS GRANTED**  
-**⚠️ Use with extreme caution**  
+**🔓 FULL ROOT ACCESS GRANTED**
+**⚠️ Use with extreme caution**
 **🏛️ Constitutional governance still applies**
 
 **Ditempa Bukan Diberi** — Forged, Not Given

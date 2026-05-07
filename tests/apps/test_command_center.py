@@ -30,12 +30,14 @@ from arifosmcp.apps.command_center.state import get_state, reset_state
 # Test fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(autouse=True)
 def _evaluation_mode(monkeypatch):
     """Force evaluation mode for all tests — tests validate mock/safe paths."""
     monkeypatch.setenv("ARIFOS_EVALUATION_MODE", "true")
     # Re-import to pick up the env var
     import arifosmcp.apps.command_center.app as app_module
+
     monkeypatch.setattr(app_module, "EVALUATION_MODE", True)
 
 
@@ -52,12 +54,29 @@ class TestVisibility:
         return {t.name for t in tools}
 
     @pytest.mark.asyncio
-    async def test_only_command_center_is_model_visible(self) -> None:
-        """The main MCP server must expose only the UI entry point."""
+    async def test_canonical_tools_are_model_visible(self) -> None:
+        """The main MCP server exposes the 13 canonical arif_* tools as public surface."""
         from arifosmcp.server import mcp
 
         names = await self._tool_names(mcp)
-        assert "command_center" in names
+        # All 13 canonical tools must be visible
+        canonical_13 = {
+            "arif_evidence_fetch",
+            "arif_forge_execute",
+            "arif_gateway_connect",
+            "arif_heart_critique",
+            "arif_judge_deliberate",
+            "arif_kernel_route",
+            "arif_memory_recall",
+            "arif_mind_reason",
+            "arif_ops_measure",
+            "arif_reply_compose",
+            "arif_sense_observe",
+            "arif_session_init",
+            "arif_vault_seal",
+        }
+        assert canonical_13.issubset(names), f"Missing canonical tools: {canonical_13 - names}"
+        # Backend/internal tools must NOT leak to model scope
         backend_tools = {
             "session_status",
             "ops_vitals",
@@ -67,9 +86,7 @@ class TestVisibility:
             "vault_list",
             "vault_dry_seal",
         }
-        assert backend_tools.isdisjoint(
-            names
-        ), f"Backend tools leaked to model scope: {backend_tools & names}"
+        assert backend_tools.isdisjoint(names), f"Backend tools leaked: {backend_tools & names}"
 
     @pytest.mark.asyncio
     async def test_backend_tools_are_app_visible(self) -> None:

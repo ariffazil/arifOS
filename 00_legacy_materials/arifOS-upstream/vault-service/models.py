@@ -15,6 +15,7 @@ class VaultEntry(BaseModel):
     Note: prev_hash is filled by the server from the last chain entry.
     Client should NOT provide it — server manages chain continuity.
     """
+
     session_id: str
     domain: Literal["GEOX", "WEALTH", "ARIFOS", "A-FORGE"]
     tool: str
@@ -32,6 +33,7 @@ class VaultEntry(BaseModel):
 
 class ChainedEntry(BaseModel):
     """Output: vault entry with computed chain_hash."""
+
     session_id: str
     epoch: str
     domain: str
@@ -49,6 +51,7 @@ class ChainedEntry(BaseModel):
 
 class SessionChain(BaseModel):
     """Full chain for a session — cross-domain audit trace."""
+
     session_id: str
     entries: list[ChainedEntry]
     chain_integrity: bool = Field(description="True if chain is unbroken")

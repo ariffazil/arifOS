@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 import pytest
 from core.enforcement.genius import (
@@ -7,16 +6,18 @@ from core.enforcement.genius import (
     calculate_genius,
     coerce_floor_scores,
     floors_to_dials,
-    geometric_mean
+    geometric_mean,
 )
 from core.shared.floor_audit import AuditResult, FloorResult
 from core.shared.types import FloorScores, Verdict
+
 
 def test_geometric_mean():
     assert geometric_mean([0.9, 0.9, 0.9]) == pytest.approx(0.9)
     assert geometric_mean([1.0, 0.0, 1.0]) == 0.0
     assert geometric_mean([]) == 0.0
     assert geometric_mean([0.5, 2.0]) == pytest.approx(1.0)
+
 
 def test_audit_result_to_floor_scores():
     # Test with AuditResult object
@@ -28,37 +29,28 @@ def test_audit_result_to_floor_scores():
             "F1": FloorResult(floor="F1", score=0.8, passed=True),
             "F2": FloorResult(floor="F2", score=0.9, passed=True),
             "F10": FloorResult(floor="F10", score=1.0, passed=True),
-            "F9": FloorResult(floor="F9", score=0.1, passed=True), # f9 is 1.0 - score
-        }
+            "F9": FloorResult(floor="F9", score=0.1, passed=True),  # f9 is 1.0 - score
+        },
     )
     scores = audit_result_to_floor_scores(audit)
     assert scores.f1_amanah == 0.8
     assert scores.f2_truth == 0.9
     assert scores.f10_ontology is True
-    assert scores.f9_anti_hantu == 0.9 # 1.0 - 0.1
+    assert scores.f9_anti_hantu == 0.9  # 1.0 - 0.1
 
     # Test with dict
     audit_dict = {
-        "floor_results": {
-            "F1": {"score": 0.7, "passed": True},
-            "F11": "pass",
-            "F12": "fail"
-        }
+        "floor_results": {"F1": {"score": 0.7, "passed": True}, "F11": "pass", "F12": "fail"}
     }
     scores_dict = audit_result_to_floor_scores(audit_dict)
     assert scores_dict.f1_amanah == 0.7
     assert scores_dict.f11_command_auth is True
-    assert scores_dict.f12_injection == 1.0 # 1.0 - 0.0
+    assert scores_dict.f12_injection == 1.0  # 1.0 - 0.0
+
 
 def test_coerce_floor_scores():
     # Test with aliases
-    payload = {
-        "f1": 0.5,
-        "truth_score": 0.6,
-        "omega_0": 0.045,
-        "human_score": 0.8,
-        "f10": "yes"
-    }
+    payload = {"f1": 0.5, "truth_score": 0.6, "omega_0": 0.045, "human_score": 0.8, "f10": "yes"}
     scores = coerce_floor_scores(payload)
     assert scores.f1_amanah == 0.5
     assert scores.f2_truth == 0.6
@@ -76,9 +68,10 @@ def test_coerce_floor_scores():
     scores_custom = coerce_floor_scores({}, defaults=custom_defaults)
     assert scores_custom.f2_truth == 0.5
 
+
 def test_calculate_genius_edge_cases():
     floors = FloorScores()
-    
+
     # 1. Zero Akal (F2=0)
     floors_zero_akal = floors.model_copy(update={"f2_truth": 0.0})
     res = calculate_genius(floors_zero_akal)
@@ -96,17 +89,19 @@ def test_calculate_genius_edge_cases():
     # G = A * P * X * E^2
     assert res_e_low["genius_score"] < calculate_genius(floors)["genius_score"]
 
+
 def test_apexdials_to_dict():
     dials = APEXDials(A=0.1, P=0.2, X=0.3, E=0.4)
     d = dials.to_dict()
     assert d == {"A": 0.1, "P": 0.2, "X": 0.3, "E": 0.4}
 
+
 def test_humility_normalization():
     # Optimal band [0.03, 0.05]
     f_opt = FloorScores(f7_humility=0.04)
     d_opt = floors_to_dials(f_opt)
-    
-    f_high = FloorScores(f7_humility=0.1) # Diff = 0.06 -> Penalty = 0.6 -> f7_norm = 0.4
+
+    f_high = FloorScores(f7_humility=0.1)  # Diff = 0.06 -> Penalty = 0.6 -> f7_norm = 0.4
     d_high = floors_to_dials(f_high)
-    
+
     assert d_high.A < d_opt.A

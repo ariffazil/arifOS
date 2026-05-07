@@ -1,8 +1,8 @@
 # 🔒 999_SEAL - PRODUCTION HARDENING CHECKLIST
 ## From "Working" to "Bulletproof"
 
-**Status:** TIER 0-1 COMPLETE → TIER 2-4 HARDENING REQUIRED  
-**Authority:** 888_JUDGE | 999_SEAL  
+**Status:** TIER 0-1 COMPLETE → TIER 2-4 HARDENING REQUIRED
+**Authority:** 888_JUDGE | 999_SEAL
 **Goal:** Zero-trust, auditable, recoverable secret infrastructure
 
 ---
@@ -19,7 +19,7 @@ vault set qdrant $(openssl rand -base64 32)
 # Add to registry mapping (infra.* canonical names)
 # Edit /root/arifOS/config/secret-registry.yaml:
 #   infra.postgres.password → vault_key: POSTGRES_PASSWORD
-#   infra.redis.password → vault_key: REDIS_PASSWORD  
+#   infra.redis.password → vault_key: REDIS_PASSWORD
 #   infra.qdrant.api_key → vault_key: QDRANT_API_KEY
 
 # Re-render

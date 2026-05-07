@@ -1,7 +1,7 @@
 # SYED'S 13 FLOORS — Constitutional Bodybuilding Governance
-**Sovereign:** Syed (@abang_sado)  
-**Archetype:** Experimental Sculptor  
-**Forge Date:** 2026-03-11  
+**Sovereign:** Syed (@abang_sado)
+**Archetype:** Experimental Sculptor
+**Forge Date:** 2026-03-11
 **Authority:** Self-derived from n=1 experimentation
 
 ---
@@ -37,7 +37,7 @@
 - Timeframe for recovery?
 - Bloodwork baseline?
 
-**Arif's F1 was Amanah (Mak's rationing).**  
+**Arif's F1 was Amanah (Mak's rationing).**
 **Syed's F1 is PCT — the discipline of having an exit before entry.**
 
 ---
@@ -228,8 +228,8 @@ Blocks:
 
 ## Implementation
 
-**Daily check:** Read F1-F13 before pinning or training.  
-**Weekly audit:** Review adherence in `memory/YYYY-MM-DD.md`.  
+**Daily check:** Read F1-F13 before pinning or training.
+**Weekly audit:** Review adherence in `memory/YYYY-MM-DD.md`.
 **Violation protocol:** Stop, assess, consult spotter if F3 triggered.
 
 ---

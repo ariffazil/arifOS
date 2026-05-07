@@ -5,7 +5,7 @@ This module integrates all hardened tools into a cohesive constitutional pipelin
 
 Usage:
     from arifosmcp.runtime.hardened_toolchain import HardenedToolchain
-    
+
     chain = HardenedToolchain()
     result = await chain.execute(query="Analyze this data", session_id="sess-123")
 """
@@ -35,7 +35,7 @@ from arifosmcp.runtime.truth_pipeline_hardened import HardenedRealityAtlas, Hard
 class HardenedToolchain:
     """
     Master integration of the hardened 11-tool constitutional chain.
-    
+
     Stage Mapping:
     000: init_anchor — Authority lifecycle + scope degradation
     111: reality_compass — Fact ingestion into typed evidence
@@ -49,7 +49,7 @@ class HardenedToolchain:
     888B: apex_judge — Machine-verifiable constitutional verdict
     999: vault_seal — Hash-complete decision ledger
     """
-    
+
     def __init__(self):
         # Initialize all hardened tools
         self.init_anchor = HardenedInitAnchor()
@@ -60,7 +60,7 @@ class HardenedToolchain:
         self.agentzero_engineer = HardenedAgentZeroEngineer()
         self.apex_judge = HardenedApexJudge()
         self.vault_seal = HardenedVaultSeal()
-    
+
     async def execute(
         self,
         query: str,
@@ -73,17 +73,17 @@ class HardenedToolchain:
     ) -> ToolEnvelope:
         """
         Execute the complete hardened constitutional pipeline.
-        
+
         This is the 000-999 metabolic loop with all hardening applied.
         """
         session_id = session_id or f"sess-{hash(query) % 10000:04d}"
         requested_scope = requested_scope or ["read", "query"]
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 000: INIT_ANCHOR — Authority lifecycle + scope degradation
         # ═══════════════════════════════════════════════════════════════════
         trace_root = generate_trace_context("000_INIT", session_id)
-        
+
         init_result = await self.init_anchor.init(
             declared_name=declared_name,
             intent=query,
@@ -94,19 +94,19 @@ class HardenedToolchain:
             session_class=session_class,
             trace=trace_root,
         )
-        
+
         if init_result.status != ToolStatus.OK:
             return self._wrap_failure(init_result, "000_INIT")
-        
+
         # Check if scope was negotiated down
         granted_scope = init_result.payload.get("scope", {}).get("granted", [])
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 111: REALITY_COMPASS — Fact ingestion into typed evidence
         # ═══════════════════════════════════════════════════════════════════
         if "read" in granted_scope or "query" in granted_scope:
             trace_111 = generate_trace_context("111_SENSE", session_id)
-            
+
             compass_result = await self.reality_compass.search(
                 query=query,
                 auth_context=auth_context,
@@ -114,20 +114,20 @@ class HardenedToolchain:
                 session_id=session_id,
                 trace=trace_111,
             )
-            
+
             if compass_result.status != ToolStatus.OK:
                 return self._wrap_failure(compass_result, "111_SENSE")
-            
+
             evidence_bundle = compass_result.payload.get("evidence_bundle")
         else:
             evidence_bundle = None
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 222: REALITY_ATLAS — Claim graph + contradiction map
         # ═══════════════════════════════════════════════════════════════════
         if evidence_bundle:
             trace_222 = generate_trace_context("222_ATLAS", session_id)
-            
+
             atlas_result = await self.reality_atlas.merge(
                 evidence_bundles=[evidence_bundle],
                 auth_context=auth_context,
@@ -135,21 +135,21 @@ class HardenedToolchain:
                 session_id=session_id,
                 trace=trace_222,
             )
-            
+
             if atlas_result.status != ToolStatus.OK:
                 return self._wrap_failure(atlas_result, "222_ATLAS")
-            
+
             claim_graph = atlas_result.payload.get("claim_graph")
             unresolved_count = atlas_result.payload.get("unresolved_claims", 0)
         else:
             claim_graph = None
             unresolved_count = 0
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 333: AGI_REASON — Constrained multi-lane reasoning
         # ═══════════════════════════════════════════════════════════════════
         trace_333 = generate_trace_context("333_MIND", session_id)
-        
+
         reason_result = await self.agi_reason.reason(
             query=query,
             context={"claim_graph": claim_graph},
@@ -158,15 +158,15 @@ class HardenedToolchain:
             session_id=session_id,
             trace=trace_333,
         )
-        
+
         if reason_result.status != ToolStatus.OK:
             return self._wrap_failure(reason_result, "333_MIND")
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 666A: ASI_CRITIQUE — Enforceable red-team veto
         # ═══════════════════════════════════════════════════════════════════
         trace_666a = generate_trace_context("666_CRITIQUE", session_id)
-        
+
         candidate = reason_result.payload.get("recommendation", "")
         critique_result = await self.asi_critique.critique(
             candidate=candidate,
@@ -176,18 +176,21 @@ class HardenedToolchain:
             session_id=session_id,
             trace=trace_666a,
         )
-        
+
         # Counter-seal check: if critique triggers, downstream blocked
         if critique_result.payload.get("counter_seal"):
-            return self._wrap_failure(critique_result, "666_CRITIQUE", 
-                message="Counter-seal active: high critique score blocks downstream")
-        
+            return self._wrap_failure(
+                critique_result,
+                "666_CRITIQUE",
+                message="Counter-seal active: high critique score blocks downstream",
+            )
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 888A: AGENTZERO_ENGINEER — Two-phase execution (Plan)
         # ═══════════════════════════════════════════════════════════════════
         if "execute" in granted_scope:
             trace_888a = generate_trace_context("888_ENGINEER", session_id)
-            
+
             plan_result = await self.agentzero_engineer.plan(
                 task=query,
                 action_class="execute",
@@ -196,7 +199,7 @@ class HardenedToolchain:
                 session_id=session_id,
                 trace=trace_888a,
             )
-            
+
             # If approval required, stop here
             if plan_result.payload.get("approval_required"):
                 return ToolEnvelope(
@@ -214,12 +217,12 @@ class HardenedToolchain:
                         "plan": plan_result.payload.get("plan"),
                     },
                 )
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 888B: APEX_JUDGE — Machine-verifiable constitutional verdict
         # ═══════════════════════════════════════════════════════════════════
         trace_888b = generate_trace_context("888_JUDGE", session_id)
-        
+
         judge_result = await self.apex_judge.judge(
             candidate=candidate,
             evidence_refs=[evidence_bundle.get("bundle_id")] if evidence_bundle else [],
@@ -228,15 +231,15 @@ class HardenedToolchain:
             session_id=session_id,
             trace=trace_888b,
         )
-        
+
         if judge_result.status != ToolStatus.OK:
             return self._wrap_failure(judge_result, "888_JUDGE")
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 999: VAULT_SEAL — Hash-complete decision ledger
         # ═══════════════════════════════════════════════════════════════════
         trace_999 = generate_trace_context("999_VAULT", session_id)
-        
+
         seal_result = await self.vault_seal.seal(
             decision={
                 "verdict": judge_result.payload.get("verdict"),
@@ -251,7 +254,7 @@ class HardenedToolchain:
             session_id=session_id,
             trace=trace_999,
         )
-        
+
         # ═══════════════════════════════════════════════════════════════════
         # FINAL: Return complete pipeline result
         # ═══════════════════════════════════════════════════════════════════
@@ -265,13 +268,23 @@ class HardenedToolchain:
             trace=trace_root,
             payload={
                 "pipeline_complete": True,
-                "stages_executed": ["000_INIT", "111_SENSE", "222_ATLAS", "333_MIND", "666_CRITIQUE", "888_JUDGE", "999_VAULT"],
+                "stages_executed": [
+                    "000_INIT",
+                    "111_SENSE",
+                    "222_ATLAS",
+                    "333_MIND",
+                    "666_CRITIQUE",
+                    "888_JUDGE",
+                    "999_VAULT",
+                ],
                 "init": {
                     "scope_granted": granted_scope,
                     "scope_negotiated": init_result.payload.get("scope", {}).get("negotiated"),
                 },
                 "evidence": {
-                    "facts_count": len(evidence_bundle.get("observed_facts", [])) if evidence_bundle else 0,
+                    "facts_count": (
+                        len(evidence_bundle.get("observed_facts", [])) if evidence_bundle else 0
+                    ),
                     "unresolved_claims": unresolved_count,
                 },
                 "reasoning": {
@@ -284,12 +297,14 @@ class HardenedToolchain:
                 },
                 "verdict": judge_result.payload.get("verdict"),
                 "seal": {
-                    "decision_id": seal_result.payload.get("decision_object", {}).get("decision_id"),
+                    "decision_id": seal_result.payload.get("decision_object", {}).get(
+                        "decision_id"
+                    ),
                     "seal_hash": seal_result.payload.get("seal_hash"),
                 },
             },
         )
-    
+
     def _wrap_failure(
         self,
         result: ToolEnvelope,

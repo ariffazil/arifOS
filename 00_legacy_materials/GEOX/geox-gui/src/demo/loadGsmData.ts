@@ -1,7 +1,7 @@
 /**
  * GSM Data Loader Demo — DITEMPA BUKAN DIBERI
- * 
- * Logic to fetch and inject GSM Malay Basin figures into the 
+ *
+ * Logic to fetch and inject GSM Malay Basin figures into the
  * Seismic Viewer and Basin Map Explorer.
  */
 
@@ -26,10 +26,10 @@ export async function loadGsmSeismicLine(
   lineId: string = 'GSM-LINE-PILOT'
 ): Promise<GsmSeismicData> {
   console.log(`[*] Requesting GSM Figure: ${figureRef} for ${lineId}`);
-  
+
   // In the real app, we would call useGEOXStore.getState().geoxUrl
   // and use a JSON-RPC request to the MCP server.
-  
+
   // Simulation of successful tool call result
   return {
     imageUrl: `/data/gsm_702001_demo/figures/${figureRef}.png`,
@@ -51,8 +51,8 @@ export async function loadGsmSeismicLine(
  */
 export function injectToSeismicViewer(data: GsmSeismicData) {
   console.log('[!] Injecting to Seismic Viewer...', data);
-  
-  // Example implementation using window.postMessage 
+
+  // Example implementation using window.postMessage
   // or the internal GEOX Store
   window.dispatchEvent(new CustomEvent('geox:seismic:load', { detail: data }));
 }

@@ -1,7 +1,7 @@
 # aCLIp — arifOS Constitutional Layer Interface
 
-**Version:** 2026.03.24  
-**Location:** `arifOS/scripts/aclip.py`  
+**Version:** 2026.03.24
+**Location:** `arifOS/scripts/aclip.py`
 **Purpose:** Unified CLI for constitutional GitOps, agent governance, and F1-F13 enforcement
 
 ---

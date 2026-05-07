@@ -14,6 +14,7 @@ tool invocations like constitutional floors.
 
 Ditempa Bukan Diberi — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 import logging
@@ -38,7 +39,11 @@ META_SKILLS: dict[str, dict[str, Any]] = {
     "orthogonal-abstraction": {
         "stage": "AGI→ASI",
         "trinity": "ASI_emergence",
-        "required_for": ["ASI abstraction dominance", "cross-domain reasoning", "governance transfer"],
+        "required_for": [
+            "ASI abstraction dominance",
+            "cross-domain reasoning",
+            "governance transfer",
+        ],
         "void_conditions": [
             "Surface similarity without structural invariant",
             "Category error in domain mapping",
@@ -50,7 +55,11 @@ META_SKILLS: dict[str, dict[str, Any]] = {
     "epistemic-integrity": {
         "stage": "333→888",
         "trinity": "APEX_foundation",
-        "required_for": ["APEX authorization", "correct judgment under uncertainty", "truth discipline"],
+        "required_for": [
+            "APEX authorization",
+            "correct judgment under uncertainty",
+            "truth discipline",
+        ],
         "void_conditions": [
             "Untagged claim in output",
             "Overconfidence threshold exceeded",
@@ -122,9 +131,7 @@ class MetaSkillsProvider:
         """List all loaded meta-skills."""
         return list(self._loaded.keys())
 
-    def check_prerequisites(
-        self, skill_id: str, context: dict[str, Any]
-    ) -> dict[str, Any]:
+    def check_prerequisites(self, skill_id: str, context: dict[str, Any]) -> dict[str, Any]:
         """
         Check if prerequisites for a meta-skill are met.
 

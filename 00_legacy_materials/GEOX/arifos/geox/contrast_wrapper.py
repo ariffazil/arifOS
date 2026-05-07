@@ -86,16 +86,17 @@ def contrast_governed_tool(
                     "Perceptual contrast may dominate physical signal."
                 )
 
-            gov = GeoxGovernance(
-                floors_ok=floors,
-                warnings=warnings
-            )
+            gov = GeoxGovernance(floors_ok=floors, warnings=warnings)
 
             # 3. Build Uncertainty Block
             unc = GeoxUncertainty(
                 level=0.12 if is_meta_attribute else 0.05,
-                type="image_only_structural_interpretation" if "line" in attr_name else "perceptual_lineament",
-                notes=_generate_uncertainty_factors(attr_name)
+                type=(
+                    "image_only_structural_interpretation"
+                    if "line" in attr_name
+                    else "perceptual_lineament"
+                ),
+                notes=_generate_uncertainty_factors(attr_name),
             )
 
             # 4. Construct Final Envelope
@@ -106,7 +107,7 @@ def contrast_governed_tool(
                 uncertainty=unc,
                 contrast_metadata=contrast_dict,
                 governance=gov,
-                result=result
+                result=result,
             )
 
         return wrapper

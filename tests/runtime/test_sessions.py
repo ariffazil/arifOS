@@ -5,7 +5,6 @@ Tests for runtime/sessions.py — identity binding and session continuity
 """
 
 
-
 class TestSessionNormalization:
     """Test _normalize_session_id function."""
 

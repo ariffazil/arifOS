@@ -30,7 +30,7 @@ memory_engine = MemoryEngine(
     postgres_url=os.getenv("ARIFOS_VAULT_URL", os.getenv("DATABASE_URL")),
     qdrant_url=os.getenv("QDRANT_URL", "http://qdrant:6333"),
     ollama_url=os.getenv("OLLAMA_EMBEDDING_URL", "http://A-FORGE-ollama:11434"),
-    embedding_model=os.getenv("EMBEDDING_MODEL", "bge-m3")
+    embedding_model=os.getenv("EMBEDDING_MODEL", "bge-m3"),
 )
 
 # =============================================================================

@@ -7,11 +7,11 @@ requirements:
   F2_Truth:
     freshness_check: true
     ttl_max: 86400
-  
+
   F555_Memory:
     hybrid_search: true
     constitutional_indexing: true
-  
+
   F4_Clarity:
     relevance_threshold: 0.8
 

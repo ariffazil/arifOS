@@ -73,19 +73,19 @@ def save_config(config, enable_telemetry: bool = False):
 - Git history modification (rebase, force push)
 
 ### Evidence/Verification Failures (NEW v41.2)
-- **H-USER-CORRECTION:** User corrects or disputes a constitutional claim  
+- **H-USER-CORRECTION:** User corrects or disputes a constitutional claim
   *Binds: F4 (κᵣ), F8 (Tri-Witness), F6 (Amanah)*
 
-- **H-SOURCE-CONFLICT:** Conflicting evidence across source tiers (PRIMARY vs SECONDARY vs TERTIARY)  
+- **H-SOURCE-CONFLICT:** Conflicting evidence across source tiers (PRIMARY vs SECONDARY vs TERTIARY)
   *Binds: F8 (Tri-Witness), F5 (Ω₀), F2 (ΔS)*
 
-- **H-NO-PRIMARY:** Constitutional claim made without reading spec JSON  
+- **H-NO-PRIMARY:** Constitutional claim made without reading spec JSON
   *Binds: F1 (Truth), F5 (Ω₀)*
 
-- **H-GREP-CONTRADICTS:** grep results contradict spec/canon patterns  
+- **H-GREP-CONTRADICTS:** grep results contradict spec/canon patterns
   *Binds: F2 (ΔS), F8 (Tri-Witness)*
 
-- **H-RUSHED-FIX:** Proposing fixes based on <5 minutes audit  
+- **H-RUSHED-FIX:** Proposing fixes based on <5 minutes audit
   *Binds: F3 (Peace²)*
 
 ### 888 HOLD Action Sequence
@@ -166,14 +166,14 @@ Verdict: [SEAL | PARTIAL | SABAR | VOID | 888_HOLD]
 
 **DITEMPA BUKAN DIBERI** - Forged, not given.
 
-**Version:** v41.2 (Phoenix-72 Code-Level + Source Hierarchy Hardening)  
+**Version:** v41.2 (Phoenix-72 Code-Level + Source Hierarchy Hardening)
 ---
 
 **DITEMPA BUKAN DIBERI** - Forged, not given.
 
-**Version:** v47 (Metabolic Horizon + SEMANTIC_BYPASS_ACTORS)  
-**Amended:** 2026-04-05  
-**Author:** APEX PRIME Architect  
+**Version:** v47 (Metabolic Horizon + SEMANTIC_BYPASS_ACTORS)
+**Amended:** 2026-04-05
+**Author:** APEX PRIME Architect
 **Ratified by:** Human (Arif)
 
 ---

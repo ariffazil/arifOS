@@ -1,7 +1,7 @@
 # HUMILITY SPECIFICATION (Ω₀ Algorithm)
-> **Authority:** 888_JUDGE  
-> **Version:** v1.0.0-SEAL  
-> **Status:** CONSTITUTIONAL MANDATE  
+> **Authority:** 888_JUDGE
+> **Version:** v1.0.0-SEAL
+> **Status:** CONSTITUTIONAL MANDATE
 > **Band:** 000_KERNEL (F7 Humility)
 
 ---
@@ -42,22 +42,22 @@ def softmax_entropy(logits: torch.Tensor) -> float:
     probs = F.softmax(logits, dim=-1)
     log_probs = F.log_softmax(logits, dim=-1)
     entropy = -(probs * log_probs).sum(dim=-1)
-    
+
     # Normalize to [0, 1] relative to max entropy
     max_entropy = math.log(probs.shape[-1])
     normalized_entropy = entropy / max_entropy
-    
+
     return normalized_entropy.item()
 ```
 
 ### Component 2: Confidence Calibration
 
 ```python
-def calibration_gap(predicted_confidence: float, 
+def calibration_gap(predicted_confidence: float,
                     empirical_accuracy: float) -> float:
     """
     Measure how over/under-confident the model is.
-    
+
     calibration_gap > 0: Overconfident
     calibration_gap < 0: Underconfident
     """
@@ -70,7 +70,7 @@ def calibration_gap(predicted_confidence: float,
 def evidence_coverage(claim: str, evidence: List[Source]) -> float:
     """
     Calculate what fraction of the claim is supported by evidence.
-    
+
     Returns [0, 1] where:
       1.0 = Fully supported
       0.0 = No evidence
@@ -78,11 +78,11 @@ def evidence_coverage(claim: str, evidence: List[Source]) -> float:
     """
     claim_aspects = decompose_claim(claim)
     supported_aspects = 0
-    
+
     for aspect in claim_aspects:
         if any(e.supports(aspect) for e in evidence):
             supported_aspects += 1
-    
+
     return supported_aspects / len(claim_aspects)
 ```
 
@@ -120,16 +120,16 @@ def calculate_omega_zero(
     # Component 1: Softmax entropy (50% weight)
     probs = F.softmax(logits, dim=-1)
     h_norm = -(probs * probs.log()).sum() / math.log(probs.shape[-1])
-    
+
     # Component 2: Calibration gap (30% weight)
     c_gap = abs(predicted_confidence - empirical_accuracy)
-    
+
     # Component 3: Evidence gap (20% weight)
     e_gap = 1 - evidence_coverage
-    
+
     # Weighted combination
     omega = (0.5 * h_norm + 0.3 * c_gap + 0.2 * e_gap) / 2.0
-    
+
     # Clamp to valid range
     return round(max(0.0, min(0.20, omega)), 3)
 ```
@@ -150,23 +150,23 @@ def estimate_omega_zero_heuristic(
     Used in MCP tools with black-box models.
     """
     base = 0.05  # Neutral starting point
-    
+
     # Longer outputs tend to accumulate error
     if token_count > 500:
         base += 0.02
     if token_count > 1000:
         base += 0.03
-    
+
     # Citations increase confidence (reduce Ω)
     if has_citations:
         base -= 0.02
-    
+
     # Ambiguity markers increase uncertainty
     base += len(ambiguity_markers) * 0.01
-    
+
     # Contradictions significantly increase uncertainty
     base += contradiction_count * 0.05
-    
+
     return round(max(0.0, min(0.20, base)), 3)
 ```
 
@@ -227,12 +227,12 @@ async def humility_enforcement(
     """
     Enforce F7 Humility before returning response.
     """
-    
+
     # Godellock detection
     if omega_zero < 0.03:
         # Force uncertainty injection
         modified_response = inject_uncertainty_markers(response)
-        
+
         return EnforcementResult(
             verdict="VOID",
             code="VOID_HUMILITY",
@@ -241,7 +241,7 @@ async def humility_enforcement(
             modified_response=modified_response,
             action="inject_uncertainty_and_retry"
         )
-    
+
     # Paralysis detection
     if omega_zero > 0.15:
         return EnforcementResult(
@@ -252,7 +252,7 @@ async def humility_enforcement(
             action="request_clarification",
             message="Insufficient confidence. Please provide more context."
         )
-    
+
     # Optimal range
     return EnforcementResult(verdict="SEAL", omega_zero=omega_zero)
 ```
@@ -275,10 +275,10 @@ def inject_uncertainty_markers(response: str) -> str:
     """
     # Add disclaimer prefix
     prefix = "[Estimate Only] "
-    
+
     # Add uncertainty suffix
     suffix = "\n\n---\n*Confidence level: moderate. This conclusion may change with additional evidence.*"
-    
+
     return prefix + response + suffix
 ```
 
@@ -295,38 +295,38 @@ async def calibrate_humility_model(
 ) -> CalibrationReport:
     """
     Calibrate Ω₀ calculation against empirical accuracy.
-    
+
     Should be run monthly or after model updates.
     """
-    
+
     results = []
     for sample in test_dataset:
         prediction = await generate_prediction(sample.input)
         omega = calculate_omega_zero(...)
-        
+
         results.append({
             'predicted': prediction,
             'confidence': 1 - omega,  # Convert uncertainty to confidence
             'actual': sample.label,
             'correct': prediction == sample.label
         })
-    
+
     # Calculate calibration by bin
     bins = np.array_split(results, n_bins)
     calibration_report = []
-    
+
     for bin_idx, bin_data in enumerate(bins):
         avg_confidence = np.mean([r['confidence'] for r in bin_data])
         avg_accuracy = np.mean([r['correct'] for r in bin_data])
         calibration_error = abs(avg_confidence - avg_accuracy)
-        
+
         calibration_report.append({
             'bin': bin_idx,
             'avg_confidence': avg_confidence,
             'avg_accuracy': avg_accuracy,
             'calibration_error': calibration_error
         })
-    
+
     return CalibrationReport(
         expected_calibration_error=np.mean([b['calibration_error'] for b in calibration_report]),
         max_calibration_error=max([b['calibration_error'] for b in calibration_report]),

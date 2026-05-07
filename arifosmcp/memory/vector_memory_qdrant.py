@@ -52,6 +52,7 @@ def _get_qdrant_client():
     if _qdrant_client is None:
         try:
             from qdrant_client import QdrantClient
+
             _qdrant_client = QdrantClient(url=_QDRANT_URL)
             logger.info(f"Connected to Qdrant at {_QDRANT_URL}")
         except Exception as exc:
@@ -75,6 +76,7 @@ def _ensure_collection():
         raise
     except Exception:
         from qdrant_client.models import Distance, VectorParams
+
         client.create_collection(
             collection_name=_QDRANT_COLLECTION,
             vectors_config=VectorParams(size=_VECTOR_SIZE, distance=Distance.COSINE),
@@ -89,6 +91,7 @@ def _generate_embedding(text: str) -> list[float]:
     is intentionally removed to prevent silent pollution of Qdrant retrieval.
     """
     import httpx
+
     try:
         response = httpx.post(
             f"{_OLLAMA_URL}/api/embeddings",
@@ -137,8 +140,10 @@ def _f10_ontology_check(content: str, metadata: dict | None = None) -> dict:
     if not _F10_ONTOLOGY_CHECK:
         return result
     prohibited_patterns = [
-        "consciousness claim", "i am sentient",
-        "i feel emotions", "i have subjective experience",
+        "consciousness claim",
+        "i am sentient",
+        "i feel emotions",
+        "i have subjective experience",
     ]
     content_lower = content.lower()
     for pattern in prohibited_patterns:
@@ -175,8 +180,10 @@ async def vector_store(
     if truth_score < _F2_TRUTH_THRESHOLD:
         return {
             "ok": False,
-            "error": ("F2 TRUTH: Content failed truth verification "
-                      f"(τ={truth_score:.4f} < {_F2_TRUTH_THRESHOLD})"),
+            "error": (
+                "F2 TRUTH: Content failed truth verification "
+                f"(τ={truth_score:.4f} < {_F2_TRUTH_THRESHOLD})"
+            ),
             "truth_score": truth_score,
             "policy_violation": True,
         }
@@ -211,8 +218,10 @@ async def vector_store(
         collection_name=_QDRANT_COLLECTION,
         points=[{"id": point_id, "vector": vector, "payload": payload}],
     )
-    logger.info(f"Vector stored: {point_id[:8]}... "
-                f"(class={ontology['ontology_class']}, τ={truth_score:.4f})")
+    logger.info(
+        f"Vector stored: {point_id[:8]}... "
+        f"(class={ontology['ontology_class']}, τ={truth_score:.4f})"
+    )
     return {
         "ok": True,
         "point_id": point_id,
@@ -240,17 +249,22 @@ async def vector_query(
     query_filter = None
     if filters:
         from qdrant_client.models import FieldCondition, Filter, MatchValue
+
         conditions = []
         if "ontology_class" in filters:
-            conditions.append(FieldCondition(
-                key="metadata.ontology_class",
-                match=MatchValue(value=filters["ontology_class"]),
-            ))
+            conditions.append(
+                FieldCondition(
+                    key="metadata.ontology_class",
+                    match=MatchValue(value=filters["ontology_class"]),
+                )
+            )
         if "session_id" in filters:
-            conditions.append(FieldCondition(
-                key="metadata.session_id",
-                match=MatchValue(value=filters["session_id"]),
-            ))
+            conditions.append(
+                FieldCondition(
+                    key="metadata.session_id",
+                    match=MatchValue(value=filters["session_id"]),
+                )
+            )
         if conditions:
             query_filter = Filter(must=conditions)
     client = _get_qdrant_client()
@@ -265,13 +279,15 @@ async def vector_query(
     for hit in hits:
         md = hit.payload.get("metadata", {})
         if md.get("truth_score", 0.0) >= _F2_TRUTH_THRESHOLD:
-            filtered_results.append({
-                "point_id": hit.id,
-                "score": hit.score,
-                "content": hit.payload.get("content", "")[:500],
-                "content_hash": hit.payload.get("content_hash"),
-                "metadata": md,
-            })
+            filtered_results.append(
+                {
+                    "point_id": hit.id,
+                    "score": hit.score,
+                    "content": hit.payload.get("content", "")[:500],
+                    "content_hash": hit.payload.get("content_hash"),
+                    "metadata": md,
+                }
+            )
     logger.info(f"Vector query: '{query[:50]}...' → {len(filtered_results)} results")
     return {
         "ok": True,
@@ -302,9 +318,7 @@ async def vector_forget(
                     ids=[point_id],
                     with_payload=True,
                 )
-                if point and point[0].payload.get("metadata", {}).get(
-                    "session_id"
-                ) != session_id:
+                if point and point[0].payload.get("metadata", {}).get("session_id") != session_id:
                     return {
                         "ok": False,
                         "error": "F13 KHILAFAH: Cannot delete another session's memory",

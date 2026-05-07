@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -79,7 +79,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -89,30 +89,30 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             echo "🚀 Deploying arifOS Sovereign Kernel to VPS..."
-            
+
             cd /root/arifOS || cd ~/arifOS
-            
+
             # Pull latest code
             git fetch origin
             git reset --hard origin/main
-            
+
             # Pull latest Docker image
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            
+
             # Update container
             docker-compose down
             docker-compose up -d --build
-            
+
             # Health check
             sleep 10
             curl -f http://localhost:8080/health && echo "✓ VPS deployment healthy"
-            
+
             # Notify VAULT999 of deployment
             docker-compose exec -T arifos python -c "
             from arifosmcp.core.governance.vault_redis import log_deployment
             log_deployment('vps', '${{ github.sha }}')
             " || true
-            
+
             echo "✅ VPS Sovereign Kernel updated"
 
   # ========================================================================
@@ -122,7 +122,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: horizon
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -136,13 +136,13 @@ jobs:
           PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
         run: |
           echo "☁️ Deploying arifOS Public Ambassador to Horizon..."
-          
+
           # Configure Prefect
           prefect config set PREFECT_API_KEY="$PREFECT_API_KEY"
-          
+
           # Trigger Horizon deployment (if using Prefect Cloud)
           # Note: Horizon auto-deploys from GitHub, but we can trigger refresh
-          
+
           echo "✅ Horizon will auto-deploy from GitHub commit ${{ github.sha }}"
           echo "🌐 URL: https://arifos.fastmcp.app"
 
@@ -152,7 +152,7 @@ jobs:
   verify:
     needs: [deploy-vps, deploy-horizon]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Verify VPS Deployment
         run: |
@@ -165,7 +165,7 @@ jobs:
         run: |
           echo "🔍 Checking Horizon Public Ambassador..."
           curl -sf https://arifos.fastmcp.app/health && echo "✅ Horizon is healthy"
-          
+
           # List available tools
           echo "📋 Available tools on Horizon:"
           curl -s https://arifos.fastmcp.app/mcp/tools/list 2>/dev/null | \

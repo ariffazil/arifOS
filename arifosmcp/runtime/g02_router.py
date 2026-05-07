@@ -157,7 +157,7 @@ class G02LayeredRouter:
         For G-axis:
         - session must be initialized
         """
-        now = _utcnow()
+        _utcnow()
 
         # E-axis requires G05 SEAL
         if target_axis == Axis.E:
@@ -309,7 +309,7 @@ class G02LayeredRouter:
 
         # Compute expected hash from components
         hash_input = f"{verdict}:{session_id}:{_utcnow().date().isoformat()}"
-        expected = hashlib.sha256(hash_input.encode()).hexdigest()
+        hashlib.sha256(hash_input.encode()).hexdigest()
 
         # For now, accept any valid-format SEAL (real impl would verify against vault)
         return True, f"SEAL verified for session {session_id[:20]}..."

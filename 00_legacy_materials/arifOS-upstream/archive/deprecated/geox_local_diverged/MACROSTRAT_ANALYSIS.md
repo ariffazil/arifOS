@@ -1,7 +1,7 @@
 # UW-Macrostrat Analysis for GEOX Integration
 
-> **Exploration Mode Assessment** — ARIF  
-> **Date:** 2026-03-26  
+> **Exploration Mode Assessment** — ARIF
+> **Date:** 2026-03-26
 > **Verdict:** ✅ HIGHLY BENEFICIAL — API integration recommended, no clone needed
 
 ---
@@ -13,8 +13,8 @@
 - DARPA
 - UW-Madison Department of Geoscience
 
-**Website:** https://macrostrat.org  
-**API Docs:** https://macrostrat.org/api  
+**Website:** https://macrostrat.org
+**API Docs:** https://macrostrat.org/api
 **License:** CC-BY-4.0 (Free to use with attribution)
 
 ---
@@ -76,11 +76,11 @@ import httpx
 
 class MacrostratTool(BaseTool):
     """Large Earth Model proxy via Macrostrat API."""
-    
+
     name = "MacrostratTool"
     description = "Query Macrostrat geological database for stratigraphic columns, units, and map data"
     base_url = "https://macrostrat.org/api/v2"
-    
+
     async def run(self, inputs: dict) -> GeoToolResult:
         endpoint = inputs.get("endpoint", "columns")
         params = {
@@ -88,11 +88,11 @@ class MacrostratTool(BaseTool):
             "lng": inputs["location"].longitude,
             "all": "true" if inputs.get("all", False) else "false"
         }
-        
+
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{self.base_url}/{endpoint}", params=params)
             data = resp.json()
-        
+
         # Convert to GeoQuantity objects
         quantities = self._parse_to_quantities(data)
         return GeoToolResult(
@@ -173,19 +173,19 @@ class MacrostratTool(BaseTool):
     Macrostrat geological database integration.
     Provides stratigraphic columns, units, and geologic map data.
     """
-    
+
     name = "MacrostratTool"
     description = "Query Macrostrat for regional geological context"
-    
+
     async def run(self, inputs: dict) -> GeoToolResult:
         location = inputs["location"]
-        
+
         # Query stratigraphic column at location
         column_data = await self._query_columns(location)
-        
+
         # Query rock units
         units_data = await self._query_units(location)
-        
+
         # Convert to GeoQuantity
         quantities = []
         for unit in units_data.get("success", {}).get("data", []):
@@ -202,7 +202,7 @@ class MacrostratTool(BaseTool):
                     confidence=0.85
                 )
             ))
-        
+
         return GeoToolResult(
             tool_name=self.name,
             success=True,

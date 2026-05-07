@@ -84,7 +84,7 @@ Brave returned 200 but no web results
 #### 2. log_tail - Not Fixed
 **Current behavior:** "Log file not found"
 
-**Issue:** 
+**Issue:**
 - Default path `arifosmcp.transport.log` doesn't exist
 - Alternative paths tried but not found in container
 - `/var/log/syslog` not present in container
@@ -98,7 +98,7 @@ Brave returned 200 but no web results
 ```python
 # Added timeout to PNS search
 search_env = await asyncio.wait_for(
-    handle_pns_search(query=query, session_id=session_id), 
+    handle_pns_search(query=query, session_id=session_id),
     timeout=10.0
 )
 ```

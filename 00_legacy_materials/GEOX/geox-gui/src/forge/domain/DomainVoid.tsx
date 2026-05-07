@@ -2,10 +2,10 @@
  * DomainVoid — Risk & Decision Manifold (000-249)
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * The Decision Manifold for volumetrics, economics, and 888_HOLD governance.
  * Brutalist, forensic, high-contrast aesthetic.
- * 
+ *
  * Features:
  * - Monte Carlo P90/P50/P10 analysis visualization
  * - GCOS (Geological Chance of Success) distribution curves

@@ -316,9 +316,13 @@ async def init_anchor(
         try:
             client = get_model_registry_client()
             # Extract claimed identity from model_soul
-            claimed_identity = model_soul.get("model_key") or model_soul.get("base_identity", {}).get("model_key")
-            claimed_provider = model_soul.get("provider") or model_soul.get("base_identity", {}).get("provider")
-            
+            claimed_identity = model_soul.get("model_key") or model_soul.get(
+                "base_identity", {}
+            ).get("model_key")
+            claimed_provider = model_soul.get("provider") or model_soul.get(
+                "base_identity", {}
+            ).get("provider")
+
             if claimed_identity:
                 verification = await client.verify_identity(claimed_identity, claimed_provider)
                 model_registry_info = {
@@ -444,9 +448,11 @@ async def init_anchor(
         caller_state="verified" if verified else "anonymous",
         authority=authority_obj,
         allowed_next_tools=list(_ANCHORED_NEXT_TOOLS if verified else _ANONYMOUS_NEXT_TOOLS),
-        next_allowed_modes=["status", "probe", "state", "kernel", "health", "vitals", "reason"]
-        if verified
-        else ["init", "status", "probe", "state"],
+        next_allowed_modes=(
+            ["status", "probe", "state", "kernel", "health", "vitals", "reason"]
+            if verified
+            else ["init", "status", "probe", "state"]
+        ),
         payload=res_payload,
         duration_ms=duration_ms,
         mode=mode or "init",
@@ -459,13 +465,17 @@ async def init_anchor(
             "injection_score": _injection_score,
         },
         system={"kernel_version": "v2026.04.14-SEALED", "env": "production"},
-        arif_attestation={
-            "canonical_url": "https://gist.github.com/ariffazil/81314f6cda1ea898f9feb88ce8f8959b",
-            "arif_version": "v1.0",
-            "arif_present": arif_read,
-            "arif_source": arif_source or "unknown",
-            "arif_hash": arif_hash or None,
-            "clerk_id": _dn,
-            "epoch": datetime.now(timezone.utc).isoformat(),
-        } if arif_read or arif_source else None,
+        arif_attestation=(
+            {
+                "canonical_url": "https://gist.github.com/ariffazil/81314f6cda1ea898f9feb88ce8f8959b",
+                "arif_version": "v1.0",
+                "arif_present": arif_read,
+                "arif_source": arif_source or "unknown",
+                "arif_hash": arif_hash or None,
+                "clerk_id": _dn,
+                "epoch": datetime.now(timezone.utc).isoformat(),
+            }
+            if arif_read or arif_source
+            else None
+        ),
     )

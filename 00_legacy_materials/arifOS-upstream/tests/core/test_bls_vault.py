@@ -164,9 +164,7 @@ class TestAggregation:
         bad.payload_hash = "b" * 64
         assert signer.verify_seal(bad) is False
 
-    def test_tampered_aggregate_sig_fails(
-        self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal
-    ):
+    def test_tampered_aggregate_sig_fails(self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal):
         bad = deepcopy(valid_seal)
         bad.aggregate_signature_hex = "cc" * 96
         assert signer.verify_seal(bad) is False

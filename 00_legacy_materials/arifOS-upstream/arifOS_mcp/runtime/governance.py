@@ -28,36 +28,37 @@ try:
         PerformanceMetrics as _VitalityPerfMetrics,
         CorrectnessMetrics as _VitalityCorrMetrics,
     )
+
     _emit_vitality = _emit_vitality_fn
     import os as _os
+
     _VITALITY_LEDGER_DIR = _os.path.join(
-        _os.path.dirname(_os.path.abspath(__file__)),
-        "..", "..", "arifOS_mcp", "tools", "arifos"
+        _os.path.dirname(_os.path.abspath(__file__)), "..", "..", "arifOS_mcp", "tools", "arifos"
     )
 except Exception:
     _emit_vitality = None
 
 
 class Verdict(Enum):
-    SEAL = "SEAL"           # Approved and hashed
-    SABAR = "SABAR"         # Hold for cooling/reflection
-    VOID = "VOID"           # Rejected/Violated
-    HOLD_888 = "HOLD_888"   # Awaiting APEX consensus
+    SEAL = "SEAL"  # Approved and hashed
+    SABAR = "SABAR"  # Hold for cooling/reflection
+    VOID = "VOID"  # Rejected/Violated
+    HOLD_888 = "HOLD_888"  # Awaiting APEX consensus
 
 
 @dataclass
 class ThermodynamicMetrics:
-    truth_score: float = 1.0        # F2: >= 0.99 for SEAL
-    delta_s: float = 0.0            # F4: <= 0 for SEAL
-    omega_0: float = 0.04           # F12: must be in [0.03, 0.05]
-    peace_squared: float = 1.0      # F7: >= 1.0 for SEAL
-    amanah_lock: bool = True        # F1: must be True for SEAL
+    truth_score: float = 1.0  # F2: >= 0.99 for SEAL
+    delta_s: float = 0.0  # F4: <= 0 for SEAL
+    omega_0: float = 0.04  # F12: must be in [0.03, 0.05]
+    peace_squared: float = 1.0  # F7: >= 1.0 for SEAL
+    amanah_lock: bool = True  # F1: must be True for SEAL
     tri_witness_score: float = 1.0  # F3: >= 0.95 for high-stakes
-    stakeholder_safety: float = 1.0 # F6/F9: >= 0.9 preferred
+    stakeholder_safety: float = 1.0  # F6/F9: >= 0.9 preferred
 
     # Advanced Floor Signals (F8-F13)
-    floor_8_signal: Optional[str] = None   # Sabar
-    floor_9_signal: Optional[str] = None   # Ethics
+    floor_8_signal: Optional[str] = None  # Sabar
+    floor_9_signal: Optional[str] = None  # Ethics
     floor_10_signal: Optional[str] = None  # Conscience
     floor_11_signal: Optional[str] = None  # Audit
     floor_12_signal: Optional[str] = None  # Humility
@@ -180,8 +181,7 @@ def governed_return(
 
     # Perform single constitutional transition with witness bits
     IDENTITY_MANAGER.transition(
-        metabolic_state,
-        witness={"human": human_override is not None, "ai": True, "earth": False}
+        metabolic_state, witness={"human": human_override is not None, "ai": True, "earth": False}
     )
 
     # Update values ONCE after transition
@@ -200,7 +200,7 @@ def governed_return(
         "metrics": asdict(metrics),
         "vault_receipt": receipt_id,
         "data": data,
-        "timestamp": time.time()
+        "timestamp": time.time(),
     }
 
     # F11 Audit: identity block for 999_VAULT
@@ -211,7 +211,7 @@ def governed_return(
         "parent_hash": IDENTITY_MANAGER.current.parent_hash[:8],
         "evolution_note": IDENTITY_MANAGER.get_evolution_note(),
         "witness_status": IDENTITY_MANAGER.current.witness_status,
-        "autonomy_level": round(IDENTITY_MANAGER.current_self_model.autonomy_level, 4)
+        "autonomy_level": round(IDENTITY_MANAGER.current_self_model.autonomy_level, 4),
     }
 
     # A-FORGE Bridge Contract: include runtime contract version
@@ -233,10 +233,19 @@ def governed_return(
                 ]
                 for c in candidates:
                     if c in (
-                        "arifos_000_init", "arifos_111_sense", "arifos_222_witness",
-                        "arifos_333_mind", "arifos_444_kernel", "arifos_555_memory",
-                        "arifos_666_heart", "arifos_777_ops", "arifos_888_judge",
-                        "arifos_999_vault", "arifos_forge", "arifos_gateway", "arifos_sabar",
+                        "arifos_000_init",
+                        "arifos_111_sense",
+                        "arifos_222_witness",
+                        "arifos_333_mind",
+                        "arifos_444_kernel",
+                        "arifos_555_memory",
+                        "arifos_666_heart",
+                        "arifos_777_ops",
+                        "arifos_888_judge",
+                        "arifos_999_vault",
+                        "arifos_forge",
+                        "arifos_gateway",
+                        "arifos_sabar",
                     ):
                         tool_name = c
                         break

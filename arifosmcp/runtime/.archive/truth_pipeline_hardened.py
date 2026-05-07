@@ -36,17 +36,20 @@ from arifosmcp.runtime.contracts_v2 import (
 # MULTIMODAL MANIFOLD PRIMITIVES (Injected from arifos-vid)
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class TemporalStrip:
     """A sequential slice of multimodal data (Video/Audio/Log)."""
+
     index: int
     timestamp: float
     data_vector: list[float]
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 class ManifoldProjector:
     """Mathematical transformation of raw temporal strips into governed artifacts."""
-    
+
     @staticmethod
     def project(strips: list[TemporalStrip]) -> dict[str, Any]:
         """Projects a sequence of strips through the 11-part manifold."""
@@ -61,18 +64,21 @@ class ManifoldProjector:
             "part_7_cooling_state": "active",
             "part_8_ethical_boundary": "enforced",
             "part_9_observer_hash": "888_JUDGE",
-            "part_10_telemetry_vector": [len(strips), 0.99, 0.04], # [Count, Truth, Humility]
-            "part_11_seal": "ZKPC_999_PENDING"
+            "part_10_telemetry_vector": [len(strips), 0.99, 0.04],  # [Count, Truth, Humility]
+            "part_11_seal": "ZKPC_999_PENDING",
         }
         return artifact
+
 
 # -----------------------------------------------------------------------------
 # EVIDENCE BUNDLE — Typed Output
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class EvidenceFact:
     """A single observed fact with full provenance."""
+
     fact_id: str
     statement: str
     source_uri: str
@@ -96,9 +102,11 @@ class EvidenceFact:
             "locale": self.locale,
         }
 
+
 @dataclass
 class ReportedClaim:
     """A claim made by a source (not yet verified as fact)."""
+
     claim_id: str
     claim_text: str
     claimant: str
@@ -116,9 +124,11 @@ class ReportedClaim:
             "confidence": round(self.confidence, 4),
         }
 
+
 @dataclass
 class InferredConnection:
     """Connections inferred between facts/claims."""
+
     connection_id: str
     from_id: str
     to_id: str
@@ -136,9 +146,11 @@ class InferredConnection:
             "inference_method": self.inference_method,
         }
 
+
 @dataclass
 class EvidenceBundle:
     """Complete typed evidence output from reality_compass."""
+
     bundle_id: str
     query: str
     jurisdiction: str
@@ -146,7 +158,7 @@ class EvidenceBundle:
     observed_facts: list[EvidenceFact] = field(default_factory=list)
     reported_claims: list[ReportedClaim] = field(default_factory=list)
     inferred_connections: list[InferredConnection] = field(default_factory=list)
-    manifold_artifact: dict[str, Any] = field(default_factory=dict) # Injected Multimodal Part
+    manifold_artifact: dict[str, Any] = field(default_factory=dict)  # Injected Multimodal Part
     search_timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     sources_queried: list[str] = field(default_factory=list)
     sources_responded: list[str] = field(default_factory=list)
@@ -166,13 +178,16 @@ class EvidenceBundle:
             "sources_responded": self.sources_responded,
         }
 
+
 # -----------------------------------------------------------------------------
 # SOURCE CONFLICT MATRIX
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class SourceConflictMatrix:
     """Matrix showing source independence and conflicts."""
+
     sources: list[str]
     independence_scores: dict[tuple[str, str], float]
     conflict_pairs: list[tuple[str, str, str]]
@@ -180,8 +195,10 @@ class SourceConflictMatrix:
     def get_independence_score(self, source_a: str, source_b: str) -> float:
         key = (source_a, source_b)
         reverse_key = (source_b, source_a)
-        if key in self.independence_scores: return self.independence_scores[key]
-        if reverse_key in self.independence_scores: return self.independence_scores[reverse_key]
+        if key in self.independence_scores:
+            return self.independence_scores[key]
+        if reverse_key in self.independence_scores:
+            return self.independence_scores[reverse_key]
         return 0.5
 
     def are_independent(self, source_a: str, source_b: str, threshold: float = 0.7) -> bool:
@@ -190,17 +207,22 @@ class SourceConflictMatrix:
     def to_dict(self) -> dict[str, Any]:
         return {
             "sources": self.sources,
-            "independence_scores": {f"{k[0]}:{k[1]}": round(v, 4) for k, v in self.independence_scores.items()},
+            "independence_scores": {
+                f"{k[0]}:{k[1]}": round(v, 4) for k, v in self.independence_scores.items()
+            },
             "conflict_pairs": [{"a": a, "b": b, "topic": t} for a, b, t in self.conflict_pairs],
         }
+
 
 # -----------------------------------------------------------------------------
 # CLAIM GRAPH
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class ClaimNode:
     """A node in the claim graph."""
+
     claim_id: str
     claim_text: str
     claimant: str
@@ -222,9 +244,11 @@ class ClaimNode:
             "contradiction_strength": round(self.contradiction_strength, 4),
         }
 
+
 @dataclass
 class ClaimGraph:
     """Graph representing what we know and what is unresolved."""
+
     graph_id: str
     nodes: dict[str, ClaimNode] = field(default_factory=dict)
     timeline: list[dict] = field(default_factory=list)
@@ -232,7 +256,7 @@ class ClaimGraph:
 
     def add_node(self, node: ClaimNode):
         self.nodes[node.claim_id] = node
-    
+
     def get_unresolved_claims(self) -> list[ClaimNode]:
         return [n for n in self.nodes.values() if n.missing_evidence and n.support_strength < 0.7]
 
@@ -245,9 +269,11 @@ class ClaimGraph:
             "unresolved_count": len(self.get_unresolved_claims()),
         }
 
+
 # -----------------------------------------------------------------------------
 # HARDENED REALITY COMPASS — Truth Intake Valve
 # -----------------------------------------------------------------------------
+
 
 class HardenedRealityCompass:
     """Hardened reality_compass with typed EvidenceBundle and Multimodal Manifold projection."""
@@ -269,40 +295,50 @@ class HardenedRealityCompass:
         """Search or project multimodal data through the manifold intake valve."""
         tool = "reality_compass"
         session_id = session_id or "anonymous"
-        
+
         validation = validate_fail_closed(
-            auth_context=auth_context, risk_tier=risk_tier, session_id=session_id, tool=tool, trace=trace,
+            auth_context=auth_context,
+            risk_tier=risk_tier,
+            session_id=session_id,
+            tool=tool,
+            trace=trace,
         )
         if not validation.valid:
             return validation.to_envelope(tool, session_id, trace)
 
         bundle_id = f"bundle-{hashlib.sha256(query.encode()).hexdigest()[:16]}"
-        bundle = EvidenceBundle(bundle_id=bundle_id, query=query, jurisdiction=jurisdiction, locale=locale)
+        bundle = EvidenceBundle(
+            bundle_id=bundle_id, query=query, jurisdiction=jurisdiction, locale=locale
+        )
 
         # Handle Multimodal Manifold Projection if is_temporal is active
         if is_temporal and strips:
             temporal_strips = [TemporalStrip(**s) for s in strips]
             bundle.manifold_artifact = ManifoldProjector.project(temporal_strips)
-            bundle.observed_facts.append(EvidenceFact(
-                fact_id=f"manifold-fact-{bundle_id}",
-                statement=f"Manifold projection complete for {len(strips)} temporal strips.",
-                source_uri="manifold://internal",
-                observed_at=datetime.now(timezone.utc).isoformat(),
-                freshness_score=1.0,
-                source_type="primary",
-                verification_status="verified",
-            ))
+            bundle.observed_facts.append(
+                EvidenceFact(
+                    fact_id=f"manifold-fact-{bundle_id}",
+                    statement=f"Manifold projection complete for {len(strips)} temporal strips.",
+                    source_uri="manifold://internal",
+                    observed_at=datetime.now(timezone.utc).isoformat(),
+                    freshness_score=1.0,
+                    source_type="primary",
+                    verification_status="verified",
+                )
+            )
         else:
             # Standard Search Logic
-            bundle.observed_facts.append(EvidenceFact(
-                fact_id="fact-001",
-                statement=f"Grounded truth for query: {query}",
-                source_uri="https://primary.db/record/001",
-                observed_at=datetime.now(timezone.utc).isoformat(),
-                freshness_score=0.95,
-                source_type="primary",
-                verification_status="verified",
-            ))
+            bundle.observed_facts.append(
+                EvidenceFact(
+                    fact_id="fact-001",
+                    statement=f"Grounded truth for query: {query}",
+                    source_uri="https://primary.db/record/001",
+                    observed_at=datetime.now(timezone.utc).isoformat(),
+                    freshness_score=0.95,
+                    source_type="primary",
+                    verification_status="verified",
+                )
+            )
 
         # Build conflict matrix
         matrix = SourceConflictMatrix(
@@ -310,7 +346,7 @@ class HardenedRealityCompass:
             independence_scores={("primary_db", "manifold_engine"): 0.95},
             conflict_pairs=[],
         )
-        
+
         entropy = calculate_entropy_budget(
             ambiguity_score=0.1 if is_temporal else 0.2,
             assumptions=["manifold_stability" if is_temporal else "source_availability"],
@@ -335,9 +371,11 @@ class HardenedRealityCompass:
             },
         )
 
+
 # -----------------------------------------------------------------------------
 # HARDENED REALITY ATLAS — Epistemic Map
 # -----------------------------------------------------------------------------
+
 
 class HardenedRealityAtlas:
     """Hardened reality_atlas with claim graphing."""
@@ -355,14 +393,20 @@ class HardenedRealityAtlas:
         session_id = session_id or "anonymous"
 
         validation = validate_fail_closed(
-            auth_context=auth_context, risk_tier=risk_tier, session_id=session_id, tool=tool, trace=trace,
+            auth_context=auth_context,
+            risk_tier=risk_tier,
+            session_id=session_id,
+            tool=tool,
+            trace=trace,
             requires_evidence=True,
             evidence_refs=[b.get("bundle_id") for b in evidence_bundles if b.get("bundle_id")],
         )
         if not validation.valid:
             return validation.to_envelope(tool, session_id, trace)
 
-        graph = ClaimGraph(graph_id=f"graph-{hashlib.sha256(str(evidence_bundles).encode()).hexdigest()[:16]}")
+        graph = ClaimGraph(
+            graph_id=f"graph-{hashlib.sha256(str(evidence_bundles).encode()).hexdigest()[:16]}"
+        )
 
         for bundle_data in evidence_bundles:
             facts = bundle_data.get("observed_facts", [])
@@ -372,13 +416,19 @@ class HardenedRealityAtlas:
                     claim_id=claim.get("claim_id", "unknown"),
                     claim_text=claim.get("claim_text", ""),
                     claimant=claim.get("claimant", "unknown"),
-                    supporting_evidence=[f.get("fact_id") for f in facts if f.get("verification_status") == "verified"],
+                    supporting_evidence=[
+                        f.get("fact_id")
+                        for f in facts
+                        if f.get("verification_status") == "verified"
+                    ],
                     missing_evidence=["corroboration"],
                     support_strength=0.7 if facts else 0.3,
                 )
                 graph.add_node(node)
-        
-        graph.timeline = [{"timestamp": datetime.now(timezone.utc).isoformat(), "event": "manifold_merge"}]
+
+        graph.timeline = [
+            {"timestamp": datetime.now(timezone.utc).isoformat(), "event": "manifold_merge"}
+        ]
         unresolved = graph.get_unresolved_claims()
         entropy = calculate_entropy_budget(
             ambiguity_score=len(unresolved) / max(len(graph.nodes), 1),
@@ -403,8 +453,16 @@ class HardenedRealityAtlas:
             },
         )
 
+
 __all__ = [
-    "EvidenceFact", "ReportedClaim", "InferredConnection", "EvidenceBundle",
-    "SourceConflictMatrix", "ClaimNode", "ClaimGraph", "TemporalStrip",
-    "HardenedRealityCompass", "HardenedRealityAtlas",
+    "EvidenceFact",
+    "ReportedClaim",
+    "InferredConnection",
+    "EvidenceBundle",
+    "SourceConflictMatrix",
+    "ClaimNode",
+    "ClaimGraph",
+    "TemporalStrip",
+    "HardenedRealityCompass",
+    "HardenedRealityAtlas",
 ]

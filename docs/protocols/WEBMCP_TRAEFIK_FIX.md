@@ -1,8 +1,8 @@
 # WebMCP Traefik Routing Fix
 
-> **Status**: Fix Ready for Deployment  
-> **Issue**: WebMCP container running internally but public endpoint returns 404  
-> **Root Cause**: Traefik labels using separate hostname instead of path-based routing on main domain  
+> **Status**: Fix Ready for Deployment
+> **Issue**: WebMCP container running internally but public endpoint returns 404
+> **Root Cause**: Traefik labels using separate hostname instead of path-based routing on main domain
 > **Fix**: PathPrefix-based routing with stripprefix middleware
 
 ---
@@ -37,7 +37,7 @@ Change Traefik labels to use `PathPrefix` rules on the main domain:
 
 ### 1. Main MCP Service (arifosmcp)
 
-**File**: `docker-compose.yml`  
+**File**: `docker-compose.yml`
 **Lines**: 352-356
 
 ```yaml
@@ -57,7 +57,7 @@ labels:
 
 ### 2. WebMCP Service (aclip-cai)
 
-**File**: `docker-compose.yml`  
+**File**: `docker-compose.yml`
 **Lines**: 413-421
 
 ```yaml

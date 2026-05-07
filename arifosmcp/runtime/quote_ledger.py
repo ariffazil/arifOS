@@ -148,22 +148,26 @@ def validate_quote_schema(quote: dict[str, Any]) -> None:
         raise QuoteSchemaError("tradition must be a non-empty string")
     if not isinstance(quote["theme"], str) or not quote["theme"]:
         raise QuoteSchemaError("theme must be a non-empty string")
-    if not isinstance(quote["domain"], list) or not all(isinstance(d, str) for d in quote["domain"]):
+    if not isinstance(quote["domain"], list) or not all(
+        isinstance(d, str) for d in quote["domain"]
+    ):
         raise QuoteSchemaError("domain must be a list of strings")
-    if not isinstance(quote["trigger_conditions"], list) or not all(isinstance(t, str) for t in quote["trigger_conditions"]):
+    if not isinstance(quote["trigger_conditions"], list) or not all(
+        isinstance(t, str) for t in quote["trigger_conditions"]
+    ):
         raise QuoteSchemaError("trigger_conditions must be a list of strings")
     if not isinstance(quote["arifos_mapping"], dict):
         raise QuoteSchemaError("arifos_mapping must be a dict")
-    if not isinstance(quote["risk_use"], list) or not all(isinstance(r, str) for r in quote["risk_use"]):
+    if not isinstance(quote["risk_use"], list) or not all(
+        isinstance(r, str) for r in quote["risk_use"]
+    ):
         raise QuoteSchemaError("risk_use must be a list of strings")
     if not isinstance(quote["allow_use"], bool):
         raise QuoteSchemaError("allow_use must be a bool")
 
     # Enum checks
     if quote["action_bias"] not in VALID_ACTION_BIASES:
-        raise QuoteSchemaError(
-            f"action_bias={quote['action_bias']!r} not in {VALID_ACTION_BIASES}"
-        )
+        raise QuoteSchemaError(f"action_bias={quote['action_bias']!r} not in {VALID_ACTION_BIASES}")
     invalid_risks = set(quote["risk_use"]) - VALID_RISK_LEVELS
     if invalid_risks:
         raise QuoteSchemaError(f"Invalid risk_use values: {invalid_risks}")

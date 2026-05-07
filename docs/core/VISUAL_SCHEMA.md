@@ -11,7 +11,7 @@
 The arifOS visual system is built on the metaphor of **forging** — the transformation of raw material through heat, pressure, and time into something durable and purposeful.
 
 - **Fire** → Energy, transformation, purification
-- **Steel/Anvil** → Strength, resilience, structure  
+- **Steel/Anvil** → Strength, resilience, structure
 - **Heat gradients** → Activity, life, attention
 - **Dark void** → The substrate of potential, the unknown
 
@@ -63,7 +63,7 @@ The THEORY layer represents wisdom, authority, and the blueprint — illuminated
 
 **Psychological Profile**: Golden knowledge, illuminated wisdom, scholarly warmth, precious insight
 
-**Contrast Analysis**: 
+**Contrast Analysis**:
 - Gold (#FFD700) on Dark Brown (#1A1810): 12.8:1 ✓ WCAG AAA
 - Cornsilk (#FFF8DC) on Dark Brown: 15.6:1 ✓ WCAG AAA
 - Primary Gold (#D4AF37) on Dark: 10.2:1 ✓ WCAG AA
@@ -168,7 +168,7 @@ TRINITY GRADIENT: #00D4FF (Cyan) → #FFB800 (Amber) → #FF2D2D (Red)
 
 ### 4.3 Layout Principles
 
-1. **Max-width containers**: 
+1. **Max-width containers**:
    - Tight: `max-w-2xl` (42rem) — Reading content
    - Standard: `max-w-3xl` (48rem) — General content
    - Wide: `max-w-4xl` (56rem) — Visual showcases
@@ -187,7 +187,7 @@ TRINITY GRADIENT: #00D4FF (Cyan) → #FFB800 (Amber) → #FF2D2D (Red)
 ```css
 .triangle-bg {
   background-color: #050505;
-  background-image: 
+  background-image:
     linear-gradient(30deg, rgba(139, 0, 0, 0.1) 12%, ...),
     linear-gradient(150deg, rgba(139, 0, 0, 0.1) 12%, ...);
   background-size: 80px 140px;
@@ -226,17 +226,17 @@ The **Sierpinski Triangle** is the sacred geometric symbol of arifOS:
 ```svg
 <svg viewBox="0 0 200 173">
   <!-- Main triangle outline -->
-  <path d="M100 10 L190 163 L10 163 Z" 
-        fill="none" 
-        stroke="url(#trinityGradient)" 
+  <path d="M100 10 L190 163 L10 163 Z"
+        fill="none"
+        stroke="url(#trinityGradient)"
         stroke-width="2"/>
-  
+
   <!-- Inner triangle -->
-  <path d="M100 50 L145 130 L55 130 Z" 
-        fill="none" 
-        stroke="url(#amberGradient)" 
+  <path d="M100 50 L145 130 L55 130 Z"
+        fill="none"
+        stroke="url(#amberGradient)"
         stroke-width="1.5"/>
-  
+
   <!-- Center point (the witness) -->
   <circle cx="100" cy="100" r="5" fill="url(#trinityGradient)">
     <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3s" repeatCount="indefinite"/>
@@ -256,7 +256,7 @@ The **Sierpinski Triangle** is the sacred geometric symbol of arifOS:
 #### HUMAN (Forge Glow)
 ```css
 .forge-glow {
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(139, 0, 0, 0.4),
     0 0 40px rgba(139, 0, 0, 0.2),
     0 0 60px rgba(139, 0, 0, 0.1);

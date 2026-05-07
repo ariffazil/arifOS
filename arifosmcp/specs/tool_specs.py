@@ -20,7 +20,7 @@ from typing import Any
 class ToolSpec:
     """
     Clean tool specification following MCP protocol.
-    
+
     Fields:
         name: Machine-stable functional name (verb)
         title: Human-facing mythic name
@@ -33,6 +33,7 @@ class ToolSpec:
         open_world_hint: If True, tool accesses external systems
         auth_required: Minimum authority level needed
     """
+
     name: str
     title: str
     description: str
@@ -46,8 +47,7 @@ class ToolSpec:
 
 
 def _build_input_schema(
-    properties: dict[str, Any],
-    required: list[str] | None = None
+    properties: dict[str, Any], required: list[str] | None = None
 ) -> dict[str, Any]:
     """Helper to build consistent input schemas."""
     return {
@@ -56,15 +56,15 @@ def _build_input_schema(
             **properties,
             "session_id": {
                 "type": "string",
-                "description": "Session context (optional, uses current if not provided)"
+                "description": "Session context (optional, uses current if not provided)",
             },
             "dry_run": {
                 "type": "boolean",
                 "default": True,
-                "description": "If true, simulate without executing"
-            }
+                "description": "If true, simulate without executing",
+            },
         },
-        "required": required or []
+        "required": required or [],
     }
 
 
@@ -74,7 +74,6 @@ def _build_input_schema(
 
 CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
     # ═══ GOVERNANCE LAYER ═══
-    
     ToolSpec(
         name="init_session_anchor",
         title="Init Anchor",
@@ -87,23 +86,20 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
             properties={
                 "actor_id": {
                     "type": "string",
-                    "description": "Identity claim (email, username, etc.)"
+                    "description": "Identity claim (email, username, etc.)",
                 },
-                "intent": {
-                    "type": "string",
-                    "description": "Purpose of this session"
-                },
+                "intent": {"type": "string", "description": "Purpose of this session"},
                 "session_class": {
                     "type": "string",
                     "enum": ["query", "execute", "elevated", "sovereign"],
                     "default": "execute",
-                    "description": "Session permission level"
+                    "description": "Session permission level",
                 },
                 "human_approval": {
                     "type": "boolean",
                     "default": False,
-                    "description": "Whether human has pre-approved"
-                }
+                    "description": "Whether human has pre-approved",
+                },
             }
         ),
         stage="000_INIT",
@@ -112,7 +108,6 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=False,
         auth_required="anonymous",
     ),
-    
     ToolSpec(
         name="get_tool_registry",
         title="Architect Registry",
@@ -126,12 +121,12 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
                     "type": "string",
                     "enum": ["list", "detail", "context"],
                     "default": "list",
-                    "description": "Discovery mode"
+                    "description": "Discovery mode",
                 },
                 "tool_name": {
                     "type": "string",
-                    "description": "Specific tool to get details for (mode=detail)"
-                }
+                    "description": "Specific tool to get details for (mode=detail)",
+                },
             }
         ),
         stage="M-4_ARCH",
@@ -140,9 +135,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=True,
         auth_required="anonymous",
     ),
-    
     # ═══ INTELLIGENCE LAYER ═══
-    
     ToolSpec(
         name="sense_reality",
         title="Physics Reality",
@@ -153,25 +146,22 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "query": {
-                    "type": "string",
-                    "description": "What to search, verify, or ingest"
-                },
+                "query": {"type": "string", "description": "What to search, verify, or ingest"},
                 "operation": {
                     "type": "string",
                     "enum": ["search", "ingest", "compass", "atlas", "time"],
                     "default": "search",
-                    "description": "Operation type"
+                    "description": "Operation type",
                 },
                 "top_k": {
                     "type": "integer",
                     "default": 5,
                     "minimum": 1,
                     "maximum": 20,
-                    "description": "Number of results"
-                }
+                    "description": "Number of results",
+                },
             },
-            required=["query"]
+            required=["query"],
         ),
         stage="111_SENSE",
         trinity="DELTA",
@@ -180,7 +170,6 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         open_world_hint=True,
         auth_required="anonymous",
     ),
-    
     ToolSpec(
         name="reason_synthesis",
         title="AGI Mind",
@@ -191,22 +180,16 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "query": {
-                    "type": "string",
-                    "description": "Question or topic to reason about"
-                },
+                "query": {"type": "string", "description": "Question or topic to reason about"},
                 "mode": {
                     "type": "string",
                     "enum": ["reason", "reflect", "forge"],
                     "default": "reason",
-                    "description": "Reasoning mode"
+                    "description": "Reasoning mode",
                 },
-                "context": {
-                    "type": "string",
-                    "description": "Additional context"
-                }
+                "context": {"type": "string", "description": "Additional context"},
             },
-            required=["query"]
+            required=["query"],
         ),
         stage="333_MIND",
         trinity="DELTA",
@@ -214,7 +197,6 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=True,
         auth_required="anchored",
     ),
-    
     ToolSpec(
         name="critique_safety",
         title="ASI Heart",
@@ -227,16 +209,16 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
             properties={
                 "content": {
                     "type": "string",
-                    "description": "Content to critique or scenario to simulate"
+                    "description": "Content to critique or scenario to simulate",
                 },
                 "mode": {
                     "type": "string",
                     "enum": ["critique", "simulate"],
                     "default": "critique",
-                    "description": "Critique mode"
-                }
+                    "description": "Critique mode",
+                },
             },
-            required=["content"]
+            required=["content"],
         ),
         stage="666_HEART",
         trinity="OMEGA",
@@ -244,9 +226,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=True,
         auth_required="anchored",
     ),
-    
     # ═══ ROUTING LAYER ═══
-    
     ToolSpec(
         name="route_execution",
         title="arifOS Kernel",
@@ -257,30 +237,27 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "query": {
-                    "type": "string",
-                    "description": "Request to route"
-                },
+                "query": {"type": "string", "description": "Request to route"},
                 "intent_type": {
                     "type": "string",
                     "enum": ["ask", "audit", "design", "decide", "analyze", "execute"],
                     "default": "ask",
-                    "description": "Request category"
+                    "description": "Request category",
                 },
                 "max_steps": {
                     "type": "integer",
                     "default": 13,
                     "minimum": 1,
                     "maximum": 50,
-                    "description": "Maximum metabolic steps"
+                    "description": "Maximum metabolic steps",
                 },
                 "allow_execution": {
                     "type": "boolean",
                     "default": False,
-                    "description": "Allow actual execution"
-                }
+                    "description": "Allow actual execution",
+                },
             },
-            required=["query"]
+            required=["query"],
         ),
         stage="444_ROUTER",
         trinity="DELTA/PSI",
@@ -288,9 +265,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=False,
         auth_required="anchored",
     ),
-    
     # ═══ MEMORY LAYER ═══
-    
     ToolSpec(
         name="load_memory_context",
         title="Engineering Memory",
@@ -301,25 +276,21 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "query": {
-                    "type": "string",
-                    "description": "Search query"
-                },
+                "query": {"type": "string", "description": "Search query"},
                 "mode": {
                     "type": "string",
-                    "enum": ["vector_query", "vector_store", "vector_forget", "engineer", "generate"],
+                    "enum": [
+                        "vector_query",
+                        "vector_store",
+                        "vector_forget",
+                        "engineer",
+                        "generate",
+                    ],
                     "default": "vector_query",
-                    "description": "Memory operation"
+                    "description": "Memory operation",
                 },
-                "content": {
-                    "type": "string",
-                    "description": "Content to store"
-                },
-                "k": {
-                    "type": "integer",
-                    "default": 5,
-                    "description": "Items to retrieve"
-                }
+                "content": {"type": "string", "description": "Content to store"},
+                "k": {"type": "integer", "default": 5, "description": "Items to retrieve"},
             }
         ),
         stage="555_MEMORY",
@@ -328,9 +299,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=False,
         auth_required="anchored",
     ),
-    
     # ═══ ESTIMATION LAYER ═══
-    
     ToolSpec(
         name="estimate_ops",
         title="Math Estimator",
@@ -340,16 +309,13 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "action": {
-                    "type": "string",
-                    "description": "Operation to estimate"
-                },
+                "action": {"type": "string", "description": "Operation to estimate"},
                 "mode": {
                     "type": "string",
                     "enum": ["cost", "health", "vitals", "entropy"],
                     "default": "cost",
-                    "description": "Estimation type"
-                }
+                    "description": "Estimation type",
+                },
             }
         ),
         stage="777_OPS",
@@ -358,9 +324,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=True,
         auth_required="anonymous",
     ),
-    
     # ═══ JUDGMENT LAYER ═══
-    
     ToolSpec(
         name="judge_verdict",
         title="Apex Soul",
@@ -371,22 +335,19 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "candidate_action": {
-                    "type": "string",
-                    "description": "Action to evaluate"
-                },
+                "candidate_action": {"type": "string", "description": "Action to evaluate"},
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],
-                    "default": "medium"
+                    "default": "medium",
                 },
                 "mode": {
                     "type": "string",
                     "enum": ["judge", "rules", "validate", "hold", "armor", "probe"],
-                    "default": "judge"
-                }
+                    "default": "judge",
+                },
             },
-            required=["candidate_action"]
+            required=["candidate_action"],
         ),
         stage="888_JUDGE",
         trinity="PSI",
@@ -394,9 +355,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=True,
         auth_required="anchored",
     ),
-    
     # ═══ VAULT LAYER ═══
-    
     ToolSpec(
         name="record_vault_entry",
         title="Vault Ledger",
@@ -407,19 +366,9 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "verdict": {
-                    "type": "string",
-                    "enum": ["SEAL", "PARTIAL", "VOID", "SABAR", "HOLD"]
-                },
-                "evidence": {
-                    "type": "string",
-                    "description": "Supporting evidence"
-                },
-                "mode": {
-                    "type": "string",
-                    "enum": ["seal", "verify"],
-                    "default": "seal"
-                }
+                "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "VOID", "SABAR", "HOLD"]},
+                "evidence": {"type": "string", "description": "Supporting evidence"},
+                "mode": {"type": "string", "enum": ["seal", "verify"], "default": "seal"},
             }
         ),
         stage="999_VAULT",
@@ -428,9 +377,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         read_only_hint=False,
         auth_required="verified",
     ),
-    
     # ═══ EXECUTION LAYER ═══
-    
     ToolSpec(
         name="execute_vps_task",
         title="Code Engine",
@@ -441,19 +388,13 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "path": {
-                    "type": "string",
-                    "default": "."
-                },
+                "path": {"type": "string", "default": "."},
                 "mode": {
                     "type": "string",
                     "enum": ["fs", "process", "net", "tail", "replay"],
-                    "default": "fs"
+                    "default": "fs",
                 },
-                "limit": {
-                    "type": "integer",
-                    "default": 50
-                }
+                "limit": {"type": "integer", "default": 50},
             }
         ),
         stage="M-3_EXEC",
@@ -490,7 +431,7 @@ def tool_spec_to_mcp_schema(spec: ToolSpec) -> dict[str, Any]:
         "annotations": {
             "readOnlyHint": spec.read_only_hint,
             "openWorldHint": spec.open_world_hint,
-        }
+        },
     }
 
 

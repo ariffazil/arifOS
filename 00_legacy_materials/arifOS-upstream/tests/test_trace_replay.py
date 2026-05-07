@@ -60,23 +60,25 @@ async def test_trace_replay_reads_trace_from_vault_telemetry(tmp_path, monkeypat
     monkeypatch.setattr(bridge, "DEFAULT_VAULT_PATH", vault_path)
 
     # Build properly chained entries
-    entries = _build_chained_ledger([
-        {
-            "session_id": "s-1",
-            "summary": "test summary",
-            "timestamp": "2026-03-10T00:00:00Z",
-            "telemetry": {
-                "trace": {"111_MIND": "SEAL", "222_REALITY": {"score": 0.88}},
-                "reality": {"score": 0.88, "status": "OK"},
+    entries = _build_chained_ledger(
+        [
+            {
+                "session_id": "s-1",
+                "summary": "test summary",
+                "timestamp": "2026-03-10T00:00:00Z",
+                "telemetry": {
+                    "trace": {"111_MIND": "SEAL", "222_REALITY": {"score": 0.88}},
+                    "reality": {"score": 0.88, "status": "OK"},
+                },
             },
-        },
-        {
-            "session_id": "s-2",
-            "summary": "other session",
-            "timestamp": "2026-03-10T00:00:01Z",
-            "telemetry": {"trace": {"111_MIND": "PARTIAL"}},
-        },
-    ])
+            {
+                "session_id": "s-2",
+                "summary": "other session",
+                "timestamp": "2026-03-10T00:00:01Z",
+                "telemetry": {"trace": {"111_MIND": "PARTIAL"}},
+            },
+        ]
+    )
 
     vault_path.write_text(
         "\n".join(json.dumps(e) for e in entries),
@@ -118,7 +120,7 @@ async def test_trace_replay_blocks_tampered_vault_entries(tmp_path, monkeypatch)
         telemetry={"trace": {"111_MIND": "SEAL"}},
     )
     good_hash = valid_entry["seal_hash"]
-    
+
     # Tamper with it: modify content but keep original hash
     tampered = {
         **valid_entry,

@@ -169,7 +169,10 @@ VERDICT_SPEC: dict[str, Any] = {
             "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "VOID", "HOLD"]},
             "floors_triggered": {"type": "array", "items": {"type": "string"}},
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-            "reasoning_class": {"type": "string", "enum": ["constitutional", "safety", "uncertainty"]},
+            "reasoning_class": {
+                "type": "string",
+                "enum": ["constitutional", "safety", "uncertainty"],
+            },
             "evidence_hash": {"type": "string"},
             "timestamp": {"type": "string", "format": "date-time"},
         },
@@ -183,7 +186,14 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
     "constitutional_floors": 13,
     "tools": {
         "public": ["arifos.init", "arifos.route", "arifos.judge", "arifos.forge"],
-        "internal": ["arifos.sense", "arifos.mind", "arifos.heart", "arifos.ops", "arifos.memory", "arifos.vault"],
+        "internal": [
+            "arifos.sense",
+            "arifos.mind",
+            "arifos.heart",
+            "arifos.ops",
+            "arifos.memory",
+            "arifos.vault",
+        ],
         "total": 10,
     },
     "mcp_version": "2025-11-25",
@@ -197,7 +207,18 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
             "arifos://schema/trinity",
             "arifos://schema/routing-guide",
         ],
-        "stages": ["000_INIT", "111_SENSE", "333_MIND", "444_ROUTER", "555_MEMORY", "666_HEART", "777_OPS", "888_JUDGE", "999_VAULT", "FORGE_010"],
+        "stages": [
+            "000_INIT",
+            "111_SENSE",
+            "333_MIND",
+            "444_ROUTER",
+            "555_MEMORY",
+            "666_HEART",
+            "777_OPS",
+            "888_JUDGE",
+            "999_VAULT",
+            "FORGE_010",
+        ],
         "trinity": {
             "Δ": "Discernment - Reality, reasoning, execution",
             "Ψ": "Sovereignty - Session, routing, judgment, seal",
@@ -210,9 +231,10 @@ SYSTEM_CAPABILITIES: dict[str, Any] = {
 # V2 RESOURCE REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def register_v2_resources(mcp: FastMCP) -> list[str]:
     """Register all v2 resources using arifos:// scheme."""
-    
+
     @mcp.resource("arifos://governance/floors")
     def governance_floors() -> dict[str, Any]:
         return FLOORS_SPEC
@@ -228,29 +250,32 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
     # ═══════════════════════════════════════════════════════════════════════════
     # CONTEXT-RICH TOOL REGISTRY RESOURCES
     # ═══════════════════════════════════════════════════════════════════════════
-    
+
     from arifosmcp.schema import get_registry
-    
+
     registry = get_registry()
-    
+
     @mcp.resource("arifos://schema/master")
     def schema_master() -> dict[str, Any]:
         """Complete arifOS master schema with stages, Trinity, and transitions."""
         return registry.master_schema or {}
-    
+
     @mcp.resource("arifos://schema/tools")
     def schema_tools() -> dict[str, Any]:
         """All tool context packets with full semantic metadata."""
         return registry.tool_packets
-    
+
     @mcp.resource("arifos://schema/tool/{tool_id}")
     def schema_tool(tool_id: str) -> dict[str, Any]:
         """Context packet for a specific tool (e.g., arifos.mind)."""
         packet = registry.get_tool_packet(tool_id)
         if packet:
             return packet
-        return {"error": f"Tool {tool_id} not found", "available": list(registry.tool_packets.keys())}
-    
+        return {
+            "error": f"Tool {tool_id} not found",
+            "available": list(registry.tool_packets.keys()),
+        }
+
     @mcp.resource("arifos://schema/stages")
     def schema_stages() -> dict[str, Any]:
         """Governance stage definitions and transitions."""
@@ -258,34 +283,34 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         return {
             "stage_order": master.get("stage_order", []),
             "stages": master.get("stages", {}),
-            "transitions": master.get("transitions", {})
+            "transitions": master.get("transitions", {}),
         }
-    
+
     @mcp.resource("arifos://schema/trinity")
     def schema_trinity() -> dict[str, Any]:
         """Trinity lane definitions (Δ Discernment, Ψ Sovereignty, Ω Stability)."""
         master = registry.master_schema or {}
         return master.get("trinity", {})
-    
+
     @mcp.resource("arifos://schema/envelopes")
     def schema_envelopes() -> dict[str, Any]:
         """Shared request/response envelope schemas."""
         return {
             "request": registry.get_request_schema(),
             "response": registry.get_response_schema(),
-            "context_packet": registry.get_context_packet_schema()
+            "context_packet": registry.get_context_packet_schema(),
         }
-    
+
     @mcp.resource("arifos://schema/alias-map")
     def schema_alias_map() -> dict[str, Any]:
         """Mapping from public aliases to backing tools."""
         return registry.get_alias_map()
-    
+
     @mcp.resource("arifos://schema/tool-summary")
     def schema_tool_summary() -> list[dict[str, Any]]:
         """Compact summary of all tools for quick reference."""
         return registry.get_tool_summary()
-    
+
     @mcp.resource("arifos://schema/chatgpt-guide/{tool_id}")
     def schema_chatgpt_guide(tool_id: str) -> dict[str, Any]:
         """ChatGPT-specific usage guidance for a tool."""
@@ -293,7 +318,7 @@ def register_v2_resources(mcp: FastMCP) -> list[str]:
         if guidance:
             return guidance
         return {"error": f"No guidance for {tool_id}"}
-    
+
     @mcp.resource("arifos://schema/routing-guide")
     def schema_routing_guide() -> dict[str, Any]:
         """Complete routing guidance for stage transitions."""

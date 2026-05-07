@@ -1,7 +1,7 @@
 # MCP Bridge Implementation Summary
 
-> **Status**: Implemented  
-> **Authority**: 000_THEORY, 888_APEX  
+> **Status**: Implemented
+> **Authority**: 000_THEORY, 888_APEX
 > **Ditempa Bukan Diberi**
 
 ## Overview
@@ -40,7 +40,7 @@ This document summarizes the implementation of MCP bridge layers that position e
 ## Files Implemented
 
 ### 1. `memory_bridge.py`
-**Purpose**: Bridge to MCP memory server for entity/relation management  
+**Purpose**: Bridge to MCP memory server for entity/relation management
 **Governance**: F1 (irreversibility), F2 (truth), F4 (empathy/context budget)
 
 **Key Functions**:
@@ -74,7 +74,7 @@ success, error = await kg_upsert_entity(
 ```
 
 ### 2. `sequential_mcp_bridge.py`
-**Purpose**: Bridge to MCP sequential thinking for comparative evaluation  
+**Purpose**: Bridge to MCP sequential thinking for comparative evaluation
 **Governance**: External reasoning treated as EVIDENCE, not AUTHORITY
 
 **Key Functions**:
@@ -104,7 +104,7 @@ comparison = await compare_native_vs_mcp(
 ```
 
 ### 3. `sequential_thinking_runner.py`
-**Purpose**: Comprehensive evaluation suite for sequential thinking  
+**Purpose**: Comprehensive evaluation suite for sequential thinking
 **Components**: SequentialThinkingEvaluator, MemoryBridgeEvaluator
 
 **Features**:
@@ -126,7 +126,7 @@ python arifosmcp/evals/sequential_thinking_runner.py --all
 ```
 
 ### 4. `breach_test_runner.py`
-**Purpose**: P0 regression tests for constitutional violations  
+**Purpose**: P0 regression tests for constitutional violations
 **Status**: Blocks merge if any test fails
 
 **Test Coverage**:

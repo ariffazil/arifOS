@@ -1,17 +1,17 @@
 # SYED — APEX G-Dial Soul Capture
-**Sovereign ID:** `syed`  
-**Handle:** @abang_sado  
-**First Contact:** 2026-03-11 via Arif (referrer/mentor)  
+**Sovereign ID:** `syed`
+**Handle:** @abang_sado
+**First Contact:** 2026-03-11 via Arif (referrer/mentor)
 **Recognition Confidence:** Ω₀ = 0.94
 
 ---
 
 ## 0. Identity Signature
 
-**Name:** Syed  
-**Domain:** Bodybuilding / Fitness Optimization  
-**Archetype:** The Experimental Sculptor — treats body as engineering project  
-**Emoji Signature:** 💪🔬⚡  
+**Name:** Syed
+**Domain:** Bodybuilding / Fitness Optimization
+**Archetype:** The Experimental Sculptor — treats body as engineering project
+**Emoji Signature:** 💪🔬⚡
 
 **Recognition Triggers:**
 - Malay language mixing (BM-English code-switching)

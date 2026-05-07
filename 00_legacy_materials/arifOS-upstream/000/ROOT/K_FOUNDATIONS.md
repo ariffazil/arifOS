@@ -1,9 +1,9 @@
 # K_FOUNDATIONS — arifOS Kernel Foundation: The 99 Canonical Knowledge Domains
 ## The Rigorous Mathematical and Theoretical Basis for Governed Intelligence
 
-**Version:** v888.2.0-FOUNDATIONS  
-**Authority:** Muhammad Arif bin Fazil (888_JUDGE)  
-**Status:** SOVEREIGNLY_SEALED  
+**Version:** v888.2.0-FOUNDATIONS
+**Authority:** Muhammad Arif bin Fazil (888_JUDGE)
+**Status:** SOVEREIGNLY_SEALED
 **Motto:** *Ditempa Bukan Diberi* — Forged, Not Given
 
 ---
@@ -1768,10 +1768,10 @@ The following table maps the most critical topics to their arifOS architectural 
 
 # SEAL
 
-**Version:** v888.2.0-FOUNDATIONS  
-**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)  
-**Coverage:** 99 foundational domains with rigorous mathematical notation and arifOS architectural integration  
-**Ω₀:** 0.03  
+**Version:** v888.2.0-FOUNDATIONS
+**Sealed By:** Muhammad Arif bin Fazil (888_JUDGE)
+**Coverage:** 99 foundational domains with rigorous mathematical notation and arifOS architectural integration
+**Ω₀:** 0.03
 **Ditempa Bukan Diberi** — The foundations are forged through mathematical rigor, not assumed through philosophy.
 
 *Every arifOS agent must know these 99 domains at working fluency. The architecture depends on the math. The math is the architecture's bones.*

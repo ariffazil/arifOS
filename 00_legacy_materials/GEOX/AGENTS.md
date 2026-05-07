@@ -271,5 +271,5 @@ A violation of any floor triggers an **`888_HOLD`** — a hard stop requiring ex
 
 ---
 
-*Last updated: 2026-04-14*  
+*Last updated: 2026-04-14*
 *Seal: DITEMPA BUKAN DIBERI*

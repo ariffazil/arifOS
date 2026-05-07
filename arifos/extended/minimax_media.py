@@ -62,9 +62,9 @@ async def generate_image(
 
     metrics = ThermodynamicMetrics(
         truth_score=0.85,  # F2: generative — cannot verify external ground
-        delta_s=-0.15,     # F4: creative output is high-clarity structured data
-        omega_0=0.06,      # F12: prompt validated
-        peace_squared=1.0, # F7: read-only side effects (file creation logged)
+        delta_s=-0.15,  # F4: creative output is high-clarity structured data
+        omega_0=0.06,  # F12: prompt validated
+        peace_squared=1.0,  # F7: read-only side effects (file creation logged)
         amanah_lock=True,  # F1: files are in mounted volume, reversible
         tri_witness_score=0.66,  # F3: Human intent + AI execution only
         stakeholder_safety=1.0,

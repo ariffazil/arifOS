@@ -128,5 +128,3 @@ The technology is genuinely first-of-kind. The theory is sound. The market timin
 What's missing is not the technology. It's the commercial motion.
 
 One signed enterprise deal — and this changes from a GitHub project to a fundable company overnight. 🔥
-
-

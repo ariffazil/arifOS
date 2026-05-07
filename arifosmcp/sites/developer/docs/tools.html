@@ -903,7 +903,7 @@
       <div style="background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%); padding: 24px; border-radius: 8px; margin-bottom: 32px;">
         <h2 style="margin: 0; color: white; font-size: 28px;">🤖 Machine Tools (Nervous System 9)</h2>
         <p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
-          Internal infrastructure tools for system introspection and machine-to-machine operations. 
+          Internal infrastructure tools for system introspection and machine-to-machine operations.
           These tools form the "sense organs" of arifOS — monitoring health, memory, and resources while maintaining full constitutional governance.
         </p>
         <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -915,7 +915,7 @@
 
       <!-- System Sense Tools -->
       <h3 style="color: var(--accent-yellow); margin-top: 32px; margin-bottom: 16px; font-size: 20px;">System Sense (The Feelers)</h3>
-      
+
       <!-- system_health -->
       <div class="tool-card" style="background: var(--void); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
         <div class="tool-header" style="margin-bottom: 16px;">
@@ -932,7 +932,7 @@
           Comprehensive system vital signs monitoring. Retrieves CPU, memory, disk, I/O, and thermal metrics with container awareness.
           <strong>Use when:</strong> Pre-flight checks, resource monitoring, debugging performance issues.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">health = await system_health(
@@ -961,7 +961,7 @@
           Enumerate and filter system processes with resource consumption. Container-aware with graceful handling of access restrictions.
           <strong>Use when:</strong> Detecting resource hogs, security auditing, monitoring worker processes.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">procs = await process_list(
@@ -990,7 +990,7 @@
           Network connectivity and service health diagnostics. Checks Qdrant, Redis, Postgres, and external APIs with latency measurements.
           <strong>Use when:</strong> Pre-flight connectivity checks, debugging "why is search failing", health probes.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">net = await net_status(
@@ -1003,7 +1003,7 @@
 
       <!-- Memory & Storage Tools -->
       <h3 style="color: var(--accent-blue); margin-top: 32px; margin-bottom: 16px; font-size: 20px;">Memory & Storage (The Archive)</h3>
-      
+
       <!-- chroma_query -->
       <div class="tool-card" style="background: var(--void); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
         <div class="tool-header" style="margin-bottom: 16px;">
@@ -1020,7 +1020,7 @@
           Semantic search in Chroma/Qdrant vector memory. Dual API support (legacy + modern). Supports metadata filtering and embedding retrieval.
           <strong>Use when:</strong> Retrieving past context, evidence search, cross-session memory, RAG operations.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">results = await chroma_query(
@@ -1049,7 +1049,7 @@
           Enumerate available MCP resources (canon://, governance://, vault://, etc.). Self-documenting API discovery.
           <strong>Use when:</strong> Resource discovery, client initialization, building explorers.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">resources = await list_resources(
@@ -1076,7 +1076,7 @@
           Read content of MCP resources by URI. Access constitution, vault entries, telemetry, and schemas.
           <strong>Use when:</strong> Loading floor definitions, reading vault audits, accessing telemetry.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">constitution = await read_resource(
@@ -1095,7 +1095,7 @@ latest_vault = await read_resource(
 
       <!-- Diagnostics & Control Tools -->
       <h3 style="color: var(--seal-green); margin-top: 32px; margin-bottom: 16px; font-size: 20px;">Diagnostics & Control (The Regulators)</h3>
-      
+
       <!-- log_tail -->
       <div class="tool-card" style="background: var(--void); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
         <div class="tool-header" style="margin-bottom: 16px;">
@@ -1112,7 +1112,7 @@ latest_vault = await read_resource(
           Stream and filter log files with smart path detection. Automatically finds logs without exact paths. Supports pattern filtering and time windows.
           <strong>Use when:</strong> Debugging failures, security audits, performance analysis, incident response.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">logs = await log_tail(
@@ -1141,7 +1141,7 @@ latest_vault = await read_resource(
           Inspect filesystem within governed sandbox. Lists directory contents with metadata while preventing path traversal attacks.
           <strong>Use when:</strong> Evidence discovery, directory validation, debugging file operations, audit compliance.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">files = await fs_inspect(
@@ -1169,7 +1169,7 @@ latest_vault = await read_resource(
           Estimate operation costs before execution. Calculates tokens, time, memory, API costs, and thermodynamic budget impact.
           <strong>Use when:</strong> Budget planning, resource allocation, cost-aware operations, user approval workflows.
         </p>
-        
+
         <div class="code-block-wrapper" style="margin-top: 16px;">
           <div class="code-block-header"><span>python</span><button class="copy-btn">Copy</button></div>
           <pre><code class="language-python">cost = await cost_estimator(
@@ -1186,8 +1186,8 @@ latest_vault = await read_resource(
       <div style="background: rgba(255, 210, 74, 0.1); border: 1px solid var(--accent-yellow); border-radius: 8px; padding: 20px; margin-top: 32px;">
         <h4 style="color: var(--accent-yellow); margin: 0 0 12px 0;">🔒 Governance Notice</h4>
         <p style="color: var(--text-secondary); margin: 0; font-size: 14px; line-height: 1.6;">
-          All 9 Machine Tools are fully governed by the 13 Constitutional Floors. They accept <code>session_id</code> and <code>auth_context</code> parameters, 
-          return <strong>RuntimeEnvelope</strong> (not legacy responses), and log all operations to the immutable VAULT999 ledger. 
+          All 9 Machine Tools are fully governed by the 13 Constitutional Floors. They accept <code>session_id</code> and <code>auth_context</code> parameters,
+          return <strong>RuntimeEnvelope</strong> (not legacy responses), and log all operations to the immutable VAULT999 ledger.
           These tools are designed for <strong>machine-to-machine</strong> operations and infrastructure monitoring, not end-user interaction.
         </p>
       </div>
@@ -1198,7 +1198,7 @@ latest_vault = await read_resource(
       <div style="background: linear-gradient(135deg, #4a4030 0%, #2d2820 100%); padding: 24px; border-radius: 8px; margin-bottom: 32px; border: 1px solid var(--hold-yellow);">
         <h2 style="margin: 0; color: var(--hold-yellow); font-size: 28px;">⚠️ Deprecated Tools</h2>
         <p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.8); font-size: 16px;">
-          The following tools are deprecated and will be removed in a future release. They are maintained for backward compatibility only. 
+          The following tools are deprecated and will be removed in a future release. They are maintained for backward compatibility only.
           Use the recommended replacements for all new implementations.
         </p>
         <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -1209,7 +1209,7 @@ latest_vault = await read_resource(
       </div>
 
       <!-- Deprecated Tool Cards -->
-      
+
       <!-- search_reality -->
       <div class="tool-card" style="background: rgba(255, 210, 74, 0.05); border: 1px solid var(--hold-yellow); border-radius: 8px; padding: 24px; margin-bottom: 20px; opacity: 0.9;">
         <div class="tool-header" style="margin-bottom: 16px;">
@@ -1345,7 +1345,7 @@ result = await vault_seal(
 
       <!-- Internal Naming Aliases -->
       <h3 style="color: var(--hold-yellow); margin-top: 32px; margin-bottom: 16px; font-size: 18px; opacity: 0.8;">Internal Naming Aliases (Code-Only)</h3>
-      
+
       <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;">
         The following function aliases exist in the codebase for backward compatibility but should not be used in new implementations:
       </p>

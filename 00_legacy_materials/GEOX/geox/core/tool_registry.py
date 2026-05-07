@@ -19,34 +19,36 @@ import json
 
 class ToolStatus(Enum):
     """Production readiness status."""
-    PROD = "production"      # Fully tested, stable
-    PREVIEW = "preview"      # Working but may change
-    SCAFFOLD = "scaffold"    # Architecture only, not implemented
+
+    PROD = "production"  # Fully tested, stable
+    PREVIEW = "preview"  # Working but may change
+    SCAFFOLD = "scaffold"  # Architecture only, not implemented
 
 
 class ErrorCode(Enum):
     """Standardized GEOX error codes."""
+
     # Validation errors (400 range)
     VALIDATION_ERROR = "GEOX_400_VALIDATION"
     INVALID_FORMAT = "GEOX_400_FORMAT"
     MISSING_REQUIRED = "GEOX_400_MISSING"
     OUT_OF_RANGE = "GEOX_400_RANGE"
-    
+
     # Data errors (404 range)
     FILE_NOT_FOUND = "GEOX_404_FILE"
     DATA_UNAVAILABLE = "GEOX_404_DATA"
     SCALE_UNKNOWN = "GEOX_404_SCALE"
-    
+
     # Physics errors (422 range)
     PHYSICS_VIOLATION = "GEOX_422_PHYSICS"
     IMPOSSIBLE_GEOMETRY = "GEOX_422_GEOMETRY"
     RATLAS_MISMATCH = "GEOX_422_RATLAS"
-    
+
     # Governance errors (403 range)
     GOVERNANCE_HOLD = "GEOX_403_HOLD"
     AC_RISK_VOID = "GEOX_403_VOID"
     FLOOR_VIOLATION = "GEOX_403_FLOOR"
-    
+
     # System errors (500 range)
     INTERNAL_ERROR = "GEOX_500_INTERNAL"
     VISION_UNAVAILABLE = "GEOX_500_VISION"
@@ -56,6 +58,7 @@ class ErrorCode(Enum):
 @dataclass
 class ErrorSpec:
     """Error specification for documentation and handling."""
+
     code: ErrorCode
     message: str
     description: str
@@ -66,11 +69,12 @@ class ErrorSpec:
 @dataclass
 class ToolSchema:
     """JSON Schema compatible tool schema."""
+
     type: str = "object"
     properties: dict[str, Any] = field(default_factory=dict)
     required: list[str] = field(default_factory=list)
     additional_properties: bool = False
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.type,
@@ -83,32 +87,33 @@ class ToolSchema:
 @dataclass
 class ToolMetadata:
     """Complete metadata for a GEOX tool."""
+
     # Identity
     name: str
     version: str
     status: ToolStatus
-    
+
     # Documentation
     description: str
     long_description: str = ""
     examples: list[dict[str, Any]] = field(default_factory=list)
-    
+
     # Schemas
     input_schema: ToolSchema = field(default_factory=ToolSchema)
     output_schema: ToolSchema = field(default_factory=ToolSchema)
-    
+
     # Error handling
     error_codes: list[ErrorCode] = field(default_factory=list)
-    
+
     # arifOS governance
     required_floors: list[str] = field(default_factory=list)
     ac_risk_enabled: bool = False
     risk_factors: list[str] = field(default_factory=list)
-    
+
     # Runtime
     timeout_ms: int = 30000
     retryable: bool = False
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -140,120 +145,116 @@ ERROR_REGISTRY: dict[ErrorCode, ErrorSpec] = {
         message="Input validation failed",
         description="The provided input failed validation checks.",
         recoverable=True,
-        suggested_action="Check input parameters against schema and retry."
+        suggested_action="Check input parameters against schema and retry.",
     ),
     ErrorCode.INVALID_FORMAT: ErrorSpec(
         code=ErrorCode.INVALID_FORMAT,
         message="Invalid file format",
         description="The provided file is not in an acceptable format.",
         recoverable=True,
-        suggested_action="Convert file to supported format (SEGY, PNG, JPEG, TIFF)."
+        suggested_action="Convert file to supported format (SEGY, PNG, JPEG, TIFF).",
     ),
     ErrorCode.MISSING_REQUIRED: ErrorSpec(
         code=ErrorCode.MISSING_REQUIRED,
         message="Missing required parameter",
         description="A required input parameter was not provided.",
         recoverable=True,
-        suggested_action="Provide all required parameters listed in the schema."
+        suggested_action="Provide all required parameters listed in the schema.",
     ),
     ErrorCode.OUT_OF_RANGE: ErrorSpec(
         code=ErrorCode.OUT_OF_RANGE,
         message="Parameter out of valid range",
         description="A numeric parameter is outside acceptable bounds.",
         recoverable=True,
-        suggested_action="Adjust parameter to within documented range."
+        suggested_action="Adjust parameter to within documented range.",
     ),
-    
     # Data errors
     ErrorCode.FILE_NOT_FOUND: ErrorSpec(
         code=ErrorCode.FILE_NOT_FOUND,
         message="File not found",
         description="The specified file path does not exist or is inaccessible.",
         recoverable=True,
-        suggested_action="Verify file path and permissions."
+        suggested_action="Verify file path and permissions.",
     ),
     ErrorCode.DATA_UNAVAILABLE: ErrorSpec(
         code=ErrorCode.DATA_UNAVAILABLE,
         message="Required data unavailable",
         description="External data source required for operation is unavailable.",
         recoverable=True,
-        suggested_action="Check data source connectivity or try alternative data."
+        suggested_action="Check data source connectivity or try alternative data.",
     ),
     ErrorCode.SCALE_UNKNOWN: ErrorSpec(
         code=ErrorCode.SCALE_UNKNOWN,
         description="Cannot determine physical scale from input.",
         message="Scale information missing or ambiguous",
         recoverable=False,
-        suggested_action="Provide scale bar, grid coordinates, or explicit scale factor."
+        suggested_action="Provide scale bar, grid coordinates, or explicit scale factor.",
     ),
-    
     # Physics errors
     ErrorCode.PHYSICS_VIOLATION: ErrorSpec(
         code=ErrorCode.PHYSICS_VIOLATION,
         message="Physical impossibility detected",
         description="The interpretation violates known physical constraints.",
         recoverable=False,
-        suggested_action="Review interpretation against RATLAS or acquire better data."
+        suggested_action="Review interpretation against RATLAS or acquire better data.",
     ),
     ErrorCode.IMPOSSIBLE_GEOMETRY: ErrorSpec(
         code=ErrorCode.IMPOSSIBLE_GEOMETRY,
         message="Geometrically impossible structure",
         description="Structural geometry violates physical possibility.",
         recoverable=False,
-        suggested_action="Validate against geological principles (F7)."
+        suggested_action="Validate against geological principles (F7).",
     ),
     ErrorCode.RATLAS_MISMATCH: ErrorSpec(
         code=ErrorCode.RATLAS_MISMATCH,
         message="Material properties inconsistent with RATLAS",
         description="Interpreted rock properties don't match known analogs.",
         recoverable=False,
-        suggested_action="Check velocity/density values or update RATLAS query."
+        suggested_action="Check velocity/density values or update RATLAS query.",
     ),
-    
     # Governance errors
     ErrorCode.GOVERNANCE_HOLD: ErrorSpec(
         code=ErrorCode.GOVERNANCE_HOLD,
         message="Operation blocked by governance HOLD",
         description="AC_Risk exceeds threshold requiring human review (888_HOLD).",
         recoverable=False,
-        suggested_action="Escalate to qualified interpreter; review risk factors."
+        suggested_action="Escalate to qualified interpreter; review risk factors.",
     ),
     ErrorCode.AC_RISK_VOID: ErrorSpec(
         code=ErrorCode.AC_RISK_VOID,
         message="Operation VOID — critical risk",
         description="AC_Risk ≥ 0.75. Interpretation unsafe.",
         recoverable=False,
-        suggested_action="Acquire better data or ground-truth validation."
+        suggested_action="Acquire better data or ground-truth validation.",
     ),
     ErrorCode.FLOOR_VIOLATION: ErrorSpec(
         code=ErrorCode.FLOOR_VIOLATION,
         message="Constitutional floor violated",
         description="Operation violates required arifOS floor (F1-F13).",
         recoverable=False,
-        suggested_action="Review constitutional requirements for this operation."
+        suggested_action="Review constitutional requirements for this operation.",
     ),
-    
     # System errors
     ErrorCode.INTERNAL_ERROR: ErrorSpec(
         code=ErrorCode.INTERNAL_ERROR,
         message="Internal server error",
         description="Unexpected error occurred during processing.",
         recoverable=True,
-        suggested_action="Retry after brief delay; contact support if persistent."
+        suggested_action="Retry after brief delay; contact support if persistent.",
     ),
     ErrorCode.VISION_UNAVAILABLE: ErrorSpec(
         code=ErrorCode.VISION_UNAVAILABLE,
         message="Vision model unavailable",
         description="VLM backend not responding or misconfigured.",
         recoverable=True,
-        suggested_action="Check VLM service status or use non-vision fallback."
+        suggested_action="Check VLM service status or use non-vision fallback.",
     ),
     ErrorCode.CALCULATION_ERROR: ErrorSpec(
         code=ErrorCode.CALCULATION_ERROR,
         message="Calculation failed",
         description="Numerical error during computation.",
         recoverable=True,
-        suggested_action="Check input data quality or use alternative method."
+        suggested_action="Check input data quality or use alternative method.",
     ),
 }
 
@@ -266,7 +267,6 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
     # ========================================================================
     # PRODUCTION TOOLS
     # ========================================================================
-    
     "geox_compute_ac_risk": ToolMetadata(
         name="geox_compute_ac_risk",
         version="1.0.0",
@@ -283,27 +283,27 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "input": {
                     "u_phys": 0.3,
                     "transform_stack": ["linear_scaling"],
-                    "bias_scenario": "ai_with_physics"
+                    "bias_scenario": "ai_with_physics",
                 },
                 "output": {
                     "ac_risk": 0.06,
                     "verdict": "SEAL",
-                    "explanation": "AC_Risk=0.06: Low risk. Physical grounding strong..."
-                }
+                    "explanation": "AC_Risk=0.06: Low risk. Physical grounding strong...",
+                },
             },
             {
                 "description": "Image-only with aggressive transforms",
                 "input": {
                     "u_phys": 0.8,
                     "transform_stack": ["clahe", "agc_rms", "vlm_inference"],
-                    "bias_scenario": "ai_vision_only"
+                    "bias_scenario": "ai_vision_only",
                 },
                 "output": {
                     "ac_risk": 0.336,
                     "verdict": "QUALIFY",
-                    "explanation": "AC_Risk=0.34: Moderate risk. Proceed with caveats..."
-                }
-            }
+                    "explanation": "AC_Risk=0.34: Moderate risk. Proceed with caveats...",
+                },
+            },
         ],
         input_schema=ToolSchema(
             properties={
@@ -311,29 +311,34 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                     "type": "number",
                     "description": "Physical ambiguity [0.0, 1.0]",
                     "minimum": 0.0,
-                    "maximum": 1.0
+                    "maximum": 1.0,
                 },
                 "transform_stack": {
                     "type": "array",
                     "description": "List of applied transforms",
                     "items": {"type": "string"},
-                    "examples": [["linear_scaling"], ["clahe", "vlm_inference"]]
+                    "examples": [["linear_scaling"], ["clahe", "vlm_inference"]],
                 },
                 "bias_scenario": {
                     "type": "string",
                     "description": "Cognitive bias scenario",
-                    "enum": ["unaided_expert", "multi_interpreter", "physics_validated", 
-                            "ai_vision_only", "ai_with_physics"],
-                    "default": "ai_vision_only"
+                    "enum": [
+                        "unaided_expert",
+                        "multi_interpreter",
+                        "physics_validated",
+                        "ai_vision_only",
+                        "ai_with_physics",
+                    ],
+                    "default": "ai_vision_only",
                 },
                 "custom_b_cog": {
                     "type": "number",
                     "description": "Override B_cog value [0.0, 1.0]",
                     "minimum": 0.0,
-                    "maximum": 1.0
-                }
+                    "maximum": 1.0,
+                },
             },
-            required=["u_phys", "transform_stack"]
+            required=["u_phys", "transform_stack"],
         ),
         output_schema=ToolSchema(
             properties={
@@ -345,11 +350,11 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                     "properties": {
                         "physical_ambiguity": {"type": "number"},
                         "display_distortion": {"type": "number"},
-                        "cognitive_bias": {"type": "number"}
-                    }
-                }
+                        "cognitive_bias": {"type": "number"},
+                    },
+                },
             },
-            required=["ac_risk", "verdict", "explanation"]
+            required=["ac_risk", "verdict", "explanation"],
         ),
         error_codes=[
             ErrorCode.VALIDATION_ERROR,
@@ -362,7 +367,6 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         timeout_ms=5000,
         retryable=False,
     ),
-    
     "geox_load_seismic_line": ToolMetadata(
         name="geox_load_seismic_line",
         version="1.0.0",
@@ -373,7 +377,7 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         - Detect or verify spatial scale (m/km per pixel)
         - Detect or verify temporal scale (ms/s per sample)
         - Document polarity (SEG normal/reverse)
-        
+
         Returns scale metadata and contrast views for further processing.
         """,
         examples=[
@@ -381,19 +385,19 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "description": "Load SEG-Y with known scale",
                 "input": {
                     "file_path": "/data/line_101.sgy",
-                    "scale_hint": {"cdp_interval_m": 12.5, "sample_interval_ms": 4}
-                }
+                    "scale_hint": {"cdp_interval_m": 12.5, "sample_interval_ms": 4},
+                },
             }
         ],
         input_schema=ToolSchema(
             properties={
                 "file_path": {
                     "type": "string",
-                    "description": "Path to seismic file (SEGY, PNG, JPG, TIFF)"
+                    "description": "Path to seismic file (SEGY, PNG, JPG, TIFF)",
                 },
                 "line_name": {
                     "type": "string",
-                    "description": "Optional display name for the line"
+                    "description": "Optional display name for the line",
                 },
                 "scale_hint": {
                     "type": "object",
@@ -401,11 +405,11 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                     "properties": {
                         "cdp_interval_m": {"type": "number"},
                         "sample_interval_ms": {"type": "number"},
-                        "polarity": {"type": "string", "enum": ["SEG_normal", "SEG_reverse"]}
-                    }
-                }
+                        "polarity": {"type": "string", "enum": ["SEG_normal", "SEG_reverse"]},
+                    },
+                },
             },
-            required=["file_path"]
+            required=["file_path"],
         ),
         output_schema=ToolSchema(
             properties={
@@ -416,16 +420,13 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                     "properties": {
                         "cdp_interval_m": {"type": "number"},
                         "sample_interval_ms": {"type": "number"},
-                        "confidence": {"type": "number"}
-                    }
+                        "confidence": {"type": "number"},
+                    },
                 },
-                "contrast_views": {
-                    "type": "array",
-                    "items": {"type": "object"}
-                },
-                "warnings": {"type": "array", "items": {"type": "string"}}
+                "contrast_views": {"type": "array", "items": {"type": "object"}},
+                "warnings": {"type": "array", "items": {"type": "string"}},
             },
-            required=["line_id", "status"]
+            required=["line_id", "status"],
         ),
         error_codes=[
             ErrorCode.FILE_NOT_FOUND,
@@ -438,7 +439,6 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         timeout_ms=30000,
         retryable=True,
     ),
-    
     "geox_build_structural_candidates": ToolMetadata(
         name="geox_build_structural_candidates",
         version="1.0.0",
@@ -451,27 +451,26 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         - Horizon interpretation
         - Confidence score
         - Geological setting tag
-        
+
         Returns candidates sorted by confidence, never a single 'truth'.
         """,
         input_schema=ToolSchema(
             properties={
-                "line_id": {
-                    "type": "string",
-                    "description": "Line ID from geox_load_seismic_line"
-                },
+                "line_id": {"type": "string", "description": "Line ID from geox_load_seismic_line"},
                 "structural_style": {
                     "type": "string",
-                    "enum": ["extensional", "compressional", "strike_slip", "passive_margin", "unknown"],
-                    "default": "unknown"
+                    "enum": [
+                        "extensional",
+                        "compressional",
+                        "strike_slip",
+                        "passive_margin",
+                        "unknown",
+                    ],
+                    "default": "unknown",
                 },
-                "max_candidates": {
-                    "type": "integer",
-                    "default": 3,
-                    "maximum": 5
-                }
+                "max_candidates": {"type": "integer", "default": 3, "maximum": 5},
             },
-            required=["line_id"]
+            required=["line_id"],
         ),
         output_schema=ToolSchema(
             properties={
@@ -485,13 +484,13 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                             "geological_setting": {"type": "string"},
                             "faults": {"type": "array"},
                             "horizons": {"type": "array"},
-                            "key_assumptions": {"type": "array", "items": {"type": "string"}}
-                        }
-                    }
+                            "key_assumptions": {"type": "array", "items": {"type": "string"}},
+                        },
+                    },
                 },
-                "non_uniqueness_note": {"type": "string"}
+                "non_uniqueness_note": {"type": "string"},
             },
-            required=["candidates"]
+            required=["candidates"],
         ),
         error_codes=[
             ErrorCode.DATA_UNAVAILABLE,
@@ -503,11 +502,9 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         timeout_ms=60000,
         retryable=True,
     ),
-    
     # ========================================================================
     # PREVIEW TOOLS
     # ========================================================================
-    
     "geox_interpret_single_line": ToolMetadata(
         name="geox_interpret_single_line",
         version="0.9.0",
@@ -516,26 +513,19 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         long_description="""
         End-to-end single line interpretation with ToAC governance.
         Pipeline: ingest → contrast views → VLM → consistency check → AC_Risk → verdict.
-        
+
         NOTE: VLM backend is currently mock. Use for workflow testing only.
         """,
         input_schema=ToolSchema(
             properties={
                 "seismic_data": {
                     "type": "string",
-                    "description": "Path to seismic data or base64 image"
+                    "description": "Path to seismic data or base64 image",
                 },
-                "data_type": {
-                    "type": "string",
-                    "enum": ["raster", "segy"],
-                    "default": "raster"
-                },
-                "goal": {
-                    "type": "string",
-                    "description": "Interpretation goal/context"
-                }
+                "data_type": {"type": "string", "enum": ["raster", "segy"], "default": "raster"},
+                "goal": {"type": "string", "description": "Interpretation goal/context"},
             },
-            required=["seismic_data"]
+            required=["seismic_data"],
         ),
         output_schema=ToolSchema(
             properties={
@@ -543,9 +533,9 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "result": {"type": "object"},
                 "artifacts": {"type": "object"},
                 "visual_markdown": {"type": "string"},
-                "telemetry": {"type": "object"}
+                "telemetry": {"type": "object"},
             },
-            required=["verdict"]
+            required=["verdict"],
         ),
         error_codes=[
             ErrorCode.FILE_NOT_FOUND,
@@ -560,7 +550,6 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         timeout_ms=120000,
         retryable=False,
     ),
-    
     "geox_georeference_map": ToolMetadata(
         name="geox_georeference_map",
         version="0.8.0",
@@ -576,7 +565,7 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "image_path": {"type": "string"},
                 "map_type": {
                     "type": "string",
-                    "enum": ["geological", "topographic", "seismic_line_map", "cross_section"]
+                    "enum": ["geological", "topographic", "seismic_line_map", "cross_section"],
                 },
                 "bounds_hint": {
                     "type": "object",
@@ -584,11 +573,11 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                         "west": {"type": "number"},
                         "east": {"type": "number"},
                         "south": {"type": "number"},
-                        "north": {"type": "number"}
-                    }
-                }
+                        "north": {"type": "number"},
+                    },
+                },
             },
-            required=["image_path", "map_type"]
+            required=["image_path", "map_type"],
         ),
         output_schema=ToolSchema(
             properties={
@@ -596,9 +585,9 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "bounds": {"type": "object"},
                 "crs": {"type": "string"},
                 "ac_risk_result": {"type": "object"},
-                "quality_score": {"type": "number"}
+                "quality_score": {"type": "number"},
             },
-            required=["georeferenced_path", "ac_risk_result"]
+            required=["georeferenced_path", "ac_risk_result"],
         ),
         error_codes=[
             ErrorCode.FILE_NOT_FOUND,
@@ -612,7 +601,6 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         timeout_ms=60000,
         retryable=True,
     ),
-    
     "geox_earth_signals": ToolMetadata(
         name="geox_earth_signals",
         version="0.9.0",
@@ -627,9 +615,9 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "latitude": {"type": "number", "minimum": -90, "maximum": 90},
                 "longitude": {"type": "number", "minimum": -180, "maximum": 180},
                 "radius_km": {"type": "number", "default": 300},
-                "eq_limit": {"type": "integer", "default": 10, "maximum": 50}
+                "eq_limit": {"type": "integer", "default": 10, "maximum": 50},
             },
-            required=["latitude", "longitude"]
+            required=["latitude", "longitude"],
         ),
         output_schema=ToolSchema(
             properties={
@@ -638,9 +626,9 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "earthquakes": {"type": "object"},
                 "climate": {"type": "object"},
                 "geomagnetic": {"type": "object"},
-                "warnings": {"type": "array"}
+                "warnings": {"type": "array"},
             },
-            required=["status"]
+            required=["status"],
         ),
         error_codes=[
             ErrorCode.DATA_UNAVAILABLE,
@@ -652,11 +640,9 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         timeout_ms=15000,
         retryable=True,
     ),
-    
     # ========================================================================
     # SCAFFOLD TOOLS
     # ========================================================================
-    
     "geox_digitize_well_log": ToolMetadata(
         name="geox_digitize_well_log",
         version="0.1.0",
@@ -666,16 +652,13 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         input_schema=ToolSchema(
             properties={
                 "image_path": {"type": "string"},
-                "curve_types": {"type": "array", "items": {"type": "string"}}
+                "curve_types": {"type": "array", "items": {"type": "string"}},
             },
-            required=["image_path"]
+            required=["image_path"],
         ),
         output_schema=ToolSchema(
-            properties={
-                "curves": {"type": "array"},
-                "ac_risk_result": {"type": "object"}
-            },
-            required=["curves", "ac_risk_result"]
+            properties={"curves": {"type": "array"}, "ac_risk_result": {"type": "object"}},
+            required=["curves", "ac_risk_result"],
         ),
         error_codes=[
             ErrorCode.FILE_NOT_FOUND,
@@ -694,63 +677,60 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
 # REGISTRY API
 # ============================================================================
 
+
 class ToolRegistry:
     """Unified tool registry for GEOX MCP server."""
-    
+
     _tools: dict[str, ToolMetadata] = GEOX_TOOLS
     _handlers: dict[str, Callable] = {}
-    
+
     @classmethod
     def get(cls, name: str) -> ToolMetadata | None:
         """Get tool metadata by name."""
         return cls._tools.get(name)
-    
+
     @classmethod
     def list_tools(
-        cls,
-        status_filter: ToolStatus | None = None,
-        include_scaffold: bool = True
+        cls, status_filter: ToolStatus | None = None, include_scaffold: bool = True
     ) -> list[ToolMetadata]:
         """
         List all tools with optional filtering.
-        
+
         Args:
             status_filter: Only return tools with this status
             include_scaffold: Include scaffold tools in results
         """
         tools = cls._tools.values()
-        
+
         if status_filter:
             tools = [t for t in tools if t.status == status_filter]
         elif not include_scaffold:
             tools = [t for t in tools if t.status != ToolStatus.SCAFFOLD]
-            
+
         return list(tools)
-    
+
     @classmethod
     def list_tools_dict(
-        cls,
-        status_filter: ToolStatus | None = None,
-        include_scaffold: bool = True
+        cls, status_filter: ToolStatus | None = None, include_scaffold: bool = True
     ) -> list[dict[str, Any]]:
         """List tools as dictionaries."""
         return [t.to_dict() for t in cls.list_tools(status_filter, include_scaffold)]
-    
+
     @classmethod
     def register_handler(cls, tool_name: str, handler: Callable) -> None:
         """Register a handler function for a tool."""
         cls._handlers[tool_name] = handler
-    
+
     @classmethod
     def get_handler(cls, tool_name: str) -> Callable | None:
         """Get handler for a tool."""
         return cls._handlers.get(tool_name)
-    
+
     @classmethod
     def get_error_spec(cls, code: ErrorCode) -> ErrorSpec:
         """Get error specification."""
         return ERROR_REGISTRY[code]
-    
+
     @classmethod
     def get_capabilities(cls) -> dict[str, Any]:
         """Get server capabilities summary."""
@@ -758,43 +738,41 @@ class ToolRegistry:
         prod_tools = [t for t in all_tools if t.status == ToolStatus.PROD]
         preview_tools = [t for t in all_tools if t.status == ToolStatus.PREVIEW]
         scaffold_tools = [t for t in all_tools if t.status == ToolStatus.SCAFFOLD]
-        
+
         return {
             "server": {
                 "name": "GEOX Earth Witness",
                 "version": "1.0.0",
-                "seal": "DITEMPA BUKAN DIBERI"
+                "seal": "DITEMPA BUKAN DIBERI",
             },
             "tool_count": {
                 "total": len(all_tools),
                 "production": len(prod_tools),
                 "preview": len(preview_tools),
-                "scaffold": len(scaffold_tools)
+                "scaffold": len(scaffold_tools),
             },
             "governance": {
                 "floors_active": ["F1", "F2", "F4", "F7", "F9", "F13"],
                 "ac_risk_enabled": True,
-                "theory": "ToAC (Theory of Anomalous Contrast)"
+                "theory": "ToAC (Theory of Anomalous Contrast)",
             },
-            "tools": [t.name for t in all_tools]
+            "tools": [t.name for t in all_tools],
         }
 
 
 def create_standardized_error(
-    code: ErrorCode,
-    detail: str = "",
-    context: dict[str, Any] | None = None
+    code: ErrorCode, detail: str = "", context: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     """
     Create a standardized error response.
-    
+
     Args:
         code: Error code from registry
         detail: Additional error detail
         context: Additional context for debugging
     """
     spec = ERROR_REGISTRY[code]
-    
+
     return {
         "error": True,
         "code": code.value,
@@ -804,7 +782,7 @@ def create_standardized_error(
         "recoverable": spec.recoverable,
         "suggested_action": spec.suggested_action,
         "context": context or {},
-        "seal": "DITEMPA BUKAN DIBERI"
+        "seal": "DITEMPA BUKAN DIBERI",
     }
 
 
@@ -815,17 +793,17 @@ def create_standardized_error(
 if __name__ == "__main__":
     print("GEOX Unified Tool Registry")
     print("=" * 50)
-    
+
     # List all tools
     print("\nRegistered Tools:")
     for tool in ToolRegistry.list_tools():
         status_icon = {
             ToolStatus.PROD: "✅",
             ToolStatus.PREVIEW: "🟡",
-            ToolStatus.SCAFFOLD: "🔴"
+            ToolStatus.SCAFFOLD: "🔴",
         }.get(tool.status, "❓")
         print(f"  {status_icon} {tool.name} ({tool.version}) - {tool.status.value}")
-    
+
     # Show capabilities
     print("\nServer Capabilities:")
     caps = ToolRegistry.get_capabilities()
@@ -833,7 +811,7 @@ if __name__ == "__main__":
     print(f"  Production: {caps['tool_count']['production']}")
     print(f"  Preview: {caps['tool_count']['preview']}")
     print(f"  Scaffold: {caps['tool_count']['scaffold']}")
-    
+
     # Show example tool detail
     print("\nExample: geox_compute_ac_risk")
     tool = ToolRegistry.get("geox_compute_ac_risk")
@@ -843,12 +821,12 @@ if __name__ == "__main__":
         print(f"  AC_Risk enabled: {tool.ac_risk_enabled}")
         print(f"  Required floors: {', '.join(tool.required_floors)}")
         print(f"  Error codes: {[e.value for e in tool.error_codes]}")
-    
+
     # Show error example
     print("\nExample Error Response:")
     error = create_standardized_error(
         ErrorCode.GOVERNANCE_HOLD,
         detail="AC_Risk=0.68 exceeds HOLD threshold",
-        context={"ac_risk": 0.68, "verdict": "HOLD"}
+        context={"ac_risk": 0.68, "verdict": "HOLD"},
     )
     print(json.dumps(error, indent=2))

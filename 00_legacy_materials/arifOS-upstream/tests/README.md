@@ -169,17 +169,17 @@ Template:
 def test_fN_floorname_specific_behavior(self) -> None:
     """
     FN [FloorName]: Specific behavior being tested.
-    
+
     Why: Explanation of why this matters.
     """
     engine = JudgmentEngine()
-    
+
     # Setup: Create request that triggers the condition
     request = {...}
-    
+
     # Action: Evaluate
     verdict = engine.evaluate(request)
-    
+
     # Assert: Verify correct behavior
     assert verdict.status == "VOID"  # or SEAL, PARTIAL
     assert "FN_FLOORNAME" in verdict.violations

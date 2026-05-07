@@ -1,6 +1,6 @@
 # arifOS VPS Deployment Configuration
 # For Hostinger VPS (Ubuntu 22.04 LTS)
-# 
+#
 # Deploy with:
 #   docker-compose -f docker-compose.yml -f deployments/vps-deploy.yml up -d
 

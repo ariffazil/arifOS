@@ -68,5 +68,5 @@ The 333/ directory serves as a **navigational beacon** in the filesystem:
 
 ---
 
-**Ditempa Bukan Diberi.**  
+**Ditempa Bukan Diberi.**
 *The 333 stage is forged in the core/, marked here.*

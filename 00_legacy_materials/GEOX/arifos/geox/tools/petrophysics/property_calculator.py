@@ -50,11 +50,11 @@ async def store_rock_state(state: RockFluidState) -> None:
 class PetrophysicsCalculator:
     """
     Calculate petrophysical properties with uncertainty propagation.
-    
+
     F2 Truth: All model assumptions explicit.
     F7 Humility: Uncertainty bands mandatory.
     """
-    
+
     def __init__(
         self,
         model_id: str,
@@ -62,7 +62,7 @@ class PetrophysicsCalculator:
     ):
         self.model_id = model_id
         self.model_params = model_params
-        
+
         # Initialize model
         if model_id == "archie":
             self.model = ArchieModel(
@@ -79,7 +79,7 @@ class PetrophysicsCalculator:
             )
         else:
             raise ValueError(f"Unknown model: {model_id}")
-    
+
     async def compute(
         self,
         well_id: str,
@@ -89,32 +89,32 @@ class PetrophysicsCalculator:
     ) -> RockFluidState:
         """
         Compute full petrophysical evaluation for an interval.
-        
+
         Args:
             well_id: Well identifier
             top: Interval top depth (m)
             base: Interval base depth (m)
             propagate_uncertainty: Whether to calculate uncertainty bands
-        
+
         Returns:
             RockFluidState with all computed properties
         """
         # Step 1: Load log data for interval
         log_data = await self._load_log_data(well_id, top, base)
-        
+
         # Step 2: Compute Vsh from GR
         vsh_result = self._compute_vsh(log_data)
-        
+
         # Step 3: Compute porosity
         phi_result = self._compute_porosity(log_data, vsh_result)
-        
+
         # Step 4: Compute water saturation
         sw_result = self._compute_sw(
             log_data=log_data,
             phi=phi_result.phi,
             vsh=vsh_result.vsh,
         )
-        
+
         # Step 5: Compute BVW
         bvw, bvw_unc = compute_bvw(
             phi=phi_result.phi,
@@ -122,14 +122,14 @@ class PetrophysicsCalculator:
             phi_uncertainty=phi_result.phi_uncertainty if propagate_uncertainty else 0,
             sw_uncertainty=sw_result.sw_uncertainty if propagate_uncertainty else 0,
         )
-        
+
         # Step 6: Compute permeability proxy
         k_md, k_desc = compute_permeability_proxy(
             phi=phi_result.phi,
             sw=sw_result.sw,
             method="timur_coates" if sw_result.sw < 0.9 else "simple_power",
         )
-        
+
         # Step 7: Build RockFluidState
         state = self._build_rock_state(
             well_id=well_id,
@@ -144,12 +144,12 @@ class PetrophysicsCalculator:
             k_desc=k_desc,
             log_data=log_data,
         )
-        
+
         # Store result
         await store_rock_state(state)
-        
+
         return state
-    
+
     async def _load_log_data(
         self,
         well_id: str,
@@ -167,16 +167,16 @@ class PetrophysicsCalculator:
             "rw": self.model_params.get("rw", 0.1),  # ohm-m
             "vsh": None,  # Will be computed
         }
-    
+
     def _compute_vsh(self, log_data: dict) -> VshResult:
         """Compute Vsh from GR."""
         solver = VshSolver(gr_clean=30, gr_shale=120)
-        
+
         gr = log_data.get("gr", 75.0)
-        
+
         # Use Clavier-Fertl for better low-Vsh accuracy
         return solver.compute_clavier_fertl(gr=gr)
-    
+
     def _compute_porosity(
         self,
         log_data: dict,
@@ -185,24 +185,24 @@ class PetrophysicsCalculator:
         """Compute porosity from density-neutron."""
         solver = DensityNeutronSolver(
             rho_matrix=2.65,  # Quartz
-            rho_fluid=1.0,    # Water
+            rho_fluid=1.0,  # Water
         )
-        
+
         # Total porosity
         phi_total = solver.compute_phi(
             rhob=log_data.get("rhob", 2.35),
             nphi=log_data.get("nphi", 0.20),
         )
-        
+
         # Effective porosity
         phi_effective = solver.compute_effective_porosity(
             phi_total=phi_total.phi,
             vsh=vsh_result.vsh,
             phi_shale=0.30,
         )
-        
+
         return phi_effective
-    
+
     def _compute_sw(
         self,
         log_data: dict,
@@ -212,20 +212,15 @@ class PetrophysicsCalculator:
         """Compute water saturation using selected model."""
         rt = log_data.get("rt", 20.0)
         rw = log_data.get("rw", self.model_params.get("rw", 0.1))
-        
+
         # Model-specific parameters
         kwargs = {}
         if isinstance(self.model, SimandouxModel):
             kwargs["vsh"] = vsh
             kwargs["rsh"] = self.model_params.get("rsh", 4.0)
-        
-        return self.model.compute_sw(
-            rt=rt,
-            phi=phi,
-            rw=rw,
-            **kwargs
-        )
-    
+
+        return self.model.compute_sw(rt=rt, phi=phi, rw=rw, **kwargs)
+
     def _build_rock_state(
         self,
         well_id: str,
@@ -241,7 +236,7 @@ class PetrophysicsCalculator:
         log_data: dict,
     ) -> RockFluidState:
         """Build complete RockFluidState from results."""
-        
+
         # Create PorosityEstimate
         porosity = PorosityEstimate(
             value=phi_result.phi,
@@ -265,7 +260,7 @@ class PetrophysicsCalculator:
                 confidence=0.8,
             ),
         )
-        
+
         # Create WaterSaturationEstimate
         saturation = WaterSaturationEstimate(
             value=sw_result.sw,
@@ -281,7 +276,9 @@ class PetrophysicsCalculator:
                 vsh=vsh_result.vsh if self.model_id == "simandoux" else None,
             ),
             assumption_violations=sw_result.assumption_violations,
-            alternative_models_considered=["simandoux"] if self.model_id == "archie" else ["archie"],
+            alternative_models_considered=(
+                ["simandoux"] if self.model_id == "archie" else ["archie"]
+            ),
             model_selection_confidence=0.85 if not sw_result.assumption_violations else 0.6,
             confidence_95_low=sw_result.sw_low,
             confidence_95_high=sw_result.sw_high,
@@ -298,7 +295,7 @@ class PetrophysicsCalculator:
                 confidence=0.8 if not sw_result.assumption_violations else 0.5,
             ),
         )
-        
+
         # Create PermeabilityEstimate
         permeability = PermeabilityEstimate(
             value_md=k_md,
@@ -321,19 +318,19 @@ class PetrophysicsCalculator:
                 confidence=0.5,  # Low confidence - proxy only
             ),
         )
-        
+
         # Determine verdict
         verdict = "QUALIFY"
         hold_reasons = []
-        
+
         if sw_result.assumption_violations:
             verdict = "888_HOLD"
             hold_reasons.extend(sw_result.assumption_violations)
-        
+
         if log_data.get("rw") is None or log_data.get("rw") <= 0:
             verdict = "888_HOLD"
             hold_reasons.append("Rw not calibrated (assumed value)")
-        
+
         # Build state
         state = RockFluidState(
             well_id=well_id,
@@ -371,7 +368,7 @@ class PetrophysicsCalculator:
             verdict=verdict,
             hold_reasons=hold_reasons,
         )
-        
+
         return state
 
 
@@ -386,7 +383,7 @@ async def compute_petrophysics(
 ) -> RockFluidState:
     """
     Convenience function to compute petrophysics for an interval.
-    
+
     Args:
         well_id: Well identifier
         top: Interval top (m)
@@ -394,7 +391,7 @@ async def compute_petrophysics(
         model_id: "archie" or "simandoux"
         model_params: Model parameters (a, m, n, rw, etc.)
         propagate_uncertainty: Calculate uncertainty bands
-    
+
     Returns:
         RockFluidState
     """

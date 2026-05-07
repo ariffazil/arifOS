@@ -72,6 +72,7 @@ def get_or_create_session(session_id: str, actor_id: str = "arif") -> SessionSta
     # Check kernel session store (arif_session_init uses this)
     try:
         from arifosmcp.runtime.tools import _SESSIONS
+
         if session_id in _SESSIONS:
             kernel_sess = _SESSIONS[session_id]
             # Mirror into governance store

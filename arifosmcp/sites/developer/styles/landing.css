@@ -461,7 +461,7 @@
   .value-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -471,33 +471,33 @@
   .hero {
     padding: var(--space-12) var(--space-4) var(--space-8);
   }
-  
+
   .hero-ctas {
     flex-direction: column;
     gap: var(--space-3);
   }
-  
+
   .hero-ctas .btn {
     width: 100%;
   }
-  
+
   .value-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-4);
   }
-  
+
   .stat-value {
     font-size: var(--text-2xl);
   }
-  
+
   .cta-buttons {
     flex-direction: column;
   }
-  
+
   .cta-buttons .btn {
     width: 100%;
   }

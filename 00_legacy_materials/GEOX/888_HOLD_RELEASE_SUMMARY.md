@@ -1,16 +1,16 @@
 # 888 HOLD: Release Summary & Execution Plan
 
-> **Status:** PLAN COMPLETE — EXECUTION HELD  
-> **Authority:** Muhammad Arif bin Fazil  
-> **Date:** 2026-04-10  
+> **Status:** PLAN COMPLETE — EXECUTION HELD
+> **Authority:** Muhammad Arif bin Fazil
+> **Date:** 2026-04-10
 > **Seal:** DITEMPA BUKAN DIBERI
 
 ---
 
 ## HOLD Acknowledgment
 
-**No deployment has occurred.**  
-**No git push executed.**  
+**No deployment has occurred.**
+**No git push executed.**
 **No external changes made.**
 
 This document contains:
@@ -26,7 +26,7 @@ This document contains:
 ## What You Asked For
 
 ### 1. Push to main and deploy
-**Status:** 🔴 888 HOLD — Planned, not executed  
+**Status:** 🔴 888 HOLD — Planned, not executed
 **Reason:** External action with user-facing consequences
 
 ### 2. Plan for geox.arif-fazil.com
@@ -85,9 +85,9 @@ geox.arif-fazil.com
 ## MCP vs Apps: Clarified
 
 ### MCP = Machine Interface
-**For:** Claude, Cursor, AI agents  
-**Format:** JSON API, tool schemas  
-**Location:** `/mcp`  
+**For:** Claude, Cursor, AI agents
+**Format:** JSON API, tool schemas
+**Location:** `/mcp`
 **What it does:** Exposes functions agents can call
 
 **Current Tools:**
@@ -98,9 +98,9 @@ geox.arif-fazil.com
 - 🔴 `geox_digitize_analog` — PLANNED
 
 ### Apps = Human Interface
-**For:** Geoscientists, operators  
-**Format:** Web UI, interactive  
-**Location:** `/apps`  
+**For:** Geoscientists, operators
+**Format:** Web UI, interactive
+**Location:** `/apps`
 **What it does:** Visual tools for review and decision
 
 **Current Apps:**
@@ -222,17 +222,17 @@ curl http://localhost:3000/apps
 ```
 
 ### Phase 1: Minimal Deploy
-**Routes:** `/`, `/mcp`, `/apps`, `/theory`, `/docs`  
-**Hidden:** `/cases`  
+**Routes:** `/`, `/mcp`, `/apps`, `/theory`, `/docs`
+**Hidden:** `/cases`
 **Goal:** Honest baseline site
 
 ### Phase 2: Add Macrostrat
-**Add:** Earth Context section  
+**Add:** Earth Context section
 **Goal:** Regional geology viewer
 
 ### Phase 3: Enhance Apps
-**Add:** UI for AC_Risk console  
-**Enhance:** Georeferencing workflow  
+**Add:** UI for AC_Risk console
+**Enhance:** Georeferencing workflow
 **Goal:** Working operator tools
 
 ---
@@ -301,5 +301,5 @@ arifos/geox/
 
 ---
 
-*DITEMPA BUKAN DIBERI*  
+*DITEMPA BUKAN DIBERI*
 *Plan is forged. Hold is acknowledged. Release at will.*

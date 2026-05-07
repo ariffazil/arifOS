@@ -66,8 +66,8 @@ export const Domain2D: React.FC = () => {
     renderSeismic();
   }, [gcpScanned]);
 
-  const triggerGCPScan = () => { 
-    setIsScanning(true); setTimeout(() => { setIsScanning(false); setGcpScanned(true); }, 2000); 
+  const triggerGCPScan = () => {
+    setIsScanning(true); setTimeout(() => { setIsScanning(false); setGcpScanned(true); }, 2000);
   };
 
   const handleSeismicAnalysis = async () => {
@@ -108,30 +108,30 @@ export const Domain2D: React.FC = () => {
           <div className="text-xs font-mono text-gray-500 border-b border-gray-800 pb-2 flex justify-between items-center">
             VISION INTEL <ScanFace className="w-4 h-4 text-cyan-500" />
           </div>
-          <button 
-            onClick={triggerGCPScan} 
-            disabled={isScanning || gcpScanned} 
+          <button
+            onClick={triggerGCPScan}
+            disabled={isScanning || gcpScanned}
             className={`w-full py-2 border text-[10px] font-mono uppercase flex justify-center items-center gap-2 ${
               gcpScanned ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-gray-800/50 border-gray-700 text-gray-400'
             }`}
           >
             {isScanning ? 'DETECTING...' : gcpScanned ? 'GCP LOCKED' : 'DETECT GCPs'}
           </button>
-          
+
           {gcpScanned && (
             <div className="mt-2 flex-1 flex flex-col gap-3">
-              <button 
-                onClick={handleSeismicAnalysis} 
-                disabled={interpretTool.status === 'loading'} 
+              <button
+                onClick={handleSeismicAnalysis}
+                disabled={interpretTool.status === 'loading'}
                 className="w-full py-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[10px] font-mono uppercase hover:bg-purple-500/20 transition-colors flex justify-center items-center gap-2"
               >
                 {interpretTool.status === 'loading' ? 'TRACING...' : '✨ ANALYZE TRAPS'}
               </button>
-              
+
               {interpretTool.data && (
                 <div className={`p-3 border font-mono text-[11px] leading-relaxed flex-1 ${isBlocked ? 'border-red-500/30 bg-red-500/5 text-red-200' : 'border-purple-500/30 bg-purple-500/5 text-purple-200'}`}>
                   <div className="text-[9px] mb-2 flex items-center gap-2">
-                    {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />} 
+                    {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />}
                     {isBlocked ? '888_JUDGE HOLD' : 'SOVEREIGN REPORT'}
                   </div>
                   <pre className="whitespace-pre-wrap">{interpretTool.data}</pre>

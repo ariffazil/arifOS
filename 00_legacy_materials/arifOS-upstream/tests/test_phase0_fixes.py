@@ -13,7 +13,7 @@ import asyncio
 import sys
 
 # Add arifOS to path
-sys.path.insert(0, '/root/arifOS')
+sys.path.insert(0, "/root/arifOS")
 
 from arifosmcp.runtime.tools_internal import (
     agi_mind_dispatch_impl,
@@ -26,20 +26,22 @@ from arifosmcp.runtime.model import Verdict, RuntimeStatus
 
 class MockContext:
     """Mock FastMCP context for testing."""
+
     async def info(self, msg):
         print(f"  [INFO] {msg}")
+
     async def error(self, msg):
         print(f"  [ERROR] {msg}")
 
 
 async def test_mind_lane():
     """Test arifos.mind hardened dispatch."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 1: arifos.mind (Kernel Invocation)")
-    print("="*60)
-    
+    print("=" * 60)
+
     ctx = MockContext()
-    
+
     # Test 1a: Missing query (should return error envelope, not raise)
     print("\n1a. Testing missing query validation...")
     try:
@@ -51,14 +53,14 @@ async def test_mind_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == False, "Should return error for missing query"
+        assert result.ok is False, "Should return error for missing query"
         assert result.verdict == Verdict.VOID, "Should be VOID verdict"
         assert "Query is required" in result.detail, "Should mention missing query"
         print("  ✅ PASS: Missing query handled gracefully")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     # Test 1b: Invalid mode (should return error envelope)
     print("\n1b. Testing invalid mode validation...")
     try:
@@ -70,25 +72,25 @@ async def test_mind_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == False, "Should return error for invalid mode"
+        assert result.ok is False, "Should return error for invalid mode"
         assert "Invalid mode" in result.detail, "Should mention invalid mode"
         print("  ✅ PASS: Invalid mode handled gracefully")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     print("\n✅ arifos.mind lane: ALL TESTS PASSED")
     return True
 
 
 async def test_memory_lane():
     """Test arifos.memory hardened dispatch."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 2: arifos.memory (Filesystem Operations)")
-    print("="*60)
-    
+    print("=" * 60)
+
     ctx = MockContext()
-    
+
     # Test 2a: Invalid mode (should return error envelope)
     print("\n2a. Testing invalid mode validation...")
     try:
@@ -100,13 +102,13 @@ async def test_memory_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == False, "Should return error for invalid mode"
+        assert result.ok is False, "Should return error for invalid mode"
         assert "Invalid mode" in result.detail, "Should mention invalid mode"
         print("  ✅ PASS: Invalid mode handled gracefully")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     # Test 2b: vector_store with empty content
     print("\n2b. Testing vector_store with empty content...")
     try:
@@ -118,13 +120,15 @@ async def test_memory_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == False, "Should return error for empty content"
-        assert "non-empty" in result.detail.lower() or "MISSING_CONTENT" in str(result.errors), "Should mention empty content"
+        assert result.ok is False, "Should return error for empty content"
+        assert "non-empty" in result.detail.lower() or "MISSING_CONTENT" in str(
+            result.errors
+        ), "Should mention empty content"
         print("  ✅ PASS: Empty content handled gracefully")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     # Test 2c: vector_forget without memory_ids or query
     print("\n2c. Testing vector_forget without identifiers...")
     try:
@@ -136,24 +140,24 @@ async def test_memory_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == False, "Should return error for missing identifiers"
+        assert result.ok is False, "Should return error for missing identifiers"
         print("  ✅ PASS: Missing identifiers handled gracefully")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     print("\n✅ arifos.memory lane: ALL TESTS PASSED")
     return True
 
 
 async def test_ops_lane():
     """Test arifos.ops hardened dispatch."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 3: arifos.ops (Coroutine/Validation)")
-    print("="*60)
-    
+    print("=" * 60)
+
     ctx = MockContext()
-    
+
     # Test 3a: Invalid mode (should return error envelope)
     print("\n3a. Testing invalid mode validation...")
     try:
@@ -165,13 +169,13 @@ async def test_ops_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == False, "Should return error for invalid mode"
+        assert result.ok is False, "Should return error for invalid mode"
         assert "Invalid mode" in result.detail, "Should mention invalid mode"
         print("  ✅ PASS: Invalid mode handled gracefully")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     # Test 3b: Vitals mode (should work without psutil too)
     print("\n3b. Testing vitals mode...")
     try:
@@ -183,14 +187,16 @@ async def test_ops_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == True, "Should return success for vitals"
+        assert result.ok is True, "Should return success for vitals"
         assert result.payload is not None, "Should have payload"
-        assert "vitals" in result.payload or "constitutional" in result.payload, "Should have vitals data"
+        assert (
+            "vitals" in result.payload or "constitutional" in result.payload
+        ), "Should have vitals data"
         print("  ✅ PASS: Vitals mode works")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     # Test 3c: Cost mode
     print("\n3c. Testing cost mode...")
     try:
@@ -202,13 +208,13 @@ async def test_ops_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == True, "Should return success for cost"
+        assert result.ok is True, "Should return success for cost"
         assert result.payload.get("mode") == "cost", "Should be cost mode"
         print("  ✅ PASS: Cost mode works")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     # Test 3d: Health mode
     print("\n3d. Testing health mode...")
     try:
@@ -220,23 +226,23 @@ async def test_ops_lane():
             dry_run=True,
             ctx=ctx,
         )
-        assert result.ok == True, "Should return success for health"
+        assert result.ok is True, "Should return success for health"
         assert result.payload.get("mode") == "health", "Should be health mode"
         print("  ✅ PASS: Health mode works")
     except Exception as e:
         print(f"  ❌ FAIL: Exception raised: {e}")
         return False
-    
+
     print("\n✅ arifos.ops lane: ALL TESTS PASSED")
     return True
 
 
 async def test_error_envelope_creation():
     """Test the error envelope helper."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 4: Error Envelope Helper")
-    print("="*60)
-    
+    print("=" * 60)
+
     envelope = _create_error_envelope(
         tool_name="test_tool",
         stage="TEST_STAGE",
@@ -245,8 +251,8 @@ async def test_error_envelope_creation():
         error_code="TEST_ERROR",
         verdict=Verdict.VOID,
     )
-    
-    assert envelope.ok == False, "Error envelope should not be ok"
+
+    assert envelope.ok is False, "Error envelope should not be ok"
     assert envelope.tool == "test_tool", "Tool name should match"
     assert envelope.stage == "TEST_STAGE", "Stage should match"
     assert envelope.verdict == Verdict.VOID, "Verdict should match"
@@ -254,54 +260,54 @@ async def test_error_envelope_creation():
     assert "Test error" in envelope.detail, "Detail should contain error message"
     assert len(envelope.errors) == 1, "Should have one error"
     assert envelope.errors[0].code == "TEST_ERROR", "Error code should match"
-    
+
     print("  ✅ PASS: Error envelope creation works correctly")
     return True
 
 
 async def main():
     """Run all Phase 0 tests."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PHASE 0 TRIAGE VERIFICATION")
     print("Testing hardened lanes for arifOS MCP")
-    print("="*60)
-    
+    print("=" * 60)
+
     results = []
-    
+
     try:
         results.append(await test_mind_lane())
     except Exception as e:
         print(f"\n❌ arifos.mind lane CRASHED: {e}")
         results.append(False)
-    
+
     try:
         results.append(await test_memory_lane())
     except Exception as e:
         print(f"\n❌ arifos.memory lane CRASHED: {e}")
         results.append(False)
-    
+
     try:
         results.append(await test_ops_lane())
     except Exception as e:
         print(f"\n❌ arifos.ops lane CRASHED: {e}")
         results.append(False)
-    
+
     try:
         results.append(await test_error_envelope_creation())
     except Exception as e:
         print(f"\n❌ Error envelope test CRASHED: {e}")
         results.append(False)
-    
+
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PHASE 0 TRIAGE SUMMARY")
-    print("="*60)
-    
+    print("=" * 60)
+
     passed = sum(results)
     total = len(results)
-    
+
     print(f"\nResults: {passed}/{total} test suites passed")
-    
+
     if passed == total:
         print("\n✅ ALL PHASE 0 FIXES VERIFIED")
         print("The three broken lanes are now hardened:")

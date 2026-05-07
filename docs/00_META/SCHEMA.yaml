@@ -1,11 +1,11 @@
 arifOS:
   version: "2026.03.14-PRE-RELEASE"
   motto: "DITEMPA BUKAN DIBERI"
-  
+
   # Level 1: Sovereign Surface
   entry: "forge(intent, risk_tier)"
   stop: "888_HOLD"
-  
+
   # Level 2: Operator Surface (Namespaces)
   engines:
     - KERNEL:

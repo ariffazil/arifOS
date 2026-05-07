@@ -1,7 +1,7 @@
 # 🔥 GEOX — Earth Intelligence Core
 
-**Version:** v2026.04.10-EIC  
-**Seal:** DITEMPA BUKAN DIBERI  
+**Version:** v2026.04.10-EIC
+**Seal:** DITEMPA BUKAN DIBERI
 **Codename:** Earth Intelligence Core (EIC)
 
 ---

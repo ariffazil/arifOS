@@ -5,6 +5,7 @@ TransportFilter — Visibility Filter Per Transport
 Filters tools, resources, and prompts based on the active transport
 (stdio vs HTTP). Useful for hiding heavy tools over stdio.
 """
+
 from __future__ import annotations
 
 import logging
@@ -52,9 +53,7 @@ class TransportFilter(Transform):
         )
         return filtered
 
-    async def get_tool(
-        self, name: str, call_next: Any, *, version: Any = None
-    ) -> Tool | None:
+    async def get_tool(self, name: str, call_next: Any, *, version: Any = None) -> Tool | None:
         tool = await call_next(name, version=version)
         if tool is None:
             return None

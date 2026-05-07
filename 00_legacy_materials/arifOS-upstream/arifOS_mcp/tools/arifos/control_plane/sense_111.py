@@ -50,6 +50,7 @@ async def sense_111(
 
         # Pre-flight: verify image URL is publicly reachable (F2 Truth — evidence must exist)
         import httpx
+
         try:
             async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 # Use GET with streaming (some CDNs block HEAD but serve GET)
@@ -81,6 +82,7 @@ async def sense_111(
             }
 
         from ..extended.minimax_bridge import get_bridge
+
         bridge = get_bridge()
         try:
             result = await bridge.understand_image(image_url, query)
@@ -91,7 +93,11 @@ async def sense_111(
                 "intent_type": "VERIFY",
                 "claim_tag": "VISUALLY_GROUNDED",
                 "grounding_required": False,
-                "evidence_packet": {"image_url": image_url, "analysis": result, "sources": ["VISION_MINIMAX"]},
+                "evidence_packet": {
+                    "image_url": image_url,
+                    "analysis": result,
+                    "sources": ["VISION_MINIMAX"],
+                },
                 "query_normalized": query.strip(),
                 "vault_receipt": "SENSE_VISION",
                 "message": "Image analysis sealed. Proceed to 222_WITNESS for triangulation.",

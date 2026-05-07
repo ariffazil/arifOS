@@ -12,6 +12,7 @@ SERVICES = {
     "mcp_everything": "http://mcp_everything:8000/health",
 }
 
+
 async def check_service(name, url):
     async with httpx.AsyncClient(timeout=2.0) as client:
         try:
@@ -24,6 +25,7 @@ async def check_service(name, url):
     print(f"🔴 {name} is NOT READY")
     return False
 
+
 async def main():
     print("⏳ Waiting for substrate stack...")
     max_retries = 30
@@ -33,9 +35,10 @@ async def main():
             print("✅ All services healthy.")
             sys.exit(0)
         await asyncio.sleep(2)
-    
+
     print("❌ Timeout waiting for services.")
     sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

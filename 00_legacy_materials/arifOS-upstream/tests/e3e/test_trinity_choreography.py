@@ -102,7 +102,9 @@ class TestTrinityDiscovery:
         assert "code_engine" in tool_names
         assert "vault_seal" in tool_names
         assert "shared_memory" in tool_names
-        assert len(tool_names) >= 11, f"Expected at least 11 tools, got {len(tool_names)}: {tool_names}"
+        assert (
+            len(tool_names) >= 11
+        ), f"Expected at least 11 tools, got {len(tool_names)}: {tool_names}"
 
         print(f"[E3E] MCP tools discovered: {data['count']} tools")
 
@@ -498,7 +500,7 @@ class TestTrinityFullLoop:
         audit_res = test_client.post("/tools/audit_rules", json={})
         assert audit_res.status_code == 200
 
-        audit_data = audit_res.json()
+        audit_res.json()
         print("[E3E] Step 2 (MIND): rules audited")
 
         # Step 3: INTROSPECTION (use GET /tools instead of POST /tools/register_tools)

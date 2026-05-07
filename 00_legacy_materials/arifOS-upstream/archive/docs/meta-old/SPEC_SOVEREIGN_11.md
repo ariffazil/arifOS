@@ -1,6 +1,6 @@
 # arifOS Sovereign-11 Specification (ABI v1.0)
-**Version:** 2026.03.20-SOVEREIGN11  
-**Status:** SEALED / VALIDATED  
+**Version:** 2026.03.20-SOVEREIGN11
+**Status:** SEALED / VALIDATED
 **Architecture:** MGI Double Helix (Machine-Governance-Intelligence)
 
 This document defines the canonical 11 Mega-Tool surface for the arifOS Model Context Protocol (MCP) kernel. Any client or agent interacting with this node must adhere to this mode-dispatch contract.
@@ -19,7 +19,7 @@ All tools are grouped into three privilege rings:
 ## ⚖️ GOVERNANCE LAYER (The Spine)
 
 ### 1. `init_anchor`
-**Stage:** 000_INIT | **Trinity:** PSI Ψ  
+**Stage:** 000_INIT | **Trinity:** PSI Ψ
 **Description:** Establish or revoke a governed session identity. Required before all other actions.
 - **Modes:**
     - `init`: Mint a new session token (`auth_context`). Requires `actor_id` and `intent`.
@@ -27,14 +27,14 @@ All tools are grouped into three privilege rings:
     - `refresh`: Mid-session token rotation and continuity check.
 
 ### 2. `arifOS_kernel`
-**Stage:** 444_ROUTER | **Trinity:** DELTA/PSI  
+**Stage:** 444_ROUTER | **Trinity:** DELTA/PSI
 **Description:** Primary metabolic conductor. The "syscall" entry point for complex reasoning.
 - **Modes:**
     - `kernel`: Execute the full 000-999 metabolic pipe. Requires `query`.
     - `status`: Diagnostic onboarding compass. Explains authority ladder and available tools.
 
 ### 3. `apex_soul`
-**Stage:** 888_JUDGE | **Trinity:** PSI Ψ  
+**Stage:** 888_JUDGE | **Trinity:** PSI Ψ
 **Description:** Final authority for verdicts, defense, and escalation.
 - **Modes:**
     - `judge`: Render SEAL/VOID decisions on candidate output.
@@ -45,7 +45,7 @@ All tools are grouped into three privilege rings:
     - `notify`: Push-channel for high-stakes 888_HOLD escalations.
 
 ### 4. `vault_ledger`
-**Stage:** 999_VAULT | **Trinity:** PSI Ψ  
+**Stage:** 999_VAULT | **Trinity:** PSI Ψ
 **Description:** Permanent decision recording and Merkle-chain integrity.
 - **Modes:**
     - `seal`: Immutable commit of verdict + evidence to VAULT999.
@@ -56,7 +56,7 @@ All tools are grouped into three privilege rings:
 ## 🧠 INTELLIGENCE LAYER (The Mind)
 
 ### 5. `agi_mind`
-**Stage:** 333_MIND | **Trinity:** DELTA Δ  
+**Stage:** 333_MIND | **Trinity:** DELTA Δ
 **Description:** Core reasoning and assembly engine.
 - **Modes:**
     - `reason`: First-principles structured logic and hypothesis generation.
@@ -64,14 +64,14 @@ All tools are grouped into three privilege rings:
     - `forge`: One-shot assembly of implementation specifications.
 
 ### 6. `asi_heart`
-**Stage:** 666_HEART | **Trinity:** OMEGA Ω  
+**Stage:** 666_HEART | **Trinity:** OMEGA Ω
 **Description:** Ethical simulation and impact modeling.
 - **Modes:**
     - `critique`: Adversarial audit for bias and "Hantu" logic.
     - `simulate`: Consequence modeling for world-model stability (Peace²).
 
 ### 7. `engineering_memory`
-**Stage:** 555_MEMORY | **Trinity:** OMEGA Ω  
+**Stage:** 555_MEMORY | **Trinity:** OMEGA Ω
 **Description:** Technical execution and semantic learning.
 - **Modes:**
     - `engineer`: Material system actions (code/shell/file) via AgentZero.
@@ -84,7 +84,7 @@ All tools are grouped into three privilege rings:
 ## ⚙️ MACHINE LAYER (The Body)
 
 ### 8. `physics_reality`
-**Stage:** 111_SENSE | **Trinity:** DELTA Δ  
+**Stage:** 111_SENSE | **Trinity:** DELTA Δ
 **Description:** Fact acquisition from the external "Earth-Witness".
 - **Modes:**
     - `search`: Web-based evidence acquisition.
@@ -93,7 +93,7 @@ All tools are grouped into three privilege rings:
     - `atlas`: Synthesis of multiple EvidenceBundles into a grounding map.
 
 ### 9. `math_estimator`
-**Stage:** 444_ROUTER | **Trinity:** DELTA Δ  
+**Stage:** 444_ROUTER | **Trinity:** DELTA Δ
 **Description:** Quantitative vitals and thermodynamic budgeting.
 - **Modes:**
     - `cost`: Token and compute cost estimation for proposed paths.
@@ -101,7 +101,7 @@ All tools are grouped into three privilege rings:
     - `vitals`: Constitutional telemetry (ΔS, Peace², G★).
 
 ### 10. `code_engine`
-**Stage:** M-3_EXEC | **Trinity:** ALL  
+**Stage:** M-3_EXEC | **Trinity:** ALL
 **Description:** OS-level hygiene and observation. Defaults to `dry_run=True`.
 - **Modes:**
     - `fs`: Filesystem inspection and structure mapping.
@@ -111,7 +111,7 @@ All tools are grouped into three privilege rings:
     - `replay`: Forensic replay of session traces from history.
 
 ### 11. `architect_registry`
-**Stage:** M-4_ARCH | **Trinity:** DELTA Δ  
+**Stage:** M-4_ARCH | **Trinity:** DELTA Δ
 **Description:** Tool surface discovery and resource intake.
 - **Modes:**
     - `register`: Query the currently exposed public MCP surface.

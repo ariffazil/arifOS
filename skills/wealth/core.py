@@ -17,6 +17,7 @@ New code paths are additive and non-mutating.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import logging
@@ -39,16 +40,21 @@ INVALID_FLAGS = {
     "PROBABILITY_MASS_INVALID",
     "INVALID_DEBT_SERVICE",
 }
-HOLD_FLAGS = {"LEVERAGE_CRITICAL", "LEVERAGE_DEFAULT", "SOVEREIGN_DIGNITY_LOW", "MULTIPLE_IRR_POSSIBLE"}
+HOLD_FLAGS = {
+    "LEVERAGE_CRITICAL",
+    "LEVERAGE_DEFAULT",
+    "SOVEREIGN_DIGNITY_LOW",
+    "MULTIPLE_IRR_POSSIBLE",
+}
 QUALIFY_FLAGS = {"NON_NORMAL_FLOWS", "IRR_NOT_FOUND", "NOT_RECOVERED", "EBITDA_PROXY_USED"}
 
 # ── New verification governance flags ─────────────────────────────────────────
 VERIFICATION_HOLD_FLAGS = {
-    "LOW_VERIFIABLE_SHARE",      # svs < 0.30
-    "EXTREME_ENTROPY_BAND",      # entropy_band == "EXTREME"
-    "DELTA_M_EXCEEDS_THRESHOLD", # delta_m > 0.80
-    "NO_LIABILITY_OWNER",        # liability_owner absent → automatic HOLD
-    "MISSING_JUNIOR_LOOP",       # CRITICAL junior loop degradation
+    "LOW_VERIFIABLE_SHARE",  # svs < 0.30
+    "EXTREME_ENTROPY_BAND",  # entropy_band == "EXTREME"
+    "DELTA_M_EXCEEDS_THRESHOLD",  # delta_m > 0.80
+    "NO_LIABILITY_OWNER",  # liability_owner absent → automatic HOLD
+    "MISSING_JUNIOR_LOOP",  # CRITICAL junior loop degradation
 }
 VERIFICATION_VOID_FLAGS = {
     "F9_ANTI_HANTU_FAIL",
@@ -81,6 +87,7 @@ def truth_band_from_score(confidence_score: float) -> TruthBand:
 # ECONOMIC ENVELOPE — Extended with Verification State
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class EconomicEnvelope(BaseModel):
     """
     Sovereign capital allocation envelope.
@@ -94,18 +101,21 @@ class EconomicEnvelope(BaseModel):
     When verification state is present, verdict derivation uses it as
     the dominant recommendation layer, not NPV/IRR alone.
     """
+
     tool: str
     dimension: str
     verdict: str
     allocation_signal: str
     primary_result: dict[str, Any]
     secondary_metrics: dict[str, Any] = Field(default_factory=dict)
-    thermodynamics: dict[str, float] = Field(default={
-        "g_score": 0.85,
-        "delta_s": -0.12,
-        "psi": 1.10,
-        "omega": 0.04,
-    })
+    thermodynamics: dict[str, float] = Field(
+        default={
+            "g_score": 0.85,
+            "delta_s": -0.12,
+            "psi": 1.10,
+            "omega": 0.04,
+        }
+    )
     integrity_flags: list[str] = Field(default_factory=list)
     confidence: str
     epistemic: str
@@ -121,6 +131,7 @@ class EconomicEnvelope(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXISTING FUNCTIONS — Unchanged, backward-compatible
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def round_value(value: float | None, digits: int = 6) -> float | None:
     if value is None or not math.isfinite(value):
@@ -197,7 +208,9 @@ def create_envelope(
     )
 
 
-def calculate_npv(initial: float, flows: list[float], rate: float, terminal: float = 0) -> dict[str, Any]:
+def calculate_npv(
+    initial: float, flows: list[float], rate: float, terminal: float = 0
+) -> dict[str, Any]:
     series = build_cashflow_series(initial, flows, terminal)
     npv = npv_from_series(series, rate)
     return {"npv": round_value(npv), "flags": [] if math.isfinite(npv) else ["INVALID_NPV"]}
@@ -205,7 +218,8 @@ def calculate_npv(initial: float, flows: list[float], rate: float, terminal: flo
 
 def calculate_irr(initial: float, flows: list[float]) -> dict[str, Any]:
     series = build_cashflow_series(initial, flows)
-    f = lambda r: npv_from_series(series, r)
+    def f(r):
+        return npv_from_series(series, r)
     low, high = -0.9, 1.0
     for _ in range(100):
         mid = (low + high) / 2
@@ -253,6 +267,7 @@ def wealth_dscr_leverage(ebitda: float, debt_service: float) -> EconomicEnvelope
 # ═══════════════════════════════════════════════════════════════════════════════
 # NEW: VERIFICATION-AWARE ENVELOPE CREATION
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _derive_verdict_from_verification(
     flags: list[str],
@@ -432,7 +447,8 @@ def wrap_with_verification(
         envelope.integrity_flags, audit_entropy, wealth_score
     )
     truth_band, confidence_note = _derive_truth_band(
-        audit_entropy, wealth_score,
+        audit_entropy,
+        wealth_score,
         fallback_confidence=0.5 if envelope.confidence == "HIGH" else 0.3,
     )
 

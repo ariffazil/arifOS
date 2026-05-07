@@ -1,9 +1,9 @@
 # GEOX Hardened Seal: H1–H9 & Sovereign Forge Integration
 
-**Status:** v0.4.0 Identity Forge SEALED  
-**Date:** 2026-03-31  
-**Authority:** ANTIGRAVITY (Agentic Coder)  
-**Constitutional Alignment:** 13 Floors (F1–F13)  
+**Status:** v0.4.0 Identity Forge SEALED
+**Date:** 2026-03-31
+**Authority:** ANTIGRAVITY (Agentic Coder)
+**Constitutional Alignment:** 13 Floors (F1–F13)
 **Band:** Earth Witness (Visual/Subsurface)
 
 ---
@@ -48,7 +48,7 @@ The GEOX Dual-Memory system and Sovereign Forge have been successfully hardened 
 - Logic: `query_dual` enforces a hard limit on the number of returned chunks to prevent LLM context-overflow and performance degradation.
 
 ### [H7] Lifecycle management (TTL)
-- Logic: Optional `ttl_expiry` field on every memory entry. 
+- Logic: Optional `ttl_expiry` field on every memory entry.
 - Cleanup: Stale entries are candidates for garbage collection in the next maintenance cycle.
 
 ### [H8] F1 Amanah Audit Trail

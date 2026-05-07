@@ -195,9 +195,7 @@ async def get_last_seal_root() -> str:
         import asyncpg
 
         conn = await asyncpg.connect(_pg_url)
-        root = await conn.fetchval(
-            "SELECT merkle_root FROM vault_seals ORDER BY id DESC LIMIT 1"
-        )
+        root = await conn.fetchval("SELECT merkle_root FROM vault_seals ORDER BY id DESC LIMIT 1")
         await conn.close()
         return root or _CHAIN_SEED
     except Exception:
@@ -305,7 +303,9 @@ async def seal(
             logger.error(
                 "F5 PEACE VIOLATION: source_agent=%s pipeline_stage=%s peace2=%.3f "
                 "— downgrading verdict to HOLD",
-                source_agent, pipeline_stage, peace2_value,
+                source_agent,
+                pipeline_stage,
+                peace2_value,
             )
             # Downgrade: SEAL → HOLD. Do not raise — let the entry be recorded
             # as HOLD so the operator can audit it. Raising would swallow evidence.
@@ -469,6 +469,7 @@ async def seal(
 
             async def _pg_write():
                 import uuid
+
                 conn = await asyncpg.connect(_pg_url)
                 try:
                     # 1. Ensure 999 Schema exists
@@ -527,17 +528,15 @@ async def seal(
                         (auth_context or {}).get("actor_id", "anonymous"),
                         pipeline_stage,
                         verdict,
-                        _json.dumps({
-                            "summary": summary,
-                            "telemetry": telemetry or {},
-                            "floors": floors
-                        }),
+                        _json.dumps(
+                            {"summary": summary, "telemetry": telemetry or {}, "floors": floors}
+                        ),
                         kwargs.get("risk_tier", "medium"),
-                        entry_hash,           # merkle_leaf
-                        prev_hash,            # prev_hash
-                        entry_chain_hash,     # chain_hash
+                        entry_hash,  # merkle_leaf
+                        prev_hash,  # prev_hash
+                        entry_chain_hash,  # chain_hash
                         zkpc_receipt.signature if hasattr(zkpc_receipt, "signature") else signature,
-                        pubkey                # signed_by
+                        pubkey,  # signed_by
                     )
 
                     # 3. Check if batch seal (vault_seals) is warranted
@@ -546,22 +545,27 @@ async def seal(
                     event_count = await conn.fetchval("SELECT count(*) FROM vault_events")
                     if event_count >= 5:
                         # Only seal if there are unsealed events
-                        last_seal = await conn.fetchrow("SELECT * FROM vault_seals ORDER BY id DESC LIMIT 1")
-                        first_id = (last_seal['last_event_id'] + 1) if last_seal else 1
-                        last_id = row['id']
-                        
+                        last_seal = await conn.fetchrow(
+                            "SELECT * FROM vault_seals ORDER BY id DESC LIMIT 1"
+                        )
+                        first_id = (last_seal["last_event_id"] + 1) if last_seal else 1
+                        last_id = row["id"]
+
                         if last_id >= first_id:
                             # Compute simple root hash for the batch
                             batch_hashes = await conn.fetch(
                                 "SELECT merkle_leaf FROM vault_events WHERE id BETWEEN $1 AND $2 ORDER BY id",
-                                first_id, last_id
+                                first_id,
+                                last_id,
                             )
                             # Filter out empty leaves (from manual/failed entries)
-                            valid_hashes = [r['merkle_leaf'] for r in batch_hashes if r['merkle_leaf']]
+                            valid_hashes = [
+                                r["merkle_leaf"] for r in batch_hashes if r["merkle_leaf"]
+                            ]
                             if valid_hashes:
                                 combined = "".join(valid_hashes)
                                 merkle_root = hashlib.sha256(combined.encode()).hexdigest()
-                                
+
                                 await conn.execute(
                                     """
                                     INSERT INTO vault_seals (
@@ -572,13 +576,16 @@ async def seal(
                                     """,
                                     len(valid_hashes),
                                     merkle_root,
-                                    last_seal['merkle_root'] if last_seal else _CHAIN_SEED,
+                                    last_seal["merkle_root"] if last_seal else _CHAIN_SEED,
                                     first_id,
                                     last_id,
-                                    signature, # Batch signature
-                                    "888_AUDITOR"
+                                    signature,  # Batch signature
+                                    "888_AUDITOR",
                                 )
-                                logger.info("Vault-999 Checkpoint: Merkle Root %s anchored", merkle_root[:16])
+                                logger.info(
+                                    "Vault-999 Checkpoint: Merkle Root %s anchored",
+                                    merkle_root[:16],
+                                )
 
                 finally:
                     await conn.close()
@@ -586,7 +593,8 @@ async def seal(
             await _pg_write()
             logger.info(
                 "Vault event written to 999 SQL (ledger_id=%s session_id=%s)",
-                ledger_id, session_id,
+                ledger_id,
+                session_id,
             )
         except Exception as _pg_exc:
             logger.warning("Postgres 999 SQL write failed (non-critical): %s", _pg_exc)

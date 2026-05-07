@@ -1,6 +1,6 @@
 # Migration Safety Guide
 
-**Classification:** Operations | **Authority:** arifOS Engineering  
+**Classification:** Operations | **Authority:** arifOS Engineering
 **Version:** 1.0.0 | **Epoch:** 2026-04-19
 
 ---

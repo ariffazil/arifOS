@@ -40,6 +40,7 @@ CANONICAL_ORDER: list[str] = [
 TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     # ── 000_INIT ─────────────────────────────────────────────────────────────
     "arif_session_init": {
+        "eureka_insight": "Identity is the root of accountability. An unbound session is mathematically equivalent to chaos.",
         "stage_code": "000",
         "stage_name": "INIT",
         "purpose": [
@@ -194,6 +195,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 111_SENSE ────────────────────────────────────────────────────────────
     "arif_sense_observe": {
+        "eureka_insight": "Observation alters the observer. All ingested reality must be tagged with an epistemic confidence band.",
         "stage_code": "111",
         "stage_name": "SENSE",
         "purpose": [
@@ -300,6 +302,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 222_FETCH ────────────────────────────────────────────────────────────
     "arif_evidence_fetch": {
+        "eureka_insight": "Evidence is not truth; it is a cryptographic receipt of a claim at a specific timestamp.",
         "stage_code": "222",
         "stage_name": "FETCH",
         "purpose": [
@@ -410,6 +413,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 333_MIND ─────────────────────────────────────────────────────────────
     "arif_mind_reason": {
+        "eureka_insight": "Cleverness without correctness is dangerous (G-Score). The agent must think within the constitutional box.",
         "stage_code": "333",
         "stage_name": "MIND",
         "purpose": [
@@ -545,6 +549,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 444_KERNEL ───────────────────────────────────────────────────────────
     "arif_kernel_route": {
+        "eureka_insight": "Orchestration is the physics of routing. No AGI lane task may unilaterally cross into the APEX lane.",
         "stage_code": "444",
         "stage_name": "KERNEL",
         "purpose": [
@@ -617,6 +622,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 444_REPLY ────────────────────────────────────────────────────────────
     "arif_reply_compose": {
+        "eureka_insight": "Communication is action. Strip all ghost-sentience (Anti-Hantu) and manipulative intent before delivery.",
         "stage_code": "444r",
         "stage_name": "REPLY",
         "purpose": [
@@ -740,6 +746,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 555_MEMORY ───────────────────────────────────────────────────────────
     "arif_memory_recall": {
+        "eureka_insight": "Memory is an associative projection. Recalled facts must inherit their original epistemic uncertainty.",
         "stage_code": "555",
         "stage_name": "MEMORY",
         "purpose": [
@@ -783,23 +790,53 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         "inputs": {
             "mode": {
                 "type": "string",
-                "allowed_values": ["recall", "store", "get", "list", "prune"],
+                "allowed_values": [
+                    "recall",
+                    "store",
+                    "get",
+                    "list",
+                    "prune",
+                    "search",
+                    "context",
+                    "dry_run",
+                ],
                 "default": "recall",
             },
             "query": {
                 "type": "string",
-                "meaning": "Semantic search query or memory content.",
-                "required_when": [{"mode": "recall"}, {"mode": "store"}],
+                "meaning": "Semantic search query (recall/search modes) OR text content (store mode).",
+                "required_when": [{"mode": "recall"}, {"mode": "search"}],
+            },
+            "content": {
+                "type": "string",
+                "meaning": "Convenience alias for store mode — maps to metadata['text']. Use this OR query.",
+                "required_when": [{"mode": "store", "missing": "query"}],
+            },
+            "project_id": {
+                "type": "string",
+                "meaning": "Project namespace for memory isolation.",
+                "default": "default",
+            },
+            "area": {
+                "type": "string",
+                "meaning": "Memory area: 'main', 'working', 'sacred', 'canon'.",
+                "default": "working",
             },
             "memory_id": {
                 "type": "string",
                 "meaning": "Exact UUID for get/delete.",
-                "required_when": [{"mode": "get"}],
+                "required_when": [{"mode": "get"}, {"mode": "prune"}],
+            },
+            "session_id": {
+                "type": "string",
+                "meaning": "Session scope for list operations.",
             },
         },
         "outputs": {
             "memories": {"meaning": "Retrieved memory entries with source tags."},
             "confidence": {"meaning": "Retrieval confidence score."},
+            "memory_id": {"meaning": "UUID of stored memory (store mode)."},
+            "stored": {"meaning": "Boolean success flag (store mode)."},
         },
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "accepts_anonymous": False},
@@ -835,6 +872,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 666_HEART ────────────────────────────────────────────────────────────
     "arif_heart_critique": {
+        "eureka_insight": "Logic optimizes; empathy restrains. Human impact (κᵣ) is a measurable thermodynamic load.",
         "stage_code": "666",
         "stage_name": "HEART",
         "purpose": [
@@ -931,6 +969,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 666_GATEWAY ──────────────────────────────────────────────────────────
     "arif_gateway_connect": {
+        "eureka_insight": "Federation requires mutual constitutional verification. Don’t trust external agents without a protocol handshake.",
         "stage_code": "666g",
         "stage_name": "GATEWAY",
         "purpose": [
@@ -1018,6 +1057,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 777_OPS ──────────────────────────────────────────────────────────────
     "arif_ops_measure": {
+        "eureka_insight": "Metabolism dictates survival. Compute cycles and token costs are physical limits on cognitive depth.",
         "stage_code": "777",
         "stage_name": "OPS",
         "purpose": [
@@ -1102,6 +1142,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 888_JUDGE ────────────────────────────────────────────────────────────
     "arif_judge_deliberate": {
+        "eureka_insight": "The Gödel Lock. The mind cannot judge the mind. Arbitration relies on deterministic constitutional physics.",
         "stage_code": "888",
         "stage_name": "JUDGE",
         "purpose": [
@@ -1199,6 +1240,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 999_VAULT ────────────────────────────────────────────────────────────
     "arif_vault_seal": {
+        "eureka_insight": "History is immutable. A ledger without cryptographic permanence is just a suggestion.",
         "stage_code": "999",
         "stage_name": "VAULT",
         "purpose": [
@@ -1310,6 +1352,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
     },
     # ── 010_FORGE ────────────────────────────────────────────────────────────
     "arif_forge_execute": {
+        "eureka_insight": "Execution is irreversible. If undo(a) does not exist, explicit human acknowledgment (ack_irreversible) is mandatory.",
         "stage_code": "010",
         "stage_name": "FORGE",
         "purpose": [

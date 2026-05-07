@@ -1,7 +1,7 @@
 # GEOX Realities Unified — 2026-04-12
 
-> **Canonical reference for the unification of GEOX Platform and GEOX Core.**  
-> **Seal:** DITEMPA BUKAN DIBERI  
+> **Canonical reference for the unification of GEOX Platform and GEOX Core.**
+> **Seal:** DITEMPA BUKAN DIBERI
 > **Architecture:** Tri-Plane Constitutional Stack
 
 ---

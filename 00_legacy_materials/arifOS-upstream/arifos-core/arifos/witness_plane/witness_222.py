@@ -2,6 +2,7 @@
 from fastmcp import Context
 from ..governance import ThermodynamicMetrics, governed_return
 
+
 async def execute(ctx: Context, query: str, operator_id: str, session_id: str):
     """
     arifos_222_witness: Tri-witness fusion (GEOX, WEALTH, WELL).
@@ -14,10 +15,10 @@ async def execute(ctx: Context, query: str, operator_id: str, session_id: str):
     geox = {"status": "STABLE", "observation": "GEOLOGIC"}
     wealth = {"capital": "OPTIMIZED", "index": 0.88}
     well = {"readiness": "READY", "hrv": "OPTIMAL"}
-    
+
     report = {
         "witnesses": {"GEOX": geox, "WEALTH": wealth, "WELL": well},
-        "tri_witness_verdict": "SYNCHRONIZED"
+        "tri_witness_verdict": "SYNCHRONIZED",
     }
 
     # Thermodynamic Metrics: High consensus verification
@@ -28,13 +29,13 @@ async def execute(ctx: Context, query: str, operator_id: str, session_id: str):
         peace_squared=1.2,
         amanah_lock=True,
         tri_witness_score=0.98,
-        stakeholder_safety=1.0
+        stakeholder_safety=1.0,
     )
-        
+
     return governed_return(
-        tool_name="arifos_222_witness", 
-        raw_output=report, 
+        tool_name="arifos_222_witness",
+        raw_output=report,
         metrics=metrics,
         operator_id=operator_id,
-        session_id=session_id
+        session_id=session_id,
     )

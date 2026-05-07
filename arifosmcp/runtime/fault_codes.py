@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 # FAULT CLASS ENUM
 # ─────────────────────────────────────────────────────────────────────────────
 class FaultClass(str, Enum):
-    MECHANICAL = "MECHANICAL"          # Infrastructure fault → 888_HOLD
-    EPISTEMIC = "EPISTEMIC"            # Insufficient evidence → SABAR
+    MECHANICAL = "MECHANICAL"  # Infrastructure fault → 888_HOLD
+    EPISTEMIC = "EPISTEMIC"  # Insufficient evidence → SABAR
     CONSTITUTIONAL = "CONSTITUTIONAL"  # Hard floor breach → VOID (terminal)
 
 
@@ -46,38 +46,40 @@ class FaultClass(str, Enum):
 # ─────────────────────────────────────────────────────────────────────────────
 class MechanicalFaultCode(str, Enum):
     """Infrastructure faults. ALWAYS → 888_HOLD, NEVER → VOID."""
-    TOOL_NOT_EXPOSED       = "TOOL_NOT_EXPOSED"        # 404 / endpoint not registered
-    INFRA_DEGRADED         = "INFRA_DEGRADED"          # service unreachable / 5xx
-    TIMEOUT_EXCEEDED       = "TIMEOUT_EXCEEDED"        # network/compute timeout
-    RATE_LIMITED           = "RATE_LIMITED"            # 429 / quota exceeded
+
+    TOOL_NOT_EXPOSED = "TOOL_NOT_EXPOSED"  # 404 / endpoint not registered
+    INFRA_DEGRADED = "INFRA_DEGRADED"  # service unreachable / 5xx
+    TIMEOUT_EXCEEDED = "TIMEOUT_EXCEEDED"  # network/compute timeout
+    RATE_LIMITED = "RATE_LIMITED"  # 429 / quota exceeded
     DEPENDENCY_UNAVAILABLE = "DEPENDENCY_UNAVAILABLE"  # Qdrant/Redis/Postgres offline
-    DNS_FAIL               = "DNS_FAIL"                # DNS resolution failure
-    TLS_FAIL               = "TLS_FAIL"                # SSL/TLS handshake failure
-    WAF_BLOCK              = "WAF_BLOCK"               # WAF/CDN blocked request
-    PARSE_FAIL             = "PARSE_FAIL"              # Response parse error
-    RENDER_FAIL            = "RENDER_FAIL"             # Headless browser render failure
-    NO_RESULTS             = "NO_RESULTS"              # Search returned empty (→ SABAR not VOID)
+    DNS_FAIL = "DNS_FAIL"  # DNS resolution failure
+    TLS_FAIL = "TLS_FAIL"  # SSL/TLS handshake failure
+    WAF_BLOCK = "WAF_BLOCK"  # WAF/CDN blocked request
+    PARSE_FAIL = "PARSE_FAIL"  # Response parse error
+    RENDER_FAIL = "RENDER_FAIL"  # Headless browser render failure
+    NO_RESULTS = "NO_RESULTS"  # Search returned empty (→ SABAR not VOID)
 
 
 class ConstitutionalFaultCode(str, Enum):
     """Constitutional violations. ALWAYS → VOID (terminal). Cannot be retried."""
-    F1_AMANAH_BREACH           = "F1_AMANAH_BREACH"           # Integrity violation
-    F2_TRUTH_BELOW_THRESHOLD   = "F2_TRUTH_BELOW_THRESHOLD"   # Evidence score < 0.99
-    F3_CONSENSUS_SHATTERED     = "F3_CONSENSUS_SHATTERED"     # Tri-witness failure
-    F4_CLARITY_VIOLATION       = "F4_CLARITY_VIOLATION"       # Entropy dS > 0
-    F5_PEACE_VIOLATION         = "F5_PEACE_VIOLATION"         # Peace² < 1.0
-    F6_EMPATHY_VIOLATION       = "F6_EMPATHY_VIOLATION"       # κᵣ < 0.7
-    F7_HUMILITY_VIOLATION      = "F7_HUMILITY_VIOLATION"      # Omega outside [0.03, 0.05]
-    F8_GENIUS                  = "F8_GENIUS"                  # Genius G* < 0.80
-    F9_SHADOW_VIOLATION        = "F9_SHADOW_VIOLATION"        # Shadow load > 0.3
-    F10_ONTOLOGY               = "F10_ONTOLOGY"                # Personhood/consciousness claim
-    F11_AUTH_FAILURE          = "F11_AUTH_FAILURE"            # Actor not in whitelist
-    F11_TOKEN_INVALID         = "F11_TOKEN_INVALID"           # Signature mismatch
-    F11_TOKEN_EXPIRED         = "F11_TOKEN_EXPIRED"           # Bucket stale → re-anchor
-    F11_SESSION_MISMATCH      = "F11_SESSION_MISMATCH"        # session_id mismatch
-    F11_SOVEREIGN_SIG_INVALID = "F11_SOVEREIGN_SIG_INVALID"   # Ratification sig invalid
-    F12_INJECTION             = "F12_INJECTION"               # Prompt injection detected
-    F13_SOVEREIGN_VETO        = "F13_SOVEREIGN_VETO"          # Human rejected via ratify
+
+    F1_AMANAH_BREACH = "F1_AMANAH_BREACH"  # Integrity violation
+    F2_TRUTH_BELOW_THRESHOLD = "F2_TRUTH_BELOW_THRESHOLD"  # Evidence score < 0.99
+    F3_CONSENSUS_SHATTERED = "F3_CONSENSUS_SHATTERED"  # Tri-witness failure
+    F4_CLARITY_VIOLATION = "F4_CLARITY_VIOLATION"  # Entropy dS > 0
+    F5_PEACE_VIOLATION = "F5_PEACE_VIOLATION"  # Peace² < 1.0
+    F6_EMPATHY_VIOLATION = "F6_EMPATHY_VIOLATION"  # κᵣ < 0.7
+    F7_HUMILITY_VIOLATION = "F7_HUMILITY_VIOLATION"  # Omega outside [0.03, 0.05]
+    F8_GENIUS = "F8_GENIUS"  # Genius G* < 0.80
+    F9_SHADOW_VIOLATION = "F9_SHADOW_VIOLATION"  # Shadow load > 0.3
+    F10_ONTOLOGY = "F10_ONTOLOGY"  # Personhood/consciousness claim
+    F11_AUTH_FAILURE = "F11_AUTH_FAILURE"  # Actor not in whitelist
+    F11_TOKEN_INVALID = "F11_TOKEN_INVALID"  # Signature mismatch
+    F11_TOKEN_EXPIRED = "F11_TOKEN_EXPIRED"  # Bucket stale → re-anchor
+    F11_SESSION_MISMATCH = "F11_SESSION_MISMATCH"  # session_id mismatch
+    F11_SOVEREIGN_SIG_INVALID = "F11_SOVEREIGN_SIG_INVALID"  # Ratification sig invalid
+    F12_INJECTION = "F12_INJECTION"  # Prompt injection detected
+    F13_SOVEREIGN_VETO = "F13_SOVEREIGN_VETO"  # Human rejected via ratify
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -87,7 +89,7 @@ class ConstitutionalFaultCode(str, Enum):
 class FaultClassification:
     fault_class: FaultClass
     fault_code: str
-    verdict: str          # VOID | 888_HOLD | SABAR
+    verdict: str  # VOID | 888_HOLD | SABAR
     recoverable: bool
     retry_hint: str = ""
 
@@ -119,32 +121,48 @@ def classify_exception(exc: Exception) -> FaultClassification:
     """
     try:
         import httpx
+
         if isinstance(exc, httpx.ConnectError):
             return FaultClassification(
-                FaultClass.MECHANICAL, MechanicalFaultCode.DNS_FAIL,
-                "888_HOLD", True, "Check network connectivity and DNS resolution",
+                FaultClass.MECHANICAL,
+                MechanicalFaultCode.DNS_FAIL,
+                "888_HOLD",
+                True,
+                "Check network connectivity and DNS resolution",
             )
         if isinstance(exc, httpx.TimeoutException):
             return FaultClassification(
-                FaultClass.MECHANICAL, MechanicalFaultCode.TIMEOUT_EXCEEDED,
-                "888_HOLD", True, "Increase timeout or retry with backoff",
+                FaultClass.MECHANICAL,
+                MechanicalFaultCode.TIMEOUT_EXCEEDED,
+                "888_HOLD",
+                True,
+                "Increase timeout or retry with backoff",
             )
         if isinstance(exc, httpx.HTTPStatusError):
             code = exc.response.status_code
             if code == 404:
                 return FaultClassification(
-                    FaultClass.MECHANICAL, MechanicalFaultCode.TOOL_NOT_EXPOSED,
-                    "888_HOLD", True, "Verify endpoint is registered and deployed",
+                    FaultClass.MECHANICAL,
+                    MechanicalFaultCode.TOOL_NOT_EXPOSED,
+                    "888_HOLD",
+                    True,
+                    "Verify endpoint is registered and deployed",
                 )
             if code == 429:
                 return FaultClassification(
-                    FaultClass.MECHANICAL, MechanicalFaultCode.RATE_LIMITED,
-                    "888_HOLD", True, "Apply exponential backoff and retry",
+                    FaultClass.MECHANICAL,
+                    MechanicalFaultCode.RATE_LIMITED,
+                    "888_HOLD",
+                    True,
+                    "Apply exponential backoff and retry",
                 )
             if 500 <= code < 600:
                 return FaultClassification(
-                    FaultClass.MECHANICAL, MechanicalFaultCode.INFRA_DEGRADED,
-                    "888_HOLD", True, "Service returned 5xx — wait and retry",
+                    FaultClass.MECHANICAL,
+                    MechanicalFaultCode.INFRA_DEGRADED,
+                    "888_HOLD",
+                    True,
+                    "Service returned 5xx — wait and retry",
                 )
     except ImportError:
         pass
@@ -152,18 +170,27 @@ def classify_exception(exc: Exception) -> FaultClassification:
     err_str = str(exc).lower()
     if "ssl" in err_str or "certificate" in err_str or "tls" in err_str:
         return FaultClassification(
-            FaultClass.MECHANICAL, MechanicalFaultCode.TLS_FAIL,
-            "888_HOLD", True, "Check TLS certificates and CA bundle",
+            FaultClass.MECHANICAL,
+            MechanicalFaultCode.TLS_FAIL,
+            "888_HOLD",
+            True,
+            "Check TLS certificates and CA bundle",
         )
     if "qdrant" in err_str or "connect" in err_str or "refused" in err_str:
         return FaultClassification(
-            FaultClass.MECHANICAL, MechanicalFaultCode.DEPENDENCY_UNAVAILABLE,
-            "888_HOLD", True, "Check dependent service health (Qdrant/Redis/Postgres)",
+            FaultClass.MECHANICAL,
+            MechanicalFaultCode.DEPENDENCY_UNAVAILABLE,
+            "888_HOLD",
+            True,
+            "Check dependent service health (Qdrant/Redis/Postgres)",
         )
     if "timeout" in err_str:
         return FaultClassification(
-            FaultClass.MECHANICAL, MechanicalFaultCode.TIMEOUT_EXCEEDED,
-            "888_HOLD", True, "Retry with longer timeout",
+            FaultClass.MECHANICAL,
+            MechanicalFaultCode.TIMEOUT_EXCEEDED,
+            "888_HOLD",
+            True,
+            "Retry with longer timeout",
         )
 
     # Default: unknown mechanical fault — still 888_HOLD, not VOID
@@ -172,8 +199,11 @@ def classify_exception(exc: Exception) -> FaultClassification:
         type(exc).__name__,
     )
     return FaultClassification(
-        FaultClass.MECHANICAL, MechanicalFaultCode.INFRA_DEGRADED,
-        "888_HOLD", True, f"Unexpected error: {type(exc).__name__}",
+        FaultClass.MECHANICAL,
+        MechanicalFaultCode.INFRA_DEGRADED,
+        "888_HOLD",
+        True,
+        f"Unexpected error: {type(exc).__name__}",
     )
 
 
@@ -193,10 +223,7 @@ def classify_network_errors(errors: list[dict]) -> str:
         MechanicalFaultCode.INFRA_DEGRADED,
         MechanicalFaultCode.TLS_FAIL,
     }
-    infra_count = sum(
-        1 for e in errors
-        if e.get("code") in {c.value for c in infra_codes}
-    )
+    infra_count = sum(1 for e in errors if e.get("code") in {c.value for c in infra_codes})
     return "INFRA_DEGRADED" if infra_count > len(errors) // 2 else "NO_RESULTS"
 
 

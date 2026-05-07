@@ -43,6 +43,7 @@ ProvenanceTag = Literal["RAW", "CORRECTED", "DERIVED", "POLICY"]
 # LogQCFlags — F9 Anti-Hantu: surface well-log quality before model selection
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LogQCFlags(BaseModel):
     """
     Quality control flags from wireline/LWD log analysis.
@@ -123,8 +124,7 @@ class LogQCFlags(BaseModel):
     available_curves: list[str] = Field(
         default_factory=list,
         description=(
-            "List of QC-passed log curve mnemonics "
-            "(e.g. ['GR', 'NPHI', 'RHOB', 'ILD', 'DT'])."
+            "List of QC-passed log curve mnemonics " "(e.g. ['GR', 'NPHI', 'RHOB', 'ILD', 'DT'])."
         ),
     )
     provenance_tag: ProvenanceTag = Field(
@@ -147,6 +147,7 @@ class LogQCFlags(BaseModel):
 # SwModelAdmissibility — output of geox_select_sw_model
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class SwModelAdmissibility(BaseModel):
     """
     Result of Sw model admissibility evaluation.
@@ -164,8 +165,7 @@ class SwModelAdmissibility(BaseModel):
     recommended_model: Literal["archie", "simandoux", "indonesia", "none"] = Field(
         ...,
         description=(
-            "'none' means no Sw model is admissible given the QC flags; "
-            "888_HOLD must be raised."
+            "'none' means no Sw model is admissible given the QC flags; " "888_HOLD must be raised."
         ),
     )
     admissible_models: list[Literal["archie", "simandoux", "indonesia"]] = Field(
@@ -207,6 +207,7 @@ class SwModelAdmissibility(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 # PetrophysicsInput — input for geox_compute_petrophysics
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class PetrophysicsInput(BaseModel):
     """
@@ -251,10 +252,7 @@ class PetrophysicsInput(BaseModel):
     )
     rsh_ohm_m: float | None = Field(
         default=None,
-        description=(
-            "Shale resistivity [ohm·m]. "
-            "Required for simandoux/indonesia models."
-        ),
+        description=("Shale resistivity [ohm·m]. " "Required for simandoux/indonesia models."),
     )
 
     # ── Archie parameters ────────────────────────────────────────────────────
@@ -295,6 +293,7 @@ class PetrophysicsInput(BaseModel):
 # PetrophysicsOutput — output of geox_compute_petrophysics
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class PetrophysicsOutput(BaseModel):
     """
     Full petrophysics pipeline output with provenance and uncertainty.
@@ -319,9 +318,7 @@ class PetrophysicsOutput(BaseModel):
     sw_p90: float | None = Field(default=None, description="Sw P90 (pessimistic) from MC.")
     sw_std: float | None = Field(default=None, description="Sw standard deviation from MC.")
 
-    phi_effective: float = Field(
-        ..., gt=0.0, le=0.50, description="Effective porosity [fraction]."
-    )
+    phi_effective: float = Field(..., gt=0.0, le=0.50, description="Effective porosity [fraction].")
     vcl: float = Field(default=0.0, ge=0.0, le=1.0, description="Clay volume [fraction].")
     bvw: float = Field(
         ...,
@@ -381,6 +378,7 @@ class PetrophysicsOutput(BaseModel):
 # CutoffPolicy — schema for geox_validate_cutoffs
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class CutoffPolicy(BaseModel):
     """
     Reservoir quality cutoffs used to classify pay vs non-pay intervals.
@@ -438,6 +436,7 @@ class CutoffPolicy(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 # CutoffValidationResult — output of geox_validate_cutoffs
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class CutoffValidationResult(BaseModel):
     """
@@ -497,6 +496,7 @@ class CutoffValidationResult(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 # PetrophysicsHold — explicit 888_HOLD object
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class PetrophysicsHold(BaseModel):
     """

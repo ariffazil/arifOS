@@ -75,9 +75,9 @@ def http_get(url: str, timeout: int = 10) -> dict[str, Any] | None:
 
 def check_layer1_entry_point(node_url: str, health: dict[str, Any]) -> LayerReport:
     """Layer 1: Entry point determines which code paths are loaded."""
-    name = health.get("service", "unknown")
+    health.get("service", "unknown")
     transport = health.get("transport", "unknown")
-    version = health.get("version", "unknown")
+    health.get("version", "unknown")
 
     # Entry point is inferred from transport + service name
     if "streamable-http" in transport:
@@ -130,35 +130,41 @@ def check_layer2_env_vars(node_url: str, health: dict[str, Any]) -> list[LayerRe
         else:
             status = "WARN"
 
-        reports.append(LayerReport(
-            layer="Layer 2",
-            name=f"Env: {label}",
-            expected=expected_status,
-            actual=actual,
-            status=status,
-            detail=f"Feature gated by {key} env var" if status == "FAIL" else "",
-        ))
+        reports.append(
+            LayerReport(
+                layer="Layer 2",
+                name=f"Env: {label}",
+                expected=expected_status,
+                actual=actual,
+                status=status,
+                detail=f"Feature gated by {key} env var" if status == "FAIL" else "",
+            )
+        )
 
     # Also check ML floors
     ml = health.get("ml_floors", {})
     if ml.get("ml_floors_enabled"):
-        reports.append(LayerReport(
-            layer="Layer 2",
-            name="Env: ML Floors",
-            expected="enabled",
-            actual="enabled",
-            status="PASS",
-            detail="ARIFOS_ML_FLOORS_ENABLED=true",
-        ))
+        reports.append(
+            LayerReport(
+                layer="Layer 2",
+                name="Env: ML Floors",
+                expected="enabled",
+                actual="enabled",
+                status="PASS",
+                detail="ARIFOS_ML_FLOORS_ENABLED=true",
+            )
+        )
     else:
-        reports.append(LayerReport(
-            layer="Layer 2",
-            name="Env: ML Floors",
-            expected="enabled (for production)",
-            actual="disabled (heuristic fallback)",
-            status="WARN",
-            detail="ARIFOS_ML_FLOORS_ENABLED not set — heuristic mode active",
-        ))
+        reports.append(
+            LayerReport(
+                layer="Layer 2",
+                name="Env: ML Floors",
+                expected="enabled (for production)",
+                actual="disabled (heuristic fallback)",
+                status="WARN",
+                detail="ARIFOS_ML_FLOORS_ENABLED not set — heuristic mode active",
+            )
+        )
 
     return reports
 
@@ -250,8 +256,12 @@ def verify_node(node_url: str, check_all: bool = True) -> NodeVerification:
         timestamp=datetime.now(timezone.utc).isoformat(),
         commit_live=health.get("source_commit", "unknown"),
         tools_loaded=health.get("tools_loaded", 0),
-        vault_status=health.get("capability_map", {}).get("storage", {}).get("vault_postgres", "unknown"),
-        session_cache_status=health.get("capability_map", {}).get("storage", {}).get("session_cache", "unknown"),
+        vault_status=health.get("capability_map", {})
+        .get("storage", {})
+        .get("vault_postgres", "unknown"),
+        session_cache_status=health.get("capability_map", {})
+        .get("storage", {})
+        .get("session_cache", "unknown"),
         vitality_index=health.get("thermodynamic", {}).get("vitality_index", 0.0),
         verdict=health.get("thermodynamic", {}).get("verdict", "unknown"),
     )
@@ -291,7 +301,9 @@ def verify_node(node_url: str, check_all: bool = True) -> NodeVerification:
         detail = layer.detail[:30] if layer.detail else ""
         print(f"  {layer.layer:<10} {layer.name:<35} {flag} {layer.status:<8} {detail}")
 
-    print(f"\n  Overall: {v.overall_status} — {v.passed} passed, {v.failed} failed, {v.warnings} warnings")
+    print(
+        f"\n  Overall: {v.overall_status} — {v.passed} passed, {v.failed} failed, {v.warnings} warnings"
+    )
 
     return v
 

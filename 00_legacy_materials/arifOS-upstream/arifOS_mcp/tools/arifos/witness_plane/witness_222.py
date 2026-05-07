@@ -39,6 +39,7 @@ async def witness_222(
     # --- MODE: SEARCH (External Reality / Earth Witness) ---
     if mode == "search":
         from ..extended.minimax_bridge import get_bridge
+
         bridge = get_bridge()
         try:
             results = await bridge.web_search(query)
@@ -111,9 +112,9 @@ def _fuse_geox_witness(query: str, evidence: Optional[dict]) -> dict:
         "substrate": "APEX",
         "evidence_type": "spatial_geological",
         "claim_tag": evidence.get("claim_tag", "OBSERVED") if evidence else "UNKNOWN",
-        "summary": evidence.get("summary", "No GEOX evidence provided")
-        if evidence
-        else "NO_CONTEXT",
+        "summary": (
+            evidence.get("summary", "No GEOX evidence provided") if evidence else "NO_CONTEXT"
+        ),
         "ontology_clean": True,
     }
 
@@ -125,9 +126,9 @@ def _fuse_wealth_witness(query: str, evidence: Optional[dict]) -> dict:
         "substrate": "ASI",
         "evidence_type": "capital_resource",
         "claim_tag": evidence.get("claim_tag", "COMPUTED") if evidence else "UNKNOWN",
-        "summary": evidence.get("summary", "No WEALTH evidence provided")
-        if evidence
-        else "NO_CONTEXT",
+        "summary": (
+            evidence.get("summary", "No WEALTH evidence provided") if evidence else "NO_CONTEXT"
+        ),
         "ontology_clean": True,
     }
 
@@ -139,9 +140,9 @@ def _fuse_well_witness(query: str, evidence: Optional[dict]) -> dict:
         "substrate": "AGI",
         "evidence_type": "biological_readiness",
         "claim_tag": evidence.get("claim_tag", "MEASURED") if evidence else "UNKNOWN",
-        "summary": evidence.get("summary", "No WELL evidence provided")
-        if evidence
-        else "NO_CONTEXT",
+        "summary": (
+            evidence.get("summary", "No WELL evidence provided") if evidence else "NO_CONTEXT"
+        ),
         "ontology_clean": True,
     }
 

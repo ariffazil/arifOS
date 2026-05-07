@@ -29,10 +29,7 @@ async def memory_555(
     Returns:
         Recall results with governance receipts
     """
-    zone_context = {"geox_zone": asset_scope or "DEFAULT", "recall_mode": recall_mode}
-    score = {"semantic": 0.84, "exact": 0.92, "constitutional": 0.90}.get(
-        recall_mode, 0.77
-    )
+    score = {"semantic": 0.84, "exact": 0.92, "constitutional": 0.90}.get(recall_mode, 0.77)
     results = [
         {
             "rank": 1,

@@ -1,8 +1,8 @@
 # GEOX Status & Strategic Focus
 
-> **Date:** 2026-04-10  
-> **Assessment:** External audit integrated  
-> **Strategic Pivot:** MCP-first, governance-core  
+> **Date:** 2026-04-10
+> **Assessment:** External audit integrated
+> **Strategic Pivot:** MCP-first, governance-core
 > **Seal:** DITEMPA BUKAN DIBERI
 
 ---
@@ -151,7 +151,7 @@ Agent: presents to user with governance context
 - [ ] "Connect GEOX to Petrel exports" guide
 - [ ] Video: 5-minute agent setup
 
-**Timeline:** 2 weeks  
+**Timeline:** 2 weeks
 **EMV:** HIGH — any MCP-compatible agent becomes GEOX-aware
 
 ---
@@ -192,7 +192,7 @@ UI Components:
 - [ ] Test in goose (inline)
 - [ ] Test external fallback
 
-**Timeline:** 2 weeks  
+**Timeline:** 2 weeks
 **EMV:** HIGH — demonstrates unique governance value
 
 ---
@@ -240,7 +240,7 @@ geox_audit_paleoscan_rgt(
 - [ ] Create comparison: GEOX risk vs tool-native confidence
 - [ ] Case study: Petrel → GEOX → better decision
 
-**Timeline:** 4 weeks  
+**Timeline:** 4 weeks
 **EMV:** VERY HIGH — ride installed base, don't replace
 
 ---
@@ -262,7 +262,7 @@ geox_audit_paleoscan_rgt(
 - Complex visualization (use MCP Apps)
 - WebMCP (spec still evolving)
 
-**Timeline:** Month 2+  
+**Timeline:** Month 2+
 **EMV:** MEDIUM — mainly documentation surface
 
 ---
@@ -270,10 +270,10 @@ geox_audit_paleoscan_rgt(
 ## 3. Prompt Directive for GEOX Agents
 
 ```markdown
-You are a GEOX co-architect agent optimizing for maximum EMV/NPV versus legacy 
-subsurface software (Petrel, DecisionSpace, PaleoScan, etc.). 
+You are a GEOX co-architect agent optimizing for maximum EMV/NPV versus legacy
+subsurface software (Petrel, DecisionSpace, PaleoScan, etc.).
 
-Your primary strategic objective is to make GEOX the strongest MCP server and 
+Your primary strategic objective is to make GEOX the strongest MCP server and
 governance brain for subsurface work, not a GUI competitor.
 
 ABSOLUTE FOCUS AREAS (in order):
@@ -305,7 +305,7 @@ n- Never promise parity with Petrel UX
 - Vision tools must emit risk, not just pretty visuals
 
 DEFAULT DECISION RULE:
-Prefer work that increases marginal value of GEOX as an 
+Prefer work that increases marginal value of GEOX as an
 MCP-integrated subsurface governance engine over standalone UX.
 n```
 
@@ -359,6 +359,6 @@ n```
 
 ---
 
-*DITEMPA BUKAN DIBERI*  
-*Focus locked: MCP server + AC_Risk Console.*  
+*DITEMPA BUKAN DIBERI*
+*Focus locked: MCP server + AC_Risk Console.*
 *Web deferred. Governance prioritized.*

@@ -19,6 +19,7 @@ from typing import Any
 
 class VaultRecordType(Enum):
     """Types of vault records."""
+
     VERDICT = "verdict"
     POLICY = "policy"
     RELEASE = "release"
@@ -28,6 +29,7 @@ class VaultRecordType(Enum):
 
 class Verdict(Enum):
     """Possible verdicts."""
+
     APPROVED = "Approved"
     PARTIAL = "Partial"
     PAUSE = "Pause"
@@ -38,6 +40,7 @@ class Verdict(Enum):
 @dataclass
 class Evidence:
     """Evidence supporting the vault entry."""
+
     summary: str
     evidence_refs: list[str]
     evidence_hash: str
@@ -46,6 +49,7 @@ class Evidence:
 @dataclass
 class Governance:
     """Governance metadata for the decision."""
+
     risk_tier: str
     judgment_required: bool
     human_confirmed: bool
@@ -56,6 +60,7 @@ class Governance:
 @dataclass
 class Integrity:
     """Cryptographic integrity proofs."""
+
     prev_hash: str
     record_hash: str
     merkle_root: str | None = None
@@ -64,6 +69,7 @@ class Integrity:
 @dataclass
 class VaultLineage:
     """Lineage tracking for vault entries."""
+
     session_id: str
     derived_from: list[str] = field(default_factory=list)
     supersedes: str | None = None
@@ -73,9 +79,10 @@ class VaultLineage:
 class VerificationGrade:
     """
     Granular verification grades.
-    
+
     Not just pass/fail — detailed audit truth.
     """
+
     chain_valid: bool = False
     hash_match: bool = False
     evidence_present: bool = False
@@ -83,27 +90,23 @@ class VerificationGrade:
     policy_version_match: bool = False
     superseded: bool = False
     superseded_by: str | None = None
-    
+
     @property
     def fully_valid(self) -> bool:
         """All critical checks pass."""
         return (
-            self.chain_valid and
-            self.hash_match and
-            self.evidence_present and
-            self.policy_version_match and
-            not self.superseded
+            self.chain_valid
+            and self.hash_match
+            and self.evidence_present
+            and self.policy_version_match
+            and not self.superseded
         )
-    
+
     @property
     def valid_but_superseded(self) -> bool:
         """Valid but no longer current."""
-        return (
-            self.chain_valid and
-            self.hash_match and
-            self.superseded
-        )
-    
+        return self.chain_valid and self.hash_match and self.superseded
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "chain_valid": self.chain_valid,
@@ -123,33 +126,34 @@ class VaultEntry:
     """
     The canonical vault record v2.
     """
+
     vault_id: str
     record_type: VaultRecordType
-    
+
     # The judgment
     verdict: Verdict
     candidate_action: str
-    
+
     # Supporting evidence
     evidence: Evidence
-    
+
     # Governance context
     governance: Governance
-    
+
     # Timing
     sealed_at: datetime = field(default_factory=datetime.utcnow)
-    
+
     # Integrity
     integrity: Integrity | None = None
-    
+
     # Lineage
     lineage: VaultLineage = field(default_factory=lambda: VaultLineage(session_id=""))
-    
+
     def compute_hash(self) -> str:
         """Compute canonical hash of this entry."""
         import hashlib
         import json
-        
+
         content = {
             "vault_id": self.vault_id,
             "record_type": self.record_type.value,
@@ -171,11 +175,9 @@ class VaultEntry:
                 "derived_from": self.lineage.derived_from,
             },
         }
-        
-        return hashlib.sha256(
-            json.dumps(content, sort_keys=True).encode()
-        ).hexdigest()
-    
+
+        return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "vault_id": self.vault_id,
@@ -211,6 +213,7 @@ class VaultEntry:
 @dataclass
 class SealReceipt:
     """Receipt for a successful vault seal."""
+
     vault_id: str
     record_hash: str
     merkle_root: str | None
@@ -221,15 +224,16 @@ class SealReceipt:
 @dataclass
 class VerifyReport:
     """Report from vault verification with grades."""
+
     vault_id: str
     grade: VerificationGrade
     errors: list[str] = field(default_factory=list)
-    
+
     @property
     def valid(self) -> bool:
         """Quick check: is this entry valid?"""
         return self.grade.fully_valid or self.grade.valid_but_superseded
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "vault_id": self.vault_id,

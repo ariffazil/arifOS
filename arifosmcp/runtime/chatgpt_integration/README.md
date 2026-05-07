@@ -1,6 +1,6 @@
 # arifOS × ChatGPT MCP Integration
 
-> **NO1 PLATFORM AI DALAM DUNIA!** 🌍  
+> **NO1 PLATFORM AI DALAM DUNIA!** 🌍
 > arifOS kini berintegrasi penuh dengan ChatGPT melalui Model Context Protocol (MCP).
 
 ---
@@ -96,7 +96,7 @@ async def search(query: str) -> dict:
     """Search for documents. Returns {"results": [{"id", "title", "url"}]}"""
     ...
 
-@mcp.tool(annotations={"readOnlyHint": True})  
+@mcp.tool(annotations={"readOnlyHint": True})
 async def fetch(id: str) -> dict:
     """Fetch document. Returns {"id", "title", "text", "url", "metadata"}"""
     ...
@@ -118,7 +118,7 @@ async def fetch(id: str) -> dict:
 ```json
 {
   "content": [{
-    "type": "text", 
+    "type": "text",
     "text": "{\"id\": \"...\", \"title\": \"...\", \"text\": \"...\", \"url\": \"...\", \"metadata\": {...}}"
   }]
 }

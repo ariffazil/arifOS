@@ -184,7 +184,10 @@ def retrieve_witnesses(
     result = [q for _score, q in scored[:top_k]]
     logger.debug(
         "retrieve_witnesses: event=%r domain=%r risk=%r returned=%d",
-        event, domain, risk_level, len(result),
+        event,
+        domain,
+        risk_level,
+        len(result),
     )
     return result
 

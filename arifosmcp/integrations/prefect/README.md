@@ -138,17 +138,17 @@ from arifosmcp.integrations.prefect.tasks import (
 async def research_flow(query: str):
     # Research
     findings = await research_task(query)
-    
+
     # Safety check
     safety = await safety_check_task(findings)
-    
+
     # Record to vault
     record = await vault_seal_task({
         "query": query,
         "findings": findings,
         "safety": safety
     })
-    
+
     return record
 ```
 

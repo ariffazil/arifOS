@@ -24,7 +24,7 @@ from arifosmcp.agentzero.memory.constitutional_memory import (
 
 __all__ = [
     "AgentContext",
-    "ConstitutionalMemoryStore", 
+    "ConstitutionalMemoryStore",
     "MemoryArea",
     "MemoryRecord",
     "SearchResult",

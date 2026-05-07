@@ -21,12 +21,6 @@ async def gateway(ctx: Context, tool_name: str, namespace: str = None) -> dict:
         Orthogonality verification result
     """
     # Define organ namespaces
-    namespace_map = {
-        "GEOX": ["arifos", "geo"],
-        "WEALTH": ["arifos", "wealth"],
-        "WELL": ["arifos", "well"],
-        "SYSTEM": ["arifos"],
-    }
 
     # Check orthogonality
     allowed = _verify_orthogonality(tool_name, namespace)
@@ -37,9 +31,7 @@ async def gateway(ctx: Context, tool_name: str, namespace: str = None) -> dict:
         "tool_name": tool_name,
         "orthogonality_verified": allowed,
         "ontology_clean": allowed,
-        "message": "Orthogonality verified"
-        if allowed
-        else "ONTOLOGY VIOLATION — BLOCKED",
+        "message": "Orthogonality verified" if allowed else "ONTOLOGY VIOLATION — BLOCKED",
         "vault_receipt": f"GATEWAY_{'OK' if allowed else 'BLOCK'}",
     }
 

@@ -26,12 +26,13 @@ from arifos.geox.schemas.petrophysics_schemas import (
     PetrophysicsInput,
     PetrophysicsOutput,
     CutoffPolicy,
-    CutoffValidationResult
+    CutoffValidationResult,
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # High-Level Governed Logic
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def select_sw_model_logic(qc: LogQCFlags) -> SwModelAdmissibility:
     """
@@ -42,23 +43,31 @@ def select_sw_model_logic(qc: LogQCFlags) -> SwModelAdmissibility:
     admissible = []
     inadmissible = {}
     requires_hold = False
-    
+
     # 1. Borehole Quality Constraint
     if qc.borehole_quality == "poor" or qc.washout_fraction > 0.35:
         requires_hold = True
-        reasons.append(f"Severely degraded borehole (washout={qc.washout_fraction:.0%}). Resistivity measurement compromised.")
+        reasons.append(
+            f"Severely degraded borehole (washout={qc.washout_fraction:.0%}). Resistivity measurement compromised."
+        )
         recommended = "none"
     else:
         # 2. Shale Volume Constraint
         if qc.vsh_max < 0.15:
             recommended = "archie"
             admissible = ["archie"]
-            inadmissible["simandoux"] = ["Clean formation: shale parameters (Rsh) may be unreliable/too high."]
-            inadmissible["indonesia"] = ["Clean formation: shale parameters (Rsh) may be unreliable/too high."]
+            inadmissible["simandoux"] = [
+                "Clean formation: shale parameters (Rsh) may be unreliable/too high."
+            ]
+            inadmissible["indonesia"] = [
+                "Clean formation: shale parameters (Rsh) may be unreliable/too high."
+            ]
         else:
             recommended = "simandoux"
             admissible = ["simandoux", "indonesia"]
-            inadmissible["archie"] = ["Clean sand model applied to shaly interval (F2 Truth violation)."]
+            inadmissible["archie"] = [
+                "Clean sand model applied to shaly interval (F2 Truth violation)."
+            ]
 
     return SwModelAdmissibility(
         well_id=well_id,
@@ -67,7 +76,7 @@ def select_sw_model_logic(qc: LogQCFlags) -> SwModelAdmissibility:
         inadmissible_models=inadmissible,
         requires_hold=requires_hold,
         hold_reasons=reasons,
-        confidence=0.12 if not requires_hold else 0.03
+        confidence=0.12 if not requires_hold else 0.03,
     )
 
 
@@ -84,12 +93,14 @@ def compute_petrophysics_logic(inp: PetrophysicsInput) -> PetrophysicsOutput:
         "rsh": inp.rsh_ohm_m,
         "a": inp.archie_a,
         "m": inp.archie_m,
-        "n": inp.archie_n
+        "n": inp.archie_n,
     }
-    
+
     # Execute physics kernel
-    mc_result = monte_carlo_sw(inp.sw_model, params, n_samples=inp.mc_samples if inp.run_monte_carlo else 1)
-    
+    mc_result = monte_carlo_sw(
+        inp.sw_model, params, n_samples=inp.mc_samples if inp.run_monte_carlo else 1
+    )
+
     # Determine ClaimTag (Architectural Non-negotiable)
     # ── Logic ───────────────────────────────────────────────────────────────
     # CLAIM: Archie on clean formation (Vcl < 0.1)
@@ -118,9 +129,9 @@ def compute_petrophysics_logic(inp: PetrophysicsInput) -> PetrophysicsOutput:
         bvw=mc_result["nominal_sw"] * inp.phi_fraction,
         uncertainty=0.12 if inp.run_monte_carlo else 0.15,
         hold_triggers=mc_result.get("hold_triggers", []),
-        claim_tag=claim
+        claim_tag=claim,
     )
-    
+
     return output
 
 
@@ -131,14 +142,17 @@ def validate_cutoffs_logic(out: PetrophysicsOutput, policy: CutoffPolicy) -> Cut
     phi_pass = out.phi_effective >= policy.phi_cutoff
     sw_pass = out.sw_nominal < policy.sw_cutoff
     vcl_pass = out.vcl <= policy.vcl_cutoff
-    
+
     is_net_res = phi_pass and vcl_pass
     is_net_pay = is_net_res and sw_pass
-    
+
     violations = []
-    if not phi_pass: violations.append(f"PHIe {out.phi_effective:.3f} < cutoff {policy.phi_cutoff:.3f}")
-    if not vcl_pass: violations.append(f"Vcl {out.vcl:.3f} > cutoff {policy.vcl_cutoff:.3f}")
-    if is_net_res and not sw_pass: violations.append(f"Sw {out.sw_nominal:.3f} > cutoff {policy.sw_cutoff:.3f}")
+    if not phi_pass:
+        violations.append(f"PHIe {out.phi_effective:.3f} < cutoff {policy.phi_cutoff:.3f}")
+    if not vcl_pass:
+        violations.append(f"Vcl {out.vcl:.3f} > cutoff {policy.vcl_cutoff:.3f}")
+    if is_net_res and not sw_pass:
+        violations.append(f"Sw {out.sw_nominal:.3f} > cutoff {policy.sw_cutoff:.3f}")
 
     return CutoffValidationResult(
         well_id=out.well_id,
@@ -152,7 +166,7 @@ def validate_cutoffs_logic(out: PetrophysicsOutput, policy: CutoffPolicy) -> Cut
         sw_tested=out.sw_nominal,
         vcl_tested=out.vcl,
         violations=violations,
-        requires_hold=out.requires_hold
+        requires_hold=out.requires_hold,
     )
 
 
@@ -160,13 +174,9 @@ def validate_cutoffs_logic(out: PetrophysicsOutput, policy: CutoffPolicy) -> Cut
 # Core Physics Kernels
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def archie_sw(
-    rw: float,
-    rt: float,
-    phi: float,
-    a: float = 1.0,
-    m: float = 2.0,
-    n: float = 2.0
+    rw: float, rt: float, phi: float, a: float = 1.0, m: float = 2.0, n: float = 2.0
 ) -> float:
     """
     Archie (1942) Water Saturation Model for clean formations.
@@ -177,7 +187,7 @@ def archie_sw(
         return 1.0
 
     # Floor check (F13 Sovereign) - will be handled by the caller
-    sw = ((a * rw) / ((phi**m) * rt)) ** (1/n)
+    sw = ((a * rw) / ((phi**m) * rt)) ** (1 / n)
     return sw
 
 
@@ -197,7 +207,12 @@ def simandoux_sw(
     Simplified form (assumes n=2 for the discriminant path):
     Sw = (a*Rw / 2*phi^m) * [sqrt((Vcl/Rsh)^2 + 4*phi^m / (a*Rw*Rt)) - Vcl/Rsh]
     """
-    if np.any(np.asarray(phi) <= 0) or np.any(np.asarray(rt) <= 0) or np.any(np.asarray(rw) <= 0) or np.any(np.asarray(rsh) <= 0):
+    if (
+        np.any(np.asarray(phi) <= 0)
+        or np.any(np.asarray(rt) <= 0)
+        or np.any(np.asarray(rw) <= 0)
+        or np.any(np.asarray(rsh) <= 0)
+    ):
         return 1.0
 
     if vcl < 0.01:  # Use Archie if very clean
@@ -212,7 +227,7 @@ def simandoux_sw(
 
     # Adjust for n != 2 if needed (simplified power adjustment)
     if n != 2.0:
-        sw = sw ** (2/n)
+        sw = sw ** (2 / n)
 
     return sw
 
@@ -232,25 +247,32 @@ def indonesia_sw(
 
     Equation: 1/sqrt(Rt) = (Vcl^(1-Vcl/2)/sqrt(Rsh) + phi^(m/2)/sqrt(a*Rw)) * Sw^(n/2)
     """
-    if np.any(np.asarray(phi) <= 0) or np.any(np.asarray(rt) <= 0) or np.any(np.asarray(rw) <= 0) or np.any(np.asarray(rsh) <= 0):
+    if (
+        np.any(np.asarray(phi) <= 0)
+        or np.any(np.asarray(rt) <= 0)
+        or np.any(np.asarray(rw) <= 0)
+        or np.any(np.asarray(rsh) <= 0)
+    ):
         return 1.0
 
-    term_shale = (vcl**(1 - (vcl / 2))) / np.sqrt(rsh)
-    term_sand = (phi**(m / 2)) / np.sqrt(a * rw)
+    term_shale = (vcl ** (1 - (vcl / 2))) / np.sqrt(rsh)
+    term_sand = (phi ** (m / 2)) / np.sqrt(a * rw)
 
     res = 1.0 / (np.sqrt(rt) * (term_shale + term_sand))
-    sw = res**(2 / n)
+    sw = res ** (2 / n)
 
     return sw
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Uncertainty Engine
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def monte_carlo_sw(
     model_name: Literal["archie", "simandoux", "indonesia"],
     params: dict[str, Any],
-    n_samples: int = 1000
+    n_samples: int = 1000,
 ) -> dict[str, Any]:
     """
     Monte Carlo simulation for saturation uncertainty (F7 Humility).
@@ -264,7 +286,7 @@ def monte_carlo_sw(
     models: dict[str, Callable[..., float]] = {
         "archie": archie_sw,
         "simandoux": simandoux_sw,
-        "indonesia": indonesia_sw
+        "indonesia": indonesia_sw,
     }
     func = models[model_name]
 
@@ -275,11 +297,11 @@ def monte_carlo_sw(
             mean, std = val
             samples = np.random.normal(mean, std, n_samples)
             # Clip physical bounds
-            if key == 'phi':
+            if key == "phi":
                 samples = np.clip(samples, 0.001, 0.45)
-            if key == 'vcl':
+            if key == "vcl":
                 samples = np.clip(samples, 0, 1.0)
-            if key in ['rw', 'rt', 'rsh']:
+            if key in ["rw", "rt", "rsh"]:
                 samples = np.clip(samples, 0.001, 10000)
             sampled_params[key] = samples
         elif val is not None:
@@ -308,7 +330,7 @@ def monte_carlo_sw(
     if np.any(sw_results > 1.0):
         hold_triggers.append("Sw > 1.0 detection (Physical impossibility)")
 
-    phi_val = params.get('phi', 0)
+    phi_val = params.get("phi", 0)
     if isinstance(phi_val, (list, tuple)):
         phi_check = phi_val[0]
     else:
@@ -323,6 +345,5 @@ def monte_carlo_sw(
         "stats": stats,
         "hold_triggers": hold_triggers,
         "verdict": "SEAL" if not hold_triggers else "888_HOLD",
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-

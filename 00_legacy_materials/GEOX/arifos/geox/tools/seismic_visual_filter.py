@@ -51,8 +51,10 @@ logger = logging.getLogger("geox.tools.seismic_visual_filter")
 # Filter Type Enum
 # ---------------------------------------------------------------------------
 
+
 class FilterType(str, Enum):
     """Supported seismic visual filter families."""
+
     GAUSSIAN = "gaussian"
     MEAN = "mean"
     KUWAHARA = "kuwahara"
@@ -65,14 +67,16 @@ class FilterType(str, Enum):
 # Filter Result (internal)
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class FilterResult:
     """Internal result from a single filter application."""
+
     filter_type: str
     params: dict[str, Any]
     output_array: np.ndarray
-    metric_contrast: float        # contrast ratio after filtering
-    metric_edge_density: float    # edge pixel density (Sobel magnitude > threshold)
+    metric_contrast: float  # contrast ratio after filtering
+    metric_edge_density: float  # edge pixel density (Sobel magnitude > threshold)
     processing_time_ms: float
     notes: str
 
@@ -80,6 +84,7 @@ class FilterResult:
 # ---------------------------------------------------------------------------
 # Core Filter Implementations (NumPy-only, no OpenCV required for mock)
 # ---------------------------------------------------------------------------
+
 
 def _gaussian_filter(image: np.ndarray, kernel_size: int = 5, sigma: float = 1.4) -> FilterResult:
     """Gaussian smoothing for denoise and continuity enhancement."""
@@ -152,10 +157,10 @@ def _kuwahara_filter(image: np.ndarray, window_size: int = 5) -> FilterResult:
             py, px = y + r, x + r
             # Four quadrants (overlapping sub-windows)
             quads = [
-                padded[py - r:py + 1, px - r:px + 1],     # top-left
-                padded[py - r:py + 1, px:px + r + 1],       # top-right
-                padded[py:py + r + 1, px - r:px + 1],       # bottom-left
-                padded[py:py + r + 1, px:px + r + 1],       # bottom-right
+                padded[py - r : py + 1, px - r : px + 1],  # top-left
+                padded[py - r : py + 1, px : px + r + 1],  # top-right
+                padded[py : py + r + 1, px - r : px + 1],  # bottom-left
+                padded[py : py + r + 1, px : px + r + 1],  # bottom-right
             ]
             means = [q.mean() for q in quads]
             variances = [q.var() for q in quads]
@@ -249,7 +254,7 @@ def _canny_filter(
     for y in range(1, h - 1):
         for x in range(1, w - 1):
             if weak[y, x]:
-                if output[y - 1:y + 2, x - 1:x + 2].max() == 255:
+                if output[y - 1 : y + 2, x - 1 : x + 2].max() == 255:
                     output[y, x] = 255
 
     elapsed = (time.perf_counter() - start) * 1000
@@ -356,6 +361,7 @@ def _clahe_filter(
 # Utility Functions
 # ---------------------------------------------------------------------------
 
+
 def _convolve2d(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Simple 2D convolution with reflect-padding. Pure NumPy."""
     kh, kw = kernel.shape
@@ -366,7 +372,7 @@ def _convolve2d(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
 
     for y in range(h):
         for x in range(w):
-            region = padded[y:y + kh, x:x + kw]
+            region = padded[y : y + kh, x : x + kw]
             output[y, x] = (region * kernel).sum()
 
     return output
@@ -409,18 +415,18 @@ def load_seismic_slice(path: str | Path) -> np.ndarray:
         arr = np.load(str(path))
         if arr.ndim == 3:
             # Convert RGB to grayscale: 0.299R + 0.587G + 0.114B
-            arr = (0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2])
+            arr = 0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2]
         return arr.astype(np.float64)
 
     # Try PIL for image formats
     try:
         from PIL import Image
+
         img = Image.open(str(path)).convert("L")  # Grayscale
         return np.array(img, dtype=np.float64)
     except ImportError as exc:
         raise ImportError(
-            "Pillow is required for image file loading. "
-            "Install with: pip install Pillow"
+            "Pillow is required for image file loading. " "Install with: pip install Pillow"
         ) from exc
 
 
@@ -441,6 +447,7 @@ _FILTER_DISPATCH: dict[str, Any] = {
 # ---------------------------------------------------------------------------
 # Public API Functions
 # ---------------------------------------------------------------------------
+
 
 def apply_filter(
     image: np.ndarray,
@@ -473,8 +480,14 @@ def generate_filter_stack(image: np.ndarray) -> list[FilterResult]:
     highlights discontinuities or reflectors.
     """
     stack = []
-    for ft in [FilterType.GAUSSIAN, FilterType.MEAN, FilterType.KUWAHARA,
-               FilterType.SOBEL, FilterType.CANNY, FilterType.CLAHE]:
+    for ft in [
+        FilterType.GAUSSIAN,
+        FilterType.MEAN,
+        FilterType.KUWAHARA,
+        FilterType.SOBEL,
+        FilterType.CANNY,
+        FilterType.CLAHE,
+    ]:
         try:
             result = apply_filter(image, ft)
             stack.append(result)
@@ -497,14 +510,16 @@ def compare_filter_response(filter_stack: list[FilterResult]) -> dict[str, Any]:
     scored = []
     for result in filter_stack:
         composite = 0.4 * result.metric_contrast + 0.6 * result.metric_edge_density
-        scored.append({
-            "filter": result.filter_type,
-            "contrast": round(result.metric_contrast, 4),
-            "edge_density": round(result.metric_edge_density, 4),
-            "composite_score": round(composite, 4),
-            "processing_time_ms": result.processing_time_ms,
-            "notes": result.notes,
-        })
+        scored.append(
+            {
+                "filter": result.filter_type,
+                "contrast": round(result.metric_contrast, 4),
+                "edge_density": round(result.metric_edge_density, 4),
+                "composite_score": round(composite, 4),
+                "processing_time_ms": result.processing_time_ms,
+                "notes": result.notes,
+            }
+        )
 
     scored.sort(key=lambda x: x["composite_score"], reverse=True)
 
@@ -563,6 +578,7 @@ def emit_visual_hypothesis(
 # ---------------------------------------------------------------------------
 # SeismicVisualFilterTool — GEOX BaseTool Implementation
 # ---------------------------------------------------------------------------
+
 
 class SeismicVisualFilterTool(BaseTool):
     """
@@ -636,7 +652,7 @@ class SeismicVisualFilterTool(BaseTool):
             if "image_array" in inputs:
                 image = inputs["image_array"]
                 if image.ndim == 3:
-                    image = (0.299 * image[:, :, 0] + 0.587 * image[:, :, 1] + 0.114 * image[:, :, 2])
+                    image = 0.299 * image[:, :, 0] + 0.587 * image[:, :, 1] + 0.114 * image[:, :, 2]
                 image = image.astype(np.float64)
                 image_path = inputs.get("image_path", "<in-memory>")
             else:
@@ -660,7 +676,7 @@ class SeismicVisualFilterTool(BaseTool):
         prov = _make_provenance(
             source_id=source_id,
             source_type="sensor",  # image data = sensor input
-            confidence=0.60,       # perception-only confidence cap
+            confidence=0.60,  # perception-only confidence cap
             checksum=checksum,
         )
 

@@ -35,16 +35,18 @@ BOND_FAIL_RATE = 0.79  # 79% expert failure on synthetic seismic
 # EPISTEMIC LEVELS
 # =============================================================================
 
+
 class EpistemicLevel(Enum):
     """
     GEOX epistemic classification — mandatory on all outputs.
 
     Collapsing epistemic levels is a F9 Anti-Hantu violation.
     """
-    OBSERVATIONAL = "OBS"   # Raw sensor data
-    DERIVED = "DER"         # Computed from observations (porosity, saturation)
-    INTERPRETED = "INT"     # Inferred from derived data (lithology, fluid type, pay)
-    SPECULATED = "SPEC"     # Proposed but unverified (prospect risk, OOIP)
+
+    OBSERVATIONAL = "OBS"  # Raw sensor data
+    DERIVED = "DER"  # Computed from observations (porosity, saturation)
+    INTERPRETED = "INT"  # Inferred from derived data (lithology, fluid type, pay)
+    SPECULATED = "SPEC"  # Proposed but unverified (prospect risk, OOIP)
 
     def __str__(self) -> str:
         return f"[{self.value}]"
@@ -73,6 +75,7 @@ HOLD_TRIGGERS: dict[str, str] = {
 @dataclass
 class GEOXHoldStatus:
     """Result of hold condition check."""
+
     is_held: bool
     triggers: list[str] = field(default_factory=list)
     timestamp: float = field(default_factory=time.time)
@@ -87,6 +90,7 @@ class GEOXHoldStatus:
 # WELL LOG CONSTANTS (Sandstone Matrix)
 # =============================================================================
 
+
 class WellLogConstants:
     """
     Standard matrix and fluid properties for sandstone interpretation.
@@ -94,29 +98,29 @@ class WellLogConstants:
     """
 
     # Sandstone matrix
-    RHO_MATRIX_SANDSTONE = 2.65   # g/cc
-    DT_MATRIX_SANDSTONE = 55.5    # µs/ft
-    RHO_MATRIX_LIMESTONE = 2.71   # g/cc
-    DT_MATRIX_LIMESTONE = 47.6    # µs/ft
-    RHO_MATRIX_DOLOMITE = 2.87    # g/cc
-    DT_MATRIX_DOLOMITE = 43.5     # µs/ft
+    RHO_MATRIX_SANDSTONE = 2.65  # g/cc
+    DT_MATRIX_SANDSTONE = 55.5  # µs/ft
+    RHO_MATRIX_LIMESTONE = 2.71  # g/cc
+    DT_MATRIX_LIMESTONE = 47.6  # µs/ft
+    RHO_MATRIX_DOLOMITE = 2.87  # g/cc
+    DT_MATRIX_DOLOMITE = 43.5  # µs/ft
 
     # Fluids
-    RHO_FLUID_WATER = 1.00        # g/cc (at surface; adjust for pressure)
-    RHO_FLUID_OIL = 0.85          # g/cc (live oil)
-    RHO_FLUID_GAS = 0.25          # g/cc (at surface; highly pressure-dependent)
-    DT_FLUID = 189.0              # µs/ft (water at surface)
+    RHO_FLUID_WATER = 1.00  # g/cc (at surface; adjust for pressure)
+    RHO_FLUID_OIL = 0.85  # g/cc (live oil)
+    RHO_FLUID_GAS = 0.25  # g/cc (at surface; highly pressure-dependent)
+    DT_FLUID = 189.0  # µs/ft (water at surface)
 
     # Archie parameters (default; calibrate with local data)
     ARCHIE_A = 1.0
     ARCHIE_M = 2.0
     ARCHIE_N = 2.0
-    RW_DEFAULT = 0.02             # ohm·m (North Sea formation water; adjust)
+    RW_DEFAULT = 0.02  # ohm·m (North Sea formation water; adjust)
 
     # Cutoffs (default; regional calibration may override)
-    VSHALE_CUTOFF_NET = 0.40      # v/v
-    PHI_CUTOFF_PAY = 0.10         # v/v
-    SW_CUTOFF_PAY = 0.60          # v/v (water saturation)
+    VSHALE_CUTOFF_NET = 0.40  # v/v
+    PHI_CUTOFF_PAY = 0.10  # v/v
+    SW_CUTOFF_PAY = 0.60  # v/v (water saturation)
 
 
 @dataclass
@@ -125,12 +129,13 @@ class GEOXInterpretationResult:
     Standard return type for all GEOX interpretation outputs.
     Every field is mandatory for F2 Truth compliance.
     """
+
     epistemic_level: EpistemicLevel
     summary: str
-    confidence: float            # τ, 0.0–1.0; F2 requires τ ≥ 0.99
-    uncertainty_explicit: bool    # F2: must be declared if confidence < 0.99
+    confidence: float  # τ, 0.0–1.0; F2 requires τ ≥ 0.99
+    uncertainty_explicit: bool  # F2: must be declared if confidence < 0.99
     hold_status: GEOXHoldStatus
-    toac_warning: bool           # True if ToAC (Bond 2007) concerns apply
+    toac_warning: bool  # True if ToAC (Bond 2007) concerns apply
     bond_reference: str = BOND_REF
     provenance: list[str] = field(default_factory=list)
     derived_from: list[str] = field(default_factory=list)  # curve mnemonics
@@ -156,6 +161,7 @@ class GEOXInterpretationResult:
 # =============================================================================
 # GEOX ANCHOR
 # =============================================================================
+
 
 class GEOXAnchor:
     """
@@ -209,9 +215,9 @@ class GEOXAnchor:
         Raise AssertionError if anchor is not forged.
         Call this at the start of every geox.* tool function.
         """
-        assert GEOXAnchor._forged, (
-            "GEOXAnchor not forged. Call GEOXAnchor.forge() before using geox.* tools."
-        )
+        assert (
+            GEOXAnchor._forged
+        ), "GEOXAnchor not forged. Call GEOXAnchor.forge() before using geox.* tools."
 
     def check_hold(self, **conditions) -> GEOXHoldStatus:
         """
@@ -220,7 +226,8 @@ class GEOXAnchor:
         """
         self.verify()
         triggers = [
-            desc for name, triggered in conditions.items()
+            desc
+            for name, triggered in conditions.items()
             if triggered
             for name_key, desc in HOLD_TRIGGERS.items()
             if name_key in name
@@ -303,11 +310,13 @@ class GEOXAnchor:
 # TOAC — THEORY OF ANOMALOUS CONTRAST
 # =============================================================================
 
+
 class ToACWarning(Enum):
     """
     Theory of Anomalous Contrast warning types.
     See Bond et al. (2007) — 79% expert failure rate on synthetic data.
     """
+
     POLARITY_CONVENTION = "Wrong impedance assumption → misidentified fluid contact"
     AGC_GAIN_ARTIFACT = "AGC distortion → false amplitude anomaly"
     MIGRATION_SMILE = "Processing artifact → phantom structure"
@@ -318,6 +327,7 @@ class ToACWarning(Enum):
 @dataclass
 class ToACCheckResult:
     """Result of ToAC compliance check on a seismic display."""
+
     passed: bool
     warnings: list[ToACWarning] = field(default_factory=list)
     bond_reference: str = BOND_REF
@@ -350,6 +360,7 @@ def check_toac(display_mode: str = "arbitrary") -> ToACCheckResult:
 # =============================================================================
 # QUICK HELPER FUNCTIONS
 # =============================================================================
+
 
 def porosity_density(rhob: float, matrix: float = 2.65, fluid: float = 1.00) -> float:
     """
@@ -395,7 +406,7 @@ def saturation_archie(
     """
     if phi <= 0 or rt <= 0:
         return 1.0
-    sw = (a * rw / (rt * (phi ** m))) ** (1 / n)
+    sw = (a * rw / (rt * (phi**m))) ** (1 / n)
     return max(0.0, min(1.0, sw))
 
 

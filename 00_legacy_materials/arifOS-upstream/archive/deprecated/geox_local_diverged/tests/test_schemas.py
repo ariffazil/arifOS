@@ -29,11 +29,16 @@ from arifos.geox.geox_schemas import (
 # Helpers / fixtures
 # ---------------------------------------------------------------------------
 
-def _make_coordinate(lat: float = 4.5, lon: float = 104.2, depth: float | None = 2500.0) -> CoordinatePoint:
+
+def _make_coordinate(
+    lat: float = 4.5, lon: float = 104.2, depth: float | None = 2500.0
+) -> CoordinatePoint:
     return CoordinatePoint(latitude=lat, longitude=lon, depth_m=depth)
 
 
-def _make_provenance(source_id: str = "WELL-LOG-001", source_type: str = "sensor") -> ProvenanceRecord:
+def _make_provenance(
+    source_id: str = "WELL-LOG-001", source_type: str = "sensor"
+) -> ProvenanceRecord:
     return ProvenanceRecord(
         source_id=source_id,
         source_type=source_type,  # type: ignore[arg-type]
@@ -107,6 +112,7 @@ def _make_geo_request() -> GeoRequest:
 # CoordinatePoint
 # ---------------------------------------------------------------------------
 
+
 class TestCoordinatePoint:
 
     def test_valid_creation_basic(self):
@@ -178,9 +184,12 @@ class TestCoordinatePoint:
 # ProvenanceRecord
 # ---------------------------------------------------------------------------
 
+
 class TestProvenanceRecord:
 
-    @pytest.mark.parametrize("source_type", ["LEM", "VLM", "sensor", "simulator", "human", "literature"])
+    @pytest.mark.parametrize(
+        "source_type", ["LEM", "VLM", "sensor", "simulator", "human", "literature"]
+    )
     def test_valid_all_source_types(self, source_type: str):
         prov = ProvenanceRecord(
             source_id=f"SRC-{source_type}-001",
@@ -266,6 +275,7 @@ class TestProvenanceRecord:
 # GeoQuantity
 # ---------------------------------------------------------------------------
 
+
 class TestGeoQuantity:
 
     def test_valid_creation(self):
@@ -332,6 +342,7 @@ class TestGeoQuantity:
 # GeoPrediction
 # ---------------------------------------------------------------------------
 
+
 class TestGeoPrediction:
 
     def test_valid_creation(self):
@@ -367,9 +378,11 @@ class TestGeoPrediction:
         with pytest.raises(ValidationError, match="expected_range min"):
             _make_geo_prediction(lo=50.0, hi=10.0)
 
-    @pytest.mark.parametrize("method", ["LEM_ensemble", "seismic_inversion", "analogue_matching", "basin_simulation"])
+    @pytest.mark.parametrize(
+        "method", ["LEM_ensemble", "seismic_inversion", "analogue_matching", "basin_simulation"]
+    )
     def test_various_methods(self, method: str):
-        pred = _make_geo_prediction()
+        _make_geo_prediction()
         # Re-create with different method
         pred2 = GeoPrediction(
             target="net_pay_m",
@@ -397,6 +410,7 @@ class TestGeoPrediction:
 # ---------------------------------------------------------------------------
 # GeoInsight
 # ---------------------------------------------------------------------------
+
 
 class TestGeoInsight:
 
@@ -500,6 +514,7 @@ class TestGeoInsight:
 # GeoRequest
 # ---------------------------------------------------------------------------
 
+
 class TestGeoRequest:
 
     def test_valid_creation(self):
@@ -583,6 +598,7 @@ class TestGeoRequest:
 # ---------------------------------------------------------------------------
 # GeoResponse
 # ---------------------------------------------------------------------------
+
 
 class TestGeoResponse:
 
@@ -681,6 +697,7 @@ class TestGeoResponse:
 # ---------------------------------------------------------------------------
 # export_json_schemas()
 # ---------------------------------------------------------------------------
+
 
 class TestExportJsonSchemas:
 

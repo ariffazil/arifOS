@@ -1,6 +1,6 @@
 # F0 SOVEREIGN: The Sovereignty Floor
 
-**Classification:** Constitutional Amendment | **Authority:** Muhammad Arif bin Fazil  
+**Classification:** Constitutional Amendment | **Authority:** Muhammad Arif bin Fazil
 **Status:** ACTIVE | **Seal:** VAULT999
 
 ---
@@ -53,7 +53,7 @@ Every arifOS feature MUST declare its sovereignty level:
 def evaluate_prospect(seismic_data: bytes) -> Verdict:
     """
     F2 Truth enforcement on geological interpretation.
-    
+
     At Level 0-2: Feature requires cloud LLM, may degrade.
     At Level 3-4: Feature uses local LLM, full enforcement.
     """
@@ -133,13 +133,13 @@ class SovereigntyStamp:
     """
     Generates verifiable sovereignty attestations.
     """
-    
+
     def generate(self, deployment_config: dict) -> dict:
         """
         Create sovereignty stamp for deployment.
         """
         level = self._calculate_level(deployment_config)
-        
+
         return {
             "stamp_version": "F0.2026.04",
             "level": level,
@@ -154,37 +154,37 @@ class SovereigntyStamp:
             "attestation": self._sign_attestation(level),
             "warning": None if level >= 3 else "WARNING: Level < 3 fails F0 for production"
         }
-    
+
     def _calculate_level(self, config: dict) -> int:
         """
         Calculate sovereignty level based on infrastructure.
         """
         score = 0
-        
+
         # Identity
         if config.get('identity', {}).get('root_type') == 'BLS-DID':
             score += 1
-        
+
         # LLM fallback chain
         llm_chain = config.get('infrastructure', {}).get('llm', {}).get('provider_chain', [])
         has_local = any(p.get('provider') in ['Ollama', 'llama.cpp'] for p in llm_chain)
         if has_local:
             score += 1
-        
+
         # Storage
         storage_backends = config.get('infrastructure', {}).get('storage', {}).get('backends', [])
         has_local_storage = any(b.get('type') in ['SQLite', 'Postgres'] for b in storage_backends)
         if has_local_storage:
             score += 1
-        
+
         # Execution
         if config.get('infrastructure', {}).get('execution', {}).get('local_fallback'):
             score += 1
-        
+
         # Air-gap capability
         if config.get('infrastructure', {}).get('llm', {}).get('air_gapped_capable'):
             score += 1
-        
+
         # Map score to level
         if score >= 5:
             return 4  # Absolute
@@ -211,11 +211,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Test Sovereignty Level 3
         run: |
           arifos verify-sovereignty --target-level 3
-          
+
       - name: Fail if Captive Dependencies
         run: |
           if grep -r "from azure" arifos/core; then

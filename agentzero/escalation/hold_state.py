@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class EscalationPathway(Enum):
     """Three constitutional escalation pathways."""
+
     REPLY_CONTINUE = auto()
     OFFER_HANDOVER = auto()
     FORCED_ESCALATION = auto()
@@ -24,6 +25,7 @@ class EscalationPathway(Enum):
 
 class HoldState(Enum):
     """States in the 888_HOLD lifecycle."""
+
     PENDING = auto()
     APPROVED = auto()
     DENIED = auto()
@@ -34,6 +36,7 @@ class HoldState(Enum):
 @dataclass
 class HoldRequest:
     """A request for human approval (888_HOLD)."""
+
     hold_id: str
     execution_id: str
     agent_id: str
@@ -50,9 +53,9 @@ class HoldRequest:
 
 class HoldStateManager:
     """888_HOLD State Machine Manager."""
-    
+
     _registry: ClassVar[dict[str, dict[str, Any]]] = {}
-    
+
     def __init__(self) -> None:
         self.pending_holds: dict[str, HoldRequest] = {}
         self.resolved_holds: dict[str, HoldRequest] = {}
@@ -63,7 +66,7 @@ class HoldStateManager:
             "denied": 0,
             "timeouts": 0,
         }
-    
+
     async def create_hold(
         self,
         execution_id: str,
@@ -76,6 +79,7 @@ class HoldStateManager:
     ) -> HoldRequest:
         """Create a new hold request."""
         import uuid
+
         hold_id = str(uuid.uuid4())[:8]
         hold = HoldRequest(
             hold_id=hold_id,

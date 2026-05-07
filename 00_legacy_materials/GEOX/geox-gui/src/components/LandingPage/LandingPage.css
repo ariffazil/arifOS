@@ -1,4 +1,4 @@
-/* GEOX Landing Page Styles 
+/* GEOX Landing Page Styles
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI: Externalized Styles for Physics9 Compliance
  */
@@ -13,29 +13,29 @@
     padding: 5rem 1.5rem;
     overflow: hidden;
   }
-  
+
   .hero-bg-gradient {
     position: absolute;
     inset: 0;
     background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
   }
-  
+
   .hero-glow {
     position: absolute;
     inset: 0;
     background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
   }
-  
+
   .hero-grid-pattern {
     position: absolute;
     inset: 0;
     opacity: 0.05;
-    background-image: 
-      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), 
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
     background-size: 60px 60px;
   }
-  
+
   .glass-card {
     background: rgba(15, 23, 42, 0.6);
     -webkit-backdrop-filter: blur(12px);

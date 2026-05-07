@@ -142,19 +142,19 @@
 
 ## Wisdom & Lessons (v55.5 → v60.1-beta)
 
-1. **Keep the doors fixed, deepen the rooms.**  
+1. **Keep the doors fixed, deepen the rooms.**
    Tools are the public contract. Modes and metadata are where genius and governance can grow.
 
-2. **Genius is advisory until proven.**  
+2. **Genius is advisory until proven.**
    EUREKA and causal signals must live as telemetry and VAULT metadata until there is enough empirical evidence to trust them in APEX verdicts.
 
-3. **Self-calibration must always bow to sovereignty.**  
+3. **Self-calibration must always bow to sovereignty.**
    Phoenix-72 proposals are powerful; they must be sealed as data with `verdict="888_HOLD"` and never auto-applied.
 
-4. **Measure before you tighten.**  
+4. **Measure before you tighten.**
    Budget, ontology, and causal scores should first be used to **observe** system behavior, not to block or force outcomes.
 
-5. **Entropy reduction is a long game.**  
+5. **Entropy reduction is a long game.**
    v55.5 gave you Floors and VAULT; v60.x adds the ability to see which paths are truly novel, risky, or ungrounded. Let scars accumulate before you let the system rewrite itself.
 
 ---

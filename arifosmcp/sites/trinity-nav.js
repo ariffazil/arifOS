@@ -28,7 +28,7 @@
     function injectTrinityStrip() {
         const currentHost = window.location.hostname;
         let activeNode = "";
-        
+
         if (currentHost.includes("arifosmcp")) activeNode = "APPS";
         else if (currentHost.includes("arifos.")) activeNode = "THEORY";
         else if (currentHost.includes("arif-fazil.com") && !currentHost.includes("arifos")) activeNode = "HUMAN";
@@ -37,7 +37,7 @@
         if (!document.querySelector('.trinity-strip-global')) {
             const strip = document.createElement('div');
             strip.className = 'trinity-strip-global';
-            
+
             // Dynamic Styles
             const style = document.createElement('style');
             style.textContent = `
@@ -64,7 +64,7 @@
                 .trinity-node-segment.human { background: ${TRINITY_CONFIG.HUMAN.color}; }
                 .trinity-node-segment.theory { background: ${TRINITY_CONFIG.THEORY.color}; }
                 .trinity-node-segment.apps { background: ${TRINITY_CONFIG.APPS.color}; }
-                
+
                 /* Tooltip-like label on hover */
                 .trinity-node-segment::after {
                     content: attr(data-label);
@@ -102,7 +102,7 @@
 
             document.body.appendChild(strip);
         }
-        
+
         // Sync any existing trinity-nodes/links on the page
         document.querySelectorAll('.trinity-node, .trinity-strip a, .nav-link').forEach(node => {
             const text = node.textContent.trim().toUpperCase();
@@ -136,7 +136,7 @@
     } else {
         injectTrinityStrip();
     }
-    
+
     // Periodically re-sync in case of dynamic SPA renders
     setInterval(injectTrinityStrip, 3000);
 })();

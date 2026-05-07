@@ -28,11 +28,16 @@ from alert_dispatcher import AlertDispatcher
 
 VAULT999_PATH = os.getenv("SENTINEL_VAULT999", "/root/.agent-workbench/vault999.jsonl")
 POLL_INTERVAL_SECONDS = int(os.getenv("SENTINEL_POLL_INTERVAL", "60"))  # poll every 60s
-REMINDER_INTERVAL_SECONDS = int(os.getenv("SENTINEL_REMINDER_INTERVAL", "14400"))  # reminder every 4h
-DRIFT_CHECK_INTERVAL_SECONDS = int(os.getenv("SENTINEL_DRIFT_CHECK", "3600"))  # drift check every hour
+REMINDER_INTERVAL_SECONDS = int(
+    os.getenv("SENTINEL_REMINDER_INTERVAL", "14400")
+)  # reminder every 4h
+DRIFT_CHECK_INTERVAL_SECONDS = int(
+    os.getenv("SENTINEL_DRIFT_CHECK", "3600")
+)  # drift check every hour
 
 
 # ── State ────────────────────────────────────────────────────────────────────
+
 
 class SentinelState:
     def __init__(self):
@@ -50,6 +55,7 @@ class SentinelState:
 
 
 # ── Vault999 Polling ─────────────────────────────────────────────────────────
+
 
 def poll_vault999(state: SentinelState) -> int:
     """
@@ -75,6 +81,7 @@ def poll_vault999(state: SentinelState) -> int:
                 continue
             try:
                 import json
+
                 entry = json.loads(line)
             except Exception:
                 continue
@@ -103,6 +110,7 @@ def poll_vault999(state: SentinelState) -> int:
 
 # ── SLA Expiry Check ──────────────────────────────────────────────────────────
 
+
 def check_sla_expiry(state: SentinelState) -> None:
     """Check for expired HARD_TIER SLA verdicts and fire alerts."""
     expired = state.ack_machine.check_sla_expiry()
@@ -116,6 +124,7 @@ def check_sla_expiry(state: SentinelState) -> None:
 
 
 # ── Drift Check ────────────────────────────────────────────────────────────────
+
 
 def check_drift(state: SentinelState) -> None:
     """Run drift detection and fire alerts if threshold exceeded."""
@@ -138,6 +147,7 @@ def check_drift(state: SentinelState) -> None:
 
 # ── Periodic Reminder ─────────────────────────────────────────────────────────
 
+
 def periodic_reminder(state: SentinelState) -> None:
     """Fire governance reminder if pending HARD_TIER verdicts exist."""
     now = time.time()
@@ -155,6 +165,7 @@ def periodic_reminder(state: SentinelState) -> None:
 
 # ── Vitals Snapshot ────────────────────────────────────────────────────────────
 
+
 def vitals_snapshot(state: SentinelState) -> dict:
     """Compute and return governance vitals snapshot."""
     vitals = state.drift_detector.compute_vitals()
@@ -170,18 +181,23 @@ def vitals_snapshot(state: SentinelState) -> dict:
 
 # ── Signal Handler ────────────────────────────────────────────────────────────
 
+
 def setup_signal_handler(state: SentinelState):
     def handler(signum, frame):
         print(f"\n[SENTINEL:SHUTDOWN] Received signal {signum}. Stopping...")
         state.stop()
+
     signal.signal(signal.SIGINT, handler)
     signal.signal(signal.SIGTERM, handler)
 
 
 # ── Main Loop ─────────────────────────────────────────────────────────────────
 
+
 def main():
-    print(f"[SENTINEL:WATCH] Starting v2026.04.26-KANON at {datetime.now(timezone.utc).isoformat()}")
+    print(
+        f"[SENTINEL:WATCH] Starting v2026.04.26-KANON at {datetime.now(timezone.utc).isoformat()}"
+    )
     print(f"[SENTINEL:WATCH] Vault999: {VAULT999_PATH}")
     print(f"[SENTINEL:WATCH] Poll interval: {POLL_INTERVAL_SECONDS}s")
 
@@ -191,7 +207,7 @@ def main():
     while state.running:
         try:
             # Poll vault999
-            new = poll_vault999(state)
+            poll_vault999(state)
 
             # Check SLA expiry
             check_sla_expiry(state)

@@ -10,6 +10,7 @@ from datetime import datetime
 
 MCP_BASE_URL = "https://mcp.a-forge.io"
 
+
 def fetch_data():
     """Fetch health and build data from MCP server"""
     try:
@@ -17,26 +18,31 @@ def fetch_data():
             health = json.loads(resp.read().decode())
     except Exception as e:
         health = {"status": "unreachable", "error": str(e)}
-    
+
     try:
         with urllib.request.urlopen(f"{MCP_BASE_URL}/build", timeout=5) as resp:
             build = json.loads(resp.read().decode())
     except Exception:
         build = {"version": "unknown", "build_sha": "unknown", "tools_available": []}
-    
+
     return health, build
+
 
 def generate_html(health, build):
     """Generate HTML with embedded data"""
     status = health.get("status", "unknown")
-    status_class = "status-healthy" if status == "ok" else "status-degraded" if status == "degraded" else "status-error"
-    
+    status_class = (
+        "status-healthy"
+        if status == "ok"
+        else "status-degraded" if status == "degraded" else "status-error"
+    )
+
     version = build.get("version", "unknown")
     build_sha = build.get("build_sha", "unknown")[:12]
     tools = build.get("tools_available", [])
     tools_html = "".join([f'<div class="tool-tag">{t}</div>' for t in tools])
-    
-    return f'''<!DOCTYPE html>
+
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -124,7 +130,7 @@ def generate_html(health, build):
             <p class="subtitle">Constitutional AI Governance System</p>
             <p style="font-style: italic; color: #666; margin-top: 15px;">"Ditempa Bukan Diberi" — Forged, Not Given</p>
         </header>
-        
+
         <div class="status-grid">
             <div class="card">
                 <div class="card-header">● System Status</div>
@@ -143,12 +149,12 @@ def generate_html(health, build):
                 <div class="card-value">{len(tools)}</div>
             </div>
         </div>
-        
+
         <div class="card" style="margin-bottom: 20px;">
             <div class="card-header">🔧 Available Tools</div>
             <div class="tools-grid">{tools_html}</div>
         </div>
-        
+
         <footer>
             <p>arifOS v{version} — Constitutional AI Governance</p>
             <p>Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
@@ -156,7 +162,8 @@ def generate_html(health, build):
         </footer>
     </div>
 </body>
-</html>'''
+</html>"""
+
 
 if __name__ == "__main__":
     health, build = fetch_data()

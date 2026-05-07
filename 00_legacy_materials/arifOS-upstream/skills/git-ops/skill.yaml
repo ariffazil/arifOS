@@ -9,15 +9,15 @@ requirements:
     branch_isolation: true
     rollback_capability: true
     checkpoint_frequency: high
-  
+
   F2_Truth:
     commit_signing: optional
     diff_verification: true
-  
+
   F3_Consensus:
     pr_review_required: medium_risk
     tri_witness_threshold: 0.95
-  
+
   F10_Audit:
     full_git_history: true
     blame_tracking: true

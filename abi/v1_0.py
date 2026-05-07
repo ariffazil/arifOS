@@ -21,26 +21,19 @@ from pydantic import BaseModel, Field, field_validator
 # BASE SCHEMAS
 # =============================================================================
 
+
 class BaseRequest(BaseModel):
     """Base request schema with common fields."""
 
     risk_tier: Literal["low", "medium", "high", "critical"] = Field(
-        default="low",
-        description="Requested risk posture"
+        default="low", description="Requested risk posture"
     )
-    dry_run: bool = Field(
-        default=True,
-        description="If true, validate only without execution"
-    )
+    dry_run: bool = Field(default=True, description="If true, validate only without execution")
     allow_execution: bool = Field(
-        default=False,
-        description="If true, execution permitted if floors pass"
+        default=False, description="If true, execution permitted if floors pass"
     )
     request_id: str | None = Field(
-        default=None,
-        description="Client trace ID",
-        min_length=8,
-        max_length=128
+        default=None, description="Client trace ID", min_length=8, max_length=128
     )
 
 
@@ -57,6 +50,7 @@ class BaseResponse(BaseModel):
 # INIT_ANCHOR (000_INIT)
 # =============================================================================
 
+
 class InitAnchorRequest(BaseRequest):
     """
     Canonical input schema for init_anchor tool (ABI v1.0).
@@ -66,33 +60,25 @@ class InitAnchorRequest(BaseRequest):
     """
 
     mode: Literal["init", "revoke", "refresh", "state", "status"] = Field(
-        default="init",
-        description="Operation mode"
+        default="init", description="Operation mode"
     )
     actor_id: str = Field(
         default="anonymous",
         description="Identity claimed by the caller",
         min_length=2,
-        max_length=64
+        max_length=64,
     )
     declared_name: str | None = Field(
-        default=None,
-        description="Human-readable display name",
-        max_length=64
+        default=None, description="Human-readable display name", max_length=64
     )
     intent: str | dict | None = Field(
-        default=None,
-        description="User intent - string or structured object"
+        default=None, description="User intent - string or structured object"
     )
     session_id: str | None = Field(
-        default=None,
-        description="Optional session ID for continuity",
-        min_length=8,
-        max_length=128
+        default=None, description="Optional session ID for continuity", min_length=8, max_length=128
     )
     human_approval: bool = Field(
-        default=False,
-        description="Whether human has pre-approved this action (F13)"
+        default=False, description="Whether human has pre-approved this action (F13)"
     )
 
     @field_validator("actor_id")
@@ -107,9 +93,9 @@ class IdentityResolution(BaseModel):
 
     claimed_actor_id: str = Field(description="What the caller claimed")
     resolved_actor_id: str | None = Field(description="What the system accepted")
-    claim_status: Literal[
-        "anonymous", "claimed", "anchored", "verified", "rejected", "demoted"
-    ] = Field(description="Resolution status")
+    claim_status: Literal["anonymous", "claimed", "anchored", "verified", "rejected", "demoted"] = (
+        Field(description="Resolution status")
+    )
     reason: str | None = Field(default=None, description="Explanation if demoted")
 
 
@@ -128,6 +114,7 @@ class InitAnchorResponse(BaseResponse):
 # =============================================================================
 # ARIFOS_KERNEL (444_ROUTER)
 # =============================================================================
+
 
 class ArifOSKernelRequest(BaseRequest):
     """Canonical input schema for arifos_kernel tool."""
@@ -152,6 +139,7 @@ class ArifOSKernelResponse(BaseResponse):
 # APEX_JUDGE (888_JUDGE)
 # =============================================================================
 
+
 class ApexJudgeRequest(BaseRequest):
     """Canonical input schema for apex_judge tool."""
 
@@ -173,6 +161,7 @@ class ApexJudgeResponse(BaseResponse):
 # VAULT_LEDGER (999_VAULT)
 # =============================================================================
 
+
 class VaultLedgerRequest(BaseRequest):
     """Canonical input schema for vault_ledger tool."""
 
@@ -192,6 +181,7 @@ class VaultLedgerResponse(BaseResponse):
 # =============================================================================
 # AGI_MIND (333_MIND)
 # =============================================================================
+
 
 class AgiMindRequest(BaseRequest):
     """Canonical input schema for agi_mind tool."""
@@ -215,6 +205,7 @@ class AgiMindResponse(BaseResponse):
 # ASI_HEART (666_HEART)
 # =============================================================================
 
+
 class AsiHeartRequest(BaseRequest):
     """Canonical input schema for asi_heart tool."""
 
@@ -236,6 +227,7 @@ class AsiHeartResponse(BaseResponse):
 # ENGINEERING_MEMORY (555_MEMORY)
 # =============================================================================
 
+
 class EngineeringMemoryRequest(BaseRequest):
     """Canonical input schema for engineering_memory tool."""
 
@@ -256,6 +248,7 @@ class EngineeringMemoryResponse(BaseResponse):
 # PHYSICS_REALITY (111_SENSE)
 # =============================================================================
 
+
 class PhysicsRealityRequest(BaseRequest):
     """Canonical input schema for physics_reality tool."""
 
@@ -275,6 +268,7 @@ class PhysicsRealityResponse(BaseResponse):
 # MATH_ESTIMATOR (777_OPS)
 # =============================================================================
 
+
 class MathEstimatorRequest(BaseRequest):
     """Canonical input schema for math_estimator tool."""
 
@@ -293,6 +287,7 @@ class MathEstimatorResponse(BaseResponse):
 # =============================================================================
 # CODE_ENGINE (M-3_EXEC)
 # =============================================================================
+
 
 class CodeEngineRequest(BaseRequest):
     """Canonical input schema for code_engine tool."""
@@ -316,6 +311,7 @@ class CodeEngineResponse(BaseResponse):
 # ARCHITECT_REGISTRY (M-4_ARCH)
 # =============================================================================
 
+
 class ArchitectRegistryRequest(BaseRequest):
     """Canonical input schema for architect_registry tool."""
 
@@ -335,49 +331,22 @@ class ArchitectRegistryResponse(BaseResponse):
 # =============================================================================
 
 ABI_SCHEMAS: dict[str, dict[str, type[BaseModel]]] = {
-    "init_anchor": {
-        "request": InitAnchorRequest,
-        "response": InitAnchorResponse
-    },
-    "arifos_kernel": {
-        "request": ArifOSKernelRequest,
-        "response": ArifOSKernelResponse
-    },
-    "apex_judge": {
-        "request": ApexJudgeRequest,
-        "response": ApexJudgeResponse
-    },
-    "vault_ledger": {
-        "request": VaultLedgerRequest,
-        "response": VaultLedgerResponse
-    },
-    "agi_mind": {
-        "request": AgiMindRequest,
-        "response": AgiMindResponse
-    },
-    "asi_heart": {
-        "request": AsiHeartRequest,
-        "response": AsiHeartResponse
-    },
+    "init_anchor": {"request": InitAnchorRequest, "response": InitAnchorResponse},
+    "arifos_kernel": {"request": ArifOSKernelRequest, "response": ArifOSKernelResponse},
+    "apex_judge": {"request": ApexJudgeRequest, "response": ApexJudgeResponse},
+    "vault_ledger": {"request": VaultLedgerRequest, "response": VaultLedgerResponse},
+    "agi_mind": {"request": AgiMindRequest, "response": AgiMindResponse},
+    "asi_heart": {"request": AsiHeartRequest, "response": AsiHeartResponse},
     "engineering_memory": {
         "request": EngineeringMemoryRequest,
-        "response": EngineeringMemoryResponse
+        "response": EngineeringMemoryResponse,
     },
-    "physics_reality": {
-        "request": PhysicsRealityRequest,
-        "response": PhysicsRealityResponse
-    },
-    "math_estimator": {
-        "request": MathEstimatorRequest,
-        "response": MathEstimatorResponse
-    },
-    "code_engine": {
-        "request": CodeEngineRequest,
-        "response": CodeEngineResponse
-    },
+    "physics_reality": {"request": PhysicsRealityRequest, "response": PhysicsRealityResponse},
+    "math_estimator": {"request": MathEstimatorRequest, "response": MathEstimatorResponse},
+    "code_engine": {"request": CodeEngineRequest, "response": CodeEngineResponse},
     "architect_registry": {
         "request": ArchitectRegistryRequest,
-        "response": ArchitectRegistryResponse
+        "response": ArchitectRegistryResponse,
     },
 }
 
@@ -424,7 +393,8 @@ __all__ = [
     "BaseResponse",
     # init_anchor
     "InitAnchorRequest",
-    "InitAnchorResponse", "IdentityResolution",
+    "InitAnchorResponse",
+    "IdentityResolution",
     # arifos_kernel
     "ArifOSKernelRequest",
     "ArifOSKernelResponse",

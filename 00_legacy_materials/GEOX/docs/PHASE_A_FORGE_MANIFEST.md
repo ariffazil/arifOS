@@ -1,8 +1,8 @@
 # GEOX Phase A Forge Manifest
 
-**Status:** ✅ COMPLETE  
-**Date:** 2026-04-07  
-**Seal:** DITEMPA BUKAN DIBERI  
+**Status:** ✅ COMPLETE
+**Date:** 2026-04-07
+**Seal:** DITEMPA BUKAN DIBERI
 **Total Lines Forged:** 2,429
 
 ---
@@ -81,8 +81,8 @@ geox://well/{well_id}/qc/report
 |------|-------|---------|
 | `mcp_petrophysics_server.py` | 572 | FastMCP server with resources + tools |
 
-**Resources:** 5 URI schemes  
-**Tools:** 6 petrophysics tools  
+**Resources:** 5 URI schemes
+**Tools:** 6 petrophysics tools
 **Health Endpoint:** Constitutional floor status
 
 ---
@@ -166,7 +166,7 @@ python arifos/geox/mcp_petrophysics_server.py --transport stdio
 
 ## Engineering Verdict
 
-**CLAIM:** Phase A provides the foundation for governed petrophysics.  
+**CLAIM:** Phase A provides the foundation for governed petrophysics.
 **STATUS:** ✅ VERIFIED — 2,429 lines of constitutional code forged.
 
 The petrophysics bridge is now ready for:

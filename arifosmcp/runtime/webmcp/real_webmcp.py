@@ -36,6 +36,7 @@ from arifosmcp.runtime.webmcp.security import RateLimiter
 @dataclass
 class WebMCPConfig:
     """Configuration for WebMCP server."""
+
     site_name: str = "arifOS Constitutional AI"
     site_url: str = "https://arifosmcp.arif-fazil.com"
     version: str = "2026.03.14-VALIDATED"
@@ -47,13 +48,13 @@ class WebMCPConfig:
 class RealWebMCPGateway:
     """
     Real WebMCP Gateway implementing the W3C WebMCP standard.
-    
+
     This serves both:
     1. Declarative API: HTML pages with tool-enabled forms
     2. Imperative API: JavaScript SDK for dynamic tool registration
     3. Browser-native: Uses navigator.modelContext when available
     """
-    
+
     def __init__(self, mcp_server: Any, config: WebMCPConfig | None = None):
         self.mcp = mcp_server
         self.config = config or WebMCPConfig()
@@ -67,11 +68,13 @@ class RealWebMCPGateway:
         self.redis = redis.from_url(
             os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
         )
-        base_config = BaseWebMCPConfig.from_env() if hasattr(BaseWebMCPConfig, 'from_env') else self.config
+        base_config = (
+            BaseWebMCPConfig.from_env() if hasattr(BaseWebMCPConfig, "from_env") else self.config
+        )
         self.rate_limiter = RateLimiter(self.redis, base_config)
         self._register_tools()
         self._setup_routes()
-        
+
     def _setup_routes(self):
         """Setup WebMCP routes."""
 
@@ -96,7 +99,7 @@ class RealWebMCPGateway:
                 "tools": list(self.tools.values()),
                 "human_in_the_loop": self.config.require_human_confirmation,
             }
-        
+
         # Main WebMCP Console - Human-friendly interface
         @self.app.get("/webmcp", response_class=HTMLResponse)
         async def webmcp_console(request: Request):
@@ -104,7 +107,7 @@ class RealWebMCPGateway:
             WebMCP Console - Main entry point for browser users
             """
             return HTMLResponse(content=self._render_console())
-        
+
         # WebMCP SDK - JavaScript library for browsers
         @self.app.get("/webmcp/sdk.js")
         async def webmcp_sdk():
@@ -112,11 +115,8 @@ class RealWebMCPGateway:
             WebMCP JavaScript SDK
             Websites include this to enable WebMCP tools
             """
-            return HTMLResponse(
-                content=self._generate_sdk(),
-                media_type="application/javascript"
-            )
-        
+            return HTMLResponse(content=self._generate_sdk(), media_type="application/javascript")
+
         # Tool Manifest - for Declarative API
         @self.app.get("/webmcp/tools.json")
         async def tools_manifest():
@@ -125,7 +125,7 @@ class RealWebMCPGateway:
             Returns all available tools with schemas
             """
             return {"tools": list(self.tools.values())}
-        
+
         # Execute tool via HTTP (fallback for non-WebMCP browsers)
         @self.app.post("/webmcp/execute/{tool_name}")
         async def execute_tool(tool_name: str, request: Request):
@@ -157,74 +157,85 @@ class RealWebMCPGateway:
                 body = await request.json()
             except:
                 body = {}
-            
+
             # F13: Human confirmation for critical operations
-            if tool_name in ["eureka_forge", "vault_seal"] and self.config.require_human_confirmation:
+            if (
+                tool_name in ["eureka_forge", "vault_seal"]
+                and self.config.require_human_confirmation
+            ):
                 return JSONResponse(
                     status_code=403,
                     content={
                         "verdict": "888_HOLD",
                         "error": "Human confirmation required for this operation",
                         "instruction": "This tool requires explicit human approval (F13 Sovereign)",
-                    }
+                    },
                 )
-            
+
             # Call the actual MCP tool
             result = await self._call_mcp_tool(tool_name, body)
             return JSONResponse(content=result)
-        
+
         # Live Metrics Dashboard
         @self.app.get("/webmcp/dashboard")
         async def dashboard():
             """Live WebMCP dashboard with metrics."""
             metrics = await get_live_metrics()
             return HTMLResponse(content=self._render_dashboard(metrics))
-        
+
         # WebSocket for real-time tool execution
         @self.app.websocket("/webmcp/ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
-            await websocket.send_json({
-                "type": "connected",
-                "message": "WebMCP WebSocket connected",
-                "version": self.config.version,
-            })
-            
+            await websocket.send_json(
+                {
+                    "type": "connected",
+                    "message": "WebMCP WebSocket connected",
+                    "version": self.config.version,
+                }
+            )
+
             # F5: Rate limiting — per-connection IP tracking
             client_ip = websocket.client.host if websocket.client else "unknown"
-            
+
             while True:
                 try:
                     data = await websocket.receive_json()
-                    
+
                     if data.get("type") == "execute":
                         tool_name = data.get("tool")
                         params = data.get("params", {})
-                        
+
                         # F5: Check rate limit before execution
                         allowed, rate_meta = await self.rate_limiter.check_rate_limit(client_ip)
                         if not allowed:
-                            await websocket.send_json({
-                                "type": "error",
-                                "error": "rate_limited",
-                                "retry_after": rate_meta.get("retry_after", 60),
-                            })
+                            await websocket.send_json(
+                                {
+                                    "type": "error",
+                                    "error": "rate_limited",
+                                    "retry_after": rate_meta.get("retry_after", 60),
+                                }
+                            )
                             continue
-                        
+
                         # Execute tool
                         result = await self._call_mcp_tool(tool_name, params)
-                        
-                        await websocket.send_json({
-                            "type": "result",
-                            "tool": tool_name,
-                            "result": result,
-                        })
-                        
+
+                        await websocket.send_json(
+                            {
+                                "type": "result",
+                                "tool": tool_name,
+                                "result": result,
+                            }
+                        )
+
                 except Exception as e:
-                    await websocket.send_json({
-                        "type": "error",
-                        "error": str(e),
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "error",
+                            "error": str(e),
+                        }
+                    )
 
     def _register_tools(self) -> None:
         for spec in PUBLIC_TOOL_SPECS:
@@ -273,14 +284,14 @@ class RealWebMCPGateway:
         h1 {{ font-size: 2.5rem; margin-bottom: 0.5rem; background: linear-gradient(90deg, #00d4ff, #7b2cbf); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
         .version {{ color: #888; font-size: 0.9rem; }}
         .motto {{ font-style: italic; color: #00d4ff; margin-top: 1rem; }}
-        
+
         .grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }}
-        
+
         .card {{
             background: rgba(255,255,255,0.05);
             border-radius: 12px;
@@ -290,7 +301,7 @@ class RealWebMCPGateway:
         }}
         .card:hover {{ border-color: #00d4ff; transform: translateY(-2px); }}
         .card h3 {{ color: #00d4ff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }}
-        
+
         .tool-form {{
             display: flex;
             flex-direction: column;
@@ -315,7 +326,7 @@ class RealWebMCPGateway:
             transition: opacity 0.3s;
         }}
         .tool-form button:hover {{ opacity: 0.9; }}
-        
+
         .result {{
             margin-top: 1rem;
             padding: 1rem;
@@ -330,7 +341,7 @@ class RealWebMCPGateway:
         .result.visible {{ display: block; }}
         .result.success {{ border-left: 3px solid #00d4ff; }}
         .result.error {{ border-left: 3px solid #ff4444; }}
-        
+
         .status {{
             position: fixed;
             top: 1rem;
@@ -341,7 +352,7 @@ class RealWebMCPGateway:
             border-radius: 20px;
             font-size: 0.85rem;
         }}
-        
+
         .constitutional-floors {{
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -359,7 +370,7 @@ class RealWebMCPGateway:
             font-weight: 600;
         }}
         .floor.active {{ background: rgba(0,212,255,0.3); }}
-        
+
         @media (max-width: 768px) {{
             .grid {{ grid-template-columns: 1fr; }}
             h1 {{ font-size: 1.75rem; }}
@@ -368,13 +379,13 @@ class RealWebMCPGateway:
 </head>
 <body>
     <div class="status">🟢 WebMCP Ready</div>
-    
+
     <div class="container">
         <header>
             <h1>🔷 arifOS WebMCP</h1>
             <div class="version">Version {self.config.version} | W3C Standard</div>
             <div class="motto">"Ditempa Bukan Diberi — Forged, Not Given"</div>
-            
+
             <div class="constitutional-floors">
                 <div class="floor active" title="F1: Amanah">F1</div>
                 <div class="floor active" title="F2: Truth">F2</div>
@@ -391,7 +402,7 @@ class RealWebMCPGateway:
                 <div class="floor active" title="F13: Sovereign">F13</div>
             </div>
         </header>
-        
+
         <div class="grid">
             <div class="card">
                 <h3>🚀 Initialize Session</h3>
@@ -402,7 +413,7 @@ class RealWebMCPGateway:
                 </form>
                 <div class="result" id="result-init_anchor"></div>
             </div>
-            
+
             <div class="card">
                 <h3>🧠 Constitutional Kernel</h3>
                 <form class="tool-form" onsubmit="executeTool('arifos_kernel', this); return false;">
@@ -417,7 +428,7 @@ class RealWebMCPGateway:
                 </form>
                 <div class="result" id="result-arifos_kernel"></div>
             </div>
-            
+
             <div class="card">
                 <h3>📊 Audit Floors</h3>
                 <form class="tool-form" onsubmit="executeTool('audit_rules', this); return false;">
@@ -425,7 +436,7 @@ class RealWebMCPGateway:
                 </form>
                 <div class="result" id="result-audit_rules"></div>
             </div>
-            
+
             <div class="card">
                 <h3>💓 System Vitals</h3>
                 <form class="tool-form" onsubmit="executeTool('check_vital', this); return false;">
@@ -435,12 +446,12 @@ class RealWebMCPGateway:
             </div>
         </div>
     </div>
-    
+
     <script src="/webmcp/sdk.js"></script>
     <script>
         // Store session ID
         let currentSession = null;
-        
+
         // Check for native WebMCP support
         if (navigator.modelContext) {{
             console.log('✅ Native WebMCP supported');
@@ -448,39 +459,39 @@ class RealWebMCPGateway:
         }} else {{
             console.log('ℹ️ Using WebMCP polyfill');
         }}
-        
+
         // Execute tool via HTTP (fallback for all browsers)
         async function executeTool(toolName, form) {{
             const formData = new FormData(form);
             const params = Object.fromEntries(formData);
-            
+
             // Add session if available
             if (currentSession && toolName !== 'init_anchor') {{
                 params.session_id = currentSession;
             }}
-            
+
             const resultDiv = document.getElementById(`result-${{toolName}}`);
             resultDiv.classList.add('visible');
             resultDiv.textContent = 'Executing...';
-            
+
             try {{
                 const response = await fetch(`/webmcp/execute/${{toolName}}`, {{
                     method: 'POST',
                     headers: {{'Content-Type': 'application/json'}},
                     body: JSON.stringify(params)
                 }});
-                
+
                 const data = await response.json();
-                
+
                 // Store session ID if this was init
                 if (toolName === 'init_anchor' && data.session_id) {{
                     currentSession = data.session_id;
                     document.getElementById('session-id').value = currentSession;
                 }}
-                
+
                 resultDiv.className = 'result visible ' + (data.verdict === 'SEAL' ? 'success' : 'error');
                 resultDiv.textContent = JSON.stringify(data, null, 2);
-                
+
             }} catch (err) {{
                 resultDiv.className = 'result visible error';
                 resultDiv.textContent = 'Error: ' + err.message;
@@ -490,7 +501,7 @@ class RealWebMCPGateway:
 </body>
 </html>
         """
-    
+
     def _generate_sdk(self) -> str:
         """Generate the WebMCP JavaScript SDK."""
         return """
@@ -502,22 +513,22 @@ class RealWebMCPGateway:
 
 (function() {
     'use strict';
-    
+
     // Check for native WebMCP support
     if (navigator.modelContext) {
         console.log('[WebMCP] Native browser support detected');
         return; // Native support available, no polyfill needed
     }
-    
+
     console.log('[WebMCP] Loading polyfill...');
-    
+
     // WebMCP Polyfill
     class ModelContextPolyfill {
         constructor() {
             this.tools = new Map();
             this.isPolyfill = true;
         }
-        
+
         /**
          * Register a tool (Imperative API)
          * @param {string} name - Tool name
@@ -527,13 +538,13 @@ class RealWebMCPGateway:
         registerTool(name, schema, handler) {
             this.tools.set(name, { schema, handler });
             console.log(`[WebMCP] Registered tool: ${name}`);
-            
+
             // Dispatch event for tool registration
             window.dispatchEvent(new CustomEvent('webmcp:toolregistered', {
                 detail: { name, schema }
             }));
         }
-        
+
         /**
          * Discover available tools
          * @returns {Promise<Array>} List of tools
@@ -543,7 +554,7 @@ class RealWebMCPGateway:
             const data = await response.json();
             return data.tools;
         }
-        
+
         /**
          * Execute a tool
          * @param {string} name - Tool name
@@ -556,26 +567,26 @@ class RealWebMCPGateway:
                 const tool = this.tools.get(name);
                 return await tool.handler(params);
             }
-            
+
             // Fall back to HTTP execution
             const response = await fetch(`/webmcp/execute/${name}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(params)
             });
-            
+
             return await response.json();
         }
     }
-    
+
     // Install polyfill
     navigator.modelContext = new ModelContextPolyfill();
-    
+
     // Dispatch ready event
     window.dispatchEvent(new CustomEvent('webmcp:ready', {
         detail: { polyfill: true }
     }));
-    
+
     console.log('[WebMCP] Polyfill loaded and ready');
 })();
 
@@ -589,24 +600,24 @@ if (document.readyState === 'loading') {
 function initDeclarativeTools() {
     // Find all forms with data-webmcp-tool attribute
     const toolForms = document.querySelectorAll('form[data-webmcp-tool]');
-    
+
     toolForms.forEach(form => {
         const toolName = form.dataset.webmcpTool;
-        
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const formData = new FormData(form);
             const params = Object.fromEntries(formData);
-            
+
             try {
                 const result = await navigator.modelContext.execute(toolName, params);
-                
+
                 // Dispatch result event
                 form.dispatchEvent(new CustomEvent('webmcp:result', {
                     detail: { tool: toolName, result }
                 }));
-                
+
             } catch (err) {
                 form.dispatchEvent(new CustomEvent('webmcp:error', {
                     detail: { tool: toolName, error: err }
@@ -616,7 +627,7 @@ function initDeclarativeTools() {
     });
 }
         """
-    
+
     def _render_dashboard(self, metrics: dict[str, Any]) -> str:
         """Render live metrics dashboard with the latest data."""
         machine = metrics.get("machine", {})

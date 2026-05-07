@@ -17,7 +17,7 @@ This kernel governs:
 
 Runtime fabric (infrastructure / architecture):
 - arifOS MCP Server: FastAPI/Uvicorn ASGI endpoint exposing MCP tools via
-  Streamable HTTP at /mcp with SSE fallback. (Do not bypass.) 
+  Streamable HTTP at /mcp with SSE fallback. (Do not bypass.)
 - Tool surface: “50+ constitutional tools” listed as ACTIVE in arifOS external MCP registry.
 - Governed Autonomous Search: Web search + SharePoint/Dataverse/OneDrive crawl
   under read-only default, source-citation enforcement, and audit logging.

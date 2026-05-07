@@ -9,6 +9,7 @@ Fails any merge to main if:
 
 Run: pytest tests/test_floors_ci.py -v
 """
+
 from __future__ import annotations
 import json
 import re
@@ -98,9 +99,18 @@ class TestRepoHygiene:
         git_root = ROOT
         # Check git ls-files for these
         import subprocess
+
         result = subprocess.run(
-            ["git", "-C", str(git_root), "ls-files", "--"," ".join(str(a) for a in self.TRACKED_ARTEFACTS)],
-            capture_output=True, text=True
+            [
+                "git",
+                "-C",
+                str(git_root),
+                "ls-files",
+                "--",
+                " ".join(str(a) for a in self.TRACKED_ARTEFACTS),
+            ],
+            capture_output=True,
+            text=True,
         )
         tracked = [l for l in result.stdout.strip().split("\n") if l]
         assert not tracked, f"These runtime artefacts are still git-tracked: {tracked}"

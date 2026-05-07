@@ -25,9 +25,9 @@ confidence: 0.9
 
 # Eigent Backend
 
-> **Status**: ✅ Deployed (H1 Complete)  
-> **Endpoint**: `https://eigent.vps.arif-fazil.com`  
-> **Model**: MiniMax-M2.7  
+> **Status**: ✅ Deployed (H1 Complete)
+> **Endpoint**: `https://eigent.vps.arif-fazil.com`
+> **Model**: MiniMax-M2.7
 > **Tier**: Horizon 1 → Horizon 2 Bridge
 
 ---
@@ -212,23 +212,23 @@ Horizon 1 (Execution Engine)    Horizon 2 (Swarm)
 
 session:
   intent: "Research competitor pricing"
-  
+
 stages:
   000_INIT:    { tool: arifos_init,    actor: user }
   111_SENSE:   { tool: arifos_sense,   evidence: [web, market] }
   333_MIND:    { tool: arifos_mind,    hypotheses: 3 }
   666_HEART:   { tool: arifos_heart,   stakeholders: [user, competitors] }
   888_JUDGE:   { tool: arifos_judge,   verdict: SEAL }
-  
+
 execution:
-  999_FORGE:   { 
+  999_FORGE:   {
     tool: arifos_forge,
     target: "eigent.vps.arif-fazil.com",
     action: "browser_automation",
     scope: "read_only",
     urls: ["competitor1.com/pricing", "competitor2.com/pricing"]
   }
-  
+
 seal:
   vault: VAULT999
   chain_hash: "sha256:..."

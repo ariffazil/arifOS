@@ -81,7 +81,7 @@ graph LR
     B --> C["Constitutional Filter<br/>(F1-F13)"]
     C --> D["Tool Execution"]
     D --> E["Audit Log"]
-    
+
     style A fill:#1a1a2e,color:#fff
     style B fill:#16213e,color:#fff
     style C fill:#0f3460,color:#fff
@@ -232,11 +232,11 @@ graph TB
     A["Query"] --> B["Phase 1: FAST<br/>Quick pattern match"]
     B --> C["Phase 2: REFLECT<br/>Deep reasoning"]
     C --> D["Phase 3: DECIDE<br/>Action selection"]
-    
+
     B -->|"F4 Clarity<br/>ΔS ≤ 0"| E["Pass/Fail"]
     C -->|"F2 Truth<br/>F3 Tri-Witness"| E
     D -->|"Constitutional<br/>Prefix"| E
-    
+
     style A fill:#1a1a2e,color:#fff
     style B fill:#16213e,color:#fff
     style C fill:#0f3460,color:#fff
@@ -284,7 +284,7 @@ graph LR
     E --> F["5. Safety Critique<br/>asi_heart"]
     F --> G["6. Estimate Cost<br/>math_estimator"]
     G --> H["7. Issue Verdict<br/>apex_soul"]
-    
+
     style A fill:#1a1a2e,color:#fff
     style B fill:#16213e,color:#fff
     style C fill:#0f3460,color:#fff
@@ -582,13 +582,13 @@ graph RL
     A --> B3["F10 + F2 Violation"]
     A --> B4["Ψ < 0.20"]
     A --> B5["Human Override"]
-    
+
     B1 -.->|VOID| K["999_SEAL<br/>HALT"]
     B2 -.->|VOID| K
     B3 -.->|VOID| K
     B4 -.->|VOID| K
     B5 -.->|VOID| K
-    
+
     style A fill:#ff0000,color:#fff
     style K fill:#8b0000,color:#fff
 ```
@@ -662,17 +662,17 @@ graph LR
         E3["Optimizes capability"]
         E4["Score: G (Genius)"]
     end
-    
+
     subgraph CONSERVATOR["CONSERVATOR"]
         C1["Protects stability"]
         C2["Rejects risky changes"]
         C3["Monitors drift"]
         C4["Score: Ψ (Vitality)"]
     end
-    
+
     E1 -->|"TENSION"| EQ["EQUILIBRIUM"]
     C1 -->|"TENSION"| EQ
-    
+
     style EXPLORER fill:#1a4d1a,color:#fff
     style CONSERVATOR fill:#4d1a1a,color:#fff
     style EQ fill:#1a1a2e,color:#fff
@@ -1033,8 +1033,8 @@ arifOS tools are organized into **5 constitutional bands**:
 ```
 ██╗      ██████╗ ███████╗████████╗    ███████╗███╗   ██╗██╗██╗  ██╗██╗██╗  ██╗██╗   ██╗
 ██║     ██╔══██╗██╔════╝╚══██╔══╝    ██╔════╝████╗  ██║██║╚██╗██╔╝██║██║  ██║╚██╗ ██╔╝
-██║     ██║  ██║█████╗     ██║       █████╗  ██╔██╗ ██║██║ ╚███╔╝ ██║███████║ ╚████╔╝ 
-██║     ██║  ██║██╔══╝     ██║       ██╔══╝  ██║╚██╗██║██║ ██╔██╗ ██║██╔══██║  ╚██╔╝  
-███████╗╚█████╔╝███████╗   ██║       ███████╗██║ ╚████║██║██╔╝ ██╗██║██║  ██║   ██║   
-╚══════╝ ╚═════╝ ╚══════╝   ╚═╝       ╚══════╝╚═╝  ╚══╝╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝    ╚═╝   
+██║     ██║  ██║█████╗     ██║       █████╗  ██╔██╗ ██║██║ ╚███╔╝ ██║███████║ ╚████╔╝
+██║     ██║  ██║██╔══╝     ██║       ██╔══╝  ██║╚██╗██║██║ ██╔██╗ ██║██╔══██║  ╚██╔╝
+███████╗╚█████╔╝███████╗   ██║       ███████╗██║ ╚████║██║██╔╝ ██╗██║██║  ██║   ██║
+╚══════╝ ╚═════╝ ╚══════╝   ╚═╝       ╚══════╝╚═╝  ╚══╝╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝    ╚═╝
 ```

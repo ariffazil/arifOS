@@ -32,6 +32,7 @@ from typing import Optional
 # LAS reading
 try:
     import lasio
+
     HAS_LASIO = True
 except ImportError:
     HAS_LASIO = False
@@ -58,26 +59,27 @@ DEFAULT_PORT = 8765
 # Standard curve mnemonic mappings (handle common variants)
 CURVE_ALIASES = {
     # Gamma Ray
-    'gr': ['GR', 'GRC', 'GRN', 'SGR', 'GAM'],
+    "gr": ["GR", "GRC", "GRN", "SGR", "GAM"],
     # Sonic / Acoustic
-    'ac': ['AC', 'DT', 'DTCO', 'DTC', 'ACOU'],
+    "ac": ["AC", "DT", "DTCO", "DTC", "ACOU"],
     # Bulk Density
-    'den': ['DEN', 'RHOB', 'RHOZ', 'ROHZ'],
+    "den": ["DEN", "RHOB", "RHOZ", "ROHZ"],
     # Neutron
-    'neu': ['NEU', 'CNL', 'NPHI', 'PHIN', 'CNC'],
+    "neu": ["NEU", "CNL", "NPHI", "PHIN", "CNC"],
     # Deep Resistivity
-    'rd': ['RDEP', 'RD', 'LLD', 'AT90', 'AT30'],
+    "rd": ["RDEP", "RD", "LLD", "AT90", "AT30"],
     # Medium Resistivity
-    'rm': ['RMED', 'RM', 'LLS', 'AT60'],
+    "rm": ["RMED", "RM", "LLS", "AT60"],
     # Caliper
-    'cal': ['CALI', 'CAL', 'HCAL', 'DCAL'],
+    "cal": ["CALI", "CAL", "HCAL", "DCAL"],
     # Shallow Resistivity
-    'rs': ['RSHL', 'RS', 'LLS', 'AT10'],
+    "rs": ["RSHL", "RS", "LLS", "AT10"],
 }
 
 # =============================================================================
 # INTERPRETATION RESULT
 # =============================================================================
+
 
 @dataclass
 class CurveStats:
@@ -141,8 +143,8 @@ class InterpretationReport:
 
     def to_dict(self) -> dict:
         d = asdict(self)
-        d['stats'] = {k: v.to_dict() for k, v in self.stats.items()}
-        d['zones'] = [asdict(z) for z in self.zones]
+        d["stats"] = {k: v.to_dict() for k, v in self.stats.items()}
+        d["zones"] = [asdict(z) for z in self.zones]
         return d
 
     def to_json(self) -> str:
@@ -152,6 +154,7 @@ class InterpretationReport:
 # =============================================================================
 # CURVE MAPPING
 # =============================================================================
+
 
 def find_curve_mnemonic(las: "lasio.LASFile", aliases: list[str]) -> Optional[str]:
     """Find first matching curve mnemonic from aliases list."""
@@ -175,6 +178,7 @@ def map_curves(las: "lasio.LASFile") -> dict[str, Optional[str]]:
 # =============================================================================
 # INTERPRETATION ENGINE
 # =============================================================================
+
 
 def interpret_las(
     las: "lasio.LASFile",
@@ -209,6 +213,7 @@ def interpret_las(
     """
     # Use WellLogConstants defaults for regional calibration
     from arifos.geox.init_000_anchor import WellLogConstants as _WC
+
     _wcc = _WC()
     if matrix_density == 2.65:
         matrix_density = _wcc.RHO_MATRIX_SANDSTONE
@@ -229,7 +234,7 @@ def interpret_las(
 
     # Map input curves
     curve_map = map_curves(las)
-    depth_mnem = find_curve_mnemonic(las, ['DEPT', 'DEPTH', 'MD', 'TDEP'])
+    depth_mnem = find_curve_mnemonic(las, ["DEPT", "DEPTH", "MD", "TDEP"])
 
     if not depth_mnem:
         raise ValueError("No depth curve found in LAS file (expected DEPT or DEPTH)")
@@ -251,7 +256,7 @@ def interpret_las(
     if depth is None:
         raise ValueError(f"Cannot read depth curve {depth_mnem} from LAS")
 
-    null = float(las.well.NULL.value) if hasattr(las.well, 'NULL') else -999.25
+    null = float(las.well.NULL.value) if hasattr(las.well, "NULL") else -999.25
 
     # Helper to get curve array
     def get_curve(mnemonic: str) -> Optional[list]:
@@ -261,35 +266,44 @@ def interpret_las(
             arr = get_las_array(las, mnemonic)
             if arr is None:
                 return None
-            return [float(v) if (v != null and v is not None and not (isinstance(v, float) and math.isnan(v))) else float('nan') for v in arr]
+            return [
+                (
+                    float(v)
+                    if (
+                        v != null and v is not None and not (isinstance(v, float) and math.isnan(v))
+                    )
+                    else float("nan")
+                )
+                for v in arr
+            ]
         except Exception:
             return None
 
     # Get input curves
-    gr_arr = get_curve(curve_map.get('gr'))
-    ac_arr = get_curve(curve_map.get('ac'))
-    den_arr = get_curve(curve_map.get('den'))
-    neu_arr = get_curve(curve_map.get('neu'))
-    rd_arr = get_curve(curve_map.get('rd'))
-    rm_arr = get_curve(curve_map.get('rm'))
-    cal_arr = get_curve(curve_map.get('cal'))
+    gr_arr = get_curve(curve_map.get("gr"))
+    ac_arr = get_curve(curve_map.get("ac"))
+    den_arr = get_curve(curve_map.get("den"))
+    neu_arr = get_curve(curve_map.get("neu"))
+    rd_arr = get_curve(curve_map.get("rd"))
+    get_curve(curve_map.get("rm"))
+    get_curve(curve_map.get("cal"))
 
     n = len(depth)
 
     # Initialize derived arrays
     derived: dict[str, list] = {
-        'DEPT': list(depth),
-        'PHI_RH': [None] * n,
-        'PHI_DN': [None] * n,
-        'PHI_SN': [None] * n,
-        'VSHALE': [None] * n,
-        'VSAND': [None] * n,
-        'SW': [None] * n,
-        'VBW': [None] * n,
-        'VHC': [None] * n,
-        'CROSS': [None] * n,
-        'NET': [None] * n,
-        'PAY': [None] * n,
+        "DEPT": list(depth),
+        "PHI_RH": [None] * n,
+        "PHI_DN": [None] * n,
+        "PHI_SN": [None] * n,
+        "VSHALE": [None] * n,
+        "VSAND": [None] * n,
+        "SW": [None] * n,
+        "VBW": [None] * n,
+        "VHC": [None] * n,
+        "CROSS": [None] * n,
+        "NET": [None] * n,
+        "PAY": [None] * n,
     }
 
     # Keep original curves
@@ -328,16 +342,16 @@ def interpret_las(
         # RHOB porosity
         if has_den:
             phi_rh = porosity_density(den_arr[i], matrix=matrix_density, fluid=1.0)
-            derived['PHI_RH'][i] = phi_rh
+            derived["PHI_RH"][i] = phi_rh
         else:
-            derived['PHI_RH'][i] = None
+            derived["PHI_RH"][i] = None
 
         # Neutron porosity (convert % to v/v)
         if has_neu:
             neu_v = neu_arr[i] / 100.0 if neu_arr[i] > 1 else neu_arr[i]
-            derived['PHI_DN'][i] = neu_v  # placeholder, updated below
+            derived["PHI_DN"][i] = neu_v  # placeholder, updated below
         else:
-            derived['PHI_DN'][i] = None
+            derived["PHI_DN"][i] = None
 
         # Sonic porosity
         if has_ac:
@@ -347,63 +361,64 @@ def interpret_las(
                 phi_sn = max(-0.1, min(0.5, phi_sn))
             else:
                 phi_sn = None
-            derived['PHI_SN'][i] = phi_sn
+            derived["PHI_SN"][i] = phi_sn
         else:
-            derived['PHI_SN'][i] = None
+            derived["PHI_SN"][i] = None
 
         # Average porosity (RH + NEU)
-        phi_rh_val = derived['PHI_RH'][i]
-        neu_v_val = derived['PHI_DN'][i]
+        phi_rh_val = derived["PHI_RH"][i]
+        neu_v_val = derived["PHI_DN"][i]
         if phi_rh_val is not None and neu_v_val is not None:
             phi_avg = (phi_rh_val + neu_v_val) / 2.0
-            derived['PHI_DN'][i] = max(-0.1, min(0.5, phi_avg))
+            derived["PHI_DN"][i] = max(-0.1, min(0.5, phi_avg))
             # Update PHI_RH to actual (was stored as actual)
         elif phi_rh_val is not None:
-            derived['PHI_DN'][i] = phi_rh_val
+            derived["PHI_DN"][i] = phi_rh_val
 
         # Vshale
         if has_gr and gr_clean is not None and gr_shale is not None:
             vsh = vshale_gr(gr_arr[i], gr_clean=gr_clean, gr_shale=gr_shale)
-            derived['VSHALE'][i] = vsh
-            derived['VSAND'][i] = 1.0 - vsh
+            derived["VSHALE"][i] = vsh
+            derived["VSAND"][i] = 1.0 - vsh
         else:
-            derived['VSHALE'][i] = None
-            derived['VSAND'][i] = None
+            derived["VSHALE"][i] = None
+            derived["VSAND"][i] = None
 
         # Water saturation
-        phi_dn_val = derived['PHI_DN'][i]
-        vsh_val = derived['VSHALE'][i]
+        phi_dn_val = derived["PHI_DN"][i]
+        vsh_val = derived["VSHALE"][i]
         if has_rd and phi_dn_val is not None and phi_dn_val > 0.01:
             phi_e = phi_dn_val * (1 - (vsh_val or 0) * 0.6)
-            sw = saturation_archie(rw=rw, rt=rd_arr[i], phi=phi_e,
-                                   a=archie_a, m=archie_m, n=archie_n)
-            derived['SW'][i] = sw
+            sw = saturation_archie(
+                rw=rw, rt=rd_arr[i], phi=phi_e, a=archie_a, m=archie_m, n=archie_n
+            )
+            derived["SW"][i] = sw
         else:
-            derived['SW'][i] = None
+            derived["SW"][i] = None
 
         # Bulk volumes
         if phi_dn_val is not None:
-            sw_val = derived['SW'][i]
-            derived['VBW'][i] = bulk_volume_water(phi_dn_val, sw_val or 0)
-            derived['VHC'][i] = bulk_volume_hydrocarbon(phi_dn_val, sw_val or 0)
+            sw_val = derived["SW"][i]
+            derived["VBW"][i] = bulk_volume_water(phi_dn_val, sw_val or 0)
+            derived["VHC"][i] = bulk_volume_hydrocarbon(phi_dn_val, sw_val or 0)
         else:
-            derived['VBW'][i] = None
-            derived['VHC'][i] = None
+            derived["VBW"][i] = None
+            derived["VHC"][i] = None
 
         # Neutron-density crossover (gas indicator)
         if phi_rh_val is not None and neu_v_val is not None:
             cross = neu_v_val - phi_rh_val
-            derived['CROSS'][i] = cross
+            derived["CROSS"][i] = cross
         else:
-            derived['CROSS'][i] = None
+            derived["CROSS"][i] = None
 
         # NET / PAY flags
-        vsand_val = derived['VSAND'][i]
-        sw_val = derived['SW'][i]
+        vsand_val = derived["VSAND"][i]
+        sw_val = derived["SW"][i]
         is_net = (vsand_val or 0) > (1 - vshale_cutoff) and (phi_dn_val or 0) > phi_cutoff
         is_pay = is_net and (sw_val or 1) < sw_cutoff
-        derived['NET'][i] = 1.0 if is_net else 0.0
-        derived['PAY'][i] = 1.0 if is_pay else 0.0
+        derived["NET"][i] = 1.0 if is_net else 0.0
+        derived["PAY"][i] = 1.0 if is_pay else 0.0
 
     # Zone analysis (6 zones)
     zone_size = max(1, (depth[-1] - depth[0]) / 6)
@@ -415,13 +430,13 @@ def interpret_las(
         if not mask:
             continue
 
-        phi_vals = [derived['PHI_DN'][i] for i in mask if derived['PHI_DN'][i] is not None]
-        vsh_vals = [derived['VSHALE'][i] for i in mask if derived['VSHALE'][i] is not None]
-        sw_vals = [derived['SW'][i] for i in mask if derived['SW'][i] is not None]
-        pay_vals = [derived['PAY'][i] for i in mask]
+        phi_vals = [derived["PHI_DN"][i] for i in mask if derived["PHI_DN"][i] is not None]
+        vsh_vals = [derived["VSHALE"][i] for i in mask if derived["VSHALE"][i] is not None]
+        sw_vals = [derived["SW"][i] for i in mask if derived["SW"][i] is not None]
+        pay_vals = [derived["PAY"][i] for i in mask]
         gas_count = 0
         for i in mask:
-            cv = derived['CROSS'][i]
+            cv = derived["CROSS"][i]
             if cv is not None and cv < -0.05:
                 gas_count += 1
 
@@ -430,17 +445,19 @@ def interpret_las(
         sw_m = sum(sw_vals) / len(sw_vals) if sw_vals else 1
         pay_count = sum(1 for v in pay_vals if v > 0.5)
 
-        zones.append(ZoneSummary(
-            name=f"Zone {chr(65+zi)}",
-            md_min=z_min,
-            md_max=z_max,
-            phi_mean=round(phi_m, 4),
-            vsh_mean=round(vsh_m, 4),
-            sw_mean=round(sw_m, 4),
-            pay_samples=pay_count,
-            gas_samples=gas_count,
-            wet=(sw_m > 0.85),
-        ))
+        zones.append(
+            ZoneSummary(
+                name=f"Zone {chr(65+zi)}",
+                md_min=z_min,
+                md_max=z_max,
+                phi_mean=round(phi_m, 4),
+                vsh_mean=round(vsh_m, 4),
+                sw_mean=round(sw_m, 4),
+                pay_samples=pay_count,
+                gas_samples=gas_count,
+                wet=(sw_m > 0.85),
+            )
+        )
 
     # Curve statistics
     def stats(arr: list) -> CurveStats:
@@ -460,6 +477,7 @@ def interpret_las(
 
     # Compute 888_HOLD triggers (constitutional compliance)
     from arifos.geox.init_000_anchor import HOLD_TRIGGERS as _HT
+
     hold_triggers: list[str] = []
     if valid_count == 0:
         hold_triggers.append(_HT["zero_well_control"])
@@ -472,35 +490,35 @@ def interpret_las(
 
     # Build report
     report = InterpretationReport(
-        well_name=str(las.well.WELL.value) if las.well.WELL.value else 'Unknown',
-        field_name=str(las.well.FLD.value) if las.well.FLD.value else 'Unknown',
-        location=str(las.well.LOC.value) if las.well.LOC.value else 'Unknown',
+        well_name=str(las.well.WELL.value) if las.well.WELL.value else "Unknown",
+        field_name=str(las.well.FLD.value) if las.well.FLD.value else "Unknown",
+        location=str(las.well.LOC.value) if las.well.LOC.value else "Unknown",
         md_min=float(depth[0]),
         md_max=float(depth[-1]),
         md_step=float(las.well.STEP.value) if las.well.STEP.value else 0.5,
         null_value=null,
         n_points=n,
         n_valid=valid_count,
-        timestamp=time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ"),
         geox_version=GEOX_VERSION,
         arifos_version=ARIFOS_VERSION,
         input_curves=[c.mnemonic for c in las.curves],
         curves_used=curve_map,
         stats=curve_stats,
         zones=zones,
-        epistemic_level='DER',
+        epistemic_level="DER",
         confidence=0.92,  # τ — well logs are reliable but assumptions (Rw, matrix) introduce uncertainty
         uncertainty_explicit=True,
         hold_triggers=hold_triggers,
         constants_used={
-            'matrix_density': matrix_density,
-            'rw': rw,
-            'archie_a': archie_a,
-            'archie_m': archie_m,
-            'archie_n': archie_n,
-            'vshale_cutoff': vshale_cutoff,
-            'phi_cutoff': phi_cutoff,
-            'sw_cutoff': sw_cutoff,
+            "matrix_density": matrix_density,
+            "rw": rw,
+            "archie_a": archie_a,
+            "archie_m": archie_m,
+            "archie_n": archie_n,
+            "vshale_cutoff": vshale_cutoff,
+            "phi_cutoff": phi_cutoff,
+            "sw_cutoff": sw_cutoff,
         },
     )
 
@@ -510,6 +528,7 @@ def interpret_las(
 # =============================================================================
 # LAS WRITER
 # =============================================================================
+
 
 def write_enhanced_las(
     original_las: "lasio.LASFile",
@@ -521,13 +540,13 @@ def write_enhanced_las(
     out.well.WELL.value = report.well_name
     out.well.FLD.value = report.field_name
     out.well.LOC.value = report.location
-    out.well.DATE.value = time.strftime('%Y-%m-%d')
+    out.well.DATE.value = time.strftime("%Y-%m-%d")
     out.well.STRT.value = report.md_min
     out.well.STOP.value = report.md_max
     out.well.STEP.value = report.md_step
     out.well.NULL.value = report.null_value
 
-    def add_curve(mnem: str, data: list, unit: str = '', descr: str = ''):
+    def add_curve(mnem: str, data: list, unit: str = "", descr: str = ""):
         if data is None:
             return
         arr = [float(v) if v is not None and not math.isnan(v) else report.null_value for v in data]
@@ -536,29 +555,46 @@ def write_enhanced_las(
     # Original curves already in derived dict
     for name, arr in derived.items():
         units = {
-            'DEPT': 'M', 'GR': 'GAPI', 'AC': 'US/F', 'DT': 'US/F',
-            'DEN': 'G/CC', 'RHOB': 'G/CC', 'NEU': 'PCT', 'CNL': 'PCT',
-            'RDEP': 'OHMM', 'RD': 'OHMM', 'RMED': 'OHMM', 'RM': 'OHMM',
-            'CALI': 'IN', 'CAL': 'IN',
-            'PHI_RH': 'V/V', 'PHI_DN': 'V/V', 'PHI_SN': 'V/V',
-            'VSHALE': 'V/V', 'VSAND': 'V/V', 'SW': 'V/V',
-            'VBW': 'V/V', 'VHC': 'V/V', 'CROSS': 'V/V',
-            'NET': 'BIN', 'PAY': 'BIN',
+            "DEPT": "M",
+            "GR": "GAPI",
+            "AC": "US/F",
+            "DT": "US/F",
+            "DEN": "G/CC",
+            "RHOB": "G/CC",
+            "NEU": "PCT",
+            "CNL": "PCT",
+            "RDEP": "OHMM",
+            "RD": "OHMM",
+            "RMED": "OHMM",
+            "RM": "OHMM",
+            "CALI": "IN",
+            "CAL": "IN",
+            "PHI_RH": "V/V",
+            "PHI_DN": "V/V",
+            "PHI_SN": "V/V",
+            "VSHALE": "V/V",
+            "VSAND": "V/V",
+            "SW": "V/V",
+            "VBW": "V/V",
+            "VHC": "V/V",
+            "CROSS": "V/V",
+            "NET": "BIN",
+            "PAY": "BIN",
         }
         descrs = {
-            'PHI_RH': 'Density Porosity',
-            'PHI_DN': 'Avg Density-Neutron Porosity',
-            'PHI_SN': 'Sonic Porosity',
-            'VSHALE': 'Shale Volume (GR Linear)',
-            'VSAND': 'Sand Volume = 1-Vshale',
-            'SW': 'Water Saturation (Archie)',
-            'VBW': 'Bulk Volume Water',
-            'VHC': 'Hydrocarbon Volume',
-            'CROSS': 'Neutron-Density Crossover (Gas)',
-            'NET': 'Net Sand Flag',
-            'PAY': 'Pay Flag (Sw<60pct)',
+            "PHI_RH": "Density Porosity",
+            "PHI_DN": "Avg Density-Neutron Porosity",
+            "PHI_SN": "Sonic Porosity",
+            "VSHALE": "Shale Volume (GR Linear)",
+            "VSAND": "Sand Volume = 1-Vshale",
+            "SW": "Water Saturation (Archie)",
+            "VBW": "Bulk Volume Water",
+            "VHC": "Hydrocarbon Volume",
+            "CROSS": "Neutron-Density Crossover (Gas)",
+            "NET": "Net Sand Flag",
+            "PAY": "Pay Flag (Sw<60pct)",
         }
-        add_curve(name, arr, unit=units.get(name, ''), descr=descrs.get(name, ''))
+        add_curve(name, arr, unit=units.get(name, ""), descr=descrs.get(name, ""))
 
     buf = io.BytesIO()
     out.write(buf)
@@ -583,50 +619,55 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        if self.path == '/health' or self.path == '/':
+        if self.path == "/health" or self.path == "/":
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
+            self.send_header("Content-Type", "application/json")
             self.end_headers()
             resp = {
-                'ok': True,
-                'service': 'GEOX LAS Interpreter',
-                'version': GEOX_VERSION,
-                'arifos_version': ARIFOS_VERSION,
-                'init_anchor': INIT_ANCHOR_VERSION,
-                'endpoints': {
-                    'POST /interpret': 'Upload LAS file → interpret + return JSON + enhanced LAS',
-                    'GET /health': 'Health check',
-                    'GET /constants': 'Well log constants used',
+                "ok": True,
+                "service": "GEOX LAS Interpreter",
+                "version": GEOX_VERSION,
+                "arifos_version": ARIFOS_VERSION,
+                "init_anchor": INIT_ANCHOR_VERSION,
+                "endpoints": {
+                    "POST /interpret": "Upload LAS file → interpret + return JSON + enhanced LAS",
+                    "GET /health": "Health check",
+                    "GET /constants": "Well log constants used",
                 },
-                'timestamp': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
             self.wfile.write(json.dumps(resp, indent=2).encode())
             return
 
-        if self.path == '/constants':
+        if self.path == "/constants":
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
+            self.send_header("Content-Type", "application/json")
             self.end_headers()
             const = WellLogConstants()
-            self.wfile.write(json.dumps({
-                'RHO_MATRIX_SANDSTONE': const.RHO_MATRIX_SANDSTONE,
-                'RHO_MATRIX_LIMESTONE': const.RHO_MATRIX_LIMESTONE,
-                'RHO_MATRIX_DOLOMITE': const.RHO_MATRIX_DOLOMITE,
-                'DT_FLUID': const.DT_FLUID,
-                'RW_DEFAULT': const.RW_DEFAULT,
-                'ARCHIE_A': const.ARCHIE_A,
-                'ARCHIE_M': const.ARCHIE_M,
-                'ARCHIE_N': const.ARCHIE_N,
-                'VSHALE_CUTOFF_NET': const.VSHALE_CUTOFF_NET,
-                'PHI_CUTOFF_PAY': const.PHI_CUTOFF_PAY,
-                'SW_CUTOFF_PAY': const.SW_CUTOFF_PAY,
-            }, indent=2).encode())
+            self.wfile.write(
+                json.dumps(
+                    {
+                        "RHO_MATRIX_SANDSTONE": const.RHO_MATRIX_SANDSTONE,
+                        "RHO_MATRIX_LIMESTONE": const.RHO_MATRIX_LIMESTONE,
+                        "RHO_MATRIX_DOLOMITE": const.RHO_MATRIX_DOLOMITE,
+                        "DT_FLUID": const.DT_FLUID,
+                        "RW_DEFAULT": const.RW_DEFAULT,
+                        "ARCHIE_A": const.ARCHIE_A,
+                        "ARCHIE_M": const.ARCHIE_M,
+                        "ARCHIE_N": const.ARCHIE_N,
+                        "VSHALE_CUTOFF_NET": const.VSHALE_CUTOFF_NET,
+                        "PHI_CUTOFF_PAY": const.PHI_CUTOFF_PAY,
+                        "SW_CUTOFF_PAY": const.SW_CUTOFF_PAY,
+                    },
+                    indent=2,
+                ).encode()
+            )
             return
 
         self.send_error(404)
 
     def do_POST(self):
-        if self.path != '/interpret':
+        if self.path != "/interpret":
             self.send_error(404)
             return
 
@@ -634,12 +675,13 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
             self._handle_interpret()
         except Exception as e:
             import traceback
+
             try:
                 self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('X-GEOX-Version', GEOX_VERSION)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("X-GEOX-Version", GEOX_VERSION)
                 self.end_headers()
-                self.wfile.write(json.dumps({'ok': False, 'error': str(e)}).encode())
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
             except Exception:
                 pass
             print(f"[LASI] Error: {e}", file=sys.stderr)
@@ -648,10 +690,10 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
     def _handle_interpret(self):
 
         # Parse multipart form data
-        content_type = self.headers.get('Content-Type', '')
-        if 'multipart' not in content_type:
+        content_type = self.headers.get("Content-Type", "")
+        if "multipart" not in content_type:
             # Try application/x-www-form-urlencoded
-            content_length = int(self.headers.get('Content-Length', 0))
+            content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length)
             # URL-encoded or raw
             try:
@@ -659,11 +701,12 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
             except Exception:
                 params = {}
 
-            if 'las_url' in params:
+            if "las_url" in params:
                 # Fetch LAS from URL
                 import urllib.request
+
                 try:
-                    response = urllib.request.urlopen(params['las_url'], timeout=30)
+                    response = urllib.request.urlopen(params["las_url"], timeout=30)
                     las_data = response.read()
                 except Exception as e:
                     self.send_error(400, f"Failed to fetch LAS URL: {e}")
@@ -672,38 +715,38 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
                 self.send_error(400, "No LAS file or URL provided")
                 return
         else:
-            content_length = int(self.headers.get('Content-Length', 0))
+            content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length)
             # Extract filename and content from multipart
             import re
+
             # RFC 2046: boundary may be quoted. Strip quotes.
             boundary_match = re.search(r'boundary=(?:"([^"]+)"|([^;\s]+))', content_type)
             if not boundary_match:
                 self.send_error(400, "No boundary found in Content-Type")
                 return
-            boundary_str = (boundary_match.group(1) or boundary_match.group(2) or '').strip()
+            boundary_str = (boundary_match.group(1) or boundary_match.group(2) or "").strip()
             if not boundary_str:
                 self.send_error(400, "Empty boundary")
                 return
             boundary = boundary_str.encode()
 
             # Simple multipart parser — find filename
-            parts = body.split(b'--' + boundary)
+            parts = body.split(b"--" + boundary)
             las_data = None
-            filename = None
             for part in parts:
-                if b'filename=' not in part:
+                if b"filename=" not in part:
                     continue
                 # Extract filename
-                fn_match = re.findall(r'filename="([^"]+)"', part.decode('utf-8', errors='ignore'))
+                fn_match = re.findall(r'filename="([^"]+)"', part.decode("utf-8", errors="ignore"))
                 if fn_match:
-                    filename = fn_match[0]
+                    fn_match[0]
                 # Find start of file data (after double CRLF)
-                idx = part.find(b'\r\n\r\n')
+                idx = part.find(b"\r\n\r\n")
                 if idx >= 0:
-                    las_data = part[idx + 4:]
+                    las_data = part[idx + 4 :]
                     # Strip trailing boundary marker
-                    las_data = las_data.rstrip(b'\r\n--')
+                    las_data = las_data.rstrip(b"\r\n--")
                 break
 
             if las_data is None:
@@ -714,8 +757,9 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
         try:
             import tempfile
             import os
+
             # lasio 0.32 requires a file path or string stream, not bytes
-            with tempfile.NamedTemporaryFile(suffix='.las', delete=False, mode='wb') as tmp:
+            with tempfile.NamedTemporaryFile(suffix=".las", delete=False, mode="wb") as tmp:
                 tmp.write(las_data)
                 tmp_path = tmp.name
             try:
@@ -739,18 +783,21 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
 
         # Return JSON response
         self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('X-GEOX-Version', GEOX_VERSION)
-        self.send_header('X-Interpreted-Curves', str(len([k for k in derived if k not in ['DEPT'] and derived[k][0] is not None])))
+        self.send_header("Content-Type", "application/json")
+        self.send_header("X-GEOX-Version", GEOX_VERSION)
+        self.send_header(
+            "X-Interpreted-Curves",
+            str(len([k for k in derived if k not in ["DEPT"] and derived[k][0] is not None])),
+        )
         self.end_headers()
 
         response = {
-            'ok': True,
-            'report': report.to_dict(),
-            'derived_curve_count': len([k for k in derived if derived[k][0] is not None]),
-            'enhanced_las_size_bytes': len(enhanced_las),
-            'enhanced_las_md5': las_hash,
-            'note': 'Enhanced LAS available at same endpoint via GET /interpreted/{md5}',
+            "ok": True,
+            "report": report.to_dict(),
+            "derived_curve_count": len([k for k in derived if derived[k][0] is not None]),
+            "enhanced_las_size_bytes": len(enhanced_las),
+            "enhanced_las_md5": las_hash,
+            "note": "Enhanced LAS available at same endpoint via GET /interpreted/{md5}",
         }
         self.wfile.write(json.dumps(response, indent=2).encode())
 
@@ -769,14 +816,14 @@ def run_server(port: int = DEFAULT_PORT):
     print("  GET  /constants   — Well log constants")
     print("")
     print(f"Starting on port {port}...")
-    with LASIThreadedTCPServer(('', port), LASIHandler) as httpd:
+    with LASIThreadedTCPServer(("", port), LASIHandler) as httpd:
         print(f"Ready. Serving on port {port}")
         httpd.serve_forever()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     port = DEFAULT_PORT
-    if len(sys.argv) > 1 and sys.argv[1] == '--port':
+    if len(sys.argv) > 1 and sys.argv[1] == "--port":
         if len(sys.argv) > 2:
             port = int(sys.argv[2])
 

@@ -1,7 +1,7 @@
 # arifOS TODO — THE BODY (Execution & Engineering)
 
-**Version:** 2026.04.06-AGI-MIND  
-**Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)  
+**Version:** 2026.04.06-AGI-MIND
+**Authority:** Muhammad Arif bin Fazil (999_VALIDATOR)
 **Motto:** *Body starts where Stochastic ends.*
 
 ---
@@ -186,6 +186,6 @@
 
 ---
 
-**Last SEALed:** 2026.04.07-UNIFIED  
-**Status:** INSTITUTIONAL GRADE · GOVERNANCE HARDENED · QUOTES CORPUS CANONICAL  
+**Last SEALed:** 2026.04.07-UNIFIED
+**Status:** INSTITUTIONAL GRADE · GOVERNANCE HARDENED · QUOTES CORPUS CANONICAL
 *"Ditempa bukan diberi"* 🔥

@@ -35,13 +35,13 @@ async def understand_image(image_url: str, prompt: str = "") -> dict[str, Any]:
         result = await bridge.understand_image(image_url, prompt)
 
         metrics = ThermodynamicMetrics(
-            truth_score=0.90,      # F2: vision-grounded
-            delta_s=-0.05,         # F4: descriptive output reduces entropy
-            peace_squared=1.0,     # F7: read-only
-            stakeholder_safety=1.0, # F5: no harm
-            omega_0=0.04,          # F12: URL validated
-            amanah_lock=True,      # F1: reversible
-            tri_witness_score=0.90, # F3: vision + text
+            truth_score=0.90,  # F2: vision-grounded
+            delta_s=-0.05,  # F4: descriptive output reduces entropy
+            peace_squared=1.0,  # F7: read-only
+            stakeholder_safety=1.0,  # F5: no harm
+            omega_0=0.04,  # F12: URL validated
+            amanah_lock=True,  # F1: reversible
+            tri_witness_score=0.90,  # F3: vision + text
         )
 
         return governed_return(

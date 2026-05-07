@@ -47,6 +47,7 @@ def register_all_apps(mcp: FastMCP) -> list[str]:
     for module_path, label in _APP_MODULES:
         try:
             import importlib
+
             mod = importlib.import_module(module_path)
             reg_fn = getattr(mod, "_register", None)
             if reg_fn is not None:

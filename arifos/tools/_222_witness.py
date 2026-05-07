@@ -142,17 +142,12 @@ def _build_claim_bundle(
     organs: dict[str, dict],
 ) -> dict:
     """Build the claim_bundle with ungrounded tracking."""
-    ungrounded = [
-        name for name, o in organs.items()
-        if not o.get("grounded", False)
-    ]
+    ungrounded = [name for name, o in organs.items() if not o.get("grounded", False)]
     claims = [o["claim"] for o in organs.values() if o.get("grounded")]
     consensus_claim = (
         claims[0]
         if len(claims) == 1
-        else "; ".join(claims[:3])
-        if claims
-        else f"No grounded claims for: {query}"
+        else "; ".join(claims[:3]) if claims else f"No grounded claims for: {query}"
     )
     return {
         "query": query,
@@ -171,9 +166,7 @@ def _build_consensus_rationale(
     rationale = {
         "tag": tri_witness_tag,
         "score": score,
-        "organ_confidences": {
-            name: o.get("confidence") for name, o in organs.items()
-        },
+        "organ_confidences": {name: o.get("confidence") for name, o in organs.items()},
         "explanation": "",
     }
     if tri_witness_tag == "FULL_WITNESS":
@@ -249,9 +242,7 @@ def _generate_assumptions(
             "Earth witness via web_search depends on DuckDuckGo + Playwright — latency and coverage vary."
         )
     if search_query:
-        assumptions.append(
-            f"Custom search query '{search_query}' may bias result distribution."
-        )
+        assumptions.append(f"Custom search query '{search_query}' may bias result distribution.")
     if depth == "deep":
         assumptions.append(
             "Deep search mode extracts top-5 hits with snippets — higher coverage but longer latency."
@@ -357,12 +348,12 @@ async def execute(
 
         if mode in ("search", "web_search") or witness_required >= 4:
             try:
-                bridge_result = await minimax_bridge.web_search(
-                    query=search_query or focus_claim
-                )
+                bridge_result = await minimax_bridge.web_search(query=search_query or focus_claim)
                 earth_claim = _extract_bridge_answer(bridge_result)
                 hits = _normalize_bridge_hits(bridge_result)
-                bridge_error = bridge_result.get("error") if isinstance(bridge_result, dict) else None
+                bridge_error = (
+                    bridge_result.get("error") if isinstance(bridge_result, dict) else None
+                )
                 # Build WEB organ evidence block
                 web_confidence = 0.7 if (earth_claim or hits) else 0.5
                 web_evidence = {
@@ -435,9 +426,7 @@ async def execute(
         reasoning_payload = {
             "tri_witness_tag": tri_witness_tag,
             "tri_witness_score": tri_witness_score,
-            "organ_confidences": {
-                name: o.get("confidence") for name, o in organs.items()
-            },
+            "organ_confidences": {name: o.get("confidence") for name, o in organs.items()},
             "well_readiness": well_readiness,
             "witness_required": witness_required,
         }
@@ -463,7 +452,11 @@ async def execute(
                 "aligned": human_witness,
                 "operator_present": bool(operator_id),
                 "session_present": bool(session_id),
-                "note": "Human intent aligned with 888_APEX sovereign anchor." if human_witness else "Human witness incomplete — operator or session missing.",
+                "note": (
+                    "Human intent aligned with 888_APEX sovereign anchor."
+                    if human_witness
+                    else "Human witness incomplete — operator or session missing."
+                ),
             },
             "ai_witness": {
                 "score": ai_witness,
@@ -473,16 +466,16 @@ async def execute(
             "earth_witness": {
                 "score": earth_witness,
                 "source": "minimax_web_search" if web_evidence else "none",
-                "note": "Web search validation score." if web_evidence else "No web search performed.",
+                "note": (
+                    "Web search validation score." if web_evidence else "No web search performed."
+                ),
             },
         }
 
         # W³ geometric mean of the three witness dimensions
-        w3_score = (
-            (1.0 if human_witness else 0.3)
-            * ai_witness
-            * max(earth_witness, 0.3)
-        ) ** (1 / 3)
+        w3_score = ((1.0 if human_witness else 0.3) * ai_witness * max(earth_witness, 0.3)) ** (
+            1 / 3
+        )
         f2_truth_confidence = round(w3_score, 3)
 
         # Grounding status: ANCHORED if consensus meets threshold and all required organs present
@@ -513,7 +506,9 @@ async def execute(
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "floors_evaluated": ["F2", "F3", "F5", "F8"],
             "floors_deferred": ["F11", "F13"],
-            "meta_intelligence": _build_meta_intelligence(bool(session_id), mode, witness_required, depth),
+            "meta_intelligence": _build_meta_intelligence(
+                bool(session_id), mode, witness_required, depth
+            ),
             # EMD Stack — Metabolizer output
             "external_evidence": external_evidence,
             "tri_witness_report": tri_witness_report,
@@ -533,9 +528,7 @@ async def execute(
             tri_witness_score=tri_witness_score,
             stakeholder_safety=1.0,
         )
-        return governed_return(
-            "arifos_222_witness", report, metrics, operator_id, session_id
-        )
+        return governed_return("arifos_222_witness", report, metrics, operator_id, session_id)
 
     except Exception as exc:
         logger.warning("arifos_222_witness constitutional error: %s", exc)
@@ -561,12 +554,17 @@ async def execute(
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "floors_evaluated": ["F3", "F8"],
             "floors_deferred": ["F2", "F5", "F11", "F13"],
-            "meta_intelligence": _build_meta_intelligence(bool(session_id), mode, witness_required, depth),
+            "meta_intelligence": _build_meta_intelligence(
+                bool(session_id), mode, witness_required, depth
+            ),
             "consensus_rationale": "Witness degraded by exception path.",
             "divergence_points": [f"exception:{type(exc).__name__}"],
             "external_evidence": [],
             "tri_witness_report": {
-                "human_witness": {"aligned": False, "note": "Error path — no human alignment data."},
+                "human_witness": {
+                    "aligned": False,
+                    "note": "Error path — no human alignment data.",
+                },
                 "ai_witness": {"score": 0.5, "note": "Error path — no AI consistency data."},
                 "earth_witness": {"score": 0.5, "note": "Error path — no earth witness data."},
             },
@@ -583,6 +581,4 @@ async def execute(
             stakeholder_safety=1.0,
             floor_9_signal="fail",
         )
-        return governed_return(
-            "arifos_222_witness", error_report, metrics, operator_id, session_id
-        )
+        return governed_return("arifos_222_witness", error_report, metrics, operator_id, session_id)

@@ -11,7 +11,7 @@ Key changes from v2:
 
 Usage:
     from arifosmcp.runtime.tools_v3_clean import arifos_init_clean
-    
+
     result = await arifos_init_clean(
         actor="arif",
         intent="Start new session",
@@ -19,7 +19,7 @@ Usage:
         session="arif-session-001",
         options={"verbose": False}
     )
-    
+
     # result is now a clean dict, not RuntimeEnvelope
     print(result["execution"]["ok"])  # True/False
     print(result["operator"]["summary"])  # Plain language summary
@@ -63,6 +63,7 @@ from arifosmcp.runtime.schemas_v2_clean import CleanInput, QueryOptions
 # CLEAN INPUT WRAPPER
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _build_options(options: dict[str, Any] | None) -> QueryOptions:
     """Build QueryOptions from dict."""
     if options is None:
@@ -78,6 +79,7 @@ def _build_options(options: dict[str, Any] | None) -> QueryOptions:
 # CLEAN TOOL IMPLEMENTATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def arifos_init_clean(
     actor: str = "anonymous",
     intent: str = "",
@@ -87,19 +89,19 @@ async def arifos_init_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.init.
-    
+
     Input:
         actor: Who is initiating (replaces actor_id + declared_name)
         intent: What they want to accomplish
         risk: low | medium | high | critical (replaces risk_tier)
         session: Session identifier (replaces session_id)
         options: {verbose: bool, debug: bool}
-    
+
     Output:
         Clean dict with fixed blocks: execution, governance, operator, context, error
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_init_anchor(
         mode="init",
         payload={
@@ -112,7 +114,7 @@ async def arifos_init_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     # Return clean formatted output
     return seal_runtime_envelope(
         envelope=envelope,
@@ -130,7 +132,7 @@ async def arifos_sense_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.sense.
-    
+
     Input:
         query: What to ground in reality
         mode: search | ingest | compass | atlas | time
@@ -139,7 +141,7 @@ async def arifos_sense_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_physics_reality(
         mode=mode,
         payload={"query": query},
@@ -148,7 +150,7 @@ async def arifos_sense_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.sense",
@@ -166,7 +168,7 @@ async def arifos_mind_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.mind.
-    
+
     Input:
         query: Task or question to reason about
         context: Additional context (optional)
@@ -176,7 +178,7 @@ async def arifos_mind_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_agi_mind(
         mode=mode,
         payload={"query": query, "context": context},
@@ -185,7 +187,7 @@ async def arifos_mind_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.mind",
@@ -202,7 +204,7 @@ async def arifos_heart_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.heart.
-    
+
     Input:
         content: Content or proposal to critique
         mode: critique | simulate
@@ -211,7 +213,7 @@ async def arifos_heart_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_asi_heart(
         mode=mode,
         payload={"content": content},
@@ -220,7 +222,7 @@ async def arifos_heart_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.heart",
@@ -237,7 +239,7 @@ async def arifos_judge_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.judge.
-    
+
     Input:
         candidate_action: Action to judge
         risk: low | medium | high | critical
@@ -246,7 +248,7 @@ async def arifos_judge_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_apex_judge(
         mode="judge",
         payload={
@@ -259,7 +261,7 @@ async def arifos_judge_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.judge",
@@ -276,7 +278,7 @@ async def arifos_route_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.route.
-    
+
     Input:
         request: Request to route
         mode: kernel | status
@@ -285,7 +287,7 @@ async def arifos_route_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_arifOS_kernel(
         mode=mode,
         payload={"query": request},
@@ -294,7 +296,7 @@ async def arifos_route_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.route",
@@ -311,7 +313,7 @@ async def arifos_ops_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.ops.
-    
+
     Input:
         action: Action to estimate costs for
         mode: cost | health | vitals | entropy
@@ -320,7 +322,7 @@ async def arifos_ops_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_math_estimator(
         mode=mode,
         payload={"action": action},
@@ -329,7 +331,7 @@ async def arifos_ops_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.ops",
@@ -346,7 +348,7 @@ async def arifos_memory_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.memory.
-    
+
     Input:
         query: Memory query
         mode: vector_query | vector_store | engineer | query
@@ -355,7 +357,7 @@ async def arifos_memory_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_engineering_memory(
         mode=mode,
         payload={"query": query},
@@ -364,7 +366,7 @@ async def arifos_memory_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.memory",
@@ -381,7 +383,7 @@ async def arifos_vault_clean(
 ) -> dict[str, Any]:
     """
     Clean interface for arifos.vault.
-    
+
     Input:
         verdict: SEAL | PARTIAL | VOID | HOLD
         evidence: Evidence summary
@@ -390,7 +392,7 @@ async def arifos_vault_clean(
         options: {verbose: bool, debug: bool}
     """
     query_opts = _build_options(options)
-    
+
     envelope = await _mega_vault_ledger(
         mode="seal",
         payload={"verdict": verdict, "evidence": evidence},
@@ -399,7 +401,7 @@ async def arifos_vault_clean(
         dry_run=True,
         debug=query_opts.debug,
     )
-    
+
     return seal_runtime_envelope(
         envelope=envelope,
         tool_id="arifos.vault",

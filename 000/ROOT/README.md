@@ -2,7 +2,7 @@
 
 **The Constitutional Core of Governed Intelligence**
 
-> *"Ditempa Bukan Diberi"* — Forged, Not Given  
+> *"Ditempa Bukan Diberi"* — Forged, Not Given
 > *"Truth must cool before it rules"*
 
 ---
@@ -189,9 +189,9 @@ K000 → K111 → K777 → K888 → K999
 
 ---
 
-**Authority:** Muhammad Arif bin Fazil (888 Judge)  
-**Version:** v888.9.0-9KERNEL  
-**Total Size:** ~28 KB (9 kernels + MCP definitions)  
+**Authority:** Muhammad Arif bin Fazil (888 Judge)
+**Version:** v888.9.0-9KERNEL
+**Total Size:** ~28 KB (9 kernels + MCP definitions)
 **Collapsed From:** 27+ files (~100+ KB)
 
 *The 9 Kernels are unified. The MCP Holy 9 bridges to the material world. The forging continues.*

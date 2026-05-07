@@ -36,7 +36,7 @@ class EmbeddingWorker:
             jobs = []  # Placeholder
 
             for job in jobs:
-                memory_id = job["memory_id"]
+                job["memory_id"]
                 content = job["content"]  # Assume content is joined or fetched
 
                 # 2. Generate Embedding

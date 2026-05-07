@@ -583,7 +583,9 @@ class CorroborationSpec:
 class ConflictPolicy:
     """Conflict resolution policy."""
 
-    mode: str = "prefer_higher_rank"  # or: prefer_newer_if_same_rank, hold_on_conflict, summarize_disagreement
+    mode: str = (
+        "prefer_higher_rank"  # or: prefer_newer_if_same_rank, hold_on_conflict, summarize_disagreement
+    )
 
 
 @dataclass
@@ -1220,19 +1222,21 @@ class SubstrateFetchProvider:
     ) -> list[dict[str, Any]]:
         # This provider is primarily for direct URL grounding or high-signal docs
         from arifosmcp.integrations.fetch_bridge import fetch_bridge
-        
+
         # If the query is a URL, use fetch_guarded directly
         if query.startswith(("http://", "https://")):
             res = await fetch_bridge.fetch_guarded(query, reason="Governed Sense Grounding")
             if res.get("ok"):
-                return [{
-                    "title": f"Fetched Document: {query}",
-                    "url": query,
-                    "description": res.get("content", ""),
-                    "source_type": "mcp-fetch",
-                    "source_rank": res.get("source_rank", 4)
-                }]
-        
+                return [
+                    {
+                        "title": f"Fetched Document: {query}",
+                        "url": query,
+                        "description": res.get("content", ""),
+                        "source_type": "mcp-fetch",
+                        "source_rank": res.get("source_rank", 4),
+                    }
+                ]
+
         # Otherwise, fallback to a search engine to find URLs, then fetch
         # (This is handled by the higher-level logic in governed_sense)
         return []
@@ -1464,7 +1468,7 @@ def build_temporal_grounding(si: SenseInput, tc: TruthClassification) -> Tempora
     now = datetime.now(timezone.utc).isoformat()
 
     freshness_required = tc.temporal_dependency or time_scope in (TimeScope.LIVE, TimeScope.DATED)
-    freshness_days = _FRESHNESS_BY_DOMAIN.get(domain)
+    _FRESHNESS_BY_DOMAIN.get(domain)
 
     staleness_risk = StalenessRisk.NONE
     notes: list[str] = []
@@ -1559,9 +1563,11 @@ def build_evidence_plan(si: SenseInput, tc: TruthClassification) -> EvidencePlan
             require_primary_if_available=True,
         ),
         conflict_policy=ConflictPolicy(
-            mode="prefer_higher_rank"
-            if truth_class == TruthClass.TIME_SENSITIVE_FACT
-            else "summarize_disagreement"
+            mode=(
+                "prefer_higher_rank"
+                if truth_class == TruthClass.TIME_SENSITIVE_FACT
+                else "summarize_disagreement"
+            )
         ),
     )
 
@@ -1574,7 +1580,7 @@ def build_evidence_plan(si: SenseInput, tc: TruthClassification) -> EvidencePlan
 def _infer_source_rank(url: str, title: str) -> int:
     """Heuristic source-rank inference from URL/title signals."""
     u = (url or "").lower()
-    t = (title or "").lower()
+    (title or "").lower()
     # Rank 1: primary measurement — not inferrable from URL alone
     # Rank 2: primary source (original doc, raw data)
     if any(x in u for x in [".gov", ".gov.", "official", "parliament", "congress"]):
@@ -2191,9 +2197,9 @@ async def governed_sense(
     state_update = StateUpdate(
         stable_facts_delta=grounded_facts[:3],
         unknowns_delta=unresolved,
-        conflicts_delta=[conflict.conflict_summary]
-        if conflict.detected and conflict.conflict_summary
-        else [],
+        conflicts_delta=(
+            [conflict.conflict_summary] if conflict.detected and conflict.conflict_summary else []
+        ),
         confidence_delta=round(1.0 - ub.sigma, 4),
         uncertainty_delta=round(ub.sigma, 4),
     )
@@ -2232,9 +2238,9 @@ async def governed_sense(
     state_update = StateUpdate(
         stable_facts_delta=grounded_facts[:3],
         unknowns_delta=unresolved,
-        conflicts_delta=[conflict.conflict_summary]
-        if conflict.detected and conflict.conflict_summary
-        else [],
+        conflicts_delta=(
+            [conflict.conflict_summary] if conflict.detected and conflict.conflict_summary else []
+        ),
         confidence_delta=round(intel.confidence, 4),
         uncertainty_delta=round(ub.sigma, 4),
     )

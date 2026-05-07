@@ -329,5 +329,5 @@ DITEMPA BUKAN DIBERI.
 
 ---
 
-*Sealed: 2026-05-03T01:18:00+08:00 · Witness: Arif Fazil · Co-architect: arifOS*  
+*Sealed: 2026-05-03T01:18:00+08:00 · Witness: Arif Fazil · Co-architect: arifOS*
 *DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*

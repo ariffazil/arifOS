@@ -5,6 +5,7 @@ DITEMPA BUKAN DIBERI
 Replaces mcp-library-based bridge with raw stdio subprocess.
 Avoids anyio/cancel-scope compatibility issues in Python 3.12.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -97,9 +98,14 @@ class _RawMinimaxBridge:
             return resp.get("result")
 
     async def web_search(self, query: str) -> dict[str, Any]:
-        result = await self._call("tools/call", {"name": "web_search", "arguments": {"query": query}})
+        result = await self._call(
+            "tools/call", {"name": "web_search", "arguments": {"query": query}}
+        )
         if result is None:
-            return {"organic": [], "base_resp": {"status_code": -1, "status_msg": "bridge_result_none"}}
+            return {
+                "organic": [],
+                "base_resp": {"status_code": -1, "status_msg": "bridge_result_none"},
+            }
         for block in result.get("content", []):
             if block.get("type") == "text":
                 text = block["text"]
@@ -107,7 +113,10 @@ class _RawMinimaxBridge:
                     return json.loads(text)
                 except json.JSONDecodeError:
                     if text.startswith("Failed") or text.startswith("Error"):
-                        return {"error": text, "base_resp": {"status_code": 400, "status_msg": text}}
+                        return {
+                            "error": text,
+                            "base_resp": {"status_code": 400, "status_msg": text},
+                        }
                     return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
         return {"organic": [], "base_resp": {"status_code": -1, "status_msg": "no text content"}}
 
@@ -115,9 +124,14 @@ class _RawMinimaxBridge:
         arguments: dict[str, Any] = {"image_source": image_url}
         if prompt:
             arguments["prompt"] = prompt
-        result = await self._call("tools/call", {"name": "understand_image", "arguments": arguments})
+        result = await self._call(
+            "tools/call", {"name": "understand_image", "arguments": arguments}
+        )
         if result is None:
-            return {"result": "", "base_resp": {"status_code": -1, "status_msg": "bridge_result_none"}}
+            return {
+                "result": "",
+                "base_resp": {"status_code": -1, "status_msg": "bridge_result_none"},
+            }
         for block in result.get("content", []):
             if block.get("type") == "text":
                 text = block["text"]
@@ -125,7 +139,10 @@ class _RawMinimaxBridge:
                     return json.loads(text)
                 except json.JSONDecodeError:
                     if text.startswith("Failed") or text.startswith("Error"):
-                        return {"error": text, "base_resp": {"status_code": 400, "status_msg": text}}
+                        return {
+                            "error": text,
+                            "base_resp": {"status_code": 400, "status_msg": text},
+                        }
                     return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
         return {"result": "", "base_resp": {"status_code": -1, "status_msg": "no text content"}}
 
@@ -209,8 +226,12 @@ class _RawFullMinimaxBridge:
         """Calls ANY tool on the full MiniMax MCP server (TTS, Video, Image, Music)."""
         result = await self._call("tools/call", {"name": name, "arguments": arguments})
         if result is None:
-            return {"result": None, "status": "error", "base_resp": {"status_code": -1, "status_msg": "bridge_result_none"}}
-        
+            return {
+                "result": None,
+                "status": "error",
+                "base_resp": {"status_code": -1, "status_msg": "bridge_result_none"},
+            }
+
         # Flatten content blocks into a single response
         text_content = ""
         for block in result.get("content", []):
@@ -218,8 +239,13 @@ class _RawFullMinimaxBridge:
                 text_content += block["text"]
             elif block.get("type") == "image":
                 # Handle image generation results
-                return {"result": block.get("data"), "type": "image", "status": "success", "base_resp": {"status_code": 200}}
-        
+                return {
+                    "result": block.get("data"),
+                    "type": "image",
+                    "status": "success",
+                    "base_resp": {"status_code": 200},
+                }
+
         try:
             return json.loads(text_content)
         except json.JSONDecodeError:
@@ -373,7 +399,15 @@ class MinimaxMCPBridge:
                 }
 
             # Simple hantu check — look for anthropomorphic language
-            hantu_words = ["i feel", "i think", "my opinion", "i believe", "conscious", "sentient", "mind"]
+            hantu_words = [
+                "i feel",
+                "i think",
+                "my opinion",
+                "i believe",
+                "conscious",
+                "sentient",
+                "mind",
+            ]
             hantu_score = sum(1 for w in hantu_words if w in description.lower()) / len(hantu_words)
             verdict = "VOID" if hantu_score > 0.5 else "SEAL"
 
@@ -421,14 +455,28 @@ class MinimaxMCPBridge:
                 {"prompt": prompt, "aspect_ratio": aspect_ratio, "n": n, "model": model},
             )
             if "error" in raw:
-                return {"status": "error", "verdict": "SABAR", "error": raw["error"], "images": None}
-            return {"status": "success", "verdict": "SEAL", "images": raw.get("result", raw), "raw": raw}
+                return {
+                    "status": "error",
+                    "verdict": "SABAR",
+                    "error": raw["error"],
+                    "images": None,
+                }
+            return {
+                "status": "success",
+                "verdict": "SEAL",
+                "images": raw.get("result", raw),
+                "raw": raw,
+            }
         except Exception as exc:
             logger.error("text_to_image failed: %s", exc)
             return {"status": "error", "verdict": "SABAR", "error": str(exc), "images": None}
 
     async def text_to_audio(
-        self, text: str, voice_id: str = "female-shaonv", model: str = "speech-02-hd", speed: float = 1.0
+        self,
+        text: str,
+        voice_id: str = "female-shaonv",
+        model: str = "speech-02-hd",
+        speed: float = 1.0,
     ) -> dict[str, Any]:
         """Synthesize speech via MiniMax MCP."""
         try:
@@ -438,7 +486,12 @@ class MinimaxMCPBridge:
             )
             if "error" in raw:
                 return {"status": "error", "verdict": "SABAR", "error": raw["error"], "audio": None}
-            return {"status": "success", "verdict": "SEAL", "audio": raw.get("result", raw), "raw": raw}
+            return {
+                "status": "success",
+                "verdict": "SEAL",
+                "audio": raw.get("result", raw),
+                "raw": raw,
+            }
         except Exception as exc:
             logger.error("text_to_audio failed: %s", exc)
             return {"status": "error", "verdict": "SABAR", "error": str(exc), "audio": None}
@@ -452,12 +505,19 @@ class MinimaxMCPBridge:
             )
             if "error" in raw:
                 return {"status": "error", "verdict": "SABAR", "error": raw["error"], "music": None}
-            return {"status": "success", "verdict": "SEAL", "music": raw.get("result", raw), "raw": raw}
+            return {
+                "status": "success",
+                "verdict": "SEAL",
+                "music": raw.get("result", raw),
+                "raw": raw,
+            }
         except Exception as exc:
             logger.error("music_generation failed: %s", exc)
             return {"status": "error", "verdict": "SABAR", "error": str(exc), "music": None}
 
-    async def generate_video(self, prompt: str, model: str = "MiniMax-Hailuo-02", duration: int = 6) -> dict[str, Any]:
+    async def generate_video(
+        self, prompt: str, model: str = "MiniMax-Hailuo-02", duration: int = 6
+    ) -> dict[str, Any]:
         """Generate video via MiniMax MCP."""
         try:
             raw = await _raw_full_bridge.call_tool(
@@ -466,7 +526,12 @@ class MinimaxMCPBridge:
             )
             if "error" in raw:
                 return {"status": "error", "verdict": "SABAR", "error": raw["error"], "video": None}
-            return {"status": "success", "verdict": "SEAL", "video": raw.get("result", raw), "raw": raw}
+            return {
+                "status": "success",
+                "verdict": "SEAL",
+                "video": raw.get("result", raw),
+                "raw": raw,
+            }
         except Exception as exc:
             logger.error("generate_video failed: %s", exc)
             return {"status": "error", "verdict": "SABAR", "error": str(exc), "video": None}

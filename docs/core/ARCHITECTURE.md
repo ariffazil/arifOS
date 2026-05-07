@@ -1,7 +1,7 @@
 # ARCHITECTURE.md - OpenClaw File System Canon
 
-**Authority:** Muhammad Arif bin Fazil (888 Judge)  
-**Version:** v1.0  
+**Authority:** Muhammad Arif bin Fazil (888 Judge)
+**Version:** v1.0
 **Sealed:** 2026-02-09
 
 ---
@@ -104,8 +104,8 @@ The `/root/HEARTBEAT.md` is for **human reference only**.
 
 ## REDUNDANCIES ELIMINATED
 
-✅ **SOUL.md multiplicity** — Removed copy from `.openclaw/workspace/`  
-✅ **WORKFLOW absence** — Created 7 missing workflow files  
+✅ **SOUL.md multiplicity** — Removed copy from `.openclaw/workspace/`
+✅ **WORKFLOW absence** — Created 7 missing workflow files
 ✅ **HEARTBEAT confusion** — Documented correct location
 
 ---
@@ -158,5 +158,5 @@ The `/root/HEARTBEAT.md` is for **human reference only**.
 
 ---
 
-*Ditempa bukan diberi* 💎🔥🧠  
+*Ditempa bukan diberi* 💎🔥🧠
 *Architecture forged, not given*

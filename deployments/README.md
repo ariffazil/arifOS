@@ -1,7 +1,7 @@
 # arifOS Deployment Guide
 
-> **Version**: 2026.04.11  
-> **Authority**: 000_THEORY, 888_APEX  
+> **Version**: 2026.04.11
+> **Authority**: 000_THEORY, 888_APEX
 > **DITEMPA BUKAN DIBERI**
 
 ## Quick Start
@@ -202,5 +202,5 @@ asyncio.run(check())
 
 ---
 
-**999_SEAL_ALIVE**  
+**999_SEAL_ALIVE**
 **DITEMPA BUKAN DIBERI**

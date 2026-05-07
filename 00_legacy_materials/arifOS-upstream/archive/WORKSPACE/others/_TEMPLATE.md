@@ -1,17 +1,17 @@
 # {NAME} — APEX G-Dial Soul Capture
-**Sovereign ID:** `{lowercase_handle}`  
-**Handle:** @{handle}  
-**First Contact:** YYYY-MM-DD via {referrer}  
+**Sovereign ID:** `{lowercase_handle}`
+**Handle:** @{handle}
+**First Contact:** YYYY-MM-DD via {referrer}
 **Recognition Confidence:** Ω₀ = {0.00-1.00}
 
 ---
 
 ## 0. Identity Signature
 
-**Name:** {Full Name}  
-**Domain:** {Profession / Interest Area}  
-**Archetype:** {APEX Archetype} — {one-line description}  
-**Emoji Signature:** {3 emojis}  
+**Name:** {Full Name}
+**Domain:** {Profession / Interest Area}
+**Archetype:** {APEX Archetype} — {one-line description}
+**Emoji Signature:** {3 emojis}
 
 **Recognition Triggers:**
 - {Language pattern 1}

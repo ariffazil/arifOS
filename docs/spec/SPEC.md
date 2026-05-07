@@ -1,10 +1,10 @@
 # arifOSMCP Protocol Profile (SPEC)
 
-> **Document Type:** Normative server profile / implementation contract  
-> **Status:** Draft  
-> **Owner:** ARIF  
-> **MCP Protocol:** 2025-11-25  
-> **FastMCP Framework:** 3.x (pinned)  
+> **Document Type:** Normative server profile / implementation contract
+> **Status:** Draft
+> **Owner:** ARIF
+> **MCP Protocol:** 2025-11-25
+> **FastMCP Framework:** 3.x (pinned)
 
 **Motto:** *Ditempa Bukan Diberi* — Forged, Not Given [ΔΩΨ | ARIF]
 
@@ -31,7 +31,7 @@ Every blocked state MUST return a recovery path.
 ### 3.3 Protocol-Native Exposure
 Anything discoverable should be exposed through MCP-native components first:
 - **Resources** for static/inspectable state
-- **Prompts** for guided workflows  
+- **Prompts** for guided workflows
 - **Tools** for actions or computed operations
 
 ### 3.4 Open Access (Current Phase)
@@ -120,18 +120,18 @@ bootstrap_flow:
     tool: check_vital
     state_required: anonymous
     output: [health, capabilities, degraded_components]
-    
+
   - step: 2
     tool: audit_rules
     state_required: anonymous
     output: [constitutional_floors, doctrine_hooks]
-    
+
   - step: 3
     tool: init_anchor_state
     state_required: anonymous_or_claimed
     input: [actor_id, declared_name, intent]
     output: [anchored_session, auth_context_seed]
-    
+
   - step: 4
     tool: arifOS_kernel
     state_required: anchored
@@ -323,6 +323,6 @@ telemetry_fields:
 
 ---
 
-*Forged, Not Given* 🔨  
-**Document Version:** 2026.03.17-SPEC  
+*Forged, Not Given* 🔨
+**Document Version:** 2026.03.17-SPEC
 **Canonical Status:** Draft for Implementation

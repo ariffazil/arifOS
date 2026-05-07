@@ -205,9 +205,15 @@ def _check_111_invariants(payload: dict[str, Any]) -> list[str]:
     # truth_class must be in valid set
     truth_class = payload.get("truth_class")
     valid_classes = {
-        "OBSERVED", "INFERRED", "SPECULATIVE", "UNVERIFIED",
-        "absolute_invariant", "dated", "operational_principle",
-        "contested_framework", "unknown",
+        "OBSERVED",
+        "INFERRED",
+        "SPECULATIVE",
+        "UNVERIFIED",
+        "absolute_invariant",
+        "dated",
+        "operational_principle",
+        "contested_framework",
+        "unknown",
     }
     if truth_class and truth_class not in valid_classes:
         failures.append(f"invalid_truth_class:{truth_class}")

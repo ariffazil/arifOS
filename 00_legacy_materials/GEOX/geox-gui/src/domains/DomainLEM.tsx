@@ -59,7 +59,7 @@ export const DomainLEM: React.FC = () => {
           <div className="text-xs font-mono text-gray-500 border-b border-gray-800 pb-2 mb-4 flex justify-between items-center z-10">
             <span>STATE VECTOR: <span className="text-amber-500">EARTH.PHYSICS_9</span></span>
           </div>
-          
+
           <div className="grid grid-cols-3 gap-3 flex-1 z-10">
             {physics9.map((v, i) => (
               <div key={i} className="border border-gray-800 bg-black/40 p-3 flex flex-col justify-between hover:border-gray-600 transition-colors">
@@ -80,10 +80,10 @@ export const DomainLEM: React.FC = () => {
           <div className="text-xs font-mono text-gray-500 border-b border-gray-800 pb-2 flex items-center gap-2">
             <ArrowRightLeft className="w-4 h-4 text-purple-500" /> PHYSICS AUDIT SOLVER
           </div>
-          
-          <button 
-            onClick={handleBackpropagate} 
-            disabled={isPropagating || auditTool.status === 'loading'} 
+
+          <button
+            onClick={handleBackpropagate}
+            disabled={isPropagating || auditTool.status === 'loading'}
             className="mt-auto w-full py-3 bg-purple-500/10 border border-purple-500/50 text-purple-400 text-xs font-bold font-mono uppercase hover:bg-purple-500/20 transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
           >
             {isPropagating ? <span className="animate-pulse">SOLVING JACOBIAN...</span> : <><DatabaseZap size={14}/> EXECUTE PHYSICS AUDIT</>}
@@ -92,7 +92,7 @@ export const DomainLEM: React.FC = () => {
           {auditTool.data && (
             <div className={`p-3 border font-mono text-[10px] leading-relaxed flex-1 overflow-y-auto ${isBlocked ? 'border-red-500/30 bg-red-500/5 text-red-200' : 'border-purple-500/30 bg-purple-500/5 text-purple-200'}`}>
               <div className="text-[9px] mb-2 flex items-center gap-2">
-                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />} 
+                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />}
                 {isBlocked ? '888_JUDGE POLICY VIOLATION' : 'METABOLIC STATUS'}
               </div>
               <pre className="whitespace-pre-wrap">{auditTool.data}</pre>

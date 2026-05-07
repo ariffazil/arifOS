@@ -1,8 +1,8 @@
 # INFRASTRUCTURE SOVEREIGNTY: arifOS Remote Execution (srv1325122)
 
-**Status:** ACTIVE_SOVEREIGN_NODE  
-**Authority:** 888_JUDGE / Antigravity Oracle  
-**Last Verified:** 2026-03-27  
+**Status:** ACTIVE_SOVEREIGN_NODE
+**Authority:** 888_JUDGE / Antigravity Oracle
+**Last Verified:** 2026-03-27
 
 ## 1. THE SOVEREIGN BRIDGE (reality-bridge)
 
@@ -18,7 +18,7 @@ Agents shall utilize the following identity projection for all remote operations
 - **Port:** 22
 
 ### 1.2 Execution Constraints
-Any command executed via `ssh arifos` is subject to **Floor 1 (Amanah)**. 
+Any command executed via `ssh arifos` is subject to **Floor 1 (Amanah)**.
 - **Requirement:** Destructive commands (`rm`, `docker rm`, `systemctl stop`) require an explicit `--force-sovereign` justification or human confirmation.
 - **Requirement:** All remote changes must be committed to the local governance log (F11 Audit).
 

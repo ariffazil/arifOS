@@ -9,12 +9,12 @@
 ```sql
 -- NEW CONSTRAINT: new records need cooling_id (migrated_legacy is exception)
 ALTER TABLE vault_seals ADD CONSTRAINT vault_seals_new_require_cooling_id
-    CHECK (provenance_tag = 'migrated_legacy' OR provenance_tag = 'human' 
+    CHECK (provenance_tag = 'migrated_legacy' OR provenance_tag = 'human'
            OR ratified_at < '2026-04-18 06:00:00+00' OR cooling_id IS NOT NULL);
 
 -- UPDATED: provenance_tag check now includes migrated_legacy
 ALTER TABLE vault_seals DROP CONSTRAINT vault_seals_provenance_tag_check;
-ALTER TABLE vault_seals ADD CONSTRAINT vault_seals_provenance_tag_check 
+ALTER TABLE vault_seals ADD CONSTRAINT vault_seals_provenance_tag_check
     CHECK (provenance_tag IN ('human','machine','migrated','migrated_legacy','unknown'));
 
 -- TRIGGER 1: human_signature enforcement (exists, working)
@@ -139,13 +139,13 @@ DROP TRIGGER vault_seals_append_only_block ON vault_seals;
 DROP TRIGGER vault_seals_irreversibility_enforce ON vault_seals;
 
 -- Revert migrated_legacy back to human
-UPDATE vault_seals SET provenance_tag = 'human', 
+UPDATE vault_seals SET provenance_tag = 'human',
     metadata = metadata - 'migration_note' - 'review_model'
 WHERE provenance_tag = 'migrated_legacy';
 
 -- Revert cooling_queue status for any accidentally sealed records
-UPDATE cooling_queue SET status = 'awaiting_human' 
-WHERE status IN ('sealed', 'voided') 
+UPDATE cooling_queue SET status = 'awaiting_human'
+WHERE status IN ('sealed', 'voided')
 AND created_at > '2026-04-18 06:00:00+00';
 ```
 

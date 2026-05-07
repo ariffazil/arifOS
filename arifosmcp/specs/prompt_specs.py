@@ -23,6 +23,7 @@ from typing import Any
 @dataclass(frozen=True)
 class PromptArgument:
     """Typed argument for a prompt template."""
+
     name: str
     required: bool
     description: str
@@ -34,9 +35,9 @@ class PromptArgument:
 class PromptSpec:
     """
     Clean prompt specification following MCP protocol.
-    
+
     Prompts are reusable workflow templates.
-    
+
     Fields:
         name: Machine-stable identifier
         title: Human-facing name
@@ -45,6 +46,7 @@ class PromptSpec:
         template_text: Jinja2-style template (optional)
         expected_contracts: Contracts this prompt produces/consumes
     """
+
     name: str
     title: str
     description: str
@@ -54,19 +56,11 @@ class PromptSpec:
 
 
 def _arg(
-    name: str,
-    required: bool,
-    description: str,
-    arg_type: str = "string",
-    default: Any = None
+    name: str, required: bool, description: str, arg_type: str = "string", default: Any = None
 ) -> PromptArgument:
     """Helper to create prompt arguments."""
     return PromptArgument(
-        name=name,
-        required=required,
-        description=description,
-        arg_type=arg_type,
-        default=default
+        name=name, required=required, description=description, arg_type=arg_type, default=default
     )
 
 
@@ -76,7 +70,6 @@ def _arg(
 
 CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
     # ═══ SESSION LIFECYCLE ═══
-    
     PromptSpec(
         name="prompt_init_anchor",
         title="Start Governed Session",
@@ -96,9 +89,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("SessionAnchor", "TelemetryEnvelope"),
     ),
-    
     # ═══ EVIDENCE GATHERING ═══
-    
     PromptSpec(
         name="prompt_sense_reality",
         title="Gather Evidence",
@@ -118,9 +109,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("EvidenceBundle", "WitnessTriple"),
     ),
-    
     # ═══ REASONING ═══
-    
     PromptSpec(
         name="prompt_reason_synthesis",
         title="Structured Reasoning",
@@ -142,9 +131,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("EvidenceBundle", "TelemetryEnvelope"),
     ),
-    
     # ═══ SAFETY ═══
-    
     PromptSpec(
         name="prompt_critique_safety",
         title="Safety Critique",
@@ -167,9 +154,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("EvidenceBundle",),
     ),
-    
     # ═══ ROUTING ═══
-    
     PromptSpec(
         name="prompt_route_kernel",
         title="Route Complex Request",
@@ -179,7 +164,12 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         arguments=(
             _arg("request", True, "What needs to be done"),
-            _arg("intent_type", False, "Category: ask, audit, design, decide, analyze, execute", "ask"),
+            _arg(
+                "intent_type",
+                False,
+                "Category: ask, audit, design, decide, analyze, execute",
+                "ask",
+            ),
         ),
         template_text=(
             "Please route this request through arifOS: {{request}}. "
@@ -190,9 +180,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("SessionAnchor", "VerdictRecord"),
     ),
-    
     # ═══ MEMORY ═══
-    
     PromptSpec(
         name="prompt_memory_recall",
         title="Recall Memory",
@@ -214,9 +202,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("EvidenceBundle",),
     ),
-    
     # ═══ ESTIMATION ═══
-    
     PromptSpec(
         name="prompt_estimate_ops",
         title="Estimate Operations",
@@ -237,9 +223,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("TelemetryEnvelope",),
     ),
-    
     # ═══ JUDGMENT ═══
-    
     PromptSpec(
         name="prompt_judge_verdict",
         title="Render Verdict",
@@ -264,9 +248,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=("VerdictRecord", "TelemetryEnvelope", "WitnessTriple"),
     ),
-    
     # ═══ EXPLANATION ═══
-    
     PromptSpec(
         name="prompt_human_explainer",
         title="Explain to Human",
@@ -288,9 +270,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         expected_contracts=(),
     ),
-    
     # ═══ VAULT ═══
-    
     PromptSpec(
         name="prompt_vault_record",
         title="Prepare Vault Record",
@@ -344,22 +324,23 @@ def prompt_spec_to_mcp_schema(spec: PromptSpec) -> dict[str, Any]:
                 "description": arg.description,
             }
             for arg in spec.arguments
-        ]
+        ],
     }
 
 
 def render_prompt(spec: PromptSpec, **kwargs: Any) -> str:
     """
     Simple template rendering for prompt text.
-    
+
     Uses basic Jinja2-style variable substitution.
     """
     if not spec.template_text:
         return ""
-    
+
     import re
+
     text = spec.template_text
-    
+
     # Handle {{var|default('val')}}
     pattern = r'\{\{(\w+)\|default\([\'"]([^\'"]*)[\'"]\)\}\}'
     for match in re.finditer(pattern, text):
@@ -367,10 +348,10 @@ def render_prompt(spec: PromptSpec, **kwargs: Any) -> str:
         default_val = match.group(2)
         value = kwargs.get(var_name, default_val)
         text = text.replace(match.group(0), str(value))
-    
+
     # Handle {% if var %}...{% endif %}
     # Simplified: remove the conditionals if var is empty/false
-    if_pattern = r'\{%\s*if\s+(\w+)\s*%\}(.*?)\{%\s*endif\s*%\}'
+    if_pattern = r"\{%\s*if\s+(\w+)\s*%\}(.*?)\{%\s*endif\s*%\}"
     for match in re.finditer(if_pattern, text, re.DOTALL):
         var_name = match.group(1)
         content = match.group(2)
@@ -378,14 +359,14 @@ def render_prompt(spec: PromptSpec, **kwargs: Any) -> str:
             text = text.replace(match.group(0), content)
         else:
             text = text.replace(match.group(0), "")
-    
+
     # Handle simple {{var}}
-    simple_pattern = r'\{\{(\w+)\}\}'
+    simple_pattern = r"\{\{(\w+)\}\}"
     for match in re.finditer(simple_pattern, text):
         var_name = match.group(1)
         value = kwargs.get(var_name, f"[{var_name}]")
         text = text.replace(match.group(0), str(value))
-    
+
     return text.strip()
 
 

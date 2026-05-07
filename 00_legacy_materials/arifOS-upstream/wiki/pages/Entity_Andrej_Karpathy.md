@@ -22,7 +22,7 @@ confidence: 0.9
 
 ## Biography
 
-Andrej Karpathy is a prominent AI researcher and educator. 
+Andrej Karpathy is a prominent AI researcher and educator.
 
 - **Former Director of AI** at Tesla (Autopilot).
 - **Founding Member** of OpenAI.

@@ -14,14 +14,16 @@ from typing import Any
 
 class MemoryType(Enum):
     """The four lanes of memory."""
-    WORKING = "working"           # Current session, short TTL
-    EPISODIC = "episodic"         # Event/history, timestamped
-    SEMANTIC = "semantic"         # Stable knowledge, distilled
+
+    WORKING = "working"  # Current session, short TTL
+    EPISODIC = "episodic"  # Event/history, timestamped
+    SEMANTIC = "semantic"  # Stable knowledge, distilled
     CONSTITUTIONAL = "constitutional"  # Core rules, read often, write rarely
 
 
 class MemoryOrigin(Enum):
     """Where did this memory come from?"""
+
     USER = "user"
     SYSTEM = "system"
     TOOL = "tool"
@@ -42,16 +44,18 @@ class Sensitivity(Enum):
 
 class RetentionClass(Enum):
     """Memory lifecycle classes."""
-    EPHEMERAL = "ephemeral"       # Scratch/temporary, short TTL
-    SESSION = "session"           # Current work, expires after session
-    PROJECT = "project"           # Active architecture, retain while active
-    DURABLE = "durable"           # Stable doctrine, keep until revoked
+
+    EPHEMERAL = "ephemeral"  # Scratch/temporary, short TTL
+    SESSION = "session"  # Current work, expires after session
+    PROJECT = "project"  # Active architecture, retain while active
+    DURABLE = "durable"  # Stable doctrine, keep until revoked
     CONSTITUTIONAL = "constitutional"  # Core laws, keep unless sovereign changes
 
 
 @dataclass
 class Source:
     """Provenance: where did this memory come from?"""
+
     origin: MemoryOrigin
     session_id: str | None = None
     message_ref: str | None = None
@@ -61,6 +65,7 @@ class Source:
 @dataclass
 class Scope:
     """Who can see this and in what context?"""
+
     owner: str = "ARIF"
     visibility: Visibility = Visibility.PRIVATE
     domain: str = "arifOS"
@@ -70,6 +75,7 @@ class Scope:
 @dataclass
 class Governance:
     """Can we trust this memory? Should we keep it?"""
+
     confidence: float = 0.0  # [0.0, 1.0]
     sensitivity: Sensitivity = Sensitivity.LOW
     requires_confirmation: bool = False
@@ -80,6 +86,7 @@ class Governance:
 @dataclass
 class Time:
     """Temporal tracking for lifecycle management."""
+
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
     expires_at: datetime | None = None
@@ -89,6 +96,7 @@ class Time:
 @dataclass
 class Retrieval:
     """How do we find this memory again?"""
+
     embedding_id: str | None = None
     keywords: list[str] = field(default_factory=list)
     entities: list[str] = field(default_factory=list)
@@ -99,6 +107,7 @@ class Retrieval:
 @dataclass
 class Lineage:
     """Where did this come from and what did it replace?"""
+
     derived_from: list[str] = field(default_factory=list)  # parent memory_ids
     supersedes: str | None = None  # memory this replaces
     superseded_by: str | None = None  # memory that replaces this
@@ -108,20 +117,21 @@ class Lineage:
 class MemoryRecord:
     """
     The canonical memory envelope.
-    
+
     All memory lanes use this schema. What differs is:
     - memory_type (which lane)
     - retention policy (how long it lives)
     - retrieval weights (how we find it)
     """
+
     memory_id: str
     memory_type: MemoryType
-    
+
     # Content
     title: str
     content: str
     summary: str | None = None
-    
+
     # Metadata
     source: Source = field(default_factory=Source)
     scope: Scope = field(default_factory=Scope)
@@ -129,10 +139,10 @@ class MemoryRecord:
     time: Time = field(default_factory=Time)
     retrieval: Retrieval = field(default_factory=Retrieval)
     lineage: Lineage = field(default_factory=Lineage)
-    
+
     # Lane-specific extensions
     lane_data: dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "memory_id": self.memory_id,
@@ -163,7 +173,9 @@ class MemoryRecord:
                 "created_at": self.time.created_at.isoformat() if self.time.created_at else None,
                 "updated_at": self.time.updated_at.isoformat() if self.time.updated_at else None,
                 "expires_at": self.time.expires_at.isoformat() if self.time.expires_at else None,
-                "last_accessed_at": self.time.last_accessed_at.isoformat() if self.time.last_accessed_at else None,
+                "last_accessed_at": (
+                    self.time.last_accessed_at.isoformat() if self.time.last_accessed_at else None
+                ),
             },
             "retrieval": {
                 "embedding_id": self.retrieval.embedding_id,
@@ -184,6 +196,7 @@ class MemoryRecord:
 @dataclass
 class WriteReceipt:
     """Confirmation of memory write."""
+
     memory_id: str
     stored: bool
     embedding_created: bool
@@ -193,6 +206,7 @@ class WriteReceipt:
 @dataclass
 class MemoryQuery:
     """Query for memory retrieval."""
+
     query: str
     memory_types: list[MemoryType] | None = None
     scopes: list[str] | None = None

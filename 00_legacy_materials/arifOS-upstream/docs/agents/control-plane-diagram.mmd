@@ -30,35 +30,35 @@ graph TB
     end
 
     HUMAN -->|Approval| VAL
-    
+
     ARCH -->|Design| ENG
     ENG -->|Implement| AUD
     AUD -->|VOID or Pass| VAL
     VAL -->|SEAL| V
-    
+
     ARCH -.->|Identity Check| EC
     ENG -.->|Identity Check| EC
     AUD -.->|Identity Check| EC
     VAL -.->|Identity Check| EC
-    
+
     EC -->|Validate| ID
     EC -->|Capability Check| CM
-    
+
     ARCH -.->|Observations| ML
     ENG -.->|Observations| ML
     AUD -.->|Observations| ML
     VAL -.->|Observations| ML
-    
+
     EB -->|Triggers| ARCH
     EB -->|Triggers| ENG
     EB -->|Triggers| AUD
     EB -->|Triggers| VAL
-    
+
     ARCH -.->|Forensic Log| FR
     ENG -.->|Forensic Log| FR
     AUD -.->|Forensic Log| FR
     VAL -.->|Forensic Log| FR
-    
+
     EC -->|Receipt| V
     FR -->|Replay Data| V
 

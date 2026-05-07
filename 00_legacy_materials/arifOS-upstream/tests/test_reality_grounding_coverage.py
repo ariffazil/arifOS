@@ -286,7 +286,7 @@ class TestErrorHandling:
         with patch("arifosmcp.intelligence.tools.reality_grounding._search_ddgs") as mock_ddgs:
             mock_ddgs.side_effect = Exception("Network error")
 
-            with patch("arifosmcp.intelligence.tools.reality_grounding.logger") as mock_logger:
+            with patch("arifosmcp.intelligence.tools.reality_grounding.logger"):
                 results = await grounding_search("test query")
                 # Should return empty list or fallback, not raise
                 assert isinstance(results, list)

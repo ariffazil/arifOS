@@ -569,33 +569,33 @@ async def execute(
     fusion_mode: str = "trio"
 ) -> dict:
     """Execute 222_WITNESS — gather evidence from all organs, fuse into tri-witness."""
-    
+
     # Stage guard: must have passed 111_SENSE
     require_stage("222", previous=["111", "000"])
-    
+
     # Gather signals in parallel
     signals = {}
     tasks = []
-    
+
     if geox_signal:
         tasks.append(_fetch_geox(geox_signal))
     if wealth_signal:
         tasks.append(_fetch_wealth(wealth_signal))
     if well_signal:
         tasks.append(_fetch_well(well_signal))
-    
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     # Process results
     for result in results:
         if isinstance(result, Exception):
             signals[result.organ] = {"error": str(result), "confidence": 0.0}
         else:
             signals[result["organ"]] = result
-    
+
     # Tri-witness fusion
     fusion = tri_witness_fusion(signals, mode=fusion_mode)
-    
+
     return {
         "stage": "222",
         "verdict": "SEAL" if fusion.confidence >= 0.7 else "HOLD",

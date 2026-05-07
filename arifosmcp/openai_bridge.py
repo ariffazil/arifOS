@@ -45,11 +45,13 @@ else:
             if hasattr(r, "results") and r.results:  # SearchResult
                 for item in r.results:
                     uid = item.get("href", item.get("url", query))[:32]
-                    results.append({
-                        "id": uid,
-                        "title": item.get("title", "Untitled"),
-                        "url": item.get("href", item.get("url", "")),
-                    })
+                    results.append(
+                        {
+                            "id": uid,
+                            "title": item.get("title", "Untitled"),
+                            "url": item.get("href", item.get("url", "")),
+                        }
+                    )
 
         return [{"type": "text", "text": json.dumps({"results": results})}]
 
@@ -69,13 +71,17 @@ else:
                 content_text = r.raw_content[:8000]
                 break
 
-        return [{
-            "type": "text",
-            "text": json.dumps({
-                "id": url[:32],
-                "title": url.split("/")[-1] or "Document",
-                "text": content_text,
-                "url": url,
-                "metadata": {"source": "arifOS", "bridge": "openai-mcp"}
-            })
-        }]
+        return [
+            {
+                "type": "text",
+                "text": json.dumps(
+                    {
+                        "id": url[:32],
+                        "title": url.split("/")[-1] or "Document",
+                        "text": content_text,
+                        "url": url,
+                        "metadata": {"source": "arifOS", "bridge": "openai-mcp"},
+                    }
+                ),
+            }
+        ]

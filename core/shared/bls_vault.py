@@ -292,8 +292,7 @@ class BLSVaultSigner:
         juror_ids = [s.juror_id for s in signatures]
         sig_bytes_list = [s.signature_bytes() for s in signatures]
         pk_bytes_list = [
-            bytes.fromhex(self._juror_keypairs[jid].public_key_hex)
-            for jid in juror_ids
+            bytes.fromhex(self._juror_keypairs[jid].public_key_hex) for jid in juror_ids
         ]
 
         # Aggregate: σ_agg = Σ σᵢ  (G2 point addition)
@@ -312,8 +311,7 @@ class BLSVaultSigner:
             aggregate_signature_hex=agg_sig.hex(),
             aggregate_pubkey_hex=agg_pk.hex(),
             individual_pubkeys_hex=[
-                bytes.fromhex(self._juror_keypairs[jid].public_key_hex).hex()
-                for jid in juror_ids
+                bytes.fromhex(self._juror_keypairs[jid].public_key_hex).hex() for jid in juror_ids
             ],
         )
 

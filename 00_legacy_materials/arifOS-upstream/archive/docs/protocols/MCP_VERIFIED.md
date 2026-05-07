@@ -2,9 +2,9 @@
 
 ## 🎉 DEPLOYMENT CONFIRMED FUNCTIONAL
 
-**URL:** https://arifosmcp.arif-fazil.com/  
-**Status:** ✅ FULLY OPERATIONAL  
-**Tested:** 2026-03-09 13:XX UTC  
+**URL:** https://arifosmcp.arif-fazil.com/
+**Status:** ✅ FULLY OPERATIONAL
+**Tested:** 2026-03-09 13:XX UTC
 **Protocol:** MCP 2025-11-25 (Streamable HTTP)
 
 ---
@@ -223,12 +223,12 @@ All tool calls return governed responses with:
 
 ## 📊 SERVER METRICS
 
-**Protocol:** MCP 2025-11-25 (Streamable HTTP)  
-**Transport:** HTTP with JSON-RPC 2.0  
-**Tools:** 25 total (10 core + 11 ACLIP + 4 legacy)  
-**Authentication:** None (actor_id for logging only)  
-**Rate Limiting:** Constitutional cost scoring  
-**Verdict Engine:** Active (F1-F13 floors enforced)  
+**Protocol:** MCP 2025-11-25 (Streamable HTTP)
+**Transport:** HTTP with JSON-RPC 2.0
+**Tools:** 25 total (10 core + 11 ACLIP + 4 legacy)
+**Authentication:** None (actor_id for logging only)
+**Rate Limiting:** Constitutional cost scoring
+**Verdict Engine:** Active (F1-F13 floors enforced)
 
 ---
 
@@ -262,6 +262,6 @@ The arifOS MCP server is **FULLY OPERATIONAL** and ready to:
 
 **Ditempa Bukan Diberi** — Forged, Not Given 🏛️
 
-**Status:** ✅ VERIFIED LIVE  
-**Last Tested:** 2026-03-09  
+**Status:** ✅ VERIFIED LIVE
+**Last Tested:** 2026-03-09
 **Version:** 2026.03.08-SEAL

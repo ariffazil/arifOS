@@ -2,8 +2,8 @@
 SeismicSingleLineTool — Governed Inverse Modelling Supervisor
 DITEMPA BUKAN DIBERI
 
-A domain-aware inverse modelling coordinator that orchestrates deterministic 
-physics signals (attributes) and probabilistic AI patterns (VLM/CV) into a 
+A domain-aware inverse modelling coordinator that orchestrates deterministic
+physics signals (attributes) and probabilistic AI patterns (VLM/CV) into a
 governed family of plausible subsurface models.
 
 Follows Theory of Anomalous Contrast (ToAC).
@@ -103,7 +103,7 @@ class SeismicSingleLineTool:
         self.calculator = SeismicAttributeCalculator()
         self.generator = SeismicSyntheticGenerator()
         self.registry = get_registry()
-    
+
     async def run(self, params: dict[str, Any]) -> dict[str, Any]:
         """Run the tool with given parameters."""
         file_path = params.get("file_path", "")
@@ -146,7 +146,7 @@ class SeismicSingleLineTool:
             "load_raster",
             "compute_attributes",
             "bias_audit",
-            "inverse_orchestration"
+            "inverse_orchestration",
         ]
 
         return SeismicInterpretationResult(
@@ -163,7 +163,7 @@ class SeismicSingleLineTool:
     def _ensure_ndarray(self, data: Any) -> np.ndarray:
         if isinstance(data, np.ndarray):
             return data
-        
+
         # ACTIVATE ENGINE: If no data, use the Synthetic Generator (ToAC Grounding)
         logger.info("[GEOX] Seismic Engine Ignite: Generating synthetic extensional block.")
         return self.generator.generate_extensional_block()
@@ -196,7 +196,7 @@ class SeismicSingleLineTool:
                 BiasAuditRecord(
                     bias_type="Visual Anchoring",
                     severity="CRITICAL",
-                    mitigation="Mandatory computation of coherence and curvature attributes required."
+                    mitigation="Mandatory computation of coherence and curvature attributes required.",
                 )
             )
 
@@ -205,7 +205,7 @@ class SeismicSingleLineTool:
             BiasAuditRecord(
                 bias_type="Availability Bias",
                 severity="MEDIUM",
-                mitigation="Forced generation of 3+ alternative structural models."
+                mitigation="Forced generation of 3+ alternative structural models.",
             )
         )
 
@@ -214,7 +214,9 @@ class SeismicSingleLineTool:
     def _interpret_orchestrated(self, data: np.ndarray, attributes: dict[str, np.ndarray]) -> str:
         """Pattern recognition informed by attributes."""
         if "coherence" in attributes and np.mean(attributes["coherence"]) < 0.7:
-            return "Interpreted as a complex faulted extensional block with significant discontinuity."
+            return (
+                "Interpreted as a complex faulted extensional block with significant discontinuity."
+            )
         return "Interpreted as dominated by continuous stratigraphy with minimal structural deformation."
 
     def _interpret_from_visual_only(self, data: np.ndarray) -> str:
@@ -238,22 +240,22 @@ class SeismicSingleLineTool:
                 "model": "Extensional Regime (Faulted)",
                 "description": "Sub-vertical normal faults with stratigraphic thickening.",
                 "evidence_strength": "HIGH" if "fault" in primary.lower() else "MEDIUM",
-                "non_uniqueness_risk": "High — could be mimicked by stratigraphic pinchouts."
+                "non_uniqueness_risk": "High — could be mimicked by stratigraphic pinchouts.",
             },
             {
                 "id": "candidate_depositional",
                 "model": "Depositional Geometry (Carbonate/Channel)",
                 "description": "Lateral variations due to depositional facies, not tectonics.",
                 "evidence_strength": "MEDIUM",
-                "non_uniqueness_risk": "Moderate — requires spectral decomposition for tie-break."
+                "non_uniqueness_risk": "Moderate — requires spectral decomposition for tie-break.",
             },
             {
                 "id": "candidate_artifact",
                 "model": "Processing/Display Artifact",
                 "description": "Apparent dips caused by velocity pulls or colormap aliasing.",
                 "evidence_strength": "LOW",
-                "non_uniqueness_risk": "Critical — Bond et al. (2007) failure mode."
-            }
+                "non_uniqueness_risk": "Critical — Bond et al. (2007) failure mode.",
+            },
         ]
 
     def _build_contrast_space(
@@ -262,19 +264,12 @@ class SeismicSingleLineTool:
         """Map attributes into a n-dimensional contrast space."""
         space = ContrastSpace()
         for name, values in attributes.items():
-            feat = ContrastFeature(
-                name=name,
-                values=values,
-                taxonomy=taxonomy
-            )
+            feat = ContrastFeature(name=name, values=values, taxonomy=taxonomy)
             space.add_feature(feat)
         return space
 
     def get_audit_trail(
-        self,
-        bias_audit: list[BiasAuditRecord],
-        verdict: str,
-        confidence: float
+        self, bias_audit: list[BiasAuditRecord], verdict: str, confidence: float
     ) -> str:
         """Generate a human-readable audit trail for the interpretation."""
         audit_log = [

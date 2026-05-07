@@ -3,6 +3,7 @@ STDIO Transport Entrypoint
 ═══════════════════════════
 Runs the arifOS MCP server over standard input/output.
 """
+
 from __future__ import annotations
 
 from arifosmcp.server import mcp

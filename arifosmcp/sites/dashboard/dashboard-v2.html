@@ -553,7 +553,7 @@
         .footer-links a:hover {
             color: var(--accent);
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -605,13 +605,13 @@
             const [loading, setLoading] = useState(true);
             const [lastUpdate, setLastUpdate] = useState(null);
             const [error, setError] = useState(null);
-            
+
             // Transform live API data to dashboard format
             const transformLiveData = (liveData) => {
                 const machine = liveData.machine || {};
                 const governance = liveData.governance || {};
                 const intelligence = liveData.intelligence || {};
-                
+
                 // Build floors array from governance data
                 const floors = Object.entries(governance.floors || {}).map(([id, floorData]) => ({
                     id,
@@ -619,14 +619,14 @@
                     status: floorData.status || "unknown",
                     score: floorData.score || 0
                 }));
-                
+
                 // Sort floors by ID
                 floors.sort((a, b) => {
                     const numA = parseInt(a.id.replace('F', ''));
                     const numB = parseInt(b.id.replace('F', ''));
                     return numA - numB;
                 });
-                
+
                 return {
                     system: {
                         status: governance.system_status || "HEALTHY",
@@ -657,7 +657,7 @@
                     insights: generateInsights(governance, machine)
                 };
             };
-            
+
             // Format uptime from seconds
             const formatUptime = (seconds) => {
                 const days = Math.floor(seconds / 86400);
@@ -667,11 +667,11 @@
                 if (hours > 0) return `${hours}h ${mins}m`;
                 return `${mins}m`;
             };
-            
+
             // Generate insights based on live data
             const generateInsights = (governance, machine) => {
                 const insights = [];
-                
+
                 // Check floors
                 if (governance.floors_failing > 0) {
                     insights.push({
@@ -681,7 +681,7 @@
                         recommendation: "Check /governance/floors for details"
                     });
                 }
-                
+
                 // Check thermodynamics
                 if (governance.dS > 0) {
                     insights.push({
@@ -691,7 +691,7 @@
                         recommendation: "System generating entropy — review reasoning pipeline"
                     });
                 }
-                
+
                 // Check machine resources
                 if (machine.cpu_percent > 80) {
                     insights.push({
@@ -701,7 +701,7 @@
                         recommendation: "Monitor for thermal throttling"
                     });
                 }
-                
+
                 if (machine.ram_percent > 85) {
                     insights.push({
                         type: "warning",
@@ -710,7 +710,7 @@
                         recommendation: "Consider session cleanup"
                     });
                 }
-                
+
                 // Success message if all good
                 if (insights.length === 0) {
                     insights.push({
@@ -720,33 +720,33 @@
                         recommendation: null
                     });
                 }
-                
+
                 return insights;
             };
-            
+
             // Fetch live metrics
             const fetchLiveData = async () => {
                 try {
                     // Determine API endpoint based on current host
                     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const API_BASE = isLocalhost 
-                        ? 'http://localhost:8081' 
+                    const API_BASE = isLocalhost
+                        ? 'http://localhost:8081'
                         : '';
-                    
+
                     // Fetch all metrics in parallel
                     const [metricsRes, vaultRes] = await Promise.all([
                         fetch(`${API_BASE}/api/live/all`),
                         fetch(`${API_BASE}/api/live/vault?limit=10`)
                     ]);
-                    
+
                     if (!metricsRes.ok) throw new Error(`Metrics API error: ${metricsRes.status}`);
-                    
+
                     const metricsData = await metricsRes.json();
                     const vaultData = vaultRes.ok ? await vaultRes.json() : { entries: [] };
-                    
+
                     if (metricsData.verdict === "SEAL" || metricsData.verdict === "PARTIAL") {
                         const transformed = transformLiveData(metricsData);
-                        
+
                         // Merge VAULT history
                         if (vaultData.entries) {
                             transformed.history = vaultData.entries.map(entry => ({
@@ -758,7 +758,7 @@
                                 note: `Session: ${entry.session_id.slice(0, 8)}...`
                             }));
                         }
-                        
+
                         setData(transformed);
                         setLastUpdate(new Date());
                         setError(null);
@@ -772,14 +772,14 @@
                     setLoading(false);
                 }
             };
-            
+
             // Initial fetch and polling setup
             useEffect(() => {
                 fetchLiveData(); // Initial fetch
-                
+
                 // Poll every 5 seconds
                 const interval = setInterval(fetchLiveData, 5000);
-                
+
                 return () => clearInterval(interval);
             }, []);
 
@@ -853,7 +853,7 @@
                         }}>
                             <span style={{color: 'var(--danger)', fontSize: '1.2rem'}}>⚠</span>
                             <span style={{color: 'var(--danger)'}}>{error}</span>
-                            <button 
+                            <button
                                 onClick={fetchLiveData}
                                 style={{
                                     marginLeft: 'auto',
@@ -896,7 +896,7 @@
 
                     {/* Main Grid */}
                     <div className="dashboard-grid">
-                        
+
                         {/* Primary Metric: G★ */}
                         <div className="card card-4 metric-primary">
                             <div className="card-header">
@@ -923,7 +923,7 @@
                                     {verdict === 'Alive' ? '●' : verdict === 'Degraded' ? '◐' : '○'}
                                 </div>
                                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                    {verdict === 'Alive' 
+                                    {verdict === 'Alive'
                                         ? "All systems operational. Constitutional governance active."
                                         : verdict === 'Degraded'
                                         ? "Performance reduced but functional. Monitor closely."
@@ -1001,7 +1001,7 @@
                                 </div>
                             </div>
                             <div className="metric-insight" style={{marginTop: '20px'}}>
-                                <strong>What this means:</strong> The system is governing itself correctly. Every reply reduces confusion (ΔS {'<'} 0) 
+                                <strong>What this means:</strong> The system is governing itself correctly. Every reply reduces confusion (ΔS {'<'} 0)
                                 and respects regional context (κᵣ {'>'} 0.95). Ψ_LE at 1.09 indicates agent-grade reasoning — below AGI horizon.
                             </div>
                         </div>
@@ -1023,7 +1023,7 @@
                                 </ResponsiveContainer>
                             </div>
                             <div className="metric-insight">
-                                <strong>Consensus achieved.</strong> All three witnesses agree (Human 1.0, AI 0.97, Earth 0.91). 
+                                <strong>Consensus achieved.</strong> All three witnesses agree (Human 1.0, AI 0.97, Earth 0.91).
                                 Safe to SEAL decisions without human override.
                             </div>
                         </div>
@@ -1095,7 +1095,7 @@
                                 </div>
                             </div>
                             <div className="metric-insight">
-                                Machine is healthy. Low latency preserves "cheap truth" capability. 
+                                Machine is healthy. Low latency preserves "cheap truth" capability.
                                 94% energy budget remaining.
                             </div>
                         </div>
@@ -1130,7 +1130,7 @@
                                 </tbody>
                             </table>
                             <div className="metric-insight" style={{marginTop: '16px'}}>
-                                <strong>Trend:</strong> Consistent SEALs. G★ stable around 0.80-0.85. 
+                                <strong>Trend:</strong> Consistent SEALs. G★ stable around 0.80-0.85.
                                 Entropy always reducing (ΔS {'<'} 0). Constitutional operation verified.
                             </div>
                         </div>

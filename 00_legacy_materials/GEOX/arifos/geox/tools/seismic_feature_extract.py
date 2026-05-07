@@ -17,6 +17,7 @@ from ..schemas.seismic_image import GEOPROXY_LINEAMENT, GEOX_SEISMIC_VIEW
 
 logger = logging.getLogger(__name__)
 
+
 @contrast_governed_tool(physical_axes=["inline", "depth"])
 async def extract_lineaments(views: list[GEOX_SEISMIC_VIEW]) -> list[list[GEOPROXY_LINEAMENT]]:
     """
@@ -34,12 +35,14 @@ async def extract_lineaments(views: list[GEOX_SEISMIC_VIEW]) -> list[list[GEOPRO
         centers = center_of_mass(mask, labeled_arr, range(1, num_features + 1))
 
         for i, center in enumerate(centers):
-            view_lineaments.append(GEOPROXY_LINEAMENT(
-                lineament_id=f"{view.view_id}_feat_{i}",
-                centroid_pixel=list(center),
-                confidence=0.7,  # constant for proxy
-                contrast_origin=view.preset
-            ))
+            view_lineaments.append(
+                GEOPROXY_LINEAMENT(
+                    lineament_id=f"{view.view_id}_feat_{i}",
+                    centroid_pixel=list(center),
+                    confidence=0.7,  # constant for proxy
+                    contrast_origin=view.preset,
+                )
+            )
 
         all_lineaments.append(view_lineaments)
 

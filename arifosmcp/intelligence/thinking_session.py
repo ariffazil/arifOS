@@ -26,13 +26,14 @@ logger = logging.getLogger(__name__)
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class StepType(str, Enum):
-    ANALYSIS = "analysis"       # Initial problem decomposition
-    HYPOTHESIS = "hypothesis"   # Proposed explanations/solutions
-    VERIFICATION = "verification" # Validation of hypotheses
-    CONCLUSION = "conclusion"   # Final synthesized outcome
-    REVISION = "revision"       # Revision of previous step
-    BRANCH = "branch"           # Branching point marker
+    ANALYSIS = "analysis"  # Initial problem decomposition
+    HYPOTHESIS = "hypothesis"  # Proposed explanations/solutions
+    VERIFICATION = "verification"  # Validation of hypotheses
+    CONCLUSION = "conclusion"  # Final synthesized outcome
+    REVISION = "revision"  # Revision of previous step
+    BRANCH = "branch"  # Branching point marker
 
     @classmethod
     def from_string(cls, s: str) -> StepType:
@@ -53,9 +54,11 @@ class SessionStatus(str, Enum):
 # Dataclasses
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ThinkingStep:
     """A single reasoning step within a thinking session."""
+
     step_number: int
     step_type: StepType
     content: str
@@ -76,6 +79,7 @@ class ThinkingStep:
 @dataclass
 class ThinkingSession:
     """A full thinking session — sequential reasoning with constitutional tracking."""
+
     session_id: str
     problem: str
     context: dict[str, Any] | None = None
@@ -136,7 +140,10 @@ THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
     ],
     "decision-matrix": [
         {"prompt": "Define the decision to be made clearly.", "type": "analysis"},
-        {"prompt": "Identify criteria and assign weights (must-haves vs nice-to-haves).", "type": "analysis"},
+        {
+            "prompt": "Identify criteria and assign weights (must-haves vs nice-to-haves).",
+            "type": "analysis",
+        },
         {"prompt": "List options to evaluate.", "type": "hypothesis"},
         {"prompt": "Score each option against criteria.", "type": "verification"},
         {"prompt": "Calculate weighted scores and rank options.", "type": "verification"},
@@ -151,7 +158,10 @@ THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
     ],
     "root-cause-analysis": [
         {"prompt": "Define the effect or problem statement.", "type": "analysis"},
-        {"prompt": "Identify major cause categories (6M: Man/Machine/Material/Method/Measurement/Environment).", "type": "analysis"},
+        {
+            "prompt": "Identify major cause categories (6M: Man/Machine/Material/Method/Measurement/Environment).",
+            "type": "analysis",
+        },
         {"prompt": "Brainstorm causes within each category.", "type": "hypothesis"},
         {"prompt": "Identify root causes through 5-Why drill-down.", "type": "verification"},
         {"prompt": "Recommend systemic fixes for root causes.", "type": "conclusion"},
@@ -170,6 +180,7 @@ THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
 # ---------------------------------------------------------------------------
 # Quality Scorer
 # ---------------------------------------------------------------------------
+
 
 def compute_session_quality(steps: list[ThinkingStep]) -> float:
     """
@@ -207,6 +218,7 @@ def compute_session_quality(steps: list[ThinkingStep]) -> float:
 # Session Manager
 # ---------------------------------------------------------------------------
 
+
 class ThinkingSessionManager:
     """
     Manages sequential thinking sessions with constitutional floor enforcement.
@@ -241,7 +253,7 @@ class ThinkingSessionManager:
         self._sessions[session_id] = session
 
         # Index by tags
-        for tag in (tags or []):
+        for tag in tags or []:
             if tag not in self._by_tag:
                 self._by_tag[tag] = set()
             self._by_tag[tag].add(session_id)
@@ -317,7 +329,9 @@ class ThinkingSessionManager:
 
         # Mark the from_step as a branching point
         if from_step < 1 or from_step > len(session.steps):
-            raise ValueError(f"Invalid from_step {from_step} — session has {len(session.steps)} steps")
+            raise ValueError(
+                f"Invalid from_step {from_step} — session has {len(session.steps)} steps"
+            )
 
         parent_step = session.steps[from_step - 1]
 
@@ -373,7 +387,9 @@ class ThinkingSessionManager:
         session.status = SessionStatus.MERGED
         session.updated_at = time.time()
 
-        logger.info(f"[ThinkingSession:{session_id}] Merged {len(branch_ids)} branches → conclusion step {conclusion.step_number}")
+        logger.info(
+            f"[ThinkingSession:{session_id}] Merged {len(branch_ids)} branches → conclusion step {conclusion.step_number}"
+        )
         return conclusion
 
     def complete_session(self, session_id: str) -> ThinkingSession:
@@ -460,7 +476,9 @@ class ThinkingSessionManager:
                 lines.append("")
                 lines.append(f"*Evidence: {', '.join(step.evidence_refs)}*")
             lines.append("")
-            lines.append(f"Quality: `{step.quality_score:.2f}` | Verdict: `{step.constitutional_verdict}`")
+            lines.append(
+                f"Quality: `{step.quality_score:.2f}` | Verdict: `{step.constitutional_verdict}`"
+            )
             lines.append("")
 
         return "\n".join(lines)

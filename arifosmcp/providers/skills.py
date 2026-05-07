@@ -6,6 +6,7 @@ Loads domain skills from skills/geox/, skills/wealth/, skills/well/.
 Skills are NOT top-level MCP tools; they are callable sub-capabilities
 invoked by canonical tools via mode delegation.
 """
+
 from __future__ import annotations
 
 import importlib.util

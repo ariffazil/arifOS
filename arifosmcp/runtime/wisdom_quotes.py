@@ -977,7 +977,9 @@ ARIFOS_FORGED_CANON: list[WisdomQuote] = [
 # SEA-LION curated quotes live here; populated offline by wisdom_sea_lion.py
 SEA_LION_CURATED: list[WisdomQuote] = []
 
-WISDOM_REGISTRY: list[WisdomQuote] = CIVILIZATIONAL_CANON + MALAY_WISDOM + ARIFOS_FORGED_CANON + SEA_LION_CURATED
+WISDOM_REGISTRY: list[WisdomQuote] = (
+    CIVILIZATIONAL_CANON + MALAY_WISDOM + ARIFOS_FORGED_CANON + SEA_LION_CURATED
+)
 
 SURFACES = {
     "anchor",
@@ -1056,7 +1058,9 @@ def audit_quote_injection(
 # ═══════════════════════════════════════════════════════════════════════════════
 # SELECTION ENGINE
 # ═══════════════════════════════════════════════════════════════════════════════
-def _score_candidate(candidate: WisdomQuote, tone: str | None, language: str | None, shadow_profile: str | None) -> float:
+def _score_candidate(
+    candidate: WisdomQuote, tone: str | None, language: str | None, shadow_profile: str | None
+) -> float:
     """Score a candidate quote. Higher is better."""
     score = float(candidate["priority"])
 
@@ -1133,7 +1137,9 @@ def pick_quote_with_meta(
     """
     if surface not in SURFACES:
         if audit:
-            audit_quote_injection("DEFAULT", surface, verdict, session_id, {"reason": "unknown_surface"})
+            audit_quote_injection(
+                "DEFAULT", surface, verdict, session_id, {"reason": "unknown_surface"}
+            )
         return {
             "quote": _DEFAULT_QUOTE,
             "selection_reason": "safe_default",
@@ -1162,10 +1168,7 @@ def pick_quote_with_meta(
         _tone = None if relax_tone else tone
         _shadow = None if relax_shadow else shadow_profile
 
-        scored = [
-            (_score_candidate(c, _tone, _lang, _shadow), c)
-            for c in step_candidates
-        ]
+        scored = [(_score_candidate(c, _tone, _lang, _shadow), c) for c in step_candidates]
         scored.sort(key=lambda x: x[0], reverse=True)
 
         if scored:
@@ -1188,7 +1191,9 @@ def pick_quote_with_meta(
                 )
             return {
                 "quote": best,
-                "selection_reason": reason_map.get((relax_lang, relax_tone, relax_shadow), "exact_match"),
+                "selection_reason": reason_map.get(
+                    (relax_lang, relax_tone, relax_shadow), "exact_match"
+                ),
                 "display_priority": priority_score,
                 "fallback_step": f"lang={relax_lang},tone={relax_tone},shadow={relax_shadow}",
             }
@@ -1231,7 +1236,9 @@ def registry_stats() -> dict:
         by_language[q["language"]] = by_language.get(q["language"], 0) + 1
         if q.get("polarity"):
             by_polarity[q["polarity"]] = by_polarity.get(q["polarity"], 0) + 1
-        by_attribution[q["attribution_confidence"]] = by_attribution.get(q["attribution_confidence"], 0) + 1
+        by_attribution[q["attribution_confidence"]] = (
+            by_attribution.get(q["attribution_confidence"], 0) + 1
+        )
         for s in q["surfaces"]:
             by_surface[s] = by_surface.get(s, 0) + 1
     return {

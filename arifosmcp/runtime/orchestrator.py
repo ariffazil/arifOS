@@ -367,13 +367,12 @@ async def run_stage(
                     pns_trace["PNS_SEARCH"] = {"error": "timeout", "source": "PNS_SEARCH"}
 
             # F12: Retrieve constitutional grounding context from session
-            c_ctx = None
             if session_id:
                 from arifosmcp.runtime.sessions import get_session_identity
 
                 ident = get_session_identity(session_id)
                 if ident:
-                    c_ctx = ident.get("constitutional_context")
+                    ident.get("constitutional_context")
 
             return await agi_reason(
                 query=query,

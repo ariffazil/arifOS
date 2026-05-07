@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 # AF1 GATE CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class AF1GateConfig:
     """Shadow mode configuration. Hard blocking disabled until parity proven."""
 
@@ -46,14 +47,12 @@ class AF1GateConfig:
 
     # Receipt log path
     RECEIPT_LOG_PATH: str = os.environ.get(
-        "AF1_RECEIPT_LOG",
-        "/root/.openclaw/workspace/af1_receipts.jsonl"
+        "AF1_RECEIPT_LOG", "/root/.openclaw/workspace/af1_receipts.jsonl"
     )
 
     # Coverage report path
     COVERAGE_REPORT_PATH: str = os.environ.get(
-        "AF1_COVERAGE_REPORT",
-        "/root/.openclaw/workspace/af1_coverage.json"
+        "AF1_COVERAGE_REPORT", "/root/.openclaw/workspace/af1_coverage.json"
     )
 
     # Paths not yet covered by AF1 adapter
@@ -135,6 +134,7 @@ AF1_GATE: AF1GateConfig = AF1GateConfig()
 # AF1 GATE WRAPPER
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def af1_wrap_handler(
     tool_name: str,
     original_handler: Callable[..., Awaitable[Any]],
@@ -154,6 +154,7 @@ def af1_wrap_handler(
     Returns:
         Wrapped handler that enforces AF1 before calling original
     """
+
     async def wrapped_handler(**kwargs: Any) -> Any:
         if not AF1_GATE.AF1_ENABLED:
             return await original_handler(**kwargs)
@@ -205,9 +206,9 @@ def af1_wrap_handler(
             received_at=received_at,
             completed_at=None,
             blocked=validation_result.status == "BLOCK",
-            input_hash=hashlib.sha256(
-                json.dumps(raw_inputs, sort_keys=True).encode()
-            ).hexdigest()[:16],
+            input_hash=hashlib.sha256(json.dumps(raw_inputs, sort_keys=True).encode()).hexdigest()[
+                :16
+            ],
         )
 
         # Log receipt
@@ -258,7 +259,10 @@ def af1_wrap_handler(
 # DISPATCH MAP WRAPPER — The universal chokepoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def wrap_dispatch_map(call_source: str = "dispatch_map") -> dict[str, Callable[..., Awaitable[Any]]]:
+
+def wrap_dispatch_map(
+    call_source: str = "dispatch_map",
+) -> dict[str, Callable[..., Awaitable[Any]]]:
     """
     Wrap every handler in HARDENED_DISPATCH_MAP with AF1 gate.
 
@@ -287,7 +291,9 @@ def wrap_dispatch_map(call_source: str = "dispatch_map") -> dict[str, Callable[.
     return wrapped
 
 
-def install_af1_adapter(call_source: str = "dispatch_map") -> dict[str, Callable[..., Awaitable[Any]]]:
+def install_af1_adapter(
+    call_source: str = "dispatch_map",
+) -> dict[str, Callable[..., Awaitable[Any]]]:
     """
     Install AF1 adapter into HARDENED_DISPATCH_MAP.
 
@@ -302,6 +308,7 @@ def install_af1_adapter(call_source: str = "dispatch_map") -> dict[str, Callable
 
     try:
         from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+
         HARDENED_DISPATCH_MAP.update(wrapped_map)
         logger.info(f"[AF1] Adapter installed — {len(wrapped_map)} tools wrapped")
     except ImportError:
@@ -345,6 +352,7 @@ def get_coverage_report() -> dict[str, Any]:
 # REST ROUTE INTERCEPTOR — Secondary chokepoint for /tools/{name} path
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def af1_rest_intercept(
     tool_name: str,
     payload: dict[str, Any],
@@ -384,9 +392,7 @@ async def af1_rest_intercept(
 
     validation_result = AF1_GATE.validator.validate(af1_obj)
 
-    input_hash = hashlib.sha256(
-        json.dumps(payload, sort_keys=True).encode()
-    ).hexdigest()[:16]
+    input_hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]
 
     receipt = AF1Receipt(
         af1_id=call_id,
@@ -416,6 +422,7 @@ async def af1_rest_intercept(
 # ═══════════════════════════════════════════════════════════════════════════════
 # FASTMCP HOOK — on_call_tool hook for FastMCP transport
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def af1_on_call_tool(tool_name: str, kwargs: dict[str, Any]) -> dict[str, Any] | None:
     """
@@ -448,9 +455,7 @@ async def af1_on_call_tool(tool_name: str, kwargs: dict[str, Any]) -> dict[str, 
 
     validation_result = AF1_GATE.validator.validate(af1_obj)
 
-    input_hash = hashlib.sha256(
-        json.dumps(kwargs, sort_keys=True).encode()
-    ).hexdigest()[:16]
+    input_hash = hashlib.sha256(json.dumps(kwargs, sort_keys=True).encode()).hexdigest()[:16]
 
     receipt = AF1Receipt(
         af1_id=call_id,

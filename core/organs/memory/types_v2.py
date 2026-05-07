@@ -18,6 +18,7 @@ from typing import Any
 
 class MemoryType(Enum):
     """The four lanes of memory."""
+
     WORKING = "working"
     EPISODIC = "episodic"
     SEMANTIC = "semantic"
@@ -27,18 +28,20 @@ class MemoryType(Enum):
 class ConfidenceClass(Enum):
     """
     How was this memory established?
-    
+
     Prevents semantic drift by tracking provenance.
     """
-    OBSERVED = "observed"                    # Directly witnessed
-    DERIVED = "derived"                      # Logically derived from other memories
-    INFERRED = "inferred"                    # Probabilistic inference
+
+    OBSERVED = "observed"  # Directly witnessed
+    DERIVED = "derived"  # Logically derived from other memories
+    INFERRED = "inferred"  # Probabilistic inference
     ASSERTED_BY_HUMAN = "asserted_by_human"  # Explicit human statement
     SEALED_FROM_VAULT = "sealed_from_vault"  # Promoted from vault (highest trust)
 
 
 class ConfidenceWeight:
     """Weights for confidence classes in retrieval ranking."""
+
     OBSERVED = 0.7
     DERIVED = 0.5
     INFERRED = 0.3
@@ -48,6 +51,7 @@ class ConfidenceWeight:
 
 class MemoryOrigin(Enum):
     """Where did this memory come from?"""
+
     USER = "user"
     SYSTEM = "system"
     TOOL = "tool"
@@ -68,6 +72,7 @@ class Sensitivity(Enum):
 
 class RetentionClass(Enum):
     """Memory lifecycle classes."""
+
     EPHEMERAL = "ephemeral"
     SESSION = "session"
     PROJECT = "project"
@@ -77,6 +82,7 @@ class RetentionClass(Enum):
 
 class ContestedStatus(Enum):
     """Status when memory conflicts with authority."""
+
     UNCONTESTED = "uncontested"
     CONTESTED = "contested"  # Human stated conflicting thing
     SUPERSEDED = "superseded"  # Newer memory replaces this
@@ -86,6 +92,7 @@ class ContestedStatus(Enum):
 @dataclass
 class Source:
     """Provenance: where did this memory come from?"""
+
     origin: MemoryOrigin
     session_id: str | None = None
     message_ref: str | None = None
@@ -96,6 +103,7 @@ class Source:
 @dataclass
 class Scope:
     """Who can see this and in what context?"""
+
     owner: str = "ARIF"
     visibility: Visibility = Visibility.PRIVATE
     domain: str = "arifOS"
@@ -105,6 +113,7 @@ class Scope:
 @dataclass
 class Governance:
     """Can we trust this memory? Should we keep it?"""
+
     confidence: float = 0.0  # [0.0, 1.0]
     confidence_class: ConfidenceClass = ConfidenceClass.INFERRED
     sensitivity: Sensitivity = Sensitivity.LOW
@@ -118,6 +127,7 @@ class Governance:
 @dataclass
 class DecayPolicy:
     """Lane-specific decay rules."""
+
     decay_type: str  # "expire", "fade", "consolidate", "never"
     half_life_hours: float | None = None  # For fade
     expires_at: datetime | None = None  # For expire
@@ -127,6 +137,7 @@ class DecayPolicy:
 @dataclass
 class Time:
     """Temporal tracking for lifecycle management."""
+
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
     expires_at: datetime | None = None
@@ -137,6 +148,7 @@ class Time:
 @dataclass
 class Retrieval:
     """How do we find this memory again?"""
+
     embedding_id: str | None = None
     keywords: list[str] = field(default_factory=list)
     entities: list[str] = field(default_factory=list)
@@ -149,6 +161,7 @@ class Retrieval:
 @dataclass
 class Lineage:
     """Where did this come from and what did it replace?"""
+
     derived_from: list[str] = field(default_factory=list)
     supersedes: str | None = None
     superseded_by: str | None = None
@@ -160,14 +173,15 @@ class MemoryRecord:
     """
     The canonical memory envelope v2 — hardened.
     """
+
     memory_id: str
     memory_type: MemoryType
-    
+
     # Content
     title: str
     content: str
     summary: str | None = None
-    
+
     # Metadata
     source: Source = field(default_factory=Source)
     scope: Scope = field(default_factory=Scope)
@@ -176,10 +190,10 @@ class MemoryRecord:
     time: Time = field(default_factory=Time)
     retrieval: Retrieval = field(default_factory=Retrieval)
     lineage: Lineage = field(default_factory=Lineage)
-    
+
     # Lane-specific extensions
     lane_data: dict[str, Any] = field(default_factory=dict)
-    
+
     def __post_init__(self):
         """Set derived fields."""
         # Set source weight from confidence class
@@ -190,59 +204,57 @@ class MemoryRecord:
             ConfidenceClass.ASSERTED_BY_HUMAN: ConfidenceWeight.ASSERTED_BY_HUMAN,
             ConfidenceClass.SEALED_FROM_VAULT: ConfidenceWeight.SEALED_FROM_VAULT,
         }
-        self.retrieval.source_weight = weight_map.get(
-            self.governance.confidence_class, 0.5
-        )
+        self.retrieval.source_weight = weight_map.get(self.governance.confidence_class, 0.5)
         self.retrieval.vault_backed = (
             self.governance.confidence_class == ConfidenceClass.SEALED_FROM_VAULT
         )
-    
+
     def mark_contested(self, contesting_memory_id: str, authority: str = "human"):
         """Mark this memory as contested by newer authority."""
         self.governance.contested = ContestedStatus.CONTESTED
         self.lane_data["contested_by"] = contesting_memory_id
         self.lane_data["contested_at"] = datetime.utcnow().isoformat()
         self.lane_data["contested_by_authority"] = authority
-    
+
     def mark_superseded(self, new_memory_id: str):
         """Mark this memory as superseded by newer version."""
         self.governance.contested = ContestedStatus.SUPERSEDED
         self.governance.superseded_by = new_memory_id
         self.lineage.superseded_by = new_memory_id
-    
+
     def mark_vault_overrules(self, vault_id: str):
         """Mark that vault has different truth."""
         self.governance.contested = ContestedStatus.VAULT_OVERRULES
         self.lane_data["vault_overrules"] = vault_id
-    
+
     def apply_decay(self) -> bool:
         """
         Apply decay policy. Returns True if memory should be removed.
         """
         policy = self.decay_policy
-        
+
         if policy.decay_type == "never":
             return False  # Constitutional
-        
+
         if policy.decay_type == "expire":
             if policy.expires_at and datetime.utcnow() > policy.expires_at:
                 return True
-        
+
         elif policy.decay_type == "fade":
             # Reduce recency score
             self.retrieval.recency_score *= 0.95
             if self.retrieval.recency_score < 0.1:
                 return True
-        
+
         elif policy.decay_type == "consolidate":
             # Semantic: consolidate if accessed enough
             if policy.consolidation_threshold:
                 if self.time.access_count >= policy.consolidation_threshold:
                     # Mark as durable, don't delete
                     self.decay_policy.decay_type = "never"
-        
+
         return False
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "memory_id": self.memory_id,
@@ -276,7 +288,11 @@ class MemoryRecord:
             "decay_policy": {
                 "decay_type": self.decay_policy.decay_type,
                 "half_life_hours": self.decay_policy.half_life_hours,
-                "expires_at": self.decay_policy.expires_at.isoformat() if self.decay_policy.expires_at else None,
+                "expires_at": (
+                    self.decay_policy.expires_at.isoformat()
+                    if self.decay_policy.expires_at
+                    else None
+                ),
             },
             "time": {
                 "created_at": self.time.created_at.isoformat() if self.time.created_at else None,
@@ -306,6 +322,7 @@ class MemoryRecord:
 @dataclass
 class WriteReceipt:
     """Confirmation of memory write."""
+
     memory_id: str
     stored: bool
     embedding_created: bool
@@ -316,6 +333,7 @@ class WriteReceipt:
 @dataclass
 class MemoryQuery:
     """Query for memory retrieval."""
+
     query: str
     memory_types: list[MemoryType] | None = None
     scopes: list[str] | None = None

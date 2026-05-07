@@ -71,6 +71,7 @@ _MAX_ROWS = 50  # F4 clarity: cap table to avoid noise
 
 # ── Verdict variants ──────────────────────────────────────────────────────────
 
+
 def _bool_icon(val: Any) -> str:
     if isinstance(val, bool):
         return "✓" if val else "✗"
@@ -83,10 +84,11 @@ def _ts_human(ts: Any) -> str:
         return "—"
     try:
         import datetime
+
         if isinstance(ts, (int, float)):
-            return datetime.datetime.fromtimestamp(
-                float(ts), tz=datetime.timezone.utc
-            ).strftime("%Y-%m-%d %H:%M")
+            return datetime.datetime.fromtimestamp(float(ts), tz=datetime.timezone.utc).strftime(
+                "%Y-%m-%d %H:%M"
+            )
         return str(ts)[:16]
     except Exception:
         return str(ts)[:16]
@@ -151,40 +153,28 @@ def get_vault_data() -> ToolResult:
     # Normalise to table columns and cap rows (newest last → show last N)
     table_rows = []
     for r in rows[-_MAX_ROWS:]:
-        table_rows.append({
-            "id": r.get("decision_id", r.get("trace_id", "—")),
-            "session": (r.get("session_id") or "—")[:12],
-            "verdict": (
-                r.get("verdict_issued")
-                or r.get("verdict")
-                or "—"
-            ).upper(),
-            "status": (
-                r.get("outcome_status")
-                or r.get("status")
-                or "—"
-            ).upper(),
-            "reversible": _bool_icon(r.get("reversible", True)),
-            "harm": _bool_icon(r.get("harm_detected", False)),
-            "override": _bool_icon(r.get("operator_override", False)),
-            "timestamp": _ts_human(
-                r.get("timestamp_decision")
-                or r.get("timestamp")
-                or r.get("sealed_at")
-            ),
-        })
+        table_rows.append(
+            {
+                "id": r.get("decision_id", r.get("trace_id", "—")),
+                "session": (r.get("session_id") or "—")[:12],
+                "verdict": (r.get("verdict_issued") or r.get("verdict") or "—").upper(),
+                "status": (r.get("outcome_status") or r.get("status") or "—").upper(),
+                "reversible": _bool_icon(r.get("reversible", True)),
+                "harm": _bool_icon(r.get("harm_detected", False)),
+                "override": _bool_icon(r.get("operator_override", False)),
+                "timestamp": _ts_human(
+                    r.get("timestamp_decision") or r.get("timestamp") or r.get("sealed_at")
+                ),
+            }
+        )
 
     # Reverse for newest-first display
     table_rows.reverse()
 
     # ── Counts ──────────────────────────────────────────────────────────────
-    seal_count = sum(
-        1 for r in table_rows if r["verdict"] in ("SEAL", "SEALED")
-    )
+    seal_count = sum(1 for r in table_rows if r["verdict"] in ("SEAL", "SEALED"))
     void_count = sum(1 for r in table_rows if r["verdict"] == "VOID")
-    hold_count = sum(
-        1 for r in table_rows if r["verdict"] in ("888_HOLD", "HOLD")
-    )
+    hold_count = sum(1 for r in table_rows if r["verdict"] in ("888_HOLD", "HOLD"))
 
     # ── Seal card ───────────────────────────────────────────────────────────
     seal_card: dict[str, Any] = {}
@@ -192,16 +182,16 @@ def get_vault_data() -> ToolResult:
         from arifos.runtime.chatgpt_integration.apps_sdk_tools import (
             _build_vault_seal_structured_content,
         )
+
         seal_card = _build_vault_seal_structured_content()
     except Exception:
         import datetime
         import uuid
+
         seal_card = {
             "seal_id": f"seal_{uuid.uuid4().hex[:16]}",
             "verdict": "SEAL",
-            "timestamp": datetime.datetime.now(
-                datetime.timezone.utc
-            ).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "floors": {
                 "tau_truth": 0.99,
                 "omega_0": 0.04,
@@ -272,14 +262,14 @@ def vault_ledger_surface() -> PrefabApp:
     on_load = CallTool(
         get_vault_data,
         on_success=[
-            SetState("seal",          RESULT["seal"]),
-            SetState("rows",          RESULT["rows"]),
+            SetState("seal", RESULT["seal"]),
+            SetState("rows", RESULT["rows"]),
             SetState("total_entries", RESULT["total_entries"]),
-            SetState("seal_count",    RESULT["seal_count"]),
-            SetState("void_count",    RESULT["void_count"]),
-            SetState("hold_count",    RESULT["hold_count"]),
-            SetState("ledger_file",   RESULT["ledger_file"]),
-            SetState("loaded",        True),
+            SetState("seal_count", RESULT["seal_count"]),
+            SetState("void_count", RESULT["void_count"]),
+            SetState("hold_count", RESULT["hold_count"]),
+            SetState("ledger_file", RESULT["ledger_file"]),
+            SetState("loaded", True),
             ShowToast("Vault ledger loaded", variant="success"),
         ],
         on_error=ShowToast("Vault read error", variant="destructive"),
@@ -294,11 +284,11 @@ def vault_ledger_surface() -> PrefabApp:
                     Badge(
                         STATE["loaded"].then(
                             _STATUS_INTERPRETATIONS["HEALTHY"]["badge"],
-                            _STATUS_INTERPRETATIONS["pending"]["badge"]
+                            _STATUS_INTERPRETATIONS["pending"]["badge"],
                         ),
                         variant=STATE["loaded"].then(
                             _STATUS_INTERPRETATIONS["HEALTHY"]["variant"],
-                            _STATUS_INTERPRETATIONS["pending"]["variant"]
+                            _STATUS_INTERPRETATIONS["pending"]["variant"],
                         ),
                         css_class="font-mono text-lg py-1 px-3 h-auto",
                     )
@@ -307,7 +297,7 @@ def vault_ledger_surface() -> PrefabApp:
                         Text(
                             STATE["loaded"].then(
                                 _STATUS_INTERPRETATIONS["HEALTHY"]["posture"],
-                                _STATUS_INTERPRETATIONS["pending"]["posture"]
+                                _STATUS_INTERPRETATIONS["pending"]["posture"],
                             ),
                             css_class="text-sm font-medium",
                         )
@@ -358,16 +348,16 @@ def vault_ledger_surface() -> PrefabApp:
                     # Right: key floor scores
                     with Grid(columns=2, gap=2):
                         for label in [
-                            "τ Truth", "κᵣ Care",
-                            "Ω₀ Hum.", "W³ Wit.",
+                            "τ Truth",
+                            "κᵣ Care",
+                            "Ω₀ Hum.",
+                            "W³ Wit.",
                         ]:
                             with Card(css_class="bg-muted/30"):
                                 with CardContent(css_class="py-2 text-center"):
                                     Text(
                                         "—",
-                                        css_class=(
-                                            "text-lg font-bold font-mono"
-                                        ),
+                                        css_class=("text-lg font-bold font-mono"),
                                     )
                                     Muted(label, css_class="text-xs")
 
@@ -421,8 +411,7 @@ def vault_ledger_surface() -> PrefabApp:
         )
 
         Muted(
-            f"Entries shown: latest {_MAX_ROWS} "
-            "· Full ledger at VAULT999/",
+            f"Entries shown: latest {_MAX_ROWS} " "· Full ledger at VAULT999/",
             css_class="text-xs",
         )
 
@@ -441,7 +430,7 @@ def vault_ledger_surface() -> PrefabApp:
             _PHILOSOPHY["SEAL"],
             css_class="text-xs italic text-center text-muted-foreground/50 mt-4",
         )
-        
+
         # ── Sovereign Footer (CHANGE-06) ──────────────────────────────────
         with Column(gap=1, align="center", css_class="mt-2"):
             Muted(

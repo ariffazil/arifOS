@@ -1,6 +1,6 @@
 /**
  * GEOX App Runtime — Base runtime for GEOX Apps.
- * 
+ *
  * Manages app lifecycle, state, and host communication.
  * DITEMPA BUKAN DIBERI
  */
@@ -50,7 +50,7 @@ export interface AppState {
 
 /**
  * GEOX App Runtime — Base class for all GEOX Apps.
- * 
+ *
  * Handles:
  * - Event bus initialization
  * - Lifecycle management (init, update, destroy)
@@ -66,14 +66,14 @@ export class GeoXAppRuntime {
 
   /**
    * Create a new app runtime.
-   * 
+   *
    * @param config - App configuration
    * @param bus - Optional event bus (creates default if not provided)
    */
   constructor(config: AppConfig, bus?: GeoXEventBus) {
     this.config = config;
     this.bus = bus || this.createDefaultBus();
-    
+
     this.state = {
       initialized: false,
       sessionId: null,
@@ -92,7 +92,7 @@ export class GeoXAppRuntime {
   private createDefaultBus(): GeoXEventBus {
     // Detect if we're in an iframe (inline) or popup (external)
     const isIframe = window.parent !== window;
-    
+
     if (isIframe) {
       return createInlineBus();
     } else {
@@ -135,7 +135,7 @@ export class GeoXAppRuntime {
    */
   private handleInitialize(event: GeoXEvent<AppInitializePayload>): void {
     const payload = event.payload;
-    
+
     this.state = {
       ...this.state,
       initialized: true,
@@ -311,11 +311,11 @@ export class GeoXAppRuntime {
    */
   destroy(): void {
     this.onDestroy();
-    
+
     // Unsubscribe all handlers
     this.unsubs.forEach(unsub => unsub());
     this.unsubs = [];
-    
+
     // Destroy event bus
     this.bus.destroy();
   }

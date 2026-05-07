@@ -2,7 +2,7 @@
  * MainLayoutForge — GEOX Earth Intelligence Core (Design Forge Edition)
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * The 000-999 Command Center implementing:
  * - DomainVoid (000-249): Risk & Decision
  * - Domain1D (250-499): Borehole Intelligence

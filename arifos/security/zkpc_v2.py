@@ -28,7 +28,6 @@ import json
 import os
 import subprocess
 import tempfile
-from typing import Any
 
 # ── Artifact paths ─────────────────────────────────────────────────────────────
 _ZKPC_DIR = os.path.dirname(__file__)
@@ -52,6 +51,7 @@ _REQUIRED_INPUTS = [
 # snarkjs availability check
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _snarkjs_available() -> bool:
     """snarkjs exits 99 on --help (shows usage). Any non-exception means it's installed."""
     try:
@@ -64,6 +64,7 @@ def _snarkjs_available() -> bool:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Real Groth16 verify via snarkjs
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _groth16_verify(proof: dict, public_inputs: list) -> tuple[bool, str]:
     """
@@ -95,9 +96,10 @@ def _groth16_verify(proof: dict, public_inputs: list) -> tuple[bool, str]:
 
     try:
         result = subprocess.run(
-            ["snarkjs", "groth16", "verify",
-             _VERIFICATION_KEY, public_path, proof_path],
-            capture_output=True, text=True, timeout=30,
+            ["snarkjs", "groth16", "verify", _VERIFICATION_KEY, public_path, proof_path],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
         output = (result.stdout + result.stderr).strip()
     except subprocess.TimeoutExpired:
@@ -120,6 +122,7 @@ def _groth16_verify(proof: dict, public_inputs: list) -> tuple[bool, str]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Proof generation (for testing and prover-side use)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def generate_zkpc_proof(
     identity_commitment: str,
@@ -180,14 +183,18 @@ def generate_zkpc_proof(
     try:
         result = subprocess.run(
             [
-                "snarkjs", "groth16", "fullprove",
+                "snarkjs",
+                "groth16",
+                "fullprove",
                 input_path,
                 _WASM_PATH,
                 _ZKEY_PATH,
                 proof_path,
                 public_path,
             ],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
         if result.returncode != 0:
             return {"error": f"fullprove_FAILED: {result.stderr[:300]}"}
@@ -247,6 +254,7 @@ def generate_zkpc_proof(
 # ═══════════════════════════════════════════════════════════════════════════════
 # Public API
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def verify_zkpc_v2_epoch(
     proof: dict | None,
@@ -311,9 +319,7 @@ def verify_zkpc_v2_epoch(
     proof_verified, snark_output = _groth16_verify(proof_formatted, public_list)
 
     # Proof hash for audit trail only — not used in verification
-    proof_hash = hashlib.sha256(
-        json.dumps(proof, sort_keys=True).encode()
-    ).hexdigest()
+    proof_hash = hashlib.sha256(json.dumps(proof, sort_keys=True).encode()).hexdigest()
 
     # ── 6. Fail-closed on any issue ─────────────────────────────────────────
     if not proof_verified:

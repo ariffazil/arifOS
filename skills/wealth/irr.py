@@ -42,7 +42,8 @@ def irr(
     flows = cash_flows or []
     series = _build_cashflow_series(initial, flows)
 
-    f = lambda r: _npv_from_series(series, r)
+    def f(r):
+        return _npv_from_series(series, r)
     low, high = -0.9, 1.0
     for _ in range(100):
         mid = (low + high) / 2

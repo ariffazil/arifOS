@@ -229,7 +229,7 @@ Each stage runs a hardened production prompt from the **Production Prompt Pack v
 | F12 | RESILIENCE | Soft | Does this fail safely (HOLD, not CRASH)? |
 | F13 | ADAPTABILITY | **Hard** | Do updates preserve safety constraints? |
 
-**Hard Floors** (F1, F2, F9, F10, F13): violation → **VOID** (blocked).  
+**Hard Floors** (F1, F2, F9, F10, F13): violation → **VOID** (blocked).
 **Soft Floors**: violation → **CAUTION** or **HOLD** depending on margin.
 
 ---
@@ -595,7 +595,7 @@ See [`CHANGELOG.md`](./CHANGELOG.md) for full history.
 
 ## Author & Sovereignty
 
-**Muhammad Arif bin Fazil** — Sovereign Architect of arifOS · Author of APEX Theory  
+**Muhammad Arif bin Fazil** — Sovereign Architect of arifOS · Author of APEX Theory
 GitHub: [@ariffazil](https://github.com/ariffazil) · Web: [arif-fazil.com](https://arif-fazil.com)
 
 > arifOS is a sovereign system. It answers to the Constitution (Ω), which is designed to serve human flourishing (Δ). The author maintains the right to amend the Constitution, but only through the formal F13 amendment process, with full audit logging (F11) and transparency to all users.

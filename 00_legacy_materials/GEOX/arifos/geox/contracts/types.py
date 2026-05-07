@@ -17,8 +17,10 @@ from pydantic import BaseModel, Field
 # Base Types
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class GeoXStatus(str, Enum):
     """Canonical status values for GEOX operations."""
+
     SEAL = "SEAL"
     SABAR = "SABAR"
     VOID = "VOID"
@@ -29,6 +31,7 @@ class GeoXStatus(str, Enum):
 
 class FloorVerdicts(BaseModel):
     """Constitutional floor check results."""
+
     f1_amanah: bool = True
     f2_truth: bool = True
     f3_tri_witness: bool = True
@@ -46,6 +49,7 @@ class FloorVerdicts(BaseModel):
 
 class ProvenanceTag(str, Enum):
     """Data provenance classification."""
+
     MEASURED = "MEASURED"
     DERIVED = "DERIVED"
     POLICY = "POLICY"
@@ -54,13 +58,14 @@ class ProvenanceTag(str, Enum):
 
 class GeoXResult(BaseModel):
     """Base result structure for all GEOX operations."""
+
     status: GeoXStatus
     timestamp: datetime
     seal: str = "DITEMPA BUKAN DIBERI"
     geox_version: str = "0.5.0"
     floor_verdicts: FloorVerdicts = Field(default_factory=FloorVerdicts)
     provenance_tag: ProvenanceTag = ProvenanceTag.DERIVED
-    
+
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}
 
@@ -69,8 +74,10 @@ class GeoXResult(BaseModel):
 # Petrophysics Types
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SwModel(str, Enum):
     """Water saturation calculation models."""
+
     ARCHIE = "archie"
     SIMANDOUX = "simandoux"
     INDONESIA = "indonesia"
@@ -78,6 +85,7 @@ class SwModel(str, Enum):
 
 class SwStats(BaseModel):
     """Monte Carlo statistics for Sw calculation."""
+
     p10: float
     p50: float
     p90: float
@@ -89,6 +97,7 @@ class SwStats(BaseModel):
 
 class SwCalculationResult(GeoXResult):
     """Result from water saturation calculation."""
+
     model: SwModel
     nominal_sw: float
     stats: SwStats | None = None
@@ -98,6 +107,7 @@ class SwCalculationResult(GeoXResult):
 
 class SwModelAdmissibilityResult(GeoXResult):
     """Result from Sw model selection/admissibility check."""
+
     well_id: str
     recommended_model: str
     admissible_models: list[str]
@@ -109,6 +119,7 @@ class SwModelAdmissibilityResult(GeoXResult):
 
 class PetrophysicsResult(GeoXResult):
     """Full petrophysics calculation result."""
+
     well_id: str
     sw_model_used: SwModel
     sw_nominal: float
@@ -127,6 +138,7 @@ class PetrophysicsResult(GeoXResult):
 
 class CutoffValidationResult(GeoXResult):
     """Cutoff policy validation result."""
+
     well_id: str
     policy_id: str
     policy_basis: str
@@ -148,6 +160,7 @@ class CutoffValidationResult(GeoXResult):
 
 class PetrophysicsHoldResult(GeoXResult):
     """888_HOLD result for constitutional violations."""
+
     well_id: str
     hold_id: str
     triggered_by: str
@@ -162,8 +175,10 @@ class PetrophysicsHoldResult(GeoXResult):
 # Seismic Types
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SeismicView(BaseModel):
     """Individual seismic view metadata."""
+
     view_id: str
     mode: str
     source: str
@@ -172,6 +187,7 @@ class SeismicView(BaseModel):
 
 class SeismicLineResult(GeoXResult):
     """Result from seismic line loading."""
+
     line_id: str
     survey_path: str
     views: list[SeismicView]
@@ -180,6 +196,7 @@ class SeismicLineResult(GeoXResult):
 
 class StructuralCandidate(BaseModel):
     """Structural model candidate."""
+
     candidate_id: str
     confidence: float
     model_type: str
@@ -188,6 +205,7 @@ class StructuralCandidate(BaseModel):
 
 class StructuralCandidatesResult(GeoXResult):
     """Result from structural candidate generation."""
+
     line_id: str
     candidates: list[StructuralCandidate]
     count: int
@@ -199,8 +217,10 @@ class StructuralCandidatesResult(GeoXResult):
 # Evaluation Types
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ProspectEvaluationResult(GeoXResult):
     """Result from prospect evaluation."""
+
     prospect_id: str
     interpretation_id: str
     verdict: str
@@ -210,6 +230,7 @@ class ProspectEvaluationResult(GeoXResult):
 
 class FeasibilityResult(GeoXResult):
     """Result from feasibility check."""
+
     plan_id: str
     constraints: list[str]
     verdict: str
@@ -218,6 +239,7 @@ class FeasibilityResult(GeoXResult):
 
 class GeospatialVerificationResult(GeoXResult):
     """Result from geospatial verification."""
+
     lat: float
     lon: float
     radius_m: float
@@ -231,8 +253,10 @@ class GeospatialVerificationResult(GeoXResult):
 # Memory Types
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class MemoryEntry(BaseModel):
     """Single memory entry."""
+
     entry_id: str
     query_match_score: float
     content: dict[str, Any]
@@ -241,6 +265,7 @@ class MemoryEntry(BaseModel):
 
 class MemoryQueryResult(GeoXResult):
     """Result from memory query."""
+
     query: str
     basin_filter: str | None = None
     results: list[MemoryEntry]
@@ -252,8 +277,10 @@ class MemoryQueryResult(GeoXResult):
 # Health Types
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class HealthResult(GeoXResult):
     """Server health check result."""
+
     ok: bool = True
     service: str = "geox-earth-witness"
     fastmcp_version: str = ""
@@ -266,8 +293,10 @@ class HealthResult(GeoXResult):
 # App Intent Types (for MCP Apps)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class AppIntent(BaseModel):
     """Intent to launch a GEOX App."""
+
     app_id: str
     action: Literal["open", "update", "close", "focus"]
     params: dict[str, Any] = Field(default_factory=dict)

@@ -1,8 +1,8 @@
 # arifOS WebMCP Architecture
 ## The First AI-Governed WebMCP Environment
 
-**Version:** 2026.03.14-VALIDATED  
-**Status:** Architecture Specification  
+**Version:** 2026.03.14-VALIDATED
+**Status:** Architecture Specification
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given* [ΔΩΨ | ARIF]
 
 ---
@@ -105,24 +105,24 @@ import redis.asyncio as redis
 
 class WebMCPConfig:
     """WebMCP configuration with constitutional defaults."""
-    
+
     # CORS - F12 Injection Guard will validate origins
     ALLOWED_ORIGINS = [
         "https://arifosmcp.arif-fazil.com",
         "https://*.arif-fazil.com",
         "http://localhost:3000",  # Dev only
     ]
-    
+
     # Session - F11 Command Auth
     SESSION_TTL = 3600  # 1 hour
     SESSION_COOKIE = "arifos_session"
     SESSION_SECURE = True  # HTTPS only
     SESSION_SAMESITE = "strict"
-    
+
     # WebSocket - Real-time governance
     WS_HEARTBEAT = 30  # seconds
     WS_MAX_CONNECTIONS = 100
-    
+
     # Rate Limiting - F5 Peace²
     RATE_LIMIT_REQUESTS = 100  # per minute
     RATE_LIMIT_WINDOW = 60
@@ -132,17 +132,17 @@ class WebMCPGateway:
     Web-facing gateway for arifOS MCP.
     Every request passes through 000→999 metabolic loop.
     """
-    
+
     def __init__(self, mcp_server: FastMCP):
         self.mcp = mcp_server
         self.app = FastAPI(title="arifOS WebMCP", version="2026.03.14")
         self.redis = redis.from_url(os.getenv("REDIS_URL", "redis://localhost"))
         self._setup_middleware()
         self._setup_routes()
-    
+
     def _setup_middleware(self):
         """Configure constitutional middleware."""
-        
+
         # CORS with F12 Injection Guard
         self.app.add_middleware(
             CORSMiddleware,
@@ -152,7 +152,7 @@ class WebMCPGateway:
             allow_headers=["*"],
             max_age=3600,
         )
-        
+
         # Session middleware (F11)
         self.app.add_middleware(
             SessionMiddleware,
@@ -161,7 +161,7 @@ class WebMCPGateway:
             same_site=WebMCPConfig.SESSION_SAMESITE,
             https_only=WebMCPConfig.SESSION_SECURE,
         )
-        
+
         # Constitutional middleware (runs on every request)
         @self.app.middleware("http")
         async def constitutional_guard(request: Request, call_next):
@@ -172,7 +172,7 @@ class WebMCPGateway:
             # 000_INIT: Initialize web session
             session_id = request.session.get("arifos_sid") or str(uuid.uuid4())
             request.session["arifos_sid"] = session_id
-            
+
             # PNS·SHIELD: Scan for injection attacks
             shield_result = await self._pns_shield_scan(request)
             if shield_result.is_injection:
@@ -184,14 +184,14 @@ class WebMCPGateway:
                         "session_id": session_id,
                     }
                 )
-            
+
             # Continue to handler
             response = await call_next(request)
             return response
-    
+
     def _setup_routes(self):
         """Setup WebMCP routes."""
-        
+
         @self.app.get("/webmcp/tools")
         async def list_tools(request: Request):
             """List available tools - browser accessible."""
@@ -204,7 +204,7 @@ class WebMCPGateway:
                 "verdict": "SEAL",
                 "session_id": request.session.get("arifos_sid"),
             }
-        
+
         @self.app.post("/webmcp/call/{tool_name}")
         async def call_tool(
             tool_name: str,
@@ -217,7 +217,7 @@ class WebMCPGateway:
             Full 000→999 metabolic loop with web context.
             """
             session_id = request.session.get("arifos_sid")
-            
+
             # Build web context
             web_context = {
                 "session_id": session_id,
@@ -226,16 +226,16 @@ class WebMCPGateway:
                 "ip": request.client.host,
                 "user": user.dict() if user else None,
             }
-            
+
             # Execute through metabolic loop
             result = await self.mcp.call_tool(
                 name=tool_name,
                 arguments=payload,
                 meta={"web_context": web_context}
             )
-            
+
             return result
-        
+
         @self.app.websocket("/webmcp/ws")
         async def websocket_endpoint(websocket: WebSocket):
             """
@@ -244,7 +244,7 @@ class WebMCPGateway:
             """
             await websocket.accept()
             session_id = str(uuid.uuid4())
-            
+
             try:
                 while True:
                     # Send vital telemetry every 5s
@@ -253,7 +253,7 @@ class WebMCPGateway:
                         "type": "vitals",
                         "data": vitals,
                     })
-                    
+
                     # Check for 888_HOLD events
                     hold_status = await self._check_hold_queue(session_id)
                     if hold_status:
@@ -261,7 +261,7 @@ class WebMCPGateway:
                             "type": "888_HOLD",
                             "data": hold_status,
                         })
-                    
+
                     await asyncio.sleep(5)
             except Exception as e:
                 await websocket.close()
@@ -274,7 +274,7 @@ class WebMCPGateway:
 ```javascript
 /**
  * @arifos/webmcp - Browser SDK for arifOS WebMCP
- * 
+ *
  * Usage:
  *   import { WebMCPClient } from '@arifos/webmcp';
  *   const client = new WebMCPClient('https://arifosmcp.arif-fazil.com');
@@ -304,13 +304,13 @@ class WebMCPClient {
         auth_context: identity.auth_context,
       }),
     });
-    
+
     const data = await response.json();
     this.sessionId = data.session_id;
-    
+
     // Connect WebSocket for real-time updates
     this._connectWebSocket();
-    
+
     return data;
   }
 
@@ -328,19 +328,19 @@ class WebMCPClient {
         body: JSON.stringify(args),
       }
     );
-    
+
     const result = await response.json();
-    
+
     // Handle verdicts
     if (result.verdict === 'VOID') {
       throw new ConstitutionalError('Request VOIDed', result);
     }
-    
+
     if (result.verdict === '888_HOLD') {
       this.onHold(result);
       return { status: 'HOLD', message: 'Awaiting human ratification' };
     }
-    
+
     return result;
   }
 
@@ -350,10 +350,10 @@ class WebMCPClient {
   _connectWebSocket() {
     const wsURL = this.baseURL.replace('https://', 'wss://') + '/webmcp/ws';
     this.ws = new WebSocket(wsURL);
-    
+
     this.ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-      
+
       switch (msg.type) {
         case 'vitals':
           this.onVitals(msg.data);
@@ -363,7 +363,7 @@ class WebMCPClient {
           break;
       }
     };
-    
+
     this.ws.onclose = () => {
       if (this.autoReconnect) {
         setTimeout(() => this._connectWebSocket(), 5000);
@@ -404,7 +404,7 @@ export function useWebMCP(baseURL) {
   const [client, setClient] = React.useState(null);
   const [vitals, setVitals] = React.useState(null);
   const [hold, setHold] = React.useState(null);
-  
+
   React.useEffect(() => {
     const c = new WebMCPClient(baseURL, {
       onVitals: setVitals,
@@ -412,10 +412,10 @@ export function useWebMCP(baseURL) {
     });
     c.init();
     setClient(c);
-    
+
     return () => c.disconnect?.();
   }, [baseURL]);
-  
+
   return { client, vitals, hold };
 }
 
@@ -480,13 +480,13 @@ export { WebMCPClient };
   <div class="hold-card">
     <h1 class="hold-title">⚠️ 888 HOLD</h1>
     <p class="hold-reason" id="reason">Awaiting human ratification...</p>
-    
+
     <div id="details">
       <p>Session: <code id="session">...</code></p>
       <p>Tool: <code id="tool">...</code></p>
       <p>Floors: <span id="floors">...</span></p>
     </div>
-    
+
     <div class="actions">
       <button class="seal" onclick="ratify('SEAL')">✓ SEAL</button>
       <button class="void" onclick="ratify('VOID')">✗ VOID</button>
@@ -497,7 +497,7 @@ export { WebMCPClient };
   <script>
     // Connect to WebSocket for real-time HOLD events
     const ws = new WebSocket('wss://arifosmcp.arif-fazil.com/webmcp/ws');
-    
+
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
       if (msg.type === '888_HOLD') {
@@ -507,7 +507,7 @@ export { WebMCPClient };
         document.getElementById('floors').textContent = msg.data.failed_floors?.join(', ') || 'None';
       }
     };
-    
+
     async function ratify(verdict) {
       const sessionId = document.getElementById('session').textContent;
       await fetch('/webmcp/ratify', {
@@ -536,7 +536,7 @@ class WebInjectionGuard:
     F12 Injection Guard for WebMCP.
     Protects against XSS, CSRF, and prompt injection via web.
     """
-    
+
     DANGEROUS_PATTERNS = [
         r'<script[^>]*>.*?</script>',  # XSS
         r'javascript:',  # JS protocol
@@ -545,26 +545,26 @@ class WebInjectionGuard:
         r'\.parent\.',  # Parent window access
         r'\.top\.',  # Top window access
     ]
-    
+
     def scan_request(self, request: Request) -> ShieldReport:
         """Scan HTTP request for injection attempts."""
         score = 0.0
         threats = []
-        
+
         # Scan headers
         for header, value in request.headers.items():
             for pattern in self.DANGEROUS_PATTERNS:
                 if re.search(pattern, str(value), re.IGNORECASE):
                     score += 0.2
                     threats.append(f"Header {header}: {pattern}")
-        
+
         # Scan query params
         for key, value in request.query_params.items():
             for pattern in self.DANGEROUS_PATTERNS:
                 if re.search(pattern, str(value), re.IGNORECASE):
                     score += 0.3
                     threats.append(f"Param {key}: {pattern}")
-        
+
         # Score > 0.85 = VOID (F12 threshold)
         return ShieldReport(
             is_injection=score > 0.85,
@@ -583,7 +583,7 @@ class WebSessionManager:
     F11 Command Auth for browser sessions.
     Links browser cookies to arifOS auth_context.
     """
-    
+
     async def mint_web_session(
         self,
         request: Request,
@@ -594,7 +594,7 @@ class WebSessionManager:
         Mint new web session with cryptographic continuity.
         """
         session_id = f"web-{uuid.uuid4().hex[:16]}"
-        
+
         # Mint auth_context (F11)
         auth_context = mint_auth_context(
             session_id=session_id,
@@ -605,14 +605,14 @@ class WebSessionManager:
             approval_scope=["web", "read"] if not human_approval else ["*"],
             authority_level="web_session",
         )
-        
+
         # Store in Redis with TTL
         await self.redis.setex(
             f"arifos:web:session:{session_id}",
             WebMCPConfig.SESSION_TTL,
             json.dumps(auth_context),
         )
-        
+
         return WebSession(
             session_id=session_id,
             auth_context=auth_context,
@@ -697,10 +697,10 @@ upstream webmcp_backend {
 server {
     listen 443 ssl http2;
     server_name arifosmcp.arif-fazil.com;
-    
+
     ssl_certificate /etc/letsencrypt/live/arif-fazil.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/arif-fazil.com/privkey.pem;
-    
+
     # WebMCP HTTP endpoints
     location /webmcp/ {
         proxy_pass https://webmcp_backend;
@@ -709,13 +709,13 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
+
         # Constitutional timeouts
         proxy_connect_timeout 30s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
-    
+
     # WebSocket for real-time governance
     location /webmcp/ws {
         proxy_pass https://webmcp_backend;
@@ -723,11 +723,11 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
-        
+
         # Long timeout for WebSocket
         proxy_read_timeout 86400;
     }
-    
+
     # Static dashboard
     location /dashboard {
         alias /var/www/dashboard;
@@ -749,11 +749,11 @@ import { useWebMCP } from '@arifos/webmcp/react';
 function GovernedAIChat() {
   const { client, vitals, hold } = useWebMCP('https://arifosmcp.arif-fazil.com');
   const [response, setResponse] = useState(null);
-  
+
   const askAI = async (query) => {
     // This call goes through 000→999 metabolic loop
     const result = await client.reason(query);
-    
+
     if (result.verdict === 'SEAL') {
       setResponse(result.payload);
     } else if (result.verdict === '888_HOLD') {
@@ -761,7 +761,7 @@ function GovernedAIChat() {
       alert('Human approval required!');
     }
   };
-  
+
   return (
     <div>
       <div className="vitals">
@@ -784,12 +784,12 @@ async def main():
     # Connect to WebMCP
     client = WebMCPClient('https://arifosmcp.arif-fazil.com')
     await client.init(actor_id='web-user-123')
-    
+
     # Call tools through web gateway
     result = await client.call('search_reality', {
         'query': 'latest AI safety research'
     })
-    
+
     print(f"Verdict: {result.verdict}")
     print(f"Results: {result.payload}")
 

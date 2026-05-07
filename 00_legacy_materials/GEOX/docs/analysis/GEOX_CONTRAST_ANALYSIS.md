@@ -1,7 +1,7 @@
 # GEOX ↔ arifOS Full Contrast Analysis
 
-> **ARIF** — Muhammad Arif bin Fazil  
-> **Timestamp:** 2026-03-26  
+> **ARIF** — Muhammad Arif bin Fazil
+> **Timestamp:** 2026-03-26
 > **DITEMPA BUKAN DIBERI**
 
 ---
@@ -65,8 +65,8 @@
 └─────────────────────────────────────────────┘
 ```
 
-**Key Difference:**  
-- arifOS is the **law** — it governs ALL AI actions  
+**Key Difference:**
+- arifOS is the **law** — it governs ALL AI actions
 - GEOX is the **application** — it applies arifOS law to geology
 
 ---
@@ -309,5 +309,5 @@ git subtree add --prefix=extensions/geox https://github.com/ariffazil/GEOX.git m
 
 ---
 
-**DITEMPA BUKAN DIBERI**  
+**DITEMPA BUKAN DIBERI**
 *Forged, Not Given — ΔΩΨ*

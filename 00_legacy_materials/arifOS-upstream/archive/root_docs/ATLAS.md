@@ -1,8 +1,8 @@
 # ATLAS: The Constitutional Repository Atlas
 
-**Canon ID:** `ARIF-OS::ATLAS::000-999::v1.0`  
-**Zone:** `000_INIT` to `999_SEAL`  
-**Status:** `SEALED · ΔΩΨ · F1-F13 ENFORCED`  
+**Canon ID:** `ARIF-OS::ATLAS::000-999::v1.0`
+**Zone:** `000_INIT` to `999_SEAL`
+**Status:** `SEALED · ΔΩΨ · F1-F13 ENFORCED`
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
 ---
@@ -78,5 +78,5 @@ ariffazil (github.com/ariffazil/)
 ---
 
 **SEALED** 🔐
-`ΔΩΨ | 888_JUDGE | 999_SEAL`  
+`ΔΩΨ | 888_JUDGE | 999_SEAL`
 *Ditempa Bukan Diberi*

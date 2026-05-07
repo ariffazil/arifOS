@@ -14,17 +14,21 @@ from typing import Any
 @dataclass
 class AgentRole:
     """Definition of an agent role and its permissions."""
+
     name: str
     description: str
     permissions: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class AgentSession:
     """An active agent session with an assigned role."""
+
     agent_id: str
     role_name: str
     session_id: str
+
 
 class AgentRoleRegistry:
     """
@@ -42,42 +46,43 @@ class AgentRoleRegistry:
         self.register_role(
             name="Architect",
             description="Designs and plans system architecture. Read-only on code.",
-            permissions=["read", "plan"]
+            permissions=["read", "plan"],
         )
         self.register_role(
             name="Engineer",
             description="Implements designs and edits code. Write-access with approval.",
-            permissions=["read", "write"]
+            permissions=["read", "write"],
         )
         self.register_role(
             name="Auditor",
             description="Reviews code and decisions for alignment. Issues VOID verdicts.",
-            permissions=["read", "audit", "void"]
+            permissions=["read", "audit", "void"],
         )
         self.register_role(
             name="Validator",
             description="Final authority for deployment and SEAL verdicts.",
-            permissions=["read", "deploy", "seal"]
+            permissions=["read", "deploy", "seal"],
         )
 
-    def register_role(self, name: str, description: str, permissions: list[str], metadata: dict[str, Any] | None = None):
+    def register_role(
+        self,
+        name: str,
+        description: str,
+        permissions: list[str],
+        metadata: dict[str, Any] | None = None,
+    ):
         """Register a new agent role."""
         self._roles[name] = AgentRole(
-            name=name,
-            description=description,
-            permissions=permissions,
-            metadata=metadata or {}
+            name=name, description=description, permissions=permissions, metadata=metadata or {}
         )
 
     def assign_role(self, agent_id: str, role_name: str, session_id: str):
         """Assign a role to an agent for a specific session."""
         if role_name not in self._roles:
             raise ValueError(f"Role '{role_name}' not found.")
-        
+
         self._active_sessions[agent_id] = AgentSession(
-            agent_id=agent_id,
-            role_name=role_name,
-            session_id=session_id
+            agent_id=agent_id, role_name=role_name, session_id=session_id
         )
 
     def get_role(self, agent_id: str) -> AgentRole | None:
@@ -94,7 +99,7 @@ class AgentRoleRegistry:
         """
         if from_agent_id not in self._active_sessions:
             raise ValueError(f"Source agent '{from_agent_id}' has no active session.")
-        
+
         # Validation of handoff logic would go here.
         # For now, we log the handoff (in an audit trail).
         # Return True to indicate successful handoff request.

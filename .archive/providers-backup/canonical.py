@@ -4,6 +4,7 @@ CanonicalProvider — 13-Tool LocalProvider
 
 Registers the canonical arif_* tool surface on a LocalProvider.
 """
+
 from __future__ import annotations
 
 import logging

@@ -2899,8 +2899,32 @@
         "WELL_alerts": "Cognitive pressure monitoring for operator health"
       },
       "fail_posture_summary": {
-        "fail_closed": "kernel_route, memory_recall, gateway_connect, judge_deliberate, vault_seal, forge_execute \u2014 halt on error \u2192 SABAR/HOLD",
-        "fail_open": "mind_reason, heart_critique, reply_compose, ops_measure \u2014 return descriptive error, continue"
+        "fail_closed": "kernel_route, memory_recall, gateway_connect, judge_deliberate, vault_seal, forge_execute — halt on error → SABAR/HOLD",
+        "fail_open": "mind_reason, heart_critique, reply_compose, ops_measure — return descriptive error, continue"
+      }
+    },
+    "phase_status": {
+      "phase0_stabilize": "DONE — danger taxonomy encoded, capability manifests live",
+      "phase1_discovery": {
+        "WEALTH_8082_tools": "DONE — GET /tools returns 50 tools with danger_level, fail_posture, fail_open_constraint",
+        "WELL_8083_tools": "DONE — GET /tools returns 45 tools with danger_level, fail_posture, fail_open_constraint",
+        "GEOX_8081_tools": "DONE — GET /tools returns 14 canonical tools with geox-tool-registry/v2 schema",
+        "arifOS_8080_tools": "DONE — 13 canonical tools via native MCP /tools/list",
+        "schema": "wealth-federation-v2026.05.07 | well-federation-v2026.05.07 | geox-tool-registry/v2"
+      },
+      "phase2_gateway": "PENDING — arif_gateway_connect is stub; needs real MCP client + routing logic",
+      "phase3_ratification": "PENDING — 888_JUDGE circuit not wired; decision required: sync vs async",
+      "phase4_a2a": "PENDING — A2A bridges on 18000/18001 planned but not implemented",
+      "readiness_score": {
+        "arifOS_kernel": "80%",
+        "WEALTH": "70% (transport fixed, /tools live, 502 resolved)",
+        "GEOX": "75%",
+        "WELL": "80%",
+        "tool_discovery": "75%",
+        "real_gateway": "20%",
+        "ratification_circuit": "25%",
+        "a2a_bridge": "30%",
+        "overall": "50% (up from 35%)"
       }
     }
   }

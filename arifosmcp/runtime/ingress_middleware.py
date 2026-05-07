@@ -9,6 +9,7 @@ FastMCP 2.x/3.x Compatibility: Middleware API differs between versions.
 - 3.x: Uses Middleware base class with on_call_tool hook
 - 2.x: Middleware not available — this module provides a no-op fallback
 """
+
 from __future__ import annotations
 
 import logging
@@ -21,80 +22,161 @@ logger = logging.getLogger(__name__)
 
 try:
     from arifosmcp.runtime.metrics import METABOLIC_LOOP_DURATION, REQUESTS_TOTAL
+
     _METRICS_AVAILABLE = True
 except Exception:
     _METRICS_AVAILABLE = False
 
 # The 11 mega-tools — enforce ingress tolerance on all of them
 MEGA_TOOLS = {
-    "init_anchor", "arifos_kernel", "apex_soul", "vault_ledger",
-    "agi_mind", "asi_heart", "engineering_memory", "physics_reality",
-    "math_estimator", "code_engine", "architect_registry",
+    "init_anchor",
+    "arifos_kernel",
+    "apex_soul",
+    "vault_ledger",
+    "agi_mind",
+    "asi_heart",
+    "engineering_memory",
+    "physics_reality",
+    "math_estimator",
+    "code_engine",
+    "architect_registry",
 }
 
 # Mode synonym normalization: obvious variants → canonical mode names
 # Principle: never reject what we can obviously understand
 MODE_SYNONYMS: dict[str, dict[str, str]] = {
     "agi_mind": {
-        "think": "reason", "analyze": "reason", "analyse": "reason",
-        "ask": "reason", "query": "reason", "recommend": "reason",
-        "ponder": "reason", "evaluate": "reason", "assess": "reason",
-        "reflect_on": "reflect", "mirror": "reflect",
-        "build": "forge", "create": "forge", "generate": "forge",
+        "think": "reason",
+        "analyze": "reason",
+        "analyse": "reason",
+        "ask": "reason",
+        "query": "reason",
+        "recommend": "reason",
+        "ponder": "reason",
+        "evaluate": "reason",
+        "assess": "reason",
+        "reflect_on": "reflect",
+        "mirror": "reflect",
+        "build": "forge",
+        "create": "forge",
+        "generate": "forge",
     },
     "asi_heart": {
-        "check": "critique", "review": "critique", "audit": "critique",
-        "test": "critique", "validate": "critique",
-        "model": "simulate", "project": "simulate", "predict": "simulate",
+        "check": "critique",
+        "review": "critique",
+        "audit": "critique",
+        "test": "critique",
+        "validate": "critique",
+        "model": "simulate",
+        "project": "simulate",
+        "predict": "simulate",
     },
     "physics_reality": {
-        "find": "search", "lookup": "search", "look_up": "search",
-        "fetch": "ingest", "load": "ingest", "import": "ingest",
-        "navigate": "compass", "explore": "compass", "map": "atlas",
-        "now": "time", "datetime": "time", "date": "time", "clock": "time",
+        "find": "search",
+        "lookup": "search",
+        "look_up": "search",
+        "fetch": "ingest",
+        "load": "ingest",
+        "import": "ingest",
+        "navigate": "compass",
+        "explore": "compass",
+        "map": "atlas",
+        "now": "time",
+        "datetime": "time",
+        "date": "time",
+        "clock": "time",
     },
     "arifos_kernel": {
-        "run": "kernel", "execute": "kernel", "process": "kernel",
-        "think": "kernel", "reason": "kernel",
-        "health": "status", "ping": "status", "check": "status",
+        "run": "kernel",
+        "execute": "kernel",
+        "process": "kernel",
+        "think": "kernel",
+        "reason": "kernel",
+        "health": "status",
+        "ping": "status",
+        "check": "status",
     },
     "init_anchor": {
-        "start": "init", "begin": "init", "login": "init", "connect": "init",
-        "check": "state", "info": "state", "whoami": "state",
-        "logout": "revoke", "disconnect": "revoke", "end": "revoke",
-        "renew": "refresh", "extend": "refresh", "update": "refresh",
+        "start": "init",
+        "begin": "init",
+        "login": "init",
+        "connect": "init",
+        "check": "state",
+        "info": "state",
+        "whoami": "state",
+        "logout": "revoke",
+        "disconnect": "revoke",
+        "end": "revoke",
+        "renew": "refresh",
+        "extend": "refresh",
+        "update": "refresh",
     },
     "apex_soul": {
-        "check": "validate", "review": "validate", "audit": "judge",
-        "block": "hold", "pause": "hold", "freeze": "hold",
-        "test": "probe", "ping": "probe",
+        "check": "validate",
+        "review": "validate",
+        "audit": "judge",
+        "block": "hold",
+        "pause": "hold",
+        "freeze": "hold",
+        "test": "probe",
+        "ping": "probe",
     },
     "vault_ledger": {
-        "save": "seal", "store": "seal", "commit": "seal", "record": "seal",
-        "check": "verify", "validate": "verify", "confirm": "verify",
+        "save": "seal",
+        "store": "seal",
+        "commit": "seal",
+        "record": "seal",
+        "check": "verify",
+        "validate": "verify",
+        "confirm": "verify",
     },
     "engineering_memory": {
-        "build": "engineer", "do": "engineer", "run": "engineer",
-        "search": "vector_query", "find": "vector_query", "recall": "vector_query",
-        "remember": "vector_store", "save": "vector_store", "store": "vector_store",
-        "forget": "vector_forget", "delete": "vector_forget", "remove": "vector_forget",
-        "write": "generate", "draft": "generate", "make": "generate",
+        "build": "engineer",
+        "do": "engineer",
+        "run": "engineer",
+        "search": "vector_query",
+        "find": "vector_query",
+        "recall": "vector_query",
+        "remember": "vector_store",
+        "save": "vector_store",
+        "store": "vector_store",
+        "forget": "vector_forget",
+        "delete": "vector_forget",
+        "remove": "vector_forget",
+        "write": "generate",
+        "draft": "generate",
+        "make": "generate",
     },
     "code_engine": {
-        "files": "fs", "list": "fs", "dir": "fs",
-        "ps": "process", "tasks": "process", "jobs": "process",
-        "network": "net", "connections": "net",
-        "logs": "tail", "log": "tail",
+        "files": "fs",
+        "list": "fs",
+        "dir": "fs",
+        "ps": "process",
+        "tasks": "process",
+        "jobs": "process",
+        "network": "net",
+        "connections": "net",
+        "logs": "tail",
+        "log": "tail",
     },
     "math_estimator": {
-        "price": "cost", "estimate": "cost", "budget": "cost",
-        "status": "health", "check": "health",
-        "metrics": "vitals", "stats": "vitals",
+        "price": "cost",
+        "estimate": "cost",
+        "budget": "cost",
+        "status": "health",
+        "check": "health",
+        "metrics": "vitals",
+        "stats": "vitals",
     },
     "architect_registry": {
-        "add": "register", "create": "register",
-        "show": "list", "ls": "list", "all": "list",
-        "get": "read", "fetch": "read", "load": "read",
+        "add": "register",
+        "create": "register",
+        "show": "list",
+        "ls": "list",
+        "all": "list",
+        "get": "read",
+        "fetch": "read",
+        "load": "read",
     },
 }
 
@@ -111,7 +193,7 @@ if IS_FASTMCP_3:
             MiddlewareContext,
             ToolResult,
         )
-        
+
         class IngressToleranceMiddleware(Middleware):
             """
             Strip unknown fields from tool arguments before they reach Pydantic.
@@ -145,7 +227,9 @@ if IS_FASTMCP_3:
                         if canonical:
                             logger.debug(
                                 "Ingress: normalizing mode '%s' → '%s' for tool '%s'",
-                                raw_mode, canonical, tool_name,
+                                raw_mode,
+                                canonical,
+                                tool_name,
                             )
                             msg.arguments["mode"] = canonical
 
@@ -156,7 +240,8 @@ if IS_FASTMCP_3:
                         if unknown:
                             logger.debug(
                                 "Ingress tolerance: absorbing unknown fields %s for tool '%s'",
-                                unknown, tool_name,
+                                unknown,
+                                tool_name,
                             )
                             # Mutate in place — context is transient per request
                             for k in unknown:
@@ -173,7 +258,7 @@ if IS_FASTMCP_3:
                     except Exception:
                         pass
                 return result
-                
+
     except ImportError as e:
         logger.warning(f"[COMPAT] Could not import FastMCP 3.x middleware: {e}")
         # Fall through to no-op fallback
@@ -184,15 +269,16 @@ if IS_FASTMCP_3:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if not IS_FASTMCP_3:
+
     class IngressToleranceMiddleware:
         """
         No-op fallback for FastMCP 2.x (middleware API not available).
-        
+
         FastMCP 2.x doesn't have the Middleware base class, so we provide
         a compatible no-op that won't break the server but also won't provide
         ingress tolerance features.
         """
-        
+
         def __init__(self, tool_param_sets: dict[str, set[str]] | None = None) -> None:
             self._tool_param_sets: dict[str, set[str]] = tool_param_sets or {}
 

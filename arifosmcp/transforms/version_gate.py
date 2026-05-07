@@ -4,6 +4,7 @@ VersionGate — Phased Rollout Filter
 
 Enables gradual rollout of new tool versions by percentage or actor list.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -61,20 +62,16 @@ class VersionGate(Transform):
             return True
         if gate == "none":
             return False
-        if isinstance(gate, (int, float)):
+        if isinstance(gate, int | float):
             return self._actor_in_rollout(tool.name)
         return self.default_enabled
 
     async def list_tools(self, tools: Sequence[Tool]) -> Sequence[Tool]:
         filtered = [t for t in tools if self._allowed(t)]
-        logger.debug(
-            f"[VersionGate] {self.actor_id}: {len(filtered)}/{len(tools)} tools in gate"
-        )
+        logger.debug(f"[VersionGate] {self.actor_id}: {len(filtered)}/{len(tools)} tools in gate")
         return filtered
 
-    async def get_tool(
-        self, name: str, call_next: Any, *, version: Any = None
-    ) -> Tool | None:
+    async def get_tool(self, name: str, call_next: Any, *, version: Any = None) -> Tool | None:
         tool = await call_next(name, version=version)
         if tool is None:
             return None

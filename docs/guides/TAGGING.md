@@ -1,7 +1,7 @@
 # arifOS Trinity Tagging Specification
 
-**Version:** 2026.03.20  
-**Authority:** 888_JUDGE (Muhammad Arif bin Fazil)  
+**Version:** 2026.03.20
+**Authority:** 888_JUDGE (Muhammad Arif bin Fazil)
 **Status:** SEAL ✅
 
 ---
@@ -206,7 +206,7 @@ git checkout main
 
 ## Authority
 
-**888_JUDGE:** Muhammad Arif bin Fazil  
+**888_JUDGE:** Muhammad Arif bin Fazil
 **Motto:** *Ditempa Bukan Diberi* — Forged, Not Given
 
 ---

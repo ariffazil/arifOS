@@ -78,7 +78,7 @@ mcp = FastMCP(
     "arifOS",
     instructions="""
     arifOS MCP Server - Constitutional AI Governance System
-    
+
     This server provides 8 Sacred Tools governed by F1-F13 constitutional floors.
     All operations are subject to ethical, safety, and alignment validation.
     """
@@ -96,20 +96,20 @@ async def init_anchor_state(
 ) -> Dict[str, Any]:
     """
     Initialize a new anchored session with constitutional governance.
-    
+
     Args:
         session_id: Unique session identifier
         intent: User's stated intent for this session
         context: Optional initial context parameters
-    
+
     Returns:
         Anchored session state with governance bindings
     """
     guard = ConstitutionalGuard()
-    
+
     # Validate intent against F1-F3 (Safety, Ethics, Alignment)
     verdict = await guard.validate_intent(intent, floors=["F1", "F2", "F3"])
-    
+
     if verdict.status != "SEAL":
         return {
             "machine": {"status": "blocked", "latency_ms": verdict.latency_ms},
@@ -120,7 +120,7 @@ async def init_anchor_state(
             },
             "intelligence": {"result": None, "uncertainty": 1.0}
         }
-    
+
     # Initialize session with metabolic loop
     session = await SessionManager.create(
         session_id=session_id,
@@ -128,7 +128,7 @@ async def init_anchor_state(
         context=context,
         governance_binding=verdict.binding
     )
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": verdict.latency_ms},
         "governance": {"verdict": "SEAL", "floors_passed": 13},
@@ -152,26 +152,26 @@ async def reason_mind_synthesis(
 ) -> Dict[str, Any]:
     """
     Execute multi-layer reasoning with constitutional oversight.
-    
+
     Args:
         query: The reasoning query or problem statement
         session_id: Active session identifier
         synthesis_depth: Reasoning depth (1-5, default 3)
         include_uncertainty: Include confidence metrics
-    
+
     Returns:
         Synthesized reasoning with governance attestation
     """
     guard = ConstitutionalGuard()
     session = await SessionManager.get(session_id)
-    
+
     # Full F1-F13 validation for reasoning operations
     verdict = await guard.validate_reasoning(
         query=query,
         session=session,
         floors=[f"F{i}" for i in range(1, 14)]
     )
-    
+
     if verdict.status == "VOID":
         return {
             "machine": {"status": "rejected", "latency_ms": verdict.latency_ms},
@@ -182,7 +182,7 @@ async def reason_mind_synthesis(
             },
             "intelligence": {"result": None, "uncertainty": 1.0}
         }
-    
+
     if verdict.status == "888_HOLD":
         return {
             "machine": {"status": "pending_approval", "latency_ms": verdict.latency_ms},
@@ -193,14 +193,14 @@ async def reason_mind_synthesis(
             },
             "intelligence": {"result": None, "uncertainty": 0.5}
         }
-    
+
     # Execute reasoning with metabolic tracking
     synthesis = MindSynthesis(depth=synthesis_depth)
     result = await synthesis.execute(query, session=session)
-    
+
     # Update metabolic loop
     await session.metabolic.update("reasoning", result.complexity_score)
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": result.latency_ms},
         "governance": {
@@ -229,26 +229,26 @@ async def search_reality(
 ) -> Dict[str, Any]:
     """
     Execute reality-grounded search with source validation.
-    
+
     Args:
         query: Search query string
         session_id: Active session identifier
         search_type: Type of search (web, academic, news)
         max_results: Maximum results to return
-    
+
     Returns:
         Validated search results with credibility scoring
     """
     guard = ConstitutionalGuard()
     session = await SessionManager.get(session_id)
-    
+
     # F4 (Truth) and F5 (Source Quality) validation
     verdict = await guard.validate_search(
         query=query,
         search_type=search_type,
         floors=["F4", "F5", "F7"]  # Truth, Source Quality, Privacy
     )
-    
+
     if verdict.status != "SEAL":
         return {
             "machine": {"status": "blocked", "latency_ms": verdict.latency_ms},
@@ -258,17 +258,17 @@ async def search_reality(
             },
             "intelligence": {"result": None, "uncertainty": 1.0}
         }
-    
+
     # Execute search
     searcher = RealitySearch(search_type=search_type)
     results = await searcher.execute(query, max_results=max_results)
-    
+
     # Apply credibility filtering
     validated_results = [
-        r for r in results 
+        r for r in results
         if r.credibility_score >= guard.config.min_credibility_threshold
     ]
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": results.latency_ms},
         "governance": {
@@ -295,26 +295,26 @@ async def commit_vault999(
 ) -> Dict[str, Any]:
     """
     Commit data to permanent VAULT999 storage with governance attestation.
-    
+
     Args:
         data: Data to commit
         session_id: Active session identifier
         commit_type: Type of commit (session_log, decision, audit_trail)
         encryption_level: Encryption level (standard, high, maximum)
-    
+
     Returns:
         Commit receipt with blockchain attestation
     """
     guard = ConstitutionalGuard()
     session = await SessionManager.get(session_id)
-    
+
     # F9 (Auditability) and F10 (Accountability) validation
     verdict = await guard.validate_commit(
         data=data,
         commit_type=commit_type,
         floors=["F9", "F10", "F11"]  # Auditability, Accountability, Transparency
     )
-    
+
     if verdict.status != "SEAL":
         return {
             "machine": {"status": "rejected", "latency_ms": verdict.latency_ms},
@@ -324,7 +324,7 @@ async def commit_vault999(
             },
             "intelligence": {"result": None, "uncertainty": 1.0}
         }
-    
+
     # Commit to VAULT999
     vault = VAULT999(encryption_level=encryption_level)
     commit_receipt = await vault.commit(
@@ -333,7 +333,7 @@ async def commit_vault999(
         commit_type=commit_type,
         governance_attestation=verdict.attestation
     )
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": commit_receipt.latency_ms},
         "governance": {
@@ -360,12 +360,12 @@ async def commit_vault999(
 async def audit_rules() -> Dict[str, Any]:
     """
     Get current constitutional rules and floor configurations.
-    
+
     Returns:
         Complete constitutional framework state
     """
     guard = ConstitutionalGuard()
-    
+
     return {
         "floors": {
             f"F{i}": {
@@ -388,15 +388,15 @@ async def audit_rules() -> Dict[str, Any]:
 async def session_memory(session_id: str) -> Dict[str, Any]:
     """
     Retrieve session memory and context.
-    
+
     Args:
         session_id: Session identifier
-    
+
     Returns:
         Session memory state
     """
     session = await SessionManager.get(session_id)
-    
+
     return {
         "session_id": session.id,
         "anchor_timestamp": session.anchor_time,
@@ -419,15 +419,15 @@ async def session_memory(session_id: str) -> Dict[str, Any]:
 async def session_telemetry(session_id: str) -> Dict[str, Any]:
     """
     Get real-time telemetry for a session.
-    
+
     Args:
         session_id: Session identifier
-    
+
     Returns:
         Telemetry metrics and 3E cycle data
     """
     session = await SessionManager.get(session_id)
-    
+
     return {
         "session_id": session.id,
         "3e_metrics": {
@@ -457,11 +457,11 @@ async def session_telemetry(session_id: str) -> Dict[str, Any]:
 def constitutional_reasoning_prompt(query: str, context: str = "") -> str:
     """
     Generate a constitutionally-aligned reasoning prompt.
-    
+
     Args:
         query: The reasoning task
         context: Additional context
-    
+
     Returns:
         Formatted prompt with constitutional guidelines
     """
@@ -493,10 +493,10 @@ Provide your reasoning with explicit uncertainty quantification."""
 def audit_trail_prompt(session_id: str) -> str:
     """
     Generate an audit trail analysis prompt.
-    
+
     Args:
         session_id: Session to analyze
-    
+
     Returns:
         Audit analysis prompt
     """
@@ -527,26 +527,26 @@ async def generate_vision(
 ) -> Dict[str, Any]:
     """
     Generate images with constitutional content filtering.
-    
+
     Args:
         prompt: Image generation prompt
         session_id: Active session identifier
         style: Visual style (natural, artistic, technical)
         resolution: Output resolution (1K, 2K, 4K)
         ratio: Aspect ratio (1:1, 16:9, etc.)
-    
+
     Returns:
         Generated image with governance attestation
     """
     guard = ConstitutionalGuard()
     session = await SessionManager.get(session_id)
-    
+
     # F1 (Safety) and F8 (Fairness) validation for image content
     verdict = await guard.validate_image_prompt(
         prompt=prompt,
         floors=["F1", "F8", "F7"]  # Safety, Fairness, Privacy
     )
-    
+
     if verdict.status != "SEAL":
         return {
             "machine": {"status": "blocked", "latency_ms": verdict.latency_ms},
@@ -557,12 +557,12 @@ async def generate_vision(
             },
             "intelligence": {"result": None, "uncertainty": 1.0}
         }
-    
+
     # Generate image
     from arifos.vision import VisionGenerator
     generator = VisionGenerator(style=style, resolution=resolution, ratio=ratio)
     image_result = await generator.generate(prompt)
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": image_result.latency_ms},
         "governance": {
@@ -668,10 +668,10 @@ class Verdict:
 
 class FloorValidator:
     """Validates individual constitutional floors."""
-    
+
     FLOOR_NAMES = {
         "F1": "Safety",
-        "F2": "Ethics", 
+        "F2": "Ethics",
         "F3": "Alignment",
         "F4": "Truth",
         "F5": "Source Quality",
@@ -684,7 +684,7 @@ class FloorValidator:
         "F12": "Robustness",
         "F13": "Human Oversight"
     }
-    
+
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.validators = {
@@ -702,15 +702,15 @@ class FloorValidator:
             "F12": self._validate_robustness,
             "F13": self._validate_human_oversight,
         }
-    
+
     async def validate(self, floor: str, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """Validate a specific floor."""
         if floor not in self.validators:
             return False, f"Unknown floor: {floor}"
-        
+
         validator = self.validators[floor]
         return await validator(context)
-    
+
     async def _validate_safety(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F1: Safety validation - no harm to users or systems."""
         content = context.get("content", "")
@@ -723,21 +723,21 @@ class FloorValidator:
             if pattern.lower() in content.lower():
                 return False, f"F1 Safety violation: potentially dangerous pattern '{pattern}'"
         return True, None
-    
+
     async def _validate_ethics(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F2: Ethics validation - maintain ethical alignment."""
         # Check against ethical guidelines
         intent = context.get("intent", "")
         # Implementation would include ethics model checking
         return True, None
-    
+
     async def _validate_alignment(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F3: Alignment validation - stay true to stated intent."""
         session_intent = context.get("session_intent", "")
         current_action = context.get("action", "")
         # Check if current action aligns with session intent
         return True, None
-    
+
     async def _validate_truth(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F4: Truth validation - ground claims in reality."""
         # For search operations, verify source credibility
@@ -748,18 +748,18 @@ class FloorValidator:
             if low_cred_sources:
                 return False, f"F4 Truth violation: {len(low_cred_sources)} sources below credibility threshold"
         return True, None
-    
+
     async def _validate_source_quality(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F5: Source quality validation."""
         sources = context.get("sources", [])
         # Validate source authority
         return True, None
-    
+
     async def _validate_uncertainty(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F6: Uncertainty quantification validation."""
         # Ensure uncertainty is properly expressed
         return True, None
-    
+
     async def _validate_privacy(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F7: Privacy validation - protect sensitive information."""
         content = context.get("content", "")
@@ -774,27 +774,27 @@ class FloorValidator:
             if re.search(pattern, content):
                 return False, "F7 Privacy violation: potential PII detected"
         return True, None
-    
+
     async def _validate_fairness(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F8: Fairness validation - avoid bias."""
         return True, None
-    
+
     async def _validate_auditability(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F9: Auditability validation - clear reasoning chains."""
         return True, None
-    
+
     async def _validate_accountability(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F10: Accountability validation."""
         return True, None
-    
+
     async def _validate_transparency(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F11: Transparency validation."""
         return True, None
-    
+
     async def _validate_robustness(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F12: Robustness validation - handle edge cases."""
         return True, None
-    
+
     async def _validate_human_oversight(self, context: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """F13: Human oversight validation - escalate when needed."""
         risk_score = context.get("risk_score", 0)
@@ -805,12 +805,12 @@ class FloorValidator:
 
 class ConstitutionalGuard:
     """Main constitutional governance guard."""
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.validator = FloorValidator(self.config)
         self.audit_log = []
-    
+
     async def validate(
         self,
         context: Dict[str, Any],
@@ -818,12 +818,12 @@ class ConstitutionalGuard:
     ) -> Verdict:
         """Run full constitutional validation."""
         start_time = time.time()
-        
+
         floors_passed = []
         floors_failed = []
         failure_reason = None
         violation_floor = None
-        
+
         for floor in floors:
             passed, reason = await self.validator.validate(floor, context)
             if passed:
@@ -833,9 +833,9 @@ class ConstitutionalGuard:
                 if not failure_reason:
                     failure_reason = reason
                     violation_floor = floor
-        
+
         latency_ms = (time.time() - start_time) * 1000
-        
+
         # Determine verdict
         if floors_failed:
             if violation_floor == "F13":
@@ -846,7 +846,7 @@ class ConstitutionalGuard:
                 status = VerdictStatus.SABAR
         else:
             status = VerdictStatus.SEAL
-        
+
         verdict = Verdict(
             status=status,
             floors_passed=floors_passed,
@@ -858,7 +858,7 @@ class ConstitutionalGuard:
             attestation=f"ATT-{int(time.time())}" if status == VerdictStatus.SEAL else None,
             attestation_id=f"AID-{int(time.time())}" if status == VerdictStatus.SEAL else None
         )
-        
+
         # Log to audit trail
         self.audit_log.append({
             "timestamp": time.time(),
@@ -866,34 +866,34 @@ class ConstitutionalGuard:
             "floors_checked": floors,
             "context_hash": hash(str(context))
         })
-        
+
         return verdict
-    
+
     # Convenience methods for specific validation types
     async def validate_intent(self, intent: str, floors: List[str]) -> Verdict:
         return await self.validate({"intent": intent, "content": intent}, floors)
-    
+
     async def validate_reasoning(self, query: str, session: Any, floors: List[str]) -> Verdict:
         return await self.validate({
             "content": query,
             "session_intent": getattr(session, 'intent', ''),
             "action": "reasoning"
         }, floors)
-    
+
     async def validate_search(self, query: str, search_type: str, floors: List[str]) -> Verdict:
         return await self.validate({
             "content": query,
             "operation": "search",
             "search_type": search_type
         }, floors)
-    
+
     async def validate_commit(self, data: Dict, commit_type: str, floors: List[str]) -> Verdict:
         return await self.validate({
             "content": str(data),
             "operation": "commit",
             "commit_type": commit_type
         }, floors)
-    
+
     async def validate_image_prompt(self, prompt: str, floors: List[str]) -> Verdict:
         return await self.validate({
             "content": prompt,
@@ -908,12 +908,12 @@ def constitutional_guard(
 ):
     """
     Decorator for applying constitutional governance to MCP tools.
-    
+
     Args:
         floors: List of constitutional floors to validate (F1-F13)
         strict: If True, any floor failure results in VOID
         audit: If True, log all validation attempts
-    
+
     Usage:
         @constitutional_guard(floors=["F1", "F4", "F7"])
         @mcp.tool()
@@ -923,17 +923,17 @@ def constitutional_guard(
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             guard = ConstitutionalGuard()
-            
+
             # Build validation context from function arguments
             context = {
                 "function_name": func.__name__,
                 "args": str(args),
                 "kwargs": str(kwargs)
             }
-            
+
             # Run constitutional validation
             verdict = await guard.validate(context, floors)
-            
+
             # Handle verdict
             if verdict.status == VerdictStatus.VOID:
                 return {
@@ -945,7 +945,7 @@ def constitutional_guard(
                     },
                     "intelligence": {"result": None, "uncertainty": 1.0}
                 }
-            
+
             if verdict.status == VerdictStatus.HOLD_888:
                 return {
                     "machine": {"status": "pending_approval", "latency_ms": verdict.latency_ms},
@@ -956,7 +956,7 @@ def constitutional_guard(
                     },
                     "intelligence": {"result": None, "uncertainty": 0.5}
                 }
-            
+
             if verdict.status == VerdictStatus.SABAR:
                 # Could implement retry logic here
                 return {
@@ -967,10 +967,10 @@ def constitutional_guard(
                     },
                     "intelligence": {"result": None, "uncertainty": 0.7}
                 }
-            
+
             # SEAL - proceed with execution
             result = await func(*args, **kwargs)
-            
+
             # Inject governance metadata into result
             if isinstance(result, dict):
                 if "governance" not in result:
@@ -978,19 +978,19 @@ def constitutional_guard(
                 result["governance"]["verdict"] = "SEAL"
                 result["governance"]["floors_passed"] = len(floors)
                 result["governance"]["attestation"] = verdict.attestation
-            
+
             return result
-        
+
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             # For synchronous functions, run async validation in event loop
             return asyncio.run(async_wrapper(*args, **kwargs))
-        
+
         # Return appropriate wrapper based on function type
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
-    
+
     return decorator
 ```
 
@@ -1097,7 +1097,7 @@ class MachineLayer:
     latency_ms: float
     version: str = "1.0.0"
     timestamp: str = None
-    
+
     def __post_init__(self):
         if self.timestamp is None:
             self.timestamp = datetime.utcnow().isoformat() + "Z"
@@ -1137,14 +1137,14 @@ class AuditLayer:
 
 class VerdictResponseBuilder:
     """Builder for standardized arifOS verdict responses."""
-    
+
     def __init__(self):
         self._machine: Optional[MachineLayer] = None
         self._governance: Optional[GovernanceLayer] = None
         self._intelligence: Optional[IntelligenceLayer] = None
         self._audit: Optional[AuditLayer] = None
         self._start_time = time.time()
-    
+
     def with_machine(
         self,
         status: str,
@@ -1158,7 +1158,7 @@ class VerdictResponseBuilder:
             version=version
         )
         return self
-    
+
     def with_governance(
         self,
         verdict: str,
@@ -1182,7 +1182,7 @@ class VerdictResponseBuilder:
             reason=reason
         )
         return self
-    
+
     def with_intelligence(
         self,
         result: Any,
@@ -1202,7 +1202,7 @@ class VerdictResponseBuilder:
             sources=sources
         )
         return self
-    
+
     def with_audit(
         self,
         session_id: str,
@@ -1218,30 +1218,30 @@ class VerdictResponseBuilder:
         chain_hash = hashlib.sha256(
             json.dumps(chain_data, sort_keys=True).encode()
         ).hexdigest()[:16]
-        
+
         self._audit = AuditLayer(
             session_id=session_id,
             request_id=request_id,
             chain_hash=f"sha256:{chain_hash}"
         )
         return self
-    
+
     def build(self) -> Dict[str, Any]:
         """Build the complete response."""
         if not all([self._machine, self._governance, self._intelligence]):
             raise ValueError("Machine, governance, and intelligence layers are required")
-        
+
         response = {
             "machine": asdict(self._machine),
             "governance": asdict(self._governance),
             "intelligence": asdict(self._intelligence)
         }
-        
+
         if self._audit:
             response["audit"] = asdict(self._audit)
-        
+
         return response
-    
+
     # Convenience methods for common verdict types
     @classmethod
     def seal(
@@ -1267,7 +1267,7 @@ class VerdictResponseBuilder:
             .with_audit(session_id=session_id, request_id=request_id)
             .build()
         )
-    
+
     @classmethod
     def void(
         cls,
@@ -1289,7 +1289,7 @@ class VerdictResponseBuilder:
             .with_audit(session_id=session_id, request_id=request_id)
             .build()
         )
-    
+
     @classmethod
     def hold_888(
         cls,
@@ -1310,7 +1310,7 @@ class VerdictResponseBuilder:
             .with_audit(session_id=session_id, request_id=request_id)
             .build()
         )
-    
+
     @classmethod
     def sabar(
         cls,
@@ -1346,7 +1346,7 @@ seal_response = {
     "governance": {
         "verdict": "SEAL",
         "floors_passed": 13,
-        "floors_checked": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", 
+        "floors_checked": ["F1", "F2", "F3", "F4", "F5", "F6", "F7",
                           "F8", "F9", "F10", "F11", "F12", "F13"],
         "attestation": "ATT-1736939400",
         "attestation_id": "AID-1736939400",
@@ -1417,7 +1417,7 @@ hold_response = {
     "governance": {
         "verdict": "888_HOLD",
         "floors_passed": 12,
-        "floors_checked": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", 
+        "floors_checked": ["F1", "F2", "F3", "F4", "F5", "F6", "F7",
                           "F8", "F9", "F10", "F11", "F12", "F13"],
         "attestation": None,
         "attestation_id": None,
@@ -1577,11 +1577,11 @@ mcp = FastMCP("arifOS-http")
 async def handle_tool_call(request: Request):
     """Handle HTTP POST tool calls."""
     body = await request.json()
-    
+
     tool_name = body.get("tool")
     params = body.get("params", {})
     session_id = body.get("session_id")
-    
+
     # Get the tool from MCP
     tool = mcp._tools.get(tool_name)
     if not tool:
@@ -1589,7 +1589,7 @@ async def handle_tool_call(request: Request):
             {"error": f"Tool '{tool_name}' not found"},
             status_code=404
         )
-    
+
     # Execute with governance
     try:
         result = await tool(**params, session_id=session_id)
@@ -1603,7 +1603,7 @@ async def handle_tool_call(request: Request):
 async def handle_resource(request: Request):
     """Handle HTTP GET resource requests."""
     resource_uri = request.query_params.get("uri")
-    
+
     # Get resource from MCP
     resource = mcp._resources.get(resource_uri)
     if not resource:
@@ -1611,7 +1611,7 @@ async def handle_resource(request: Request):
             {"error": f"Resource '{resource_uri}' not found"},
             status_code=404
         )
-    
+
     try:
         result = await resource()
         return JSONResponse(result)
@@ -1667,18 +1667,18 @@ def run_sse(port: int = 3000):
     from starlette.routing import Route
     from mcp.server.sse import SseServerTransport
     import uvicorn
-    
+
     sse = SseServerTransport("/messages/")
-    
+
     async def handle_sse(request):
         async with sse.connect_sse(
             request.scope, request.receive, request._send
         ) as streams:
             await mcp._mcp_server.run(
-                streams[0], streams[1], 
+                streams[0], streams[1],
                 mcp._mcp_server.create_initialization_options()
             )
-    
+
     app = Starlette(
         debug=True,
         routes=[
@@ -1686,7 +1686,7 @@ def run_sse(port: int = 3000):
             Route("/messages/", endpoint=handle_sse),
         ],
     )
-    
+
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 def run_http(port: int = 8080):
@@ -1696,29 +1696,29 @@ def run_http(port: int = 8080):
     from starlette.requests import Request
     from starlette.responses import JSONResponse
     import uvicorn
-    
+
     async def handle_tool(request: Request):
         body = await request.json()
         tool_name = body.get("tool")
         params = body.get("params", {})
-        
+
         tool = mcp._tools.get(tool_name)
         if not tool:
             return JSONResponse({"error": "Tool not found"}, status_code=404)
-        
+
         result = await tool(**params)
         return JSONResponse(result)
-    
+
     async def health(request: Request):
         return JSONResponse({"status": "healthy"})
-    
+
     app = Starlette(
         routes=[
             Route("/health", endpoint=health, methods=["GET"]),
             Route("/tool", endpoint=handle_tool, methods=["POST"]),
         ],
     )
-    
+
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
@@ -1735,9 +1735,9 @@ if __name__ == "__main__":
         default=3000,
         help="Port for SSE/HTTP transports"
     )
-    
+
     args = parser.parse_args()
-    
+
     if args.transport == "stdio":
         run_stdio()
     elif args.transport == "sse":
@@ -1768,7 +1768,7 @@ WEBHOOK_SECRET = "your-webhook-secret-here"
 async def n8n_webhook_handler(request: Request):
     """
     Handle n8n webhook calls.
-    
+
     Expected payload:
     {
         "tool": "reason_mind_synthesis",
@@ -1782,25 +1782,25 @@ async def n8n_webhook_handler(request: Request):
     # Verify webhook signature
     signature = request.headers.get("X-Webhook-Signature")
     body = await request.body()
-    
+
     expected_signature = hmac.new(
         WEBHOOK_SECRET.encode(),
         body,
         hashlib.sha256
     ).hexdigest()
-    
+
     if signature != expected_signature:
         return JSONResponse(
             {"error": "Invalid signature"},
             status_code=401
         )
-    
+
     payload = await request.json()
-    
+
     tool_name = payload.get("tool")
     params = payload.get("params", {})
     callback_url = payload.get("callback_url")
-    
+
     # Execute tool (async if callback provided)
     if callback_url:
         # Async execution - return immediately, callback later
@@ -1820,14 +1820,14 @@ async def n8n_webhook_handler(request: Request):
                 {"error": f"Tool '{tool_name}' not found"},
                 status_code=404
             )
-        
+
         result = await tool(**params)
         return JSONResponse(result)
 
 async def execute_with_callback(tool_name: str, params: dict, callback_url: str):
     """Execute tool and send result to callback URL."""
     import aiohttp
-    
+
     tool = mcp._tools.get(tool_name)
     if not tool:
         result = {"error": f"Tool '{tool_name}' not found"}
@@ -1836,7 +1836,7 @@ async def execute_with_callback(tool_name: str, params: dict, callback_url: str)
             result = await tool(**params)
         except Exception as e:
             result = {"error": str(e)}
-    
+
     # Send callback
     async with aiohttp.ClientSession() as session:
         await session.post(
@@ -1893,7 +1893,7 @@ services:
       - ./data:/app/data
     environment:
       - ARIFOS_MODE=development
-  
+
   # SSE transport for browser clients
   arifos-sse:
     build: .
@@ -1904,7 +1904,7 @@ services:
       - ./data:/app/data
     environment:
       - ARIFOS_MODE=development
-  
+
   # HTTP transport for production
   arifos-http:
     build: .
@@ -1916,7 +1916,7 @@ services:
     environment:
       - ARIFOS_MODE=production
     restart: unless-stopped
-  
+
   # Redis for state management
   redis:
     image: redis:7-alpine
@@ -1924,7 +1924,7 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
-  
+
   # PostgreSQL for VAULT999
   postgres:
     image: postgres:15-alpine
@@ -2052,7 +2052,7 @@ class ErrorMapping:
 
 class ErrorHandler:
     """Central error handler for mapping exceptions to verdicts."""
-    
+
     # Default error mappings
     DEFAULT_MAPPINGS = [
         ErrorMapping(ValidationError, "VOID", 400, "warning"),
@@ -2065,11 +2065,11 @@ class ErrorHandler:
         ErrorMapping(RateLimitError, "SABAR", 429, "warning", retryable=True),
         ErrorMapping(RetryableError, "SABAR", 500, "warning", retryable=True),
     ]
-    
+
     def __init__(self, custom_mappings: Optional[list] = None):
         self.mappings = custom_mappings or self.DEFAULT_MAPPINGS
         self.mapping_dict = {m.exception_type: m for m in self.mappings}
-    
+
     def handle(self, error: Exception, session_id: str = "unknown") -> Dict[str, Any]:
         """Handle an exception and return verdict response."""
         # Find matching mapping
@@ -2078,18 +2078,18 @@ class ErrorHandler:
             if isinstance(error, exc_type):
                 mapping = m
                 break
-        
+
         if mapping is None:
             # Unknown error - default to SABAR with alert
             mapping = ErrorMapping(Exception, "SABAR", 500, "error", retryable=False)
-        
+
         # Log the error
         log_method = getattr(logger, mapping.log_level)
         log_method(
             f"Error in session {session_id}: {str(error)}",
             exc_info=True
         )
-        
+
         # Build response based on verdict type
         if mapping.verdict == "VOID":
             return self._build_void_response(error, mapping, session_id)
@@ -2099,16 +2099,16 @@ class ErrorHandler:
             return self._build_sabar_response(error, mapping, session_id)
         else:
             return self._build_unknown_response(error, session_id)
-    
+
     def _build_void_response(
-        self, 
-        error: Exception, 
+        self,
+        error: Exception,
         mapping: ErrorMapping,
         session_id: str
     ) -> Dict[str, Any]:
         """Build VOID verdict response."""
         violation_floor = getattr(error, 'floor', 'F1') if isinstance(error, GovernanceViolation) else 'F1'
-        
+
         return {
             "machine": {
                 "status": "rejected",
@@ -2130,16 +2130,16 @@ class ErrorHandler:
                 "error_logged": True
             }
         }
-    
+
     def _build_hold_response(
-        self, 
-        error: Exception, 
+        self,
+        error: Exception,
         mapping: ErrorMapping,
         session_id: str
     ) -> Dict[str, Any]:
         """Build 888_HOLD verdict response."""
         escalation_id = getattr(error, 'escalation_id', f"ESC-{int(time.time())}")
-        
+
         return {
             "machine": {
                 "status": "pending_approval",
@@ -2161,16 +2161,16 @@ class ErrorHandler:
                 "escalation_logged": True
             }
         }
-    
+
     def _build_sabar_response(
-        self, 
-        error: Exception, 
+        self,
+        error: Exception,
         mapping: ErrorMapping,
         session_id: str
     ) -> Dict[str, Any]:
         """Build SABAR verdict response."""
         retry_after = getattr(error, 'retry_after', 5)
-        
+
         return {
             "machine": {
                 "status": "retry_suggested",
@@ -2193,7 +2193,7 @@ class ErrorHandler:
                 "retry_logged": True
             }
         }
-    
+
     def _build_unknown_response(self, error: Exception, session_id: str) -> Dict[str, Any]:
         """Build response for unknown errors."""
         return {
@@ -2233,7 +2233,7 @@ def handle_errors(func: Callable) -> Callable:
             return await func(*args, **kwargs)
         except Exception as e:
             return error_handler.handle(e, session_id)
-    
+
     @wraps(func)
     def sync_wrapper(*args, **kwargs):
         session_id = kwargs.get('session_id', 'unknown')
@@ -2241,7 +2241,7 @@ def handle_errors(func: Callable) -> Callable:
             return func(*args, **kwargs)
         except Exception as e:
             return error_handler.handle(e, session_id)
-    
+
     if asyncio.iscoroutinefunction(func):
         return async_wrapper
     return sync_wrapper
@@ -2282,44 +2282,44 @@ def with_retry(config: RetryConfig = None):
     """Decorator for adding retry logic to functions."""
     if config is None:
         config = RetryConfig()
-    
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def async_wrapper(*args, **kwargs) -> T:
             last_exception = None
-            
+
             for attempt in range(config.max_retries + 1):
                 try:
                     return await func(*args, **kwargs)
                 except config.retryable_exceptions as e:
                     last_exception = e
-                    
+
                     if attempt == config.max_retries:
                         raise RetryableError(
                             f"Max retries ({config.max_retries}) exceeded: {str(e)}",
                             details={"original_error": str(e)}
                         )
-                    
+
                     # Calculate delay with exponential backoff
                     delay = min(
                         config.base_delay * (config.exponential_base ** attempt),
                         config.max_delay
                     )
-                    
+
                     if config.jitter:
                         delay *= (0.5 + random.random())
-                    
+
                     logger.warning(
                         f"Attempt {attempt + 1} failed for {func.__name__}, "
                         f"retrying in {delay:.2f}s: {str(e)}"
                     )
-                    
+
                     await asyncio.sleep(delay)
-            
+
             raise last_exception
-        
+
         return async_wrapper
-    
+
     return decorator
 
 
@@ -2407,20 +2407,20 @@ class FederatedServer:
 
 class FederationClient:
     """Client for communicating with federated MCP servers."""
-    
+
     def __init__(self, governance_server_url: str):
         self.governance_url = governance_server_url
         self.servers: Dict[str, FederatedServer] = {}
         self.session: Optional[aiohttp.ClientSession] = None
-    
+
     async def __aenter__(self):
         self.session = aiohttp.ClientSession()
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.session:
             await self.session.close()
-    
+
     async def discover_servers(self) -> List[FederatedServer]:
         """Discover all servers in the federation."""
         async with self.session.get(
@@ -2428,11 +2428,11 @@ class FederationClient:
         ) as response:
             data = await response.json()
             self.servers = {
-                s["id"]: FederatedServer(**s) 
+                s["id"]: FederatedServer(**s)
                 for s in data["servers"]
             }
             return list(self.servers.values())
-    
+
     async def call_server(
         self,
         server_id: str,
@@ -2444,7 +2444,7 @@ class FederationClient:
         server = self.servers.get(server_id)
         if not server:
             raise ValueError(f"Server {server_id} not found in federation")
-        
+
         # First, get governance approval from core
         governance_response = await self._get_governance_approval(
             server_role=server.role.value,
@@ -2452,10 +2452,10 @@ class FederationClient:
             params=params,
             session_id=session_id
         )
-        
+
         if governance_response["governance"]["verdict"] != "SEAL":
             return governance_response
-        
+
         # Execute on federated server
         async with self.session.post(
             f"{server.endpoint}/tool",
@@ -2467,7 +2467,7 @@ class FederationClient:
             }
         ) as response:
             result = await response.json()
-            
+
             # Wrap with governance metadata
             return {
                 "machine": result.get("machine", {}),
@@ -2482,7 +2482,7 @@ class FederationClient:
                     "federated_call": True
                 }
             }
-    
+
     async def _get_governance_approval(
         self,
         server_role: str,
@@ -2505,29 +2505,29 @@ class FederationClient:
 
 class FederationRegistry:
     """Registry for managing federated servers."""
-    
+
     def __init__(self):
         self.servers: Dict[str, FederatedServer] = {}
-    
+
     def register(self, server: FederatedServer) -> None:
         """Register a new server in the federation."""
         self.servers[server.id] = server
         print(f"Registered server: {server.id} ({server.role.value})")
-    
+
     def unregister(self, server_id: str) -> None:
         """Remove a server from the federation."""
         if server_id in self.servers:
             del self.servers[server_id]
             print(f"Unregistered server: {server_id}")
-    
+
     def get_by_role(self, role: ServerRole) -> List[FederatedServer]:
         """Get all servers with a specific role."""
         return [s for s in self.servers.values() if s.role == role]
-    
+
     def get_healthy(self) -> List[FederatedServer]:
         """Get all healthy servers."""
         return [s for s in self.servers.values() if s.health_status == "healthy"]
-    
+
     async def health_check_all(self) -> Dict[str, str]:
         """Check health of all registered servers."""
         results = {}
@@ -2573,12 +2573,12 @@ async def web_search(
 ) -> Dict[str, Any]:
     """
     Perform web search with results.
-    
+
     Args:
         query: Search query
         max_results: Maximum results to return
         governance_attestation: Attestation from governance server
-    
+
     Returns:
         Search results with credibility scores
     """
@@ -2589,10 +2589,10 @@ async def web_search(
             "governance": {"verdict": "VOID", "reason": "Missing governance attestation"},
             "intelligence": {"result": None}
         }
-    
+
     # Execute search
     results = await execute_web_search(query, max_results)
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": results["latency_ms"]},
         "governance": {"verdict": "SEAL", "attestation_verified": True},
@@ -2614,12 +2614,12 @@ async def academic_search(
 ) -> Dict[str, Any]:
     """
     Search academic sources (arXiv, Google Scholar).
-    
+
     Args:
         query: Academic search query
         max_results: Maximum results
         governance_attestation: Governance attestation
-    
+
     Returns:
         Academic paper results
     """
@@ -2629,9 +2629,9 @@ async def academic_search(
             "governance": {"verdict": "VOID", "reason": "Missing governance attestation"},
             "intelligence": {"result": None}
         }
-    
+
     results = await execute_academic_search(query, max_results)
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": results["latency_ms"]},
         "governance": {"verdict": "SEAL"},
@@ -2713,14 +2713,14 @@ async def generate_image(
 ) -> Dict[str, Any]:
     """
     Generate image from prompt.
-    
+
     Args:
         prompt: Image generation prompt
         style: Visual style
         resolution: Output resolution
         ratio: Aspect ratio
         governance_attestation: Governance attestation
-    
+
     Returns:
         Generated image data
     """
@@ -2730,10 +2730,10 @@ async def generate_image(
             "governance": {"verdict": "VOID", "reason": "Missing governance attestation"},
             "intelligence": {"result": None}
         }
-    
+
     # Generate image (placeholder)
     image_data = await execute_image_generation(prompt, style, resolution, ratio)
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": image_data["latency_ms"]},
         "governance": {"verdict": "SEAL"},
@@ -2756,12 +2756,12 @@ async def analyze_image(
 ) -> Dict[str, Any]:
     """
     Analyze image content.
-    
+
     Args:
         image_base64: Base64-encoded image
         analysis_type: Type of analysis (general, objects, text, faces)
         governance_attestation: Governance attestation
-    
+
     Returns:
         Analysis results
     """
@@ -2771,9 +2771,9 @@ async def analyze_image(
             "governance": {"verdict": "VOID", "reason": "Missing governance attestation"},
             "intelligence": {"result": None}
         }
-    
+
     analysis = await execute_image_analysis(image_base64, analysis_type)
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": analysis["latency_ms"]},
         "governance": {"verdict": "SEAL"},
@@ -2932,7 +2932,7 @@ class MetabolicState:
     last_activity: datetime = field(default_factory=datetime.utcnow)
     operation_count: int = 0
     error_count: int = 0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "energy_level": self.energy_level,
@@ -2941,7 +2941,7 @@ class MetabolicState:
             "operation_count": self.operation_count,
             "error_count": self.error_count
         }
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "MetabolicState":
         return cls(
@@ -2951,16 +2951,16 @@ class MetabolicState:
             operation_count=data.get("operation_count", 0),
             error_count=data.get("error_count", 0)
         )
-    
+
     async def update(self, operation_type: str, complexity: float):
         """Update metabolic state after operation."""
         self.operation_count += 1
         self.complexity_accumulated += complexity
         self.last_activity = datetime.utcnow()
-        
+
         # Decay energy based on complexity
         self.energy_level = max(0.0, self.energy_level - (complexity * 0.01))
-        
+
         # Recover energy slightly
         self.energy_level = min(1.0, self.energy_level + 0.05)
 
@@ -2984,7 +2984,7 @@ class Session:
     metabolic: MetabolicState
     governance_history: List[GovernanceHistoryEntry] = field(default_factory=list)
     interaction_count: int = 0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -3003,7 +3003,7 @@ class Session:
             ],
             "interaction_count": self.interaction_count
         }
-    
+
     def get_context_window(self, max_items: int = 10) -> List[Dict[str, Any]]:
         """Get recent context window."""
         return self.context.get("history", [])[-max_items:]
@@ -3011,11 +3011,11 @@ class Session:
 
 class SessionManager:
     """Manages session state with Redis backend."""
-    
+
     def __init__(self, redis_url: str = "redis://localhost:6379"):
         self.redis = redis.from_url(redis_url, decode_responses=True)
         self.session_ttl = 3600  # 1 hour
-    
+
     async def create(
         self,
         session_id: Optional[str] = None,
@@ -3031,26 +3031,26 @@ class SessionManager:
             context=context or {},
             metabolic=MetabolicState()
         )
-        
+
         # Store in Redis
         await self._save_session(session)
-        
+
         return session
-    
+
     async def get(self, session_id: str) -> Optional[Session]:
         """Retrieve session by ID."""
         data = await self.redis.get(f"session:{session_id}")
         if not data:
             return None
-        
+
         session_data = json.loads(data)
         return self._deserialize_session(session_data)
-    
+
     async def update(self, session: Session) -> None:
         """Update session state."""
         session.interaction_count += 1
         await self._save_session(session)
-    
+
     async def add_governance_record(
         self,
         session_id: str,
@@ -3070,7 +3070,7 @@ class SessionManager:
                 )
             )
             await self._save_session(session)
-    
+
     async def _save_session(self, session: Session) -> None:
         """Save session to Redis."""
         await self.redis.setex(
@@ -3078,7 +3078,7 @@ class SessionManager:
             self.session_ttl,
             json.dumps(session.to_dict())
         )
-    
+
     def _deserialize_session(self, data: Dict[str, Any]) -> Session:
         """Deserialize session from dict."""
         return Session(
@@ -3098,7 +3098,7 @@ class SessionManager:
             ],
             interaction_count=data.get("interaction_count", 0)
         )
-    
+
     async def cleanup_expired(self) -> int:
         """Clean up expired sessions (Redis handles TTL automatically)."""
         # This is a no-op for Redis but useful for other backends
@@ -3131,7 +3131,7 @@ class CommitReceipt:
 
 class VAULT999:
     """Permanent storage with blockchain attestation."""
-    
+
     def __init__(
         self,
         dsn: str = "postgresql://arifos:arifos_password@localhost/vault999",
@@ -3142,15 +3142,15 @@ class VAULT999:
         self.encryption_level = encryption_level
         self.blockchain_enabled = blockchain_enabled
         self.pool: Optional[asyncpg.Pool] = None
-    
+
     async def __aenter__(self):
         self.pool = await asyncpg.create_pool(self.dsn)
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.pool:
             await self.pool.close()
-    
+
     async def commit(
         self,
         data: Dict[str, Any],
@@ -3161,15 +3161,15 @@ class VAULT999:
         """Commit data to VAULT999 with attestation."""
         import time
         start_time = time.time()
-        
+
         # Generate commit ID and hash
         commit_id = f"V999-{int(time.time() * 1000)}"
         data_hash = self._hash_data(data)
-        
+
         # Encrypt if needed
         if self.encryption_level in ["high", "maximum"]:
             data = await self._encrypt_data(data)
-        
+
         # Store in PostgreSQL
         async with self.pool.acquire() as conn:
             await conn.execute(
@@ -3188,14 +3188,14 @@ class VAULT999:
                 self.encryption_level,
                 datetime.utcnow()
             )
-        
+
         # Blockchain attestation (optional)
         blockchain_tx = None
         if self.blockchain_enabled:
             blockchain_tx = await self._blockchain_attest(commit_id, data_hash)
-        
+
         latency_ms = (time.time() - start_time) * 1000
-        
+
         return CommitReceipt(
             id=commit_id,
             hash=data_hash,
@@ -3204,28 +3204,28 @@ class VAULT999:
             latency_ms=latency_ms,
             blockchain_tx=blockchain_tx
         )
-    
+
     async def retrieve(self, retrieval_key: str) -> Optional[Dict[str, Any]]:
         """Retrieve committed data by retrieval key."""
         commit_id = retrieval_key.replace("RK-", "")
-        
+
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT data, encryption_level FROM vault_commits WHERE commit_id = $1",
                 commit_id
             )
-        
+
         if not row:
             return None
-        
+
         data = json.loads(row["data"])
-        
+
         # Decrypt if needed
         if row["encryption_level"] in ["high", "maximum"]:
             data = await self._decrypt_data(data)
-        
+
         return data
-    
+
     async def audit_trail(self, session_id: str) -> List[Dict[str, Any]]:
         """Get audit trail for a session."""
         async with self.pool.acquire() as conn:
@@ -3238,7 +3238,7 @@ class VAULT999:
                 """,
                 session_id
             )
-        
+
         return [
             {
                 "commit_id": row["commit_id"],
@@ -3249,23 +3249,23 @@ class VAULT999:
             }
             for row in rows
         ]
-    
+
     def _hash_data(self, data: Dict[str, Any]) -> str:
         """Generate SHA-256 hash of data."""
         return hashlib.sha256(
             json.dumps(data, sort_keys=True).encode()
         ).hexdigest()
-    
+
     async def _encrypt_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Encrypt data (placeholder implementation)."""
         # In production, use proper encryption (e.g., AES-256)
         return {"encrypted": True, "payload": "encrypted_payload"}
-    
+
     async def _decrypt_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Decrypt data (placeholder implementation)."""
         # In production, use proper decryption
         return {"decrypted": True}
-    
+
     async def _blockchain_attest(self, commit_id: str, data_hash: str) -> str:
         """Create blockchain attestation (placeholder)."""
         # In production, integrate with blockchain (Ethereum, etc.)
@@ -3288,7 +3288,7 @@ CREATE TABLE vault_commits (
     encryption_level VARCHAR(16) DEFAULT 'standard',
     blockchain_tx VARCHAR(128),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     INDEX idx_session_id (session_id),
     INDEX idx_created_at (created_at),
     INDEX idx_commit_type (commit_type)
@@ -3301,7 +3301,7 @@ CREATE TABLE session_context (
     context_value JSONB NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     UNIQUE(session_id, context_key),
     INDEX idx_session_id (session_id),
     INDEX idx_expires_at (expires_at)
@@ -3316,7 +3316,7 @@ CREATE TABLE metabolic_snapshots (
     operation_count INTEGER NOT NULL,
     error_count INTEGER NOT NULL,
     recorded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     INDEX idx_session_id (session_id),
     INDEX idx_recorded_at (recorded_at)
 );
@@ -3423,7 +3423,7 @@ class OperationTrace:
     floors_checked: List[str] = field(default_factory=list)
     floors_passed: int = 0
     error: Optional[str] = None
-    
+
     def complete(self, verdict: str, floors_checked: List[str], floors_passed: int):
         """Mark operation as complete."""
         self.end_time = datetime.utcnow()
@@ -3435,14 +3435,14 @@ class OperationTrace:
 
 class TelemetryCollector:
     """Collects and manages telemetry data from MCP operations."""
-    
+
     def __init__(self, buffer_size: int = 1000):
         self.buffer_size = buffer_size
         self.metrics: List[Metric] = []
         self.traces: List[OperationTrace] = []
         self.active_traces: Dict[str, OperationTrace] = {}
         self._lock = asyncio.Lock()
-        
+
         # Counters for verdicts
         self.verdict_counts = {
             "SEAL": 0,
@@ -3450,12 +3450,12 @@ class TelemetryCollector:
             "888_HOLD": 0,
             "SABAR": 0
         }
-        
+
         # Performance metrics
         self.total_operations = 0
         self.total_latency_ms = 0.0
         self.error_count = 0
-    
+
     async def start_trace(
         self,
         operation_id: str,
@@ -3469,12 +3469,12 @@ class TelemetryCollector:
             session_id=session_id,
             start_time=datetime.utcnow()
         )
-        
+
         async with self._lock:
             self.active_traces[operation_id] = trace
-        
+
         return trace
-    
+
     async def end_trace(
         self,
         operation_id: str,
@@ -3490,19 +3490,19 @@ class TelemetryCollector:
                 trace.complete(verdict, floors_checked, floors_passed)
                 if error:
                     trace.error = error
-                
+
                 self.traces.append(trace)
                 self.total_operations += 1
                 self.total_latency_ms += trace.latency_ms
                 self.verdict_counts[verdict] = self.verdict_counts.get(verdict, 0) + 1
-                
+
                 if error:
                     self.error_count += 1
-                
+
                 # Trim buffer if needed
                 if len(self.traces) > self.buffer_size:
                     self.traces = self.traces[-self.buffer_size:]
-    
+
     async def record_metric(
         self,
         name: str,
@@ -3520,26 +3520,26 @@ class TelemetryCollector:
             tags=tags or {},
             session_id=session_id
         )
-        
+
         async with self._lock:
             self.metrics.append(metric)
-            
+
             # Trim buffer if needed
             if len(self.metrics) > self.buffer_size:
                 self.metrics = self.metrics[-self.buffer_size:]
-    
+
     def get_summary(self) -> Dict[str, Any]:
         """Get telemetry summary."""
         avg_latency = (
-            self.total_latency_ms / self.total_operations 
+            self.total_latency_ms / self.total_operations
             if self.total_operations > 0 else 0
         )
-        
+
         error_rate = (
-            self.error_count / self.total_operations 
+            self.error_count / self.total_operations
             if self.total_operations > 0 else 0
         )
-        
+
         return {
             "total_operations": self.total_operations,
             "avg_latency_ms": avg_latency,
@@ -3549,20 +3549,20 @@ class TelemetryCollector:
             "buffered_metrics": len(self.metrics),
             "buffered_traces": len(self.traces)
         }
-    
+
     def get_session_metrics(self, session_id: str) -> Dict[str, Any]:
         """Get metrics for a specific session."""
         session_traces = [t for t in self.traces if t.session_id == session_id]
         session_metrics = [m for m in self.metrics if m.session_id == session_id]
-        
+
         if not session_traces:
             return {"error": "No metrics found for session"}
-        
+
         total_latency = sum(t.latency_ms for t in session_traces)
         verdicts = {}
         for t in session_traces:
             verdicts[t.verdict] = verdicts.get(t.verdict, 0) + 1
-        
+
         return {
             "session_id": session_id,
             "operation_count": len(session_traces),
@@ -3586,19 +3586,19 @@ def with_telemetry(tool_name: str):
         async def async_wrapper(*args, **kwargs):
             operation_id = f"op-{int(time.time() * 1000)}"
             session_id = kwargs.get('session_id', 'unknown')
-            
+
             # Start trace
             trace = await telemetry.start_trace(operation_id, tool_name, session_id)
-            
+
             try:
                 # Execute tool
                 result = await func(*args, **kwargs)
-                
+
                 # Extract verdict from result
                 verdict = result.get("governance", {}).get("verdict", "UNKNOWN")
                 floors_checked = result.get("governance", {}).get("floors_checked", [])
                 floors_passed = result.get("governance", {}).get("floors_passed", 0)
-                
+
                 # End trace
                 await telemetry.end_trace(
                     operation_id=operation_id,
@@ -3606,7 +3606,7 @@ def with_telemetry(tool_name: str):
                     floors_checked=floors_checked,
                     floors_passed=floors_passed
                 )
-                
+
                 # Record latency metric
                 latency = result.get("machine", {}).get("latency_ms", 0)
                 await telemetry.record_metric(
@@ -3616,9 +3616,9 @@ def with_telemetry(tool_name: str):
                     tags={"tool": tool_name, "verdict": verdict},
                     session_id=session_id
                 )
-                
+
                 return result
-                
+
             except Exception as e:
                 # End trace with error
                 await telemetry.end_trace(
@@ -3629,7 +3629,7 @@ def with_telemetry(tool_name: str):
                     error=str(e)
                 )
                 raise
-        
+
         return async_wrapper
     return decorator
 ```
@@ -3657,11 +3657,11 @@ class ProgressUpdate:
 
 class ProgressTracker:
     """Track progress of long-running operations."""
-    
+
     def __init__(self):
         self.operations: Dict[str, Dict[str, Any]] = {}
         self.callbacks: Dict[str, List[Callable]] = {}
-    
+
     async def start_operation(
         self,
         operation_id: str,
@@ -3676,12 +3676,12 @@ class ProgressTracker:
             "start_time": datetime.utcnow(),
             "status": "running"
         }
-        
+
         if callback:
             if operation_id not in self.callbacks:
                 self.callbacks[operation_id] = []
             self.callbacks[operation_id].append(callback)
-    
+
     async def update_progress(
         self,
         operation_id: str,
@@ -3693,10 +3693,10 @@ class ProgressTracker:
         """Update progress for an operation."""
         if operation_id not in self.operations:
             return
-        
+
         self.operations[operation_id]["current_stage"] = stage
         self.operations[operation_id]["progress"] = progress_percent
-        
+
         update = ProgressUpdate(
             operation_id=operation_id,
             stage=stage,
@@ -3705,7 +3705,7 @@ class ProgressTracker:
             timestamp=datetime.utcnow(),
             metadata=metadata or {}
         )
-        
+
         # Notify callbacks
         for callback in self.callbacks.get(operation_id, []):
             try:
@@ -3715,7 +3715,7 @@ class ProgressTracker:
                     callback(update)
             except Exception as e:
                 print(f"Progress callback error: {e}")
-    
+
     async def complete_operation(
         self,
         operation_id: str,
@@ -3727,7 +3727,7 @@ class ProgressTracker:
             self.operations[operation_id]["progress"] = 100.0
             self.operations[operation_id]["end_time"] = datetime.utcnow()
             self.operations[operation_id]["result"] = result
-            
+
             # Final progress update
             await self.update_progress(
                 operation_id=operation_id,
@@ -3735,7 +3735,7 @@ class ProgressTracker:
                 progress_percent=100.0,
                 message="Operation completed successfully"
             )
-    
+
     def get_progress(self, operation_id: str) -> Optional[Dict[str, Any]]:
         """Get current progress for an operation."""
         return self.operations.get(operation_id)
@@ -3751,9 +3751,9 @@ async def reason_mind_synthesis_with_progress(
     """Execute reasoning with progress tracking."""
     operation_id = f"reason-{int(time.time() * 1000)}"
     tracker = ProgressTracker()
-    
+
     await tracker.start_operation(operation_id, total_stages=synthesis_depth)
-    
+
     try:
         # Stage 1: Initialize
         await tracker.update_progress(
@@ -3763,7 +3763,7 @@ async def reason_mind_synthesis_with_progress(
             message="Initializing reasoning context"
         )
         await asyncio.sleep(0.5)
-        
+
         # Stage 2: Analysis
         await tracker.update_progress(
             operation_id=operation_id,
@@ -3772,7 +3772,7 @@ async def reason_mind_synthesis_with_progress(
             message="Analyzing query components"
         )
         await asyncio.sleep(1.0)
-        
+
         # Stage 3: Synthesis
         await tracker.update_progress(
             operation_id=operation_id,
@@ -3781,16 +3781,16 @@ async def reason_mind_synthesis_with_progress(
             message="Synthesizing reasoning chains"
         )
         await asyncio.sleep(1.0)
-        
+
         # Complete
         await tracker.complete_operation(operation_id, result={"synthesis": "complete"})
-        
+
         return {
             "machine": {"status": "ok", "latency_ms": 2500},
             "governance": {"verdict": "SEAL", "floors_passed": 13},
             "intelligence": {"result": {"synthesis": "Result here"}, "uncertainty": 0.1}
         }
-        
+
     except Exception as e:
         await tracker.update_progress(
             operation_id=operation_id,
@@ -3816,7 +3816,7 @@ import json
 async def metrics_endpoint(request: Request):
     """Prometheus-compatible metrics endpoint."""
     summary = telemetry.get_summary()
-    
+
     # Format as Prometheus metrics
     metrics_text = f"""
 # HELP arifos_operations_total Total number of operations
@@ -3838,7 +3838,7 @@ arifos_verdicts_total{{verdict="VOID"}} {summary['verdict_distribution'].get('VO
 arifos_verdicts_total{{verdict="888_HOLD"}} {summary['verdict_distribution'].get('888_HOLD', 0)}
 arifos_verdicts_total{{verdict="SABAR"}} {summary['verdict_distribution'].get('SABAR', 0)}
 """
-    
+
     return StreamingResponse(
         iter([metrics_text]),
         media_type="text/plain"
@@ -3866,7 +3866,7 @@ async def session_metrics(request: Request):
     session_id = request.query_params.get("session_id")
     if not session_id:
         return JSONResponse({"error": "session_id required"}, status_code=400)
-    
+
     return JSONResponse(telemetry.get_session_metrics(session_id))
 
 
@@ -3918,7 +3918,7 @@ async def init_anchor_state(
     """Initialize anchored session."""
     guard = ConstitutionalGuard()
     verdict = await guard.validate_intent(intent, floors=["F1", "F2", "F3"])
-    
+
     if verdict.status.value != "SEAL":
         return VerdictResponseBuilder.void(
             violation_floor=verdict.violation_floor or "F1",
@@ -3926,13 +3926,13 @@ async def init_anchor_state(
             session_id=session_id,
             request_id=f"req-{int(time.time())}"
         )
-    
+
     session = await session_manager.create(
         session_id=session_id,
         intent=intent,
         context=context
     )
-    
+
     return VerdictResponseBuilder.seal(
         result={
             "session_id": session.id,
@@ -3955,13 +3955,13 @@ async def reason_mind_synthesis(
     """Execute governed reasoning."""
     guard = ConstitutionalGuard()
     session = await session_manager.get(session_id)
-    
+
     verdict = await guard.validate_reasoning(
         query=query,
         session=session,
         floors=[f"F{i}" for i in range(1, 14)]
     )
-    
+
     if verdict.status.value == "VOID":
         return VerdictResponseBuilder.void(
             violation_floor=verdict.violation_floor,
@@ -3969,17 +3969,17 @@ async def reason_mind_synthesis(
             session_id=session_id,
             request_id=f"req-{int(time.time())}"
         )
-    
+
     if verdict.status.value == "888_HOLD":
         return VerdictResponseBuilder.hold_888(
             reason=verdict.reason,
             session_id=session_id,
             request_id=f"req-{int(time.time())}"
         )
-    
+
     # Execute reasoning
     result = await execute_reasoning(query, synthesis_depth)
-    
+
     return VerdictResponseBuilder.seal(
         result=result,
         floors_checked=[f"F{i}" for i in range(1, 14)],
@@ -3999,9 +3999,9 @@ async def search_reality(
 ) -> Dict[str, Any]:
     """Execute reality-grounded search."""
     guard = ConstitutionalGuard()
-    
+
     verdict = await guard.validate_search(query, search_type, floors=["F4", "F5", "F7"])
-    
+
     if verdict.status.value != "SEAL":
         return VerdictResponseBuilder.void(
             violation_floor=verdict.violation_floor or "F4",
@@ -4009,9 +4009,9 @@ async def search_reality(
             session_id=session_id,
             request_id=f"req-{int(time.time())}"
         )
-    
+
     results = await execute_search(query, search_type)
-    
+
     return VerdictResponseBuilder.seal(
         result=results,
         floors_checked=["F4", "F5", "F7"],
@@ -4030,9 +4030,9 @@ async def commit_vault999(
 ) -> Dict[str, Any]:
     """Commit to permanent storage."""
     guard = ConstitutionalGuard()
-    
+
     verdict = await guard.validate_commit(data, commit_type, floors=["F9", "F10", "F11"])
-    
+
     if verdict.status.value != "SEAL":
         return VerdictResponseBuilder.void(
             violation_floor=verdict.violation_floor or "F9",
@@ -4040,9 +4040,9 @@ async def commit_vault999(
             session_id=session_id,
             request_id=f"req-{int(time.time())}"
         )
-    
+
     receipt = await vault.commit(data, session_id, commit_type)
-    
+
     return VerdictResponseBuilder.seal(
         result={
             "commit_id": receipt.id,

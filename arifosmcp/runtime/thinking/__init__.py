@@ -13,7 +13,7 @@ from .templates import THINKING_TEMPLATES, ThinkingTemplate
 
 __all__ = [
     "ThinkingSession",
-    "ThinkingSessionManager", 
+    "ThinkingSessionManager",
     "ThinkingStep",
     "THINKING_TEMPLATES",
     "ThinkingTemplate",

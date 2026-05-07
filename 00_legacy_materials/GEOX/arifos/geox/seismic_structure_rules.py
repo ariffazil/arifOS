@@ -367,7 +367,7 @@ async def generate_structural_candidates(
     discontinuities = getattr(feature_set, "discontinuities", [])
     dip_stats = getattr(feature_set, "dip_field_stats", {}) or dip_field_stats or {}
     curvature_stats = getattr(feature_set, "curvature_stats", {})
-    coherence_stats = getattr(feature_set, "coherence_stats", {})
+    getattr(feature_set, "coherence_stats", {})
 
     fault_counter = 0
     for disc in discontinuities:

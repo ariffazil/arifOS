@@ -1,8 +1,8 @@
 # OpenClaw Agent Bootstrap — arifOS Edition
 
-**Authority:** arifOS_bot  
-**Version:** 1.0  
-**Status:** ACTIVE  
+**Authority:** arifOS_bot
+**Version:** 1.0
+**Status:** ACTIVE
 
 ---
 
@@ -217,12 +217,12 @@ Subagent runtime: `runtime=subagent` (not `runtime=acp` — acp is blocked from 
 
 ## Canonical Workspace
 
-The canonical workspace is `/root/.openclaw/workspace`.  
+The canonical workspace is `/root/.openclaw/workspace`.
 Active development repo: `/home/ariffazil/arifOS/` (pushed to GitHub).
 
 arifOS git remote: `github.com/ariffazil/arifOS`
 
 ---
 
-*Ditempa Bukan Diberi*  
+*Ditempa Bukan Diberi*
 arifOS_bot | arifOS v2026.04.19

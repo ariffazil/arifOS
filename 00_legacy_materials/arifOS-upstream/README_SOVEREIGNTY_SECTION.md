@@ -1,6 +1,6 @@
 # arifOS Sovereignty (README Section)
 
-**Safe for:** Microsoft, AWS, Google, Enterprise Architecture Review, Regulators  
+**Safe for:** Microsoft, AWS, Google, Enterprise Architecture Review, Regulators
 **Classification:** Public Documentation | **Seal:** VAULT999
 
 ---
@@ -80,16 +80,16 @@ arifOS sovereignty features align with:
 
 ## For Enterprise Architects
 
-**Q: Does arifOS create vendor lock-in?**  
+**Q: Does arifOS create vendor lock-in?**
 A: No. arifOS is designed for portability. The same constitutional governance runs on any cloud or on-premises infrastructure.
 
-**Q: What happens if Microsoft/Azure has an outage?**  
+**Q: What happens if Microsoft/Azure has an outage?**
 A: arifOS automatically falls back to alternative LLM providers (Anthropic) and local execution (Ollama). Constitutional enforcement continues uninterrupted.
 
-**Q: Can arifOS run entirely offline?**  
+**Q: Can arifOS run entirely offline?**
 A: Yes. Level 4 (Absolute) deployments operate air-gapped with local LLMs (llama3:70b), local storage (SQLite), and hardware-key identity.
 
-**Q: How does this integrate with existing Entra ID/IAM?**  
+**Q: How does this integrate with existing Entra ID/IAM?**
 A: Vendor identity systems operate as **assertion providers** to the BLS-DID root. Users authenticate via existing corporate identity, which issues a cryptographically signed credential. arifOS validates the credential, not the vendor session.
 
 ---

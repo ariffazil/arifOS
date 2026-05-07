@@ -3,9 +3,9 @@
 > **Global Framing:** GEOX Vision is not "make pretty pictures" — it is:
 > **"Recover physically-plausible, georeferenced information from images, under Theory of Anomalous Contrast."**
 
-**Authority:** Muhammad Arif bin Fazil  
-**Status:** CANONICAL  
-**Seal:** 999_VAULT  
+**Authority:** Muhammad Arif bin Fazil
+**Status:** CANONICAL
+**Seal:** 999_VAULT
 **Motto:** *DITEMPA BUKAN DIBERI*
 
 ---
@@ -288,6 +288,6 @@ When assigning vision tasks, use this template:
 
 ---
 
-*DITEMPA BUKAN DIBERI*  
-*Vision Intelligence: Governed, Not Given*  
+*DITEMPA BUKAN DIBERI*
+*Vision Intelligence: Governed, Not Given*
 *AC_Risk: Calculated for Every Pixel*

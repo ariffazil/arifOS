@@ -22,26 +22,26 @@
             --text: #e8e8f0;
             --text-secondary: #a0a0b8;
             --text-muted: #6b6b80;
-            
+
             /* Trinity Colors */
             --delta: #ffd24a;
             --omega: #2563eb;
             --psi: #ff4d4f;
-            
+
             /* Semantic */
             --success: #22c55e;
             --warning: #f59e0b;
             --danger: #ef4444;
             --info: #38bdf8;
-            
+
             /* Glows */
             --glow-delta: rgba(255, 210, 74, 0.2);
             --glow-omega: rgba(37, 99, 235, 0.2);
             --glow-psi: rgba(255, 77, 79, 0.2);
         }
-        
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
+
         body {
             background: var(--bg);
             color: var(--text);
@@ -49,7 +49,7 @@
             line-height: 1.6;
             min-height: 100vh;
         }
-        
+
         /* Header */
         .header {
             background: var(--bg-elevated);
@@ -59,7 +59,7 @@
             top: 0;
             z-index: 100;
         }
-        
+
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
@@ -67,18 +67,18 @@
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        
+
         .brand-logo {
             width: 36px;
             height: 36px;
         }
-        
+
         .brand-text h1 {
             font-size: 1.25rem;
             font-weight: 800;
@@ -87,7 +87,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .brand-text span {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.65rem;
@@ -95,7 +95,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        
+
         .status-badge {
             display: flex;
             align-items: center;
@@ -129,7 +129,7 @@
 
         .status-badge.warn .status-dot { background: var(--warning); }
         .status-badge.error .status-dot { background: var(--danger); }
-        
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -137,19 +137,19 @@
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        
+
         /* Main Layout */
         .main {
             max-width: 1400px;
             margin: 0 auto;
             padding: 24px;
         }
-        
+
         /* Metrics Row */
         .metrics-row {
             display: grid;
@@ -157,7 +157,7 @@
             gap: 16px;
             margin-bottom: 24px;
         }
-        
+
         .metric-card {
             background: var(--bg-elevated);
             border: 1px solid var(--border);
@@ -165,12 +165,12 @@
             padding: 20px;
             transition: all 0.2s ease;
         }
-        
+
         .metric-card:hover {
             border-color: var(--border-hover);
             transform: translateY(-2px);
         }
-        
+
         .metric-label {
             font-size: 0.75rem;
             color: var(--text-muted);
@@ -178,34 +178,34 @@
             letter-spacing: 1px;
             margin-bottom: 8px;
         }
-        
+
         .metric-value {
             font-family: 'JetBrains Mono', monospace;
             font-size: 1.75rem;
             font-weight: 700;
             color: var(--text);
         }
-        
+
         .metric-change {
             font-size: 0.8rem;
             margin-top: 4px;
         }
-        
+
         .metric-change.positive { color: var(--success); }
         .metric-change.negative { color: var(--danger); }
-        
+
         /* Grid Layout */
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
         }
-        
+
         @media (max-width: 968px) {
             .metrics-row { grid-template-columns: repeat(2, 1fr); }
             .grid { grid-template-columns: 1fr; }
         }
-        
+
         /* Cards */
         .card {
             background: var(--bg-elevated);
@@ -213,7 +213,7 @@
             border-radius: 12px;
             overflow: hidden;
         }
-        
+
         .card-header {
             display: flex;
             align-items: center;
@@ -221,7 +221,7 @@
             padding: 16px 20px;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .card-title {
             font-size: 0.9rem;
             font-weight: 600;
@@ -229,17 +229,17 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .card-body {
             padding: 20px;
         }
-        
+
         /* Floors Table */
         .floors-table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .floors-table th {
             text-align: left;
             padding: 10px;
@@ -250,33 +250,33 @@
             letter-spacing: 1px;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .floors-table td {
             padding: 12px 10px;
             border-bottom: 1px solid var(--border);
             font-size: 0.9rem;
         }
-        
+
         .floors-table tr:last-child td {
             border-bottom: none;
         }
-        
+
         .floor-id {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
             color: var(--omega);
         }
-        
+
         .floor-name {
             color: var(--text-secondary);
         }
-        
+
         .floor-threshold {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.8rem;
             color: var(--delta);
         }
-        
+
         .badge {
             display: inline-flex;
             align-items: center;
@@ -287,39 +287,39 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-        
+
         .badge.success {
             background: rgba(34, 197, 94, 0.1);
             color: var(--success);
             border: 1px solid rgba(34, 197, 94, 0.3);
         }
-        
+
         .badge.warning {
             background: rgba(245, 158, 11, 0.1);
             color: var(--warning);
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
-        
+
         .badge.danger {
             background: rgba(239, 68, 68, 0.1);
             color: var(--danger);
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
-        
+
         /* Telemetry Grid */
         .telemetry-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 16px;
         }
-        
+
         .telemetry-item {
             text-align: center;
             padding: 16px;
             background: var(--bg-card);
             border-radius: 8px;
         }
-        
+
         .telemetry-label {
             font-size: 0.7rem;
             color: var(--text-muted);
@@ -327,20 +327,20 @@
             letter-spacing: 1px;
             margin-bottom: 8px;
         }
-        
+
         .telemetry-value {
             font-family: 'JetBrains Mono', monospace;
             font-size: 1.25rem;
             font-weight: 600;
         }
-        
+
         /* Metabolic Loop */
         .loop-container {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        
+
         .loop-stage {
             display: flex;
             align-items: center;
@@ -351,16 +351,16 @@
             border-left: 3px solid transparent;
             transition: all 0.3s ease;
         }
-        
+
         .loop-stage.active {
             border-left-color: var(--omega);
             background: rgba(37, 99, 235, 0.1);
         }
-        
+
         .loop-stage.completed {
             opacity: 0.6;
         }
-        
+
         .loop-id {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
@@ -368,17 +368,17 @@
             color: var(--text-muted);
             min-width: 36px;
         }
-        
+
         .loop-stage.active .loop-id {
             color: var(--omega);
         }
-        
+
         .loop-name {
             flex: 1;
             font-size: 0.9rem;
             font-weight: 500;
         }
-        
+
         .loop-engine {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.7rem;
@@ -387,7 +387,7 @@
             background: var(--bg-elevated);
             border-radius: 4px;
         }
-        
+
         /* Chart Placeholder */
         .chart-container {
             height: 200px;
@@ -399,7 +399,7 @@
             color: var(--text-muted);
             font-size: 0.9rem;
         }
-        
+
         /* Footer */
         .footer {
             text-align: center;
@@ -409,12 +409,12 @@
             color: var(--text-muted);
             font-size: 0.85rem;
         }
-        
+
         .footer a {
             color: var(--omega);
             text-decoration: none;
         }
-        
+
         /* Trinity Legend */
         .trinity-legend {
             display: flex;
@@ -422,7 +422,7 @@
             gap: 24px;
             margin-bottom: 16px;
         }
-        
+
         .trinity-item {
             display: flex;
             align-items: center;
@@ -430,17 +430,17 @@
             font-size: 0.75rem;
             color: var(--text-muted);
         }
-        
+
         .trinity-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
         }
-        
+
         .trinity-dot.delta { background: var(--delta); }
         .trinity-dot.omega { background: var(--omega); }
         .trinity-dot.psi { background: var(--psi); }
-    
+
         /* LIVE/MOCK Indicators */
         .live-badge {
             display: inline-flex;
@@ -456,7 +456,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .mock-badge {
             display: inline-flex;
             align-items: center;
@@ -471,7 +471,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .heartbeat {
             width: 8px;
             height: 8px;
@@ -479,12 +479,12 @@
             border-radius: 50%;
             animation: heartbeat 1.5s ease-in-out infinite;
         }
-        
+
         @keyframes heartbeat {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(0.6); opacity: 0.5; }
         }
-        
+
         .last-update {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.7rem;
@@ -672,8 +672,8 @@
         </div>
         <p>arifOS MCP <span id="footer-version">v2026.03.19</span> | ΔΩΨ Trinity Architecture</p>
         <p style="margin-top: 8px;">
-            <a href="/">Home</a> • 
-            <a href="/static-sites/arifosmcp/docs.html">Documentation</a> • 
+            <a href="/">Home</a> •
+            <a href="/static-sites/arifosmcp/docs.html">Documentation</a> •
             <a href="https://github.com/ariffazil/arifosmcp">GitHub</a>
         </p>
         <p style="margin-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted);">
@@ -752,14 +752,14 @@
 
             let current = 0;
             const stages = document.querySelectorAll('.loop-stage');
-            
+
             loopInterval = setInterval(() => {
                 stages.forEach((s, i) => {
                     s.classList.remove('active');
                     if (i < current) s.classList.add('completed');
                     else s.classList.remove('completed');
                 });
-                
+
                 if (current < stages.length) {
                     stages[current].classList.add('active');
                     current++;
@@ -774,8 +774,8 @@
         }
 
         // Live API Integration
-        const API_BASE = window.location.origin.includes('localhost') 
-            ? 'http://localhost:8080' 
+        const API_BASE = window.location.origin.includes('localhost')
+            ? 'http://localhost:8080'
             : window.location.origin;
 
         async function fetchJson(url, options) {
@@ -889,7 +889,7 @@
         // Initialize
         renderFloors();
         renderLoop();
-        
+
         // Fetch real data immediately and every 10 seconds
         fetchRealData();
         setInterval(fetchRealData, 10000);

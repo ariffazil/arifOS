@@ -1,7 +1,7 @@
 """
 arifosmcp/integrations/everything_probe.py — MCP Substrate Conformance Probe
 
-Diagnostic adapter for the 'everything' reference server. Used to exercise 
+Diagnostic adapter for the 'everything' reference server. Used to exercise
 maximal MCP features and verify transport/wrapper integrity.
 
 DO NOT use in production metabolic paths.
@@ -16,6 +16,7 @@ from arifosmcp.integrations.substrate_bridge import bridge
 
 logger = logging.getLogger(__name__)
 
+
 class EverythingProbe:
     """Diagnostic probe for substrate conformance verification."""
 
@@ -29,15 +30,15 @@ class EverythingProbe:
         tools = await self.client.list_tools()
         resources = await self.client.list_resources()
         prompts = await self.client.list_prompts()
-        
+
         return {
             "health": health,
             "transport": "HTTP/SSE (SubstrateBridge)",
             "discovery": {
                 "tools_count": len(tools),
                 "resources_count": len(resources),
-                "prompts_count": len(prompts)
-            }
+                "prompts_count": len(prompts),
+            },
         }
 
     async def probe_tools_roundtrip(self) -> dict[str, any]:
@@ -67,13 +68,10 @@ class EverythingProbe:
             "tools": await self.probe_tools_roundtrip(),
             "resources": await self.probe_resources_roundtrip(),
         }
-        
+
         status = "SEAL" if all(r.get("ok", True) for r in results.values()) else "VOID"
-        return {
-            "verdict": status,
-            "results": results,
-            "timestamp": "2026-04-11T04:13:00"
-        }
+        return {"verdict": status, "results": results, "timestamp": "2026-04-11T04:13:00"}
+
 
 # Global probe instance
 everything_probe = EverythingProbe()

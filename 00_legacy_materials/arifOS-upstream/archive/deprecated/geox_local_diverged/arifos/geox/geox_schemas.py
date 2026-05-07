@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # CoordinatePoint
 # ---------------------------------------------------------------------------
 
+
 class CoordinatePoint(BaseModel):
     """
     Geographic coordinate with optional depth.
@@ -77,6 +78,7 @@ class CoordinatePoint(BaseModel):
 # ---------------------------------------------------------------------------
 # ProvenanceRecord
 # ---------------------------------------------------------------------------
+
 
 class ProvenanceRecord(BaseModel):
     """
@@ -162,6 +164,7 @@ class ProvenanceRecord(BaseModel):
 # ---------------------------------------------------------------------------
 # GeoQuantity
 # ---------------------------------------------------------------------------
+
 
 class GeoQuantity(BaseModel):
     """
@@ -261,6 +264,7 @@ class GeoQuantity(BaseModel):
 # GeoPrediction
 # ---------------------------------------------------------------------------
 
+
 class GeoPrediction(BaseModel):
     """
     A testable geological prediction (e.g. net pay, HC column, pressure).
@@ -334,9 +338,7 @@ class GeoPrediction(BaseModel):
     def validate_range_order(self) -> GeoPrediction:
         lo, hi = self.expected_range
         if lo > hi:
-            raise ValueError(
-                f"expected_range min ({lo}) must be ≤ max ({hi})."
-            )
+            raise ValueError(f"expected_range min ({lo}) must be ≤ max ({hi}).")
         return self
 
     model_config = {"json_schema_extra": {"title": "GeoPrediction"}}
@@ -345,6 +347,7 @@ class GeoPrediction(BaseModel):
 # ---------------------------------------------------------------------------
 # GeoInsight
 # ---------------------------------------------------------------------------
+
 
 class GeoInsight(BaseModel):
     """
@@ -434,6 +437,7 @@ class GeoInsight(BaseModel):
 # GeoRequest
 # ---------------------------------------------------------------------------
 
+
 class GeoRequest(BaseModel):
     """
     Incoming prospect evaluation request.
@@ -521,6 +525,7 @@ class GeoRequest(BaseModel):
 # GeoResponse
 # ---------------------------------------------------------------------------
 
+
 class GeoResponse(BaseModel):
     """
     Full GEOX pipeline response for a prospect evaluation request.
@@ -596,17 +601,19 @@ class GeoResponse(BaseModel):
             "arifOS pipeline telemetry block. Contains pipeline stage, floor compliance, "
             "confidence, verdict, P2 score, hold status, uncertainty range, and seal stamp."
         ),
-        examples=[{
-            "pipeline": "000→111→333→555→777→888→999",
-            "stage": "999 SEAL",
-            "floors": ["F1", "F2", "F4", "F7", "F13"],
-            "confidence": 0.72,
-            "verdict": "PARTIAL",
-            "P2": 1.0,
-            "hold": "CLEAR",
-            "uncertainty_range": [0.03, 0.15],
-            "seal": "DITEMPA BUKAN DIBERI",
-        }],
+        examples=[
+            {
+                "pipeline": "000→111→333→555→777→888→999",
+                "stage": "999 SEAL",
+                "floors": ["F1", "F2", "F4", "F7", "F13"],
+                "confidence": 0.72,
+                "verdict": "PARTIAL",
+                "P2": 1.0,
+                "hold": "CLEAR",
+                "uncertainty_range": [0.03, 0.15],
+                "seal": "DITEMPA BUKAN DIBERI",
+            }
+        ],
     )
     timestamp: datetime = Field(
         default_factory=datetime.utcnow,
@@ -619,6 +626,7 @@ class GeoResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Schema export utility
 # ---------------------------------------------------------------------------
+
 
 def export_json_schemas() -> dict[str, dict]:
     """

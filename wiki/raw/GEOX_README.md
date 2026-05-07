@@ -165,7 +165,7 @@ GEOX tools simulate:
 - Feasibility envelopes for drilling scenarios
 - Physical constraints on rock properties
 
-**Driver:** GEOX tools  
+**Driver:** GEOX tools
 **MCP Role:** Exposed as `geox.*` tools
 
 ### Inverse Modelling
@@ -174,7 +174,7 @@ GEOX tools simulate:
 
 @RIF (the reasoning organ) proposes hypotheses, calls GEOX tools to test them against real constraints.
 
-**Driver:** @RIF + GEOX collaboration  
+**Driver:** @RIF + GEOX collaboration
 **MCP Role:** @RIF calls `geox.*` tools to constrain hypotheses
 
 ### The Interpretation Loop
@@ -728,7 +728,7 @@ Trademark (GEOX):     Proprietary
 
 ## Contact
 
-**Muhammad Arif bin Fazil**  
+**Muhammad Arif bin Fazil**
 Sovereign Architect, arifOS & GEOX
 
 - GitHub: [@ariffazil](https://github.com/ariffazil)
@@ -745,6 +745,6 @@ Sovereign Architect, arifOS & GEOX
 
 ---
 
-*Version: v0.5.0*  
-*Status: SEALED ✅*  
+*Version: v0.5.0*
+*Status: SEALED ✅*
 *Last Updated: 2026-04-16*

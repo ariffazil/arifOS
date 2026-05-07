@@ -5,6 +5,7 @@ GEOX Core — Stage 999: THE EARTH WITNESS
 Geospatial verification, physical feasibility, and subsurface intelligence.
 Prevents AI from making physically impossible claims about the Earth.
 """
+
 from __future__ import annotations
 
 import logging

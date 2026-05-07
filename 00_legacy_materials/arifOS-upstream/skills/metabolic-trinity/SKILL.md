@@ -3,7 +3,7 @@
 ---
 name: metabolic-trinity
 description: |
-  The master manual for interacting with the 4 core arifOS organs: 
+  The master manual for interacting with the 4 core arifOS organs:
   @WELL (Human), @WEALTH (Economic), @GEOX (Physical), and A-FORGE (Agentic).
   Teaches agents the Birth-to-Seal lifecycle with biological feedback.
 
@@ -45,7 +45,7 @@ Every agent interaction MUST follow this 6-step grounding cycle:
 
 5.  **JUDGMENT (888_JUDGE)**
     *   Check F1-F13 Constitutional Floors.
-    *   Evaluate **W-Floors** (Biological). 
+    *   Evaluate **W-Floors** (Biological).
     *   *Constraint:* If `W6_METABOLIC_PAUSE` is active, the agent MUST wait.
 
 6.  **SEALING (999_VAULT)**

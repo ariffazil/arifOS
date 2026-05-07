@@ -11,12 +11,7 @@ from arifosmcp.runtime.DNA import DENSITY_TARGET, VERSION
 class MetabolicForge:
     def __init__(self, root_dir: str):
         self.root = root_dir
-        self.audit_report = {
-            "version": VERSION,
-            "pruned": [],
-            "metrics": {},
-            "warnings": []
-        }
+        self.audit_report = {"version": VERSION, "pruned": [], "metrics": {}, "warnings": []}
 
     def scan_for_entropy(self):
         """Finds logic-less files and archives for pruning."""
@@ -43,15 +38,15 @@ class MetabolicForge:
             for f in files:
                 if f.endswith((".py", ".js", ".html", ".css")):
                     fcount += 1
-                    with open(os.path.join(root, f), encoding='utf-8', errors='ignore') as file:
+                    with open(os.path.join(root, f), encoding="utf-8", errors="ignore") as file:
                         loc += len(file.readlines())
-        
+
         density = round(loc / max(1, fcount), 2)
         self.audit_report["metrics"] = {
             "loc": loc,
             "file_count": fcount,
             "density": density,
-            "delta_i": round(density / DENSITY_TARGET * 100, 2)
+            "delta_i": round(density / DENSITY_TARGET * 100, 2),
         }
         return self.audit_report["metrics"]
 
@@ -59,7 +54,7 @@ class MetabolicForge:
         """Moves targets to VAULT999/STAGING."""
         staging_dir = os.path.join(self.root, "VAULT999", "STAGING")
         os.makedirs(staging_dir, exist_ok=True)
-        
+
         for t in self.audit_report["pruned"]:
             name = os.path.basename(t)
             dest = os.path.join(staging_dir, f"{name}.staged")
@@ -74,10 +69,11 @@ class MetabolicForge:
         metrics = self.calculate_density()
         print(f"Intelligence Density: {metrics['density']} ({metrics['delta_i']}% of Target)")
         print(f"Files targeted for pruning: {len(self.audit_report['pruned'])}")
-        
+
         if self.audit_report["pruned"]:
             self.stage_metabolism()
             print("Staging complete. Review VAULT999/STAGING for metabolic seal.")
+
 
 if __name__ == "__main__":
     _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

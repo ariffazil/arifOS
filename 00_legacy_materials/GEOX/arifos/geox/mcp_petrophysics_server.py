@@ -17,10 +17,12 @@ URI Schemes:
 from __future__ import annotations
 
 import warnings
+
 warnings.warn(
     "mcp_petrophysics_server.py is deprecated. The canonical unified surface is geox_unified_mcp_server.py "
     "and the execution plane is execution_plane/vps/server.py. Do not build new dependencies here.",
-    DeprecationWarning, stacklevel=2
+    DeprecationWarning,
+    stacklevel=2,
 )
 
 from datetime import datetime
@@ -63,6 +65,7 @@ GEOX_SEAL = "DITEMPA BUKAN DIBERI"
 # ═══════════════════════════════════════════════════════════════════════════════
 # MCP RESOURCES (Application-Controlled Context)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @mcp.resource("geox://well/{well_id}/las/bundle")
 async def resource_well_bundle(well_id: str) -> dict[str, Any]:
@@ -112,6 +115,7 @@ async def resource_qc_report(well_id: str) -> dict[str, Any]:
 # MCP TOOLS (Model-Controlled Actions)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @mcp.tool()
 async def geox_load_well_log_bundle(
     well_id: str,
@@ -120,12 +124,12 @@ async def geox_load_well_log_bundle(
 ) -> dict[str, Any]:
     """
     Load LAS/DLIS/CSV + metadata, map mnemonics, detect depth reference.
-    
+
     Args:
         well_id: Canonical well identifier
         sources: List of file paths (LAS, DLIS, CSV)
         depth_reference: MD, TVD, TVDSS, etc.
-    
+
     Returns:
         Resource URI for the loaded bundle and summary
     """
@@ -133,7 +137,7 @@ async def geox_load_well_log_bundle(
         loader = LogBundleLoader()
         bundle = await loader.load(well_id, sources, depth_reference)
         await store_bundle(bundle)
-        
+
         return {
             "status": "SUCCESS",
             "uri": f"geox://well/{well_id}/las/bundle",
@@ -145,7 +149,7 @@ async def geox_load_well_log_bundle(
             "floor_check": {
                 "F4_clarity": True,
                 "F9_anti_hantu": True,
-            }
+            },
         }
     except Exception as e:
         return {
@@ -159,17 +163,17 @@ async def geox_load_well_log_bundle(
 async def geox_qc_logs(well_id: str) -> dict[str, Any]:
     """
     Flag washouts, missing sections, bad hole, tool conflicts, unit inconsistencies.
-    
+
     Args:
         well_id: Well identifier
-    
+
     Returns:
         Resource URI for QC report and summary
     """
     try:
         bundle = await load_bundle_from_store(well_id)
         report = await generate_qc_report(well_id, bundle)
-        
+
         return {
             "status": "SUCCESS",
             "uri": f"geox://well/{well_id}/qc/report",
@@ -195,17 +199,17 @@ async def geox_select_sw_model(
     """
     Evaluate Archie vs shaly-sand models against shale conductivity, mineralogy,
     and calibration support.
-    
+
     Args:
         interval_uri: geox://well/{id}/interval/{top}-{base}/rock-state
         candidate_models: List of models to evaluate
-    
+
     Returns:
         Admissible models with reasons, rejected models with violations
     """
     if candidate_models is None:
         candidate_models = ["archie", "simandoux", "indonesia", "dual_water"]
-    
+
     # Parse interval URI
     # Format: geox://well/{well_id}/interval/{top}-{base}/rock-state
     try:
@@ -219,7 +223,7 @@ async def geox_select_sw_model(
             "status": "ERROR",
             "error": f"Invalid interval_uri: {interval_uri}",
         }
-    
+
     try:
         state = await load_rock_state(well_id, top, base)
         if state is None:
@@ -227,13 +231,13 @@ async def geox_select_sw_model(
                 "status": "NOT_FOUND",
                 "message": "No rock state found. Run geox_compute_petrophysics first.",
             }
-        
+
         selector = SaturationModelSelector()
         results = await selector.evaluate(
             state,
             candidates=candidate_models,
         )
-        
+
         return {
             "status": "SUCCESS",
             "interval_uri": interval_uri,
@@ -243,7 +247,8 @@ async def geox_select_sw_model(
                     "confidence": r.confidence,
                     "justification": r.justification,
                 }
-                for r in results if r.is_admissible
+                for r in results
+                if r.is_admissible
             ],
             "rejected_models": [
                 {
@@ -251,7 +256,8 @@ async def geox_select_sw_model(
                     "reason": r.rejection_reason,
                     "violations": r.violations,
                 }
-                for r in results if not r.is_admissible
+                for r in results
+                if not r.is_admissible
             ],
             "recommended_model": results[0].model_name if results else None,
         }
@@ -272,13 +278,13 @@ async def geox_compute_petrophysics(
     """
     Compute Vsh, phi_t, phi_e, Sw, BVW, net, pay, RQI/FZI/HFU
     with uncertainty envelopes.
-    
+
     Args:
         interval_uri: geox://well/{id}/interval/{top}-{base}/rock-state
         model_id: Saturation model to use
         model_params: Model parameters {a, m, n, rw, ...}
         compute_uncertainty: Whether to propagate uncertainty
-    
+
     Returns:
         Resource URI for updated rock-state
     """
@@ -294,7 +300,7 @@ async def geox_compute_petrophysics(
             "status": "ERROR",
             "error": f"Invalid interval_uri: {interval_uri}",
         }
-    
+
     try:
         calculator = PetrophysicsCalculator(model_id, model_params or {})
         result = await calculator.compute(
@@ -303,9 +309,9 @@ async def geox_compute_petrophysics(
             base=base,
             propagate_uncertainty=compute_uncertainty,
         )
-        
+
         await store_rock_state(result)
-        
+
         return {
             "status": "SUCCESS",
             "uri": f"geox://well/{well_id}/interval/{top}-{base}/rock-state",
@@ -335,11 +341,11 @@ async def geox_validate_cutoffs(
     """
     Apply economic/operational cutoffs as governed policy objects.
     Distinguishes physics from policy.
-    
+
     Args:
         interval_uri: geox://well/{id}/interval/{top}-{base}/rock-state
         cutoff_policy_id: Policy to apply
-    
+
     Returns:
         Policy application card with net/pay flags
     """
@@ -350,22 +356,22 @@ async def geox_validate_cutoffs(
         interval_part = parts[2] if len(parts) > 2 else "0-0"
         top_str, base_str = interval_part.split("-")
         top, base = float(top_str), float(base_str)
-        
+
         state = await load_rock_state(well_id, top, base)
         policy = await load_cutoff_policy(cutoff_policy_id)
-        
+
         if state is None:
             return {
                 "status": "NOT_FOUND",
                 "message": "No rock state found for interval",
             }
-        
+
         if policy is None:
             return {
                 "status": "NOT_FOUND",
                 "message": f"Cutoff policy {cutoff_policy_id} not found",
             }
-        
+
         # Phase B: Full validation
         return {
             "status": "NOT_IMPLEMENTED",
@@ -384,7 +390,7 @@ async def geox_validate_cutoffs(
 async def geox_petrophysical_hold_check(interval_uri: str) -> dict[str, Any]:
     """
     Automatic 888_HOLD trigger detection for petrophysics.
-    
+
     Checks:
     - Rw uncalibrated
     - Shale model unsupported
@@ -392,10 +398,10 @@ async def geox_petrophysical_hold_check(interval_uri: str) -> dict[str, Any]:
     - Invasion ignored
     - Depth mismatch unresolved
     - Cutoffs without economic basis
-    
+
     Args:
         interval_uri: geox://well/{id}/interval/{top}-{base}/rock-state
-    
+
     Returns:
         SEAL / QUALIFY / 888_HOLD verdict
     """
@@ -406,12 +412,12 @@ async def geox_petrophysical_hold_check(interval_uri: str) -> dict[str, Any]:
         interval_part = parts[2] if len(parts) > 2 else "0-0"
         top_str, base_str = interval_part.split("-")
         top, base = float(top_str), float(base_str)
-        
+
         state = await load_rock_state(well_id, top, base)
-        
+
         checker = PetrophysicalHoldChecker()
         verdict = await checker.evaluate(state)
-        
+
         return {
             "status": "SUCCESS",
             "interval_uri": interval_uri,
@@ -463,14 +469,14 @@ async def geox_petrophysics_health() -> dict[str, Any]:
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="GEOX Petrophysics MCP Server")
     parser.add_argument("--transport", default="stdio", choices=["stdio", "http"])
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8000)
-    
+
     args = parser.parse_args()
-    
+
     print("=" * 60)
     print(f"GEOX Petrophysics MCP v{GEOX_VERSION}")
     print(f"{GEOX_SEAL}")
@@ -479,7 +485,7 @@ if __name__ == "__main__":
     print("Resources: 5 URI schemes")
     print("Tools: 6 petrophysics tools")
     print("=" * 60)
-    
+
     if args.transport == "http":
         mcp.run(transport="http", host=args.host, port=args.port)
     else:

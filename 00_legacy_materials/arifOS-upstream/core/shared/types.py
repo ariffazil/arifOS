@@ -54,6 +54,7 @@ class GPV(BaseModel):
 
     model_config = ConfigDict(validate_by_name=True)
 
+
 # ============================================================================
 # EMD STACK — Energy-Metabolism-Decision Layer
 # ============================================================================
@@ -234,7 +235,7 @@ class Verdict(str, Enum):
 # =============================================================================
 # VERDICT SCOPE — F2 Constitutional Verdict Namespaces (v2026.04.01)
 # =============================================================================
-#机械 implementation of F2's constitutional verdict namespaces.
+# 机械 implementation of F2's constitutional verdict namespaces.
 # These are tags, not new authority. Tagging does not bypass F1/F5/F6/888_HOLD.
 # LAW commentary required only if business logic treats scope as unilateral world-permission.
 
@@ -302,12 +303,10 @@ class OracleAttestation(BaseModel):
     evidence_hash: str = Field(..., description="SHA-256 of what was attested")
     source_uri: str | None = Field(default=None, description="Declared source URI")
     attested_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
-        description="When the attestation was made"
+        default_factory=lambda: datetime.now(UTC), description="When the attestation was made"
     )
     signature: str | None = Field(
-        default=None,
-        description="Ed25519/ECDSA signature when oracle is cryptographically wired"
+        default=None, description="Ed25519/ECDSA signature when oracle is cryptographically wired"
     )
 
 
@@ -555,7 +554,9 @@ class CodeState(BaseModel):
     """C in APEX-G: Runtime pipeline stage."""
 
     session_id: str = "unknown"
-    stage: Literal["000", "111", "222", "333", "444", "555", "666", "777", "888", "889", "999"] = "000"
+    stage: Literal["000", "111", "222", "333", "444", "555", "666", "777", "888", "889", "999"] = (
+        "000"
+    )
     lane: Literal["PHATIC", "SOFT", "HARD", "REFUSE", "UNKNOWN"] = "UNKNOWN"
     runtime_mode: Literal["init", "draft", "review", "judge", "seal"] = "init"
     verdict: Literal["SEAL", "PROVISIONAL", "PARTIAL", "SABAR", "HOLD", "VOID", "UNSET"] = "UNSET"
@@ -806,7 +807,7 @@ class InitOutput(BaseOrganOutput):
     f2_threshold: float = 0.99
     init_process_status: str = "ACTIVE"
     floors_failed: list[str] = Field(default_factory=list)
-    
+
     # P0: Human approval tracking (F13 Sovereign)
     human_approval: bool = False
     human_approval_persisted: bool = False
@@ -991,9 +992,6 @@ class OutcomeRecord(BaseModel):
     timestamp_outcome: str = ""
     floor_attribution: dict[str, float] = Field(default_factory=dict)
     plan_id: str = ""  # Link to the canonical plan that authorized this outcome
-
-
-
 
 
 # ============================================================================

@@ -17,7 +17,7 @@ Memory Model:
 Philosophy:
     Memory is not just storage. It is the foundation of identity,
     both structural (what happened) and experiential (how it felt).
-    
+
     DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 

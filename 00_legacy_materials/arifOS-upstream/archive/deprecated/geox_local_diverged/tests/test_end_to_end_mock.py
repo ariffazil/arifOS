@@ -48,6 +48,7 @@ REQUIRED_TELEMETRY_KEYS = {
 # test_evaluate_prospect_full_pipeline
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_evaluate_prospect_full_pipeline(geo_request: GeoRequest, mock_agent: GeoXAgent):
     """
@@ -56,12 +57,10 @@ async def test_evaluate_prospect_full_pipeline(geo_request: GeoRequest, mock_age
     """
     response = await mock_agent.evaluate_prospect(geo_request)
 
-    assert isinstance(response, GeoResponse), (
-        f"Expected GeoResponse, got {type(response)}"
-    )
-    assert response.verdict in VALID_VERDICTS, (
-        f"Verdict '{response.verdict}' not in {VALID_VERDICTS}"
-    )
+    assert isinstance(response, GeoResponse), f"Expected GeoResponse, got {type(response)}"
+    assert (
+        response.verdict in VALID_VERDICTS
+    ), f"Verdict '{response.verdict}' not in {VALID_VERDICTS}"
     assert 0.0 <= response.confidence_aggregate <= 1.0
     # response_id must be a valid UUID4
     uuid.UUID(response.response_id, version=4)
@@ -79,7 +78,9 @@ async def test_evaluate_prospect_returns_insights(geo_request: GeoRequest, mock_
 
 
 @pytest.mark.asyncio
-async def test_evaluate_prospect_audit_log_populated(geo_request: GeoRequest, mock_agent: GeoXAgent):
+async def test_evaluate_prospect_audit_log_populated(
+    geo_request: GeoRequest, mock_agent: GeoXAgent
+):
     """Audit log must contain events from all pipeline stages."""
     response = await mock_agent.evaluate_prospect(geo_request)
     assert len(response.audit_log) >= 1
@@ -94,6 +95,7 @@ async def test_evaluate_prospect_audit_log_populated(geo_request: GeoRequest, mo
 # test_response_has_telemetry
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_response_has_telemetry(geo_request: GeoRequest, mock_agent: GeoXAgent):
     """
@@ -106,8 +108,7 @@ async def test_response_has_telemetry(geo_request: GeoRequest, mock_agent: GeoXA
 
     for key in REQUIRED_TELEMETRY_KEYS:
         assert key in telemetry, (
-            f"Required telemetry key '{key}' missing. "
-            f"Available keys: {list(telemetry.keys())}"
+            f"Required telemetry key '{key}' missing. " f"Available keys: {list(telemetry.keys())}"
         )
 
 
@@ -128,7 +129,9 @@ async def test_telemetry_verdict_matches_response(geo_request: GeoRequest, mock_
 
 
 @pytest.mark.asyncio
-async def test_telemetry_confidence_matches_response(geo_request: GeoRequest, mock_agent: GeoXAgent):
+async def test_telemetry_confidence_matches_response(
+    geo_request: GeoRequest, mock_agent: GeoXAgent
+):
     """Telemetry confidence must match response.confidence_aggregate."""
     response = await mock_agent.evaluate_prospect(geo_request)
     assert response.arifos_telemetry.get("confidence") == response.confidence_aggregate
@@ -161,6 +164,7 @@ async def test_telemetry_hold_status(geo_request: GeoRequest, mock_agent: GeoXAg
 # ---------------------------------------------------------------------------
 # test_memory_store_and_retrieve
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_memory_store_and_retrieve(geo_request: GeoRequest, mock_agent: GeoXAgent):
@@ -239,6 +243,7 @@ async def test_memory_entry_has_metadata(geo_request: GeoRequest, mock_agent: Ge
 # test_reporter_markdown
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_reporter_markdown(geo_request: GeoRequest, mock_agent: GeoXAgent):
     """
@@ -256,7 +261,9 @@ async def test_reporter_markdown(geo_request: GeoRequest, mock_agent: GeoXAgent)
 
 
 @pytest.mark.asyncio
-async def test_reporter_markdown_contains_prospect_name(geo_request: GeoRequest, mock_agent: GeoXAgent):
+async def test_reporter_markdown_contains_prospect_name(
+    geo_request: GeoRequest, mock_agent: GeoXAgent
+):
     """Markdown report must contain the prospect name."""
     response = await mock_agent.evaluate_prospect(geo_request)
     reporter = GeoXReporter()
@@ -274,7 +281,9 @@ async def test_reporter_markdown_contains_basin(geo_request: GeoRequest, mock_ag
 
 
 @pytest.mark.asyncio
-async def test_reporter_markdown_contains_geox_header(geo_request: GeoRequest, mock_agent: GeoXAgent):
+async def test_reporter_markdown_contains_geox_header(
+    geo_request: GeoRequest, mock_agent: GeoXAgent
+):
     """Markdown report must contain GEOX header."""
     response = await mock_agent.evaluate_prospect(geo_request)
     reporter = GeoXReporter()
@@ -303,6 +312,7 @@ async def test_reporter_markdown_telemetry_section(geo_request: GeoRequest, mock
 # ---------------------------------------------------------------------------
 # test_reporter_json_audit
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_reporter_json_audit(geo_request: GeoRequest, mock_agent: GeoXAgent):
@@ -401,6 +411,7 @@ async def test_reporter_json_audit_pipeline_string(geo_request: GeoRequest, mock
 # test_reporter_human_brief
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_reporter_human_brief_is_string(geo_request: GeoRequest, mock_agent: GeoXAgent):
     """generate_human_brief() must return a non-empty string."""
@@ -412,20 +423,21 @@ async def test_reporter_human_brief_is_string(geo_request: GeoRequest, mock_agen
 
 
 @pytest.mark.asyncio
-async def test_reporter_human_brief_three_paragraphs(geo_request: GeoRequest, mock_agent: GeoXAgent):
+async def test_reporter_human_brief_three_paragraphs(
+    geo_request: GeoRequest, mock_agent: GeoXAgent
+):
     """Human brief must consist of exactly 3 paragraphs (separated by double newlines)."""
     response = await mock_agent.evaluate_prospect(geo_request)
     reporter = GeoXReporter()
     brief = reporter.generate_human_brief(response)
     paragraphs = [p.strip() for p in brief.split("\n\n") if p.strip()]
-    assert len(paragraphs) == 3, (
-        f"Expected 3 paragraphs, got {len(paragraphs)}. Brief:\n{brief}"
-    )
+    assert len(paragraphs) == 3, f"Expected 3 paragraphs, got {len(paragraphs)}. Brief:\n{brief}"
 
 
 # ---------------------------------------------------------------------------
 # test_full_pipeline_deterministic
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_full_pipeline_deterministic(geo_request: GeoRequest, mock_agent: GeoXAgent):
@@ -439,14 +451,15 @@ async def test_full_pipeline_deterministic(geo_request: GeoRequest, mock_agent: 
     assert r1.verdict in VALID_VERDICTS
     assert r2.verdict in VALID_VERDICTS
     # Both should have same verdict given deterministic mocks
-    assert r1.verdict == r2.verdict, (
-        f"Expected deterministic verdict but got {r1.verdict} vs {r2.verdict}"
-    )
+    assert (
+        r1.verdict == r2.verdict
+    ), f"Expected deterministic verdict but got {r1.verdict} vs {r2.verdict}"
 
 
 # ---------------------------------------------------------------------------
 # test_plan_heuristic
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_plan_heuristic_includes_earth_model(geo_request: GeoRequest, mock_agent: GeoXAgent):
@@ -454,9 +467,7 @@ async def test_plan_heuristic_includes_earth_model(geo_request: GeoRequest, mock
     plan = await mock_agent.plan(geo_request)
     assert isinstance(plan, list)
     assert len(plan) >= 1
-    assert plan[0] == "EarthModelTool", (
-        f"EarthModelTool must be first in plan, got: {plan}"
-    )
+    assert plan[0] == "EarthModelTool", f"EarthModelTool must be first in plan, got: {plan}"
 
 
 @pytest.mark.asyncio
@@ -465,14 +476,15 @@ async def test_plan_only_registered_tools(geo_request: GeoRequest, mock_agent: G
     plan = await mock_agent.plan(geo_request)
     registered = set(mock_agent.tool_registry.list_tools())
     for tool_name in plan:
-        assert tool_name in registered, (
-            f"Plan includes unregistered tool '{tool_name}'. Registered: {registered}"
-        )
+        assert (
+            tool_name in registered
+        ), f"Plan includes unregistered tool '{tool_name}'. Registered: {registered}"
 
 
 # ---------------------------------------------------------------------------
 # test_f13_sovereign_hold
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_void_verdict_triggers_human_hold():

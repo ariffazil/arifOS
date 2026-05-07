@@ -1,8 +1,8 @@
 # HTA Website Alignment Quickstart
 
-**Task:** Align https://arif-fazil.com, https://apex.arif-fazil.com, and https://arifos.arif-fazil.com  
-**Target Version:** v55.5-EIGEN  
-**Time Required:** ~30 minutes  
+**Task:** Align https://arif-fazil.com, https://apex.arif-fazil.com, and https://arifos.arif-fazil.com
+**Target Version:** v55.5-EIGEN
+**Time Required:** ~30 minutes
 
 ---
 
@@ -284,5 +284,5 @@ Visit each site and verify:
 
 ---
 
-**SEAL Status:** Pending deployment  
+**SEAL Status:** Pending deployment
 **Authority:** F13 Sovereign (Muhammad Arif bin Fazil)

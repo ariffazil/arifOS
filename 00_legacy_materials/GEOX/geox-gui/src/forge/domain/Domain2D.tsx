@@ -2,10 +2,10 @@
  * Domain2D — Planar Operations (500-749)
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Seismic Viewer & Analog Forge implementation.
  * Signal-centric aesthetic with vibrant spectral gradients and scan-line overlays.
- * 
+ *
  * Features:
  * - 2D seismic section visualization with Wiggle/VA display
  * - Real-time attribute generation (RMS, Sweetness, Envelope)
@@ -115,12 +115,12 @@ interface Domain2DProps {
  */
 const getColorFromValue = (value: number, colorMap: ColorMap): string => {
   const normalized = Math.max(-1, Math.min(1, value));
-  
+
   switch (colorMap) {
     case 'grayscale':
       const gray = Math.round((normalized + 1) * 127.5);
       return `rgb(${gray}, ${gray}, ${gray})`;
-    
+
     case 'seismic':
       // Blue-white-red
       if (normalized < 0) {
@@ -129,7 +129,7 @@ const getColorFromValue = (value: number, colorMap: ColorMap): string => {
       } else {
         return `rgb(255, ${Math.round(255 * (1 - normalized))}, ${Math.round(255 * (1 - normalized))})`;
       }
-    
+
     case 'rdgy':
       // Red-gray-green (diverging)
       if (normalized < 0) {
@@ -139,17 +139,17 @@ const getColorFromValue = (value: number, colorMap: ColorMap): string => {
         const t = normalized;
         return `rgb(${Math.round(255 * (1 - t * 0.5))}, ${Math.round(255)}, ${Math.round(255 * (1 - t * 0.5))})`;
       }
-    
+
     case 'spectral':
       // Rainbow spectrum
       const hue = (normalized + 1) * 120; // 0-240 (red to blue)
       return `hsl(${240 - hue}, 80%, 50%)`;
-    
+
     case 'viridis':
       // Viridis approximation
       const v = (normalized + 1) / 2;
       return `hsl(${240 + v * 120}, 70%, ${30 + v * 40}%)`;
-    
+
     default:
       return `rgb(128, 128, 128)`;
   }
@@ -190,7 +190,7 @@ const SeismicCanvas: React.FC<{
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -226,7 +226,7 @@ const SeismicCanvas: React.FC<{
         if (displayMode === 'wiggle_va' || displayMode === 'va') {
           ctx.beginPath();
           ctx.fillStyle = 'rgba(6, 182, 212, 0.3)';
-          
+
           for (let s = 0; s < data.sampleCount; s++) {
             const amplitude = trace[s] * gain * (traceSpacing / 2);
             if (amplitude > 0) {
@@ -240,7 +240,7 @@ const SeismicCanvas: React.FC<{
         for (let s = 0; s < data.sampleCount; s++) {
           const amplitude = trace[s];
           const y = s * sampleSpacing;
-          
+
           ctx.fillStyle = getColorFromValue(amplitude * gain, colorMap);
           ctx.fillRect(t * traceSpacing, y, traceSpacing + 0.5, sampleSpacing + 0.5);
         }
@@ -492,7 +492,7 @@ export const Domain2D: React.FC<Domain2DProps> = ({
     const trace = seismicData.traces[traceIndex];
     const sampleIdx = Math.round((twt - seismicData.startTime) / seismicData.sampleInterval);
     const amplitude = trace?.[sampleIdx] || 0;
-    
+
     setSelectedPoint({ trace: traceIndex, twt, amplitude });
     onPick(traceIndex, twt);
   };

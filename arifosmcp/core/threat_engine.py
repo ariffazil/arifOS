@@ -268,7 +268,7 @@ def scan(cls, text: str) -> ScanResult:
 
     # Build a minimal ActionContext from raw text
     class _TextContext:
-        def payload_text(inner_self) -> str:
+        def payload_text(self) -> str:
             return text
 
     ctx = _TextContext()

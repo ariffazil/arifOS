@@ -11,37 +11,37 @@ CREATE TABLE IF NOT EXISTS memory_records (
     actor_id TEXT NOT NULL,
     session_id TEXT NOT NULL,
     project_id TEXT,
-    
+
     type TEXT NOT NULL CHECK (type IN ('working', 'episodic', 'semantic', 'procedural', 'policy')),
     subject TEXT,
     content TEXT NOT NULL,
     summary TEXT,
-    
+
     source_type TEXT NOT NULL,
     source_ref JSONB,
-    
+
     confidence FLOAT DEFAULT 0.0,
     authority TEXT CHECK (authority IN ('explicit_user', 'system_inferred', 'document', 'unknown')),
     sensitivity FLOAT DEFAULT 0.0,
     consent_level TEXT,
-    
+
     freshness_ts TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     last_validated_ts TIMESTAMPTZ,
-    
+
     retention_class TEXT CHECK (retention_class IN ('transient', 'reviewable', 'durable', 'immutable_audit')),
     expires_at TIMESTAMPTZ,
     revocable BOOLEAN DEFAULT TRUE,
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'expired', 'revoked', 'superseded')),
-    
+
     supersedes UUID REFERENCES memory_records(memory_id),
     superseded_by UUID REFERENCES memory_records(memory_id),
-    
+
     tags TEXT[],
     embedding_status TEXT DEFAULT 'pending' CHECK (embedding_status IN ('pending', 'ready', 'failed')),
-    
+
     hash TEXT NOT NULL, -- sha256 of content
     version INT DEFAULT 1,
-    
+
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

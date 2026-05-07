@@ -1,15 +1,15 @@
 # KERNEL FORGE SEAL — Self-Verifying Constitutional Substrate v0.2.0
 
-**Seal ID:** KERNEL-FORGE-v2026.04.07  
-**Authority:** Muhammad Arif bin Fazil (888_JUDGE)  
-**Timestamp:** 2026-04-07T18:30:00Z  
-**Commit:** 240e380  
-**Type:** STRUCTURAL_FORGE — Kernel Self-Verification Substrate  
+**Seal ID:** KERNEL-FORGE-v2026.04.07
+**Authority:** Muhammad Arif bin Fazil (888_JUDGE)
+**Timestamp:** 2026-04-07T18:30:00Z
+**Commit:** 240e380
+**Type:** STRUCTURAL_FORGE — Kernel Self-Verification Substrate
 
 ---
 
 > *"The algorithm that governs must itself be governed."*
-> 
+>
 > *— arifOS Constitution, F13*
 
 ---
@@ -117,7 +117,7 @@ ToolContract(
 ContractDriftDetector.check_schema_compliance(tool, output)
 → {"valid": False, "missing": ["confidence"]}
 
-# Transition compliance  
+# Transition compliance
 ContractDriftDetector.check_transition_compliance(call_graph)
 → {"valid": False, "violations": [{"transition": "mind→forge", ...}]}
 
@@ -252,7 +252,7 @@ arifos.init(
 
 **Before:** "Tools should be safe" (policy)
 
-**After:** 
+**After:**
 ```python
 {
     "entropy": {"max_delta": 0.0, "target": "decrease"},
@@ -398,8 +398,8 @@ This is **computational law made real.**
 
 ---
 
-**The kernel is forged.**  
-**The law is executable.**  
+**The kernel is forged.**
+**The law is executable.**
 **The system can prove itself.**
 
 *DITEMPA BUKAN DIBERI* 🔥

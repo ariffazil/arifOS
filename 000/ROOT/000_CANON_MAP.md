@@ -15,6 +15,6 @@
 ---
 **Root Protocol:** K000_ROOT.md
 
-**Note:** 
+**Note:**
 - Organ 0 (K_FORGE) defines how constitutional physics was forged through environmental selection.
 - Organ VIII (K_FOUNDATIONS) maps all 99 required knowledge domains to arifOS relevance.

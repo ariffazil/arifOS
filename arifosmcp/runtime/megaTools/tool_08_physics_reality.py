@@ -119,9 +119,11 @@ async def physics_reality(
             stage=res_dict.get("stage", "444_OPS"),
             payload=res_dict.get("payload", {}),
             session_id=session_id,
-            override_code=VerdictCode(res_dict.get("verdict").value)
-            if hasattr(res_dict.get("verdict"), "value")
-            else VerdictCode.SABAR,
+            override_code=(
+                VerdictCode(res_dict.get("verdict").value)
+                if hasattr(res_dict.get("verdict"), "value")
+                else VerdictCode.SABAR
+            ),
             message=res_dict.get("payload", {}).get("note", "Physics review completed."),
         )
 

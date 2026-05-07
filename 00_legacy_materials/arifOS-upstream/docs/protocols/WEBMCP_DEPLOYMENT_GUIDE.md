@@ -1,7 +1,7 @@
 # WebMCP Deployment Guide
 ## Deploy arifOS as an AI-Governed WebMCP Environment
 
-**Version:** 2026.03.14-VALIDATED  
+**Version:** 2026.03.14-VALIDATED
 **Target:** Production WebMCP Deployment
 
 ---
@@ -124,44 +124,44 @@ upstream webmcp {
 server {
     listen 443 ssl http2;
     server_name arifosmcp.arif-fazil.com;
-    
+
     ssl_certificate /etc/letsencrypt/live/arif-fazil.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/arif-fazil.com/privkey.pem;
-    
+
     # Security headers (F12)
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    
+
     # WebMCP API
     location /webmcp/ {
         proxy_pass http://webmcp;
         proxy_http_version 1.1;
-        
+
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
+
         # Constitutional timeouts
         proxy_connect_timeout 30s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
-    
+
     # WebSocket for real-time governance
     location /webmcp/ws {
         proxy_pass http://webmcp;
         proxy_http_version 1.1;
-        
+
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
-        
+
         proxy_read_timeout 86400;  # WebSocket long-lived
     }
-    
+
     # Static dashboard
     location /dashboard {
         alias /var/www/arifos/dashboard;
@@ -218,26 +218,26 @@ function GovernedApp() {
   const { client, vitals, hold, isConnected } = useWebMCP(
     'https://arifosmcp.arif-fazil.com'
   );
-  
+
   const handleAction = async () => {
     const result = await client.call('eureka_forge', {
       command: 'ls -la',
     });
-    
+
     if (result.verdict === '888_HOLD') {
       // Show human ratification UI
       alert('Human approval required!');
     }
   };
-  
+
   return (
     <div>
       <div className="vitals">
-        G★: {vitals?.G_star} | 
-        ΔS: {vitals?.dS} | 
+        G★: {vitals?.G_star} |
+        ΔS: {vitals?.dS} |
         Peace²: {vitals?.peace2}
       </div>
-      
+
       {hold && (
         <div className="hold-alert">
           <h3>888 HOLD</h3>
@@ -246,7 +246,7 @@ function GovernedApp() {
           <button onClick={() => client.ratify('VOID')}>Reject</button>
         </div>
       )}
-      
+
       <button onClick={handleAction}>Execute Action</button>
     </div>
   );
@@ -337,7 +337,7 @@ const ws = new WebSocket('wss://arifosmcp.arif-fazil.com/webmcp/ws');
 
 ws.onmessage = (event) => {
   const msg = JSON.parse(event.data);
-  
+
   switch (msg.type) {
     case 'vitals':
       updateDashboard(msg.data);

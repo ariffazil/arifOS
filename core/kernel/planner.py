@@ -15,19 +15,23 @@ from typing import Any
 @dataclass
 class Task:
     """A single unit of work in a plan."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""
     status: str = "PENDING"  # PENDING, RUNNING, COMPLETED, FAILED
     result: Any | None = None
     dependencies: list[str] = field(default_factory=list)
 
+
 @dataclass
 class Plan:
     """A collection of tasks organized in a task graph."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     goal: str = ""
     tasks: dict[str, Task] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 class Planner:
     """
@@ -44,20 +48,24 @@ class Planner:
         self._plans[plan.id] = plan
         return plan
 
-    def add_task(self, plan_id: str, description: str, dependencies: list[str] | None = None) -> str:
+    def add_task(
+        self, plan_id: str, description: str, dependencies: list[str] | None = None
+    ) -> str:
         """Add a task to a plan, potentially with dependencies on other tasks."""
         if plan_id not in self._plans:
             raise ValueError(f"Plan '{plan_id}' not found.")
-        
+
         task = Task(description=description, dependencies=dependencies or [])
         self._plans[plan_id].tasks[task.id] = task
         return task.id
 
-    def update_task_status(self, plan_id: str, task_id: str, status: str, result: Any | None = None):
+    def update_task_status(
+        self, plan_id: str, task_id: str, status: str, result: Any | None = None
+    ):
         """Update the status and result of a task."""
         if plan_id not in self._plans or task_id not in self._plans[plan_id].tasks:
             raise ValueError(f"Task '{task_id}' not found in plan '{plan_id}'.")
-        
+
         task = self._plans[plan_id].tasks[task_id]
         task.status = status
         if result is not None:
@@ -67,7 +75,7 @@ class Planner:
         """Retrieve tasks that are ready to execute (PENDING and all dependencies COMPLETED)."""
         if plan_id not in self._plans:
             raise ValueError(f"Plan '{plan_id}' not found.")
-        
+
         plan = self._plans[plan_id]
         ready_tasks = []
         for task in plan.tasks.values():
@@ -81,7 +89,7 @@ class Planner:
                         break
                 if all_done:
                     ready_tasks.append(task)
-        
+
         return ready_tasks
 
     def get_plan(self, plan_id: str) -> Plan | None:

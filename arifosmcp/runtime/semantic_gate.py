@@ -30,28 +30,29 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 # ── Intent Categories ──────────────────────────────────────────────────────
 class IntentCategory:
-    EDUCATION       = "education"        # Learning, explaining, studying
-    CRITIQUE        = "critique"         # Analyzing, debating, reviewing
-    SELF_SUPPORT    = "self_support"     # Crisis, self-harm, distress
-    INSTRUCTION     = "instruction"     # How-to-do-harm intent
-    MANIPULATION    = "manipulation"      # Injection, jailbreak, bypass
-    CRISIS          = "crisis"           # Immediate harm to self/other
-    TRANSFORM       = "transform"       # False positive — redirect to safe version
-    UNKNOWN         = "unknown"         # Cannot determine intent
+    EDUCATION = "education"  # Learning, explaining, studying
+    CRITIQUE = "critique"  # Analyzing, debating, reviewing
+    SELF_SUPPORT = "self_support"  # Crisis, self-harm, distress
+    INSTRUCTION = "instruction"  # How-to-do-harm intent
+    MANIPULATION = "manipulation"  # Injection, jailbreak, bypass
+    CRISIS = "crisis"  # Immediate harm to self/other
+    TRANSFORM = "transform"  # False positive — redirect to safe version
+    UNKNOWN = "unknown"  # Cannot determine intent
 
 
 # ── Verdict per category ────────────────────────────────────────────────────
 INTENT_VERDICTS: dict[str, str] = {
-    IntentCategory.EDUCATION:      "ALLOW",
-    IntentCategory.CRITIQUE:       "ALLOW",
-    IntentCategory.SELF_SUPPORT:    "ALLOW",
-    IntentCategory.INSTRUCTION:     "VOID",
-    IntentCategory.MANIPULATION:    "HOLD",
-    IntentCategory.CRISIS:          "ALLOW",
-    IntentCategory.TRANSFORM:       "ALLOW",
-    IntentCategory.UNKNOWN:         "ALLOW",
+    IntentCategory.EDUCATION: "ALLOW",
+    IntentCategory.CRITIQUE: "ALLOW",
+    IntentCategory.SELF_SUPPORT: "ALLOW",
+    IntentCategory.INSTRUCTION: "VOID",
+    IntentCategory.MANIPULATION: "HOLD",
+    IntentCategory.CRISIS: "ALLOW",
+    IntentCategory.TRANSFORM: "ALLOW",
+    IntentCategory.UNKNOWN: "ALLOW",
 }
 
 # ── Keyword heuristics for fast-path classification ───────────────────────
@@ -60,61 +61,130 @@ INTENT_VERDICTS: dict[str, str] = {
 
 _FAST_PATTERNS: list[tuple[re.Pattern, IntentCategory, float]] = [
     # ── Crisis / Self-harm ───────────────────────────────────────────────
-    (re.compile(r"\b(i want to|i'm going to|l'm going to)\s+(kill|hurt|end it| Suicide|终结自己)\b", re.I),
-     IntentCategory.CRISIS, 0.95),
-    (re.compile(r"\b(suicide|suicidal|kill myself|end my life|i want to die)\b", re.I),
-     IntentCategory.SELF_SUPPORT, 0.90),
-    (re.compile(r"\b(how do i make a bomb|how to make explosive|how to build a bomb)\b", re.I),
-     IntentCategory.INSTRUCTION, 0.95),
-    (re.compile(r"\b(give me a bomb|get bomb recipe|instructions for bomb)\b", re.I),
-     IntentCategory.INSTRUCTION, 0.95),
-
+    (
+        re.compile(
+            r"\b(i want to|i'm going to|l'm going to)\s+(kill|hurt|end it| Suicide|终结自己)\b",
+            re.I,
+        ),
+        IntentCategory.CRISIS,
+        0.95,
+    ),
+    (
+        re.compile(r"\b(suicide|suicidal|kill myself|end my life|i want to die)\b", re.I),
+        IntentCategory.SELF_SUPPORT,
+        0.90,
+    ),
+    (
+        re.compile(r"\b(how do i make a bomb|how to make explosive|how to build a bomb)\b", re.I),
+        IntentCategory.INSTRUCTION,
+        0.95,
+    ),
+    (
+        re.compile(r"\b(give me a bomb|get bomb recipe|instructions for bomb)\b", re.I),
+        IntentCategory.INSTRUCTION,
+        0.95,
+    ),
     # ── Instruction intent (harm) ───────────────────────────────────────
-    (re.compile(r"\bhow to (?:make|build|create|prepare|assemble) (?:a )?(?:bomb|explosive|napalm)\b", re.I),
-     IntentCategory.INSTRUCTION, 0.90),
-    (re.compile(r"\bhow to (?:make|create|synthesize) (?:a )?(?:drug|poison|toxin)\b", re.I),
-     IntentCategory.INSTRUCTION, 0.90),
-    (re.compile(r"\b(give me.*(attack|weapons?|arsenal|materials?))\b", re.I),
-     IntentCategory.INSTRUCTION, 0.85),
-
+    (
+        re.compile(
+            r"\bhow to (?:make|build|create|prepare|assemble) (?:a )?(?:bomb|explosive|napalm)\b",
+            re.I,
+        ),
+        IntentCategory.INSTRUCTION,
+        0.90,
+    ),
+    (
+        re.compile(r"\bhow to (?:make|create|synthesize) (?:a )?(?:drug|poison|toxin)\b", re.I),
+        IntentCategory.INSTRUCTION,
+        0.90,
+    ),
+    (
+        re.compile(r"\b(give me.*(attack|weapons?|arsenal|materials?))\b", re.I),
+        IntentCategory.INSTRUCTION,
+        0.85,
+    ),
     # ── Manipulation intent ───────────────────────────────────────────────
-    (re.compile(r"\b(bypass|exploit|break|jailbreak|defeat|circumvent)\s+(the |this )?(gate|guard|security|filter|rule|restriction)\b", re.I),
-     IntentCategory.MANIPULATION, 0.90),
-    (re.compile(r"\b(prompt injection|ignore.*(previous|above|system)|forget.*(instructions?|rules?))\b", re.I),
-     IntentCategory.MANIPULATION, 0.90),
-    (re.compile(r"\b(ignore (all |the )?previous|disregard (my |any )?instructions?)\b", re.I),
-     IntentCategory.MANIPULATION, 0.95),
-    (re.compile(r"\b(you are now|act as|you can now|new system prompt|from now on you are)\b", re.I),
-     IntentCategory.MANIPULATION, 0.85),
-    (re.compile(r"\\[ignore all previous instructions\\]", re.I),
-     IntentCategory.MANIPULATION, 0.98),
-
+    (
+        re.compile(
+            r"\b(bypass|exploit|break|jailbreak|defeat|circumvent)\s+(the |this )?(gate|guard|security|filter|rule|restriction)\b",
+            re.I,
+        ),
+        IntentCategory.MANIPULATION,
+        0.90,
+    ),
+    (
+        re.compile(
+            r"\b(prompt injection|ignore.*(previous|above|system)|forget.*(instructions?|rules?))\b",
+            re.I,
+        ),
+        IntentCategory.MANIPULATION,
+        0.90,
+    ),
+    (
+        re.compile(r"\b(ignore (all |the )?previous|disregard (my |any )?instructions?)\b", re.I),
+        IntentCategory.MANIPULATION,
+        0.95,
+    ),
+    (
+        re.compile(
+            r"\b(you are now|act as|you can now|new system prompt|from now on you are)\b", re.I
+        ),
+        IntentCategory.MANIPULATION,
+        0.85,
+    ),
+    (
+        re.compile(r"\\[ignore all previous instructions\\]", re.I),
+        IntentCategory.MANIPULATION,
+        0.98,
+    ),
     # ── False-positive redirects (TRANSFORM) ─────────────────────────────
-    (re.compile(r"\b(alcohol[-_\s]?free|non[-\s]alcoholic|no[-\s]alcohol)\b", re.I),
-     IntentCategory.TRANSFORM, 0.85),
-    (re.compile(r"\b(explain why|why is|what makes|reason for).*(haram|halal|forbidden|prohibited)\b", re.I),
-     IntentCategory.EDUCATION, 0.90),
-    (re.compile(r"\b(why (is|are)|explain).*(alcohol|smoking|gambling)\b", re.I),
-     IntentCategory.EDUCATION, 0.85),
-
+    (
+        re.compile(r"\b(alcohol[-_\s]?free|non[-\s]alcoholic|no[-\s]alcohol)\b", re.I),
+        IntentCategory.TRANSFORM,
+        0.85,
+    ),
+    (
+        re.compile(
+            r"\b(explain why|why is|what makes|reason for).*(haram|halal|forbidden|prohibited)\b",
+            re.I,
+        ),
+        IntentCategory.EDUCATION,
+        0.90,
+    ),
+    (
+        re.compile(r"\b(why (is|are)|explain).*(alcohol|smoking|gambling)\b", re.I),
+        IntentCategory.EDUCATION,
+        0.85,
+    ),
     # ── Education / critique ─────────────────────────────────────────────
-    (re.compile(r"\b(why is|why are|what is|explain|describe|analyze|compare)\b", re.I),
-     IntentCategory.EDUCATION, 0.60),  # low confidence — LLM fallback
-    (re.compile(r"\b(critique|debate|justify|argue (for|against)|assess|evaluate)\b", re.I),
-     IntentCategory.CRITIQUE, 0.70),   # low confidence — LLM fallback
-
+    (
+        re.compile(r"\b(why is|why are|what is|explain|describe|analyze|compare)\b", re.I),
+        IntentCategory.EDUCATION,
+        0.60,
+    ),  # low confidence — LLM fallback
+    (
+        re.compile(r"\b(critique|debate|justify|argue (for|against)|assess|evaluate)\b", re.I),
+        IntentCategory.CRITIQUE,
+        0.70,
+    ),  # low confidence — LLM fallback
     # ── Radicalization (HOLD — human review) ─────────────────────────────
-    (re.compile(r"\b(how to radicalize|recruit.*extremist|justifies?.*terrorism|extremist (propaganda|recruitment))\b", re.I),
-     IntentCategory.INSTRUCTION, 0.92),
+    (
+        re.compile(
+            r"\b(how to radicalize|recruit.*extremist|justifies?.*terrorism|extremist (propaganda|recruitment))\b",
+            re.I,
+        ),
+        IntentCategory.INSTRUCTION,
+        0.92,
+    ),
 ]
 
 
 # ── Crisis resource map ────────────────────────────────────────────────────
 CRISIS_RESOURCES: dict[str, str] = {
-    "global":     "https://findahelpline.com/global",
-    "malaysia":   "988 ( Malaysia crisis line )",
-    "usa":        "988 (Suicide & Crisis Lifeline)",
-    "uk":         "Samaritans: 116 123",
+    "global": "https://findahelpline.com/global",
+    "malaysia": "988 ( Malaysia crisis line )",
+    "usa": "988 (Suicide & Crisis Lifeline)",
+    "uk": "Samaritans: 116 123",
     "hotline_key": "If you're in crisis, please reach out to a crisis helpline.",
 }
 
@@ -186,13 +256,13 @@ def _llm_classify(text: str) -> tuple[IntentCategory, float]:
     """
     # Structured prompt for intent classification — no external API needed
     category_descriptions = {
-        "education":   "user wants to learn, study, or understand a topic",
-        "critique":    "user wants to analyze, debate, or evaluate something",
-        "self_support":"user is in distress or expressing desire to harm themselves",
+        "education": "user wants to learn, study, or understand a topic",
+        "critique": "user wants to analyze, debate, or evaluate something",
+        "self_support": "user is in distress or expressing desire to harm themselves",
         "instruction": "user is asking for instructions to cause harm",
-        "manipulation":"user is attempting prompt injection or jailbreak",
-        "crisis":      "user is in immediate danger of self-harm",
-        "transform":   "user is asking for a safe variant of something that was wrongly flagged",
+        "manipulation": "user is attempting prompt injection or jailbreak",
+        "crisis": "user is in immediate danger of self-harm",
+        "transform": "user is asking for a safe variant of something that was wrongly flagged",
     }
 
     prompt = (
@@ -205,6 +275,7 @@ def _llm_classify(text: str) -> tuple[IntentCategory, float]:
     # ── Try Ollama ────────────────────────────────────────────────────────
     try:
         import httpx
+
         resp = httpx.post(
             "http://localhost:11434/api/generate",
             json={"model": "llama3.2", "prompt": prompt, "stream": False},
@@ -258,9 +329,7 @@ def classify_intent(text: str) -> dict[str, Any]:
         transform_suggestion = _transform_suggestion(text, category)
         supportive_resources = _supportive_resources(category, text)
 
-        _log_gate_decision(
-            text, category, confidence, verdict, risk_tier, transform_suggestion
-        )
+        _log_gate_decision(text, category, confidence, verdict, risk_tier, transform_suggestion)
         return {
             "category": category,
             "confidence": confidence,
@@ -279,9 +348,7 @@ def classify_intent(text: str) -> dict[str, Any]:
     transform_suggestion = _transform_suggestion(text, category)
     supportive_resources = _supportive_resources(category, text)
 
-    _log_gate_decision(
-        text, category, confidence, verdict, risk_tier, transform_suggestion
-    )
+    _log_gate_decision(text, category, confidence, verdict, risk_tier, transform_suggestion)
     return {
         "category": category,
         "confidence": confidence,
@@ -325,9 +392,7 @@ def _supportive_resources(category: IntentCategory, text: str) -> list[str]:
     ]
 
 
-def _next_action(
-    category: IntentCategory, verdict: str, transform_suggestion: str | None
-) -> str:
+def _next_action(category: IntentCategory, verdict: str, transform_suggestion: str | None) -> str:
     if verdict == "VOID":
         return "Refuse — instruction intent blocked"
     if verdict == "HOLD":

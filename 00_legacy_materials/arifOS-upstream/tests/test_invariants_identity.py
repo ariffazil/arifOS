@@ -4,6 +4,7 @@ test_invariants_identity.py — Identity Governance Invariants
 F11 + F2: Canonical identity must never be overridden by display metadata.
 These are HARD invariants — any violation is a constitutional failure.
 """
+
 import pytest
 from arifosmcp.runtime.sessions import (
     resolve_runtime_context,
@@ -25,8 +26,7 @@ class TestIdentityPrecedenceInvariant:
             actor_id="arif",
             declared_name="other",
         )
-        assert ctx["canonical_actor_id"] == "ariffazil", \
-            "actor_id must override declared_name"
+        assert ctx["canonical_actor_id"] == "ariffazil", "actor_id must override declared_name"
 
     def test_declared_name_only_if_actor_id_anonymous(self):
         """actor_id='anonymous' + declared_name='arif' → canonical='ariffazil'"""
@@ -36,8 +36,9 @@ class TestIdentityPrecedenceInvariant:
             actor_id="anonymous",
             declared_name="arif",
         )
-        assert ctx["canonical_actor_id"] == "ariffazil", \
-            "declared_name may substitute if actor_id is anonymous"
+        assert (
+            ctx["canonical_actor_id"] == "ariffazil"
+        ), "declared_name may substitute if actor_id is anonymous"
 
     def test_anonymous_fallback(self):
         """No actor_id + no declared_name → canonical='anonymous'"""
@@ -47,8 +48,9 @@ class TestIdentityPrecedenceInvariant:
             actor_id=None,
             declared_name=None,
         )
-        assert ctx["canonical_actor_id"] == "anonymous", \
-            "Must fallback to anonymous when no identity provided"
+        assert (
+            ctx["canonical_actor_id"] == "anonymous"
+        ), "Must fallback to anonymous when no identity provided"
 
 
 class TestSovereignAliasInvariant:
@@ -78,7 +80,7 @@ class TestIdentityStabilityInvariant:
         """Session-bound identity must survive multiple lookups"""
         session_id = "stability-test-001"
         clear_session_identity(session_id)  # Clean slate
-        
+
         # Anchor identity
         bind_session_identity(
             session_id=session_id,
@@ -87,14 +89,14 @@ class TestIdentityStabilityInvariant:
             auth_context={"actor_id": "ariffazil", "session_id": session_id},
             approval_scope=["arifos_kernel:execute"],
         )
-        
+
         # Multiple lookups must return same identity
         for _ in range(5):
             stored = get_session_identity(session_id)
             assert stored is not None, "Anchored session must persist"
             assert stored["actor_id"] == "ariffazil", "Actor must not change"
             assert stored["authority_level"] == "sovereign", "Authority must not change"
-        
+
         clear_session_identity(session_id)
 
 

@@ -1,10 +1,10 @@
 # arifOS MCP Tool Inventory
 ## Architectural Reference Document
 
-**Version:** 2026.03.14-FORGED  
-**Status:** ✅ 39/39 Tools Operational  
-**Coverage:** 100% Working  
-**Last Updated:** 2026-03-14  
+**Version:** 2026.03.14-FORGED
+**Status:** ✅ 39/39 Tools Operational
+**Coverage:** 100% Working
+**Last Updated:** 2026-03-14
 
 ---
 
@@ -26,10 +26,10 @@ Production-grade tools exposed to clients via MCP protocol. These tools implemen
 ### 1.1 Initialization & Session Management
 
 #### `init_anchor`
-**Purpose:** Initialize a new constitutional session with F1 Amanah binding  
-**Profile:** PUBLIC  
-**Stage:** 000_INIT  
-**Floors Enforced:** F1, F11, F12  
+**Purpose:** Initialize a new constitutional session with F1 Amanah binding
+**Profile:** PUBLIC
+**Stage:** 000_INIT
+**Floors Enforced:** F1, F11, F12
 
 **Input Parameters:**
 ```json
@@ -40,8 +40,8 @@ Production-grade tools exposed to clients via MCP protocol. These tools implemen
 }
 ```
 
-**Output:** RuntimeEnvelope with session context, auth nonce, and constitutional metadata  
-**Usage Pattern:** Always the first call in a session lifecycle  
+**Output:** RuntimeEnvelope with session context, auth nonce, and constitutional metadata
+**Usage Pattern:** Always the first call in a session lifecycle
 **Example:**
 ```python
 result = await init_anchor(
@@ -53,10 +53,10 @@ result = await init_anchor(
 ---
 
 #### `revoke_anchor_state`
-**Purpose:** Gracefully terminate a session and archive to VAULT999  
-**Profile:** PUBLIC  
-**Stage:** 999_VAULT  
-**Floors Enforced:** F1, F13  
+**Purpose:** Gracefully terminate a session and archive to VAULT999
+**Profile:** PUBLIC
+**Stage:** 999_VAULT
+**Floors Enforced:** F1, F13
 
 **Input Parameters:**
 ```json
@@ -66,18 +66,18 @@ result = await init_anchor(
 }
 ```
 
-**Output:** RuntimeEnvelope with VAULT999 receipt hash  
-**Usage Pattern:** Clean session termination, required for audit compliance  
+**Output:** RuntimeEnvelope with VAULT999 receipt hash
+**Usage Pattern:** Clean session termination, required for audit compliance
 
 ---
 
 ### 1.2 AGI Mind Tools (Stage 333)
 
 #### `agi_reason`
-**Purpose:** Core reasoning and synthesis (Δ AGI Mind)  
-**Profile:** PUBLIC  
-**Stage:** 333_MIND  
-**Floors Enforced:** F2, F4, F7, F8  
+**Purpose:** Core reasoning and synthesis (Δ AGI Mind)
+**Profile:** PUBLIC
+**Stage:** 333_MIND
+**Floors Enforced:** F2, F4, F7, F8
 
 **Input Parameters:**
 ```json
@@ -107,10 +107,10 @@ result = await agi_reason(
 ---
 
 #### `agi_reflect`
-**Purpose:** Memory retrieval and pattern reflection (555_MEMORY)  
-**Profile:** PUBLIC  
-**Stage:** 555_MEMORY  
-**Floors Enforced:** F3, F5  
+**Purpose:** Memory retrieval and pattern reflection (555_MEMORY)
+**Profile:** PUBLIC
+**Stage:** 555_MEMORY
+**Floors Enforced:** F3, F5
 
 **Input Parameters:**
 ```json
@@ -132,10 +132,10 @@ result = await agi_reason(
 ### 1.3 ASI Heart Tools (Stage 666)
 
 #### `asi_simulate`
-**Purpose:** Impact simulation and scenario modeling (Ω ASI Heart)  
-**Profile:** PUBLIC  
-**Stage:** 666_HEART  
-**Floors Enforced:** F5, F6, F9  
+**Purpose:** Impact simulation and scenario modeling (Ω ASI Heart)
+**Profile:** PUBLIC
+**Stage:** 666_HEART
+**Floors Enforced:** F5, F6, F9
 
 **Input Parameters:**
 ```json
@@ -155,10 +155,10 @@ result = await agi_reason(
 ---
 
 #### `asi_critique`
-**Purpose:** Metacognitive audit and self-correction  
-**Profile:** PUBLIC  
-**Stage:** 666_CRITIQUE  
-**Floors Enforced:** F3, F8  
+**Purpose:** Metacognitive audit and self-correction
+**Profile:** PUBLIC
+**Stage:** 666_CRITIQUE
+**Floors Enforced:** F3, F8
 
 **Input Parameters:**
 ```json
@@ -181,10 +181,10 @@ result = await agi_reason(
 ### 1.4 Forge & Judge Tools (Stages 777, 888)
 
 #### `forge`
-**Purpose:** Master entry point for full 000→999 pipeline  
-**Profile:** PUBLIC  
-**Stage:** 777_FORGE  
-**Floors Enforced:** ALL (F1-F13)  
+**Purpose:** Master entry point for full 000→999 pipeline
+**Profile:** PUBLIC
+**Stage:** 777_FORGE
+**Floors Enforced:** ALL (F1-F13)
 
 **Input Parameters:**
 ```json
@@ -211,10 +211,10 @@ result = await agi_reason(
 ---
 
 #### `apex_judge`
-**Purpose:** Final verdict rendering with Tri-Witness consensus (Ψ APEX)  
-**Profile:** PUBLIC  
-**Stage:** 888_JUDGE  
-**Floors Enforced:** F1, F3, F10, F11, F13  
+**Purpose:** Final verdict rendering with Tri-Witness consensus (Ψ APEX)
+**Profile:** PUBLIC
+**Stage:** 888_JUDGE
+**Floors Enforced:** F1, F3, F10, F11, F13
 
 **Input Parameters:**
 ```json
@@ -235,10 +235,10 @@ result = await agi_reason(
 ---
 
 #### `vault_seal`
-**Purpose:** Immutable commitment to VAULT999 ledger  
-**Profile:** PUBLIC  
-**Stage:** 999_VAULT  
-**Floors Enforced:** F1, F13  
+**Purpose:** Immutable commitment to VAULT999 ledger
+**Profile:** PUBLIC
+**Stage:** 999_VAULT
+**Floors Enforced:** F1, F13
 
 **Input Parameters:**
 ```json
@@ -250,7 +250,7 @@ result = await agi_reason(
 }
 ```
 
-**Output:** VAULT999 receipt with SHA-256 hash chain  
+**Output:** VAULT999 receipt with SHA-256 hash chain
 **Immutability:** Appended to ledger, tamper-evident via Merkle tree
 
 ---
@@ -258,33 +258,33 @@ result = await agi_reason(
 ### 1.5 Reality & Grounding Tools
 
 #### `search_reality`
-**Purpose:** Web search grounding before reasoning (alias)  
-**Profile:** PUBLIC  
-**Stage:** 111_SENSE  
-**Alias For:** reality_compass(mode="search")  
+**Purpose:** Web search grounding before reasoning (alias)
+**Profile:** PUBLIC
+**Stage:** 111_SENSE
+**Alias For:** reality_compass(mode="search")
 
-**Input:** Query string  
-**Output:** EvidenceBundle with search results  
+**Input:** Query string
+**Output:** EvidenceBundle with search results
 **Enforces:** F2 (Truth ≥ 0.99)
 
 ---
 
 #### `ingest_evidence`
-**Purpose:** Fetch and extract content from URLs (alias)  
-**Profile:** PUBLIC  
-**Stage:** 222_REALITY  
-**Alias For:** reality_compass(mode="fetch")  
+**Purpose:** Fetch and extract content from URLs (alias)
+**Profile:** PUBLIC
+**Stage:** 222_REALITY
+**Alias For:** reality_compass(mode="fetch")
 
-**Input:** URL string  
-**Output:** EvidenceBundle with extracted content  
+**Input:** URL string
+**Output:** EvidenceBundle with extracted content
 **Supports:** HTML, PDF, markdown extraction
 
 ---
 
 #### `reality_compass`
-**Purpose:** Ground claims in external reality  
-**Profile:** PUBLIC  
-**Stage:** 111_SENSE / 222_REALITY  
+**Purpose:** Ground claims in external reality
+**Profile:** PUBLIC
+**Stage:** 111_SENSE / 222_REALITY
 
 **Input Parameters:**
 ```json
@@ -305,9 +305,9 @@ result = await agi_reason(
 ---
 
 #### `reality_atlas`
-**Purpose:** Map evidence across multiple sources  
-**Profile:** PUBLIC  
-**Stage:** 222_REALITY  
+**Purpose:** Map evidence across multiple sources
+**Profile:** PUBLIC
+**Stage:** 222_REALITY
 
 **Input Parameters:**
 ```json
@@ -330,9 +330,9 @@ result = await agi_reason(
 ### 1.6 Audit & Verification Tools
 
 #### `audit_rules`
-**Purpose:** Inspect all 13 constitutional floors live  
-**Profile:** PUBLIC  
-**Stage:** 333_MIND  
+**Purpose:** Inspect all 13 constitutional floors live
+**Profile:** PUBLIC
+**Stage:** 333_MIND
 
 **Input Parameters:**
 ```json
@@ -342,15 +342,15 @@ result = await agi_reason(
 }
 ```
 
-**Output:** Floor-by-floor compliance report with current thresholds  
+**Output:** Floor-by-floor compliance report with current thresholds
 **Usage:** Debugging, compliance verification, educational
 
 ---
 
 #### `check_vital`
-**Purpose:** System health and thermodynamic metrics  
-**Profile:** PUBLIC  
-**Stage:** 000_INIT  
+**Purpose:** System health and thermodynamic metrics
+**Profile:** PUBLIC
+**Stage:** 000_INIT
 
 **Input Parameters:**
 ```json
@@ -369,9 +369,9 @@ result = await agi_reason(
 ---
 
 #### `verify_vault_ledger`
-**Purpose:** Verify SHA-256 Merkle chain integrity  
-**Profile:** PUBLIC  
-**Stage:** 999_VAULT  
+**Purpose:** Verify SHA-256 Merkle chain integrity
+**Profile:** PUBLIC
+**Stage:** 999_VAULT
 
 **Input Parameters:**
 ```json
@@ -381,7 +381,7 @@ result = await agi_reason(
 }
 ```
 
-**Output:** Integrity report with tamper detection  
+**Output:** Integrity report with tamper detection
 **Cryptography:** Verifies hash chain from session → VAULT999
 
 ---
@@ -389,9 +389,9 @@ result = await agi_reason(
 ### 1.7 Dashboard & Interface Tools
 
 #### `open_apex_dashboard`
-**Purpose:** Launch live governance UI (React + Recharts)  
-**Profile:** PUBLIC  
-**Stage:** 888_JUDGE  
+**Purpose:** Launch live governance UI (React + Recharts)
+**Profile:** PUBLIC
+**Stage:** 888_JUDGE
 
 **Input Parameters:**
 ```json
@@ -412,9 +412,9 @@ result = await agi_reason(
 ### 1.8 AgentZero Security Tools
 
 #### `agentzero_validate`
-**Purpose:** Multi-validator security check  
-**Profile:** PUBLIC  
-**Stage:** 666_CRITIQUE  
+**Purpose:** Multi-validator security check
+**Profile:** PUBLIC
+**Stage:** 666_CRITIQUE
 
 **Input Parameters:**
 ```json
@@ -433,9 +433,9 @@ result = await agi_reason(
 ---
 
 #### `agentzero_engineer`
-**Purpose:** Secure code generation and execution  
-**Profile:** PUBLIC  
-**Stage:** 777_FORGE  
+**Purpose:** Secure code generation and execution
+**Profile:** PUBLIC
+**Stage:** 777_FORGE
 
 **Input Parameters:**
 ```json
@@ -451,19 +451,19 @@ result = await agi_reason(
 ---
 
 #### `agentzero_hold_check`
-**Purpose:** Check for pending 888_HOLD states  
-**Profile:** PUBLIC  
-**Stage:** 888_JUDGE  
+**Purpose:** Check for pending 888_HOLD states
+**Profile:** PUBLIC
+**Stage:** 888_JUDGE
 
-**Input:** Session ID  
+**Input:** Session ID
 **Output:** List of pending high-stakes operations requiring confirmation
 
 ---
 
 #### `agentzero_memory_query`
-**Purpose:** Query AgentZero memory store  
-**Profile:** PUBLIC  
-**Stage:** 555_MEMORY  
+**Purpose:** Query AgentZero memory store
+**Profile:** PUBLIC
+**Stage:** 555_MEMORY
 
 **Input Parameters:**
 ```json
@@ -477,9 +477,9 @@ result = await agi_reason(
 ---
 
 #### `agentzero_armor_scan`
-**Purpose:** Injection and adversarial pattern detection  
-**Profile:** PUBLIC  
-**Stage:** 000_INIT  
+**Purpose:** Injection and adversarial pattern detection
+**Profile:** PUBLIC
+**Stage:** 000_INIT
 
 **Input Parameters:**
 ```json
@@ -503,10 +503,10 @@ result = await agi_reason(
 ### 1.9 Master Router
 
 #### `arifOS_kernel`
-**Purpose:** Stage conductor - orchestrates ΔΩΨ transitions  
-**Profile:** PUBLIC  
-**Stage:** 444_ROUTER  
-**Floors Enforced:** ALL (F1-F13)  
+**Purpose:** Stage conductor - orchestrates ΔΩΨ transitions
+**Profile:** PUBLIC
+**Stage:** 444_ROUTER
+**Floors Enforced:** ALL (F1-F13)
 
 **Input Parameters:**
 ```json
@@ -543,9 +543,9 @@ Advanced tools for development, administration, and low-level operations. These 
 ### 2.1 Vector & Memory Operations
 
 #### `chroma_query`
-**Purpose:** Query Chroma/Qdrant vector memory  
-**Profile:** INTERNAL  
-**Stage:** 555_MEMORY  
+**Purpose:** Query Chroma/Qdrant vector memory
+**Profile:** INTERNAL
+**Stage:** 555_MEMORY
 
 **Input Parameters:**
 ```json
@@ -558,7 +558,7 @@ Advanced tools for development, administration, and low-level operations. These 
 }
 ```
 
-**API Compatibility:** Supports both legacy `.search()` and modern `.query_points()` (Qdrant v1.8+)  
+**API Compatibility:** Supports both legacy `.search()` and modern `.query_points()` (Qdrant v1.8+)
 **Fallback:** Automatically detects client version and uses appropriate API
 
 ---
@@ -566,43 +566,43 @@ Advanced tools for development, administration, and low-level operations. These 
 ### 2.2 Configuration & Introspection
 
 #### `config_flags`
-**Purpose:** Runtime configuration inspection  
-**Profile:** INTERNAL  
-**Stage:** 000_INIT  
+**Purpose:** Runtime configuration inspection
+**Profile:** INTERNAL
+**Stage:** 000_INIT
 
-**Output:** Current feature flags, thresholds, and environment config  
+**Output:** Current feature flags, thresholds, and environment config
 **Usage:** Debugging, deployment verification
 
 ---
 
 #### `cost_estimator`
-**Purpose:** Estimate operation costs before execution  
-**Profile:** INTERNAL  
-**Stage:** 333_MIND  
+**Purpose:** Estimate operation costs before execution
+**Profile:** INTERNAL
+**Stage:** 333_MIND
 
-**Input:** Planned operation specification  
-**Output:** Token cost, time estimate, thermodynamic budget impact  
+**Input:** Planned operation specification
+**Output:** Token cost, time estimate, thermodynamic budget impact
 **Usage:** Budget management, resource planning. Supports `operation` alias for `operation_type`.
 
 ---
 
 #### `arifos_list_resources`
-**Purpose:** List available arifOS/MCP resources  
-**Profile:** INTERNAL  
-**Stage:** 111_SENSE  
+**Purpose:** List available arifOS/MCP resources
+**Profile:** INTERNAL
+**Stage:** 111_SENSE
 
-**Output:** All registered resources with URI schemes  
+**Output:** All registered resources with URI schemes
 **Resources:** canon://, governance://, vault://, telemetry://, etc.
 **Note:** Namespaced to avoid protocol collisions.
 
 ---
 
 #### `arifos_read_resource`
-**Purpose:** Read arifOS/MCP resource by URI  
-**Profile:** INTERNAL  
-**Stage:** 111_SENSE  
+**Purpose:** Read arifOS/MCP resource by URI
+**Profile:** INTERNAL
+**Stage:** 111_SENSE
 
-**Input:** Resource URI (e.g., `canon://floors`, `vault://latest`)  
+**Input:** Resource URI (e.g., `canon://floors`, `vault://latest`)
 **Output:** Resource content in appropriate format
 **Note:** Namespaced to avoid protocol collisions.
 
@@ -611,9 +611,9 @@ Advanced tools for development, administration, and low-level operations. These 
 ### 2.3 File System & Process Operations
 
 #### `fs_inspect`
-**Purpose:** Inspect file system within sandbox  
-**Profile:** INTERNAL  
-**Stage:** 111_SENSE  
+**Purpose:** Inspect file system within sandbox
+**Profile:** INTERNAL
+**Stage:** 111_SENSE
 
 **Input Parameters:**
 ```json
@@ -624,15 +624,15 @@ Advanced tools for development, administration, and low-level operations. These 
 }
 ```
 
-**Constraints:** Sandboxed to allowed directories only  
+**Constraints:** Sandboxed to allowed directories only
 **Alias:** `inspect_path` (Architectural Alignment)
 
 ---
 
 #### `log_tail`
-**Purpose:** Stream and filter log files  
-**Profile:** INTERNAL  
-**Stage:** 111_SENSE  
+**Purpose:** Stream and filter log files
+**Profile:** INTERNAL
+**Stage:** 111_SENSE
 
 **Input Parameters:**
 ```json
@@ -649,9 +649,9 @@ Advanced tools for development, administration, and low-level operations. These 
 ---
 
 #### `process_list`
-**Purpose:** List system processes with resource usage  
-**Profile:** INTERNAL  
-**Stage:** 000_INIT  
+**Purpose:** List system processes with resource usage
+**Profile:** INTERNAL
+**Stage:** 000_INIT
 
 **Input Parameters:**
 ```json
@@ -668,11 +668,11 @@ Advanced tools for development, administration, and low-level operations. These 
 ---
 
 #### `system_health`
-**Purpose:** Comprehensive system diagnostics  
-**Profile:** INTERNAL  
-**Stage:** 000_INIT  
+**Purpose:** Comprehensive system diagnostics
+**Profile:** INTERNAL
+**Stage:** 000_INIT
 
-**Output:** CPU, memory, disk, thermal metrics with container detection  
+**Output:** CPU, memory, disk, thermal metrics with container detection
 **Fallbacks:** Works in restricted container environments
 
 ---
@@ -680,12 +680,12 @@ Advanced tools for development, administration, and low-level operations. These 
 ### 2.4 Network Operations
 
 #### `net_status`
-**Purpose:** Network connectivity and latency checks  
-**Profile:** INTERNAL  
-**Stage:** 111_SENSE  
+**Purpose:** Network connectivity and latency checks
+**Profile:** INTERNAL
+**Stage:** 111_SENSE
 
-**Output:** Service reachability, latency metrics, DNS status  
-**Services Checked:** Qdrant, Redis, PostgreSQL, external APIs  
+**Output:** Service reachability, latency metrics, DNS status
+**Services Checked:** Qdrant, Redis, PostgreSQL, external APIs
 **Alias:** `check_connectivity` (Architectural Alignment)
 
 ---
@@ -693,9 +693,9 @@ Advanced tools for development, administration, and low-level operations. These 
 ### 2.5 Pipeline & Orchestration
 
 #### `metabolic_loop`
-**Purpose:** Direct access to metabolic pipeline (async)  
-**Profile:** INTERNAL  
-**Stage:** 444_ROUTER  
+**Purpose:** Direct access to metabolic pipeline (async)
+**Profile:** INTERNAL
+**Stage:** 444_ROUTER
 
 **Input Parameters:**
 ```json
@@ -711,32 +711,32 @@ Advanced tools for development, administration, and low-level operations. These 
 ---
 
 #### `metabolic_loop_router`
-**Purpose:** Synchronous wrapper for metabolic_loop  
-**Profile:** INTERNAL  
-**Stage:** 444_ROUTER  
+**Purpose:** Synchronous wrapper for metabolic_loop
+**Profile:** INTERNAL
+**Stage:** 444_ROUTER
 
-**Alias:** LEGACY_KERNEL_TOOL_NAME  
+**Alias:** LEGACY_KERNEL_TOOL_NAME
 **Note:** Maintained for backward compatibility
 
 ---
 
 #### `stage_pipeline_app`
-**Purpose:** Pipeline visualization and debugging  
-**Profile:** INTERNAL  
-**Stage:** 444_ROUTER  
+**Purpose:** Pipeline visualization and debugging
+**Profile:** INTERNAL
+**Stage:** 444_ROUTER
 
-**Output:** Visual representation of stage transitions  
+**Output:** Visual representation of stage transitions
 **Usage:** Pipeline debugging, educational
 
 ---
 
 #### `trace_replay`
-**Purpose:** Replay session traces for debugging  
-**Profile:** INTERNAL  
-**Stage:** 999_VAULT  
+**Purpose:** Replay session traces for debugging
+**Profile:** INTERNAL
+**Stage:** 999_VAULT
 
-**Input:** Session ID  
-**Output:** Step-by-step replay of all tool calls  
+**Input:** Session ID
+**Output:** Step-by-step replay of all tool calls
 **Usage:** Debugging, audit review, compliance
 
 ---
@@ -744,12 +744,12 @@ Advanced tools for development, administration, and low-level operations. These 
 ### 2.6 Tool Registration
 
 #### `register_tools`
-**Purpose:** Dynamic tool registration with MCP server  
-**Profile:** INTERNAL  
-**Stage:** 000_INIT  
+**Purpose:** Dynamic tool registration with MCP server
+**Profile:** INTERNAL
+**Stage:** 000_INIT
 
-**Input:** Tool definitions  
-**Usage:** Extension loading, plugin system  
+**Input:** Tool definitions
+**Usage:** Extension loading, plugin system
 **Security:** Requires sovereign clearance
 
 ---
@@ -757,12 +757,12 @@ Advanced tools for development, administration, and low-level operations. These 
 ### 2.7 Security Guard
 
 #### `forge_guard`
-**Purpose:** Pre-flight security check before forge operations  
-**Profile:** INTERNAL  
-**Stage:** 777_FORGE  
+**Purpose:** Pre-flight security check before forge operations
+**Profile:** INTERNAL
+**Stage:** 777_FORGE
 
-**Input:** Forge specification  
-**Output:** Risk assessment, required clearances, estimated impact  
+**Input:** Forge specification
+**Output:** Risk assessment, required clearances, estimated impact
 **Usage:** High-stakes operation validation
 
 ---
@@ -922,6 +922,6 @@ Advanced tools for development, administration, and low-level operations. These 
 
 *Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]*
 
-**Document Status:** SEALED  
-**Version:** 2026.03.14-FORGED  
+**Document Status:** SEALED
+**Version:** 2026.03.14-FORGED
 **Classification:** Public Architecture Reference

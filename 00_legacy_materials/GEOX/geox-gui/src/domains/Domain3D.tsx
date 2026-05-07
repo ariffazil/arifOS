@@ -45,8 +45,8 @@ export const Domain3D: React.FC = () => {
           <div className="absolute top-2 left-2 z-20 flex items-center gap-2 px-3 py-1.5 bg-black/80 border border-purple-500/30 text-purple-400 text-[10px] font-mono shadow-lg backdrop-blur-md rounded-sm">
             <Globe className="w-3 h-3 animate-pulse" /> LIVE TELEMETRY // LNG: 103.0 LAT: 5.0 (MALAY BASIN)
           </div>
-          <iframe 
-            src="https://macrostrat.org/map/#/z=5.0/x=103.0/y=5.0/bedrock/lines/" 
+          <iframe
+            src="https://macrostrat.org/map/#/z=5.0/x=103.0/y=5.0/bedrock/lines/"
             title="Macrostrat Reality Bridge"
             className="absolute inset-0 w-full h-full border-0 opacity-80 mix-blend-screen"
             style={{ filter: 'invert(1) hue-rotate(180deg) contrast(1.2)' }}
@@ -58,18 +58,18 @@ export const Domain3D: React.FC = () => {
           <div className="text-xs font-mono text-gray-500 border-b border-gray-800 pb-2 flex justify-between items-center">
             BASIN INTELLIGENCE <Globe className="w-4 h-4 text-purple-500" />
           </div>
-          <button 
-            onClick={handleBasinSynthesis} 
-            disabled={interpretTool.status === 'loading'} 
+          <button
+            onClick={handleBasinSynthesis}
+            disabled={interpretTool.status === 'loading'}
             className="w-full py-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[10px] font-mono uppercase hover:bg-purple-500/20 transition-colors flex justify-center items-center gap-2"
           >
             {interpretTool.status === 'loading' ? 'SYNTHESIZING...' : '✨ GENERATE BASIN REPORT'}
           </button>
-          
+
           {interpretTool.data && (
             <div className={`mt-2 p-3 border font-mono text-[11px] leading-relaxed flex-1 overflow-y-auto ${isBlocked ? 'border-red-500/30 bg-red-500/5 text-red-200' : 'border-purple-500/30 bg-purple-500/5 text-purple-200'}`}>
               <div className="text-[9px] mb-2 flex items-center gap-2">
-                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />} 
+                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />}
                 {isBlocked ? '888_JUDGE HOLD' : 'SOVEREIGN SYNTHESIS'}
               </div>
               <pre className="whitespace-pre-wrap">{interpretTool.data}</pre>

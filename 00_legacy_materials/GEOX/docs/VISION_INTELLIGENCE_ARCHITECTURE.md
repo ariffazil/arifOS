@@ -1,8 +1,8 @@
 # VISION_INTELLIGENCE_ARCHITECTURE.md — The GEOX Integration & Visualization Shell
 
-> **Status:** ARCHITECTURAL DRAFT  
-> **Authority:** 888_JUDGE  
-> **Paradigm:** Parse → Normalize → Manifest → Hydrate  
+> **Status:** ARCHITECTURAL DRAFT
+> **Authority:** 888_JUDGE
+> **Paradigm:** Parse → Normalize → Manifest → Hydrate
 > **Seal:** DITEMPA BUKAN DIBERI
 
 ## Executive Summary

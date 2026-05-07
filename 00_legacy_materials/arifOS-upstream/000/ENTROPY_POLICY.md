@@ -1,7 +1,7 @@
 # ENTROPY POLICY SPECIFICATION
-> **Authority:** 888_JUDGE  
-> **Version:** v1.0.0-SEAL  
-> **Status:** CONSTITUTIONAL MANDATE  
+> **Authority:** 888_JUDGE
+> **Version:** v1.0.0-SEAL
+> **Status:** CONSTITUTIONAL MANDATE
 > **Band:** 000_KERNEL (F4 Clarity)
 
 ---
@@ -10,7 +10,7 @@
 
 Define the entropy budget (ΔS) constraints for arifOS sessions. Ensures cumulative cognitive drift is bounded, preventing runaway hallucination or indefinite operation without human oversight.
 
-**F4 (Clarity):** ΔS ≤ 0 per operation.  
+**F4 (Clarity):** ΔS ≤ 0 per operation.
 **F11 (Auditability):** Entropy must be measurable and bounded per session.
 
 ---
@@ -94,48 +94,48 @@ class EntropyBudgetMonitor:
     Monitors cumulative entropy per session.
     Triggers appropriate responses at threshold breaches.
     """
-    
+
     THRESHOLDS = {
         'warning': 0.6,      # 60% of budget used
         'caution': 0.8,      # 80% of budget used
         'critical': 0.95,    # 95% of budget used
         'exhausted': 1.0     # 100% of budget used
     }
-    
+
     async def check_budget(self, session_id: str, current_delta_s: float) -> BudgetStatus:
         session = await self.get_session(session_id)
         cumulative = session['cumulative_delta_s'] + current_delta_s
         budget = session['entropy_budget']
         ratio = cumulative / budget
-        
+
         if ratio >= self.THRESHOLDS['exhausted']:
             return BudgetStatus(
                 status='VOID_ENTROPY_BUDGET',
                 action='terminate',
                 message=f"Entropy budget exhausted: {cumulative:.3f}/{budget:.3f}"
             )
-        
+
         elif ratio >= self.THRESHOLDS['critical']:
             return BudgetStatus(
                 status='CRITICAL',
                 action='escalate',
                 message=f"Entropy budget critical: {ratio*100:.1f}% used"
             )
-        
+
         elif ratio >= self.THRESHOLDS['caution']:
             return BudgetStatus(
                 status='CAUTION',
                 action='warn',
                 message=f"Entropy budget caution: {ratio*100:.1f}% used"
             )
-        
+
         elif ratio >= self.THRESHOLDS['warning']:
             return BudgetStatus(
                 status='WARNING',
                 action='notify',
                 message=f"Entropy budget warning: {ratio*100:.1f}% used"
             )
-        
+
         return BudgetStatus(status='OK', action='continue')
 ```
 
@@ -198,29 +198,29 @@ def calculate_delta_s(operation: Operation, context: Context) -> float:
     Calculate entropy change for an operation.
     Returns ΔS (negative = clarity gain)
     """
-    
+
     # Base entropy cost
     base_cost = OPERATION_COSTS.get(operation.type, 0.05)
-    
+
     # Complexity multiplier
     complexity = len(operation.inputs) * 0.01
-    
+
     # Uncertainty factor
     uncertainty = 1 - context.confidence  # Higher uncertainty = higher entropy
-    
+
     # Ambiguity penalty (unresolved questions)
     ambiguity = context.unresolved_questions * 0.02
-    
+
     # Contradiction penalty (conflicting information)
     contradiction = context.contradiction_count * 0.05
-    
+
     # Calculate total
     delta_s = base_cost + complexity + (uncertainty * 0.1) + ambiguity + contradiction
-    
+
     # Clarity reduction (negative entropy)
     if operation.organizes_information:
         delta_s -= 0.1 * operation.information_gain
-    
+
     return round(delta_s, 3)
 ```
 
@@ -265,7 +265,7 @@ def calculate_delta_s(operation: Operation, context: Context) -> float:
 ```python
 # ❌ High Entropy (ΔS ≈ 0.15)
 """
-I think maybe the answer is around 42, but I'm not entirely sure. 
+I think maybe the answer is around 42, but I'm not entirely sure.
 There could be other factors. It depends on various things.
 """
 

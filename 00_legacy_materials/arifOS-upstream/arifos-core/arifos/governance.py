@@ -18,11 +18,12 @@ from typing import Any, Dict, Optional
 # Verdicts (888)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class Verdict:
-    SEAL = "SEAL"         # Proceed
-    SABAR = "SABAR"       # Cooling / retry / downgrade
-    VOID = "VOID"         # Hard block
-    HOLD_888 = "888_HOLD" # Escalate to human sovereign
+    SEAL = "SEAL"  # Proceed
+    SABAR = "SABAR"  # Cooling / retry / downgrade
+    VOID = "VOID"  # Hard block
+    HOLD_888 = "888_HOLD"  # Escalate to human sovereign
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ class ThermodynamicMetrics:
 # Floor Enforcement (F1–F7 hard checks, F8–F13 hooks)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def apex_constitutional_review(metrics: ThermodynamicMetrics) -> str:
     """
     Evaluate a tool's proposed outcome against the 13 Floors.
@@ -123,11 +125,9 @@ def apex_constitutional_review(metrics: ThermodynamicMetrics) -> str:
 # Vault-999: Cryptographic Immutability (Cooling Ledger)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def seal_to_vault999(
-    tool_name: str,
-    payload: Dict[str, Any],
-    verdict: str,
-    previous_hash: str = "GENESIS"
+    tool_name: str, payload: Dict[str, Any], verdict: str, previous_hash: str = "GENESIS"
 ) -> str:
     """
     Append the decision to a Merkle-style cooling ledger.
@@ -150,13 +150,14 @@ def seal_to_vault999(
 # Public API for Tools: governed_return
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def governed_return(
     tool_name: str,
     raw_output: Any,
     metrics: ThermodynamicMetrics,
     operator_id: Optional[str] = None,
     session_id: Optional[str] = None,
-    previous_hash: str = "GENESIS"
+    previous_hash: str = "GENESIS",
 ) -> Dict[str, Any]:
     """
     Wrap a tool's raw_output with constitutional review and Vault-999 sealing.

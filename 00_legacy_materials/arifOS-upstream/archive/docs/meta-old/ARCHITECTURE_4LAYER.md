@@ -1,7 +1,7 @@
 # arifOS 4-Layer Intelligence Architecture
 
-**Date:** 2026-03-28  
-**Author:** arifOS Constitutional Governance System  
+**Date:** 2026-03-28
+**Author:** arifOS Constitutional Governance System
 **Status:** Hardened for Production
 
 ---
@@ -215,7 +215,7 @@ If Action is high-risk
 
 > **RAG should be a servant inside arifOS, not the throne.**
 
-arifOS is not "a system powered by RAG."  
+arifOS is not "a system powered by RAG."
 arifOS is "a governed intelligence system that uses RAG where retrieval is the correct primitive."
 
 ---

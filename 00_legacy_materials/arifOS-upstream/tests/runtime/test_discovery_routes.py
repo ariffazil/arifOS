@@ -1,7 +1,7 @@
 """
 tests/runtime/test_discovery_routes.py — Discovery Route Tests
 
-Verifies that root-level discovery files (agent.json, ai.json, etc.) 
+Verifies that root-level discovery files (agent.json, ai.json, etc.)
 are correctly registered and accessible without being shadowed by mounts.
 """
 
@@ -9,9 +9,11 @@ import pytest
 from arifosmcp.runtime.server import app
 from tests.conftest import SyncASGIClient
 
+
 @pytest.fixture
 def client():
     return SyncASGIClient(app)
+
 
 def test_well_known_agent_reachable(client):
     """Test that /.well-known/agent.json is reachable and returns JSON."""
@@ -22,6 +24,7 @@ def test_well_known_agent_reachable(client):
     assert "name" in data
     assert "endpoints" in data
     assert data["name"] == "arifOS MCP Server"
+
 
 def test_ai_plugin_manifest_reachable(client):
     """Test that /.well-known/ai-plugin.json is reachable for ChatGPT Apps discovery."""
@@ -45,6 +48,7 @@ def test_openapi_exposes_arifos_mind_query_schema(client):
     assert "query" in schema["properties"]
     assert "input" not in schema["properties"]
 
+
 def test_llms_txt_reachable(client):
     """Test that /llms.txt is reachable (even if file doesn't exist, we test route registration)."""
     # Note: If the file doesn't exist in the test environment, this might be 404
@@ -53,15 +57,18 @@ def test_llms_txt_reachable(client):
     # Status code depends on if file exists, but let's at least check it doesn't return 401/403
     assert response.status_code != 401
 
+
 def test_robots_txt_reachable(client):
     """Test that /robots.txt is reachable."""
     response = client.get("/robots.txt")
     assert response.status_code != 401
 
+
 def test_ai_json_reachable(client):
     """Test that /ai.json is reachable."""
     response = client.get("/ai.json")
     assert response.status_code != 401
+
 
 def test_health_reachable(client):
     """Test that /health is reachable and returns JSON."""

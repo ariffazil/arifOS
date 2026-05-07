@@ -54,6 +54,7 @@ from arifos.geox.tools.well_log_tool import WellLogTool
 # EarthModelTool
 # ---------------------------------------------------------------------------
 
+
 class EarthModelTool(BaseTool):
     """
     Adapter for a Large Earth Model (LEM).
@@ -161,6 +162,7 @@ class EarthModelTool(BaseTool):
 # EOFoundationModelTool
 # ---------------------------------------------------------------------------
 
+
 class EOFoundationModelTool(BaseTool):
     """
     Adapter for an Earth Observation (EO) foundation model.
@@ -232,9 +234,18 @@ class EOFoundationModelTool(BaseTool):
         thermal_anomaly = rng.uniform(-2.5, 8.0)
 
         quantities = [
-            _make_quantity(round(surface_reflectance, 4), "fraction", "surface_reflectance", location, prov, 0.07),
+            _make_quantity(
+                round(surface_reflectance, 4),
+                "fraction",
+                "surface_reflectance",
+                location,
+                prov,
+                0.07,
+            ),
             _make_quantity(round(ndvi, 4), "fraction", "ndvi", location, prov, 0.09),
-            _make_quantity(round(thermal_anomaly, 2), "degC", "thermal_anomaly", location, prov, 0.12),
+            _make_quantity(
+                round(thermal_anomaly, 2), "degC", "thermal_anomaly", location, prov, 0.12
+            ),
         ]
 
         raw_output = {
@@ -263,6 +274,7 @@ class EOFoundationModelTool(BaseTool):
 # ---------------------------------------------------------------------------
 # SeismicVLMTool
 # ---------------------------------------------------------------------------
+
 
 class SeismicVLMTool(BaseTool):
     """
@@ -334,16 +346,28 @@ class SeismicVLMTool(BaseTool):
 
         quantities = [
             _make_quantity(
-                round(structural_conf, 3), "fraction", "structural_interpretation",
-                location, prov, vlm_uncertainty
+                round(structural_conf, 3),
+                "fraction",
+                "structural_interpretation",
+                location,
+                prov,
+                vlm_uncertainty,
             ),
             _make_quantity(
-                round(fault_prob, 3), "fraction", "fault_probability",
-                location, prov, vlm_uncertainty
+                round(fault_prob, 3),
+                "fraction",
+                "fault_probability",
+                location,
+                prov,
+                vlm_uncertainty,
             ),
             _make_quantity(
-                round(amplitude_anomaly, 3), "fraction", "amplitude_anomaly",
-                location, prov, vlm_uncertainty
+                round(amplitude_anomaly, 3),
+                "fraction",
+                "amplitude_anomaly",
+                location,
+                prov,
+                vlm_uncertainty,
             ),
         ]
 
@@ -381,6 +405,7 @@ class SeismicVLMTool(BaseTool):
 # ---------------------------------------------------------------------------
 # SimulatorTool
 # ---------------------------------------------------------------------------
+
 
 class SimulatorTool(BaseTool):
     """
@@ -457,7 +482,7 @@ class SimulatorTool(BaseTool):
         prov = _make_provenance(source_id, "simulator", confidence=0.78)
 
         # Simulate at the youngest (shallowest burial) timestep for present-day output
-        present_age_ma = min(timesteps)
+        min(timesteps)
 
         # Simple geothermal gradient model
         geothermal_gradient = scenario.get("geothermal_gradient_degc_km", 30.0)
@@ -508,6 +533,7 @@ class SimulatorTool(BaseTool):
 # ---------------------------------------------------------------------------
 # GeoRAGTool
 # ---------------------------------------------------------------------------
+
 
 class GeoRAGTool(BaseTool):
     """
@@ -606,10 +632,7 @@ class GeoRAGTool(BaseTool):
         candidates = self._LITERATURE_DB
         if basin:
             basin_lower = basin.lower()
-            candidates = [
-                d for d in candidates
-                if basin_lower in d.get("basin", "").lower()
-            ]
+            candidates = [d for d in candidates if basin_lower in d.get("basin", "").lower()]
         # Fall back to all if no match
         if not candidates:
             candidates = self._LITERATURE_DB
@@ -626,9 +649,7 @@ class GeoRAGTool(BaseTool):
             citation = f"{hit['authors']} ({hit['year']}). {hit['title']}. DOI: {hit['doi']}"
             citations_used.append(citation)
             source_id = f"LIT-{hit['doi'].replace('/', '-')}"
-            prov = _make_provenance(
-                source_id, "literature", confidence=0.70, citation=citation
-            )
+            prov = _make_provenance(source_id, "literature", confidence=0.70, citation=citation)
             location = CoordinatePoint(latitude=4.5, longitude=103.7)  # basin centroid
 
             # Sample mid-range values from literature ranges
@@ -642,7 +663,9 @@ class GeoRAGTool(BaseTool):
                 lo, hi = hit["velocity_range"]
                 velocity = rng.uniform(lo, hi)
                 quantities.append(
-                    _make_quantity(round(velocity, 1), "m/s", "seismic_velocity", location, prov, 0.10)
+                    _make_quantity(
+                        round(velocity, 1), "m/s", "seismic_velocity", location, prov, 0.10
+                    )
                 )
 
         raw_output = {
@@ -673,27 +696,28 @@ class GeoRAGTool(BaseTool):
 # SeismicAttributesTool — Contrast Canon Implementation
 # ---------------------------------------------------------------------------
 
+
 class SeismicAttributesTool(BaseTool):
     """
     Seismic attribute computation with Contrast Canon enforcement.
-    
+
     Computes classical attributes (coherence, curvature, spectral decomposition)
     and manages meta-attributes (AI fault probability, etc.) with full
     governance metadata.
-    
+
     Constitutional Floors Enforced:
       F1  Amanah — Full provenance chain for every attribute
       F4  Clarity — Physical axes vs visual encoding explicitly separated
       F7  Humility — Uncertainty bounds on all outputs
       F9  Anti-Hantu — Meta-attributes flagged without well ties
       F13 Sovereign — Human sign-off for high-risk ungrounded attributes
-    
+
     Inputs:
         volume_ref      (str) — Reference to input seismic volume
         attribute_list  (list[str]) — Attributes to compute
         config          (dict) — Processing parameters
         well_ties       (list[str]|None) — Wells for ground truthing
-    
+
     Outputs:
         AttributeStack with full ContrastMetadata per attribute
     """
@@ -756,7 +780,7 @@ class SeismicAttributesTool(BaseTool):
                 "min": rng.uniform(0.0, 0.1),
                 "max": rng.uniform(0.9, 1.0),
                 "mean": rng.uniform(0.6, 0.8),
-            }
+            },
         }
 
     def _compute_curvature(self, seed: int, variant: str = "max") -> dict[str, Any]:
@@ -770,7 +794,7 @@ class SeismicAttributesTool(BaseTool):
                 "min": rng.uniform(-0.05, -0.01),
                 "max": rng.uniform(0.01, 0.05),
                 "mean": rng.uniform(-0.001, 0.001),
-            }
+            },
         }
 
     def _compute_spectral(self, seed: int, freq_band: tuple = (15, 45)) -> dict[str, Any]:
@@ -784,7 +808,7 @@ class SeismicAttributesTool(BaseTool):
                 "min": rng.uniform(0.0, 500.0),
                 "max": rng.uniform(5000.0, 15000.0),
                 "mean": rng.uniform(2000.0, 4000.0),
-            }
+            },
         }
 
     def _compute_meta_fault_prob(self, seed: int) -> dict[str, Any]:
@@ -798,7 +822,7 @@ class SeismicAttributesTool(BaseTool):
                 "min": rng.uniform(0.0, 0.1),
                 "max": rng.uniform(0.7, 1.0),
                 "mean": rng.uniform(0.2, 0.4),
-            }
+            },
         }
 
     async def run(self, inputs: dict[str, Any]) -> GeoToolResult:
@@ -836,18 +860,18 @@ class SeismicAttributesTool(BaseTool):
 
             # Compute based on attribute type
             if "coherence" in attr_name.lower() or "semblance" in attr_name.lower():
-                data = self._compute_coherence(seed)
+                self._compute_coherence(seed)
             elif "curvature" in attr_name.lower():
                 variant = "max" if "max" in attr_name.lower() else "min"
-                data = self._compute_curvature(seed, variant)
+                self._compute_curvature(seed, variant)
             elif "spectral" in attr_name.lower():
                 freq = config.get("freq_band", (15, 45))
-                data = self._compute_spectral(seed, freq)
+                self._compute_spectral(seed, freq)
             elif is_meta:
-                data = self._compute_meta_fault_prob(seed)
+                self._compute_meta_fault_prob(seed)
             else:
                 # Generic fallback
-                data = {"type": "unknown", "note": f"No implementation for {attr_name}"}
+                pass
 
             # Build ContrastMetadata
             anomalous_risk = self._generate_anomalous_risk(attr_name, is_meta, well_ties)
@@ -856,11 +880,14 @@ class SeismicAttributesTool(BaseTool):
                 attribute_name=attr_name,
                 physical_axes=self._get_physical_axes(attr_name),
                 processing_steps=self._get_processing_steps(attr_name, config),
-                visual_encoding=config.get("visual_encoding", {
-                    "colormap": "gray_inverted",
-                    "dynamic_range": "p2-p98",
-                    "gamma": 1.0,
-                }),
+                visual_encoding=config.get(
+                    "visual_encoding",
+                    {
+                        "colormap": "gray_inverted",
+                        "dynamic_range": "p2-p98",
+                        "gamma": 1.0,
+                    },
+                ),
                 anomalous_risk=anomalous_risk,
                 equation_reference=self._get_equation_ref(attr_name),
                 uncertainty_factors=self._get_uncertainty_factors(attr_name, is_meta),
@@ -879,17 +906,13 @@ class SeismicAttributesTool(BaseTool):
             attributes[attr_name] = attr_vol
 
         # Determine verdict
-        verdict, verdict_explanation = self._determine_verdict(
-            attributes, has_meta, well_ties
-        )
+        verdict, verdict_explanation = self._determine_verdict(attributes, has_meta, well_ties)
 
         # Build AttributeStack
         stack = AttributeStack(
             volume_ref=volume_ref,
             attributes=attributes,
-            provenance=_make_provenance(
-                f"ATTR-{seed}", "LEM", confidence=0.82
-            ),
+            provenance=_make_provenance(f"ATTR-{seed}", "LEM", confidence=0.82),
             aggregate_uncertainty=max_uncertainty,
             verdict=verdict,  # type: ignore
             verdict_explanation=verdict_explanation,
@@ -953,7 +976,7 @@ class SeismicAttributesTool(BaseTool):
                     "Require well tie verification",
                     "Check for acquisition footprint",
                     "Validate against known geology",
-                ]
+                ],
             }
 
         # Classical attributes
@@ -999,12 +1022,14 @@ class SeismicAttributesTool(BaseTool):
         elif "curvature" in name.lower():
             factors.extend(["derivative_estimation_noise", "structural_complexity"])
         elif is_meta:
-            factors.extend([
-                "training_data_bias",
-                "generalization_gap",
-                "fusion_artifact_amplification",
-                "perceptual_conflation_risk",
-            ])
+            factors.extend(
+                [
+                    "training_data_bias",
+                    "generalization_gap",
+                    "fusion_artifact_amplification",
+                    "perceptual_conflation_risk",
+                ]
+            )
 
         return factors
 
@@ -1016,7 +1041,7 @@ class SeismicAttributesTool(BaseTool):
     ) -> tuple[str, str]:
         """
         Determine constitutional verdict for attribute stack.
-        
+
         Returns:
             (verdict, explanation)
         """
@@ -1033,7 +1058,8 @@ class SeismicAttributesTool(BaseTool):
 
         # Check for any HOLD conditions
         ungrounded_meta = [
-            name for name, vol in attributes.items()
+            name
+            for name, vol in attributes.items()
             if vol.contrast.is_meta_attribute and not well_ties
         ]
 
@@ -1059,6 +1085,7 @@ class SeismicAttributesTool(BaseTool):
 # ---------------------------------------------------------------------------
 # ToolRegistry
 # ---------------------------------------------------------------------------
+
 
 class ToolRegistry:
     """
@@ -1104,8 +1131,7 @@ class ToolRegistry:
         """
         if name not in self._tools:
             raise KeyError(
-                f"Tool '{name}' not found in registry. "
-                f"Available tools: {self.list_tools()}"
+                f"Tool '{name}' not found in registry. " f"Available tools: {self.list_tools()}"
             )
         return self._tools[name]
 

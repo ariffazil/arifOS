@@ -8,6 +8,7 @@ Registers canonical prompts:
   init        — 000_INIT session anchor context
   meta-skills — AGI→ASI→APEX structural capacities
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP
@@ -17,7 +18,16 @@ from .judge import register_judge_prompt
 from .meta_skills import register_meta_skill_prompts
 from .system import register_system_prompt
 
-CANONICAL_PROMPTS = ("system", "judge", "init", "rsi", "ortho", "epistemic", "governance", "entropy")
+CANONICAL_PROMPTS = (
+    "system",
+    "judge",
+    "init",
+    "rsi",
+    "ortho",
+    "epistemic",
+    "governance",
+    "entropy",
+)
 
 
 def register_prompts(mcp: FastMCP) -> list[str]:

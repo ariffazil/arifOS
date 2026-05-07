@@ -59,7 +59,7 @@ GUI_COMPONENTS = {
 ```python
 {
     "type": "container",
-    "kind": "vstack", 
+    "kind": "vstack",
     "children": [
         # Header
         {"type": "component", "kind": "text", "text": "🧠 arifOS APEX"},
@@ -142,7 +142,7 @@ GUI_COMPONENTS = {
 - [ ] Create `core/gui/dashboard_builder.py`
 - [ ] Create `core/gui/widgets.py`
 - [ ] Modify `apex_judge` — add `mode` param
-- [ ] Modify `init_anchor` — add `mode` param  
+- [ ] Modify `init_anchor` — add `mode` param
 - [ ] Test locally
 - [ ] Push to GitHub
 - [ ] Pull on VPS and restart

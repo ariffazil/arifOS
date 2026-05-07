@@ -2,10 +2,10 @@
  * Domain3D — Volume & Basin Explorer (750-999)
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Basin Explorer & 3D Volume Interpretation implementation.
  * Immersive, holographic, meta-dimensional aesthetic.
- * 
+ *
  * Features:
  * - GemPy structural mesh visualization
  * - Regional stratigraphic hydration via Macrostrat
@@ -279,7 +279,7 @@ const VolumeCanvas3D: React.FC<{
     ctx.lineWidth = 2;
     const axisLen = 50;
     const origin = project(0, 0, 0);
-    
+
     // X axis (red)
     ctx.strokeStyle = '#EF4444';
     ctx.beginPath();
@@ -329,7 +329,7 @@ const BasinInfoPanel: React.FC<{ basin: BasinInfo }> = ({ basin }) => (
     </div>
     <div className="geox-card__body space-y-4">
       <p className="text-xs text-slate-400 leading-relaxed">{basin.description}</p>
-      
+
       <div className="grid grid-cols-2 gap-3">
         <div className="p-2 bg-slate-950/50 rounded">
           <span className="text-[10px] text-slate-500 uppercase block">Oil in Place</span>
@@ -687,7 +687,7 @@ export const Domain3D: React.FC<Domain3DProps> = ({
               width={canvasSize.width}
               height={canvasSize.height}
             />
-            
+
             {/* Corner info */}
             <div className="absolute top-4 left-4 geox-glass px-3 py-2 rounded-lg">
               <div className="text-[10px] font-mono text-slate-500 uppercase mb-1">View</div>

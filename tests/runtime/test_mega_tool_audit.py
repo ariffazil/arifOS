@@ -33,9 +33,7 @@ def test_http_discovery_surfaces_match_canonical13() -> None:
     assert tools_payload["count"] == 13
     assert len(tools_payload["tools"]) == 13
     assert len(well_known_payload["tools"]) == 13
-    assert {
-        tool["name"] for tool in tools_payload["tools"]
-    } == {
+    assert {tool["name"] for tool in tools_payload["tools"]} == {
         tool["name"] for tool in well_known_payload["tools"]
     }
 

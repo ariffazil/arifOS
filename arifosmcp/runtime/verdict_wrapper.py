@@ -40,22 +40,22 @@ def forge_verdict(
     message: str | None = None,
     canonical_tool_name: str | None = None,
     philosophy: PhilosophyState | None = None,
-    threshold: float = 0.7
+    threshold: float = 0.7,
 ) -> RuntimeEnvelope:
     """
     Forge a standardized verdict envelope (v2.0) from raw tool output.
     Unified across STDIO, HTTPS, and SSE.
     """
-    
+
     # ... existing metrics/logic ...
     metrics = metrics or CanonicalMetrics()
     ds = metrics.telemetry.ds
     conf = metrics.telemetry.confidence
-    
+
     if philosophy:
         conf = min(conf, philosophy.confidence_cap)
         metrics.telemetry.confidence = conf
-    
+
     # Determine Code & Reason
     if override_code:
         code = override_code
@@ -89,13 +89,13 @@ def forge_verdict(
         VerdictCode.SEAL: GovernanceStatus.APPROVED,
         VerdictCode.SABAR: GovernanceStatus.PAUSE,
         VerdictCode.PARTIAL: GovernanceStatus.PARTIAL,
-        VerdictCode.VOID: GovernanceStatus.VOID
+        VerdictCode.VOID: GovernanceStatus.VOID,
     }
     gov_status = gov_status_map.get(code, GovernanceStatus.PAUSE)
-    
+
     # Continuation logic
-    cont_allowed = (code == VerdictCode.SEAL)
-    
+    cont_allowed = code == VerdictCode.SEAL
+
     # Artifact state logic
     if stage == "999_VAULT":
         art_status = ArtifactStatus.SEALED if code == VerdictCode.SEAL else ArtifactStatus.REJECTED
@@ -116,25 +116,23 @@ def forge_verdict(
             type="reasoning" if stage == "333_MIND" else "generic",
             status=art_status,
             payload=payload,
-            creator_id="arif", # Default to arif for now per CF-01
+            creator_id="arif",  # Default to arif for now per CF-01
             session_id=session_id or "global",
-            timestamp=time.time()
+            timestamp=time.time(),
         ),
         diagnostics={
             "metrics": metrics.model_dump() if hasattr(metrics, "model_dump") else {},
             "floors_checked": floors_checked or ["F4", "F11"],
             "reason": reason,
-            "message": message
+            "message": message,
         },
-        timestamp=time.time()
+        timestamp=time.time(),
     )
 
     runtime_status = (
         RuntimeStatus.ERROR
         if code == VerdictCode.VOID
-        else RuntimeStatus.SABAR
-        if code == VerdictCode.SABAR
-        else RuntimeStatus.SUCCESS
+        else RuntimeStatus.SABAR if code == VerdictCode.SABAR else RuntimeStatus.SUCCESS
     )
 
     # 6. Wrap in RuntimeEnvelope for FastMCP compatibility
@@ -146,13 +144,11 @@ def forge_verdict(
         session_id=session_id,
         verdict=code,
         detail=message,
-        
         # V2 Unified Data
         execution_status=exec_status,
         governance_status=gov_status,
         continuation_status=ContinuationStatus.READY if cont_allowed else ContinuationStatus.HOLD,
         artifact_state=art_status,
-        
         payload=res_env.model_dump(),
         status=runtime_status,
     )

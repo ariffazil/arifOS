@@ -2,19 +2,19 @@
  * MainLayout — GEOX Earth Intelligence Core
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Simplified three-panel layout:
  * - Left: Data/Layers sidebar
  * - Center: Main workspace (4 apps)
  * - Right: Governance panel
- * 
+ *
  * EIC Tabs: 7 dimensions (Prospect, Well, Section, Earth3D, Time4D, Physics, Map)
  */
 
 import React, { useState } from 'react';
-import { 
+import {
   Gauge, ChevronLeft, ChevronRight, Search, Shield,
-  Settings, FileText, Globe, Layers, Database, 
+  Settings, FileText, Globe, Layers, Database,
   Clock, Layout, Zap, Map as MapIcon, Target
 } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
@@ -59,7 +59,7 @@ function getEmbeddedAppSrc(appName: string): string {
 
 const LeftSidebar: React.FC = () => {
   const [expanded, setExpanded] = useState(true);
-  
+
   return (
     <div className={`flex flex-col bg-slate-50 border-r border-slate-200 transition-all duration-300 ${expanded ? 'w-64' : 'w-12'}`}>
       {/* Toggle */}
@@ -69,7 +69,7 @@ const LeftSidebar: React.FC = () => {
       >
         {expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
       </button>
-      
+
       {expanded && (
         <>
           {/* Search */}
@@ -83,7 +83,7 @@ const LeftSidebar: React.FC = () => {
               />
             </div>
           </div>
-          
+
           {/* Layers Tree */}
           <div className="flex-1 overflow-auto p-3">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Layers</h4>
@@ -95,7 +95,7 @@ const LeftSidebar: React.FC = () => {
               <LayerItem name="License Blocks" />
             </div>
           </div>
-          
+
           {/* Filters */}
           <div className="p-3 border-t border-slate-200">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filters</h4>
@@ -150,7 +150,7 @@ const RightSidebar: React.FC = () => (
 
 const MainWorkspace: React.FC = () => {
   const activeTab = useActiveTab();
-  
+
   return (
     <div className="flex-1 flex flex-col bg-white">
       {/* Tab Navigation */}
@@ -171,19 +171,19 @@ const MainWorkspace: React.FC = () => {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        
+
         {/* Tab Content — The 7 GEOX Dimensions */}
         <div className="flex-1 overflow-hidden">
           {/* 1. Prospect Explore */}
           <Tabs.Content value="prospect" className="h-full">
             <ProspectUI />
           </Tabs.Content>
-          
+
           {/* 2. Well Context */}
           <Tabs.Content value="well" className="h-full">
             <WellContextDesk />
           </Tabs.Content>
-          
+
           {/* 3. Section View */}
           <Tabs.Content value="section" className="h-full">
             <SectionCanvas />
@@ -191,13 +191,13 @@ const MainWorkspace: React.FC = () => {
 
           {/* 4. Earth 3D */}
           <Tabs.Content value="earth3d" className="h-full">
-            <AppIframeHost 
+            <AppIframeHost
               src={getEmbeddedAppSrc('seismic_viewer')}
-              title="Earth 3D" 
-              appId="geox.earth3d.viewer" 
+              title="Earth 3D"
+              appId="geox.earth3d.viewer"
             />
           </Tabs.Content>
-          
+
           {/* 5. Time 4D */}
           <Tabs.Content value="time4d" className="h-full">
             <ChronosHistory />
@@ -207,14 +207,14 @@ const MainWorkspace: React.FC = () => {
           <Tabs.Content value="physics" className="h-full">
             <VerdictConsole />
           </Tabs.Content>
-          
+
           {/* 7. Map Registry (Malay Basin Pilot) */}
           <Tabs.Content value="map" className="h-full">
             <MalayBasinPilotDashboard />
           </Tabs.Content>
         </div>
       </Tabs.Root>
-      
+
       {/* Bottom Synchronized Strip */}
       <div className="h-12 bg-slate-100 border-t border-slate-200 flex items-center px-4 gap-4 text-sm">
         <span className="text-slate-500">Cursor:</span>
@@ -236,7 +236,7 @@ const MainWorkspace: React.FC = () => {
 const Header: React.FC = () => {
   const governance = useGovernance();
   const geoxConnected = useGEOXConnected();
-  
+
   return (
     <header className="h-14 bg-slate-900 text-white flex items-center px-4 justify-between border-b border-white/10 shadow-lg z-50">
       <div className="flex items-center gap-6">
@@ -257,11 +257,11 @@ const Header: React.FC = () => {
           <HeaderAppLink href="https://vault.arifosmcp.arif-fazil.com" icon={Target} label="Vault" />
         </nav>
       </div>
-      
+
       <div className="flex items-center gap-6 text-sm">
         {/* Connection Status */}
-        <div 
-          className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/10 group hover:bg-white/10 transition-all cursor-help" 
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/10 group hover:bg-white/10 transition-all cursor-help"
           title="MCP Server Status"
         >
           <div className={`w-2 h-2 rounded-full ${geoxConnected ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`} />
@@ -288,9 +288,9 @@ const Header: React.FC = () => {
 };
 
 const HeaderAppLink: React.FC<{ href: string; icon: React.ElementType; label: string }> = ({ href, icon: Icon, label }) => (
-  <a 
-    href={href} 
-    target="_blank" 
+  <a
+    href={href}
+    target="_blank"
     rel="noopener noreferrer"
     className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all uppercase tracking-tighter"
   >

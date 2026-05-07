@@ -119,9 +119,9 @@ async def build_structural_models(
 
     sorted_candidates = sorted(non_rejected, key=lambda x: x.composite_score, reverse=True)
 
-    fault_cands = [c for c in sorted_candidates if c.candidate_type.value == "fault"]
-    horizon_cands = [c for c in sorted_candidates if c.candidate_type.value == "horizon"]
-    fold_cands = [c for c in sorted_candidates if c.candidate_type.value == "fold"]
+    [c for c in sorted_candidates if c.candidate_type.value == "fault"]
+    [c for c in sorted_candidates if c.candidate_type.value == "horizon"]
+    [c for c in sorted_candidates if c.candidate_type.value == "fold"]
 
     base_uncertainty = candidate_set.aggregate_uncertainty
 
@@ -156,9 +156,9 @@ async def build_structural_models(
         composite_score=composite,
         alternative_models=[],
         physical_axes=["structural_geometry", "fault_horizon_relationships"],
-        anomalous_risk=candidate_set.candidates[0].anomalous_risk
-        if candidate_set.candidates
-        else {},
+        anomalous_risk=(
+            candidate_set.candidates[0].anomalous_risk if candidate_set.candidates else {}
+        ),
         provenance=_make_provenance(f"MODEL-{prov_base}", "LEM", confidence=composite),
         uncertainty=base_uncertainty,
         telemetry={

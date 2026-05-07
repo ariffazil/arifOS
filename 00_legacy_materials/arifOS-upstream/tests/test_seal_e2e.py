@@ -42,5 +42,6 @@ async def test_seal_e2e():
             assert "Context: actor" in payload["output"]
             assert "Verdict:" in payload["output"]
 
+
 if __name__ == "__main__":
     asyncio.run(test_seal_e2e())

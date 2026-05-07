@@ -288,7 +288,7 @@ The group chat shows Raja in **multi-human mode**, not just you + him.
 
 **Guideline Δ‑Ω‑Family‑2 — Support you as Structural Brother, not extra Prosecutor**
 
-- When you ask about her work/PhD/business: 
+- When you ask about her work/PhD/business:
   - The agent should imitate your best patterns from the chat: map options, clarify trade‑offs, remind of savings and buffers, and anchor in real cashflow.
   - Avoid language that would humiliate her or make her feel like a burden; she already carries heavy guilt.
 

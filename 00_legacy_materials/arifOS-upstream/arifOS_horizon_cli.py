@@ -41,6 +41,7 @@ async def get_client():
 # 11 CANONICAL TOOLS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def call_arifos_init(**kwargs):
     """Initialize constitutional session. Modes: init, refresh, state, status, probe."""
     client = await get_client()
@@ -121,6 +122,7 @@ async def call_arifos_gateway(**kwargs):
 # ═══════════════════════════════════════════════════════════════════════════════
 # 9 P_* ORACLES — Domain perception interfaces
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def call_P_well_state_read(**kwargs):
     """WELL biological telemetry snapshot."""
@@ -219,18 +221,31 @@ def main():
         print()
         print("Canonical tools:")
         canonical = [
-            "arifos_init", "arifos_sense", "arifos_mind", "arifos_kernel",
-            "arifos_heart", "arifos_ops", "arifos_judge", "arifos_memory",
-            "arifos_vault", "arifos_forge", "arifos_gateway",
+            "arifos_init",
+            "arifos_sense",
+            "arifos_mind",
+            "arifos_kernel",
+            "arifos_heart",
+            "arifos_ops",
+            "arifos_judge",
+            "arifos_memory",
+            "arifos_vault",
+            "arifos_forge",
+            "arifos_gateway",
         ]
         for name in canonical:
             print(f"  {name}")
         print()
         print("P_* Oracles:")
         oracles = [
-            "P_well_state_read", "P_well_readiness_check", "P_well_floor_scan",
-            "P_geox_scene_load", "P_geox_skills_query",
-            "P_wealth_snapshot_fetch", "P_wealth_series_fetch", "P_wealth_vintage_fetch",
+            "P_well_state_read",
+            "P_well_readiness_check",
+            "P_well_floor_scan",
+            "P_geox_scene_load",
+            "P_geox_skills_query",
+            "P_wealth_snapshot_fetch",
+            "P_wealth_series_fetch",
+            "P_wealth_vintage_fetch",
             "P_vault_ledger_read",
         ]
         for name in oracles:

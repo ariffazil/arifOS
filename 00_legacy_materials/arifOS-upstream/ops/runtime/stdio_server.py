@@ -35,7 +35,7 @@ def main():
     print("   Transport: STDIO", file=sys.stderr)
     print("   Server: Unified (root server.py)", file=sys.stderr)
     print("   Floors: F1-F13 (constitutional governance enabled)", file=sys.stderr)
-    
+
     # Run the canonical MCP server in stdio mode.
     try:
         mcp.run(transport="stdio", show_banner=False)

@@ -48,12 +48,12 @@ def apex_judge(
 ) -> dict:
     """
     Constitutional verdict on proposed action.
-    
+
     Args:
         action: The action to evaluate
         context: Additional context
         mode: Output format - "text" (default), "gui" (dashboard), "telemetry" (metrics)
-    
+
     Returns:
         Full verdict with reasoning, or GUI dashboard if mode="gui"
     """
@@ -67,9 +67,9 @@ def apex_judge(
                 "dS": -0.78,
                 "peace2": 1.22,
                 "kappa_r": 0.97,
-            }
+            },
         }
-    
+
     # GUI MODE: Return ChatGPT Apps SDK format
     # This renders the dashboard inline in ChatGPT
     return _build_dashboard_meta(SAMPLE_DATA)
@@ -82,14 +82,13 @@ def _build_dashboard_meta(data: dict) -> dict:
     """
     status = data["status"]
     health = data["governance_health"]
-    
+
     # Build the UI components using the Apps SDK format
     return {
         # Standard response
         "verdict": "SEAL",
         "system": status["system"],
         "timestamp": data["updated_at"],
-        
         # ChatGPT Apps SDK widget
         "_meta": {
             "outputType": "response",
@@ -105,12 +104,11 @@ def _build_dashboard_meta(data: dict) -> dict:
                         "font": {"size": "xl", "weight": "bold"},
                     },
                     {
-                        "type": "component", 
+                        "type": "component",
                         "kind": "text",
                         "text": f"Updated: {data['updated_at']}",
                         "color": "muted",
                     },
-                    
                     # Status badges row
                     {
                         "type": "component",
@@ -124,13 +122,14 @@ def _build_dashboard_meta(data: dict) -> dict:
                             },
                             {
                                 "type": "component",
-                                "kind": "badge", 
+                                "kind": "badge",
                                 "label": f"Governance: {status['governance']}",
-                                "status": "success" if status['governance'] == "Stable" else "warning",
+                                "status": (
+                                    "success" if status["governance"] == "Stable" else "warning"
+                                ),
                             },
                         ],
                     },
-                    
                     # KPI Grid
                     {
                         "type": "component",
@@ -153,11 +152,10 @@ def _build_dashboard_meta(data: dict) -> dict:
                                 "type": "component",
                                 "kind": "stat",
                                 "title": "Sessions",
-                                "value": str(status['active_sessions']),
+                                "value": str(status["active_sessions"]),
                             },
                         ],
                     },
-                    
                     # Governance Health
                     {
                         "type": "component",
@@ -171,7 +169,6 @@ def _build_dashboard_meta(data: dict) -> dict:
                         "labels": ["Clarity", "Stability", "Judgment"],
                         "values": [health["clarity"], health["stability"], health["judgment"]],
                     },
-                    
                     # Recent Verdicts
                     {
                         "type": "component",
@@ -197,4 +194,5 @@ def _build_dashboard_meta(data: dict) -> dict:
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(mcp, host="0.0.0.0", port=3000)

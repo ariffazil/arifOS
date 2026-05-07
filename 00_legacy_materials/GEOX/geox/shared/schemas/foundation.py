@@ -20,8 +20,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # Domain & Enumerations
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class DomainKind(str, Enum):
     """Naming convention for spatio-temporal domains."""
+
     twt_ms = "twt_ms"
     tvdss_m = "tvdss_m"
     md_m = "md_m"
@@ -34,6 +36,7 @@ class DomainKind(str, Enum):
 
 class WitnessKind(str, Enum):
     """The four essential witnesses of a Causal Scene."""
+
     manifold = "manifold"
     truth = "truth"
     claim = "claim"
@@ -42,6 +45,7 @@ class WitnessKind(str, Enum):
 
 class OperatorKind(str, Enum):
     """The type of comparison being performed."""
+
     residual_z = "residual_z"
     synthetic_correlation = "synthetic_correlation"
     geometric_intersection = "geometric_intersection"
@@ -51,6 +55,7 @@ class OperatorKind(str, Enum):
 
 class ClaimKind(str, Enum):
     """Types of interpreted subsurface claims."""
+
     horizon3d = "horizon3d"
     fault3d = "fault3d"
     fault_stick_set = "fault_stick_set"
@@ -60,6 +65,7 @@ class ClaimKind(str, Enum):
 
 class TextureKind(str, Enum):
     """Types of volumetric evidence / imagery."""
+
     seismic_amplitude = "seismic_amplitude"
     seismic_similarity = "seismic_similarity"
     seismic_coherence = "seismic_coherence"
@@ -70,6 +76,7 @@ class TextureKind(str, Enum):
 
 class Comparator(str, Enum):
     """Operation for policy band evaluation."""
+
     lt = "lt"
     le = "le"
     gt = "gt"
@@ -81,6 +88,7 @@ class Comparator(str, Enum):
 
 class VerdictCode(str, Enum):
     """Judgment outcomes governed by the 888_JUDGE."""
+
     pass_green = "pass_green"
     review_amber = "review_amber"
     hold_888 = "hold_888"
@@ -90,6 +98,7 @@ class VerdictCode(str, Enum):
 
 class SupportKind(str, Enum):
     """Internal topology of a witness's sampling support."""
+
     grid = "grid"
     stick = "stick"
     track = "track"
@@ -101,11 +110,12 @@ class SupportKind(str, Enum):
 # Foundational Micro-Models
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class UnitRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    name: str # e.g. "millisecond"
-    symbol: str # e.g. "ms"
-    quantity: str # e.g. "time", "length", "density"
+    name: str  # e.g. "millisecond"
+    symbol: str  # e.g. "ms"
+    quantity: str  # e.g. "time", "length", "density"
 
 
 class DomainRef(BaseModel):
@@ -203,6 +213,7 @@ class NumericRange(BaseModel):
 # Support Geometry (Topology Identification)
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class BaseSupportGeometry(BaseModel):
     model_config = ConfigDict(extra="forbid")
     support_kind: SupportKind
@@ -212,6 +223,7 @@ class BaseSupportGeometry(BaseModel):
 
 class GridSupportGeometry(BaseSupportGeometry):
     """Support for surfaces sampled on inline/crossline lattices."""
+
     support_kind: Literal[SupportKind.grid] = SupportKind.grid
     inline_axis: SamplingAxis
     crossline_axis: SamplingAxis
@@ -222,6 +234,7 @@ class GridSupportGeometry(BaseSupportGeometry):
 
 class StickSupportGeometry(BaseSupportGeometry):
     """Support for fault sticks and discontinuous interpreted segments."""
+
     support_kind: Literal[SupportKind.stick] = SupportKind.stick
     stick_count: int
     point_count: Optional[int] = None
@@ -231,6 +244,7 @@ class StickSupportGeometry(BaseSupportGeometry):
 
 class TrackSupportGeometry(BaseSupportGeometry):
     """Support for directional witnesses (Wells/Log tracks)."""
+
     support_kind: Literal[SupportKind.track] = SupportKind.track
     measured_depth_range: NumericRange
     sample_step: Optional[float] = None
@@ -240,6 +254,7 @@ class TrackSupportGeometry(BaseSupportGeometry):
 
 class PointSetSupportGeometry(BaseSupportGeometry):
     """Support for sparse x-y-z samples."""
+
     support_kind: Literal[SupportKind.pointset] = SupportKind.pointset
     point_count: int
     has_unique_ids: bool = False
@@ -247,6 +262,7 @@ class PointSetSupportGeometry(BaseSupportGeometry):
 
 class VolumeSupportGeometry(BaseModel):
     """3D Voxel Lattice."""
+
     support_kind: Literal[SupportKind.volume] = SupportKind.volume
     inl_range: NumericRange
     crl_range: NumericRange
@@ -275,8 +291,10 @@ SupportGeometry = Annotated[
 # Policy Bands (The Laws & Thresholds)
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class PolicyBand(BaseModel):
     """A versioned, auditable threshold policy."""
+
     model_config = ConfigDict(extra="forbid")
     policy_name: str
     metric_name: str
@@ -292,7 +310,14 @@ class PolicyBand(BaseModel):
 
     @model_validator(mode="after")
     def validate_band_shape(self) -> "PolicyBand":
-        if self.comparator in {Comparator.abs_gt, Comparator.abs_ge, Comparator.gt, Comparator.ge, Comparator.lt, Comparator.le}:
+        if self.comparator in {
+            Comparator.abs_gt,
+            Comparator.abs_ge,
+            Comparator.gt,
+            Comparator.ge,
+            Comparator.lt,
+            Comparator.le,
+        }:
             if self.green_max is None and self.red_min is None and self.amber_max is None:
                 raise ValueError("threshold policy requires at least one threshold")
         if self.comparator == Comparator.between:
@@ -305,6 +330,7 @@ class PolicyBand(BaseModel):
 
 class PolicyEvaluation(BaseModel):
     """Conclusion of an audit against a specific PolicyBand."""
+
     model_config = ConfigDict(extra="forbid")
     metric_name: str
     observed_value: Optional[float] = None
@@ -323,6 +349,7 @@ class PolicyEvaluation(BaseModel):
 # ══════════════════════════════════════════════════════════════════════════════
 # Witness Definitions
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class WitnessBase(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -357,6 +384,7 @@ class ThermoVolume(BaseModel):
 
 class ManifoldWitness(WitnessBase):
     """The Law: The spatial and thermodynamic bounds of the world."""
+
     witness_kind: Literal[WitnessKind.manifold] = WitnessKind.manifold
     survey_bounds: SurveyBounds
     z_sampling: SamplingAxis
@@ -403,6 +431,7 @@ class D2TCalibration(BaseModel):
 
 class TruthWitness(WitnessBase):
     """The Ground Truth: Absolute anchors (Well Markers, Logs)."""
+
     witness_kind: Literal[WitnessKind.truth] = WitnessKind.truth
     well_id: Optional[str] = None
     well_name: Optional[str] = None
@@ -427,6 +456,7 @@ class AttributeOverlayRef(BaseModel):
 
 class ClaimWitness(WitnessBase):
     """Interpreted subsurface surfaces or bodies."""
+
     witness_kind: Literal[WitnessKind.claim] = WitnessKind.claim
     claim_kind: ClaimKind
     support: SupportGeometry
@@ -453,6 +483,7 @@ class TextureStats(BaseModel):
 
 class TextureWitness(WitnessBase):
     """Observation data (Seismic, Attributes, Velocities)."""
+
     witness_kind: Literal[WitnessKind.texture] = WitnessKind.texture
     texture_kind: str  # amplitude, similarity, coherence, dip, etc.
     support: Union[GridSupportGeometry, VolumeSupportGeometry, TrackSupportGeometry]
@@ -472,8 +503,10 @@ class TextureWitness(WitnessBase):
 # Governance & Judgment
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class FloorPolicy(BaseModel):
     """Structural constraint based on GEOX Constitutional Floors."""
+
     model_config = ConfigDict(extra="forbid")
     floor_name: str
     enabled: bool = True
@@ -483,6 +516,7 @@ class FloorPolicy(BaseModel):
 
 class IntentEnvelope(BaseModel):
     """Audit record of a requested geological operation."""
+
     model_config = ConfigDict(extra="forbid")
     intent_id: str
     operation_name: str
@@ -505,6 +539,7 @@ class IntentEnvelope(BaseModel):
 
 class ContrastMetric(BaseModel):
     """Result of a deterministic contrast operation."""
+
     model_config = ConfigDict(extra="forbid")
     metric_id: str
     metric_name: str
@@ -513,12 +548,13 @@ class ContrastMetric(BaseModel):
     confidence: float = 1.0
     expected_value: Optional[float] = None
     residual_value: Optional[float] = None
-    method_tag: Optional[str] = None # e.g. quad_tessellation_area
+    method_tag: Optional[str] = None  # e.g. quad_tessellation_area
     description: Optional[str] = None
 
 
 class ContrastLink(BaseModel):
     """The relationship between the witnesses in a Verdict."""
+
     model_config = ConfigDict(extra="forbid")
     left_witness_id: str
     right_witness_id: str
@@ -527,6 +563,7 @@ class ContrastLink(BaseModel):
 
 class ContrastOperatorSpec(BaseModel):
     """Rigid definition of an allowable physical comparison."""
+
     model_config = ConfigDict(extra="forbid")
     op_kind: OperatorKind
     left_kind: WitnessKind
@@ -550,20 +587,23 @@ class ContrastOperatorSpec(BaseModel):
 # UI Distillation (The exact React payload)
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class Physics9Item(BaseModel):
     sym: str
     name: str
     val: str
     unit: str
 
+
 class CausalSceneUISummary(BaseModel):
     """Refined structure for direct UI rendering and LLM prompt assembly."""
+
     status: Literal["unverified", "verified", "HOLD", "SIMULATED", "sealed"]
     epoch: str
-    manifold: dict # area, grossH, phi, etc.
+    manifold: dict  # area, grossH, phi, etc.
     physics9: list[Physics9Item] = Field(..., validation_alias="canon9")
-    claims: dict[str, bool] # d2t_tie, fault_intersection, etc.
-    truth: dict[str, Any] # f2_passed, f7_uncertainty, etc.
+    claims: dict[str, bool]  # d2t_tie, fault_intersection, etc.
+    truth: dict[str, Any]  # f2_passed, f7_uncertainty, etc.
     holds: list[str] = Field(default_factory=list)
     floor_flags: dict[str, bool] = Field(default_factory=dict)
     simulation_flags: list[str] = Field(default_factory=list)
@@ -572,6 +612,7 @@ class CausalSceneUISummary(BaseModel):
 
 class ContrastVerdict(BaseModel):
     """The Final Judgment: A governed conclusion about physical truth."""
+
     model_config = ConfigDict(extra="forbid")
     verdict_id: str
     intent_id: str
@@ -582,7 +623,7 @@ class ContrastVerdict(BaseModel):
     floors_evaluated: list[str]
     human_override: bool = False
     override_reason: Optional[str] = None
-    override_authority_level: Optional[int] = None # 0-11
+    override_authority_level: Optional[int] = None  # 0-11
     override_timestamp: Optional[datetime] = None
     commentary: str
     policy_evaluations: list[PolicyEvaluation] = Field(default_factory=list)

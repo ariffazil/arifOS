@@ -72,13 +72,17 @@ async def asi_heart(
             if not ok and _hold_reason:
                 _next_action = {
                     "reason": _hold_reason,
-                    "missing_requirements": _payload.get("missing_requirements", [])
-                    if isinstance(_payload, dict)
-                    else [],
+                    "missing_requirements": (
+                        _payload.get("missing_requirements", [])
+                        if isinstance(_payload, dict)
+                        else []
+                    ),
                     "next_allowed_tools": _next_tools,
-                    "suggested_canonical_call": _payload.get("suggested_canonical_call")
-                    if isinstance(_payload, dict)
-                    else None,
+                    "suggested_canonical_call": (
+                        _payload.get("suggested_canonical_call")
+                        if isinstance(_payload, dict)
+                        else None
+                    ),
                 }
             return RuntimeEnvelope(
                 tool="arifos_heart",

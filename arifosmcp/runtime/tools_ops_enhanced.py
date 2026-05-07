@@ -23,6 +23,7 @@ from typing import Any
 @dataclass
 class ThermodynamicState:
     """G† physics state for token economics."""
+
     G: float  # Grounding (energy input quality)
     tau: float  # Truth/entropy production
     sigma: float  # Uncertainty
@@ -155,34 +156,34 @@ def calculate_thermodynamics(
     gov_failure_rate: float = 0.05,
 ) -> dict[str, Any]:
     """Calculate thermodynamic state of token economics."""
-    
+
     # Effective costs including failures
     raw_effective = int(raw_overhead * (1 + raw_failure_rate))
     gov_effective = int(governed_overhead * (1 + gov_failure_rate))
-    
+
     # Scale
     total_sessions = agents * sessions_per_month
     raw_monthly = raw_effective * total_sessions
     gov_monthly = gov_effective * total_sessions
     savings = raw_monthly - gov_monthly
-    
+
     # Thermodynamic states
     work_output = 500
-    
+
     # Raw system: entropy increases (bad)
     raw_G = min(1.0, work_output / raw_effective)
     raw_tau = 1.0 - raw_failure_rate
     raw_sigma = raw_failure_rate * 0.5
     raw_C = min(1.0, work_output / raw_effective)
     raw_delta_s = 0.25 * (raw_failure_rate + raw_sigma)
-    
+
     # Governed system: entropy decreases (good)
     gov_G = min(1.0, work_output / gov_effective)
     gov_tau = 1.0 - gov_failure_rate
     gov_sigma = gov_failure_rate * 0.2
     gov_C = min(1.0, (work_output / gov_effective) + 0.2)
     gov_delta_s = -0.15 * (gov_failure_rate + gov_sigma)
-    
+
     return {
         "agents": agents,
         "sessions_per_agent_per_month": sessions_per_month,
@@ -222,20 +223,24 @@ def calculate_thermodynamics(
 def get_substitution_summary() -> dict[str, Any]:
     """Get summary of MCP servers consolidated by arifOS."""
     total_replaced = sum(len(s["replaces"]) for s in SUBSTITUTION_REGISTRY.values())
-    total_tokens_saved = sum(s.get("tokens_saved_per_call", 0) for s in SUBSTITUTION_REGISTRY.values())
-    
+    total_tokens_saved = sum(
+        s.get("tokens_saved_per_call", 0) for s in SUBSTITUTION_REGISTRY.values()
+    )
+
     by_category = {}
     for tool, data in SUBSTITUTION_REGISTRY.items():
         cat = data["category"]
         if cat not in by_category:
             by_category[cat] = []
-        by_category[cat].append({
-            "arifos_tool": tool,
-            "replaces": data["replaces"],
-            "tokens_saved": data.get("tokens_saved_per_call", 0),
-            "trinity": data["trinity"],
-        })
-    
+        by_category[cat].append(
+            {
+                "arifos_tool": tool,
+                "replaces": data["replaces"],
+                "tokens_saved": data.get("tokens_saved_per_call", 0),
+                "trinity": data["trinity"],
+            }
+        )
+
     return {
         "total_arifos_tools": len(SUBSTITUTION_REGISTRY),
         "total_fragmented_mcps_replaced": total_replaced,

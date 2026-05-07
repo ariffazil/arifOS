@@ -3,7 +3,7 @@
   "schema_name": "GEOX_1D_000_999",
   "description": "1D GEOX column workflow mapped to arifOS 000-999 metabolic loop",
   "motto": "DITEMPA BUKAN DIBERI",
-  
+
   "pipeline": {
     "000_INIT_ANCHOR": {
       "stage": 0,
@@ -31,7 +31,7 @@
       },
       "floor_checks": ["F1_Amanah", "F13_Sovereign"]
     },
-    
+
     "111_THINK_SENSE": {
       "stage": 111,
       "name": "THINK",
@@ -54,7 +54,7 @@
       },
       "floor_checks": ["F4_Clarity"]
     },
-    
+
     "222_REASON": {
       "stage": 222,
       "name": "REASON",
@@ -81,7 +81,7 @@
       },
       "floor_checks": ["F7_Humility"]
     },
-    
+
     "333_EXPLORE_INTEGRATE": {
       "stage": 333,
       "name": "EXPLORE",
@@ -134,7 +134,7 @@
       },
       "floor_checks": ["F2_Truth", "F9_AntiHantu"]
     },
-    
+
     "444_RESPOND": {
       "stage": 444,
       "name": "RESPOND",
@@ -165,7 +165,7 @@
       },
       "floor_checks": ["F3_TriWitness"]
     },
-    
+
     "555_VALIDATE": {
       "stage": 555,
       "name": "VALIDATE",
@@ -184,7 +184,7 @@
       },
       "floor_checks": ["F5_Peace", "F6_Maruah"]
     },
-    
+
     "666_ALIGN": {
       "stage": 666,
       "name": "ALIGN",
@@ -205,7 +205,7 @@
       },
       "floor_checks": ["F6_Maruah", "F11_Auditability"]
     },
-    
+
     "777_FORGE": {
       "stage": 777,
       "name": "FORGE",
@@ -238,7 +238,7 @@
       },
       "floor_checks": ["F7_Humility"]
     },
-    
+
     "888_AUDIT": {
       "stage": 888,
       "name": "AUDIT",
@@ -278,7 +278,7 @@
       },
       "floor_checks": ["F3_TriWitness", "F8_Genius"]
     },
-    
+
     "999_SEAL": {
       "stage": 999,
       "name": "SEAL",
@@ -311,7 +311,7 @@
       "floor_checks": ["F1_Amanah", "F11_Auditability", "F13_Sovereign"]
     }
   },
-  
+
   "data_types": {
     "Canon9Profile": {
       "description": "1D vertical column of CANON_9 samples",
@@ -349,6 +349,6 @@
       }
     }
   },
-  
+
   "telemetry_format": "[GEOX-1D | {stage} | well:{well_id} | misfit:{misfit:.4f} | floors:{floors} | {status}]"
 }

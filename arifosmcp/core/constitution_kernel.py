@@ -459,12 +459,12 @@ class ConstitutionKernel:
     def preflight(
         self,
         action: str,
-        risk_class: "RiskClass",
+        risk_class: RiskClass,
         reversible: bool,
         evidence_quality: float = 1.0,
         user_intent: str | None = None,
         session_ref: str | None = None,
-    ) -> "RiskDecision":
+    ) -> RiskDecision:
         """
         Public preflight API — the arifOS kernel's right-sized governance check.
 

@@ -6,7 +6,7 @@
 
 ## Design Philosophy
 
-> **Each tool has its own counter-bias instrument.**  
+> **Each tool has its own counter-bias instrument.**
 > **Not one philosophy bucket — tool-specific calibration anchors.**
 
 ```
@@ -72,43 +72,43 @@ tool-specific corpus
 ## Category Mapping by Tool
 
 ### arifos.init (000)
-**Categories:** `origin_intent`, `boundary_authority`, `humility_at_start`, `foundation_first`  
+**Categories:** `origin_intent`, `boundary_authority`, `humility_at_start`, `foundation_first`
 **Output Map:** `session_anchor`, `intent_clarity`, `authority_scope`, `initial_constraints`
 
 ### arifos.sense (111)
-**Categories:** `perception_reality`, `evidence_first`, `temporal_awareness`, `ambiguity_restraint`  
+**Categories:** `perception_reality`, `evidence_first`, `temporal_awareness`, `ambiguity_restraint`
 **Output Map:** `truth_classification`, `evidence_plan`, `temporal_grounding`, `ambiguity`, `uncertainty`
 
 ### arifos.mind (333)
-**Categories:** `logic_truth`, `uncertainty_humility`, `knowledge_selfknowledge`, `order_complexity_limits`  
+**Categories:** `logic_truth`, `uncertainty_humility`, `knowledge_selfknowledge`, `order_complexity_limits`
 **Output Map:** `reasoning_chain`, `assumptions`, `unknowns`, `coherence_check`, `tradeoffs`
 
 ### arifos.route (444)
-**Categories:** `discernment`, `right_path`, `choice_under_uncertainty`, `fit_for_purpose`  
+**Categories:** `discernment`, `right_path`, `choice_under_uncertainty`, `fit_for_purpose`
 **Output Map:** `route_selection`, `route_reason`, `next_stage`, `branch_confidence`
 
 ### arifos.memory (555)
-**Categories:** `memory_identity`, `history_continuity`, `forgetting_loss`, `selective_retention`  
+**Categories:** `memory_identity`, `history_continuity`, `forgetting_loss`, `selective_retention`
 **Output Map:** `memory_write`, `memory_recall`, `continuity_link`, `retention_priority`
 
 ### arifos.heart (666)
-**Categories:** `human_dignity`, `compassion`, `non_harm`, `means_and_ends`  
+**Categories:** `human_dignity`, `compassion`, `non_harm`, `means_and_ends`
 **Output Map:** `ethical_flags`, `human_impact`, `dignity_check`, `harm_risk`, `peace_check`
 
 ### arifos.ops (777)
-**Categories:** `execution_over_planning`, `doing_not_debating`, `simple_is_strong`, `resilience_action`  
+**Categories:** `execution_over_planning`, `doing_not_debating`, `simple_is_strong`, `resilience_action`
 **Output Map:** `op_action`, `op_resilience`, `op_progress`, `op_bottleneck`
 
 ### arifos.judge (888)
-**Categories:** `justice_fairness`, `consequence_responsibility`, `mercy_judgment`, `power_restraint`  
+**Categories:** `justice_fairness`, `consequence_responsibility`, `mercy_judgment`, `power_restraint`
 **Output Map:** `verdict`, `verdict_confidence`, `justice_sense`, `consequence`, `override_flags`
 
 ### arifos.forge (888)
-**Categories:** `building_making`, `craft_excellence`, `form_function`, `shaping_durable`  
+**Categories:** `building_making`, `craft_excellence`, `form_function`, `shaping_durable`
 **Output Map:** `artifact`, `schema`, `durability`, `signature`, `forge_reason`
 
 ### arifos.vault (999)
-**Categories:** `permanence_transience`, `truth_recording`, `seal_finality`, `preservation_endurance`  
+**Categories:** `permanence_transience`, `truth_recording`, `seal_finality`, `preservation_endurance`
 **Output Map:** `record_hash`, `seal_signature`, `verdict`, `preservation_confidence`
 
 ---
@@ -132,7 +132,7 @@ MODE: reason
     → Inject into chain-of-thought
     → Surface to CLI for human transparency
 
-MODE: reflect  
+MODE: reflect
     → Append to session reflection
     → Use in milestone review
 
@@ -177,7 +177,7 @@ async def embed_quotes(doctrine: Doctrine, tool: str) -> Doctrine:
 
 ## Seal
 
-**999_VALIDATOR** | Each quote anchor is a commitment.  
+**999_VALIDATOR** | Each quote anchor is a commitment.
 **Ω_Ψ_Δ** | Trinity-aligned. Tool-calibrated. Runtime-ready.
 
 ```

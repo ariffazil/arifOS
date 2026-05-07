@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
+
 class GeoxVerdict(BaseModel):
     verdict: str
     confidence: float
@@ -23,6 +24,7 @@ class GeoxVerdict(BaseModel):
     spatial_validity: bool
     recommendation: str
     floor_alignment: dict[str, str]
+
 
 def verify_geospatial(lat: float, lon: float) -> dict[str, Any]:
     """Validate coordinates and return geospatial context."""
@@ -33,8 +35,9 @@ def verify_geospatial(lat: float, lon: float) -> dict[str, Any]:
         "lon": lon,
         "crs": "WGS84",
         "valid": valid,
-        "jurisdiction": "Global/Unspecified" if valid else "INVALID"
+        "jurisdiction": "Global/Unspecified" if valid else "INVALID",
     }
+
 
 def geox_feasibility_check(constraints: list[str]) -> dict[str, Any]:
     """Check if claims are physically possible (Rock Mechanics/Thermodynamics).
@@ -47,13 +50,13 @@ def geox_feasibility_check(constraints: list[str]) -> dict[str, Any]:
 
     # Hard physics bounds — these are non-negotiable Earth limits
     _PHYSICAL_BOUNDS = {
-        "porosity": (0.0, 0.65),      # Extreme pumice vs tight shale
+        "porosity": (0.0, 0.65),  # Extreme pumice vs tight shale
         "permeability": (1e-9, 1e6),  # mD: unfractured granite to high-perm sandstone
         "temperature": (-50.0, 600.0),  # °C: permafrost to magmatic contact
-        "pressure": (0.1, 200.0),      # MPa: surface to ultra-deep
-        "depth": (-10.0, 15000.0),     # m: above sea level to Kola Superdeep
-        "salinity": (0.0, 350.0),      # g/L: freshwater to Dead Sea brine
-        "density": (1.0, 3.5),         # g/cc: water to mafic rock
+        "pressure": (0.1, 200.0),  # MPa: surface to ultra-deep
+        "depth": (-10.0, 15000.0),  # m: above sea level to Kola Superdeep
+        "salinity": (0.0, 350.0),  # g/L: freshwater to Dead Sea brine
+        "density": (1.0, 3.5),  # g/cc: water to mafic rock
     }
 
     violations: list[str] = []
@@ -63,6 +66,7 @@ def geox_feasibility_check(constraints: list[str]) -> dict[str, Any]:
             if param in constraint_lower:
                 # Extract numeric value via naive heuristic
                 import re
+
                 numbers = re.findall(r"[-+]?\d*\.?\d+", constraint)
                 for num_str in numbers:
                     try:
@@ -84,6 +88,7 @@ def geox_feasibility_check(constraints: list[str]) -> dict[str, Any]:
 
     return {"feasible": True, "verdict": "PASS", "reason": "Within known physical bounds"}
 
+
 def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
     """
     Final Earth Witness evaluation.
@@ -93,7 +98,7 @@ def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
     # Automatic 888_HOLD if evidence is weak (placeholder logic)
     confidence = 0.85
     requires_hold = confidence < 0.90
-    
+
     return GeoxVerdict(
         verdict="HOLD" if requires_hold else "PASS",
         confidence=confidence,
@@ -103,9 +108,10 @@ def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
         floor_alignment={
             "F2_TRUTH": "τ < 0.90",
             "F4_CLARITY": "Passed (CRS: WGS84)",
-            "F13_SOVEREIGN": "888_HOLD Required"
-        }
+            "F13_SOVEREIGN": "888_HOLD Required",
+        },
     )
+
 
 async def geox(
     operation: str = "verify",
@@ -119,7 +125,8 @@ async def geox(
     elif operation == "prospect_eval":
         pid = kwargs.get("prospect_id", "P-001")
         return evaluate_prospect(pid)
-    
+
     return {"error": f"Unknown operation: {operation}"}
+
 
 __all__ = ["geox", "verify_geospatial", "evaluate_prospect"]

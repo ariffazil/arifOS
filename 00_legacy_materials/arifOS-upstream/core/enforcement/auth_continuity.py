@@ -153,10 +153,10 @@ def verify_auth_context(session_id: str, auth_context: dict[str, Any]) -> tuple[
     # Required for structure
     for field in signature_fields:
         if field == "prev_vault_hash":
-            continue # Optional field for signature reconstruction if present
+            continue  # Optional field for signature reconstruction if present
         if field not in auth_context:
             return False, f"missing field: {field}"
-    
+
     if "signature" not in auth_context:
         return False, "missing field: signature"
 

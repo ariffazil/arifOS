@@ -512,9 +512,9 @@ async def judge(
         g_dagger=g_score,
         omega_infinity=rationale.omega_0,
         tri_witness=rationale.tri_witness,
-        floor_scores=floor_scores.model_dump()
-        if hasattr(floor_scores, "model_dump")
-        else floor_scores,
+        floor_scores=(
+            floor_scores.model_dump() if hasattr(floor_scores, "model_dump") else floor_scores
+        ),
         metadata={
             "coherence_contradictions": len(contradictions),
             "landauer_compliant": candidate == Verdict.SEAL,

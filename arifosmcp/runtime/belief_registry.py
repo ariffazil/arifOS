@@ -87,6 +87,7 @@ def _get_conn() -> sqlite3.Connection:
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
+
 class BeliefState:
     """
     Persistent belief model for one actor across sessions.
@@ -152,6 +153,7 @@ class BeliefState:
 
 # ── BeliefUpdater ─────────────────────────────────────────────────────────────
 
+
 class BeliefUpdater:
     """
     Computes inferred belief state from telemetry signals.
@@ -216,6 +218,7 @@ class BeliefUpdater:
 
 
 # ── BeliefRegistry ────────────────────────────────────────────────────────────
+
 
 class BeliefRegistry:
     """

@@ -1,8 +1,8 @@
 # GEOX STRATEGIC POSITIONING: THE JUDGEMENT LAYER
 
-> **Authority:** 888_JUDGE ($W_{scar}$)  
-> **Status:** MARKET_VALIDATED  
-> **Mission:** DITEMPA BUKAN DIBERI  
+> **Authority:** 888_JUDGE ($W_{scar}$)
+> **Status:** MARKET_VALIDATED
+> **Mission:** DITEMPA BUKAN DIBERI
 
 ---
 

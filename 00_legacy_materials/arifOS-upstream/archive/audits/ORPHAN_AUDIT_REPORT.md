@@ -91,7 +91,7 @@ Arif to decide on: apps/, AGENTS/, aaa_mcp/, terminology.py, lsp_tools.py
 
 **Status:** PARTIAL - 8 new modules need wiring, 15 orphans need decision
 
-**Recommendation:** 
+**Recommendation:**
 1. Wire the 8 intelligence modules (P0)
 2. Export 3 model files (P1)
 3. Archive remaining orphans (P2) pending Arif approval

@@ -3,6 +3,7 @@ test_invariants_session.py — Session Continuity Invariants
 
 F2 Truth: Session truth must be consistent across all surfaces.
 """
+
 import pytest
 from arifosmcp.runtime.tools import init_anchor
 from arifosmcp.runtime.sessions import (
@@ -20,49 +21,49 @@ class TestSessionTruthSurfaceInvariant:
     async def test_init_anchor_session_truth(self):
         """init_anchor must expose transport + resolved session"""
         envelope = await init_anchor(
-            actor_id='arif',
-            intent='test session truth',
-            session_id='truth-test-001'
+            actor_id="arif", intent="test session truth", session_id="truth-test-001"
         )
-        
+
         result = envelope.payload
         # All truth fields must be present
         assert "transport_session_id" in result, "Missing transport_session_id"
         assert "resolved_session_id" in result, "Missing resolved_session_id"
         assert "session_id" in result, "Missing session_id (backward compat)"
-        
+
         # session_id must equal resolved_session_id (backward compat = truth)
-        assert result["session_id"] == result["resolved_session_id"], \
-            "session_id must alias resolved_session_id"
-        
+        assert (
+            result["session_id"] == result["resolved_session_id"]
+        ), "session_id must alias resolved_session_id"
+
         # auth_context must carry resolved truth
         assert envelope.auth_context is not None, "Missing auth_context"
-        assert envelope.auth_context.session_id == result["resolved_session_id"], \
-            "auth_context.session_id must equal resolved_session_id"
+        assert (
+            envelope.auth_context.session_id == result["resolved_session_id"]
+        ), "auth_context.session_id must equal resolved_session_id"
 
     @pytest.mark.asyncio
     async def test_get_caller_status_session_consistency(self):
         """get_caller_status must report same session as init_anchor"""
         session_id = "consistency-test-002"
-        
+
         # Anchor first
         anchored_env = await init_anchor(
-            actor_id='ariffazil',
-            intent='test consistency',
-            session_id=session_id
+            actor_id="ariffazil", intent="test consistency", session_id=session_id
         )
         anchored = anchored_env.payload["result"]
-        
+
         # Query status
-        status_env = await init_anchor(mode="status",session_id=session_id)
+        status_env = await init_anchor(mode="status", session_id=session_id)
         status = status_env.payload
-        
+
         # Session truth must be identical
-        assert status["resolved_session_id"] == anchored["resolved_session_id"], \
-            "Status must report same resolved session as anchor"
+        assert (
+            status["resolved_session_id"] == anchored["resolved_session_id"]
+        ), "Status must report same resolved session as anchor"
         # Use envelope authority for comparison
-        assert status_env.authority.actor_id.lower() == anchored_env.authority.actor_id.lower(), \
-            "Status must report same actor as anchor"
+        assert (
+            status_env.authority.actor_id.lower() == anchored_env.authority.actor_id.lower()
+        ), "Status must report same actor as anchor"
 
 
 class TestGlobalSessionIsolationInvariant:
@@ -73,20 +74,19 @@ class TestGlobalSessionIsolationInvariant:
         """global session must report anonymous even after other sessions anchor"""
         # Anchor a different session
         await init_anchor(
-            actor_id='arif',
-            intent='test global isolation',
-            session_id='other-session-003'
+            actor_id="arif", intent="test global isolation", session_id="other-session-003"
         )
-        
+
         # global session should still be anonymous
-        global_status = await init_anchor(mode="status",session_id='global')
-        assert global_status.caller_state == 'anonymous', \
-            "global session must remain anonymous"
-        assert global_status.authority.actor_id == 'anonymous', \
-            "global session authority must be anonymous"
+        global_status = await init_anchor(mode="status", session_id="global")
+        assert global_status.caller_state == "anonymous", "global session must remain anonymous"
+        assert (
+            global_status.authority.actor_id == "anonymous"
+        ), "global session authority must be anonymous"
         # global should NOT have kernel access
-        assert 'arifos_kernel' not in global_status.allowed_next_tools, \
-            "global session must be blocked from kernel"
+        assert (
+            "arifos_kernel" not in global_status.allowed_next_tools
+        ), "global session must be blocked from kernel"
 
     def test_global_in_resolution_context(self):
         """resolve_runtime_context must handle global correctly"""
@@ -111,10 +111,10 @@ class TestSessionPrecedenceInvariant:
             actor_id="arif",
             declared_name=None,
         )
-        assert ctx["resolved_session_id"] == "verified-session-004", \
-            "auth_context.session_id must override transport"
-        assert ctx["authority_source"] == "token", \
-            "Must indicate token-based authority"
+        assert (
+            ctx["resolved_session_id"] == "verified-session-004"
+        ), "auth_context.session_id must override transport"
+        assert ctx["authority_source"] == "token", "Must indicate token-based authority"
 
     def test_anchored_state_fallback(self):
         """Anchored state used when no auth_context"""
@@ -125,17 +125,17 @@ class TestSessionPrecedenceInvariant:
             authority_level="sovereign",
             auth_context={"actor_id": "ariffazil"},
         )
-        
+
         ctx = resolve_runtime_context(
             incoming_session_id=session_id,
             auth_context=None,  # No auth context
             actor_id="arif",
             declared_name=None,
         )
-        assert ctx["resolved_session_id"] == session_id, \
-            "Should use anchored session when no auth_context"
-        assert ctx["authority_source"] == "session", \
-            "Must indicate session-based authority"
+        assert (
+            ctx["resolved_session_id"] == session_id
+        ), "Should use anchored session when no auth_context"
+        assert ctx["authority_source"] == "session", "Must indicate session-based authority"
 
 
 class TestNoGlobalLeakInvariant:
@@ -145,19 +145,23 @@ class TestNoGlobalLeakInvariant:
     async def test_no_global_in_anchored_output(self):
         """Once anchored, session_id must never be 'global'"""
         session_id = "no-global-006"
-        
+
         result = await init_anchor(
-            actor_id='arif',
-            intent='test no global leak',
-            session_id=session_id
+            actor_id="arif", intent="test no global leak", session_id=session_id
         )
-        
+
         # All session surfaces must be actual session, not global
         assert result.session_id != "global", "envelope.session_id must not be global"
-        assert result.payload["result"]["session_id"] != "global", "payload.session_id must not be global"
-        assert result.payload["result"]["resolved_session_id"] != "global", "resolved_session_id must not be global"
+        assert (
+            result.payload["result"]["session_id"] != "global"
+        ), "payload.session_id must not be global"
+        assert (
+            result.payload["result"]["resolved_session_id"] != "global"
+        ), "resolved_session_id must not be global"
         if result.auth_context:
-            assert result.auth_context.session_id != "global", "auth_context.session_id must not be global"
+            assert (
+                result.auth_context.session_id != "global"
+            ), "auth_context.session_id must not be global"
 
 
 class TestSessionIdentityBindingInvariant:
@@ -172,11 +176,11 @@ class TestSessionIdentityBindingInvariant:
             authority_level="sovereign",
             auth_context={"actor_id": "ariffazil"},
         )
-        
+
         stored = get_session_identity(session_id)
         assert stored is not None
         assert stored["actor_id"] == "ariffazil"
-        
+
         clear_session_identity(session_id)
 
 

@@ -21,6 +21,7 @@ from arifos.core.governance import (
 
 logger = logging.getLogger(__name__)
 
+
 async def execute(
     query: str,
     operator_id: str | None = None,
@@ -52,9 +53,7 @@ async def execute(
                 tri_witness_score=0.33,
                 stakeholder_safety=1.0,
             )
-            return governed_return(
-                "arifos_112_search", report, metrics, operator_id, session_id
-            )
+            return governed_return("arifos_112_search", report, metrics, operator_id, session_id)
 
         report = {
             "query": query,
@@ -78,9 +77,7 @@ async def execute(
             stakeholder_safety=1.0,
         )
 
-        return governed_return(
-            "arifos_112_search", report, metrics, operator_id, session_id
-        )
+        return governed_return("arifos_112_search", report, metrics, operator_id, session_id)
 
     except Exception as exc:
         logger.error("arifos_112_search failed: %s", exc)
@@ -100,6 +97,4 @@ async def execute(
             tri_witness_score=0.33,
             stakeholder_safety=1.0,
         )
-        return governed_return(
-            "arifos_112_search", report, metrics, operator_id, session_id
-        )
+        return governed_return("arifos_112_search", report, metrics, operator_id, session_id)

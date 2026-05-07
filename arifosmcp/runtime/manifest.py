@@ -17,31 +17,35 @@ from arifosmcp.runtime.tool_specs import V2_TOOLS
 
 def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com") -> dict[str, Any]:
     """Build the canonical MCP v2 manifest."""
-    
+
     # Build tool entries
     tools = []
     for spec in V2_TOOLS:
-        tools.append({
-            "name": spec.name,
-            "description": spec.description,
-            "inputSchema": spec.input_schema,
-            "visibility": spec.visibility,
-            "layer": spec.layer,
-            "trinity": spec.trinity,
-            "floors": list(spec.floors),
-        })
-    
+        tools.append(
+            {
+                "name": spec.name,
+                "description": spec.description,
+                "inputSchema": spec.input_schema,
+                "visibility": spec.visibility,
+                "layer": spec.layer,
+                "trinity": spec.trinity,
+                "floors": list(spec.floors),
+            }
+        )
+
     # Build prompt entries
     prompts = []
     for spec in V2_PROMPT_SPECS:
-        prompts.append({
-            "name": spec["name"],
-            "description": spec["description"],
-            "inputSchema": spec["input_schema"],
-            "defaultTools": spec.get("default_tools", []),
-            "toolChoice": spec.get("tool_choice", "auto"),
-        })
-    
+        prompts.append(
+            {
+                "name": spec["name"],
+                "description": spec["description"],
+                "inputSchema": spec["input_schema"],
+                "defaultTools": spec.get("default_tools", []),
+                "toolChoice": spec.get("tool_choice", "auto"),
+            }
+        )
+
     # Build resource entries
     resources = [
         {
@@ -75,7 +79,7 @@ def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com")
             "mimeType": "application/json",
         },
     ]
-    
+
     return {
         "schema_version": "2025-11-25",
         "name": "ARIFOS MCP",
@@ -130,7 +134,9 @@ def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com")
     }
 
 
-def build_well_known_manifest(public_base_url: str = "https://arifosmcp.arif-fazil.com") -> dict[str, Any]:
+def build_well_known_manifest(
+    public_base_url: str = "https://arifosmcp.arif-fazil.com",
+) -> dict[str, Any]:
     """Build the .well-known/manifest.json minimal format."""
     return {
         "schema_version": "2025-11-25",

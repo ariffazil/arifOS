@@ -61,9 +61,8 @@ def detect_lineaments(
     grad_x[:, 1:-1] = array[:, 2:] - array[:, :-2]
     grad_y[1:-1, :] = array[2:, :] - array[:-2, :]
 
-    gradient_mag = np.sqrt(grad_x**2 + grad_y**2)
+    np.sqrt(grad_x**2 + grad_y**2)
 
-    high_mag = gradient_mag > threshold
 
     rng = np.random.default_rng(int(array.sum()) % 10000 + 7)
 

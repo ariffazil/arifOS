@@ -8,7 +8,7 @@ requirements:
     stability_score: 1.0
     non_destructive: true
     graceful_degradation: true
-  
+
   F1_Amanah:
     backup_verification: true
     rollback_ready: true

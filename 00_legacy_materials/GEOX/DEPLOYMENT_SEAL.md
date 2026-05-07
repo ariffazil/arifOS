@@ -116,20 +116,20 @@ Status: ✅ Pushed
 ```
 ═══════════════════════════════════════════════════════════════════
                     🔥 DEPLOYMENT SEALED 🔥
-              
+
          Earth Intelligence Core v2026.04.10-EIC
-                    
+
               Status: 🟢 LIVE & HEALTHY
-              
+
          Container: geox_eic
          Port: 8000
          Transport: HTTP
-         
+
          Git: Pushed to main
          Commit: 1fe23e4
-         
+
          DITEMPA BUKAN DIBERI
-         
+
          Seal: DEPLOY-EIC-2026.04.10-LIVE
 ═══════════════════════════════════════════════════════════════════
 ```

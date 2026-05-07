@@ -1,14 +1,14 @@
 # Constitutional Quotes — Ingestion Guide
 
-**Version:** 1.0.0  
-**Total Quotes:** 102 human calibration anchors  
+**Version:** 1.0.0
+**Total Quotes:** 102 human calibration anchors
 **Tools Covered:** 10 arifOS organs
 
 ---
 
 ## Design Philosophy
 
-> **Quotes are nudges, not dogma.**  
+> **Quotes are nudges, not dogma.**
 > **Human witness signals, not constitutional replacement.**
 
 Each quote:
@@ -79,7 +79,7 @@ Quotes activate based on runtime signals:
 {
   "trigger_when": [
     "overconfidence",
-    "weak_evidence", 
+    "weak_evidence",
     "high_conflict",
     "ethical_decision",
     "time_pressure",
@@ -151,7 +151,7 @@ with open('constitutional_quotes.json') as f:
 mind_quotes = corpus['arifos.mind']['quotes']
 
 # Filter by trigger
-relevant = [q for q in mind_quotes 
+relevant = [q for q in mind_quotes
             if 'overconfidence' in q['trigger_when']]
 
 # Use in prompt

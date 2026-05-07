@@ -215,7 +215,7 @@ def auto_pick_horizons(
     picks = PickSet()
     n = len(envelope)
     sample_rate_ms = 4.0
-    window_samples = max(1, int(window_ms / sample_rate_ms))
+    max(1, int(window_ms / sample_rate_ms))
 
     in_pick = False
     pick_start = 0
@@ -398,9 +398,11 @@ def audit_2d_limits(interpretation: dict[str, Any]) -> dict[str, Any]:
     is_structural = assemblage not in ("unknown", "sub-horizontal stratigraphy")
 
     return {
-        "verdict": Line2DVerdict.GEOX_BLOCK.value
-        if interpretation.get("confidence", 0) < 0.3
-        else Line2DVerdict.QUALIFY.value,
+        "verdict": (
+            Line2DVerdict.GEOX_BLOCK.value
+            if interpretation.get("confidence", 0) < 0.3
+            else Line2DVerdict.QUALIFY.value
+        ),
         "hard_blocks": hard_blocks,
         "soft_caveats": soft_caveats,
         "can_support_2d_structural": is_structural,
@@ -522,8 +524,8 @@ class SeismicAttributes2DTool(BaseTool):
         contrast_metadata_out: dict[str, Any] = {}
 
         for attr_name in attributes:
-            attr_def = SEISMIC_ATTRIBUTES.get(attr_name.lower())
-            governance = get_governance_flags(attr_name.lower())
+            SEISMIC_ATTRIBUTES.get(attr_name.lower())
+            get_governance_flags(attr_name.lower())
 
             if attr_name.lower() == "coherence":
                 arr = compute_2d_coherence(seismic_data.mean(axis=0))
@@ -536,12 +538,12 @@ class SeismicAttributes2DTool(BaseTool):
 
             elif attr_name.lower() == "curvature":
                 mean_trace = seismic_data.mean(axis=0)
-                curvatures = compute_2d_curvature(mean_trace)
+                compute_2d_curvature(mean_trace)
                 panel = np.zeros((num_traces, num_samples), dtype=np.float64)
                 for t in range(num_traces):
                     c = compute_2d_curvature(seismic_data[t, :])
                     panel[t, :] = c["curvature_positive"]
-                gov_flags = get_governance_flags("curvature_most_positive")
+                get_governance_flags("curvature_most_positive")
                 contrast_metadata_out[attr_name] = {
                     "attribute_name": attr_name,
                     "physical_axes": ["structural_flexure"],

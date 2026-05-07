@@ -22,7 +22,7 @@ confidence: 1.0
 
 # arifOS Changelog
 
-> **Source:** `wiki/raw/CHANGELOG.md`  
+> **Source:** `wiki/raw/CHANGELOG.md`
 > **Coverage:** All notable changes to arifOS MCP.
 
 ---
@@ -62,7 +62,7 @@ Key changes:
 
 **ToM Requirements (all governance tools):** Every tool forces LLM mental model externalization — alternatives, second-order effects, confidence estimates, assumptions. Missing ToM fields → `tom_violation: True` + VOID verdict.
 
-**G★ Scoring formula:** `G★ = confidence + adjustments` (clamped [0,1])  
+**G★ Scoring formula:** `G★ = confidence + adjustments` (clamped [0,1])
 Factors: confidence estimates, alternative count, assumptions declared, second-order effects, consistency checks, harm probability (inverse).
 
 #### Philosophy Registry v1.2.0
@@ -100,7 +100,7 @@ Exposed tools (read-only Phase 1):
 - `render_vault_seal` — widget render
 - `list_recent_verdicts` — vault audit log (last 100 entries)
 
-Widget at `https://mcp.a-forge.io/widget/vault-seal` — CSP-compliant with ChatGPT iframe allowlist.  
+Widget at `https://mcp.a-forge.io/widget/vault-seal` — CSP-compliant with ChatGPT iframe allowlist.
 888_HOLD compliance: no vault write or VPS execution in ChatGPT path.
 
 ---
@@ -152,7 +152,7 @@ Ignition (concept)
 
 ---
 
-> [!NOTE]  
+> [!NOTE]
 > This page is a synthesis. Full entry details (infra tables, code snippets, archived file lists) live in `wiki/raw/CHANGELOG.md`.
 
 **Related:** [[Roadmap]] | [[What-is-arifOS]]

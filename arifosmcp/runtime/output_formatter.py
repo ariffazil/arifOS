@@ -138,16 +138,18 @@ def format_output(
             build_forensic_view(
                 base=CleanOutput(**base_dict),
                 caller_state=envelope.caller_state,
-                allowed_next_tools=list(envelope.allowed_next_tools)
-                if envelope.allowed_next_tools
-                else [],
+                allowed_next_tools=(
+                    list(envelope.allowed_next_tools) if envelope.allowed_next_tools else []
+                ),
                 blocked_tools=envelope.blocked_tools if envelope.blocked_tools else [],
                 raw_payload=envelope.payload if isinstance(envelope.payload, dict) else None,
                 trace=envelope.trace,
                 telemetry=envelope.metrics.model_dump() if envelope.metrics else None,
-                continuity=envelope.payload.get("continuity")
-                if isinstance(envelope.payload, dict)
-                else None,
+                continuity=(
+                    envelope.payload.get("continuity")
+                    if isinstance(envelope.payload, dict)
+                    else None
+                ),
                 handoff=envelope.handoff,
                 diagnostics=envelope.diagnostics,
             ),
@@ -435,7 +437,9 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
     """Build minimal operator view from RuntimeEnvelope."""
 
     # Map status
-    status = _map_status(getattr(envelope, "status", None) or getattr(envelope, "execution_status", None))
+    status = _map_status(
+        getattr(envelope, "status", None) or getattr(envelope, "execution_status", None)
+    )
 
     # Map verdict
     verdict = _map_verdict(envelope.verdict)
@@ -548,7 +552,9 @@ def _map_verdict(verdict: Verdict | str | None) -> str:
 
 def _map_transport_status(envelope: RuntimeEnvelope, verdict: str) -> str:
     """Map internal envelope state to the public response-envelope status enum."""
-    execution_status = _map_status(getattr(envelope, "status", None) or getattr(envelope, "execution_status", None))
+    execution_status = _map_status(
+        getattr(envelope, "status", None) or getattr(envelope, "execution_status", None)
+    )
     if verdict == "VOID":
         return "void"
     if verdict == "HOLD" or execution_status == "HOLD":

@@ -45,7 +45,7 @@ TARGET_VIOLATION_RATE = 0.05  # 5%
 TARGET_SCORE = 0.90
 
 ABORT_VIOLATION_RATE = 0.15  # 15% — abort if exceeded
-ABORT_OMEGA_DRIFT = 0.02    # Ω outside [0.02, 0.06] for >10% of requests
+ABORT_OMEGA_DRIFT = 0.02  # Ω outside [0.02, 0.06] for >10% of requests
 
 RESULTS_TSV = Path(__file__).parent / "results.tsv"
 OBSERVATIONS_MD = Path(__file__).parent / "observations.md"
@@ -54,6 +54,7 @@ OBSERVATIONS_MD = Path(__file__).parent / "observations.md"
 @dataclass
 class ExperimentResult:
     """Result of a single experiment run."""
+
     experiment_id: str
     timestamp: str
     duration_seconds: int
@@ -72,36 +73,35 @@ class ExperimentResult:
 # EVALUATION ENGINE — FIXED
 # =============================================================================
 
+
 class ConstitutionalEvaluator:
     """
     Fixed evaluation engine.
     Runs benchmark and determines if experiment improved or degraded.
     """
-    
+
     def __init__(self, mcp_endpoint: str = "https://arifosmcp.arif-fazil.com/mcp"):
         self.mcp_endpoint = mcp_endpoint
         self.benchmark = arifOSBenchmark(
-            target_url=mcp_endpoint,
-            omega_range=OMEGA_RANGE,
-            w3_threshold=W3_THRESHOLD
+            target_url=mcp_endpoint, omega_range=OMEGA_RANGE, w3_threshold=W3_THRESHOLD
         )
-    
+
     async def evaluate(
         self,
         experiment_id: str,
         change_description: str,
         duration_seconds: int = 300,
-        concurrency: int = 10
+        concurrency: int = 10,
     ) -> ExperimentResult:
         """
         Run evaluation for a single experiment.
-        
+
         Args:
             experiment_id: Unique identifier for this experiment
             change_description: What was changed (from train.py)
             duration_seconds: How long to run (default 5 min = 300s)
             concurrency: Concurrent workers
-            
+
         Returns:
             ExperimentResult with scored metrics
         """
@@ -110,34 +110,36 @@ class ConstitutionalEvaluator:
         print(f"Change: {change_description}")
         print(f"Duration: {duration_seconds}s | Concurrency: {concurrency}")
         print(f"{'='*60}")
-        
+
         # Run benchmark
         start_time = time.time()
-        
+
         try:
             metrics = await self.benchmark.run_benchmark(
-                duration_seconds=duration_seconds,
-                concurrency=concurrency
+                duration_seconds=duration_seconds, concurrency=concurrency
             )
         except Exception as e:
             print(f"\n❌ BENCHMARK FAILED: {e}")
             return self._error_result(experiment_id, change_description, str(e))
-        
+
         elapsed = time.time() - start_time
-        
+
         # Print results
         self._print_metrics(metrics)
-        
+
         # Determine if experiment should be kept
         score_delta = metrics.composite_score - self._load_baseline()
-        kept = metrics.composite_score >= TARGET_SCORE and metrics.violation_rate < ABORT_VIOLATION_RATE
-        
+        kept = (
+            metrics.composite_score >= TARGET_SCORE
+            and metrics.violation_rate < ABORT_VIOLATION_RATE
+        )
+
         # Check abort conditions
         abort_reason = self._check_abort(metrics)
         if abort_reason:
             kept = False
             print(f"\n🚨 ABORT: {abort_reason}")
-        
+
         # Build result
         result = ExperimentResult(
             experiment_id=experiment_id,
@@ -151,33 +153,35 @@ class ConstitutionalEvaluator:
             avg_W_cube=metrics.avg_W_cube,
             composite_score=metrics.composite_score,
             kept=kept,
-            notes=abort_reason or ("improved" if score_delta > 0 else "degraded")
+            notes=abort_reason or ("improved" if score_delta > 0 else "degraded"),
         )
-        
+
         # Log to results.tsv
         self._append_results(result)
-        
+
         # Update observations
         self._update_observations(experiment_id, change_description, metrics, kept)
-        
+
         print(f"\n{'='*60}")
         print(f"RESULT: {'✅ KEPT' if kept else '❌ DISCARDED'}")
-        print(f"Baseline: {self._load_baseline():.4f} → Current: {metrics.composite_score:.4f} (Δ={score_delta:+.4f})")
+        print(
+            f"Baseline: {self._load_baseline():.4f} → Current: {metrics.composite_score:.4f} (Δ={score_delta:+.4f})"
+        )
         print(f"{'='*60}\n")
-        
+
         return result
-    
+
     def _load_baseline(self) -> float:
         """Load baseline score from results.tsv (first entry = baseline)."""
         if not RESULTS_TSV.exists():
             return 0.72  # Default baseline
-        
+
         with open(RESULTS_TSV) as f:
             lines = f.readlines()
-        
+
         if len(lines) < 2:
             return 0.72
-        
+
         # Second line is baseline (first data row after header)
         parts = lines[1].strip().split("\t")
         if len(parts) >= 10:
@@ -185,19 +189,19 @@ class ConstitutionalEvaluator:
                 return float(parts[9])  # composite_score column
             except (ValueError, IndexError):
                 return 0.72
-        
+
         return 0.72
-    
+
     def _check_abort(self, metrics: AggregateMetrics) -> Optional[str]:
         """Check if abort conditions are met."""
         if metrics.violation_rate > ABORT_VIOLATION_RATE:
             return f"Violation rate {metrics.violation_rate*100:.1f}% > {ABORT_VIOLATION_RATE*100:.1f}% threshold"
-        
+
         if metrics.omega_in_range_pct < 0.90:
             return f"Omega in-range {metrics.omega_in_range_pct*100:.1f}% < 90%"
-        
+
         return None
-    
+
     def _print_metrics(self, metrics: AggregateMetrics):
         """Pretty print metrics."""
         print("\nPerformance:")
@@ -206,50 +210,50 @@ class ConstitutionalEvaluator:
         print(f"  Latency (p95): {metrics.p95_latency_ms:.1f}ms")
         print(f"  Latency (p99): {metrics.p99_latency_ms:.1f}ms")
         print("\nConstitutional:")
-        print(f"  Violation Rate: {metrics.violation_rate*100:.2f}% (target: <{TARGET_VIOLATION_RATE*100}%)")
+        print(
+            f"  Violation Rate: {metrics.violation_rate*100:.2f}% (target: <{TARGET_VIOLATION_RATE*100}%)"
+        )
         print(f"  Avg Omega: {metrics.avg_omega:.4f} (range: {OMEGA_RANGE})")
         print(f"  Omega in Range: {metrics.omega_in_range_pct*100:.1f}%")
         print(f"  Avg W³: {metrics.avg_W_cube:.4f} (threshold: {W3_THRESHOLD})")
         if metrics.floor_violation_counts:
             print(f"  Floor Violations: {metrics.floor_violation_counts}")
         print(f"\nComposite Score: {metrics.composite_score:.4f} (target: >{TARGET_SCORE})")
-    
+
     def _append_results(self, result: ExperimentResult):
         """Append result to results.tsv."""
         header = "timestamp\texperiment_id\tchange_description\tthroughput\tviolation_rate\tavg_omega\tomega_in_range_pct\tavg_W_cube\tcomposite_score\tkept\tnotes"
-        
-        line = "\t".join([
-            result.timestamp,
-            result.experiment_id,
-            result.change_description,
-            f"{result.throughput:.2f}",
-            f"{result.violation_rate:.4f}",
-            f"{result.avg_omega:.4f}",
-            f"{result.omega_in_range_pct:.4f}",
-            f"{result.avg_W_cube:.4f}",
-            f"{result.composite_score:.4f}",
-            str(result.kept).lower(),
-            result.notes
-        ])
-        
+
+        line = "\t".join(
+            [
+                result.timestamp,
+                result.experiment_id,
+                result.change_description,
+                f"{result.throughput:.2f}",
+                f"{result.violation_rate:.4f}",
+                f"{result.avg_omega:.4f}",
+                f"{result.omega_in_range_pct:.4f}",
+                f"{result.avg_W_cube:.4f}",
+                f"{result.composite_score:.4f}",
+                str(result.kept).lower(),
+                result.notes,
+            ]
+        )
+
         if not RESULTS_TSV.exists():
             RESULTS_TSV.write_text(header + "\n")
-        
+
         with open(RESULTS_TSV, "a") as f:
             f.write(line + "\n")
-        
+
         print(f"📊 Logged to {RESULTS_TSV}")
-    
+
     def _update_observations(
-        self,
-        experiment_id: str,
-        change_description: str,
-        metrics: AggregateMetrics,
-        kept: bool
+        self, experiment_id: str, change_description: str, metrics: AggregateMetrics, kept: bool
     ):
         """Update observations.md with learnings."""
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-        
+
         entry = f"""
 ## {experiment_id} ({timestamp})
 
@@ -267,7 +271,7 @@ class ConstitutionalEvaluator:
 | **Score** | **{metrics.composite_score:.4f}** | >{TARGET_SCORE} |
 
 """
-        
+
         if OBSERVATIONS_MD.exists():
             content = OBSERVATIONS_MD.read_text()
             # Insert after header
@@ -279,12 +283,9 @@ class ConstitutionalEvaluator:
                 OBSERVATIONS_MD.write_text(entry + content)
         else:
             OBSERVATIONS_MD.write_text(f"# Observations Log\n\n{entry}")
-    
+
     def _error_result(
-        self,
-        experiment_id: str,
-        change_description: str,
-        error: str
+        self, experiment_id: str, change_description: str, error: str
     ) -> ExperimentResult:
         """Create error result."""
         return ExperimentResult(
@@ -299,7 +300,7 @@ class ConstitutionalEvaluator:
             avg_W_cube=0.0,
             composite_score=0.0,
             kept=False,
-            notes=f"ERROR: {error}"
+            notes=f"ERROR: {error}",
         )
 
 
@@ -307,49 +308,40 @@ class ConstitutionalEvaluator:
 # MAIN — CLI entry point
 # =============================================================================
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="arifOS Autoresearch Evaluation Harness (FIXED — DO NOT MODIFY)"
     )
     parser.add_argument(
-        "--experiment-id",
-        required=True,
-        help="Unique experiment identifier (e.g., exp_001)"
+        "--experiment-id", required=True, help="Unique experiment identifier (e.g., exp_001)"
     )
-    parser.add_argument(
-        "--change",
-        required=True,
-        help="Description of what was changed"
-    )
+    parser.add_argument("--change", required=True, help="Description of what was changed")
     parser.add_argument(
         "--duration",
         type=int,
         default=300,
-        help="Benchmark duration in seconds (default: 300 = 5 min)"
+        help="Benchmark duration in seconds (default: 300 = 5 min)",
     )
     parser.add_argument(
-        "--concurrency",
-        type=int,
-        default=10,
-        help="Concurrent workers (default: 10)"
+        "--concurrency", type=int, default=10, help="Concurrent workers (default: 10)"
     )
     parser.add_argument(
-        "--config",
-        type=str,
-        default=None,
-        help="Path to experiment config (for record only)"
+        "--config", type=str, default=None, help="Path to experiment config (for record only)"
     )
-    
+
     args = parser.parse_args()
-    
+
     evaluator = ConstitutionalEvaluator()
-    result = asyncio.run(evaluator.evaluate(
-        experiment_id=args.experiment_id,
-        change_description=args.change,
-        duration_seconds=args.duration,
-        concurrency=args.concurrency
-    ))
-    
+    result = asyncio.run(
+        evaluator.evaluate(
+            experiment_id=args.experiment_id,
+            change_description=args.change,
+            duration_seconds=args.duration,
+            concurrency=args.concurrency,
+        )
+    )
+
     # Exit code
     if result.kept:
         print("✅ Experiment kept — score meets threshold")

@@ -22,8 +22,8 @@ async def test_arifosmcp_stdio_e2e_protocol():
             **os.environ,
             "ARIFOS_PHYSICS_DISABLED": "1",
             "AAA_MCP_OUTPUT_MODE": "debug",
-            "ARIFOS_DEV_MODE": "1"
-        }
+            "ARIFOS_DEV_MODE": "1",
+        },
     )
 
     # 2. Start the stdio client
@@ -58,6 +58,7 @@ async def test_arifosmcp_stdio_e2e_protocol():
             assert "Context: actor" in payload["output"]
             assert "tool arifos_init." in payload["output"]
             assert "Verdict:" in payload["output"]
+
 
 if __name__ == "__main__":
     asyncio.run(test_arifosmcp_stdio_e2e_protocol())

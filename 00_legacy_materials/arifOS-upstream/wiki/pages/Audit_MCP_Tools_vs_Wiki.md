@@ -30,9 +30,9 @@ confidence: 0.97
 
 # Audit: MCP Tools vs Ω-Wiki Alignment
 
-> **Auditor**: Copilot CLI  
-> **Date**: 2026-04-11  
-> **Motto**: *DITEMPA BUKAN DIBERI*  
+> **Auditor**: Copilot CLI
+> **Date**: 2026-04-11
+> **Motto**: *DITEMPA BUKAN DIBERI*
 > **Review Status**: ⚠️ CONTRAST ACTIVE — full deployment audit still required
 
 ---
@@ -177,5 +177,5 @@ But this is **target doctrine**, not current verified deployment truth.
 > [!NOTE]
 > Do not propose architectural redesign until current-state truth is proven with evidence.
 
-**F11**: Logged in `wiki/log.md`  
+**F11**: Logged in `wiki/log.md`
 **F2**: Claims traceable to registry/runtime files and the ingested audit directive

@@ -23,8 +23,8 @@ def test_reality_bridge():
     bridge = RealityBridge()
 
     # Test injection detection
-    assert bridge._detect_injection("rm -rf /") == False
-    assert bridge._detect_injection("cmd; rm -rf /") == True
+    assert bridge._detect_injection("rm -rf /") is False
+    assert bridge._detect_injection("cmd; rm -rf /") is True
 
     print("  Reality Bridge: OK")
     return True
@@ -65,7 +65,7 @@ def test_execution_validator_hash_match():
         human_approved=True,
     )
 
-    assert result.verification.hash_match == True
+    assert result.verification.hash_match is True
     assert result.verification.integrity_score == 1.0
     print(f"  Hash Verification: OK (match={result.verification.hash_match})")
     return True
@@ -122,7 +122,7 @@ async def test_all_skills_wired():
         if skill_info:
             try:
                 # Try to call execute with reality_bridge
-                result = await skill_info["execute"](
+                await skill_info["execute"](
                     action=(
                         "check_status"
                         if "check" in skill_info.get("actions", [])

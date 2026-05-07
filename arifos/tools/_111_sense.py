@@ -58,16 +58,41 @@ def _classify_truth(query: str) -> str:
     """Keyword classifier for truth_class."""
     q = query.lower()
     absolute_markers = [
-        "always", "never", "law of", "physics", "mathematical", "theorem",
-        "axiom", "identity", "conservation", "entropy", "thermodynamic",
+        "always",
+        "never",
+        "law of",
+        "physics",
+        "mathematical",
+        "theorem",
+        "axiom",
+        "identity",
+        "conservation",
+        "entropy",
+        "thermodynamic",
     ]
     dated_markers = [
-        "current", "latest", "live", "now", "today", "recent", "update",
-        "status", "price", "weather", "news",
+        "current",
+        "latest",
+        "live",
+        "now",
+        "today",
+        "recent",
+        "update",
+        "status",
+        "price",
+        "weather",
+        "news",
     ]
     contested_markers = [
-        "believe", "opinion", "ideology", "religion", "political",
-        "best", "worst", "should", "ought",
+        "believe",
+        "opinion",
+        "ideology",
+        "religion",
+        "political",
+        "best",
+        "worst",
+        "should",
+        "ought",
     ]
 
     if any(m in q for m in absolute_markers):
@@ -109,9 +134,7 @@ def _build_grounded_scene(query: str, mode: str) -> dict:
     }
 
 
-def _build_evidence_bundle(
-    query: str, mode: str, bridge_result: dict | None = None
-) -> dict:
+def _build_evidence_bundle(query: str, mode: str, bridge_result: dict | None = None) -> dict:
     """
     Build typed evidence_bundle with weights.
 
@@ -131,24 +154,28 @@ def _build_evidence_bundle(
 
     # Query analysis evidence (always present)
     query_len_norm = min(len(query) / 500.0, 1.0)
-    bundle["evidence_items"].append({
-        "type": "query_analysis",
-        "source": "arifos_111_sense",
-        "description": f"Query length={len(query)}, normalized={query_len_norm:.2f}",
-        "weight": 0.4 if mode == "grounded" else 0.3,
-        "grounded": True,
-    })
+    bundle["evidence_items"].append(
+        {
+            "type": "query_analysis",
+            "source": "arifos_111_sense",
+            "description": f"Query length={len(query)}, normalized={query_len_norm:.2f}",
+            "weight": 0.4 if mode == "grounded" else 0.3,
+            "grounded": True,
+        }
+    )
 
     # Bridge evidence (if visual bridge used)
     if bridge_result:
         bridge_weight = 0.7 if bridge_result.get("verdict") == "success" else 0.4
-        bundle["evidence_items"].append({
-            "type": "ai_bridge",
-            "source": "minimax_vision",
-            "description": bridge_result.get("description", "")[:120],
-            "weight": bridge_weight,
-            "grounded": bridge_result.get("verdict") == "success",
-        })
+        bundle["evidence_items"].append(
+            {
+                "type": "ai_bridge",
+                "source": "minimax_vision",
+                "description": bridge_result.get("description", "")[:120],
+                "weight": bridge_weight,
+                "grounded": bridge_result.get("verdict") == "success",
+            }
+        )
 
     # Domain evidence (if provided, append with cap)
     # Already added externally before calling this function
@@ -215,8 +242,17 @@ def _needs_live_search(query: str) -> bool:
     """Heuristic: does this query need live external search?"""
     q = query.lower()
     live_markers = [
-        "current", "latest", "now", "today", "price", "weather",
-        "status", "update", "live", "recent", "news",
+        "current",
+        "latest",
+        "now",
+        "today",
+        "price",
+        "weather",
+        "status",
+        "update",
+        "live",
+        "recent",
+        "news",
     ]
     return any(m in q for m in live_markers)
 
@@ -264,9 +300,7 @@ def _generate_assumptions(query: str, mode: str) -> list[str]:
             "Image interpretation depends on MiniMax vision bridge — F9 hantu risk present."
         )
     if _needs_live_search(query):
-        assumptions.append(
-            "Live search implied by query — staleness risk not yet assessed."
-        )
+        assumptions.append("Live search implied by query — staleness risk not yet assessed.")
     return assumptions
 
 
@@ -387,7 +421,9 @@ async def execute(
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "floors_evaluated": ["F8", "F9"],
                     "floors_deferred": ["F2", "F3", "F4"],
-                    "meta_intelligence": _build_meta_intelligence("visual", domain_evidence is not None, snr_threshold, intent_class),
+                    "meta_intelligence": _build_meta_intelligence(
+                        "visual", domain_evidence is not None, snr_threshold, intent_class
+                    ),
                     # EMD Stack — Encoder output (null on error)
                     "raw_vision_data": None,
                     "metabolic_metrics": {
@@ -407,9 +443,7 @@ async def execute(
                     tri_witness_score=TRI_WITNESS_PARTIAL,
                     stakeholder_safety=1.0,
                 )
-                return governed_return(
-                    "arifos_111_sense", report, metrics, operator_id, session_id
-                )
+                return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
             if not _is_public_https(image_url):
                 report = {
@@ -437,7 +471,9 @@ async def execute(
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "floors_evaluated": ["F8", "F9", "F12"],
                     "floors_deferred": ["F2", "F3", "F4"],
-                    "meta_intelligence": _build_meta_intelligence("visual", domain_evidence is not None, snr_threshold, intent_class),
+                    "meta_intelligence": _build_meta_intelligence(
+                        "visual", domain_evidence is not None, snr_threshold, intent_class
+                    ),
                     # EMD Stack — Encoder output (null on error)
                     "raw_vision_data": None,
                     "metabolic_metrics": {
@@ -457,9 +493,7 @@ async def execute(
                     tri_witness_score=TRI_WITNESS_PARTIAL,
                     stakeholder_safety=1.0,
                 )
-                return governed_return(
-                    "arifos_111_sense", report, metrics, operator_id, session_id
-                )
+                return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
             bridge_result = await minimax_bridge.understand_image(
                 image_url=image_url, question=query or None
@@ -492,7 +526,9 @@ async def execute(
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "floors_evaluated": ["F8", "F9"],
                     "floors_deferred": ["F2", "F3", "F4"],
-                    "meta_intelligence": _build_meta_intelligence("visual", domain_evidence is not None, snr_threshold, intent_class),
+                    "meta_intelligence": _build_meta_intelligence(
+                        "visual", domain_evidence is not None, snr_threshold, intent_class
+                    ),
                     # EMD Stack — Encoder output (null on error)
                     "raw_vision_data": None,
                     "metabolic_metrics": {
@@ -512,9 +548,7 @@ async def execute(
                     tri_witness_score=TRI_WITNESS_PARTIAL,
                     stakeholder_safety=1.0,
                 )
-                return governed_return(
-                    "arifos_111_sense", report, metrics, operator_id, session_id
-                )
+                return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
             f9_hantu = bridge_result["metrics"]["f9_hantu_score"]
             f2_truth = 0.99 if f9_hantu < 0.3 else 0.7 if f9_hantu < 0.5 else 0.4
@@ -552,7 +586,9 @@ async def execute(
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "floors_evaluated": ["F2", "F3", "F8", "F9"],
                 "floors_deferred": ["F4", "F10"],
-                "meta_intelligence": _build_meta_intelligence("visual", domain_evidence is not None, snr_threshold, intent_class),
+                "meta_intelligence": _build_meta_intelligence(
+                    "visual", domain_evidence is not None, snr_threshold, intent_class
+                ),
                 # EMD Stack — Encoder output
                 "raw_vision_data": {
                     "description": bridge_result.get("description"),
@@ -576,19 +612,19 @@ async def execute(
                 amanah_lock=amanah,
                 tri_witness_score=tri_witness,
                 stakeholder_safety=1.0,
-                floor_9_signal="pass" if f9_hantu < 0.3 else "fail" if f9_hantu >= 0.5 else "caution",
+                floor_9_signal=(
+                    "pass" if f9_hantu < 0.3 else "fail" if f9_hantu >= 0.5 else "caution"
+                ),
             )
-            return governed_return(
-                "arifos_111_sense", report, metrics, operator_id, session_id
-            )
+            return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
         # ── Default grounded text branch ────────────────────────────────────
-        intent = intent_class or ("metabolic_audit" if "status" in query.lower() else "general_query")
+        intent = intent_class or (
+            "metabolic_audit" if "status" in query.lower() else "general_query"
+        )
 
         # Derive confidence and ambiguity from internal metrics (AGI invariant)
-        confidence, ambiguity_score = _derive_confidence_and_ambiguity(
-            query, mode, truth_class
-        )
+        confidence, ambiguity_score = _derive_confidence_and_ambiguity(query, mode, truth_class)
         assumptions = _derive_assumptions(query, mode, truth_class)
 
         report = {
@@ -609,7 +645,9 @@ async def execute(
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "floors_evaluated": ["F2", "F4", "F8", "F10"],
             "floors_deferred": ["F3", "F9"],
-            "meta_intelligence": _build_meta_intelligence("grounded", domain_evidence is not None, snr_threshold, intent_class),
+            "meta_intelligence": _build_meta_intelligence(
+                "grounded", domain_evidence is not None, snr_threshold, intent_class
+            ),
             # EMD Stack — Encoder output (textual entropy)
             "raw_vision_data": None,
             "metabolic_metrics": {
@@ -625,13 +663,15 @@ async def execute(
         if domain_evidence:
             report["domain_evidence"] = domain_evidence
             # Append typed domain evidence to evidence_bundle
-            report["evidence_bundle"]["evidence_items"].append({
-                "type": "domain_evidence",
-                "source": domain_evidence.get("organ", "external"),
-                "description": domain_evidence.get("summary", "")[:80],
-                "weight": 0.25,
-                "grounded": True,
-            })
+            report["evidence_bundle"]["evidence_items"].append(
+                {
+                    "type": "domain_evidence",
+                    "source": domain_evidence.get("organ", "external"),
+                    "description": domain_evidence.get("summary", "")[:80],
+                    "weight": 0.25,
+                    "grounded": True,
+                }
+            )
             # Re-normalize
             total = sum(e["weight"] for e in report["evidence_bundle"]["evidence_items"])
             if total > 1.0:
@@ -641,12 +681,8 @@ async def execute(
                 e["source"] for e in report["evidence_bundle"]["evidence_items"]
             ]
 
-        metrics = ThermodynamicMetrics(
-            0.995, -0.12, 0.045, 1.2, True, 0.98, 1.0
-        )
-        return governed_return(
-            "arifos_111_sense", report, metrics, operator_id, session_id
-        )
+        metrics = ThermodynamicMetrics(0.995, -0.12, 0.045, 1.2, True, 0.98, 1.0)
+        return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
     except Exception as exc:
         floor = "F4"
@@ -695,6 +731,4 @@ async def execute(
             stakeholder_safety=1.0,
             floor_9_signal="fail",
         )
-        return governed_return(
-            "arifos_111_sense", error_report, metrics, operator_id, session_id
-        )
+        return governed_return("arifos_111_sense", error_report, metrics, operator_id, session_id)

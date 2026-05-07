@@ -27,6 +27,7 @@ from enum import Enum
 # GeoUnit Enum
 # ---------------------------------------------------------------------------
 
+
 class GeoUnit(str, Enum):
     """
     Canonical geological unit identifiers.
@@ -59,8 +60,8 @@ class GeoUnit(str, Enum):
     PERCENT = "%"
 
     # Seismic time
-    MS_TWT = "ms_TWT"   # milliseconds Two-Way Time
-    US_TWT = "us_TWT"   # microseconds Two-Way Time
+    MS_TWT = "ms_TWT"  # milliseconds Two-Way Time
+    US_TWT = "us_TWT"  # microseconds Two-Way Time
 
     # Velocity
     M_S = "m/s"
@@ -68,7 +69,7 @@ class GeoUnit(str, Enum):
     FT_S = "ft/s"
 
     # Maturity
-    PERCENT_RO = "%Ro"   # vitrinite reflectance
+    PERCENT_RO = "%Ro"  # vitrinite reflectance
 
     # API gravity (petroleum)
     API = "API"
@@ -91,7 +92,6 @@ _CONVERSION_FACTORS: dict[tuple[GeoUnit, GeoUnit], float] = {
     (GeoUnit.KILOMETER, GeoUnit.FEET): 3280.84,
     (GeoUnit.FEET, GeoUnit.METER): 0.3048,
     (GeoUnit.FEET, GeoUnit.KILOMETER): 3.048e-4,
-
     # Pressure conversions
     (GeoUnit.MPA, GeoUnit.PSI): 145.038,
     (GeoUnit.MPA, GeoUnit.KPA): 1000.0,
@@ -105,15 +105,12 @@ _CONVERSION_FACTORS: dict[tuple[GeoUnit, GeoUnit], float] = {
     (GeoUnit.BAR, GeoUnit.MPA): 0.1,
     (GeoUnit.BAR, GeoUnit.PSI): 14.5038,
     (GeoUnit.BAR, GeoUnit.KPA): 100.0,
-
     # Density conversions
     (GeoUnit.KG_M3, GeoUnit.G_CM3): 1e-3,
     (GeoUnit.G_CM3, GeoUnit.KG_M3): 1e3,
-
     # Dimensionless
     (GeoUnit.FRACTION, GeoUnit.PERCENT): 100.0,
     (GeoUnit.PERCENT, GeoUnit.FRACTION): 0.01,
-
     # Velocity
     (GeoUnit.M_S, GeoUnit.KM_S): 1e-3,
     (GeoUnit.M_S, GeoUnit.FT_S): 3.28084,
@@ -121,7 +118,6 @@ _CONVERSION_FACTORS: dict[tuple[GeoUnit, GeoUnit], float] = {
     (GeoUnit.KM_S, GeoUnit.FT_S): 3280.84,
     (GeoUnit.FT_S, GeoUnit.M_S): 0.3048,
     (GeoUnit.FT_S, GeoUnit.KM_S): 3.048e-4,
-
     # Seismic time
     (GeoUnit.MS_TWT, GeoUnit.US_TWT): 1000.0,
     (GeoUnit.US_TWT, GeoUnit.MS_TWT): 1e-3,
@@ -137,6 +133,7 @@ _TEMP_CONVERSIONS: set[tuple[GeoUnit, GeoUnit]] = {
 # ---------------------------------------------------------------------------
 # convert()
 # ---------------------------------------------------------------------------
+
 
 def convert(value: float, from_unit: GeoUnit, to_unit: GeoUnit) -> float:
     """
@@ -280,6 +277,7 @@ def parse_unit_string(s: str) -> GeoUnit | None:
 # ---------------------------------------------------------------------------
 # format_quantity()
 # ---------------------------------------------------------------------------
+
 
 def format_quantity(value: float, unit: GeoUnit, uncertainty: float) -> str:
     """

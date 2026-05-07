@@ -18,14 +18,14 @@ export const ProspectUI: React.FC = () => {
 
     const handleProjectWell = useCallback(async () => {
         if (!selectedWell) return;
-        
+
         try {
             updateFloorStatus('F4', 'amber', 'Projecting well trajectory through GeoFabric');
             const result = await projectWellTool.call({
                 well_id: selectedWell,
                 target_epsg: 4326 // WGS84 for display
             });
-            
+
             if (result.points) {
                 setProjectedPath(result.points);
                 updateFloorStatus('F4', 'green', 'Trajectory projected successfully');
@@ -48,9 +48,9 @@ export const ProspectUI: React.FC = () => {
             <div className="h-12 border-b border-slate-800 bg-slate-900/50 flex items-center px-4 gap-4">
                 <Target className="w-5 h-5 text-red-500" />
                 <h2 className="text-sm font-black tracking-widest uppercase italic font-ui">Prospect UI</h2>
-                
+
                 <div className="flex-1" />
-                
+
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-mono text-slate-500 uppercase">Selected:</span>
                     <span className="geox-domain-indicator geox-domain-indicator--void">
@@ -68,7 +68,7 @@ export const ProspectUI: React.FC = () => {
                     {/* Prospect Boundary (Box) */}
                     <div className="w-64 h-64 border-2 border-red-500/30 bg-red-500/5 rounded-lg flex items-center justify-center relative geox-glass">
                         <span className="absolute -top-6 left-0 text-[10px] font-mono text-red-400 font-bold uppercase">Boundary: Alpha_01</span>
-                        
+
                         {/* Well Target (Center) */}
                         <div className="w-4 h-4 rounded-full border border-yellow-500 flex items-center justify-center geox-pulse--amber">
                             <div className="w-1 h-1 bg-yellow-500 rounded-full" />
@@ -77,7 +77,7 @@ export const ProspectUI: React.FC = () => {
                         {/* Projected Trajectory Simulation (Simplified SVG) */}
                         {projectedPath.length > 0 && (
                             <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                                <path 
+                                <path
                                     d={`M 128,128 L ${projectedPath.map((p, i) => `${128 + i*2},${128 + i*4}`).join(' L ')}`}
                                     fill="none"
                                     stroke="var(--geox-cyan-400)"
@@ -93,13 +93,13 @@ export const ProspectUI: React.FC = () => {
 
                     {/* Map UI Overlays */}
                     <div className="absolute bottom-4 left-4 flex flex-col gap-2">
-                        <button 
+                        <button
                             className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-slate-400 transition-colors"
                             title="Toggle Layers"
                         >
                             <Layers className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                             className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-slate-400 transition-colors"
                             title="Center View"
                         >
@@ -143,7 +143,7 @@ export const ProspectUI: React.FC = () => {
                             )}
                         </div>
 
-                        <button 
+                        <button
                             onClick={handleProjectWell}
                             disabled={!selectedWell || projectWellTool.status === 'loading'}
                             className="w-full geox-btn geox-btn--primary"

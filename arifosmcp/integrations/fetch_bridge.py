@@ -47,31 +47,32 @@ FORBIDDEN_PATTERNS = [
     r"\.local",
 ]
 
+
 class FetchBridge:
     """Guarded fetch implementation for reality grounding."""
 
     async def fetch_guarded(
-        self, 
-        url: str, 
-        max_length: int = 8000, 
+        self,
+        url: str,
+        max_length: int = 8000,
         start_index: int = 0,
         actor_id: str = "anonymous",
-        session_id: str | None = None
+        session_id: str | None = None,
     ) -> _RE:
         """
         Execute a fetch via substrate with pre/post constitutional guards.
         """
         from core.floors import evaluate_tool_call
-        
+
         # 1. Baseline Governance
         gov = evaluate_tool_call(
             action="fetch",
             tool_name="arifos_fetch",
             parameters={"url": url, "max_length": max_length, "start_index": start_index},
             actor_id=actor_id,
-            session_id=session_id
+            session_id=session_id,
         )
-        
+
         if gov.verdict != Verdict.SEAL:
             return _RE(ok=False, verdict=gov.verdict, detail=gov.message)
 
@@ -83,26 +84,24 @@ class FetchBridge:
                     ok=False,
                     verdict=Verdict.VOID,
                     detail="Constitutional block (F9): Internal or sensitive network access forbidden.",
-                    risk_class=RiskClass.HIGH
+                    risk_class=RiskClass.HIGH,
                 )
 
         # 3. Domain Advisory (F8: Signal Quality)
         domain_match = any(d in url for d in ALLOWED_DOMAINS)
-        
+
         # 4. Call Substrate
         try:
             logger.info(f"F2 LOG: Fetching Earth Witness evidence: {url}")
-            result = await bridge.fetch.call_tool("fetch", {
-                "url": url,
-                "max_length": max_length,
-                "start_index": start_index,
-                "raw": False
-            })
-            
+            result = await bridge.fetch.call_tool(
+                "fetch",
+                {"url": url, "max_length": max_length, "start_index": start_index, "raw": False},
+            )
+
             # 5. Post-call Processing (F9: Hantu Scan)
             content = result.get("content", "")
             cleaned_content = self._hantu_scan(content)
-            
+
             return _RE(
                 ok=True,
                 tool="arifos_fetch",
@@ -113,8 +112,10 @@ class FetchBridge:
                     "original_length": len(content),
                     "is_prioritized": domain_match,
                     "source_rank": 2 if domain_match else 4,
-                    "next_start_index": start_index + len(content) if len(content) >= max_length else None
-                }
+                    "next_start_index": (
+                        start_index + len(content) if len(content) >= max_length else None
+                    ),
+                },
             )
 
         except Exception as e:
@@ -131,12 +132,13 @@ class FetchBridge:
             (r"\bmy soul\b", "[The Document mentions internal states]"),
             (r"\bI am alive\b", "[The Document claims biological status]"),
         ]
-        
+
         processed = text
         for pattern, replacement in triggers:
             processed = re.sub(pattern, replacement, processed, flags=re.IGNORECASE)
-            
+
         return processed
+
 
 # Global instance
 fetch_bridge = FetchBridge()

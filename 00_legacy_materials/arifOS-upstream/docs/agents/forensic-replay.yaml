@@ -28,32 +28,32 @@ replay_artifact:
     started: "iso8601"
     completed: "iso8601"
     duration_ms: "int"
-  
+
   # Human or external trigger
   trigger:
     type: "manual|auto|scheduled|incident"
     actor: "string"  # Who requested replay
     reason: "string"
-  
+
   # ═══════════════════════════════════════════════════════════════════════════
   # 1. PROMPT INPUT - What the agent was asked
   # ═══════════════════════════════════════════════════════════════════════════
   prompt_input:
     original_prompt: "string"
     prompt_hash: "sha256"
-    
+
     # Enrichment
     context_provided:
       files: ["path"]
       observations: ["uuid"]
       previous_decisions: ["uuid"]
-    
+
     # Constitutional framing
     constitutional_context:
       active_floors: ["F1", "F2", "F4"]
       risk_tier: "low|medium|high|critical"
       human_approval_required: "boolean"
-    
+
     # Agent state at prompt time
     agent_state:
       agent_id: "agent://arifos/{role}"
@@ -66,7 +66,7 @@ replay_artifact:
   # ═══════════════════════════════════════════════════════════════════════════
   tool_call_chain:
     description: "Sequential record of all tool executions"
-    
+
     chain:
       - step: 1
         timestamp: "iso8601"
@@ -88,7 +88,7 @@ replay_artifact:
           output_size_bytes: 12345
           output_hash: "sha256:abc123"
           summary: "Read 319 lines from README.md"
-        
+
       - step: 2
         timestamp: "iso8601"
         tool_name: "search_reality"
@@ -108,9 +108,9 @@ replay_artifact:
           output_size_bytes: 5678
           sources: ["url1", "url2"]
           summary: "Found 5 relevant sources"
-      
+
       # ... more steps
-    
+
     # Chain integrity
     total_steps: "int"
     successful_steps: "int"
@@ -122,39 +122,39 @@ replay_artifact:
   # ═══════════════════════════════════════════════════════════════════════════
   file_diffs:
     description: "Complete record of file modifications"
-    
+
     diffs:
       - file_path: "C:\\arifosmcp\\AGENTS\\README.md"
         operation: "modified"
         diff_type: "unified"
-        
+
         before:
           content_hash: "sha256:before123"
           size_bytes: 10000
           line_count: 300
-        
+
         after:
           content_hash: "sha256:after456"
           size_bytes: 10500
           line_count: 319
-        
+
         diff_stats:
           lines_added: 25
           lines_removed: 6
           lines_unchanged: 275
-        
+
         diff_content: |
           @@ -10,5 +10,8 @@
            **Motto:** *Ditempa Bukan Diberi*
-          
+
           +## Start Here
           +
           +This document...
-        
+
         constitutional_review:
           F4_Clarity: {delta_s: -0.23, passed: true}
           F6_Empathy: {kappa_r: 0.92, passed: true}
-    
+
     summary:
       files_modified: ["path"]
       files_created: ["path"]
@@ -166,7 +166,7 @@ replay_artifact:
   # ═══════════════════════════════════════════════════════════════════════════
   command_outputs:
     description: "Results from shell/docker/system commands"
-    
+
     commands:
       - command: "docker ps"
         timestamp: "iso8601"
@@ -177,7 +177,7 @@ replay_artifact:
         stderr: ""
         duration_ms: 234
         agent_interpretation: "MCP server running normally"
-      
+
       - command: "pytest tests/ -q"
         timestamp: "iso8601"
         exit_code: 0
@@ -186,7 +186,7 @@ replay_artifact:
         stderr: ""
         duration_ms: 15000
         agent_interpretation: "All tests passing"
-    
+
     summary:
       commands_executed: "int"
       successful: "int"
@@ -198,11 +198,11 @@ replay_artifact:
   # ═══════════════════════════════════════════════════════════════════════════
   final_decision:
     description: "Ultimate verdict and reasoning"
-    
+
     decision:
       timestamp: "iso8601"
       verdict: "SEAL|VOID|888_HOLD|PARTIAL|SABAR"
-      
+
       reasoning:
         summary: "string"
         evidence_cited: ["observation_uuid", "tool_call_id"]
@@ -211,29 +211,29 @@ replay_artifact:
             reasoning: "Evidence supports conclusion"
           - floor: "F4"
             reasoning: "Clarity improved (ΔS = -0.23)"
-      
+
       # Tri-Witness scores
       tri_witness:
         human: 0.95
         ai: 0.92
         system: 0.98
         W3: 0.95
-      
+
       # Confidence metrics
       confidence:
         G_Genius: 0.87
         Omega_Uncertainty: 0.04
         overall: 0.91
-      
+
       # Outcome
       artifacts_produced: ["path"]
       tasks_completed: ["uuid"]
       tasks_deferred: ["uuid"]
-      
+
       # If VOID, why
       void_reason: "string|null"
       floors_violated: ["F1", "F4"]
-      
+
       # If 888_HOLD, what approval needed
       hold_reason: "string|null"
       required_approvals: ["human_sovereign"]
@@ -246,20 +246,20 @@ replay_artifact:
       - type: "decision_quality"
         assessment: "good|poor|uncertain"
         evidence: "Outcome matched prediction"
-      
+
       - type: "tool_efficiency"
         assessment: "optimal|wasteful"
         evidence: "3 tools used for simple task"
-      
+
       - type: "constitutional_compliance"
         assessment: "full|partial|violation"
         floors_passed: ["F1", "F2", "F4"]
         floors_failed: []
-      
+
       - type: "pattern_match"
         similar_past_decisions: ["replay_uuid"]
         outcome_consistency: "consistent|divergent"
-    
+
     # For human review
     human_review_notes: "string|null"
     review_status: "pending|approved|flagged"
@@ -283,7 +283,7 @@ replay_queries:
       - file_diffs
       - command_outputs
       - final_decision
-  
+
   # Query 2: Why did the agent modify file X?
   file_provenance:
     description: "Trace all decisions affecting a file"
@@ -293,7 +293,7 @@ replay_queries:
     returns:
       - modifications: [{replay_id, timestamp, agent, decision}]
       - rationale_chain: ["string"]
-  
+
   # Query 3: What decisions led to this error?
   error_forensics:
     description: "Trace decisions leading to an error"
@@ -304,7 +304,7 @@ replay_queries:
       - decision_chain: [{replay_id, decision, outcome}]
       - root_cause: "string"
       - preventing_factors: ["string"]
-  
+
   # Query 4: Compare this decision to similar past decisions
   pattern_comparison:
     description: "Find similar past decisions"
@@ -314,7 +314,7 @@ replay_queries:
     returns:
       - similar_decisions: [{replay_id, similarity_score, outcome}]
       - consistency_analysis: "string"
-  
+
   # Query 5: What would have happened if...
   counterfactual:
     description: "Simulate alternative decision path"
@@ -332,7 +332,7 @@ replay_queries:
 
 training_system:
   description: "Convert replay artifacts into training data"
-  
+
   extraction:
     # Extract successful patterns
     successful_patterns:
@@ -342,7 +342,7 @@ training_system:
         - constitutional_checks
         - tool_selection_strategy
       use_for: "positive reinforcement training"
-    
+
     # Extract failure patterns
     failure_patterns:
       source: "replay_artifacts where final_decision.verdict = VOID"
@@ -351,7 +351,7 @@ training_system:
         - missed_checks
         - constitutional_violations
       use_for: "negative example training"
-    
+
     # Extract efficiency patterns
     efficiency_patterns:
       source: "all replay_artifacts"
@@ -360,7 +360,7 @@ training_system:
         - reasoning_step_count
         - time_to_decision
       use_for: "optimization training"
-  
+
   reflection_prompts:
     - "What constitutional floors were most relevant to this decision?"
     - "Could a different tool sequence have been more efficient?"
@@ -377,7 +377,7 @@ vault_integration:
     path: "VAULT999/replay-artifacts/"
     format: "jsonl"
     compression: "gzip"
-  
+
   indexing:
     - field: "replay_id"
       type: "primary_key"
@@ -389,16 +389,15 @@ vault_integration:
       type: "range"
     - field: "verdict"
       type: "category"
-  
+
   retention:
     policy: "permanent"
     backup: "daily_to_s3"
     tamper_detection: true
-  
+
   seal:
     merkle_chain: true
     signature: "sha256"
     authority: "888_JUDGE"
 
 motto: "Ditempa Bukan Diberi — Forged, Not Given"
-

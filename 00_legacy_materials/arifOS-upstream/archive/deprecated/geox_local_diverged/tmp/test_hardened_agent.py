@@ -27,7 +27,7 @@ async def test_hardened_agent():
             return GeoToolResult(
                 success=True,
                 data={"message": "Welcome to the Malay Basin Forge, arif."},
-                explanation="Initial grounding check completed."
+                explanation="Initial grounding check completed.",
             )
 
     agent.registry.register(HelloEarthTool())
@@ -36,7 +36,9 @@ async def test_hardened_agent():
     envelope = await agent.execute_tool("hello_earth", {"user": "arif"})
 
     import json
+
     print(json.dumps(envelope, indent=2))
+
 
 if __name__ == "__main__":
     asyncio.run(test_hardened_agent())

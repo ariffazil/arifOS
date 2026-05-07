@@ -1,6 +1,6 @@
 # arifOS MCP Server — A-FORGE Production Dockerfile
 # ═══════════════════════════════════════════════════════════════════════════════
-# 
+#
 # Build: docker build -t arifosmcp:a-forge -f deployments/a-forge/Dockerfile .
 # Run:   docker run -p 3000:3000 -e ARIFOSMCP_TRANSPORT=http arifosmcp:a-forge
 

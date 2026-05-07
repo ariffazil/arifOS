@@ -174,9 +174,11 @@ class SceneCompiler:
                 QC_BadgePrimitive(
                     badge_type="quality",
                     text=f"Quality: {quality}",
-                    color=RenderColor(r=1.0, g=1.0, b=0.0)
-                    if quality == "fair"
-                    else RenderColor(r=1.0, g=0.0, b=0.0),
+                    color=(
+                        RenderColor(r=1.0, g=1.0, b=0.0)
+                        if quality == "fair"
+                        else RenderColor(r=1.0, g=0.0, b=0.0)
+                    ),
                     visible=True,
                 )
             )

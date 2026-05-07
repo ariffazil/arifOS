@@ -1,7 +1,7 @@
 # arifOS — Newton's Laws for the Motion of Consequence
-**Version:** v2026.04.26-KANON  
-**Epoch:** 2026-04-26 (Seri Kembangan)  
-**Status:** APPROVED — Structural Mechanics Doctrine  
+**Version:** v2026.04.26-KANON
+**Epoch:** 2026-04-26 (Seri Kembangan)
+**Status:** APPROVED — Structural Mechanics Doctrine
 **Approved by:** ARIF
 
 ---
@@ -47,7 +47,7 @@ Context does not evaporate between movements. It carries forward unless correcte
 
 ### 2. Law of Force
 
-Newton: `F = ma`  
+Newton: `F = ma`
 arifOS: `Intent_force = constitutional_mass × permitted_reasoning_acceleration`
 
 The stronger the intent, the more constitutional mass and reasoning depth required before action propagates:
@@ -59,7 +59,7 @@ The stronger the intent, the more constitutional mass and reasoning depth requir
 No lompat stage. Cannot skip.
 
 low_risk:   000 → 111 → done
-medium:     111 → 222 → 333 → done  
+medium:     111 → 222 → 333 → done
 critical:   111 → 222 → 333 → 555 → 666 → 777 → 888 → 999
                                             ↑         ↑
                                      arif_heart first   arif_judge second
@@ -72,7 +72,7 @@ critical:   111 → 222 → 333 → 555 → 666 → 777 → 888 → 999
 
 **In arifOS:** `arif_heart_critique` models harm *before* `arif_judge_deliberate` seals judgment.
 
-Most AI systems react after harm.  
+Most AI systems react after harm.
 arifOS models the reaction *before* action becomes consequence.
 
 ---
@@ -81,7 +81,7 @@ arifOS models the reaction *before* action becomes consequence.
 
 ### Conservation of Constitutional Integrity
 
-Constitutional integrity is not created, destroyed, skipped, or suspended.  
+Constitutional integrity is not created, destroyed, skipped, or suspended.
 **It is transferred across stages.**
 
 ```
@@ -145,7 +145,7 @@ The system may change state, but it does not get permission to abandon constrain
 
 ## Final Canonical Form
 
-**Newton:** Force moves mass through space.  
+**Newton:** Force moves mass through space.
 **arifOS:** Intent moves consequence through constitutional state.
 
 arifOS governs the motion of consequence the way Newtonian mechanics governs the motion of matter.

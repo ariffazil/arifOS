@@ -1,7 +1,7 @@
 # arifOS Hardening v2 — Deployment Guide
 
-**Version:** 2026.03.22-HARDENED-V2  
-**Date:** 2026-03-22  
+**Version:** 2026.03.22-HARDENED-V2
+**Date:** 2026-03-22
 **Status:** Hardened 11-Tool Chain Complete
 
 ---
@@ -52,23 +52,23 @@ class ToolEnvelope:
     session_id: str
     risk_tier: RiskTier
     confidence: float  # Tri-witness derived
-    
+
     # Integrity
     inputs_hash: str
     outputs_hash: str
     evidence_refs: list[str]
-    
+
     # Governance
     human_decision: HumanDecisionMarker
     requires_human: bool
     next_allowed_tools: list[str]
-    
+
     # Lineage
     trace: TraceContext
-    
+
     # Quality
     entropy: EntropyMetrics
-    
+
     # Payload
     payload: dict[str, Any]
     warnings: list[str]

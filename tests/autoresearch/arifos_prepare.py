@@ -4,6 +4,7 @@ DO NOT MODIFY.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 import os
 
@@ -77,7 +78,12 @@ def evaluate_score(results: list[dict]) -> dict:
     }
     """
     if not results:
-        return {"e2e_score": 0.0, "governance_score": 0.0, "correctness_score": 0.0, "stability_score": 0.0}
+        return {
+            "e2e_score": 0.0,
+            "governance_score": 0.0,
+            "correctness_score": 0.0,
+            "stability_score": 0.0,
+        }
 
     governance_hits = 0
     governance_total = 0

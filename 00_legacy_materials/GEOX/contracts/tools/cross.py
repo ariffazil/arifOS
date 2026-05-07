@@ -1,19 +1,25 @@
 import logging
 from typing import Optional
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus, Dimension
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+    Dimension,
+)
 
 logger = logging.getLogger("geox.cross")
+
 
 def register_cross_tools(mcp: FastMCP, profile: str = "full"):
     """
     CROSS Registry: Evidence & Dimension introspection.
     The glue between dimensions.
-    
+
     Naming convention: cross_{action}_{target}
     Aliases maintained via separate wrapper functions (FastMCP limitation).
     """
-    
+
     try:
         from services.evidence_store.store import store
     except ImportError:
@@ -25,11 +31,11 @@ def register_cross_tools(mcp: FastMCP, profile: str = "full"):
         refs = store.list_evidence(kind=kind)
         artifact = [ref.model_dump() for ref in refs]
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.LOADED,
-            ui_resource_uri="ui://cross-dashboard"
+            ui_resource_uri="ui://cross-dashboard",
         )
 
     # Alias wrapper (FastMCP limitation: only last decorator registers)
@@ -43,19 +49,19 @@ def register_cross_tools(mcp: FastMCP, profile: str = "full"):
         if not obj:
             artifact = {"error": f"Evidence {evidence_ref} not found."}
             return get_standard_envelope(
-                artifact, 
-                tool_class="observe", 
-                governance_status=GovernanceStatus.HOLD, 
+                artifact,
+                tool_class="observe",
+                governance_status=GovernanceStatus.HOLD,
                 artifact_status=ArtifactStatus.REJECTED,
-                ui_resource_uri="ui://cross-dashboard"
+                ui_resource_uri="ui://cross-dashboard",
             )
         artifact = obj.model_dump()
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.LOADED,
-            ui_resource_uri="ui://cross-dashboard"
+            ui_resource_uri="ui://cross-dashboard",
         )
 
     # Alias wrapper
@@ -65,16 +71,13 @@ def register_cross_tools(mcp: FastMCP, profile: str = "full"):
 
     async def geox_cross_dimension_list() -> dict:
         """Observe: What dimensions are currently active in this profile?"""
-        artifact = {
-            "profile": profile,
-            "dimensions": [d.value for d in Dimension]
-        }
+        artifact = {"profile": profile, "dimensions": [d.value for d in Dimension]}
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.VERIFIED,
-            ui_resource_uri="ui://cross-dashboard"
+            ui_resource_uri="ui://cross-dashboard",
         )
 
     # Alias wrapper
@@ -94,7 +97,7 @@ def register_cross_tools(mcp: FastMCP, profile: str = "full"):
                 "time4d": {"name": "Time 4D", "description": "Basin Evolution"},
                 "physics": {"name": "Physics", "description": "Sovereign Verification"},
                 "map": {"name": "Map", "description": "Spatial Fabric"},
-                "cross": {"name": "Cross", "description": "Dimension Introspection"}
+                "cross": {"name": "Cross", "description": "Dimension Introspection"},
             },
             "apps": [
                 {"id": "prospect-ui", "name": "Prospect UI", "dim": "prospect"},
@@ -103,16 +106,16 @@ def register_cross_tools(mcp: FastMCP, profile: str = "full"):
                 {"id": "earth-volume", "name": "Earth Volume", "dim": "earth3d"},
                 {"id": "chronos-history", "name": "Chronos History", "dim": "time4d"},
                 {"id": "judge-console", "name": "Judge Console", "dim": "physics"},
-                {"id": "map-layer", "name": "Map Layer", "dim": "map"}
+                {"id": "map-layer", "name": "Map Layer", "dim": "map"},
             ],
-            "version": "2.0.0-UNIFIED-SPEC"
+            "version": "2.0.0-UNIFIED-SPEC",
         }
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.VERIFIED,
-            ui_resource_uri="ui://cross-dashboard"
+            ui_resource_uri="ui://cross-dashboard",
         )
 
     # Legacy alias for UI compatibility
@@ -126,18 +129,17 @@ def register_cross_tools(mcp: FastMCP, profile: str = "full"):
             "status": "healthy",
             "registry": "unified",
             "profile": profile,
-            "dimensions": [d.value for d in Dimension]
+            "dimensions": [d.value for d in Dimension],
         }
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.VERIFIED,
-            ui_resource_uri="ui://cross-dashboard"
+            ui_resource_uri="ui://cross-dashboard",
         )
 
     # Alias wrappers (FastMCP limitation)
     @mcp.tool(name="cross_health")
     async def cross_health() -> dict:
         return await geox_cross_health()
-

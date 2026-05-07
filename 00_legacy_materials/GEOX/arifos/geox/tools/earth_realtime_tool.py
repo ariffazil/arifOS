@@ -168,7 +168,7 @@ class EarthRealtimeTool(BaseTool):
             coords = feat.get("geometry", {}).get("coordinates", [None, None, None])
             mag = props.get("mag")
             depth = coords[2]  # km
-            place = props.get("place", "Unknown")
+            props.get("place", "Unknown")
             eq_time = datetime.fromtimestamp(props["time"] / 1000, tz=timezone.utc)
             eq_id = feat.get("id", "unknown")
 
@@ -181,25 +181,29 @@ class EarthRealtimeTool(BaseTool):
             )
 
             if mag is not None:
-                quantities.append(GeoQuantity(
-                    value=float(mag),
-                    units="Richter",
-                    quantity_type="seismic_magnitude",
-                    coordinates=location,
-                    timestamp=eq_time,
-                    uncertainty=_UNCERTAINTY["seismic_magnitude"],
-                    provenance=prov,
-                ))
+                quantities.append(
+                    GeoQuantity(
+                        value=float(mag),
+                        units="Richter",
+                        quantity_type="seismic_magnitude",
+                        coordinates=location,
+                        timestamp=eq_time,
+                        uncertainty=_UNCERTAINTY["seismic_magnitude"],
+                        provenance=prov,
+                    )
+                )
             if depth is not None:
-                quantities.append(GeoQuantity(
-                    value=float(depth),
-                    units="km",
-                    quantity_type="seismic_depth_km",
-                    coordinates=location,
-                    timestamp=eq_time,
-                    uncertainty=_UNCERTAINTY["seismic_depth_km"],
-                    provenance=prov,
-                ))
+                quantities.append(
+                    GeoQuantity(
+                        value=float(depth),
+                        units="km",
+                        quantity_type="seismic_depth_km",
+                        coordinates=location,
+                        timestamp=eq_time,
+                        uncertainty=_UNCERTAINTY["seismic_depth_km"],
+                        provenance=prov,
+                    )
+                )
 
         summary = {
             "count": len(features),
@@ -229,16 +233,18 @@ class EarthRealtimeTool(BaseTool):
         params = {
             "latitude": location.latitude,
             "longitude": location.longitude,
-            "current": ",".join([
-                "temperature_2m",
-                "relative_humidity_2m",
-                "precipitation",
-                "surface_pressure",
-                "wind_speed_10m",
-                "wind_direction_10m",
-                "cloud_cover",
-                "weather_code",
-            ]),
+            "current": ",".join(
+                [
+                    "temperature_2m",
+                    "relative_humidity_2m",
+                    "precipitation",
+                    "surface_pressure",
+                    "wind_speed_10m",
+                    "wind_direction_10m",
+                    "cloud_cover",
+                    "weather_code",
+                ]
+            ),
             "timezone": "UTC",
         }
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -247,7 +253,7 @@ class EarthRealtimeTool(BaseTool):
             data = resp.json()
 
         current = data.get("current", {})
-        units = data.get("current_units", {})
+        data.get("current_units", {})
         quantities: list[GeoQuantity] = []
 
         field_map = {
@@ -269,15 +275,17 @@ class EarthRealtimeTool(BaseTool):
         for api_key, (qty_type, unit) in field_map.items():
             val = current.get(api_key)
             if val is not None:
-                quantities.append(GeoQuantity(
-                    value=float(val),
-                    units=unit,
-                    quantity_type=qty_type,
-                    coordinates=location,
-                    timestamp=now,
-                    uncertainty=_UNCERTAINTY.get(qty_type, 0.08),
-                    provenance=prov,
-                ))
+                quantities.append(
+                    GeoQuantity(
+                        value=float(val),
+                        units=unit,
+                        quantity_type=qty_type,
+                        coordinates=location,
+                        timestamp=now,
+                        uncertainty=_UNCERTAINTY.get(qty_type, 0.08),
+                        provenance=prov,
+                    )
+                )
 
         return {
             "quantities": quantities,
@@ -311,10 +319,7 @@ class EarthRealtimeTool(BaseTool):
             resp.raise_for_status()
             data = resp.json()
 
-        field = (
-            data.get("geomagnetic-field-model-result", {})
-            .get("field-value", {})
-        )
+        field = data.get("geomagnetic-field-model-result", {}).get("field-value", {})
         decl_raw = field.get("declination", {})
         incl_raw = field.get("inclination", {})
         decl = decl_raw.get("value") if isinstance(decl_raw, dict) else decl_raw
@@ -330,25 +335,29 @@ class EarthRealtimeTool(BaseTool):
         )
 
         if decl is not None:
-            quantities.append(GeoQuantity(
-                value=float(decl),
-                units="degrees",
-                quantity_type="magnetic_declination_deg",
-                coordinates=location,
-                timestamp=now,
-                uncertainty=_UNCERTAINTY["magnetic_declination_deg"],
-                provenance=prov,
-            ))
+            quantities.append(
+                GeoQuantity(
+                    value=float(decl),
+                    units="degrees",
+                    quantity_type="magnetic_declination_deg",
+                    coordinates=location,
+                    timestamp=now,
+                    uncertainty=_UNCERTAINTY["magnetic_declination_deg"],
+                    provenance=prov,
+                )
+            )
         if incl is not None:
-            quantities.append(GeoQuantity(
-                value=float(incl),
-                units="degrees",
-                quantity_type="magnetic_inclination_deg",
-                coordinates=location,
-                timestamp=now,
-                uncertainty=0.03,
-                provenance=prov,
-            ))
+            quantities.append(
+                GeoQuantity(
+                    value=float(incl),
+                    units="degrees",
+                    quantity_type="magnetic_inclination_deg",
+                    coordinates=location,
+                    timestamp=now,
+                    uncertainty=0.03,
+                    provenance=prov,
+                )
+            )
 
         return {
             "quantities": quantities,
@@ -377,8 +386,8 @@ class EarthRealtimeTool(BaseTool):
 
         lines = [
             f"EARTH REALTIME SIGNALS @ ({location.latitude:.3f}°, {location.longitude:.3f}°)",
-            f"Seismic: {eq_count} events within {radius_km:.0f}km" +
-            (f", max M{max_mag:.1f}" if max_mag else ", no significant events"),
+            f"Seismic: {eq_count} events within {radius_km:.0f}km"
+            + (f", max M{max_mag:.1f}" if max_mag else ", no significant events"),
             f"Climate: {temp}°C, {pressure} hPa" if temp else "Climate: data unavailable",
             f"GeoMag: declination {decl:.2f}°" if decl else "GeoMag: data unavailable",
             "Sources: USGS (CC0) | Open-Meteo (CC-BY 4.0) | NOAA NGDC (public domain)",
@@ -390,9 +399,8 @@ class EarthRealtimeTool(BaseTool):
         """Quick connectivity check against USGS."""
         try:
             import urllib.request
-            urllib.request.urlopen(
-                f"{_USGS_BASE}?format=geojson&limit=1&minmagnitude=5", timeout=5
-            )
+
+            urllib.request.urlopen(f"{_USGS_BASE}?format=geojson&limit=1&minmagnitude=5", timeout=5)
             return True
         except Exception:
             return False

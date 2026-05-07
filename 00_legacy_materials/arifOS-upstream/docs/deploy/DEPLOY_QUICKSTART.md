@@ -151,7 +151,7 @@ ssh root@arif-fazil.com "cd /root/arifosmcp && docker-compose restart"
 🔷 Stage 1/6: Validating prerequisites
    └─ Git state, SSH access, branch check
 
-🔷 Stage 2/6: Running test suite  
+🔷 Stage 2/6: Running test suite
    └─ Unit, Integration, Constitutional (F1-F13)
 
 🔷 Stage 3/6: Creating rollback backup

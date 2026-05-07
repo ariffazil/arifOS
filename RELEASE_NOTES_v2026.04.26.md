@@ -1,8 +1,8 @@
 # arifOS v2026.04.26-KANON — The True 13-Tool Canonical Surface
 
-**Release Date:** 2026-04-26  
-**Commit:** `5acd35fb`  
-**Tag:** `v2026.04.26-KANON`  
+**Release Date:** 2026-04-26
+**Commit:** `5acd35fb`
+**Tag:** `v2026.04.26-KANON`
 **Codename:** KANON-13
 
 ---
@@ -11,8 +11,8 @@
 
 This release seals the **canonical 13-tool public MCP surface**. Diagnostic probes (`arif_ping`, `arif_selftest`) and interpretive witness tooling have been **internalized** — they remain fully operational as runtime diagnostics and internal governance sidecars, but are no longer exposed as public MCP tools. This reduces public surface entropy, hardens the external contract, and aligns the live system with the constitutional architecture.
 
-**Public surface:** 13 capability tools only.  
-**Internal runtime:** 2 diagnostics + context witness emission.  
+**Public surface:** 13 capability tools only.
+**Internal runtime:** 2 diagnostics + context witness emission.
 **External ops:** `/health` (liveness) + `/ready` (readiness selftest).
 
 ---

@@ -143,7 +143,7 @@ def detect_time_depth_domain(
         elif 5 <= sample_rate <= 100:
             return TimeDepthDomain.DEPTH
 
-    row_mean = float(np.mean(array[:5, :]))
+    float(np.mean(array[:5, :]))
     row_max = float(np.max(array[:5, :]))
 
     if row_max < 10:
@@ -205,7 +205,7 @@ async def ingest_seismic_image(
 
     aggregate_uncertainty = min(0.20, uncertainty + 0.01)
 
-    data_ref_hash = hashlib.sha256(image_ref.encode()).hexdigest()[:12]
+    hashlib.sha256(image_ref.encode()).hexdigest()[:12]
 
     telemetry = {
         "stage": 1,

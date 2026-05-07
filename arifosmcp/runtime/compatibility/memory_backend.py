@@ -12,40 +12,43 @@ from typing import Any
 # Determine backend version
 MEMORY_BACKEND_VERSION = os.getenv("MEMORY_BACKEND_VERSION", "v1")
 
+
 class MemoryBackend:
     """
     Compatibility wrapper for memory backends.
-    
+
     Public interface remains stable while internal implementation
     can be v1 (legacy) or v2 (hardened).
     """
-    
+
     def __init__(self):
         self.version = MEMORY_BACKEND_VERSION
         self._backend = self._load_backend()
-    
+
     def _load_backend(self):
         """Load appropriate backend."""
         if self.version == "v2":
             # Import v2 hardened organ
             try:
                 from core.organs.memory.memory_organ import MemoryOrgan
+
                 return MemoryOrgan()
             except ImportError:
                 # Fall back to v1 if v2 not available
                 return self._load_v1()
         else:
             return self._load_v1()
-    
+
     def _load_v1(self):
         """Load v1 legacy backend."""
         from ..megaTools.tool_07_engineering_memory import engineering_memory
+
         return engineering_memory
-    
+
     async def query(self, query: str, mode: str = "query", **kwargs) -> dict[str, Any]:
         """
         Canonical memory query.
-        
+
         Returns standardized response regardless of backend version.
         """
         if self.version == "v2":
@@ -54,7 +57,7 @@ class MemoryBackend:
         else:
             result = await self._backend(query=query, mode=mode, **kwargs)
             return self._format_v1_response(result)
-    
+
     def _format_v2_response(self, records: list) -> dict[str, Any]:
         """Format v2 records to canonical response."""
         return {
@@ -77,7 +80,7 @@ class MemoryBackend:
             ],
             "backend_version": "v2",
         }
-    
+
     def _format_v1_response(self, result: Any) -> dict[str, Any]:
         """Format v1 response to canonical shape."""
         if isinstance(result, dict):
@@ -90,6 +93,7 @@ class MemoryBackend:
 
 # Singleton instance
 _memory_backend: MemoryBackend | None = None
+
 
 def get_memory_backend() -> MemoryBackend:
     """Get or create memory backend."""

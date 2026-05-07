@@ -110,10 +110,10 @@ CURRENT (9 tabs):          EIC (5 tabs):
 - Seismic                  - Well Context Desk
 - Wells & Logs             - AC_Risk Console
 - Outcrop                  - Malay Basin Pilot
-- Prospect                 
-- Governance               
-- QC / Audit               
-- Malay Basin Pilot        
+- Prospect
+- Governance
+- QC / Audit
+- Malay Basin Pilot
 ```
 
 ---

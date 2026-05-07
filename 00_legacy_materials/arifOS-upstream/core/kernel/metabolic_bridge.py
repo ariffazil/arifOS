@@ -166,9 +166,17 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
         has_citation = any(
             pattern in raw_input_lower
             for pattern in [
-                "http://", "https://", "www.", "[1]", "[2]",  # URLs and refs
-                "according to", "as stated in", "source:",  # Attribution
-                "studies show", "research indicates", "data shows",  # Evidence claims
+                "http://",
+                "https://",
+                "www.",
+                "[1]",
+                "[2]",  # URLs and refs
+                "according to",
+                "as stated in",
+                "source:",  # Attribution
+                "studies show",
+                "research indicates",
+                "data shows",  # Evidence claims
             ]
         )
         has_technical_detail = len(proposal.raw_input) > 200 and (

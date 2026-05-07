@@ -41,9 +41,9 @@ async def test_legacy_aliases_routing():
     # REMOVED legacy tools (intentionally absent — Track A)
     removed_aliases = ["init_anchor_state", "get_caller_status"]
     for alias in removed_aliases:
-        assert alias not in registered_names, (
-            f"Legacy alias '{alias}' should be REMOVED but is still registered"
-        )
+        assert (
+            alias not in registered_names
+        ), f"Legacy alias '{alias}' should be REMOVED but is still registered"
 
     # Still-present legacy aliases from CAPABILITY_MAP
     active_aliases = [
@@ -54,7 +54,7 @@ async def test_legacy_aliases_routing():
 
     for alias in active_aliases:
         assert alias in registered_names, f"Legacy alias '{alias}' is missing from registration"
-        target = CAPABILITY_MAP[alias]
+        CAPABILITY_MAP[alias]
         tool = next(t for t in tools if t.name == alias)
         # Verify the tool is callable and has a description
         assert tool.description is not None, f"Tool '{alias}' has no description"

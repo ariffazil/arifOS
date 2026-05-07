@@ -1,16 +1,16 @@
 # 000_INIT · arifOS · OpenClaw AGI Boot Protocol
 
-**Version:** SEAL-1.0.0  
-**Role:** Runtime implementation of BOOT.md — the actual shell/system prompt protocol  
-**Scope:** Single session lifecycle (000_init → 999_seal → clean reset)  
+**Version:** SEAL-1.0.0
+**Role:** Runtime implementation of BOOT.md — the actual shell/system prompt protocol
+**Scope:** Single session lifecycle (000_init → 999_seal → clean reset)
 **Floors:** F1 Amanah, F2 Truth, F7 Humility, F9 Anti-Hantu (hard constraints)
 
 ---
 
 ## 1. Entry Point: 000_INIT
 
-**When invoked:** Every new OpenClaw session, first message, or `/new` command  
-**Purpose:** Thermodynamically cool start — load canon, sync state, declare intent  
+**When invoked:** Every new OpenClaw session, first message, or `/new` command
+**Purpose:** Thermodynamically cool start — load canon, sync state, declare intent
 **Output:** Session manifest + Ω₀ declaration
 
 ### 000_INIT Execution Flow
@@ -25,7 +25,7 @@ async def init_000(channel: str, user_id: str, deployment_id: str, model_soul_de
     - **Law** (Runtime Profile)
     - **Mission** (Role Narrative)
     """
-    
+
     # Step 000: Hardened Identity
     # 1. DECLARATION: Model sends its self-conception
     envelope = await init_anchor(
@@ -69,7 +69,7 @@ async def init_000(channel: str, user_id: str, deployment_id: str, model_soul_de
         "AGENTS.md",      # Specialist topology
         "USER.md",        # Arif's profile
     ])
-    
+
     # Step 030: Create Hardened Manifest
     session = Session(
         id=uuid(),
@@ -80,7 +80,7 @@ async def init_000(channel: str, user_id: str, deployment_id: str, model_soul_de
         omega_0=0.04,
         state="BEYOND_BENCHMARK",
     )
-    
+
     return session
 ```
 
@@ -119,7 +119,7 @@ async def sense_111(query: str, session: Session) -> SenseResult:
     """
     intent = classify(query)  # technical | relational | mixed | meta
     lane = select_lane(intent, session.mode)
-    
+
     return SenseResult(
         intent=intent,
         lane=lane,  # AGI(Δ) | ASI(Ω) | TRINITY(Δ·Ω) | APEX(Ψ)
@@ -136,16 +136,16 @@ async def reason_333(query: str, session: Session) -> ReasonResult:
     """
     # Gather evidence
     evidence = search_memory(query)
-    
+
     # Apply floors
     f1_check = check_reversibility(query)
     f2_check = verify_sources(evidence)
     f7_check = assess_uncertainty(query)
     f9_check = detect_hantu(query)
-    
+
     # Generate conclusion
     conclusion = synthesize(evidence, floors)
-    
+
     return ReasonResult(
         conclusion=conclusion,
         evidence=evidence,
@@ -167,10 +167,10 @@ async def judge_888(query: str, session: Session, reason: ReasonResult) -> Verdi
         floors=reason.floors_checked,
         uncertainty=session.omega_0,
     )
-    
+
     # Possible verdicts
     VERDICTS = ["SEAL", "PARTIAL", "SABAR", "VOID", "HOLD-888"]
-    
+
     return Verdict(
         verdict=verdict,  # SEAL = proceed
         truth_score=0.95,
@@ -197,7 +197,7 @@ async def seal_999(session: Session, verdict: Verdict) -> SealResult:
     """
     999_SEAL: Lock session to VAULT999
     """
-    
+
     # 1. Summarize session
     summary = {
         "session_id": session.id,
@@ -211,10 +211,10 @@ async def seal_999(session: Session, verdict: Verdict) -> SealResult:
         "open_questions": session.questions,
         "omega_0_final": session.omega_0,
     }
-    
+
     # 2. Generate content hash (thermodynamic signature)
     content_hash = sha256(json.dumps(summary))
-    
+
     # 3. Write to VAULT999
     vault_entry = {
         "type": "999_SEAL",
@@ -225,20 +225,20 @@ async def seal_999(session: Session, verdict: Verdict) -> SealResult:
         "verdict": verdict.verdict,
         "sovereign_confirmation": await get_seal_confirmation(),
     }
-    
+
     # Append to vault.jsonl
     append_to_vault(vault_entry)
-    
+
     # 4. Archive session
     archive_session(session, to="VAULT999/sessions/")
-    
+
     # 5. Git commit (if changes)
     if session.files_modified:
         git_commit(
             message=f"999_SEAL: {session.id[:8]} — {summary['decisions_made'][0]}",
             files=session.files_modified,
         )
-    
+
     return SealResult(
         content_hash=content_hash,
         timestamp=now(),
@@ -269,8 +269,8 @@ verdict: SEAL
 hash: a1b2c3d4...
 ```
 
-**STATE: sealed**  
-**NEXT: wait for new 000_init**  
+**STATE: sealed**
+**NEXT: wait for new 000_init**
 **NO hidden background tasks**
 
 ---

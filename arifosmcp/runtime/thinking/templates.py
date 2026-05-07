@@ -11,6 +11,7 @@ from dataclasses import dataclass
 @dataclass
 class ThinkingTemplate:
     """A constitutional thinking framework"""
+
     name: str
     description: str
     steps: list[str]  # Step prompts
@@ -24,7 +25,6 @@ class ThinkingTemplate:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Scientific Method - F2 TRUTH focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -38,13 +38,20 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Design verification approach (experiment or analysis)",
             "Execute verification step and collect data",
             "Analyze results and compare against hypothesis",
-            "Draw conclusion: accept, reject, or revise hypothesis"
+            "Draw conclusion: accept, reject, or revise hypothesis",
         ],
-        step_types=["analysis", "analysis", "hypothesis", "verification", "verification", "verification", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "hypothesis",
+            "verification",
+            "verification",
+            "verification",
+            "conclusion",
+        ],
         constitutional_floor="F2_TRUTH",
-        use_cases=["research", "debugging", "root_cause_analysis", "fact_verification"]
+        use_cases=["research", "debugging", "root_cause_analysis", "fact_verification"],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Five Whys - F5 PEACE focused (systemic safety)
     # ═══════════════════════════════════════════════════════════════════════════
@@ -58,13 +65,25 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Ask: Why does that happen? (Why #3) - Find contributing factors",
             "Ask: Why does that happen? (Why #4) - Uncover systemic issues",
             "Ask: Why does that happen? (Why #5) - Reach root cause",
-            "Identify the weakest stakeholder affected and protect them"
+            "Identify the weakest stakeholder affected and protect them",
         ],
-        step_types=["analysis", "hypothesis", "hypothesis", "hypothesis", "hypothesis", "hypothesis", "conclusion"],
+        step_types=[
+            "analysis",
+            "hypothesis",
+            "hypothesis",
+            "hypothesis",
+            "hypothesis",
+            "hypothesis",
+            "conclusion",
+        ],
         constitutional_floor="F5_PEACE",
-        use_cases=["incident_analysis", "defect_prevention", "safety_analysis", "quality_improvement"]
+        use_cases=[
+            "incident_analysis",
+            "defect_prevention",
+            "safety_analysis",
+            "quality_improvement",
+        ],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # First Principles - F2 TRUTH focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -77,13 +96,24 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Verify each fundamental component is actually true",
             "Strip away inherited assumptions and historical analogies",
             "Rebuild solution from verified fundamentals only",
-            "Test rebuilt solution against edge cases and constraints"
+            "Test rebuilt solution against edge cases and constraints",
         ],
-        step_types=["analysis", "analysis", "verification", "analysis", "hypothesis", "verification"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "verification",
+            "analysis",
+            "hypothesis",
+            "verification",
+        ],
         constitutional_floor="F2_TRUTH",
-        use_cases=["innovation", "paradigm_shift", "complex_problem_solving", "breakthrough_design"]
+        use_cases=[
+            "innovation",
+            "paradigm_shift",
+            "complex_problem_solving",
+            "breakthrough_design",
+        ],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Decision Matrix - F3 TRI-WITNESS focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -97,13 +127,25 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "List all viable options to evaluate",
             "Score each option against each criterion",
             "Calculate weighted scores for each option",
-            "Synthesize decision with sensitivity analysis"
+            "Synthesize decision with sensitivity analysis",
         ],
-        step_types=["analysis", "analysis", "verification", "hypothesis", "verification", "verification", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "verification",
+            "hypothesis",
+            "verification",
+            "verification",
+            "conclusion",
+        ],
         constitutional_floor="F3_TRI_WITNESS",
-        use_cases=["vendor_selection", "architecture_decisions", "prioritization", "tradeoff_analysis"]
+        use_cases=[
+            "vendor_selection",
+            "architecture_decisions",
+            "prioritization",
+            "tradeoff_analysis",
+        ],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # SWOT Analysis - F3 TRI-WITNESS focused (multi-perspective)
     # ═══════════════════════════════════════════════════════════════════════════
@@ -117,13 +159,25 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Identify external threats (competition, risks, constraints)",
             "Cross-analyze: How can strengths capture opportunities?",
             "Cross-analyze: How can we mitigate weaknesses against threats?",
-            "Synthesize strategic insights and priorities"
+            "Synthesize strategic insights and priorities",
         ],
-        step_types=["analysis", "analysis", "analysis", "analysis", "hypothesis", "hypothesis", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "analysis",
+            "analysis",
+            "hypothesis",
+            "hypothesis",
+            "conclusion",
+        ],
         constitutional_floor="F3_TRI_WITNESS",
-        use_cases=["strategic_planning", "project_evaluation", "personal_development", "competitive_analysis"]
+        use_cases=[
+            "strategic_planning",
+            "project_evaluation",
+            "personal_development",
+            "competitive_analysis",
+        ],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Root Cause Analysis (Fishbone) - F5 PEACE focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -137,13 +191,25 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Apply 5-Why analysis to each significant potential cause",
             "Identify true root causes vs symptoms",
             "Assess impact on weakest stakeholders",
-            "Recommend systemic fixes with prevention focus"
+            "Recommend systemic fixes with prevention focus",
         ],
-        step_types=["analysis", "analysis", "hypothesis", "verification", "verification", "analysis", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "hypothesis",
+            "verification",
+            "verification",
+            "analysis",
+            "conclusion",
+        ],
         constitutional_floor="F5_PEACE",
-        use_cases=["incident_postmortem", "quality_assurance", "safety_investigation", "process_improvement"]
+        use_cases=[
+            "incident_postmortem",
+            "quality_assurance",
+            "safety_investigation",
+            "process_improvement",
+        ],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Pros and Cons - F3 TRI-WITNESS focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -157,13 +223,20 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Assign weights to each factor by importance",
             "Calculate weighted balance for both sides",
             "Consider F1: Which choice is more reversible?",
-            "Make recommendation with confidence level"
+            "Make recommendation with confidence level",
         ],
-        step_types=["analysis", "analysis", "analysis", "verification", "verification", "analysis", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "analysis",
+            "verification",
+            "verification",
+            "analysis",
+            "conclusion",
+        ],
         constitutional_floor="F3_TRI_WITNESS",
-        use_cases=["go_no_go", "build_vs_buy", "hire_decisions", "feature_flags"]
+        use_cases=["go_no_go", "build_vs_buy", "hire_decisions", "feature_flags"],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Pareto Analysis - F8 GENIUS focused (efficiency)
     # ═══════════════════════════════════════════════════════════════════════════
@@ -177,13 +250,20 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Calculate cumulative percentage",
             "Identify the vital few (typically top 20%)",
             "Verify F8: Focus on high-impact, low-effort interventions",
-            "Plan intervention for vital few with maximum leverage"
+            "Plan intervention for vital few with maximum leverage",
         ],
-        step_types=["analysis", "verification", "verification", "verification", "analysis", "verification", "conclusion"],
+        step_types=[
+            "analysis",
+            "verification",
+            "verification",
+            "verification",
+            "analysis",
+            "verification",
+            "conclusion",
+        ],
         constitutional_floor="F8_GENIUS",
-        use_cases=["prioritization", "resource_allocation", "bug_triage", "optimization"]
+        use_cases=["prioritization", "resource_allocation", "bug_triage", "optimization"],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Fishbone Diagram - F5 PEACE focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -197,13 +277,25 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Identify potential root causes through evidence",
             "Verify root causes with data",
             "Assess safety impact of each root cause",
-            "Recommend fixes with F1 reversibility check"
+            "Recommend fixes with F1 reversibility check",
         ],
-        step_types=["analysis", "analysis", "hypothesis", "verification", "verification", "analysis", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "hypothesis",
+            "verification",
+            "verification",
+            "analysis",
+            "conclusion",
+        ],
         constitutional_floor="F5_PEACE",
-        use_cases=["manufacturing_quality", "process_analysis", "systemic_failure", "design_review"]
+        use_cases=[
+            "manufacturing_quality",
+            "process_analysis",
+            "systemic_failure",
+            "design_review",
+        ],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Ethical Analysis - F4 + F5 + F6 focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -217,13 +309,20 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Apply reversibility test (F1): Can this be undone?",
             "Apply universality test: What if everyone did this?",
             "Assess F5: Does this protect the most vulnerable?",
-            "Render verdict with ethical justification"
+            "Render verdict with ethical justification",
         ],
-        step_types=["analysis", "analysis", "verification", "verification", "verification", "verification", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "verification",
+            "verification",
+            "verification",
+            "verification",
+            "conclusion",
+        ],
         constitutional_floor="F5_PEACE",
-        use_cases=["policy_decisions", "ai_ethics", "business_ethics", "medical_ethics"]
+        use_cases=["policy_decisions", "ai_ethics", "business_ethics", "medical_ethics"],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Algorithm Design - F2 + F8 focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -237,13 +336,20 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Prove correctness (or provide strong argument)",
             "Analyze time complexity (best, average, worst)",
             "Analyze space complexity",
-            "Identify edge cases and test scenarios"
+            "Identify edge cases and test scenarios",
         ],
-        step_types=["analysis", "analysis", "hypothesis", "verification", "verification", "verification", "verification"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "hypothesis",
+            "verification",
+            "verification",
+            "verification",
+            "verification",
+        ],
         constitutional_floor="F2_TRUTH",
-        use_cases=["coding_interviews", "system_design", "optimization", "research"]
+        use_cases=["coding_interviews", "system_design", "optimization", "research"],
     ),
-    
     # ═══════════════════════════════════════════════════════════════════════════
     # Risk Assessment - F1 + F5 + F7 focused
     # ═══════════════════════════════════════════════════════════════════════════
@@ -257,11 +363,19 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
             "Identify weakest stakeholders most at risk",
             "Design mitigations for high-priority risks",
             "Create rollback plan (F1 reversibility)",
-            "Define go/no-go criteria with F7 uncertainty bounds"
+            "Define go/no-go criteria with F7 uncertainty bounds",
         ],
-        step_types=["analysis", "analysis", "verification", "analysis", "hypothesis", "analysis", "conclusion"],
+        step_types=[
+            "analysis",
+            "analysis",
+            "verification",
+            "analysis",
+            "hypothesis",
+            "analysis",
+            "conclusion",
+        ],
         constitutional_floor="F1_AMANAH",
-        use_cases=["deployment_planning", "architecture_review", "safety_analysis", "compliance"]
+        use_cases=["deployment_planning", "architecture_review", "safety_analysis", "compliance"],
     ),
 }
 
@@ -276,43 +390,43 @@ def get_template(name: str) -> ThinkingTemplate:
 def list_templates(floor: str = None, use_case: str = None) -> list[str]:
     """List available templates with optional filtering"""
     templates = list(THINKING_TEMPLATES.items())
-    
+
     if floor:
         templates = [(n, t) for n, t in templates if t.constitutional_floor == floor]
-    
+
     if use_case:
         templates = [(n, t) for n, t in templates if use_case in t.use_cases]
-    
+
     return [n for n, t in templates]
 
 
 def auto_select_template(problem: str) -> str:
     """Auto-select template based on problem keywords"""
     problem_lower = problem.lower()
-    
+
     # Algorithm/design problems
     if any(kw in problem_lower for kw in ["algorithm", "design", "complexity", "performance"]):
         return "algorithm-design"
-    
+
     # Root cause / debugging
     if any(kw in problem_lower for kw in ["why", "cause", "defect", "bug", "incident", "error"]):
         return "five-whys"
-    
+
     # Decision making
     if any(kw in problem_lower for kw in ["choose", "decide", "select", "vs", "between", "which"]):
         return "decision-matrix"
-    
+
     # Ethical concerns
     if any(kw in problem_lower for kw in ["ethics", "should we", "morally", "fair", "bias"]):
         return "ethical-analysis"
-    
+
     # Risk/safety
     if any(kw in problem_lower for kw in ["risk", "safety", "downtime", "failure", "migration"]):
         return "risk-assessment"
-    
+
     # Strategy/planning
     if any(kw in problem_lower for kw in ["strategy", "plan", "roadmap", "future"]):
         return "swot-analysis"
-    
+
     # Default to scientific method
     return "scientific-method"

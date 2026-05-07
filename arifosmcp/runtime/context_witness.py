@@ -46,13 +46,17 @@ def _apply_governance_boundary(
     is_high_risk = risk_level in ("high", "critical", "irreversible")
     is_irreversible = risk_level == "irreversible"
 
-    safe_output["human_decision_required"] = safe_output.get("human_decision_required", False) or is_high_risk
+    safe_output["human_decision_required"] = (
+        safe_output.get("human_decision_required", False) or is_high_risk
+    )
 
     if is_irreversible:
         action = str(safe_output.get("recommended_action", "")).lower()
         forbidden = ("execute", "commit", "deploy", "seal", "push", "destroy", "delete", "drop")
         if any(word in action for word in forbidden):
-            safe_output["recommended_action"] = "HOLD — irreversible action requires explicit human ratification."
+            safe_output["recommended_action"] = (
+                "HOLD — irreversible action requires explicit human ratification."
+            )
             safe_output["safety_notes"] = list(safe_output.get("safety_notes", [])) + [
                 "GOVERNANCE OVERRIDE: Irreversible risk detected. Autonomous execution blocked."
             ]
@@ -106,7 +110,9 @@ async def arifos_context_witness(
     )
 
     if not candidates:
-        logger.warning("No approved candidates for event=%r domain=%r risk=%r", event, domain, risk_level)
+        logger.warning(
+            "No approved candidates for event=%r domain=%r risk=%r", event, domain, risk_level
+        )
         return {
             "status": "hold",
             "meaning": "No approved quote witnesses match this situation.",
@@ -133,7 +139,9 @@ async def arifos_context_witness(
         )
         sea_lion_ok = True
     except InterpretationError as exc:
-        logger.warning("SEA-LION interpretation failed (%s); falling back to deterministic mode.", exc)
+        logger.warning(
+            "SEA-LION interpretation failed (%s); falling back to deterministic mode.", exc
+        )
     except Exception as exc:
         logger.error("Unexpected error during SEA-LION call: %s", exc)
 
@@ -182,7 +190,9 @@ async def arifos_context_witness(
             "meaning": "Selected quote disappeared from ledger after safety check.",
             "quote_witness": None,
             "interpretation": "Race condition or ledger corruption suspected.",
-            "arifos_alignment": safe_output.get("arifos_alignment", {"physics": "", "math": "", "linguistic": ""}),
+            "arifos_alignment": safe_output.get(
+                "arifos_alignment", {"physics": "", "math": "", "linguistic": ""}
+            ),
             "decision_boundary": "No autonomous action.",
             "human_decision_required": risk_level in ("high", "critical", "irreversible"),
             "recommended_action": "HOLD — inspect ledger integrity.",

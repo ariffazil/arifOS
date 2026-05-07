@@ -1,8 +1,8 @@
 # K007 — LLM / Deterministic Boundary Doctrine
 
-**Plan ID:** `PLAN-12a849b7db4c4b72`  
-**Effective:** 2026-04-26  
-**Supersedes:** All prior internal LLM usage guidelines  
+**Plan ID:** `PLAN-12a849b7db4c4b72`
+**Effective:** 2026-04-26
+**Supersedes:** All prior internal LLM usage guidelines
 **Governance:** Constitutional Tier — Immutable once sealed
 
 ---

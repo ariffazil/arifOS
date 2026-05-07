@@ -3,6 +3,7 @@ arifos://civilization — Civilizational Ontology
 ═══════════════════════════════════════════════
 Five SEAL domains and the three intelligence strata.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

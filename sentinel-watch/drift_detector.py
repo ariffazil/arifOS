@@ -24,7 +24,7 @@ class BaselineSnapshot:
     ts: float
     hard_median_latency_hours: float
     soft_median_latency_hours: float
-    hard_ack_rate: float      # fraction acked within SLA
+    hard_ack_rate: float  # fraction acked within SLA
     soft_ack_rate: float
     anomaly_density_per_day: float
     snapshot_id: str
@@ -54,11 +54,13 @@ class DriftDetector:
 
     def ingest_ack(self, chain_hash: str, ack_ts: float) -> None:
         """Record an ACK event."""
-        self.ack_records.append({
-            "chain_hash": chain_hash,
-            "ack_ts": ack_ts,
-            "ingested_at": time.time(),
-        })
+        self.ack_records.append(
+            {
+                "chain_hash": chain_hash,
+                "ack_ts": ack_ts,
+                "ingested_at": time.time(),
+            }
+        )
 
     # ── Compute current vitals ────────────────────────────────────────────
 
@@ -66,8 +68,7 @@ class DriftDetector:
         """Compute hours from verdict to ACK for an entry. None if not acked."""
         verdict_ts = entry.get("ts")
         ack_rec = next(
-            (r for r in self.ack_records if r["chain_hash"] == entry.get("chain_hash")),
-            None
+            (r for r in self.ack_records if r["chain_hash"] == entry.get("chain_hash")), None
         )
         if not ack_rec:
             return None
@@ -134,14 +135,20 @@ class DriftDetector:
 
         # Anomaly density: count HOLD_888 / VOID per day
         anomaly_count = sum(
-            1 for e in recent
-            if e.get("verdict") in ("HOLD_888", "VOID") or e.get("event_type") == "888_JUDGE_EXECUTION"
+            1
+            for e in recent
+            if e.get("verdict") in ("HOLD_888", "VOID")
+            or e.get("event_type") == "888_JUDGE_EXECUTION"
         )
         days_span = (time.time() - min((e["ts"] for e in recent), default=time.time())) / 86400 or 1
         density_per_day = anomaly_count / days_span
 
-        hard_ack_rate = len([l for l in hard_latencies if l is not None and l <= 4]) / max(len(hard_entries), 1)
-        soft_ack_rate = len([l for l in soft_latencies if l is not None and l <= 24]) / max(len(soft_entries), 1)
+        hard_ack_rate = len([l for l in hard_latencies if l is not None and l <= 4]) / max(
+            len(hard_entries), 1
+        )
+        soft_ack_rate = len([l for l in soft_latencies if l is not None and l <= 24]) / max(
+            len(soft_entries), 1
+        )
 
         return {
             "hard_latency_hours": round(median(hard_latencies) or 0, 2),
@@ -152,7 +159,9 @@ class DriftDetector:
             "hard_ack_rate": round(hard_ack_rate, 2),
             "soft_ack_rate": round(soft_ack_rate, 2),
             "drift_flags": self._detect_drift(),
-            "flood_attack_signal": self._flood_attack_signal(hard_entries, soft_entries, density_per_day),
+            "flood_attack_signal": self._flood_attack_signal(
+                hard_entries, soft_entries, density_per_day
+            ),
         }
 
     # ── Drift Detection ───────────────────────────────────────────────────
@@ -167,12 +176,18 @@ class DriftDetector:
 
         # Latency drift
         if current["hard_latency_hours"] and baseline.hard_median_latency_hours:
-            delta = (current["hard_latency_hours"] - baseline.hard_median_latency_hours) / max(baseline.hard_median_latency_hours, 0.01)
+            delta = (current["hard_latency_hours"] - baseline.hard_median_latency_hours) / max(
+                baseline.hard_median_latency_hours, 0.01
+            )
             if delta > DRIFT_THRESHOLD:
-                flags.append(f"HARD_LATENCY_DRIFT:+{round(delta*100,1)}% (baseline={baseline.hard_median_latency_hours}h, current={current['hard_latency_hours']}h)")
+                flags.append(
+                    f"HARD_LATENCY_DRIFT:+{round(delta*100,1)}% (baseline={baseline.hard_median_latency_hours}h, current={current['hard_latency_hours']}h)"
+                )
 
         if current["soft_latency_hours"] and baseline.soft_median_latency_hours:
-            delta = (current["soft_latency_hours"] - baseline.soft_median_latency_hours) / max(baseline.soft_median_latency_hours, 0.01)
+            delta = (current["soft_latency_hours"] - baseline.soft_median_latency_hours) / max(
+                baseline.soft_median_latency_hours, 0.01
+            )
             if delta > DRIFT_THRESHOLD:
                 flags.append(f"SOFT_LATENCY_DRIFT:+{round(delta*100,1)}%")
 
@@ -183,8 +198,14 @@ class DriftDetector:
                 flags.append(f"HARD_ACK_RATE_EROSION:-{round(erosion*100,1)}%")
 
         # Variance collapse (too little variance = ritualized)
-        if current["hard_ack_variance"] is not None and current["hard_ack_variance"] < 0.01 and baseline.hard_ack_rate > 0.8:
-            flags.append("VARIANCE_COLLAPSE:Suspiciously uniform hard-tier ACK latency — possible ritualization")
+        if (
+            current["hard_ack_variance"] is not None
+            and current["hard_ack_variance"] < 0.01
+            and baseline.hard_ack_rate > 0.8
+        ):
+            flags.append(
+                "VARIANCE_COLLAPSE:Suspiciously uniform hard-tier ACK latency — possible ritualization"
+            )
 
         return flags
 
@@ -193,8 +214,18 @@ class DriftDetector:
         recent = self._get_recent_entries(days=1)
         if not recent:
             return False
-        soft_today = sum(1 for e in recent if e.get("payload", {}).get("floors_triggered") and not (set(e["payload"]["floors_triggered"]) & {"F13", "F1", "F2", "F6", "F9", "F10"}))
-        hard_today = sum(1 for e in recent if set(e.get("payload", {}).get("floors_triggered", [])) & {"F13", "F1", "F2", "F6", "F9", "F10"})
+        soft_today = sum(
+            1
+            for e in recent
+            if e.get("payload", {}).get("floors_triggered")
+            and not (set(e["payload"]["floors_triggered"]) & {"F13", "F1", "F2", "F6", "F9", "F10"})
+        )
+        hard_today = sum(
+            1
+            for e in recent
+            if set(e.get("payload", {}).get("floors_triggered", []))
+            & {"F13", "F1", "F2", "F6", "F9", "F10"}
+        )
         if soft_today > hard_today * 3 and density > 2.0:
             return True
         return False

@@ -31,7 +31,7 @@ When a user provides context from NotebookLM:
 
 ## 🏛️ Constitutional Constraints
 
-- **F2 (Truth)**: Do not accept a NotebookLM claim as "Ground Truth" if it contradicts the local `arifOS` repository code. 
+- **F2 (Truth)**: Do not accept a NotebookLM claim as "Ground Truth" if it contradicts the local `arifOS` repository code.
 - **F9 (Ethics)**: If NotebookLM generates a "Audio Overview" that anthropomorphizes the agent too much, flag it as a "Tone Variance" in the synthesis.
 - **F11 (Audit)**: Mandatory log of the ingest.
 

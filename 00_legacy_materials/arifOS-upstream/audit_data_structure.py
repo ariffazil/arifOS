@@ -16,7 +16,6 @@ audit_data = {
         "peace2": 1.0,
         "confidence": 0.91,
     },
-
     "nodes": {
         "vps": {
             "endpoint": "https://mcp.arif-fazil.com/",
@@ -41,7 +40,12 @@ audit_data = {
                 "actions_pending": 1,
                 "pending_action_type": "GANTUNG",
             },
-            "issues": ["GANTUNG-001", "SESSION-PERSIST-001", "TOOL-SURFACE-001", "TOOL-SURFACE-002"],
+            "issues": [
+                "GANTUNG-001",
+                "SESSION-PERSIST-001",
+                "TOOL-SURFACE-001",
+                "TOOL-SURFACE-002",
+            ],
         },
         "fastmcp": {
             "endpoint": "https://arifOS.fastmcp.app/mcp",
@@ -62,14 +66,12 @@ audit_data = {
             "issues": [],
         },
     },
-
     "side_by_side": {
         "tool_count": {"vps": 44, "fastmcp": 11},
         "namespace_count": {"vps": 6, "fastmcp": 1},
         "chaos_comparison": "fastMCP wins on clarity for external agents",
         "optimal_public_surface": 13,
     },
-
     "issues": [
         {
             "id": "GANTUNG-001",
@@ -142,7 +144,6 @@ audit_data = {
             ),
         },
     ],
-
     "next_actions": [
         {
             "step": 1,
@@ -173,7 +174,6 @@ audit_data = {
             "purpose": "Confirm WELL biological floor status",
         },
     ],
-
     "constitutional_checks": {
         "F1_AMANAH": {
             "status": "PASS",
@@ -208,7 +208,6 @@ audit_data = {
             "note": "Human override always possible",
         },
     },
-
     "witness": {
         "human": 1.0,
         "ai": 1.0,
@@ -222,4 +221,5 @@ audit_data = {
 
 if __name__ == "__main__":
     import json
+
     print(json.dumps(audit_data, indent=2))

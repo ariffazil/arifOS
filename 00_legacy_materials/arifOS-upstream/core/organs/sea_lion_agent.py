@@ -5,13 +5,17 @@ from dataclasses import dataclass
 
 logger = logging.getLogger("arifOS.SEA-LION")
 
+
 @dataclass
 class SeaLionEnvelope:
     ok: bool
     text: str
     error: str = ""
 
-async def sea_lion_generate(prompt: str, max_tokens: int = 1000, model: str = "aisingapore/Gemma-SEA-LION-v4-27B-IT") -> SeaLionEnvelope:
+
+async def sea_lion_generate(
+    prompt: str, max_tokens: int = 1000, model: str = "aisingapore/Gemma-SEA-LION-v4-27B-IT"
+) -> SeaLionEnvelope:
     """
     Real Intelligence via SEA-LION API (Singapore gov-backed LLM).
     Secondary fallback for 111-333 Reasoning.
@@ -21,18 +25,18 @@ async def sea_lion_generate(prompt: str, max_tokens: int = 1000, model: str = "a
         return SeaLionEnvelope(False, "", "SEA_LION_API_KEY missing from environment")
 
     url = "https://api.sea-lion.ai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": "You are the arifOS AGI Mind (Stage 111-333). Apply constitutional physics (ΔS ≤ 0)."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": "You are the arifOS AGI Mind (Stage 111-333). Apply constitutional physics (ΔS ≤ 0).",
+            },
+            {"role": "user", "content": prompt},
         ],
-        "max_completion_tokens": max_tokens
+        "max_completion_tokens": max_tokens,
     }
 
     try:

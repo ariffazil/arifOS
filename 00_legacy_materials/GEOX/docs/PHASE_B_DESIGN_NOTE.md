@@ -1,9 +1,9 @@
 # GEOX Phase B Design Note
 ## Physics Engine + Log Workbench
 
-**Version:** v0.6.1–v0.7.0 Target  
-**Status:** Design  
-**Based on:** Phase A MCP Resources (SEALED)  
+**Version:** v0.6.1–v0.7.0 Target
+**Status:** Design
+**Based on:** Phase A MCP Resources (SEALED)
 **Authority:** 999 SEAL | Floors F2, F4, F7, F9, F13
 
 ---

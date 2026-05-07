@@ -3,6 +3,7 @@ arifos://vitals — Living Pulse (Ω)
 ═══════════════════════════════════
 Live G-score, ΔS, system metrics, and readiness state.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

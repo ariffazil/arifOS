@@ -49,9 +49,7 @@ def _source_diversity(sources: Sequence[str]) -> float:
     unique_domains: set[str] = set()
     for src in sources:
         match = re.search(r"https?://(?:www\.)?([^/]+)", str(src))
-        unique_domains.add(
-            match.group(1).lower() if match else str(src).lower()
-        )
+        unique_domains.add(match.group(1).lower() if match else str(src).lower())
     return min(1.0, len(unique_domains) / max(1, len(sources)))
 
 

@@ -49,7 +49,7 @@ This folder is the resting place for all legacy aliases, deprecated endpoints, a
 
 ---
 
-## Unification Parity 
+## Unification Parity
 
 - Both `GEOX-FastMCP` and `GEOX-VPS` runtimes **must** return the exact same `primary_artifact` shape for a given canonical tool.
 - Both runtimes **must** wrap their responses in the canonical standard envelope defined in `contracts/enums/statuses.py` and `contracts/schemas/response/envelope.py`.

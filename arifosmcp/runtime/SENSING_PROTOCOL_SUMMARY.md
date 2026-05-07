@@ -1,7 +1,7 @@
 # arifos.sense — Governed Sensing Protocol
 
-**Constitutional Seal:** 999_VALIDATOR  
-**Author:** Arif (Sovereign Architect)  
+**Constitutional Seal:** 999_VALIDATOR
+**Author:** Arif (Sovereign Architect)
 **Date:** 2026-04-07
 
 ---
@@ -10,7 +10,7 @@
 
 `arifos.sense` has been upgraded from a **bare web search tool** to a **constitutional intake layer** for reality claims.
 
-**Before:** "Go search the internet"  
+**Before:** "Go search the internet"
 **After:** "Classify, decide, plan, then retrieve only what is needed"
 
 ---
@@ -158,7 +158,7 @@ Fixed `BundleInput(type="auto", ...)` → now correctly uses `type="query"` or `
 
 Sources can change:
 - Google today
-- Some API tomorrow  
+- Some API tomorrow
 - Internal database later
 - GEOX sensor feed next year
 

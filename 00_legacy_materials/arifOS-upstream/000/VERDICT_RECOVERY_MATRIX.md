@@ -1,7 +1,7 @@
 # VERDICT RECOVERY MATRIX
-> **Authority:** 888_JUDGE  
-> **Version:** v1.0.0-SEAL  
-> **Status:** CONSTITUTIONAL MANDATE  
+> **Authority:** 888_JUDGE
+> **Version:** v1.0.0-SEAL
+> **Status:** CONSTITUTIONAL MANDATE
 > **Band:** 000_KERNEL (F12 Resilience)
 
 ---
@@ -10,7 +10,7 @@
 
 Define state transitions and recovery protocols for all verdict outcomes. Ensures graceful degradation, prevents infinite loops, and provides clear escalation paths.
 
-**F12 (Resilience):** Fail gracefully with defined recovery paths.  
+**F12 (Resilience):** Fail gracefully with defined recovery paths.
 **F1 (Amanah):** All state transitions must be reversible.
 
 ---
@@ -290,20 +290,20 @@ interface EscalationRequest {
   escalation_id: string;
   session_id: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  
+
   context: {
     verdict: VerdictCode;
     errors: VerdictError[];
     session_delta_s: number;
     sabar_count: number;
   };
-  
+
   options: {
     approve: { description: string; risk: string };
     revise: { description: string; suggested_changes: string[] };
     void: { description: string; consequence: string };
   };
-  
+
   timeout_at: string;  // ISO 8601
 }
 ```
@@ -349,13 +349,13 @@ async def exit_safe_mode(session_id: str, actor_id: str) -> Result:
     1. 888_JUDGE authority OR
     2. Successful init_anchor refresh with human attestation
     """
-    
+
     if actor_id != "888_JUDGE":
         # Requires human attestation
         attestation = await request_human_attestation(session_id)
         if not attestation.approved:
             return Result.void("Human attestation required")
-    
+
     # Reset session state
     await session_store.update(session_id, {
         'state': 'OPERATIONAL',
@@ -363,13 +363,13 @@ async def exit_safe_mode(session_id: str, actor_id: str) -> Result:
         'entropy_budget': BUDGET_STANDARD,
         'exit_safe_mode_at': datetime.utcnow().isoformat()
     })
-    
+
     await vault_ledger({
         'mode': 'seal',
         'evidence': f'Session {session_id} exited safe mode',
         'actor_id': actor_id
     })
-    
+
     return Result.seal()
 ```
 

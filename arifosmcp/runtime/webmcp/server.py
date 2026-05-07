@@ -401,12 +401,12 @@ class WebMCPGateway:
 
             # Parse payload
             try:
-                payload = await request.json()
+                await request.json()
             except Exception:
-                payload = {}
+                pass
 
             # Build web context
-            web_context = {
+            {
                 "session_id": session_id,
                 "actor_id": session.auth_context.get("actor_id"),
                 "user_agent": request.headers.get("user-agent"),
@@ -527,9 +527,11 @@ class WebMCPGateway:
                                         "session_id": entry.get("session_id", "")[:16] + "...",
                                         "action": entry.get("action", entry.get("tool", "unknown")),
                                         "verdict": entry.get("verdict", "UNKNOWN"),
-                                        "seal_hash": entry.get("seal_hash", "")[:16] + "..."
-                                        if entry.get("seal_hash")
-                                        else None,
+                                        "seal_hash": (
+                                            entry.get("seal_hash", "")[:16] + "..."
+                                            if entry.get("seal_hash")
+                                            else None
+                                        ),
                                     }
                                 )
                             except:
@@ -820,7 +822,7 @@ class WebMCPGateway:
                 from arifosmcp.agentzero.escalation.hold_state import HoldStateManager
 
                 hold_manager = HoldStateManager()
-                resolved = await hold_manager.resolve_hold(
+                await hold_manager.resolve_hold(
                     hold_id=hold_id,
                     decision=decision,
                     responded_by=actor_id,

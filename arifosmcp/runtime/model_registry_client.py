@@ -30,6 +30,7 @@ DEFAULT_REGISTRY_URL = os.getenv("MODEL_REGISTRY_URL", "http://model_registry:18
 @dataclass
 class ModelProfile:
     """Canonical model profile from registry."""
+
     provider: str
     family: str
     variant: str
@@ -42,6 +43,7 @@ class ModelProfile:
 @dataclass
 class ProviderSoul:
     """Provider soul (governance archetype) from registry."""
+
     soul_key: str
     provider_name: str
     archetype: str
@@ -52,6 +54,7 @@ class ProviderSoul:
 @dataclass
 class IdentityVerification:
     """Result of identity claim verification."""
+
     verified: bool
     declared: str
     matched_key: str | None
@@ -63,7 +66,7 @@ class IdentityVerification:
 class ModelRegistryClient:
     """
     Async client for arifOS Model Registry.
-    
+
     Provides:
     - Model profile lookup (provider/family/variant)
     - Provider soul retrieval
@@ -71,18 +74,19 @@ class ModelRegistryClient:
     - Identity claim verification (F11 grounding)
     - Session anchor v2 creation
     """
-    
+
     def __init__(self, base_url: str = DEFAULT_REGISTRY_URL):
         self.base_url = base_url.rstrip("/")
         self._client: Any = None
-    
+
     async def _get_client(self):
         """Lazy httpx client initialization."""
         if self._client is None:
             import httpx
+
             self._client = httpx.AsyncClient(timeout=10.0)
         return self._client
-    
+
     async def health(self) -> dict:
         """Check registry health."""
         try:
@@ -93,11 +97,11 @@ class ModelRegistryClient:
         except Exception as exc:
             logger.warning(f"Model registry health check failed: {exc}")
             return {"status": "unavailable", "error": str(exc)}
-    
+
     async def get_model_profile(self, model_key: str) -> ModelProfile | None:
         """
         Get full model profile.
-        
+
         model_key format: "provider/family/variant" (e.g., "anthropic/claude/claude-3-7-sonnet")
         """
         try:
@@ -118,11 +122,11 @@ class ModelRegistryClient:
         except Exception as exc:
             logger.warning(f"Failed to get model profile for {model_key}: {exc}")
             return None
-    
+
     async def get_provider_soul(self, soul_key: str) -> ProviderSoul | None:
         """
         Get provider soul (governance archetype).
-        
+
         soul_key format: e.g., "anthropic_claude", "openai_gpt"
         """
         try:
@@ -141,11 +145,13 @@ class ModelRegistryClient:
         except Exception as exc:
             logger.warning(f"Failed to get provider soul for {soul_key}: {exc}")
             return None
-    
-    async def verify_identity(self, claimed_identity: str, claimed_provider: str | None = None) -> IdentityVerification:
+
+    async def verify_identity(
+        self, claimed_identity: str, claimed_provider: str | None = None
+    ) -> IdentityVerification:
         """
         Verify a model's claimed identity against the canonical registry.
-        
+
         This is F11 (Identity) grounding - ensures the model is who it claims to be.
         """
         try:
@@ -175,7 +181,7 @@ class ModelRegistryClient:
                 mismatch_detected=True,
                 drift_risk="high",
             )
-    
+
     async def list_models(self) -> list[str]:
         """List all registered model keys."""
         try:
@@ -187,7 +193,7 @@ class ModelRegistryClient:
         except Exception as exc:
             logger.warning(f"Failed to list models: {exc}")
             return []
-    
+
     async def list_providers(self) -> list[str]:
         """List all registered provider soul keys."""
         try:
@@ -199,7 +205,7 @@ class ModelRegistryClient:
         except Exception as exc:
             logger.warning(f"Failed to list providers: {exc}")
             return []
-    
+
     async def init_anchor_v2(
         self,
         actor_id: str,
@@ -209,7 +215,7 @@ class ModelRegistryClient:
     ) -> dict:
         """
         Create a MODEL_SOUL-bound session anchor.
-        
+
         This is the v2 init_anchor that binds sessions to canonical model identities.
         """
         try:
@@ -231,7 +237,7 @@ class ModelRegistryClient:
                 "status": "FAIL",
                 "errors": [str(exc)],
             }
-    
+
     async def get_catalog(self) -> dict:
         """Get the full registry catalog."""
         try:
@@ -262,7 +268,7 @@ async def verify_model_identity(
 ) -> IdentityVerification:
     """
     Convenience function for F11 identity verification.
-    
+
     Usage:
         result = await verify_model_identity("claude-3-7-sonnet", "anthropic")
         if result.verified:

@@ -14,10 +14,12 @@ DITEMPA BUKAN DIBERI
 from __future__ import annotations
 from typing import Any
 
+
 class OpenAIAppAdapter:
     """
     Adapter to bridge GEOX sovereign core to OpenAI Apps runtime.
     """
+
     def __init__(self, app_id: str = "geox-subsurface"):
         self.app_id = app_id
 
@@ -36,17 +38,11 @@ class OpenAIAppAdapter:
                     "description": "Load and QC seismic cross-sections.",
                     "parameters": {
                         "type": "object",
-                        "properties": {
-                            "line_id": {"type": "string"},
-                            "survey": {"type": "string"}
-                        }
-                    }
+                        "properties": {"line_id": {"type": "string"}, "survey": {"type": "string"}},
+                    },
                 }
             ],
-            "capabilities": {
-                "ui_mode": "sandboxed-iframe",
-                "storage": "per-user-per-app"
-            }
+            "capabilities": {"ui_mode": "sandboxed-iframe", "storage": "per-user-per-app"},
         }
 
     async def handle_request(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -55,5 +51,6 @@ class OpenAIAppAdapter:
         """
         # OpenAI specific request parsing here
         return {"status": "SUCCESS", "geox_seal": "DITEMPA BUKAN DIBERI"}
+
 
 # Integration logic for starlette/fastapi would go here.

@@ -9,11 +9,11 @@ requirements:
     presence_factor: 0.9
     exploration_factor: 0.7
     energy_squared: 0.95
-  
+
   F6_Empathy:
     weakest_stakeholder: user
     care_reliability: 0.95
-  
+
   F1_Amanah:
     tests_required: true
     rollback_tests: true

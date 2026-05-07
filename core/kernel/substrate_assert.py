@@ -75,7 +75,7 @@ def _dns_resolve(hostname: str = "localhost", timeout_ms: int = 5000) -> Substra
         passed=did_pass,
         code=code,
         latency_ms=int((time.monotonic() - t0) * 1000),
-        detail=detail
+        detail=detail,
     )
 
 
@@ -108,14 +108,14 @@ def _config_present() -> SubstrateCheckResult:
         "missing": missing,
         "defaulted": defaulted,
         "degraded": degraded,
-        "all_present": len(missing) == 0 and len(defaulted) == 0
+        "all_present": len(missing) == 0 and len(defaulted) == 0,
     }
     return SubstrateCheckResult(
         check_id="S0.C2",
         passed=did_pass,
         code=code,
         latency_ms=int((time.monotonic() - t0) * 1000),
-        detail=detail
+        detail=detail,
     )
 
 
@@ -134,10 +134,11 @@ async def _db_auth() -> SubstrateCheckResult:
             passed=False,
             code=code,
             latency_ms=int((time.monotonic() - t0) * 1000),
-            detail=detail
+            detail=detail,
         )
     try:
         import asyncpg
+
         conn = await asyncpg.connect(pg_url, timeout=5)
         result = await conn.fetchval("SELECT 1")
         await conn.close()
@@ -152,7 +153,7 @@ async def _db_auth() -> SubstrateCheckResult:
         passed=did_pass,
         code=code,
         latency_ms=int((time.monotonic() - t0) * 1000),
-        detail=detail
+        detail=detail,
     )
 
 
@@ -165,6 +166,7 @@ async def _embed_endpoint() -> SubstrateCheckResult:
     embed_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
     try:
         import aiohttp
+
         async with aiohttp.ClientSession() as session:
             payload = {"model": os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"), "input": "ping"}
             async with session.post(f"{embed_url}/api/embeddings", json=payload, timeout=3) as resp:
@@ -188,7 +190,7 @@ async def _embed_endpoint() -> SubstrateCheckResult:
         passed=did_pass,
         code=code,
         latency_ms=int((time.monotonic() - t0) * 1000),
-        detail=detail
+        detail=detail,
     )
 
 
@@ -217,7 +219,7 @@ async def _vault_dryrun() -> SubstrateCheckResult:
         passed=did_pass,
         code=code,
         latency_ms=int((time.monotonic() - t0) * 1000),
-        detail=detail
+        detail=detail,
     )
 
 
@@ -236,17 +238,22 @@ async def _telemetry_channel() -> SubstrateCheckResult:
             passed=False,
             code=code,
             latency_ms=int((time.monotonic() - t0) * 1000),
-            detail=detail
+            detail=detail,
         )
     try:
         import asyncpg
+
         conn = await asyncpg.connect(pg_url, timeout=5)
-        await conn.execute("""
+        await conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS substrate_assert_heartbeat (
                 id SERIAL PRIMARY KEY, ts TIMESTAMPTZ DEFAULT NOW()
             )
-        """)
-        row = await conn.fetchrow("INSERT INTO substrate_assert_heartbeat DEFAULT VALUES RETURNING id")
+        """
+        )
+        row = await conn.fetchrow(
+            "INSERT INTO substrate_assert_heartbeat DEFAULT VALUES RETURNING id"
+        )
         await conn.execute("DELETE FROM substrate_assert_heartbeat WHERE id = $1", row["id"])
         await conn.close()
         did_pass = True
@@ -259,7 +266,7 @@ async def _telemetry_channel() -> SubstrateCheckResult:
         passed=did_pass,
         code=code,
         latency_ms=int((time.monotonic() - t0) * 1000),
-        detail=detail
+        detail=detail,
     )
 
 
@@ -278,12 +285,18 @@ def _config_fingerprint() -> SubstrateCheckResult:
             passed=True,
             code=None,
             latency_ms=int((time.monotonic() - t0) * 1000),
-            detail=detail
+            detail=detail,
         )
-    config_snapshot = json.dumps(sorted({
-        k: v for k, v in os.environ.items()
-        if k.startswith(("ARIFOS_", "DATABASE_", "POSTGRES_", "OLLAMA_"))
-    }.items()), sort_keys=True)
+    config_snapshot = json.dumps(
+        sorted(
+            {
+                k: v
+                for k, v in os.environ.items()
+                if k.startswith(("ARIFOS_", "DATABASE_", "POSTGRES_", "OLLAMA_"))
+            }.items()
+        ),
+        sort_keys=True,
+    )
     actual = hashlib.sha256(config_snapshot.encode()).hexdigest()[:16]
     if actual == known_good:
         did_pass = True
@@ -296,7 +309,7 @@ def _config_fingerprint() -> SubstrateCheckResult:
         passed=did_pass,
         code=code,
         latency_ms=int((time.monotonic() - t0) * 1000),
-        detail=detail
+        detail=detail,
     )
 
 
@@ -327,11 +340,22 @@ async def substrate_assert(session_id: str | None = None) -> SubstrateAssertResu
     fingerprint_check = _config_fingerprint()
 
     checks = [
-        dns_check, config_check, db_check, embed_check,
-        vault_check, telemetry_check, fingerprint_check
+        dns_check,
+        config_check,
+        db_check,
+        embed_check,
+        vault_check,
+        telemetry_check,
+        fingerprint_check,
     ]
 
-    critical_codes = {"E_DNS_BLIND", "E_CONFIG_UNSET", "E_CRED_INVALID", "E_VAULT_BLIND", "E_WITNESS_ABSENT"}
+    critical_codes = {
+        "E_DNS_BLIND",
+        "E_CONFIG_UNSET",
+        "E_CRED_INVALID",
+        "E_VAULT_BLIND",
+        "E_WITNESS_ABSENT",
+    }
     degraded_codes = {"E_EMBED_OFFLINE", "E_HASH_DRIFT"}
 
     failed = [c for c in checks if not c.passed]
@@ -366,7 +390,11 @@ async def substrate_assert(session_id: str | None = None) -> SubstrateAssertResu
 
     logger.info(
         "SUBSTRATE_ASSERT %s | legibility=%s | gate=%s | codes=%s | latency=%dms",
-        status, legibility, pipeline_gate, failure_codes, total_ms
+        status,
+        legibility,
+        pipeline_gate,
+        failure_codes,
+        total_ms,
     )
 
     return result
@@ -386,7 +414,7 @@ async def emit_substrate_assert_event(result: SubstrateAssertResult) -> None:
             "pass": c.passed,
             "code": c.code,
             "latency_ms": c.latency_ms,
-            **c.detail
+            **c.detail,
         }
 
     vault_payload = {
@@ -398,7 +426,7 @@ async def emit_substrate_assert_event(result: SubstrateAssertResult) -> None:
         "pipeline_gate": result.pipeline_gate,
         "failure_codes": result.failure_codes,
         "checks": checks_payload,
-        "witness": {"human": False, "ai": True, "earth": False}
+        "witness": {"human": False, "ai": True, "earth": False},
     }
 
     if result.status == "PASS":
@@ -422,7 +450,7 @@ async def emit_substrate_assert_event(result: SubstrateAssertResult) -> None:
         logger.critical(
             "SUBSTRATE_ASSERT vault emission FAILED — hard stop. "
             "Emission path itself is unavailable. Error: %s",
-            str(e)
+            str(e),
         )
         raise RuntimeError(
             f"SUBSTRATE_ASSERT cannot emit: vault write path broken. "
@@ -435,16 +463,21 @@ if __name__ == "__main__":
 
     async def _main():
         result = await substrate_assert()
-        print(json.dumps({
-            "status": result.status,
-            "legibility_state": result.legibility_state,
-            "pipeline_gate": result.pipeline_gate,
-            "failure_codes": result.failure_codes,
-            "checks": {
-                c.check_id: {"pass": c.passed, "code": c.code, "latency_ms": c.latency_ms}
-                for c in result.checks
-            }
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "status": result.status,
+                    "legibility_state": result.legibility_state,
+                    "pipeline_gate": result.pipeline_gate,
+                    "failure_codes": result.failure_codes,
+                    "checks": {
+                        c.check_id: {"pass": c.passed, "code": c.code, "latency_ms": c.latency_ms}
+                        for c in result.checks
+                    },
+                },
+                indent=2,
+            )
+        )
         if result.pipeline_gate == "HARD_STOP":
             exit(1)
         elif result.pipeline_gate == "888_HOLD":

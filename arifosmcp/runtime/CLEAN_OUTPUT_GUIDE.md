@@ -1,6 +1,6 @@
 # arifOS Clean Output Guide — 3-Tier Clarity Model
 
-**Version:** 2026.04.06-v0.2  
+**Version:** 2026.04.06-v0.2
 **Principle:** *"One screen = one decision"*
 
 ---

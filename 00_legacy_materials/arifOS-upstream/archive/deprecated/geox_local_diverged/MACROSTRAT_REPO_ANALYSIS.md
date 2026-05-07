@@ -1,16 +1,16 @@
 # UW-Macrostrat/macrostrat Repository Analysis
 
-> **For:** ARIF / GEOX Integration Decision  
-> **Date:** 2026-03-26  
+> **For:** ARIF / GEOX Integration Decision
+> **Date:** 2026-03-26
 > **Source:** https://github.com/UW-Macrostrat/macrostrat
 
 ---
 
 ## Repository Overview
 
-**Name:** `UW-Macrostrat/macrostrat`  
-**Description:** A geological data platform for exploration, integration, and analysis (v2)  
-**License:** Not explicitly stated (check repo) — likely CC-BY-4.0 like API  
+**Name:** `UW-Macrostrat/macrostrat`
+**Description:** A geological data platform for exploration, integration, and analysis (v2)
+**License:** Not explicitly stated (check repo) — likely CC-BY-4.0 like API
 **Language:** Python (with `uv` build system)
 
 ### What This Repository IS
@@ -133,7 +133,7 @@ import httpx
 class MacrostratTool:
     """Query Macrostrat API for geological context."""
     base_url = "https://macrostrat.org/api/v2"
-    
+
     async def get_columns(self, lat, lon):
         async with httpx.AsyncClient() as client:
             resp = await client.get(
@@ -168,17 +168,17 @@ class MacrostratTool(BaseTool):
     name = "MacrostratTool"
     description = "Query Macrostrat geological database"
     base_url = "https://macrostrat.org/api/v2"
-    
+
     async def run(self, inputs: dict) -> GeoToolResult:
         location = inputs["location"]
-        
+
         # Query API endpoints
         columns = await self._query_columns(location)
         units = await self._query_units(location)
-        
+
         # Convert to GeoQuantity objects
         quantities = self._parse_to_quantities(columns, units)
-        
+
         return GeoToolResult(
             tool_name=self.name,
             success=True,

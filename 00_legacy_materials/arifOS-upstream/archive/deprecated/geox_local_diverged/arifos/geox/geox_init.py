@@ -17,6 +17,7 @@ from typing import Any
 
 logger = logging.getLogger("geox.init")
 
+
 class GEOXFoundation:
     """Hardened foundation for GEOX intelligence."""
 
@@ -36,7 +37,7 @@ class GEOXFoundation:
             "os": platform.system(),
             "python": sys.version.split()[0],
             "checks": {},
-            "verdict": "CLEAR"
+            "verdict": "CLEAR",
         }
 
         # 1. Python Version Check (F9 Anti-Hantu)
@@ -72,7 +73,9 @@ class GEOXFoundation:
         # Check if running in the correct ariffazil directory
         path_norm = os.path.normpath(cwd).lower()
         is_ariffazil = "ariffazil" in path_norm
-        status["arifos_aligned"] = is_ariffazil or os.environ.get("ARIFOS_KERNEL_VERSION") is not None
+        status["arifos_aligned"] = (
+            is_ariffazil or os.environ.get("ARIFOS_KERNEL_VERSION") is not None
+        )
 
         # 4. Workspace Integrity (F1 Amanah)
         has_git = os.path.isdir(os.path.join(cwd, ".git"))
@@ -81,10 +84,11 @@ class GEOXFoundation:
         status["checks"]["venv"] = "VENV_LOCKED" if has_venv else "NATIVE"
 
         if not has_git:
-            status["verdict"] = "888_HOLD" # Warn if not a git repo
+            status["verdict"] = "888_HOLD"  # Warn if not a git repo
 
         logger.info(f"GEOX Foundation Ignited: {status['verdict']}")
         return status
+
 
 def verify_and_exit_if_void():
     """Standard entrypoint check for CLI tools."""

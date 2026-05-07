@@ -1,6 +1,6 @@
 # arifOS Repository Structure
 
-> **DITEMPA BUKAN DIBERI** — Forged, Not Given  
+> **DITEMPA BUKAN DIBERI** — Forged, Not Given
 > This document maps the canonical layout of the arifOS repository.
 
 ## Philosophy
@@ -157,6 +157,6 @@ Per AGENTS.md:
 
 ---
 
-*Last updated: 2026-04-07*  
-*Authority: 888_JUDGE*  
+*Last updated: 2026-04-07*
+*Authority: 888_JUDGE*
 *Seal: 999_SEAL*

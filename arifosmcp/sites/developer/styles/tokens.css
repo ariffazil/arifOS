@@ -7,7 +7,7 @@
   /* ========================================
      Color System — Constitutional Theme
      ======================================== */
-  
+
   /* Background Scale (Dark mode base) */
   --bg-base: #0a0a0f;
   --bg-surface: #12121a;
@@ -15,35 +15,35 @@
   --bg-elevated: #18182a;
   --bg-strip: #0d0d14;
   --bg-code: #0d1117;
-  
+
   /* Border Scale */
   --border-subtle: #151520;
   --border: #1e1e2e;
   --border-hover: #2a2a3e;
   --border-focus: #3b3b5c;
-  
+
   /* Text Scale */
   --text-primary: #e8e8f0;
   --text-secondary: #a0a0b8;
   --text-muted: #6b6b80;
   --text-dim: #4a4a60;
   --text-disabled: #3a3a50;
-  
+
   /* Trinity Colors */
   --color-agility: #ffd24a;      /* Gold — Δ Delta */
   --color-agility-hover: #ffe07a;
   --color-agility-dim: rgba(255, 210, 74, 0.15);
-  
+
   --color-apps: #2563eb;         /* Blue — Ω Omega */
   --color-apps-hover: #3b82f6;
   --color-apps-dim: rgba(37, 99, 235, 0.1);
   --color-apps-glow: rgba(37, 99, 235, 0.15);
   --color-apps-glow-strong: rgba(37, 99, 235, 0.4);
-  
+
   --color-human: #ff4d4f;        /* Red — Ψ Psi */
   --color-human-hover: #ff7a7b;
   --color-human-dim: rgba(255, 77, 79, 0.1);
-  
+
   /* Semantic Colors */
   --color-success: #22c55e;
   --color-success-dim: rgba(34, 197, 94, 0.1);
@@ -53,20 +53,20 @@
   --color-error-dim: rgba(239, 68, 68, 0.1);
   --color-info: #38bdf8;
   --color-info-dim: rgba(56, 189, 248, 0.1);
-  
+
   /* Verdict States */
   --verdict-seal: #22c55e;
   --verdict-void: #ef4444;
   --verdict-partial: #f59e0b;
   --verdict-hold: #8b5cf6;
-  
+
   /* ========================================
      Typography System
      ======================================== */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
   --font-serif: 'Georgia', 'Times New Roman', serif;
-  
+
   /* Font Sizes */
   --text-xs: 11px;
   --text-sm: 13px;
@@ -77,27 +77,27 @@
   --text-3xl: 32px;
   --text-4xl: 40px;
   --text-5xl: 56px;
-  
+
   /* Font Weights */
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
   --font-extrabold: 800;
-  
+
   /* Line Heights */
   --leading-tight: 1.25;
   --leading-snug: 1.4;
   --leading-normal: 1.6;
   --leading-relaxed: 1.75;
-  
+
   /* Letter Spacing */
   --tracking-tight: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.05em;
   --tracking-wider: 0.1em;
   --tracking-widest: 0.2em;
-  
+
   /* ========================================
      Spacing System (4px base)
      ======================================== */
@@ -113,7 +113,7 @@
   --space-16: 64px;
   --space-20: 80px;
   --space-24: 96px;
-  
+
   /* ========================================
      Layout Dimensions
      ======================================== */
@@ -125,7 +125,7 @@
   --header-offset: 89px; /* strip + nav */
   --content-max-width: 1200px;
   --content-narrow: 720px;
-  
+
   /* ========================================
      Border Radius
      ======================================== */
@@ -135,7 +135,7 @@
   --radius-xl: 16px;
   --radius-2xl: 24px;
   --radius-full: 9999px;
-  
+
   /* ========================================
      Shadows
      ======================================== */
@@ -144,7 +144,7 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-glow-blue: 0 0 20px var(--color-apps-glow);
   --shadow-glow-gold: 0 0 20px var(--color-agility-dim);
-  
+
   /* ========================================
      Transitions
      ======================================== */
@@ -152,7 +152,7 @@
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
   --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  
+
   /* ========================================
      Z-Index Scale
      ======================================== */
@@ -174,21 +174,21 @@
     --bg-surface-hover: #f5f5f5;
     --bg-elevated: #ffffff;
     --bg-strip: #f0f0f0;
-    
+
     --border-subtle: #e5e5e5;
     --border: #d4d4d4;
     --border-hover: #a3a3a3;
-    
+
     --text-primary: #171717;
     --text-secondary: #525252;
     --text-muted: #737373;
     --text-dim: #a3a3a3;
-    
+
     --color-apps: #1d4ed8;
     --color-apps-hover: #1e40af;
     --color-apps-dim: rgba(37, 99, 235, 0.08);
     --color-apps-glow: rgba(37, 99, 235, 0.1);
-    
+
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);

@@ -2,11 +2,11 @@
 GEOX ENGINE Layer — Contrast-Aware Processing Core
 DITEMPA BUKAN DIBERI
 
-The ENGINE implements the Theory of Anomalous Contrast (ToAC) from the 
+The ENGINE implements the Theory of Anomalous Contrast (ToAC) from the
 THEORY layer. It provides:
 
   - ContrastSpace: Unified representation of all contrast types
-  - TransformRegistry: Catalog of visual transforms with risk metadata  
+  - TransformRegistry: Catalog of visual transforms with risk metadata
   - AnomalyDetector: Automatic detection of conflation errors
 """
 

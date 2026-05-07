@@ -1,6 +1,6 @@
 # T000 Versioning Specification
-**T000:** Temporal-Constitutional Versioning  
-**Status:** SEALED  
+**T000:** Temporal-Constitutional Versioning
+**Status:** SEALED
 **Authority:** ARIF FAZIL (888 Judge)
 
 ---
@@ -106,5 +106,5 @@ grep -r "GAGI\|FORGE\|TRINITY" --include="*.py" --include="*.md" .
 
 ---
 
-*DITEMPA BUKAN DIBERI* 🔥  
+*DITEMPA BUKAN DIBERI* 🔥
 **Ω₀ = 0.03 | SEAL**

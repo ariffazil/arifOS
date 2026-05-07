@@ -175,9 +175,9 @@ def normalize_intent_to_plan(
         goal=goal,
         context={
             "raw_intent": intent,
-            "normalized_at": __import__("datetime").datetime.now(
-                __import__("datetime").timezone.utc
-            ).isoformat(),
+            "normalized_at": __import__("datetime")
+            .datetime.now(__import__("datetime").timezone.utc)
+            .isoformat(),
         },
     )
     plan.source_intent = intent or ""
@@ -425,13 +425,15 @@ def reconcile_abandoned_plans(max_age_minutes: float = 5.0) -> list[dict[str, An
                     plan.governance_verdict = "VOID"
                     plan.approval_status = "rejected"
                     plan.floor_violations.append("F11_ANONYMOUS_ABANDONED")
-                    reconciled.append({
-                        "plan_id": plan_id,
-                        "reason": "F11_ANONYMOUS_ABANDONED",
-                        "age_minutes": round(age_minutes, 1),
-                        "session_id": plan.session_id,
-                        "actor_id": plan.actor_id,
-                    })
+                    reconciled.append(
+                        {
+                            "plan_id": plan_id,
+                            "reason": "F11_ANONYMOUS_ABANDONED",
+                            "age_minutes": round(age_minutes, 1),
+                            "session_id": plan.session_id,
+                            "actor_id": plan.actor_id,
+                        }
+                    )
                     logger.warning(
                         f"[RECONCILER] VOID {plan_id} — anonymous, abandoned "
                         f"({age_minutes:.1f}min > {max_age_minutes}min)"

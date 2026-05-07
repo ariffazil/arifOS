@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
+
 class GeoxVerdict(BaseModel):
     verdict: str
     confidence: float
@@ -23,6 +24,7 @@ class GeoxVerdict(BaseModel):
     spatial_validity: bool
     recommendation: str
     floor_alignment: dict[str, str]
+
 
 def verify_geospatial(lat: float, lon: float) -> dict[str, Any]:
     """Validate coordinates and return geospatial context."""
@@ -33,13 +35,15 @@ def verify_geospatial(lat: float, lon: float) -> dict[str, Any]:
         "lon": lon,
         "crs": "WGS84",
         "valid": valid,
-        "jurisdiction": "Global/Unspecified" if valid else "INVALID"
+        "jurisdiction": "Global/Unspecified" if valid else "INVALID",
     }
+
 
 def geox_feasibility_check(constraints: list[str]) -> bool:
     """Check if claims are physically possible (Rock Mechanics/Thermodynamics)."""
     # Placeholder for actual stress-strain / thermal modelling
     return True
+
 
 def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
     """
@@ -50,7 +54,7 @@ def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
     # Automatic 888_HOLD if evidence is weak (placeholder logic)
     confidence = 0.85
     requires_hold = confidence < 0.90
-    
+
     return GeoxVerdict(
         verdict="HOLD" if requires_hold else "PASS",
         confidence=confidence,
@@ -60,9 +64,10 @@ def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
         floor_alignment={
             "F2_TRUTH": "τ < 0.90",
             "F4_CLARITY": "Passed (CRS: WGS84)",
-            "F13_SOVEREIGN": "888_HOLD Required"
-        }
+            "F13_SOVEREIGN": "888_HOLD Required",
+        },
     )
+
 
 async def geox(
     operation: str = "verify",
@@ -76,7 +81,8 @@ async def geox(
     elif operation == "prospect_eval":
         pid = kwargs.get("prospect_id", "P-001")
         return evaluate_prospect(pid)
-    
+
     return {"error": f"Unknown operation: {operation}"}
+
 
 __all__ = ["geox", "verify_geospatial", "evaluate_prospect"]

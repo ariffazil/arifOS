@@ -1,7 +1,7 @@
 # GBR_v1 Option C Integration Plan
 
-**Status:** Architectural Design  
-**Approach:** Internal Kernel Mode (NOT new tools)  
+**Status:** Architectural Design
+**Approach:** Internal Kernel Mode (NOT new tools)
 **Date:** 2026-03-14
 
 ---
@@ -77,13 +77,13 @@ No change to ToolSpec. Internally:
 ```python
 async def apex_judge(candidate_output, session_id, context=None):
     # Existing logic...
-    
+
     # If GBR mode was requested in context:
     if context and context.get("mode") == "gbr_v1":
         verdict = await apex_collapse_engine.collapse(branch_set)
     else:
         verdict = await standard_judge.evaluate(candidate_output)
-    
+
     # Return same verdict schema
     return verdict
 ```
@@ -121,18 +121,18 @@ Key: Reuse existing `888_HOLD` infrastructure, don't create parallel auth.
 
 ## Witness Integration (F3)
 
-**Current GBR:** In-memory `WitnessLogger` with its own Merkle chain  
+**Current GBR:** In-memory `WitnessLogger` with its own Merkle chain
 **Required:** Wire to existing VAULT999 infrastructure
 
 ```python
 # witness_adapter.py
 class QuantumWitnessAdapter:
     """Adapts GBR quantum events to existing witness pipeline."""
-    
+
     def __init__(self, vault_client, session_id):
         self.vault = vault_client
         self.session_id = session_id
-    
+
     def log_superposition_created(self, branch_set):
         # Emit to existing witness/telemetry pipeline
         # NOT new in-memory chain
@@ -199,7 +199,7 @@ weights = WEIGHTS.get("quantum", DEFAULT_QUANTUM_WEIGHTS)
 ```python
 # Existing tools - NO NEW TOOLSPECS
 init_anchor_state()     # Same
-arifOS_kernel()         # Same (adds internal mode routing)  
+arifOS_kernel()         # Same (adds internal mode routing)
 agi_reason()            # Same (adds internal mode param)
 apex_judge()            # Same (adds quantum metadata in response)
 vault_seal()            # Same

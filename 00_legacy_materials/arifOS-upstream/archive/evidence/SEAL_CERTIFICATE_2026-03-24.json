@@ -5,7 +5,7 @@
   "authority": "888_JUDGE",
   "signer": "arifos-seal-harness",
   "evidence_version": "2026.03.24-H1",
-  
+
   "coverage": {
     "overall": 23.2,
     "constitutional_core": {
@@ -72,7 +72,7 @@
       }
     }
   },
-  
+
   "tests": {
     "total": 85,
     "passed": 57,
@@ -124,7 +124,7 @@
       }
     ]
   },
-  
+
   "constitutional_verification": {
     "f1_reversibility": {
       "status": "PASS",
@@ -159,7 +159,7 @@
       "evidence": "Single source of truth for _normalize_session_id"
     }
   },
-  
+
   "critical_bugs_fixed": [
     {
       "bug": "Circular import between tools.py and tools_internal.py",
@@ -180,7 +180,7 @@
       "status": "✅ RESOLVED"
     }
   ],
-  
+
   "achievements": {
     "phase_1": {
       "description": "Trinity organ tests with lazy import mocking",
@@ -210,7 +210,7 @@
       "status": "✅ COMPLETE"
     }
   },
-  
+
   "seal_criteria": {
     "min_coverage": 90,
     "achieved_coverage": {
@@ -223,7 +223,7 @@
     "verdict": "SEAL - Constitutional Core Validated",
     "note": "Target partially met. AGI and APEX organs exceed 80% coverage. Runtime blocked by circular imports (now fixed). Ready for 90%+ with Phase 4."
   },
-  
+
   "hash": "sha256:a3f7b2c1d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
   "next_steps": [
     "Fix remaining Vault API mismatches (18 tests)",
@@ -231,7 +231,7 @@
     "Run full test suite after circular import fix",
     "Achieve 90%+ overall coverage in Phase 4"
   ],
-  
+
   "metadata": {
     "generated_by": "arifos-seal-harness",
     "generated_at": "2026-03-24T15:30:00Z",

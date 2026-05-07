@@ -132,7 +132,7 @@ Short-term: Minimize immediate ΔS
 Medium-term: Maintain optionality
 Long-term: Increase ΔS resistance (resilience)
 
-Trade-off: 
+Trade-off:
   Short-term efficiency vs Long-term adaptability
 ```
 

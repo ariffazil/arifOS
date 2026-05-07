@@ -6,18 +6,18 @@
     <title>Arif Fazil | Geoscientist · AI Architect · Sovereign Technologist</title>
     <meta name="description" content="Petroleum geologist who built arifOS - the world's first sovereign, dual-surface, constitutionally-governed AI system.">
     <meta name="author" content="Muhammad Arif bin Fazil">
-    
+
     <!-- Open Graph -->
     <meta property="og:title" content="Arif Fazil | Geoscientist · AI Architect">
     <meta property="og:description" content="I drill for oil. I also built a constitution for AI.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ariffazil.github.io">
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --bg-primary: #0a0a0a;
@@ -33,11 +33,11 @@
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
         }
-        
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         html { scroll-behavior: smooth; }
-        
+
         body {
             font-family: var(--font-sans);
             background: var(--bg-primary);
@@ -45,7 +45,7 @@
             line-height: 1.7;
             min-height: 100vh;
         }
-        
+
         .nav {
             position: fixed;
             top: 0;
@@ -57,7 +57,7 @@
             z-index: 1000;
             padding: 0 24px;
         }
-        
+
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -66,7 +66,7 @@
             justify-content: space-between;
             height: 64px;
         }
-        
+
         .nav-brand {
             display: flex;
             align-items: center;
@@ -74,25 +74,25 @@
             text-decoration: none;
             color: var(--text-primary);
         }
-        
+
         .nav-brand-symbol {
             font-family: var(--font-mono);
             font-size: 1.5rem;
             color: var(--accent);
             font-weight: 500;
         }
-        
+
         .nav-brand-text {
             font-weight: 600;
             font-size: 1.1rem;
             letter-spacing: -0.02em;
         }
-        
+
         .nav-tabs {
             display: flex;
             gap: 8px;
         }
-        
+
         .nav-tab {
             padding: 8px 16px;
             text-decoration: none;
@@ -103,18 +103,18 @@
             transition: all 0.2s ease;
             border: 1px solid transparent;
         }
-        
+
         .nav-tab:hover {
             color: var(--text-primary);
             background: var(--bg-tertiary);
         }
-        
+
         .nav-tab.active {
             color: var(--accent);
             background: var(--accent-dim);
             border-color: var(--accent);
         }
-        
+
         .nav-cta {
             padding: 8px 16px;
             background: var(--accent);
@@ -125,12 +125,12 @@
             font-size: 0.85rem;
             transition: all 0.2s ease;
         }
-        
+
         .nav-cta:hover {
             background: #00b894;
             transform: translateY(-1px);
         }
-        
+
         .hero {
             min-height: 100vh;
             display: flex;
@@ -140,7 +140,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .hero::before {
             content: '';
             position: absolute;
@@ -153,14 +153,14 @@
             pointer-events: none;
             opacity: 0.5;
         }
-        
+
         .hero-content {
             max-width: 800px;
             text-align: center;
             position: relative;
             z-index: 1;
         }
-        
+
         .hero-badge {
             display: inline-flex;
             align-items: center;
@@ -176,7 +176,7 @@
             letter-spacing: 0.1em;
             margin-bottom: 32px;
         }
-        
+
         .hero-badge::before {
             content: '';
             width: 6px;
@@ -185,12 +185,12 @@
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        
+
         .hero-title {
             font-size: clamp(2.5rem, 6vw, 4rem);
             font-weight: 700;
@@ -202,21 +202,21 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .hero-subtitle {
             font-size: clamp(1.1rem, 2.5vw, 1.35rem);
             color: var(--text-secondary);
             margin-bottom: 40px;
             line-height: 1.6;
         }
-        
+
         .hero-cta {
             display: flex;
             gap: 16px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         .btn {
             padding: 14px 28px;
             border-radius: 8px;
@@ -228,29 +228,29 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .btn-primary {
             background: var(--accent);
             color: var(--bg-primary);
         }
-        
+
         .btn-primary:hover {
             background: #00b894;
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(0, 212, 170, 0.3);
         }
-        
+
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-primary);
             border: 1px solid var(--border);
         }
-        
+
         .btn-secondary:hover {
             border-color: var(--accent);
             color: var(--accent);
         }
-        
+
         .status-bar {
             margin-top: 48px;
             padding: 20px;
@@ -263,7 +263,7 @@
             gap: 32px;
             flex-wrap: wrap;
         }
-        
+
         .status-item {
             display: flex;
             align-items: center;
@@ -272,7 +272,7 @@
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
-        
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -281,23 +281,23 @@
             box-shadow: 0 0 8px var(--accent);
             animation: pulse 2s infinite;
         }
-        
+
         .status-value {
             color: var(--accent);
             font-weight: 600;
         }
-        
+
         .section {
             padding: 100px 24px;
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         .section-header {
             text-align: center;
             margin-bottom: 64px;
         }
-        
+
         .section-label {
             font-family: var(--font-mono);
             font-size: 0.8rem;
@@ -306,26 +306,26 @@
             letter-spacing: 0.15em;
             margin-bottom: 16px;
         }
-        
+
         .section-title {
             font-size: clamp(1.75rem, 4vw, 2.5rem);
             font-weight: 700;
             margin-bottom: 16px;
         }
-        
+
         .section-subtitle {
             font-size: 1.1rem;
             color: var(--text-secondary);
             max-width: 600px;
             margin: 0 auto;
         }
-        
+
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 24px;
         }
-        
+
         .card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -333,13 +333,13 @@
             padding: 32px;
             transition: all 0.3s ease;
         }
-        
+
         .card:hover {
             border-color: var(--accent);
             transform: translateY(-4px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }
-        
+
         .card-icon {
             width: 48px;
             height: 48px;
@@ -351,19 +351,19 @@
             font-size: 1.5rem;
             margin-bottom: 20px;
         }
-        
+
         .card-title {
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 12px;
         }
-        
+
         .card-text {
             color: var(--text-secondary);
             font-size: 0.95rem;
             line-height: 1.7;
         }
-        
+
         .card-link {
             display: inline-flex;
             align-items: center;
@@ -374,11 +374,11 @@
             font-weight: 500;
             font-size: 0.9rem;
         }
-        
+
         .card-link:hover {
             gap: 10px;
         }
-        
+
         .article-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -388,12 +388,12 @@
             flex-direction: column;
             transition: all 0.3s ease;
         }
-        
+
         .article-card:hover {
             border-color: var(--accent);
             transform: translateY(-4px);
         }
-        
+
         .article-image {
             height: 200px;
             background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--accent-dim) 100%);
@@ -402,14 +402,14 @@
             justify-content: center;
             font-size: 4rem;
         }
-        
+
         .article-content {
             padding: 28px;
             flex: 1;
             display: flex;
             flex-direction: column;
         }
-        
+
         .article-meta {
             display: flex;
             gap: 16px;
@@ -417,21 +417,21 @@
             font-size: 0.8rem;
             color: var(--text-muted);
         }
-        
+
         .article-title {
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 12px;
             line-height: 1.4;
         }
-        
+
         .article-excerpt {
             color: var(--text-secondary);
             font-size: 0.95rem;
             line-height: 1.6;
             flex: 1;
         }
-        
+
         .article-link {
             display: inline-flex;
             align-items: center;
@@ -441,20 +441,20 @@
             text-decoration: none;
             font-weight: 600;
         }
-        
+
         .quote-section {
             background: var(--bg-secondary);
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
             padding: 80px 24px;
         }
-        
+
         .quote-container {
             max-width: 800px;
             margin: 0 auto;
             text-align: center;
         }
-        
+
         .quote-text {
             font-size: clamp(1.5rem, 3vw, 2rem);
             font-weight: 300;
@@ -463,39 +463,39 @@
             margin-bottom: 24px;
             color: var(--text-primary);
         }
-        
+
         .quote-text span {
             color: var(--accent);
             font-weight: 500;
         }
-        
+
         .quote-author {
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
-        
+
         .footer {
             background: var(--bg-secondary);
             border-top: 1px solid var(--border);
             padding: 60px 24px 40px;
         }
-        
+
         .footer-container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         .footer-grid {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 40px;
             margin-bottom: 48px;
         }
-        
+
         .footer-brand {
             max-width: 300px;
         }
-        
+
         .footer-logo {
             font-family: var(--font-mono);
             font-size: 1.25rem;
@@ -503,13 +503,13 @@
             font-weight: 600;
             margin-bottom: 16px;
         }
-        
+
         .footer-tagline {
             color: var(--text-secondary);
             font-size: 0.9rem;
             line-height: 1.6;
         }
-        
+
         .footer-heading {
             font-size: 0.85rem;
             font-weight: 600;
@@ -518,24 +518,24 @@
             color: var(--text-primary);
             margin-bottom: 16px;
         }
-        
+
         .footer-links {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        
+
         .footer-link {
             color: var(--text-secondary);
             text-decoration: none;
             font-size: 0.9rem;
             transition: color 0.2s ease;
         }
-        
+
         .footer-link:hover {
             color: var(--accent);
         }
-        
+
         .footer-bottom {
             padding-top: 32px;
             border-top: 1px solid var(--border);
@@ -545,17 +545,17 @@
             flex-wrap: wrap;
             gap: 16px;
         }
-        
+
         .footer-copyright {
             color: var(--text-muted);
             font-size: 0.85rem;
         }
-        
+
         .footer-social {
             display: flex;
             gap: 16px;
         }
-        
+
         .social-link {
             width: 36px;
             height: 36px;
@@ -569,12 +569,12 @@
             font-size: 0.9rem;
             transition: all 0.2s ease;
         }
-        
+
         .social-link:hover {
             background: var(--accent);
             color: var(--bg-primary);
         }
-        
+
         @media (max-width: 768px) {
             .nav-tabs { display: none; }
             .hero { padding: 100px 20px 60px; }
@@ -585,7 +585,7 @@
             .footer-grid { grid-template-columns: 1fr 1fr; }
             .section { padding: 60px 20px; }
         }
-        
+
         .mobile-menu-btn {
             display: none;
             background: none;
@@ -595,7 +595,7 @@
             cursor: pointer;
             padding: 8px;
         }
-        
+
         @media (max-width: 768px) {
             .mobile-menu-btn { display: block; }
         }
@@ -622,18 +622,18 @@
             <div class="hero-badge">
                 <span>Live: 13/13 Floors Passing</span>
             </div>
-            
+
             <h1 class="hero-title">
                 I drill for oil.<br>
                 I also built a<br>
                 <span style="color: var(--accent);">constitution for AI.</span>
             </h1>
-            
+
             <p class="hero-subtitle">
                 Petroleum geologist by trade. AI architect by necessity. <br>
                 Building sovereign infrastructure that makes AI accountable.
             </p>
-            
+
             <div class="hero-cta">
                 <a href="/writing" class="btn btn-primary">
                     Read the Story
@@ -643,7 +643,7 @@
                     Explore arifOS
                 </a>
             </div>
-            
+
             <div class="status-bar">
                 <div class="status-item">
                     <span class="status-dot"></span>
@@ -664,7 +664,7 @@
             <h2 class="section-title">The Complete Story</h2>
             <p class="section-subtitle">From blowout preventers to constitutional floors. How a geologist accidentally built the world's first sovereign AI OS.</p>
         </div>
-        
+
         <div style="max-width: 800px; margin: 0 auto;">
             <article class="article-card">
                 <div class="article-image">⛏️</div>
@@ -695,21 +695,21 @@
             <h2 class="section-title">Two Worlds, One Principle</h2>
             <p class="section-subtitle">Uncertainty is the baseline. Pretending certainty when you don't have it is unforgivable.</p>
         </div>
-        
+
         <div class="cards-grid">
             <div class="card">
                 <div class="card-icon">🛢️</div>
                 <h3 class="card-title">Petroleum Geoscience</h3>
                 <p class="card-text">13+ years at PETRONAS. Subsurface mapping, risk registers, probability of success. The kind of work where the earth always gets the last vote.</p>
             </div>
-            
+
             <div class="card">
                 <div class="card-icon">⚖️</div>
                 <h3 class="card-title">arifOS</h3>
                 <p class="card-text">The world's first sovereign, dual-surface, constitutionally-governed AI system. 13 Constitutional Floors. VAULT999 ledger. Steel Doors instead of Paper Walls.</p>
                 <a href="https://arifos.arif-fazil.com" class="card-link" target="_blank">Explore →</a>
             </div>
-            
+
             <div class="card">
                 <div class="card-icon">📝</div>
                 <h3 class="card-title">Writing</h3>
@@ -751,7 +751,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p class="footer-copyright">© 2026 Muhammad Arif bin Fazil. Ditempa Bukan Diberi.</p>
                 <div class="footer-social">

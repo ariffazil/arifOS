@@ -1,8 +1,8 @@
 # GEOX METABOLIC WORKFLOW: CLOSING THE PHYSICS LOOP
 
-> **Paradigm:** EARTH.CANON_9 INVERSION  
-> **Doctrine:** DITEMPA BUKAN DIBERI  
-> **Status:** ALIVE [999_SEAL]  
+> **Paradigm:** EARTH.CANON_9 INVERSION
+> **Doctrine:** DITEMPA BUKAN DIBERI
+> **Status:** ALIVE [999_SEAL]
 
 ## 1. THE METABOLIC SHIFT
 
@@ -43,7 +43,7 @@ By enforcing the **EARTH.CANON_9** basis, GEOX eliminates the "Hidden Gap" betwe
 
 ## 4. COMMAND VERDICT
 
-A geologist thinking in `EARTH.CANON_9 + GEOX` produces tighter volumes, clearer risk bands, and more reliable development strategies. 
+A geologist thinking in `EARTH.CANON_9 + GEOX` produces tighter volumes, clearer risk bands, and more reliable development strategies.
 
 **DITEMPA BUKAN DIBERI.**
 **999_SEAL_ALIVE.**

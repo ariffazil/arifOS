@@ -1,7 +1,7 @@
 # arifOS Forensic Architecture Audit — 2026-03-29
-> **Auditor:** opencode (Agent)  
-> **Authority:** 888_JUDGE Ratified  
-> **Scope:** arifOS (kernel) vs arifosmcp (implementation)  
+> **Auditor:** opencode (Agent)
+> **Authority:** 888_JUDGE Ratified
+> **Scope:** arifOS (kernel) vs arifosmcp (implementation)
 > **Session:** forensic-arifOS-20260329
 
 ---
@@ -86,7 +86,7 @@
 
 **Both sensory modules exist only in spec (333/ARIF/) and are absent from implementation.**
 
-M11 provides CSV/Excel QA via `smolagents @tool`.  
+M11 provides CSV/Excel QA via `smolagents @tool`.
 M12 provides document QA via `smolagents @tool`.
 
 **Recommended action**: Migrate as `tool_11_table_qa.py` and `tool_12_doc_qa.py` in `runtime/megaTools/`.
@@ -120,7 +120,7 @@ Infrastructure dependencies embedded in arifosmcp (hidden implementation details
 
 **Analysis**: `runtime/tools.py` has `_build_user_model` defined twice at lines 213 and 700 — classic copy-paste.
 
-**Recursive validators**: No recursive validator duplicates found.  
+**Recursive validators**: No recursive validator duplicates found.
 **Wrapper duplication**: Low (only 1 confirmed cluster).
 
 ---
@@ -265,5 +265,5 @@ The most urgent action is **M11/M12 sensory migration** (0% complete) and **lexi
 
 ---
 
-*Report generated: 2026-03-29*  
+*Report generated: 2026-03-29*
 *Next audit recommended: 2026-04-28 (30-day checkpoint)*

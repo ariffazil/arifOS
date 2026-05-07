@@ -24,30 +24,30 @@ from ..types import Governance, MemoryRecord, MemoryType, RetentionClass, Scope,
 class ConstitutionalMemoryLane:
     """
     Constitutional memory stores the highest-trust rules.
-    
+
     This is the smallest lane but the most important.
-    
+
     Contents:
     - Non-overridable rules (F1-F13)
     - Risk floors
     - Role boundaries
     - Hold logic
     - Sovereignty markers
-    
+
     Rules:
     - Read on every operation
     - Written only by 888_JUDGE or constitutional amendment
     - Never auto-expire
     - Never superseded without trace
     """
-    
+
     _memories: dict[str, MemoryRecord] = field(default_factory=dict)
     _rule_index: dict[str, str] = field(default_factory=dict)  # rule_id -> memory_id
-    
+
     def __post_init__(self):
         """Initialize with core constitutional rules."""
         self._initialize_core_rules()
-    
+
     def _initialize_core_rules(self):
         """Load immutable constitutional rules."""
         core_rules = [
@@ -82,7 +82,7 @@ class ConstitutionalMemoryLane:
                 "priority": 1.0,
             },
         ]
-        
+
         for rule in core_rules:
             self._create_core_rule(
                 rule_id=rule["rule_id"],
@@ -90,7 +90,7 @@ class ConstitutionalMemoryLane:
                 content=rule["content"],
                 priority=rule["priority"],
             )
-    
+
     def _create_core_rule(
         self,
         rule_id: str,
@@ -100,7 +100,7 @@ class ConstitutionalMemoryLane:
     ) -> MemoryRecord:
         """Create a core constitutional rule."""
         memory_id = f"mem_const_{rule_id}"
-        
+
         record = MemoryRecord(
             memory_id=memory_id,
             memory_type=MemoryType.CONSTITUTIONAL,
@@ -135,29 +135,29 @@ class ConstitutionalMemoryLane:
                 "rule_id": rule_id,
                 "floor_number": rule_id.split("_")[0],
                 "amendment_version": "v1.0",
-            }
+            },
         )
-        
+
         self._memories[memory_id] = record
         self._rule_index[rule_id] = memory_id
-        
+
         return record
-    
+
     def get_rule(self, rule_id: str) -> MemoryRecord | None:
         """Get constitutional rule by ID."""
         memory_id = self._rule_index.get(rule_id)
         if memory_id:
             return self._memories.get(memory_id)
         return None
-    
+
     def get_all_rules(self) -> list[MemoryRecord]:
         """Get all constitutional rules."""
         return list(self._memories.values())
-    
+
     def get_floors(self) -> list[MemoryRecord]:
         """Get all floor rules (F1-F13)."""
         return [m for m in self._memories.values() if "F" in m.lane_data.get("floor_number", "")]
-    
+
     def check_compliance(
         self,
         operation: str,
@@ -165,24 +165,24 @@ class ConstitutionalMemoryLane:
     ) -> tuple[bool, list[str]]:
         """
         Check if operation complies with constitutional rules.
-        
+
         Returns (is_compliant, list_of_violations).
         """
         violations = []
-        
+
         for rule in self._memories.values():
             # Simplified check - would have actual logic per rule
             if rule.lane_data.get("rule_id") == "F1_AMANAH":
                 if not context.get("is_reversible", True):
                     violations.append("F1_AMANAH: Operation not reversible")
-            
+
             if rule.lane_data.get("rule_id") == "F4_CLARITY":
                 delta_s = context.get("entropy_delta", 0)
                 if delta_s > 0:
                     violations.append(f"F4_CLARITY: Entropy increased (ΔS = {delta_s})")
-        
+
         return len(violations) == 0, violations
-    
+
     def amend_rule(
         self,
         rule_id: str,
@@ -191,24 +191,24 @@ class ConstitutionalMemoryLane:
     ) -> MemoryRecord | None:
         """
         Amend a constitutional rule.
-        
+
         Requires 888_JUDGE authority. Creates new version, marks old as superseded.
         """
         if amendment_authority != "888_JUDGE":
             return None
-        
+
         old_rule = self.get_rule(rule_id)
         if not old_rule:
             return None
-        
+
         # Create amended version
         new_version = old_rule.lane_data.get("amendment_version", "v1.0")
         # Increment version
         version_parts = new_version.replace("v", "").split(".")
         new_version = f"v{version_parts[0]}.{int(version_parts[1]) + 1}"
-        
+
         memory_id = f"mem_const_{rule_id}_{new_version}"
-        
+
         record = MemoryRecord(
             memory_id=memory_id,
             memory_type=MemoryType.CONSTITUTIONAL,
@@ -243,13 +243,13 @@ class ConstitutionalMemoryLane:
                 "amendment_version": new_version,
                 "amended_by": amendment_authority,
                 "amended_at": datetime.utcnow().isoformat(),
-            }
+            },
         )
-        
+
         # Mark old as superseded
         old_rule.lineage.superseded_by = memory_id
-        
+
         self._memories[memory_id] = record
         self._rule_index[rule_id] = memory_id
-        
+
         return record

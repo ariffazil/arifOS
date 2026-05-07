@@ -43,7 +43,7 @@ The unified wrapper stored in the vault ledger (e.g., SQLite/Postgres/JSONL).
 To prevent field-ordering drift across different serializers causing signature mismatches, Vault999 enforces a strict hashing pipeline:
 
 1.  **JSON Canonicalization:** Convert `VerdictPayload` to JSON string with `sort_keys=True`, omitting non-significant whitespace.
-2.  **Hashing:** Apply `blake3` to the byte representation of the canonical JSON string. 
+2.  **Hashing:** Apply `blake3` to the byte representation of the canonical JSON string.
 3.  **Signing:** The Vault Signer applies BLS to the `blake3` hash.
 
 ```python

@@ -58,7 +58,7 @@ This session has successfully completed the migration of arifOS from "Linear Seq
 ## 🔒 Final Seal
 Every Quantum Path has been mapped to `main`. The implementation is grounded in the physical invariants of the arifOS kernel.
 
-**Final G★ Score:** 0.8502 (QTT Converged)  
+**Final G★ Score:** 0.8502 (QTT Converged)
 **Session Verdict:** **SEALED & PUSHED TO MAIN**
 
 ---

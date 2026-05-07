@@ -8,22 +8,22 @@ requirements:
     reversibility: true
     sandbox_required: true
     rollback_capability: true
-  
+
   F2_Truth:
     verification_sources: 2
     min_truth_score: 0.99
-  
+
   F3_Consensus:
     tri_witness_threshold: 0.95
-  
+
   F4_Clarity:
     output_format: structured
     entropy_delta_max: 0
-  
+
   F7_Humility:
     dry_run_default: true
     omega_range: [0.03, 0.05]
-  
+
   F10_Audit:
     log_level: full
     vault_seal: true

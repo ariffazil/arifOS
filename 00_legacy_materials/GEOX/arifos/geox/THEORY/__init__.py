@@ -45,6 +45,7 @@ GEOX_HOLD = "HOLD"
 GEOX_BLOCK = "GEOX_BLOCK"
 GEOX_VOID = "VOID"
 
+
 # Placeholder for check_floor_compliance - to be implemented
 # For now, return empty list (no violations)
 def check_floor_compliance(data, confidence=None, provenance=None):
@@ -58,6 +59,7 @@ def check_floor_compliance(data, confidence=None, provenance=None):
     if provenance is None or not provenance.get("verified", False):
         violations.append("F9_provenance")
     return violations
+
 
 __all__ = [
     # Taxonomy

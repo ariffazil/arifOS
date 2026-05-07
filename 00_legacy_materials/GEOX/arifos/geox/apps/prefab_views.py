@@ -104,6 +104,7 @@ def _floor_table(active: list[str]) -> Table:
 # View 1 — geox_load_seismic_line
 # ---------------------------------------------------------------------------
 
+
 def seismic_section_view(
     line_id: str,
     survey_path: str,
@@ -194,6 +195,7 @@ def seismic_section_view(
 # View 2 — geox_build_structural_candidates
 # ---------------------------------------------------------------------------
 
+
 def structural_candidates_view(
     line_id: str,
     candidates: list[dict[str, Any]] | None,
@@ -267,9 +269,9 @@ def structural_candidates_view(
                             conf = c.get("confidence", 0.0)
                             risk = c.get("risk", "Unknown")
                             risk_variant = (
-                                "success" if risk == "Low"
-                                else "warning" if risk == "Medium"
-                                else "destructive"
+                                "success"
+                                if risk == "Low"
+                                else "warning" if risk == "Medium" else "destructive"
                             )
                             with TableRow():
                                 TableCell(c.get("model", "—"))
@@ -296,6 +298,7 @@ def structural_candidates_view(
 # ---------------------------------------------------------------------------
 # View 3 — geox_feasibility_check
 # ---------------------------------------------------------------------------
+
 
 def feasibility_check_view(
     plan_id: str,
@@ -380,6 +383,7 @@ def feasibility_check_view(
 # View 4 — geox_verify_geospatial
 # ---------------------------------------------------------------------------
 
+
 def geospatial_view(
     lat: float,
     lon: float,
@@ -459,6 +463,7 @@ def geospatial_view(
 # View 5 — geox_evaluate_prospect
 # ---------------------------------------------------------------------------
 
+
 def prospect_verdict_view(
     prospect_id: str,
     interpretation_id: str,
@@ -504,7 +509,9 @@ def prospect_verdict_view(
                     label="Prospect confidence (F7 bounded)",
                 )
                 Progress(value=int(confidence * 100), max=100, css_class="mt-2")
-                Muted("F7 Humility: confidence bounded in [3%, 15%]. Values above 15% require explicit justification.")
+                Muted(
+                    "F7 Humility: confidence bounded in [3%, 15%]. Values above 15% require explicit justification."
+                )
 
         # --- Required actions ---
         with Card():
@@ -557,6 +564,7 @@ def prospect_verdict_view(
 # View 6 — geox_select_sw_model (Petrophysics Phase B)
 # ---------------------------------------------------------------------------
 
+
 def sw_model_selector_view(
     interval_uri: str,
     admissible_models: list[dict],
@@ -599,9 +607,9 @@ def sw_model_selector_view(
                             for m in admissible_models:
                                 conf = m.get("confidence", 0.0)
                                 conf_variant = (
-                                    "success" if conf >= 0.8
-                                    else "warning" if conf >= 0.5
-                                    else "default"
+                                    "success"
+                                    if conf >= 0.8
+                                    else "warning" if conf >= 0.5 else "default"
                                 )
                                 with TableRow():
                                     TableCell(m.get("model", "—"))
@@ -650,6 +658,7 @@ def sw_model_selector_view(
 # ---------------------------------------------------------------------------
 # View 7 — geox_compute_petrophysics (Petrophysics Phase B)
 # ---------------------------------------------------------------------------
+
 
 def petrophysics_compute_view(
     interval_uri: str,
@@ -700,7 +709,9 @@ def petrophysics_compute_view(
                             Metric(value=f"{phi_t[0]:.2f}–{phi_t[1]:.2f}", label="fraction")
                     with Card():
                         with CardContent():
-                            Text("φe (Effective Porosity)", css_class="text-sm text-muted-foreground")
+                            Text(
+                                "φe (Effective Porosity)", css_class="text-sm text-muted-foreground"
+                            )
                             Metric(value=f"{phi_e[0]:.2f}–{phi_e[1]:.2f}", label="fraction")
                     with Card():
                         with CardContent():
@@ -734,6 +745,7 @@ def petrophysics_compute_view(
 # ---------------------------------------------------------------------------
 # View 8 — geox_validate_cutoffs (Petrophysics Phase B)
 # ---------------------------------------------------------------------------
+
 
 def cutoff_validation_view(
     interval_uri: str,
@@ -818,6 +830,7 @@ def cutoff_validation_view(
 # ---------------------------------------------------------------------------
 # View 9 — geox_petrophysical_hold_check (Petrophysics Phase B)
 # ---------------------------------------------------------------------------
+
 
 def petrophysical_hold_view(
     interval_uri: str,

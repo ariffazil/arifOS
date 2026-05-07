@@ -259,7 +259,7 @@ class GeoXValidator:
                     lo, hi = lo / 100.0, hi / 100.0
                     units = "fraction"
 
-                prov = ProvenanceRecord(
+                ProvenanceRecord(
                     source_id=f"LLM-EXTRACT-{quantity_type}",
                     source_type="human",
                     timestamp=datetime.now(timezone.utc),
@@ -384,7 +384,7 @@ class GeoXValidator:
                 )
             else:
                 verdict = "contradicted"
-                score = max_ratio = match_ratio * 0.3
+                score = match_ratio * 0.3
                 score = max(0.0, match_ratio * 0.4)
                 explanation = (
                     f"Only {matching_count}/{total_count} measurements within range. "

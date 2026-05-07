@@ -224,24 +224,24 @@ interface GEOXState {
   mapView: MapViewState;
   seismicView: SeismicViewState;
   logView: LogViewState;
-  
+
   // Data
   layers: MapLayer[];
   wells: Well[];
   seismicLines: SeismicLine[];
   prospects: Prospect[];
-  
+
   // Selection (synchronized)
   selectedCoordinate: Coordinate | null;
   selectedLine: string | null;
   selectedWell: string | null;
   cursor: CursorState;
-  
+
   // Governance (F1-F13)
   governance: GovernanceState;
   groundingStatus: GroundingStatus;
   uncertainty: UncertaintyState;
-  
+
   // Actions
   setActiveTab: (tab: Tab) => void;
   selectCoordinate: (coord: Coordinate) => void;
@@ -260,7 +260,7 @@ interface GEOXState {
 // src/hooks/useSync.ts
 export function useCrossPanelSync() {
   const { syncCursor, selectCoordinate } = useGEOXStore();
-  
+
   // When user clicks on map:
   // 1. Update map selection
   // 2. Find nearest seismic line
@@ -268,10 +268,10 @@ export function useCrossPanelSync() {
   // 4. Find nearest well
   // 5. Update log cursor
   // 6. Update prospect evidence
-  
+
   const handleMapClick = useCallback((coord: Coordinate) => {
     selectCoordinate(coord);
-    
+
     // Sync to seismic
     const nearestLine = findNearestLine(coord);
     if (nearestLine) {
@@ -281,7 +281,7 @@ export function useCrossPanelSync() {
         position: projectToLine(coord, nearestLine),
       });
     }
-    
+
     // Sync to logs
     const nearestWell = findNearestWell(coord);
     if (nearestWell) {
@@ -292,7 +292,7 @@ export function useCrossPanelSync() {
       });
     }
   }, [selectCoordinate, syncCursor]);
-  
+
   return { handleMapClick };
 }
 ```
@@ -318,7 +318,7 @@ export function checkMeasurementGrounding(
       action: () => disableTool(tool),
     };
   }
-  
+
   // Check scale
   if (!context.scaleVerified) {
     return {
@@ -328,7 +328,7 @@ export function checkMeasurementGrounding(
       action: () => showWarningRibbon(),
     };
   }
-  
+
   return { floor: 'F4', status: 'green' };
 }
 ```
@@ -344,7 +344,7 @@ export function CandidateOverlay({
 }: CandidateOverlayProps) {
   // Always show all candidates
   // Don't auto-promote one to truth
-  
+
   return (
     <div className="candidate-overlay">
       {candidates.map((candidate, idx) => (
@@ -356,7 +356,7 @@ export function CandidateOverlay({
           onClick={() => onSelect(candidate.id)}
         />
       ))}
-      
+
       {candidates.length === 1 && (
         <F7Warning message="Only one candidate — add alternatives or constrain with data" />
       )}
@@ -376,26 +376,26 @@ export function HumanDecisionZone({ prospect }: { prospect: Prospect }) {
         <ShieldIcon />
         HUMAN DECISION REQUIRED — F13 SOVEREIGN
       </h3>
-      
+
       <p className="text-sm text-red-600 mt-2">
         This prospect evaluation requires human judgment.
         AI can provide evidence, but the final decision is yours.
       </p>
-      
+
       <div className="flex gap-2 mt-4">
-        <Button 
+        <Button
           variant="destructive"
           onClick={() => submitDecision('HOLD')}
         >
           HOLD — Insufficient Grounding
         </Button>
-        <Button 
+        <Button
           variant="default"
           onClick={() => submitDecision('PARTIAL')}
         >
           PARTIAL — Bounded Evaluation
         </Button>
-        <Button 
+        <Button
           variant="outline"
           onClick={() => submitDecision('SEAL')}
           disabled={!allConstraintsMet()}
@@ -418,11 +418,11 @@ export function HumanDecisionZone({ prospect }: { prospect: Prospect }) {
 // src/utils/geoxMCP.ts
 export class GEOXMCPClient {
   private baseUrl: string;
-  
+
   constructor(baseUrl: string = 'https://geoxarifOS.fastmcp.app') {
     this.baseUrl = baseUrl;
   }
-  
+
   async verifyGeospatial(
     lat: number,
     lon: number,
@@ -441,10 +441,10 @@ export class GEOXMCPClient {
         },
       }),
     });
-    
+
     return response.json();
   }
-  
+
   async evaluateProspect(
     prospectId: string,
     interpretationId: string
@@ -462,10 +462,10 @@ export class GEOXMCPClient {
         },
       }),
     });
-    
+
     return response.json();
   }
-  
+
   async healthCheck(): Promise<HealthStatus> {
     const response = await fetch(`${this.baseUrl}/health/details`);
     return response.json();

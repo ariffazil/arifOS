@@ -72,6 +72,8 @@ def test_arifos_mind_context_array_schema_declares_items() -> None:
     assert spec is not None
 
     context_schema = spec.input_schema["properties"]["context"]
-    array_branch = next(branch for branch in context_schema["oneOf"] if branch.get("type") == "array")
+    array_branch = next(
+        branch for branch in context_schema["oneOf"] if branch.get("type") == "array"
+    )
 
     assert "items" in array_branch

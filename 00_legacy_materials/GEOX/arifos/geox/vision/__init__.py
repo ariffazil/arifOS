@@ -12,7 +12,7 @@ from .multi_view_consistency import MultiViewConsistencyChecker
 
 __all__ = [
     "VisionGovernance",
-    "ContrastViewGenerator", 
+    "ContrastViewGenerator",
     "GovernedSeismicVLM",
     "MultiViewConsistencyChecker",
 ]

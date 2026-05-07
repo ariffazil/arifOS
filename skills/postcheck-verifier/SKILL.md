@@ -156,7 +156,7 @@ test_functional() {
 prove_reality() {
   local goal="$1"
   echo "[L4] Proving reality: $goal"
-  
+
   # The question to answer: "Did the system do what Arif asked?"
   case "$goal" in
     "main branch repaired")

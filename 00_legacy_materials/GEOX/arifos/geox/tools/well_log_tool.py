@@ -42,33 +42,34 @@ logger = logging.getLogger("geox.tools.well_log")
 # Physics Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-RHO_WATER = 1.0       # g/cm³
-RHO_QUARTZ = 2.65     # g/cm³
-RHO_CARB = 2.71        # g/cm³
-DT_WATER = 189.0       # μs/ft
-DT_QUARTZ = 55.5       # μs/ft
-DT_CARB = 47.5         # μs/ft
+RHO_WATER = 1.0  # g/cm³
+RHO_QUARTZ = 2.65  # g/cm³
+RHO_CARB = 2.71  # g/cm³
+DT_WATER = 189.0  # μs/ft
+DT_QUARTZ = 55.5  # μs/ft
+DT_CARB = 47.5  # μs/ft
 PHI_HC_CORRECTION = 0.02  # hydrocarbon correction factor
 
 # GR thresholds (API) — typical sandstone/shale range
-GR_SAND = 30.0   # API (clean sand)
+GR_SAND = 30.0  # API (clean sand)
 GR_SHALE = 120.0  # API (shale)
 
 # ILD range (ohm-m)
-ILD_WATER = 0.5    # ohm-m (100% water)
-ILD_OIL = 100.0   # ohm-m (oil zone)
+ILD_WATER = 0.5  # ohm-m (100% water)
+ILD_OIL = 100.0  # ohm-m (oil zone)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Anomaly Flags
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class AnomalyFlag(str, Enum):
-    WASHOUT = "washout"           # Caliper > bit size (borehole enlargement)
-    INVADED = "invaded_zone"      # Flushed zone (flushed by mud filtrate)
-    GAS_EFFECT = "gas_effect"     # Gas-bearing interval
+    WASHOUT = "washout"  # Caliper > bit size (borehole enlargement)
+    INVADED = "invaded_zone"  # Flushed zone (flushed by mud filtrate)
+    GAS_EFFECT = "gas_effect"  # Gas-bearing interval
     ANOMALOUS_GR = "anomalous_gr"  # GR spike or low
-    BAD_HOLE = "bad_hole"          # Borehole quality poor
+    BAD_HOLE = "bad_hole"  # Borehole quality poor
     HIGH_RESISTIVITY = "high_resistivity_oil"  # Potential oil zone
     LOW_RESISTIVITY = "low_resistivity_water"  # Possible water zone
 
@@ -76,11 +77,12 @@ class AnomalyFlag(str, Enum):
 @dataclass
 class LogCurve:
     """Single log curve (one measurement vs depth)."""
+
     name: str
     unit: str
-    depth: list[float]       # md/m
+    depth: list[float]  # md/m
     values: list[float | None]
-    curve_index: int          # 0-based index in LAS file
+    curve_index: int  # 0-based index in LAS file
 
     def at_depth(self, depth: float) -> float | None:
         """Interpolate value at given depth."""
@@ -91,9 +93,9 @@ class LogCurve:
         # Linear interpolation
         for i in range(len(self.depth) - 1):
             if self.depth[i] <= depth <= self.depth[i + 1]:
-                t = (depth - self.depth[i]) / (self.depth[i+1] - self.depth[i])
+                t = (depth - self.depth[i]) / (self.depth[i + 1] - self.depth[i])
                 v0 = self.values[i] if self.values[i] is not None else 0.0
-                v1 = self.values[i+1] if self.values[i+1] is not None else 0.0
+                v1 = self.values[i + 1] if self.values[i + 1] is not None else 0.0
                 return v0 + t * (v1 - v0)
         return None
 
@@ -101,6 +103,7 @@ class LogCurve:
 @dataclass
 class LASFile:
     """Parsed LAS (Log ASCII Standard) file."""
+
     well_name: str
     location: CoordinatePoint | None
     curves: dict[str, LogCurve]
@@ -179,7 +182,7 @@ class WellLogTool(BaseTool):
 
         well_name = inputs.get("well_name", las.well_name or "Unknown Well")
         bit_size = inputs.get("bit_size", 8.5)  # inches
-        rw = inputs.get("rw", 0.1)             # ohm-m
+        rw = inputs.get("rw", 0.1)  # ohm-m
         location = inputs["location"]
 
         # Compute derived curves
@@ -206,8 +209,10 @@ class WellLogTool(BaseTool):
             "well_name": well_name,
             "bit_size_inches": bit_size,
             "rw_ohm_m": rw,
-            "depth_range_m": [las.get_curve("DEPT").depth[0] if las.get_curve("DEPT") else 0,
-                          las.get_curve("DEPT").depth[-1] if las.get_curve("DEPT") else 0],
+            "depth_range_m": [
+                las.get_curve("DEPT").depth[0] if las.get_curve("DEPT") else 0,
+                las.get_curve("DEPT").depth[-1] if las.get_curve("DEPT") else 0,
+            ],
             "curves_found": las.curve_names(),
             "computed_curves": ["VSH", "PHIE", "SW"],
             "anomaly_zones": [a.value for a in anomalies],
@@ -292,7 +297,9 @@ class WellLogTool(BaseTool):
                 depth_key = curve_order[0] if curve_order else "DEPT"
                 dep_curve = curves.get(depth_key, curves.get("MD", None))
                 if dep_curve is None and curve_order:
-                    dep_curve = LogCurve(name=depth_key, unit="m", depth=[], values=[], curve_index=0)
+                    dep_curve = LogCurve(
+                        name=depth_key, unit="m", depth=[], values=[], curve_index=0
+                    )
                     curves[depth_key] = dep_curve
 
                 vals_per_curve = len(curve_order) if curve_order else 1
@@ -347,7 +354,7 @@ class WellLogTool(BaseTool):
         nphi = las.get_curve("NPHI") or las.get_curve("TNPH")
         rhob = las.get_curve("RHOB")
         dt = las.get_curve("DT") or las.get_curve("AC")
-        cali = las.get_curve("CALI") or las.get_curve("CAL")
+        las.get_curve("CALI") or las.get_curve("CAL")
         dept_curve = las.get_curve("DEPT") or las.get_curve("MD")
 
         if not dept_curve or not dept_curve.depth:
@@ -407,7 +414,7 @@ class WellLogTool(BaseTool):
         igr = (gr_value - gr_clean) / (gr_sh - gr_clean)
         igr = max(0.0, min(1.0, igr))
         # Clavier-Fertl
-        vsh = 1.7 - (0.3 * igr - 0.0103 * igr ** 2) / (1 - igr + 0.003) if igr < 1 else 1.0
+        vsh = 1.7 - (0.3 * igr - 0.0103 * igr**2) / (1 - igr + 0.003) if igr < 1 else 1.0
         return max(0.0, min(1.0, vsh))
 
     def _compute_phie_nd(
@@ -438,14 +445,14 @@ class WellLogTool(BaseTool):
         ild: float | None,
         phie: float | None,
         rw: float,
-        a = 1.0,
-        m = 2.0,
-        n = 2.0,
+        a=1.0,
+        m=2.0,
+        n=2.0,
     ) -> float | None:
         """Archie saturation: Sw = (a * rw / (PHIe^m * ILD))^(1/n)."""
         if ild is None or ild <= 0 or phie is None or phie <= 0:
             return None
-        sw = (a * rw / (phie ** m * ild)) ** (1.0 / n)
+        sw = (a * rw / (phie**m * ild)) ** (1.0 / n)
         return max(0.0, min(1.0, sw))
 
     # ─────────────────────────────────────────────────────────────────
@@ -471,7 +478,7 @@ class WellLogTool(BaseTool):
         n = len(dept.depth)
 
         for i in range(n):
-            depth = dept.depth[i] if i < len(dept.depth) else 0.0
+            dept.depth[i] if i < len(dept.depth) else 0.0
 
             # Washout: caliper > 1.5 × bit size
             if cali and i < len(cali.values) and cali.values[i] is not None:
@@ -481,7 +488,12 @@ class WellLogTool(BaseTool):
 
             # Gas zone: high resistivity + low NPHI
             if computed["PHIE"] and ild and i < len(ild.values) and i < len(computed["PHIE"]):
-                if ild.values[i] and ild.values[i] > 50 and computed["PHIE"][i] and computed["PHIE"][i] < 0.15:
+                if (
+                    ild.values[i]
+                    and ild.values[i] > 50
+                    and computed["PHIE"][i]
+                    and computed["PHIE"][i] < 0.15
+                ):
                     anomalies.append(AnomalyFlag.GAS_EFFECT)
                     # Don't break — gas can span multiple zones
 
@@ -508,9 +520,12 @@ class WellLogTool(BaseTool):
 
         # Filter to pay zone (Vsh < 0.5, PHI > 0.05)
         pay_indices = [
-            i for i in range(len(vsh_list))
-            if vsh_list[i] is not None and vsh_list[i] < 0.5
-            and phie_list[i] is not None and phie_list[i] > 0.05
+            i
+            for i in range(len(vsh_list))
+            if vsh_list[i] is not None
+            and vsh_list[i] < 0.5
+            and phie_list[i] is not None
+            and phie_list[i] > 0.05
         ]
 
         if not pay_indices:

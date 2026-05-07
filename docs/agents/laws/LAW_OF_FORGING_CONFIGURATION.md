@@ -1,8 +1,8 @@
 # LAW OF FORGING CONFIGURATION — arifOS Agent Operations
 
-> **Ditempa Bukan Diberi** — Forged, Not Given  
-> **Last Updated:** 2026-03-27  
-> **Trigger Event:** OpenClaw models.json misconfiguration disaster  
+> **Ditempa Bukan Diberi** — Forged, Not Given
+> **Last Updated:** 2026-03-27
+> **Trigger Event:** OpenClaw models.json misconfiguration disaster
 
 ---
 

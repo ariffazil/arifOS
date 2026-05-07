@@ -42,7 +42,7 @@
                 <p>FastMCP Kernel <span id="kernel-ver">...</span></p>
                 <div id="tool-badges"></div>
             </div>
-            
+
             <div class="card" style="border-color: #008cff">
                 <h3>DATA PLANE: VAULT999</h3>
                 <div class="status status-ok">ANCHORED</div>
@@ -67,19 +67,19 @@
 
     <script>
         const MACHINE_TRUTH_VERSION = 'v2026.04.19-UNIFIED';
-        
+
         async function update() {
             try {
                 const res = await fetch('/health');
                 const data = await res.json();
-                
+
                 document.getElementById('vitality-val').textContent = data.thermodynamic.vitality_index.toFixed(4);
                 document.getElementById('kernel-ver').textContent = data.version;
                 document.getElementById('epoch').textContent = 'EPOCH: ' + data.timestamp;
-                
+
                 const badges = document.getElementById('tool-badges');
                 badges.innerHTML = `<span class="badge">${data.tools_loaded} TOOLS LOADED</span>`;
-                
+
                 const vault = document.getElementById('vault-status');
                 vault.textContent = 'Storage: ' + Object.keys(data.capability_map.storage).filter(k => data.capability_map.storage[k] === 'configured').join(', ').toUpperCase();
 

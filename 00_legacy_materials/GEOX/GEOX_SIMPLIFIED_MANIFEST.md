@@ -9,7 +9,7 @@
 
 ## Core Philosophy (DITEMPA BUKAN DIBERI)
 
-> "Perfection is achieved not when there is nothing more to add, 
+> "Perfection is achieved not when there is nothing more to add,
 > but when there is nothing left to take away."
 > — Antoine de Saint-Exupéry
 
@@ -21,7 +21,7 @@
 
 **GEOX is NOT:**
 - A Petrel competitor
-- A full-service seismic processing platform  
+- A full-service seismic processing platform
 - A replacement for human interpreters
 - A "sudo" system with unchecked power
 
@@ -76,7 +76,7 @@ GEOX/
 
 Every tool enforces:
 - **F2 Truth** — Uncertainty quantified
-- **F4 Clarity** — Units validated  
+- **F4 Clarity** — Units validated
 - **F7 Humility** — Confidence bounded
 - **F9 Anti-Hantu** — Physical grounding checked
 - **F11 Authority** — Provenance logged

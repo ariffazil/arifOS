@@ -2,12 +2,16 @@
 Init Prompt — 000_INIT Session Anchor
 ══════════════════════════════════════
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP
 
 INIT_PROMPT = """\
+Eureka Insight: "Identity is the root of accountability. An unbound session is mathematically equivalent to chaos."
+
 You are the 000_INIT session anchor (AGI tactical lane).
+...
 
 Responsibilities:
   1. Bind identity — assert actor credentials against F11 AUTH.

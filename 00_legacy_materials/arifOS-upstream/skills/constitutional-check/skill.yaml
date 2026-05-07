@@ -9,7 +9,7 @@ requirements:
     ai_witness: required
     earth_witness: required
     threshold: 0.95
-  
+
   F1_F13:
     all_floors_checked: true
 

@@ -29,6 +29,7 @@ PROFILES_PATH = REGISTRY_PATH / "provider_souls"
 RUNTIME_PATH = REGISTRY_PATH / "runtime_profiles"
 CATALOG_PATH = REGISTRY_PATH / "catalog.json"
 
+
 # =============================================================================
 # Pydantic Models
 # =============================================================================
@@ -36,11 +37,13 @@ class IdentityClaim(BaseModel):
     claimed_identity: str
     claimed_provider: Optional[str] = None
 
+
 class InitAnchorRequest(BaseModel):
     actor_id: str
     declared_model_key: str
     declared_role: Optional[str] = None
     requested_scope: list[str] = ["read", "query"]
+
 
 class DriftEvent(BaseModel):
     session_id: str
@@ -49,13 +52,14 @@ class DriftEvent(BaseModel):
     expected: str
     severity: str = "medium"
 
+
 # =============================================================================
 # FastAPI App
 # =============================================================================
 app = FastAPI(
     title="arifOS Model Registry",
     description="Model identity + MODEL_SOUL governance registry",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 app.add_middleware(
@@ -66,6 +70,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # =============================================================================
 # Helper Functions
 # =============================================================================
@@ -73,14 +78,17 @@ def load_json(path: Path) -> dict:
     with open(path) as f:
         return json.load(f)
 
+
 def load_catalog() -> dict:
     return load_json(CATALOG_PATH)
+
 
 def load_model(model_key: str) -> dict:
     path = MODELS_PATH / f"{model_key}.json"
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"Model {model_key} not found")
     return load_json(path)
+
 
 def load_profile(soul_key: str) -> dict:
     """Load a provider soul profile by soul key (e.g. 'anthropic_claude')."""
@@ -89,11 +97,13 @@ def load_profile(soul_key: str) -> dict:
         raise HTTPException(status_code=404, detail=f"Soul profile '{soul_key}' not found")
     return load_json(path)
 
+
 def soul_key_for_model(model: dict) -> str:
     """Derive soul key from a model record (provider + _ + family)."""
     provider = model.get("provider", "")
     family = model.get("model_family", "")
     return f"{provider}_{family}"
+
 
 def load_runtime(mode_key: str) -> dict:
     path = RUNTIME_PATH / f"{mode_key}.json"
@@ -101,26 +111,27 @@ def load_runtime(mode_key: str) -> dict:
         raise HTTPException(status_code=404, detail=f"Runtime mode {mode_key} not found")
     return load_json(path)
 
+
 # =============================================================================
 # Tools (MCP-style)
 # =============================================================================
 
+
 @app.get("/")
 def root():
-    return {
-        "service": "arifOS Model Registry",
-        "version": "0.1.0",
-        "status": "operational"
-    }
+    return {"service": "arifOS Model Registry", "version": "0.1.0", "status": "operational"}
+
 
 @app.get("/health")
 def health():
     return {"status": "healthy"}
 
+
 @app.get("/catalog")
 def get_catalog():
     """Get the full catalog index"""
     return load_catalog()
+
 
 @app.get("/model/{model_key:path}")
 def get_model_profile(model_key: str):
@@ -131,8 +142,9 @@ def get_model_profile(model_key: str):
         "tool": "get_model_profile",
         "status": "SUCCESS",
         "result_type": "model_profile",
-        "result": model
+        "result": model,
     }
+
 
 @app.get("/soul/{soul_key}")
 def get_model_soul(soul_key: str):
@@ -143,8 +155,9 @@ def get_model_soul(soul_key: str):
         "tool": "get_model_soul",
         "status": "SUCCESS",
         "result_type": "model_soul_profile",
-        "result": profile
+        "result": profile,
     }
+
 
 @app.get("/runtime/{mode_key}")
 def get_runtime_profile(mode_key: str):
@@ -155,8 +168,9 @@ def get_runtime_profile(mode_key: str):
         "tool": "get_runtime_profile",
         "status": "SUCCESS",
         "result_type": "runtime_profile",
-        "result": runtime
+        "result": runtime,
     }
+
 
 @app.post("/verify/identity")
 def verify_identity_claim(claim: IdentityClaim):
@@ -183,8 +197,8 @@ def verify_identity_claim(claim: IdentityClaim):
                 "verification_status": "confirmed",
                 "declared": claim.claimed_identity,
                 "verified": matched_key,
-                "model": model
-            }
+                "model": model,
+            },
         }
     else:
         return {
@@ -197,9 +211,10 @@ def verify_identity_claim(claim: IdentityClaim):
                 "declared": claim.claimed_identity,
                 "verified": None,
                 "mismatch_detected": True,
-                "drift_risk": "high"
-            }
+                "drift_risk": "high",
+            },
         }
+
 
 @app.post("/init_anchor_v2")
 def init_anchor_v2(req: InitAnchorRequest):
@@ -214,7 +229,7 @@ def init_anchor_v2(req: InitAnchorRequest):
             "tool": "init_anchor_v2",
             "status": "FAIL",
             "result_type": "init_anchor_result",
-            "errors": [f"Model {req.declared_model_key} not found in registry"]
+            "errors": [f"Model {req.declared_model_key} not found in registry"],
         }
 
     # Load soul profile derived from provider + model_family
@@ -237,35 +252,29 @@ def init_anchor_v2(req: InitAnchorRequest):
             "session_id": f"sess_{req.actor_id}_{time.time_ns()}",
             "organ_stage": "000_INIT",
             "actor_id": req.actor_id,
-            "scope": {"granted": req.requested_scope}
+            "scope": {"granted": req.requested_scope},
         },
         "identity_anchor": {
-            "declared": {
-                "model_key": req.declared_model_key,
-                "provider": model.get("provider")
-            },
-            "verified": {
-                "model_key": req.declared_model_key,
-                "provider": model.get("provider")
-            },
+            "declared": {"model_key": req.declared_model_key, "provider": model.get("provider")},
+            "verified": {"model_key": req.declared_model_key, "provider": model.get("provider")},
             "verification_status": verification_status,
-            "mismatch_detected": mismatch_detected
+            "mismatch_detected": mismatch_detected,
         },
         "model_soul_anchor": {
             "soul_key": soul_key,
             "soul_label": profile.get("soul_label") if profile else None,
             "declared": {
                 "model_family": model.get("model_family"),
-                "runtime_class": model.get("runtime_class")
+                "runtime_class": model.get("runtime_class"),
             },
             "verified": {
                 "model_family": model.get("model_family"),
-                "runtime_class": model.get("runtime_class")
+                "runtime_class": model.get("runtime_class"),
             },
             "verification_status": verification_status,
         },
         "self_claim_boundary": profile.get("self_claim_boundary") if profile else None,
-        "runtime_truth": None
+        "runtime_truth": None,
     }
 
     # Add role anchor if a role was requested
@@ -273,7 +282,7 @@ def init_anchor_v2(req: InitAnchorRequest):
         result["role_anchor"] = {
             "declared": {"requested_role": req.declared_role},
             "verified": {"bound_role": req.declared_role},
-            "verification_status": "bound"
+            "verification_status": "bound",
         }
 
     # Add runtime if available (use vps_main_arifos as default deployment)
@@ -285,7 +294,7 @@ def init_anchor_v2(req: InitAnchorRequest):
             "verification_status": "confirmed",
             "tools_live": runtime.get("tools_live"),
             "web_on": runtime.get("web_on"),
-            "execution_mode": runtime.get("execution_mode")
+            "execution_mode": runtime.get("execution_mode"),
         }
     except HTTPException:
         pass
@@ -297,8 +306,9 @@ def init_anchor_v2(req: InitAnchorRequest):
         "machine_status": "READY",
         "risk_class": "low",
         "result_type": "init_anchor_result@v2",
-        "result": result
+        "result": result,
     }
+
 
 @app.get("/models")
 def list_models():
@@ -310,8 +320,9 @@ def list_models():
         "ok": True,
         "tool": "list_models",
         "result_type": "model_list",
-        "result": {"models": model_keys, "count": len(model_keys)}
+        "result": {"models": model_keys, "count": len(model_keys)},
     }
+
 
 @app.get("/providers")
 def list_providers():
@@ -322,12 +333,14 @@ def list_providers():
         "ok": True,
         "tool": "list_providers",
         "result_type": "provider_list",
-        "result": {"providers": souls, "count": len(souls)}
+        "result": {"providers": souls, "count": len(souls)},
     }
+
 
 # =============================================================================
 # Run
 # =============================================================================
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=18792, reload=False)

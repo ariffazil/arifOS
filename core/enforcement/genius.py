@@ -263,6 +263,7 @@ def floors_to_dials(
     # Temporal Dampening: P = P_base * Stability_t
     try:
         from core.governance_kernel import get_governance_kernel
+
         kernel = get_governance_kernel()
         stability_t = kernel.temporal_stability
     except Exception:
@@ -273,10 +274,10 @@ def floors_to_dials(
     # 4. X = EXPLORATION (Navigation/Heart)
     # P1 Strike: X uses W3 (Tri-Witness) and Exploration breadth
     anti_hantu_compliance = 1.0 - floors.f9_anti_hantu
-    
+
     # Use the programmatic Tri-Witness consensus W3 = (H * A * E)^(1/3)
     w3 = floors.tri_witness_consensus
-    
+
     # Incorporate exploration breadth if available in telemetry
     x_breadth = 1.0
     if telemetry and "exploration" in telemetry:
@@ -297,12 +298,12 @@ def floors_to_dials(
     # Thermodynamic Efficiency
     energy_ratio = 1.0 - (compute_budget_used / max(compute_budget_max, 1e-6))
     energy_ratio = max(0.0, min(1.0, energy_ratio))
-    
+
     # Uncertainty Dampening (Entropy)
     uncertainty_penalty = 0.0
     if telemetry and "entropy" in telemetry:
         uncertainty_penalty = float(telemetry["entropy"].get("uncertainty_score", 0.0))
-    
+
     energy_vitality = (energy_from_floors + energy_ratio) / 2.0
     energy = max(0.0, energy_vitality - (uncertainty_penalty * 0.5))
 

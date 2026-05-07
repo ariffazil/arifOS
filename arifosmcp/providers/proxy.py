@@ -4,6 +4,7 @@ ProxyProvider — External MCP Bridge
 
 FastMCPProvider subclass for external MCP bridges.
 """
+
 from __future__ import annotations
 
 import logging

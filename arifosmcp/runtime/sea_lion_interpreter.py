@@ -197,7 +197,9 @@ async def interpret_with_sea_lion(
     alignment = parsed.get("arifos_alignment") or {}
     for key in ("physics", "math", "linguistic"):
         if not isinstance(alignment.get(key), str):
-            raise InterpretationError(f"SEA-LION output arifos_alignment.{key} missing or not string")
+            raise InterpretationError(
+                f"SEA-LION output arifos_alignment.{key} missing or not string"
+            )
 
     logger.debug("SEA-LION selected quote %s", parsed.get("selected_quote_id"))
     return parsed
@@ -346,9 +348,13 @@ def fallback_interpret(
             f"The recommended bias is {selected.get('action_bias', 'pause_and_reflect')}."
         ),
         "arifos_alignment": {
-            "physics": selected.get("arifos_mapping", {}).get("physics", "Reality constrains possibility."),
+            "physics": selected.get("arifos_mapping", {}).get(
+                "physics", "Reality constrains possibility."
+            ),
             "math": selected.get("arifos_mapping", {}).get("math", "Logic governs coherence."),
-            "linguistic": selected.get("arifos_mapping", {}).get("linguistic", "Meaning emerges from context."),
+            "linguistic": selected.get("arifos_mapping", {}).get(
+                "linguistic", "Meaning emerges from context."
+            ),
         },
         "decision_boundary": decision_boundary,
         "human_decision_required": is_high_risk,

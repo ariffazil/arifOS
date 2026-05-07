@@ -8,22 +8,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --bg-deep: #050507;
             --bg-glass: rgba(16, 18, 27, 0.6);
             --border-glass: rgba(255, 255, 255, 0.08);
-            
+
             --text-primary: #ffffff;
             --text-secondary: #94A3B8;
             --text-accent: #38BDF8;
-            
+
             --color-seal: #10B981;
             --color-void: #EF4444;
             --color-hold: #F59E0B;
             --color-mind: #8B5CF6;
-            
+
             --glow-seal: rgba(16, 185, 129, 0.4);
             --glow-hold: rgba(245, 158, 11, 0.4);
         }
@@ -37,7 +37,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-deep);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 85% 80%, rgba(56, 189, 248, 0.08) 0%, transparent 40%);
             color: var(--text-primary);
@@ -130,7 +130,7 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         .glass-panel:hover {
             transform: translateY(-2px);
         }
@@ -218,7 +218,7 @@
             font-size: 0.85rem;
             color: var(--color-hold);
         }
-        
+
         .hold-reason {
             font-size: 1.2rem;
             font-weight: 600;
@@ -335,7 +335,7 @@
             <div class="panel-header">
                 ⚖️ 888_JUDGE Pending Docket
             </div>
-            
+
             <div id="holdQueue" class="hold-queue">
                 <div class="empty-holds" id="emptyState">
                     No pending actions. The execution layer is continuous.
@@ -353,7 +353,7 @@
         const mcp = new WebMCPSDK({
             actorId: 'ariffazil', // The Sovereign
             // For testing locally without A2A backend running, wsUrl can be mocked, but we'll point it to the actual route
-            wsUrl: 'ws://localhost:8080/webmcp/ws' 
+            wsUrl: 'ws://localhost:8080/webmcp/ws'
         });
 
         // DOM Elements
@@ -409,7 +409,7 @@
                         renderHolds();
                     }, 300);
                 }
-                
+
                 // Real SDK call
                 await mcp.resolveHold(holdId, decision, 'Resolved via Live Dashboard');
             } catch (err) {

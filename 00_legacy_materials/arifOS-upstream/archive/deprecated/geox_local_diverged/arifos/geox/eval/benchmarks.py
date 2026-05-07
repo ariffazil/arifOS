@@ -31,6 +31,7 @@ except ImportError:
 
 logger = logging.getLogger("geox.eval.benchmarks")
 
+
 class MalayBasinAnalogBenchmark:
     """
     Benchmark for the Malay Basin geological analog search.
@@ -46,7 +47,7 @@ class MalayBasinAnalogBenchmark:
             config=GeoXConfig(),
             tool_registry=self.registry,
             validator=self.validator,
-            memory_store=self.memory
+            memory_store=self.memory,
         )
 
     async def run_test_case_01_fusion(self) -> dict[str, Any]:
@@ -64,7 +65,7 @@ class MalayBasinAnalogBenchmark:
             play_type="stratigraphic",
             available_data=["seismic_3d", "well_logs"],
             risk_tolerance="medium",
-            requester_id="bench-runner-01"
+            requester_id="bench-runner-01",
         )
 
         logger.info("Running Benchmark: MalayBasinAnalogBenchmark (TC-01)")
@@ -89,10 +90,7 @@ class MalayBasinAnalogBenchmark:
 
         # Success if we have fused results from both caches and a valid response
         # In mock state, this will be TRUE because our MockMemoryStore provides default data
-        success = (
-            len(dual_results["fused_ranking"]) > 0 and
-            response.verdict in ("SEAL", "PARTIAL")
-        )
+        success = len(dual_results["fused_ranking"]) > 0 and response.verdict in ("SEAL", "PARTIAL")
 
         return {
             "test_case": "TC-01_Fusion",
@@ -100,17 +98,18 @@ class MalayBasinAnalogBenchmark:
             "verdict": response.verdict,
             "confidence": response.arifos_telemetry.get("confidence", 0.0),
             "fused_evidence_count": len(dual_results["fused_ranking"]),
-            "insights_generated": len(insights)
+            "insights_generated": len(insights),
         }
+
 
 async def run_standalone():
     """Run all benchmarks."""
     logging.basicConfig(level=logging.INFO)
     benchmark = MalayBasinAnalogBenchmark()
 
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("      GEOX BENCHMARK SUITE (FORGE 4)")
-    print("="*40)
+    print("=" * 40)
 
     tc01 = await benchmark.run_test_case_01_fusion()
     print(f"Test Case 01 (Fusion): {'PASSED' if tc01['success'] else 'FAILED'}")
@@ -118,7 +117,8 @@ async def run_standalone():
     print(f"  - Confidence: {tc01['confidence']:.2f}")
     print(f"  - Evidence Points Fused: {tc01['fused_evidence_count']}")
     print(f"  - Total Insights: {tc01['insights_generated']}")
-    print("="*40 + "\n")
+    print("=" * 40 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_standalone())

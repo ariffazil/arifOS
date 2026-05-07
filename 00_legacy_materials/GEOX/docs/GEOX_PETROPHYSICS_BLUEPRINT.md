@@ -1,7 +1,7 @@
 # GEOX Petrophysics Bridge: The Science of Rock Measurement
 
-**Version:** v0.6.0-FORGE  
-**Status:** 🔨 DRAFT — Awaiting arifOS 888_HOLD review  
+**Version:** v0.6.0-FORGE
+**Status:** 🔨 DRAFT — Awaiting arifOS 888_HOLD review
 **Motto:** *Ditempa Bukan Diberi* — Physics first, cutoffs explicit, magic forbidden.
 
 ---
@@ -46,22 +46,22 @@ class RockFluidSystem(BaseModel):
     mineralogy: MineralogyAssembly  # From RATLAS
     texture: TextureClassification  # Grain size, sorting, packing
     clay_type: ClayMineralogy       # Illite, smectite, kaolinite, chlorite
-    
+
     # Pore system
     porosity: PorosityEstimate      # Total, effective, micro, isolated
     permeability: PermeabilityEstimate  # Klinkenberg-corrected
     pore_geometry: PoreThroatDistribution  # MICP-derived
-    
+
     # Fluids
     water_saturation: WaterSaturationEstimate  # Sw, Swirr, Swe
     hydrocarbon_saturation: float  # Sh = 1 - Sw
     fluid_contacts: list[FluidContact]  # Free water level, oil-water contact
-    
+
     # Conditions
     pressure: PressureMeasurement   # Formation pressure
     temperature: TemperatureMeasurement
     salinity: SalinityMeasurement   # Rw derivation
-    
+
     # Measurement links
     log_evidence: list[LogResponse]  # What logs observed
     core_evidence: list[CoreMeasurement]  # Ground truth
@@ -75,19 +75,19 @@ class PorosityEstimate(BaseModel):
     """
     value: float  # Primary estimate (fraction or percent — F4 mandate explicit)
     units: Literal["fraction", "percent"] = "fraction"
-    
+
     # Uncertainty structure
     uncertainty_type: Literal["measurement", "model", "calibration", "combined"]
     confidence_interval_95: tuple[float, float]  # [phi_low, phi_high]
-    
+
     # What porosity means
     porosity_type: Literal["total", "effective", "micro", "isolated", "secondary"]
     fluid_system: Literal["liquid_filled", "gas_filled", "partially_drained"]
-    
+
     # Physics basis
     measurement_physics: Literal["neutron", "density", "sonic", "nmr", "resistivity_image", "core"]
     mixing_law: Literal["time_average", "raymer_hunt_gardner", "void_space", "grain_density"]
-    
+
     # Provenance
     calibration_source: str  # Which core, SCAL, or offset well calibrated this
     equations_used: list[str]  # Archie? CRIM? Pride?
@@ -100,7 +100,7 @@ class WaterSaturationEstimate(BaseModel):
     """
     value: float  # Sw estimate
     units: Literal["fraction", "percent"] = "fraction"
-    
+
     # Model used (CRITICAL for audit)
     saturation_model: Literal[
         "archie_clean",      # Archie 1942 — clean formations
@@ -111,16 +111,16 @@ class WaterSaturationEstimate(BaseModel):
         "modified_simandoux",# Best for high-Vsh heterogeneous systems
         "juvenile",          # Freshwater formations
     ]
-    
+
     # Model parameters (must be explicit, not magic defaults)
     archie_params: ArchieParameters | None
     shaly_sand_params: ShalySandParameters | None
-    
+
     # Input sensitivity
     rw_sensitivity: SensitivityAnalysis  # How Sw changes with Rw uncertainty
     phi_sensitivity: SensitivityAnalysis  # How Sw changes with phi uncertainty
     m_exponent_sensitivity: SensitivityAnalysis  # Cementation factor uncertainty
-    
+
     # Validation status
     validated_by: list[ValidationMethod]  # MDT, production, core Dean-Stark
     hold_status: Literal["SEAL", "QUALIFY", "888_HOLD"]  # Governance
@@ -134,12 +134,12 @@ class ArchieParameters(BaseModel):
     a: float = Field(default=1.0, description="Tortuosity factor")
     m: float = Field(default=2.0, description="Cementation exponent")
     n: float = Field(default=2.0, description="Saturation exponent")
-    
+
     # Parameter provenance (F11 Auditability)
     m_derivation: Literal["default", "pickett_plot", "core_measured", "literature", "regional_average"]
     m_confidence: float  # Uncertainty in m
     core_samples_used: list[str] | None  # Which core plugs measured m
-    
+
     # Rw — the Achilles heel of saturation
     rw_at_t: float  # Rw at formation temperature
     rw_temperature: float  # Temperature at which Rw was measured
@@ -154,23 +154,23 @@ class CutoffPolicy(BaseModel):
     """
     policy_id: str  # Unique identifier
     policy_name: str  # e.g., "Malay_Basin_Turbidite_2024"
-    
+
     # Cutoff dimensions
     porosity_cutoff: CutoffDefinition  # Phi min for net reservoir
     vsh_cutoff: CutoffDefinition       # Vsh max for net sand
     sw_cutoff: CutoffDefinition        # Sw max for net pay
     permeability_cutoff: CutoffDefinition | None  # K min for flow
-    
+
     # Cutoff rationale (F2 Truth requirement)
     calibration_basis: str  # "Based on MDT mobility > 0.1 mD/cP in 15 wells"
     economic_basis: str     # "Oil price $80/bbl, OPEX $15/bbl"
     rock_physics_basis: str # "Capillary pressure shows Pc < 50 psi for phi > 0.12"
-    
+
     # Temporal scope
     valid_from: datetime
     valid_until: datetime | None
     superseded_by: str | None  # Chain of custody for cutoff evolution
-    
+
     # Governance
     approved_by: str  # Human who signed off
     approval_date: datetime
@@ -237,12 +237,12 @@ class SaturationModel(ABC):
     Abstract base for all water saturation models.
     Each model has ASSUMPTIONS that must be checked against the rock.
     """
-    
+
     @abstractmethod
     def compute_sw(self, rt: float, phi: float, rw: float, **params) -> float:
         """Compute Sw given resistivity, porosity, and formation water resistivity."""
         pass
-    
+
     @abstractmethod
     def validate_assumptions(self, rock: RockFluidSystem) -> list[str]:
         """
@@ -255,24 +255,24 @@ class SaturationModel(ABC):
 class ArchieModel(SaturationModel):
     """
     Archie (1942): Sw^n = (a × Rw) / (PHI^m × Rt)
-    
+
     ASSUMPTIONS (must be validated):
     - Clean formation (Vsh ≈ 0)
     - Homogeneous pore system
     - Water-wet rock
     - Single water salinity
-    
+
     WHEN TO USE: Clean sandstones, some carbonates
     WHEN NOT TO USE: Shaly sands (>10% clay), laminated systems
     """
-    
-    def compute_sw(self, rt: float, phi: float, rw: float, 
+
+    def compute_sw(self, rt: float, phi: float, rw: float,
                    a: float = 1.0, m: float = 2.0, n: float = 2.0) -> float:
         if phi <= 0 or rt <= 0:
             return 1.0  # Fully wet — safe default
         sw = ((a * rw) / (phi**m * rt)) ** (1.0 / n)
         return max(0.0, min(1.0, sw))
-    
+
     def validate_assumptions(self, rock: RockFluidSystem) -> list[str]:
         violations = []
         if rock.clay_type.total_clay_volume > 0.1:
@@ -285,14 +285,14 @@ class ArchieModel(SaturationModel):
 class SimandouxModel(SaturationModel):
     """
     Simandoux (1963): For shaly sands with dispersed clay.
-    
+
     Equation: Sw = [ (a × Rw) / (PHI^m × Rt) ]^(1/n)  +  (Vsh × Rsh / Rt) × correction
-    
+
     ASSUMPTIONS:
     - Shaly sand with dispersed clay
     - Clay resistivity (Rsh) known or estimable
     - Single water type
-    
+
     WHEN TO USE: Moderately shaly sands (10-40% Vsh), many Tertiary clastics
     """
     pass
@@ -301,13 +301,13 @@ class SimandouxModel(SaturationModel):
 class IndonesiaModel(SaturationModel):
     """
     Poupon & Leveaux (1971): For laminated and dispersed shaly sands.
-    
+
     Equation: 1/√Rt = (Vsh^((2-Vsh)/2) / √Rsh) + (PHI^(m/2) / √(a × Rw × Sw^n))
-    
+
     ASSUMPTIONS:
     - Mixed clay distribution (laminated + structural + dispersed)
     - Better for high-Vsh systems than Simandoux
-    
+
     WHEN TO USE: Heterolithic systems, high-Vsh sands (>30%)
     """
     pass
@@ -316,15 +316,15 @@ class IndonesiaModel(SaturationModel):
 class DualWaterModel(SaturationModel):
     """
     Clavier et al. (1977): Explicit clay physics via CEC.
-    
+
     Concept: Two waters — free water (Rw) and bound water (Rwb)
     Conductor: Clay counterions (Qv = CEC × (1-φ) / φ)
-    
+
     ASSUMPTIONS:
     - CEC (cation exchange capacity) known or correlated
     - Clay type affects Qv (smectite >> illite > kaolinite)
     - More physically rigorous but requires more parameters
-    
+
     WHEN TO USE: Freshwater formations, high-CEC clays, scientific work
     """
     pass
@@ -333,10 +333,10 @@ class DualWaterModel(SaturationModel):
 class WaxmanSmitsModel(SaturationModel):
     """
     Waxman & Smits (1968): Temperature-dependent clay conductivity.
-    
+
     Concept: B × Qv term captures clay counterion conductivity
     Temperature-sensitive (B decreases with increasing T)
-    
+
     WHEN TO USE: Varied temperature profiles, geothermal, deep gas
     """
     pass
@@ -382,7 +382,7 @@ class CutoffDefinition(BaseModel):
     curve_name: str  # "PHIE", "VSH", "SW", "K"
     threshold_value: float
     operator: Literal[">", ">=", "<", "<=", "==", "range"]
-    
+
     # What decision this cutoff drives
     decision_type: Literal[
         "reservoir_vs_non_reservoir",  # Geological
@@ -391,23 +391,23 @@ class CutoffDefinition(BaseModel):
         "proven_vs_unproven",          # Regulatory
         "drill_vs_no_drill",           # Operational
     ]
-    
+
     # Physics basis (if any)
     physics_justification: str | None  # "Capillary pressure entry at Pc=50 psi"
-    
+
     # Empirical basis (calibration)
     calibration_dataset: str  # "23 cores from Field X, MDT mobility > 0.1 mD/cP"
     calibration_statistics: dict[str, float]  # ROC curve, confusion matrix
-    
+
     # Economic basis (for pay cutoffs)
     oil_price_basis: float | None  # $/bbl at time of cutoff definition
     opex_basis: float | None       # $/bbl
     economic_threshold: float | None  # Minimum EUR per well
-    
+
     # Uncertainty
     false_positive_rate: float  # Rock classified as pay that isn't
     false_negative_rate: float  # Pay classified as non-pay
-    
+
     # Governance
     defined_by: str  # Petrophysicist name
     approved_by: str  # Manager name
@@ -519,11 +519,11 @@ class CutoffDefinition(BaseModel):
 class MultiMineralSolverTool(BaseTool):
     """
     Solve for mineral volumes and porosity simultaneously.
-    
+
     Physics: Linear mixing model with constraints
     Inputs: GR, RHOB, NPHI, PEF, elemental (if available)
     Outputs: V_quartz, V_calcite, V_dolomite, V_clay, PHIE
-    
+
     F9 Anti-Hantu: Returns non-uniqueness metrics — how many solutions fit?
     """
     pass
@@ -534,7 +534,7 @@ class MultiMineralSolverTool(BaseTool):
 class NMRProcessorTool(BaseTool):
     """
     Process NMR T2 distributions into petrophysical properties.
-    
+
     Physics: Bloch equations, relaxation mechanisms
     Methods: Coates, SDR, spectral BVI/FFI decomposition
     Outputs: PHI, BVI, FFI, permeability, pore size distribution
@@ -547,10 +547,10 @@ class NMRProcessorTool(BaseTool):
 class CutoffCalibratorTool(BaseTool):
     """
     Calibrate cutoffs from core, MDT, and production data.
-    
+
     Method: ROC analysis, confusion matrix, economic optimization
     Output: CutoffPolicy with full provenance
-    
+
     F2 Truth: Explicitly separates physics from economics.
     """
     pass
@@ -561,10 +561,10 @@ class CutoffCalibratorTool(BaseTool):
 class UncertaintyPropagatorTool(BaseTool):
     """
     Monte Carlo / analytical uncertainty propagation through petrophysics.
-    
+
     Inputs: Log measurement uncertainties, model uncertainties
     Output: Porosity_distribution, Sw_distribution (not point estimates)
-    
+
     F7 Humility: Forces acknowledgment of uncertainty in every number.
     """
     pass
@@ -575,7 +575,7 @@ class UncertaintyPropagatorTool(BaseTool):
 class RockTyperTool(BaseTool):
     """
     Classify rock into Hydraulic Flow Units (HFU) using RQI/FZI.
-    
+
     Physics: Kozeny-Carman modified for variable tortuosity
     Method: FZI = RQI / PHIz
     Output: HFU class, expected permeability range, flow character
@@ -588,7 +588,7 @@ class RockTyperTool(BaseTool):
 class CapillaryIntegratorTool(BaseTool):
     """
     Integrate capillary pressure data with log-derived saturations.
-    
+
     Method: J-function normalization, height above FWL
     Output: Sw_predicted vs. Sw_log comparison, validation status
     """
@@ -608,15 +608,15 @@ class HydraulicFlowUnit(BaseModel):
     fzi: float  # Flow zone indicator
     rqi: float  # Reservoir quality index
     phiz: float  # Porosity (zeta)
-    
+
     # Properties
     expected_perm_range: tuple[float, float]  # min, max mD
     expected_phi_range: tuple[float, float]   # min, max fraction
-    
+
     # Characterization
     pore_throat_class: Literal["mega", "macro", "meso", "micro", "nano"]
     winland_r35: float | None
-    
+
     # Geological correlation
     depositional_facies: str
     diagenetic_grade: str
@@ -630,25 +630,25 @@ class PetrophysicalInterpretation(BaseModel):
     well_id: str
     interval_top: float
     interval_base: float
-    
+
     # Primary results
     lithology: LithologyEstimate
     porosity: PorosityEstimate
     saturation: WaterSaturationEstimate
     permeability: PermeabilityEstimate
-    
+
     # Classification
     net_reservoir_flag: bool
     net_pay_flag: bool
     hfu_classification: HydraulicFlowUnit
-    
+
     # Governance
     cutoff_policy_applied: CutoffPolicy
     physics_models_used: list[str]
     uncertainty_envelope: UncertaintyEnvelope
     floor_check: dict[str, bool]
     verdict: Literal["SEAL", "QUALIFY", "888_HOLD"]
-    
+
     # Evidence chain
     log_evidence: list[LogResponse]
     core_evidence: list[CoreMeasurement]
@@ -742,32 +742,32 @@ PETROPHYSICS_HOLD_TRIGGERS = {
         "rationale": "Archie assumes clean sand. Using in shaly sand violates physics.",
         "required_action": "Switch to Simandoux, Indonesia, or Dual-Water model"
     },
-    
+
     "unverified_rw": {
         "condition": "rw_source in ['guess', 'regional_default'] AND confidence > 0.5",
         "rationale": "Rw is the dominant uncertainty in Sw. Unverified Rw invalidates Sw.",
         "required_action": "Obtain water sample or SP-derived Rw with temperature correction"
     },
-    
+
     "missing_core_calibration": {
         "condition": "phi_cutoff_defined AND no_core_validation_within_500m",
         "rationale": "Cutoffs without core calibration are economic guesses, not engineering.",
         "required_action": "Acquire core or MDT data to validate cutoff"
     },
-    
+
     "uncertainty_not_propagated": {
         "condition": "reported_sw_uncertainty == 0.0 OR reported_phi_uncertainty == 0.0",
         "rationale": "All petrophysical measurements have uncertainty. Zero uncertainty is false precision.",
         "required_action": "Run Monte Carlo or analytical uncertainty propagation"
     },
-    
+
     # Economic/governance violations
     "cutoff_not_documented": {
         "condition": "net_pay_calculated AND cutoff_policy_id is None",
         "rationale": "Net pay requires explicit cutoff policy for reproducibility.",
         "required_action": "Define and approve CutoffPolicy with full provenance"
     },
-    
+
     "reserves_without_validation": {
         "condition": "proved_reserves_reported AND validation_data is None",
         "rationale": "SEC/SPE requires validation for proved reserves.",
@@ -789,19 +789,19 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
     """
     Complete petrophysics evaluation with full governance.
     """
-    
+
     # 1. SENSE: Load data via MCP
     las_data = await mcp_call("log_server", "get_las", well_id=well_id)
     core_data = await mcp_call("core_server", "get_core", well_id=well_id, interval=interval)
     scal_data = await mcp_call("scal_server", "get_scal", well_id=well_id)
-    
+
     # 2. MIND: LLM selects physics models
     model_selection = await llm.select_saturation_model(
         vsh=las_data.vsh_avg,
         clay_type=core_data.clay_type,
         lamination=core_data.lamination_index
     )
-    
+
     # 3. Check F9 Anti-Hantu: Validate assumptions
     if model_selection.assumption_violations:
         return GeoxVerdictResult(
@@ -809,7 +809,7 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
             explanation=f"Model assumptions violated: {model_selection.assumption_violations}",
             audit_id="F9-HANTU-PETRO-001"
         )
-    
+
     # 4. COMPUTE: Physics engine calculates properties
     results = await mcp_call(
         "petrophysics_engine",
@@ -818,7 +818,7 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
         model=model_selection.selected_model,
         propagate_uncertainty=True
     )
-    
+
     # 5. REFLECT: Validate against core/MDT
     validation = await mcp_call(
         "petrophysics_engine",
@@ -827,7 +827,7 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
         core_data=core_data,
         scal_data=scal_data
     )
-    
+
     # 6. Check F7 Humility: Uncertainty declared?
     if results.porosity.uncertainty is None or results.saturation.uncertainty is None:
         return GeoxVerdictResult(
@@ -835,11 +835,11 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
             explanation="F7 Humility: Uncertainty not propagated",
             audit_id="F7-HUMILITY-PETRO-001"
         )
-    
+
     # 7. APPLY: Cutoff policy
     cutoff_policy = await mcp_call("cutoff_server", "get_policy", basin="Malay_Basin")
     net_pay = apply_cutoffs(results, cutoff_policy)
-    
+
     # 8. Check F2 Truth: Cutoffs justified?
     if not cutoff_policy.calibration_basis:
         return GeoxVerdictResult(
@@ -847,7 +847,7 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
             explanation="F2 Truth: Cutoffs not calibrated to local data",
             audit_id="F2-TRUTH-PETRO-001"
         )
-    
+
     # 9. CALCULATE: Reserves with uncertainty
     reserves = await mcp_call(
         "reserves_server",
@@ -858,7 +858,7 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
         saturation=results.saturation,
         method="probabilistic"
     )
-    
+
     # 10. JUDGE: Human approval for proved reserves
     if reserves.category == "proved":
         return GeoxVerdictResult(
@@ -867,7 +867,7 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
             audit_id="F13-SOVEREIGN-001",
             reserves=reserves
         )
-    
+
     # 11. SEAL: All floors passed
     return GeoxVerdictResult(
         verdict=Verdict.SEAL,
@@ -929,7 +929,7 @@ async def evaluate_prospect_petrophysics(well_id: str, interval: tuple[float, fl
 
 **GEOX's Role:**
 - Make the physics explicit
-- Make the assumptions checkable  
+- Make the assumptions checkable
 - Make the uncertainty unavoidable
 - Make the decisions auditable
 - Make the magic impossible

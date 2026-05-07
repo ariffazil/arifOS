@@ -150,7 +150,7 @@ class A2AClient:
         if target_agent not in self.agent_cards:
             return {"error": f"Unknown agent: {target_agent}"}
 
-        card = self.agent_cards[target_agent]
+        self.agent_cards[target_agent]
 
         # In production, this would be an HTTP POST to the agent's endpoint
         # For POC, we simulate the response

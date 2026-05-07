@@ -74,10 +74,10 @@ export const VerdictConsole: React.FC = () => {
 
   const handleEvaluate = async () => {
     try {
-      await callJudge({ 
+      await callJudge({
         intent_id: `INTENT-${Date.now()}`,
-        prospect_id: prospectId, 
-        well_id: wellId 
+        prospect_id: prospectId,
+        well_id: wellId
       });
     } catch (err) {
       console.error("Judge evaluation failed:", err);
@@ -86,7 +86,7 @@ export const VerdictConsole: React.FC = () => {
 
   const handleSeal = async () => {
     if (!activeVerdict || activeVerdict.verdictId === 'V_INITIAL') return;
-    
+
     try {
       const result = await callSeal({
         proposal_id: activeVerdict.verdictId,
@@ -133,9 +133,9 @@ export const VerdictConsole: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <label htmlFor="prospect-id-input" className="text-[9px] text-slate-600 uppercase font-bold tracking-tighter">Prospect ID</label>
-              <input 
+              <input
                 id="prospect-id-input"
-                type="text" 
+                type="text"
                 title="Prospect identifier"
                 value={prospectId}
                 onChange={(e) => setProspectId(e.target.value)}
@@ -144,9 +144,9 @@ export const VerdictConsole: React.FC = () => {
             </div>
             <div className="space-y-1">
               <label htmlFor="well-id-input" className="text-[9px] text-slate-600 uppercase font-bold tracking-tighter">Well ID</label>
-              <input 
+              <input
                 id="well-id-input"
-                type="text" 
+                type="text"
                 title="Well identifier"
                 value={wellId}
                 onChange={(e) => setWellId(e.target.value)}
@@ -154,7 +154,7 @@ export const VerdictConsole: React.FC = () => {
               />
             </div>
           </div>
-          <button 
+          <button
             onClick={handleEvaluate}
             disabled={isLoading}
             className="w-full py-2.5 premium-button-blue rounded font-black text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
@@ -166,7 +166,7 @@ export const VerdictConsole: React.FC = () => {
 
         {/* Error Display */}
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="m-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded text-rose-400 flex gap-2 items-start glass-panel-light"
@@ -193,8 +193,8 @@ export const VerdictConsole: React.FC = () => {
               <div className="flex flex-col items-center justify-center space-y-3">
                 <div className={twMerge(
                   "w-24 h-24 rounded-full flex items-center justify-center border-2 border-dashed transition-all duration-700 relative",
-                  isLoading ? "border-slate-700 animate-spin-slow" : 
-                  activeVerdict.status === 'SEAL' ? "status-seal" : 
+                  isLoading ? "border-slate-700 animate-spin-slow" :
+                  activeVerdict.status === 'SEAL' ? "status-seal" :
                   activeVerdict.status === 'VOID' ? "status-void" :
                   "status-hold"
                 )}>
@@ -205,7 +205,7 @@ export const VerdictConsole: React.FC = () => {
                   ) : (
                     <Lock className="w-12 h-12 text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                   )}
-                  
+
                   {/* Rotating decorative ring */}
                   <div className={twMerge(
                     "absolute inset-0 rounded-full border border-white/5 animate-spin-slow",
@@ -215,7 +215,7 @@ export const VerdictConsole: React.FC = () => {
                 <div className="text-center">
                   <h3 className={twMerge(
                     "text-3xl font-black tracking-tighter transition-all duration-500 uppercase",
-                    activeVerdict.status === 'SEAL' ? "text-emerald-500 glow-text-emerald" : 
+                    activeVerdict.status === 'SEAL' ? "text-emerald-500 glow-text-emerald" :
                     activeVerdict.status === 'VOID' ? "text-rose-500 glow-text-rose" :
                     "text-amber-500 glow-text-amber"
                   )}>
@@ -235,7 +235,7 @@ export const VerdictConsole: React.FC = () => {
                   <p className="text-slate-500 mb-1 text-[9px] caption-mono opacity-60">Confidence</p>
                   <p className="text-xl font-black text-emerald-400 tabular-nums">{(activeVerdict.confidence * 100).toFixed(1)}%</p>
                   <div className="h-1 w-full bg-slate-900 mt-2 rounded-full overflow-hidden border border-white/5">
-                    <motion.div 
+                    <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${activeVerdict.confidence * 100}%` }}
                       transition={{ duration: 1, ease: "easeOut" }}
@@ -247,7 +247,7 @@ export const VerdictConsole: React.FC = () => {
                   <p className="text-slate-500 mb-1 text-[9px] caption-mono opacity-60">Risk Score</p>
                   <p className="text-xl font-black text-rose-400 tabular-nums">{(activeVerdict.risk.score * 100).toFixed(1)}%</p>
                   <div className="h-1 w-full bg-slate-900 mt-2 rounded-full overflow-hidden border border-white/5">
-                    <motion.div 
+                    <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${activeVerdict.risk.score * 100}%` }}
                       transition={{ duration: 1, ease: "easeOut" }}
@@ -312,12 +312,12 @@ export const VerdictConsole: React.FC = () => {
         </button>
         <div className="flex-1 flex flex-col gap-2">
           {showAuthInput ? (
-            <motion.div 
+            <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               className="flex flex-col gap-2 overflow-hidden"
             >
-              <input 
+              <input
                 type="password"
                 placeholder="Enter Wscar_ token..."
                 value={authToken}
@@ -326,13 +326,13 @@ export const VerdictConsole: React.FC = () => {
                 className="w-full bg-slate-950/80 border border-slate-700/50 rounded px-2 py-2 text-[10px] text-emerald-400 focus:border-emerald-500/50 outline-none font-mono placeholder:text-slate-700 shadow-inner"
               />
               <div className="flex gap-2">
-                 <button 
+                 <button
                   onClick={() => setShowAuthInput(false)}
                   className="flex-1 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700 text-[10px] caption-mono text-slate-500"
                 >
                   CANCEL
                 </button>
-                <button 
+                <button
                   onClick={handleSeal}
                   disabled={isLoading}
                   className="flex-[2] py-2 premium-button-emerald rounded font-black text-[10px] caption-mono"
@@ -342,7 +342,7 @@ export const VerdictConsole: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            <button 
+            <button
               onClick={() => setShowAuthInput(true)}
               disabled={activeVerdict.status === 'SEAL' || activeVerdict.verdictId === 'V_INITIAL'}
               className={twMerge(

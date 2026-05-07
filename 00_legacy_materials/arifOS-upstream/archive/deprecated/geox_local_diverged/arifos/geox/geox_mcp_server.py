@@ -58,8 +58,8 @@ _agent = GeoXAgent(
     config=_config,
     tool_registry=_tool_registry,
     validator=_validator,
-    llm_planner=None,    # Wire arifOS agi_mind here in production
-    audit_sink=None,     # Wire arifOS vault_ledger here in production
+    llm_planner=None,  # Wire arifOS agi_mind here in production
+    audit_sink=None,  # Wire arifOS vault_ledger here in production
     memory_store=_memory_store,
 )
 
@@ -109,7 +109,13 @@ _TOOL_SPECS: dict[str, dict[str, Any]] = {
                 "play_type": {
                     "type": "string",
                     "description": "Play type: stratigraphic, structural, or combination.",
-                    "enum": ["stratigraphic", "structural", "combination", "carbonate_buildup", "deltaic"],
+                    "enum": [
+                        "stratigraphic",
+                        "structural",
+                        "combination",
+                        "carbonate_buildup",
+                        "deltaic",
+                    ],
                 },
                 "available_data": {
                     "type": "array",
@@ -186,6 +192,7 @@ _SERVER_START_TIME = time.time()
 # ---------------------------------------------------------------------------
 # Tool handler functions
 # ---------------------------------------------------------------------------
+
 
 async def _handle_geox_evaluate_prospect(args: dict[str, Any]) -> dict[str, Any]:
     """
@@ -294,8 +301,13 @@ async def _handle_geox_health(_args: dict[str, Any]) -> dict[str, Any]:
             "basins": _memory_store.list_basins(),
         },
         "constitutional_floors": [
-            "F1_amanah", "F2_truth", "F4_clarity",
-            "F7_humility", "F9_anti_hantu", "F11_authority", "F13_sovereign",
+            "F1_amanah",
+            "F2_truth",
+            "F4_clarity",
+            "F7_humility",
+            "F9_anti_hantu",
+            "F11_authority",
+            "F13_sovereign",
         ],
         "seal": "DITEMPA BUKAN DIBERI",
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -313,18 +325,21 @@ _TOOL_HANDLERS = {
 # ASGI Application
 # ---------------------------------------------------------------------------
 
+
 async def _send_json(send: Any, data: dict[str, Any], status: int = 200) -> None:
     """Send a JSON HTTP response via ASGI."""
     body = json.dumps(data, default=str, ensure_ascii=False).encode("utf-8")
-    await send({
-        "type": "http.response.start",
-        "status": status,
-        "headers": [
-            [b"content-type", b"application/json"],
-            [b"content-length", str(len(body)).encode()],
-            [b"access-control-allow-origin", b"*"],
-        ],
-    })
+    await send(
+        {
+            "type": "http.response.start",
+            "status": status,
+            "headers": [
+                [b"content-type", b"application/json"],
+                [b"content-length", str(len(body)).encode()],
+                [b"access-control-allow-origin", b"*"],
+            ],
+        }
+    )
     await send({"type": "http.response.body", "body": body})
 
 
@@ -361,11 +376,14 @@ async def app(scope: dict, receive: Any, send: Any) -> None:
 
     # --- List tools ---
     if path in ("/mcp/tools", "/mcp/list_tools") and method == "GET":
-        await _send_json(send, {
-            "tools": list(_TOOL_SPECS.values()),
-            "server": "geox-mcp-v0.1",
-            "seal": "DITEMPA BUKAN DIBERI",
-        })
+        await _send_json(
+            send,
+            {
+                "tools": list(_TOOL_SPECS.values()),
+                "server": "geox-mcp-v0.1",
+                "seal": "DITEMPA BUKAN DIBERI",
+            },
+        )
         return
 
     # --- MCP JSON-RPC dispatcher ---
@@ -373,11 +391,15 @@ async def app(scope: dict, receive: Any, send: Any) -> None:
         try:
             rpc = json.loads(raw_body)
         except json.JSONDecodeError as exc:
-            await _send_json(send, {
-                "jsonrpc": "2.0",
-                "id": None,
-                "error": {"code": -32700, "message": f"Parse error: {exc}"},
-            }, status=400)
+            await _send_json(
+                send,
+                {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {"code": -32700, "message": f"Parse error: {exc}"},
+                },
+                status=400,
+            )
             return
 
         rpc_id = rpc.get("id")
@@ -390,67 +412,87 @@ async def app(scope: dict, receive: Any, send: Any) -> None:
             tool_args = rpc_params.get("arguments", {})
 
             if tool_name not in _TOOL_HANDLERS:
-                await _send_json(send, {
-                    "jsonrpc": "2.0",
-                    "id": rpc_id,
-                    "error": {
-                        "code": -32601,
-                        "message": f"Tool '{tool_name}' not found.",
-                        "data": {"available_tools": list(_TOOL_HANDLERS.keys())},
+                await _send_json(
+                    send,
+                    {
+                        "jsonrpc": "2.0",
+                        "id": rpc_id,
+                        "error": {
+                            "code": -32601,
+                            "message": f"Tool '{tool_name}' not found.",
+                            "data": {"available_tools": list(_TOOL_HANDLERS.keys())},
+                        },
                     },
-                })
+                )
                 return
 
             try:
                 result = await _TOOL_HANDLERS[tool_name](tool_args)
-                await _send_json(send, {
-                    "jsonrpc": "2.0",
-                    "id": rpc_id,
-                    "result": {
-                        "content": [{"type": "text", "text": json.dumps(result, default=str)}],
+                await _send_json(
+                    send,
+                    {
+                        "jsonrpc": "2.0",
+                        "id": rpc_id,
+                        "result": {
+                            "content": [{"type": "text", "text": json.dumps(result, default=str)}],
+                        },
                     },
-                })
+                )
             except Exception as exc:
                 logger.exception("Tool '%s' handler error: %s", tool_name, exc)
-                await _send_json(send, {
-                    "jsonrpc": "2.0",
-                    "id": rpc_id,
-                    "error": {"code": -32603, "message": str(exc)},
-                }, status=500)
+                await _send_json(
+                    send,
+                    {
+                        "jsonrpc": "2.0",
+                        "id": rpc_id,
+                        "error": {"code": -32603, "message": str(exc)},
+                    },
+                    status=500,
+                )
 
         # MCP protocol: tools/list
         elif rpc_method == "tools/list":
-            await _send_json(send, {
-                "jsonrpc": "2.0",
-                "id": rpc_id,
-                "result": {"tools": list(_TOOL_SPECS.values())},
-            })
+            await _send_json(
+                send,
+                {
+                    "jsonrpc": "2.0",
+                    "id": rpc_id,
+                    "result": {"tools": list(_TOOL_SPECS.values())},
+                },
+            )
 
         # MCP protocol: initialize
         elif rpc_method == "initialize":
-            await _send_json(send, {
-                "jsonrpc": "2.0",
-                "id": rpc_id,
-                "result": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {"tools": {}},
-                    "serverInfo": {
-                        "name": "geox",
-                        "version": "0.1.0",
-                        "description": (
-                            "GEOX Geological Intelligence Coprocessor for arifOS. "
-                            "DITEMPA BUKAN DIBERI."
-                        ),
+            await _send_json(
+                send,
+                {
+                    "jsonrpc": "2.0",
+                    "id": rpc_id,
+                    "result": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {"tools": {}},
+                        "serverInfo": {
+                            "name": "geox",
+                            "version": "0.1.0",
+                            "description": (
+                                "GEOX Geological Intelligence Coprocessor for arifOS. "
+                                "DITEMPA BUKAN DIBERI."
+                            ),
+                        },
                     },
                 },
-            })
+            )
 
         else:
-            await _send_json(send, {
-                "jsonrpc": "2.0",
-                "id": rpc_id,
-                "error": {"code": -32601, "message": f"Method '{rpc_method}' not found."},
-            }, status=404)
+            await _send_json(
+                send,
+                {
+                    "jsonrpc": "2.0",
+                    "id": rpc_id,
+                    "error": {"code": -32601, "message": f"Method '{rpc_method}' not found."},
+                },
+                status=404,
+            )
         return
 
     # 404 fallback
@@ -479,13 +521,13 @@ if __name__ == "__main__":
     logger.info("Host: %s | Port: %d", args_parsed.host, args_parsed.port)
     logger.info("Registered tools: %s", _tool_registry.list_tools())
     logger.info(
-        "arifOS registration: add geox to mcp_servers with url "
-        "http://geox-server:%d/mcp",
+        "arifOS registration: add geox to mcp_servers with url " "http://geox-server:%d/mcp",
         args_parsed.port,
     )
 
     try:
         import uvicorn  # type: ignore
+
         uvicorn.run(
             "arifos.geox.geox_mcp_server:app",
             host=args_parsed.host,

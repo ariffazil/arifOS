@@ -36,7 +36,9 @@ async def execute(
     report = {
         "routing": {"target": target_clean, "lane": "METABOLIC_FLUX"},
         "payload": payload or {},
-        "orthogonality_check": "PASS" if target_clean in {"MIND", "HEART", "SOUL", "PHYSICS"} else "WARNING",
+        "orthogonality_check": (
+            "PASS" if target_clean in {"MIND", "HEART", "SOUL", "PHYSICS"} else "WARNING"
+        ),
     }
     report.update(
         invariant_fields(
@@ -54,7 +56,9 @@ async def execute(
             ],
             floors_evaluated=["F1", "F2", "F3", "F5", "F8", "F13"],
             confidence=0.66 if target_clean in {"MIND", "HEART", "SOUL", "PHYSICS"} else 0.58,
-            extra_meta={"orthogonality_warning": target_clean not in {"MIND", "HEART", "SOUL", "PHYSICS"}},
+            extra_meta={
+                "orthogonality_warning": target_clean not in {"MIND", "HEART", "SOUL", "PHYSICS"}
+            },
         )
     )
 

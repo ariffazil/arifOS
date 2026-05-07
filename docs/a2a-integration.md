@@ -1,7 +1,7 @@
 # A2A Integration Specification
 
-**Version:** 2026.03.20  
-**Status:** SEAL (Constitutional Integration)  
+**Version:** 2026.03.20
+**Status:** SEAL (Constitutional Integration)
 **Protocol:** Google A2A (April 2025) + arifOS 13-Floor Governance
 
 ---
@@ -64,30 +64,30 @@ A2A negotiation enters at **111_SENSE**, NOT at the output stage. This is intent
 
 async def _execute_task(self, task_id: str):
     task = await self.get_task(task_id)
-    
+
     # Step 1: 000_INIT — Anchor session
     init_result = await call_mcp_tool("init_anchor", {...})
     if init_result.verdict != "SEAL":
         task.state = TaskState.FAILED
         return
-    
+
     # Step 2: 333_MIND — Reason about the task
     # A2A negotiation results enter here as "external proposals"
     reason_result = await call_mcp_tool("agi_reason", {...})
-    
+
     # Step 3: 666_HEART — Safety critique
     # THIS IS THE GOVERNANCE GATE
     critique_result = await call_mcp_tool("asi_critique", {
         "plan": reason_result.plan,
         "a2a_origin": True,  # Flag for special scrutiny
     })
-    
+
     # Step 4: 888_JUDGE — Verdict
     judge_result = await call_mcp_tool("apex_judge", {
         "critique_result": critique_result,
         "candidate_output": reason_result.plan,
     })
-    
+
     # Step 5: Execution only on SEAL
     if judge_result.verdict == "SEAL":
         execution_result = await call_mcp_tool("arifOS_kernel", {...})
@@ -169,13 +169,13 @@ a2a:
     - irreversible_actions  # F1
     - vault_seal           # F11
     - sovereign_impersonation  # F11
-  
+
   constitutional_gates:
     sense_111: true   # Ground all A2A input
     mind_333: true    # Reason about proposals
     heart_666: true   # Safety critique (REQUIRED)
     judge_888: true   # Final verdict
-  
+
   agent_trust_tiers:
     unknown: "low"
     verified_partner: "medium"

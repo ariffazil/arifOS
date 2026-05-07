@@ -3,6 +3,7 @@ Streamable HTTP Transport Entrypoint
 ═════════════════════════════════════
 Runs the arifOS MCP server over streamable HTTP (stateless).
 """
+
 from __future__ import annotations
 
 import os
@@ -41,7 +42,7 @@ def run_http(host: str = "0.0.0.0", port: int | None = None) -> None:
         lifespan="on",
         log_level="info",
     )
-    server = uvicorn.Server(config)
+    uvicorn.Server(config)
     uvicorn.run(app, host=host, port=port)
 
 

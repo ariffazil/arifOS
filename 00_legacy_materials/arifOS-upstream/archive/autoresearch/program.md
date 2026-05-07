@@ -1,6 +1,6 @@
 # arifOS Autoresearch Agent Program
-> **Authority:** 888_JUDGE  
-> **Version:** v1.0.0  
+> **Authority:** 888_JUDGE
+> **Version:** v1.0.0
 > **Experiment Budget:** 5 minutes per run
 
 ---

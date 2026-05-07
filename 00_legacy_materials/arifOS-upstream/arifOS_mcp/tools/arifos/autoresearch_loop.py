@@ -71,8 +71,8 @@ def archive_to_forget(
     )
 
     content = f"""# FORGET Ledger — {tool_name} / {variant_id}
-**Archived:** {ts}  
-**Reason:** {reason}  
+**Archived:** {ts}
+**Reason:** {reason}
 **Decision:** DISCARDED → {scores[0].variant_id} KEEP
 
 ---
@@ -618,9 +618,7 @@ def run_optimization():
                 f"tri_witness={s.tri_witness_score:.2f} (best={best.tri_witness_score:.2f}). "
                 f"Discarded to reduce system entropy and improve constitutional compliance."
             )
-            archived = archive_to_forget(
-                tool_name, s.variant_id, v["source"], reason, scored
-            )
+            archived = archive_to_forget(tool_name, s.variant_id, v["source"], reason, scored)
             print(f"  → FORGET {s.variant_id}: {archived}")
 
         results.append(

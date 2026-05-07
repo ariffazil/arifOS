@@ -424,7 +424,7 @@ async def seal_vault(
     seal_id: str, agent_id: str, action: str, confidence: float, payload: dict, verdict: str
 ) -> dict:
     """Wrapper for seal_to_vault that matches the new signature."""
-    res = await seal_to_vault(
+    await seal_to_vault(
         event_type=action,
         session_id=payload.get("session_id", "UNKNOWN"),
         actor_id=agent_id,

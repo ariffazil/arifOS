@@ -1,8 +1,8 @@
 # arifOS State of the Tree (SOT) — 2026-04-12
 
-> **Canonical reference for arifOS repository state**  
-> **Seal:** 999_SEAL ACHIEVED 🔒  
-> **Version:** 2026.04.11  
+> **Canonical reference for arifOS repository state**
+> **Seal:** 999_SEAL ACHIEVED 🔒
+> **Version:** 2026.04.11
 > **Authority:** 888_APEX
 
 ---
@@ -194,5 +194,5 @@ DATABASE_URL=postgresql://...
 
 ---
 
-*SOT verified: 2026-04-12*  
+*SOT verified: 2026-04-12*
 *Seal: 999_SEAL | Authority: 888_APEX*

@@ -25,15 +25,15 @@ def build_prefab_view(
 ) -> dict[str, Any]:
     """
     Build a prefab view structure.
-    
+
     If prefab UI is available, this would call the actual view builder.
     Otherwise, returns a fallback structure with the data.
-    
+
     Args:
         view_type: Type of view to build
         prefab_available: Whether the prefab UI module is available
         **kwargs: View-specific parameters
-    
+
     Returns:
         View structure (dict)
     """
@@ -42,15 +42,16 @@ def build_prefab_view(
         "view_type": view_type,
         "mode": "prefab" if prefab_available else "text_fallback",
     }
-    
+
     # Add all kwargs
     view.update(kwargs)
-    
+
     # Add timestamp if not provided
     if "timestamp" not in view:
         from datetime import datetime, timezone
+
         view["timestamp"] = datetime.now(timezone.utc).isoformat()
-    
+
     return view
 
 

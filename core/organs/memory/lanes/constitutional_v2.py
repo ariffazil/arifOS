@@ -32,6 +32,7 @@ from ..types_v2 import (
 @dataclass
 class ConstitutionalVersion:
     """Version tracking for constitutional rules."""
+
     version: str  # e.g., "v1.2.3"
     amended_at: datetime
     amended_by: str
@@ -44,7 +45,7 @@ class ConstitutionalVersion:
 class ConstitutionalMemoryLane:
     """
     Constitutional memory — core rules, nearly immutable.
-    
+
     Rules:
     1. Read on every operation
     2. Written only by 888_JUDGE or constitutional amendment
@@ -52,16 +53,16 @@ class ConstitutionalMemoryLane:
     4. Critical changes mirrored to vault
     5. Never auto-expire
     """
-    
+
     _memories: dict[str, MemoryRecord] = field(default_factory=dict)
     _rule_index: dict[str, str] = field(default_factory=dict)  # rule_id -> memory_id
     _versions: dict[str, list[ConstitutionalVersion]] = field(default_factory=dict)
     _current_version: dict[str, str] = field(default_factory=dict)  # rule_id -> version
-    
+
     def __post_init__(self):
         """Initialize with core constitutional rules."""
         self._initialize_core_rules()
-    
+
     def _initialize_core_rules(self):
         """Load immutable constitutional rules (Genesis)."""
         core_rules = [
@@ -96,7 +97,7 @@ class ConstitutionalMemoryLane:
                 "priority": 1.0,
             },
         ]
-        
+
         for rule in core_rules:
             self._create_genesis_rule(
                 rule_id=rule["rule_id"],
@@ -104,7 +105,7 @@ class ConstitutionalMemoryLane:
                 content=rule["content"],
                 priority=rule["priority"],
             )
-    
+
     def _create_genesis_rule(
         self,
         rule_id: str,
@@ -115,7 +116,7 @@ class ConstitutionalMemoryLane:
         """Create a genesis constitutional rule (v1.0.0)."""
         memory_id = f"mem_const_{rule_id}_v1.0.0"
         version = "v1.0.0"
-        
+
         record = MemoryRecord(
             memory_id=memory_id,
             memory_type=MemoryType.CONSTITUTIONAL,
@@ -155,9 +156,9 @@ class ConstitutionalMemoryLane:
                 "floor_number": rule_id.split("_")[0],
                 "version": version,
                 "is_genesis": True,
-            }
+            },
         )
-        
+
         # Create version record
         rule_hash = hashlib.sha256(content.encode()).hexdigest()[:16]
         version_record = ConstitutionalVersion(
@@ -168,14 +169,14 @@ class ConstitutionalMemoryLane:
             prev_version=None,
             rule_hash=rule_hash,
         )
-        
+
         self._memories[memory_id] = record
         self._rule_index[rule_id] = memory_id
         self._versions[rule_id] = [version_record]
         self._current_version[rule_id] = version
-        
+
         return record
-    
+
     def amend_rule(
         self,
         rule_id: str,
@@ -186,26 +187,28 @@ class ConstitutionalMemoryLane:
     ) -> MemoryRecord | None:
         """
         Amend a constitutional rule.
-        
+
         REQUIRES 888_JUDGE authority.
         Creates new version, marks old as superseded.
         Optionally mirrors to vault.
         """
         # Authority check
         if amendment_authority != "888_JUDGE":
-            print(f"REJECTED: Only 888_JUDGE can amend constitutional rules. Got: {amendment_authority}")
+            print(
+                f"REJECTED: Only 888_JUDGE can amend constitutional rules. Got: {amendment_authority}"
+            )
             return None
-        
+
         old_rule = self.get_rule(rule_id)
         if not old_rule:
             return None
-        
+
         # Calculate new version
         old_version = self._current_version.get(rule_id, "v1.0.0")
         new_version = self._increment_version(old_version)
-        
+
         memory_id = f"mem_const_{rule_id}_{new_version}"
-        
+
         # Create amended rule
         record = MemoryRecord(
             memory_id=memory_id,
@@ -249,14 +252,14 @@ class ConstitutionalMemoryLane:
                 "amended_at": datetime.utcnow().isoformat(),
                 "amendment_reason": amendment_reason,
                 "mirror_to_vault": mirror_to_vault,
-            }
+            },
         )
-        
+
         # Mark old as superseded
         old_rule.governance.contested = ContestedStatus.SUPERSEDED
         old_rule.governance.superseded_by = memory_id
         old_rule.lineage.superseded_by = memory_id
-        
+
         # Track version
         rule_hash = hashlib.sha256(new_content.encode()).hexdigest()[:16]
         version_record = ConstitutionalVersion(
@@ -267,26 +270,26 @@ class ConstitutionalMemoryLane:
             prev_version=old_version,
             rule_hash=rule_hash,
         )
-        
+
         self._memories[memory_id] = record
         self._rule_index[rule_id] = memory_id
-        
+
         if rule_id not in self._versions:
             self._versions[rule_id] = []
         self._versions[rule_id].append(version_record)
         self._current_version[rule_id] = new_version
-        
+
         print(f"Constitutional rule {rule_id} amended: {old_version} → {new_version}")
         print(f"Reason: {amendment_reason}")
-        
+
         return record
-    
+
     def _increment_version(self, version: str) -> str:
         """Increment semantic version."""
         # Remove 'v' prefix if present
         v = version.lstrip("v")
         parts = v.split(".")
-        
+
         # Increment patch version
         if len(parts) == 3:
             major, minor, patch = parts
@@ -295,18 +298,18 @@ class ConstitutionalMemoryLane:
         else:
             # Fallback
             return f"v{v}.1"
-    
+
     def get_rule(self, rule_id: str) -> MemoryRecord | None:
         """Get current version of constitutional rule."""
         memory_id = self._rule_index.get(rule_id)
         if memory_id:
             return self._memories.get(memory_id)
         return None
-    
+
     def get_rule_version_history(self, rule_id: str) -> list[ConstitutionalVersion]:
         """Get version history for a rule."""
         return self._versions.get(rule_id, [])
-    
+
     def get_all_rules(self) -> list[MemoryRecord]:
         """Get all current constitutional rules."""
         current = []
@@ -315,38 +318,39 @@ class ConstitutionalMemoryLane:
             if mem and not mem.governance.superseded_by:
                 current.append(mem)
         return current
-    
+
     def get_floors(self) -> list[MemoryRecord]:
         """Get all floor rules (F1-F13)."""
         return [m for m in self.get_all_rules() if "F" in m.lane_data.get("floor_number", "")]
-    
+
     def check_compliance(self, operation: str, context: dict) -> tuple[bool, list[str]]:
         """Check if operation complies with constitutional rules."""
         violations = []
-        
+
         for rule in self.get_all_rules():
             rule_id = rule.lane_data.get("rule_id", "")
-            
+
             if rule_id == "F1_AMANAH":
                 if not context.get("is_reversible", True):
                     violations.append("F1_AMANAH: Operation not reversible")
-            
+
             elif rule_id == "F4_CLARITY":
                 delta_s = context.get("entropy_delta", 0)
                 if delta_s > 0:
                     violations.append(f"F4_CLARITY: Entropy increased (ΔS = {delta_s})")
-            
+
             elif rule_id == "F7_HUMILITY":
                 omega = context.get("uncertainty", 0.04)
                 if omega < 0.03 or omega > 0.05:
                     violations.append(f"F7_HUMILITY: Uncertainty {omega} outside [0.03, 0.05]")
-        
+
         return len(violations) == 0, violations
-    
+
     def get_rules_requiring_vault_mirror(self) -> list[MemoryRecord]:
         """Get rules that should be mirrored to vault."""
         return [
-            m for m in self._memories.values()
+            m
+            for m in self._memories.values()
             if m.lane_data.get("mirror_to_vault", False)
             and not m.lineage.vault_seal_ref  # Not yet mirrored
         ]

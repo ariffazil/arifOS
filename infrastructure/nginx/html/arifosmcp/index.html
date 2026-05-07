@@ -268,10 +268,10 @@
                         <span style="color: var(--gold);">for reality-aligned AI.</span>
                     </h1>
                     <p style="font-size: 18px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7;">
-                        Connect your host to <code>/mcp</code>, inspect capabilities, enforce floors, 
+                        Connect your host to <code>/mcp</code>, inspect capabilities, enforce floors,
                         and route high-risk decisions through human approval.
                     </p>
-                    
+
                     <div style="display: flex; gap: 12px; margin-bottom: 24px;">
                         <a href="#quickstart" class="btn btn-primary">Get Started</a>
                         <a href="#capabilities" class="btn btn-secondary">View Capabilities</a>
@@ -514,13 +514,13 @@
                                 <span>Read-only operations</span>
                             </div>
                             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Health, capabilities, resource reads — always allowed.</p>
-                            
+
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                                 <span style="font-size: 20px;">⚠️</span>
                                 <span>Moderate risk</span>
                             </div>
                             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Tool invocations logged with full telemetry.</p>
-                            
+
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                                 <span style="font-size: 20px;">🔒</span>
                                 <span>High risk / 888 HOLD</span>
@@ -893,7 +893,7 @@
         function showTab(btn, id) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
-            
+
             const examples = {
                 claude: `<code>npx @anthropic/mcp install arifos \\
   --url https://mcp.arif-fazil.com/mcp
@@ -918,7 +918,7 @@
     "id": 1
   }'`
             };
-            
+
             document.getElementById('sdk-example').innerHTML = examples[id];
         }
 

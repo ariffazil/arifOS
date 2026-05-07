@@ -6,10 +6,10 @@ import { useActiveTab } from '../../store/geoxStore';
 
 /**
  * EarthWitness Component
- * 
+ *
  * The primary 2D geospatial grounding layer for GEOX.
  * Uses MapLibre GL JS for GPU-accelerated Earth visualization.
- * 
+ *
  * DITEMPA BUKAN DIBERI
  */
 export const EarthWitness: React.FC = () => {
@@ -18,7 +18,7 @@ export const EarthWitness: React.FC = () => {
   const [lng] = useState(114.2); // Default to SE Asia / Brunei area
   const [lat] = useState(4.5);
   const [zoom] = useState(9);
-  
+
   const activeTab = useActiveTab();
 
   useEffect(() => {
@@ -131,8 +131,8 @@ export const EarthWitness: React.FC = () => {
 
       {/* Floating Governance Layer */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none">
-        <GroundedBadge 
-          confidence={0.92} 
+        <GroundedBadge
+          confidence={0.92}
           status="GROUNDED"
           source="OpenStreetMap / Protomaps"
         />

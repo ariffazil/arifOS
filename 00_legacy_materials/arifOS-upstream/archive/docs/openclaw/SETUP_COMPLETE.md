@@ -144,7 +144,7 @@ Your API key gives access to:
 ### Example Conversations:
 
 **You:** My website is slow
-**Bot:** 🔍 Checking... (runs diagnostics) 
+**Bot:** 🔍 Checking... (runs diagnostics)
 **Bot:** Found issue: High CPU. Restarting services...
 **Bot:** ✅ Fixed! Website responding normally.
 
@@ -202,10 +202,10 @@ docker exec openclaw openclaw doctor
 
 ---
 
-**Status:** ✅ FULLY OPERATIONAL  
-**AI Provider:** Venice (Kimi K2.5 Primary)  
-**Web Search:** ✅ Enabled  
-**VPS Control:** ✅ Enabled  
+**Status:** ✅ FULLY OPERATIONAL
+**AI Provider:** Venice (Kimi K2.5 Primary)
+**Web Search:** ✅ Enabled
+**VPS Control:** ✅ Enabled
 **Telegram:** @arifOS_bot ready
 
 **Ditempa Bukan Diberi** — Forged, Not Given 🏛️

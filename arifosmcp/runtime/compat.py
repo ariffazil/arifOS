@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # VERSION DETECTION
 # =============================================================================
 
-_version_parts = fastmcp.__version__.split('.')
+_version_parts = fastmcp.__version__.split(".")
 VERSION_MAJOR = int(_version_parts[0])
 VERSION_MINOR = int(_version_parts[1]) if len(_version_parts) > 1 else 0
 VERSION_PATCH = int(_version_parts[2]) if len(_version_parts) > 2 else 0
@@ -44,24 +44,38 @@ from fastmcp.exceptions import FastMCPError
 
 try:
     from fastmcp.exceptions import ToolError
+
     HAS_TOOL_ERROR = True
 except ImportError:
     HAS_TOOL_ERROR = False
+
     class ToolError(FastMCPError):
         """Tool execution error (FastMCP 2.x compatibility shim)."""
+
         pass
+
 
 try:
     from fastmcp.exceptions import AuthorizationError
+
     HAS_AUTHORIZATION_ERROR = True
 except ImportError:
     HAS_AUTHORIZATION_ERROR = False
+
     class AuthorizationError(FastMCPError):
         """Authorization error (FastMCP 2.x compatibility shim)."""
-        def __init__(self, message: str = "Unauthorized", *, operation: str | None = None, resource: str | None = None):
+
+        def __init__(
+            self,
+            message: str = "Unauthorized",
+            *,
+            operation: str | None = None,
+            resource: str | None = None,
+        ):
             super().__init__(message)
             self.operation = operation
             self.resource = resource
+
 
 # =============================================================================
 # CONTEXT COMPATIBILITY
@@ -69,6 +83,7 @@ except ImportError:
 
 try:
     from fastmcp.server.context import Context
+
     HAS_CONTEXT = True
 except ImportError:
     HAS_CONTEXT = False
@@ -76,6 +91,7 @@ except ImportError:
 
 try:
     from fastmcp import Context  # Context injected; None fallback
+
     HAS_CURRENT_CONTEXT = True
 except ImportError:
     HAS_CURRENT_CONTEXT = False
@@ -91,6 +107,7 @@ from fastmcp import FastMCP
 # HTTP APP CREATION
 # =============================================================================
 
+
 def create_http_app(mcp: FastMCP, stateless: bool = True) -> Any:
     """
     Create HTTP app compatible with FastMCP 2.x and 3.x.
@@ -101,36 +118,35 @@ def create_http_app(mcp: FastMCP, stateless: bool = True) -> Any:
     if IS_FASTMCP_3:
         return mcp.http_app(stateless_http=stateless)
 
-    if hasattr(mcp, 'streamable_http_app'):
+    if hasattr(mcp, "streamable_http_app"):
         return mcp.streamable_http_app()
-    elif hasattr(mcp, 'http_app'):
+    elif hasattr(mcp, "http_app"):
         return mcp.http_app()
 
     raise RuntimeError("No HTTP app method available on FastMCP instance")
+
 
 # =============================================================================
 # CUSTOM ROUTE REGISTRATION
 # =============================================================================
 
-def custom_route(
-    mcp: FastMCP,
-    path: str,
-    methods: list[str],
-    **kwargs
-) -> Callable:
+
+def custom_route(mcp: FastMCP, path: str, methods: list[str], **kwargs) -> Callable:
     """
     Register custom HTTP route compatible with FastMCP 2.x and 3.x.
     """
-    if hasattr(mcp, 'custom_route'):
+    if hasattr(mcp, "custom_route"):
         return mcp.custom_route(path, methods=methods, **kwargs)
-    elif hasattr(mcp, 'route'):
+    elif hasattr(mcp, "route"):
         return mcp.route(path, methods=methods, **kwargs)
 
     raise RuntimeError("FastMCP instance has no custom_route or route method")
 
+
 # =============================================================================
 # TRANSPORT MODE
 # =============================================================================
+
 
 def get_compatible_transport(preferred: str = "streamable-http") -> str:
     """
@@ -146,6 +162,7 @@ def get_compatible_transport(preferred: str = "streamable-http") -> str:
         return "http"
     return preferred
 
+
 # =============================================================================
 # EXPORTS
 # =============================================================================
@@ -157,23 +174,19 @@ __all__ = [
     "VERSION_PATCH",
     "IS_FASTMCP_3",
     "IS_FASTMCP_2",
-
     # Exceptions
     "FastMCPError",
     "ToolError",
     "AuthorizationError",
     "HAS_TOOL_ERROR",
     "HAS_AUTHORIZATION_ERROR",
-
     # Context
     "Context",
     "CurrentContext",
     "HAS_CONTEXT",
     "HAS_CURRENT_CONTEXT",
-
     # FastMCP
     "FastMCP",
-
     # Functions
     "create_http_app",
     "custom_route",

@@ -42,6 +42,7 @@ PPLX_API_KEY = os.getenv("PPLX_API_KEY", "")
 
 try:
     from ddgs import DDGS
+
     DDGS_AVAILABLE = True
 except ImportError:
     DDGS_AVAILABLE = False
@@ -88,18 +89,18 @@ class RealityHandler:
             parsed = urlparse(url)
             if parsed.scheme not in ("http", "https"):
                 return False
-            
+
             host = parsed.hostname
             if not host:
                 return False
-                
+
             # Block localhost and common private ranges
             # This is a basic heuristic for defense-in-depth
             if re.match(r"^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|169\.254\.)", host):
                 return False
             if host in ("localhost", "local", "loopback"):
                 return False
-                
+
             return True
         except Exception:
             return False
@@ -108,7 +109,7 @@ class RealityHandler:
         timings = {"dns": 0.0, "connect": 0.0, "ttfb": 0.0, "total": 0.0}
 
         res = FetchResult(url=url)
-        
+
         # SSRF Protection
         if not self._is_safe_url(url):
             res.error_message = "URL blocked by security policy (SSRF guard)"
@@ -144,7 +145,13 @@ class RealityHandler:
                                 k: v
                                 for k, v in response.headers.items()
                                 if k.lower()
-                                in ["server", "cache-control", "x-cache", "cf-ray", "content-encoding"]
+                                in [
+                                    "server",
+                                    "cache-control",
+                                    "x-cache",
+                                    "cf-ray",
+                                    "content-encoding",
+                                ]
                             }
                             res.final_url = str(response.url)
                             res.redirects = len(response.history)
@@ -182,10 +189,12 @@ class RealityHandler:
                                     chunks.append(chunk)
                                     bytes_read += len(chunk)
                                     if bytes_read > max_size:
-                                        res.error_message = f"Response body exceeds {max_size} bytes"
+                                        res.error_message = (
+                                            f"Response body exceeds {max_size} bytes"
+                                        )
                                         res.status_code = 413
                                         return res
-                                
+
                                 full_text = "".join(chunks)
                                 res.raw_content = full_text
                                 res.content_length = len(full_text)
@@ -284,11 +293,11 @@ class RealityHandler:
                     web_results = data.get("web", {}) or {}
                     res.results = web_results.get("results", []) if web_results else []
                     if not res.results and DDGS_AVAILABLE:
-                         logger.info("Brave returned no results, trying DDGS fallback")
-                         return await self.search_ddgs(query, top_k)
+                        logger.info("Brave returned no results, trying DDGS fallback")
+                        return await self.search_ddgs(query, top_k)
                 elif DDGS_AVAILABLE:
-                      logger.warning(f"Brave error {response.status_code}, trying DDGS fallback")
-                      return await self.search_ddgs(query, top_k)
+                    logger.warning(f"Brave error {response.status_code}, trying DDGS fallback")
+                    return await self.search_ddgs(query, top_k)
                 else:
                     res.error = f"Brave API Error {response.status_code}: {response.text[:500]}"
         except Exception as e:
@@ -308,16 +317,17 @@ class RealityHandler:
         if not DDGS_AVAILABLE:
             res.error = "ddgs library not installed"
             return res
-        
+
         try:
             from ddgs import DDGS
+
             with DDGS() as ddgs:
                 results = list(ddgs.text(query, max_results=top_k))
                 res.results = [
                     {
                         "title": r.get("title", ""),
                         "url": r.get("href", ""),
-                        "description": r.get("body", "")
+                        "description": r.get("body", ""),
                     }
                     for r in results
                 ]
@@ -325,7 +335,7 @@ class RealityHandler:
         except Exception as e:
             res.error = f"DDGS error: {str(e)}"
             res.status_code = 500
-        
+
         res.latency_ms = (time.time() - start_time) * 1000
         return res
 

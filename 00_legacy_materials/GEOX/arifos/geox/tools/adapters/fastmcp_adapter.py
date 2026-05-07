@@ -16,10 +16,12 @@ DITEMPA BUKAN DIBERI
 from __future__ import annotations
 
 import warnings
+
 warnings.warn(
     "fastmcp_adapter.py is deprecated. The canonical unified surface is geox_unified_mcp_server.py "
     "and the execution plane is execution_plane/vps/server.py. Do not build new dependencies here.",
-    DeprecationWarning, stacklevel=2
+    DeprecationWarning,
+    stacklevel=2,
 )
 
 import argparse
@@ -31,7 +33,8 @@ from typing import Any
 # FastMCP imports (transport layer only)
 try:
     import fastmcp
-    FASTMCP_VERSION = tuple(map(int, fastmcp.__version__.split('.')[:2]))
+
+    FASTMCP_VERSION = tuple(map(int, fastmcp.__version__.split(".")[:2]))
     IS_FASTMCP_3 = FASTMCP_VERSION >= (3, 0)
 except Exception:
     FASTMCP_VERSION = (2, 0)
@@ -42,11 +45,13 @@ from fastmcp import FastMCP
 if IS_FASTMCP_3:
     from fastmcp.tools import ToolResult
 else:
+
     class ToolResult:
         def __init__(self, content: str, structured_content: Any = None, meta: dict = None):
             self.content = content
             self.structured_content = structured_content
             self.meta = meta or {}
+
 
 # Configure logging
 logging.basicConfig(
@@ -61,6 +66,7 @@ logger = logging.getLogger("geox.mcp")
 
 try:
     from ...geox_memory import GeoMemoryStore
+
     _memory_store: "GeoMemoryStore | None" = GeoMemoryStore()
     _HAS_MEMORY = True
 except Exception as _mem_exc:
@@ -70,6 +76,7 @@ except Exception as _mem_exc:
 
 try:
     from ...physics.petrophysics import monte_carlo_sw
+
     _HAS_PHYSICS = True
 except ImportError:
     _HAS_PHYSICS = False
@@ -85,6 +92,7 @@ try:
         PetrophysicsOutput,
         SwModelAdmissibility,
     )
+
     _HAS_PETRO_SCHEMAS = True
 except ImportError as _petro_exc:
     _HAS_PETRO_SCHEMAS = False
@@ -92,6 +100,7 @@ except ImportError as _petro_exc:
 
 try:
     from ..seismic.seismic_single_line_tool import SeismicSingleLineTool
+
     _HAS_SEISMIC = True
 except ImportError:
     _HAS_SEISMIC = False
@@ -133,6 +142,7 @@ mcp = FastMCP(
 # Helper Functions (Transport Layer Only)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _tool_result_to_dict(result: ToolResult) -> dict:
     """Convert ToolResult to dict for FastMCP compatibility."""
     if IS_FASTMCP_3:
@@ -148,7 +158,7 @@ def _tool_result_to_dict(result: ToolResult) -> dict:
 def _result_to_tool_result(result_obj: Any) -> ToolResult:
     """
     Convert a core result object to FastMCP ToolResult.
-    
+
     This is the adapter boundary: domain objects in, transport objects out.
     """
     # Extract data from result object (Pydantic model)
@@ -158,11 +168,11 @@ def _result_to_tool_result(result_obj: Any) -> ToolResult:
         structured = result_obj.dict()
     else:
         structured = dict(result_obj)
-    
+
     # Build human-readable content from structured data
     status = structured.get("status", "UNKNOWN")
     content_parts = [f"GEOX Result: {status}"]
-    
+
     # Add type-specific content
     if "well_id" in structured:
         content_parts.append(f"Well: {structured['well_id']}")
@@ -170,28 +180,28 @@ def _result_to_tool_result(result_obj: Any) -> ToolResult:
         content_parts.append(f"Prospect: {structured['prospect_id']}")
     if "line_id" in structured:
         content_parts.append(f"Line: {structured['line_id']}")
-    
+
     # Add verdict/details
     if "verdict" in structured:
         content_parts.append(f"Verdict: {structured['verdict']}")
     if "hold_triggers" in structured and structured["hold_triggers"]:
         content_parts.append(f"Hold Triggers: {', '.join(structured['hold_triggers'])}")
-    
+
     # Add constitutional info
     if "floor_verdicts" in structured:
         floors = structured["floor_verdicts"]
         passed = sum(1 for v in floors.values() if v)
         total = len(floors)
         content_parts.append(f"Constitutional Floors: {passed}/{total} passed")
-    
+
     content = " | ".join(content_parts)
-    
+
     # Build meta with app intent if applicable
     meta = {
         "geox_version": GEOX_VERSION,
         "seal": GEOX_SEAL,
     }
-    
+
     # Check if this result suggests an app intent
     if structured.get("status") == "SEAL" and "views" in structured:
         meta["appIntent"] = {
@@ -200,16 +210,18 @@ def _result_to_tool_result(result_obj: Any) -> ToolResult:
             "params": structured,
             "preferredMode": "inline",
         }
-    
+
     return ToolResult(
         content=content,
         structured_content=structured,
         meta=meta,
     )
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # MCP Tool Wrappers (Thin Adapters)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @mcp.tool(name="geox_load_seismic_line")
 async def geox_load_seismic_line(
@@ -225,7 +237,7 @@ async def geox_load_seismic_line(
         generate_views=generate_views,
         seismic_engine_available=_HAS_SEISMIC,
     )
-    
+
     # Convert to ToolResult
     tool_result = _result_to_tool_result(result)
     return _tool_result_to_dict(tool_result)
@@ -475,26 +487,28 @@ async def geox_health() -> dict:
 try:
     from starlette.requests import Request
     from starlette.responses import JSONResponse, PlainTextResponse
-    
+
     @mcp.custom_route("/health", methods=["GET"])
     async def health_check(_: Request) -> PlainTextResponse:
         """Minimal health endpoint."""
         return PlainTextResponse("OK")
-    
+
     @mcp.custom_route("/health/details", methods=["GET"])
     async def health_details(_: Request) -> JSONResponse:
         """Detailed health endpoint."""
-        return JSONResponse({
-            "ok": True,
-            "service": "geox-earth-witness",
-            "version": GEOX_VERSION,
-            "mode": "constitutional-governance",
-            "forge": "Forge-3-FastMCP" if IS_FASTMCP_3 else "Forge-2-Horizon",
-            "fastmcp_version": ".".join(map(str, FASTMCP_VERSION)),
-            "seal": GEOX_SEAL,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
-    
+        return JSONResponse(
+            {
+                "ok": True,
+                "service": "geox-earth-witness",
+                "version": GEOX_VERSION,
+                "mode": "constitutional-governance",
+                "forge": "Forge-3-FastMCP" if IS_FASTMCP_3 else "Forge-2-Horizon",
+                "fastmcp_version": ".".join(map(str, FASTMCP_VERSION)),
+                "seal": GEOX_SEAL,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
     HAS_HTTP_ROUTES = True
 except ImportError:
     HAS_HTTP_ROUTES = False
@@ -504,6 +518,7 @@ except ImportError:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Factory Function (for fastmcp run server.py:create_server)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def create_server(
     transport: str = "stdio",
@@ -547,6 +562,7 @@ def create_server(
 # CLI Entrypoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def main():
     """CLI entrypoint for FastMCP server."""
     parser = argparse.ArgumentParser(
@@ -561,7 +577,7 @@ Environment Variables:
 Examples:
   python -m arifos.geox.tools.adapters.fastmcp_adapter
   python -m arifos.geox.tools.adapters.fastmcp_adapter --transport http --port 8100
-        """
+        """,
     )
     parser.add_argument(
         "--transport",
@@ -581,11 +597,11 @@ Examples:
         help="HTTP bind port",
     )
     parser.add_argument("--log-level", default="info", help="Log level")
-    
+
     args = parser.parse_args()
-    
+
     logging.getLogger().setLevel(args.log_level.upper())
-    
+
     logger.info("=" * 60)
     logger.info("GEOX Earth Witness v%s — %s", GEOX_VERSION, GEOX_SEAL)
     logger.info("FastMCP Version: %s", ".".join(map(str, FASTMCP_VERSION)))
@@ -595,7 +611,7 @@ Examples:
     logger.info("Physics Engine: %s", "available" if _HAS_PHYSICS else "unavailable")
     logger.info("Seismic Engine: %s", "available" if _HAS_SEISMIC else "unavailable")
     logger.info("=" * 60)
-    
+
     if args.transport == "http":
         logger.info("Host: %s | Port: %d", args.host, args.port)
         mcp.run(transport="http", host=args.host, port=args.port)

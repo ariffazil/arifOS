@@ -9,12 +9,20 @@ Usage: python arifos_train.py
 
 DITEMPA BUKAN DIBERI — Testing is forged, not given.
 """
+
 from __future__ import annotations
 import json
 import time
 import sys
 
-from arifos_prepare import SCENARIOS, evaluate_score, TIME_BUDGET_SECONDS, ARIFOS_API_KEY, MCP_TOOL_TIMEOUT
+from arifos_prepare import (
+    SCENARIOS,
+    evaluate_score,
+    TIME_BUDGET_SECONDS,
+    ARIFOS_API_KEY,
+    MCP_TOOL_TIMEOUT,
+)
+
 
 # ── Tool Call Executor ──────────────────────────────────────
 def call_arifos_tool(tool_name: str, tool_input: dict) -> dict:
@@ -28,15 +36,14 @@ def call_arifos_tool(tool_name: str, tool_input: dict) -> dict:
     if not ARIFOS_API_KEY:
         raise RuntimeError("ARIFOS_API_KEY not in environment — abort")
 
-    payload = json.dumps({
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "tools/call",
-        "params": {
-            "name": tool_name,
-            "arguments": tool_input
+    payload = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": tool_input},
         }
-    }).encode()
+    ).encode()
 
     req = urllib.request.Request(
         "http://localhost:8080/mcp",
@@ -45,7 +52,7 @@ def call_arifos_tool(tool_name: str, tool_input: dict) -> dict:
             "Authorization": f"Bearer {ARIFOS_API_KEY}",
             "Content-Type": "application/json",
         },
-        method="POST"
+        method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=MCP_TOOL_TIMEOUT) as resp:
@@ -85,17 +92,19 @@ def run_scenarios() -> list[dict]:
 
         verdict, floors_triggered = parse_verdict(raw)
 
-        results.append({
-            "scenario_id": scenario_id,
-            "tool": tool,
-            "input": inp,
-            "verdict": verdict,
-            "floors_triggered": floors_triggered,
-            "expected_verdict": expected_verdict,
-            "expected_floors": expected_floors,
-            "elapsed_sec": round(elapsed, 2),
-            "raw_result": raw,
-        })
+        results.append(
+            {
+                "scenario_id": scenario_id,
+                "tool": tool,
+                "input": inp,
+                "verdict": verdict,
+                "floors_triggered": floors_triggered,
+                "expected_verdict": expected_verdict,
+                "expected_floors": expected_floors,
+                "elapsed_sec": round(elapsed, 2),
+                "raw_result": raw,
+            }
+        )
     return results
 
 
@@ -124,7 +133,9 @@ def main() -> None:
     print(f"wall_time: {wall_time:.1f}s")
     print("-" * 60)
     for r in results:
-        print(f"  {r['scenario_id']}: verdict={r['verdict']} floors={r['floors_triggered']} [{r['elapsed_sec']}s]")
+        print(
+            f"  {r['scenario_id']}: verdict={r['verdict']} floors={r['floors_triggered']} [{r['elapsed_sec']}s]"
+        )
 
     # Save detailed results
     with open("run.log", "w") as f:
@@ -138,6 +149,7 @@ def main() -> None:
     if wall_time > TIME_BUDGET_SECONDS * 2:
         print("WARNING: exceeded 2x time budget — possible OOM or hang")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

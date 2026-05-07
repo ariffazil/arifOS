@@ -16,9 +16,14 @@ async def test_full_arifos_metabolic_loop():
         allow_execution=False,
     )
 
-    assert envelope.verdict in ["SEAL", "SABAR", "VOID", "PARTIAL", "HOLD", "HOLD_888"], (
-        f"Unexpected verdict: {envelope.verdict}"
-    )
+    assert envelope.verdict in [
+        "SEAL",
+        "SABAR",
+        "VOID",
+        "PARTIAL",
+        "HOLD",
+        "HOLD_888",
+    ], f"Unexpected verdict: {envelope.verdict}"
     assert envelope.session_id is not None
     assert envelope.verdict is not None
     assert envelope.status in ["SUCCESS", "ERROR"]

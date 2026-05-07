@@ -1,7 +1,7 @@
 # Ecosystem Endpoints and Access Points
 
-**Sealed:** 2026-04-18  
-**ADR:** ADR-ENDPOINTS-2026-04-18  
+**Sealed:** 2026-04-18
+**ADR:** ADR-ENDPOINTS-2026-04-18
 **VAULT999:** canon_records.id = 6
 
 ---

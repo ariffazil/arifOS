@@ -19,6 +19,7 @@ from typing import Any, Literal
 @dataclass(frozen=True)
 class ToolSpecV2:
     """MCP v2 clean tool specification with visibility control."""
+
     name: str  # arifos.v2.{verb} format (namespace-versioned)
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
@@ -57,12 +58,15 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
                 "intent": {"type": "string", "minLength": 1, "maxLength": 20000},
                 "declared_name": {"type": "string", "maxLength": 64},
                 "session_id": {"type": "string", "minLength": 8, "maxLength": 128},
-                "risk_tier": {"type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium"},
+                "risk_tier": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "default": "medium",
+                },
             },
         },
         default_tier="small",
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 2. arifos.sense — Constitutional Reality Sensing (was 111_SENSE, physics_reality)
     # ─────────────────────────────────────────────────────────────────────────
@@ -83,7 +87,10 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             "type": "object",
             "required": ["query"],
             "properties": {
-                "query": {"type": "string", "description": "Query to classify and ground in reality"},
+                "query": {
+                    "type": "string",
+                    "description": "Query to classify and ground in reality",
+                },
                 "mode": {
                     "type": "string",
                     "enum": ["governed", "search", "ingest", "compass", "atlas", "time"],
@@ -108,7 +115,6 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 3. arifos.mind — Structured Reasoning (was 333_MIND, agi_mind)
     # ─────────────────────────────────────────────────────────────────────────
@@ -126,12 +132,15 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             "properties": {
                 "query": {"type": "string", "description": "Task or question to reason about"},
                 "context": {"type": "string", "description": "Additional context for reasoning"},
-                "mode": {"type": "string", "enum": ["reason", "reflect", "forge"], "default": "reason"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["reason", "reflect", "forge"],
+                    "default": "reason",
+                },
                 "session_id": {"type": "string"},
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 4. arifos.route — Execution Lane Selection (was 444_ROUT, arifOS_kernel)
     # ─────────────────────────────────────────────────────────────────────────
@@ -153,7 +162,6 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 5. arifos.heart — Safety Critique (was 666_HEART, asi_heart)
     # ─────────────────────────────────────────────────────────────────────────
@@ -175,7 +183,6 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 6. arifos.ops — Cost Estimation (was 777_OPS, math_estimator)
     # ─────────────────────────────────────────────────────────────────────────
@@ -192,12 +199,15 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             "required": ["action"],
             "properties": {
                 "action": {"type": "string", "description": "Action to estimate costs for"},
-                "mode": {"type": "string", "enum": ["cost", "health", "vitals", "entropy"], "default": "cost"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["cost", "health", "vitals", "entropy"],
+                    "default": "cost",
+                },
                 "session_id": {"type": "string"},
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 7. arifos.judge — Constitutional Verdict (was 888_JUDGE, apex_soul)
     # ─────────────────────────────────────────────────────────────────────────
@@ -214,13 +224,16 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             "required": ["candidate_action", "risk_tier"],
             "properties": {
                 "candidate_action": {"type": "string", "description": "Action to judge"},
-                "risk_tier": {"type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium"},
+                "risk_tier": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "default": "medium",
+                },
                 "telemetry": {"type": "object", "description": "Optional telemetry data"},
                 "session_id": {"type": "string"},
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 8. arifos.memory — Governed Recall (was 555_MEMORY, engineering_memory)
     # ─────────────────────────────────────────────────────────────────────────
@@ -237,12 +250,15 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             "required": ["query"],
             "properties": {
                 "query": {"type": "string", "description": "Memory query"},
-                "mode": {"type": "string", "enum": ["vector_query", "vector_store", "engineer", "query"], "default": "vector_query"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["vector_query", "vector_store", "engineer", "query"],
+                    "default": "vector_query",
+                },
                 "session_id": {"type": "string"},
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 9. arifos.vault — Immutable Logging (was 999_VAULT, vault_ledger)
     # ─────────────────────────────────────────────────────────────────────────
@@ -258,13 +274,16 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             "type": "object",
             "required": ["verdict"],
             "properties": {
-                "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "VOID", "HOLD"], "description": "Verdict to log"},
+                "verdict": {
+                    "type": "string",
+                    "enum": ["SEAL", "PARTIAL", "VOID", "HOLD"],
+                    "description": "Verdict to log",
+                },
                 "evidence": {"type": "string", "description": "Evidence summary"},
                 "session_id": {"type": "string"},
             },
         },
     ),
-
     # ─────────────────────────────────────────────────────────────────────────
     # 10. arifos.forge — Delegated Execution Bridge (was shell_forge)
     # ─────────────────────────────────────────────────────────────────────────
@@ -280,13 +299,33 @@ V2_TOOLS: tuple[ToolSpecV2, ...] = (
             "type": "object",
             "required": ["action", "payload", "session_id", "judge_verdict", "judge_g_star"],
             "properties": {
-                "action": {"type": "string", "enum": ["shell", "api_call", "contract", "compute", "container", "vm"], "description": "Execution type"},
+                "action": {
+                    "type": "string",
+                    "enum": ["shell", "api_call", "contract", "compute", "container", "vm"],
+                    "description": "Execution type",
+                },
                 "payload": {"type": "object", "description": "Action-specific parameters"},
                 "session_id": {"type": "string"},
-                "judge_verdict": {"type": "string", "enum": ["SEAL"], "description": "Must be SEAL from arifos.judge"},
-                "judge_g_star": {"type": "number", "minimum": 0.0, "maximum": 1.0, "description": "G★ score at time of verdict"},
-                "constraints": {"type": "object", "description": "Resource limits (cpu, memory, timeout)"},
-                "dry_run": {"type": "boolean", "default": True, "description": "Generate manifest without dispatch"},
+                "judge_verdict": {
+                    "type": "string",
+                    "enum": ["SEAL"],
+                    "description": "Must be SEAL from arifos.judge",
+                },
+                "judge_g_star": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "G★ score at time of verdict",
+                },
+                "constraints": {
+                    "type": "object",
+                    "description": "Resource limits (cpu, memory, timeout)",
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Generate manifest without dispatch",
+                },
                 "a_forge_endpoint": {"type": "string", "description": "Target substrate endpoint"},
             },
         },

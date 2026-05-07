@@ -1,7 +1,7 @@
 # VERDICT SCHEMA STANDARD
-> **Authority:** 888_JUDGE  
-> **Version:** v1.0.0-SEAL  
-> **Status:** CONSTITUTIONAL MANDATE  
+> **Authority:** 888_JUDGE
+> **Version:** v1.0.0-SEAL
+> **Status:** CONSTITUTIONAL MANDATE
 > **Band:** 000_KERNEL
 
 ---
@@ -10,7 +10,7 @@
 
 Standardize verdict structures across ALL arifOS tools to ensure pipeline compatibility, deterministic parsing, and constitutional enforcement.
 
-**F2 (Truth):** All tools MUST return identical verdict schema for interoperability.  
+**F2 (Truth):** All tools MUST return identical verdict schema for interoperability.
 **F11 (Auditability):** Verdicts MUST be cryptographically verifiable and machine-parseable.
 
 ---
@@ -27,7 +27,7 @@ interface ArifOSVerdict {
   ok: boolean;                    // Operation success (not verdict status!)
   verdict: VerdictCode;           // SEAL | SABAR | VOID | PARTIAL
   status: StatusCode;             // Detailed status string
-  
+
   // ═══════════════════════════════════════
   // TOOL METADATA (Required)
   // ═══════════════════════════════════════
@@ -35,7 +35,7 @@ interface ArifOSVerdict {
   stage: StageCode;               // 000-999 pipeline stage
   schema_version: string;         // "1.0.0"
   timestamp: string;              // ISO 8601 UTC
-  
+
   // ═══════════════════════════════════════
   // CONSTITUTIONAL METRICS (Required)
   // ═══════════════════════════════════════
@@ -45,7 +45,7 @@ interface ArifOSVerdict {
     coherence: number;            // G_star (F8 Genius)
     peace2: number;               // Stability metric (F5 Peace²)
   };
-  
+
   // ═══════════════════════════════════════
   // AUTHORITY & WITNESS (Required)
   // ═══════════════════════════════════════
@@ -55,17 +55,17 @@ interface ArifOSVerdict {
     auth_state: AuthState;        // verified | pending | unverified
     human_required: boolean;      // Was human approval mandated?
   };
-  
+
   // ═══════════════════════════════════════
   // PAYLOAD (Tool-Specific)
   // ═══════════════════════════════════════
   payload?: unknown;              // Tool-specific return data
-  
+
   // ═══════════════════════════════════════
   // ERROR HANDLING (Required if ok=false)
   // ═══════════════════════════════════════
   errors?: VerdictError[];        // Structured error objects
-  
+
   // ═══════════════════════════════════════
   // TRACE & PROVENANCE (Required)
   // ═══════════════════════════════════════
@@ -74,7 +74,7 @@ interface ArifOSVerdict {
     request_id: string;           // Unique request ID
     integrity_hash?: string;      // SHA-256 of critical fields
   };
-  
+
   // ═══════════════════════════════════════
   // CONSTITUTIONAL CONTEXT (Required)
   // ═══════════════════════════════════════
@@ -83,7 +83,7 @@ interface ArifOSVerdict {
     violations: string[];         // ["F7_HUMILITY: GODELLOCK_DETECTED"]
     W_cube: number;               // Tri-witness consensus score
   };
-  
+
   // ═══════════════════════════════════════
   // RECOVERY PROTOCOL (For SABAR/VOID)
   // ═══════════════════════════════════════
@@ -99,13 +99,13 @@ interface ArifOSVerdict {
 // ENUMERATIONS
 // ═══════════════════════════════════════
 
-type VerdictCode = 
+type VerdictCode =
   | "SEAL"      // ✅ Constitutional approval
   | "SABAR"     // ⏸️  Requires retry/recovery (see recovery protocol)
   | "VOID"      // ❌ Constitutional rejection
   | "PARTIAL";  // ⚠️  Approved with constraints/warnings
 
-type StatusCode = 
+type StatusCode =
   | "SUCCESS"
   | "PENDING"
   | "REJECTED"
@@ -115,7 +115,7 @@ type StatusCode =
   | "UNAUTHORIZED"
   | "CONSTRAINT_VIOLATION";
 
-type StageCode = 
+type StageCode =
   | "000_INIT"     // Identity anchor
   | "111_SENSE"    // Evidence acquisition
   | "333_MIND"     // Reasoning synthesis
@@ -126,23 +126,23 @@ type StageCode =
   | "888_FORGE"    // Creation/composition
   | "999_VAULT";   // Permanent record
 
-type AuthorityLevel = 
+type AuthorityLevel =
   | "sovereign"    // 888_JUDGE
   | "delegated"    // Agent with valid session
   | "anonymous";   // Unauthenticated
 
-type AuthState = 
+type AuthState =
   | "verified"     // Signature validated
   | "pending"      // Awaiting verification
   | "unverified";  // No auth provided
 
-type ActionCode = 
+type ActionCode =
   | "retry"        // Attempt operation again
   | "escalate"     // Request human approval
   | "terminate"    // End session safely
   | "degrade";     // Continue with reduced capability
 
-type StateCode = 
+type StateCode =
   | "OPERATIONAL"
   | "DEGRADED"
   | "SAFE_MODE"
@@ -392,7 +392,7 @@ def compute_integrity_hash(verdict: dict) -> str:
         "authority": verdict["authority"],
         "timestamp": verdict["timestamp"]
     }, sort_keys=True)
-    
+
     return f"sha256:{hashlib.sha256(canonical.encode()).hexdigest()[:16]}"
 ```
 

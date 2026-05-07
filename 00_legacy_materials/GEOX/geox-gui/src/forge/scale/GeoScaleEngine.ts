@@ -2,10 +2,10 @@
  * GeoScale Engine — Earth True Scale Transformation
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Recursive georeferencing logic for 1D/2D/3D analog-to-digital transformation.
  * Calibrates every pixel to physical units and georeferences to global coordinates.
- * 
+ *
  * Domain Mapping:
  * - 1D (250-499): Borehole logs, depth in meters/feet, time in Ma
  * - 2D (500-749): Maps, sections, seismic lines with X/Y coordinates
@@ -168,13 +168,13 @@ export class GeoScaleEngine {
   ): CalibrationResult {
     const { minDepth, maxDepth } = boreholeConfig.logRange;
     const depthRange = maxDepth - minDepth;
-    
+
     // Normalize pixel position (0 = top, 1 = bottom)
     const normalizedY = pixelY / imageHeight;
-    
+
     // Map to depth (inverted because depth increases downward)
     const depth = minDepth + (normalizedY * depthRange);
-    
+
     // Calculate TWT if time-depth model exists
     let twt: number | undefined;
     if (boreholeConfig.timeDepthModel) {
@@ -210,7 +210,7 @@ export class GeoScaleEngine {
   ): CalibrationResult {
     // Apply affine transform: X = a*x + b*y + c, Y = d*x + e*y + f
     const { a, b, c, d, e, f } = mapConfig.transform;
-    
+
     const worldX = a * pixelX + b * pixelY + c;
     const worldY = d * pixelX + e * pixelY + f;
 
@@ -286,7 +286,7 @@ export class GeoScaleEngine {
    */
   private interpolateTWT(depth: number, model: TimeDepthModel): number {
     const { checkshots, interpolationMethod } = model;
-    
+
     if (checkshots.length === 0) return 0;
     if (checkshots.length === 1) return checkshots[0].twt;
 

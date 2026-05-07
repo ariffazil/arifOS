@@ -59,8 +59,8 @@ __all__ = [
     "judge",  # Stage 888
     "seal",  # Stage 999
     "vault",  # Unified vault interface
-    "wealth", # Economic Organ
-    "geox",   # Earth Witness Organ
+    "wealth",  # Economic Organ
+    "geox",  # Earth Witness Organ
     "calculate_npv",
     "verify_geospatial",
     "evaluate_prospect",

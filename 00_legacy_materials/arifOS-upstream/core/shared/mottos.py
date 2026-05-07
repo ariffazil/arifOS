@@ -760,7 +760,7 @@ def get_init_gate_header() -> str:
 ================================================================================
   🔥 IGNITE — DITEMPA, BUKAN DIBERI 💎
   [000_INIT] Forged, Not Given
-  
+
   The fire is lit. Nothing enters without passing through flame.
   All work must be forged. Nothing is given freely.
 ================================================================================
@@ -777,7 +777,7 @@ def get_seal_gate_header() -> str:
 ================================================================================
   💎🧠 SEAL — DITEMPA, BUKAN DIBERI 🔒
   [999_SEAL] Forged, Not Given
-  
+
   The diamond is cut. Intelligence forged through constitutional fire.
   The seal is earned. Nothing leaves without proof of work.
 ================================================================================
@@ -803,17 +803,17 @@ def get_failure_anthem() -> str:
     """
     return """
 ================================================================================
-           THE AAA MCP FAILURE RESPONSE ANTHEM                    
+           THE AAA MCP FAILURE RESPONSE ANTHEM
 ================================================================================
-  DITEMPA, BUKAN DIBERI        -- Forged, not given (Foundation)   
-  DIKAJI, BUKAN DISUAPI        -- Examined, not spoon-fed (Truth)  
-  DIJELAJAH, BUKAN DISEKATI    -- Explored, not restricted         
+  DITEMPA, BUKAN DIBERI        -- Forged, not given (Foundation)
+  DIKAJI, BUKAN DISUAPI        -- Examined, not spoon-fed (Truth)
+  DIJELAJAH, BUKAN DISEKATI    -- Explored, not restricted
   DIJELASKAN, BUKAN DIKABURKAN -- Clarified, not obscured (Clarity)
-  DIHADAPI, BUKAN DITANGGUHI   -- Faced, not postponed             
-  DIUSAHAKAN, BUKAN DIHARAPI   -- Worked for, not hoped (Energy)   
-  DIJAGA, BUKAN DIABAIKAN      -- Safeguarded, not neglected       
-  DIDAMAIKAN, BUKAN DIPANASKAN -- Calmed, not inflamed (Peace)     
-  DISEDARKAN, BUKAN DIYAKINKAN -- Made aware, not over-assured     
+  DIHADAPI, BUKAN DITANGGUHI   -- Faced, not postponed
+  DIUSAHAKAN, BUKAN DIHARAPI   -- Worked for, not hoped (Energy)
+  DIJAGA, BUKAN DIABAIKAN      -- Safeguarded, not neglected
+  DIDAMAIKAN, BUKAN DIPANASKAN -- Calmed, not inflamed (Peace)
+  DISEDARKAN, BUKAN DIYAKINKAN -- Made aware, not over-assured
 ================================================================================
     """.strip()
 

@@ -34,22 +34,26 @@ MAX_UNKNOWNS = 3
 MAX_OPTIONS = 3
 
 # Constitutional floor: machine cannot do these — ever
-PROHIBITED_MACHINE_ACTIONS = frozenset({
-    "assign_intrinsic_value",
-    "claim_human_equivalence",
-    "authorize_irreversible_action",
-    "claim_embodied_meaning",
-    "override_human_judgment",
-    "grant_sovereign_authority",
-})
+PROHIBITED_MACHINE_ACTIONS = frozenset(
+    {
+        "assign_intrinsic_value",
+        "claim_human_equivalence",
+        "authorize_irreversible_action",
+        "claim_embodied_meaning",
+        "override_human_judgment",
+        "grant_sovereign_authority",
+    }
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # LAYER A — INTERNAL COGNITIVE STATE (wide, rich)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class Hypothesis(BaseModel):
     """A single falsifiable claim with evidence tracking."""
+
     id: str
     claim: str
     confidence: float = Field(ge=0.0, le=1.0)
@@ -68,21 +72,22 @@ class Provenance(BaseModel):
     These are the epistemic boundary markers: what kind of intelligence
     produced this output, and what it cannot claim.
     """
+
     intelligence_type: Literal["statistical", "embodied", "hybrid"] = "statistical"
-    grounding_status: Literal[
-        "data-based", "sensor-based", "human-mediated", "ungrounded"
-    ] = "human-mediated"
+    grounding_status: Literal["data-based", "sensor-based", "human-mediated", "ungrounded"] = (
+        "human-mediated"
+    )
     actor_id: str = "anonymous"  # Ψ-Continuity: canonical identity
     verified_actor_id: str | None = None
-    stakes_model: Literal[
-        "none", "simulated", "externalized-to-human", "shared"
-    ] = "externalized-to-human"
+    stakes_model: Literal["none", "simulated", "externalized-to-human", "shared"] = (
+        "externalized-to-human"
+    )
     confidence_domain: Literal[
         "narrow-task", "broad-context", "ambiguous", "human-judgment-required"
     ] = "ambiguous"
-    meaning_source: Literal[
-        "human-attributed", "statistical-inference", "ungrounded"
-    ] = "statistical-inference"
+    meaning_source: Literal["human-attributed", "statistical-inference", "ungrounded"] = (
+        "statistical-inference"
+    )
     human_equivalence_claimed: bool = False  # F9/F13: must remain False
 
 
@@ -94,6 +99,7 @@ class MindState(BaseModel):
     risk flags, provenance, audit trail, and alternative plans.
     This is never sent directly to the operator.
     """
+
     objective: str
     facts: list[str] = Field(default_factory=list)
     assumptions: list[str] = Field(default_factory=list)
@@ -105,15 +111,14 @@ class MindState(BaseModel):
     provenance: Provenance = Field(default_factory=Provenance)
     # Audit trail
     session_id: str = Field(default_factory=lambda: f"ms_{uuid.uuid4().hex[:12]}")
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     pipeline_trace: list[str] = Field(default_factory=list)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # LAYER B — OUTPUT ENVELOPE (narrow, decisive)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class OutputEnvelope(BaseModel):
     """
@@ -129,26 +134,29 @@ class OutputEnvelope(BaseModel):
 
     Hard limits: 3 facts, 3 uncertainties, 3 options, 1 next_step.
     """
+
     summary: str
     status: Literal["OK", "PARTIAL", "HOLD", "ERROR"]
-    key_facts: list[str]        # max MAX_FACTS
+    key_facts: list[str]  # max MAX_FACTS
     key_uncertainties: list[str]  # max MAX_UNKNOWNS
-    options: list[str]          # max MAX_OPTIONS
-    next_step: str              # exactly 1
+    options: list[str]  # max MAX_OPTIONS
+    next_step: str  # exactly 1
     human_decision_required: bool
     provenance: Provenance
     chaos_score: float = 0.0  # Ω-Stability: entropy metric
-    peace2: float = 1.0       # Ω-Stability: stability index
-    g_star: float = 0.0       # Δ-Intelligence: epistemic quality (G*T*C)^1/3
-    omega_0: float = 0.05     # Δ-Intelligence: Humility band (Gödel uncertainty)
+    peace2: float = 1.0  # Ω-Stability: stability index
+    g_star: float = 0.0  # Δ-Intelligence: epistemic quality (G*T*C)^1/3
+    omega_0: float = 0.05  # Δ-Intelligence: Humility band (Gödel uncertainty)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # RUNTIME STATE — internal full state for audit
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class RuntimeState(BaseModel):
     """Full internal runtime state — for vault and replay. Never send to operator."""
+
     sense: dict[str, Any] = Field(default_factory=dict)
     mind: MindState | None = None
     heart_risks: list[str] = Field(default_factory=list)
@@ -164,6 +172,7 @@ class RuntimeState(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 # SOVEREIGN BOUNDARY GUARD — F9, F13
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def boundary_guard(action: str) -> None:
     """
@@ -182,6 +191,7 @@ def boundary_guard(action: str) -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 # FALSIFICATION ENFORCEMENT — F2 Truth
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def require_falsification(hypotheses: list[Hypothesis]) -> None:
     """
@@ -202,6 +212,7 @@ def require_falsification(hypotheses: list[Hypothesis]) -> None:
 # CHAOS SCORE — ENTROPY GATE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def chaos_score(state: MindState) -> float:
     """
     Compute entropy score from internal mind state and thermodynamic budget.
@@ -218,6 +229,7 @@ def chaos_score(state: MindState) -> float:
     # 2. Thermodynamic stress (Task Ω1: Real chaos_score binding)
     try:
         from core.physics.thermodynamics_hardened import get_thermodynamic_budget
+
         # Thermodynamic budget is keyed by the canonical session_id
         budget = get_thermodynamic_budget(state.session_id)
         # calculate_chaos_score considers depletion, Landauer, and complexity
@@ -253,18 +265,18 @@ def calculate_g_star(state: MindState) -> float:
         g = max(g, 0.8)
     elif state.provenance.grounding_status == "data-based":
         g = max(g, 0.6)
-    
+
     # 2. Truth (T): based on hypothesis confidence and falsifiability
     if not state.hypotheses:
         t = 0.0
     else:
         t = max(h.confidence for h in state.hypotheses)
-    
+
     # 3. Coherence (C): inverse of contradictions and unknowns
     c = 1.0 - (min(1.0, len(state.contradictions) * 0.4 + len(state.unknowns) * 0.2))
-    
+
     # G* Calculation
-    g_star = (g * t * c) ** (1/3)
+    g_star = (g * t * c) ** (1 / 3)
     return round(g_star, 2)
 
 
@@ -275,7 +287,7 @@ def calculate_omega_0(state: MindState) -> float:
     """
     if not state.hypotheses:
         return 1.0
-    
+
     max_confidence = max(h.confidence for h in state.hypotheses)
     # The humility band dictates uncertainty is at least 0.03 (3%)
     return round(max(0.03, 1.0 - max_confidence), 3)
@@ -293,6 +305,7 @@ def output_mode_from_chaos(score: float) -> Literal["OK", "PARTIAL", "HOLD"]:
 # PIPELINE STAGE FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def sense_stage(raw_input: str) -> dict[str, Any]:
     """
     Stage 1: Input chaos → grounded facts.
@@ -302,7 +315,7 @@ def sense_stage(raw_input: str) -> dict[str, Any]:
     """
     return {
         "objective": raw_input,
-        "facts": [],           # populated by reality grounding (arifos.sense)
+        "facts": [],  # populated by reality grounding (arifos.sense)
         "assumptions": [
             "Input is honest and complete as provided.",
             "No hidden context has been omitted by the requester.",
@@ -326,7 +339,7 @@ def mind_stage(
     """
     objective = sense_packet.get("objective", "")
     facts = sense_packet.get("facts", [])
-    
+
     # If we have real facts, use them to build causal links
     if facts:
         hypotheses = []
@@ -338,10 +351,10 @@ def mind_stage(
                 confidence=0.75,
                 evidence_for=[facts[0]],
                 falsifier=f"Evidence {facts[0][:30]} is proven stale or irrelevant to the target domain.",
-                disconfirming_test="Attempt to achieve objective while intentionally ignoring the primary evidence fact."
+                disconfirming_test="Attempt to achieve objective while intentionally ignoring the primary evidence fact.",
             )
         )
-        
+
         # H2: A secondary model considering potential interactions or context
         claim_2 = f"Interaction Model: The facts {', '.join([f[:20] for f in facts[:2]])} suggest a non-linear dependency."
         hypotheses.append(
@@ -351,7 +364,7 @@ def mind_stage(
                 confidence=0.55,
                 evidence_for=facts[:2],
                 falsifier="Direct causal proof that the variables are independent.",
-                disconfirming_test="Isolate the primary variable and check if the outcome remains invariant."
+                disconfirming_test="Isolate the primary variable and check if the outcome remains invariant.",
             )
         )
         return hypotheses
@@ -367,14 +380,14 @@ def mind_stage(
             confidence=0.65,
             evidence_for=["Structural alignment with input directive"],
             falsifier=f"Discovery that the objective '{short_obj[:30]}' contains a category error.",
-            disconfirming_test="Invert the core assumption and check if the result is still coherent."
+            disconfirming_test="Invert the core assumption and check if the result is still coherent.",
         ),
         Hypothesis(
             id="H2-EPISTEMIC",
             claim=f"Epistemic Alternative: Objective '{short_obj[:40]}' is a symptom of architectural misalignment.",
             confidence=0.35,
             falsifier="Verified proof that the current grounding is complete.",
-            disconfirming_test="Search for prerequisite dependencies not mentioned in the input."
+            disconfirming_test="Search for prerequisite dependencies not mentioned in the input.",
         ),
     ]
 
@@ -395,8 +408,7 @@ def heart_stage(hypotheses: list[Hypothesis]) -> list[str]:
         )
         if h.evidence_against:
             risks.append(
-                f"[{h.id}] Countervailing evidence present: "
-                f"{h.evidence_against[0][:80]}"
+                f"[{h.id}] Countervailing evidence present: " f"{h.evidence_against[0][:80]}"
             )
     return risks
 
@@ -455,6 +467,7 @@ def judge_stage(state: MindState) -> tuple[str, list[str]]:
 # COMPRESS FOR OPERATOR — WIDE → NARROW
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def compress_for_operator(state: MindState) -> OutputEnvelope:
     """
     Compress wide internal MindState into narrow external OutputEnvelope.
@@ -463,9 +476,9 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
     Operator output becomes ≤15 lines.
     This is the anti-chaos move.
     """
-    top_hypotheses = sorted(
-        state.hypotheses, key=lambda h: h.confidence, reverse=True
-    )[:MAX_OPTIONS]
+    top_hypotheses = sorted(state.hypotheses, key=lambda h: h.confidence, reverse=True)[
+        :MAX_OPTIONS
+    ]
 
     options = [h.claim for h in top_hypotheses]
 
@@ -490,7 +503,9 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
     if state.decision_required:
         next_step = "Human judgment required before proceeding."
     elif status == "HOLD" and g_star < 0.3:
-        next_step = "Low epistemic quality (G* < 0.3). Acquire more grounding facts before proceeding."
+        next_step = (
+            "Low epistemic quality (G* < 0.3). Acquire more grounding facts before proceeding."
+        )
     elif top_hypotheses:
         next_step = (
             f"Test the top hypothesis against its falsifier: "
@@ -518,6 +533,7 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
 # ═══════════════════════════════════════════════════════════════════════════════
 # PACKET SEPARATION — decision vs audit
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def build_decision_packet(
     envelope: OutputEnvelope,
@@ -573,9 +589,7 @@ def build_audit_packet(
         "raw_input": raw_input,
         "session_id": session_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "full_hypothesis_set": (
-            [h.model_dump() for h in mind.hypotheses] if mind else []
-        ),
+        "full_hypothesis_set": ([h.model_dump() for h in mind.hypotheses] if mind else []),
         "full_facts": mind.facts if mind else [],
         "full_assumptions": mind.assumptions if mind else [],
         "risk_trace": runtime_state.heart_risks,
@@ -598,6 +612,7 @@ def build_audit_packet(
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN PIPELINE RUNNER
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def run_agi_mind(
     raw_input: str,
@@ -648,24 +663,30 @@ async def run_agi_mind(
 
     # ── Stage 3: HEART ──────────────────────────────────────────────────
     risks = heart_stage(state.hypotheses)
-    state = state.model_copy(update={
-        "risks": risks,
-        "pipeline_trace": state.pipeline_trace + ["heart"],
-    })
+    state = state.model_copy(
+        update={
+            "risks": risks,
+            "pipeline_trace": state.pipeline_trace + ["heart"],
+        }
+    )
 
     # ── Stage 4: JUDGE ──────────────────────────────────────────────────
     verdict, violations = judge_stage(state)
 
     if violations:
-        state = state.model_copy(update={
-            "decision_required": True,
-            "contradictions": state.contradictions + violations,
-            "pipeline_trace": state.pipeline_trace + ["judge:HOLD"],
-        })
+        state = state.model_copy(
+            update={
+                "decision_required": True,
+                "contradictions": state.contradictions + violations,
+                "pipeline_trace": state.pipeline_trace + ["judge:HOLD"],
+            }
+        )
     else:
-        state = state.model_copy(update={
-            "pipeline_trace": state.pipeline_trace + ["judge:OK"],
-        })
+        state = state.model_copy(
+            update={
+                "pipeline_trace": state.pipeline_trace + ["judge:OK"],
+            }
+        )
 
     # ── Chaos gate & Stability check ─────────────────────────────────────
     score = chaos_score(state)
@@ -678,14 +699,16 @@ async def run_agi_mind(
 
     # Override if chaos, peace2, g_star or judge forced HOLD
     if verdict == "HOLD" or score >= 2.0 or peace2 < 1.0 or g_star < 0.3:
-        envelope = envelope.model_copy(update={
-            "status": "HOLD",
-            "next_step": (
-                "Narrow the scope, resolve stability/epistemic issues, "
-                "or obtain human judgment before proceeding."
-            ),
-            "human_decision_required": True,
-        })
+        envelope = envelope.model_copy(
+            update={
+                "status": "HOLD",
+                "next_step": (
+                    "Narrow the scope, resolve stability/epistemic issues, "
+                    "or obtain human judgment before proceeding."
+                ),
+                "human_decision_required": True,
+            }
+        )
 
     # ── Build runtime state for audit ────────────────────────────────────
     runtime_state = RuntimeState(

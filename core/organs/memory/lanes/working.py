@@ -23,13 +23,14 @@ from ..types import Governance, MemoryRecord, MemoryType, RetentionClass, Scope,
 class WorkingMemoryLane:
     """
     Session-scoped working memory.
-    
+
     Like human working memory: holds what's immediately relevant,
     discards when no longer needed.
     """
+
     session_id: str
     _memories: dict[str, MemoryRecord] = field(default_factory=dict)
-    
+
     def store(
         self,
         title: str,
@@ -39,7 +40,7 @@ class WorkingMemoryLane:
     ) -> MemoryRecord:
         """
         Store in working memory.
-        
+
         Working memory items:
         - Active task
         - Immediate constraints
@@ -48,7 +49,7 @@ class WorkingMemoryLane:
         - Unresolved ambiguity
         """
         memory_id = f"mem_work_{uuid.uuid4().hex[:12]}"
-        
+
         record = MemoryRecord(
             memory_id=memory_id,
             memory_type=MemoryType.WORKING,
@@ -83,33 +84,33 @@ class WorkingMemoryLane:
             lane_data={
                 "retention_class": RetentionClass.SESSION.value,
                 "access_count": 0,
-            }
+            },
         )
-        
+
         self._memories[memory_id] = record
         return record
-    
+
     def get_active(self) -> list[MemoryRecord]:
         """Get all non-expired working memories for this session."""
         now = datetime.utcnow()
         active = []
-        
+
         for mem in self._memories.values():
             if mem.time.expires_at and mem.time.expires_at > now:
                 mem.time.last_accessed_at = now
                 active.append(mem)
-        
+
         # Sort by recency
         active.sort(key=lambda m: m.time.updated_at or m.time.created_at, reverse=True)
         return active
-    
+
     def get_task(self) -> str | None:
         """Get current active task if any."""
         for mem in self.get_active():
             if "task" in mem.title.lower():
                 return mem.content
         return None
-    
+
     def get_constraints(self) -> list[str]:
         """Get current constraints."""
         constraints = []
@@ -117,16 +118,17 @@ class WorkingMemoryLane:
             if "constraint" in mem.title.lower():
                 constraints.append(mem.content)
         return constraints
-    
+
     def clear(self):
         """Clear all working memory (end of session)."""
         self._memories.clear()
-    
+
     def expire_old(self):
         """Remove expired entries."""
         now = datetime.utcnow()
         expired = [
-            mid for mid, mem in self._memories.items()
+            mid
+            for mid, mem in self._memories.items()
             if mem.time.expires_at and mem.time.expires_at <= now
         ]
         for mid in expired:

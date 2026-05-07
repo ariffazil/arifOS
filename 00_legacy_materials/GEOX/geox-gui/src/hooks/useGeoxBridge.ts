@@ -1,14 +1,14 @@
 /**
  * GEOX Bridge Hook — DITEMPA BUKAN DIBERI
- * 
+ *
  * React hook to manage the postMessage/JSON-RPC bridge between
  * the GEOX App and the Host environment (ChatGPT, Claude, etc.).
  */
 
 import { useEffect, useCallback } from 'react';
 import { useGEOXStore } from '../store/geoxStore';
-import type { 
-  GeoxEvent, 
+import type {
+  GeoxEvent,
   GeoxMethod,
   ContextPatchParams,
   ToolResponseParams,

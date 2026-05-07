@@ -49,7 +49,9 @@ async def _fake_sea_lion_mutated_text(*args, **kwargs):
 
 class TestNoQuoteGeneration:
     @pytest.mark.anyio
-    @patch("arifosmcp.runtime.context_witness.interpret_with_sea_lion", _fake_sea_lion_not_in_ledger)
+    @patch(
+        "arifosmcp.runtime.context_witness.interpret_with_sea_lion", _fake_sea_lion_not_in_ledger
+    )
     async def test_mock_sea_lion_returns_unknown_quote(self):
         result = await arifos_context_witness(
             event="Test event",
@@ -59,7 +61,9 @@ class TestNoQuoteGeneration:
             domain="ethics",
         )
         assert result["status"] == "hold"
-        assert "quote_not_in_approved_ledger" in str(result.get("safety_notes", [])) or "quote_not_in_approved_ledger" in result.get("meaning", "")
+        assert "quote_not_in_approved_ledger" in str(
+            result.get("safety_notes", [])
+        ) or "quote_not_in_approved_ledger" in result.get("meaning", "")
 
     @pytest.mark.anyio
     @patch("arifosmcp.runtime.context_witness.interpret_with_sea_lion", _fake_sea_lion_mutated_text)
@@ -72,4 +76,6 @@ class TestNoQuoteGeneration:
             domain="ethics",
         )
         assert result["status"] == "hold"
-        assert "quote_integrity_failed" in str(result.get("safety_notes", [])) or "quote_integrity_failed" in result.get("meaning", "")
+        assert "quote_integrity_failed" in str(
+            result.get("safety_notes", [])
+        ) or "quote_integrity_failed" in result.get("meaning", "")

@@ -39,9 +39,7 @@ class GeoXReporter:
     # generate_markdown_report()
     # ------------------------------------------------------------------
 
-    def generate_markdown_report(
-        self, response: GeoResponse, request: GeoRequest
-    ) -> str:
+    def generate_markdown_report(self, response: GeoResponse, request: GeoRequest) -> str:
         """
         Generate a full Markdown technical report for a GeoResponse.
 
@@ -98,9 +96,15 @@ class GeoXReporter:
         lines.append(f"| **Prospect** | {request.prospect_name} |")
         lines.append(f"| **Basin** | {request.basin} |")
         lines.append(f"| **Play Type** | {request.play_type} |")
-        lines.append(f"| **Location** | Lat {request.location.latitude:.4f}, Lon {request.location.longitude:.4f} |")
-        lines.append(f"| **Query** | {request.query[:120]}{'...' if len(request.query) > 120 else ''} |")
-        lines.append(f"| **Available Data** | {', '.join(request.available_data) or 'None specified'} |")
+        lines.append(
+            f"| **Location** | Lat {request.location.latitude:.4f}, Lon {request.location.longitude:.4f} |"
+        )
+        lines.append(
+            f"| **Query** | {request.query[:120]}{'...' if len(request.query) > 120 else ''} |"
+        )
+        lines.append(
+            f"| **Available Data** | {', '.join(request.available_data) or 'None specified'} |"
+        )
         lines.append(f"| **Risk Tolerance** | {request.risk_tolerance} |")
         lines.append(f"| **Requester** | {request.requester_id} |")
         lines.append("")
@@ -152,7 +156,9 @@ class GeoXReporter:
             lines.append("")
             for i, insight in enumerate(response.insights, 1):
                 lines.append(f"#### Insight {i} — {insight.insight_id[:8]}")
-                lines.append(f"**Risk:** {insight.risk_level.upper()} | **Status:** {insight.status}")
+                lines.append(
+                    f"**Risk:** {insight.risk_level.upper()} | **Status:** {insight.status}"
+                )
                 lines.append("")
                 lines.append(insight.text)
                 lines.append("")
@@ -270,8 +276,12 @@ class GeoXReporter:
         """Add Macrostrat attribution if it was used in the assessment."""
         if metadata.get("source") == "macrostrat.org":
             report.append("")
-            report.append("*Geological data provided by Macrostrat (macrostrat.org) under CC-BY-4.0 license.*")
-            report.append("*Citation: Peters et al. (2018) Macrostrat: a platform for geological data integration.*")
+            report.append(
+                "*Geological data provided by Macrostrat (macrostrat.org) under CC-BY-4.0 license.*"
+            )
+            report.append(
+                "*Citation: Peters et al. (2018) Macrostrat: a platform for geological data integration.*"
+            )
 
     # ------------------------------------------------------------------
     # generate_json_audit()
@@ -417,7 +427,9 @@ class GeoXReporter:
                 f"No recommendation can be made until data quality issues are addressed."
             ),
         }
-        para2 = verdict_descriptions.get(verdict, f"Overall verdict: {verdict}. Confidence: {confidence:.0%}.")
+        para2 = verdict_descriptions.get(
+            verdict, f"Overall verdict: {verdict}. Confidence: {confidence:.0%}."
+        )
 
         # Paragraph 3: What to do next
         if hold == "888 HOLD" or response.human_signoff_required:

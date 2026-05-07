@@ -6,7 +6,7 @@ This document defines the high-precision state of the GEOX Earth Witness platfor
 ---
 
 ## 1. Core Philosophy: The Interpretive Manifest
-GEOX is NOT a visualization tool. It is an **evidence-graph orchestration layer**. 
+GEOX is NOT a visualization tool. It is an **evidence-graph orchestration layer**.
 - **The Skin**: Open-web visualization (Wellioviz, Plotly, vtk.js).
 - **The Machinery**: Interpretation logic (GemPy, arifOS Metabolic Tools).
 - **The Contract**: MCP tools return **Interactive Manifests** (JSON-LD) that hydrate the skin, rather than opaque blobs.
@@ -84,6 +84,6 @@ graph LR
 ---
 
 ## 5. Sovereign Mandate
-The advantage of GEOX is the **Shared Evidence Graph**. Both human interpreters and AI agents interact with the same localized "Manifests." 
+The advantage of GEOX is the **Shared Evidence Graph**. Both human interpreters and AI agents interact with the same localized "Manifests."
 
 *DITEMPA BUKAN DIBERI. ALIVE.*

@@ -27,7 +27,22 @@ def test_chatgpt_widget_preview_route():
 
 
 def test_chatgpt_app_tools_registered():
+    """Verify the 13 canonical arif_* tools are registered on the MCP server."""
     tools = asyncio.run(mcp.list_tools())
     names = {tool.name for tool in tools}
-    assert "vault_seal_card" in names
-    assert "render_vault_seal" in names
+    canonical_13 = {
+        "arif_evidence_fetch",
+        "arif_forge_execute",
+        "arif_gateway_connect",
+        "arif_heart_critique",
+        "arif_judge_deliberate",
+        "arif_kernel_route",
+        "arif_memory_recall",
+        "arif_mind_reason",
+        "arif_ops_measure",
+        "arif_reply_compose",
+        "arif_sense_observe",
+        "arif_session_init",
+        "arif_vault_seal",
+    }
+    assert canonical_13.issubset(names), f"Missing: {canonical_13 - names}"

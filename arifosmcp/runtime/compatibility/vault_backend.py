@@ -12,44 +12,47 @@ from typing import Any
 # Determine backend version
 VAULT_BACKEND_VERSION = os.getenv("VAULT_BACKEND_VERSION", "v1")
 
+
 class VaultBackend:
     """
     Compatibility wrapper for vault backends.
-    
+
     Public interface remains stable while internal implementation
     can be v1 (legacy) or v2 (hardened).
     """
-    
+
     def __init__(self):
         self.version = VAULT_BACKEND_VERSION
         self._backend = self._load_backend()
-    
+
     def _load_backend(self):
         """Load appropriate backend."""
         if self.version == "v2":
             try:
                 from core.organs.vault.vault_organ import get_vault_organ
+
                 return get_vault_organ()
             except ImportError:
                 return self._load_v1()
         else:
             return self._load_v1()
-    
+
     def _load_v1(self):
         """Load v1 legacy backend."""
         from ..megaTools.tool_04_vault_ledger import vault_ledger
+
         return vault_ledger
-    
+
     async def seal(self, verdict: str, evidence: str, **kwargs) -> dict[str, Any]:
         """
         Canonical vault seal.
-        
+
         Returns standardized response with verification grades.
         """
         if self.version == "v2":
             # Build vault entry
             from core.organs.vault.types_v2 import Evidence, Governance, VaultEntry, Verdict
-            
+
             entry = VaultEntry(
                 vault_id="",
                 record_type="verdict",
@@ -68,13 +71,13 @@ class VaultBackend:
                     policy_version="v1",
                 ),
             )
-            
+
             receipt = self._backend.seal(entry)
             return self._format_v2_response(receipt)
         else:
             result = await self._backend(verdict=verdict, evidence=evidence, **kwargs)
             return self._format_v1_response(result)
-    
+
     async def verify(self, vault_id: str) -> dict[str, Any]:
         """Verify vault entry."""
         if self.version == "v2":
@@ -99,7 +102,7 @@ class VaultBackend:
                 "valid": True,
                 "backend_version": "v1",
             }
-    
+
     def _format_v2_response(self, receipt: Any) -> dict[str, Any]:
         """Format v2 receipt to canonical response."""
         if receipt is None:
@@ -111,7 +114,7 @@ class VaultBackend:
                 "error": "Seal rejected by gate",
                 "backend_version": "v2",
             }
-        
+
         return {
             "canonical_tool_name": "arifos.vault",
             "tool": "arifos.vault",
@@ -123,7 +126,7 @@ class VaultBackend:
             "immutable": receipt.immutable,
             "backend_version": "v2",
         }
-    
+
     def _format_v1_response(self, result: Any) -> dict[str, Any]:
         """Format v1 response to canonical shape."""
         if isinstance(result, dict):
@@ -136,6 +139,7 @@ class VaultBackend:
 
 # Singleton instance
 _vault_backend: VaultBackend | None = None
+
 
 def get_vault_backend() -> VaultBackend:
     """Get or create vault backend."""

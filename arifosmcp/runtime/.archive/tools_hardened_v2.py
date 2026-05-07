@@ -21,12 +21,14 @@ from arifosmcp.runtime.contracts_v2 import (
 try:
     from core.physics.thermodynamics_hardened import check_landauer_bound as landauer_limit
 except ImportError:
+
     def landauer_limit(bits_erased: float) -> dict:
         """Stub: Landauer limit calculation."""
         k_B = 1.380649e-23  # Boltzmann constant
         T = 300  # Room temperature in Kelvin
         energy_joules = bits_erased * k_B * T * 0.693  # ln(2)
         return {"energy_joules": energy_joules, "bits_erased": bits_erased}
+
 
 # -----------------------------------------------------------------------------
 # PHILOSOPHY ENGINE (The Paradox Layer)
@@ -453,9 +455,9 @@ class HardenedAGIReason:
                     "constitutional_context": {
                         "provided": constitutional_context is not None,
                         "note": "Constitutional context prepended to Ollama prompts for AI grounding",
-                        "context_preview": constitutional_context[:200] + "..."
-                        if constitutional_context
-                        else None,
+                        "context_preview": (
+                            constitutional_context[:200] + "..." if constitutional_context else None
+                        ),
                     },
                 },
             )
@@ -557,7 +559,6 @@ class HardenedAGIReason:
         current_confidence = round(1.0 - final_entropy, 2)
 
         # Calculate coherence early (needed for forge checks)
-        is_success_tmp = True  # provisional
         contradiction_ratio = contradictions_unresolved / max(1, len(qtt_states))
         drift = abs(entropy_delta_s) * 0.1
 
@@ -766,40 +767,52 @@ class HardenedAGIReason:
             # =============================================================================
             # FORGE PIPELINE — K_FORGE Pre-Deployment Evolutionary Architecture
             # =============================================================================
-            "forge_pipeline": {
-                "active": is_forge,
-                "pressure_phases": ["stability", "adversarial", "scarcity", "telos_drift"]
-                if is_forge
-                else [],
-                "dual_process": {
-                    "explorer_score": round(explorer_score, 4) if is_forge else None,
-                    "conservator_score": round(conservator_score, 4) if is_forge else None,
-                    "tension_flag": tension_flag if is_forge else None,
-                    "note": "Explorer proposes. Conservator protects. Tension required for evolution.",
+            "forge_pipeline": (
+                {
+                    "active": is_forge,
+                    "pressure_phases": (
+                        ["stability", "adversarial", "scarcity", "telos_drift"] if is_forge else []
+                    ),
+                    "dual_process": (
+                        {
+                            "explorer_score": round(explorer_score, 4) if is_forge else None,
+                            "conservator_score": round(conservator_score, 4) if is_forge else None,
+                            "tension_flag": tension_flag if is_forge else None,
+                            "note": "Explorer proposes. Conservator protects. Tension required for evolution.",
+                        }
+                        if is_forge
+                        else None
+                    ),
+                    "goodhart_resistance": (
+                        {
+                            "passed": goodhart_resistant,
+                            "flags": goodhart_flags,
+                            "note": "Must be impossible to pass by gaming. Only genuine structural stability wins.",
+                        }
+                        if is_forge
+                        else None
+                    ),
+                    # K_FORGE §XIII: Emergent invariants over imposed rules
+                    "invariant_pressure": (
+                        {
+                            "stability_test": (
+                                all(s["thermo"]["stability"] for s in qtt_states)
+                                if qtt_states
+                                else False
+                            ),
+                            "coherence_floor": (
+                                coherence_result["coherence"] >= 0.6 if is_forge else True
+                            ),
+                        }
+                        if is_forge
+                        else None
+                    ),
+                    # K_FORGE §XIII: Landauer Bound (Thermodynamic cost of computation)
+                    "landauer_check": landauer_check if is_forge else None,
                 }
                 if is_forge
-                else None,
-                "goodhart_resistance": {
-                    "passed": goodhart_resistant,
-                    "flags": goodhart_flags,
-                    "note": "Must be impossible to pass by gaming. Only genuine structural stability wins.",
-                }
-                if is_forge
-                else None,
-                # K_FORGE §XIII: Emergent invariants over imposed rules
-                "invariant_pressure": {
-                    "stability_test": all(s["thermo"]["stability"] for s in qtt_states)
-                    if qtt_states
-                    else False,
-                    "coherence_floor": coherence_result["coherence"] >= 0.6 if is_forge else True,
-                }
-                if is_forge
-                else None,
-                # K_FORGE §XIII: Landauer Bound (Thermodynamic cost of computation)
-                "landauer_check": landauer_check if is_forge else None,
-            }
-            if is_forge
-            else {},
+                else {}
+            ),
             # =============================================================================
             # CONSTITUTIONAL GROUNDING — AI Input Hardening
             # =============================================================================
@@ -965,6 +978,7 @@ class HardenedAgentZeroEngineer:
 # Import PostgreSQL vault store (with graceful fallback)
 try:
     from arifosmcp.runtime.vault_postgres import PostgresVaultStore, VaultEvent
+
     POSTGRES_VAULT_AVAILABLE = True
 except ImportError:
     POSTGRES_VAULT_AVAILABLE = False
@@ -976,13 +990,13 @@ class HardenedVaultSeal:
     Implements QSP-333:
     - Normal state: SEAL to VAULT999 (PostgreSQL primary + filesystem mirror)
     - Blackout state: Buffer to Purgatory Ledger as CANDIDATE_SEAL
-    
+
     DITEMPA BUKAN DIBERI — Forged, Not Given
     """
 
     def __init__(self):
         self._vault_store: PostgresVaultStore | None = None
-    
+
     def _get_vault(self) -> PostgresVaultStore | None:
         """Lazy initialization of vault store."""
         if self._vault_store is None and POSTGRES_VAULT_AVAILABLE:
@@ -1027,7 +1041,7 @@ class HardenedVaultSeal:
 
         # Normal operation: Seal to VAULT999
         vault = self._get_vault()
-        
+
         if vault and POSTGRES_VAULT_AVAILABLE:
             try:
                 # Create vault event
@@ -1043,10 +1057,10 @@ class HardenedVaultSeal:
                     },
                     risk_tier=risk_tier,
                 )
-                
+
                 # Dual-write to PostgreSQL + filesystem
                 result = await vault.seal(event)
-                
+
                 if result.success:
                     return ToolEnvelope(
                         status=ToolStatus.OK,
@@ -1078,7 +1092,7 @@ class HardenedVaultSeal:
                             "state": "ERROR",
                         },
                     )
-                    
+
             except Exception as e:
                 # Vault write failed but we still return OK to not block operation
                 # In production, this should be logged and alerted
@@ -1097,7 +1111,7 @@ class HardenedVaultSeal:
                         "note": "Operation succeeded but vault write failed - check logs",
                     },
                 )
-        
+
         # Fallback: No vault store available (legacy mode)
         commit_hash = secrets.token_hex(32)
         return ToolEnvelope(

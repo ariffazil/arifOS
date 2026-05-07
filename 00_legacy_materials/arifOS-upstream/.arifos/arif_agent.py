@@ -99,12 +99,7 @@ def measure_complexity(file_path: Path) -> float:
         functions = content.count("def ") + content.count("async def ")
         classes = content.count("class ")
         imports = content.count("import ") + content.count("from ")
-        complexity = (
-            (len(code_lines) / 50)
-            + (functions * 0.5)
-            + (classes * 1.0)
-            + (imports * 0.1)
-        )
+        complexity = (len(code_lines) / 50) + (functions * 0.5) + (classes * 1.0) + (imports * 0.1)
         return min(complexity, 10.0)
     except:
         return 0.0
@@ -148,7 +143,7 @@ def detect_contradictions() -> list:
 
 def calculate_entropy_delta(before_state: dict = None) -> EntropyDelta:
     file_counts = count_files_in_scope()
-    total_files = file_counts["total"]
+    file_counts["total"]
     python_files = file_counts["python"]
 
     complexity_avg = 0.0

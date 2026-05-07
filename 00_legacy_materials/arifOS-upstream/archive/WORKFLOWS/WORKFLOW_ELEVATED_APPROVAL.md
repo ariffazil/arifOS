@@ -1,15 +1,15 @@
 # WORKFLOW_ELEVATED_APPROVAL.md
 
-**Purpose:** Document elevated state approval and advanced OpenClaw power tips  
-**Status:** APPROVED by 888 Judge (Arif) — 2026-02-11  
+**Purpose:** Document elevated state approval and advanced OpenClaw power tips
+**Status:** APPROVED by 888 Judge (Arif) — 2026-02-11
 **Ω₀:** 0.04
 
 ---
 
 ## Elevated State Approval
 
-**APPROVED BY:** Muhammad Arif bin Fazil (888 Judge)  
-**DATE:** 2026-02-11  
+**APPROVED BY:** Muhammad Arif bin Fazil (888 Judge)
+**DATE:** 2026-02-11
 **AUTHORITY:** Constitutional sovereign under arifOS F11
 
 ### Approved Configuration
@@ -39,10 +39,10 @@
 
 ### What This Means
 
-✅ **ENABLED:** Elevated tool execution  
-✅ **SECURITY:** Full shell execution capabilities  
-✅ **SAFE BINS:** 70+ approved binaries  
-⚠️ **MODE:** `ask` — human approval required for high-risk actions  
+✅ **ENABLED:** Elevated tool execution
+✅ **SECURITY:** Full shell execution capabilities
+✅ **SAFE BINS:** 70+ approved binaries
+⚠️ **MODE:** `ask` — human approval required for high-risk actions
 ✅ **WHITELIST:** Only Telegram ID 267378578 authorized
 
 ### Constitutional Safeguards
@@ -139,7 +139,7 @@ openclaw run scrape-pricing.yml --headless=false
 
 ---
 
-**APPROVED BY 888 JUDGE** ✅  
+**APPROVED BY 888 JUDGE** ✅
 *Elevated state active under constitutional constraints.*
 
 ---

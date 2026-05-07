@@ -74,6 +74,7 @@ _GEO_TIMESCALE: list[tuple[str, str, float, float]] = [
 # now_utc()
 # ---------------------------------------------------------------------------
 
+
 def now_utc() -> datetime:
     """
     Return the current UTC datetime as a timezone-aware object.
@@ -200,6 +201,7 @@ def _ma_to_approximate_datetime(age_ma: float) -> datetime:
 # format_time_window()
 # ---------------------------------------------------------------------------
 
+
 def format_time_window(start: datetime, end: datetime) -> str:
     """
     Format a time window as a human-readable string.
@@ -219,6 +221,7 @@ def format_time_window(start: datetime, end: datetime) -> str:
         )
         → "2024-01-01 00:00 UTC → 2024-12-31 00:00 UTC"
     """
+
     def _fmt(dt: datetime) -> str:
         if dt.tzinfo:
             return dt.strftime("%Y-%m-%d %H:%M UTC")
@@ -230,6 +233,7 @@ def format_time_window(start: datetime, end: datetime) -> str:
 # ---------------------------------------------------------------------------
 # geological_age_to_datetime()
 # ---------------------------------------------------------------------------
+
 
 def geological_age_to_datetime(age_ma: float) -> str:
     """
@@ -268,6 +272,7 @@ def geological_age_to_datetime(age_ma: float) -> str:
 # ---------------------------------------------------------------------------
 # is_within_window()
 # ---------------------------------------------------------------------------
+
 
 def is_within_window(ts: datetime, window: tuple[datetime, datetime]) -> bool:
     """

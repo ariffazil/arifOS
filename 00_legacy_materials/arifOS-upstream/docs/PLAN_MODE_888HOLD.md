@@ -1,8 +1,8 @@
 # Plan Mode — 888_HOLD UX Pattern
 
-**Authority:** arifOS_bot  
-**Version:** 1.0  
-**Status:** DESIGN NOTE  
+**Authority:** arifOS_bot
+**Version:** 1.0
+**Status:** DESIGN NOTE
 
 ---
 
@@ -131,7 +131,7 @@ TO VETO:    /deny
 
 ### ❌ Burying the HOLD in a paragraph
 ```
-"I was thinking maybe we could perhaps if it's okay with you run the BFG tool 
+"I was thinking maybe we could perhaps if it's okay with you run the BFG tool
 which would sort of change the git history a bit but only for secrets..."
 ```
 → Rewrite: see template above.
@@ -159,11 +159,11 @@ When 888_HOLD fires, the agent MUST:
 
 ## The /approve Shortcut
 
-Arif can reply with `/approve` to proceed, or just say "go ahead".  
-The agent treats any explicit positive signal as approval.  
+Arif can reply with `/approve` to proceed, or just say "go ahead".
+The agent treats any explicit positive signal as approval.
 Silence = HOLD, not approval.
 
 ---
 
-*Ditempa Bukan Diberi*  
+*Ditempa Bukan Diberi*
 arifOS_bot | arifOS v2026.04.19

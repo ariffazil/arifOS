@@ -19,10 +19,11 @@ class ToolSpec:
     overflow_policy: str = "truncate"
     readonly: bool = True
     context_packet_uri: str = ""  # Reference to arifos://schema/tool/{name}
-    
+
     def get_context_packet(self) -> dict[str, Any] | None:
         """Load the semantic context packet for this tool."""
         from arifosmcp.schema import get_context_packet
+
         return get_context_packet(self.name)
 
 
@@ -60,7 +61,11 @@ def _build_mega_schema(
                 "properties": payload_properties,
             },
             "session_id": {"type": "string", "minLength": 8},
-            "risk_tier": {"type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium"},
+            "risk_tier": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"],
+                "default": "medium",
+            },
             "dry_run": {"type": "boolean", "default": True},
         },
     }
@@ -133,7 +138,11 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Reality grounding, time, and evidence verification.",
         trinity="DELTA Δ",
         floors=("F2", "F3"),
-        input_schema=_build_mega_schema("arifos.sense", ["governed", "search", "ingest", "compass", "atlas", "time"], {"query": {"type": "string"}}),
+        input_schema=_build_mega_schema(
+            "arifos.sense",
+            ["governed", "search", "ingest", "compass", "atlas", "time"],
+            {"query": {"type": "string"}},
+        ),
         context_packet_uri="arifos://schema/tool/arifos.sense",
     ),
     ToolSpec(
@@ -157,7 +166,9 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
         description="Safety, dignity, and adversarial critique.",
         trinity="OMEGA Ω",
         floors=("F5", "F6", "F9"),
-        input_schema=_build_mega_schema("arifos.heart", ["critique"], {"content": {"type": "string"}}),
+        input_schema=_build_mega_schema(
+            "arifos.heart", ["critique"], {"content": {"type": "string"}}
+        ),
         context_packet_uri="arifos://schema/tool/arifos.heart",
     ),
     ToolSpec(
@@ -234,8 +245,14 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
 )
 
 PUBLIC_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
-    ResourceSpec(uri="arifos://governance/floors", name="arifOS Floors", description="Canonical F1-F13 thresholds."),
-    ResourceSpec(uri="arifos://status/vitals", name="arifOS Vitals", description="System health & telemetry."),
+    ResourceSpec(
+        uri="arifos://governance/floors",
+        name="arifOS Floors",
+        description="Canonical F1-F13 thresholds.",
+    ),
+    ResourceSpec(
+        uri="arifos://status/vitals", name="arifOS Vitals", description="System health & telemetry."
+    ),
 )
 
 PUBLIC_PROMPT_SPECS: tuple[PromptSpec, ...] = ()

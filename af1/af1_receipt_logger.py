@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # RECEIPT SCHEMA
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass(slots=True, frozen=False)
 class AF1Receipt:
     """
@@ -34,10 +35,10 @@ class AF1Receipt:
     This is the audit trail that makes AF1 enforceable at scale.
     """
 
-    af1_id: str           # Unique per call (UUID[:12])
-    tool: str             # Canonical tool name
-    call_source: str      # How it was invoked: fastmcp_ctx, rest_api, rest_chatgpt, dispatch_map, legacy_alias, test, etc.
-    risk_level: str       # LOW, MEDIUM, HIGH, CRITICAL
+    af1_id: str  # Unique per call (UUID[:12])
+    tool: str  # Canonical tool name
+    call_source: str  # How it was invoked: fastmcp_ctx, rest_api, rest_chatgpt, dispatch_map, legacy_alias, test, etc.
+    risk_level: str  # LOW, MEDIUM, HIGH, CRITICAL
     validation_status: str  # PASS, BLOCK, SKIP (AF1 disabled)
     validation_reason: str  # Human-readable validation result
 
@@ -45,13 +46,13 @@ class AF1Receipt:
     af1_object: dict[str, Any] = field(default_factory=dict)
 
     # Timestamps
-    received_at: str      # ISO 8601 when AF1 received the call
+    received_at: str  # ISO 8601 when AF1 received the call
     completed_at: str | None = None  # ISO 8601 when tool execution completed
 
     # Execution metadata
-    blocked: bool = False   # True if AF1 blocked this call (enforce mode)
-    input_hash: str = ""    # SHA256[:16] of inputs for tamper evidence
-    output_hash: str = ""   # SHA256[:16] of output (added on completion)
+    blocked: bool = False  # True if AF1 blocked this call (enforce mode)
+    input_hash: str = ""  # SHA256[:16] of inputs for tamper evidence
+    output_hash: str = ""  # SHA256[:16] of output (added on completion)
     execution_duration_ms: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -74,8 +75,7 @@ class AF1ReceiptLogger:
 
     def __init__(self, log_path: str | None = None):
         self.log_path: str = log_path or os.environ.get(
-            "AF1_RECEIPT_LOG",
-            "/root/.openclaw/workspace/af1_receipts.jsonl"
+            "AF1_RECEIPT_LOG", "/root/.openclaw/workspace/af1_receipts.jsonl"
         )
         self._ensure_log_file()
 
@@ -92,8 +92,10 @@ class AF1ReceiptLogger:
         with self.LOCK:
             with open(self.log_path, "a") as f:
                 f.write(line)
-        logger.debug(f"[AF1 RECEIPT] id={receipt.af1_id} tool={receipt.tool} "
-                     f"source={receipt.call_source} status={receipt.validation_status}")
+        logger.debug(
+            f"[AF1 RECEIPT] id={receipt.af1_id} tool={receipt.tool} "
+            f"source={receipt.call_source} status={receipt.validation_status}"
+        )
 
     def update_completed(
         self,
@@ -114,6 +116,7 @@ class AF1ReceiptLogger:
             try:
                 output_str = json.dumps(result, sort_keys=True, default=str)
                 import hashlib
+
                 output_hash = hashlib.sha256(output_str.encode()).hexdigest()[:16]
             except Exception:
                 output_hash = "unhashable"
@@ -175,9 +178,9 @@ class AF1ReceiptLogger:
         """
         expected_sources = {
             "fastmcp_on_call_tool",  # FastMCP transport hook
-            "rest_api",              # REST /tools/{name} from API
-            "rest_chatgpt",          # REST /tools/{name} from ChatGPT
-            "dispatch_map",          # Hardened dispatch map wrapper
+            "rest_api",  # REST /tools/{name} from API
+            "rest_chatgpt",  # REST /tools/{name} from ChatGPT
+            "dispatch_map",  # Hardened dispatch map wrapper
         }
         actual_sources = set(self.count_by_source().keys())
         return actual_sources - expected_sources

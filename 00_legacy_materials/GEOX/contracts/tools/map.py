@@ -4,15 +4,16 @@ from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, Ar
 
 logger = logging.getLogger("geox.map")
 
+
 def register_map_tools(mcp: FastMCP, profile: str = "full"):
     """
     MAP Registry: Spatial fabric & context.
     'Where is this? What's around it?'
-    
+
     Naming convention: map_{action}_{target}
     Most aliases removed - kept geox_project_well_trajectory for UI compatibility.
     """
-    
+
     try:
         from services.geo_fabric.engine import fabric
         from services.evidence_store.store import store
@@ -25,11 +26,11 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
         """Verify: Check if coordinates are within valid geospatial bounds."""
         artifact = {"valid": True, "message": "Coordinate integrity verified (F9_PHYSICS_9)"}
         return get_standard_envelope(
-            artifact, 
-            tool_class="verify", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="verify",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.VERIFIED,
-            ui_resource_uri="ui://map-dashboard"
+            ui_resource_uri="ui://map-dashboard",
         )
 
     @mcp.tool(name="map_get_context_summary")
@@ -37,11 +38,11 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
         """Observe: Spatial fabric introspection. Get summary of spatial context within bounds."""
         artifact = {"summary": "Spatial context summary (F2_TRUTH checked)", "bounds": bounds}
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.DRAFT,
-            ui_resource_uri="ui://map-dashboard"
+            ui_resource_uri="ui://map-dashboard",
         )
 
     @mcp.tool(name="map_render_scene_context")
@@ -49,11 +50,11 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
         """Observe: Render a scene for the geospatial fabric."""
         artifact = {"render_url": f"geox://map/render/{scene_ref}", "status": "Ready"}
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.DRAFT,
-            ui_resource_uri="ui://map-dashboard"
+            ui_resource_uri="ui://map-dashboard",
         )
 
     @mcp.tool(name="map_synthesize_causal_scene")
@@ -61,11 +62,11 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
         """Interpret: Create a causal scene for 888_JUDGE from spatial elements."""
         artifact = {"scene_ref": "causal_scene_001", "elements_count": len(elements)}
         return get_standard_envelope(
-            artifact, 
-            tool_class="interpret", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="interpret",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.DRAFT,
-            ui_resource_uri="ui://map-dashboard"
+            ui_resource_uri="ui://map-dashboard",
         )
 
     @mcp.tool(name="map_earth_signals")
@@ -73,11 +74,11 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
         """Observe: Live Earth observation = spatial context. Fetch raw earth signals."""
         artifact = {"location_ref": location_ref, "signals": "Observational stream healthy"}
         return get_standard_envelope(
-            artifact, 
-            tool_class="observe", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="observe",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.DRAFT,
-            ui_resource_uri="ui://map-dashboard"
+            ui_resource_uri="ui://map-dashboard",
         )
 
     @mcp.tool(name="map_project_well")
@@ -87,47 +88,47 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
         if not evidence or evidence.ref.kind != "well":
             artifact = {"error": "Valid well evidence required"}
             return get_standard_envelope(
-                artifact, 
-                tool_class="compute", 
-                governance_status=GovernanceStatus.HOLD, 
+                artifact,
+                tool_class="compute",
+                governance_status=GovernanceStatus.HOLD,
                 artifact_status=ArtifactStatus.REJECTED,
-                ui_resource_uri="ui://map-dashboard"
+                ui_resource_uri="ui://map-dashboard",
             )
 
         payload = evidence.payload
         try:
             head = payload["head"]
             survey = payload["survey"]
-            
+
             xyz_points = fabric.project_well_trajectory(
                 head_xy=(head["x"], head["y"]),
                 md_points=survey["md"],
                 incl_points=survey["inc"],
-                azim_points=survey["azi"]
+                azim_points=survey["azi"],
             )
-            
+
             head_epsg = head.get("epsg", 32648)
             projected = []
             for p in xyz_points:
                 xt, yt = fabric.transform_point(p[0], p[1], head_epsg, target_epsg)
                 projected.append({"x": xt, "y": yt, "z": p[2]})
-                
+
             artifact = {"well_ref": well_ref, "points": projected, "crs": f"EPSG:{target_epsg}"}
             return get_standard_envelope(
-                artifact, 
-                tool_class="compute", 
-                governance_status=GovernanceStatus.QUALIFY, 
+                artifact,
+                tool_class="compute",
+                governance_status=GovernanceStatus.QUALIFY,
                 artifact_status=ArtifactStatus.COMPUTED,
-                ui_resource_uri="ui://map-dashboard"
+                ui_resource_uri="ui://map-dashboard",
             )
         except Exception as e:
             artifact = {"error": f"Projection failed: {e}"}
             return get_standard_envelope(
-                artifact, 
-                tool_class="compute", 
-                governance_status=GovernanceStatus.HOLD, 
+                artifact,
+                tool_class="compute",
+                governance_status=GovernanceStatus.HOLD,
                 artifact_status=ArtifactStatus.REJECTED,
-                ui_resource_uri="ui://map-dashboard"
+                ui_resource_uri="ui://map-dashboard",
             )
 
     # CRITICAL ALIAS for Cockpit UI - DO NOT REMOVE
@@ -141,20 +142,20 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
             xt, yt = fabric.transform_point(x, y, from_epsg, to_epsg)
             artifact = {"x": xt, "y": yt, "crs": f"EPSG:{to_epsg}"}
             return get_standard_envelope(
-                artifact, 
-                tool_class="compute", 
-                governance_status=GovernanceStatus.QUALIFY, 
+                artifact,
+                tool_class="compute",
+                governance_status=GovernanceStatus.QUALIFY,
                 artifact_status=ArtifactStatus.COMPUTED,
-                ui_resource_uri="ui://map-dashboard"
+                ui_resource_uri="ui://map-dashboard",
             )
         except Exception as e:
             artifact = {"error": str(e)}
             return get_standard_envelope(
-                artifact, 
-                tool_class="compute", 
-                governance_status=GovernanceStatus.HOLD, 
+                artifact,
+                tool_class="compute",
+                governance_status=GovernanceStatus.HOLD,
                 artifact_status=ArtifactStatus.REJECTED,
-                ui_resource_uri="ui://map-dashboard"
+                ui_resource_uri="ui://map-dashboard",
             )
 
     @mcp.tool(name="map_georeference")
@@ -165,14 +166,14 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
             "control_points_count": len(control_points),
             "status": "Staged",
             "grounding_seal": "PENDING",
-            "message": "Georeferencing actions are git-backed and reversible (F1 Amanah)."
+            "message": "Georeferencing actions are git-backed and reversible (F1 Amanah).",
         }
         return get_standard_envelope(
-            artifact, 
-            tool_class="interpret", 
-            governance_status=GovernanceStatus.QUALIFY, 
+            artifact,
+            tool_class="interpret",
+            governance_status=GovernanceStatus.QUALIFY,
             artifact_status=ArtifactStatus.STAGED,
-            ui_resource_uri="ui://georeference-map"
+            ui_resource_uri="ui://georeference-map",
         )
 
     # Aliases

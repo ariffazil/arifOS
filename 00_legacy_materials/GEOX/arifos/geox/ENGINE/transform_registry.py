@@ -19,12 +19,13 @@ from dataclasses import dataclass
 class TransformProfile:
     """
     Risk profile for a visual transform.
-    
+
     Every visual transform (colormap, gain, filter, etc.) has:
       - amplification_factor: How much it can increase display contrast
       - distortion_type: What kind of artifacts it can introduce
       - risk_level: LOW, MEDIUM, HIGH based on amplification and distortion
     """
+
     transform_name: str
     transform_type: str  # "colormap", "gain", "filter", "composite"
 
@@ -62,7 +63,7 @@ class TransformProfile:
 class TransformRegistry:
     """
     Registry of visual transforms with their risk profiles.
-    
+
     Provides lookup and chain risk analysis.
     """
 
@@ -106,7 +107,6 @@ class TransformRegistry:
             distortion_potential=0.3,
             applicable_domains=("seismic",),
         ),
-
         # Generic transforms (all domains)
         TransformProfile(
             "grayscale",
@@ -154,7 +154,6 @@ class TransformRegistry:
             distortion_type="edge_enhancement",
             applicable_domains=("seismic", "medical", "satellite", "generic"),
         ),
-
         # High-risk transforms
         TransformProfile(
             "autogain_extreme",
@@ -194,14 +193,15 @@ class TransformRegistry:
     def find_for_domain(self, domain: str) -> list[TransformProfile]:
         """Find all transforms applicable to a domain."""
         return [
-            p for p in self._profiles.values()
+            p
+            for p in self._profiles.values()
             if domain in p.applicable_domains or "generic" in p.applicable_domains
         ]
 
     def analyze_chain(self, chain: list[str]) -> dict:
         """
         Analyze a chain of transforms for cumulative risk.
-        
+
         Returns:
           - total_amplification: Product of all amplification factors
           - max_single_amplification: Highest single transform amplification
@@ -235,9 +235,7 @@ class TransformRegistry:
                 )
 
             if profile.distortion_potential > 0.5:
-                warnings_list.append(
-                    f"{profile.transform_name}: severe distortion potential"
-                )
+                warnings_list.append(f"{profile.transform_name}: severe distortion potential")
 
         # Determine overall risk
         if total_amp > 10.0 or max_single > 5.0:

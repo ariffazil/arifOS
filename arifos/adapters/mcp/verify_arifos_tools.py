@@ -163,18 +163,90 @@ def append_vitality_record(rec: VitalityRecord) -> None:
 
 TOOL_CALLS = {
     "arifos_000_init": (init_000, {"operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_111_sense": (sense_111, {"query": "system status", "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_222_witness": (witness_222, {"query": "tri witness", "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_333_mind": (mind_333, {"problem_set": {"id": "demo"}, "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_444_kernel": (kernel_444, {"route_target": "MIND", "payload": {"demo": True}, "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_555_memory": (memory_555, {"action": "query", "query": "context", "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_666_heart": (heart_666, {"stakeholder_map": {"operator": "safe"}, "action_proposal": {"mode": "review"}, "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_777_ops": (ops_777, {"operation_plan": {"step": "audit"}, "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_888_judge": (judge_888, {"evidence_bundle": {"evidence": True}, "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_999_vault": (vault_999, {"action": "append", "payload": {"audit": True}, "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_forge": (forge, {"receipt": {"verdict": "SEAL"}, "organ": "SYSTEM", "call": {"op": "dry-run"}, "dry_run": True, "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_gateway": (gateway, {"a": "GEOX", "b": "WEALTH", "operator_id": "arif", "session_id": "vitality-test"}),
-    "arifos_sabar": (sabar, {"hold_id": "H-888-001", "action": "status", "operator_id": "arif", "session_id": "vitality-test"}),
+    "arifos_111_sense": (
+        sense_111,
+        {"query": "system status", "operator_id": "arif", "session_id": "vitality-test"},
+    ),
+    "arifos_222_witness": (
+        witness_222,
+        {"query": "tri witness", "operator_id": "arif", "session_id": "vitality-test"},
+    ),
+    "arifos_333_mind": (
+        mind_333,
+        {"problem_set": {"id": "demo"}, "operator_id": "arif", "session_id": "vitality-test"},
+    ),
+    "arifos_444_kernel": (
+        kernel_444,
+        {
+            "route_target": "MIND",
+            "payload": {"demo": True},
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
+    ),
+    "arifos_555_memory": (
+        memory_555,
+        {
+            "action": "query",
+            "query": "context",
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
+    ),
+    "arifos_666_heart": (
+        heart_666,
+        {
+            "stakeholder_map": {"operator": "safe"},
+            "action_proposal": {"mode": "review"},
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
+    ),
+    "arifos_777_ops": (
+        ops_777,
+        {"operation_plan": {"step": "audit"}, "operator_id": "arif", "session_id": "vitality-test"},
+    ),
+    "arifos_888_judge": (
+        judge_888,
+        {
+            "evidence_bundle": {"evidence": True},
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
+    ),
+    "arifos_999_vault": (
+        vault_999,
+        {
+            "action": "append",
+            "payload": {"audit": True},
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
+    ),
+    "arifos_forge": (
+        forge,
+        {
+            "receipt": {"verdict": "SEAL"},
+            "organ": "SYSTEM",
+            "call": {"op": "dry-run"},
+            "dry_run": True,
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
+    ),
+    "arifos_gateway": (
+        gateway,
+        {"a": "GEOX", "b": "WEALTH", "operator_id": "arif", "session_id": "vitality-test"},
+    ),
+    "arifos_sabar": (
+        sabar,
+        {
+            "hold_id": "H-888-001",
+            "action": "status",
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
+    ),
 }
 
 
@@ -185,7 +257,9 @@ async def run_tool_vitality(tool_name: str, version: str = "workspace") -> Vital
     duration_ms = (time.time() - started) * 1000
     governance = result["metrics"]
     metrics = ThermodynamicMetrics(**governance)
-    primary_value = 1.0 if result["verdict"] == "SEAL" else 0.5 if result["verdict"] == "SABAR" else 0.0
+    primary_value = (
+        1.0 if result["verdict"] == "SEAL" else 0.5 if result["verdict"] == "SABAR" else 0.0
+    )
     record = VitalityRecord(
         tool_name=tool_name,
         run_id=str(uuid.uuid4()),
@@ -193,8 +267,14 @@ async def run_tool_vitality(tool_name: str, version: str = "workspace") -> Vital
         ts=time.time(),
         primary_metric=PrimaryMetric(PRIMARY_METRIC_NAME[tool_name], primary_value),
         governance=governance,
-        performance=PerformanceMetrics(latency_ms_p50=duration_ms, latency_ms_p95=duration_ms, calls=1),
-        correctness=CorrectnessMetrics(test_cases=1, passed=1 if result["verdict"] != "VOID" else 0, failed=1 if result["verdict"] == "VOID" else 0),
+        performance=PerformanceMetrics(
+            latency_ms_p50=duration_ms, latency_ms_p95=duration_ms, calls=1
+        ),
+        correctness=CorrectnessMetrics(
+            test_cases=1,
+            passed=1 if result["verdict"] != "VOID" else 0,
+            failed=1 if result["verdict"] == "VOID" else 0,
+        ),
         verdict=compute_verdict(primary_value, metrics),
         description=f"Automated vitality audit for {tool_name}",
         vitality_score=vitality_score(primary_value, metrics),

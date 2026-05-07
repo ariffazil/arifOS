@@ -23,9 +23,9 @@ def test_register_prompts_matches_public_registry() -> None:
     expected_names = {spec.name for spec in PUBLIC_PROMPT_SPECS}
     registered_names = set(collector.prompts)
     # All expected prompts must be registered (legacy aliases may also exist)
-    assert expected_names.issubset(registered_names), (
-        f"Missing prompts: {expected_names - registered_names}"
-    )
+    assert expected_names.issubset(
+        registered_names
+    ), f"Missing prompts: {expected_names - registered_names}"
 
     dashboard_prompt = collector.prompts["open_apex_dashboard"]
     assert "APEX" in dashboard_prompt()

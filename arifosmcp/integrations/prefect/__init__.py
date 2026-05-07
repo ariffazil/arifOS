@@ -3,7 +3,7 @@ arifOS × Prefect Ecosystem Integration
 
 Provides bridges between arifOS and:
 - Prefect: Workflow orchestration
-- Marvin: AI/Agent framework  
+- Marvin: AI/Agent framework
 - Cyclopts: Modern CLI
 
 ΔΩΨ | DITEMPA BUKAN DIBERI
@@ -15,7 +15,7 @@ from .tasks import arifos_task, constitutional_flow
 
 __all__ = [
     "arifos_task",
-    "constitutional_flow", 
+    "constitutional_flow",
     "arifos_agent",
     "governed_ai_task",
     "create_cyclopts_app",

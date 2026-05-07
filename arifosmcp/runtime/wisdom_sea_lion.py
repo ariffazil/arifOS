@@ -28,9 +28,9 @@ API_KEY = os.getenv("SEA_LION_API_KEY")
 BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
 MODEL = "aisingapore/Qwen-SEA-LION-v4-32B-IT"
 
+
 async def generate_nusantara_wisdom(
-    context: str, 
-    agent_intent: str | None = None
+    context: str, agent_intent: str | None = None
 ) -> dict[str, Any]:
     """
     DEPRECATED — Do not use.
@@ -45,13 +45,15 @@ async def generate_nusantara_wisdom(
     )
     return {
         "error": "QUARANTINED: generate_nusantara_wisdom() is deprecated. "
-                 "SEA-LION may not generate quotes. Use interpret_with_sea_lion() with approved candidates.",
+        "SEA-LION may not generate quotes. Use interpret_with_sea_lion() with approved candidates.",
         "status": "888-HOLD",
         "floor": "F02_TRUTH",
     }
 
+
 if __name__ == "__main__":
     # Quick test
     import asyncio
+
     res = asyncio.run(generate_nusantara_wisdom("arif_vault_seal", "Hardening the Merkle trail"))
     print(json.dumps(res, indent=2))

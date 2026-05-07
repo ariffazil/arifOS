@@ -1,10 +1,10 @@
 # Nervous System 9 — Internal Tool Architecture
 ## The Governed Infrastructure Layer of arifOS
 
-**Version:** 2026.03.14-FORGED  
-**Status:** Production-Ready  
-**Classification:** Internal Architecture Reference  
-**Last Updated:** 2026-03-14  
+**Version:** 2026.03.14-FORGED
+**Status:** Production-Ready
+**Classification:** Internal Architecture Reference
+**Last Updated:** 2026-03-14
 
 ---
 
@@ -18,7 +18,7 @@ Unlike the 23 public tools that face external clients, these 9 tools form the "s
 
 The number 9 represents complete coverage of system operations:
 - **3 Sense tools** (Monitoring & Inspection)
-- **3 Resource tools** (Storage & Memory)  
+- **3 Resource tools** (Storage & Memory)
 - **3 Control tools** (Diagnostics & Cost)
 
 **Total:** 9 tools = 100% system observability with zero blind spots.
@@ -60,9 +60,9 @@ Every tool in the Nervous System 9:
 These tools feel the pulse of the operating system — CPU, memory, processes, network.
 
 #### 1. system_health
-**Purpose:** Comprehensive system vital signs monitoring  
-**Constitutional Stage:** 000_INIT (System Bootstrap)  
-**Floors Enforced:** F1 (Amanah), F7 (Humility)  
+**Purpose:** Comprehensive system vital signs monitoring
+**Constitutional Stage:** 000_INIT (System Bootstrap)
+**Floors Enforced:** F1 (Amanah), F7 (Humility)
 
 **What It Does:**
 Retrieves complete system health metrics including CPU utilization, memory consumption, disk usage, swap status, I/O counters, and thermal sensors (if available). Acts as the "vital signs monitor" for the host system.
@@ -116,9 +116,9 @@ health_detailed = await system_health(
 ---
 
 #### 2. process_list
-**Purpose:** Enumerate and filter system processes  
-**Constitutional Stage:** 111_SENSE (Peripheral Awareness)  
-**Floors Enforced:** F1 (Amanah - read-only), F12 (Injection Guard)  
+**Purpose:** Enumerate and filter system processes
+**Constitutional Stage:** 111_SENSE (Peripheral Awareness)
+**Floors Enforced:** F1 (Amanah - read-only), F12 (Injection Guard)
 
 **What It Does:**
 Lists running processes with resource consumption metrics (CPU %, RAM MB, threads). Supports filtering by name, user, resource thresholds, and can operate in restricted container environments.
@@ -184,9 +184,9 @@ python_procs = await process_list(
 ---
 
 #### 3. net_status
-**Purpose:** Network connectivity and service health diagnostics  
-**Constitutional Stage:** 111_SENSE (External Awareness)  
-**Floors Enforced:** F2 (Truth), F7 (Humility)  
+**Purpose:** Network connectivity and service health diagnostics
+**Constitutional Stage:** 111_SENSE (External Awareness)
+**Floors Enforced:** F2 (Truth), F7 (Humility)
 
 **What It Does:**
 Checks connectivity to critical services (vector DB, cache, database, external APIs). Measures latency, detects DNS failures, TLS issues, and service degradation.
@@ -250,9 +250,9 @@ services = await net_status(
 These tools access the system's memory — vector stores, resources, and evidence.
 
 #### 4. chroma_query
-**Purpose:** Semantic search in Chroma/Qdrant vector memory  
-**Constitutional Stage:** 555_MEMORY (Retrieval)  
-**Floors Enforced:** F2 (Truth ≥ 0.99), F4 (ΔS Clarity)  
+**Purpose:** Semantic search in Chroma/Qdrant vector memory
+**Constitutional Stage:** 555_MEMORY (Retrieval)
+**Floors Enforced:** F2 (Truth ≥ 0.99), F4 (ΔS Clarity)
 
 **What It Does:**
 Performs semantic similarity search across vector embeddings stored in ChromaDB or Qdrant. Supports filtering by metadata, controlling result count, and optionally including raw embedding vectors.
@@ -317,9 +317,9 @@ filtered = await chroma_query(
 ---
 
 #### 5. arifos_list_resources
-**Purpose:** Enumerate available arifOS/MCP resources  
-**Constitutional Stage:** 111_SENSE (Capability Discovery)  
-**Floors Enforced:** F1 (Amanah - read-only)  
+**Purpose:** Enumerate available arifOS/MCP resources
+**Constitutional Stage:** 111_SENSE (Capability Discovery)
+**Floors Enforced:** F1 (Amanah - read-only)
 
 **What It Does:**
 Lists all registered MCP resources with their URI schemes, descriptions, and access patterns. Resources include canonical documentation, governance rules, telemetry data, and vault history. Namespaced to `arifos_` to prevent protocol collisions.
@@ -390,9 +390,9 @@ schemas = await list_resources(
 ---
 
 #### 6. arifos_read_resource
-**Purpose:** Read content of MCP resources by URI  
-**Constitutional Stage:** 111_SENSE (Information Retrieval)  
-**Floors Enforced:** F2 (Truth), F1 (Amanah)  
+**Purpose:** Read content of MCP resources by URI
+**Constitutional Stage:** 111_SENSE (Information Retrieval)
+**Floors Enforced:** F2 (Truth), F1 (Amanah)
 
 **What It Does:**
 Retrieves the content of any MCP resource by its URI. Supports all resource types (canon, governance, vault, telemetry, etc.) and returns properly formatted content. Namespaced to `arifos_` to prevent protocol collisions.
@@ -484,9 +484,9 @@ schema = await arifos_read_resource(
 These tools control and diagnose the system — logs, files, and costs.
 
 #### 7. log_tail
-**Purpose:** Stream and filter log files with smart defaults  
-**Constitutional Stage:** 111_SENSE (Historical Awareness)  
-**Floors Enforced:** F1 (Amanah - read-only), F12 (Injection Guard)  
+**Purpose:** Stream and filter log files with smart defaults
+**Constitutional Stage:** 111_SENSE (Historical Awareness)
+**Floors Enforced:** F1 (Amanah - read-only), F12 (Injection Guard)
 
 **What It Does:**
 Tails log files with filtering by pattern, time window, and line count. Features smart path detection that automatically finds the correct log file without requiring exact paths.
@@ -554,9 +554,9 @@ errors = await log_tail(
 ---
 
 #### 8. fs_inspect
-**Purpose:** Inspect filesystem within governed sandbox  
-**Constitutional Stage:** 111_SENSE (Storage Awareness)  
-**Floors Enforced:** F1 (Amanah - read-only), F12 (Injection Guard)  
+**Purpose:** Inspect filesystem within governed sandbox
+**Constitutional Stage:** 111_SENSE (Storage Awareness)
+**Floors Enforced:** F1 (Amanah - read-only), F12 (Injection Guard)
 
 **What It Does:**
 Lists directory contents with metadata (size, type, modified time) while respecting sandbox boundaries. Prevents access outside allowed directories (F12 Injection Guard).
@@ -624,9 +624,9 @@ all_files = await fs_inspect(
 ---
 
 #### 9. cost_estimator
-**Purpose:** Estimate operation costs before execution  
-**Constitutional Stage:** 333_MIND (Planning)  
-**Floors Enforced:** F4 (ΔS Clarity - Resource Planning)  
+**Purpose:** Estimate operation costs before execution
+**Constitutional Stage:** 333_MIND (Planning)
+**Floors Enforced:** F4 (ΔS Clarity - Resource Planning)
 
 **What It Does:**
 Estimates the thermodynamic and financial cost of proposed operations. Calculates token usage, time requirements, memory consumption, and API call costs before committing resources. Now supports `operation` as an alias for `operation_type` for architectural alignment.
@@ -709,17 +709,17 @@ async def pre_flight_check(session_id: str, auth: dict) -> bool:
     health = await system_health(session_id=session_id, auth_context=auth)
     if health.payload.get("memory", {}).get("percent", 0) > 90:
         return False  # Too little RAM
-    
+
     # 2. Check network connectivity
     net = await net_status(session_id=session_id, auth_context=auth)
     if not net.payload.get("checks", {}).get("qdrant", {}).get("reachable"):
         return False  # Vector DB down
-    
+
     # 3. Check process load
     procs = await process_list(session_id=session_id, auth_context=auth)
     if procs.payload.get("total_count", 0) > 100:
         return False  # Too many processes
-    
+
     return True
 ```
 
@@ -737,13 +737,13 @@ async def debug_failure(session_id: str, auth: dict):
         session_id=session_id,
         auth_context=auth
     )
-    
+
     # 2. Check system health
     health = await system_health(session_id=session_id, auth_context=auth)
-    
+
     # 3. Check network status
     net = await net_status(session_id=session_id, auth_context=auth)
-    
+
     return {
         "logs": logs.payload,
         "health": health.payload,
@@ -764,12 +764,12 @@ async def cost_aware_search(query: str, session_id: str, auth: dict):
         session_id=session_id,
         auth_context=auth
     )
-    
+
     # 2. Check if affordable
     if cost.payload.get("total_cost_usd", 0) > 0.50:
         # Too expensive - ask for confirmation
         return {"status": "needs_approval", "cost": cost.payload}
-    
+
     # 3. Proceed with search
     results = await search_reality(query, session_id=session_id)
     return results
@@ -927,6 +927,6 @@ Example error response:
 
 *Ditempa Bukan Diberi — Forged, Not Given [ΔΩΨ | ARIF]*
 
-**Document Status:** SEALED  
-**Version:** 2026.03.14-FORGED  
+**Document Status:** SEALED
+**Version:** 2026.03.14-FORGED
 **Classification:** Internal Architecture Reference

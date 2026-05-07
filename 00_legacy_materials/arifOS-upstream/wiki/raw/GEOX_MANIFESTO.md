@@ -16,7 +16,7 @@ Plain LLMs generate language. GEOX generates grounded geoscience context. arifOS
 | **GEOX** | Earth / subsurface grounding layer |
 | **arifOS** | Constitutional control layer |
 
-Without GEOX, AI can sound geological without being geologically anchored.  
+Without GEOX, AI can sound geological without being geologically anchored.
 Without arifOS, even grounded tools can still drift into unsafe certainty, premature conclusions, or hidden authority.
 
 ---
@@ -37,21 +37,21 @@ They require:
 - **Explicit uncertainty** — Is confidence bounded and visible?
 - **Traceable evidence** — Can every claim be audited?
 
-A plain assistant can describe a trap beautifully.  
+A plain assistant can describe a trap beautifully.
 **GEOX asks whether the trap is actually grounded.**
 
 ### What GEOX Adds That Normal AI Does Not
 
 GEOX is the layer that says:
 
-> *Where exactly is this?*  
-> *Is the coordinate valid?*  
-> *What line are we looking at?*  
-> *What are the competing structural models?*  
-> *What evidence is missing?*  
+> *Where exactly is this?*
+> *Is the coordinate valid?*
+> *What line are we looking at?*
+> *What are the competing structural models?*
+> *What evidence is missing?*
 > *Should this interpretation be qualified, or put on hold?*
 
-**So GEOX is not "AI for geology chat."**  
+**So GEOX is not "AI for geology chat."**
 It is **decision hygiene for Earth interpretation.**
 
 ---
@@ -118,7 +118,7 @@ But in geoscience, the failure mode is not usually "bad grammar."
 - One unchallenged assumption
 - One polished hallucination entering a real decision
 
-A plain LLM can help you talk.  
+A plain LLM can help you talk.
 It cannot, by itself, guarantee:
 
 - Spatial grounding
@@ -154,8 +154,8 @@ They do not naturally preserve:
 
 They do not know when they should stop and say:
 
-> *"Insufficient grounding"*  
-> *"Human decision required"*  
+> *"Insufficient grounding"*
+> *"Human decision required"*
 > *"Hold this interpretation"*
 
 **That is why plain LLMs are helpful, but not enough.**
@@ -183,7 +183,7 @@ Even with GEOX, you still need a layer that decides:
 | **GEOX** | What does the Earth / subsurface data show? What is observable? What are the candidate models? |
 | **arifOS** | What is allowed to be claimed? What must remain uncertain? What requires human sign-off? What gets blocked for stability, safety, or integrity? |
 
-**So GEOX is the witness.**  
+**So GEOX is the witness.**
 **arifOS is the governance frame.**
 
 ### What Happens Without arifOS

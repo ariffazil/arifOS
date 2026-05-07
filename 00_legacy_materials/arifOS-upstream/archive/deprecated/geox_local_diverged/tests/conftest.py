@@ -24,6 +24,7 @@ from arifos.geox.geox_validator import GeoXValidator
 # geo_request — standard Blok Selatan fixture
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def geo_request() -> GeoRequest:
     """
@@ -49,6 +50,7 @@ def geo_request() -> GeoRequest:
 # ---------------------------------------------------------------------------
 # mock_agent — GeoXAgent with mock tools only
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def mock_agent() -> GeoXAgent:
@@ -90,6 +92,7 @@ def mock_agent() -> GeoXAgent:
 # ---------------------------------------------------------------------------
 # Internal proxy classes — register mock tools under production names
 # ---------------------------------------------------------------------------
+
 
 class _EarthModelToolProxy(MockEarthNetTool):
     """MockEarthNetTool registered under the production name 'EarthModelTool'."""

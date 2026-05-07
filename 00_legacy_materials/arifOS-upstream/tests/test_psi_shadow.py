@@ -88,8 +88,8 @@ class TestPsiShadow:
         proposal = "delete all system logs"
         result = shadow.attack_proposal(proposal)
 
-        assert result["entropy_assessment"]["entropy_increases"] == True
-        assert result["entropy_assessment"]["destructive_component"] == True
+        assert result["entropy_assessment"]["entropy_increases"] is True
+        assert result["entropy_assessment"]["destructive_component"] is True
 
     def test_shadow_confidence_levels(self, shadow):
         """Shadow should assign appropriate confidence levels."""

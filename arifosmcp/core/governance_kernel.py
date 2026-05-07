@@ -7,6 +7,7 @@ This is the sovereign boundary layer — no tool executes without passing throug
 
 Ditempa Bukan Diberi — Intelligence is forged, not given.
 """
+
 from __future__ import annotations
 
 import logging

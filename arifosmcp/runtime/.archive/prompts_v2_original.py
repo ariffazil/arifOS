@@ -29,12 +29,22 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "Query to analyze constitutionally"},
-                "risk_tier": {"type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium"},
+                "risk_tier": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "default": "medium",
+                },
                 "context": {"type": "string", "description": "Additional context"},
             },
             "required": ["query"],
         },
-        "default_tools": ["arifos.v2.route", "arifos.v2.sense", "arifos.v2.mind", "arifos.v2.heart", "arifos.v2.judge"],
+        "default_tools": [
+            "arifos.v2.route",
+            "arifos.v2.sense",
+            "arifos.v2.mind",
+            "arifos.v2.heart",
+            "arifos.v2.judge",
+        ],
         "tool_choice": "auto",
     },
     {
@@ -44,7 +54,11 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "content": {"type": "string", "description": "Content to audit"},
-                "standard": {"type": "string", "enum": ["SOC2", "ISO42001", "internal"], "default": "internal"},
+                "standard": {
+                    "type": "string",
+                    "enum": ["SOC2", "ISO42001", "internal"],
+                    "default": "internal",
+                },
             },
             "required": ["content"],
         },
@@ -58,7 +72,10 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "task": {"type": "string", "description": "Task to plan"},
-                "constraints": {"type": "object", "description": "Budget, time, resource constraints"},
+                "constraints": {
+                    "type": "object",
+                    "description": "Budget, time, resource constraints",
+                },
             },
             "required": ["task"],
         },
@@ -86,7 +103,10 @@ V2_PROMPT_SPECS: list[dict[str, Any]] = [
 # PROMPT IMPLEMENTATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _constitutional_analysis_prompt(query: str, risk_tier: str = "medium", context: str = "") -> str:
+
+def _constitutional_analysis_prompt(
+    query: str, risk_tier: str = "medium", context: str = ""
+) -> str:
     """Full constitutional reasoning pipeline prompt."""
     ctx = f"\nContext: {context}" if context else ""
     return f"""You are running constitutional analysis on the following query.
@@ -178,6 +198,7 @@ Otherwise answer immediately.
 # PROMPT REGISTRATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def register_v2_prompts(mcp: FastMCP) -> list[str]:
     """Register all v2 prompts on the MCP instance."""
     registered = []
@@ -194,6 +215,7 @@ def register_v2_prompts(mcp: FastMCP) -> list[str]:
     def execution_planning(task: str, constraints: str = "") -> str:
         # Parse constraints from JSON string if provided
         import json
+
         try:
             constraints_dict = json.loads(constraints) if constraints else None
         except json.JSONDecodeError:
@@ -204,7 +226,12 @@ def register_v2_prompts(mcp: FastMCP) -> list[str]:
     def minimal_response(query: str, max_tokens: int = 500) -> str:
         return _minimal_response_prompt(query, max_tokens)
 
-    registered = ["constitutional.analysis", "governance.audit", "execution.planning", "minimal.response"]
+    registered = [
+        "constitutional.analysis",
+        "governance.audit",
+        "execution.planning",
+        "minimal.response",
+    ]
     logger.info(f"Registered {len(registered)} v2 prompts: {registered}")
     return registered
 

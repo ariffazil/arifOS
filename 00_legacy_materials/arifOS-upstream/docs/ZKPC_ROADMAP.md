@@ -1,6 +1,6 @@
 # ZKPC Roadmap — Zero-Knowledge Proof of Seal
 
-**Classification:** Governance Architecture | **Authority:** F13 Sovereign  
+**Classification:** Governance Architecture | **Authority:** F13 Sovereign
 **Epoch:** 2026-04-19 | **Status:** DEFERRED — Requires Sovereign Ratification
 
 ---

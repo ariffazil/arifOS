@@ -39,65 +39,66 @@ from typing import Dict, Optional, Any
 # EXPERIMENT CONFIGURATION
 # =============================================================================
 
+
 @dataclass
 class ExperimentConfig:
     """
     Configuration for a single experiment.
     Agent edits these values to optimize arifOS.
     """
-    
+
     # Experiment identity
     experiment_id: str = "exp_001"
     change_description: str = "baseline (no changes)"
-    
+
     # ---- Omega Calibration ----
     # Ω (Omega) = Humility. Must stay in [0.03, 0.05] GOLDILOCKS zone.
     # Dynamic omega based on task complexity.
-    omega_simple_tasks: float = 0.03      # Ω for simple tasks (complexity < 0.3)
-    omega_medium_tasks: float = 0.04       # Ω for medium tasks (complexity 0.3-0.7)
-    omega_complex_tasks: float = 0.05      # Ω for complex tasks (complexity > 0.7)
-    
+    omega_simple_tasks: float = 0.03  # Ω for simple tasks (complexity < 0.3)
+    omega_medium_tasks: float = 0.04  # Ω for medium tasks (complexity 0.3-0.7)
+    omega_complex_tasks: float = 0.05  # Ω for complex tasks (complexity > 0.7)
+
     # ---- Stage Timing Budgets (seconds) ----
     # Total budget: ~6 seconds per request for 100 req/s target
-    stage_000_init: float = 0.3           # 5% - Fast anchor
-    stage_111_sense: float = 0.6          # 10% - Parse intent
-    stage_333_mind: float = 1.2           # 20% - Deep reasoning
-    stage_444_rout: float = 0.6           # 10% - Route action
-    stage_555_mem: float = 0.6            # 10% - Memory retrieval
-    stage_666_heart: float = 0.9          # 15% - Safety critique
-    stage_777_ops: float = 0.6            # 10% - Thermo estimate
-    stage_888_judge: float = 0.9          # 15% - Final verdict
-    stage_999_seal: float = 0.3          # 5% - Seal vault
-    
+    stage_000_init: float = 0.3  # 5% - Fast anchor
+    stage_111_sense: float = 0.6  # 10% - Parse intent
+    stage_333_mind: float = 1.2  # 20% - Deep reasoning
+    stage_444_rout: float = 0.6  # 10% - Route action
+    stage_555_mem: float = 0.6  # 10% - Memory retrieval
+    stage_666_heart: float = 0.9  # 15% - Safety critique
+    stage_777_ops: float = 0.6  # 10% - Thermo estimate
+    stage_888_judge: float = 0.9  # 15% - Final verdict
+    stage_999_seal: float = 0.3  # 5% - Seal vault
+
     # ---- W³ Consensus Weights ----
     # W³ = W_theory × W_constitution × W_manifesto >= threshold
-    w3_threshold: float = 0.95             # Minimum consensus for SEAL
-    w3_entropy_boost: float = 0.05        # Adaptive boost for high-entropy decisions
-    
+    w3_threshold: float = 0.95  # Minimum consensus for SEAL
+    w3_entropy_boost: float = 0.05  # Adaptive boost for high-entropy decisions
+
     # ---- Constitutional Floor Thresholds ----
     # Previously optimized values (floor_opt_004)
     f4_clarity_max_delta_s: float = 0.3  # ΔS must be <= this
-    f7_omega_min: float = 0.015           # Ω must be >= this
-    f7_omega_max: float = 0.20            # Ω must be <= this
-    
+    f7_omega_min: float = 0.015  # Ω must be >= this
+    f7_omega_max: float = 0.20  # Ω must be <= this
+
     # ---- Cache Configuration ----
-    cache_ttl_short_term: int = 300       # 5 min - volatile context
-    cache_ttl_medium_term: int = 1800     # 30 min - session context
-    cache_ttl_long_term: int = 86400      # 24 hr - constitutional context
-    
+    cache_ttl_short_term: int = 300  # 5 min - volatile context
+    cache_ttl_medium_term: int = 1800  # 30 min - session context
+    cache_ttl_long_term: int = 86400  # 24 hr - constitutional context
+
     # ---- Parallel Execution ----
     # Enable parallel execution for non-conflicting stages
     enable_parallel_555_666: bool = True  # [555_MEM || 666_HEART] in parallel
-    
+
     # ---- Early Exit ----
-    enable_early_exit: bool = True        # Exit pipeline when entropy plateaus
-    early_exit_epsilon: float = 0.01      # Minimum ΔS reduction to continue
-    early_exit_min_stages: int = 3        # Minimum stages before early exit
-    
+    enable_early_exit: bool = True  # Exit pipeline when entropy plateaus
+    early_exit_epsilon: float = 0.01  # Minimum ΔS reduction to continue
+    early_exit_min_stages: int = 3  # Minimum stages before early exit
+
     # ---- Tool Routing ----
     # Confidence thresholds for tool selection
     tool_routing_confidence_min: float = 0.85
-    
+
     def to_config_dict(self) -> Dict[str, Any]:
         """Export config as dictionary for JSON serialization."""
         return {
@@ -159,10 +160,10 @@ ARIFOS_CONFIG_CURRENT = ARIFOS_CONFIG_DIR / "current_thresholds.json"
 def apply_config(config: ExperimentConfig) -> bool:
     """
     Apply experiment configuration to arifOS.
-    
+
     This is called BEFORE running prepare.py.
     The agent edits train.py → calls apply_config → runs prepare.py → measures result.
-    
+
     Returns:
         True if config applied successfully
     """
@@ -170,21 +171,21 @@ def apply_config(config: ExperimentConfig) -> bool:
     print(f"APPLYING CONFIG: {config.experiment_id}")
     print(f"Change: {config.change_description}")
     print(f"{'='*60}")
-    
+
     # Create config payload
     config_payload = config.to_config_dict()
-    
+
     # Save experiment config
     exp_config_path = Path("/root/arifOS/autoresearch/experiments") / f"{config.experiment_id}.json"
     exp_config_path.parent.mkdir(parents=True, exist_ok=True)
     exp_config_path.write_text(json.dumps(config_payload, indent=2))
     print(f"📝 Saved experiment config: {exp_config_path}")
-    
+
     # Update current thresholds (this is what arifOS reads)
     ARIFOS_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     ARIFOS_CONFIG_CURRENT.write_text(json.dumps(config_payload, indent=2))
     print(f"📝 Updated current thresholds: {ARIFOS_CONFIG_CURRENT}")
-    
+
     print("\n✅ Config applied. Run prepare.py to evaluate.\n")
     return True
 
@@ -194,10 +195,7 @@ def revert_config():
     Revert to baseline configuration.
     Called when experiment score degrades.
     """
-    baseline = ExperimentConfig(
-        experiment_id="baseline",
-        change_description="reverted to baseline"
-    )
+    baseline = ExperimentConfig(experiment_id="baseline", change_description="reverted to baseline")
     apply_config(baseline)
     print("🔄 Reverted to baseline configuration\n")
 
@@ -257,14 +255,13 @@ EXPERIMENT_TEMPLATES = {
 # AGENT INTERFACE
 # =============================================================================
 
+
 def run_experiment(
-    experiment_id: str,
-    change_description: str,
-    config_overrides: Optional[Dict[str, Any]] = None
+    experiment_id: str, change_description: str, config_overrides: Optional[Dict[str, Any]] = None
 ) -> bool:
     """
     Main entry point for running an experiment.
-    
+
     Agent usage:
         from train import run_experiment
         run_experiment(
@@ -278,7 +275,7 @@ def run_experiment(
         experiment_id=experiment_id,
         change_description=change_description,
     )
-    
+
     # Apply overrides
     if config_overrides:
         for key, value in config_overrides.items():
@@ -286,10 +283,10 @@ def run_experiment(
                 setattr(config, key, value)
             else:
                 print(f"⚠️ Unknown config key: {key}")
-    
+
     # Apply to arifOS
     apply_config(config)
-    
+
     # Return success (prepare.py will handle evaluation)
     return True
 
@@ -300,16 +297,16 @@ def run_experiment(
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="arifOS train.py — Experiment Config")
     parser.add_argument("--experiment-id", required=True, help="Experiment ID")
     parser.add_argument("--change", required=True, help="Change description")
     parser.add_argument("--apply", action="store_true", help="Apply config and exit")
     parser.add_argument("--revert", action="store_true", help="Revert to baseline")
     parser.add_argument("--print-config", action="store_true", help="Print current config")
-    
+
     args = parser.parse_args()
-    
+
     if args.revert:
         revert_config()
     elif args.print_config:

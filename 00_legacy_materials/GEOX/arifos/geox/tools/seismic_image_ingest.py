@@ -22,6 +22,7 @@ from ..schemas.seismic_image import (
 
 logger = logging.getLogger(__name__)
 
+
 @contrast_governed_tool(physical_axes=["inline", "depth"])
 async def ingest_seismic_image(inputs: GEOX_SEISMIC_IMAGE_INPUT) -> GEOX_SEISMIC_RASTER:
     """
@@ -51,5 +52,5 @@ async def ingest_seismic_image(inputs: GEOX_SEISMIC_IMAGE_INPUT) -> GEOX_SEISMIC
         "raw_path": inputs.image_path,
         "normalized_path": cache_path,
         "shape": arr.shape,
-        "metadata": inputs.model_dump()
+        "metadata": inputs.model_dump(),
     }

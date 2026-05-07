@@ -4,6 +4,7 @@ arifOS Providers
 
 Dynamic component providers for the canonical surface.
 """
+
 from __future__ import annotations
 
 from arifosmcp.providers.canonical import CanonicalProvider

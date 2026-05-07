@@ -258,4 +258,3 @@ arifosmcp/
 
 1. `2e078bd1` - Agent: Resolve audit tool issues
 2. `19fb0ba2` - Harden: dry_run fast-path, container logs, Brave fallback
-

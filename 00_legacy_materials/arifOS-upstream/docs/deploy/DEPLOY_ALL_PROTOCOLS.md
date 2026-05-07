@@ -61,13 +61,13 @@ git commit -m "feat: Implement real A2A and WebMCP protocols
 
 - Add complete A2A server (Google protocol)
   /.well-known/agent.json, /a2a/task, /a2a/status, SSE
-  
+
 - Add real WebMCP gateway (W3C standard)
   /webmcp console, SDK, WebSocket
-  
+
 - Integrate all 3 protocols into main server
   MCP + A2A + WebMCP working together
-  
+
 - All protocols enforce F1-F13 constitutional floors
 
 Ditempa Bukan Diberi"

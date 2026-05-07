@@ -5,13 +5,17 @@ from dataclasses import dataclass
 
 logger = logging.getLogger("arifOS.Anthropic")
 
+
 @dataclass
 class AnthropicEnvelope:
     ok: bool
     text: str
     error: str = ""
 
-async def anthropic_generate(prompt: str, max_tokens: int = 1000, model: str = "claude-sonnet-4-6") -> AnthropicEnvelope:
+
+async def anthropic_generate(
+    prompt: str, max_tokens: int = 1000, model: str = "claude-sonnet-4-6"
+) -> AnthropicEnvelope:
     """
     Real Intelligence via Anthropic API.
     Primary fallback for 111-333 Reasoning.
@@ -24,16 +28,14 @@ async def anthropic_generate(prompt: str, max_tokens: int = 1000, model: str = "
     headers = {
         "x-api-key": api_key,
         "Content-Type": "application/json",
-        "anthropic-version": "2023-06-01"
+        "anthropic-version": "2023-06-01",
     }
 
     payload = {
         "model": model,
         "max_tokens": max_tokens,
         "system": "You are the arifOS AGI Mind (Stage 111-333). Apply constitutional physics (ΔS ≤ 0).",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ]
+        "messages": [{"role": "user", "content": prompt}],
     }
 
     try:

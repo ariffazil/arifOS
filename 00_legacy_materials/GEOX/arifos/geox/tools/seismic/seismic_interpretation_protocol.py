@@ -22,6 +22,7 @@ import uuid
 
 class ProtocolState(Enum):
     """States in the interpretation protocol."""
+
     INITIALIZED = auto()
     INPUT_VALIDATED = auto()
     ATTRIBUTES_COMPUTED = auto()
@@ -36,18 +37,19 @@ class ProtocolState(Enum):
 @dataclass
 class InterpretationStep:
     """A single step in the interpretation protocol."""
+
     step_number: int
     step_name: str
     description: str
-    
+
     # Execution
     status: Literal["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]
     result: Any | None = None
-    
+
     # Governance
     checkpoint_passed: bool = False
     override_available: bool = True
-    
+
     # Documentation
     execution_time_ms: float | None = None
     notes: list[str] = field(default_factory=list)
@@ -56,21 +58,22 @@ class InterpretationStep:
 @dataclass
 class InterpretationCheckpoint:
     """A governance checkpoint in the interpretation protocol."""
+
     checkpoint_id: str
     step_number: int
-    
+
     # Checkpoint criteria
     criteria: list[str]  # What must be satisfied to pass
-    
+
     # Assessment
     passed: bool = False
     violations: list[str] = field(default_factory=list)
-    
+
     # Override
     override_available: bool = True
     overridden: bool = False
     override_reason: str | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "checkpoint_id": self.checkpoint_id,
@@ -85,41 +88,41 @@ class InterpretationCheckpoint:
 class SeismicInterpretationProtocol:
     """
     Formal protocol for ToAC-governed seismic interpretation.
-    
+
     The protocol proceeds through states with mandatory checkpoints:
-    
+
     1. INITIALIZED → INPUT_VALIDATED
        Checkpoint: Verify SEG-Y source (not raster)
-    
+
     2. INPUT_VALIDATED → ATTRIBUTES_COMPUTED
        Checkpoint: Confirm physical attributes computed before visualization
-    
+
     3. ATTRIBUTES_COMPUTED → BIAS_AUDITED
        Checkpoint: Run Bond et al. bias audit
-    
+
     4. BIAS_AUDITED → INTERPRETATION_GENERATED
        Checkpoint: Document confidence and uncertainty
-    
+
     5. INTERPRETATION_GENERATED → ALTERNATIVES_DOCUMENTED
        Checkpoint: Minimum 3 alternative interpretations documented
-    
+
     6. ALTERNATIVES_DOCUMENTED → CONTRAST_ASSESSED
        Checkpoint: Verify anomalous contrast ratio within bounds
-    
+
     7. CONTRAST_ASSESSED → COMPLETE or REJECTED
        Final verdict based on checkpoint results
     """
-    
+
     def __init__(self, protocol_id: str | None = None):
         self.protocol_id = protocol_id or f"GEOX-PROTO-{uuid.uuid4().hex[:8].upper()}"
         self.state = ProtocolState.INITIALIZED
-        
+
         self.steps: list[InterpretationStep] = []
         self.checkpoints: list[InterpretationCheckpoint] = []
         self.current_step = 0
-        
+
         self._init_steps()
-    
+
     def _init_steps(self) -> None:
         """Initialize the protocol steps."""
         self.steps = [
@@ -166,7 +169,7 @@ class SeismicInterpretationProtocol:
                 status="PENDING",
             ),
         ]
-        
+
         self.checkpoints = [
             InterpretationCheckpoint(
                 checkpoint_id=f"{self.protocol_id}-CP1",
@@ -232,19 +235,19 @@ class SeismicInterpretationProtocol:
                 ],
             ),
         ]
-    
+
     def get_current_step(self) -> InterpretationStep | None:
         """Get the current protocol step."""
         if 0 <= self.current_step < len(self.steps):
             return self.steps[self.current_step]
         return None
-    
+
     def get_current_checkpoint(self) -> InterpretationCheckpoint | None:
         """Get the checkpoint for the current step."""
         if 0 <= self.current_step < len(self.checkpoints):
             return self.checkpoints[self.current_step]
         return None
-    
+
     def execute_step(
         self,
         step_result: Any,
@@ -253,49 +256,49 @@ class SeismicInterpretationProtocol:
     ) -> dict[str, Any]:
         """
         Execute the current step and advance to next.
-        
+
         Args:
             step_result: Result from executing this step
             checkpoint_passed: Whether the checkpoint criteria were met
             notes: Additional notes about execution
-            
+
         Returns:
             Protocol status after this step
         """
         step = self.get_current_step()
         checkpoint = self.get_current_checkpoint()
-        
+
         if step is None:
             return self.get_status()
-        
+
         # Update step
         step.status = "COMPLETE"
         step.result = step_result
         if notes:
             step.notes.extend(notes)
         step.checkpoint_passed = checkpoint_passed
-        
+
         # Update checkpoint
         if checkpoint:
             checkpoint.passed = checkpoint_passed
-        
+
         # Advance state
         self._advance_state()
-        
+
         return self.get_status()
-    
+
     def _advance_state(self) -> None:
         """Advance to next state based on current checkpoint."""
         checkpoint = self.get_current_checkpoint()
-        
+
         if checkpoint and not checkpoint.passed and not checkpoint.overridden:
             # Failed checkpoint without override
             self.state = ProtocolState.REJECTED
             return
-        
+
         # Advance step
         self.current_step += 1
-        
+
         # Update state
         state_map = {
             0: ProtocolState.INITIALIZED,
@@ -307,36 +310,36 @@ class SeismicInterpretationProtocol:
             6: ProtocolState.CONTRAST_ASSESSED,
             7: ProtocolState.COMPLETE,
         }
-        
+
         self.state = state_map.get(self.current_step, ProtocolState.COMPLETE)
-    
+
     def override_checkpoint(self, reason: str) -> dict[str, Any]:
         """
         Override the current checkpoint.
-        
+
         F13 SOVEREIGN: Human override of any checkpoint.
         """
         checkpoint = self.get_current_checkpoint()
-        
+
         if checkpoint is None:
             raise ValueError("No active checkpoint to override")
-        
+
         if not checkpoint.override_available:
             raise ValueError("This checkpoint cannot be overridden")
-        
+
         checkpoint.overridden = True
         checkpoint.override_reason = reason
         checkpoint.passed = True  # Mark as passed via override
-        
+
         self._advance_state()
-        
+
         return self.get_status()
-    
+
     def get_status(self) -> dict[str, Any]:
         """Get current protocol status."""
         current_step = self.get_current_step()
         current_checkpoint = self.get_current_checkpoint()
-        
+
         return {
             "protocol_id": self.protocol_id,
             "state": self.state.name,
@@ -346,15 +349,14 @@ class SeismicInterpretationProtocol:
             "checkpoint_id": current_checkpoint.checkpoint_id if current_checkpoint else None,
             "checkpoint_passed": current_checkpoint.passed if current_checkpoint else None,
             "can_override": (
-                current_checkpoint.override_available 
-                if current_checkpoint else False
+                current_checkpoint.override_available if current_checkpoint else False
             ),
             "steps_completed": sum(1 for s in self.steps if s.status == "COMPLETE"),
             "checkpoints_passed": sum(1 for c in self.checkpoints if c.passed),
             "is_complete": self.state in (ProtocolState.COMPLETE, ProtocolState.REJECTED),
             "is_rejected": self.state == ProtocolState.REJECTED,
         }
-    
+
     def get_full_report(self) -> dict[str, Any]:
         """Get full protocol execution report."""
         return {

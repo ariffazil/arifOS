@@ -60,19 +60,21 @@ async def engineering_memory(
         if mode is None:
             mode = "engineer"
         res_dict = await HARDENED_DISPATCH_MAP["engineering_memory"](mode=mode, payload=payload)
-        
+
         from arifosmcp.runtime.model import VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
-        
+
         return forge_verdict(
             tool_id="arifos_memory",
             canonical_tool_name="arifos_memory",
             stage=res_dict.get("stage", "555_MEMORY"),
             payload=res_dict.get("payload", {}),
             session_id=session_id,
-            override_code=VerdictCode(res_dict.get("verdict").value)
-            if hasattr(res_dict.get("verdict"), "value")
-            else VerdictCode.SABAR,
+            override_code=(
+                VerdictCode(res_dict.get("verdict").value)
+                if hasattr(res_dict.get("verdict"), "value")
+                else VerdictCode.SABAR
+            ),
             message=res_dict.get("payload", {}).get("note", "Memory operation processed."),
         )
 

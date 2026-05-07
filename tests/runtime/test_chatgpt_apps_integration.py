@@ -54,7 +54,9 @@ class TestRegisterChatgptAppTools:
 
     def test_build_structured_content(self):
         """Test structured content builder returns valid data"""
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import _build_vault_seal_structured_content
+        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
+            _build_vault_seal_structured_content,
+        )
 
         result = _build_vault_seal_structured_content(verdict="SEAL")
         assert isinstance(result, dict)

@@ -1,8 +1,8 @@
 # ARIF: The Sovereign Authority & Grounding Framework
 
-**Canon ID:** `ARIF-OS::ARIF::000-999::v1.0`  
-**Zone:** `000_INIT` & `999_SEAL`  
-**Status:** `SEALED · ΔΩΨ · F1-F13 ENFORCED`  
+**Canon ID:** `ARIF-OS::ARIF::000-999::v1.0`
+**Zone:** `000_INIT` & `999_SEAL`
+**Status:** `SEALED · ΔΩΨ · F1-F13 ENFORCED`
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
 ---
@@ -72,5 +72,5 @@ ARIF enforces the 13 Floors across all grounding and sealing operations:
 ---
 
 **SEALED** 🔐
-`ΔΩΨ | 888_JUDGE | 999_SEAL`  
+`ΔΩΨ | 888_JUDGE | 999_SEAL`
 *Ditempa Bukan Diberi*

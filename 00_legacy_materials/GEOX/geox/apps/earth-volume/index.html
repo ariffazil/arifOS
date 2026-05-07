@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap');
-        
+
         :root {
             --geox-black: #0a0a0c;
             --geox-accent: #3b82f6;
@@ -31,7 +31,7 @@
         }
 
         .seismic-canvas {
-            background-image: linear-gradient(rgba(20,20,30,0.8), rgba(20,20,30,0.8)), 
+            background-image: linear-gradient(rgba(20,20,30,0.8), rgba(20,20,30,0.8)),
                               repeating-linear-gradient(45deg, #1e293b 0px, #1e293b 10px, #0f172a 10px, #0f172a 20px);
             cursor: crosshair;
         }
@@ -69,7 +69,7 @@
 
     <!-- Main Workspace -->
     <main class="flex-1 relative flex overflow-hidden">
-        
+
         <!-- Left Pane: Controls -->
         <aside class="w-72 glass border-r divide-y divide-white/5 flex flex-col p-4 gap-6 z-40">
             <div>
@@ -80,7 +80,7 @@
                             <span>ToAC CONTRAST</span>
                             <span id="contrastVal">1.2x</span>
                         </div>
-                        <input type="range" id="contrast" min="0.5" max="3" step="0.1" value="1.2" 
+                        <input type="range" id="contrast" min="0.5" max="3" step="0.1" value="1.2"
                                class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                     </div>
                 </div>
@@ -109,7 +109,7 @@
         <!-- Center: Seismic Canvas -->
         <div class="flex-1 relative seismic-canvas overflow-hidden">
             <div id="scanline" class="scanline" style="top: 50%;"></div>
-            
+
             <!-- Context HUD overlay -->
             <div class="absolute bottom-6 left-6 flex gap-4">
                 <div class="glass px-4 py-2 rounded-lg border border-white/10 flex flex-col pointer-events-none">
@@ -147,13 +147,13 @@
                     timestamp: new Date().toISOString()
                 };
                 console.log(`[GEOX Bridge] Emitting: ${method}`, event);
-                
+
                 // standard postMessage pattern for iframes
                 if (window.parent !== window) {
                     window.parent.postMessage(event, "*");
                 }
             },
-            
+
             init() {
                 this.emit("app.initialize", {
                     app_id: "geox.seismic.viewer",
@@ -189,9 +189,9 @@
         });
 
         syncBtn.addEventListener('click', () => {
-            bridge.emit("ui.state.sync", { 
+            bridge.emit("ui.state.sync", {
                 z_depth: coordZ.innerText,
-                contrast_scale: contrast.value 
+                contrast_scale: contrast.value
             });
         });
 

@@ -1,8 +1,8 @@
 # 🏛️ ARIFOSMCP - COMPLETE TOOL ARCHITECTURE
 
-**Version:** 2026.03.09-SEAL  
-**Total Tools:** 25 (10 Core + 9 ACLIP + 6 External)  
-**Live Tools:** 6 (ChatGPT Public Profile)  
+**Version:** 2026.03.09-SEAL
+**Total Tools:** 25 (10 Core + 9 ACLIP + 6 External)
+**Live Tools:** 6 (ChatGPT Public Profile)
 
 ---
 
@@ -52,7 +52,7 @@ These tools form the **Trinity Metabolic Loop** and are governed by all 13 Const
 
 ## 🔧 TIER 2: ACLIP SYSTEM TOOLS (9 Tools)
 
-**ACLIP** = A Constitutional Law Interfaced Process  
+**ACLIP** = A Constitutional Law Interfaced Process
 These are the **system observability and operations** tools.
 
 | # | Tool Name | Purpose | Read-Only |
@@ -91,7 +91,7 @@ These are the **system observability and operations** tools.
 ```json
 [
   "metabolic_loop_router",
-  "open_apex_dashboard", 
+  "open_apex_dashboard",
   "search_reality",
   "ingest_evidence",
   "audit_rules",
@@ -273,7 +273,7 @@ seal_vault_commit(session_id="xxx", verdict="SEAL", auth_context={...})
 
 **Ditempa Bukan Diberi** — Forged, Not Given 🏛️
 
-**Version:** 2026.03.09-SEAL  
-**Total Tools:** 25  
-**Live Tools:** 6 (ChatGPT)  
+**Version:** 2026.03.09-SEAL
+**Total Tools:** 25
+**Live Tools:** 6 (ChatGPT)
 **Constitutional Floors:** F1-F13 enforced on all calls

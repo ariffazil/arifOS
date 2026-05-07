@@ -22,10 +22,10 @@ confidence: 0.9
 
 # Audit: Repo Chaos Reduction
 
-**Date:** 2026-04-08  
-**Auditor:** Copilot (A-AUDITOR role)  
-**Mode:** Audit-Only — no destructive changes made  
-**Constitutional authority:** 888_JUDGE  
+**Date:** 2026-04-08
+**Auditor:** Copilot (A-AUDITOR role)
+**Mode:** Audit-Only — no destructive changes made
+**Constitutional authority:** 888_JUDGE
 **Scope:** Active surface ~378 .md files (1,622 files already in `archive/` excluded)
 
 ---
@@ -592,7 +592,7 @@ archive/
 
 ---
 
-*Audit sealed by: A-AUDITOR (Copilot) | 2026-04-08 | No files were modified during this audit.*  
+*Audit sealed by: A-AUDITOR (Copilot) | 2026-04-08 | No files were modified during this audit.*
 *Next recommended action: Human review of H-001 through H-008 in Hold List before any cleanup passes.*
 
 ---

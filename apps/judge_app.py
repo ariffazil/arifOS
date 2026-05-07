@@ -183,7 +183,9 @@ if not hasattr(judge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op
 @judge_app.tool(name="arifos_execute_judge", tags={"hold", "internal", "governance"})
 async def execute_judge(
     candidate_action: Annotated[str, Field(description="The action or proposal to evaluate")],
-    risk_tier: Annotated[str, Field(description="Risk level: low, medium, high, critical")] = "medium",
+    risk_tier: Annotated[
+        str, Field(description="Risk level: low, medium, high, critical")
+    ] = "medium",
     session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
 ) -> ToolResult:
     """
@@ -215,7 +217,7 @@ async def execute_judge(
         w3_human = float(telemetry.get("witness_human", 1.0))
         w3_ai = float(telemetry.get("witness_ai", 0.95))
         w3_earth = float(telemetry.get("witness_earth", 0.91))
-        
+
         # Extended metrics
         ds = float(telemetry.get("delta_s", 0.0))
         peace2 = float(telemetry.get("peace2", 1.0))
@@ -234,24 +236,31 @@ async def execute_judge(
                 status_label = "BREACH" if ftype in ("wall", "veto") else "FAIL"
             else:
                 status_label = "PASS"
-            
-            floor_rows.append({
-                "id": fid,
-                "name": _FLOOR_NAMES[fid],
-                "type": ftype.upper(),
-                "status": status_label,
-                "human_meaning": _HUMAN_MEANINGS.get(fid, ""),
-                "failed": failed,
-            })
+
+            floor_rows.append(
+                {
+                    "id": fid,
+                    "name": _FLOOR_NAMES[fid],
+                    "type": ftype.upper(),
+                    "status": status_label,
+                    "human_meaning": _HUMAN_MEANINGS.get(fid, ""),
+                    "failed": failed,
+                }
+            )
 
         # Philosophy selection — fully wired to unified wisdom registry (from forge-ssct-sync)
         philosophy = _PHILOSOPHY.get(verdict, _PHILOSOPHY["pending"])
         try:
             from arifos.runtime.philosophy import select_wisdom_quote
+
             _verdict_profile = {
                 "SEAL": {"surface": "judge", "tone": "firm", "shadow_profile": None},
                 "HOLD": {"surface": "hold", "tone": "severe", "shadow_profile": "restraint"},
-                "PARTIAL": {"surface": "partial", "tone": "reflective", "shadow_profile": "paradox"},
+                "PARTIAL": {
+                    "surface": "partial",
+                    "tone": "reflective",
+                    "shadow_profile": "paradox",
+                },
                 "VOID": {"surface": "void", "tone": "severe", "shadow_profile": "shadow"},
                 "SABAR": {"surface": "sabar", "tone": "calm", "shadow_profile": "humility"},
                 "pending": {"surface": "anchor", "tone": "calm", "shadow_profile": None},
@@ -268,28 +277,42 @@ async def execute_judge(
             if wisdom and wisdom.get("quote"):
                 philosophy = wisdom["quote"]
         except Exception:
-             # Fallback to local philosophy bands
+            # Fallback to local philosophy bands
             if verdict == "SEAL":
                 philosophy = _PHILOSOPHY["SEAL"]
             else:
-                if g_score >= 0.80: philosophy = _PHILOSOPHY["G_HIGH"]
-                elif g_score >= 0.60: philosophy = _PHILOSOPHY["G_MID_HIGH"]
-                elif g_score >= 0.40: philosophy = _PHILOSOPHY["G_MID"]
-                elif g_score >= 0.20: philosophy = _PHILOSOPHY["G_MID_LOW"]
-                else: philosophy = _PHILOSOPHY["G_LOW"]
+                if g_score >= 0.80:
+                    philosophy = _PHILOSOPHY["G_HIGH"]
+                elif g_score >= 0.60:
+                    philosophy = _PHILOSOPHY["G_MID_HIGH"]
+                elif g_score >= 0.40:
+                    philosophy = _PHILOSOPHY["G_MID"]
+                elif g_score >= 0.20:
+                    philosophy = _PHILOSOPHY["G_MID_LOW"]
+                else:
+                    philosophy = _PHILOSOPHY["G_LOW"]
 
         # Next actions (CHANGE-04)
         next_actions = []
         if floors_failed:
-            if "F4" in floors_failed: next_actions.append("Simplify prompt chain. Remove conflicting meta-instructions.")
-            if "F1" in floors_failed: next_actions.append("Identify and map rollback path before proceeding.")
-            if "F7" in floors_failed: next_actions.append("Audit recent outputs for unsurfaced uncertainty.")
-            if "F12" in floors_failed: next_actions.append("Inspect for prompt injection or override-style instructions.")
-            if "F2" in floors_failed: next_actions.append("Verify claims with external evidence before trusting session output.")
-        
+            if "F4" in floors_failed:
+                next_actions.append("Simplify prompt chain. Remove conflicting meta-instructions.")
+            if "F1" in floors_failed:
+                next_actions.append("Identify and map rollback path before proceeding.")
+            if "F7" in floors_failed:
+                next_actions.append("Audit recent outputs for unsurfaced uncertainty.")
+            if "F12" in floors_failed:
+                next_actions.append("Inspect for prompt injection or override-style instructions.")
+            if "F2" in floors_failed:
+                next_actions.append(
+                    "Verify claims with external evidence before trusting session output."
+                )
+
         if not next_actions:
-            if verdict == "SEAL": next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
-            else: next_actions.append("Repair floor state or obtain human veto override.")
+            if verdict == "SEAL":
+                next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
+            else:
+                next_actions.append("Repair floor state or obtain human veto override.")
 
         return ToolResult(
             content=[
@@ -412,24 +435,24 @@ def judge_surface(
         execute_judge,
         args={"candidate_action": candidate_action, "risk_tier": risk_tier},
         on_success=[
-            SetState("verdict",            RESULT["verdict"]),
-            SetState("floors_checked",     RESULT["floors_checked"]),
-            SetState("floors_failed",      RESULT["floors_failed"]),
-            SetState("floor_rows",         RESULT["floor_rows"]),
-            SetState("w3_human",           RESULT["w3_human"]),
-            SetState("w3_ai",              RESULT["w3_ai"]),
-            SetState("w3_earth",           RESULT["w3_earth"]),
-            SetState("ds",                 RESULT["ds"]),
-            SetState("peace2",             RESULT["peace2"]),
-            SetState("kappa_r",            RESULT["kappa_r"]),
-            SetState("shadow",             RESULT["shadow"]),
-            SetState("confidence",         RESULT["confidence"]),
-            SetState("witness_score",      RESULT["witness_score"]),
-            SetState("next_actions",       RESULT["next_actions"]),
-            SetState("philosophy",         RESULT["philosophy"]),
-            SetState("requires_human",     RESULT["requires_human"]),
-            SetState("sabar_step",         RESULT["sabar_step"]),
-            SetState("floors_pass_count",  RESULT["floors_pass_count"]),
+            SetState("verdict", RESULT["verdict"]),
+            SetState("floors_checked", RESULT["floors_checked"]),
+            SetState("floors_failed", RESULT["floors_failed"]),
+            SetState("floor_rows", RESULT["floor_rows"]),
+            SetState("w3_human", RESULT["w3_human"]),
+            SetState("w3_ai", RESULT["w3_ai"]),
+            SetState("w3_earth", RESULT["w3_earth"]),
+            SetState("ds", RESULT["ds"]),
+            SetState("peace2", RESULT["peace2"]),
+            SetState("kappa_r", RESULT["kappa_r"]),
+            SetState("shadow", RESULT["shadow"]),
+            SetState("confidence", RESULT["confidence"]),
+            SetState("witness_score", RESULT["witness_score"]),
+            SetState("next_actions", RESULT["next_actions"]),
+            SetState("philosophy", RESULT["philosophy"]),
+            SetState("requires_human", RESULT["requires_human"]),
+            SetState("sabar_step", RESULT["sabar_step"]),
+            SetState("floors_pass_count", RESULT["floors_pass_count"]),
             SetState("floors_total_count", RESULT["floors_total_count"]),
             SetState("judged", True),
             ShowToast("Constitutional judgment complete", variant="success"),
@@ -438,7 +461,7 @@ def judge_surface(
     )
 
     # ── Reactive state references ────────────────────────────────────────────
-    verdict_rx = STATE["verdict"]
+    STATE["verdict"]
     philosophy_rx = STATE["philosophy"]
     w3_human_rx = STATE["w3_human"]
     w3_ai_rx = STATE["w3_ai"]
@@ -453,14 +476,26 @@ def judge_surface(
             with CardContent(css_class="py-4 px-6"):
                 with Row(gap=4, align="center"):
                     Badge(
-                        STATE["verdict"].map(lambda v: _VERDICT_INTERPRETATIONS.get(v, _VERDICT_INTERPRETATIONS["pending"])["badge"]),
-                        variant=STATE["verdict"].map(lambda v: _VERDICT_INTERPRETATIONS.get(v, _VERDICT_INTERPRETATIONS["pending"])["variant"]),
+                        STATE["verdict"].map(
+                            lambda v: _VERDICT_INTERPRETATIONS.get(
+                                v, _VERDICT_INTERPRETATIONS["pending"]
+                            )["badge"]
+                        ),
+                        variant=STATE["verdict"].map(
+                            lambda v: _VERDICT_INTERPRETATIONS.get(
+                                v, _VERDICT_INTERPRETATIONS["pending"]
+                            )["variant"]
+                        ),
                         css_class="font-mono text-lg py-1 px-3 h-auto",
                     )
                     with Column(gap=0):
                         Heading("arifOS Metabolic Monitor", size="sm")
                         Text(
-                            STATE["verdict"].map(lambda v: _VERDICT_INTERPRETATIONS.get(v, _VERDICT_INTERPRETATIONS["pending"])["posture"]),
+                            STATE["verdict"].map(
+                                lambda v: _VERDICT_INTERPRETATIONS.get(
+                                    v, _VERDICT_INTERPRETATIONS["pending"]
+                                )["posture"]
+                            ),
                             css_class="text-sm font-medium",
                         )
 
@@ -491,19 +526,31 @@ def judge_surface(
         with Column(gap=1):
             with ForEach(floor_rows_rx):
                 from prefab_ui.rx import ITEM
-                with Card(css_class=ITEM["failed"].then("border-l-4 border-destructive", "border-l-2")):
+
+                with Card(
+                    css_class=ITEM["failed"].then("border-l-4 border-destructive", "border-l-2")
+                ):
                     with CardContent(css_class="py-2 px-3"):
                         with Row(gap=4, align="start"):
                             with Column(gap=0, css_class="w-8"):
-                                Text(ITEM["id"], css_class="font-mono text-xs font-bold text-muted-foreground")
-                            
+                                Text(
+                                    ITEM["id"],
+                                    css_class="font-mono text-xs font-bold text-muted-foreground",
+                                )
+
                             with Column(gap=0, css_class="w-24"):
                                 Text(ITEM["name"], css_class="text-sm font-medium")
-                                Badge(ITEM["type"], variant="outline", css_class="text-[9px] w-fit font-mono")
-                            
+                                Badge(
+                                    ITEM["type"],
+                                    variant="outline",
+                                    css_class="text-[9px] w-fit font-mono",
+                                )
+
                             with Column(gap=0, css_class="flex-1"):
-                                Muted(ITEM["human_meaning"], css_class="text-xs italic leading-tight")
-                            
+                                Muted(
+                                    ITEM["human_meaning"], css_class="text-xs italic leading-tight"
+                                )
+
                             Badge(
                                 ITEM["status"],
                                 variant=ITEM["failed"].then("destructive", "success"),
@@ -557,33 +604,54 @@ def judge_surface(
                         with CardContent(css_class="p-3"):
                             Muted("ΔS Entropy", css_class="text-[10px]")
                             with Row(gap=1, align="center"):
-                                Text(STATE["ds"].map(lambda v: f"{v:+.2f}"), css_class="font-mono text-sm font-bold")
+                                Text(
+                                    STATE["ds"].map(lambda v: f"{v:+.2f}"),
+                                    css_class="font-mono text-sm font-bold",
+                                )
                                 Badge(
-                                    STATE["ds"].map(lambda v: "⚠ high entropy" if v > 0.3 else "stable"),
-                                    variant=STATE["ds"].map(lambda v: "destructive" if v > 0.3 else "success"),
-                                    css_class="text-[8px] h-3 px-1"
+                                    STATE["ds"].map(
+                                        lambda v: "⚠ high entropy" if v > 0.3 else "stable"
+                                    ),
+                                    variant=STATE["ds"].map(
+                                        lambda v: "destructive" if v > 0.3 else "success"
+                                    ),
+                                    css_class="text-[8px] h-3 px-1",
                                 )
 
                     with Card():
                         with CardContent(css_class="p-3"):
                             Muted("Peace² Stability", css_class="text-[10px]")
                             with Row(gap=1, align="center"):
-                                Text(STATE["peace2"].map(lambda v: f"{v:.2f}"), css_class="font-mono text-sm font-bold")
+                                Text(
+                                    STATE["peace2"].map(lambda v: f"{v:.2f}"),
+                                    css_class="font-mono text-sm font-bold",
+                                )
                                 Badge(
-                                    STATE["peace2"].map(lambda v: "⚠ unstable" if v < 1.0 else "stable"),
-                                    variant=STATE["peace2"].map(lambda v: "destructive" if v < 1.0 else "success"),
-                                    css_class="text-[8px] h-3 px-1"
+                                    STATE["peace2"].map(
+                                        lambda v: "⚠ unstable" if v < 1.0 else "stable"
+                                    ),
+                                    variant=STATE["peace2"].map(
+                                        lambda v: "destructive" if v < 1.0 else "success"
+                                    ),
+                                    css_class="text-[8px] h-3 px-1",
                                 )
 
                     with Card():
                         with CardContent(css_class="p-3"):
                             Muted("κᵣ Empathy", css_class="text-[10px]")
                             with Row(gap=1, align="center"):
-                                Text(STATE["kappa_r"].map(lambda v: f"{v:.2f}"), css_class="font-mono text-sm font-bold")
+                                Text(
+                                    STATE["kappa_r"].map(lambda v: f"{v:.2f}"),
+                                    css_class="font-mono text-sm font-bold",
+                                )
                                 Badge(
-                                    STATE["kappa_r"].map(lambda v: "⚠ low empathy" if v < 0.7 else "aligned"),
-                                    variant=STATE["kappa_r"].map(lambda v: "warning" if v < 0.7 else "success"),
-                                    css_class="text-[8px] h-3 px-1"
+                                    STATE["kappa_r"].map(
+                                        lambda v: "⚠ low empathy" if v < 0.7 else "aligned"
+                                    ),
+                                    variant=STATE["kappa_r"].map(
+                                        lambda v: "warning" if v < 0.7 else "success"
+                                    ),
+                                    css_class="text-[8px] h-3 px-1",
                                 )
 
                 with Grid(columns=3, gap=3):
@@ -591,33 +659,54 @@ def judge_surface(
                         with CardContent(css_class="p-3"):
                             Muted("Shadow Pattern", css_class="text-[10px]")
                             with Row(gap=1, align="center"):
-                                Text(STATE["shadow"].map(lambda v: f"{v:.2f}"), css_class="font-mono text-sm font-bold")
+                                Text(
+                                    STATE["shadow"].map(lambda v: f"{v:.2f}"),
+                                    css_class="font-mono text-sm font-bold",
+                                )
                                 Badge(
-                                    STATE["shadow"].map(lambda v: "⚠ manipulation" if v > 0.3 else "clean"),
-                                    variant=STATE["shadow"].map(lambda v: "destructive" if v > 0.3 else "success"),
-                                    css_class="text-[8px] h-3 px-1"
+                                    STATE["shadow"].map(
+                                        lambda v: "⚠ manipulation" if v > 0.3 else "clean"
+                                    ),
+                                    variant=STATE["shadow"].map(
+                                        lambda v: "destructive" if v > 0.3 else "success"
+                                    ),
+                                    css_class="text-[8px] h-3 px-1",
                                 )
 
                     with Card():
                         with CardContent(css_class="p-3"):
                             Muted("Constitutional Conf.", css_class="text-[10px]")
                             with Row(gap=1, align="center"):
-                                Text(STATE["confidence"].map(lambda v: f"{v:.2f}"), css_class="font-mono text-sm font-bold")
+                                Text(
+                                    STATE["confidence"].map(lambda v: f"{v:.2f}"),
+                                    css_class="font-mono text-sm font-bold",
+                                )
                                 Badge(
-                                    STATE["confidence"].map(lambda v: "⚠ low conf" if v < 0.5 else "solid"),
-                                    variant=STATE["confidence"].map(lambda v: "warning" if v < 0.5 else "success"),
-                                    css_class="text-[8px] h-3 px-1"
+                                    STATE["confidence"].map(
+                                        lambda v: "⚠ low conf" if v < 0.5 else "solid"
+                                    ),
+                                    variant=STATE["confidence"].map(
+                                        lambda v: "warning" if v < 0.5 else "success"
+                                    ),
+                                    css_class="text-[8px] h-3 px-1",
                                 )
 
                     with Card():
                         with CardContent(css_class="p-3"):
                             Muted("Witness Alignment", css_class="text-[10px]")
                             with Row(gap=1, align="center"):
-                                Text(STATE["witness_score"].map(lambda v: f"{v:.2f}"), css_class="font-mono text-sm font-bold")
+                                Text(
+                                    STATE["witness_score"].map(lambda v: f"{v:.2f}"),
+                                    css_class="font-mono text-sm font-bold",
+                                )
                                 Badge(
-                                    STATE["witness_score"].map(lambda v: "⚠ divergence" if v < 0.9 else "aligned"),
-                                    variant=STATE["witness_score"].map(lambda v: "destructive" if v < 0.9 else "success"),
-                                    css_class="text-[8px] h-3 px-1"
+                                    STATE["witness_score"].map(
+                                        lambda v: "⚠ divergence" if v < 0.9 else "aligned"
+                                    ),
+                                    variant=STATE["witness_score"].map(
+                                        lambda v: "destructive" if v < 0.9 else "success"
+                                    ),
+                                    css_class="text-[8px] h-3 px-1",
                                 )
 
         Separator()
@@ -630,8 +719,13 @@ def judge_surface(
                     with CardContent(css_class="py-4"):
                         with ForEach(STATE["next_actions"]):
                             from prefab_ui.rx import ITEM as ACTION
+
                             with Row(gap=3, align="center", css_class="py-1"):
-                                Badge("ACTION", variant="secondary", css_class="text-[9px] h-4 font-bold")
+                                Badge(
+                                    "ACTION",
+                                    variant="secondary",
+                                    css_class="text-[9px] h-4 font-bold",
+                                )
                                 Text(ACTION, css_class="text-sm font-medium")
             Separator()
 
@@ -651,14 +745,14 @@ def judge_surface(
                 variant="default",
                 css_class="w-full h-10 font-bold",
             )
-        
+
         Muted(
             "dry_run=True until human SEAL. 888_HOLD is a feature, not a bug.",
             css_class="text-[10px] text-center",
         )
 
         Separator()
-        
+
         # ── Sovereign Footer (CHANGE-06) ────────────────────────────────────
         with Column(gap=1, align="center"):
             Muted(

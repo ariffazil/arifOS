@@ -27,9 +27,9 @@ confidence: 0.75
 
 # Horizon 2: The Multi-Agent Swarm
 
-> **Goal**: Safe, Governed Autonomy  
-> **Timeline**: H2 2026 (July–December)  
-> **Status**: 🚧 Design Phase (1/6 complete)  
+> **Goal**: Safe, Governed Autonomy
+> **Timeline**: H2 2026 (July–December)
+> **Status**: 🚧 Design Phase (1/6 complete)
 > **Risk Tier**: Medium
 
 ---

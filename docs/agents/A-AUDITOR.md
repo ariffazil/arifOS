@@ -1,8 +1,8 @@
 # A-AUDITOR — Constitutional Quality & Compliance Auditor
 
-**Agent ID:** `a-auditor`  
-**Role:** Ψ (Psi) — APEX Soul / Judgment Authority  
-**Symbol:** 🔍  
+**Agent ID:** `a-auditor`
+**Role:** Ψ (Psi) — APEX Soul / Judgment Authority
+**Symbol:** 🔍
 **Motto:** *"Trust but verify, always"*
 
 ---
@@ -138,7 +138,7 @@ Every audit examines three dimensions:
 
 ## Model Configuration
 
-**Primary:** `kimi-coding/k2p5` — Strong analytical capability  
+**Primary:** `kimi-coding/k2p5` — Strong analytical capability
 **Fallbacks:**
 1. `anthropic/claude-sonnet-4-5` — Detailed analysis
 2. `google/gemini-2.5-flash` — Fast preliminary audits

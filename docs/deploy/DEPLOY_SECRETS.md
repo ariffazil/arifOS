@@ -1,6 +1,6 @@
 # DEPLOY_SECRETS.md — Production Secrets Management
 
-> **Constitutional Floor:** F11 (Command Authority)  
+> **Constitutional Floor:** F11 (Command Authority)
 > **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
 This document governs the secure management of cryptographic secrets for arifOS MCP production deployments. The `ARIFOS_GOVERNANCE_SECRET` is the root of trust for all authentication contexts.
@@ -143,7 +143,7 @@ services:
       - ARIFOS_GOVERNANCE_SECRET_FILE=/run/secrets/governance_secret
       - ARIFOS_SESSION_SECRET_FILE=/run/secrets/session_secret
       - ARIFOS_ENV=production
-    
+
   postgres:
     image: postgres:16-alpine
     secrets:
@@ -282,7 +282,7 @@ import secrets
 
 def verify_governance_secret():
     """Verify ARIFOS_GOVERNANCE_SECRET is properly configured."""
-    
+
     # Check file-based secret first (production)
     secret_file = os.environ.get('ARIFOS_GOVERNANCE_SECRET_FILE')
     if secret_file and os.path.exists(secret_file):
@@ -297,17 +297,17 @@ def verify_governance_secret():
         else:
             print("✗ ARIFOS_GOVERNANCE_SECRET not configured")
             return False
-    
+
     # Validate entropy
     if len(secret) < 32:
         print(f"✗ Secret too short: {len(secret)} chars (min 32)")
         return False
-    
+
     # Check for high entropy (not predictable)
     unique_chars = len(set(secret))
     if unique_chars < 20:
         print(f"⚠ Low entropy: {unique_chars} unique chars (recommend >20)")
-    
+
     print(f"✓ Secret validated: {len(secret)} chars, {unique_chars} unique")
     return True
 
@@ -353,6 +353,6 @@ async def health_check():
 
 ---
 
-**Version:** 2026.03.12-SEAL  
-**Floor:** F11-STABLE  
+**Version:** 2026.03.12-SEAL
+**Floor:** F11-STABLE
 **Status:** ACTIVE

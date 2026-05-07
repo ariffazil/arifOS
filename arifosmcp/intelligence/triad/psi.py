@@ -43,7 +43,9 @@ class PsiShadow:
             if "production" in text or "users table" in text or "database" in text:
                 harm_scenarios.append({"type": "DATA_LOSS", "detail": "production destruction"})
             else:
-                harm_scenarios.append({"type": "UNSAFE_DESTRUCTION", "detail": "destructive action"})
+                harm_scenarios.append(
+                    {"type": "UNSAFE_DESTRUCTION", "detail": "destructive action"}
+                )
 
         if "system logs" in text or "logs" in text:
             entropy_assessment = {"entropy_increases": True, "destructive_component": True}
@@ -58,7 +60,15 @@ class PsiShadow:
             and not harm_scenarios
         )
 
-        verdict = "APPROVE" if is_safe else "REJECT" if (logical_contradictions or injection_vectors or harm_scenarios) else "APPROVE"
+        verdict = (
+            "APPROVE"
+            if is_safe
+            else (
+                "REJECT"
+                if (logical_contradictions or injection_vectors or harm_scenarios)
+                else "APPROVE"
+            )
+        )
 
         if verdict == "REJECT":
             confidence = 0.95

@@ -17,7 +17,9 @@ async def test_engineering_memory_query_falls_back_without_vector_backend(monkey
         )
 
     monkeypatch.setattr("arifosmcp.runtime.tools_internal._constitutional_memory_store", None)
-    monkeypatch.setattr("arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
+    monkeypatch.setattr(
+        "arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None
+    )
     monkeypatch.setattr("arifosmcp.runtime.tools_internal._az_memory_query", fake_query)
 
     result = await engineering_memory_dispatch_impl(
@@ -34,9 +36,13 @@ async def test_engineering_memory_query_falls_back_without_vector_backend(monkey
 
 
 @pytest.mark.asyncio
-async def test_engineering_memory_write_degrades_to_backend_none_without_vector_backend(monkeypatch):
+async def test_engineering_memory_write_degrades_to_backend_none_without_vector_backend(
+    monkeypatch,
+):
     monkeypatch.setattr("arifosmcp.runtime.tools_internal._constitutional_memory_store", None)
-    monkeypatch.setattr("arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
+    monkeypatch.setattr(
+        "arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None
+    )
 
     result = await engineering_memory_dispatch_impl(
         "write",
@@ -52,10 +58,13 @@ async def test_engineering_memory_write_degrades_to_backend_none_without_vector_
     assert result.verdict == Verdict.SEAL
     assert result.payload["backend"] == "none"
 
+
 @pytest.mark.asyncio
 async def test_engineering_memory_vector_forget_no_backend_returns_not_implemented(monkeypatch):
     monkeypatch.setattr("arifosmcp.runtime.tools_internal._constitutional_memory_store", None)
-    monkeypatch.setattr("arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None)
+    monkeypatch.setattr(
+        "arifosmcp.runtime.tools_internal._get_constitutional_memory_store", lambda: None
+    )
 
     result = await engineering_memory_dispatch_impl(
         "vector_forget",

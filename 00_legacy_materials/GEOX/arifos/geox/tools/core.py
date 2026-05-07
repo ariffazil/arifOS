@@ -49,6 +49,7 @@ from ..contracts.types import (
 # Seismic Tools
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def geox_load_seismic_line(
     line_id: str,
     survey_path: str = "default_survey",
@@ -57,11 +58,11 @@ async def geox_load_seismic_line(
 ) -> SeismicLineResult:
     """
     Load seismic data and ignite visual mode (Earth Witness Ignition).
-    
+
     Transport-agnostic core implementation.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     # Build stub views (or real views if seismic engine available)
     if seismic_engine_available:
         # Would call actual seismic engine here
@@ -75,7 +76,7 @@ async def geox_load_seismic_line(
                 "note": "Real seismic contrast generation not executed in this environment.",
             }
         ]
-    
+
     # Build structured view if requested
     structured = None
     if generate_views:
@@ -86,7 +87,7 @@ async def geox_load_seismic_line(
             views=views,
         )
         structured["timestamp"] = timestamp.isoformat()
-    
+
     return SeismicLineResult(
         status="SEAL",
         timestamp=timestamp,
@@ -104,25 +105,25 @@ async def geox_build_structural_candidates(
 ) -> StructuralCandidatesResult:
     """
     Build structural model candidates (Inverse Modelling Constraints).
-    
+
     Prevents narrative collapse by maintaining multiple candidate models.
     Confidence bounded at 12% per F7 Humility.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     candidates: list[dict[str, Any]] = []
-    
+
     if seismic_engine_available:
         # Would call SeismicSingleLineTool here
         pass
-    
+
     # Generate default candidates if none from engine
     if not candidates:
         candidates = [
             {"id": f"{line_id}_candidate_{i}", "type": "structural", "confidence": 0.12}
             for i in range(3)
         ]
-    
+
     return StructuralCandidatesResult(
         status="SEAL",
         timestamp=timestamp,
@@ -138,20 +139,21 @@ async def geox_build_structural_candidates(
 # Evaluation Tools
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def geox_feasibility_check(
     plan_id: str,
     constraints: list[str],
 ) -> FeasibilityResult:
     """
     Constitutional Firewall: Check if a proposed plan is physically possible.
-    
+
     Returns F1-F13 floor status and SEAL/HOLD verdict.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     verdict = "PHYSICALLY_FEASIBLE"
     grounding_confidence = 0.88
-    
+
     return FeasibilityResult(
         status="SEAL",
         timestamp=timestamp,
@@ -169,15 +171,15 @@ async def geox_verify_geospatial(
 ) -> GeospatialVerificationResult:
     """
     Verify geospatial grounding and jurisdictional boundaries.
-    
+
     Anchors all reasoning in verified coordinates per F4 Clarity.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     geological_province = "Malay Basin"
     jurisdiction = "EEZ_Grounded"
     verdict = "GEOSPATIALLY_VALID"
-    
+
     return GeospatialVerificationResult(
         status="SEAL",
         timestamp=timestamp,
@@ -197,15 +199,15 @@ async def geox_evaluate_prospect(
 ) -> ProspectEvaluationResult:
     """
     Provide a governed verdict on a subsurface prospect (222_REFLECT).
-    
+
     Blocks ungrounded claims via Reality Firewall.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     verdict = "PHYSICAL_GROUNDING_REQUIRED"
     confidence = 0.45
     reason = "Wait for well-tie calibration per F9 Anti-Hantu floor."
-    
+
     return ProspectEvaluationResult(
         status="888_HOLD",
         timestamp=timestamp,
@@ -221,6 +223,7 @@ async def geox_evaluate_prospect(
 # Memory Tools
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def geox_query_memory(
     query: str,
     basin: str | None = None,
@@ -229,21 +232,21 @@ async def geox_query_memory(
 ) -> MemoryQueryResult:
     """
     Query the GEOX geological memory store for past evaluations.
-    
+
     Retrieves stored prospect evaluations, verdicts, and geological context.
     """
     timestamp = datetime.now(timezone.utc)
     limit = min(max(1, limit), 20)
-    
+
     results: list[dict[str, Any]] = []
-    
+
     if memory_store is not None:
         try:
             # Would call memory_store.retrieve() here
             pass
         except Exception:
             pass
-    
+
     return MemoryQueryResult(
         status="SEAL",
         timestamp=timestamp,
@@ -259,6 +262,7 @@ async def geox_query_memory(
 # Petrophysics Tools
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def geox_calculate_saturation(
     model: Literal["archie", "simandoux", "indonesia"],
     params: dict[str, Any],
@@ -267,14 +271,14 @@ async def geox_calculate_saturation(
 ) -> SwCalculationResult:
     """
     Calculate water saturation (Sw) with Monte Carlo uncertainty.
-    
+
     Constitutional Floors:
     - F2 Truth: Models grounded in formal petrophysics
     - F7 Humility: Returns P10/P50/P90 confidence bands
     - F13 Sovereign: Triggers 888_HOLD if physics violated
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     if not physics_engine_available:
         return SwCalculationResult(
             status="888_HOLD",
@@ -285,13 +289,13 @@ async def geox_calculate_saturation(
             hold_triggers=["Physics engine unavailable"],
             requires_hold=True,
         )
-    
+
     # Standardize params
     defaults = {"a": 1.0, "m": 2.0, "n": 2.0}
     for k, v in defaults.items():
         if k not in params:
             params[k] = v
-    
+
     # Build SwInputParams from dict
     sw_params = SwInputParams(
         rw=params["rw"],
@@ -303,10 +307,10 @@ async def geox_calculate_saturation(
         vcl=params.get("vcl"),
         rsh=params.get("rsh"),
     )
-    
+
     # Run Monte Carlo
     mc_result = monte_carlo_sw(model, sw_params, n_samples)
-    
+
     return SwCalculationResult(
         status=mc_result.verdict,
         timestamp=timestamp,
@@ -336,12 +340,12 @@ async def geox_select_sw_model(
 ) -> SwModelAdmissibilityResult:
     """
     Evaluate Sw model admissibility from log QC flags.
-    
+
     Applies constitutional QC rules to determine which water saturation model
     may be used for the interval.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     if not petro_schemas_available:
         return SwModelAdmissibilityResult(
             status="UNAVAILABLE",
@@ -354,7 +358,7 @@ async def geox_select_sw_model(
             hold_reasons=["Petrophysics schemas not loaded"],
             confidence=0.0,
         )
-    
+
     # Run admissibility checks
     admissibility = check_sw_model_admissibility(
         has_deep_resistivity=has_deep_resistivity,
@@ -364,23 +368,23 @@ async def geox_select_sw_model(
         vsh_max=vsh_max,
         borehole_quality=borehole_quality,
     )
-    
+
     # Extract admissible models
     admissible = [m for m, r in admissibility.items() if r.passed]
     inadmissible = {m: r.violations for m, r in admissibility.items() if not r.passed}
-    
+
     # Determine recommended model
     hold_reasons: list[str] = []
     requires_hold = False
-    
+
     if borehole_quality == "poor":
         hold_reasons.append("Borehole quality 'poor' — all resistivity-based Sw models unreliable.")
         admissible = []
-    
+
     if not has_deep_resistivity:
         hold_reasons.append("Deep resistivity curve absent — cannot compute Sw.")
         admissible = []
-    
+
     if not admissible:
         requires_hold = True
         recommended = "none"
@@ -392,12 +396,12 @@ async def geox_select_sw_model(
             recommended = admissible[0]
     else:
         recommended = admissible[0]
-    
+
     # F7 confidence
     confidence = 0.12 if borehole_quality == "fair" else 0.08
     if has_washout:
         confidence = min(confidence, 0.10)
-    
+
     return SwModelAdmissibilityResult(
         status="888_HOLD" if requires_hold else "SEAL",
         timestamp=timestamp,
@@ -430,11 +434,11 @@ async def geox_compute_petrophysics(
 ) -> PetrophysicsResult:
     """
     Full petrophysics property pipeline — Vsh, PHIe, Sw, BVW.
-    
+
     Runs the selected Sw model with optional Monte Carlo uncertainty.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     if not petro_schemas_available:
         return PetrophysicsResult(
             status="UNAVAILABLE",
@@ -448,7 +452,7 @@ async def geox_compute_petrophysics(
             uncertainty=0.0,
             audit_id="PETRO-UNAVAILABLE",
         )
-    
+
     # Validate sw_model
     valid_models = ("archie", "simandoux", "indonesia")
     if sw_model not in valid_models:
@@ -466,14 +470,14 @@ async def geox_compute_petrophysics(
             requires_hold=True,
             audit_id=f"HOLD-{uuid.uuid4().hex[:8].upper()}",
         )
-    
+
     # Run saturation computation
     hold_triggers: list[str] = []
     mc_stats: dict[str, Any] | None = None
-    
+
     if phi_fraction > 0.45:
         hold_triggers.append(f"PHI ({phi_fraction:.3f}) > 0.45 — above physical maximum")
-    
+
     sw_nominal = 1.0
     if physics_engine_available and run_monte_carlo:
         mc_params = SwInputParams(
@@ -487,7 +491,7 @@ async def geox_compute_petrophysics(
         if sw_model in ("simandoux", "indonesia") and rsh_ohm_m is not None:
             mc_params.vcl = (vcl_fraction, vcl_fraction * 0.10 + 0.01)
             mc_params.rsh = (rsh_ohm_m, rsh_ohm_m * 0.05)
-        
+
         try:
             mc_result = monte_carlo_sw(sw_model, mc_params, n_samples=min(mc_samples, 5000))
             mc_stats = mc_result.stats
@@ -501,18 +505,18 @@ async def geox_compute_petrophysics(
         sw_nominal = calculate_sw_archie(
             rw_ohm_m, rt_ohm_m, phi_fraction, archie_a, archie_m, archie_n
         )
-    
+
     sw_nominal = min(sw_nominal, 1.05)
     bvw = sw_nominal * phi_fraction
-    
+
     if sw_nominal > 1.0:
         hold_triggers.append(f"Sw ({sw_nominal:.3f}) > 1.0 — physical impossibility")
-    
+
     uncertainty = 0.09 if mc_stats else 0.12
     requires_hold = len(hold_triggers) > 0
-    
+
     audit_id = f"PETRO-{uuid.uuid4().hex[:8].upper()}"
-    
+
     return PetrophysicsResult(
         status="888_HOLD" if requires_hold else "SEAL",
         timestamp=timestamp,
@@ -551,7 +555,7 @@ async def geox_validate_cutoffs(
     Apply a CutoffPolicy to petrophysical values and classify pay vs non-pay.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     if not petro_schemas_available:
         return CutoffValidationResult(
             status="UNAVAILABLE",
@@ -570,10 +574,10 @@ async def geox_validate_cutoffs(
             cutoffs={},
             audit_id="CUT-UNAVAILABLE",
         )
-    
+
     violations: list[str] = []
     requires_hold = False
-    
+
     # F2 Truth: Physical plausibility
     if sw_tested > 1.0:
         violations.append(f"Sw ({sw_tested:.3f}) > 1.0 — physically impossible")
@@ -581,14 +585,14 @@ async def geox_validate_cutoffs(
     if phi_tested > 0.50:
         violations.append(f"PHIe ({phi_tested:.3f}) > 0.50 — above physical maximum")
         requires_hold = True
-    
+
     phi_pass = phi_tested >= phi_cutoff
     sw_pass = sw_tested < sw_cutoff
     vcl_pass = vcl_tested < vcl_cutoff
     rt_pass: bool | None = None
     if rt_cutoff is not None and rt_tested is not None:
         rt_pass = rt_tested >= rt_cutoff
-    
+
     if not phi_pass:
         violations.append(f"PHIe {phi_tested:.3f} < cutoff {phi_cutoff:.3f}")
     if not sw_pass:
@@ -597,12 +601,12 @@ async def geox_validate_cutoffs(
         violations.append(f"Vcl {vcl_tested:.3f} ≥ cutoff {vcl_cutoff:.3f}")
     if rt_pass is False:
         violations.append(f"Rt {rt_tested} < cutoff {rt_cutoff}")
-    
+
     is_net_reservoir = phi_pass and vcl_pass and not requires_hold
     is_net_pay = is_net_reservoir and sw_pass
-    
+
     audit_id = f"CUT-{uuid.uuid4().hex[:8].upper()}"
-    
+
     return CutoffValidationResult(
         status="888_HOLD" if requires_hold else "SEAL",
         timestamp=timestamp,
@@ -651,7 +655,7 @@ async def geox_petrophysical_hold_check(
     Constitutional floor check for petrophysical outputs — triggers 888_HOLD.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     if not petro_schemas_available:
         return PetrophysicsHoldResult(
             status="UNAVAILABLE",
@@ -665,25 +669,25 @@ async def geox_petrophysical_hold_check(
             severity="block",
             requires_human_signoff=True,
         )
-    
+
     # Run individual checks
     checks = {}
-    
+
     if run_f2_check:
         checks["f2"] = check_f2_truth(sw_value, phi_value, vcl_value)
-    
+
     if run_f4_check:
         checks["f4"] = check_f4_clarity(has_deep_resistivity)
-    
+
     if run_f7_check:
         checks["f7"] = check_f7_humility(uncertainty)
-    
+
     if run_f9_check:
         checks["f9"] = check_f9_anti_hantu(borehole_quality, sw_model)
-    
+
     # Aggregate results
     aggregated = run_constitutional_checks(checks)
-    
+
     if aggregated.passed:
         return PetrophysicsHoldResult(
             status="SEAL",
@@ -697,9 +701,9 @@ async def geox_petrophysical_hold_check(
             severity="info",
             requires_human_signoff=False,
         )
-    
+
     hold_id = f"HOLD-{uuid.uuid4().hex[:8].upper()}"
-    
+
     return PetrophysicsHoldResult(
         status="888_HOLD",
         timestamp=timestamp,
@@ -718,6 +722,7 @@ async def geox_petrophysical_hold_check(
 # Health Check
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 async def geox_health(
     geox_version: str = "0.5.0",
     prefab_ui_available: bool = False,
@@ -728,7 +733,7 @@ async def geox_health(
     Server health check with constitutional floor status.
     """
     timestamp = datetime.now(timezone.utc)
-    
+
     return HealthResult(
         status="SEAL",
         timestamp=timestamp,
@@ -738,7 +743,12 @@ async def geox_health(
         prefab_ui=prefab_ui_available,
         seismic_engine=seismic_engine_available,
         constitutional_floors=[
-            "F1_amanah", "F2_truth", "F4_clarity", "F7_humility",
-            "F9_anti_hantu", "F11_authority", "F13_sovereign",
+            "F1_amanah",
+            "F2_truth",
+            "F4_clarity",
+            "F7_humility",
+            "F9_anti_hantu",
+            "F11_authority",
+            "F13_sovereign",
         ],
     )

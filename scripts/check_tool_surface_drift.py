@@ -34,15 +34,27 @@ class SurfaceCheck:
 FULL_SURFACES: tuple[SurfaceCheck, ...] = (
     SurfaceCheck("runtime.handlers", ROOT / "arifosmcp" / "runtime" / "tools.py", "full"),
     SurfaceCheck("runtime.stdio", ROOT / "arifosmcp" / "runtime" / "__main__.py", "full"),
-    SurfaceCheck("runtime.hardened_dispatch", ROOT / "arifosmcp" / "runtime" / "tools_hardened_dispatch.py", "full"),
+    SurfaceCheck(
+        "runtime.hardened_dispatch",
+        ROOT / "arifosmcp" / "runtime" / "tools_hardened_dispatch.py",
+        "full",
+    ),
     SurfaceCheck("transport.resources", ROOT / "arifosmcp" / "runtime" / "resources.py", "full"),
     SurfaceCheck("transport.registry_json", ROOT / "arifosmcp" / "tool_registry.json", "full"),
     SurfaceCheck("wiki.mcp_inventory", ROOT / "wiki" / "pages" / "MCP_Tools.md", "full"),
-    SurfaceCheck("wiki.surface_architecture", ROOT / "wiki" / "pages" / "Tool_Surface_Architecture.md", "full"),
+    SurfaceCheck(
+        "wiki.surface_architecture",
+        ROOT / "wiki" / "pages" / "Tool_Surface_Architecture.md",
+        "full",
+    ),
 )
 
 COUNT_HINT_SURFACES: tuple[SurfaceCheck, ...] = (
-    SurfaceCheck("transport.public_registry", ROOT / "arifosmcp" / "runtime" / "public_registry.py", "count_hint"),
+    SurfaceCheck(
+        "transport.public_registry",
+        ROOT / "arifosmcp" / "runtime" / "public_registry.py",
+        "count_hint",
+    ),
 )
 
 AUDITED_CODE_SURFACES: tuple[Path, ...] = (
@@ -194,7 +206,9 @@ def main() -> int:
     print("\n== Alias Usage ==")
     for path in AUDITED_CODE_SURFACES:
         text = _read_text(path)
-        hits = sorted(alias for alias in legacy_aliases if re.search(rf"\b{re.escape(alias)}\b", text))
+        hits = sorted(
+            alias for alias in legacy_aliases if re.search(rf"\b{re.escape(alias)}\b", text)
+        )
         if hits:
             print(f"* {_format_path(path)} -> {hits}")
 

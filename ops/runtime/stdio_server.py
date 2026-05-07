@@ -36,7 +36,7 @@ def main():
     print("   Transport: STDIO", file=sys.stderr)
     print("   Server: Unified (root server.py)", file=sys.stderr)
     print("   Floors: F1-F13 (constitutional governance enabled)", file=sys.stderr)
-    
+
     # Run unified server in stdio mode
     try:
         # Pass transport explicitly to avoid picking up bridge/HTTP defaults

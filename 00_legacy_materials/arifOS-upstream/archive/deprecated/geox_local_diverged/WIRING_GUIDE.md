@@ -112,7 +112,7 @@ In your arifOS configuration (wherever your MCP server registry is defined — l
 # /opt/arifos/config/mcp_servers.yaml
 mcp_servers:
   # ... existing servers ...
-  
+
   - name: geox
     description: "GEOX — Geological Intelligence Coprocessor"
     url: http://geox_server:8100/mcp
@@ -248,7 +248,7 @@ async def main():
     )
 
     response = await agent.evaluate_prospect(request)
-    
+
     print(f"Verdict: {response.verdict}")
     print(f"Confidence: {response.confidence_aggregate:.2f}")
     print(f"Hold: {response.arifos_telemetry['hold']}")

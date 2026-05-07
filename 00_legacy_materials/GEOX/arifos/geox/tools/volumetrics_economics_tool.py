@@ -32,15 +32,17 @@ from arifos.geox.geox_schemas import CoordinatePoint
 
 logger = logging.getLogger("geox.tools.volumetrics_economics")
 
+
 @dataclass
 class VolumetricInputs:
     area_km2: float  # Top surface area
-    h_m: float       # Net pay thickness
-    phi: float       # Average porosity
-    sw: float        # Average water saturation
-    ng: float        # Net-to-gross ratio
-    bo: float        # Oil formation volume factor (or bg for gas)
-    rf: float        # Recovery factor (0.0 - 1.0)
+    h_m: float  # Net pay thickness
+    phi: float  # Average porosity
+    sw: float  # Average water saturation
+    ng: float  # Net-to-gross ratio
+    bo: float  # Oil formation volume factor (or bg for gas)
+    rf: float  # Recovery factor (0.0 - 1.0)
+
 
 @dataclass
 class EconomicInputs:
@@ -48,16 +50,15 @@ class EconomicInputs:
     capex_m_usd: float
     opex_per_bbl: float
     discount_rate: float
-    pos: float       # Probability of Success (0.0 - 1.0)
+    pos: float  # Probability of Success (0.0 - 1.0)
+
 
 def run_stochastic_volumetrics(
-    inputs: VolumetricInputs, 
-    uncert: float = 0.2, 
-    n_samples: int = 5000
+    inputs: VolumetricInputs, uncert: float = 0.2, n_samples: int = 5000
 ) -> dict[str, Any]:
     """Calculate STOIIP and Recoverable volumes using Monte Carlo."""
     rng = np.random.default_rng()
-    
+
     # Area (Lognormal)
     area = rng.lognormal(np.log(inputs.area_km2), uncert, n_samples)
     # Thickness (Normal)
@@ -72,14 +73,14 @@ def run_stochastic_volumetrics(
     # N/G (Normal)
     ng = rng.normal(inputs.ng, inputs.ng * uncert * 0.5, n_samples)
     ng = np.clip(ng, 0, 1.0)
-    
+
     # STOIIP Calculation (MMbbl)
     # STOIIP = (Area * 1e6 * Thickness * N/G * Phi * (1 - Sw)) / Bo / 1e6 (for MMbbl)
     stoiip = (area * 1e6 * thickness * ng * phi * (1 - sw)) / inputs.bo / 1e6
-    
+
     # Recoverable (MMbbl)
     recoverable = stoiip * inputs.rf
-    
+
     return {
         "stoiip_mean": float(np.mean(stoiip)),
         "stoiip_p90": float(np.percentile(stoiip, 10)),
@@ -87,11 +88,12 @@ def run_stochastic_volumetrics(
         "stoiip_p10": float(np.percentile(stoiip, 90)),
         "recoverable_mean": float(np.mean(recoverable)),
         "recoverable_p50": float(np.percentile(recoverable, 50)),
-        "samples_stoiip": stoiip.tolist()[:100], # Return subset for plotting
+        "samples_stoiip": stoiip.tolist()[:100],  # Return subset for plotting
     }
 
+
 def run_economics(
-    volumes_mmbbl: float, 
+    volumes_mmbbl: float,
     econ: EconomicInputs,
 ) -> dict[str, Any]:
     """Simple prospect economics (Project NPV/EMV)."""
@@ -99,22 +101,23 @@ def run_economics(
     total_rev = volumes_mmbbl * 1e6 * econ.price_per_bbl
     # OPEX = Vol * Opex_per_bbl
     total_opex = volumes_mmbbl * 1e6 * econ.opex_per_bbl
-    
+
     # Simple NPV (Undiscounted for now, or single year)
     # Real economics would have a production profile over time.
     # For this 'Void' tool, we use a simplified EMV approach.
-    
+
     success_case_profit = total_rev - total_opex - (econ.capex_m_usd * 1e6)
-    failure_case_loss = -(econ.capex_m_usd * 1e6) * 0.1 # Sunk cost of exploration well
-    
+    failure_case_loss = -(econ.capex_m_usd * 1e6) * 0.1  # Sunk cost of exploration well
+
     emv = (success_case_profit * econ.pos) + (failure_case_loss * (1 - econ.pos))
-    
+
     return {
         "success_npv_m_usd": round(success_case_profit / 1e6, 2),
         "emv_m_usd": round(emv / 1e6, 2),
         "profitability_index": round(success_case_profit / (econ.capex_m_usd * 1e6), 2),
         "pos": econ.pos,
     }
+
 
 class VolumetricsEconomicsTool(BaseTool):
     """
@@ -174,7 +177,7 @@ class VolumetricsEconomicsTool(BaseTool):
 
         # Run Volumetrics
         vol_results = run_stochastic_volumetrics(vol_inputs)
-        
+
         # Run Economics on P50
         econ_results = run_economics(vol_results["recoverable_p50"], econ_inputs)
 
@@ -203,7 +206,7 @@ class VolumetricsEconomicsTool(BaseTool):
             "explanation": (
                 f"Prospect deemed {'QUALIFIED' if econ_results['emv_m_usd'] > 0 else 'HOLD'} "
                 f"based on EMV of ${econ_results['emv_m_usd']}M at {econ_inputs.pos:.0%} PoS."
-            )
+            ),
         }
 
         return GeoToolResult(

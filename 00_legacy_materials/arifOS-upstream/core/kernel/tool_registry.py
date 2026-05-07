@@ -14,10 +14,12 @@ from typing import Any
 @dataclass
 class ToolContract:
     """Definition of a tool contract."""
+
     name: str
     description: str
     schema: dict[str, Any]
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 class ToolContractRegistry:
     """
@@ -28,13 +30,16 @@ class ToolContractRegistry:
     def __init__(self):
         self._tools: dict[str, ToolContract] = {}
 
-    def register_tool(self, name: str, description: str, schema: dict[str, Any], metadata: dict[str, Any] | None = None):
+    def register_tool(
+        self,
+        name: str,
+        description: str,
+        schema: dict[str, Any],
+        metadata: dict[str, Any] | None = None,
+    ):
         """Register a new tool contract."""
         self._tools[name] = ToolContract(
-            name=name,
-            description=description,
-            schema=schema,
-            metadata=metadata or {}
+            name=name, description=description, schema=schema, metadata=metadata or {}
         )
 
     def get_tool_contract(self, name: str) -> ToolContract | None:
@@ -54,10 +59,12 @@ class ToolContractRegistry:
         # Simple schema validation logic for parameters
         expected_params = contract.schema.get("parameters", {}).get("properties", {})
         for param, schema_info in expected_params.items():
-            if param not in params and param in contract.schema.get("parameters", {}).get("required", []):
+            if param not in params and param in contract.schema.get("parameters", {}).get(
+                "required", []
+            ):
                 return False
             # Further type-checking could be added here
-        
+
         return True
 
     def get_all_contracts(self) -> list[ToolContract]:

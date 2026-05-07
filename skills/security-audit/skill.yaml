@@ -8,11 +8,11 @@ requirements:
     scan_depth: deep
     pattern_matching: true
     behavioral_analysis: true
-  
+
   F9_AntiHantu:
     consciousness_claims: block
     deception_detection: true
-  
+
   F5_Peace:
     non_destructive: true
     safe_execution: true

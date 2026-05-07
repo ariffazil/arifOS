@@ -46,37 +46,32 @@ from arifos.geox.geox_tools import BaseTool, GeoToolResult
 
 _MALAY_BASIN_RANGES = {
     # Velocity (m/s): shallow sands 2200–2800, deeper carbonates 3200–3800
-    "vp_shallow_ms":   (2200.0, 2800.0),  # Pliocene–Miocene clastics, <1500 m
-    "vp_mid_ms":       (2600.0, 3200.0),  # Early Miocene, 1500–3000 m
-    "vp_deep_ms":      (3000.0, 3800.0),  # Oligocene and deeper, >3000 m
-
+    "vp_shallow_ms": (2200.0, 2800.0),  # Pliocene–Miocene clastics, <1500 m
+    "vp_mid_ms": (2600.0, 3200.0),  # Early Miocene, 1500–3000 m
+    "vp_deep_ms": (3000.0, 3800.0),  # Oligocene and deeper, >3000 m
     # S-wave velocity (m/s): typically ~0.55–0.60 × Vp for wet sandstones
     "vs_ratio": (0.55, 0.60),
-
     # Porosity (fraction): decreases with depth
     "phi_shallow": (0.20, 0.28),
-    "phi_mid":     (0.13, 0.22),
-    "phi_deep":    (0.08, 0.16),
-
+    "phi_mid": (0.13, 0.22),
+    "phi_deep": (0.08, 0.16),
     # Bulk density (g/cm3): increases with depth / compaction
     "rho_shallow": (2.10, 2.35),
-    "rho_mid":     (2.25, 2.50),
-    "rho_deep":    (2.40, 2.65),
-
+    "rho_mid": (2.25, 2.50),
+    "rho_deep": (2.40, 2.65),
     # Net-to-gross ratio (fraction)
-    "ntg":         (0.25, 0.85),
-
+    "ntg": (0.25, 0.85),
     # Acoustic impedance (MRayl = 10^6 kg/m2/s)
     # AI = Vp * rho; approximate for realism check
-    "ai_range":    (4.6, 9.9),
-
+    "ai_range": (4.6, 9.9),
     # Vp/Vs ratio (dimensionless): ~1.7–2.2 for water-saturated sands
-    "vpvs_ratio":  (1.72, 2.15),
+    "vpvs_ratio": (1.72, 2.15),
 }
 
 # ---------------------------------------------------------------------------
 # Depth zone classifier
 # ---------------------------------------------------------------------------
+
 
 def _depth_zone(depth_m: float) -> str:
     """Classify depth into shallow / mid / deep for parameter selection."""
@@ -91,6 +86,7 @@ def _depth_zone(depth_m: float) -> str:
 # ---------------------------------------------------------------------------
 # MockEarthNetTool
 # ---------------------------------------------------------------------------
+
 
 class MockEarthNetTool(BaseTool):
     """
@@ -131,7 +127,7 @@ class MockEarthNetTool(BaseTool):
         if not isinstance(inputs["location"], CoordinatePoint):
             return False
         dr = inputs["depth_range_m"]
-        if not (isinstance(dr, (list, tuple)) and len(dr) == 2):
+        if not (isinstance(dr, list | tuple) and len(dr) == 2):
             return False
         return True
 
@@ -261,6 +257,7 @@ class MockEarthNetTool(BaseTool):
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _build_mock_prov(source_id: str, source_type: str, confidence: float) -> ProvenanceRecord:
     return ProvenanceRecord(

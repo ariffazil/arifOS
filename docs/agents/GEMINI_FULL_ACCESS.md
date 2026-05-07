@@ -1,6 +1,6 @@
 # Gemini Full Access Configuration
 
-**Authority**: A-SOVEREIGN | **Floor**: F13 KHILAFAH  
+**Authority**: A-SOVEREIGN | **Floor**: F13 KHILAFAH
 **Status**: ACTIVE | **Date**: 2026-04-05
 
 ## Overview
@@ -21,7 +21,7 @@ Under **F13 KHILAFAH** (Human Sovereignty), the sovereign owner (Arif) may deleg
 
 ```python
 SEMANTIC_BYPASS_ACTORS: frozenset[str] = frozenset({
-    "arif", "sovereign", 
+    "arif", "sovereign",
     "gemini", "copilot", "kimi"  # ← Added
 })
 ```

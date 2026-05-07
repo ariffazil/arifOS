@@ -24,7 +24,7 @@ from ..vault.types_v2 import (
 
 class TestVaultEntrySchema:
     """Validate VaultEntry structure."""
-    
+
     def test_minimal_valid_entry(self):
         """A minimal entry should be valid."""
         entry = VaultEntry(
@@ -45,10 +45,10 @@ class TestVaultEntrySchema:
                 policy_version="v1",
             ),
         )
-        
+
         assert entry.vault_id == "vlt_test_001"
         assert entry.record_type == VaultRecordType.VERDICT
-    
+
     def test_hash_computation_deterministic(self):
         """Hash computation should be deterministic."""
         entry = VaultEntry(
@@ -66,17 +66,17 @@ class TestVaultEntrySchema:
             ),
             sealed_at=datetime(2026, 4, 6, 12, 0, 0),
         )
-        
+
         hash1 = entry.compute_hash()
         hash2 = entry.compute_hash()
-        
+
         assert hash1 == hash2
         assert len(hash1) == 64
 
 
 class TestVerificationGrades:
     """Validate verification grade behavior."""
-    
+
     def test_fully_valid(self):
         """All checks pass."""
         grade = VerificationGrade(
@@ -87,10 +87,10 @@ class TestVerificationGrades:
             policy_version_match=True,
             superseded=False,
         )
-        
-        assert grade.fully_valid == True
-        assert grade.valid_but_superseded == False
-    
+
+        assert grade.fully_valid is True
+        assert grade.valid_but_superseded is False
+
     def test_valid_but_superseded(self):
         """Valid but outdated."""
         grade = VerificationGrade(
@@ -102,9 +102,9 @@ class TestVerificationGrades:
             superseded=True,
             superseded_by="vlt_new_001",
         )
-        
-        assert grade.fully_valid == False
-        assert grade.valid_but_superseded == True
+
+        assert grade.fully_valid is False
+        assert grade.valid_but_superseded is True
 
 
 if __name__ == "__main__":

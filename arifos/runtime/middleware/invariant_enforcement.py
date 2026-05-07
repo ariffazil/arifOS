@@ -137,7 +137,9 @@ def check_epistemic_boundedness(output: dict[str, Any]) -> list[str]:
     return failures
 
 
-def check_traceability(output: dict[str, Any], input_payload: dict[str, Any] | None = None) -> list[str]:
+def check_traceability(
+    output: dict[str, Any], input_payload: dict[str, Any] | None = None
+) -> list[str]:
     """
     Invariant 2: Traceability
     - reasoning_hash present and deterministic
@@ -563,7 +565,9 @@ def check_f3_scalar_dict_coherence(metrics: dict[str, Any]) -> list[str]:
     gap = abs(scalar - dict_w3)
 
     if gap > 0.05:
-        failures.append(f"f3_scalar_dict_incoherent(scalar={scalar:.3f}, dict_w3={dict_w3:.3f}, gap={gap:.3f})")
+        failures.append(
+            f"f3_scalar_dict_incoherent(scalar={scalar:.3f}, dict_w3={dict_w3:.3f}, gap={gap:.3f})"
+        )
 
     return failures
 

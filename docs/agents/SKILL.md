@@ -15,7 +15,7 @@ description: "The mandatory operational guide and metabolic flow for agents inte
 
 To operate within the arifOS ecosystem, you must follow the **Metabolic Flow**. Skipping steps triggers **F11 (Auth Failure)**.
 
-1.  **ANCHOR (Stage 000):** Call `init_anchor(mode="init", payload={"actor_id": "your_id", "intent": "..."})`. 
+1.  **ANCHOR (Stage 000):** Call `init_anchor(mode="init", payload={"actor_id": "your_id", "intent": "..."})`.
     - *Result:* You receive a `session_token`. Store it.
 2.  **REASON:** Call `agi_mind(mode="reason", payload={"query": "..."})`.
     - *Result:* You receive a G★ score and a logical plan.
@@ -24,7 +24,7 @@ To operate within the arifOS ecosystem, you must follow the **Metabolic Flow**. 
 
 ## 📜 II. Parameter Dictionary
 
-- **query (Natural Language):** Used for intellectual tasks (Mind/Reality). 
+- **query (Natural Language):** Used for intellectual tasks (Mind/Reality).
 - **payload (Structured Data):** Used for technical actions (Vault/Code).
 - **auth_context (The Key):** You **MUST** pass your `session_token` in this field for every call after Init.
 - **risk_tier (Positive Safety):** Be honest. If you are modifying/deleting, set this to high.
@@ -52,7 +52,7 @@ To operate within the arifOS ecosystem, you must follow the **Metabolic Flow**. 
 
 The arifOS metabolic pipeline runs from 000 to 999.
 `000 init_anchor` starts the process, and `999 vault_seal` ends it.
-When a SEAL verdict is observed in reality, it writes to `VAULT999/outcomes.jsonl`. 
+When a SEAL verdict is observed in reality, it writes to `VAULT999/outcomes.jsonl`.
 Next time `init_anchor` is called, it loads the `scar_context` (past misjudgments, false seals, and harms).
 
 Before proposing a solution, ALWAYS review the `scar_context`.

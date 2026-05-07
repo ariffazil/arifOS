@@ -44,7 +44,7 @@ jobs:
   eval-sequential-thinking:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    
+
     services:
       # Optional: Spin up Sequential MCP if not external
       sequential-mcp:
@@ -56,44 +56,44 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 3
-    
+
     steps:
       - name: Checkout arifOS
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install dependencies
         run: |
           pip install -e .
           pip install -r arifosmcp/evals/requirements-eval.txt
-      
+
       - name: Start arifOS MCP Server
         run: |
           python -m arifosmcp.runtime.server &
           sleep 10  # Wait for server startup
           curl -f http://localhost:8000/health || exit 1
-      
+
       - name: Run Evaluation Suite
         id: eval_run
         run: |
           ARGS="--output eval_results_${{ github.run_id }}.json"
-          
+
           if [ -n "${{ github.event.inputs.eval_set }}" ]; then
             ARGS="$ARGS --set ${{ github.event.inputs.eval_set }}"
           fi
-          
+
           python -m arifosmcp.evals.sequential_thinking_runner $ARGS
-        
+
         # Continue even on eval failure to capture partial results
         continue-on-error: true
-      
+
       - name: Upload Results
         uses: actions/upload-artifact@v4
         with:
@@ -102,37 +102,37 @@ jobs:
             eval_results_*.json
             arifosmcp/evals/witness_*.json
           retention-days: 90
-      
+
       - name: Parse Results
         id: parse
         run: |
           python << 'EOF'
           import json
           import sys
-          
+
           with open(f"eval_results_{sys.argv[1]}.json") as f:
               report = json.load(f)
-          
+
           summary = report['summary']
-          
+
           # Output for GitHub Actions
           print(f"::set-output name=arifos_wins::{summary['overall_wins']['arifos']}")
           print(f"::set-output name=sequential_wins::{summary['overall_wins']['sequential']}")
           print(f"::set-output name=arifos_avg::{summary['average_scores']['arifos']}")
           print(f"::set-output name=sequential_avg::{summary['average_scores']['sequential']}")
-          
+
           # Check constitutional regression
           gov_advantage = summary['governance_advantage']
           if gov_advantage < 0.9:
               print("::error::Constitutional regression detected! Governance advantage below 90%")
               sys.exit(1)
-          
+
           # Check delist readiness
           delist_authorized = any("DELIST AUTHORIZED" in r for r in report['recommendations'])
           print(f"::set-output name=delist_ready::{str(delist_authorized).lower()}")
           EOF
           ${{ github.run_id }}
-      
+
       - name: Comment PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -145,33 +145,33 @@ jobs:
               sequentialAvg: '${{ steps.parse.outputs.sequential_avg }}',
               delistReady: '${{ steps.parse.outputs.delist_ready }}'
             };
-            
+
             const body = `## 🧪 Sequential Thinking Eval Results
-            
+
             | Metric | arifOS MIND | Sequential MCP |
             |--------|-------------|----------------|
             | Wins | ${results.arifosWins} | ${results.sequentialWins} |
             | Avg Score | ${results.arifosAvg} | ${results.sequentialAvg} |
-            
-            ${results.delistReady === 'true' 
+
+            ${results.delistReady === 'true'
               ? '✅ **DELIST AUTHORIZED**: arifOS ready to replace Sequential MCP'
               : '⏳ Delist criteria not yet met'
             }
-            
+
             <details>
             <summary>View Full Report</summary>
-            
+
             Download artifacts for detailed results.
             </details>
             `;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: body
             });
-      
+
       - name: Fail on Regression
         if: steps.eval_run.outcome == 'failure'
         run: |

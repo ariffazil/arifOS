@@ -2,7 +2,7 @@
  * GEOX Design Forge — Module Exports
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * 000-999 Dimensional Architecture
  */
 

@@ -27,7 +27,9 @@ except ImportError:
         constitutional_guard = None
 
 
-async def _guard_sse_iterator(iterator: AsyncIterator[bytes], constitutional_guard_fn) -> AsyncIterator[bytes]:
+async def _guard_sse_iterator(
+    iterator: AsyncIterator[bytes], constitutional_guard_fn
+) -> AsyncIterator[bytes]:
     """
     Transform SSE stream by applying constitutional_guard to each tool result.
     """

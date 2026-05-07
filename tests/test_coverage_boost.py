@@ -27,7 +27,7 @@ class TestRealityGroundingEngines:
 
         ca = ConsensusArbitrator(asean_sites=[".my", ".sg", ".id"])
 
-        results = [
+        [
             SearchResult("R1", "https://test.my", "Snippet", "ddgs", 1),
             SearchResult("R2", "https://test.sg", "Snippet", "ddgs", 2),
         ]

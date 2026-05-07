@@ -16,6 +16,7 @@ from typing import Any
 @dataclass
 class ToolMetadata:
     """Metadata for a GEOX tool."""
+
     name: str
     version: str
     description: str
@@ -77,7 +78,7 @@ def create_standardized_error(
 
 class UnifiedToolRegistry:
     """Registry of all hardened GEOX tools."""
-    
+
     _registry: dict[str, ToolMetadata] = {
         "geox_load_seismic_line": ToolMetadata(
             name="geox_load_seismic_line",
@@ -86,7 +87,7 @@ class UnifiedToolRegistry:
             required_floors=["F4", "F11"],
             ac_risk_enabled=True,
             error_codes=["FILE_NOT_FOUND", "INVALID_FORMAT", "SCALE_UNKNOWN"],
-            tags=["seismic", "vision"]
+            tags=["seismic", "vision"],
         ),
         "geox_build_structural_candidates": ToolMetadata(
             name="geox_build_structural_candidates",
@@ -95,7 +96,7 @@ class UnifiedToolRegistry:
             required_floors=["F7", "F11"],
             ac_risk_enabled=True,
             error_codes=["INTERPRETATION_FAILED", "INSUFFICIENT_DATA"],
-            tags=["seismic", "structural"]
+            tags=["seismic", "structural"],
         ),
         "geox_compute_ac_risk": ToolMetadata(
             name="geox_compute_ac_risk",
@@ -104,7 +105,7 @@ class UnifiedToolRegistry:
             required_floors=["F4", "F7", "F11", "F13"],
             ac_risk_enabled=False,
             error_codes=["INVALID_COMPONENTS", "MISSING_TRANSFORM"],
-            tags=["governance", "risk"]
+            tags=["governance", "risk"],
         ),
         "geox_feasibility_check": ToolMetadata(
             name="geox_feasibility_check",
@@ -113,7 +114,7 @@ class UnifiedToolRegistry:
             required_floors=["F1", "F2", "F4", "F7", "F9", "F11", "F13"],
             ac_risk_enabled=True,
             error_codes=["PHYSICS_VIOLATION", "CONSTRAINT_MISMATCH"],
-            tags=["governance", "physics"]
+            tags=["governance", "physics"],
         ),
         "geox_verify_geospatial": ToolMetadata(
             name="geox_verify_geospatial",
@@ -122,7 +123,7 @@ class UnifiedToolRegistry:
             required_floors=["F4", "F11"],
             ac_risk_enabled=False,
             error_codes=["OUT_OF_BOUNDS", "PROJECTION_ERROR"],
-            tags=["gis", "spatial"]
+            tags=["gis", "spatial"],
         ),
         "geox_evaluate_prospect": ToolMetadata(
             name="geox_evaluate_prospect",
@@ -131,7 +132,7 @@ class UnifiedToolRegistry:
             required_floors=["F1", "F4", "F7", "F9", "F11", "F13"],
             ac_risk_enabled=True,
             error_codes=["INSUFFICIENT_GROUNDING", "VERDICT_VOID"],
-            tags=["governance", "prospect"]
+            tags=["governance", "prospect"],
         ),
         "geox_query_memory": ToolMetadata(
             name="geox_query_memory",
@@ -140,7 +141,7 @@ class UnifiedToolRegistry:
             required_floors=["F11"],
             ac_risk_enabled=False,
             error_codes=["QUERY_FAILED", "STORE_UNAVAILABLE"],
-            tags=["memory", "retrieval"]
+            tags=["memory", "retrieval"],
         ),
         "geox_query_macrostrat": ToolMetadata(
             name="geox_query_macrostrat",
@@ -149,7 +150,7 @@ class UnifiedToolRegistry:
             required_floors=["F2", "F7", "F11"],
             ac_risk_enabled=False,
             error_codes=["MACROSTRAT_API_ERROR", "NO_COVERAGE"],
-            tags=["stratigraphy", "external"]
+            tags=["stratigraphy", "external"],
         ),
         "geox_calculate_saturation": ToolMetadata(
             name="geox_calculate_saturation",
@@ -158,7 +159,7 @@ class UnifiedToolRegistry:
             required_floors=["F2", "F4", "F7", "F13"],
             ac_risk_enabled=True,
             error_codes=["SW_MODEL_ERROR", "PARAMETER_OUT_OF_RANGE"],
-            tags=["petrophysics"]
+            tags=["petrophysics"],
         ),
     }
 

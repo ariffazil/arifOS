@@ -2,9 +2,9 @@
 
 ## ✅ Status: PRODUCTION READY
 
-**Date**: 2026-04-11  
-**Version**: 005-IMPLEMENTATION-SEQUENTIAL v1.0  
-**Authority**: 000_THEORY, 888_APEX  
+**Date**: 2026-04-11
+**Version**: 005-IMPLEMENTATION-SEQUENTIAL v1.0
+**Authority**: 000_THEORY, 888_APEX
 **Seal**: 999 SEAL ALIVE
 
 ---
@@ -171,7 +171,7 @@ ALL TESTS PASSED!
 ```yaml
 - name: Constitutional Breach Tests (P0)
   run: python -m arifosmcp.evals.constitutional_breach_runner
-  
+
 - name: Sequential Thinking Eval
   run: python -m arifosmcp.evals.sequential_thinking_runner
 ```
@@ -232,10 +232,10 @@ session = await arifos_mind(..., mode="sequential")
 session_id = session.payload["thinking_session_id"]
 
 # Explore branch A
-await arifos_mind(mode="branch", thinking_session_id=session_id, 
+await arifos_mind(mode="branch", thinking_session_id=session_id,
                   from_step=2, alternative_reasoning="Approach A...")
 
-# Explore branch B  
+# Explore branch B
 await arifos_mind(mode="branch", thinking_session_id=session_id,
                   from_step=2, alternative_reasoning="Approach B...")
 

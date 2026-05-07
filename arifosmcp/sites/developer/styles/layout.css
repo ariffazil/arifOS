@@ -391,7 +391,7 @@
   .doc-layout {
     grid-template-columns: var(--sidebar-width) 1fr;
   }
-  
+
   .toc {
     display: none;
   }
@@ -401,7 +401,7 @@
   .doc-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar {
     position: fixed;
     left: -280px;
@@ -412,27 +412,27 @@
     z-index: var(--z-modal);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
   }
-  
+
   .sidebar.open {
     left: 0;
   }
-  
+
   .nav-hamburger {
     display: block;
   }
-  
+
   .nav-links {
     display: none;
   }
-  
+
   .nav-right .version-badge {
     display: none;
   }
-  
+
   .doc-content {
     padding: var(--space-6) var(--space-4) var(--space-16);
   }
-  
+
   .main-nav {
     padding: 0 var(--space-4);
     gap: var(--space-3);

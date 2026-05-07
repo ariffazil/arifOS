@@ -5,6 +5,7 @@ ConstitutionalProvider — F1–F13 Floor Enforcer
 Wraps any Provider and enforces constitutional floor checks at
 registration (list/get) and call (run) time.
 """
+
 from __future__ import annotations
 
 import logging
@@ -110,9 +111,7 @@ class ConstitutionalProvider(Provider):
             wrapped.append(self._wrap(t))
         return wrapped
 
-    async def _get_tool(
-        self, name: str, version: Any = None
-    ) -> Tool | None:
+    async def _get_tool(self, name: str, version: Any = None) -> Tool | None:
         if name not in CANONICAL_TOOLS:
             logger.warning(
                 f"[ConstitutionalProvider] Blocking unregistered tool '{name}' at get time."

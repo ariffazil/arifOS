@@ -53,6 +53,7 @@ def calculate_indices(kernel_state: dict[str, Any]) -> dict[str, float]:
         "apex_readiness": round(max(0.0, min(1.0, apex_readiness)), 4),
     }
 
+
 def get_verdict_advice(indices: dict[str, float]) -> str:
     """Provides qualitative advice based on indices."""
     if indices["apex_readiness"] > 0.9:

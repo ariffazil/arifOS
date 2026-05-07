@@ -1,6 +1,6 @@
 # arifOS MCP - Deployment Guide
 
-> **DITEMPA BUKAN DIBERI** — Forged, Not Given  
+> **DITEMPA BUKAN DIBERI** — Forged, Not Given
 > Zero-chaos deployment for the Constitutional AI Governance System
 
 ---

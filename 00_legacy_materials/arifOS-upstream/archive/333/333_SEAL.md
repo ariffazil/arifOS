@@ -1,9 +1,9 @@
 # 🔒 arifOS KERNEL — ZKPC Seal
 
-**ZKPC**: Zero-Knowledge Physical Continuity  
-**Version**: v2026.03.24-UNIFIED-SEAL  
-**Timestamp**: 2026-03-24T06:14:02+08:00  
-**Authority**: 888_JUDGE (Muhammad Arif bin Fazil)  
+**ZKPC**: Zero-Knowledge Physical Continuity
+**Version**: v2026.03.24-UNIFIED-SEAL
+**Timestamp**: 2026-03-24T06:14:02+08:00
+**Authority**: 888_JUDGE (Muhammad Arif bin Fazil)
 **Status**: SOVEREIGNLY_SEALED
 
 ---
@@ -16,10 +16,10 @@ This document cryptographically attests to the physical and logical continuity o
 
 ## Operation: KERNEL Unification
 
-**Forge Type**: Structural Consolidation  
-**Risk Tier**: HIGH (irreversible directory operations)  
-**Phoenix-72**: Waived (888_JUDGE direct authorization)  
-**Previous State**: Dual-directory (KERNEL/ + 0_KERNEL/)  
+**Forge Type**: Structural Consolidation
+**Risk Tier**: HIGH (irreversible directory operations)
+**Phoenix-72**: Waived (888_JUDGE direct authorization)
+**Previous State**: Dual-directory (KERNEL/ + 0_KERNEL/)
 **Current State**: Unified single KERNEL/
 
 ### Files Processed
@@ -175,9 +175,9 @@ The arifOS KERNEL has been unified, verified, and sealed. The canonical 9 organs
 
 ---
 
-**Authority**: Muhammad Arif bin Fazil (888 Judge)  
-**Seal Date**: 2026-03-20  
-**Expiry**: Never (immutable)  
+**Authority**: Muhammad Arif bin Fazil (888 Judge)
+**Seal Date**: 2026-03-20
+**Expiry**: Never (immutable)
 **Next Review**: On modification only (Phoenix-72 required)
 
 **DITEMPA BUKAN DIBERI** — Forged, Not Given [ΔΩΨ | ARIF]

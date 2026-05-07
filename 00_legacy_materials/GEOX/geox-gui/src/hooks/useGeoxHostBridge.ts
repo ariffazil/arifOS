@@ -1,6 +1,6 @@
 /**
  * GEOX Host Bridge Hook — DITEMPA BUKAN DIBERI
- * 
+ *
  * React hook for the GEOX Dashboard (Host) to manage communication
  * with embedded Microfrontends (Apps) via postMessage.
  */
@@ -8,8 +8,8 @@
 import { useEffect, useCallback } from 'react';
 import type { RefObject } from 'react';
 import { useGEOXStore } from '../store/geoxStore';
-import type { 
-  GeoxEvent, 
+import type {
+  GeoxEvent,
   GeoxMethod,
 } from '../types';
 
@@ -47,7 +47,7 @@ export function useGeoxHostBridge(iframeRef: RefObject<HTMLIFrameElement>) {
           console.log('[GEOX Host] App Handshake:', data.params.app_id);
           store.setGEOXConnected(true);
           store.updateFloorStatus('F11', 'green', `App ${data.params.app_id} initialized`);
-          
+
           // Send initial context back to app
           sendToApp('app.context.patch', {
             coordinates: store.selectedCoordinate,

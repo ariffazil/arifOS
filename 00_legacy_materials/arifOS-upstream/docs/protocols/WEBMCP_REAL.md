@@ -31,7 +31,7 @@ HTML forms with tool attributes:
 </form>
 ```
 
-### 2. Imperative API  
+### 2. Imperative API
 JavaScript tool registration:
 ```javascript
 navigator.modelContext.registerTool("bookFlight", {
@@ -117,7 +117,7 @@ curl https://arifosmcp.arif-fazil.com/webmcp/sdk.js
 
 **What changed:**
 - Removed wrong WebMCP route from aclip-cai (port 8081)
-- Added Real WebMCP to arifosmcp (port 8080) 
+- Added Real WebMCP to arifosmcp (port 8080)
 - Now `/webmcp` serves the actual W3C standard WebMCP
 
 ---

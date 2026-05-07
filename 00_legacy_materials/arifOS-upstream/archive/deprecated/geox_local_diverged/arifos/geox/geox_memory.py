@@ -28,6 +28,7 @@ from arifos.geox.geox_schemas import CoordinatePoint, GeoRequest, GeoResponse
 # GeoMemoryEntry
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class GeoMemoryEntry:
     """
@@ -85,6 +86,7 @@ class GeoMemoryEntry:
 # ---------------------------------------------------------------------------
 # GeoMemoryStore
 # ---------------------------------------------------------------------------
+
 
 class GeoMemoryStore:
     """
@@ -248,10 +250,7 @@ class GeoMemoryStore:
         if self._qdrant is not None:
             return await self._qdrant_search(basin, basin=basin, limit=100)
 
-        entries = [
-            e for e in self._store.values()
-            if basin_lower in e.basin.lower()
-        ]
+        entries = [e for e in self._store.values() if basin_lower in e.basin.lower()]
         entries.sort(key=lambda e: e.timestamp)
         return entries
 
@@ -309,7 +308,7 @@ class GeoMemoryStore:
 
     def list_basins(self) -> list[str]:
         """Return sorted list of unique basin names in the store."""
-        return sorted(set(e.basin for e in self._store.values()))
+        return sorted({e.basin for e in self._store.values()})
 
     # ------------------------------------------------------------------
     # Qdrant backend methods (stub — implement with qdrant_client)
@@ -329,6 +328,7 @@ class GeoMemoryStore:
 
         try:
             from qdrant_client.models import PointStruct  # type: ignore
+
             point = PointStruct(
                 id=self.similarity_hash(entry.entry_id),
                 vector=entry.embedding_vector,
@@ -341,9 +341,11 @@ class GeoMemoryStore:
         except Exception as exc:
             # F9 Anti-Hantu: do not silently fail
             import logging
+
             logging.getLogger("geox.memory").warning(
                 "Qdrant upsert failed for %s: %s. Falling back to in-memory.",
-                entry.entry_id, exc,
+                entry.entry_id,
+                exc,
             )
             self._store[entry.entry_id] = entry
 
@@ -358,6 +360,7 @@ class GeoMemoryStore:
         results if embedding is not available.
         """
         import logging
+
         logger = logging.getLogger("geox.memory")
         logger.warning(
             "Qdrant search called but embedding not configured. "
@@ -420,7 +423,9 @@ class DualMemoryStore:
         # This would normally interface with MacrostratTool or its results cache
         return [{"type": "unit", "name": "Formation A", "confidence": 0.85}]
 
-    async def _query_continuous(self, location: CoordinatePoint, top_k: int) -> list[dict[str, Any]]:
+    async def _query_continuous(
+        self, location: CoordinatePoint, top_k: int
+    ) -> list[dict[str, Any]]:
         """Mock continuous query."""
         # This would normally interface with Qdrant
         return [{"type": "embedding", "source": "TerraFM", "similarity": 0.92, "confidence": 0.75}]

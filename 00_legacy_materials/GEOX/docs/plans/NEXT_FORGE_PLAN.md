@@ -1,8 +1,8 @@
 # GEOX Next Forge Plan
 
-> **Δ · Ω · Ψ — DITEMPA BUKAN DIBERI**  
-> **Authority:** ARIF (888_JUDGE)  
-> **Based on:** GEOXdeep-research-report.md analysis  
+> **Δ · Ω · Ψ — DITEMPA BUKAN DIBERI**
+> **Authority:** ARIF (888_JUDGE)
+> **Based on:** GEOXdeep-research-report.md analysis
 > **Forge Date:** 2026-03-26
 
 ---
@@ -99,21 +99,21 @@ from arifos.geox.geox_schemas import GeoQuantity, ProvenanceRecord, CoordinatePo
 class MacrostratTool(BaseTool):
     """
     Query Macrostrat geological database for stratigraphic context.
-    
+
     Provides:
     - Regional rock columns
     - Stratigraphic units
     - Geologic map polygons
     - Chronostratigraphic intervals
-    
+
     API: https://macrostrat.org/api/v2
     License: CC-BY-4.0 (attribution required)
     """
-    
+
     name = "MacrostratTool"
     description = "Fetch geological context from Macrostrat (columns, units, map polygons)"
     base_url = "https://macrostrat.org/api/v2"
-    
+
     async def run(self, inputs: dict[str, Any]) -> GeoToolResult:
         location = inputs.get("location")
         if not location:
@@ -122,16 +122,16 @@ class MacrostratTool(BaseTool):
                 success=False,
                 error="Missing 'location' in inputs"
             )
-        
+
         # Query stratigraphic columns near location
         columns = await self._query_columns(location)
-        
+
         # Query rock units
         units = await self._query_units(location)
-        
+
         # Convert to GeoQuantity objects
         quantities = self._parse_to_quantities(columns, units, location)
-        
+
         return GeoToolResult(
             tool_name=self.name,
             success=True,
@@ -144,7 +144,7 @@ class MacrostratTool(BaseTool):
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
-    
+
     async def _query_columns(self, location: CoordinatePoint) -> dict:
         """Query stratigraphic columns at location."""
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -158,7 +158,7 @@ class MacrostratTool(BaseTool):
             )
             resp.raise_for_status()
             return resp.json()
-    
+
     async def _query_units(self, location: CoordinatePoint) -> dict:
         """Query rock units at location."""
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -171,22 +171,22 @@ class MacrostratTool(BaseTool):
             )
             resp.raise_for_status()
             return resp.json()
-    
+
     def _parse_to_quantities(
-        self, 
-        columns: dict, 
-        units: dict, 
+        self,
+        columns: dict,
+        units: dict,
         location: CoordinatePoint
     ) -> list[GeoQuantity]:
         """Convert Macrostrat data to GeoQuantity objects."""
         quantities = []
-        
+
         # Parse units
         for unit in units.get("success", {}).get("data", []):
             # Age bounds (Ma)
             t_age = unit.get("t_age")  # Top age
             b_age = unit.get("b_age")  # Bottom age
-            
+
             if t_age is not None:
                 quantities.append(GeoQuantity(
                     value=float(t_age),
@@ -202,7 +202,7 @@ class MacrostratTool(BaseTool):
                         confidence=0.85
                     )
                 ))
-            
+
             # Lithology (categorical, stored as confidence proxy)
             lith = unit.get("lith", "")
             if lith:
@@ -220,7 +220,7 @@ class MacrostratTool(BaseTool):
                         confidence=0.80
                     )
                 ))
-        
+
         return quantities
 ```
 
@@ -267,9 +267,9 @@ from arifos.geox.geox_schemas import CoordinatePoint
 async def test_macrostrat_tool_malay_basin():
     tool = MacrostratTool()
     location = CoordinatePoint(latitude=5.2, longitude=104.8)  # Malay Basin
-    
+
     result = await tool.run({"location": location})
-    
+
     assert result.success
     assert len(result.quantities) > 0
     assert result.metadata["source"] == "macrostrat.org"
@@ -318,12 +318,12 @@ from arifos.geox.geox_schemas import GeoQuantity, ProvenanceRecord
 
 class LEMBackend(ABC):
     """Abstract base for LEM backends (TerraFM, Prithvi, CROMA)."""
-    
+
     @abstractmethod
     async def embed(self, aoi: dict[str, Any]) -> dict:
         """Return embeddings + uncertainty for AOI."""
         pass
-    
+
     @abstractmethod
     def get_model_card(self) -> dict:
         """Return model metadata."""
@@ -332,10 +332,10 @@ class LEMBackend(ABC):
 
 class TerraFMBackend(LEMBackend):
     """TerraFM multisensor EO foundation model."""
-    
+
     def __init__(self, endpoint: str):
         self.endpoint = endpoint
-    
+
     async def embed(self, aoi: dict[str, Any]) -> dict:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
@@ -347,7 +347,7 @@ class TerraFMBackend(LEMBackend):
                 }
             )
             return resp.json()
-    
+
     def get_model_card(self) -> dict:
         return {
             "model": "TerraFM",
@@ -359,13 +359,13 @@ class TerraFMBackend(LEMBackend):
 
 class LEMBridgeTool(BaseTool):
     """Bridge to Large Earth Models for continuous memory."""
-    
+
     name = "LEMBridgeTool"
     description = "Generate embeddings from EO foundation models"
-    
+
     def __init__(self, backend: LEMBackend | None = None):
         self.backend = backend
-    
+
     async def run(self, inputs: dict[str, Any]) -> GeoToolResult:
         if self.backend is None:
             return GeoToolResult(
@@ -373,10 +373,10 @@ class LEMBridgeTool(BaseTool):
                 success=False,
                 error="No LEM backend configured"
             )
-        
+
         try:
             embedding_result = await self.backend.embed(inputs)
-            
+
             # Convert to GeoQuantity
             quantity = GeoQuantity(
                 value=0.0,  # Placeholder for embedding reference
@@ -392,7 +392,7 @@ class LEMBridgeTool(BaseTool):
                     confidence=1.0 - embedding_result.get("uncertainty", 0.15)
                 )
             )
-            
+
             return GeoToolResult(
                 tool_name=self.name,
                 success=True,
@@ -422,7 +422,7 @@ class DualMemoryStore:
     - Discrete: Macrostrat entities (units, columns, formations)
     - Continuous: EO embeddings from LEM
     """
-    
+
     def __init__(
         self,
         qdrant_client=None,  # Optional vector DB
@@ -432,7 +432,7 @@ class DualMemoryStore:
         self.cache_dir = macrostrat_cache_dir
         self._discrete_cache: dict[str, Any] = {}  # Macrostrat data
         self._continuous_cache: dict[str, Any] = {}  # Embeddings
-    
+
     async def query_dual(
         self,
         location: CoordinatePoint,
@@ -441,7 +441,7 @@ class DualMemoryStore:
     ) -> dict[str, Any]:
         """
         Query both memories and return fused results.
-        
+
         Returns:
             {
                 "discrete": [...],  # Macrostrat units/columns
@@ -451,19 +451,19 @@ class DualMemoryStore:
         """
         # Query discrete memory (Macrostrat)
         discrete_results = await self._query_discrete(location, top_k)
-        
+
         # Query continuous memory (embeddings)
         continuous_results = await self._query_continuous(location, top_k)
-        
+
         # Fuse rankings
         fused = self._fuse_results(discrete_results, continuous_results)
-        
+
         return {
             "discrete": discrete_results,
             "continuous": continuous_results,
             "fused_ranking": fused
         }
-    
+
     def _fuse_results(self, discrete: list, continuous: list) -> list:
         """Merge discrete and continuous evidence into ranked hypotheses."""
         # Simple fusion: interleave with confidence weighting
@@ -505,9 +505,9 @@ class EvaluationResult:
 
 class Benchmark(Protocol):
     """Protocol for geological benchmarks."""
-    
+
     name: str
-    
+
     async def run(self, agent: GeoXAgent) -> list[EvaluationResult]:
         """Run benchmark and return results."""
         ...
@@ -515,18 +515,18 @@ class Benchmark(Protocol):
 
 class MalayBasinAnalogBenchmark:
     """
-    Custom benchmark: Given a location in Malay Basin, 
+    Custom benchmark: Given a location in Malay Basin,
     retrieve correct stratigraphic analogs.
     """
-    
+
     name = "malay_basin_analog"
-    
+
     def __init__(self, test_cases: list[dict]):
         self.test_cases = test_cases
-    
+
     async def run(self, agent: GeoXAgent) -> list[EvaluationResult]:
         results = []
-        
+
         for case in self.test_cases:
             request = GeoRequest(
                 query=f"Find analogs for {case['formation_name']}",
@@ -536,19 +536,19 @@ class MalayBasinAnalogBenchmark:
                 ),
                 basin="Malay Basin"
             )
-            
+
             response = await agent.evaluate_prospect(request)
-            
+
             # Check if expected formation is in top-3 retrieved
             retrieved_formations = [
                 insight.text for insight in response.insights
             ]
             correct = case["expected_formation"] in retrieved_formations
-            
+
             results.append(correct)
-        
+
         accuracy = sum(results) / len(results)
-        
+
         return [EvaluationResult(
             benchmark_name=self.name,
             metric_name="top3_recall",
@@ -824,7 +824,7 @@ These are automatic `GEOX_BLOCK` regardless of confidence:
 ### 6.9 Remaining Tasks
 
 - [ ] Build seisinterpy adapter (`tools/seisinterpy_adapter.py`)
-- [ ] Build SeisBench adapter (`tools/seisbench_adapter.py`) 
+- [ ] Build SeisBench adapter (`tools/seisbench_adapter.py`)
 - [ ] Create `geox_mcp_server.py` (register all 6 MCP verbs)
 - [ ] Write `docs/single_line_structural_workflow.md`
 - [ ] Write `docs/contrast_canon.md`
@@ -848,5 +848,3 @@ These are automatic `GEOX_BLOCK` regardless of confidence:
 **Verdict:** SEAL — Pipeline complete. Seisinterpy integration is next forge priority.
 
 **DITEMPA BUKAN DIBERI** — GEOX is now a functional governed seismic coprocessor.
-
-

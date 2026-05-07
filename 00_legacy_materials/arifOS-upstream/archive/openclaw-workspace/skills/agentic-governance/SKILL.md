@@ -7,9 +7,9 @@ type: flow
 
 # Agentic Governance — Hardened F1–F13 Enforcement
 
-**Version:** 2026.03.07-HARDENED  
-**Governance:** arifOS Constitutional Law F1-F13  
-**Consensus:** Quad-Witness BFT (W⁴ ≥ 0.75)  
+**Version:** 2026.03.07-HARDENED
+**Governance:** arifOS Constitutional Law F1-F13
+**Consensus:** Quad-Witness BFT (W⁴ ≥ 0.75)
 **Seal:** QUADWITNESS-SEAL v64.1
 
 ---

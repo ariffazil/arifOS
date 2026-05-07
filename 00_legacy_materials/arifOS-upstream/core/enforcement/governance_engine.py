@@ -64,9 +64,15 @@ def _law13_checks(tool_name: str, result: dict[str, Any]) -> dict[str, Any]:
     has_session = bool(result.get("session_id"))
     return {
         "F1_AMANAH": {"required": True, "pass": True},
-        "F2_TRUTH": {"required": True, "pass": _safe_float(result, "truth_score", default=0.88) >= 0.7},
+        "F2_TRUTH": {
+            "required": True,
+            "pass": _safe_float(result, "truth_score", default=0.88) >= 0.7,
+        },
         "F3_TRI_WITNESS": {"required": True, "pass": tri["pass"]},
-        "F11_AUTHORITY": {"required": True, "pass": has_session or bool(result.get("auth_context"))},
+        "F11_AUTHORITY": {
+            "required": True,
+            "pass": has_session or bool(result.get("auth_context")),
+        },
         "F13_SOVEREIGN": {"required": False, "pass": True},
     }
 
@@ -95,7 +101,11 @@ def wrap_tool_output(
     payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     tool_name = tool_name or tool or "unknown_tool"
-    payload = payload if isinstance(payload, dict) else result if isinstance(result, dict) else {"result": result}
+    payload = (
+        payload
+        if isinstance(payload, dict)
+        else result if isinstance(result, dict) else {"result": result}
+    )
     verdict = str(payload.get("verdict", "SEAL"))
     if verdict not in {"SEAL", "SABAR", "PARTIAL", "VOID", "HOLD", "888_HOLD"}:
         verdict = "SEAL"
@@ -108,7 +118,9 @@ def wrap_tool_output(
     apex_dials = _derive_apex_dials(tool_name, payload)
     vitality = _derive_vitality_index(payload, law_checks, apex_dials)
     tri = _calculate_tri_witness_consensus(tool_name, payload)
-    failed = [name for name, meta in law_checks.items() if meta.get("required") and not meta.get("pass")]
+    failed = [
+        name for name, meta in law_checks.items() if meta.get("required") and not meta.get("pass")
+    ]
 
     # Human Language Population (CHANGE-01)
     if verdict == "SEAL":

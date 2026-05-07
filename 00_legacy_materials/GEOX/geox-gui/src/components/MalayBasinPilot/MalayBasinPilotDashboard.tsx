@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  TrendingUp, 
-  Database, 
-  Target, 
-  Layers, 
+import {
+  TrendingUp,
+  Database,
+  Target,
+  Layers,
   Info,
   ChevronRight,
   ShieldCheck,
@@ -23,7 +23,7 @@ import { useMcpTool } from '../../hooks/useMcpTool';
 
 /**
  * MalayBasinPilotDashboard
- * 
+ *
  * Visual GUI for the Malay Basin exploration demo.
  * Displays key metrics, play types, and exploration phases.
  * INTEGRATED: Active Reasoning Cockpit.
@@ -40,12 +40,12 @@ export const MalayBasinPilotDashboard: React.FC = () => {
     try {
       const result = await scenarioTool.call({
         scenario_id: 'MBP_2026_RECOVERY',
-        parameters: { 
+        parameters: {
           target_horizon: 'Group J',
           objective: 'P9 Expansion'
         }
       });
-      
+
       if (result.reasoning_trace_id) {
         setActiveTraceId(result.reasoning_trace_id);
         setShowTrace(true);
@@ -91,30 +91,30 @@ export const MalayBasinPilotDashboard: React.FC = () => {
 
         {/* Rapid Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-          <MetricCard 
-            label="Total Discoveries" 
-            value="181+" 
+          <MetricCard
+            label="Total Discoveries"
+            value="181+"
             sub="Oil & Gas Fields"
             icon={Target}
             color="text-blue-400"
           />
-          <MetricCard 
-            label="Commulative Resource" 
-            value="14.8" 
+          <MetricCard
+            label="Commulative Resource"
+            value="14.8"
             sub="BBOE Discovered"
             icon={Database}
             color="text-emerald-400"
           />
-          <MetricCard 
-            label="Wells Drilled" 
-            value="2,100" 
+          <MetricCard
+            label="Wells Drilled"
+            value="2,100"
             sub="700 Exploratory"
             icon={Layers}
             color="text-amber-400"
           />
-          <MetricCard 
-            label="National Share" 
-            value="40%" 
+          <MetricCard
+            label="National Share"
+            value="40%"
             sub="Of Hydrocarbon Resources"
             icon={TrendingUp}
             color="text-purple-400"
@@ -124,7 +124,7 @@ export const MalayBasinPilotDashboard: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto p-6 space-y-8 pb-32">
-        
+
         {/* Play Types Analysis */}
         <section>
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -132,26 +132,26 @@ export const MalayBasinPilotDashboard: React.FC = () => {
             Play Classification (P1–P9)
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <PlayCard 
-              code="P1" 
-              type="Basin-centre anticline" 
-              fields="Tapis, Jerneh, Dulang" 
+            <PlayCard
+              code="P1"
+              type="Basin-centre anticline"
+              fields="Tapis, Jerneh, Dulang"
               share="60%"
               accent="bg-blue-500"
               median="191.6 MMboe"
             />
-            <PlayCard 
-              code="P3" 
-              type="Normal fault / dip closure" 
-              fields="Bergading, Abu" 
+            <PlayCard
+              code="P3"
+              type="Normal fault / dip closure"
+              fields="Bergading, Abu"
               share="Medium"
               accent="bg-emerald-500"
               median="52 MMboe"
             />
-            <PlayCard 
-              code="P9" 
-              type="Deep HPHT / Tight" 
-              fields="Bergading Deep, Sepat" 
+            <PlayCard
+              code="P9"
+              type="Deep HPHT / Tight"
+              fields="Bergading Deep, Sepat"
               share="Emerging"
               accent="bg-orange-500"
               status="Frontier"
@@ -167,30 +167,30 @@ export const MalayBasinPilotDashboard: React.FC = () => {
               Exploration & Discovery (EDP) Phases
             </h3>
             <div className="space-y-3">
-              <EDPItem 
-                phase="EDP 1" 
-                period="1968–1976" 
-                title="Basin-centre anticlinal play" 
-                outcome="~8.7 BBOE (60% of total)" 
-                active 
+              <EDPItem
+                phase="EDP 1"
+                period="1968–1976"
+                title="Basin-centre anticlinal play"
+                outcome="~8.7 BBOE (60% of total)"
+                active
               />
-              <EDPItem 
-                phase="EDP 2" 
-                period="1977–1989" 
-                title="Giant fields plateau" 
-                outcome="Basin-centre exhaustion" 
+              <EDPItem
+                phase="EDP 2"
+                period="1977–1989"
+                title="Giant fields plateau"
+                outcome="Basin-centre exhaustion"
               />
-              <EDPItem 
-                phase="EDP 3" 
-                period="1990–2000" 
-                title="Flank plays rejuvenation" 
-                outcome="+1.5 BBOE (NE Ramp, JDA)" 
+              <EDPItem
+                phase="EDP 3"
+                period="1990–2000"
+                title="Flank plays rejuvenation"
+                outcome="+1.5 BBOE (NE Ramp, JDA)"
               />
-              <EDPItem 
-                phase="EDP 5" 
-                period="2011–2018" 
-                title="Residual mop-up phase" 
-                outcome="HPHT, Tight Sands, Basement" 
+              <EDPItem
+                phase="EDP 5"
+                period="2011–2018"
+                title="Residual mop-up phase"
+                outcome="HPHT, Tight Sands, Basement"
               />
             </div>
           </div>
@@ -241,7 +241,7 @@ export const MalayBasinPilotDashboard: React.FC = () => {
                 <p className="text-slate-400 text-sm italic">Executing causal interpretations across Malay Basin targets.</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={handleExecuteScenario}
               disabled={scenarioTool.status === 'loading'}
               className={`px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20 disabled:opacity-50 group`}
@@ -259,7 +259,7 @@ export const MalayBasinPilotDashboard: React.FC = () => {
               )}
             </button>
           </div>
-          
+
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
              <div className="p-4 bg-black/40 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                 <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Reserves Recovery</p>
@@ -289,7 +289,7 @@ export const MalayBasinPilotDashboard: React.FC = () => {
               <Brain className="w-5 h-5 text-blue-400" />
               <h3 className="font-black text-sm tracking-tighter uppercase italic text-white">REASONING TRACE</h3>
             </div>
-            <button 
+            <button
               onClick={() => setShowTrace(false)}
               className="p-1 hover:bg-white/10 rounded transition-colors"
               title="Close Reasoning Trace"
@@ -297,7 +297,7 @@ export const MalayBasinPilotDashboard: React.FC = () => {
               <ChevronRight className="w-5 h-5 text-slate-500" />
             </button>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {!traceData ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-4 opacity-50">
@@ -321,7 +321,7 @@ export const MalayBasinPilotDashboard: React.FC = () => {
                           <span className="text-[9px] font-mono text-slate-600 italic">Verified</span>
                         </div>
                         <p className="text-xs font-bold text-slate-100 leading-relaxed">{step.thought}</p>
-                        
+
                         {step.evidence && step.evidence.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {step.evidence.map((ev: string, i: number) => (
@@ -331,7 +331,7 @@ export const MalayBasinPilotDashboard: React.FC = () => {
                             ))}
                           </div>
                         )}
-                        
+
                         <div className="mt-2 p-2 bg-black/30 rounded border border-white/5 text-[10px] text-slate-400 font-mono italic">
                           "{step.observation}"
                         </div>
@@ -352,9 +352,9 @@ export const MalayBasinPilotDashboard: React.FC = () => {
               </>
             )}
           </div>
-          
+
           <div className="p-4 bg-black/40 border-t border-slate-800">
-             <button 
+             <button
                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                onClick={() => window.open(`geox://reasoning/traces/${activeTraceId}`, '_blank')}
              >
@@ -381,8 +381,8 @@ export const MalayBasinPilotDashboard: React.FC = () => {
 
 /* --- Subcomponents --- */
 
-const MetricCard: React.FC<{ label: string; value: string; sub: string; icon: React.ElementType; color: string }> = ({ 
-  label, value, sub, icon: Icon, color 
+const MetricCard: React.FC<{ label: string; value: string; sub: string; icon: React.ElementType; color: string }> = ({
+  label, value, sub, icon: Icon, color
 }) => (
   <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl hover:border-slate-700 transition-colors group">
     <div className="flex justify-between items-start">
@@ -427,4 +427,3 @@ const EDPItem: React.FC<{ phase: string; period: string; title: string; outcome:
     <ChevronRight className="w-4 h-4 text-slate-700 group-hover:text-slate-400 transition-colors" />
   </div>
 );
-

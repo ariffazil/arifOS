@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # CoordinatePoint
 # ---------------------------------------------------------------------------
 
+
 class CoordinatePoint(BaseModel):
     """
     Geographic coordinate with optional depth.
@@ -77,6 +78,7 @@ class CoordinatePoint(BaseModel):
 # ---------------------------------------------------------------------------
 # ProvenanceRecord
 # ---------------------------------------------------------------------------
+
 
 class ProvenanceRecord(BaseModel):
     """
@@ -163,15 +165,16 @@ class ProvenanceRecord(BaseModel):
 # ContrastMetadata (Contrast Canon)
 # ---------------------------------------------------------------------------
 
+
 class ContrastMetadata(BaseModel):
     """
     Contrast Canon metadata for seismic attributes.
-    
+
     Enforces F4 (Clarity) by explicitly separating:
     - Physical axes: What geological signal the attribute measures
     - Visual encoding: How it's displayed (colormap, dynamic range)
     - Anomalous risk: Potential for display-induced misinterpretation
-    
+
     Prevents the "anomalous risk" where perceptual contrast from
     visualization choices is mistaken for physical geological signal.
     """
@@ -224,6 +227,7 @@ class ContrastMetadata(BaseModel):
 # ---------------------------------------------------------------------------
 # GeoQuantity
 # ---------------------------------------------------------------------------
+
 
 class GeoQuantity(BaseModel):
     """
@@ -323,6 +327,7 @@ class GeoQuantity(BaseModel):
 # GeoPrediction
 # ---------------------------------------------------------------------------
 
+
 class GeoPrediction(BaseModel):
     """
     A testable geological prediction (e.g. net pay, HC column, pressure).
@@ -396,9 +401,7 @@ class GeoPrediction(BaseModel):
     def validate_range_order(self) -> GeoPrediction:
         lo, hi = self.expected_range
         if lo > hi:
-            raise ValueError(
-                f"expected_range min ({lo}) must be ≤ max ({hi})."
-            )
+            raise ValueError(f"expected_range min ({lo}) must be ≤ max ({hi}).")
         return self
 
     model_config = {"json_schema_extra": {"title": "GeoPrediction"}}
@@ -407,6 +410,7 @@ class GeoPrediction(BaseModel):
 # ---------------------------------------------------------------------------
 # GeoInsight
 # ---------------------------------------------------------------------------
+
 
 class GeoInsight(BaseModel):
     """
@@ -496,10 +500,12 @@ class GeoInsight(BaseModel):
 # AttributeStack (Contrast Canon Extension)
 # ---------------------------------------------------------------------------
 
+
 class AttributeVolume(BaseModel):
     """
     A single computed seismic attribute volume with full governance metadata.
     """
+
     name: str = Field(..., description="Attribute identifier")
     data_ref: str = Field(..., description="Path or reference to volume data")
     contrast: ContrastMetadata = Field(..., description="Contrast Canon metadata")
@@ -520,10 +526,10 @@ class AttributeVolume(BaseModel):
 class AttributeStack(BaseModel):
     """
     Governed multi-attribute volume for Subsurface Forge.
-    
+
     Enforces Contrast Canon on all attributes, separating physical
     signal from perceptual display artifacts.
-    
+
     Constitutional Floors:
       F1: Full provenance chain for reversibility
       F4: Clarity through explicit physical_axes vs visual_encoding
@@ -603,31 +609,43 @@ class AttributeStack(BaseModel):
 # MCP Envelope (Common Output Wrapper)
 # ---------------------------------------------------------------------------
 
+
 class GeoxUncertainty(BaseModel):
     """
     Standard uncertainty block for GEOX tools.
     """
+
     level: float = Field(..., ge=0.0, le=1.0, description="Confidence/Uncertainty level [0,1].")
     type: str = Field(..., description="Type of interpretation/analysis domain.")
     notes: list[str] = Field(default_factory=list, description="Specific uncertainty caveats.")
+
 
 class GeoxGovernance(BaseModel):
     """
     Standard governance/compliance block for GEOX tools.
     """
-    floors_ok: list[str] = Field(default_factory=list, description="Verified constitutional floors.")
+
+    floors_ok: list[str] = Field(
+        default_factory=list, description="Verified constitutional floors."
+    )
     warnings: list[str] = Field(default_factory=list, description="Mandatory governance warnings.")
+
 
 class GeoxMcpEnvelope(BaseModel):
     """
     Mandatory common output wrapper for all GEOX MCP tools.
     DITEMPA BUKAN DIBERI.
     """
+
     ok: bool = Field(True, description="Success flag.")
-    verdict: Literal["PASS", "FAIL", "PARTIAL", "VOID", "SABAR"] = Field("PASS", description="Tool-level verdict.")
+    verdict: Literal["PASS", "FAIL", "PARTIAL", "VOID", "SABAR"] = Field(
+        "PASS", description="Tool-level verdict."
+    )
     source_domain: str = Field("geox-earth-witness", description="Tool execution domain.")
     uncertainty: GeoxUncertainty = Field(..., description="Mandatory uncertainty reporting.")
-    contrast_metadata: ContrastMetadata | None = Field(None, description="Contrast/display bias tracking (mandatory for image tools).")
+    contrast_metadata: ContrastMetadata | None = Field(
+        None, description="Contrast/display bias tracking (mandatory for image tools)."
+    )
     governance: GeoxGovernance = Field(..., description="Governance and floor verification.")
     result: Any = Field(..., description="The actual tool-specific output.")
 
@@ -637,6 +655,7 @@ class GeoxMcpEnvelope(BaseModel):
 # ---------------------------------------------------------------------------
 # GeoRequest
 # ---------------------------------------------------------------------------
+
 
 class GeoRequest(BaseModel):
     """
@@ -725,6 +744,7 @@ class GeoRequest(BaseModel):
 # GeoResponse
 # ---------------------------------------------------------------------------
 
+
 class GeoResponse(BaseModel):
     """
     Full GEOX pipeline response for a prospect evaluation request.
@@ -800,17 +820,19 @@ class GeoResponse(BaseModel):
             "arifOS pipeline telemetry block. Contains pipeline stage, floor compliance, "
             "confidence, verdict, P2 score, hold status, uncertainty range, and seal stamp."
         ),
-        examples=[{
-            "pipeline": "000→111→333→555→777→888→999",
-            "stage": "999 SEAL",
-            "floors": ["F1", "F2", "F4", "F7", "F13"],
-            "confidence": 0.72,
-            "verdict": "PARTIAL",
-            "P2": 1.0,
-            "hold": "CLEAR",
-            "uncertainty_range": [0.03, 0.15],
-            "seal": "DITEMPA BUKAN DIBERI",
-        }],
+        examples=[
+            {
+                "pipeline": "000→111→333→555→777→888→999",
+                "stage": "999 SEAL",
+                "floors": ["F1", "F2", "F4", "F7", "F13"],
+                "confidence": 0.72,
+                "verdict": "PARTIAL",
+                "P2": 1.0,
+                "hold": "CLEAR",
+                "uncertainty_range": [0.03, 0.15],
+                "seal": "DITEMPA BUKAN DIBERI",
+            }
+        ],
     )
     metadata: dict[str, Any] = Field(
         default_factory=dict,
@@ -827,6 +849,7 @@ class GeoResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Schema export utility
 # ---------------------------------------------------------------------------
+
 
 def export_json_schemas() -> dict[str, dict]:
     """

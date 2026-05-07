@@ -23,17 +23,17 @@ from ..types import Governance, MemoryRecord, MemoryType, RetentionClass, Scope,
 class SemanticMemoryLane:
     """
     Semantic memory stores stable knowledge.
-    
+
     Examples:
     - "ARIF prefers governed mode"
     - "Vault is immutable"
     - "Memory is mutable and scoped"
     - Reusable schemas and patterns
     """
-    
+
     _memories: dict[str, MemoryRecord] = field(default_factory=dict)
     _fact_index: dict[str, str] = field(default_factory=dict)  # fact_key -> memory_id
-    
+
     def store_fact(
         self,
         title: str,
@@ -45,18 +45,18 @@ class SemanticMemoryLane:
     ) -> MemoryRecord:
         """
         Store a semantic fact.
-        
+
         Facts are keyed for exact lookup and embedded for semantic search.
         """
         memory_id = f"mem_sem_{uuid.uuid4().hex[:12]}"
-        
+
         # Check if fact already exists
         if fact_key in self._fact_index:
             old_id = self._fact_index[fact_key]
             # Mark old as superseded
             if old_id in self._memories:
                 self._memories[old_id].lineage.superseded_by = memory_id
-        
+
         record = MemoryRecord(
             memory_id=memory_id,
             memory_type=MemoryType.SEMANTIC,
@@ -89,14 +89,14 @@ class SemanticMemoryLane:
                 "retention_class": RetentionClass.DURABLE.value,
                 "fact_key": fact_key,
                 "update_count": 0,
-            }
+            },
         )
-        
+
         self._memories[memory_id] = record
         self._fact_index[fact_key] = memory_id
-        
+
         return record
-    
+
     def get_fact(self, fact_key: str) -> MemoryRecord | None:
         """Get fact by exact key lookup."""
         memory_id = self._fact_index.get(fact_key)
@@ -105,7 +105,7 @@ class SemanticMemoryLane:
             mem.time.last_accessed_at = datetime.utcnow()
             return mem
         return None
-    
+
     def update_fact(
         self,
         fact_key: str,
@@ -115,13 +115,13 @@ class SemanticMemoryLane:
     ) -> MemoryRecord | None:
         """
         Update a fact (supersede old version).
-        
+
         Returns new record, marks old as superseded.
         """
         old_mem = self.get_fact(fact_key)
         if not old_mem:
             return None
-        
+
         # Create new version
         new_mem = self.store_fact(
             title=old_mem.title,
@@ -130,12 +130,12 @@ class SemanticMemoryLane:
             source=source,
             confidence=new_confidence,
         )
-        
+
         # Update lane data
         new_mem.lane_data["update_count"] = old_mem.lane_data.get("update_count", 0) + 1
-        
+
         return new_mem
-    
+
     def get_schema(self, schema_type: str) -> list[MemoryRecord]:
         """Get all memories of a particular schema type."""
         results = []
@@ -143,7 +143,7 @@ class SemanticMemoryLane:
             if mem.lane_data.get("schema_type") == schema_type:
                 results.append(mem)
         return results
-    
+
     def get_doctrine(self) -> list[MemoryRecord]:
         """Get core doctrine (high importance semantic memories)."""
         results = []

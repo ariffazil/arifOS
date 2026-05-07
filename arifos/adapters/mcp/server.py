@@ -3,6 +3,7 @@ arifos/runtime/server.py — Constitutional MCP HTTP Transport
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import json
@@ -18,7 +19,11 @@ from fastapi.staticfiles import StaticFiles
 from arifos.adapters.mcp.mcp_server import mcp
 from arifos.prompts import PROMPTS
 from arifos.resources import RESOURCES
-from arifos.adapters.mcp.verify_arifos_tools import PRIMARY_METRIC_NAME, VITALITY_JSONL, VITALITY_TSV
+from arifos.adapters.mcp.verify_arifos_tools import (
+    PRIMARY_METRIC_NAME,
+    VITALITY_JSONL,
+    VITALITY_TSV,
+)
 from arifos.core.governance import VAULT999_LEDGER_PATH
 
 # ── Metadata (F2 Truth — pinned at deploy time) ─────────────
@@ -103,11 +108,13 @@ def _tools_payload() -> dict:
         schema = None
         if tool is not None:
             schema = getattr(tool, "parameters", None)
-        tools.append({
-            "name": name,
-            "primary_metric": PRIMARY_METRIC_NAME[name],
-            "inputSchema": schema or {"type": "object", "properties": {}},
-        })
+        tools.append(
+            {
+                "name": name,
+                "primary_metric": PRIMARY_METRIC_NAME[name],
+                "inputSchema": schema or {"type": "object", "properties": {}},
+            }
+        )
     return {"tools": tools}
 
 
@@ -136,7 +143,11 @@ def _status_payload(request: Request) -> dict:
             "overall_ok": ok,
             "delta": {
                 "state": "HIDUP" if ok else "LEBUR",
-                "detail": "health_ok · 1 reachable_endpoint" if ok else "status_api_unreachable · 0 reachable_endpoints",
+                "detail": (
+                    "health_ok · 1 reachable_endpoint"
+                    if ok
+                    else "status_api_unreachable · 0 reachable_endpoints"
+                ),
             },
             "psi": {
                 "state": "SEAL" if ok else "GANTUNG",
@@ -148,7 +159,11 @@ def _status_payload(request: Request) -> dict:
             },
             "omega": {
                 "state": "SELARAS" if ok else "SESAT",
-                "detail": f"tool_surface_ok · {len(PRIMARY_METRIC_NAME)} tools" if ok else "status_api_unreachable · 0 tau",
+                "detail": (
+                    f"tool_surface_ok · {len(PRIMARY_METRIC_NAME)} tools"
+                    if ok
+                    else "status_api_unreachable · 0 tau"
+                ),
             },
         },
         "tools": _tools_payload()["tools"],
@@ -158,6 +173,7 @@ def _status_payload(request: Request) -> dict:
 
 
 # ── FastAPI Routes (must be defined BEFORE the mount) ───────
+
 
 @app.get("/")
 async def root() -> dict:
@@ -196,7 +212,11 @@ async def api_tools() -> dict:
 @app.get("/api/telemetry")
 async def api_telemetry(request: Request) -> dict:
     payload = _status_payload(request)
-    return {"timestamp": payload["timestamp"], "health": payload["health"], "trinity_matrix": payload["trinity_matrix"]}
+    return {
+        "timestamp": payload["timestamp"],
+        "health": payload["health"],
+        "trinity_matrix": payload["trinity_matrix"],
+    }
 
 
 @app.get("/api/status")

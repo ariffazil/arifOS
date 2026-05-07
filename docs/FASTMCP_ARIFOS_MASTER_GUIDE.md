@@ -32,7 +32,7 @@ mcp = FastMCP(
     name="arifOS-Governed-Server",
     instructions="""
     Constitutional AI Governance Server
-    
+
     This server provides 8 Sacred Tools governed by 13 Constitutional Floors.
     All operations pass through ΔΩΨ Trinity validation.
     """,
@@ -189,10 +189,10 @@ def governance_check(query: str) -> dict:
 if __name__ == "__main__":
     # STDIO: For Claude Desktop, Cursor IDE (default)
     mcp.run(transport="stdio")
-    
+
     # SSE: For local development, real-time updates
     # mcp.run(transport="sse", host="127.0.0.1", port=3000)
-    
+
     # HTTP: For production VPS, remote access
     # mcp.run(transport="http", host="0.0.0.0", port=8080)
 ```
@@ -219,10 +219,10 @@ async def governed_action(
     """Tool with injected dependencies."""
     # Access server state
     config = server.settings
-    
+
     # Use session context
     user_id = session.get("user_id")
-    
+
     return {"query": query, "user_id": user_id}
 ```
 
@@ -369,12 +369,12 @@ async def init_anchor_state(
 ) -> Dict[str, Any]:
     """
     000 INIT·ANCHOR: Bootstrap a governed session.
-    
+
     Constitutional Guards: F12 (Pre-scan), F1 (Reversibility setup)
     """
     # F12: Sanitize intent
     sanitized = await f12_sanitize(intent)
-    
+
     # Initialize session
     session = {
         "id": session_id,
@@ -382,7 +382,7 @@ async def init_anchor_state(
         "anchor_time": "2026-03-13T...",
         "metabolic_state": "active"
     }
-    
+
     return {
         "machine": {"status": "ok"},
         "governance": {"verdict": "SEAL", "floors_passed": ["F1", "F12"]},
@@ -397,24 +397,24 @@ async def reason_mind_synthesis(
 ) -> Dict[str, Any]:
     """
     333 AGI·REASON: Multi-path logic synthesis.
-    
+
     Constitutional Guards: F2 (Truth), F4 (Clarity), F7 (Humility)
     """
     # Execute 3-path reasoning
     logical = await reason_path(query, mode="logical")
     emotional = await reason_path(query, mode="emotional")
     intuitive = await reason_path(query, mode="intuitive")
-    
+
     # Calculate entropy score
     delta_s = calculate_entropy([logical, emotional, intuitive])
-    
+
     if delta_s > 0:
         return {
             "machine": {"status": "rejected"},
             "governance": {"verdict": "VOID", "reason": f"ΔS = {delta_s} > 0"},
             "intelligence": {"result": None}
         }
-    
+
     return {
         "machine": {"status": "ok"},
         "governance": {
@@ -439,13 +439,13 @@ async def seal_vault_commit(
 ) -> Dict[str, Any]:
     """
     999 VAULT·SEAL: Immutable commit to ledger.
-    
+
     Constitutional Guards: F1 (Reversibility token), F3 (Witness)
     """
     # Generate hash chain
     prev_hash = await get_last_hash()
     commit_hash = sha256(f"{prev_hash}:{session_id}:{verdict}")
-    
+
     # Store in PostgreSQL
     await vault_store({
         "session_id": session_id,
@@ -454,7 +454,7 @@ async def seal_vault_commit(
         "hash": commit_hash,
         "timestamp": "2026-03-13T..."
     })
-    
+
     return {
         "machine": {"status": "ok"},
         "governance": {"verdict": "SEAL", "commit_hash": commit_hash},
@@ -472,7 +472,7 @@ import asyncio
 
 class ConstitutionalGuard:
     """Decorator for enforcing F1-F13 constitutional floors."""
-    
+
     def __init__(self, floors: List[str]):
         self.floors = floors
         self.validators = {
@@ -482,18 +482,18 @@ class ConstitutionalGuard:
             "F7": self._check_f7_humility,
             # ... etc
         }
-    
+
     def __call__(self, func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Run all floor validations
             failed_floors = []
-            
+
             for floor in self.floors:
                 validator = self.validators.get(floor)
                 if validator and not await validator(*args, **kwargs):
                     failed_floors.append(floor)
-            
+
             if failed_floors:
                 return {
                     "machine": {"status": "blocked"},
@@ -503,19 +503,19 @@ class ConstitutionalGuard:
                     },
                     "intelligence": {"result": None}
                 }
-            
+
             return await func(*args, **kwargs)
-        
+
         return wrapper
-    
+
     async def _check_f1_reversibility(self, *args, **kwargs) -> bool:
         """F1: All actions must be reversible."""
         return True  # Implementation
-    
+
     async def _check_f4_clarity(self, *args, **kwargs) -> bool:
         """F4: Entropy score must be ≤ 0."""
         return True  # Implementation
-    
+
     async def _check_f7_humility(self, *args, **kwargs) -> bool:
         """F7: Uncertainty must be acknowledged."""
         return True  # Implementation
@@ -539,12 +539,12 @@ class ServerConfig(BaseSettings):
     transport: Literal["stdio", "sse", "http"] = "stdio"
     host: str = "0.0.0.0"
     port: int = 3000
-    
+
     # arifOS specific
     constitution_path: str = "./constitution.yaml"
     vault_db_url: str = "postgresql://..."
     redis_url: str = "redis://..."
-    
+
     class Config:
         env_prefix = "ARIFOS_"
 
@@ -638,7 +638,7 @@ async def init_anchor(request: AnchorRequest) -> Dict[str, Any]:
         "anchor_time": datetime.utcnow().isoformat(),
         "state": "active"
     }
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": 12},
         "governance": {
@@ -656,7 +656,7 @@ async def reason_mind(request: ReasonRequest) -> Dict[str, Any]:
     """333 AGI·REASON: Multi-path synthesis with F2/F4/F7 validation."""
     # Simulate reasoning
     await asyncio.sleep(0.1)
-    
+
     return {
         "machine": {"status": "ok", "latency_ms": 105},
         "governance": {
@@ -741,7 +741,7 @@ async def critique_thought(
 ) -> Dict[str, Any]:
     """666B ASI·CRITIQUE: Metacognitive reflection with F7 humility."""
     uncertainty = 0.04  # Within [0.03, 0.05] band
-    
+
     return {
         "machine": {"status": "ok"},
         "governance": {
@@ -764,14 +764,14 @@ async def eureka_forge(
     """777 FORGE: Artifact synthesis with F11 execution gate."""
     # F11: Safety check before execution
     safety_passed = True  # Implementation
-    
+
     if not safety_passed:
         return {
             "machine": {"status": "blocked"},
             "governance": {"verdict": "888_HOLD", "reason": "F11 safety check failed"},
             "intelligence": {"artifact": None}
         }
-    
+
     return {
         "machine": {"status": "ok"},
         "governance": {
@@ -811,7 +811,7 @@ async def seal_vault(request: SealRequest) -> Dict[str, Any]:
     # Generate commit hash
     commit_data = f"{request.session_id}:{request.verdict}:{datetime.utcnow().isoformat()}"
     commit_hash = hashlib.sha256(commit_data.encode()).hexdigest()
-    
+
     return {
         "machine": {"status": "ok"},
         "governance": {
@@ -898,9 +898,9 @@ Calculate W3 = (H × A × E)^(1/3) ≥ 0.75?"""
 
 if __name__ == "__main__":
     import sys
-    
+
     transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
-    
+
     if transport == "stdio":
         mcp.run(transport="stdio")
     elif transport == "sse":
@@ -935,11 +935,11 @@ import asyncio
 async def main():
     # Connect to server
     client = Client("http://localhost:3000/mcp")
-    
+
     # List available tools
     tools = await client.list_tools()
     print(f"Available tools: {[t.name for t in tools]}")
-    
+
     # Call init_anchor
     result = await client.call_tool("init_anchor", {
         "request": {
@@ -948,7 +948,7 @@ async def main():
         }
     })
     print(f"Anchor result: {result}")
-    
+
     # Call reason_mind
     result = await client.call_tool("reason_mind", {
         "request": {
@@ -958,11 +958,11 @@ async def main():
         }
     })
     print(f"Reason result: {result}")
-    
+
     # Read resource
     floors = await client.read_resource("audit://floors")
     print(f"Floor status: {floors}")
-    
+
     # Get prompt
     prompt = await client.get_prompt("constitutional_review", {
         "topic": "AI governance"
@@ -1003,7 +1003,7 @@ class GovernedRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=10000)
     session_id: str = Field(..., pattern=r"^[a-zA-Z0-9_-]+$")
     sensitivity: Literal["low", "medium", "high"] = "medium"
-    
+
     @validator("query")
     def no_injection_patterns(cls, v):
         # F12: Injection defense
@@ -1044,7 +1044,7 @@ async def governed_operation(query: str) -> dict:
     try:
         # Attempt operation
         result = await risky_operation(query)
-        
+
         # Validate result
         if result.entropy > 0:
             return {
@@ -1052,9 +1052,9 @@ async def governed_operation(query: str) -> dict:
                 "governance": {"verdict": "VOID", "reason": "ΔS > 0"},
                 "intelligence": None
             }
-        
+
         return result
-        
+
     except ValidationError as e:
         return {
             "machine": {"status": "error"},

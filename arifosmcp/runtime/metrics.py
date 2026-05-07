@@ -17,6 +17,7 @@ try:
 except ImportError:
     VaultLogger = None  # type: ignore
 
+
 class _NoopCollector:
     """Prometheus compatibility shim when observability extras are absent."""
 
@@ -47,6 +48,7 @@ try:
         Histogram,
         generate_latest,
     )
+
     PROMETHEUS_CLIENT_AVAILABLE = True
 except ImportError:
     PROMETHEUS_CLIENT_AVAILABLE = False
@@ -67,6 +69,7 @@ except ImportError:
     def generate_latest() -> bytes:
         return b"# prometheus_client unavailable\n"
 
+
 from arifosmcp.runtime.model import (
     CanonicalMetrics,
     TelemetryBasis,
@@ -76,6 +79,7 @@ from arifosmcp.runtime.model import (
 
 try:
     from opentelemetry import trace
+
     OTEL_AVAILABLE = True
 except ImportError:
     OTEL_AVAILABLE = False
@@ -130,15 +134,17 @@ def _histogram(
         kwargs["buckets"] = buckets
     return Histogram(name, documentation, **kwargs)
 
+
 # ... (Existing Prometheus metrics) ...
 
 # ---------------------------------------------------------------------------
 # OPEN TELEMETRY HELIX TRACER
 # ---------------------------------------------------------------------------
 
+
 class HelixTracer:
     """High-fidelity OpenTelemetry tracer for the arifOS Double Helix organs."""
-    
+
     def __init__(self):
         if OTEL_AVAILABLE:
             self.tracer = trace.get_tracer("arifos.helix")
@@ -150,17 +156,20 @@ class HelixTracer:
         if not self.tracer:
             # No-op context manager if OTEL not available
             from contextlib import asynccontextmanager
+
             @asynccontextmanager
-            async def noop(): yield None
+            async def noop():
+                yield None
+
             return noop()
-            
+
         span = self.tracer.start_as_current_span(
             f"organ.{organ_name}",
             attributes={
                 "session_id": session_id,
                 "organ": organ_name,
-                "helix_ring": "INNER" if organ_name.isupper() else "OUTER"
-            }
+                "helix_ring": "INNER" if organ_name.isupper() else "OUTER",
+            },
         )
         return span
 
@@ -168,11 +177,11 @@ class HelixTracer:
         """Record a thermodynamic state transition event within a span."""
         if not span:
             return
-        
+
         span.add_event(
-            event_name,
-            attributes={f"constitutional.{k}": v for k, v in metrics.items()}
+            event_name, attributes={f"constitutional.{k}": v for k, v in metrics.items()}
         )
+
 
 helix_tracer = HelixTracer()
 
@@ -388,6 +397,7 @@ def update_prometheus_metrics() -> None:
     """Refreshes dynamic gauges like active sessions and vault record counts (Job 5)."""
     try:
         from arifosmcp.runtime.sessions import list_active_sessions_count
+
         ACTIVE_SESSIONS.set(list_active_sessions_count())
     except Exception:
         pass
@@ -423,6 +433,7 @@ def record_void_event(tool: str, void_reason: str) -> None:
 # ---------------------------------------------------------------------------
 # SCORE INTEGRITY PROTOCOL (FORGED 2026-03-13)
 # ---------------------------------------------------------------------------
+
 
 def compute_integrity_telemetry(
     # Measurements
@@ -463,7 +474,7 @@ def compute_integrity_telemetry(
     x = 0.9 if options_offered >= 3 else 0.6
     e = 1.0 - (response_tokens / 2000.0)
     h = echo_debt_count * 0.1
-    g_star = (a * p * x * (e ** 2)) * (1 - h)
+    g_star = (a * p * x * (e**2)) * (1 - h)
     g_star = round(g_star, 2)
 
     # 4. κᵣ (Maruah Score) - Basis: derived | null
@@ -474,13 +485,18 @@ def compute_integrity_telemetry(
         kappa_r = round(kappa_r, 2)
 
     # 5. Ψ_LE (AGI Emergence Pressure) - Basis: heuristic
-    psi_val = 0.8 + 0.05 * min(reasoning_depth, 4) + 0.05 * (1 if tri_witness_confirmed else 0) + 0.02 * floor_activations
+    psi_val = (
+        0.8
+        + 0.05 * min(reasoning_depth, 4)
+        + 0.05 * (1 if tri_witness_confirmed else 0)
+        + 0.02 * floor_activations
+    )
     if not tri_witness_confirmed:
         psi_val = min(psi_val, 1.2)
     psi_le = f"{psi_val:.1f} (Estimate Only)"
 
     # 6. Confidence & Shadow
-    shadow = round( (1 if claim_ungrounded else 0) / max(total_claims, 1), 2)
+    shadow = round((1 if claim_ungrounded else 0) / max(total_claims, 1), 2)
     confidence = round(g_star * (1 - shadow), 2)
 
     # 7. Verdict Logic
@@ -503,12 +519,12 @@ def compute_integrity_telemetry(
             shadow=shadow,
             confidence=confidence,
             psi_le=psi_le,
-            verdict=verdict
+            verdict=verdict,
         ),
         basis=TelemetryBasis(),
         witness=TripleWitness(
             human=1.0 if human_intent_confirmed else 0.0,
             ai=round(peace2 / 1.3, 2),
-            earth=kappa_r if kappa_r is not None else 0.9
-        )
+            earth=kappa_r if kappa_r is not None else 0.9,
+        ),
     )

@@ -1,6 +1,7 @@
 """
 Shared lineage contracts for irreversible constitutional actions.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -11,7 +12,9 @@ from pydantic import BaseModel, Field
 class JudgeSealContract(BaseModel):
     """Structured lineage packet emitted by Judge and consumed by Vault/Forge."""
 
-    constitutional_chain_id: str = Field(default="", description="Lineage ID across Judge→Vault→Forge")
+    constitutional_chain_id: str = Field(
+        default="", description="Lineage ID across Judge→Vault→Forge"
+    )
     state_hash: str = Field(default="", description="Stable hash of the judge packet")
     session_id: str | None = Field(default=None)
     actor_id: str | None = Field(default=None)

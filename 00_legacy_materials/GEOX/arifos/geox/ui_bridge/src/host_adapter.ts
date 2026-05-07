@@ -1,12 +1,12 @@
 /**
  * GEOX Host Adapter — Adapter interface for different host platforms.
- * 
+ *
  * Provides a unified interface for:
  * - Copilot
  * - Claude Desktop
  * - OpenAI Apps
  * - Custom GEOX host
- * 
+ *
  * DITEMPA BUKAN DIBERI
  */
 
@@ -38,7 +38,7 @@ export interface HostAdapterConfig {
 
 /**
  * Abstract base class for host adapters.
- * 
+ *
  * Implementations handle platform-specific concerns while exposing
  * a unified interface to GEOX Apps.
  */
@@ -120,13 +120,13 @@ export abstract class HostAdapter {
     appFallbacks: RenderMode[]
   ): RenderMode {
     const preferences = [appPreferred, ...appFallbacks];
-    
+
     for (const mode of preferences) {
       if (this.supportsMode(mode)) {
         return mode;
       }
     }
-    
+
     // Ultimate fallback
     return 'text';
   }
@@ -157,14 +157,14 @@ export class GenericHostAdapter extends HostAdapter {
     iframe.style.width = '100%';
     iframe.style.height = '100%';
     iframe.style.border = 'none';
-    
+
     container.appendChild(iframe);
 
     // Wait for iframe to load
     await new Promise<void>((resolve, reject) => {
       iframe.onload = () => resolve();
       iframe.onerror = () => reject(new Error('Failed to load app iframe'));
-      
+
       // Timeout
       setTimeout(() => reject(new Error('Iframe load timeout')), 10000);
     });
@@ -224,7 +224,7 @@ export class GenericHostAdapter extends HostAdapter {
 
 /**
  * Copilot host adapter.
- * 
+ *
  * Handles Copilot-specific integration points.
  */
 export class CopilotHostAdapter extends GenericHostAdapter {
@@ -249,7 +249,7 @@ export class CopilotHostAdapter extends GenericHostAdapter {
 
 /**
  * Claude Desktop host adapter.
- * 
+ *
  * Handles Claude artifact protocol.
  */
 export class ClaudeHostAdapter extends GenericHostAdapter {
@@ -274,7 +274,7 @@ export class ClaudeHostAdapter extends GenericHostAdapter {
 
 /**
  * OpenAI Apps host adapter.
- * 
+ *
  * Handles OpenAI Apps SDK conventions.
  */
 export class OpenAIAppsHostAdapter extends GenericHostAdapter {

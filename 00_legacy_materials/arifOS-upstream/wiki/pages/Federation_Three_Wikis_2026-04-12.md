@@ -106,6 +106,6 @@ The arifOS ecosystem maintains three canonical wikis, each serving a distinct pu
 
 ---
 
-*Federation sealed: 2026-04-12*  
-*Seal: DITEMPA BUKAN DIBERI*  
+*Federation sealed: 2026-04-12*
+*Seal: DITEMPA BUKAN DIBERI*
 *Alignment: ΔΩΨ*

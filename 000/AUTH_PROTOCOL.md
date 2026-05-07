@@ -1,7 +1,7 @@
 # AUTH PROTOCOL SPECIFICATION
-> **Authority:** 888_JUDGE  
-> **Version:** v1.0.0-SEAL  
-> **Status:** CONSTITUTIONAL MANDATE  
+> **Authority:** 888_JUDGE
+> **Version:** v1.0.0-SEAL
+> **Status:** CONSTITUTIONAL MANDATE
 > **Band:** 000_KERNEL (F11 Auth)
 
 ---
@@ -10,7 +10,7 @@
 
 Define the authentication and authorization schema for ALL arifOS tool interactions. Ensures cryptographically verifiable identity, session-bound access control, and tamper-evident audit trails.
 
-**F11 (Auditability):** All actions must be attributable.  
+**F11 (Auditability):** All actions must be attributable.
 **F1 (Amanah):** Compromised sessions must be revocable.
 
 ---
@@ -26,13 +26,13 @@ interface AuthContext {
   // ═══════════════════════════════════════
   session_id: string;           // UUID v4, generated at init_anchor
   session_type: SessionType;    // interactive | batch | cron | delegate
-  
+
   // ═══════════════════════════════════════
   // ACTOR IDENTITY (Required)
   // ═══════════════════════════════════════
   actor_id: string;             // 888_JUDGE | <agent_id> | anonymous
   actor_type: ActorType;        // sovereign | agent | service | user
-  
+
   // ═══════════════════════════════════════
   // AUTHENTICATION PROOF (Required)
   // ═══════════════════════════════════════
@@ -42,7 +42,7 @@ interface AuthContext {
     issued_at: string;          // ISO 8601 timestamp
     expires_at: string;         // ISO 8601 timestamp
   };
-  
+
   // ═══════════════════════════════════════
   // AUTHORIZATION SCOPE (Required)
   // ═══════════════════════════════════════
@@ -51,7 +51,7 @@ interface AuthContext {
     risk_tiers: RiskTier[];     // ["low", "medium", "high"]
     modes: ModePermission[];    // ["read", "write", "execute", "forge"]
   };
-  
+
   // ═══════════════════════════════════════
   // CHAIN OF CUSTODY (Required)
   // ═══════════════════════════════════════
@@ -60,7 +60,7 @@ interface AuthContext {
     delegated_by?: string;      // Actor that delegated this session
     delegation_depth: number;   // 0 for root, max 3
   };
-  
+
   // ═══════════════════════════════════════
   // ATTESTATION (Required for HIGH_RISK)
   // ═══════════════════════════════════════
@@ -75,21 +75,21 @@ interface AuthContext {
 // ENUMERATIONS
 // ═══════════════════════════════════════
 
-type SessionType = 
+type SessionType =
   | "interactive"   // Human-in-the-loop session
   | "batch"         // Automated batch processing
   | "cron"          // Scheduled task
   | "delegate"      // Sub-agent delegation
   | "recovery";     // Emergency recovery mode
 
-type ActorType = 
+type ActorType =
   | "sovereign"     // 888_JUDGE - unlimited authority
   | "agent"         // Autonomous agent with delegated scope
   | "service"       // Internal service component
   | "user"          // Human user (via CLI/UI)
   | "anonymous";    // Unauthenticated (limited access)
 
-type ProofType = 
+type ProofType =
   | "session_token" // Short-lived opaque token
   | "hmac"          // HMAC-SHA256 signature
   | "jwt"           // JSON Web Token
@@ -172,7 +172,7 @@ async def verify_auth_context(auth_context: dict, requested_tool: str) -> AuthRe
     Verify authentication and authorization for tool invocation.
     Returns AuthResult or raises AuthError.
     """
-    
+
     # ─────────────────────────────────────
     # 1. STRUCTURE VALIDATION
     # ─────────────────────────────────────
@@ -180,16 +180,16 @@ async def verify_auth_context(auth_context: dict, requested_tool: str) -> AuthRe
     for field in required_fields:
         if field not in auth_context:
             raise AuthError(f"VOID_AUTH: Missing {field}", code="VOID_AUTH_MALFORMED")
-    
+
     # ─────────────────────────────────────
     # 2. TOKEN EXTRACTION
     # ─────────────────────────────────────
     proof = auth_context['proof']
     if proof['type'] not in ['session_token', 'hmac', 'jwt', 'api_key', 'mcp_sig']:
         raise AuthError("VOID_AUTH: Unknown proof type", code="VOID_AUTH_TYPE")
-    
+
     token = proof['value']
-    
+
     # ─────────────────────────────────────
     # 3. SIGNATURE VERIFICATION
     # ─────────────────────────────────────
@@ -198,7 +198,7 @@ async def verify_auth_context(auth_context: dict, requested_tool: str) -> AuthRe
         expected_sig = hmac_sha256(payload, SECRET_KEY)
         if not constant_time_compare(signature, expected_sig):
             raise AuthError("VOID_AUTH: Invalid signature", code="VOID_AUTH_SIGNATURE")
-    
+
     # ─────────────────────────────────────
     # 4. EXPIRATION CHECK
     # ─────────────────────────────────────
@@ -206,34 +206,34 @@ async def verify_auth_context(auth_context: dict, requested_tool: str) -> AuthRe
     exp = datetime.fromisoformat(proof['expires_at'])
     if now > exp:
         raise AuthError("VOID_AUTH: Token expired", code="VOID_AUTH_EXPIRED")
-    
+
     # ─────────────────────────────────────
     # 5. SESSION LOOKUP
     # ─────────────────────────────────────
     session = await session_store.get(auth_context['session_id'])
     if not session:
         raise AuthError("VOID_AUTH: Unknown session", code="VOID_AUTH_SESSION")
-    
+
     if session['status'] == 'revoked':
         raise AuthError("VOID_AUTH: Session revoked", code="VOID_AUTH_REVOKED")
-    
+
     # ─────────────────────────────────────
     # 6. SCOPE VALIDATION
     # ─────────────────────────────────────
     scope = auth_context['scope']
-    
+
     # Check tool permission
     if '*' not in scope['tools'] and requested_tool not in scope['tools']:
         raise AuthError(
-            f"VOID_AUTH_SCOPE: {requested_tool} not in scope", 
+            f"VOID_AUTH_SCOPE: {requested_tool} not in scope",
             code="VOID_AUTH_SCOPE"
         )
-    
+
     # Check delegation depth
     chain = auth_context.get('chain', {})
     if chain.get('delegation_depth', 0) > 3:
         raise AuthError("VOID_AUTH: Max delegation depth exceeded", code="VOID_AUTH_DELEGATION")
-    
+
     # ─────────────────────────────────────
     # 7. ATTESTATION CHECK (HIGH_RISK only)
     # ─────────────────────────────────────
@@ -242,10 +242,10 @@ async def verify_auth_context(auth_context: dict, requested_tool: str) -> AuthRe
         attestation = auth_context.get('attestation', {})
         if not attestation.get('human_approved', False):
             raise AuthError(
-                "VOID_AUTH: Human approval required", 
+                "VOID_AUTH: Human approval required",
                 code="VOID_AUTH_ATTESTATION"
             )
-    
+
     # ─────────────────────────────────────
     # 8. AUDIT LOG
     # ─────────────────────────────────────
@@ -256,7 +256,7 @@ async def verify_auth_context(auth_context: dict, requested_tool: str) -> AuthRe
         'tool': requested_tool,
         'timestamp': now.isoformat()
     })
-    
+
     return AuthResult(
         session_id=auth_context['session_id'],
         actor_id=auth_context['actor_id'],
@@ -359,11 +359,11 @@ async def revoke_session(session_id: str, reason: str, actor_id: str):
     Emergency session revocation (888_JUDGE only).
     F1 (Amanah): All revocations are reversible within 24h.
     """
-    
+
     # Verify actor is sovereign
     if actor_id != "888_JUDGE":
         raise AuthError("VOID_AUTH: Revocation requires sovereign authority")
-    
+
     # Soft revoke (24h grace period)
     await session_store.update(session_id, {
         'status': 'revoked',
@@ -372,13 +372,13 @@ async def revoke_session(session_id: str, reason: str, actor_id: str):
         'revocation_reason': reason,
         'grace_expires': (datetime.utcnow() + timedelta(hours=24)).isoformat()
     })
-    
+
     # Broadcast revocation to all nodes
     await event_bus.publish('session.revoked', {
         'session_id': session_id,
         'timestamp': datetime.utcnow().isoformat()
     })
-    
+
     # Log to vault
     await vault_ledger({
         'mode': 'seal',

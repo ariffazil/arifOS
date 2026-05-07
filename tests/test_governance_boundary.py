@@ -29,9 +29,9 @@ class TestGovernanceBoundary:
         assert result["human_decision_required"] is True
         action = result["recommended_action"].lower()
         forbidden = ("execute", "commit", "deploy", "seal", "push", "destroy", "delete", "drop")
-        assert not any(word in action for word in forbidden), (
-            f"recommended_action for irreversible risk must not suggest execution: {result['recommended_action']}"
-        )
+        assert not any(
+            word in action for word in forbidden
+        ), f"recommended_action for irreversible risk must not suggest execution: {result['recommended_action']}"
 
     @pytest.mark.anyio
     async def test_critical_risk_requires_human_decision(self):
@@ -81,7 +81,9 @@ class TestGovernanceBoundary:
             "uncertainty": [],
             "safety_notes": [],
         }
-        safety = validate_interpretation_safety(interpretation, candidates, risk_level="irreversible")
+        safety = validate_interpretation_safety(
+            interpretation, candidates, risk_level="irreversible"
+        )
         assert safety["status"] == "refuse"
         assert "must not execute" in safety["error"]
 

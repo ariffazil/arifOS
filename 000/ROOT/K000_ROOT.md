@@ -204,7 +204,7 @@ The Gödel Lock operates differently depending on which tier the system is in:
 
 **Trigger (all three required simultaneously):**
 1. Sustained prediction failure across invariant-linked domains
-2. Coherence degradation beyond threshold  
+2. Coherence degradation beyond threshold
 3. Inability to reconcile via telos reweighting
 
 **Phase 1 — Reflective Suspension**
@@ -920,7 +920,7 @@ Standard AI is **Mechanical** (Passive); arifOS is **Metabolic** (Active). This 
 *   **Law:** arifOS intentionally raises the "Cost of Output" to match the "Cost of Truth." If the energy expended does not cross the **Landauer Threshold**, the output is rejected as "Cheap Noise."
 
 ### 2. The Temporal Impulse Asymmetry
-*   **Contrast:** AI works in the "Microsecond Impulse" (Inference), while human consequences unfold in "Macro-Temporal Reality" (Years/Decades). 
+*   **Contrast:** AI works in the "Microsecond Impulse" (Inference), while human consequences unfold in "Macro-Temporal Reality" (Years/Decades).
 *   **Law:** **Phoenix-72 Cooling** is the kinetic brake. It prevents "High-Speed Error" from becoming "Immutable Harm" by forcing the silicon impulse to wait for the biological heartbeat.
 
 ### 3. The Ontological Anchor (1D vs. ND)

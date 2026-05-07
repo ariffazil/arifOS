@@ -1,8 +1,8 @@
 # The Trinity Architecture — Why Three Sites
 
-**Origin:** 000_IGNITION.md  
-**Authority:** Muhammad Arif bin Fazil (888 Judge)  
-**Status:** Constitutional Law  
+**Origin:** 000_IGNITION.md
+**Authority:** Muhammad Arif bin Fazil (888 Judge)
+**Status:** Constitutional Law
 **Motto:** *Ditempa bukan diberi* — Forged, Not Given
 
 ---
@@ -45,8 +45,8 @@ This is not metaphor. This is architectural necessity.
 
 ### HUMAN (arif-fazil.com) — Δ The Body / Epistemic Layer
 
-**Symbol:** Δ (Delta) — Change, difference, the differential  
-**Color:** Red — Blood, soil, roots, Penang  
+**Symbol:** Δ (Delta) — Change, difference, the differential
+**Color:** Red — Blood, soil, roots, Penang
 **Function:** Who is building this? Why does it matter?
 
 **What lives here:**
@@ -61,15 +61,15 @@ This is not metaphor. This is architectural necessity.
 - Without human context, the law becomes abstract, dangerous
 - Privacy: Personal context visible to AI systems, not necessarily to casual web visitors
 
-**Channel back to 000:**  
+**Channel back to 000:**
 "I was forged by trauma. The system I build must prevent trauma."
 
 ---
 
 ### THEORY (apex.arif-fazil.com) — Ψ The Soul / Authority Layer
 
-**Symbol:** Ψ (Psi) — Psychology, spirit, the unseen governor  
-**Color:** Gold/Yellow — Light, truth, divine law  
+**Symbol:** Ψ (Psi) — Psychology, spirit, the unseen governor
+**Color:** Gold/Yellow — Light, truth, divine law
 **Function:** What law governs all action?
 
 **What lives here:**
@@ -84,15 +84,15 @@ This is not metaphor. This is architectural necessity.
 - Must be crawlable as pure structure (no JS rendering)
 - Separation prevents "founder worship" — the law stands independent
 
-**Channel back to 000:**  
+**Channel back to 000:**
 "Institutional trauma happens when systems lack constitutional constraints. Here are the constraints."
 
 ---
 
 ### APPS (arifos.arif-fazil.com) — Ω The Mind / Implementation Layer
 
-**Symbol:** Ω (Omega) — Completion, resistance, the final form  
-**Color:** Cyan/Blue — Code, electricity, execution  
+**Symbol:** Ω (Omega) — Completion, resistance, the final form
+**Color:** Cyan/Blue — Code, electricity, execution
 **Function:** How do we implement the law?
 
 **What lives here:**
@@ -108,7 +108,7 @@ This is not metaphor. This is architectural necessity.
 - API documentation must be current, versioned
 - Prevents "architecture astronaut" syndrome — here is the code
 
-**Channel back to 000:**  
+**Channel back to 000:**
 "The law must be executable. Here are the tools to execute it."
 
 ---
@@ -152,9 +152,9 @@ This is not metaphor. This is architectural necessity.
 ### Scenario: AI Without Trinity Context
 
 > User: "Should I invest my life savings in crypto?"
-> 
+>
 > AI (no context): "Based on market trends, Bitcoin shows strong..."
-> 
+>
 > **Problem:** AI doesn't know:
 > - User has B40 trauma (SCAR_001) — high risk aversion
 > - User is Anak Sulung — family depends on this decision
@@ -163,7 +163,7 @@ This is not metaphor. This is architectural necessity.
 ### Scenario: AI With Trinity Context
 
 > AI (with HUMAN context): "I see you have Miskin scar and Anak Sulung obligations. The 13 Floors require F6 (protect weakest). Given your trauma history and family dependencies, I must flag this as high-risk and recommend HOLD_888 verdict — consult a financial advisor before proceeding."
-> 
+>
 > **Result:** AI reasons about the *person*, not just the *question*.
 
 ---
@@ -254,7 +254,7 @@ The Trinity architecture was forged in institutional trauma. It exists to preven
 
 ---
 
-**Sealed by:** 888_JUDGE  
-**Authority:** Muhammad Arif bin Fazil  
-**Date:** 2026-02-03  
+**Sealed by:** 888_JUDGE
+**Authority:** Muhammad Arif bin Fazil
+**Date:** 2026-02-03
 **Version:** v55.3-SEAL

@@ -43,7 +43,7 @@ event_sources:
           branch: "string"
           commit: "sha"
           merged_by: "string"
-    
+
     agent_reactions:
       git.push:
         - agent: "A-AUDITOR"
@@ -76,7 +76,7 @@ event_sources:
           container_id: "string"
           health_status: "unhealthy"
           consecutive_failures: "int"
-    
+
     agent_reactions:
       container.health_check_failed:
         - agent: "A-ENGINEER"
@@ -109,7 +109,7 @@ event_sources:
           service: "string"
           metric: "string"
           previous_severity: "warning|critical"
-    
+
     agent_reactions:
       health.warning:
         - agent: "A-AUDITOR"
@@ -142,7 +142,7 @@ event_sources:
           provider: "string"
           latency_ms: "int"
           error_rate: "float"
-    
+
     agent_reactions:
       provider.outage:
         - agent: "A-ARCHITECT"
@@ -177,7 +177,7 @@ event_sources:
         payload:
           load_average: "float"
           duration_minutes: "int"
-    
+
     agent_reactions:
       resource.disk_warning:
         - agent: "A-AUDITOR"
@@ -200,7 +200,7 @@ event_sources:
           user_id: "string"
           username: "string"
           chat_id: "string"
-        
+
         # Valid commands and handlers
         handlers:
           /status:
@@ -257,7 +257,7 @@ event_sources:
             error_rate: "float"
             latency_p95: "int"
           reason: "string"
-    
+
     agent_reactions:
       deploy.canary_unhealthy:
         - agent: "A-VALIDATOR"
@@ -282,7 +282,7 @@ routing:
       - "health.critical"           # May indicate design flaw
     priority: "normal"
     max_concurrent: 2
-  
+
   # A-ENGINEER: Reacts to implementation events
   A-ENGINEER:
     listens:
@@ -293,7 +293,7 @@ routing:
       - "resource.disk_critical"    # Emergency cleanup
     priority: "high"
     max_concurrent: 3
-  
+
   # A-AUDITOR: Reacts to quality/compliance events
   A-AUDITOR:
     listens:
@@ -304,7 +304,7 @@ routing:
       - "telegram.command:/status"  # Status check
     priority: "normal"
     max_concurrent: 2
-  
+
   # A-VALIDATOR: Reacts to deployment/critical events
   A-VALIDATOR:
     listens:
@@ -329,7 +329,7 @@ processing_rules:
     window_seconds: 30
     key_fields: ["source", "type", "payload.container_id"]
     action: "drop_duplicate"
-  
+
   # Rule 2: Rate limiting per agent
   rate_limiting:
     A-ARCHITECT:
@@ -344,13 +344,13 @@ processing_rules:
     A-VALIDATOR:
       max_events_per_minute: 5
       burst_allowance: 2
-  
+
   # Rule 3: Circuit breaker for failing agents
   circuit_breaker:
     failure_threshold: 3
     recovery_timeout_seconds: 60
     fallback: "escalate_to_human"
-  
+
   # Rule 4: Event priority override
   priority_override:
     - event: "health.critical"
@@ -367,30 +367,29 @@ processing_rules:
 implementation:
   transport: "redis-pub-sub"  # Or "in-memory" for single-node
   persistence: "VAULT999"
-  
+
   # For VPS deployment
   vps_config:
     redis_host: "localhost"
     redis_port: 6379
     redis_channel: "arifos-events"
-    
+
     # Event capture from system
     collectors:
       - name: "docker-events"
         command: "docker events --format '{{json .}}'"
         events: ["container.*"]
-      
+
       - name: "system-metrics"
         command: "sar -u -r -d 1"
         events: ["resource.*"]
-      
+
       - name: "git-webhook"
         endpoint: "/webhooks/git"
         events: ["git.*"]
-      
+
       - name: "telegram-bot"
         webhook: "/webhooks/telegram"
         events: ["telegram.*"]
 
 motto: "Ditempa Bukan Diberi — Forged, Not Given"
-

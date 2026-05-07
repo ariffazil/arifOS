@@ -19,7 +19,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: string }> = ({ childr
 export const DomainVoid: React.FC = () => {
   const interpretTool = useMcpTool<any, string>('bridge.interpret_causal_scene');
   const stoiipTool = useMcpTool<any, any>('prospect.compute_stoiip');
-  
+
   const [rw, setRw] = useState(0.04);
   const [archieM, setArchieM] = useState(2.0);
   const [phiCut, setPhiCut] = useState(0.10);
@@ -32,7 +32,7 @@ export const DomainVoid: React.FC = () => {
 
   const derivedSw = Math.min(1.0, Math.max(0.0, Math.sqrt(rw / (Math.pow(canonPhi, archieM) * canonRes))));
   const derivedNTG = canonPhi >= phiCut ? 0.75 - ((phiCut - 0.05) * 2) : 0.0;
-  
+
   // Deterministic STOIIP call to backend
   useEffect(() => {
     stoiipTool.call({
@@ -70,13 +70,13 @@ export const DomainVoid: React.FC = () => {
           <Badge color="amber">F7: HUMILITY</Badge>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-3 gap-4 h-full">
         <div className="col-span-2 glass-panel p-4 flex flex-col relative">
           <div className="absolute top-4 right-4 text-xs font-mono text-gray-500 flex items-center gap-2">
             <Zap className="w-3 h-3 text-cyan-500"/> DETERMINISTIC VOLUMETRICS (MMstb)
           </div>
-          
+
           <div className="flex-1 flex items-end gap-1 pt-12 pb-4 border-b border-gray-800 relative">
             <div className={`absolute top-8 left-1/2 -translate-x-1/2 text-black text-xs font-bold px-2 py-1 z-10 font-mono ${isBlocked ? 'bg-red-500' : 'bg-amber-500'}`}>
               P50: {computedSTOIIP.toFixed(1)} MMstb
@@ -85,7 +85,7 @@ export const DomainVoid: React.FC = () => {
               <div key={i} className={`flex-1 border-t transition-all duration-300 ${isBlocked ? 'bg-red-500/20 border-red-500/50' : 'bg-amber-500/20 border-amber-500/50'}`} style={{ height: `${(val / maxBin) * 100}%` }} />
             ))}
           </div>
-          
+
           <div className="mt-4 grid grid-cols-4 gap-2 text-[10px] font-mono text-gray-400 bg-gray-900/50 p-2 border border-gray-800">
              <div className="flex flex-col"><span>CANON_9 φ:</span><span className="text-cyan-400 font-bold">0.18 v/v</span></div>
              <div className="flex flex-col"><span>CANON_9 ρₑ:</span><span className="text-cyan-400 font-bold">12.5 Ω·m</span></div>
@@ -96,7 +96,7 @@ export const DomainVoid: React.FC = () => {
           {interpretTool.data && (
             <div className={`mt-2 p-3 border font-mono text-xs ${isBlocked ? 'border-red-500/30 bg-red-500/5 text-red-200' : 'border-purple-500/30 bg-purple-500/5 text-purple-200'}`}>
               <div className="text-[9px] mb-2 flex items-center gap-2">
-                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />} 
+                {isBlocked ? <AlertTriangle size={12} className="text-red-500" /> : <BarChart3 size={12} />}
                 {isBlocked ? '888_JUDGE HOLD REPORT' : 'SOVEREIGN SYNTHESIS'}
               </div>
               <pre className="whitespace-pre-wrap">{interpretTool.data}</pre>
@@ -136,13 +136,13 @@ export const DomainVoid: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="glass-panel p-4 flex flex-col justify-center items-center relative overflow-hidden gap-3 shrink-0">
              <div className="absolute opacity-5"><Shield size={80}/></div>
              <div className="text-xs font-mono text-gray-500 z-10">DECISION VERDICT</div>
-             <button 
-               onClick={handleGenerateVerdict} 
-               disabled={interpretTool.status === 'loading'} 
+             <button
+               onClick={handleGenerateVerdict}
+               disabled={interpretTool.status === 'loading'}
                className="w-full py-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[10px] font-mono uppercase hover:bg-purple-500/20 transition-colors z-10 flex justify-center items-center gap-2 disabled:opacity-50"
              >
                 {interpretTool.status === 'loading' ? 'SYNTHESIZING...' : '✨ INTERPRET CAUSAL SCENE'}

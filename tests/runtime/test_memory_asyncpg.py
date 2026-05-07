@@ -16,6 +16,7 @@ class TestMemoryOrganAsyncpg:
 
     def test_asyncpg_is_importable(self):
         """asyncpg must be present in the Python environment."""
+        pytest.importorskip("asyncpg", reason="asyncpg required for MemoryEngine — install with: pip install asyncpg")
         import asyncpg
 
         assert hasattr(asyncpg, "__version__")
@@ -54,15 +55,19 @@ class TestMemoryOrganAsyncpg:
 
     def test_memory_engine_imports_without_error(self):
         """MemoryEngine class must be importable (prevents silent breakage)."""
+        pytest.importorskip("asyncpg", reason="asyncpg required for MemoryEngine import")
         from arifosmcp.memory_engine import MemoryEngine
 
         assert callable(MemoryEngine)
 
     def test_memory_engine_can_be_instantiated_with_env_urls(self):
         """MemoryEngine can be initialized when DATABASE_URL and QDRANT_URL are set."""
+        pytest.importorskip("asyncpg", reason="asyncpg required for MemoryEngine instantiation")
         import os
 
-        os.environ.setdefault("DATABASE_URL", "postgresql://user:pass@localhost:5432/db")  # pragma: allowlist secret
+        os.environ.setdefault(
+            "DATABASE_URL", "postgresql://user:pass@localhost:5432/db"
+        )  # pragma: allowlist secret
         os.environ.setdefault("QDRANT_URL", "http://localhost:6333")
         os.environ.setdefault("OLLAMA_URL", "http://localhost:11434")
 

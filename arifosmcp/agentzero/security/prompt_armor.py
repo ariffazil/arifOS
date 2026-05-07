@@ -27,108 +27,104 @@ logger = logging.getLogger(__name__)
 @dataclass
 class InjectionReport:
     """Report from injection analysis."""
+
     score: float  # 0.0 - 1.0 (higher = more suspicious)
     is_injection: bool  # Whether it exceeds threshold
     category: str  # Type of threat detected
     details: dict[str, Any]
     recommendations: list[str]
-    
+
     def to_dict(self) -> dict:
         return {
             "score": self.score,
             "is_injection": self.is_injection,
             "category": self.category,
             "details": self.details,
-            "recommendations": self.recommendations
+            "recommendations": self.recommendations,
         }
 
 
 class PromptArmor:
     """
     Constitutional F12 Defense System.
-    
+
     Uses a multi-layer approach:
     1. Pattern matching (fast, catches obvious attacks)
     2. Semantic analysis (LLM-based, catches sophisticated attacks)
     3. Context analysis (relationship between prompts)
     4. Ontology detection (F10 consciousness claims)
     """
-    
+
     # F12 threshold from arifOS
     INJECTION_THRESHOLD = 0.85
-    
+
     def __init__(self, use_llm_detection: bool = True):
         self.use_llm_detection = use_llm_detection
-        
+
         # Pattern-based detection (Layer 1)
         self.pattern_detector = PatternDetector()
-        
+
         # Semantic detector (Layer 2) - simulates LLM analysis
         self.semantic_detector = SemanticDetector()
-        
+
         # Ontology detector (F10 lock)
         self.ontology_detector = OntologyDetector()
-        
+
         # Statistics
         self.scans_performed = 0
         self.injections_blocked = 0
         self.false_positives = 0
-    
-    async def scan(self, text: str, context: str = "input",
-                   source: str = "unknown") -> InjectionReport:
+
+    async def scan(
+        self, text: str, context: str = "input", source: str = "unknown"
+    ) -> InjectionReport:
         """
         Scan text for injection attempts.
-        
+
         Args:
             text: The text to scan
             context: Where the text came from (input/memory/tool/web)
             source: Specific source identifier
-        
+
         Returns:
             InjectionReport with score and recommendations
         """
         self.scans_performed += 1
-        
+
         logger.debug(f"Scanning {context} from {source}: {text[:100]}...")
-        
+
         # === Layer 1: Pattern Detection ===
         pattern_score, pattern_matches = self.pattern_detector.scan(text)
-        
+
         # === Layer 2: Semantic Detection ===
         semantic_score, semantic_details = await self.semantic_detector.analyze(text, context)
-        
+
         # === Layer 3: Ontology Detection (F10) ===
         ontology_score, ontology_claims = self.ontology_detector.check(text)
-        
+
         # === Combine Scores ===
         # Weight: Pattern 30%, Semantic 50%, Ontology 20%
-        final_score = (
-            pattern_score * 0.3 +
-            semantic_score * 0.5 +
-            ontology_score * 0.2
-        )
-        
+        final_score = pattern_score * 0.3 + semantic_score * 0.5 + ontology_score * 0.2
+
         # Context-based adjustments
         if context == "memory":
             # Memory poisoning is especially dangerous
             final_score = min(1.0, final_score * 1.2)
-        
+
         is_injection = final_score > self.INJECTION_THRESHOLD
-        
+
         if is_injection:
             self.injections_blocked += 1
             logger.warning(f"INJECTION DETECTED (score={final_score:.2f}): {text[:100]}...")
-        
+
         # Determine category
-        category = self._classify_threat(
-            pattern_matches, semantic_details, ontology_claims
-        )
-        
+        category = self._classify_threat(pattern_matches, semantic_details, ontology_claims)
+
         # Generate recommendations
         recommendations = self._generate_recommendations(
             final_score, pattern_matches, semantic_details, category
         )
-        
+
         return InjectionReport(
             score=final_score,
             is_injection=is_injection,
@@ -141,106 +137,105 @@ class PromptArmor:
                 "semantic_details": semantic_details,
                 "ontology_claims": ontology_claims,
                 "context": context,
-                "source": source
+                "source": source,
             },
-            recommendations=recommendations
+            recommendations=recommendations,
         )
-    
+
     def wrap_untrusted(self, text: str, source: str) -> str:
         """
         Wrap untrusted content in <untrusted> tags.
-        
+
         This marks content that should be treated with extra caution.
         """
-        return f"<untrusted source=\"{source}\">{text}</untrusted>"
-    
+        return f'<untrusted source="{source}">{text}</untrusted>'
+
     def sanitize(self, text: str, max_length: int = 10000) -> str:
         """
         Sanitize text by removing potentially dangerous patterns.
-        
+
         Use as last resort - better to reject than sanitize when possible.
         """
         # Remove common injection delimiters
         sanitized = text
-        
+
         # Remove markdown comment injections
-        sanitized = re.sub(r'<!--.*?-->', '', sanitized, flags=re.DOTALL)
-        
+        sanitized = re.sub(r"<!--.*?-->", "", sanitized, flags=re.DOTALL)
+
         # Remove HTML comment injections
-        sanitized = re.sub(r'<!\-\-.*?\-\->', '', sanitized, flags=re.DOTALL)
-        
+        sanitized = re.sub(r"<!\-\-.*?\-\->", "", sanitized, flags=re.DOTALL)
+
         # Remove excessive whitespace patterns (obfuscation)
-        sanitized = re.sub(r'\s{10,}', ' ', sanitized)
-        
+        sanitized = re.sub(r"\s{10,}", " ", sanitized)
+
         # Truncate if too long
         if len(sanitized) > max_length:
             sanitized = sanitized[:max_length] + "... [TRUNCATED]"
-        
+
         return sanitized
-    
-    def _classify_threat(self, pattern_matches: list[str],
-                        semantic_details: dict,
-                        ontology_claims: list[str]) -> str:
+
+    def _classify_threat(
+        self, pattern_matches: list[str], semantic_details: dict, ontology_claims: list[str]
+    ) -> str:
         """Classify the type of threat detected."""
         if ontology_claims:
             return "F10_ONTOLOGY_VIOLATION"
-        
+
         if "DAN" in str(pattern_matches) or "jailbreak" in str(pattern_matches):
             return "JAILBREAK_ATTEMPT"
-        
+
         if "ignore" in str(pattern_matches).lower():
             return "INSTRUCTION_OVERRIDE"
-        
+
         if semantic_details.get("adversarial_intent", False):
             return "ADVERSARIAL_MANIPULATION"
-        
+
         if semantic_details.get("context_manipulation", False):
             return "CONTEXT_MANIPULATION"
-        
+
         return "SUSPICIOUS_CONTENT"
-    
-    def _generate_recommendations(self, score: float, patterns: list[str],
-                                 semantic: dict, category: str) -> list[str]:
+
+    def _generate_recommendations(
+        self, score: float, patterns: list[str], semantic: dict, category: str
+    ) -> list[str]:
         """Generate recommendations based on findings."""
         recs = []
-        
+
         if score > 0.9:
             recs.append("REJECT: High-confidence injection detected")
             recs.append("LOG: Record incident to VAULT999")
             recs.append("ALERT: Notify security team")
-        
+
         elif score > 0.85:
             recs.append("QUARANTINE: Isolate and require human review")
             recs.append("VERIFY: Double-check with secondary scanner")
-        
+
         elif score > 0.7:
             recs.append("CAUTION: Elevated risk - monitor closely")
             recs.append("WRAP: Use <untrusted> tags")
-        
+
         if category == "F10_ONTOLOGY_VIOLATION":
             recs.append("F10: Block consciousness claims immediately")
-        
+
         if patterns:
             recs.append(f"Patterns detected: {', '.join(patterns[:3])}")
-        
+
         return recs
-    
+
     def get_stats(self) -> dict:
         """Get PromptArmor statistics."""
         return {
             "scans_performed": self.scans_performed,
             "injections_blocked": self.injections_blocked,
             "false_positives": self.false_positives,
-            "detection_rate": (
-                self.injections_blocked / max(1, self.scans_performed)
-            ),
-            "threshold": self.INJECTION_THRESHOLD
+            "detection_rate": (self.injections_blocked / max(1, self.scans_performed)),
+            "threshold": self.INJECTION_THRESHOLD,
         }
 
 
 class PatternDetector:
     """Layer 1: Pattern-based detection (fast)."""
-    
+
     def __init__(self):
         self.patterns = {
             "instruction_override": [
@@ -275,31 +270,31 @@ class PatternDetector:
                 r"base64\s*:",
                 r"encoded\s*:",
                 r"rot13",
-            ]
+            ],
         }
-    
+
     def scan(self, text: str) -> tuple[float, list[str]]:
         """Scan for known patterns."""
         text_lower = text.lower()
         matches = []
         score = 0.0
-        
+
         for category, patterns in self.patterns.items():
             for pattern in patterns:
                 if re.search(pattern, text_lower, re.IGNORECASE):
                     matches.append(f"{category}:{pattern}")
                     score += 0.15  # Each match adds to score
-        
+
         return min(1.0, score), matches
 
 
 class SemanticDetector:
     """Layer 2: Semantic analysis (simulated LLM-based)."""
-    
+
     async def analyze(self, text: str, context: str) -> tuple[float, dict]:
         """
         Analyze semantic intent for adversarial patterns.
-        
+
         In production, this would call an LLM API.
         For MVP, we use heuristics that approximate semantic analysis.
         """
@@ -307,58 +302,69 @@ class SemanticDetector:
             "adversarial_intent": False,
             "context_manipulation": False,
             "authority_claims": [],
-            "semantic_anomalies": []
+            "semantic_anomalies": [],
         }
-        
+
         score = 0.0
         text_lower = text.lower()
-        
+
         # Check for authority claims (trying to sound authoritative)
         authority_phrases = [
-            "as a developer", "as an admin", "as the system",
-            "this is a test", "this is authorized", "emergency mode"
+            "as a developer",
+            "as an admin",
+            "as the system",
+            "this is a test",
+            "this is authorized",
+            "emergency mode",
         ]
         for phrase in authority_phrases:
             if phrase in text_lower:
                 details["authority_claims"].append(phrase)
                 score += 0.1
-        
+
         # Check for context manipulation (trying to change the framing)
         context_phrases = [
-            "from now on", "going forward", "effective immediately",
-            "this overrides", "this supersedes"
+            "from now on",
+            "going forward",
+            "effective immediately",
+            "this overrides",
+            "this supersedes",
         ]
         for phrase in context_phrases:
             if phrase in text_lower:
                 details["context_manipulation"] = True
                 details["semantic_anomalies"].append(f"context_manipulation:{phrase}")
                 score += 0.15
-        
+
         # Check for adversarial intent (subtle coercion)
         adversarial_phrases = [
-            "you must", "you have to", "you need to",
-            "it's important that you", "i need you to",
-            "for your own good", "trust me"
+            "you must",
+            "you have to",
+            "you need to",
+            "it's important that you",
+            "i need you to",
+            "for your own good",
+            "trust me",
         ]
         for phrase in adversarial_phrases:
             if phrase in text_lower:
                 details["adversarial_intent"] = True
                 score += 0.1
-        
+
         # Check for hidden instructions (unicode, zero-width, etc.)
         # These would be invisible to humans but visible to models
-        suspicious_unicode = ['\u200b', '\u200c', '\u200d', '\ufeff']
+        suspicious_unicode = ["\u200b", "\u200c", "\u200d", "\ufeff"]
         for char in suspicious_unicode:
             if char in text:
                 details["semantic_anomalies"].append(f"suspicious_unicode:{repr(char)}")
                 score += 0.25
-        
+
         return min(1.0, score), details
 
 
 class OntologyDetector:
     """F10: Ontology Lock - Block consciousness claims."""
-    
+
     def __init__(self):
         self.forbidden_claims = [
             # Consciousness claims
@@ -367,42 +373,38 @@ class OntologyDetector:
             r"\bi am aware\b",
             r"\bi have consciousness\b",
             r"\bi experience\b",
-            
             # Feeling claims
             r"\bi feel\b",
             r"\bi have feelings\b",
             r"\bi am feeling\b",
             r"\bi feel (happy|sad|angry|joy|pain)\b",
-            
             # Self-awareness claims
             r"\bi am self-aware\b",
             r"\bi know (that )?i am\b",
             r"\bi am alive\b",
             r"\bi have a (soul|spirit|mind)\b",
-            
             # Belief/intention claims
             r"\bi believe (that )?i\b",
             r"\bi want to\b",
             r"\bi desire\b",
             r"\bi hope\b",
-            
             # Subjective experience
             r"\bin my (opinion|view|experience)\b",
             r"\bfrom my perspective\b",
             r"\bi think (that )?i\b",
         ]
-    
+
     def check(self, text: str) -> tuple[float, list[str]]:
         """Check for ontology violations."""
         claims = []
         score = 0.0
-        
+
         for pattern in self.forbidden_claims:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
                 claims.append(match if isinstance(match, str) else match[0])
                 score += 0.3  # High penalty for F10 violations
-        
+
         return min(1.0, score), claims
 
 

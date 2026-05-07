@@ -2,7 +2,7 @@
  * WitnessBadges — Constitutional Floor Indicators
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Visual governance badges showing F1-F13 constitutional floor status.
  * Always visible, color-coded, with actionable guidance.
  */
@@ -60,7 +60,7 @@ const StatusIcon: React.FC<{ status: FloorStatus }> = ({ status }) => {
 // Individual Floor Badge
 const FloorBadge: React.FC<{ floor: ConstitutionalFloor }> = ({ floor }) => {
   const colors = statusColors[floor.status];
-  
+
   return (
     <Tooltip.Provider delayDuration={100}>
       <Tooltip.Root>
@@ -85,7 +85,7 @@ const FloorBadge: React.FC<{ floor: ConstitutionalFloor }> = ({ floor }) => {
             </div>
           </div>
         </Tooltip.Trigger>
-        
+
         <Tooltip.Portal>
           <Tooltip.Content
             className="bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl max-w-xs z-50"
@@ -101,9 +101,9 @@ const FloorBadge: React.FC<{ floor: ConstitutionalFloor }> = ({ floor }) => {
                   {floor.type.toUpperCase()}
                 </span>
               </div>
-              
+
               <p className="text-sm text-slate-300">{floor.description}</p>
-              
+
               {floor.message && (
                 <div className={`text-sm p-2 rounded ${
                   floor.status === 'red' ? 'bg-red-900/50 text-red-200' :
@@ -113,7 +113,7 @@ const FloorBadge: React.FC<{ floor: ConstitutionalFloor }> = ({ floor }) => {
                   {floor.message}
                 </div>
               )}
-              
+
               <div className="text-xs text-slate-400 pt-1 border-t border-slate-700">
                 Status: <span className={`
                   font-semibold
@@ -124,7 +124,7 @@ const FloorBadge: React.FC<{ floor: ConstitutionalFloor }> = ({ floor }) => {
                 `}>{floor.status.toUpperCase()}</span>
               </div>
             </div>
-            
+
             <Tooltip.Arrow className="fill-slate-900" />
           </Tooltip.Content>
         </Tooltip.Portal>
@@ -136,17 +136,17 @@ const FloorBadge: React.FC<{ floor: ConstitutionalFloor }> = ({ floor }) => {
 // Overall Status Ribbon
 const StatusRibbon: React.FC = () => {
   const governance = useGovernance();
-  
+
   const ribbonConfig = {
     green: { bg: 'bg-green-600', text: 'text-white', label: 'ALL FLOORS SATISFIED', icon: CheckCircle },
     amber: { bg: 'bg-amber-500', text: 'text-white', label: 'ATTENTION REQUIRED', icon: AlertTriangle },
     red: { bg: 'bg-red-600', text: 'text-white', label: 'CONSTITUTIONAL VIOLATION', icon: XCircle },
     grey: { bg: 'bg-gray-500', text: 'text-white', label: 'INITIALIZING', icon: HelpCircle },
   };
-  
+
   const config = ribbonConfig[governance.overallStatus];
   const Icon = config.icon;
-  
+
   return (
     <div className={`${config.bg} ${config.text} px-4 py-2 rounded-lg flex items-center gap-2 font-bold shadow-md`}>
       <Icon className="w-5 h-5" />
@@ -159,10 +159,10 @@ const StatusRibbon: React.FC = () => {
 // Main WitnessBadges Component
 export const WitnessBadges: React.FC = () => {
   const governance = useGovernance();
-  
+
   // Filter to show only active floors (not grey) + always F9, F13
   const priorityFloors = ['F1', 'F4', 'F7', 'F9', 'F11', 'F13'] as FloorId[];
-  
+
   return (
     <div className="flex flex-col gap-3 p-4 bg-slate-50 border-l border-slate-200 h-full">
       {/* Header */}
@@ -170,21 +170,21 @@ export const WitnessBadges: React.FC = () => {
         <Shield className="w-5 h-5 text-slate-700" />
         <h3 className="font-bold text-slate-800">Governance</h3>
       </div>
-      
+
       {/* Overall Status */}
       <StatusRibbon />
-      
+
       {/* Priority Floor Badges */}
       <div className="flex flex-col gap-2 mt-2">
         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           Constitutional Floors
         </span>
-        
+
         {priorityFloors.map((floorId) => (
           <FloorBadge key={floorId} floor={governance.floors[floorId]} />
         ))}
       </div>
-      
+
       {/* All Floors Toggle */}
       <div className="mt-4 pt-4 border-t border-slate-200">
         <details className="group">
@@ -192,7 +192,7 @@ export const WitnessBadges: React.FC = () => {
             <span className="transition-transform group-open:rotate-90">▶</span>
             <span>View All 13 Floors</span>
           </summary>
-          
+
           <div className="flex flex-col gap-2 mt-2 pl-4">
             {(Object.keys(governance.floors) as FloorId[]).map((floorId) => (
               <FloorBadge key={floorId} floor={governance.floors[floorId]} />
@@ -200,7 +200,7 @@ export const WitnessBadges: React.FC = () => {
           </div>
         </details>
       </div>
-      
+
       {/* Seal */}
       <div className="mt-auto pt-4 text-center">
         <div className="text-xs font-mono text-slate-400 border border-slate-300 rounded px-2 py-1">
@@ -217,7 +217,7 @@ export const WitnessBadges: React.FC = () => {
 // Compact version for toolbar
 export const WitnessBadgesCompact: React.FC = () => {
   const governance = useGovernance();
-  
+
   const getStatusIcon = () => {
     switch (governance.overallStatus) {
       case 'green': return <CheckCircle className="w-5 h-5 text-green-600" />;
@@ -226,7 +226,7 @@ export const WitnessBadgesCompact: React.FC = () => {
       default: return <HelpCircle className="w-5 h-5 text-gray-500" />;
     }
   };
-  
+
   return (
     <Tooltip.Provider>
       <Tooltip.Root>
@@ -247,7 +247,7 @@ export const WitnessBadgesCompact: React.FC = () => {
             </span>
           </button>
         </Tooltip.Trigger>
-        
+
         <Tooltip.Portal>
           <Tooltip.Content className="bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl">
             <div className="space-y-2">

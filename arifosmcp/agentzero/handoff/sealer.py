@@ -25,9 +25,11 @@ logger = logging.getLogger(__name__)
 # Receipt & Proof Dataclasses
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class HandoffReceipt:
     """Immutable cryptographic receipt for agent-to-agent handoff."""
+
     receipt_id: str
     source_agent: str
     source_role: str  # Trinity role: DELTA, OMEGA, PSI
@@ -62,11 +64,12 @@ class HandoffReceipt:
 @dataclass
 class AuthProof:
     """HMAC-based challenge-response proof structure. NOT zero-knowledge."""
+
     agent_state_hash: str  # Hash of source agent constitutional state
-    action_hash: str       # Hash of action being handed off
-    trinity_role: str      # Source agent role
-    witness_challenge: str # Deterministic challenge from system
-    response: str          # HMAC response proving agent knows secret key
+    action_hash: str  # Hash of action being handed off
+    trinity_role: str  # Source agent role
+    witness_challenge: str  # Deterministic challenge from system
+    response: str  # HMAC response proving agent knows secret key
 
     def to_proof_string(self) -> str:
         return f"{self.agent_state_hash}:{self.action_hash}:{self.trinity_role}:{self.witness_challenge}:{self.response}"
@@ -227,14 +230,16 @@ class HandoffSealer:
         This avoids any serialization variation (float precision, field ordering)
         and ensures the leaf is deterministic across all verification nodes.
         """
-        leaf_input = "|".join([
-            receipt.receipt_id,
-            receipt.action_digest,
-            receipt.source_agent,
-            receipt.target_agent,
-            receipt.verdict,
-            f"{receipt.timestamp:.6f}",
-        ])
+        leaf_input = "|".join(
+            [
+                receipt.receipt_id,
+                receipt.action_digest,
+                receipt.source_agent,
+                receipt.target_agent,
+                receipt.verdict,
+                f"{receipt.timestamp:.6f}",
+            ]
+        )
         return hashlib.sha256(leaf_input.encode()).hexdigest()
 
     def _get_vault_root(self) -> str:
@@ -300,7 +305,10 @@ class HandoffSealer:
         if self.vault is not None and receipt.merkle_root_before:
             try:
                 if not self.vault.verify_root_exists(receipt.merkle_root_before):
-                    return False, f"Vault root '{receipt.merkle_root_before[:8]}...' no longer exists"
+                    return (
+                        False,
+                        f"Vault root '{receipt.merkle_root_before[:8]}...' no longer exists",
+                    )
             except Exception:
                 pass  # Vault not available — skip this check
 
@@ -321,7 +329,9 @@ class HandoffSealer:
 
             # Verify challenge-response (proves agent had access to secret)
             challenge_payload = f"{agent_state_hash}:{challenge}:{proof_action_hash}"
-            expected_response = hmac.new(self._secret, challenge_payload.encode(), hashlib.sha256).hexdigest()
+            expected_response = hmac.new(
+                self._secret, challenge_payload.encode(), hashlib.sha256
+            ).hexdigest()
             if not hmac.compare_digest(response, expected_response):
                 return False, "Challenge-response verification failed"
 
@@ -336,7 +346,8 @@ class HandoffSealer:
     def get_handoff_history(self, agent_id: str) -> list[HandoffReceipt]:
         """Return all handoff receipts involving this agent (source or target)."""
         return [
-            r for r in self._pending_receipts
+            r
+            for r in self._pending_receipts
             if r.source_agent == agent_id or r.target_agent == agent_id
         ]
 

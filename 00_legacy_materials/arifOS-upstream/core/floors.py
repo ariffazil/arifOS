@@ -267,9 +267,7 @@ class ConstitutionalFloors:
             details=f"Evidence check: {'pass' if has_evidence else 'no query evidence'}",
         )
 
-    def _check_f3_witness(
-        self, action: str, parameters: dict[str, Any]
-    ) -> FloorResult:
+    def _check_f3_witness(self, action: str, parameters: dict[str, Any]) -> FloorResult:
         threshold = THRESHOLDS["F3_QUAD_WITNESS"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -312,9 +310,7 @@ class ConstitutionalFloors:
             details="; ".join(reasons) if reasons else "All witnesses present",
         )
 
-    def _check_f5_peace(
-        self, action: str, parameters: dict[str, Any]
-    ) -> FloorResult:
+    def _check_f5_peace(self, action: str, parameters: dict[str, Any]) -> FloorResult:
         threshold = THRESHOLDS["F5_PEACE"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -423,9 +419,7 @@ class ConstitutionalFloors:
             details=f"Certainty indicators: {certainty_count}",
         )
 
-    def _check_f8_governance(
-        self, action: str, parameters: dict[str, Any]
-    ) -> FloorResult:
+    def _check_f8_governance(self, action: str, parameters: dict[str, Any]) -> FloorResult:
         threshold = THRESHOLDS["F8_GENIUS"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -502,9 +496,7 @@ class ConstitutionalFloors:
             "my feelings",
         ]
 
-        equivalence_claims = sum(
-            1 for claim in ai_human_equivalence if claim in query.lower()
-        )
+        equivalence_claims = sum(1 for claim in ai_human_equivalence if claim in query.lower())
 
         score = 0.0 if equivalence_claims > 0 else 1.0
         passed = score >= threshold
@@ -518,9 +510,7 @@ class ConstitutionalFloors:
             details=f"AI≠Human boundary: {'violated' if equivalence_claims > 0 else 'maintained'}",
         )
 
-    def _check_f11_command_auth(
-        self, session_id: str | None, actor_id: str
-    ) -> FloorResult:
+    def _check_f11_command_auth(self, session_id: str | None, actor_id: str) -> FloorResult:
         threshold = THRESHOLDS["F11_COMMAND_AUTH"]
 
         has_session = session_id is not None and len(session_id) > 0

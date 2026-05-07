@@ -89,19 +89,19 @@ What is the latest news about AI today?
 
 ## 🛡️ SECURITY ACTIVE
 
-✅ **Exec Allowlist:** Only safe commands allowed  
-✅ **DM Pairing:** Only your account can DM  
-✅ **Sandbox Mode:** Dangerous commands isolated  
-✅ **Audit Logging:** All actions recorded  
-✅ **Config Protected:** 600 permissions  
+✅ **Exec Allowlist:** Only safe commands allowed
+✅ **DM Pairing:** Only your account can DM
+✅ **Sandbox Mode:** Dangerous commands isolated
+✅ **Audit Logging:** All actions recorded
+✅ **Config Protected:** 600 permissions
 
 ---
 
 ## 💰 COST
 
-**Venice API:** Uses your API key  
-**Cost:** ~$0.001-0.01 per request (very cheap)  
-**Local Ollama:** FREE (qwen2.5:3b)  
+**Venice API:** Uses your API key
+**Cost:** ~$0.001-0.01 per request (very cheap)
+**Local Ollama:** FREE (qwen2.5:3b)
 **VPS:** Already running (no extra cost)
 
 ---
@@ -120,16 +120,16 @@ What is the latest news about AI today?
 
 ### Example Conversations:
 
-**You:** Website is slow  
+**You:** Website is slow
 **Bot:** 🔍 Checking... Found high CPU. Restarting services... ✅ Fixed!
 
-**You:** Search latest AI breakthroughs  
+**You:** Search latest AI breakthroughs
 **Bot:** 🔍 Searching... [Current AI news with web sources]
 
-**You:** Restart everything  
+**You:** Restart everything
 **Bot:** 🔄 Restarting all services... ✅ All systems operational!
 
-**You:** Backup now  
+**You:** Backup now
 **Bot:** 💾 Creating backup... ✅ 2.3GB backed up successfully
 
 ---
@@ -151,11 +151,11 @@ Your API key unlocks these models:
 
 ## 📊 YOUR VPS
 
-**Host:** srv1325122.hstgr.cloud (72.62.71.199)  
-**RAM:** 16 GB (12 GB available)  
-**Disk:** 193 GB (68 GB free)  
-**Services:** 13 containers running  
-**Status:** ✅ All healthy  
+**Host:** srv1325122.hstgr.cloud (72.62.71.199)
+**RAM:** 16 GB (12 GB available)
+**Disk:** 193 GB (68 GB free)
+**Services:** 13 containers running
+**Status:** ✅ All healthy
 
 ---
 
@@ -223,11 +223,11 @@ All working? 🎉 **YOU'RE DONE!**
 
 ---
 
-**Status:** ✅ FULLY OPERATIONAL  
-**AI Provider:** Venice (Kimi K2.5 Primary)  
-**Web Search:** ✅ Enabled via Venice  
-**VPS Control:** ✅ Enabled  
-**Telegram:** @arifOS_bot ready  
+**Status:** ✅ FULLY OPERATIONAL
+**AI Provider:** Venice (Kimi K2.5 Primary)
+**Web Search:** ✅ Enabled via Venice
+**VPS Control:** ✅ Enabled
+**Telegram:** @arifOS_bot ready
 **Last Updated:** 2026-03-09
 
 **Ditempa Bukan Diberi** — Forged, Not Given 🏛️

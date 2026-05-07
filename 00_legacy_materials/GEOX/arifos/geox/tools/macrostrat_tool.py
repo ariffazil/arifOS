@@ -2,7 +2,7 @@
 arifos/geox/tools/macrostrat_tool.py — Macrostrat API Adapter
 DITEMPA BUKAN DIBERI
 
-A hardened adapter for the Macrostrat geological API. 
+A hardened adapter for the Macrostrat geological API.
 Fetches stratigraphic columns and lithology data for spatial queries.
 """
 
@@ -31,16 +31,17 @@ from arifos.geox.geox_schemas import (
 
 logger = logging.getLogger("geox.tools.macrostrat")
 
+
 class MacrostratTool(BaseTool):
     """
     Adapter for the Macrostrat geological database.
-    
-    Queries Macrostrat's 'columns' and 'units' API for regional 
+
+    Queries Macrostrat's 'columns' and 'units' API for regional
     stratigraphy and lithological properties.
-    
+
     Inputs:
         location (CoordinatePoint) — query coordinates
-    
+
     API: https://macrostrat.org/api/v2
     License: CC-BY-4.0 (attribution required)
     """
@@ -107,15 +108,13 @@ class MacrostratTool(BaseTool):
                     "columns_found": len(columns.get("success", {}).get("data", [])),
                     "units_found": len(units.get("success", {}).get("data", [])),
                     "license": "CC-BY-4.0",
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
             )
         except Exception as exc:
             logger.error(f"Macrostrat API request failed: {exc}")
             return GeoToolResult(
-                tool_name=self.name,
-                success=False,
-                error=f"Macrostrat API failed: {exc}"
+                tool_name=self.name, success=False, error=f"Macrostrat API failed: {exc}"
             )
 
     async def _query_api(self, endpoint: str, location: CoordinatePoint) -> dict[str, Any]:
@@ -134,8 +133,8 @@ class MacrostratTool(BaseTool):
                 params={
                     "lat": location.latitude,
                     "lng": location.longitude,
-                    "format": "geojson" if endpoint == "columns" else "json"
-                }
+                    "format": "geojson" if endpoint == "columns" else "json",
+                },
             )
             resp.raise_for_status()
             data = resp.json()
@@ -145,10 +144,7 @@ class MacrostratTool(BaseTool):
         return data
 
     def _parse_to_quantities(
-        self,
-        columns: dict[str, Any],
-        units: dict[str, Any],
-        location: CoordinatePoint
+        self, columns: dict[str, Any], units: dict[str, Any], location: CoordinatePoint
     ) -> list[GeoQuantity]:
         """Convert Macrostrat data to GeoQuantity objects."""
         quantities = []
@@ -162,40 +158,44 @@ class MacrostratTool(BaseTool):
             unit_id = unit.get("unit_id", "unknown")
 
             if t_age is not None:
-                quantities.append(GeoQuantity(
-                    value=float(t_age),
-                    units="Ma",
-                    quantity_type="stratigraphic_age_top",
-                    coordinates=location,
-                    timestamp=now,
-                    uncertainty=abs(float(b_age) - float(t_age)) / 2 if b_age else 5.0,
-                    provenance=ProvenanceRecord(
-                        source_id=f"macrostrat-unit-{unit_id}",
-                        source_type="literature",
+                quantities.append(
+                    GeoQuantity(
+                        value=float(t_age),
+                        units="Ma",
+                        quantity_type="stratigraphic_age_top",
+                        coordinates=location,
                         timestamp=now,
-                        confidence=0.85,
-                        citation="Macrostrat API (units)"
+                        uncertainty=abs(float(b_age) - float(t_age)) / 2 if b_age else 5.0,
+                        provenance=ProvenanceRecord(
+                            source_id=f"macrostrat-unit-{unit_id}",
+                            source_type="literature",
+                            timestamp=now,
+                            confidence=0.85,
+                            citation="Macrostrat API (units)",
+                        ),
                     )
-                ))
+                )
 
             # Lithology (categorical)
             lith = unit.get("lith", "")
             if lith:
-                quantities.append(GeoQuantity(
-                    value=1.0,  # Presence indicator
-                    units="presence",
-                    quantity_type=f"lithology_{lith.lower().replace(' ', '_')}",
-                    coordinates=location,
-                    timestamp=now,
-                    uncertainty=0.15,
-                    provenance=ProvenanceRecord(
-                        source_id=f"macrostrat-lith-{unit_id}",
-                        source_type="literature",
+                quantities.append(
+                    GeoQuantity(
+                        value=1.0,  # Presence indicator
+                        units="presence",
+                        quantity_type=f"lithology_{lith.lower().replace(' ', '_')}",
+                        coordinates=location,
                         timestamp=now,
-                        confidence=0.80,
-                        citation=f"Macrostrat Lithology Unit: {unit_id}"
+                        uncertainty=0.15,
+                        provenance=ProvenanceRecord(
+                            source_id=f"macrostrat-lith-{unit_id}",
+                            source_type="literature",
+                            timestamp=now,
+                            confidence=0.80,
+                            citation=f"Macrostrat Lithology Unit: {unit_id}",
+                        ),
                     )
-                ))
+                )
 
         return quantities
 
@@ -203,4 +203,3 @@ class MacrostratTool(BaseTool):
         """Ping the Macrostrat API status."""
         # Simple placeholder for connectivity check
         return True
-

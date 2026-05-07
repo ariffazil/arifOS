@@ -34,28 +34,30 @@ PATHS = {
     "arifos_sabar": "_sabar.py",
 }
 
+
 def verify():
     print("--- arifOS Tool Verification Harness ---")
     print(f"Base Path: {BASE}\n")
-    
+
     missing = []
-    
+
     for tool in TOOLS:
         rel_path = PATHS.get(tool)
         full_path = os.path.join(BASE, rel_path)
-        
+
         status = "✅ FOUND" if os.path.exists(full_path) else "❌ MISSING"
         print(f"{tool:<20} | {status} | {rel_path}")
-        
+
         if status == "❌ MISSING":
             missing.append(tool)
-            
+
     print("\n--- Summary ---")
     if not missing:
         print("All tools forged! Horizon is synchronized.")
     else:
         print(f"{len(TOOLS) - len(missing)}/{len(TOOLS)} tools forged.")
         print(f"Awaiting forges for: {', '.join(missing)}")
+
 
 if __name__ == "__main__":
     verify()

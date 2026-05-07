@@ -9,6 +9,7 @@ This is a stub. The full A2A implementation requires:
   - SSE streaming for async tasks
   - Federation-wide identity resolution (F11)
 """
+
 from __future__ import annotations
 
 from typing import Any

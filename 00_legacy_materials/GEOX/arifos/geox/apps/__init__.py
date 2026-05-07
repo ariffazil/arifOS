@@ -74,24 +74,31 @@ def _normalize_manifest_payload(payload: dict, app_dir_name: str) -> dict:
     events = normalized.get("events")
     if isinstance(events, dict) and isinstance(events.get("supported"), list):
         events["supported"] = [
-            e for e in events["supported"]
-            if isinstance(e, str) and e in _VALID_EVENT_TYPES
+            e for e in events["supported"] if isinstance(e, str) and e in _VALID_EVENT_TYPES
         ]
 
     arifos = normalized.get("arifos")
     if isinstance(arifos, dict) and isinstance(arifos.get("human_in_the_loop"), list):
         arifos["human_in_the_loop"] = [
-            t for t in arifos["human_in_the_loop"]
+            t
+            for t in arifos["human_in_the_loop"]
             if isinstance(t, str) and t in _VALID_HITL_TRIGGERS
         ]
 
     ui_entry = normalized.get("ui_entry")
     if isinstance(ui_entry, dict) and isinstance(ui_entry.get("capability_required"), list):
         ui_entry["capability_required"] = [
-            c for c in ui_entry["capability_required"]
-            if c in {
-                "embedded_webview", "webgl", "webgl2", "wasm", "webrtc",
-                "file_system", "notifications",
+            c
+            for c in ui_entry["capability_required"]
+            if c
+            in {
+                "embedded_webview",
+                "webgl",
+                "webgl2",
+                "wasm",
+                "webrtc",
+                "file_system",
+                "notifications",
             }
         ]
 
@@ -101,10 +108,10 @@ def _normalize_manifest_payload(payload: dict, app_dir_name: str) -> dict:
 def load_app_manifest(app_name: str) -> GeoXAppManifest:
     """
     Load an app manifest by name.
-    
+
     Args:
         app_name: App directory name (e.g., 'seismic_viewer')
-    
+
     Returns:
         Parsed GeoXAppManifest
     """
@@ -117,7 +124,7 @@ def load_app_manifest(app_name: str) -> GeoXAppManifest:
 def register_all_apps() -> None:
     """Register all built-in GEOX apps."""
     registry = get_app_registry()
-    
+
     apps_dir = Path(__file__).parent
     for app_dir in apps_dir.iterdir():
         if app_dir.is_dir() and (app_dir / "manifest.json").exists():

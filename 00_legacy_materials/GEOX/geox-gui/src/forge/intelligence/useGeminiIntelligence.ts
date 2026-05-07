@@ -2,7 +2,7 @@
  * useGeminiIntelligence — Earth Intelligence LLM Bridge
  * ═══════════════════════════════════════════════════════════════════════════════
  * DITEMPA BUKAN DIBERI
- * 
+ *
  * Gemini API integration for geological interpretations and decision verdicts.
  * Implements exponential backoff, constitutional validation, and structured output.
  */
@@ -25,10 +25,10 @@ export interface GeminiConfig {
 /**
  * System instruction templates for different geological contexts
  */
-export type GeologicalContext = 
-  | 'interpretation' 
-  | 'risk_assessment' 
-  | 'analog_matching' 
+export type GeologicalContext =
+  | 'interpretation'
+  | 'risk_assessment'
+  | 'analog_matching'
   | 'chronostratigraphy'
   | 'petrophysics'
   | 'structural'
@@ -223,12 +223,12 @@ export function useGeminiIntelligence(
   config: Partial<GeminiConfig> = {}
 ): UseGeminiIntelligenceReturn {
   const fullConfig = { ...DEFAULT_CONFIG, ...config };
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastResponse, setLastResponse] = useState<GeologicalInterpretation | null>(null);
   const [tokenUsage, setTokenUsage] = useState<{ input: number; output: number; total: number } | null>(null);
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
   /**
@@ -286,7 +286,7 @@ export function useGeminiIntelligence(
       setError(null);
 
       const systemInstruction = SYSTEM_INSTRUCTIONS[context];
-      
+
       const request: GeminiRequest = {
         contents: [{ parts: [{ text: prompt }] }],
         systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -324,7 +324,7 @@ export function useGeminiIntelligence(
           }
 
           const data: GeminiResponse = await response.json();
-          
+
           if (data.candidates.length === 0) {
             throw new Error('No candidates in response');
           }
@@ -343,7 +343,7 @@ export function useGeminiIntelligence(
 
         } catch (err) {
           lastError = err as Error;
-          
+
           // Don't retry on abort
           if (err instanceof DOMException && err.name === 'AbortError') {
             throw err;
@@ -377,7 +377,7 @@ export function useGeminiIntelligence(
       setError(null);
 
       const systemInstruction = SYSTEM_INSTRUCTIONS[context];
-      
+
       const request: GeminiRequest = {
         contents: [{ parts: [{ text: prompt }] }],
         systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -422,7 +422,7 @@ export function useGeminiIntelligence(
             if (line.startsWith('data: ')) {
               const json = line.slice(6);
               if (json === '[DONE]') continue;
-              
+
               try {
                 const data = JSON.parse(json);
                 const chunk = data.candidates?.[0]?.content?.parts?.[0]?.text;

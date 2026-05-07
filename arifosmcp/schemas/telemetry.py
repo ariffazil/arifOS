@@ -1,4 +1,5 @@
 """Telemetry output schemas — 777_OPS, 111_SENSE"""
+
 from __future__ import annotations
 
 from typing import Any

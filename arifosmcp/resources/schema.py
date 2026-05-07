@@ -3,6 +3,7 @@ arifos://schema — Complete Blueprint (Δ)
 ═════════════════════════════════════════
 Canonical tool surface, Trinity lanes, and floor bindings.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

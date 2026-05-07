@@ -20,6 +20,7 @@ from arifosmcp.memory.vector_memory_qdrant import (
 
 logger = logging.getLogger(__name__)
 
+
 class MemoryArea(Enum):
     MAIN = "main"
     TASK = "task"
@@ -32,6 +33,7 @@ class MemoryArea(Enum):
             return cls(name.lower())
         except ValueError:
             return cls.MAIN
+
 
 @dataclass
 class MemoryEntry:
@@ -58,8 +60,10 @@ class MemoryEntry:
             "metadata": self.metadata,
         }
 
+
 class ConstitutionalMemoryStore:
     """Real Qdrant-backed constitutional memory store."""
+
     def __init__(self):
         self.initialized = False
         try:
@@ -77,21 +81,21 @@ class ConstitutionalMemoryStore:
         import uuid
 
         from qdrant_client.models import PointStruct
-        
+
         client = _get_qdrant_client()
         vector = _generate_embedding(content)
         memory_id = str(uuid.uuid4())
-        
+
         payload = {
             "content": content,
             "timestamp": datetime.now().isoformat(),
             "area": kwargs.get("area", "main"),
-            "metadata": kwargs.get("metadata", {})
+            "metadata": kwargs.get("metadata", {}),
         }
-        
+
         client.upsert(
             collection_name=_QDRANT_COLLECTION,
-            points=[PointStruct(id=memory_id, vector=vector, payload=payload)]
+            points=[PointStruct(id=memory_id, vector=vector, payload=payload)],
         )
         return True, memory_id, None
 
@@ -99,21 +103,21 @@ class ConstitutionalMemoryStore:
         """Query Qdrant for similar memory entries."""
         client = _get_qdrant_client()
         vector = _generate_embedding(query)
-        
+
         results = client.query_points(
-            collection_name=_QDRANT_COLLECTION,
-            query=vector,
-            limit=limit
+            collection_name=_QDRANT_COLLECTION, query=vector, limit=limit
         ).points
-        
+
         entries = []
         for res in results:
-            entries.append(MemoryEntry(
-                content=res.payload.get("content", ""),
-                id=str(res.id),
-                score=0.0, # query_points score is nested or needs mapping
-                metadata=res.payload.get("metadata", {})
-            ))
+            entries.append(
+                MemoryEntry(
+                    content=res.payload.get("content", ""),
+                    id=str(res.id),
+                    score=0.0,  # query_points score is nested or needs mapping
+                    metadata=res.payload.get("metadata", {}),
+                )
+            )
         return entries
 
     async def recall(self, **kwargs) -> list[MemoryEntry]:

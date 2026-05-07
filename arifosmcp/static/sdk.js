@@ -7,7 +7,7 @@ export class WebMCPSDK {
         this.baseUrl = config.baseUrl || window.location.origin;
         this.wsUrl = config.wsUrl || this.baseUrl.replace(/^http/, 'ws') + '/webmcp/ws';
         this.actorId = config.actorId || 'ariffazil';
-        
+
         this.socket = null;
         this.listeners = {
             'vitals': [],
@@ -15,7 +15,7 @@ export class WebMCPSDK {
             'connected': [],
             'disconnected': []
         };
-        
+
         this.reconnectAttempts = 0;
         this.maxReconnects = 10;
     }
@@ -93,7 +93,7 @@ export class WebMCPSDK {
      */
     async resolveHold(holdId, decision, justification = "") {
         console.log(`[WebMCP] Resolving HOLD ${holdId} with verdict ${decision}`);
-        
+
         try {
             const response = await fetch(`${this.baseUrl}/hold/${holdId}/resolve`, {
                 method: 'POST',

@@ -59,13 +59,13 @@ class RealityDossier(BaseModel):
     session_id: str | None = "global"
     actor_id: str = "anonymous"
     authority_level: str = "anonymous"
-    
+
     status: BundleStatus
-    intelligence: IntelligenceState3E = Field(default_factory=IntelligenceState3E)    
+    intelligence: IntelligenceState3E = Field(default_factory=IntelligenceState3E)
     verdicts: list[DossierVerdict] = Field(default_factory=list)
     claims: list[Claim] = Field(default_factory=list)
     provenance: DossierProvenance = Field(default_factory=DossierProvenance)
-    
+
     telemetry: dict[str, Any] = Field(default_factory=dict)
     machine_status: str = "READY"
     machine_issue: str | None = None
@@ -78,46 +78,46 @@ class DossierEngine:
             "F4_CLARITY": 0.15,
             "F7_HUMILITY": 0.10,
         }
-    
-    def _compute_witness_confidence(self, claim: Claim, bundles: list[EvidenceBundle]) -> list[Witness]:
+
+    def _compute_witness_confidence(
+        self, claim: Claim, bundles: list[EvidenceBundle]
+    ) -> list[Witness]:
         witnesses: list[Witness] = []
         total_confidence = claim.confidence
-        
+
         human_witness = Witness(
             source="human",
             confidence=min(1.0, total_confidence + 0.1),
             weight=1.5,
-            notes="Claim attributed to human source or query"
+            notes="Claim attributed to human source or query",
         )
         witnesses.append(human_witness)
-        
+
         ai_witness = Witness(
             source="ai",
             confidence=total_confidence,
             weight=1.0,
-            notes="AI-grounded confidence from evidence extraction"
+            notes="AI-grounded confidence from evidence extraction",
         )
         witnesses.append(ai_witness)
-        
+
         earth_witness = Witness(
             source="earth",
             confidence=min(1.0, total_confidence * 0.9),
             weight=1.2,
-            notes="External grounding from fetched/computed sources"
+            notes="External grounding from fetched/computed sources",
         )
         witnesses.append(earth_witness)
-        
+
         return witnesses
-    
+
     def _compute_verdict(
-        self, 
-        claim: Claim, 
-        witnesses: list[Witness],        bundles: list[EvidenceBundle]
+        self, claim: Claim, witnesses: list[Witness], bundles: list[EvidenceBundle]
     ) -> DossierVerdict:
         support_count = 0
         contradict_count = 0
         total_evidence = len(claim.evidence)
-        
+
         for evidence in claim.evidence:
             if isinstance(evidence, dict):
                 relation = evidence.get("relation", "SUPPORTS")
@@ -125,9 +125,11 @@ class DossierEngine:
                     support_count += 1
                 elif relation == "CONTRADICTS":
                     contradict_count += 1
-        
-        weighted_confidence = sum(w.confidence * w.weight for w in witnesses) / sum(w.weight for w in witnesses)
-                
+
+        weighted_confidence = sum(w.confidence * w.weight for w in witnesses) / sum(
+            w.weight for w in witnesses
+        )
+
         if contradict_count > support_count:
             verdict_str = "CONTRADICTED"
             confidence = weighted_confidence * 0.7
@@ -140,7 +142,7 @@ class DossierEngine:
         else:
             verdict_str = "UNCERTAIN"
             confidence = weighted_confidence * 0.5
-        
+
         return DossierVerdict(
             claim=claim.text,
             verdict=verdict_str,
@@ -148,12 +150,20 @@ class DossierEngine:
             witnesses=witnesses,
             floor_impacts={
                 "F2_TRUTH": {"score": confidence, "threshold": 0.99},
-                "F4_CLARITY": {"score": 1.0 - (0.1 if verdict_str == "UNCERTAIN" else 0), "threshold": 0.0},
-                "F7_HUMILITY": {"score": 0.04 if verdict_str == "UNCERTAIN" else 0.03, "band": "[0.03, 0.05]"},
+                "F4_CLARITY": {
+                    "score": 1.0 - (0.1 if verdict_str == "UNCERTAIN" else 0),
+                    "threshold": 0.0,
+                },
+                "F7_HUMILITY": {
+                    "score": 0.04 if verdict_str == "UNCERTAIN" else 0.03,
+                    "band": "[0.03, 0.05]",
+                },
             },
-            evidence_chain=[e.get("source", "unknown") for e in claim.evidence if isinstance(e, dict)],
+            evidence_chain=[
+                e.get("source", "unknown") for e in claim.evidence if isinstance(e, dict)
+            ],
         )
-    
+
     def _intelligence_exploration_phase(self, bundles: list[EvidenceBundle]) -> list[str]:
         """
         E1: Exploration - gather candidate interpretations and hypotheses.
@@ -167,7 +177,7 @@ class DossierEngine:
             else:
                 hypotheses.append(f"Bundle {bundle.id[:8]} uncertain: state={bundle.status.state}")
         return hypotheses
-    
+
     def _intelligence_entropy_phase(self, bundles: list[EvidenceBundle]) -> dict[str, Any]:
         """
         E2: Entropy - measure and metabolize uncertainty.
@@ -175,7 +185,7 @@ class DossierEngine:
         stable_facts = []
         uncertainties = []
         entropy_score = 0.0
-        
+
         for bundle in bundles:
             if bundle.status.state == "SUCCESS":
                 stable_facts.append(f"Fetch completed: {bundle.input.value}")
@@ -183,9 +193,9 @@ class DossierEngine:
                 for error in bundle.status.errors:
                     uncertainties.append(f"{error.code}: {error.detail}")
                     entropy_score += 0.15
-        
+
         entropy_score = min(1.0, entropy_score)
-        
+
         if entropy_score < 0.3:
             entropy_level = "LOW"
         elif entropy_score < 0.6:
@@ -194,18 +204,16 @@ class DossierEngine:
             entropy_level = "HIGH"
         else:
             entropy_level = "CRITICAL"
-        
+
         return {
             "level": entropy_level,
             "score": entropy_score,
             "stable_facts": stable_facts,
             "uncertainties": uncertainties,
         }
-    
+
     def _intelligence_eureka_phase(
-        self, 
-        verdicts: list[DossierVerdict], 
-        entropy_data: dict[str, Any]
+        self, verdicts: list[DossierVerdict], entropy_data: dict[str, Any]
     ) -> dict[str, Any]:
         """
         E3: Eureka - collapse confusion into coherent, decision-ready form.
@@ -213,7 +221,7 @@ class DossierEngine:
         supported = sum(1 for v in verdicts if v.verdict == "SUPPORTED")
         contradicted = sum(1 for v in verdicts if v.verdict == "CONTRADICTED")
         total = len(verdicts)
-        
+
         if total == 0:
             eureka_level = "NONE"
             insight = "No claims to synthesize"
@@ -229,13 +237,15 @@ class DossierEngine:
         else:
             eureka_level = "FORGED"
             avg_conf = sum(v.confidence for v in verdicts) / total
-            insight = f"Synthesis complete: {supported}/{total} supported, confidence={avg_conf:.2f}"
-        
+            insight = (
+                f"Synthesis complete: {supported}/{total} supported, confidence={avg_conf:.2f}"
+            )
+
         return {
             "level": eureka_level,
             "insight": insight,
         }
-    
+
     def _process_bundle(self, bundle: EvidenceBundle) -> None:
         """Process a single evidence bundle (internal for tests)."""
         pass
@@ -263,24 +273,26 @@ class DossierEngine:
         Implements the Tri-Witness Decoder for F3 compliance.
         """
         start_time = time.time()
-        
+
         all_claims: list[Claim] = []
         for bundle in bundles:
             all_claims.extend(bundle.claims)
-        
+
         hypotheses = self._intelligence_exploration_phase(bundles)
         entropy_data = self._intelligence_entropy_phase(bundles)
-        
+
         verdicts: list[DossierVerdict] = []
         for claim in all_claims:
             witnesses = self._compute_witness_confidence(claim, bundles)
             verdict = self._compute_verdict(claim, witnesses, bundles)
             verdicts.append(verdict)
-        
+
         eureka_data = self._intelligence_eureka_phase(verdicts, entropy_data)
-        
+
         intelligence = IntelligenceState3E(
-            exploration="EXHAUSTED" if len(bundles) > 3 else "SCOPED" if len(bundles) > 1 else "BROAD",
+            exploration=(
+                "EXHAUSTED" if len(bundles) > 3 else "SCOPED" if len(bundles) > 1 else "BROAD"
+            ),
             entropy=entropy_data["level"],
             eureka=eureka_data["level"],
             hypotheses=hypotheses,
@@ -288,24 +300,34 @@ class DossierEngine:
             uncertainties=entropy_data["uncertainties"],
             insight=eureka_data["insight"],
         )
-        
+
         total_claims = len(all_claims)
         supported_claims = sum(1 for v in verdicts if v.verdict == "SUPPORTED")
-        
+
         status = BundleStatus(
-            state="SUCCESS" if eureka_data["level"] == "FORGED" else "PARTIAL" if eureka_data["level"] == "PARTIAL" else "SABAR",
+            state=(
+                "SUCCESS"
+                if eureka_data["level"] == "FORGED"
+                else "PARTIAL" if eureka_data["level"] == "PARTIAL" else "SABAR"
+            ),
             stage="222_REALITY",
-            verdict="SEAL" if eureka_data["level"] == "FORGED" else "PARTIAL" if total_claims > 0 else "SABAR",
+            verdict=(
+                "SEAL"
+                if eureka_data["level"] == "FORGED"
+                else "PARTIAL" if total_claims > 0 else "SABAR"
+            ),
             message=eureka_data["insight"],
             errors=[],
         )
-        
+
         provenance = DossierProvenance(
             bundles_processed=len(bundles),
             atlas_nodes=0,
-            completeness_score=min(1.0, (supported_claims / max(1, total_claims)) * (1 - entropy_data["score"])),
+            completeness_score=min(
+                1.0, (supported_claims / max(1, total_claims)) * (1 - entropy_data["score"])
+            ),
         )
-        
+
         telemetry = {
             "dS": -entropy_data["score"],
             "peace2": 1.0 + (0.2 if eureka_data["level"] == "FORGED" else 0),
@@ -314,7 +336,7 @@ class DossierEngine:
             "verdict": status.verdict,
             "processing_ms": (time.time() - start_time) * 1000,
         }
-        
+
         return RealityDossier(
             session_id=session_id,
             actor_id=actor_id,

@@ -1,7 +1,7 @@
 # arifOS Deployment Gate Stack
 
-> **Status**: Implemented  
-> **Authority**: 000_THEORY, 888_APEX  
+> **Status**: Implemented
+> **Authority**: 000_THEORY, 888_APEX
 > **DITEMPA BUKAN DIBERI**
 
 ## Overview
@@ -172,10 +172,10 @@ The GitHub Actions workflow (`.github/workflows/deployment-gates.yml`) runs all 
 
 ```yaml
 # Gates run in dependency order
-Gate A (Boot) 
-  → Gate B (Capability) 
-  → Gate C (Floors) 
-  → Gate D (Substrate) 
+Gate A (Boot)
+  → Gate B (Capability)
+  → Gate C (Floors)
+  → Gate D (Substrate)
   → Gate E (E2E)
   → Gate F (Rollback)
   → Gate G (Observe)
@@ -242,7 +242,7 @@ All test runs are logged to VAULT999 with:
 
 **CLAIM**: arifOS canon says every change must pass evals, preserve rollback, and log failures for investigation before trust is granted.
 
-**VALIDATED**: ✅ 
+**VALIDATED**: ✅
 - Evals: `breach_test_runner.py`, `protocol_conformance_runner.py`, etc.
 - Rollback: `rollback_verifier.py` with create/verify/execute
 - Logging: All tests seal to VAULT999
@@ -257,5 +257,5 @@ All test runs are logged to VAULT999 with:
 
 ---
 
-**999_SEAL_ALIVE**  
+**999_SEAL_ALIVE**
 **DITEMPA BUKAN DIBERI**

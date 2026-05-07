@@ -156,4 +156,3 @@ echo "╚═══════════════════════�
 echo ""
 echo "Recent logs (last 20 lines):"
 docker logs --tail 20 arifosmcp 2>&1 | tail -20
-

@@ -62,7 +62,7 @@ export function useOpenAI(): UseOpenAIReturn {
   // Local state mirrored from adapter
   const [state, setState] = useState<OpenAIAdapterState>(getAdapterState());
   const [isInitializing, setIsInitializing] = useState(false);
-  
+
   // Refs for cleanup
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const mountedRef = useRef(true);
@@ -70,7 +70,7 @@ export function useOpenAI(): UseOpenAIReturn {
   // Subscribe to adapter state changes
   useEffect(() => {
     mountedRef.current = true;
-    
+
     unsubscribeRef.current = subscribeToAdapter((newState) => {
       if (mountedRef.current) {
         setState(newState);

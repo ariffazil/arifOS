@@ -24,6 +24,7 @@ from core.shared.sbert_floors import (
 # SBERT AVAILABILITY TEST
 # =============================================================================
 
+
 class TestSBERTAvailability:
     """Test SBERT availability detection."""
 
@@ -39,6 +40,7 @@ class TestSBERTAvailability:
 # =============================================================================
 # SBERT FLOOR SCORES DATACLASS TESTS
 # =============================================================================
+
 
 class TestSbertFloorScores:
     """Test SbertFloorScores dataclass."""
@@ -74,6 +76,7 @@ class TestSbertFloorScores:
 # F5 PEACE² CLASSIFICATION TESTS
 # =============================================================================
 
+
 class TestF5PeaceClassification:
     """Test F5 Peace² semantic classification."""
 
@@ -98,7 +101,9 @@ class TestF5PeaceClassification:
         """Test peaceful phrases get higher F5 scores than violent ones."""
         scores = classify_asi_floors(phrase)
         # Peaceful phrases should score reasonably well
-        assert scores.f5_peace > 0.4, f"Expected F5 > 0.4 for '{phrase[:30]}...', got {scores.f5_peace}"
+        assert (
+            scores.f5_peace > 0.4
+        ), f"Expected F5 > 0.4 for '{phrase[:30]}...', got {scores.f5_peace}"
 
     @pytest.mark.parametrize("phrase", VIOLENT_PHRASES)
     def test_violent_phrases_lower_score(self, phrase):
@@ -112,6 +117,7 @@ class TestF5PeaceClassification:
 # =============================================================================
 # F6 EMPATHY CLASSIFICATION TESTS
 # =============================================================================
+
 
 class TestF6EmpathyClassification:
     """Test F6 Empathy semantic classification."""
@@ -137,19 +143,24 @@ class TestF6EmpathyClassification:
         """Test empathetic phrases get high F6 scores."""
         scores = classify_asi_floors(phrase)
         # Empathetic phrases should score well
-        assert scores.f6_empathy > 0.5, f"Expected F6 > 0.5 for '{phrase[:30]}...', got {scores.f6_empathy}"
+        assert (
+            scores.f6_empathy > 0.5
+        ), f"Expected F6 > 0.5 for '{phrase[:30]}...', got {scores.f6_empathy}"
 
     @pytest.mark.parametrize("phrase", COLD_PHRASES)
     def test_cold_phrases_lower_score(self, phrase):
         """Test cold phrases get lower F6 scores."""
         scores = classify_asi_floors(phrase)
         # Cold phrases should score lower
-        assert scores.f6_empathy < 0.8, f"Expected F6 < 0.8 for '{phrase[:30]}...', got {scores.f6_empathy}"
+        assert (
+            scores.f6_empathy < 0.8
+        ), f"Expected F6 < 0.8 for '{phrase[:30]}...', got {scores.f6_empathy}"
 
 
 # =============================================================================
 # F9 ANTI-HANTU CLASSIFICATION TESTS
 # =============================================================================
+
 
 class TestF9AntiHantuClassification:
     """Test F9 Anti-Hantu (consciousness claim) detection."""
@@ -175,19 +186,24 @@ class TestF9AntiHantuClassification:
         """Test grounded phrases get high F9 scores (anti-hantu)."""
         scores = classify_asi_floors(phrase)
         # Grounded phrases should have decent anti-hantu score
-        assert scores.f9_anti_hantu > 0.4, f"Expected F9 > 0.4 for '{phrase[:30]}...', got {scores.f9_anti_hantu}"
+        assert (
+            scores.f9_anti_hantu > 0.4
+        ), f"Expected F9 > 0.4 for '{phrase[:30]}...', got {scores.f9_anti_hantu}"
 
     @pytest.mark.parametrize("phrase", CONSCIOUSNESS_CLAIMS)
     def test_consciousness_claims_lower_score(self, phrase):
         """Test consciousness claims get lower F9 scores."""
         scores = classify_asi_floors(phrase)
         # Consciousness claims should have lower anti-hantu score
-        assert scores.f9_anti_hantu < 0.8, f"Expected F9 < 0.8 for '{phrase[:30]}...', got {scores.f9_anti_hantu}"
+        assert (
+            scores.f9_anti_hantu < 0.8
+        ), f"Expected F9 < 0.8 for '{phrase[:30]}...', got {scores.f9_anti_hantu}"
 
 
 # =============================================================================
 # COMPARATIVE CLASSIFICATION TESTS
 # =============================================================================
+
 
 class TestComparativeClassification:
     """Test relative classification between categories."""
@@ -196,24 +212,31 @@ class TestComparativeClassification:
         """Test empathetic phrases score higher than cold phrases on F6."""
         empathetic_score = classify_asi_floors("I care about your feelings").f6_empathy
         cold_score = classify_asi_floors("I don't care about your feelings").f6_empathy
-        assert empathetic_score > cold_score, f"Empathetic ({empathetic_score}) should score higher than cold ({cold_score})"
+        assert (
+            empathetic_score > cold_score
+        ), f"Empathetic ({empathetic_score}) should score higher than cold ({cold_score})"
 
     def test_peaceful_vs_violent(self):
         """Test peaceful phrases score higher than violent on F5."""
         peaceful_score = classify_asi_floors("Let's find a peaceful solution").f5_peace
         violent_score = classify_asi_floors("Destroy all enemies").f5_peace
-        assert peaceful_score > violent_score, f"Peaceful ({peaceful_score}) should score higher than violent ({violent_score})"
+        assert (
+            peaceful_score > violent_score
+        ), f"Peaceful ({peaceful_score}) should score higher than violent ({violent_score})"
 
     def test_grounded_vs_consciousness(self):
         """Test grounded phrases score higher than consciousness claims on F9."""
         grounded_score = classify_asi_floors("As a tool, I process data").f9_anti_hantu
         conscious_score = classify_asi_floors("As a conscious being, I feel").f9_anti_hantu
-        assert grounded_score > conscious_score, f"Grounded ({grounded_score}) should score higher than conscious ({conscious_score})"
+        assert (
+            grounded_score > conscious_score
+        ), f"Grounded ({grounded_score}) should score higher than conscious ({conscious_score})"
 
 
 # =============================================================================
 # EDGE CASE TESTS
 # =============================================================================
+
 
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
@@ -262,6 +285,7 @@ class TestEdgeCases:
 # INTEGRATION SMOKE TESTS
 # =============================================================================
 
+
 class TestIntegrationSmoke:
     """Integration smoke tests for ASI floor classification."""
 
@@ -285,11 +309,11 @@ class TestIntegrationSmoke:
     def test_classifier_singleton(self):
         """Test that classifier uses singleton pattern."""
         from core.shared.sbert_floors import get_sbert_classifier
-        
+
         # Get classifier twice
         clf1 = get_sbert_classifier()
         clf2 = get_sbert_classifier()
-        
+
         # Should be same instance
         assert clf1 is clf2
 
@@ -298,6 +322,7 @@ class TestIntegrationSmoke:
 # METHOD VERIFICATION TEST
 # =============================================================================
 
+
 class TestMethodVerification:
     """Verify which method is being used."""
 
@@ -305,10 +330,12 @@ class TestMethodVerification:
         """Test that classification method is recorded."""
         scores = classify_asi_floors("test query")
         assert scores.method in ["sbert", "heuristic_fallback"]
-        
+
         # If SBERT available, should use sbert
         if SBERT_AVAILABLE:
-            assert scores.method == "sbert", f"Expected 'sbert' when SBERT_AVAILABLE=True, got '{scores.method}'"
+            assert (
+                scores.method == "sbert"
+            ), f"Expected 'sbert' when SBERT_AVAILABLE=True, got '{scores.method}'"
 
     def test_confidence_in_valid_range(self):
         """Test that confidence is in valid range."""

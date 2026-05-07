@@ -248,24 +248,24 @@ async def compute_attributes_2d(
     for attr_name in attribute_list:
         # Compute attribute
         if "coherence" in attr_name.lower():
-            result = _compute_coherence_2d(data, config.get("coherence_window", 5))
+            _compute_coherence_2d(data, config.get("coherence_window", 5))
             physical_axes = ["waveform_similarity", "discontinuity"]
             equation_ref = "Marfurt et al. (1998) — semblance-based coherence"
         elif "curvature" in attr_name.lower():
             ctype = config.get("curvature_type", "most_positive")
-            result = _compute_curvature_2d(data, ctype)
+            _compute_curvature_2d(data, ctype)
             physical_axes = ["structural_flexure", "bending_strain"]
             equation_ref = "Chopra & Marfurt (2007) — volumetric curvature"
         elif "frequency" in attr_name.lower() or "inst_freq" in attr_name.lower():
-            result = _compute_instantaneous_frequency(data, config.get("dt", 0.004))
+            _compute_instantaneous_frequency(data, config.get("dt", 0.004))
             physical_axes = ["frequency_content", "stratigraphic_thickness_proxy"]
             equation_ref = "Taner et al. (1979) — complex trace analysis"
         elif "envelope" in attr_name.lower() or "amp" in attr_name.lower():
-            result = _compute_envelope(data)
+            _compute_envelope(data)
             physical_axes = ["reflection_strength", "acoustic_impedance_contrast"]
             equation_ref = "Taner et al. (1979) — complex trace envelope"
         elif "dip" in attr_name.lower():
-            result = _compute_dip_2d(data)
+            _compute_dip_2d(data)
             physical_axes = ["apparent_dip", "structural_tilt"]
             equation_ref = "Gradient-based dip estimation"
         else:
@@ -436,7 +436,7 @@ async def link_attributes_to_geology(
 
     # Analyze coherence for discontinuities (faults)
     if "coherence" in attr_stack.attributes:
-        coherence_attr = attr_stack.attributes["coherence"]
+        attr_stack.attributes["coherence"]
         # Low coherence = discontinuity
         structures.append(
             StructuralElement(
@@ -765,8 +765,8 @@ class SingleLineInterpreter(BaseTool):
         # Build result
         latency_ms = (time.perf_counter() - start) * 1000
 
-        location = CoordinatePoint(latitude=4.5, longitude=103.7)
-        prov = _make_provenance(
+        CoordinatePoint(latitude=4.5, longitude=103.7)
+        _make_provenance(
             f"LINE-{data_ref}", "LEM", confidence=interpretation.setting_confidence
         )
 

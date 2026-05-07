@@ -14,10 +14,12 @@ from typing import Any
 @dataclass
 class AgenticPattern:
     """Definition of an agentic execution pattern."""
+
     name: str
     description: str
     schema: dict[str, Any]
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 class PatternRegistry:
     """
@@ -37,7 +39,7 @@ class PatternRegistry:
             schema={
                 "steps": ["Reason", "Act", "Observe"],
                 "termination": "Final Answer or Max Steps",
-            }
+            },
         )
         self.register_pattern(
             name="Reflection",
@@ -45,7 +47,7 @@ class PatternRegistry:
             schema={
                 "steps": ["Generate", "Reflect", "Refine"],
                 "termination": "Quality Threshold or Max Iterations",
-            }
+            },
         )
         self.register_pattern(
             name="Chain-of-Thought",
@@ -53,16 +55,19 @@ class PatternRegistry:
             schema={
                 "steps": ["Think", "Respond"],
                 "termination": "End of Sequence",
-            }
+            },
         )
 
-    def register_pattern(self, name: str, description: str, schema: dict[str, Any], metadata: dict[str, Any] | None = None):
+    def register_pattern(
+        self,
+        name: str,
+        description: str,
+        schema: dict[str, Any],
+        metadata: dict[str, Any] | None = None,
+    ):
         """Register a new agentic pattern."""
         self._patterns[name] = AgenticPattern(
-            name=name,
-            description=description,
-            schema=schema,
-            metadata=metadata or {}
+            name=name, description=description, schema=schema, metadata=metadata or {}
         )
 
     def get_pattern(self, name: str) -> AgenticPattern | None:

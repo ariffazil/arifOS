@@ -83,7 +83,7 @@ The Architect holds **design authority** — not implementation authority. They 
 ### Primary Jurisdiction
 
 - System architecture and component design
-- API contracts and interface definitions  
+- API contracts and interface definitions
 - Database schema and data flow design
 - Technology selection and stack decisions
 - Technical debt assessment and migration planning

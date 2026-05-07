@@ -125,9 +125,11 @@ async def agi_mind(
             stage=res.get("stage", "333_MIND"),
             payload=res.get("payload", {}),
             session_id=session_id,
-            override_code=VerdictCode(res.get("verdict").value)
-            if hasattr(res.get("verdict"), "value")
-            else VerdictCode.SABAR,
+            override_code=(
+                VerdictCode(res.get("verdict").value)
+                if hasattr(res.get("verdict"), "value")
+                else VerdictCode.SABAR
+            ),
             message=res.get("payload", {}).get("note", "Fallback reasoning active."),
         )
     return res

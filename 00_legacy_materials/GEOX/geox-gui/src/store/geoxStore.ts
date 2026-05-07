@@ -1,6 +1,6 @@
 /**
  * GEOX Store — DITEMPA BUKAN DIBERI
- * 
+ *
  * Zustand store for GEOX GUI state management with
  * constitutional governance (F1-F13) integration.
  */
@@ -262,7 +262,7 @@ interface GEOXStore extends GEOXState {
 function calculateOverallStatus(governance: GovernanceState): FloorStatus {
   const floors = Object.values(governance.floors);
   const hardFloors = floors.filter(f => f.type === 'hard');
-  
+
   if (hardFloors.some(f => f.status === 'red')) return 'red';
   if (floors.some(f => f.status === 'red')) return 'red';
   if (floors.some(f => f.status === 'amber')) return 'amber';
@@ -279,7 +279,7 @@ export const useGEOXStore = create<GEOXStore>()(
 
         setActiveTab: (tab) => set((state) => { state.activeTab = tab; }),
         setViewMode: (mode) => set((state) => { state.viewMode = mode; }),
-        
+
         selectCoordinate: (coord) => set((state) => {
           state.selectedCoordinate = coord;
         }),

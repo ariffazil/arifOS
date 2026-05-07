@@ -8,6 +8,7 @@ import sys
 from typing import Any
 from enum import Enum
 
+
 # Mock the minimal required classes
 class Verdict(Enum):
     SEAL = "SEAL"
@@ -15,6 +16,7 @@ class Verdict(Enum):
     HOLD = "HOLD"
     SABAR = "SABAR"
     PARTIAL = "PARTIAL"
+
 
 class RuntimeStatus(Enum):
     READY = "READY"
@@ -24,11 +26,13 @@ class RuntimeStatus(Enum):
     DRY_RUN = "DRY_RUN"
     BLOCKED = "BLOCKED"
 
+
 class CanonicalError:
     def __init__(self, code: str, message: str, stage: str):
         self.code = code
         self.message = message
         self.stage = stage
+
 
 class RuntimeEnvelope:
     def __init__(
@@ -55,6 +59,7 @@ class RuntimeEnvelope:
         self.payload = payload or {}
         self.errors = errors or []
 
+
 # The actual fix functions (copied from tools_internal_fixed.py)
 def _create_error_envelope(
     tool_name: str,
@@ -77,6 +82,7 @@ def _create_error_envelope(
         errors=[CanonicalError(code=error_code, message=error_msg, stage=stage)],
     )
 
+
 def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """Sanitize payload to ensure serializable types only."""
     sanitized = {}
@@ -85,10 +91,11 @@ def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
             sanitized[key] = None
         elif isinstance(value, (str, int, float, bool, list, dict)):
             sanitized[key] = value
-        elif hasattr(value, '__dict__'):
+        elif hasattr(value, "__dict__"):
             try:
                 sanitized[key] = {
-                    k: v for k, v in value.__dict__.items() 
+                    k: v
+                    for k, v in value.__dict__.items()
                     if isinstance(v, (str, int, float, bool, list, dict, type(None)))
                 }
             except Exception:
@@ -107,7 +114,7 @@ def mock_kernel_call(tool_name: str, session_id: str, payload: dict) -> dict:
             "payload": {"reasoning": "Test reasoning", "conclusion": "Test conclusion"},
             "delta_s": -0.1,
             "g_score": 0.85,
-            "note": "Reasoning complete"
+            "note": "Reasoning complete",
         }
     elif tool_name == "init_anchor":
         return {
@@ -121,12 +128,12 @@ def mock_kernel_call(tool_name: str, session_id: str, payload: dict) -> dict:
 def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened agi_mind dispatch with validation.
-    
+
     Addresses: "kernel path had invocation issues"
     """
     session_id = payload.get("session_id")
     query = payload.get("query", "")
-    
+
     # PHASE 0 FIX: Validate required fields
     if not query:
         return _create_error_envelope(
@@ -137,7 +144,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
             error_code="MISSING_QUERY",
             verdict=Verdict.VOID,
         )
-    
+
     valid_modes = ["reason", "reflect", "forge"]
     if mode not in valid_modes:
         return _create_error_envelope(
@@ -148,7 +155,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
             error_code="INVALID_MODE",
             verdict=Verdict.VOID,
         )
-    
+
     if mode == "reason":
         try:
             result = mock_kernel_call("agi_reason", session_id, payload)
@@ -171,7 +178,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
                 error_code="KERNEL_ERROR",
                 verdict=Verdict.HOLD,
             )
-    
+
     return _create_error_envelope(
         tool_name="agi_mind",
         stage="333_MIND",
@@ -185,11 +192,11 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
 def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened engineering_memory with filesystem error handling.
-    
+
     Addresses: "memory engineer hit a filesystem error"
     """
     session_id = payload.get("session_id")
-    
+
     # PHASE 0 FIX: Validate mode parameter
     valid_modes = ["engineer", "write", "vector_query", "query", "vector_store", "vector_forget"]
     if mode not in valid_modes:
@@ -201,7 +208,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             error_code="INVALID_MODE",
             verdict=Verdict.VOID,
         )
-    
+
     if mode == "vector_store":
         content = payload.get("content") or payload.get("text") or ""
         if not content.strip():
@@ -224,7 +231,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             session_id=session_id,
             payload={"stored": True, "memory_id": "test-id-123", "bytes_written": len(content)},
         )
-    
+
     elif mode == "vector_forget":
         memory_ids = payload.get("memory_ids", [])
         if not memory_ids and not payload.get("query"):
@@ -246,7 +253,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             session_id=session_id,
             payload={"forgot_ids": memory_ids, "count": len(memory_ids)},
         )
-    
+
     elif mode == "vector_query":
         query = payload.get("query") or "No query"
         # Simulate query with graceful fallback
@@ -264,7 +271,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
                 "query": query,
             },
         )
-    
+
     return _create_error_envelope(
         tool_name="engineering_memory",
         stage="555_MEMORY",
@@ -278,11 +285,11 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
 def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened math_estimator with async boundary guards.
-    
+
     Addresses: "ops health threw a typed validation/coroutine problem"
     """
     session_id = payload.get("session_id")
-    
+
     # PHASE 0 FIX: Validate mode
     valid_modes = ["cost", "health", "vitals", "entropy", "budget"]
     if mode not in valid_modes:
@@ -294,9 +301,9 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
             error_code="INVALID_MODE",
             verdict=Verdict.VOID,
         )
-    
+
     action = str(payload.get("action", payload.get("query", "unknown")))
-    
+
     if mode == "vitals":
         # PHASE 0 FIX: Wrapped vital signs computation
         try:
@@ -333,7 +340,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
                 error_code="VITALS_ERROR",
                 verdict=Verdict.SABAR,
             )
-    
+
     elif mode == "cost":
         action_lower = action.lower()
         if "delete" in action_lower:
@@ -342,7 +349,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
             risk_score, cost_units = 0.6, 75
         else:
             risk_score, cost_units = 0.4, 50
-        
+
         return RuntimeEnvelope(
             ok=True,
             tool="math_estimator",
@@ -361,7 +368,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
                 },
             },
         )
-    
+
     elif mode == "health":
         return RuntimeEnvelope(
             ok=True,
@@ -377,7 +384,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
                 "ops_readiness": "READY",
             },
         )
-    
+
     return _create_error_envelope(
         tool_name="math_estimator",
         stage="444_ROUTER",
@@ -390,166 +397,166 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
 
 def test_mind_lane():
     """Test arifos.mind hardened dispatch."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 1: arifos.mind (Kernel Invocation)")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Test 1a: Missing query
     print("\n1a. Testing missing query validation...")
     result = agi_mind_dispatch_impl_fixed(
         mode="reason",
         payload={"session_id": "test-session"},
     )
-    assert result.ok == False, "Should return error for missing query"
+    assert result.ok is False, "Should return error for missing query"
     assert result.verdict == Verdict.VOID, "Should be VOID verdict"
     assert "Query is required" in result.detail
     print("  ✅ PASS: Missing query handled gracefully")
-    
+
     # Test 1b: Invalid mode
     print("\n1b. Testing invalid mode validation...")
     result = agi_mind_dispatch_impl_fixed(
         mode="invalid_mode",
         payload={"query": "test", "session_id": "test-session"},
     )
-    assert result.ok == False, "Should return error for invalid mode"
+    assert result.ok is False, "Should return error for invalid mode"
     assert "Invalid mode" in result.detail
     print("  ✅ PASS: Invalid mode handled gracefully")
-    
+
     # Test 1c: Valid reason mode
     print("\n1c. Testing valid reason mode...")
     result = agi_mind_dispatch_impl_fixed(
         mode="reason",
         payload={"query": "What is 2+2?", "session_id": "test-session"},
     )
-    assert result.ok == True, "Should succeed for valid query"
+    assert result.ok is True, "Should succeed for valid query"
     assert result.verdict == Verdict.SEAL, "Should be SEAL verdict"
     print("  ✅ PASS: Valid reason mode works")
-    
+
     print("\n✅ arifos.mind lane: ALL TESTS PASSED")
     return True
 
 
 def test_memory_lane():
     """Test arifos.memory hardened dispatch."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 2: arifos.memory (Filesystem Operations)")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Test 2a: Invalid mode
     print("\n2a. Testing invalid mode validation...")
     result = engineering_memory_dispatch_impl_fixed(
         mode="invalid_mode",
         payload={"session_id": "test-session"},
     )
-    assert result.ok == False, "Should return error for invalid mode"
+    assert result.ok is False, "Should return error for invalid mode"
     assert "Invalid mode" in result.detail
     print("  ✅ PASS: Invalid mode handled gracefully")
-    
+
     # Test 2b: vector_store with empty content
     print("\n2b. Testing vector_store with empty content...")
     result = engineering_memory_dispatch_impl_fixed(
         mode="vector_store",
         payload={"content": "", "session_id": "test-session"},
     )
-    assert result.ok == False, "Should return error for empty content"
+    assert result.ok is False, "Should return error for empty content"
     print("  ✅ PASS: Empty content handled gracefully")
-    
+
     # Test 2c: vector_forget without memory_ids
     print("\n2c. Testing vector_forget without identifiers...")
     result = engineering_memory_dispatch_impl_fixed(
         mode="vector_forget",
         payload={"session_id": "test-session"},
     )
-    assert result.ok == False, "Should return error for missing identifiers"
+    assert result.ok is False, "Should return error for missing identifiers"
     print("  ✅ PASS: Missing identifiers handled gracefully")
-    
+
     # Test 2d: Valid vector_store
     print("\n2d. Testing valid vector_store...")
     result = engineering_memory_dispatch_impl_fixed(
         mode="vector_store",
         payload={"content": "Test memory content", "session_id": "test-session"},
     )
-    assert result.ok == True, "Should succeed for valid store"
-    assert result.payload.get("stored") == True
+    assert result.ok is True, "Should succeed for valid store"
+    assert result.payload.get("stored") is True
     print("  ✅ PASS: Valid vector_store works")
-    
+
     # Test 2e: Valid vector_query
     print("\n2e. Testing valid vector_query...")
     result = engineering_memory_dispatch_impl_fixed(
         mode="vector_query",
         payload={"query": "test query", "session_id": "test-session"},
     )
-    assert result.ok == True, "Should succeed for valid query"
+    assert result.ok is True, "Should succeed for valid query"
     assert "results" in result.payload
     print("  ✅ PASS: Valid vector_query works")
-    
+
     print("\n✅ arifos.memory lane: ALL TESTS PASSED")
     return True
 
 
 def test_ops_lane():
     """Test arifos.ops hardened dispatch."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 3: arifos.ops (Coroutine/Validation)")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Test 3a: Invalid mode
     print("\n3a. Testing invalid mode validation...")
     result = math_estimator_dispatch_impl_fixed(
         mode="invalid_mode",
         payload={"session_id": "test-session"},
     )
-    assert result.ok == False, "Should return error for invalid mode"
+    assert result.ok is False, "Should return error for invalid mode"
     assert "Invalid mode" in result.detail
     print("  ✅ PASS: Invalid mode handled gracefully")
-    
+
     # Test 3b: Vitals mode
     print("\n3b. Testing vitals mode...")
     result = math_estimator_dispatch_impl_fixed(
         mode="vitals",
         payload={"action": "system_check", "session_id": "test-session"},
     )
-    assert result.ok == True, "Should return success for vitals"
+    assert result.ok is True, "Should return success for vitals"
     assert result.payload.get("mode") == "vitals"
     print("  ✅ PASS: Vitals mode works")
-    
+
     # Test 3c: Cost mode
     print("\n3c. Testing cost mode...")
     result = math_estimator_dispatch_impl_fixed(
         mode="cost",
         payload={"action": "deploy production", "session_id": "test-session"},
     )
-    assert result.ok == True, "Should return success for cost"
+    assert result.ok is True, "Should return success for cost"
     assert result.payload.get("mode") == "cost"
     assert result.payload["estimate"]["risk_score"] > 0.5  # deploy should be higher risk
     print("  ✅ PASS: Cost mode works")
-    
+
     # Test 3d: Health mode
     print("\n3d. Testing health mode...")
     result = math_estimator_dispatch_impl_fixed(
         mode="health",
         payload={"session_id": "test-session"},
     )
-    assert result.ok == True, "Should return success for health"
+    assert result.ok is True, "Should return success for health"
     assert result.payload.get("health_status") == "HEALTHY"
     print("  ✅ PASS: Health mode works")
-    
+
     print("\n✅ arifos.ops lane: ALL TESTS PASSED")
     return True
 
 
 def test_payload_sanitization():
     """Test payload sanitization helper."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 4: Payload Sanitization")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Test with various types
     class MockObj:
         def __init__(self):
             self.name = "test"
             self.value = 123
-    
+
     payload = {
         "string": "test",
         "number": 42,
@@ -560,9 +567,9 @@ def test_payload_sanitization():
         "dict": {"a": 1},
         "obj": MockObj(),
     }
-    
+
     sanitized = _sanitize_payload(payload)
-    
+
     assert sanitized["string"] == "test"
     assert sanitized["number"] == 42
     assert sanitized["obj"]["name"] == "test"
@@ -572,13 +579,13 @@ def test_payload_sanitization():
 
 def main():
     """Run all Phase 0 tests."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PHASE 0 TRIAGE VERIFICATION (STANDALONE)")
     print("Testing hardened lanes for arifOS MCP")
-    print("="*60)
-    
+    print("=" * 60)
+
     results = []
-    
+
     try:
         results.append(test_mind_lane())
     except AssertionError as e:
@@ -587,7 +594,7 @@ def main():
     except Exception as e:
         print(f"\n❌ arifos.mind lane CRASHED: {e}")
         results.append(False)
-    
+
     try:
         results.append(test_memory_lane())
     except AssertionError as e:
@@ -596,7 +603,7 @@ def main():
     except Exception as e:
         print(f"\n❌ arifos.memory lane CRASHED: {e}")
         results.append(False)
-    
+
     try:
         results.append(test_ops_lane())
     except AssertionError as e:
@@ -605,7 +612,7 @@ def main():
     except Exception as e:
         print(f"\n❌ arifos.ops lane CRASHED: {e}")
         results.append(False)
-    
+
     try:
         results.append(test_payload_sanitization())
     except AssertionError as e:
@@ -614,17 +621,17 @@ def main():
     except Exception as e:
         print(f"\n❌ Payload sanitization CRASHED: {e}")
         results.append(False)
-    
+
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PHASE 0 TRIAGE SUMMARY")
-    print("="*60)
-    
+    print("=" * 60)
+
     passed = sum(results)
     total = len(results)
-    
+
     print(f"\nResults: {passed}/{total} test suites passed")
-    
+
     if passed == total:
         print("\n✅ ALL PHASE 0 FIXES VERIFIED")
         print("\nThe three broken lanes are now hardened:")

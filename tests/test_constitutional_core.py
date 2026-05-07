@@ -27,7 +27,6 @@ class TestThresholds:
     def test_threshold_types(self):
         from core.shared.floors import THRESHOLDS
 
-        valid_types = {"HARD", "SOFT", "DERIVED", "WALL"}
         for fid, spec in THRESHOLDS.items():
             assert "type" in spec, f"{fid} missing 'type'"
 

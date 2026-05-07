@@ -1,8 +1,8 @@
 # GEOX ACP (AGENT CONTROL PLANE) PROTOCOL
 
-> **Version:** 1.0.0 "Schism"  
-> **Doctrine:** A2A (Agent-to-Agent) Synchronization  
-> **Authority:** 888_JUDGE Sovereign ($W_{scar}$)  
+> **Version:** 1.0.0 "Schism"
+> **Doctrine:** A2A (Agent-to-Agent) Synchronization
+> **Authority:** 888_JUDGE Sovereign ($W_{scar}$)
 
 ## 1. THE ARCHITECTURAL SCHISM
 

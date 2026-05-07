@@ -1,7 +1,7 @@
 # GEOX Earth Witness GUI
 
-**Governed Geologist Cockpit**  
-**Constitutional AI for Geoscience**  
+**Governed Geologist Cockpit**
+**Constitutional AI for Geoscience**
 **Seal:** DITEMPA BUKAN DIBERI
 
 ---
@@ -249,5 +249,5 @@ AGPL-3.0
 
 ---
 
-**Author:** Muhammad Arif bin Fazil <ariffazil@gmail.com>  
+**Author:** Muhammad Arif bin Fazil <ariffazil@gmail.com>
 **Repository:** https://github.com/ariffazil/GEOX

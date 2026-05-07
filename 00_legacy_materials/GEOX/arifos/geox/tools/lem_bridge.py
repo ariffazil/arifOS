@@ -2,7 +2,7 @@
 LEM Bridge — Large Earth Model (LEM) integration for GEOX.
 DITEMPA BUKAN DIBERI
 
-Bridges arifOS GEOX to foundation models for Earth Observation (EO) 
+Bridges arifOS GEOX to foundation models for Earth Observation (EO)
 and geophysics, providing continuous embeddings and uncertainty proxies.
 """
 
@@ -29,12 +29,12 @@ class LEMBackend(ABC):
     async def embed(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """
         Return embeddings + uncertainty for a given area of interest (AOI).
-        
+
         Args:
             inputs: Registry of AOI, bands, and temporal constraints.
-            
+
         Returns:
-            Dict containing 'embeddings' (list), 'uncertainty' (float), 
+            Dict containing 'embeddings' (list), 'uncertainty' (float),
             and 'metadata' (dict).
         """
         pass
@@ -70,7 +70,7 @@ class MockLEMBackend(LEMBackend):
             "uncertainty": uncertainty,
             "latency_ms": 420.0,
             "shape": [1, 768],
-            "status": "success"
+            "status": "success",
         }
 
     def get_model_card(self) -> dict[str, Any]:
@@ -79,20 +79,20 @@ class MockLEMBackend(LEMBackend):
             "version": "1.0.0-mock",
             "type": "multisensor-foundation",
             "parameters": "1.2B",
-            "license": "Proprietary (Mock)"
+            "license": "Proprietary (Mock)",
         }
 
 
 class LEMBridgeTool(BaseTool):
     """
     Bridge tool to Large Earth Models for continuous geological memory.
-    
+
     Inputs:
         location      (CoordinatePoint)
         bbox          (dict) — {"west", "south", "east", "north"}
         date_range    (tuple) — (start, end)
         backend_name  (str) — optional override
-        
+
     Outputs:
         GeoQuantity (quantity_type='eo_embedding') containing ref to vector.
     """
@@ -122,7 +122,7 @@ class LEMBridgeTool(BaseTool):
             return GeoToolResult(
                 tool_name=self.name,
                 success=False,
-                error="Missing required inputs: 'location', 'bbox'."
+                error="Missing required inputs: 'location', 'bbox'.",
             )
 
         start = time.perf_counter()
@@ -137,7 +137,7 @@ class LEMBridgeTool(BaseTool):
                 source_id=f"lem-{card['model']}-{card['version']}",
                 source_type="foundation_model",
                 confidence=1.0 - uncertainty,
-                citation=f"Foundation Model: {card['model']} ({card['version']})"
+                citation=f"Foundation Model: {card['model']} ({card['version']})",
             )
 
             # Embeddings are stored in metadata/raw_output as they don't fit
@@ -150,7 +150,7 @@ class LEMBridgeTool(BaseTool):
                     coordinates=location,
                     timestamp=datetime.now(timezone.utc),
                     uncertainty=uncertainty,
-                    provenance=prov
+                    provenance=prov,
                 )
             ]
 
@@ -163,14 +163,12 @@ class LEMBridgeTool(BaseTool):
                 raw_output=res,
                 metadata={
                     "model_card": card,
-                    "location": {"lat": location.latitude, "lon": location.longitude}
+                    "location": {"lat": location.latitude, "lon": location.longitude},
                 },
-                latency_ms=round(latency_ms, 2)
+                latency_ms=round(latency_ms, 2),
             )
 
         except Exception as e:
             return GeoToolResult(
-                tool_name=self.name,
-                success=False,
-                error=f"LEM Backend Error: {str(e)}"
+                tool_name=self.name, success=False, error=f"LEM Backend Error: {str(e)}"
             )

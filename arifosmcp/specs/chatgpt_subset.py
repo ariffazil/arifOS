@@ -32,8 +32,8 @@ from arifosmcp.specs.tool_specs import get_tool_spec
 # Tools exposed to ChatGPT (read-only in Phase 1)
 CHATGPT_TOOL_NAMES: tuple[str, ...] = (
     "get_constitutional_health",  # Data tool: health card
-    "render_vault_seal",          # Render tool: widget UI
-    "list_recent_verdicts",       # Read-only vault summary
+    "render_vault_seal",  # Render tool: widget UI
+    "list_recent_verdicts",  # Read-only vault summary
 )
 
 # Resources exposed to ChatGPT
@@ -57,6 +57,7 @@ CHATGPT_PROMPT_NAMES: tuple[str, ...] = (
 # SAFETY CHECKS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def is_chatgpt_safe_tool(tool_name: str) -> bool:
     """Check if a tool is safe for ChatGPT Apps SDK exposure."""
     return tool_name in CHATGPT_TOOL_NAMES
@@ -75,33 +76,37 @@ def is_chatgpt_safe_prompt(prompt_name: str) -> bool:
 def validate_chatgpt_safety() -> dict[str, Any]:
     """
     Validate that ChatGPT subset is actually safe.
-    
+
     Returns audit report with any violations found.
     """
     violations = []
-    
+
     # Check that no non-readonly tools slipped in
     for tool_name in CHATGPT_TOOL_NAMES:
         spec = get_tool_spec(tool_name)
         if spec and not spec.read_only_hint:
-            violations.append({
-                "type": "tool_not_readonly",
-                "name": tool_name,
-                "severity": "high",
-                "message": f"Tool {tool_name} is not marked read_only but is in ChatGPT subset"
-            })
-    
+            violations.append(
+                {
+                    "type": "tool_not_readonly",
+                    "name": tool_name,
+                    "severity": "high",
+                    "message": f"Tool {tool_name} is not marked read_only but is in ChatGPT subset",
+                }
+            )
+
     # Check that no high-auth resources slipped in
     for uri in CHATGPT_RESOURCE_URIS:
         spec = get_resource_spec(uri)
         if spec and spec.auth_required not in ("anonymous", "anchored"):
-            violations.append({
-                "type": "resource_high_auth",
-                "uri": uri,
-                "severity": "medium",
-                "message": f"Resource {uri} requires {spec.auth_required} but is in ChatGPT subset"
-            })
-    
+            violations.append(
+                {
+                    "type": "resource_high_auth",
+                    "uri": uri,
+                    "severity": "medium",
+                    "message": f"Resource {uri} requires {spec.auth_required} but is in ChatGPT subset",
+                }
+            )
+
     return {
         "ok": len(violations) == 0,
         "violations": violations,
@@ -115,10 +120,11 @@ def validate_chatgpt_safety() -> dict[str, Any]:
 # CHATGPT-SPECIFIC TOOL SCHEMAS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def get_constitutional_health_schema() -> dict[str, Any]:
     """
     Schema for get_constitutional_health tool.
-    
+
     Returns structured health card with human-readable labels.
     """
     return {
@@ -136,31 +142,31 @@ def get_constitutional_health_schema() -> dict[str, Any]:
                     "type": "string",
                     "enum": ["SEAL", "PARTIAL", "VOID", "SABAR"],
                     "default": "SEAL",
-                    "description": "Requested verdict mode"
+                    "description": "Requested verdict mode",
                 },
                 "include_history": {
                     "type": "boolean",
                     "default": False,
-                    "description": "Include recent verdict history"
-                }
-            }
+                    "description": "Include recent verdict history",
+                },
+            },
         },
         "annotations": {
             "readOnlyHint": True,
             "openWorldHint": False,
-        }
+        },
     }
 
 
 def render_vault_seal_schema() -> dict[str, Any]:
     """
     Schema for render_vault_seal tool.
-    
+
     Render tool that returns widget URL for ChatGPT UI.
     Widget hosted on https://mcp.a-forge.io with CSP headers.
     """
     WIDGET_URL = "https://mcp.a-forge.io/widget/vault-seal"
-    
+
     return {
         "name": "render_vault_seal",
         "title": "Render Vault Seal",
@@ -173,29 +179,24 @@ def render_vault_seal_schema() -> dict[str, Any]:
             "properties": {
                 "seal_data": {
                     "type": "object",
-                    "description": "Constitutional health data to render"
+                    "description": "Constitutional health data to render",
                 }
-            }
+            },
         },
         "annotations": {
             "readOnlyHint": True,
         },
         "_meta": {
-            "ui": {
-                "resourceUri": WIDGET_URL,
-                "visibility": "user"
-            },
-            "openai": {
-                "outputTemplate": WIDGET_URL
-            }
-        }
+            "ui": {"resourceUri": WIDGET_URL, "visibility": "user"},
+            "openai": {"outputTemplate": WIDGET_URL},
+        },
     }
 
 
 def list_recent_verdicts_schema() -> dict[str, Any]:
     """
     Schema for list_recent_verdicts tool.
-    
+
     Read-only summary of recent vault entries.
     """
     return {
@@ -209,22 +210,17 @@ def list_recent_verdicts_schema() -> dict[str, Any]:
         "inputSchema": {
             "type": "object",
             "properties": {
-                "limit": {
-                    "type": "integer",
-                    "default": 10,
-                    "minimum": 1,
-                    "maximum": 100
-                },
+                "limit": {"type": "integer", "default": 10, "minimum": 1, "maximum": 100},
                 "verdict_filter": {
                     "type": "string",
                     "enum": ["all", "SEAL", "PARTIAL", "VOID", "SABAR", "HOLD"],
-                    "default": "all"
-                }
-            }
+                    "default": "all",
+                },
+            },
         },
         "annotations": {
             "readOnlyHint": True,
-        }
+        },
     }
 
 
@@ -232,10 +228,11 @@ def list_recent_verdicts_schema() -> dict[str, Any]:
 # CHATGPT MANIFEST
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def get_chatgpt_manifest() -> dict[str, Any]:
     """
     Build complete ChatGPT Apps SDK manifest.
-    
+
     This is the contract between arifOS and OpenAI's platform.
     """
     return {
@@ -246,10 +243,7 @@ def get_chatgpt_manifest() -> dict[str, Any]:
             "Inspect floor scores, verdicts, and attestation status. "
             "Phase 1: Read-only. Phase 2: Write with F11/F13 review."
         ),
-        "vendor": {
-            "name": "Muhammad Arif bin Fazil",
-            "url": "https://arif-fazil.com"
-        },
+        "vendor": {"name": "Muhammad Arif bin Fazil", "url": "https://arif-fazil.com"},
         "capabilities": {
             "tools": list(CHATGPT_TOOL_NAMES),
             "resources": list(CHATGPT_RESOURCE_URIS),
@@ -273,7 +267,7 @@ def get_chatgpt_manifest() -> dict[str, Any]:
             "888_hold_active": True,
             "max_risk_tier": "medium",
             "requires_human_approval_for_write": True,
-        }
+        },
     }
 
 
@@ -281,12 +275,11 @@ def get_chatgpt_manifest() -> dict[str, Any]:
 # MAPPING TO CANONICAL CONTRACTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def map_chatgpt_health_to_canonical(
-    chatgpt_health: dict[str, Any]
-) -> ConstitutionalHealthView:
+
+def map_chatgpt_health_to_canonical(chatgpt_health: dict[str, Any]) -> ConstitutionalHealthView:
     """
     Map ChatGPT health response to canonical ConstitutionalHealthView.
-    
+
     This ensures ChatGPT and internal APIs speak the same contract.
     """
     return ConstitutionalHealthView(

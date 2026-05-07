@@ -1,7 +1,7 @@
 # Sovereign Action System — Implementation Artifact
-**Version:** 2026.03.27-P0-FORGED  
-**Authority:** Muhammad Arif bin Fazil (arifOS 888_JUDGE)  
-**Motto:** *Ditempa Bukan Diberi* — Forged, Not Given  
+**Version:** 2026.03.27-P0-FORGED
+**Authority:** Muhammad Arif bin Fazil (arifOS 888_JUDGE)
+**Motto:** *Ditempa Bukan Diberi* — Forged, Not Given
 **Status:** SEALED — FOR EXECUTION
 
 ## PART I: ARCHITECTURE

@@ -1,7 +1,7 @@
 # 📊 UPDATED Code Coverage Report — arifosmcp
-**Date:** 2026-03-14  
-**Commit:** e450a6395  
-**Previous Coverage:** 49% (7,383 / 15,221 lines)  
+**Date:** 2026-03-14
+**Commit:** e450a6395
+**Previous Coverage:** 49% (7,383 / 15,221 lines)
 **Current Coverage:** 52% (~7,920 / 15,250 lines) ⬆️ **+3%**
 
 ---
@@ -16,8 +16,8 @@
 | **tokens.py** | 0% (0/127) | **92%** (117/127) | 🟢 +92% |
 | **Combined** | **0%** | **94%** (170/180) | 🟢 +94% |
 
-**Lines Covered:** 0 → 170 lines  
-**Tests Added:** 80 new tests  
+**Lines Covered:** 0 → 170 lines
+**Tests Added:** 80 new tests
 
 ### Security Scanner Coverage Details (100%)
 ```

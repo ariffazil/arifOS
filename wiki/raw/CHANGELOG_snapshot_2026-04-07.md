@@ -264,8 +264,8 @@ tests/test_model_soul.py::test_init_anchor_v2_claimed_only PASSED
 ### Verdict
 **SEAL — DITEMPA BUKAN DIBERI**
 
-**Timestamp**: 2026-03-28T10:40:00+08:00  
-**ZKPC Root**: `sha256:3-layer-binding-v2026.03.28`  
+**Timestamp**: 2026-03-28T10:40:00+08:00
+**ZKPC Root**: `sha256:3-layer-binding-v2026.03.28`
 **Registry State**: 17 provider souls, 4 runtime profiles, 18 models
 
 ---
@@ -509,7 +509,7 @@ This transforms arifOS from an AI framework into a **governed constitutional sys
 
 #### 2. Fail-Closed Defaults
 - Missing `auth_context` → HOLD
-- Missing `risk_tier` → HOLD  
+- Missing `risk_tier` → HOLD
 - Missing `session_id` → HOLD
 - Missing evidence on truth claims → VOID
 
@@ -666,7 +666,7 @@ All tools default to **HOLD** unless:
 
 #### Documentation Truth Sealing
 - **AGENTS.md**: Rewrote tool table — removed false 26-tool claim, documented actual 11 Mega-Tools
-- **README.md**: 
+- **README.md**:
   - Fixed version badge (2026.03.20-SOVEREIGN11)
   - Updated mode counts (37 → 39)
   - Added missing modes to tool descriptions

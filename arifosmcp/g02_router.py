@@ -264,7 +264,9 @@ def create_router_mcp() -> FastMCP:
         caller_agent: str,
         target_agent: str,
         input_data: dict[str, Any],
-        correlation_context: Annotated[list[Any] | None, Field(description="Recent agent outputs for correlation check")] = None,
+        correlation_context: Annotated[
+            list[Any] | None, Field(description="Recent agent outputs for correlation check")
+        ] = None,
     ) -> dict[str, Any]:
         """
         G02 Kernel Router — Mandatory hub for all cross-axis calls.

@@ -1,6 +1,6 @@
 # P0 Optimum Path — Final Recommendation
-**Date:** 2026-04-08  
-**Decision Authority:** Arif (Sovereign) → Agent executed  
+**Date:** 2026-04-08
+**Decision Authority:** Arif (Sovereign) → Agent executed
 **Status:** VALIDATED & SEALED
 
 ---
@@ -171,7 +171,7 @@ Coordinate with arifOS core team for Option D implementation.
 
 ---
 
-*Ditempa Bukan Diberi* — Forged, Not Given  
+*Ditempa Bukan Diberi* — Forged, Not Given
 **999 SEAL ALIVE**
 
 ΔΩΨ | ARIF

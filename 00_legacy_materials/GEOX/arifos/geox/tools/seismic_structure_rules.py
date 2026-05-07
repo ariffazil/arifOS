@@ -14,6 +14,7 @@ from ..schemas.seismic_image import STRUCT_CANDIDATE
 
 logger = logging.getLogger(__name__)
 
+
 @contrast_governed_tool(physical_axes=["inline", "depth"])
 async def check_structure_rules(candidates: list[STRUCT_CANDIDATE]) -> list[STRUCT_CANDIDATE]:
     """
@@ -29,7 +30,7 @@ async def check_structure_rules(candidates: list[STRUCT_CANDIDATE]) -> list[STRU
 
         # Rule 2: Minimum uncertainty floor check
         if cand.uncertainty_floor < 0.1:
-            cand.uncertainty_floor = 0.15 # Fix violation
+            cand.uncertainty_floor = 0.15  # Fix violation
 
         cand.final_audit_passed = True
         valid_candidates.append(cand)

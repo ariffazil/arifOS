@@ -1,16 +1,16 @@
 # FORGE HARDENED: Vision Intelligence Roadmap
 
-> **Status:** HARDENED FOR EXECUTION  
-> **Date:** 2026-04-10  
-> **Seal:** 999_VAULT  
+> **Status:** HARDENED FOR EXECUTION
+> **Date:** 2026-04-10
+> **Seal:** 999_VAULT
 > **Motto:** *DITEMPA BUKAN DIBERI*
 
 ---
 
 ## Executive Summary
 
-**Previous State:** Vision architecture scaffolded, AC_Risk calculated, no external integration  
-**Current State:** Complete external ecosystem mapped, integration patterns defined  
+**Previous State:** Vision architecture scaffolded, AC_Risk calculated, no external integration
+**Current State:** Complete external ecosystem mapped, integration patterns defined
 **Next State:** Working integrations with ToAC governance
 
 **Time to MVP:** 6-8 weeks (vs 12-18 months from scratch)
@@ -44,17 +44,17 @@ class GCPDetector:
     """
     Detect candidate GCPs from map collars using CV + OCR.
     """
-    
+
     def detect_grid_intersections(self, image):
         """Hough lines for grid line detection."""
         # OpenCV HoughLinesP
         # Return candidate intersection points
-        
+
     def ocr_grid_labels(self, image, regions):
         """OCR for longitude/latitude labels."""
         # Tesseract or EasyOCR
         # Return text + confidence per region
-        
+
     def detect_scale_bar(self, image):
         """Detect scale bar for ground truth validation."""
         # Template matching or heuristics
@@ -68,20 +68,20 @@ class GeoreferenceAuditor:
     """
     ToAC governance layer for georeferencing.
     """
-    
+
     def audit_georeference(self, gcp_list, image, claimed_bounds):
         # 1. Calculate residuals from external warp
         residuals = self.calculate_residuals(gcp_list)
-        
+
         # 2. Detect vs claimed bounds
         detected_bounds = self.ocr_detect_bounds(image)
         bound_divergence = self.compare_bounds(claimed_bounds, detected_bounds)
-        
+
         # 3. Scale consistency
         scale_from_bar = self.detect_scale_bar(image)
         scale_from_bounds = self.calculate_scale(claimed_bounds, image.size)
         scale_consistency = self.compare_scales(scale_from_bar, scale_from_bounds)
-        
+
         # 4. AC_Risk
         from ..ENGINE.ac_risk import VisionGovernance
         risk_result = VisionGovernance.assess_georeferencing(
@@ -90,7 +90,7 @@ class GeoreferenceAuditor:
             ocr_confidence=detected_bounds.confidence,
             gcp_residuals=residuals,
         )
-        
+
         # 5. Verdict
         return {
             "warp_result": external_warp_result,  # From MapWarper pattern
@@ -143,33 +143,33 @@ class AnalogDigitizer:
     """
     Digitize scanned logs, charts, core photos with ToAC governance.
     """
-    
+
     async def digitize_log(self, image_path, log_type="neutron_density"):
         # Stage 1: Detect scale markers
         scale_result = await self.detect_scale_markers(image_path)
-        
+
         # Stage 2: OCR axis labels
         axis_result = await self.ocr_axis_labels(image_path, scale_result.roi)
-        
+
         # Stage 3: User-guided anchor points (WebPlotDigitizer pattern)
         anchors = await self.get_user_anchors_or_auto(image_path)
-        
+
         # Stage 4: Curve tracing
         pixel_curve = await self.trace_curve(image_path, anchors)
-        
+
         # Stage 5: Transform to physical values
         physical_curve = self.pixel_to_physical(pixel_curve, anchors)
-        
+
         # Stage 6: Physics validation
         physics_check = await self.validate_vs_ratlas(physical_curve, log_type)
-        
+
         # Stage 7: AC_Risk
         risk = self.calculate_digitization_risk(
             ocr_confidence=axis_result.confidence,
             anchor_count=len(anchors),
             physics_plausibility=physics_check.score,
         )
-        
+
         return DigitizationResult(
             curve=physical_curve,
             ac_risk=risk,
@@ -226,24 +226,24 @@ git clone https://github.com/gecos-lab/Seismic-App.git
 # GEOX/arifos/geox/vision/backends/
 class SeismiqbBackend:
     """Adapter for seismiqb models."""
-    
+
     def load_fault_model(self, checkpoint_path):
         # Load seismiqb UNet
-        
+
     def predict_faults(self, seismic_volume):
         # Run inference
         # Return fault probability volume
 
 class SeismicAppBackend:
     """Adapter for SAM-style segmentation."""
-    
+
     def segment_from_click(self, image, click_point):
         # SAM-based segmentation
         # Return mask
 
 class GeoXVLMBackend:
     """Adapter for GeoX/GeoGround vision towers."""
-    
+
     async def infer(self, image, prompt):
         # Run geo-domain VLM
         # Return structured interpretation
@@ -255,25 +255,25 @@ class GovernedSeismicVLM:
     async def interpret(self, image, goal, backends=None):
         # Stage 1: Contrast views (existing)
         views = self.generate_contrast_views(image)
-        
+
         # Stage 2: Multi-backend inference (new)
         all_hypotheses = []
         for backend in backends or [self.default_backend]:
             for view in views:
                 result = await backend.infer(view.image, goal)
                 all_hypotheses.extend(result.hypotheses)
-        
+
         # Stage 3: Cross-view consistency (existing)
         consistency = self.check_consistency(all_hypotheses)
-        
+
         # Stage 4: Physics anchoring with seismiqb (new)
         if "seismiqb" in backends:
             attributes = await self.compute_attributes(image)
             physics_agreement = self.validate_hypotheses(all_hypotheses, attributes)
-        
+
         # Stage 5: AC_Risk (existing)
         risk = self.calculate_risk(consistency, physics_agreement, ...)
-        
+
         return InterpretationResult(...)
 ```
 
@@ -333,7 +333,7 @@ ATTRIBUTE_IMAGE_FEASIBILITY = {
 async def extract_attribute_with_risk(attribute_type, source_type, image):
     if source_type == "image":
         risk_info = ATTRIBUTE_IMAGE_FEASIBILITY[attribute_type]
-        
+
         if not risk_info["feasible"]:
             return {
                 "attribute": None,
@@ -341,10 +341,10 @@ async def extract_attribute_with_risk(attribute_type, source_type, image):
                 "explanation": f"{attribute_type} requires SEG-Y data",
                 "reference": "Nature 2025, doi:10.1038/s41598-025-21949-9"
             }
-        
+
         # Compute with elevated uncertainty
         value = await compute_approximate_attribute(image, attribute_type)
-        
+
         return {
             "attribute": value,
             "uncertainty": 0.20,  # High for image-only
@@ -496,5 +496,5 @@ for result in [georef, digitized, seismic, attributes]:
 
 ---
 
-*DITEMPA BUKAN DIBERI*  
+*DITEMPA BUKAN DIBERI*
 *External tools leveraged. ToAC governance applied. Vision forged.*

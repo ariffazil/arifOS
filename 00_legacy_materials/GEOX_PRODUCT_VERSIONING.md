@@ -25,7 +25,7 @@ All 12 canonical GEOX products share this schema. Fields marked `REQUIRED` must 
   "version": "REQUIRED — semver string: MAJOR.MINOR.PATCH (e.g., 1.3.0)",
   "version_reason": "REQUIRED — brief human-readable reason for this version (e.g., 'Added 3 new boreholes; K updated')",
   "parent_version": "CONDITIONAL — product_id of the version this supersedes (null if v1.0.0)",
-  
+
   "dimension": "REQUIRED — named dimension from GEOX_CONSTITUTIONAL_PHYSICS_STACK.md §6",
   "basin_context": "REQUIRED — geographic / basin identifier (e.g., 'Malay Basin, Offshore Block PM3')",
   "crs": "REQUIRED — coordinate reference system (EPSG code or WKT string)",

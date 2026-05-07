@@ -48,8 +48,13 @@ class ConstitutionalGuardMiddleware(Middleware):
         AF1 = validate + log + emit receipt. Execution continues through legacy chain.
         """
         import sys
+
         tool_name = context.message.name
-        print(f"[MIDDLEWARE] ★★★ on_call_tool invoked tool={tool_name} args={dict(context.message.arguments)}", file=sys.stderr, flush=True)
+        print(
+            f"[MIDDLEWARE] ★★★ on_call_tool invoked tool={tool_name} args={dict(context.message.arguments)}",
+            file=sys.stderr,
+            flush=True,
+        )
 
         # ── AF1 Shadow Receipt ────────────────────────────────────────────
         af1_receipt_log_path = "/usr/src/app/af1_receipts.jsonl"
@@ -63,12 +68,18 @@ class ConstitutionalGuardMiddleware(Middleware):
             af1_id = str(uuid.uuid4())[:12]
             received_at = datetime.now(timezone.utc).isoformat()
             risk_level_map = {
-                "arifos_888_judge": "HIGH", "arifos_999_vault": "HIGH",
-                "arifos_777_ops": "HIGH", "arifos_444_kernel": "HIGH",
-                "arifos_forge": "HIGH", "arifos_gateway": "HIGH",
-                "arifos_555_memory": "MEDIUM", "arifos_666_heart": "MEDIUM",
-                "arifos_333_mind": "MEDIUM", "arifos_route": "MEDIUM",
-                "arifos_init": "LOW", "arifos_sense": "LOW",
+                "arifos_888_judge": "HIGH",
+                "arifos_999_vault": "HIGH",
+                "arifos_777_ops": "HIGH",
+                "arifos_444_kernel": "HIGH",
+                "arifos_forge": "HIGH",
+                "arifos_gateway": "HIGH",
+                "arifos_555_memory": "MEDIUM",
+                "arifos_666_heart": "MEDIUM",
+                "arifos_333_mind": "MEDIUM",
+                "arifos_route": "MEDIUM",
+                "arifos_init": "LOW",
+                "arifos_sense": "LOW",
                 "arifos_health": "LOW",
             }
             risk_level = risk_level_map.get(tool_name, "MEDIUM")
@@ -104,7 +115,11 @@ class ConstitutionalGuardMiddleware(Middleware):
             os.makedirs(os.path.dirname(af1_receipt_log_path), exist_ok=True)
             with open(af1_receipt_log_path, "a") as f:
                 f.write(json.dumps(receipt, sort_keys=False) + "\n")
-            print(f"[AF1] receipt emitted: tool={tool_name} af1_id={af1_id}", file=sys.stderr, flush=True)
+            print(
+                f"[AF1] receipt emitted: tool={tool_name} af1_id={af1_id}",
+                file=sys.stderr,
+                flush=True,
+            )
         except Exception as af1_err:
             print(f"[AF1] receipt emit failed: {af1_err}", file=sys.stderr, flush=True)
         # ── End AF1 Shadow Receipt ────────────────────────────────────────

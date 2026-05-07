@@ -23,6 +23,7 @@ EPSILON = 1e-9
 # SCHEMAS — Canonical input/output for verification-first capital governance
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class VerificationSurface:
     """
@@ -31,6 +32,7 @@ class VerificationSurface:
     Serializes: what was claimed, what evidence exists, who can verify it,
     at what cost, on what time horizon, and who bears the liability.
     """
+
     claim_id: str
     domain: str  # "trading" | "private_markets" | "ops" | "civilization" | "crisis"
     action_type: str  # "analysis" | "execution" | "allocation" | "underwriting"
@@ -81,6 +83,7 @@ class AuditEntropyResult:
     Core metric from: Catalini, Hui & Wu (MIT/WashU/UCLA, February 2026)
     "Some Simple Economics of AGI"
     """
+
     executable_scope: float  # m_A — share AI can execute cheaply
     verifiable_scope: float  # m_H — share humans can afford to verify
     delta_m: float  # structural gap, NOT a transient tech bug
@@ -124,6 +127,7 @@ class JuniorLoopImpact:
     Prevents WEALTH from optimizing into a future with no human checkers left.
     Missing junior loop = strategic existential risk, not just operational risk.
     """
+
     domain: str
     junior_task_share_removed: float  # 0-1
     synthetic_training_available: bool
@@ -150,17 +154,22 @@ class CodifierCurse:
 
     Not a blocker — a hidden cost/pricing signal.
     """
+
     verification_events: int
     captured_reasoning_depth: float  # 0-1
     downstream_model_training_probability: float  # 0-1
     expertise_rent_decay_risk: float  # 0-1
-    mitigation: list[str] = field(default_factory=list)  # "partial_redaction" | "airgapped_review" | "premium_liability_pricing"
+    mitigation: list[str] = field(
+        default_factory=list
+    )  # "partial_redaction" | "airgapped_review" | "premium_liability_pricing"
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "verification_events": self.verification_events,
             "captured_reasoning_depth": round(self.captured_reasoning_depth, 4),
-            "downstream_model_training_probability": round(self.downstream_model_training_probability, 4),
+            "downstream_model_training_probability": round(
+                self.downstream_model_training_probability, 4
+            ),
             "expertise_rent_decay_risk": round(self.expertise_rent_decay_risk, 4),
             "mitigation": self.mitigation,
         }
@@ -173,6 +182,7 @@ class LiabilityRoute:
 
     No liability owner = no SEAL. Hard gate.
     """
+
     decision_id: str
     liability_owner: str | None  # None = automatic HOLD
     owner_type: str | None  # "human" | "firm" | "committee"
@@ -253,7 +263,7 @@ def wealth_measure_delta_m(
         band = "LOW"
 
     # Audit entropy sub-component
-    audit_entropy = (
+    (
         _W_NOVELTY * novelty
         + _W_PROXY * proxy_distance
         + _W_SCARCITY * verifier_scarcity
@@ -272,7 +282,9 @@ def wealth_measure_delta_m(
     if verifier_scarcity > 0.6:
         bottlenecks.append("verifier scarcity in domain — cost stubbornly high")
     if latency_to_ground_truth > 0.6:
-        bottlenecks.append(f"ground truth delayed — {int(latency_to_ground_truth * 90)} days expected")
+        bottlenecks.append(
+            f"ground truth delayed — {int(latency_to_ground_truth * 90)} days expected"
+        )
     if model_opacity > 0.6:
         bottlenecks.append("model/tool opacity — black box, no audit trail")
     if provenance_score < 0.4:

@@ -1,8 +1,8 @@
 # arifOS Agent Wire Protocol
 ## Inter-Agent Communication Standard
 
-**Authority:** A-ARCHITECT  
-**Version:** 1.0  
+**Authority:** A-ARCHITECT
+**Version:** 1.0
 **Status:** PROVISIONAL — Requires A-VALIDATOR review
 
 ---
@@ -22,24 +22,24 @@ The Wire Protocol defines how agents communicate within arifOS. It enables:
 @dataclass
 class AgentMessage:
     """Standard inter-agent message envelope."""
-    
+
     # Identity
     sender: str              # Agent ID (e.g., "A-ARCHITECT", "A-ENGINEER")
     receiver: str            # Target agent ID or "BROADCAST"
-    
+
     # Message content
     action: MessageAction     # TASK | QUERY | RESPONSE | NOTIFY | ERROR
     payload: dict           # Arbitrary payload (action-specific)
-    
+
     # Constitutional context
     floors_active: list[str]     # F1-F13 floors relevant to this message
     constitutional_tags: list[str]  # e.g., ["F1_AMANAH", "F9_TAQWA"]
-    
+
     # Routing
     session_id: str          # Associated session
     correlation_id: str     # For tracing request chains
     reply_to: str | None    # Set if this is a response to a prior message
-    
+
     # Metadata
     timestamp: str          # ISO-8601
     ttl_seconds: int = 300  # Message expiry

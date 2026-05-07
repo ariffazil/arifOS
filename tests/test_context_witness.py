@@ -29,7 +29,12 @@ REQUIRED_TOP_LEVEL_FIELDS = {
 REQUIRED_ARIFOS_ALIGNMENT_FIELDS = {"physics", "math", "linguistic"}
 
 REQUIRED_QUOTE_WITNESS_FIELDS = {
-    "id", "quote", "author", "tradition", "theme", "source_status",
+    "id",
+    "quote",
+    "author",
+    "tradition",
+    "theme",
+    "source_status",
 }
 
 

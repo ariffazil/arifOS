@@ -21,21 +21,21 @@ Instantly share code, notes, and snippets.
 # [karpathy](https://gist.github.com/karpathy)/[llm-wiki.md](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 [karpathy](https://gist.github.com/karpathy)
 [llm-wiki.md](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-- 
+-
 
 
     [Download ZIP](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f/archive/ac46de1ad27f92b28ac95459c782c07f6b8c964a.zip)
 
 
 [Download ZIP](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f/archive/ac46de1ad27f92b28ac95459c782c07f6b8c964a.zip)
-- 
+-
           [Star
 
           5,000+
           (5,000+)](https://gist.github.com/login?return_to=https%3A%2F%2Fgist.github.com%2Fkarpathy%2F442a6bf555914893e9891c11519de94f)You must be signed in to star a gist
 
 
-- 
+-
             [Fork
 
           2,540
@@ -50,7 +50,7 @@ Instantly share code, notes, and snippets.
 
           2,540
           (2,540)](https://gist.github.com/login?return_to=https%3A%2F%2Fgist.github.com%2Fkarpathy%2F442a6bf555914893e9891c11519de94f)
-- 
+-
 
 
 
@@ -180,7 +180,7 @@ Instantly share code, notes, and snippets.
 
 
 
-- 
+-
 
 
 
@@ -196,7 +196,7 @@ Instantly share code, notes, and snippets.
 
 
 
-- 
+-
 
 
 
@@ -212,7 +212,7 @@ Instantly share code, notes, and snippets.
 
 
 
-- 
+-
 
 
 
@@ -228,14 +228,14 @@ Instantly share code, notes, and snippets.
 
 
 
-- 
+-
 
 
 
 Save karpathy/442a6bf555914893e9891c11519de94f to your computer and use it in GitHub Desktop.
 
 # Select an option
-- 
+-
 
 
 
@@ -251,7 +251,7 @@ Save karpathy/442a6bf555914893e9891c11519de94f to your computer and use it in Gi
 
 
 
-- 
+-
 
 
 
@@ -267,7 +267,7 @@ Save karpathy/442a6bf555914893e9891c11519de94f to your computer and use it in Gi
 
 
 
-- 
+-
 
 
 
@@ -290,7 +290,7 @@ Save karpathy/442a6bf555914893e9891c11519de94f to your computer and use it in Gi
 [Forks
         2,540](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f/forks)
 
-- 
+-
 
 
 
@@ -306,7 +306,7 @@ Save karpathy/442a6bf555914893e9891c11519de94f to your computer and use it in Gi
 
 
 
-- 
+-
 
 
 
@@ -322,7 +322,7 @@ Save karpathy/442a6bf555914893e9891c11519de94f to your computer and use it in Gi
 
 
 
-- 
+-
 
 
 
@@ -595,10 +595,10 @@ There was an error while loading. [Please reload this page](https://gist.github.
 [xoai](https://gist.github.com/xoai)
 [Apr 8, 2026](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f?permalink_comment_id=6086902#gistcomment-6086902)
 Here are some updates from [sage-wiki](https://github.com/xoai/sage-wiki) as I work on [building a comprehensive tool](https://x.com/xoai/status/2040936964799795503) based on this idea.
-- 
+-
 TUI (Text User Interface): In addition to using Obsidian as a viewer for your wiki, you now have two built-in alternatives: a web UI and a TUI. The TUI offers a four-tab terminal dashboard, allowing you to browse articles with rendered Markdown, perform fuzzy searches with previews, engage in streaming Q&A with citations, and access a live compile dashboard that monitors your sources and automatically recompiles them. Remember, this is your data and your tool, so you are free to choose whichever viewer you feel most comfortable with.
 
-- 
+-
 Cost Optimization: This feature is particularly beneficial for those with a large vault of documents (for example, 10,000 or more). It includes prompt caching (saving 50-90% on input tokens from providers like Anthropic, Gemini, or OpenAI), batch API support (using compile --batch for a 50% discount via asynchronous processing), and cost tracking that provides a breakdown after every compile. You can also use compile --estimate to preview costs before committing. Additionally, there's an auto-batch mode that activates when you have more than ten sources to process. The compile pipeline now clearly shows what you're spending and where your costs are coming from, which is crucial once your wiki expands beyond just a few dozen sources.
 
 TUI (Text User Interface): In addition to using Obsidian as a viewer for your wiki, you now have two built-in alternatives: a web UI and a TUI. The TUI offers a four-tab terminal dashboard, allowing you to browse articles with rendered Markdown, perform fuzzy searches with previews, engage in streaming Q&A with citations, and access a live compile dashboard that monitors your sources and automatically recompiles them. Remember, this is your data and your tool, so you are free to choose whichever viewer you feel most comfortable with.
@@ -873,35 +873,35 @@ There was an error while loading. [Please reload this page](https://gist.github.
 [Sign up for free](https://gist.github.com/join?source=comment-gist)
 [Sign in to comment](https://gist.github.com/login?return_to=https%3A%2F%2Fgist.github.com%2Fkarpathy%2F442a6bf555914893e9891c11519de94f)
 
-- 
+-
             [Terms](https://docs.github.com/site-policy/github-terms/github-terms-of-service)
 
-- 
+-
             [Privacy](https://docs.github.com/site-policy/privacy-policies/github-privacy-statement)
 
-- 
+-
             [Security](https://github.com/security)
 
-- 
+-
             [Status](https://www.githubstatus.com/)
 
-- 
+-
             [Community](https://github.community/)
 
-- 
+-
             [Docs](https://docs.github.com/)
 
-- 
+-
             [Contact](https://support.github.com?tags=dotcom-footer)
 
-- 
+-
 
 
        Manage cookies
 
 
 
-- 
+-
 
 
       Do not share my personal information
@@ -915,4 +915,3 @@ There was an error while loading. [Please reload this page](https://gist.github.
 [Community](https://github.community/)
 [Docs](https://docs.github.com/)
 [Contact](https://support.github.com?tags=dotcom-footer)
-

@@ -190,4 +190,3 @@ For STDIO transport, NEVER write to `stdout` (e.g., via `print()`). This corrupt
 - **GitHub:** [github.com/modelcontextprotocol](https://github.com/modelcontextprotocol)
 - **OpenAI/Codex:** [developers.openai.com/codex/mcp/](https://developers.openai.com/codex/mcp/)
 - **LangChain Adapter:** [docs.langchain.com/oss/python/langchain/mcp](https://docs.langchain.com/oss/python/langchain/mcp)
-

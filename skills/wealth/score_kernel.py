@@ -40,14 +40,15 @@ _F = 0.20  # audit entropy penalty
 _G = 0.15  # junior loop damage penalty
 
 # Hard floor thresholds
-_MIN_SVS = 0.30        # below this svs → automatic HOLD
-_MAX_DELTA_M = 0.80   # above this delta_m → automatic HOLD
+_MIN_SVS = 0.30  # below this svs → automatic HOLD
+_MAX_DELTA_M = 0.80  # above this delta_m → automatic HOLD
 _MIN_LIABILITY_SCORE = 0.20  # no liability owner → score = 0 on this axis
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SCHEMAS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @dataclass
 class WealthScore:
@@ -57,17 +58,18 @@ class WealthScore:
     Replaces single-axis NPV with verification-first governance.
     All scores normalized 0-1 unless noted.
     """
+
     reward_score: float
     risk_score: float
-    verifiability_score: float      # svs-derived
-    floor_score: float             # 0-1, F1-F13 compliance
+    verifiability_score: float  # svs-derived
+    floor_score: float  # 0-1, F1-F13 compliance
     liability_clarity_score: float  # 0-1, liability owner present and solvent
-    human_capacity_score: float    # 0-1, apprenticeship pipeline health
-    audit_entropy_penalty: float   # delta_m-derived penalty (0-1)
+    human_capacity_score: float  # 0-1, apprenticeship pipeline health
+    audit_entropy_penalty: float  # delta_m-derived penalty (0-1)
     junior_loop_damage_penalty: float  # (0-1)
     final_score: float
     recommendation: str  # "SEAL_CANDIDATE" | "HOLD_CANDIDATE" | "VOID_CANDIDATE"
-    entropy_band: str     # "LOW" | "MEDIUM" | "HIGH" | "EXTREME"
+    entropy_band: str  # "LOW" | "MEDIUM" | "HIGH" | "EXTREME"
     floor_flags: list[str] = field(default_factory=list)
     hard_blocks: list[str] = field(default_factory=list)
     delta_m: float = 0.0
@@ -100,6 +102,7 @@ class WealthScore:
 # ═══════════════════════════════════════════════════════════════════════════════
 # SCORE KERNEL
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def wealth_score_kernel(
     reward_score: float | None = None,
@@ -205,9 +208,9 @@ def wealth_score_kernel(
         final = max(-1.0, min(1.0, final))
 
         recommendation = (
-            "SEAL_CANDIDATE" if final > 0.1
-            else "HOLD_CANDIDATE" if final > -0.1
-            else "HOLD_CANDIDATE"
+            "SEAL_CANDIDATE"
+            if final > 0.1
+            else "HOLD_CANDIDATE" if final > -0.1 else "HOLD_CANDIDATE"
         )
 
     # Floor score
@@ -223,12 +226,24 @@ def wealth_score_kernel(
         audit_entropy_penalty=entropy_penalty,
         junior_loop_damage_penalty=jl_penalty,
         final_score=round(
-            -999.0 if hard_blocks else
-            max(-1.0, min(1.0,
-                _A * r - _B * risk + _C * svs + _D * liab
-                + _E * rev_bonus - _F * entropy_penalty - _G * jl_penalty
-            )),
-            4
+            (
+                -999.0
+                if hard_blocks
+                else max(
+                    -1.0,
+                    min(
+                        1.0,
+                        _A * r
+                        - _B * risk
+                        + _C * svs
+                        + _D * liab
+                        + _E * rev_bonus
+                        - _F * entropy_penalty
+                        - _G * jl_penalty,
+                    ),
+                )
+            ),
+            4,
         ),
         recommendation=recommendation,
         entropy_band=entropy_band,
@@ -315,9 +330,9 @@ def wealth_decision_packet(
                 "floor_flags": score.floor_flags,
             },
             "verdict_trigger": (
-                "SEAL" if score.recommendation == "SEAL_CANDIDATE"
-                else "HOLD" if score.recommendation == "HOLD_CANDIDATE"
-                else "VOID"
+                "SEAL"
+                if score.recommendation == "SEAL_CANDIDATE"
+                else "HOLD" if score.recommendation == "HOLD_CANDIDATE" else "VOID"
             ),
         },
     }

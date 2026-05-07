@@ -13,43 +13,45 @@ from dataclasses import dataclass
 class WebMCPConfig:
     """
     WebMCP configuration with constitutional defaults.
-    
+
     All settings enforce F11 (Command Auth) and F12 (Injection Guard).
     """
-    
+
     # CORS - F12 Injection Guard validates origins
     # Note: TrustedHostMiddleware expects just the host pattern (no scheme)
-    ALLOWED_ORIGINS: set[str] = frozenset([
-        "arifosmcp.arif-fazil.com",
-        "*.arif-fazil.com",
-        "arifos.arif-fazil.com",
-        "localhost",
-        "localhost:3000",      # Dev only
-        "localhost:5173",      # Vite dev
-        "localhost:8080",      # Local testing
-    ])
-    
+    ALLOWED_ORIGINS: set[str] = frozenset(
+        [
+            "arifosmcp.arif-fazil.com",
+            "*.arif-fazil.com",
+            "arifos.arif-fazil.com",
+            "localhost",
+            "localhost:3000",  # Dev only
+            "localhost:5173",  # Vite dev
+            "localhost:8080",  # Local testing
+        ]
+    )
+
     # Session - F11 Command Auth
-    SESSION_TTL: int = 3600          # 1 hour
+    SESSION_TTL: int = 3600  # 1 hour
     SESSION_COOKIE: str = "arifos_session"
-    SESSION_SECURE: bool = True      # HTTPS only
+    SESSION_SECURE: bool = True  # HTTPS only
     SESSION_SAMESITE: str = "strict"
-    SESSION_HTTPONLY: bool = True    # No JS access
-    
+    SESSION_HTTPONLY: bool = True  # No JS access
+
     # WebSocket - Real-time governance
-    WS_HEARTBEAT: int = 30           # seconds
+    WS_HEARTBEAT: int = 30  # seconds
     WS_MAX_CONNECTIONS: int = 100
     WS_PING_INTERVAL: float = 20.0
-    
+
     # Rate Limiting - F5 Peace² (stability)
-    RATE_LIMIT_REQUESTS: int = 100   # per minute
+    RATE_LIMIT_REQUESTS: int = 100  # per minute
     RATE_LIMIT_WINDOW: int = 60
-    RATE_LIMIT_BURST: int = 10       # Allow burst
-    
+    RATE_LIMIT_BURST: int = 10  # Allow burst
+
     # Constitutional timeouts
-    REQUEST_TIMEOUT: float = 30.0    # Max processing time
+    REQUEST_TIMEOUT: float = 30.0  # Max processing time
     METABOLIC_TIMEOUT: float = 60.0  # Full 000→999 loop
-    
+
     # Content Security - F12
     CSP_POLICY: str = (
         "default-src 'self'; "
@@ -58,7 +60,7 @@ class WebMCPConfig:
         "connect-src 'self' wss: https:; "
         "img-src 'self' data: https:;"
     )
-    
+
     @classmethod
     def from_env(cls) -> WebMCPConfig:
         """Load config from environment variables."""

@@ -68,6 +68,7 @@ ALWAYS_IRREVERSIBLE: list[str] = [
 @dataclass
 class IrreversibilityScore:
     """Result of irreversibility evaluation."""
+
     score: float  # 0.0 (safe) → 1.0 (catastrophic)
     tier: RiskTier
     triggers_888_hold: bool
@@ -151,7 +152,9 @@ class AmanahIrreversibilityScorer:
                 detail_parts.append(f"critical_pattern={pattern}")
                 base_score = 1.0  # Maximum score — immediate escalation
                 reason = f"critical_pattern_detected:{pattern_reason}"
-                logger.error(f"[Amanah] CRITICAL pattern detected: '{pattern}' in {tool_name} call by {actor_id}")
+                logger.error(
+                    f"[Amanah] CRITICAL pattern detected: '{pattern}' in {tool_name} call by {actor_id}"
+                )
 
         # 4. Substrate class modifiers
         if policy.substrate == SubstrateClass.DELETE:

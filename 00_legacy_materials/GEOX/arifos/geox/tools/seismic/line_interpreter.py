@@ -25,6 +25,7 @@ from arifos.geox.tools.seismic_structure_rules import check_structure_rules
 
 logger = logging.getLogger(__name__)
 
+
 async def geox_interpret_single_line(inputs: dict[str, Any]) -> GeoxMcpEnvelope:
     """
     Run full image-only structural interpretation pipeline (Band A).
@@ -35,12 +36,14 @@ async def geox_interpret_single_line(inputs: dict[str, Any]) -> GeoxMcpEnvelope:
     raster = ingest_envelope.result
 
     # 2. Contrast Variants (Metric 2: Multiple contrast views)
-    views_envelope = await generate_contrast_views(raster, ["linear", "edge_enhance", "soft_smooth"])
+    views_envelope = await generate_contrast_views(
+        raster, ["linear", "edge_enhance", "soft_smooth"]
+    )
     views = views_envelope.result
 
     # 3. Perception Proxies (Metric 3: Feature extraction layer)
     lineaments_envelope = await extract_lineaments(views)
-    lineament_sets = lineaments_envelope.result # list[list[GEOPROXY_LINEAMENT]]
+    lineament_sets = lineaments_envelope.result  # list[list[GEOPROXY_LINEAMENT]]
 
     feature_layers = [
         GEOX_FEATURE_SET(view_id=views[i].view_id, lineaments=lineament_sets[i])
@@ -65,22 +68,19 @@ async def geox_interpret_single_line(inputs: dict[str, Any]) -> GeoxMcpEnvelope:
         bias_audit={
             "display_sensitivity": "high" if len(views) > 1 else "unknown",
             "contrast_ canon_enforced": True,
-            "multi_view_stability_score": 0.85 # mock
+            "multi_view_stability_score": 0.85,  # mock
         },
         human_report="Structural interpretation complete. Primary inversion fault identified.",
         provenance=ProvenanceRecord(
             source=inputs.get("image_path", "unknown"),
-            method="geox_interpret_single_line_v0.3.1_SEALED"
+            method="geox_interpret_single_line_v0.3.1_SEALED",
         ),
-        verdict="PASS" if all(c.final_audit_passed for c in final_candidates) else "QUALIFY"
+        verdict="PASS" if all(c.final_audit_passed for c in final_candidates) else "QUALIFY",
     )
 
     # Final wrap in envelope
     return GeoxMcpEnvelope(
         result=summary,
         uncertainty={"weighted_avg": 0.45, "perception_floor_enforced": True},
-        governance={
-            "constitutional_floors": [1, 2, 3, 7, 13],
-            "blueprint_compliant": True
-        }
+        governance={"constitutional_floors": [1, 2, 3, 7, 13], "blueprint_compliant": True},
     )

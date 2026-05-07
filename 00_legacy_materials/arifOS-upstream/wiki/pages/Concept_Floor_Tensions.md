@@ -33,7 +33,7 @@ confidence: 0.95
 Constitutional AI assumes Floors are **independent constraints**. In practice, they are **interdependent tensions**. Every Floor optimizes for a different virtue:
 
 - **F1 (Amanah)** → Safety through reversibility
-- **F2 (Truth)** → Safety through accuracy  
+- **F2 (Truth)** → Safety through accuracy
 - **F4 (Clarity)** → Safety through entropy reduction
 - **F6 (Empathy)** → Safety through stakeholder care
 - **F7 (Humility)** → Safety through uncertainty acknowledgment
@@ -193,5 +193,5 @@ Tension resolution adds **deterministic latency**:
 ---
 
 > **Ω-Wiki Tag**: `floor_tensions_v1.0`
-> 
+>
 > **Next Review**: When new Floor added (F14+) or HARD/SOFT reclassification occurs.

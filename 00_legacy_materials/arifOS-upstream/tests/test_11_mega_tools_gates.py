@@ -7,6 +7,7 @@ CI stops on failure.
 
 import pytest
 
+
 # GATE 1: Public surface is exactly 11
 def test_public_registry_exposes_only_11():
     """Gate 1: /tools must return exactly 11 tools."""
@@ -86,8 +87,7 @@ def test_legacy_alias_mappings_exist():
 
     for legacy, target in CAPABILITY_MAP.items():
         assert isinstance(target, str), f"{legacy} maps to non-string target: {target}"
-        assert target in ALL_TOOL_HANDLERS, \
-            f"{legacy} maps to invalid canonical tool: {target}"
+        assert target in ALL_TOOL_HANDLERS, f"{legacy} maps to invalid canonical tool: {target}"
 
 
 # GATE 6: Stage correctness (000-999)
@@ -112,8 +112,9 @@ def test_stage_map_is_consistent():
 
     for tool in CANONICAL_TOOL_HANDLERS:
         assert tool in AAA_TOOL_STAGE_MAP, f"{tool} missing from stage map"
-        assert AAA_TOOL_STAGE_MAP[tool] == EXPECTED_STAGES[tool], \
-            f"{tool} has wrong stage: {AAA_TOOL_STAGE_MAP[tool]}"
+        assert (
+            AAA_TOOL_STAGE_MAP[tool] == EXPECTED_STAGES[tool]
+        ), f"{tool} has wrong stage: {AAA_TOOL_STAGE_MAP[tool]}"
 
 
 def test_trinity_map_is_consistent():
@@ -123,8 +124,13 @@ def test_trinity_map_is_consistent():
 
     for tool in CANONICAL_TOOL_HANDLERS:
         assert tool in TRINITY_BY_TOOL, f"{tool} missing from trinity map"
-        assert TRINITY_BY_TOOL[tool] in ["DELTA Δ", "OMEGA Ω", "PSI Ψ", "DELTA/PSI", "ALL"], \
-            f"{tool} has invalid trinity: {TRINITY_BY_TOOL[tool]}"
+        assert TRINITY_BY_TOOL[tool] in [
+            "DELTA Δ",
+            "OMEGA Ω",
+            "PSI Ψ",
+            "DELTA/PSI",
+            "ALL",
+        ], f"{tool} has invalid trinity: {TRINITY_BY_TOOL[tool]}"
 
 
 # GATE 7: Execution hardening
@@ -171,8 +177,7 @@ def test_full_capability_map_integration():
 
         # Target must be a string in canonical handlers
         assert isinstance(target, str), f"{legacy} -> non-string target {target!r}"
-        assert target in ALL_TOOL_HANDLERS, \
-            f"{legacy} -> invalid canonical tool {target}"
+        assert target in ALL_TOOL_HANDLERS, f"{legacy} -> invalid canonical tool {target}"
 
         # Target must have at least one mode defined
         assert target in TOOL_MODES, f"{legacy} -> {target} missing from TOOL_MODES"

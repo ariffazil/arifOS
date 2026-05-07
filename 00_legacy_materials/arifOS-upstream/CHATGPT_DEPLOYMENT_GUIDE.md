@@ -56,14 +56,14 @@ def proxy_to_arifos(method, params=None):
         "method": method,
         "params": params or {}
     }
-    
+
     response = requests.post(url, headers=headers, json=payload, stream=True)
-    
+
     # Parse SSE response
     for line in response.iter_lines():
         if line.startswith(b"data: "):
             return json.loads(line[6:])
-    
+
     return None
 
 if __name__ == "__main__":
@@ -95,9 +95,9 @@ python ops/runtime/stdio_server.py
 
 ## Server Configuration
 
-**Current Transport:** `streamable-http` with `stateless_http=True`  
-**Ports:** 8080 (HTTP), 8089 (SSE - not actively used)  
-**Docker:** `arifos/arifosmcp:latest`  
+**Current Transport:** `streamable-http` with `stateless_http=True`
+**Ports:** 8080 (HTTP), 8089 (SSE - not actively used)
+**Docker:** `arifos/arifosmcp:latest`
 **Nginx:** Proxies `/mcp` and `/sse` to container
 
 ## Recommended ChatGPT Integration

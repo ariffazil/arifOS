@@ -134,15 +134,15 @@ on:
 jobs:
   build:
     # Build Docker image, run tests
-    
+
   deploy-vps:
     needs: build
     # SSH to VPS, pull, restart
-    
+
   deploy-horizon:
     needs: build
     # Horizon auto-deploys from GitHub
-    
+
   verify:
     needs: [deploy-vps, deploy-horizon]
     # Health checks on both
@@ -157,7 +157,7 @@ import os
 
 def get_environment():
     deployment = os.getenv("ARIFOS_DEPLOYMENT", "").lower()
-    
+
     if deployment == "horizon":
         return HORIZON_CONFIG  # Public mode
     elif deployment == "vps":
@@ -178,7 +178,7 @@ env = get_environment()
 if env.mode == "vps":
     print("🔥 SOVEREIGN KERNEL")
     # Enable all tools, strict auth
-    
+
 elif env.mode == "horizon":
     print("☁️  PUBLIC AMBASSADOR")
     # Enable public tools only
@@ -333,11 +333,11 @@ from fastmcp import Client
 async def check_both():
     sovereign = Client("https://arifos.arif-fazil.com/mcp")
     public = Client("https://arifos.fastmcp.app/mcp")
-    
+
     async with sovereign, public:
         s_health = await sovereign.read_resource("health://check")
         p_health = await public.read_resource("health://check")
-        
+
         print(f"🔥 Sovereign: {s_health}")
         print(f"☁️  Public: {p_health}")
 
@@ -371,7 +371,7 @@ asyncio.run(check_both())
 
 **arifOS** — *Dual sovereignty: Maximum control + Maximum reach*
 
-🔥 Sovereign: https://arifos.arif-fazil.com  
+🔥 Sovereign: https://arifos.arif-fazil.com
 ☁️ Public: https://arifos.fastmcp.app
 
 *Ditempa Bukan Diberi* — Forged, Not Given [ΔΩΨ | ARIF]

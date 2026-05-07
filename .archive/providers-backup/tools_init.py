@@ -7,6 +7,7 @@ register_canonical_tools(mcp) for FastMCP registration.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import logging

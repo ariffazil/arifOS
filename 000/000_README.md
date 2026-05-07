@@ -1,10 +1,10 @@
 # 000 — The State of Intelligence
 ## arifOS Kernel Foundations · Constitutional Law · 13 Floors
 
-**Version:** v2026.4.13-CANONICAL  
-**Authority:** Muhammad Arif bin Fazil (888_JUDGE)  
-**Status:** SOVEREIGNLY_SEALED (999_SEAL)  
-**Source:** Mirrored from APEX (SOUL layer) → arifOS MIND canon  
+**Version:** v2026.4.13-CANONICAL
+**Authority:** Muhammad Arif bin Fazil (888_JUDGE)
+**Status:** SOVEREIGNLY_SEALED (999_SEAL)
+**Source:** Mirrored from APEX (SOUL layer) → arifOS MIND canon
 **Motto:** *Ditempa Bukan Diberi — Forged, Not Given*
 
 ---

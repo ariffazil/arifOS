@@ -19,7 +19,7 @@
   "auth_level": "full_vps_exec_no_ring2",
   "verified_at": "2026-03-28T00:00:00Z",
   "notes": "arifOS primary production deployment. Full tool access except Ring 2.",
-  
+
   "capabilities": {
     "supports_tools": true,
     "supports_web": true,
@@ -30,7 +30,7 @@
     "risk_tier": "medium",
     "sovereign_override_available": false
   },
-  
+
   "self_claim_boundary": {
     "identity_claim_policy": "verified_against_registry",
     "tool_claim_policy": "runtime_truth_only",

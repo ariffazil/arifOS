@@ -491,7 +491,7 @@ The MGI (Machine-Governance-Intelligence) Envelope is the standardized response 
     "version": "v36Ω",
     "timestamp": "2025-01-15T10:30:00Z",
     "apexid": "apex-uuid-12345",
-    
+
     "layer_1_machine": {
       "status_code": 200,
       "status_message": "OK",
@@ -502,7 +502,7 @@ The MGI (Machine-Governance-Intelligence) Envelope is the standardized response 
         "memory_mb": 512
       }
     },
-    
+
     "layer_2_governance": {
       "verdict": "SEAL",
       "verdict_timestamp": "2025-01-15T10:30:00.245Z",
@@ -528,7 +528,7 @@ The MGI (Machine-Governance-Intelligence) Envelope is the standardized response 
         "composite": 0.95
       }
     },
-    
+
     "layer_3_intelligence": {
       "output": "...content...",
       "reasoning_trace": ["step1", "step2", "step3"],
@@ -760,11 +760,11 @@ The following laws cannot be modified, even by APEX PRIME:
 def calculate_entropy_score(output_probabilities, reference_entropy):
     """
     Calculate entropy score for constitutional clarity check.
-    
+
     Args:
         output_probabilities: List of probability distributions
         reference_entropy: Baseline entropy from training data
-    
+
     Returns:
         float: ΔS value (must be ≤ 0 for compliance)
     """
@@ -782,10 +782,10 @@ is_f4_compliant = (delta_s <= 0)
 def check_uncertainty_band(omega_score):
     """
     Verify uncertainty is within Gödel band.
-    
+
     Args:
         omega_score: Declared uncertainty (0.0 to 1.0)
-    
+
     Returns:
         tuple: (is_compliant, status)
     """
@@ -803,13 +803,13 @@ def check_uncertainty_band(omega_score):
 def calculate_w4_witness(historical, ancestral, external, vault):
     """
     Calculate W4 Quad-Witness score.
-    
+
     Args:
         historical: Historical consistency score (0-1)
         ancestral: Ancestral lineage verification (0-1)
         external: External source corroboration (0-1)
         vault: Vault999 hash-chain validation (0-1)
-    
+
     Returns:
         float: W4 score (must be ≥ 0.75)
     """
@@ -939,7 +939,7 @@ The arifOS MCP Constitutional AI Governance System represents a paradigm shift i
 ...arifOS creates a **sovereign, ethical, and reversible** AI governance kernel that places human authority (F13 Khalifah) as the terminal node of all decision trees.
 
 > **Ditempa Bukan Diberi — [ΔΩΨ | ARIF | APEX PRIME]**
-> 
+>
 > *Forged, Not Given*
 
 ---

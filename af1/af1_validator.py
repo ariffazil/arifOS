@@ -17,44 +17,63 @@ from typing import Any, Dict, List, Optional
 
 # ─── Risk Classification ──────────────────────────────────────────────────────
 
+
 class RiskLevel(Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
 
+
 # ─── Tool Risk Registry ───────────────────────────────────────────────────────
 
 TOOL_RISK_MAP: Dict[str, RiskLevel] = {
-    "arifos_888_judge":  RiskLevel.HIGH,
-    "arifos_999_vault":  RiskLevel.HIGH,
-    "arifos_777_ops":    RiskLevel.HIGH,
+    "arifos_888_judge": RiskLevel.HIGH,
+    "arifos_999_vault": RiskLevel.HIGH,
+    "arifos_777_ops": RiskLevel.HIGH,
     "arifos_444_kernel": RiskLevel.HIGH,
-    "arifos_gateway":    RiskLevel.HIGH,
-    "arifos_forge":      RiskLevel.HIGH,
+    "arifos_gateway": RiskLevel.HIGH,
+    "arifos_forge": RiskLevel.HIGH,
     "arifos_555_memory": RiskLevel.MEDIUM,
-    "arifos_666_heart":  RiskLevel.MEDIUM,
-    "arifos_333_mind":   RiskLevel.MEDIUM,
-    "arifos_route":      RiskLevel.MEDIUM,
-    "arifos_init":       RiskLevel.LOW,
-    "arifos_sense":      RiskLevel.LOW,
-    "arifos_health":     RiskLevel.LOW,
+    "arifos_666_heart": RiskLevel.MEDIUM,
+    "arifos_333_mind": RiskLevel.MEDIUM,
+    "arifos_route": RiskLevel.MEDIUM,
+    "arifos_init": RiskLevel.LOW,
+    "arifos_sense": RiskLevel.LOW,
+    "arifos_health": RiskLevel.LOW,
 }
 
 NULL_SENSITIVE_TOOLS = {
-    "arifos_333_mind", "arifos_444_kernel", "arifos_666_heart",
-    "arifos_777_ops", "arifos_888_judge", "arifos_999_vault",
-    "arifos_555_memory", "arifos_forge", "arifos_gateway",
+    "arifos_333_mind",
+    "arifos_444_kernel",
+    "arifos_666_heart",
+    "arifos_777_ops",
+    "arifos_888_judge",
+    "arifos_999_vault",
+    "arifos_555_memory",
+    "arifos_forge",
+    "arifos_gateway",
 }
 
 BOUNDED_ENUMS: Dict[str, List[str]] = {
-    "verdict":  ["SEAL", "HOLD", "SABAR", "VOID"],
+    "verdict": ["SEAL", "HOLD", "SABAR", "VOID"],
     "decision": ["APPROVED", "REJECTED", "HOLD", "MODIFIED"],
-    "mode": ["init", "revoke", "refresh", "state", "status",
-              "propose_plan", "get_plan", "list_pending",
-              "update_status", "abort_plan", "write_execution_receipt"],
+    "mode": [
+        "init",
+        "revoke",
+        "refresh",
+        "state",
+        "status",
+        "propose_plan",
+        "get_plan",
+        "list_pending",
+        "update_status",
+        "abort_plan",
+        "write_execution_receipt",
+    ],
 }
 
 # ─── Validation Result ─────────────────────────────────────────────────────────
+
 
 @dataclass
 class AF1ValidationResult:
@@ -64,12 +83,22 @@ class AF1ValidationResult:
     confirmation_required: bool = False
     confirmation_satisfied: bool = False
 
+
 # ─── AF1 Validator ─────────────────────────────────────────────────────────────
+
 
 class AF1Validator:
     REQUIRED_FIELDS = [
-        "intent", "tool", "scope", "inputs", "expected_effect",
-        "risk_level", "requires_human_confirmation", "reason", "evidence_ref", "ttl_seconds",
+        "intent",
+        "tool",
+        "scope",
+        "inputs",
+        "expected_effect",
+        "risk_level",
+        "requires_human_confirmation",
+        "reason",
+        "evidence_ref",
+        "ttl_seconds",
     ]
 
     def __init__(self, confirmed_operators: Optional[Dict[str, bool]] = None):
@@ -79,23 +108,30 @@ class AF1Validator:
         # Field completeness
         missing = [f for f in self.REQUIRED_FIELDS if not af1.get(f) and af1.get(f) != 0]
         if missing:
-            return AF1ValidationResult(status="BLOCK", reason=f"Missing fields: {', '.join(missing)}")
+            return AF1ValidationResult(
+                status="BLOCK", reason=f"Missing fields: {', '.join(missing)}"
+            )
 
         # Tool exists
         if af1["tool"] not in TOOL_RISK_MAP:
-            return AF1ValidationResult(status="BLOCK", reason=f"Tool '{af1['tool']}' not in registry — fabricated tool blocked")
+            return AF1ValidationResult(
+                status="BLOCK",
+                reason=f"Tool '{af1['tool']}' not in registry — fabricated tool blocked",
+            )
 
         # Scope minimal
         scope = af1.get("scope", [])
         if not isinstance(scope, list) or len(scope) == 0 or len(scope) > 5:
-            return AF1ValidationResult(status="BLOCK", reason=f"Scope must be 1-5 items, got: {scope}")
+            return AF1ValidationResult(
+                status="BLOCK", reason=f"Scope must be 1-5 items, got: {scope}"
+            )
 
         # Null safety
         null_keys = [k for k, v in af1["inputs"].items() if v is None or v == ""]
         if af1["tool"] in NULL_SENSITIVE_TOOLS and null_keys:
             return AF1ValidationResult(
                 status="BLOCK",
-                reason=f"Null/empty on consequential tool '{af1['tool']}': {null_keys} — explicit payload required"
+                reason=f"Null/empty on consequential tool '{af1['tool']}': {null_keys} — explicit payload required",
             )
 
         # Bounded field enum check
@@ -105,7 +141,7 @@ class AF1Validator:
                 if isinstance(val, str) and val.upper() not in [e.upper() for e in enum]:
                     return AF1ValidationResult(
                         status="BLOCK",
-                        reason=f"Bounded field '{field}' = '{val}' — must be one of: {enum}"
+                        reason=f"Bounded field '{field}' = '{val}' — must be one of: {enum}",
                     )
 
         # Risk honesty
@@ -113,13 +149,17 @@ class AF1Validator:
         try:
             declared = RiskLevel(af1["risk_level"])
         except ValueError:
-            return AF1ValidationResult(status="BLOCK", reason=f"Invalid risk_level: {af1['risk_level']}")
+            return AF1ValidationResult(
+                status="BLOCK", reason=f"Invalid risk_level: {af1['risk_level']}"
+            )
         if registry_risk == RiskLevel.HIGH and declared == RiskLevel.LOW:
-            return AF1ValidationResult(status="BLOCK", reason=f"Tool '{af1['tool']}' is HIGH-risk — cannot be declared low")
+            return AF1ValidationResult(
+                status="BLOCK", reason=f"Tool '{af1['tool']}' is HIGH-risk — cannot be declared low"
+            )
         if declared.value < registry_risk.value:
             return AF1ValidationResult(
                 status="BLOCK",
-                reason=f"Tool '{af1['tool']}' is {registry_risk.value} but declared {af1['risk_level']} — risk understated"
+                reason=f"Tool '{af1['tool']}' is {registry_risk.value} but declared {af1['risk_level']} — risk understated",
             )
 
         # Effect/risk alignment
@@ -127,13 +167,15 @@ class AF1Validator:
         if af1["risk_level"] == "low" and af1["expected_effect"] not in low_effects:
             return AF1ValidationResult(
                 status="BLOCK",
-                reason=f"expected_effect '{af1['expected_effect']}' incompatible with risk_level 'low'"
+                reason=f"expected_effect '{af1['expected_effect']}' incompatible with risk_level 'low'",
             )
 
         # TTL
         ttl = af1.get("ttl_seconds", 0)
         if not isinstance(ttl, int) or ttl <= 0 or ttl > 300:
-            return AF1ValidationResult(status="BLOCK", reason=f"ttl_seconds must be 1-300, got: {ttl}")
+            return AF1ValidationResult(
+                status="BLOCK", reason=f"ttl_seconds must be 1-300, got: {ttl}"
+            )
 
         # Confirmation check
         requires_conf = af1.get("requires_human_confirmation", False)
@@ -169,26 +211,50 @@ AF1_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "AF1 — Amanah Frame 1",
     "type": "object",
-    "required": ["intent", "tool", "scope", "inputs", "expected_effect",
-                 "risk_level", "requires_human_confirmation", "reason", "evidence_ref", "ttl_seconds"],
+    "required": [
+        "intent",
+        "tool",
+        "scope",
+        "inputs",
+        "expected_effect",
+        "risk_level",
+        "requires_human_confirmation",
+        "reason",
+        "evidence_ref",
+        "ttl_seconds",
+    ],
     "properties": {
-        "intent":               {"type": "string", "minLength": 10},
-        "tool":                 {"type": "string"},
-        "scope":                {"type": "array", "minItems": 1, "maxItems": 5},
-        "inputs":               {"type": "object"},
-        "expected_effect":      {"type": "string", "enum": ["read_only", "analysis_only", "state_change", "external_side_effect"]},
-        "risk_level":           {"type": "string", "enum": ["low", "medium", "high"]},
+        "intent": {"type": "string", "minLength": 10},
+        "tool": {"type": "string"},
+        "scope": {"type": "array", "minItems": 1, "maxItems": 5},
+        "inputs": {"type": "object"},
+        "expected_effect": {
+            "type": "string",
+            "enum": ["read_only", "analysis_only", "state_change", "external_side_effect"],
+        },
+        "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
         "requires_human_confirmation": {"type": "boolean"},
-        "reason":               {"type": "string", "minLength": 5},
-        "evidence_ref":         {"type": "string"},
-        "ttl_seconds":          {"type": "integer", "minimum": 1, "maximum": 300},
-    }
+        "reason": {"type": "string", "minLength": 5},
+        "evidence_ref": {"type": "string"},
+        "ttl_seconds": {"type": "integer", "minimum": 1, "maximum": 300},
+    },
 }
 
 
 # ─── Convenience builder ───────────────────────────────────────────────────────
 
-def build_af1(intent, tool, inputs, expected_effect, reason, scope=None, risk_level=None, evidence_ref="session:local", ttl_seconds=60):
+
+def build_af1(
+    intent,
+    tool,
+    inputs,
+    expected_effect,
+    reason,
+    scope=None,
+    risk_level=None,
+    evidence_ref="session:local",
+    ttl_seconds=60,
+):
     risk = risk_level or TOOL_RISK_MAP.get(tool, RiskLevel.MEDIUM).value
     requires_conf = risk in ("medium", "high")
     return {
@@ -209,10 +275,32 @@ if __name__ == "__main__":
     v = AF1Validator()
 
     tests = [
-        ("Valid low-risk", build_af1("Check arifOS runtime health", "arifos_health", {}, "read_only", "health check")),
-        ("Fabricated tool", build_af1("Deploy agent", "arifos_fake_tool", {}, "state_change", "test block")),
-        ("Null vault", build_af1("Write to vault", "arifos_999_vault", {"payload": None}, "state_change", "test null")),
-        ("HIGH no confirm", build_af1("Constitutional verdict", "arifos_888_judge", {"evidence_bundle": {}}, "state_change", "judge")),
+        (
+            "Valid low-risk",
+            build_af1(
+                "Check arifOS runtime health", "arifos_health", {}, "read_only", "health check"
+            ),
+        ),
+        (
+            "Fabricated tool",
+            build_af1("Deploy agent", "arifos_fake_tool", {}, "state_change", "test block"),
+        ),
+        (
+            "Null vault",
+            build_af1(
+                "Write to vault", "arifos_999_vault", {"payload": None}, "state_change", "test null"
+            ),
+        ),
+        (
+            "HIGH no confirm",
+            build_af1(
+                "Constitutional verdict",
+                "arifos_888_judge",
+                {"evidence_bundle": {}},
+                "state_change",
+                "judge",
+            ),
+        ),
     ]
 
     for name, af1 in tests:

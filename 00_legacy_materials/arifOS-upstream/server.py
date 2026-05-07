@@ -194,7 +194,7 @@ def _wrap_hardened_dispatch(tool_name: str, original_handler: Any) -> Any:
 
         # ── F2: vault-backed receipt (non-blocking thread) ──
         try:
-            loop = asyncio.get_event_loop()
+            asyncio.get_event_loop()
 
             def _emit():
                 loop2 = asyncio.new_event_loop()
@@ -352,9 +352,7 @@ class SovereignHandshakeMiddleware(BaseHTTPMiddleware):
             response.headers["X-Arifos-Sovereign-Status"] = str(
                 state.get("status", "888_JUDGE_ACTIVE")
             )
-            response.headers["X-Arifos-Sovereign-Subject"] = str(
-                state.get("subject", "anonymous")
-            )
+            response.headers["X-Arifos-Sovereign-Subject"] = str(state.get("subject", "anonymous"))
 
         return response
 
@@ -387,9 +385,9 @@ mcp = FastMCP(
     version=VERSION,
     website_url="https://arifosmcp.arif-fazil.com",
     instructions=f"""Constitutional AI orchestration kernel — SEALED {_display_version()}.
-    
+
     {MOTTO}
-    
+
     Golden path: init → sense → mind → heart → judge → vault
     Governance : arifos_init | arifos_kernel | arifos_judge | arifos_vault
     Execution : arifos_forge
@@ -438,9 +436,7 @@ else:
         from arifosmcp.apps import register_all_apps
 
         registered_apps = register_all_apps(mcp)
-        logger.info(
-            f"Successfully registered {len(registered_apps)} constitutional apps"
-        )
+        logger.info(f"Successfully registered {len(registered_apps)} constitutional apps")
 
         # Register ChatGPT Apps SDK tools (widget resources + vault seal card)
         try:
@@ -455,10 +451,8 @@ else:
 
         # Mount 6-axis MCP tools (P/T/V/G/E/M) from mcp_tools.py
         # Axis feature flags: set ARIFOS_ENABLE_{P|T|V|G|E|M}_AXIS=false to gate an axis
-        _axis_enabled = (
-            lambda axis: os.getenv(f"ARIFOS_ENABLE_{axis}_AXIS", "true").lower()
-            != "false"
-        )
+        def _axis_enabled(axis):
+            return os.getenv(f"ARIFOS_ENABLE_{axis}_AXIS", "true").lower() != "false"
         try:
             from arifosmcp.mcp_tools import (
                 create_perception_mcp,
@@ -479,15 +473,11 @@ else:
             }
             for _axis, _factory in _agent_factories.items():
                 if not _axis_enabled(_axis):
-                    logger.info(
-                        f"  [{_axis}] axis DISABLED via ARIFOS_ENABLE_{_axis}_AXIS=false"
-                    )
+                    logger.info(f"  [{_axis}] axis DISABLED via ARIFOS_ENABLE_{_axis}_AXIS=false")
                     continue
                 _agent_mcp = _factory()
                 mcp.mount(_agent_mcp, namespace=None)
-                logger.info(
-                    f"  [{_axis}] 6-axis MCP agent mounted (namespaced by prefix letter)"
-                )
+                logger.info(f"  [{_axis}] 6-axis MCP agent mounted (namespaced by prefix letter)")
             logger.info("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
             print("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
         except Exception as _e:
@@ -508,9 +498,7 @@ else:
                 )
                 logger.info("F13 Approval provider active")
             except (ImportError, ModuleNotFoundError):
-                logger.warning(
-                    "F13 Approval provider unavailable (FastMCP version mismatch)"
-                )
+                logger.warning("F13 Approval provider unavailable (FastMCP version mismatch)")
 
         # Skills Provider — expose skills/ dir relative to this server file
         try:
@@ -592,7 +580,7 @@ if _env_flag("ARIFOS_ENABLE_DEBUG_TOOLS", default=False):
 async def horizon_health(request: Request) -> JSONResponse:
     from arifosmcp.runtime.build_info import get_build_info
 
-    build = get_build_info()
+    get_build_info()
     return JSONResponse(
         {
             "status": "healthy",

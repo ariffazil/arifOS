@@ -15,10 +15,10 @@ patterns:
 
 response: |
   🔄 Restarting OpenClaw Gateway...
-  
+
   This will:
   - Trigger webhook at hook.arifosmcp.arif-fazil.com
   - Restart the openclaw container
   - Reload all configuration
-  
+
   Status will be available in ~10 seconds.

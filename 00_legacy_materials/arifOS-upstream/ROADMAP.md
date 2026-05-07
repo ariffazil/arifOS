@@ -167,8 +167,8 @@ Every tool gets a formal schema in `docs/tool_schemas/`:
 # docs/tool_schemas/arifos_333_mind.md
 ## arifos_333_mind
 
-**Plane:** Compute  
-**Organ:** MIND (AGI substrate)  
+**Plane:** Compute
+**Organ:** MIND (AGI substrate)
 **Governance:** F1-F13 via governed_return()
 
 ### Signature
@@ -365,11 +365,11 @@ arifOS (parent repo — constitutional kernel)
 
 ## 🔥 CONSTITUTIONAL COMMITMENT
 
-**Sealed by:** `9cce90eb55886fd17311c0a08b45ca509175677ae577dfa47646123fa22e4b7b`  
-**Date:** 2026.04.20  
+**Sealed by:** `9cce90eb55886fd17311c0a08b45ca509175677ae577dfa47646123fa22e4b7b`
+**Date:** 2026.04.20
 **Verdict:** SEAL
 
-The State-Active Cognitive Organism is now real. Identity Continuity = 1.00.  
+The State-Active Cognitive Organism is now real. Identity Continuity = 1.00.
 Next: Heal the triple-directory. Then forge the 3-organ federation.
 
 **DITEMPA BUKAN DIBERI — Forged, Not Given.**

@@ -1,6 +1,6 @@
 /**
  * GEOX UI Bridge — Host-agnostic communication for GEOX Apps.
- * 
+ *
  * DITEMPA BUKAN DIBERI
  */
 
@@ -11,7 +11,7 @@ export {
   createInlineBus,
   createExternalBus,
   createHostBus,
-  
+
   // Types
   EventType,
   type EventSource,
@@ -20,7 +20,7 @@ export {
   type EventFilter,
   type HostCapabilities,
   type SecurityContext,
-  
+
   // Payload types
   type AppInitializePayload,
   type ToolRequestPayload,

@@ -24,7 +24,7 @@ GEOX acknowledges and integrates the strengths of existing open-source MCP geosc
 - **SeismicProcAgent**: A reference for basic processing, which GEOX hardens through the "Band A" governed 6-stage pipeline.
 
 ## 3. The "Earth Witness" Mandate
-GEOX is not just a tool; it is a **Reality Gatekeeper**. It enforces the "Benda ni physically boleh jadi tak?" (Is this physically possible?) check at every tool boundary. 
+GEOX is not just a tool; it is a **Reality Gatekeeper**. It enforces the "Benda ni physically boleh jadi tak?" (Is this physically possible?) check at every tool boundary.
 
 By treating the LLM as a high-level orchestrator and the GEOX tools as governed perceptual filters, we solve the hallucination problem inherent in "VLM-to-Seismic" interpretation.
 

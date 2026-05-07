@@ -32,13 +32,13 @@ export const SectionCanvas: React.FC = () => {
       {/* Main Viewport */}
       <div className="flex-1 relative overflow-hidden group">
         {/* The Grid / Fabric */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none" 
-             style={{ 
+        <div className="absolute inset-0 opacity-20 pointer-events-none"
+             style={{
                backgroundImage: 'linear-gradient(#475569 1px, transparent 1px), linear-gradient(90deg, #475569 1px, transparent 1px)',
                backgroundSize: '40px 40px'
              }}>
         </div>
-        
+
         {/* Placeholder Visualization */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-radial-gradient">
           <div className="w-24 h-24 mb-6 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin flex items-center justify-center">
@@ -48,7 +48,7 @@ export const SectionCanvas: React.FC = () => {
             Section <span className="text-blue-400">Reconstruction</span>
           </h2>
           <p className="max-w-md text-slate-500 text-sm leading-relaxed mb-6">
-            Synthesizing 2D cross-section from Earth3D volume and Well context. 
+            Synthesizing 2D cross-section from Earth3D volume and Well context.
             Calibrating stratigraphic markers against Physics9 constraints.
           </p>
           <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
@@ -70,7 +70,7 @@ export const SectionCanvas: React.FC = () => {
            ))}
         </div>
       </div>
-      
+
       {/* Status Bar */}
       <div className="h-8 bg-black/40 border-t border-slate-800 flex items-center px-4 gap-6 text-[10px] uppercase font-black tracking-widest text-slate-600">
         <div className="flex items-center gap-2">

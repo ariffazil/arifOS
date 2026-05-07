@@ -52,7 +52,13 @@ async def execute(
             ],
             floors_evaluated=["F11", "F12"],
             confidence=0.63,
-            extra_meta={"plan_steps": len((operation_plan or {}).get("steps", [])) if isinstance(operation_plan, dict) else 0},
+            extra_meta={
+                "plan_steps": (
+                    len((operation_plan or {}).get("steps", []))
+                    if isinstance(operation_plan, dict)
+                    else 0
+                )
+            },
         )
     )
 

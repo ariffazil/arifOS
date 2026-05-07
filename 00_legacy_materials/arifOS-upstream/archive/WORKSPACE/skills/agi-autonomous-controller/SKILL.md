@@ -7,9 +7,9 @@ type: flow
 
 # AGI Autonomous Controller
 
-**Level:** AGI (Autonomous Governance Intelligence)  
-**Governance:** arifOS F1-F13 Constitutional Floors  
-**Architecture:** ΔΩΨ Trinity (Mind/Heart/Soul)  
+**Level:** AGI (Autonomous Governance Intelligence)
+**Governance:** arifOS F1-F13 Constitutional Floors
+**Architecture:** ΔΩΨ Trinity (Mind/Heart/Soul)
 **Seal:** QUADWITNESS-SEAL v64.1
 
 ---

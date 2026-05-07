@@ -61,7 +61,7 @@ These are not yet claimed as live enforced metrics everywhere; they are the **ta
 
 **Latency Sources**:
 - Session lookup: 5ms
-- Injection scan: 8ms  
+- Injection scan: 8ms
 - Identity verification: 2ms
 
 **Optimization**: Sessions are cached; sub-5ms for warm sessions.
@@ -202,7 +202,7 @@ These are not yet claimed as live enforced metrics everywhere; they are the **ta
 **Why?**
 - F1 requires **human-ratable verification**
 - Backup confirmation: 100ms
-- Reversibility proof: 100ms  
+- Reversibility proof: 100ms
 - Human notification (async): 200ms (not blocking)
 - Logging (immutable): 50ms
 
@@ -264,7 +264,7 @@ The system has **discrete latency modes**, not a smooth curve:
       ▼
 300ms ── Standard SEAL (full evaluation)
       │
-      │ Moderate jump  
+      │ Moderate jump
       ▼
 500ms ── CAUTION path (soft floor warnings)
       │
@@ -345,7 +345,7 @@ Given the latency budget, what's the max throughput?
 ---
 
 > **Ω-Wiki Tag**: `decision_velocity_v1.0`
-> 
+>
 > **Benchmark Source**: Performance logs from arifosmcp.arif-fazil.com (2026-04-08)
-> 
+>
 > **Next Review**: When new stage added or F1 verification process changes.

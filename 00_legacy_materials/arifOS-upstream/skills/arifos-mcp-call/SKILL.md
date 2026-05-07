@@ -6,9 +6,9 @@ user-invocable: true
 
 # arifOS MCP Caller v2 — Constitutional Anchor-First
 
-**Runtime:** 42-tool constitutional kernel (not 13)  
-**Requirement:** `init_anchor` MUST be called before `arifOS_kernel`  
-**Floors:** F1-F13 enforced via sBERT ML layer  
+**Runtime:** 42-tool constitutional kernel (not 13)
+**Requirement:** `init_anchor` MUST be called before `arifOS_kernel`
+**Floors:** F1-F13 enforced via sBERT ML layer
 
 ## Constitutional Tool Contract
 
