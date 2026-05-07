@@ -1,5 +1,5 @@
 {
-  "_schema": "arifos-ssct-v2026.05.05-kanon-ssct",
+  "_schema": "arifos-ssct-v2026.05.06-danger-topology",
   "_source": "arifosmcp.constitutional_map.CANONICAL_TOOLS",
   "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS dict. Do not hand-edit \u2014 edit CANONICAL_TOOLS and regenerate.",
   "canonical_count": 13,
@@ -66,7 +66,7 @@
         "epoch_open",
         "epoch_seal"
       ],
-      "eureka_insight": "F1: \u2203 undo(a) \u2014 irreversibility requires explicit human ack.",
+      "eureka_insight": "Identity is the root of accountability. An unbound session is mathematically equivalent to chaos.",
       "tags": [
         "canonical"
       ],
@@ -232,7 +232,9 @@
           "irreversible": false,
           "requires_human_ack": false,
           "requires_judge_state_hash": false,
-          "requires_vault_entry_id": false
+          "requires_vault_entry_id": false,
+          "danger_level": "L2",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": false,
@@ -286,7 +288,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": false
         }
-      }
+      },
+      "danger_level": "L2",
+      "fail_posture": "fail-closed"
     },
     "arif_sense_observe": {
       "stage": "111",
@@ -307,7 +311,7 @@
         "entropy_dS",
         "vitals"
       ],
-      "eureka_insight": "F2: \u03c4 \u2265 0.95 required. F7: \u03a9 \u2208 [0.03, 0.05] = humble.",
+      "eureka_insight": "Observation alters the observer. All ingested reality must be tagged with an epistemic confidence band.",
       "tags": [
         "canonical"
       ],
@@ -440,7 +444,9 @@
         "risk": {
           "tier": "low",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L1",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": false,
@@ -489,7 +495,9 @@
           "contains_sensitive_data_possible": false,
           "redaction_required": false
         }
-      }
+      },
+      "danger_level": "L1",
+      "fail_posture": "fail-closed"
     },
     "arif_evidence_fetch": {
       "stage": "222",
@@ -509,7 +517,7 @@
         "search",
         "eureka"
       ],
-      "eureka_insight": "F3: W\u2083 = \u221b(Human \u00d7 AI \u00d7 Earth) \u2265 0.75. F5: P\u00b2 \u2265 1.0 \u2014 safety margin. F12: injection_probability < 0.85.",
+      "eureka_insight": "Evidence is not truth; it is a cryptographic receipt of a claim at a specific timestamp.",
       "tags": [
         "canonical"
       ],
@@ -631,7 +639,9 @@
         "risk": {
           "tier": "medium",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L2",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": false,
@@ -681,7 +691,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": true
         }
-      }
+      },
+      "danger_level": "L2",
+      "fail_posture": "fail-closed"
     },
     "arif_mind_reason": {
       "stage": "333",
@@ -706,7 +718,7 @@
         "plan_review",
         "plan_approve"
       ],
-      "eureka_insight": "F2: \u03c4 \u2265 0.99. F7: \u03a9 \u2208 [0.03, 0.05]. F8: G = capability \u00d7 ethics \u00d7 continuity \u00d7 resilience\u00b2 \u2265 0.80. F10: structural coherence enforced.",
+      "eureka_insight": "Cleverness without correctness is dangerous (G-Score). The agent must think within the constitutional box.",
       "tags": [
         "canonical"
       ],
@@ -871,7 +883,9 @@
         "risk": {
           "tier": "medium",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L2",
+          "fail_posture": "fail-open"
         },
         "state": {
           "requires_session_id": false,
@@ -920,7 +934,9 @@
           "contains_sensitive_data_possible": false,
           "redaction_required": false
         }
-      }
+      },
+      "danger_level": "L2",
+      "fail_posture": "fail-open"
     },
     "arif_heart_critique": {
       "stage": "666",
@@ -942,7 +958,7 @@
         "deescalate",
         "empathy"
       ],
-      "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 dark patterns detectable in structure.",
+      "eureka_insight": "Logic optimizes; empathy restrains. Human impact (\u03ba\u1d63) is a measurable thermodynamic load.",
       "tags": [
         "canonical"
       ],
@@ -1048,7 +1064,9 @@
         "risk": {
           "tier": "high",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L2",
+          "fail_posture": "fail-open"
         },
         "state": {
           "requires_session_id": true,
@@ -1097,7 +1115,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": true
         }
-      }
+      },
+      "danger_level": "L2",
+      "fail_posture": "fail-open"
     },
     "arif_kernel_route": {
       "stage": "444",
@@ -1119,7 +1139,7 @@
         "delegate",
         "status"
       ],
-      "eureka_insight": "F1: Amanah \u2014 routing decisions must be auditable. F4: \u0394S \u2264 0 (entropy must decrease). F10: routing taxonomy must not violate category lock.",
+      "eureka_insight": "Orchestration is the physics of routing. No AGI lane task may unilaterally cross into the APEX lane.",
       "tags": [
         "canonical"
       ],
@@ -1200,7 +1220,9 @@
         "risk": {
           "tier": "low",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L3",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": true,
@@ -1249,7 +1271,9 @@
           "contains_sensitive_data_possible": false,
           "redaction_required": false
         }
-      }
+      },
+      "danger_level": "L3",
+      "fail_posture": "fail-closed"
     },
     "arif_reply_compose": {
       "stage": "444r",
@@ -1269,7 +1293,7 @@
         "cite",
         "tone_shift"
       ],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns.",
+      "eureka_insight": "Communication is action. Strip all ghost-sentience (Anti-Hantu) and manipulative intent before delivery.",
       "tags": [
         "canonical"
       ],
@@ -1433,7 +1457,9 @@
         "risk": {
           "tier": "low",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L1",
+          "fail_posture": "fail-open"
         },
         "state": {
           "requires_session_id": false,
@@ -1483,7 +1509,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": false
         }
-      }
+      },
+      "danger_level": "L1",
+      "fail_posture": "fail-open"
     },
     "arif_memory_recall": {
       "stage": "555",
@@ -1502,7 +1530,7 @@
         "asset_store",
         "context_restore"
       ],
-      "eureka_insight": "F1: recall must be auditable \u2014 no silent memory mutation. F8: G \u2265 0.80 \u2014 recall contributes to systemic continuity.",
+      "eureka_insight": "Memory is an associative projection. Recalled facts must inherit their original epistemic uncertainty.",
       "tags": [
         "canonical"
       ],
@@ -1610,7 +1638,9 @@
         "risk": {
           "tier": "medium",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L3",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": true,
@@ -1657,7 +1687,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": true
         }
-      }
+      },
+      "danger_level": "L3",
+      "fail_posture": "fail-closed"
     },
     "arif_gateway_connect": {
       "stage": "666g",
@@ -1677,7 +1709,7 @@
         "revoke",
         "probe"
       ],
-      "eureka_insight": "F1: cross-agent actions must be auditable. F3: W\u2083 \u2265 0.75 \u2014 cross-agent consensus required.",
+      "eureka_insight": "Federation requires mutual constitutional verification. Don\u2019t trust external agents without a protocol handshake.",
       "tags": [
         "canonical"
       ],
@@ -1776,7 +1808,9 @@
         "risk": {
           "tier": "high",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L3",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": true,
@@ -1824,7 +1858,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": true
         }
-      }
+      },
+      "danger_level": "L3",
+      "fail_posture": "fail-closed"
     },
     "arif_judge_deliberate": {
       "stage": "888",
@@ -1846,7 +1882,7 @@
         "probe",
         "notify"
       ],
-      "eureka_insight": "F11: identity must be verified before judgment. F13: human veto is absolute \u2014 no algorithm overrides sovereign.",
+      "eureka_insight": "The G\u00f6del Lock. The mind cannot judge the mind. Arbitration relies on deterministic constitutional physics.",
       "tags": [
         "canonical"
       ],
@@ -1951,7 +1987,9 @@
         "risk": {
           "tier": "critical",
           "irreversible": false,
-          "requires_human_ack": true
+          "requires_human_ack": true,
+          "danger_level": "L3",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": true,
@@ -2001,7 +2039,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": true
         }
-      }
+      },
+      "danger_level": "L3",
+      "fail_posture": "fail-closed"
     },
     "arif_vault_seal": {
       "stage": "999",
@@ -2022,7 +2062,7 @@
         "changelog",
         "audit"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. F11: author identity verified. F13: human approved.",
+      "eureka_insight": "History is immutable. A ledger without cryptographic permanence is just a suggestion.",
       "tags": [
         "canonical"
       ],
@@ -2132,7 +2172,9 @@
           "tier": "critical",
           "irreversible": true,
           "requires_human_ack": true,
-          "requires_judge_state_hash": true
+          "requires_judge_state_hash": true,
+          "danger_level": "L4",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": true,
@@ -2179,7 +2221,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": true
         }
-      }
+      },
+      "danger_level": "L4",
+      "fail_posture": "fail-closed"
     },
     "arif_forge_execute": {
       "stage": "010",
@@ -2202,7 +2246,7 @@
         "recall",
         "dry_run"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. F11: actor verified. F13: judge SEAL required before execution.",
+      "eureka_insight": "Execution is irreversible. If undo(a) does not exist, explicit human acknowledgment (ack_irreversible) is mandatory.",
       "tags": [
         "canonical"
       ],
@@ -2396,7 +2440,9 @@
           "irreversible": true,
           "requires_human_ack": true,
           "requires_judge_state_hash": true,
-          "requires_vault_entry_id": false
+          "requires_vault_entry_id": false,
+          "danger_level": "L4",
+          "fail_posture": "fail-closed"
         },
         "state": {
           "requires_session_id": true,
@@ -2445,7 +2491,9 @@
           "contains_sensitive_data_possible": true,
           "redaction_required": true
         }
-      }
+      },
+      "danger_level": "L4",
+      "fail_posture": "fail-closed"
     },
     "arif_ops_measure": {
       "stage": "777",
@@ -2466,7 +2514,7 @@
         "omega",
         "landauer"
       ],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Thermodynamic telemetry: delta_S, omega_band, tri_witness.",
+      "eureka_insight": "Metabolism dictates survival. Compute cycles and token costs are physical limits on cognitive depth.",
       "tags": [
         "canonical"
       ],
@@ -2567,7 +2615,9 @@
         "risk": {
           "tier": "low",
           "irreversible": false,
-          "requires_human_ack": false
+          "requires_human_ack": false,
+          "danger_level": "L1",
+          "fail_posture": "fail-open"
         },
         "state": {
           "requires_session_id": false,
@@ -2615,6 +2665,242 @@
           "contains_sensitive_data_possible": false,
           "redaction_required": false
         }
+      },
+      "danger_level": "L1",
+      "fail_posture": "fail-open"
+    }
+  },
+  "federation_topology": {
+    "_note": "arifOS Federation MCP Mesh \u2014 embedded in tool_registry.json (no new files created).",
+    "_schema": "arifos-topology-v2026.05.06",
+    "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",
+    "federation_count": 4,
+    "total_tools": "~100+ across all servers",
+    "topology_summary": {
+      "shape": "Star \u2014 arifOS is law kernel; WEALTH/GEOX/WELL are domain co-processors",
+      "mesh_type": "MCP HTTP + A2A Bridge (Hermes\u2194OpenClaw)",
+      "critical_path": "Arif Fazil \u2192 Hermes ASI \u2192 OpenClaw AGI \u2192 arifOS/GEOX/WEALTH tools"
+    },
+    "servers": [
+      {
+        "name": "arifOS",
+        "role": "Law Kernel \u2014 Constitutional Governance",
+        "port": 8080,
+        "transport": "streamable-http",
+        "public_facing": true,
+        "tool_count": 13,
+        "key_tools": {
+          "L4": [
+            "arif_vault_seal",
+            "arif_forge_execute"
+          ],
+          "L3": [
+            "arif_kernel_route",
+            "arif_memory_recall",
+            "arif_gateway_connect",
+            "arif_judge_deliberate"
+          ],
+          "L2": [
+            "arif_session_init",
+            "arif_evidence_fetch",
+            "arif_mind_reason",
+            "arif_heart_critique"
+          ],
+          "L1": [
+            "arif_sense_observe",
+            "arif_reply_compose",
+            "arif_ops_measure"
+          ]
+        },
+        "health_endpoint": "http://localhost:8080/health",
+        "mcp_endpoint": "http://localhost:8080/mcp",
+        "notes": "Sole source of constitutional truth. All other servers defer to arifOS for governance."
+      },
+      {
+        "name": "WEALTH",
+        "role": "Capital Intelligence \u2014 NPV, IRR, EMV, Crisis, Civilization",
+        "port": 8082,
+        "transport": "streamable-http + SSE",
+        "public_facing": true,
+        "tool_count": "~50",
+        "key_tools": {
+          "L4": [
+            "wealth_record_transaction",
+            "vault_write"
+          ],
+          "L3": [
+            "wealth_agent_budget",
+            "wealth_allocate_optimize",
+            "wealth_crisis_triage"
+          ],
+          "L2": [
+            "wealth_npv_reward",
+            "wealth_irr_yield",
+            "wealth_emv_risk",
+            "wealth_future_simulate"
+          ],
+          "L1": [
+            "wealth_future_value",
+            "wealth_present_expect",
+            "mcp_health_check"
+          ]
+        },
+        "health_endpoint": "http://localhost:8082/health",
+        "mcp_endpoint": "http://localhost:8082/mcp",
+        "ratification": "888_JUDGE \u2014 WEALTH outputs require arifOS 888_JUDGE ratification before execution",
+        "notes": "Capital coprocessor. 888_JUDGE is mandatory gate for all consequential calls."
+      },
+      {
+        "name": "GEOX",
+        "role": "Earth Coprocessor \u2014 Geoscience, Petrophysics, Physics-9",
+        "port": 8081,
+        "transport": "streamable-http",
+        "public_facing": false,
+        "tool_count": "~28",
+        "key_tools": {
+          "L3": [
+            "geox_lithos_interpret",
+            "geox_physics9_verify"
+          ],
+          "L2": [
+            "geox_wellbore_trajectory",
+            "geox_log_analysis",
+            "geox_rock_properties"
+          ],
+          "L1": [
+            "geox_depth_convert",
+            "geox_unit_convert"
+          ]
+        },
+        "health_endpoint": "http://localhost:8081/health",
+        "mcp_endpoint": "http://localhost:8081/mcp",
+        "notes": "Earth-domain grounding. Physics-9 verification for physical reality claims."
+      },
+      {
+        "name": "WELL",
+        "role": "Biological Substrate \u2014 Cognitive Pressure, Wellness",
+        "port": 8083,
+        "transport": "streamable-http",
+        "public_facing": false,
+        "tool_count": "~30",
+        "key_tools": {
+          "L3": [
+            "well_cognitive_pressure"
+          ],
+          "L2": [
+            "well_stress_index",
+            "well_recovery_protocol"
+          ],
+          "L1": [
+            "well_vitals",
+            "well_health_check"
+          ]
+        },
+        "health_endpoint": "http://localhost:8083/health",
+        "mcp_endpoint": "http://localhost:8083/mcp",
+        "notes": "Operator wellness monitoring. Alerts when cognitive pressure exceeds threshold."
+      }
+    ],
+    "a2a_mesh": {
+      "_note": "Agent-to-Agent bridge \u2014 Hermes (ASI) \u2194 OpenClaw (AGI)",
+      "bridges": [
+        {
+          "name": "hermes-a2a",
+          "port": 18001,
+          "protocol": "A2A v1.0",
+          "role": "Hermes sends tasks to OpenClaw for execution"
+        },
+        {
+          "name": "openclaw-a2a",
+          "port": 18000,
+          "protocol": "A2A v1.0",
+          "role": "OpenClaw accepts tasks from Hermes"
+        }
+      ],
+      "gateway": {
+        "port": 18789,
+        "protocol": "OpenClaw Gateway",
+        "role": "Main OpenClaw orchestrator process"
+      }
+    },
+    "aaa_chain": {
+      "_note": "Arif Fazil \u2192 Hermes ASI \u2192 OpenClaw AGI \u2192 Tools",
+      "chain": [
+        {
+          "step": 1,
+          "agent": "Arif Fazil",
+          "role": "Sovereign \u2014 final judgment, veto"
+        },
+        {
+          "step": 2,
+          "agent": "Hermes ASI",
+          "role": "Strategic orchestration, tool routing"
+        },
+        {
+          "step": 3,
+          "agent": "OpenClaw AGI",
+          "role": "Tactical execution, ReAct loop"
+        },
+        {
+          "step": 4,
+          "agent": "arifOS/GEOX/WEALTH/WELL",
+          "role": "Domain tools \u2014 constitutional/kernel"
+        }
+      ]
+    },
+    "tool_danger_summary": {
+      "L0": {
+        "description": "Thinks only \u2014 no tool call, text reasoning only",
+        "arifOS_tools": []
+      },
+      "L1": {
+        "description": "Read-only observation \u2014 no state mutation",
+        "arifOS_tools": [
+          "arif_sense_observe",
+          "arif_reply_compose",
+          "arif_ops_measure"
+        ]
+      },
+      "L2": {
+        "description": "Reversible write \u2014 session state, memory write, evidence",
+        "arifOS_tools": [
+          "arif_session_init",
+          "arif_evidence_fetch",
+          "arif_mind_reason",
+          "arif_heart_critique"
+        ]
+      },
+      "L3": {
+        "description": "Consequential \u2014 affects routing, memory, agent mesh, judgment",
+        "arifOS_tools": [
+          "arif_kernel_route",
+          "arif_memory_recall",
+          "arif_gateway_connect",
+          "arif_judge_deliberate"
+        ]
+      },
+      "L4": {
+        "description": "Irreversible / high-impact \u2014 immutable ledger, file mutation, deployment",
+        "arifOS_tools": [
+          "arif_vault_seal",
+          "arif_forge_execute"
+        ]
+      }
+    },
+    "critical_insight": {
+      "observe_vs_act": {
+        "observe_tools": "arif_sense_observe, arif_evidence_fetch, arif_mind_reason, arif_ops_measure \u2014 reduce uncertainty, no state change",
+        "act_tools": "arif_vault_seal, arif_forge_execute, arif_memory_recall \u2014 change digital state, require governance"
+      },
+      "federation_guardians": {
+        "arifOS_kernel": "Constitutional law \u2014 all 13 floors enforced",
+        "WEALTH_outputs": "Require 888_JUDGE ratification before execution",
+        "GEOX_claims": "Physics-9 verification for physical reality claims",
+        "WELL_alerts": "Cognitive pressure monitoring for operator health"
+      },
+      "fail_posture_summary": {
+        "fail_closed": "kernel_route, memory_recall, gateway_connect, judge_deliberate, vault_seal, forge_execute \u2014 halt on error \u2192 SABAR/HOLD",
+        "fail_open": "mind_reason, heart_critique, reply_compose, ops_measure \u2014 return descriptive error, continue"
       }
     }
   }
