@@ -228,7 +228,7 @@ services:
     networks: [arifos_core]
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:771ddc2
+    image: ghcr.io/ariffazil/well:d9c4450-efix2
     container_name: well
     init: true
     restart: unless-stopped
