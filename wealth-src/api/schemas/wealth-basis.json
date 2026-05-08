@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://wealth.arif-fazil.com/api/schemas/wealth-basis.json",
+  "title": "WEALTH 3-Axis Basis Schema",
+  "description": "Orthogonal basis for Energy, Entropy, Echo with Paradox/Scar/Shadow defect tensors",
+  "type": "object",
+  "required": ["epoch", "vector", "defects", "epistemic"],
+  "properties": {
+    "epoch": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 timestamp of basis snapshot"
+    },
+    "vector": {
+      "type": "object",
+      "required": ["e_hat", "s_hat", "echo_hat"],
+      "description": "Normalized wealth basis vector W⃗ = (Ê, Ŝ, Eχ̂)",
+      "properties": {
+        "e_hat": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Normalized Energy: capacity to do work without violating floors"
+        },
+        "s_hat": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Normalized Entropy: 0 = crystalline order, 1 = total chaos"
+        },
+        "echo_hat": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Normalized Echo: long-horizon propagation of present action"
+        }
+      }
+    },
+    "raw_signals": {
+      "type": "object",
+      "description": "Unnormalized source signals for reconstruction and audit",
+      "properties": {
+        "e_physical": { "type": "number", "description": "Joules, kWh, compute cycles [ESTIMATE]" },
+        "e_financial": { "type": "number", "description": "Balance sheet + earning power [ESTIMATE]" },
+        "e_cognitive": { "type": "number", "description": "Skilled labour hours, attention [ESTIMATE]" },
+        "e_social": { "type": "number", "description": "Network-deployable trust/credit [ESTIMATE]" },
+        "e_max_feasible": { "type": "number", "description": "Contextual ceiling for normalization [ESTIMATE]" },
+        "s_state": { "type": "number", "description": "Structural institutional entropy [ESTIMATE]" },
+        "ds_operation": { "type": "number", "description": "Entropy delta of last operation [ESTIMATE]" },
+        "echo_impact_series": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Impact_t × survivability_t over horizon [HYPOTHESIS]"
+        },
+        "psi_ctx": { "type": "number", "description": "Contextual vitality: Ψ_internal × λₚ × λₑ [ESTIMATE]" }
+      }
+    },
+    "defects": {
+      "type": "object",
+      "required": ["paradox", "scar", "shadow"],
+      "description": "Field defects layered on top of W⃗",
+      "properties": {
+        "paradox": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Short-term benefit minus long-term vitality [HYPOTHESIS]"
+        },
+        "scar": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Historical damage dampener on echo and trust [ESTIMATE]"
+        },
+        "shadow": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Unaccounted externalities not on any ledger [ESTIMATE]"
+        }
+      }
+    },
+    "capitalx_link": {
+      "type": "object",
+      "description": "Bridge from basis vector to risk-adjusted capital",
+      "properties": {
+        "delta_civ_contribution": {
+          "type": "number",
+          "description": "ΔCiv derived from W⃗ and defects [HYPOTHESIS]"
+        },
+        "r_adj_modifier": {
+          "type": "number",
+          "description": "Basis-derived adjustment to capitalx r_adj [HYPOTHESIS]"
+        },
+        "uncertainty_band": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "number" },
+          "description": "F7 humility band on projections [ESTIMATE]"
+        }
+      }
+    },
+    "epistemic": {
+      "type": "string",
+      "enum": ["CLAIM", "PLAUSIBLE", "ESTIMATE", "HYPOTHESIS", "UNKNOWN"],
+      "description": "Overall epistemic tag for this basis snapshot"
+    },
+    "witness": {
+      "type": "object",
+      "properties": {
+        "human": { "type": "boolean" },
+        "ai": { "type": "boolean" },
+        "earth": { "type": "boolean" }
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEALED", "QUALIFY", "888-HOLD", "VOID"],
+      "description": "Governance verdict for this basis state"
+    }
+  }
+}

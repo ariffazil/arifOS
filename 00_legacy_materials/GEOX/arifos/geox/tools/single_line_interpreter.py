@@ -766,9 +766,7 @@ class SingleLineInterpreter(BaseTool):
         latency_ms = (time.perf_counter() - start) * 1000
 
         CoordinatePoint(latitude=4.5, longitude=103.7)
-        _make_provenance(
-            f"LINE-{data_ref}", "LEM", confidence=interpretation.setting_confidence
-        )
+        _make_provenance(f"LINE-{data_ref}", "LEM", confidence=interpretation.setting_confidence)
 
         raw_output = {
             "interpretation": {

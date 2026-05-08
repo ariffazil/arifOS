@@ -169,9 +169,11 @@ def analyze_cost_benefit(
 def calculate_irr(initial: float, flows: list[float]) -> dict[str, Any]:
     """Basic IRR approximation using bisection."""
     series = build_cashflow_series(initial, flows)
+
     # Simple search for root between -0.9 and 1.0 (placeholder for full irr code)
     def f(r):
         return npv_from_series(series, r)
+
     low, high = -0.9, 1.0
     for _ in range(100):
         mid = (low + high) / 2

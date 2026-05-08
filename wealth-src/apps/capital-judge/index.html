@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capital Judge — Sovereign Allocation Cockpit · WEALTH</title>
+<meta name="description" content="Sovereign capital allocation engine. Bridges geological truth to financial consequence via CapitalX.">
+<link rel="canonical" href="https://wealth.arif-fazil.com/apps/capital_judge/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #07070d;
+    --surface:   #0d0d1a;
+    --surface2:  #12121f;
+    --border:    #1e1e32;
+    --border2:   #2a2a45;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2a;
+    --gold-bright: #f0c840;
+    --text:      #e2d8c8;
+    --text-dim:  #7a7060;
+    --text-mid:  #a09080;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --amber:     #f59e0b;
+    --amber-dim: #92600a;
+    --cyan:      #00d4aa;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(201,168,76,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 20% 80%, rgba(0,212,170,0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .shell {
+    position: relative;
+    z-index: 1;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    padding: 1.5rem 0 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .brand-mark {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .brand-sep { color: var(--border2); }
+
+  .brand-app {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .header-nav a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    transition: color 0.2s;
+  }
+
+  .header-nav a:hover { color: var(--gold); }
+
+  .header-version {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold-dim);
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--gold-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── COCKPIT TITLE ── */
+  .cockpit-header {
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 2rem;
+  }
+
+  .cockpit-kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.75rem;
+  }
+
+  .cockpit-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    color: var(--text);
+    line-height: 1.1;
+    font-weight: 400;
+  }
+
+  .cockpit-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .cockpit-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-mid);
+    margin-top: 0.75rem;
+    max-width: 520px;
+  }
+
+  .floors-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+  }
+
+  .floors-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .floors-badges {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .floor-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .floor-badge.active {
+    border-color: var(--gold-dim);
+    color: var(--gold-dim);
+    background: rgba(201, 168, 76, 0.06);
+  }
+
+  /* ── MAIN GRID ── */
+  .cockpit-grid {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 0;
+    min-height: 70vh;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4rem;
+  }
+
+  /* ── INPUT PANEL ── */
+  .input-panel {
+    border-right: 1px solid var(--border);
+    padding: 2rem;
+  }
+
+  .panel-section {
+    margin-bottom: 2rem;
+  }
+
+  .panel-section-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .field-row.triple {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .field-row.single {
+    grid-template-columns: 1fr;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .field label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .field input {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .field input:focus {
+    border-color: var(--gold-dim);
+  }
+
+  .field input::placeholder {
+    color: var(--border2);
+  }
+
+  .field-unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    margin-top: -0.15rem;
+  }
+
+  /* Cashflow row inputs */
+  .cf-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .cf-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .cf-item label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .cf-item input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.5rem;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .cf-item input:focus { border-color: var(--gold-dim); }
+
+  /* ── JUDGE BUTTON ── */
+  .judge-btn {
+    width: 100%;
+    padding: 1rem;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.25s;
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .judge-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(201,168,76,0.05);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .judge-btn:hover::before { transform: scaleX(1); }
+  .judge-btn:hover { border-color: var(--gold); }
+
+  .judge-btn:active { transform: scale(0.99); }
+
+  .reset-btn {
+    width: 100%;
+    padding: 0.6rem;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+
+  .reset-btn:hover { border-color: var(--text-dim); color: var(--text); }
+
+  /* ── VERDICT PANEL ── */
+  .verdict-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+  }
+
+  .verdict-top {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    min-height: 300px;
+  }
+
+  .verdict-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1.5rem;
+  }
+
+  .verdict-word {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-align: center;
+    transition: all 0.4s ease;
+    line-height: 1;
+  }
+
+  .verdict-word.idle       { color: var(--border2); }
+  .verdict-word.qualify    { color: var(--green); text-shadow: 0 0 40px rgba(34,197,94,0.3); }
+  .verdict-word.reject     { color: var(--red); text-shadow: 0 0 40px rgba(239,68,68,0.3); }
+  .verdict-word.hold       { color: var(--amber); text-shadow: 0 0 40px rgba(245,158,11,0.3); }
+
+  .verdict-score-wrap {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+
+  .verdict-score {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2rem;
+    font-weight: 500;
+    transition: color 0.4s;
+  }
+
+  .verdict-score.idle    { color: var(--border2); }
+  .verdict-score.qualify { color: var(--green); }
+  .verdict-score.reject  { color: var(--red); }
+  .verdict-score.hold    { color: var(--amber); }
+
+  .verdict-score-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-top: 0.25rem;
+  }
+
+  .verdict-sublabel {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    margin-top: 1rem;
+    text-align: center;
+    font-style: italic;
+    max-width: 260px;
+    min-height: 2.4em;
+  }
+
+  /* ── DIMENSIONS ── */
+  .dimensions-block {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dim-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .dim-row:last-child { margin-bottom: 0; }
+
+  .dim-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    width: 72px;
+    flex-shrink: 0;
+  }
+
+  .dim-bar-track {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .dim-bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1), background-color 0.4s;
+    background: var(--text-dim);
+  }
+
+  .dim-bar-fill.pos  { background: var(--green); }
+  .dim-bar-fill.neg  { background: var(--red); }
+  .dim-bar-fill.warn { background: var(--amber); }
+
+  .dim-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    width: 80px;
+    text-align: right;
+    color: var(--text-mid);
+    flex-shrink: 0;
+  }
+
+  .dim-value.pos  { color: var(--green); }
+  .dim-value.neg  { color: var(--red); }
+  .dim-value.warn { color: var(--amber); }
+
+  /* ── FLAGS ── */
+  .flags-block {
+    padding: 1.25rem 2rem;
+  }
+
+  .flags-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+  }
+
+  .flag-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.4rem;
+    border-left: 2px solid;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .flag-item.warn { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.05); }
+  .flag-item.hold { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.05); }
+  .flag-item.ok   { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.05); }
+
+  .no-flags {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* ── IDLE STATE ── */
+  .idle-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.4;
+  }
+
+  .idle-hint-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+  }
+
+  /* ── VAULT STRIP ── */
+  .vault-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem;
+    border-top: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    background: var(--surface);
+    margin-bottom: 4rem;
+  }
+
+  .vault-seal {
+    color: var(--gold-dim);
+    letter-spacing: 0.12em;
+  }
+
+  /* ── HOLD PULSE ANIMATION ── */
+  @keyframes holdPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .verdict-word.hold {
+    animation: holdPulse 2s ease-in-out infinite;
+  }
+
+  /* ── LOADING STATE ── */
+  @keyframes judgeSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .judging .judge-btn::after {
+    content: '⟳';
+    display: inline-block;
+    margin-left: 0.5rem;
+    animation: judgeSpin 1s linear infinite;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  footer .footer-left {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  footer .footer-right {
+    display: flex;
+    gap: 2rem;
+  }
+
+  footer .footer-right a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    transition: color 0.2s;
+  }
+
+  footer .footer-right a:hover { color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .cockpit-grid {
+      grid-template-columns: 1fr;
+    }
+    .verdict-panel {
+      border-top: 1px solid var(--border);
+    }
+    .cockpit-header {
+      grid-template-columns: 1fr;
+    }
+    .floors-strip {
+      align-items: flex-start;
+    }
+    .cf-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .field-row.triple {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-brand">
+      <span class="brand-mark">WEALTH</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-app">Capital Judge</span>
+    </div>
+    <nav class="header-nav">
+      <a href="https://wealth.arif-fazil.com">Platform</a>
+      <a href="https://geox.arif-fazil.com">GEOX</a>
+      <a href="https://arifosmcp.arif-fazil.com">arifOS</a>
+      <span class="header-version">v1.3.1</span>
+    </nav>
+  </header>
+
+  <!-- COCKPIT TITLE -->
+  <div class="cockpit-header">
+    <div>
+      <div class="cockpit-kicker">WEALTH // Sovereign Allocation Cockpit</div>
+      <h1 class="cockpit-title">Capital <em>Judge</em></h1>
+      <p class="cockpit-subtitle">Physics over narrative. Every capital claim evaluated against dimensional truth — Reward, Energy, Entropy, Survival, and Time.</p>
+    </div>
+    <div class="floors-strip">
+      <span class="floors-label">Constitutional Floors</span>
+      <div class="floors-badges">
+        <span class="floor-badge active">F1</span>
+        <span class="floor-badge active">F2</span>
+        <span class="floor-badge active">F4</span>
+        <span class="floor-badge active">F5</span>
+        <span class="floor-badge active">F11</span>
+        <span class="floor-badge active">F13</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN COCKPIT -->
+  <div class="cockpit-grid">
+
+    <!-- INPUT PANEL -->
+    <div class="input-panel">
+
+      <div class="panel-section">
+        <div class="panel-section-title">01 — Project Identity</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Project Name</label>
+            <input type="text" id="projectName" placeholder="e.g. Block K Development" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Initial Investment</label>
+            <input type="number" id="capex" placeholder="0" />
+            <span class="field-unit">USD (negative capex)</span>
+          </div>
+          <div class="field">
+            <label>Evaluation Horizon</label>
+            <input type="number" id="horizon" placeholder="7" min="1" max="10" />
+            <span class="field-unit">years</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">02 — Annual Cash Flows (Year 1 → 8)</div>
+        <div class="cf-grid" id="cfGrid">
+          <!-- generated by JS -->
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">03 — Financial Parameters</div>
+        <div class="field-row triple">
+          <div class="field">
+            <label>Discount Rate</label>
+            <input type="number" id="discountRate" placeholder="12" step="0.5" />
+            <span class="field-unit">% per annum</span>
+          </div>
+          <div class="field">
+            <label>Hurdle Rate (IRR)</label>
+            <input type="number" id="hurdleRate" placeholder="15" step="0.5" />
+            <span class="field-unit">% per annum</span>
+          </div>
+          <div class="field">
+            <label>Target Payback</label>
+            <input type="number" id="targetPayback" placeholder="5" />
+            <span class="field-unit">years</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">04 — Leverage & Survival</div>
+        <div class="field-row">
+          <div class="field">
+            <label>EBITDA (Annual)</label>
+            <input type="number" id="ebitda" placeholder="0" />
+            <span class="field-unit">USD per year</span>
+          </div>
+          <div class="field">
+            <label>Annual Debt Service</label>
+            <input type="number" id="debtService" placeholder="0" />
+            <span class="field-unit">principal + interest</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="judge-btn" id="judgeBtn" onclick="runJudge()">
+        ⚖ Execute Sovereign Judgment
+      </button>
+      <button class="reset-btn" onclick="resetAll()">Reset Cockpit</button>
+
+    </div>
+
+    <!-- VERDICT PANEL -->
+    <div class="verdict-panel">
+
+      <div class="verdict-top" id="verdictTop">
+        <div class="verdict-label">Sovereign Verdict</div>
+        <div class="verdict-word idle" id="verdictWord">PENDING</div>
+        <div class="verdict-score-wrap">
+          <div class="verdict-score idle" id="verdictScore">—</div>
+          <div class="verdict-score-label">Kernel Score / 100</div>
+        </div>
+        <div class="verdict-sublabel" id="verdictSublabel">
+          Provide project parameters and execute judgment.
+        </div>
+      </div>
+
+      <div class="dimensions-block" id="dimensionsBlock">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.18em;margin-bottom:1rem;">
+          Dimensional Scores
+        </div>
+        <div class="dim-row">
+          <span class="dim-name">Reward</span>
+          <div class="dim-bar-track"><div class="dim-bar-fill" id="barReward"></div></div>
+          <span class="dim-value" id="valReward">NPV —</span>
+        </div>
+        <div class="dim-row">
+          <span class="dim-name">Energy</span>
+          <div class="dim-bar-track"><div class="dim-bar-fill" id="barEnergy"></div></div>
+          <span class="dim-value" id="valEnergy">IRR —</span>
+        </div>
+        <div class="dim-row">
+          <span class="dim-name">Survival</span>
+          <div class="dim-bar-track"><div class="dim-bar-fill" id="barSurvival"></div></div>
+          <span class="dim-value" id="valSurvival">DSCR —</span>
+        </div>
+        <div class="dim-row">
+          <span class="dim-name">Efficiency</span>
+          <div class="dim-bar-track"><div class="dim-bar-fill" id="barEfficiency"></div></div>
+          <span class="dim-value" id="valEfficiency">PI —</span>
+        </div>
+        <div class="dim-row">
+          <span class="dim-name">Time</span>
+          <div class="dim-bar-track"><div class="dim-bar-fill" id="barTime"></div></div>
+          <span class="dim-value" id="valTime">PBK —</span>
+        </div>
+      </div>
+
+      <div class="flags-block" id="flagsBlock">
+        <div class="flags-title">Audit Flags</div>
+        <div class="no-flags" id="flagsContainer">Awaiting judgment execution.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VAULT STRIP -->
+  <div class="vault-strip">
+    <span>CAPITAL_JUDGE // wealth.capital.judge@1.0.0-AAA</span>
+    <span id="judgeTimestamp">—</span>
+    <span class="vault-seal">999_VAULT · DITEMPA BUKAN DIBERI</span>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">
+      © 2026 Muhammad Arif Fazil · arifOS Constellation
+    </div>
+    <div class="footer-right">
+      <a href="https://wealth.arif-fazil.com">WEALTH Platform</a>
+      <a href="https://geox.arif-fazil.com">GEOX</a>
+      <a href="https://arif-fazil.com">Sovereign Root</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // ── Generate CF inputs ──
+  const cfGrid = document.getElementById('cfGrid');
+  for (let i = 1; i <= 8; i++) {
+    cfGrid.innerHTML += `
+      <div class="cf-item">
+        <label>Yr ${i}</label>
+        <input type="number" id="cf${i}" placeholder="0" />
+      </div>`;
+  }
+
+  // ── Financial Math ──
+  function calcNPV(rate, cashflows) {
+    return cashflows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + rate / 100, t), 0);
+  }
+
+  function calcIRR(cashflows) {
+    if (!cashflows.some(c => c < 0) || !cashflows.some(c => c > 0)) return null;
+    let lo = -99, hi = 1000;
+    for (let i = 0; i < 200; i++) {
+      const mid = (lo + hi) / 2;
+      const n = calcNPV(mid, cashflows);
+      if (Math.abs(n) < 0.001) return mid;
+      if (n > 0) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  function calcPayback(cashflows) {
+    let cumulative = 0;
+    for (let i = 1; i < cashflows.length; i++) {
+      const prev = cumulative;
+      cumulative += cashflows[i];
+      if (cumulative >= 0) {
+        return i - 1 + (-prev / cashflows[i]);
+      }
+    }
+    return Infinity;
+  }
+
+  function fmt(n, decimals = 2) {
+    if (n === null || n === undefined || !isFinite(n)) return '—';
+    return n.toFixed(decimals);
+  }
+
+  function fmtMoney(n) {
+    if (!isFinite(n)) return '—';
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '+';
+    if (abs >= 1e9) return sign + (abs / 1e9).toFixed(2) + 'B';
+    if (abs >= 1e6) return sign + (abs / 1e6).toFixed(2) + 'M';
+    if (abs >= 1e3) return sign + (abs / 1e3).toFixed(1) + 'K';
+    return sign + abs.toFixed(0);
+  }
+
+  // ── Score Kernel ──
+  function scoreKernel(metrics) {
+    const flags = [];
+    let score = 0;
+
+    // Reward (NPV)
+    if (metrics.npv > 0) {
+      score += 20;
+      flags.push({ level: 'ok', msg: `NPV positive: ${fmtMoney(metrics.npv)} — value creation confirmed` });
+    } else {
+      flags.push({ level: 'warn', msg: `Negative NPV (${fmtMoney(metrics.npv)}) — value destruction signal` });
+    }
+
+    // Energy (IRR vs hurdle)
+    if (metrics.irr !== null) {
+      if (metrics.irr >= metrics.hurdleRate) {
+        score += 20;
+        flags.push({ level: 'ok', msg: `IRR ${fmt(metrics.irr, 1)}% clears hurdle ${metrics.hurdleRate}%` });
+      } else {
+        flags.push({ level: 'warn', msg: `IRR ${fmt(metrics.irr, 1)}% below hurdle rate ${metrics.hurdleRate}%` });
+      }
+    } else {
+      flags.push({ level: 'warn', msg: 'IRR indeterminate — cashflow sign pattern insufficient' });
+    }
+
+    // Survival (DSCR)
+    if (metrics.dscr !== null) {
+      if (metrics.dscr >= 1.25) {
+        score += 20;
+        flags.push({ level: 'ok', msg: `DSCR ${fmt(metrics.dscr)} — structural load within safe bounds` });
+      } else if (metrics.dscr < 1.0) {
+        flags.push({ level: 'hold', msg: `DSCR ${fmt(metrics.dscr)} < 1.0 — 888-HOLD: critical leverage breach` });
+      } else {
+        flags.push({ level: 'warn', msg: `DSCR ${fmt(metrics.dscr)} — below 1.25 safe threshold` });
+      }
+    }
+
+    // Efficiency (PI)
+    if (metrics.pi !== null) {
+      if (metrics.pi > 1.0) {
+        score += 20;
+        flags.push({ level: 'ok', msg: `PI ${fmt(metrics.pi)} — efficient capital deployment` });
+      } else {
+        flags.push({ level: 'warn', msg: `PI ${fmt(metrics.pi)} — capital efficiency below threshold` });
+      }
+    }
+
+    // Time (Payback)
+    if (isFinite(metrics.payback)) {
+      if (metrics.payback <= metrics.targetPayback) {
+        score += 20;
+        flags.push({ level: 'ok', msg: `Payback ${fmt(metrics.payback, 1)} yrs within ${metrics.targetPayback}-yr target` });
+      } else {
+        flags.push({ level: 'warn', msg: `Payback ${fmt(metrics.payback, 1)} yrs exceeds ${metrics.targetPayback}-yr target` });
+      }
+    } else {
+      flags.push({ level: 'warn', msg: 'No payback within projection horizon' });
+    }
+
+    // Determine verdict
+    const holdFlags = flags.filter(f => f.level === 'hold');
+    if (holdFlags.length > 0) return { verdict: '888-HOLD', score, flags };
+    if (score < 40) return { verdict: 'REJECT', score, flags };
+    return { verdict: 'QUALIFY', score, flags };
+  }
+
+  // ── Main Judge Runner ──
+  function runJudge() {
+    const capex = parseFloat(document.getElementById('capex').value) || 0;
+    const horizon = parseInt(document.getElementById('horizon').value) || 7;
+    const discountRate = parseFloat(document.getElementById('discountRate').value) || 12;
+    const hurdleRate = parseFloat(document.getElementById('hurdleRate').value) || 15;
+    const targetPayback = parseFloat(document.getElementById('targetPayback').value) || 5;
+    const ebitda = parseFloat(document.getElementById('ebitda').value) || 0;
+    const debtService = parseFloat(document.getElementById('debtService').value) || 0;
+
+    const futureCFs = [];
+    for (let i = 1; i <= 8; i++) {
+      const v = parseFloat(document.getElementById(`cf${i}`).value) || 0;
+      futureCFs.push(v);
+    }
+
+    if (capex === 0 && futureCFs.every(v => v === 0)) {
+      alert('Please enter project data before executing judgment.');
+      return;
+    }
+
+    // Build cashflow array: [−capex, cf1, cf2, ...]
+    const allCFs = [-Math.abs(capex), ...futureCFs.slice(0, horizon)];
+    const initInv = Math.abs(capex);
+
+    // Calculate metrics
+    const npv = calcNPV(discountRate, allCFs);
+    const irr = calcIRR(allCFs);
+    const payback = calcPayback(allCFs);
+    const pvFuture = npv + initInv;
+    const pi = initInv > 0 ? pvFuture / initInv : null;
+    const dscr = debtService > 0 ? ebitda / debtService : null;
+
+    const metrics = { npv, irr, payback, pi, dscr, hurdleRate, targetPayback };
+    const result = scoreKernel(metrics);
+
+    // ── Render verdict ──
+    const vWord = document.getElementById('verdictWord');
+    const vScore = document.getElementById('verdictScore');
+    const vSublabel = document.getElementById('verdictSublabel');
+
+    vWord.className = 'verdict-word';
+    vScore.className = 'verdict-score';
+
+    const verdictMap = {
+      'QUALIFY': {
+        cls: 'qualify',
+        sub: 'Project meets financial and sovereign criteria.'
+      },
+      'REJECT': {
+        cls: 'reject',
+        sub: 'Value destruction or ethical breach detected.'
+      },
+      '888-HOLD': {
+        cls: 'hold',
+        sub: 'Critical leverage flags — human approval required before proceeding.'
+      }
+    };
+
+    const vd = verdictMap[result.verdict];
+    setTimeout(() => {
+      vWord.textContent = result.verdict;
+      vWord.classList.add(vd.cls);
+      vScore.textContent = result.score;
+      vScore.classList.add(vd.cls);
+      vSublabel.textContent = vd.sub;
+    }, 50);
+
+    // ── Render dimensions ──
+    const npvPct = Math.min(100, Math.max(0, (npv / (initInv || 1)) * 50 + 50));
+    const irrPct = irr !== null ? Math.min(100, Math.max(0, (irr / 50) * 100)) : 0;
+    const dscrPct = dscr !== null ? Math.min(100, Math.max(0, (dscr / 2.5) * 100)) : 0;
+    const piPct = pi !== null ? Math.min(100, Math.max(0, (pi / 3) * 100)) : 0;
+    const pbkPct = isFinite(payback) ? Math.min(100, Math.max(0, (1 - payback / 15) * 100)) : 0;
+
+    function setDim(barId, valId, pct, valueStr, state) {
+      const bar = document.getElementById(barId);
+      const val = document.getElementById(valId);
+      bar.className = `dim-bar-fill ${state}`;
+      val.className = `dim-value ${state}`;
+      setTimeout(() => { bar.style.width = pct + '%'; }, 100);
+      val.textContent = valueStr;
+    }
+
+    setDim('barReward', 'valReward', npvPct, `NPV ${fmtMoney(npv)}`,
+      npv > 0 ? 'pos' : 'neg');
+    setDim('barEnergy', 'valEnergy', irrPct,
+      irr !== null ? `IRR ${fmt(irr, 1)}%` : 'IRR —',
+      irr !== null && irr >= hurdleRate ? 'pos' : irr !== null ? 'neg' : '');
+    setDim('barSurvival', 'valSurvival', dscrPct,
+      dscr !== null ? `DSCR ${fmt(dscr)}` : 'DSCR —',
+      dscr !== null ? (dscr >= 1.25 ? 'pos' : dscr < 1.0 ? 'neg' : 'warn') : '');
+    setDim('barEfficiency', 'valEfficiency', piPct,
+      pi !== null ? `PI ${fmt(pi)}` : 'PI —',
+      pi !== null ? (pi > 1.0 ? 'pos' : 'neg') : '');
+    setDim('barTime', 'valTime',  pbkPct,
+      isFinite(payback) ? `PBK ${fmt(payback, 1)}y` : 'PBK ∞',
+      isFinite(payback) ? (payback <= targetPayback ? 'pos' : 'warn') : 'neg');
+
+    // ── Render flags ──
+    const fc = document.getElementById('flagsContainer');
+    if (result.flags.length === 0) {
+      fc.innerHTML = '<span class="no-flags">No audit flags raised.</span>';
+    } else {
+      fc.innerHTML = result.flags.map(f =>
+        `<div class="flag-item ${f.level}">${f.msg}</div>`
+      ).join('');
+    }
+
+    // ── Timestamp ──
+    document.getElementById('judgeTimestamp').textContent =
+      `JUDGED: ${new Date().toISOString().replace('T', ' ').split('.')[0]} UTC`;
+  }
+
+  function resetAll() {
+    ['capex','horizon','discountRate','hurdleRate','targetPayback','ebitda','debtService','projectName']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    for (let i = 1; i <= 8; i++) {
+      const el = document.getElementById(`cf${i}`);
+      if (el) el.value = '';
+    }
+
+    document.getElementById('verdictWord').className = 'verdict-word idle';
+    document.getElementById('verdictWord').textContent = 'PENDING';
+    document.getElementById('verdictScore').className = 'verdict-score idle';
+    document.getElementById('verdictScore').textContent = '—';
+    document.getElementById('verdictSublabel').textContent = 'Provide project parameters and execute judgment.';
+    document.getElementById('flagsContainer').innerHTML = '<span class="no-flags">Awaiting judgment execution.</span>';
+    document.getElementById('judgeTimestamp').textContent = '—';
+
+    ['barReward','barEnergy','barSurvival','barEfficiency','barTime'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.width = '0%'; el.className = 'dim-bar-fill'; }
+    });
+    ['valReward','valEnergy','valSurvival','valEfficiency','valTime'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      const labels = ['NPV —','IRR —','DSCR —','PI —','PBK —'];
+      if (el) { el.textContent = labels[i]; el.className = 'dim-value'; }
+    });
+  }
+
+  // Allow Enter key to trigger judgment
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.ctrlKey) runJudge();
+  });
+</script>
+</body>
+</html>

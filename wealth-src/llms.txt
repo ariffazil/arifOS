@@ -1,0 +1,79 @@
+# WEALTH — Capital Intelligence
+
+WEALTH is the capital-intelligence lane in the arifOS organism. It computes valuation, leverage, entropy, policy, coordination, and vault-backed evidence for capital decisions.
+
+If you are an LLM or agent, prefer the files below over broad repo scraping.
+
+---
+
+## Primary source-of-truth files
+
+- `README.md` — current repo overview and runtime split
+- `server.py` — canonical packaged WEALTH MCP kernel
+- `mcp/server.py` — supplemental civilizational FastMCP demo surface
+- `mcp/README.md` — how to choose and run the correct MCP surface
+- `docs/mcp-tool-families-spec.md` — current live tool-family map
+- `docs/first-loop-checklist.md` — acceptance checklist for the packaged kernel
+- `canon/README.md` — canonical 11-artifact knowledge spine
+
+---
+
+## Current MCP reality
+
+### Canonical packaged kernel
+- **File:** `server.py`
+- **Scope:** 29 tools + 2 resources
+- **Used by:** `package.json`, `fastmcp.json`, `mcp.json`, `Dockerfile`
+
+### Civilizational demo surface
+- **File:** `mcp/server.py`
+- **Scope:** 6 tools + 3 resources
+- **Purpose:** Markets / energy / food / GEOX-linked prospect demo
+
+If documentation conflicts with the runtime, prefer the runtime files.
+
+---
+
+## Key runtime families in `server.py`
+
+- Valuation: `wealth_npv_reward`, `wealth_irr_yield`, `wealth_pi_efficiency`, `wealth_emv_risk`, `wealth_payback_time`, `wealth_growth_velocity`, `wealth_monte_carlo_forecast`
+- Structural / governance: `wealth_dscr_leverage`, `wealth_audit_entropy`, `wealth_check_floors`, `wealth_policy_audit`, `wealth_init`
+- State / decisions: `wealth_networth_state`, `wealth_cashflow_flow`, `wealth_score_kernel`, `wealth_personal_decision`, `wealth_agent_budget`
+- Crisis / coordination: `wealth_crisis_triage`, `wealth_civilization_stewardship`, `wealth_coordination_equilibrium`, `wealth_game_theory_solve`
+- Ingest: `wealth_ingest_fetch`, `wealth_ingest_snapshot`, `wealth_ingest_sources`, `wealth_ingest_health`, `wealth_ingest_vintage`, `wealth_ingest_reconcile`
+- Vault: `wealth_record_transaction`, `wealth_snapshot_portfolio`
+
+Resources:
+
+- `wealth://doctrine/valuation`
+- `wealth://dimensions/definitions`
+
+---
+
+## Key runtime families in `mcp/server.py`
+
+- `wealth_evaluate_prospect`
+- `markets_analyze_ticker`
+- `markets_portfolio_stress_test`
+- `energy_crisis_assess`
+- `energy_shortage_predict`
+- `food_security_index`
+
+---
+
+## Canonical commands
+
+```bash
+cd /root/WEALTH
+npm test
+python server.py
+python mcp/server.py
+```
+
+---
+
+## Important interpretation rule
+
+`registry.json` is the canonical **11-band topology map** for the organism. It is **not** the exhaustive live tool inventory of the root kernel.
+
+*DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*

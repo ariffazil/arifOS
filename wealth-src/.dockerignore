@@ -1,0 +1,12 @@
+node_modules
+.git
+.venv
+__pycache__
+*.pyc
+.backup_*
+.archive
+archive
+raw
+.DS_Store
+.openclaw
+.memory

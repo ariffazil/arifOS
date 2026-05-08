@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Pages -->
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- AI-Friendly Manifests -->
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/llms.txt</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/.well-known/mcp.json</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/api/docs/index.json</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/api/columns/index.json</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Documentation -->
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/docs/00-niat-dan-amanah</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/docs/01-suara-makcikgpt</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/docs/02-batas-penolakan</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/docs/03-ujian-keselamatan</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/docs/04-glosari-nusantara</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Columns / Articles -->
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/columns/manifesto-rasa-rakyat</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/columns/makcikgpt-menyapa-c-suite</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/columns/khazanah-negara-dalam-bahaya</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://makcikgpt.arif-fazil.com/columns/untung-petronas-turun</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

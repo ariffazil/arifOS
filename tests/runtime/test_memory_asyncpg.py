@@ -16,7 +16,10 @@ class TestMemoryOrganAsyncpg:
 
     def test_asyncpg_is_importable(self):
         """asyncpg must be present in the Python environment."""
-        pytest.importorskip("asyncpg", reason="asyncpg required for MemoryEngine — install with: pip install asyncpg")
+        pytest.importorskip(
+            "asyncpg",
+            reason="asyncpg required for MemoryEngine — install with: pip install asyncpg",
+        )
         import asyncpg
 
         assert hasattr(asyncpg, "__version__")

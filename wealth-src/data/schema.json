@@ -1,0 +1,170 @@
+{
+  "_schema_version": "1.0.0",
+  "_created": "2026-04-14T02:30:00+08:00",
+  "_description": "WEALTH by arifOS — Canonical Data Schema",
+  "_epistemic": "CLAIM",
+
+  "identity": {
+    "id": "uuid-v4",
+    "name": "string",
+    "currency_base": "MYR",
+    "locale": "ms-MY",
+    "maruah_floor": 0.6,
+    "created_epoch": "ISO8601",
+    "last_seal": "ISO8601"
+  },
+
+  "wealth_basis": {
+    "epoch": "ISO8601",
+    "vector": {
+      "e_hat": 0.0,
+      "s_hat": 0.0,
+      "echo_hat": 0.0
+    },
+    "raw_signals": {
+      "e_physical": 0.0,
+      "e_financial": 0.0,
+      "e_cognitive": 0.0,
+      "e_social": 0.0,
+      "e_max_feasible": 1.0,
+      "s_state": 0.0,
+      "ds_operation": 0.0,
+      "echo_impact_series": [],
+      "psi_ctx": 0.0
+    },
+    "defects": {
+      "paradox": 0.0,
+      "scar": 0.0,
+      "shadow": 0.0
+    },
+    "capitalx_link": {
+      "delta_civ_contribution": 0.0,
+      "r_adj_modifier": 0.0,
+      "uncertainty_band": [0.03, 0.12]
+    },
+    "epistemic": "ESTIMATE",
+    "witness": {
+      "human": false,
+      "ai": true,
+      "earth": true
+    },
+    "verdict": "PENDING"
+  },
+
+  "assets": [
+    {
+      "id": "uuid-v4",
+      "name": "string",
+      "category": "liquid|fixed|digital|equity|property|retirement|other",
+      "subcategory": "string",
+      "value": 0.0,
+      "currency": "MYR",
+      "tag": "CLAIM|PLAUSIBLE|ESTIMATE|UNKNOWN",
+      "source": "string",
+      "last_updated": "ISO8601",
+      "notes": "string",
+      "deleted": false,
+      "deleted_at": null
+    }
+  ],
+
+  "liabilities": [
+    {
+      "id": "uuid-v4",
+      "name": "string",
+      "category": "mortgage|personal|car|education|business|credit_card|other",
+      "principal": 0.0,
+      "outstanding": 0.0,
+      "interest_rate": 0.0,
+      "monthly_payment": 0.0,
+      "currency": "MYR",
+      "tag": "CLAIM",
+      "lender": "string",
+      "start_date": "ISO8601",
+      "maturity_date": "ISO8601",
+      "deleted": false,
+      "deleted_at": null
+    }
+  ],
+
+  "cashflow": {
+    "income": [
+      {
+        "id": "uuid-v4",
+        "name": "string",
+        "monthly_amount": 0.0,
+        "reliability": "guaranteed|regular|irregular|speculative",
+        "tag": "CLAIM|PLAUSIBLE|ESTIMATE|HYPOTHESIS",
+        "active": true,
+        "deleted": false
+      }
+    ],
+    "expenses": [
+      {
+        "id": "uuid-v4",
+        "name": "string",
+        "monthly_amount": 0.0,
+        "category": "fixed|variable|discretionary|emergency",
+        "tag": "CLAIM|ESTIMATE",
+        "active": true,
+        "deleted": false
+      }
+    ]
+  },
+
+  "goals": [
+    {
+      "id": "uuid-v4",
+      "name": "string",
+      "description": "string",
+      "target_amount": 0.0,
+      "current_amount": 0.0,
+      "target_date": "ISO8601",
+      "state": "DRAFT|ACTIVE|PAUSED|888-HELD|COMPLETED|ABANDONED",
+      "priority": 1,
+      "tag": "CLAIM|ESTIMATE",
+      "milestones": [],
+      "created_epoch": "ISO8601",
+      "deleted": false
+    }
+  ],
+
+  "maruah_score": {
+    "current": 0.0,
+    "floor": 0.6,
+    "dimensions": {
+      "financial_integrity": 0.5,
+      "sovereignty": 0.5,
+      "debt_dignity": 0.5,
+      "amanah_index": 0.5,
+      "community_contribution": 0.0
+    },
+    "history": [],
+    "last_computed": "ISO8601"
+  },
+
+  "telemetry_log": [
+    {
+      "epoch": "ISO8601",
+      "dS": 0.0,
+      "peace2": 1.0,
+      "kappa_r": 0.0,
+      "shadow": false,
+      "confidence": 0.0,
+      "verdict": "SEALED|888-HOLD|PENDING",
+      "qdf": "WEALTH:v1.0.0"
+    }
+  ],
+
+  "holds_log": [
+    {
+      "id": "uuid-v4",
+      "epoch_triggered": "ISO8601",
+      "epoch_cleared": null,
+      "type": "string",
+      "reason": "string",
+      "human_confirmed": false,
+      "cleared": false
+    }
+  ]
+}

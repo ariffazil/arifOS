@@ -1,0 +1,36 @@
+{
+  "name": "wealth-valuation-kernel",
+  "version": "2026.05.01",
+  "description": "arifOS Sovereign Valuation Kernel — Physics-based Capital Allocation",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "wealth": "./cli.js"
+  },
+  "scripts": {
+    "boot": "node cli.js boot",
+    "check": "node cli.js check",
+    "seal": "node cli.js seal",
+    "test": "node --test tests/*.test.js",
+    "mcp": "python internal/monolith.py",
+    "fastmcp": "python internal/monolith.py"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "keywords": [
+    "wealth",
+    "arifos",
+    "governance",
+    "capital",
+    "post-agi",
+    "constitutional",
+    "mcp"
+  ],
+  "author": "Muhammad Arif bin Fazil",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.9.0",
+    "zod": "^3.25.0"
+  }
+}

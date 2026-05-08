@@ -38,7 +38,7 @@ def _ensure_dir() -> None:
 
 def _index_read() -> dict[str, dict[str, Any]]:
     try:
-        with open(_INDEX_FILE, "r", encoding="utf-8") as f:
+        with open(_INDEX_FILE, encoding="utf-8") as f:
             return json.load(f)
     except (OSError, json.JSONDecodeError):
         return {}
@@ -51,9 +51,9 @@ def _index_write(idx: dict[str, dict[str, Any]]) -> None:
 
 def _content_hash(content: Any) -> str:
     """Stable SHA-256 hash of content for deduplication."""
-    return hashlib.sha256(
-        json.dumps(content, sort_keys=True, default=str).encode()
-    ).hexdigest()[:16]
+    return hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()[
+        :16
+    ]
 
 
 # ── Public API ───────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ def recall(
     if not record_path.exists():
         return None
     try:
-        with open(record_path, "r", encoding="utf-8") as f:
+        with open(record_path, encoding="utf-8") as f:
             return json.load(f)
     except (OSError, json.JSONDecodeError):
         return None

@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://wealth.arif-fazil.com/api/schemas/waw-envelope.json",
+  "title": "W@W Authority Envelope",
+  "description": "Canonical envelope for proposals flowing through arifOS → GEOX → WEALTH → F13 Sovereign",
+  "type": "object",
+  "required": ["envelope_id", "epoch", "payload", "authority", "envelope_type", "status", "constraints", "verdict", "upstream_seals"],
+  "properties": {
+    "envelope_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Immutable identifier for this proposal flow"
+    },
+    "epoch": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 timestamp of envelope creation or transition"
+    },
+    "payload": {
+      "type": "object",
+      "required": ["intent", "domain", "operation"],
+      "description": "The raw proposal being evaluated",
+      "properties": {
+        "intent": {
+          "type": "string",
+          "enum": ["informational", "advisory", "execution", "speculative"],
+          "description": "AKI intent model"
+        },
+        "domain": {
+          "type": "string",
+          "enum": ["cognition", "physics", "capital", "mixed"],
+          "description": "Primary domain of the proposal"
+        },
+        "operation": {
+          "type": "object",
+          "description": "Opaque operation descriptor (tool call, plan, transaction)"
+        }
+      }
+    },
+    "authority": {
+      "type": "string",
+      "enum": ["arifos", "geox", "wealth", "f13_sovereign"],
+      "description": "Authority currently evaluating or last evaluating this envelope"
+    },
+    "envelope_type": {
+      "type": "string",
+      "enum": ["RAW", "PERMITTED", "FEASIBLE", "PRICED", "SEALED"],
+      "description": "Narrowing stage of the envelope"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["CLEAR", "BLOCK", "HOLD", "VOID", "PENDING"],
+      "description": "Authority-specific execution status"
+    },
+    "constraints": {
+      "type": "object",
+      "required": ["floors", "physics", "capital"],
+      "description": "Accumulated constraint set; must grow monotonically downstream",
+      "properties": {
+        "floors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Active or triggered F1-F13 floors"
+        },
+        "physics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "GEOX feasibility constraints (zone, energy, time, material)"
+        },
+        "capital": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "WEALTH capital constraints (maruah band, r_adj, ΔS)"
+        }
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEAL", "COMPLY", "CAUTION", "HOLD", "SABAR", "VOID"],
+      "description": "AKI verdict from the evaluating authority"
+    },
+    "verdict_code": {
+      "type": "number",
+      "description": "AKI JSON-RPC error code if applicable (-32001 HOLD, -32002 SABAR, -32003 VOID)"
+    },
+    "upstream_seals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["authority", "envelope_type", "verdict", "integrity_hash"],
+        "properties": {
+          "authority": { "type": "string", "enum": ["arifos", "geox", "wealth"] },
+          "envelope_type": { "type": "string", "enum": ["PERMITTED", "FEASIBLE", "PRICED"] },
+          "verdict": { "type": "string", "enum": ["SEAL", "COMPLY", "CAUTION", "HOLD", "SABAR", "VOID"] },
+          "integrity_hash": { "type": "string", "description": "SHA-256 prefix of sealed envelope state" },
+          "epoch": { "type": "string", "format": "date-time" }
+        }
+      },
+      "description": "Immutable chain of prior authority evaluations"
+    },
+    "witness": {
+      "type": "object",
+      "properties": {
+        "human": { "type": "boolean" },
+        "ai": { "type": "boolean" },
+        "earth": { "type": "boolean" }
+      },
+      "description": "Tri-witness quorum for final SEAL"
+    },
+    "telemetry": {
+      "type": "object",
+      "properties": {
+        "dS": { "type": "number" },
+        "peace2": { "type": "number" },
+        "psi_le": { "type": "number" },
+        "maruah": { "type": "number" },
+        "r_adj": { "type": "number" },
+        "delta_bps": { "type": "number" }
+      }
+    },
+    "epistemic": {
+      "type": "string",
+      "enum": ["CLAIM", "PLAUSIBLE", "ESTIMATE", "HYPOTHESIS", "UNKNOWN"],
+      "default": "ESTIMATE"
+    }
+  }
+}

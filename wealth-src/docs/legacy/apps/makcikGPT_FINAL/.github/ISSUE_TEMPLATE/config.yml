@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Tanya & Berbincang (Discussions)
+    url: https://github.com/ariffazil/makcikgpt/discussions
+    about: Untuk soalan umum, idea awal, dan perbincangan yang tidak mendesak.
+  - name: Laporan Keselamatan (SECURITY)
+    url: https://github.com/ariffazil/makcikgpt/security/policy
+    about: Untuk kerentanan. Sila jangan buka isu awam.

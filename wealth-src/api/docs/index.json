@@ -1,0 +1,80 @@
+{
+  "project": "MakCikGPT",
+  "version": "0.1.0",
+  "category": "docs",
+  "description": "Core governance and safety documentation for MakCikGPT",
+  "base_url": "https://makcikgpt.arif-fazil.com/docs",
+  "language": "ms",
+  "last_updated": "2025-02-28",
+  "kernels_available": [
+    {
+      "id": "makcikgpt-kernel-ms",
+      "title": "MakcikGPT Kernel (BM)",
+      "description": "L0/L1 Companion Kernel — Meaning Governor + Peace. Defines DITING framework, SABAR protocol, and arifOS integration.",
+      "url": "https://makcikgpt.arif-fazil.com/kernels/MAKCIKGPT_KERNEL_MS",
+      "github_url": "https://github.com/ariffazil/makcikGPT/blob/main/kernels/MAKCIKGPT_KERNEL_MS.md",
+      "version": "v9.6",
+      "kernel_class": "L0/L1",
+      "language": "ms",
+      "priority": "critical",
+      "tags": ["kernel", "architecture", "DITING", "SABAR", "arifOS"]
+    }
+  ],
+  "items": [
+    {
+      "id": "00-niat-dan-amanah",
+      "title": "Niat dan Amanah",
+      "description": "Project intent and foundational amanah (trust). Why MakCikGPT exists and what principles guide it.",
+      "url": "https://makcikgpt.arif-fazil.com/docs/00-niat-dan-amanah",
+      "github_url": "https://github.com/ariffazil/makcikGPT/blob/main/docs/00-niat-dan-amanah.md",
+      "language": "ms",
+      "priority": 1,
+      "tags": ["foundational", "amanah", "philosophy"]
+    },
+    {
+      "id": "01-suara-makcikgpt",
+      "title": "Suara MakCikGPT",
+      "description": "Voice and tone guidelines. How MakCikGPT speaks — Nusantara Malay, warm but firm, with peribahasa.",
+      "url": "https://makcikgpt.arif-fazil.com/docs/01-suara-makcikgpt",
+      "github_url": "https://github.com/ariffazil/makcikGPT/blob/main/docs/01-suara-makcikgpt.md",
+      "language": "ms",
+      "priority": 1,
+      "tags": ["voice", "tone", "style-guide", "nusantara"]
+    },
+    {
+      "id": "02-batas-penolakan",
+      "title": "Batas & Penolakan",
+      "description": "Refusal boundaries. When and why MakCikGPT says no. Refusal cards and safety mechanisms.",
+      "url": "https://makcikgpt.arif-fazil.com/docs/02-batas-penolakan",
+      "github_url": "https://github.com/ariffazil/makcikGPT/blob/main/docs/02-batas-penolakan.md",
+      "language": "ms",
+      "priority": 1,
+      "tags": ["safety", "refusal", "boundaries"]
+    },
+    {
+      "id": "03-ujian-keselamatan",
+      "title": "Ujian Keselamatan",
+      "description": "Safety testing protocols. How we verify that safety boundaries work.",
+      "url": "https://makcikgpt.arif-fazil.com/docs/03-ujian-keselamatan",
+      "github_url": "https://github.com/ariffazil/makcikGPT/blob/main/docs/03-ujian-keselamatan.md",
+      "language": "ms",
+      "priority": 2,
+      "tags": ["safety", "testing", "verification"]
+    },
+    {
+      "id": "04-glosari-nusantara",
+      "title": "Glosari Nusantara",
+      "description": "Nusantara glossary. Peribahasa, expressions, and cultural references used by MakCikGPT.",
+      "url": "https://makcikgpt.arif-fazil.com/docs/04-glosari-nusantara",
+      "github_url": "https://github.com/ariffazil/makcikGPT/blob/main/docs/04-glosari-nusantara.md",
+      "language": "ms",
+      "priority": 2,
+      "tags": ["glossary", "nusantara", "peribahasa", "culture"]
+    }
+  ],
+  "metadata": {
+    "total_items": 5,
+    "total_words_approx": 8000,
+    "motto": "Ditempa, Bukan Diberi"
+  }
+}

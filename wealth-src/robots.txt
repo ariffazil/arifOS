@@ -1,0 +1,78 @@
+# MakCikGPT — AI & Web Crawler Guidelines
+# https://makcikgpt.arif-fazil.com
+
+# ============================================
+# AI-SPECIFIC CRAWLERS (Explicit Allow)
+# ============================================
+
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: ClaudeBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 1
+
+User-agent: anthropic-ai
+Allow: /
+Crawl-delay: 1
+
+User-agent: Cohere-ai
+Allow: /
+Crawl-delay: 1
+
+User-agent: Google-Extended
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# ============================================
+# GENERAL WEB CRAWLERS
+# ============================================
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# ============================================
+# DEFAULT (ALL OTHER BOTS)
+# ============================================
+
+User-agent: *
+Allow: /
+Disallow: /.git/
+Disallow: /node_modules/
+
+# ============================================
+# SITEMAPS
+# ============================================
+
+Sitemap: https://makcikgpt.arif-fazil.com/sitemap.xml
+
+# ============================================
+# LLM-FRIENDLY MANIFEST
+# ============================================
+# For LLMs: See https://makcikgpt.arif-fazil.com/llms.txt
+# For MCP: See https://makcikgpt.arif-fazil.com/.well-known/mcp.json

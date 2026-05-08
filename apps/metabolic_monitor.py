@@ -691,9 +691,7 @@ def _register(mcp: FastMCP) -> None:
         else:
             overall_status = "CRITICAL"
 
-        _STATUS_INTERPRETATIONS.get(
-            overall_status, _STATUS_INTERPRETATIONS["UNKNOWN"]
-        )
+        _STATUS_INTERPRETATIONS.get(overall_status, _STATUS_INTERPRETATIONS["UNKNOWN"])
         next_actions = _derive_next_actions(floors, peace_sq, health)
 
         # G-score proxy for philosophy

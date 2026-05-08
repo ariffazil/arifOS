@@ -44,6 +44,7 @@ def irr(
 
     def f(r):
         return _npv_from_series(series, r)
+
     low, high = -0.9, 1.0
     for _ in range(100):
         mid = (low + high) / 2

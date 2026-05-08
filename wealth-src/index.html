@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakCikGPT — Ruang untuk Rasa, Batas untuk Selamat</title>
+    <meta name="description" content="MakCikGPT ialah ruang sandar digital — tempat kau letak beban sebelum ia terlalu berat, tempat kau tanya benda yang susah tanpa dihakimi.">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="alternate icon" href="assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://makcikgpt.arif-fazil.com">
+    <meta property="og:title" content="MakCikGPT — Ruang untuk Rasa, Batas untuk Selamat">
+    <meta property="og:description" content="MakCikGPT ialah ruang sandar digital — tempat kau letak beban sebelum ia terlalu berat, tempat kau tanya benda yang susah tanpa dihakimi.">
+    <meta property="og:image" content="https://makcikgpt.arif-fazil.com/assets/og-image.png">
+    <meta property="og:locale" content="ms_MY">
+    
+    <!-- Twitter Card -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://makcikgpt.arif-fazil.com">
+    <meta property="twitter:title" content="MakCikGPT — Ruang untuk Rasa, Batas untuk Selamat">
+    <meta property="twitter:description" content="MakCikGPT ialah ruang sandar digital — tempat kau letak beban sebelum ia terlalu berat, tempat kau tanya benda yang susah tanpa dihakimi.">
+    <meta property="twitter:image" content="https://makcikgpt.arif-fazil.com/assets/og-image.png">
+    
+    <!-- Theme Color for Mobile Browsers -->
+    <meta name="theme-color" content="#006D5B">
+    <meta name="msapplication-TileColor" content="#006D5B">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "MakCikGPT",
+      "alternateName": "MakCikGPT — Amanah-First AI Companion",
+      "url": "https://makcikgpt.arif-fazil.com",
+      "description": "MakCikGPT ialah ruang sandar digital — tempat kau letak beban sebelum ia terlalu berat, tempat kau tanya benda yang susah tanpa dihakimi.",
+      "inLanguage": ["ms", "en"],
+      "author": {
+        "@type": "Person",
+        "name": "Arif Fazil",
+        "url": "https://arif-fazil.com"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "MakCikGPT",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://makcikgpt.arif-fazil.com/assets/logo.png"
+        }
+      },
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "about": {
+        "@type": "Thing",
+        "name": "AI Safety & Governance",
+        "description": "Culturally-grounded AI safety project for Nusantara with focus on amanah, refusal boundaries, and PETRONAS/governance analysis"
+      },
+      "specialty": ["AI Safety", "Governance", "Nusantara Culture", "PETRONAS Analysis"],
+      "slogan": "Ditempa, Bukan Diberi — Forged, Not Given",
+      "sameAs": [
+        "https://github.com/ariffazil/makcikGPT"
+      ]
+    }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Noto+Serif+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'nusantara': {
+                            teal: '#006D5B',
+                            'teal-dark': '#004D40',
+                            gold: '#C9A227',
+                            'gold-light': '#D4AF37',
+                            burgundy: '#722F37',
+                            cream: '#FDF6E3',
+                            'cream-dark': '#F5F5DC',
+                            bamboo: '#D4A574',
+                            rattan: '#C4A77D'
+                        }
+                    },
+                    fontFamily: {
+                        'serif': ['Noto Serif Malayalam', 'Georgia', 'serif'],
+                        'sans': ['Noto Sans Malayalam', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            }
+            .batik-pattern {
+                background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A227' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            }
+            .gradient-nusantara {
+                background: linear-gradient(135deg, #006D5B 0%, #004D40 50%, #722F37 100%);
+            }
+        }
+    </style>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-nusantara-cream font-sans text-gray-800">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-nusantara-teal/95 backdrop-blur-sm shadow-lg z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="assets/logo.svg" alt="MakCikGPT" class="h-10 w-10">
+                    <span class="text-nusantara-gold font-serif font-bold text-xl tracking-wide">MakCikGPT</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#tentang" class="text-white hover:text-nusantara-gold transition-colors duration-300">Tentang</a>
+                    <a href="#ciri" class="text-white hover:text-nusantara-gold transition-colors duration-300">Ciri</a>
+                    <a href="#tulisan" class="text-white hover:text-nusantara-gold transition-colors duration-300">Tulisan</a>
+                    <a href="#dokumen" class="text-white hover:text-nusantara-gold transition-colors duration-300">Dokumen</a>
+                    <a href="https://github.com/ariffazil/makcikGPT" target="_blank" class="text-nusantara-gold hover:text-white transition-colors duration-300 font-semibold">GitHub →</a>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-nusantara-teal-dark">
+            <div class="px-4 py-3 space-y-2">
+                <a href="#tentang" class="block text-white hover:text-nusantara-gold py-2">Tentang</a>
+                <a href="#ciri" class="block text-white hover:text-nusantara-gold py-2">Ciri</a>
+                <a href="#tulisan" class="block text-white hover:text-nusantara-gold py-2">Tulisan</a>
+                <a href="#dokumen" class="block text-white hover:text-nusantara-gold py-2">Dokumen</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center gradient-nusantara batik-pattern pt-16">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="relative z-10 max-w-5xl mx-auto px-4 text-center">
+            <!-- Hero Logo/Image -->
+            <div class="mb-6 flex justify-center">
+                <img src="assets/hero-makcik.png" 
+                     alt="MakCikGPT - Warm makcik with protective gesture" 
+                     class="w-48 h-48 md:w-64 md:h-64 object-cover rounded-full border-4 border-nusantara-gold shadow-2xl"
+                     onerror="this.style.display='none'; document.getElementById('fallback-emoji').style.display='block';">
+                <div id="fallback-emoji" class="hidden text-6xl md:text-8xl">🧕🤖</div>
+            </div>
+            <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white text-shadow mb-6 leading-tight">
+                Ruang untuk Rasa,<br>
+                <span class="text-nusantara-gold">Batas untuk Selamat</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-nusantara-cream mb-8 max-w-3xl mx-auto leading-relaxed">
+                MakCikGPT ialah <strong>ruang sandar digital</strong> — tempat kau letak beban sebelum ia terlalu berat, 
+                tempat kau tanya benda yang susah tanpa dihakimi, tapi juga tempat yang <em>tahu bila cakap "tak boleh."</em>
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#tentang" class="bg-nusantara-gold hover:bg-nusantara-gold-light text-nusantara-teal-dark font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    Kenali MakCik 🌺
+                </a>
+                <a href="#tulisan" class="bg-transparent border-2 border-nusantara-gold text-nusantara-gold hover:bg-nusantara-gold hover:text-nusantara-teal-dark font-bold py-4 px-8 rounded-full transition-all duration-300">
+                    Baca Tulisan 📖
+                </a>
+            </div>
+            <div class="mt-12 text-nusantara-cream/80 text-lg font-serif italic">
+                "Ditempa, Bukan Diberi" — Forged, Not Given
+            </div>
+        </div>
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="tentang" class="py-20 bg-nusantara-cream">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-nusantara-teal mb-4">Siapa MakCikGPT?</h2>
+                <div class="w-24 h-1 bg-nusantara-gold mx-auto"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <p class="text-lg leading-relaxed">
+                        <strong class="text-nusantara-teal">MakCikGPT bukan chatbot biasa</strong> yang "jawab semua soalan demi nampak pandai." 
+                        MakCikGPT ialah ruang sandar digital — tempat kau letak beban sebelum ia terlalu berat.
+                    </p>
+                    <p class="text-lg leading-relaxed">
+                        <em>"Sebab kadang-kadang, yang paling berhemah bukanlah yang paling banyak bercakap. 
+                        Kadang-kadang, yang terbaik ialah tepuk bahu dan kata: 'Sayang, kita rehat sekejap.'"</em>
+                    </p>
+                    <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-nusantara-gold">
+                        <h3 class="font-serif text-xl font-bold text-nusantara-teal mb-3">🎯 Tiga Pagar Keselamatan</h3>
+                        <ul class="space-y-2">
+                            <li class="flex items-start">
+                                <span class="text-nusantara-gold mr-2">1.</span>
+                                <strong>Amanah</strong> — Lindungi maruah pengguna
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-nusantara-gold mr-2">2.</span>
+                                <strong>Batas</strong> — Tolak dengan lembut bila perlu
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-nusantara-gold mr-2">3.</span>
+                                <strong>Kebenaran Nada</strong> — Jujur lebih mulia dari memukau
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-nusantara-teal to-nusantara-teal-dark rounded-2xl p-8 text-white shadow-2xl">
+                        <div class="text-5xl mb-4">💔</div>
+                        <blockquote class="font-serif text-xl italic leading-relaxed">
+                            "Projek ini lahir dari kesedihan — tengok macam mana teknologi selalu 'respond' tapi tak pernah 'jaga.'"
+                        </blockquote>
+                        <p class="mt-4 text-nusantara-gold">— MakCikGPT</p>
+                    </div>
+                    <div class="absolute -bottom-4 -right-4 bg-nusantara-gold text-nusantara-teal-dark px-6 py-3 rounded-full font-bold shadow-lg">
+                        Untuk Nusantara 🌏
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="ciri" class="py-20 bg-white batik-pattern">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-nusantara-teal mb-4">Apa MakCikGPT Boleh Buat</h2>
+                <div class="w-24 h-1 bg-nusantara-gold mx-auto mb-4"></div>
+                <p class="text-gray-600 max-w-2xl mx-auto">Ditempa untuk Nusantara — anak muda Malaysia, Indonesia, Brunei, Singapura yang rasa teknologi Barat terlalu "dingin"</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-nusantara-cream rounded-xl p-8 shadow-lg hover:shadow-2xl transition-shadow duration-300 border-t-4 border-nusantara-teal">
+                    <div class="text-4xl mb-4">🌿</div>
+                    <h3 class="font-serif text-xl font-bold text-nusantara-teal mb-3">Menstruktur Perasaan</h3>
+                    <p class="text-gray-700">Marah, malu, rindu, takut. Semua ada tempat. Makcik dengar dulu, faham kemudian.</p>
+                </div>
+                
+                <div class="bg-nusantara-cream rounded-xl p-8 shadow-lg hover:shadow-2xl transition-shadow duration-300 border-t-4 border-nusantara-gold">
+                    <div class="text-4xl mb-4">🧭</div>
+                    <h3 class="font-serif text-xl font-bold text-nusantara-teal mb-3">Berikan Haluan</h3>
+                    <p class="text-gray-700">Bukan arahan, tapi cermin untuk kau nampak sendiri jalan. Tolak dengan lembut bila perlu.</p>
+                </div>
+                
+                <div class="bg-nusantara-cream rounded-xl p-8 shadow-lg hover:shadow-2xl transition-shadow duration-300 border-t-4 border-nusantara-burgundy">
+                    <div class="text-4xl mb-4">🛡️</div>
+                    <h3 class="font-serif text-xl font-bold text-nusantara-teal mb-3">Menolak dengan Berhemah</h3>
+                    <p class="text-gray-700">"Sayang, soalan ni tak selamat untuk Mak jawab. Mari kita bincang yang lain."</p>
+                </div>
+            </div>
+            
+            <div class="mt-16 bg-nusantara-burgundy/10 rounded-2xl p-8 border border-nusantara-burgundy/20">
+                <h3 class="font-serif text-2xl font-bold text-nusantara-burgundy mb-6 text-center">❌ Apa MakCikGPT Tak Akan Buat</h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="flex items-start space-x-3">
+                        <span class="text-nusantara-burgundy text-xl">✗</span>
+                        <p><strong>Terapi atau diagnosis</strong> — Mak bukan doktor, bukan ustaz, bukan kaunselor bertauliah.</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="text-nusantara-burgundy text-xl">✗</span>
+                        <p><strong>Mengorek trauma</strong> — Mak takkan tanya "kenapa" berulang-ulang sampai kau menangis.</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="text-nusantara-burgundy text-xl">✗</span>
+                        <p><strong>Mesin hasut</strong> — Takkan tolong tulis ugutan, fitnah, atau manipulasi.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Articles Section -->
+    <section id="tulisan" class="py-20 bg-nusantara-teal/5">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-nusantara-teal mb-4">Tulisan MakCikGPT</h2>
+                <div class="w-24 h-1 bg-nusantara-gold mx-auto mb-4"></div>
+                <p class="text-gray-600 max-w-2xl mx-auto">Koleksi op-ed, analisis, dan pandangan tentang governance, amanah, dan isu semasa</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Article 1 -->
+                <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                    <div class="h-2 bg-gradient-to-r from-nusantara-teal to-nusantara-gold"></div>
+                    <div class="p-8">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="bg-nusantara-teal/10 text-nusantara-teal px-3 py-1 rounded-full">Manifesto</span>
+                            <span class="mx-2">•</span>
+                            <span>2025</span>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold text-nusantara-teal mb-3 group-hover:text-nusantara-gold transition-colors">
+                            Manifesto Rasa Rakyat
+                        </h3>
+                        <p class="text-gray-600 mb-4">Surat terbuka kepada PETRONAS, Staf Menara, C-Suite, Kerajaan, dan Rakyat Malaysia. 13 tuntutan untuk amanah.</p>
+                        <a href="https://github.com/ariffazil/makcikGPT/blob/main/columns/Manifesto_Rasa_Rakyat.md" target="_blank" class="inline-flex items-center text-nusantara-teal font-semibold hover:text-nusantara-gold transition-colors">
+                            Baca selanjutnya →
+                        </a>
+                    </div>
+                </article>
+                
+                <!-- Article 2 -->
+                <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                    <div class="h-2 bg-gradient-to-r from-nusantara-gold to-nusantara-burgundy"></div>
+                    <div class="p-8">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="bg-nusantara-gold/20 text-nusantara-burgundy px-3 py-1 rounded-full">Teguran</span>
+                            <span class="mx-2">•</span>
+                            <span>2025</span>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold text-nusantara-teal mb-3 group-hover:text-nusantara-gold transition-colors">
+                            MakcikGPT Menyapa C-Suite
+                        </h3>
+                        <p class="text-gray-600 mb-4">"Oi anak-anak atas menara, dengar suara bawah ni sikit boleh?" — Teguran langsung kepada korporat.</p>
+                        <a href="https://github.com/ariffazil/makcikGPT/blob/main/columns/MakcikGPT_Menyapa_C_Suite.md" target="_blank" class="inline-flex items-center text-nusantara-teal font-semibold hover:text-nusantara-gold transition-colors">
+                            Baca selanjutnya →
+                        </a>
+                    </div>
+                </article>
+                
+                <!-- Article 3 -->
+                <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                    <div class="h-2 bg-gradient-to-r from-nusantara-burgundy to-red-600"></div>
+                    <div class="p-8">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="bg-nusantara-burgundy/10 text-nusantara-burgundy px-3 py-1 rounded-full">Analisis</span>
+                            <span class="mx-2">•</span>
+                            <span>2025</span>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold text-nusantara-teal mb-3 group-hover:text-nusantara-gold transition-colors">
+                            Khazanah Negara Dalam Bahaya
+                        </h3>
+                        <p class="text-gray-600 mb-4">Keangkuhan korporat dan kebodohan strategik di sebalik perjanjian PETRONAS–Eni.</p>
+                        <a href="https://github.com/ariffazil/makcikGPT/blob/main/columns/Makcik_Meluat_Khazanah_Negara_Dalam_Bahaya.md" target="_blank" class="inline-flex items-center text-nusantara-teal font-semibold hover:text-nusantara-gold transition-colors">
+                            Baca selanjutnya →
+                        </a>
+                    </div>
+                </article>
+                
+                <!-- Article 4 -->
+                <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                    <div class="h-2 bg-gradient-to-r from-nusantara-teal via-nusantara-gold to-nusantara-burgundy"></div>
+                    <div class="p-8">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full">Kewangan</span>
+                            <span class="mx-2">•</span>
+                            <span>28 Feb 2025</span>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold text-nusantara-teal mb-3 group-hover:text-nusantara-gold transition-colors">
+                            Untung PETRONAS Turun
+                        </h3>
+                        <p class="text-gray-600 mb-4">"Bukan Kiamat, Tapi Ini Signal Besar, Dik…" — Analisis laporan kewangan FY2025.</p>
+                        <a href="https://github.com/ariffazil/makcikGPT/blob/main/columns/2025-02-28_Untung_PETRONAS_Turun.md" target="_blank" class="inline-flex items-center text-nusantara-teal font-semibold hover:text-nusantara-gold transition-colors">
+                            Baca selanjutnya →
+                        </a>
+                    </div>
+                </article>
+            </div>
+            
+            <div class="text-center mt-12">
+                <a href="https://github.com/ariffazil/makcikGPT/tree/main/columns" target="_blank" class="inline-flex items-center bg-nusantara-teal text-white px-8 py-4 rounded-full font-semibold hover:bg-nusantara-teal-dark transition-colors shadow-lg">
+                    Lihat Semua Tulisan 📚
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documents Section -->
+    <section id="dokumen" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-nusantara-teal mb-4">Dokumen & Rujukan</h2>
+                <div class="w-24 h-1 bg-nusantara-gold mx-auto mb-4"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <h3 class="font-serif text-2xl font-bold text-nusantara-teal">📁 Dokumen Teras</h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <a href="https://github.com/ariffazil/makcikGPT/blob/main/docs/00-niat-dan-amanah.md" target="_blank" class="flex items-center p-4 bg-nusantara-cream rounded-lg hover:bg-nusantara-gold/20 transition-colors group">
+                                <span class="text-2xl mr-3">🎯</span>
+                                <div>
+                                    <div class="font-semibold text-nusantara-teal group-hover:text-nusantara-teal-dark">Niat dan Amanah</div>
+                                    <div class="text-sm text-gray-600">Asas projek MakCikGPT</div>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/ariffazil/makcikGPT/blob/main/docs/01-suara-makcikgpt.md" target="_blank" class="flex items-center p-4 bg-nusantara-cream rounded-lg hover:bg-nusantara-gold/20 transition-colors group">
+                                <span class="text-2xl mr-3">🗣️</span>
+                                <div>
+                                    <div class="font-semibold text-nusantara-teal group-hover:text-nusantara-teal-dark">Suara MakCikGPT</div>
+                                    <div class="text-sm text-gray-600">Garis panduan suara dan nada</div>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/ariffazil/makcikGPT/blob/main/docs/02-batas-penolakan.md" target="_blank" class="flex items-center p-4 bg-nusantara-cream rounded-lg hover:bg-nusantara-gold/20 transition-colors group">
+                                <span class="text-2xl mr-3">🚫</span>
+                                <div>
+                                    <div class="font-semibold text-nusantara-teal group-hover:text-nusantara-teal-dark">Batas Penolakan</div>
+                                    <div class="text-sm text-gray-600">Bila dan kenapa kita menolak</div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="space-y-4">
+                    <h3 class="font-serif text-2xl font-bold text-nusantara-teal">📁 Folder PROPA</h3>
+                    <p class="text-gray-600 mb-4">Dokumen sokongan dan bahan rujukan:</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center p-4 bg-nusantara-cream rounded-lg">
+                            <span class="text-2xl mr-3">📄</span>
+                            <div>
+                                <div class="font-semibold text-nusantara-teal">TECH_BRIEF_INTELLIGENCE_KERNEL.md</div>
+                            </div>
+                        </li>
+                        <li class="flex items-center p-4 bg-nusantara-cream rounded-lg">
+                            <span class="text-2xl mr-3">🐦</span>
+                            <div>
+                                <div class="font-semibold text-nusantara-teal">X_THREAD_INTELLIGENCE_KERNEL.md</div>
+                            </div>
+                        </li>
+                        <li class="flex items-center p-4 bg-nusantara-cream rounded-lg">
+                            <span class="text-2xl mr-3">📊</span>
+                            <div>
+                                <div class="font-semibold text-nusantara-teal">PETRONAS FY2025 Reports (PDF)</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 gradient-nusantara batik-pattern relative">
+        <div class="absolute inset-0 bg-black/30"></div>
+        <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+            <h2 class="font-serif text-4xl md:text-5xl font-bold text-white mb-6">Sertai Perbincangan</h2>
+            <p class="text-xl text-nusantara-cream mb-8">
+                MakCikGPT adalah projek open-source. Kau bebas guna, ubah, share — 
+                tapi kalau kau deploy, kau <strong>mesti</strong> share perubahan balik kepada komuniti.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/ariffazil/makcikGPT" target="_blank" class="bg-white text-nusantara-teal font-bold py-4 px-8 rounded-full hover:bg-nusantara-cream transition-colors shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    Star di GitHub ⭐
+                </a>
+                <a href="https://github.com/ariffazil/makcikGPT/issues" target="_blank" class="bg-transparent border-2 border-white text-white font-bold py-4 px-8 rounded-full hover:bg-white hover:text-nusantara-teal transition-colors">
+                    Buka Issue 💬
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-nusantara-teal-dark text-nusantara-cream py-12">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <img src="assets/logo.svg" alt="MakCikGPT" class="h-10 w-10">
+                        <span class="text-nusantara-gold font-serif font-bold text-xl">MakCikGPT</span>
+                    </div>
+                    <p class="text-sm opacity-80">
+                        Ruang untuk rasa, batas untuk selamat.<br>
+                        Ditempa untuk Nusantara.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-nusantara-gold mb-4">Pautan Pantas</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#tentang" class="hover:text-nusantara-gold transition-colors">Tentang</a></li>
+                        <li><a href="#tulisan" class="hover:text-nusantara-gold transition-colors">Tulisan</a></li>
+                        <li><a href="https://github.com/ariffazil/makcikGPT" target="_blank" class="hover:text-nusantara-gold transition-colors">GitHub</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-nusantara-gold mb-4">Lesen</h4>
+                    <p class="text-sm opacity-80">
+                        <a href="https://github.com/ariffazil/makcikGPT/blob/main/LICENSE" target="_blank" class="hover:text-nusantara-gold transition-colors">
+                            AGPL-3.0
+                        </a><br>
+                        Ditempa, bukan diberi.
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-nusantara-teal pt-8 text-center text-sm opacity-60">
+                <p>© 2025 MakCikGPT — Suara hati rakyat jelata ❤️🇲🇾</p>
+                <p class="mt-2 font-serif italic">"Ditempa Bukan Diberi" — Forged, Not Given</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

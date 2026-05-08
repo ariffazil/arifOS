@@ -453,6 +453,7 @@ else:
         # Axis feature flags: set ARIFOS_ENABLE_{P|T|V|G|E|M}_AXIS=false to gate an axis
         def _axis_enabled(axis):
             return os.getenv(f"ARIFOS_ENABLE_{axis}_AXIS", "true").lower() != "false"
+
         try:
             from arifosmcp.mcp_tools import (
                 create_perception_mcp,

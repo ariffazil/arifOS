@@ -1,0 +1,79 @@
+{
+  "_schema_version": "1.0.0",
+  "_note": "WEALTH by arifOS — Sample demo state. All values are ESTIMATE.",
+  "_epistemic": "ESTIMATE",
+  "_created": "2026-04-14T02:30:00+08:00",
+
+  "identity": {
+    "id": "demo-user-001",
+    "name": "Arif Demo",
+    "currency_base": "MYR",
+    "locale": "ms-MY",
+    "maruah_floor": 0.6,
+    "created_epoch": "2026-04-14T02:30:00+08:00",
+    "last_seal": "2026-04-14T02:30:00+08:00"
+  },
+
+  "assets": [
+    { "id": "a001", "name": "ASB", "category": "liquid", "value": 45000, "currency": "MYR", "tag": "CLAIM", "deleted": false },
+    { "id": "a002", "name": "EPF", "category": "retirement", "value": 120000, "currency": "MYR", "tag": "CLAIM", "deleted": false },
+    { "id": "a003", "name": "Rumah Seri Kembangan", "category": "property", "value": 420000, "currency": "MYR", "tag": "ESTIMATE", "deleted": false },
+    { "id": "a004", "name": "Savings Account", "category": "liquid", "value": 18000, "currency": "MYR", "tag": "CLAIM", "deleted": false }
+  ],
+
+  "liabilities": [
+    { "id": "l001", "name": "Home Loan", "category": "mortgage", "principal": 320000, "outstanding": 285000, "interest_rate": 0.042, "monthly_payment": 1650, "currency": "MYR", "tag": "CLAIM", "deleted": false },
+    { "id": "l002", "name": "Car Loan", "category": "car", "principal": 65000, "outstanding": 38000, "interest_rate": 0.035, "monthly_payment": 950, "currency": "MYR", "tag": "CLAIM", "deleted": false }
+  ],
+
+  "cashflow": {
+    "income": [
+      { "id": "i001", "name": "Gaji Tetap", "monthly_amount": 8500, "reliability": "guaranteed", "tag": "CLAIM", "active": true, "deleted": false },
+      { "id": "i002", "name": "Freelance", "monthly_amount": 1500, "reliability": "irregular", "tag": "ESTIMATE", "active": true, "deleted": false }
+    ],
+    "expenses": [
+      { "id": "e001", "name": "Mortgage", "monthly_amount": 1650, "category": "fixed", "tag": "CLAIM", "active": true, "deleted": false },
+      { "id": "e002", "name": "Car Loan", "monthly_amount": 950, "category": "fixed", "tag": "CLAIM", "active": true, "deleted": false },
+      { "id": "e003", "name": "Living Expenses", "monthly_amount": 2800, "category": "variable", "tag": "ESTIMATE", "active": true, "deleted": false },
+      { "id": "e004", "name": "Insurance", "monthly_amount": 450, "category": "fixed", "tag": "CLAIM", "active": true, "deleted": false }
+    ]
+  },
+
+  "goals": [
+    {
+      "id": "g001",
+      "name": "Emergency Fund — 6 months",
+      "target_amount": 48000,
+      "current_amount": 18000,
+      "target_date": "2027-04-14",
+      "state": "ACTIVE",
+      "priority": 1,
+      "tag": "CLAIM",
+      "deleted": false
+    },
+    {
+      "id": "g002",
+      "name": "Investment Portfolio Seed",
+      "target_amount": 100000,
+      "current_amount": 45000,
+      "target_date": "2029-01-01",
+      "state": "ACTIVE",
+      "priority": 2,
+      "tag": "ESTIMATE",
+      "deleted": false
+    }
+  ],
+
+  "maruah_score": {
+    "current": 0.71,
+    "floor": 0.6,
+    "dimensions": {
+      "financial_integrity": 0.80,
+      "sovereignty": 0.75,
+      "debt_dignity": 0.60,
+      "amanah_index": 0.70,
+      "community_contribution": 0.30
+    },
+    "last_computed": "2026-04-14T02:30:00+08:00"
+  }
+}

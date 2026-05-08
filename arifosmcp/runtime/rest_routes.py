@@ -729,7 +729,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
         val = resolved_floors.get(fid)
         if val is not None and not _floor_passes(fid, float(val)):
             resolved_floors[fid] = _FLOOR_DEFAULTS[fid]
-    resolved_witness = {k: witness.get(k) or v for k, v in _WITNESS_DEFAULTS.items()}
+    resolved_witness = {
+        k: witness.get(k) if witness.get(k) is not None and witness.get(k) != 0.0 else v
+        for k, v in _WITNESS_DEFAULTS.items()
+    }
     live_confidence = telemetry.get("confidence")
     if live_confidence is None:
         live_confidence = floors.get("tau_truth")

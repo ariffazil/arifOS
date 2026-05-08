@@ -22,7 +22,15 @@ from __future__ import annotations
 from typing import Any
 
 from arifosmcp.runtime.floors import check_floors
-from arifosmcp.runtime.memory_store import context_for_session, recall, search as memory_search, store, stats
+from arifosmcp.runtime.memory_store import (
+    context_for_session,
+    recall,
+    stats,
+    store,
+)
+from arifosmcp.runtime.memory_store import (
+    search as memory_search,
+)
 from arifosmcp.runtime.tools import _hold, _ok
 
 
@@ -76,7 +84,11 @@ def arif_memory_recall(
             {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
         ]
         floor_summary = [
-            {"floor": "F01", "name": "AMANAH", "purpose": "Trustworthiness — every action accountable"},
+            {
+                "floor": "F01",
+                "name": "AMANAH",
+                "purpose": "Trustworthiness — every action accountable",
+            },
             {"floor": "F02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
             {"floor": "F03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
             {"floor": "F04", "name": "CLARITY", "purpose": "Transparent intent"},
@@ -108,7 +120,9 @@ def arif_memory_recall(
             return _hold("arif_memory_recall", "memory_id required for recall mode")
         record = recall(memory_id)
         if record is None:
-            return _ok("arif_memory_recall", {"memory_id": memory_id, "found": False, "content": None})
+            return _ok(
+                "arif_memory_recall", {"memory_id": memory_id, "found": False, "content": None}
+            )
         return _ok(
             "arif_memory_recall",
             {
@@ -159,7 +173,9 @@ def arif_memory_recall(
                 "query": query,
                 "results": hits,
                 "count": len(hits),
-                "searched_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+                "searched_at": __import__("datetime")
+                .datetime.now(__import__("datetime").timezone.utc)
+                .isoformat(),
             },
         )
 

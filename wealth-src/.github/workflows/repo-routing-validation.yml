@@ -1,0 +1,59 @@
+name: Repo Routing Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches-ignore: []
+
+jobs:
+  validate-routing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate REPO trailer
+        run: |
+          set -euo pipefail
+
+          TARGET_REPO="${{ github.event.pull_request.base.repo.name }}"
+          echo "Target repo: $TARGET_REPO"
+          echo "Target repo (lowercase): ${TARGET_REPO,,}"
+
+          COMMITS=$(git log --format='%H %B' origin/main..HEAD)
+          echo "Checking commits..."
+
+          declare -a FAILED=()
+          echo "$COMMITS" | while IFS= read -r sha body; do
+            if ! echo "$body" | grep -qi "^REPO="; then
+              echo "❌ Commit $sha: Missing REPO= trailer"
+              FAILED+=("commit $sha: no REPO= trailer")
+            else
+              DECLARED=$(echo "$body" | grep -i "^REPO=" | sed 's/^REPO=//i' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+              if [ "$DECLARED" != "${TARGET_REPO,,}" ]; then
+                echo "❌ Commit $sha: REPO mismatch (got '$DECLARED', expected '$TARGET_REPO')"
+                FAILED+=("commit $sha: REPO=$DECLARED does not match target $TARGET_REPO")
+              else
+                echo "✅ Commit $sha: REPO=$DECLARED ✓"
+              fi
+            fi
+          done
+
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo ""
+            echo "============================================"
+            echo "🛑 ROUTING VALIDATION FAILED"
+            echo "============================================"
+            for msg in "${FAILED[@]}"; do
+              echo "  - $msg"
+            done
+            echo "All commit messages must include: REPO=<target-repo>"
+            echo "Target repo for this PR: $TARGET_REPO"
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ All commits have valid REPO= trailers"

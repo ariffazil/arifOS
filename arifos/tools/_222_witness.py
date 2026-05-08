@@ -205,19 +205,91 @@ def _build_divergence_points(organs: dict[str, dict], tri_witness_score: float) 
     return divergence_points or ["consensus_below_harmony_threshold"]
 
 
+def _parse_well_unified(well_evidence: dict | None) -> dict:
+    """Parse WELL unified substrate packet (human + machine + MCP + coupled).
+
+    Backward-compatible: if well_evidence is old flat shape, degrade gracefully.
+    """
+    if well_evidence is None:
+        return {
+            "human_ready": "UNKNOWN",
+            "machine_ready": "UNKNOWN",
+            "mcp_ready": "UNKNOWN",
+            "coupled_verdict": "HOLD",
+            "well_score": 50.0,
+            "confidence": 0.5,
+        }
+
+    # New unified packet shape from WELL
+    if "coupled" in well_evidence:
+        coupled = well_evidence.get("coupled", {})
+        return {
+            "human_ready": coupled.get("human_ready", "UNKNOWN"),
+            "machine_ready": coupled.get("machine_ready", "UNKNOWN"),
+            "mcp_ready": coupled.get("mcp_ready", "UNKNOWN"),
+            "coupled_verdict": coupled.get("coupled_verdict", "HOLD"),
+            "well_score": well_evidence.get("well_score", 50.0),
+            "confidence": _get_organ_confidence(well_evidence),
+        }
+
+    # Legacy flat shape — degrade gracefully
+    conf = _get_organ_confidence(well_evidence)
+    return {
+        "human_ready": "UNKNOWN",
+        "machine_ready": "UNKNOWN",
+        "mcp_ready": "UNKNOWN",
+        "coupled_verdict": "HOLD" if (conf is None or conf < 0.6) else "PROCEED",
+        "well_score": 50.0,
+        "confidence": conf,
+    }
+
+
 def _build_judge_signal(
     well_readiness: float,
+    well_parsed: dict | None = None,
 ) -> dict:
     """Build WELL readiness signal for 888_JUDGE gating."""
-    return {
-        "well_readiness": well_readiness,
-        "recommendation": "HOLD_888" if well_readiness < 0.6 else "PROCEED",
-        "note": (
+    parsed = well_parsed or {}
+    coupled = parsed.get("coupled_verdict", "HOLD")
+    human_ready = parsed.get("human_ready", "UNKNOWN")
+    machine_ready = parsed.get("machine_ready", "UNKNOWN")
+    mcp_ready = parsed.get("mcp_ready", "UNKNOWN")
+
+    # Base readiness from scalar (backward compatible)
+    base_hold = well_readiness < 0.6
+
+    # Override with coupled verdict if available
+    if coupled == "HOLD":
+        recommendation = "HOLD_888"
+        note = (
+            f"WELL coupled verdict: HOLD. "
+            f"Human={human_ready}, Machine={machine_ready}, MCP={mcp_ready}. "
+            "Only 888_JUDGE may override after explicit review."
+        )
+    elif coupled == "CAUTION":
+        recommendation = "CAUTION_888"
+        note = (
+            f"WELL coupled verdict: CAUTION. "
+            f"Human={human_ready}, Machine={machine_ready}, MCP={mcp_ready}. "
+            "Proceed with narrowed scope and human confirmation."
+        )
+    else:
+        recommendation = "HOLD_888" if base_hold else "PROCEED"
+        note = (
             "WELL readiness below 0.6 gates human escalation. "
             "Only 888_JUDGE may override after explicit review."
-            if well_readiness < 0.6
+            if base_hold
             else "WELL readiness sufficient — claims may proceed to 888_JUDGE."
-        ),
+        )
+
+    return {
+        "well_readiness": well_readiness,
+        "recommendation": recommendation,
+        "coupled_verdict": coupled,
+        "human_ready": human_ready,
+        "machine_ready": machine_ready,
+        "mcp_ready": mcp_ready,
+        "note": note,
     }
 
 
@@ -403,6 +475,9 @@ async def execute(
         well_conf = _get_organ_confidence(well_evidence)
         well_readiness = well_conf if well_conf is not None else 0.5
 
+        # Parse WELL unified substrate packet (human + machine + MCP + coupled)
+        well_parsed = _parse_well_unified(well_evidence)
+
         # Assumptions
         assumptions = _generate_assumptions(mode, search_query, witness_required, depth)
 
@@ -428,6 +503,7 @@ async def execute(
             "tri_witness_score": tri_witness_score,
             "organ_confidences": {name: o.get("confidence") for name, o in organs.items()},
             "well_readiness": well_readiness,
+            "well_substrate": well_parsed,
             "witness_required": witness_required,
         }
         reasoning_hash = hashlib.sha256(
@@ -439,7 +515,7 @@ async def execute(
             tri_witness_tag, organs, tri_witness_score
         )
         divergence_points = _build_divergence_points(organs, tri_witness_score)
-        judge_signal = _build_judge_signal(well_readiness)
+        judge_signal = _build_judge_signal(well_readiness, well_parsed)
 
         # ── EMD Stack: Decoder signals ────────────────────────────────────────
         # Tri-Witness Report: human / ai / earth alignment
@@ -497,6 +573,7 @@ async def execute(
             "consensus_rationale_detail": consensus_rationale_detail,
             "divergence_points": divergence_points,
             "judge_signal": judge_signal,
+            "well_substrate": well_parsed,
             "assumptions": assumptions,
             "confidence": tri_witness_score,  # Derived from evidence, not hardcoded
             "uncertainty_acknowledged": True,

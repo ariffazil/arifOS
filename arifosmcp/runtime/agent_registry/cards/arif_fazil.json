@@ -1,0 +1,29 @@
+{
+  "agent_id": "arif_fazil",
+  "display_name": "Muhammad Arif bin Fazil",
+  "version": "human-judge-v1.0",
+  "provider": "human",
+  "declared_lane": "HUMAN",
+  "federation_role": "sovereign_judge",
+  "compliance_tier": "SOVEREIGN",
+  "constitutional_floors": 13,
+  "side_effect_policy": "human_veto_absolute",
+  "human_authority_required": true,
+  "registry_status": "SEALED",
+  "registered_at": "2026-05-08T09:30:00+00:00",
+  "sovereign": "Muhammad Arif bin Fazil",
+  "card_hash": "sha256:arif-fazil-sovereign-human-judge-888",
+  "aliases": ["Arif", "arif"],
+  "canonical_card": "Arif.json",
+  "phase": 0,
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "verdict": "SEAL",
+  "authority_note": "Human operator holds final veto over all machine judgment. WELL reflects. arifOS governs. Arif decides.",
+  "_meta": {
+    "registered_by": "arifOS-kernel",
+    "registration_method": "sovereign_binding",
+    "arifos_version": "v2026.05.08-KANON",
+    "registry_file": "runtime/agent_registry/cards/arif_fazil.json",
+    "alias_for": "Arif.json"
+  }
+}

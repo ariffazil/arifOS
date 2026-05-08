@@ -218,8 +218,10 @@ def calculate_npv(
 
 def calculate_irr(initial: float, flows: list[float]) -> dict[str, Any]:
     series = build_cashflow_series(initial, flows)
+
     def f(r):
         return npv_from_series(series, r)
+
     low, high = -0.9, 1.0
     for _ in range(100):
         mid = (low + high) / 2

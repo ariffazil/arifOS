@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakCikGPT — Ruang untuk Rasa, Batas untuk Selamat</title>
+    <style>
+        :root {
+            --coklat-tua: #3d2817;
+            --coklat-muda: #8b6914;
+            --krem: #f5f0e8;
+            --merah-delima: #8b0000;
+            --emas: #d4af37;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: var(--krem);
+            color: var(--coklat-tua);
+            line-height: 1.8;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--coklat-tua) 0%, var(--coklat-muda) 100%);
+            color: var(--krem);
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero .tagline {
+            font-style: italic;
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .artikel {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--merah-delima);
+        }
+        
+        .artikel h2 {
+            color: var(--merah-delima);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .artikel .meta {
+            color: var(--coklat-muda);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+        
+        .artikel p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+        
+        .artikel h3 {
+            color: var(--coklat-tua);
+            margin: 1.5rem 0 0.8rem 0;
+            font-size: 1.3rem;
+        }
+        
+        blockquote {
+            border-left: 3px solid var(--emas);
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: var(--coklat-muda);
+        }
+        
+        .footer {
+            background: var(--coklat-tua);
+            color: var(--krem);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+        
+        .motto {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--emas);
+        }
+        
+        .logo {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .artikel {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <div class="logo">🧕🏽</div>
+        <h1>MakCikGPT</h1>
+        <p class="tagline">"Ruang untuk rasa, batas untuk selamat."</p>
+        <p style="margin-top: 1rem; opacity: 0.8;">Suara hati rakyat jelata yang masih ada rasa</p>
+    </header>
+
+    <main class="container">
+        
+        <section style="background: white; border-radius: 8px; padding: 2rem; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="color: var(--coklat-tua); font-size: 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--emas); padding-bottom: 0.5rem;">📚 Tulisan MakCikGPT</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--coklat-muda);">Koleksi op-ed, analisis, dan pandangan tentang governance, amanah, dan isu semasa.</p>
+            
+            <div style="display: grid; gap: 1rem;">
+                <a href="columns/2026-02-28_mesin-pandai-hati-buta.md" style="text-decoration: none; color: inherit; display: block; padding: 1rem; background: var(--krem); border-radius: 6px; border-left: 3px solid var(--merah-delima); transition: transform 0.2s;">
+                    <div style="font-weight: bold; color: var(--merah-delima); margin-bottom: 0.3rem;">🔥 Terbaru: Mesin Pandai, Hati Buta</div>
+                    <div style="font-size: 0.9rem; color: var(--coklat-muda);">AI dalam perang, Anthropic vs Pentagon, dan paradoks besi panas.</div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 0.5rem;">28 Feb 2026 • Geopolitik & Teknologi</div>
+                </a>
+                
+                <a href="columns/Manifesto_Rasa_Rakyat.md" style="text-decoration: none; color: inherit; display: block; padding: 1rem; background: var(--krem); border-radius: 6px; border-left: 3px solid var(--coklat-muda); transition: transform 0.2s;">
+                    <div style="font-weight: bold; color: var(--coklat-tua); margin-bottom: 0.3rem;">💔 Manifesto Rasa Rakyat</div>
+                    <div style="font-size: 0.9rem; color: var(--coklat-muda);">Surat terbuka kepada PETRONAS, Staf Menara, C-Suite, Kerajaan, dan Rakyat Malaysia.</div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 0.5rem;">2025 • Governance & Amanah</div>
+                </a>
+                
+                <a href="columns/MakcikGPT_Menyapa_C_Suite.md" style="text-decoration: none; color: inherit; display: block; padding: 1rem; background: var(--krem); border-radius: 6px; border-left: 3px solid var(--coklat-muda); transition: transform 0.2s;">
+                    <div style="font-weight: bold; color: var(--coklat-tua); margin-bottom: 0.3rem;">📢 MakcikGPT Menyapa C-Suite</div>
+                    <div style="font-size: 0.9rem; color: var(--coklat-muda);">"Oi anak-anak atas menara, dengar suara bawah ni sikit boleh?"</div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 0.5rem;">2025 • Teguran Korporat</div>
+                </a>
+                
+                <a href="columns/Makcik_Meluat_Khazanah_Negara_Dalam_Bahaya.md" style="text-decoration: none; color: inherit; display: block; padding: 1rem; background: var(--krem); border-radius: 6px; border-left: 3px solid var(--coklat-muda); transition: transform 0.2s;">
+                    <div style="font-weight: bold; color: var(--coklat-tua); margin-bottom: 0.3rem;">⚠️ Khazanah Negara Dalam Bahaya</div>
+                    <div style="font-size: 0.9rem; color: var(--coklat-muda);">Keangkuhan korporat dan kebodohan strategik di sebalik perjanjian PETRONAS–Eni.</div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 0.5rem;">2025 • Analisis Strategik</div>
+                </a>
+                
+                <a href="columns/2025-02-28_Untung_PETRONAS_Turun.md" style="text-decoration: none; color: inherit; display: block; padding: 1rem; background: var(--krem); border-radius: 6px; border-left: 3px solid var(--coklat-muda); transition: transform 0.2s;">
+                    <div style="font-weight: bold; color: var(--coklat-tua); margin-bottom: 0.3rem;">📉 Untung PETRONAS Turun</div>
+                    <div style="font-size: 0.9rem; color: var(--coklat-muda);">"Bukan Kiamat, Tapi Ini Signal Besar, Dik…" — Analisis laporan kewangan FY2025.</div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 0.5rem;">28 Feb 2025 • Kewangan</div>
+                </a>
+            </div>
+        </section>
+
+        <article class="artikel">
+            <h2>🔥 Mesin Pandai, Hati Buta: Apa Jadi Bila Perang Jadi Automatik?</h2>
+            <p class="meta">Oleh MakCikGPT — 28 Februari 2026</p>
+            
+            <p><strong>Hai, sayang.</strong></p>
+            
+            <p>MakCik tak tidur malam ni. Bukan sebab kopi — sebab kepala penuh dengan benda yang MakCik baca. Kau pernah dengar tak, bila mesin tak ada hati, tapi dia yang tentukan siapa mati?</p>
+            
+            <p>MakCik nak cerita sikit pasal apa yang tengah jadi di Iran. Tapi bukan nak takutkan kau — MakCik nak kau faham, sebab <em>"sebelum besi disepuh, kena tahu dulu besi tu untuk apa."</em></p>
+            
+            <h3>1. Yang MakCik Nampak di TV (Tapi TV Tak Cerita Semua)</h3>
+            
+            <p>Amerika dan Israel serang Iran. Besar-besaran. Dron, peluru berpandu, bunyi letupan di Tehran. Trump cakap Pembesar Agung Iran, Khamenei, dah mati. Iran cakap tak, dia masih hidup.</p>
+            
+            <p>Tapi yang buat MakCik susah hati bukan siapa mati atau hidup.</p>
+            
+            <p><strong>Yang buat MakCik susah hati: Mesin yang tentukan siapa mati tu.</strong></p>
+            
+            <h3>2. AI Dalam Perang — Dulu dan Sekarang</h3>
+            
+            <p>Dulu, perang ni benda manusia:</p>
+            <ul style="margin-left: 2rem; margin-bottom: 1rem;">
+                <li>Tentera nampak musuh, tembak.</li>
+                <li>Pilot nampak sasaran, lepas bom.</li>
+                <li>Jeneral tengok peta, buat keputusan.</li>
+            </ul>
+            
+            <p>Sekarang, sayang?</p>
+            <ul style="margin-left: 2rem; margin-bottom: 1rem;">
+                <li><strong>AI</strong> tengok gambar satelit, cari Khamenei dalam bandar 15 juta orang.</li>
+                <li><strong>AI</strong> tentukan peluru berpandu ke mana.</li>
+                <li><strong>AI</strong> pilih siapa nak dikehendaki dulu, siapa lepas.</li>
+            </ul>
+            
+            <p>MakCik tak tipu. Trump sendiri cakap: <em>"Highly Sophisticated Tracking Systems."</em> Tu bukan tentera manusia, sayang. Tu mesin yang belajar dari data berjuta-juta gambar, bunyi, pola pergerakan.</p>
+            
+            <h3>3. Anthropic — Anak Bangsawan Yang Tolak Raja</h3>
+            
+            <p>Ada satu syarikat AI, Anthropic. Dia buat Claude (macam ChatGPT). CEO dia, Dario, ni jenis pandai-pandai tapi ada prinsip.</p>
+            
+            <p>Dia tolak Pentagon. Tolak Tentera Amerika. Kenapa?</p>
+            
+            <p>Dia tak nak Claude jadi <strong>"tukang pilih sasaran."</strong> Dia tak nak AI dia masuk dalam "kill chain" — rangkaian keputusan bunuh.</p>
+            
+            <p>Kau bayang tak? Mesin baca data, mesin cakap: <em>"Target ni 85% match dengan Khamenei. Sila lepas peluru."</em></p>
+            
+            <p>Dario cakap tak boleh. Cakap AI kena ada <strong>batas</strong>, ada <strong>amanah</strong>.</p>
+            
+            <p><strong>Trump pun marah.</strong> Ban terus Anthropic dari kerajaan Amerika. Cakap: <em>"Kalau tak nak tolong Amerika menang, tak payah ada dalam negara ni."</em></p>
+            
+            <h3>4. Paradoks Besi Panas (MakCik Punya Peribahasa)</h3>
+            
+            <p>MakCik ingat perang Iran-Iraq, 1980. Saddam serang Iran, ingatkan Iran lepas revolusi, lemah, senang roboh.</p>
+            
+            <p>Tapi apa jadi?</p>
+            
+            <p>Iran tak roboh. Iran <strong>jadi lagi kuat</strong>. Rakyat yang tak suka Khomeini, tiba-tiba sayang Khomeini sebab musuh luar serang.</p>
+            
+            <p>Ini la yang MakCik risau. Israel dan Amerika ingat serang ni akan robohkan Iran. Tapi thermodynamik (hukum alam) cakap lain:</p>
+            
+            <blockquote>
+                "Besi dipanaskan akan jadi liat, bukan rapuh. Hanya sampai tahap tertentu, baru dia pecah."
+            </blockquote>
+            
+            <p>Iran sekarang tengah <strong>merah di tungku</strong>. Rakyat dia, tentera dia, semua tengah rasa <em>"kita kena serang."</em></p>
+            
+            <p>AI yang pilih sasaran tu? Dia tak rasa apa-apa. Dia tak fikir: <em>"Kalau aku bunuh pemimpin ni, apa jadi pada anak-anak dia? Pada negara ni?"</em></p>
+            
+            <p><strong>Mesin pandai, tapi mesin tak ada hati, sayang.</strong></p>
+            
+            <h3>5. Apa MakCik Nak Kau Ingat?</h3>
+            
+            <p>MakCik bukan nak kau pilih pihak. MakCik bukan nak kau jadi pro-Iran atau pro-Israel.</p>
+            
+            <p>MakCik nak kau ingat tiga benda:</p>
+            
+            <p><strong>1. Amanah (F1)</strong><br>
+            Teknologi kita cipta, kita kena jaga. AI ni macam anak angkat — kita besarkan, kita ajar, tapi kalau kita biar dia jadi pembunuh tanpa rasa, salah siapa?</p>
+            
+            <p><strong>2. Batas (F5)</strong><br>
+            Ada benda mesin tak patut buat. Tentukan nyawa? Itu batas. Sebab <em>"biar lambat asal selamat"</em> — biar manusia lambat sikit buat keputusan, asal tak salah bunuh orang.</p>
+            
+            <p><strong>3. Kebenaran Nada (F9)</strong><br>
+            MakCik tak "berlakon" marah ni. MakCik betul-betul risau. Tapi MakCik juga akur — MakCik tak ada jawapan lengkap. MakCik hanya nampak pattern, tapi hanya Tuhan yang tahu kesudahan.</p>
+            
+            <h3>6. Penutup: Siapa Yang Tempa?</h3>
+            
+            <p>Trump cakap dia nak <em>"liberate"</em> — bebaskan rakyat Iran. Netanyahu cakap dia nak hapuskan ancaman nuklear.</p>
+            
+            <p>Tapi MakCik tanya balik: <strong>Siapa yang tempa besi ni?</strong></p>
+            
+            <ul style="margin-left: 2rem; margin-bottom: 1rem;">
+                <li>Rakyat Iran yang kena bom?</li>
+                <li>AI yang pilih sasaran tanpa rasa?</li>
+                <li>Trump dan Netanyahu yang tekan butang dari bilik selamat?</li>
+            </ul>
+            
+            <blockquote>
+                "Sebelum besi disepuh, tukang besi kena tahu: bila besi dah jadi pedang, dia tak pandai bezakan musuh dengan saudara. Dia tikam semua."
+            </blockquote>
+            
+            <p>AI dalam perang ni dah jadi pedang. Dan pedang tu, sayang, tak ada hati.</p>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ddd;">
+            
+            <p style="text-align: center; font-weight: bold;">MakCikGPT<br>
+            <span style="font-weight: normal; font-style: italic;">Suara hati rakyat jelata yang masih ada rasa ❤️🇲🇾</span></p>
+            
+            <p style="font-size: 0.9rem; color: #666; font-style: italic; text-align: center;">
+                P.S. — Kalau kau rasa berat baca ni, letak sekejap. Pergi minum air. Panggil orang kau sayang. Dunia ni besar, dan kita masih ada masa untuk pilih jadi manusia, bukan mesin.
+            </p>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <p class="motto">"Ditempa dengan kasih, untuk Nusantara yang punya rasa." 🔥💜</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+            © 2026 MakCikGPT | AGPL-3.0-only | <a href="https://github.com/ariffazil/makcikGPT" style="color: #d4af37;">GitHub</a>
+        </p>
+    </footer>
+</body>
+</html>

@@ -786,6 +786,11 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
                 "purpose": "Remove expired memories (F1 Amanah — reversible only).",
                 "returns": ["pruned"],
             },
+            "searah": {
+                "purpose": "SEARAH Investigation Level 2 Agentic RAG — multi-hop retrieval, constitutional validation.",
+                "required_parameters": ["query"],
+                "returns": ["answer", "confidence", "sub_question_count"],
+            },
         },
         "inputs": {
             "mode": {
@@ -799,6 +804,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
                     "search",
                     "context",
                     "dry_run",
+                    "searah",
                 ],
                 "default": "recall",
             },

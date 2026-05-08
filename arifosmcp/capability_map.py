@@ -103,6 +103,7 @@ ALIGNED_STAGES: dict[str, str] = {
 
 # ── Iterator shims (legacy — all trivially valid in current architecture) ────────
 
+
 def iter_unmapped_legacy_tools() -> list[str]:
     """Legacy mapping is now 1:1 — no unmapped tools."""
     return []

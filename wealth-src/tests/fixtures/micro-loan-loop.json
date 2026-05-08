@@ -1,0 +1,264 @@
+{
+  "_description": "Concrete request/response examples for a RM 50,000 community solar micro-loan",
+  "_epistemic": "ESTIMATE",
+  "envelope": {
+    "envelope_id": "env-2026-0414-001",
+    "epoch": "2026-04-14T07:00:00.000Z",
+    "authority": "arifos",
+    "envelope_type": "PERMITTED",
+    "verdict": "SEAL",
+    "constraints": {
+      "floors": ["F1", "F6", "F7", "F13"],
+      "physics": ["geo_feasible", "climate_clear"],
+      "capital": []
+    }
+  },
+  "steps": [
+    {
+      "step": 1,
+      "tool": "wealth.state.marketsnapshot",
+      "request": {
+        "header": {
+          "session_id": "sess-2026-0414-001",
+          "envelope_id": "env-2026-0414-001",
+          "epoch": "2026-04-14T07:00:01.000Z"
+        },
+        "jurisdiction": "MY",
+        "asset_classes": ["gov_bonds", "equity_asean", "solar_project_finance"],
+        "tenor_months": 120
+      },
+      "response": {
+        "rf_curve": [
+          { "tenor_y": 1, "rate": 0.0325 },
+          { "tenor_y": 5, "rate": 0.0350 },
+          { "tenor_y": 10, "rate": 0.0380 }
+        ],
+        "erp": 0.055,
+        "credit_spreads": { "AAA": 0.008, "BBB": 0.022 },
+        "volatility_surface": [{ "moneyness": 1.0, "iv": 0.16 }],
+        "capital_temperature": 0.42,
+        "verdict": "SEAL",
+        "epistemic": "ESTIMATE",
+        "vault_log_entry": { "tool": "wealth.state.marketsnapshot", "epoch": "2026-04-14T07:00:01.050Z" },
+        "witness": { "human": false, "ai": true, "earth": true }
+      }
+    },
+    {
+      "step": 2,
+      "tool": "wealth.risk.capitalallocation",
+      "request": {
+        "header": {
+          "session_id": "sess-2026-0414-001",
+          "envelope_id": "env-2026-0414-001",
+          "epoch": "2026-04-14T07:00:02.000Z"
+        },
+        "portfolio": {
+          "buckets": [
+            { "id": "solar-micro-001", "name": "Community Solar Micro-Loan", "exposure_myr": 50000, "sector": "renewables", "region": "MY-Selangor" }
+          ]
+        },
+        "confidence_level": 0.95,
+        "maruah_drawdown_floor": 0.6
+      },
+      "response": {
+        "economic_capital": 4200,
+        "risk_decomposition": {
+          "factor": { "policy": 0.012, "technology": 0.008 },
+          "geo": { "MY-Selangor": 0.015 }
+        },
+        "risk_budgets": [
+          { "bucket_id": "solar-micro-001", "budget_myr": 5000, "utilization": 0.84 }
+        ],
+        "liquidity_buffer": 8500,
+        "verdict": "SEAL",
+        "epistemic": "ESTIMATE",
+        "vault_log_entry": { "tool": "wealth.risk.capitalallocation", "epoch": "2026-04-14T07:00:02.060Z" },
+        "witness": { "human": false, "ai": true, "earth": true }
+      }
+    },
+    {
+      "step": 3,
+      "tool": "wealth.price.exergycost",
+      "request": {
+        "header": {
+          "session_id": "sess-2026-0414-001",
+          "envelope_id": "env-2026-0414-001",
+          "epoch": "2026-04-14T07:00:03.000Z"
+        },
+        "project_inputs": {
+          "energy_mj_per_unit": 50,
+          "material_exergy_mj_per_unit": 120,
+          "output_unit": "kWh_lifetime"
+        }
+      },
+      "response": {
+        "exergy_mj_per_unit": 170,
+        "emergy_proxy": 2450,
+        "entropy_cost_per_unit": 0.003,
+        "verdict": "SEAL",
+        "epistemic": "ESTIMATE",
+        "vault_log_entry": { "tool": "wealth.price.exergycost", "epoch": "2026-04-14T07:00:03.040Z" },
+        "witness": { "human": false, "ai": true, "earth": true }
+      }
+    },
+    {
+      "step": 4,
+      "tool": "wealth.justice.maruahscore",
+      "request": {
+        "header": {
+          "session_id": "sess-2026-0414-001",
+          "envelope_id": "env-2026-0414-001",
+          "epoch": "2026-04-14T07:00:04.000Z"
+        },
+        "project_profile": {
+          "displacement_risk": 0.1,
+          "pollution_load": 0.05,
+          "cultural_loss_risk": 0.0,
+          "community_benefit_share": 0.8
+        }
+      },
+      "response": {
+        "maruah_score": 0.81,
+        "maruah_band": "STABLE",
+        "incidence_map": {
+          "beneficiaries": ["local households", "small contractors"],
+          "cost_bearers": ["utility incumbents"]
+        },
+        "exclusion_flags": [],
+        "verdict": "SEAL",
+        "epistemic": "ESTIMATE",
+        "vault_log_entry": { "tool": "wealth.justice.maruahscore", "epoch": "2026-04-14T07:00:04.050Z" },
+        "witness": { "human": false, "ai": true, "earth": true }
+      }
+    },
+    {
+      "step": 5,
+      "tool": "wealth.price.capitalx",
+      "request": {
+        "header": {
+          "session_id": "sess-2026-0414-001",
+          "envelope_id": "env-2026-0414-001",
+          "epoch": "2026-04-14T07:00:05.000Z"
+        },
+        "base_rate": 0.045,
+        "signals": {
+          "dS": 0.02,
+          "peace2": 1.05,
+          "maruahScore": 0.81,
+          "trustIndex": 0.62,
+          "deltaCiv": 0.15
+        },
+        "wealth_basis": {
+          "e_hat": 0.65,
+          "s_hat": 0.18,
+          "echo_hat": 0.74
+        },
+        "defects": {
+          "paradox": 0.05,
+          "scar": 0.10,
+          "shadow": 0.03
+        }
+      },
+      "response": {
+        "r_adj": 0.0109,
+        "adjustments": {
+          "entropy_penalty": 0.01,
+          "peace_discount": 0.0025,
+          "maruah_discount": 0.0186,
+          "trust_discount": 0.0048,
+          "civ_discount": 0.02,
+          "civ_discount": 0.015
+        },
+        "uncertainty_band": [0.03, 0.09],
+        "verdict": "SEAL",
+        "epistemic": "ESTIMATE",
+        "vault_log_entry": { "tool": "wealth.price.capitalx", "epoch": "2026-04-14T07:00:05.080Z" },
+        "witness": { "human": false, "ai": true, "earth": true }
+      }
+    },
+    {
+      "step": 6,
+      "tool": "wealth.flow.scenarionpv",
+      "request": {
+        "header": {
+          "session_id": "sess-2026-0414-001",
+          "envelope_id": "env-2026-0414-001",
+          "epoch": "2026-04-14T07:00:06.000Z"
+        },
+        "cashflows": [8000, 8200, 8400, 8600, 8800, 9000, 9200, 9400, 9600, 9800],
+        "r_adj": 0.0135,
+        "scenarios": [
+          { "name": "base", "probability": 0.6 },
+          { "name": "subsidy_removed", "probability": 0.3, "cashflow_adjustment": -0.15 },
+          { "name": "tariff_boom", "probability": 0.1, "cashflow_adjustment": 0.12 }
+        ],
+        "geo_constraints": ["geo_feasible", "climate_clear"]
+      },
+      "response": {
+        "npv_distribution": [48250, 31200, 58700],
+        "irr": 0.148,
+        "payback_years": 6.2,
+        "regime_impacts": [
+          { "scenario": "base", "npv": 48250 },
+          { "scenario": "subsidy_removed", "npv": 31200 },
+          { "scenario": "tariff_boom", "npv": 58700 }
+        ],
+        "verdict": "SEAL",
+        "epistemic": "ESTIMATE",
+        "vault_log_entry": { "tool": "wealth.flow.scenarionpv", "epoch": "2026-04-14T07:00:06.090Z" },
+        "witness": { "human": false, "ai": true, "earth": true }
+      }
+    },
+    {
+      "step": 7,
+      "tool": "wealth.control.gate888",
+      "request": {
+        "header": {
+          "session_id": "sess-2026-0414-001",
+          "envelope_id": "env-2026-0414-001",
+          "epoch": "2026-04-14T07:00:07.000Z"
+        },
+        "candidate": {
+          "maruah": 0.81,
+          "r_adj": 0.0135,
+          "entropy_budget_remaining": 0.18,
+          "reversible": true,
+          "human_confirmed": true
+        }
+      },
+      "response": {
+        "hold_triggered": false,
+        "hold_reasons": [],
+        "recommendation": "FUND",
+        "repricing_hints": ["Rate is 351 bps below classical WACC; pass advantage to borrower"],
+        "upstream_signal": "Capital says GO. Thermodynamics + maruah both clear. r_adj = 1.09%.",
+        "verdict": "SEAL",
+        "epistemic": "CLAIM",
+        "vault_log_entry": { "tool": "wealth.control.gate888", "epoch": "2026-04-14T07:00:07.050Z" },
+        "witness": { "human": true, "ai": true, "earth": true }
+      }
+    },
+    {
+      "step": 8,
+      "event": "arifos.seal999",
+      "vault_record": {
+        "event": "SOVEREIGN_LOAN_DECISION",
+        "envelope_id": "env-2026-0414-001",
+        "epoch": "2026-04-14T07:00:08.000Z",
+        "verdict": "SEALED",
+        "project": "Community Solar Micro-Loan RM 50,000",
+        "telemetry": {
+          "dS": 0.02,
+          "peace2": 1.05,
+          "r_adj": 0.0291,
+          "maruah": 0.81,
+          "delta_bps": 351,
+          "npv_base": 48250,
+          "recommendation": "FUND"
+        },
+        "witness": { "human": true, "ai": true, "earth": true },
+        "integrity_hash": "a1b2c3d4e5f67890"
+      }
+    }
+  ]
+}

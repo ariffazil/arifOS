@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "arifos": {
+      "command": "docker",
+      "args": ["exec", "-i", "arifos-unified", "node", "dist/server.js"],
+      "description": "Constitutional Governor — 11 tools (arifOS organ)"
+    },
+    "geox": {
+      "command": "docker",
+      "args": ["exec", "-i", "geox-unified", "python", "server.py"],
+      "description": "Earth Engine — 11 canonical + 4 borrowed = 15 (GEOX organ)"
+    },
+    "wealth": {
+      "command": "curl",
+      "args": ["-s", "-H", "Authorization: Bearer ${WEALTH_BEARER_TOKEN}", "https://wealth.fastmcp.app/sse"],
+      "description": "Capital Engine — 11 canonical + 15 extended = 26 live (WEALTH organ)"
+    },
+    "mcp_time": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-time"],
+      "description": "Time and timezone — 3 tools"
+    },
+    "mcp_filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/workspace"],
+      "description": "File operations — 4 tools"
+    },
+    "mcp_git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git"],
+      "description": "Git operations — 4 tools"
+    },
+    "mcp_memory": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory"],
+      "description": "Entity memory — 4 tools"
+    },
+    "mcp_fetch": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-fetch"],
+      "description": "HTTP fetch — 3 tools"
+    }
+  }
+}

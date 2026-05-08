@@ -1,0 +1,152 @@
+/* Additional custom styles for MakCikGPT website */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #FDF6E3;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #006D5B;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #004D40;
+}
+
+/* Selection color */
+::selection {
+    background: #C9A227;
+    color: #004D40;
+}
+
+/* Animation for hero section */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Batik pattern enhancement */
+.batik-pattern {
+    position: relative;
+}
+
+.batik-pattern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A227' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+}
+
+/* Card hover effects */
+article {
+    transition: all 0.3s ease;
+}
+
+article:hover {
+    transform: translateY(-5px);
+}
+
+/* Button ripple effect */
+button, a {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Malay-inspired decorative elements */
+.malay-border {
+    border: 3px double #C9A227;
+    position: relative;
+}
+
+.malay-border::before,
+.malay-border::after {
+    content: '◆';
+    position: absolute;
+    color: #C9A227;
+    font-size: 12px;
+}
+
+.malay-border::before {
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FDF6E3;
+    padding: 0 10px;
+}
+
+.malay-border::after {
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FDF6E3;
+    padding: 0 10px;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+    h1 {
+        font-size: 2.5rem !important;
+    }
+    
+    h2 {
+        font-size: 2rem !important;
+    }
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #C9A227;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Focus styles for accessibility */
+a:focus-visible,
+button:focus-visible {
+    outline: 3px solid #C9A227;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    nav, footer, .no-print {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}

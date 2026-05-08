@@ -1,0 +1,40 @@
+{
+  "$schema": "https://geox.arif-fazil.com/schemas/app-manifest/v1.json",
+  "app_id": "wealth.capital.judge",
+  "version": "1.0.0-AAA",
+  "domain": "finance",
+  "display_name": "Capital Judge",
+  "description": "Sovereign Capital Allocation Cockpit — v1.3.1 Dimensional Forge",
+  "icon": "https://wealth.arif-fazil.com/apps/capital_judge/icon.svg",
+  "required_tools": [
+    "mcp.wealth.wealth_npv_reward",
+    "mcp.wealth.wealth_score_kernel",
+    "mcp.wealth.wealth_audit_entropy"
+  ],
+  "optional_tools": [
+    "mcp.wealth.wealth_dscr_leverage",
+    "mcp.wealth.wealth_irr_yield",
+    "mcp.wealth.wealth_payback_time"
+  ],
+  "ui_entry": {
+    "resource_uri": "https://wealth.arif-fazil.com/apps/capital_judge/index.html",
+    "mode": "inline-or-external",
+    "capability_required": ["canvas", "embedded_webview"],
+    "inline_config": {
+      "max_width": 1200,
+      "max_height": 800,
+      "resize": true
+    }
+  },
+  "arifos": {
+    "required_floors": ["F1", "F2", "F4", "F5", "F11", "F13"],
+    "audit_level": "full",
+    "vault_route": "999_VAULT",
+    "human_in_the_loop": ["fund_approval", "waiver_issue"]
+  },
+  "verdict_states": {
+    "QUALIFY": "Project meets financial and sovereign criteria.",
+    "REJECT": "Value destruction or ethical breach detected.",
+    "888-HOLD": "Critical leverage or dignity flags require human intervention."
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://makcikgpt.arif-fazil.com/api/schemas/article.json",
+  "title": "MakCikGPT Article Schema",
+  "description": "Schema for MakCikGPT columns and op-eds",
+  "type": "object",
+  "required": ["id", "title", "url", "date_published", "language"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the article"
+    },
+    "title": {
+      "type": "string",
+      "description": "Article title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of article content"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical URL to the article"
+    },
+    "github_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to source on GitHub"
+    },
+    "date_published": {
+      "type": "string",
+      "format": "date",
+      "description": "Publication date (YYYY-MM-DD)"
+    },
+    "date_modified": {
+      "type": "string",
+      "format": "date",
+      "description": "Last modification date (YYYY-MM-DD)"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["ms", "en"],
+      "description": "Article language (ms=Malay, en=English)"
+    },
+    "word_count": {
+      "type": "integer",
+      "description": "Approximate word count"
+    },
+    "token_count_approx": {
+      "type": "integer",
+      "description": "Approximate token count for LLM context"
+    },
+    "line_count": {
+      "type": "integer",
+      "description": "Number of lines in source"
+    },
+    "reading_time_minutes": {
+      "type": "integer",
+      "description": "Estimated reading time in minutes"
+    },
+    "topics": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Array of topic tags"
+    },
+    "tone": {
+      "type": "string",
+      "enum": ["pedas-beradab", "teguran-langsung", "kritikal-tegas", "analitis-mendidik", "warm-firm"],
+      "description": "Article tone/persona style"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"],
+      "description": "Content priority for RAG systems"
+    },
+    "key_themes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Main thematic elements"
+    },
+    "data_points": {
+      "type": "object",
+      "description": "Key factual data extracted from article"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+    "schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to this schema definition"
+    }
+  }
+}

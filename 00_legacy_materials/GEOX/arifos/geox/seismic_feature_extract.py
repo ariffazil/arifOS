@@ -63,7 +63,6 @@ def detect_lineaments(
 
     np.sqrt(grad_x**2 + grad_y**2)
 
-
     rng = np.random.default_rng(int(array.sum()) % 10000 + 7)
 
     n_lineaments = rng.integers(3, 12)
