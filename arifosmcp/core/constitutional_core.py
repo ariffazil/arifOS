@@ -680,7 +680,7 @@ class ConstitutionKernel:
         2. Compute irreversibility
         3. Evaluate constitutional floors
         4. Verify authority
-        5. Issue binding verdict
+        5. Issue constitutional advisory verdict (human authority remains final)
         """
         # Step 1: Threat classification
         threat = self.threat_engine.classify(context)

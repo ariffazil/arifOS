@@ -72,7 +72,7 @@ def register_judge_prompt(mcp: FastMCP) -> list[str]:
             "Guides ASI-strategic adjudication across four axes: "
             "orthogonality (Ω_ortho), F1–F13 floor compliance, risk tier classification, "
             "and irreversibility+entropy evaluation. "
-            "Emits binding verdicts: SEAL (proceed), SABAR (hold), or VOID (halt). "
+            "Emits constitutional advisory verdicts: SEAL (proceed), SABAR (hold), or VOID (halt). Human judgment remains final authority. "
             "Use before any irreversible or high-risk action."
         ),
     )

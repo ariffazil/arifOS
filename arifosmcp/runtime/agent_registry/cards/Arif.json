@@ -1,0 +1,26 @@
+{
+  "agent_id": "Arif",
+  "display_name": "Arif Fazil",
+  "version": "human-judge-v1.0",
+  "provider": "human",
+  "declared_lane": "HUMAN",
+  "federation_role": "sovereign_judge",
+  "compliance_tier": "SOVEREIGN",
+  "constitutional_floors": 13,
+  "side_effect_policy": "human_veto_absolute",
+  "human_authority_required": true,
+  "registry_status": "SEALED",
+  "registered_at": "2026-05-08T00:00:00+00:00",
+  "sovereign": "Arif Fazil",
+  "card_hash": "sha256:arif-sovereign-human-judge-888",
+  "phase": 0,
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "verdict": "SEAL",
+  "authority_note": "Human operator holds final veto over all machine judgment. WELL reflects. arifOS governs. Arif decides.",
+  "_meta": {
+    "registered_by": "arifOS-kernel",
+    "registration_method": "sovereign_binding",
+    "arifos_version": "v2026.05.08-KANON",
+    "registry_file": "runtime/agent_registry/cards/Arif.json"
+  }
+}

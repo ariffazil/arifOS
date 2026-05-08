@@ -18,7 +18,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
         "arifos://verdict/{session_id}",
         description=(
             "Constitutional verdict for a specific session. "
-            "Returns the current binding verdict (SEAL, SABAR, VOID, or HOLD) "
+            "Returns the current constitutional advisory verdict (SEAL, SABAR, VOID, or HOLD). Human judgment remains final authority. "
             "from the governance kernel, along with floor compliance proof and "
             "risk tier. Updated in real-time as the session progresses through stages."
         ),
