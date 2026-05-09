@@ -260,7 +260,7 @@ class HarnessEngine:
     }
 
     SOVEREIGN_METADATA_FAMILIES = ["VAULT", "SENSE", "MIND", "HEART", "REASON", "JUDGE", "SURVIVAL"]
-    
+
     SOVEREIGN_METADATA = {
         "wealth_init": {"family": "VAULT", "stage": "000-VAULT", "display": "wealth_init"},
         "wealth_record_transaction": {"family": "VAULT", "stage": "000-VAULT", "display": "wealth_record_transaction"},
@@ -349,7 +349,7 @@ class HarnessEngine:
         """Audit the current tool call against the 9-harness constraints."""
         harness_status = {name: {"stress": 0.0, "status": "SECURE"} for name in self.HARNESS_NAMES}
         violations = []
-        
+
         # 0. Global Doctrine Seal
         d_hash = self.get_doctrine_hash()
         violations = []
@@ -403,10 +403,10 @@ class HarnessEngine:
         carbon = primary.get("carbon_intensity", 0.0)
         collapse = primary.get("collapse_risk", 0.0)
         growth = primary.get("sustainable_growth_rate", 1.0)
-        
+
         if carbon > 0.04 or collapse > 0.3 or growth < 0:
             harness_status["Civilization"].update({
-                "stress": 1.0, 
+                "stress": 1.0,
                 "status": "SNAPPED",
                 "detail": f"C:{carbon:.3f} | R:{collapse:.3f} | G:{growth:.3f}"
             })
@@ -419,10 +419,10 @@ class HarnessEngine:
 
         overall_verdict = "PASS"
         recommended_verdict = "SEAL"
-        
+
         has_snapped = any(h["status"] == "SNAPPED" for h in harness_status.values())
         has_stressed = any(h["status"] == "STRESSED" for h in harness_status.values())
-        
+
         if has_snapped or systemic_stress > 2.0:
             overall_verdict = "FAIL"
             recommended_verdict = "VOID"
@@ -430,7 +430,7 @@ class HarnessEngine:
         elif has_stressed or systemic_stress > 1.2:
             overall_verdict = "PASS" # Keep PASS for backward compatibility
             recommended_verdict = "SABAR"
-        
+
         return {
             "verdict": overall_verdict,
             "recommended_verdict": recommended_verdict,
@@ -906,19 +906,19 @@ def create_envelope(
 ) -> Dict[str, Any]:
     global LAST_RECEIPT_HASH
     flags = flags or []
-    
+
     # 1. Harness Audit with Chaining
     final_parent_hash = parent_hash or LAST_RECEIPT_HASH
     engine = HarnessEngine()
     audit_res = engine.audit(tool, primary, flags, final_parent_hash)
-    
+
     systemic_stress = audit_res.get("systemic_stress", 0.0)
     # Stress (0.7-0.9) or systemic instability forces 888-HOLD/QUALIFY
     is_high_stress = systemic_stress > 1.5 or any(h["stress"] >= 0.7 for h in audit_res["harness_status"].values())
-    
+
     derived_governance = verdict or derive_verdict(flags, high_stress=is_high_stress, recommended=audit_res["recommended_verdict"])
     derived_allocation = derive_allocation_signal(flags, primary, tool, scale_mode)
-    
+
     if is_high_stress and derived_allocation == "ACCEPT":
         derived_allocation = "MARGINAL" # Force downgraded allocation on high stress
 
@@ -930,7 +930,7 @@ def create_envelope(
         else "VALID"
     )
     derived_epistemic = infer_epistemic(flags, epistemic)
-    
+
     if audit_res["verdict"] == "FAIL":
         derived_governance = "VOID"
         derived_allocation = "REJECT"
@@ -949,12 +949,12 @@ def create_envelope(
     # A project can be SEAL (computation valid) + REJECT (don't fund it). These must never collapse.
     # 3. Build Envelope with Sovereign Metadata
     meta = engine.SOVEREIGN_METADATA.get(tool, {})
-    
+
     # Namespace transparency (v2 Alias Layer)
     alias_of = None
     if tool in engine.V2_CANONICAL_MAP:
         alias_of = engine.V2_CANONICAL_MAP[tool]
-        
+
     # Failure Doctrine Classification
     failure_flags = [f for f in flags if any(err in f for f in ["ERROR", "UNAVAILABLE", "INVALID", "STALE", "FAILURE"])]
     status = "PASS"
@@ -974,7 +974,7 @@ def create_envelope(
         next_safe_action = "Proceed with manual verification."
 
     mode_map = {"PASS": "full", "CAUTION": "structured", "HOLD": "draft_only", "VOID": "pause"}
-        
+
     envelope = {
         "mcp": "WEALTH",
         "task": tool,
@@ -1024,7 +1024,7 @@ def create_envelope(
         envelope["dual_domain"] = meta["dual_domain"]
     if meta.get("primary"):
         envelope["primary_entrypoint"] = True
-    
+
     # 4. Update Global Identity Chain
     # Hash the envelope to create the next receipt
     receipt_blob = json.dumps(envelope, sort_keys=True, separators=(",", ":"), default=str)
@@ -3067,8 +3067,8 @@ async def wealth_evoi_compute(
 
     if final_prior is None or final_posterior is None:
          return create_envelope(
-            "wealth_evoi_compute", "Epistemic", {}, 
-            {"error": "Missing prior_pos or posterior_pos"}, 
+            "wealth_evoi_compute", "Epistemic", {},
+            {"error": "Missing prior_pos or posterior_pos"},
             ["EPISTEMIC_UNAVAILABLE"], verdict="VOID"
         )
 

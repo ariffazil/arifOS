@@ -6,7 +6,7 @@ tags: [index, meta, wealth, arifos]
 
 # WEALTH Wiki Index
 
-> Catalog of all pages in the WEALTH LLM wiki.  
+> Catalog of all pages in the WEALTH LLM wiki.
 > DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 
 ---

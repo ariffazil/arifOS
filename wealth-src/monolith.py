@@ -4,7 +4,6 @@ import json
 import math
 import os
 import sys
-import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -166,6 +165,7 @@ except Exception:
 try:
     from host.governance.harness_alarm import HarnessAlarmSystem
 except Exception:
+
     class HarnessAlarmSystem:
         def trigger(self, *args, **kwargs):
             return {"status": "ALARM_UNAVAILABLE"}
@@ -255,40 +255,162 @@ class HarnessEngine:
     }
 
     SOVEREIGN_METADATA_FAMILIES = ["VAULT", "SENSE", "MIND", "HEART", "REASON", "JUDGE", "SURVIVAL"]
-    
+
     SOVEREIGN_METADATA = {
         "wealth_init": {"family": "VAULT", "stage": "000-VAULT", "display": "wealth_init"},
-        "wealth_record_transaction": {"family": "VAULT", "stage": "000-VAULT", "display": "wealth_record_transaction"},
-        "wealth_snapshot_portfolio": {"family": "VAULT", "stage": "000-VAULT", "display": "wealth_snapshot_portfolio"},
-        "wealth_ingest_fetch": {"family": "SENSE", "stage": "100-SENSE", "display": "wealth_ingest_fetch"},
-        "wealth_ingest_snapshot": {"family": "SENSE", "stage": "100-SENSE", "display": "wealth_ingest_snapshot"},
-        "wealth_ingest_reconcile": {"family": "SENSE", "stage": "100-SENSE", "display": "wealth_ingest_reconcile"},
-        "wealth_ingest_health": {"family": "SENSE", "stage": "100-SENSE", "display": "wealth_ingest_health"},
-        "wealth_ingest_sources": {"family": "SENSE", "stage": "100-SENSE", "display": "wealth_ingest_sources"},
-        "wealth_schema_validate": {"family": "MIND", "stage": "200-MIND", "display": "wealth_schema_validate"},
-        "wealth_correlation_guard_check": {"family": "MIND", "stage": "200-MIND", "display": "wealth_risk_correlation"},
-        "wealth_evoi_compute": {"family": "MIND", "stage": "200-MIND", "display": "wealth_evoi_compute"},
-        "wealth_monte_carlo_forecast": {"family": "MIND", "stage": "200-MIND", "display": "wealth_risk_monte_carlo"},
+        "wealth_record_transaction": {
+            "family": "VAULT",
+            "stage": "000-VAULT",
+            "display": "wealth_record_transaction",
+        },
+        "wealth_snapshot_portfolio": {
+            "family": "VAULT",
+            "stage": "000-VAULT",
+            "display": "wealth_snapshot_portfolio",
+        },
+        "wealth_ingest_fetch": {
+            "family": "SENSE",
+            "stage": "100-SENSE",
+            "display": "wealth_ingest_fetch",
+        },
+        "wealth_ingest_snapshot": {
+            "family": "SENSE",
+            "stage": "100-SENSE",
+            "display": "wealth_ingest_snapshot",
+        },
+        "wealth_ingest_reconcile": {
+            "family": "SENSE",
+            "stage": "100-SENSE",
+            "display": "wealth_ingest_reconcile",
+        },
+        "wealth_ingest_health": {
+            "family": "SENSE",
+            "stage": "100-SENSE",
+            "display": "wealth_ingest_health",
+        },
+        "wealth_ingest_sources": {
+            "family": "SENSE",
+            "stage": "100-SENSE",
+            "display": "wealth_ingest_sources",
+        },
+        "wealth_schema_validate": {
+            "family": "MIND",
+            "stage": "200-MIND",
+            "display": "wealth_schema_validate",
+        },
+        "wealth_correlation_guard_check": {
+            "family": "MIND",
+            "stage": "200-MIND",
+            "display": "wealth_risk_correlation",
+        },
+        "wealth_evoi_compute": {
+            "family": "MIND",
+            "stage": "200-MIND",
+            "display": "wealth_evoi_compute",
+        },
+        "wealth_monte_carlo_forecast": {
+            "family": "MIND",
+            "stage": "200-MIND",
+            "display": "wealth_risk_monte_carlo",
+        },
         "wealth_emv_risk": {"family": "MIND", "stage": "200-MIND", "display": "wealth_risk_emv"},
-        "wealth_audit_entropy": {"family": "MIND", "stage": "200-MIND", "display": "wealth_audit_entropy", "dual_domain": ["MIND", "JUDGE"]},
-        "wealth_dscr_leverage": {"family": "HEART", "stage": "300-HEART", "display": "wealth_survival_dscr"},
-        "wealth_crisis_triage": {"family": "HEART", "stage": "300-HEART", "display": "wealth_crisis_triage"},
-        "wealth_civilization_stewardship": {"family": "HEART", "stage": "300-HEART", "display": "wealth_stewardship_civ"},
-        "wealth_npv_reward": {"family": "REASON", "stage": "400-REASON", "display": "wealth_calc_npv"},
-        "wealth_irr_yield": {"family": "REASON", "stage": "400-REASON", "display": "wealth_calc_irr"},
-        "wealth_pi_efficiency": {"family": "REASON", "stage": "400-REASON", "display": "wealth_calc_pi"},
-        "wealth_payback_time": {"family": "REASON", "stage": "400-REASON", "display": "wealth_calc_payback"},
-        "wealth_coordination_equilibrium": {"family": "REASON", "stage": "400-REASON", "display": "wealth_coord_equilibrium"},
-        "wealth_game_theory_solve": {"family": "REASON", "stage": "400-REASON", "display": "wealth_coord_game_theory"},
-        "wealth_personal_decision": {"family": "REASON", "stage": "400-REASON", "display": "wealth_personal_decision"},
-        "wealth_agent_budget": {"family": "REASON", "stage": "400-REASON", "display": "wealth_calc_agent_budget"},
-        "wealth_score_kernel": {"family": "JUDGE", "stage": "888-JUDGE", "display": "wealth_score_kernel", "primary": True},
-        "wealth_check_floors": {"family": "JUDGE", "stage": "800-JUDGE", "display": "wealth_check_floors"},
-        "wealth_policy_audit": {"family": "JUDGE", "stage": "800-JUDGE", "display": "wealth_policy_audit"},
-        "wealth_evoi_monte_carlo": {"family": "MIND", "stage": "200-MIND", "display": "wealth_evoi_monte_carlo"},
-        "wealth_cashflow_flow": {"family": "HEART", "stage": "300-HEART", "display": "wealth_survival_flow"},
-        "wealth_networth_state": {"family": "HEART", "stage": "300-HEART", "display": "wealth_survival_networth"},
-        "wealth_growth_velocity": {"family": "HEART", "stage": "300-HEART", "display": "wealth_survival_velocity"},
+        "wealth_audit_entropy": {
+            "family": "MIND",
+            "stage": "200-MIND",
+            "display": "wealth_audit_entropy",
+            "dual_domain": ["MIND", "JUDGE"],
+        },
+        "wealth_dscr_leverage": {
+            "family": "HEART",
+            "stage": "300-HEART",
+            "display": "wealth_survival_dscr",
+        },
+        "wealth_crisis_triage": {
+            "family": "HEART",
+            "stage": "300-HEART",
+            "display": "wealth_crisis_triage",
+        },
+        "wealth_civilization_stewardship": {
+            "family": "HEART",
+            "stage": "300-HEART",
+            "display": "wealth_stewardship_civ",
+        },
+        "wealth_npv_reward": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_calc_npv",
+        },
+        "wealth_irr_yield": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_calc_irr",
+        },
+        "wealth_pi_efficiency": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_calc_pi",
+        },
+        "wealth_payback_time": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_calc_payback",
+        },
+        "wealth_coordination_equilibrium": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_coord_equilibrium",
+        },
+        "wealth_game_theory_solve": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_coord_game_theory",
+        },
+        "wealth_personal_decision": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_personal_decision",
+        },
+        "wealth_agent_budget": {
+            "family": "REASON",
+            "stage": "400-REASON",
+            "display": "wealth_calc_agent_budget",
+        },
+        "wealth_score_kernel": {
+            "family": "JUDGE",
+            "stage": "888-JUDGE",
+            "display": "wealth_score_kernel",
+            "primary": True,
+        },
+        "wealth_check_floors": {
+            "family": "JUDGE",
+            "stage": "800-JUDGE",
+            "display": "wealth_check_floors",
+        },
+        "wealth_policy_audit": {
+            "family": "JUDGE",
+            "stage": "800-JUDGE",
+            "display": "wealth_policy_audit",
+        },
+        "wealth_evoi_monte_carlo": {
+            "family": "MIND",
+            "stage": "200-MIND",
+            "display": "wealth_evoi_monte_carlo",
+        },
+        "wealth_cashflow_flow": {
+            "family": "HEART",
+            "stage": "300-HEART",
+            "display": "wealth_survival_flow",
+        },
+        "wealth_networth_state": {
+            "family": "HEART",
+            "stage": "300-HEART",
+            "display": "wealth_survival_networth",
+        },
+        "wealth_growth_velocity": {
+            "family": "HEART",
+            "stage": "300-HEART",
+            "display": "wealth_survival_velocity",
+        },
     }
 
     # ============================================================
@@ -340,13 +462,15 @@ class HarnessEngine:
     def __init__(self):
         self.alarm_system = HarnessAlarmSystem()
 
-    def audit(self, tool_name: str, primary: Dict[str, Any], flags: List[str], parent_hash: str = "") -> Dict[str, Any]:
+    def audit(
+        self, tool_name: str, primary: Dict[str, Any], flags: List[str], parent_hash: str = ""
+    ) -> Dict[str, Any]:
         """Audit the current tool call against the 9-harness constraints."""
         harness_status = {name: {"stress": 0.0, "status": "SECURE"} for name in self.HARNESS_NAMES}
         violations = []
-        
+
         # 0. Global Doctrine Seal
-        d_hash = self.get_doctrine_hash()
+        self.get_doctrine_hash()
         violations = []
 
         # 1. Identity Check
@@ -398,13 +522,15 @@ class HarnessEngine:
         carbon = primary.get("carbon_intensity", 0.0)
         collapse = primary.get("collapse_risk", 0.0)
         growth = primary.get("sustainable_growth_rate", 1.0)
-        
+
         if carbon > 0.04 or collapse > 0.3 or growth < 0:
-            harness_status["Civilization"].update({
-                "stress": 1.0, 
-                "status": "SNAPPED",
-                "detail": f"C:{carbon:.3f} | R:{collapse:.3f} | G:{growth:.3f}"
-            })
+            harness_status["Civilization"].update(
+                {
+                    "stress": 1.0,
+                    "status": "SNAPPED",
+                    "detail": f"C:{carbon:.3f} | R:{collapse:.3f} | G:{growth:.3f}",
+                }
+            )
             violations.append("CIVILIZATION_HARNESS_FAILURE")
 
         # Systemic Accumulator Rule (Cumulative Stress)
@@ -414,18 +540,22 @@ class HarnessEngine:
 
         overall_verdict = "PASS"
         recommended_verdict = "SEAL"
-        
+
         has_snapped = any(h["status"] == "SNAPPED" for h in harness_status.values())
         has_stressed = any(h["status"] == "STRESSED" for h in harness_status.values())
-        
+
         if has_snapped or systemic_stress > 2.0:
             overall_verdict = "FAIL"
             recommended_verdict = "VOID"
-            self.alarm_system.trigger(tool_name, "Systemic", {"violations": violations, "systemic_stress": systemic_stress})
+            self.alarm_system.trigger(
+                tool_name,
+                "Systemic",
+                {"violations": violations, "systemic_stress": systemic_stress},
+            )
         elif has_stressed or systemic_stress > 1.2:
-            overall_verdict = "PASS" # Keep PASS for backward compatibility
+            overall_verdict = "PASS"  # Keep PASS for backward compatibility
             recommended_verdict = "SABAR"
-        
+
         return {
             "verdict": overall_verdict,
             "recommended_verdict": recommended_verdict,
@@ -519,11 +649,9 @@ def derive_confidence_band(
     relative_width = (
         0.25
         if upper_epistemic == "HYPOTHESIS"
-        else 0.15
-        if upper_epistemic == "ESTIMATE"
-        else 0.08
-        if upper_epistemic == "PLAUSIBLE"
-        else 0
+        else (
+            0.15 if upper_epistemic == "ESTIMATE" else 0.08 if upper_epistemic == "PLAUSIBLE" else 0
+        )
     )
     if relative_width == 0:
         return None
@@ -546,9 +674,7 @@ def npv_from_series(cashflow_series: List[float], discount_rate: float) -> float
     return total
 
 
-def present_value_breakdown(
-    cashflow_series: List[float], discount_rate: float
-) -> Dict[str, Any]:
+def present_value_breakdown(cashflow_series: List[float], discount_rate: float) -> Dict[str, Any]:
     discounted = []
     for index, cashflow in enumerate(cashflow_series):
         if index == 0:
@@ -600,7 +726,12 @@ def weakest_epistemic(items: List[dict], default_tag: str = "CLAIM") -> str:
     return EPISTEMIC_ORDER[weakest_index]
 
 
-def derive_verdict(flags: List[str], default_verdict: str = "SEAL", high_stress: bool = False, recommended: str = "SEAL") -> str:
+def derive_verdict(
+    flags: List[str],
+    default_verdict: str = "SEAL",
+    high_stress: bool = False,
+    recommended: str = "SEAL",
+) -> str:
     if recommended == "VOID" or any(flag in INVALID_FLAGS for flag in flags):
         return "VOID"
     if recommended == "SABAR" or high_stress:
@@ -783,9 +914,7 @@ def derive_allocation_signal(
         irr = primary.get("irr")
         if irr is None:
             return "INSUFFICIENT_DATA"
-        hurdle = (
-            scale["discount_rate"] if scale["discount_rate"] != float("inf") else 0.10
-        )
+        hurdle = scale["discount_rate"] if scale["discount_rate"] != float("inf") else 0.10
         if irr > hurdle:
             return "ACCEPT"
         if irr < hurdle:
@@ -795,11 +924,7 @@ def derive_allocation_signal(
     if tool == "wealth_payback_time":
         payback = primary.get("payback_periods")
         if payback is None:
-            return (
-                "REJECT"
-                if any(f == "NOT_RECOVERED" for f in flags)
-                else "INSUFFICIENT_DATA"
-            )
+            return "REJECT" if any(f == "NOT_RECOVERED" for f in flags) else "INSUFFICIENT_DATA"
         return "ACCEPT"
 
     if tool == "wealth_dscr_leverage":
@@ -871,12 +996,7 @@ def measurement_validate_invariants(
         if npv < 0 and pi >= 1:
             flags.append("INVARIANT_VIOLATION")
 
-    if (
-        npv is not None
-        and irr is not None
-        and discount_rate is not None
-        and sign_changes <= 1
-    ):
+    if npv is not None and irr is not None and discount_rate is not None and sign_changes <= 1:
         if (npv > 0 and irr <= discount_rate) or (npv < 0 and irr >= discount_rate):
             flags.append("INVARIANT_VIOLATION")
 
@@ -901,31 +1021,37 @@ def create_envelope(
 ) -> Dict[str, Any]:
     global LAST_RECEIPT_HASH
     flags = flags or []
-    
+
     # 1. Harness Audit with Chaining
     final_parent_hash = parent_hash or LAST_RECEIPT_HASH
     engine = HarnessEngine()
     audit_res = engine.audit(tool, primary, flags, final_parent_hash)
-    
+
     systemic_stress = audit_res.get("systemic_stress", 0.0)
     # Stress (0.7-0.9) or systemic instability forces 888-HOLD/QUALIFY
-    is_high_stress = systemic_stress > 1.5 or any(h["stress"] >= 0.7 for h in audit_res["harness_status"].values())
-    
-    derived_governance = verdict or derive_verdict(flags, high_stress=is_high_stress, recommended=audit_res["recommended_verdict"])
+    is_high_stress = systemic_stress > 1.5 or any(
+        h["stress"] >= 0.7 for h in audit_res["harness_status"].values()
+    )
+
+    derived_governance = verdict or derive_verdict(
+        flags, high_stress=is_high_stress, recommended=audit_res["recommended_verdict"]
+    )
     derived_allocation = derive_allocation_signal(flags, primary, tool, scale_mode)
-    
+
     if is_high_stress and derived_allocation == "ACCEPT":
-        derived_allocation = "MARGINAL" # Force downgraded allocation on high stress
+        derived_allocation = "MARGINAL"  # Force downgraded allocation on high stress
 
     engine_status = (
         "ERROR"
         if derived_governance == "VOID" or audit_res["verdict"] == "FAIL"
-        else "WARNING"
-        if derived_governance in ("QUALIFY", "888-HOLD", "SABAR") or is_high_stress
-        else "VALID"
+        else (
+            "WARNING"
+            if derived_governance in ("QUALIFY", "888-HOLD", "SABAR") or is_high_stress
+            else "VALID"
+        )
     )
     derived_epistemic = infer_epistemic(flags, epistemic)
-    
+
     if audit_res["verdict"] == "FAIL":
         derived_governance = "VOID"
         derived_allocation = "REJECT"
@@ -944,12 +1070,12 @@ def create_envelope(
     # A project can be SEAL (computation valid) + REJECT (don't fund it). These must never collapse.
     # 3. Build Envelope with Sovereign Metadata
     meta = engine.SOVEREIGN_METADATA.get(tool, {})
-    
+
     # Namespace transparency (v2 Alias Layer)
     alias_of = None
     if tool in engine.V2_CANONICAL_MAP:
         alias_of = engine.V2_CANONICAL_MAP[tool]
-        
+
     envelope = {
         "tool": tool,
         "display_name": meta.get("display", tool),
@@ -959,7 +1085,7 @@ def create_envelope(
         "namespace": {
             "invoked_as": tool,
             "canonical_handler": alias_of or tool,
-            "version": "v2-alias-layer"
+            "version": "v2-alias-layer",
         },
         "dimension": dimension,
         "verdict": derived_allocation,
@@ -979,7 +1105,7 @@ def create_envelope(
         envelope["dual_domain"] = meta["dual_domain"]
     if meta.get("primary"):
         envelope["primary_entrypoint"] = True
-    
+
     # 4. Update Global Identity Chain
     # Hash the envelope to create the next receipt
     receipt_blob = json.dumps(envelope, sort_keys=True, separators=(",", ":"), default=str)
@@ -990,10 +1116,7 @@ def create_envelope(
     # === Constitutional Governance Layer ===
     # Governance tools are exempt from recursive envelope governance so they can audit bad proposals
     is_governance_tool = tool in {"wealth_check_floors", "wealth_policy_audit"}
-    if (
-        scale_mode in {"national", "crisis", "civilization", "agentic"}
-        and not is_governance_tool
-    ):
+    if scale_mode in {"national", "crisis", "civilization", "agentic"} and not is_governance_tool:
         gov_args = governance_args or {}
         floor_result = check_floors(
             {**gov_args, "epistemic": derived_epistemic, "scale_mode": scale_mode}
@@ -1177,9 +1300,7 @@ def measurement_irr(
         return npv_from_series(series, rate)
 
     brackets = bracket_roots(npv_fn)
-    roots = {
-        round_value(bisect_root(npv_fn, lower, upper), 10) for lower, upper in brackets
-    }
+    roots = {round_value(bisect_root(npv_fn, lower, upper), 10) for lower, upper in brackets}
     irr = next(iter(roots)) if len(roots) == 1 else None
     if len(roots) == 0:
         flags.append("IRR_NOT_FOUND")
@@ -1213,14 +1334,10 @@ def measurement_pi(
     discount_rate: float,
     terminal_value: float = 0,
 ) -> Dict[str, Any]:
-    npv_measure = measurement_npv(
-        initial_investment, cash_flows, discount_rate, terminal_value
-    )
+    npv_measure = measurement_npv(initial_investment, cash_flows, discount_rate, terminal_value)
     flags = list(npv_measure["flags"])
     if (
-        count_sign_changes(
-            build_cashflow_series(initial_investment, cash_flows, terminal_value)
-        )
+        count_sign_changes(build_cashflow_series(initial_investment, cash_flows, terminal_value))
         > 1
     ):
         flags.append("NON_NORMAL_FLOWS")
@@ -1286,19 +1403,14 @@ def measurement_emv(scenarios: List[dict]) -> Dict[str, Any]:
         scenario["probability"] for scenario in scenarios if scenario["outcome"] < 0
     )
     variance = sum(
-        scenario["probability"] * pow(scenario["outcome"] - emv, 2)
-        for scenario in scenarios
+        scenario["probability"] * pow(scenario["outcome"] - emv, 2) for scenario in scenarios
     )
     return {
         "emv": round_value(emv, 6),
         "total_probability": round_value(total_probability, 6),
         "downside_probability": round_value(downside_probability, 6),
-        "worst_outcome": round_value(
-            min(scenario["outcome"] for scenario in scenarios), 6
-        ),
-        "best_outcome": round_value(
-            max(scenario["outcome"] for scenario in scenarios), 6
-        ),
+        "worst_outcome": round_value(min(scenario["outcome"] for scenario in scenarios), 6),
+        "best_outcome": round_value(max(scenario["outcome"] for scenario in scenarios), 6),
         "variance": round_value(variance, 6),
         "assumptions": assumptions,
         "flags": flags,
@@ -1329,9 +1441,7 @@ def measurement_payback(
     payback_periods = None
     for index, raw_cashflow in enumerate(cash_flows):
         adjusted_cashflow = (
-            raw_cashflow / pow(1 + discount_rate, index + 1)
-            if discount_rate > 0
-            else raw_cashflow
+            raw_cashflow / pow(1 + discount_rate, index + 1) if discount_rate > 0 else raw_cashflow
         )
         if adjusted_cashflow <= 0:
             continue
@@ -1344,9 +1454,7 @@ def measurement_payback(
     if remaining > EPSILON:
         flags.append("NOT_RECOVERED")
     return {
-        "payback_periods": round_value(payback_periods, 6)
-        if payback_periods is not None
-        else None,
+        "payback_periods": round_value(payback_periods, 6) if payback_periods is not None else None,
         "discounted": discount_rate > 0,
         "period_unit": period_unit,
         "assumptions": assumptions,
@@ -1366,9 +1474,7 @@ def measurement_dscr(
 ) -> Dict[str, Any]:
     flags: List[str] = []
     numerator = cfads if cfads is not None else ebitda
-    denominator = (
-        debt_service if debt_service is not None else principal + interest + leases
-    )
+    denominator = debt_service if debt_service is not None else principal + interest + leases
     if numerator is None or not math.isfinite(numerator):
         flags.append("INVALID_CFADS")
     if denominator is None or not math.isfinite(denominator) or denominator <= 0:
@@ -1376,11 +1482,7 @@ def measurement_dscr(
     if cfads is None and ebitda is not None:
         flags.append("EBITDA_PROXY_USED")
 
-    dscr = (
-        None
-        if any(flag in INVALID_FLAGS for flag in flags)
-        else numerator / denominator
-    )
+    dscr = None if any(flag in INVALID_FLAGS for flag in flags) else numerator / denominator
     if dscr is not None and dscr < 1.0:
         flags.append("LEVERAGE_DEFAULT")
     elif dscr is not None and dscr < 1.25:
@@ -1394,9 +1496,11 @@ def measurement_dscr(
             "Minimum covenant floor defaults to 1.25x.",
         ],
         "input_epistemic": str(input_epistemic).upper(),
-        "confidence_band": None
-        if dscr is None
-        else derive_confidence_band(dscr, input_epistemic, "absolute-nonnegative"),
+        "confidence_band": (
+            None
+            if dscr is None
+            else derive_confidence_band(dscr, input_epistemic, "absolute-nonnegative")
+        ),
         "flags": flags,
     }
 
@@ -1549,9 +1653,7 @@ def pi_efficiency(
     scale_mode: str = "enterprise",
 ) -> Any:
     """Compute Profitability Index (Concentration). [Energy Dimension]"""
-    measurement = measurement_pi(
-        initial_investment, cash_flows, discount_rate, terminal_value
-    )
+    measurement = measurement_pi(initial_investment, cash_flows, discount_rate, terminal_value)
     invariant_flags = measurement_validate_invariants(
         initial_investment,
         cash_flows,
@@ -1561,9 +1663,7 @@ def pi_efficiency(
     )
     all_flags = list(dict.fromkeys([*measurement["flags"], *invariant_flags]))
     ranking_signal = (
-        "EFFICIENT"
-        if measurement["pi"] is not None and measurement["pi"] >= 1
-        else "EXTRACTIVE"
+        "EFFICIENT" if measurement["pi"] is not None and measurement["pi"] >= 1 else "EXTRACTIVE"
     )
     return create_envelope(
         "wealth_pi_efficiency",
@@ -1607,9 +1707,7 @@ def audit_entropy(
     scale_mode: str = "enterprise",
 ) -> Any:
     """Audit project cash flows for noise and multiple IRRs. [Entropy Dimension]"""
-    irr_measure = measurement_irr(
-        initial_investment, cash_flows, discount_rate, discount_rate
-    )
+    irr_measure = measurement_irr(initial_investment, cash_flows, discount_rate, discount_rate)
     npv_measure = measurement_npv(initial_investment, cash_flows, discount_rate)
     invariant_flags = measurement_validate_invariants(
         initial_investment,
@@ -1621,9 +1719,7 @@ def audit_entropy(
     all_flags = list(dict.fromkeys([*irr_measure["flags"], *invariant_flags]))
     sensitivity = []
     for multiplier in [0.8, 0.9, 1.0, 1.1, 1.2]:
-        sweep_npv = measurement_npv(
-            initial_investment, cash_flows, discount_rate * multiplier
-        )
+        sweep_npv = measurement_npv(initial_investment, cash_flows, discount_rate * multiplier)
         sensitivity.append({"multiplier": multiplier, "npv": sweep_npv["npv"]})
     return create_envelope(
         "wealth_audit_entropy",
@@ -1684,9 +1780,7 @@ def payback_time(
     scale_mode: str = "enterprise",
 ) -> Any:
     """Compute Payback Period (Recovery Velocity). [Time Dimension]"""
-    measurement = measurement_payback(
-        initial_investment, cash_flows, discount_rate, period_unit
-    )
+    measurement = measurement_payback(initial_investment, cash_flows, discount_rate, period_unit)
     return create_envelope(
         "wealth_payback_time",
         "Time",
@@ -1718,9 +1812,7 @@ def growth_velocity(
     low = round_value(final_value * 0.88, 2)
     high = round_value(final_value * 1.12, 2)
     net_monthly = -monthly_burn
-    runway_months = (
-        math.inf if monthly_burn <= 0 else round_value(principal / monthly_burn, 1)
-    )
+    runway_months = math.inf if monthly_burn <= 0 else round_value(principal / monthly_burn, 1)
     flags = (
         ["RUNWAY_CRITICAL"]
         if monthly_burn > 0 and runway_months is not None and runway_months < 3
@@ -1752,9 +1844,7 @@ def networth_state(
     assets = assets or []
     liabilities = liabilities or []
     asset_value = sum(
-        asset.get("value", 0)
-        for asset in assets
-        if math.isfinite(asset.get("value", 0))
+        asset.get("value", 0) for asset in assets if math.isfinite(asset.get("value", 0))
     )
     liability_value = sum(
         liability.get("outstanding", liability.get("principal", 0))
@@ -1801,9 +1891,7 @@ def cashflow_flow(
     )
     net_monthly = total_income - total_expenses
     burn_rate = max(0.0, -net_monthly)
-    runway_months = (
-        math.inf if burn_rate == 0 else round_value(liquid_assets / burn_rate, 1)
-    )
+    runway_months = math.inf if burn_rate == 0 else round_value(liquid_assets / burn_rate, 1)
     flags = (
         ["RUNWAY_CRITICAL"]
         if burn_rate > 0 and runway_months is not None and runway_months < 3
@@ -1876,7 +1964,7 @@ def wealth_score_kernel(
     pre_audit = h_engine.audit(
         "wealth_score_kernel",
         {"maruahScore": maruah_score, "base_rate": base_rate},
-        epistemic_flags
+        epistemic_flags,
     )
     if pre_audit["verdict"] == "FAIL":
         return create_envelope(
@@ -1919,9 +2007,7 @@ def wealth_score_kernel(
         if (floor_result.get("verdict") in ("HOLD", "VOID")) or (
             "EPISTEMIC_FAILURE" in epistemic_flags
         ):
-            gov_verdict = (
-                "888-HOLD" if floor_result.get("verdict") == "HOLD" else "VOID"
-            )
+            gov_verdict = "888-HOLD" if floor_result.get("verdict") == "HOLD" else "VOID"
             if "EPISTEMIC_FAILURE" in epistemic_flags:
                 gov_verdict = "VOID"
 
@@ -1963,9 +2049,7 @@ def wealth_score_kernel(
                 {"error": "EPISTEMIC_HOLD", "reason": v_res.get("status")},
                 {},
                 ["888_HOLD", "EPISTEMIC_VIOLATION"],
-                [
-                    "Epistemic validation failed. Scalar volumetrics detected or integrity low."
-                ],
+                ["Epistemic validation failed. Scalar volumetrics detected or integrity low."],
                 epistemic="VOID",
                 verdict="VOID",
                 scale_mode=scale_mode,
@@ -2003,9 +2087,7 @@ def wealth_score_kernel(
             "base_rate": wealth_result["base_rate"],
             "wealth_r_adj": wealth_result["r_adj"],
             "extractive_r_adj": extractive_result["r_adj"],
-            "advantage_bps": round(
-                (extractive_result["r_adj"] - wealth_result["r_adj"]) * 10000
-            ),
+            "advantage_bps": round((extractive_result["r_adj"] - wealth_result["r_adj"]) * 10000),
             "integrity_score": integrity_score,
             "correlation_risk": correlation_risk,
         }
@@ -2026,9 +2108,7 @@ def wealth_score_kernel(
 
     # Merge results
     final_primary = {**wealth_result}
-    final_primary.update(
-        {"integrity_score": integrity_score, "correlation_risk": correlation_risk}
-    )
+    final_primary.update({"integrity_score": integrity_score, "correlation_risk": correlation_risk})
 
     return create_envelope(
         "wealth_score_kernel",
@@ -2154,9 +2234,7 @@ def crisis_triage(
 ) -> Any:
     """Survival-oriented resource triage. [Crisis Dimension]"""
     total_supply = sum(v for v in resources.values() if math.isfinite(v))
-    total_demand = sum(
-        d.get("amount", 0) for d in demands if math.isfinite(d.get("amount", 0))
-    )
+    total_demand = sum(d.get("amount", 0) for d in demands if math.isfinite(d.get("amount", 0)))
     gap = total_demand - total_supply
     sorted_demands = sorted(demands, key=lambda d: d.get("urgency", 1), reverse=True)
     allocated = []
@@ -2222,17 +2300,13 @@ def civilization_stewardship(
     energy_per_capita = energy_budget_twh / max(population, 1)
     carbon_intensity = carbon_budget_gt / max(energy_budget_twh, 1)
     sustainable_growth = tech_growth_rate * (1 - carbon_intensity)
-    projected_pop = population * pow(
-        1 + min(tech_growth_rate, 0.02), time_horizon_years / 100
-    )
+    projected_pop = population * pow(1 + min(tech_growth_rate, 0.02), time_horizon_years / 100)
     collapse_risk = max(0.0, min(1.0, (projected_pop * 10) / max(energy_budget_twh, 1)))
     if collapse_risk > 0.5:
         flags.append("CIVILIZATION_COLLAPSE_RISK_HIGH")
     if carbon_intensity > 0.05:
         flags.append("CARBON_BUDGET_EXHAUSTION")
-    sustainability_index = max(
-        0.0, min(1.0, sustainable_growth / max(collapse_risk, 0.01))
-    )
+    sustainability_index = max(0.0, min(1.0, sustainable_growth / max(collapse_risk, 0.01)))
     return create_envelope(
         "wealth_civilization_stewardship",
         "Civilization",
@@ -2532,9 +2606,7 @@ def ingest_fetch(
             ["Ingest layer failed to initialize."],
         )
     registry = get_registry()
-    result = registry.fetch(
-        source, series_id, entity_code, use_cache=use_cache, bus=bus
-    )
+    result = registry.fetch(source, series_id, entity_code, use_cache=use_cache, bus=bus)
     flags = result.get("flags", [])
     return create_envelope(
         "wealth_ingest_fetch",
@@ -2591,9 +2663,7 @@ def ingest_sources() -> Any:
         {"sources": sources},
         {},
         [],
-        [
-            "Sources are ranked by sovereignty: central bank > multilateral > aggregator."
-        ],
+        ["Sources are ranked by sovereignty: central bank > multilateral > aggregator."],
     )
 
 
@@ -2622,9 +2692,7 @@ def ingest_health(adapter: Optional[str] = None) -> Any:
 
 
 @mcp.tool(name="wealth_ingest_vintage")
-def ingest_vintage(
-    source: str, series_id: str, entity_code: str, vintage_date: str
-) -> Any:
+def ingest_vintage(source: str, series_id: str, entity_code: str, vintage_date: str) -> Any:
     """Fetch a specific vintage of a series (FRED/ALFRED). [Sense Dimension]"""
     if not INGEST_AVAILABLE:
         return create_envelope(
@@ -2759,9 +2827,7 @@ def policy_audit(
     engine = PolicyEngine(constraints)
     result = engine.evaluate(proposal, scale_mode)
     policy_verdict = (
-        "VOID"
-        if not result["policy_pass"]
-        else ("QUALIFY" if result["flags"] else "SEAL")
+        "VOID" if not result["policy_pass"] else ("QUALIFY" if result["flags"] else "SEAL")
     )
     return create_envelope(
         "wealth_policy_audit",

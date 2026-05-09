@@ -7,7 +7,7 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-  
+
   <!-- AI-Friendly Manifests -->
   <url>
     <loc>https://makcikgpt.arif-fazil.com/llms.txt</loc>
@@ -33,7 +33,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  
+
   <!-- Documentation -->
   <url>
     <loc>https://makcikgpt.arif-fazil.com/docs/00-niat-dan-amanah</loc>
@@ -65,7 +65,7 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  
+
   <!-- Columns / Articles -->
   <url>
     <loc>https://makcikgpt.arif-fazil.com/columns/manifesto-rasa-rakyat</loc>

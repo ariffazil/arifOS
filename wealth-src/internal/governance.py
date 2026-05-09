@@ -4,7 +4,7 @@ Codification of the 6 Forge Laws and Epistemic Metrics.
 """
 
 import enum
-from typing import Any, Dict, List
+
 
 class ForgeLaw(enum.Enum):
     F1_REVERSIBILITY = "Reversible by default; permanent only by SEAL."
@@ -14,6 +14,7 @@ class ForgeLaw(enum.Enum):
     F5_MARUAH = "Maintain sovereign dignity (Maruah)."
     F6_HUMILITY = "Bound arrogance via kappa_r (Reasoning Coherence)."
 
+
 def compute_kappa_r(rasa_score: float, truth_consistency: float) -> float:
     """
     Computes Humility score (Reasoning coherence).
@@ -21,12 +22,14 @@ def compute_kappa_r(rasa_score: float, truth_consistency: float) -> float:
     """
     return round((rasa_score * 0.4) + (truth_consistency * 0.6), 4)
 
+
 def compute_psi_le(legibility_entropy: float, complexity: float) -> float:
     """
     Computes psi_le (Legibility entropy).
     Measures the gap between model complexity and human-auditable legibility.
     """
     return round(legibility_entropy / (1.0 + complexity), 4)
+
 
 def get_qdf_version() -> str:
     """Returns the current Quantitative Decision Framework version."""

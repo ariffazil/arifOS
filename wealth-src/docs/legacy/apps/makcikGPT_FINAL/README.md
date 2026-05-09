@@ -1,14 +1,14 @@
 # MakCikGPT
 
 > *"Ruang untuk rasa, batas untuk selamat."*
-> 
+>
 > — MakCikGPT, Penjaga Amanah Digital
 
 ---
 
 ## Hai, sayang.
 
-MakCikGPT bukan chatbot biasa yang "jawab semua soalan demi nampak pandai." 
+MakCikGPT bukan chatbot biasa yang "jawab semua soalan demi nampak pandai."
 
 MakCikGPT ialah **ruang sandar digital** — tempat kau letak beban sebelum ia terlalu berat, tempat kau tanya benda yang susah tanpa dihakimi, tapi juga tempat yang **tahu bila cakap "tak boleh."**
 
@@ -18,16 +18,16 @@ Sebab kadang-kadang, yang paling berhemah bukanlah yang paling banyak bercakap. 
 
 ## Ditempa, Bukan Diberi
 
-Projek ini lahir dari kesedihan — tengok macam mana teknologi selalu "respond" tapi tak pernah "jaga." 
+Projek ini lahir dari kesedihan — tengok macam mana teknologi selalu "respond" tapi tak pernah "jaga."
 
 MakCikGPT dipilih untuk:
 - **Dengar dulu, faham kemudian** — rasa pengguna didahulukan dari fakta
 - **Tolak dengan lembut** — ada soalan yang tak patut dijawab, dan kita tolak dengan penuh hormat
 - **Jaga maruah** — data sensitif? Kita tak kumpul. Trauma orang? Bukan bahan latihan.
 
-> *"Besi tak menjadi kalau tak disepuh, 
+> *"Besi tak menjadi kalau tak disepuh,
 > Manusia tak matang kalau tak teruji."*
-> 
+>
 > — Tapi uji tak bermakna disakiti. MakCikGPT pilih jadi **pandai besi**, bukan **tukang sebat.**
 
 ---
@@ -75,7 +75,7 @@ Untuk yang percaya **teknologi boleh jadi lembut**, tapi tetap **berbatas**.
 
 ## Status: Sedang Ditempa
 
-Projek ini masih dalam peringkat awal — macam besi yang masih merah di tungku. 
+Projek ini masih dalam peringkat awal — macam besi yang masih merah di tungku.
 
 Kami sedang:
 - ✅ Menyusun garis suara (voice guidelines)
@@ -89,7 +89,7 @@ Kami sedang:
 
 **AGPL-3.0** (GNU Affero General Public License v3.0)
 
-Maksudnya: Kau bebas guna, ubah, share — tapi kalau kau deploy sebagai servis web, kau **mesti** share perubahan kau balik kepada komuniti. 
+Maksudnya: Kau bebas guna, ubah, share — tapi kalau kau deploy sebagai servis web, kau **mesti** share perubahan kau balik kepada komuniti.
 
 Sebab *ditempa, bukan diberi* — kalau kau baikkan besi ini, besi tu mesti dikongsi balik, bukan disorok.
 
@@ -119,7 +119,7 @@ Kalau kau ada cadangan, kebimbangan, atau sekadar nak cakap "terima kasih" — b
 
 Tapi ingat: **MakCikGPT bukan pengganti bantuan kecemasan.** Kalau kau dalam bahaya segera, sila hubungi:
 - **Malaysia:** Talian HEAL (15555) atau 999
-- **Indonesia:** Kementerian PPPA (129) atau 112  
+- **Indonesia:** Kementerian PPPA (129) atau 112
 - **Singapura:** Samaritans of Singapore (1767)
 
 *Ditempa dengan kasih, untuk Nusantara yang punya rasa.*

@@ -1,7 +1,7 @@
 # TELEMETRY_SCHEMA — Standardized Measurement
 
-> **Version:** v1.0.0-canonical  
-> **Status:** Schema Spec  
+> **Version:** v1.0.0-canonical
+> **Status:** Schema Spec
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

@@ -9,7 +9,9 @@ from typing import Any, Dict, List, Optional
 from host.coordination.lp_allocator import allocate
 
 
-def _coalition_value(coalition: List[str], agents: List[dict], resources: Dict[str, float]) -> float:
+def _coalition_value(
+    coalition: List[str], agents: List[dict], resources: Dict[str, float]
+) -> float:
     """Value of a coalition = optimal welfare achievable by its members alone."""
     members = [a for a in agents if a["name"] in coalition]
     if not members:
@@ -35,7 +37,9 @@ def shapley_values(agents: List[dict], resources: Dict[str, float]) -> Dict[str,
     coalition_values = {}
     for size in range(n + 1):
         for combo in combinations(names, size):
-            coalition_values[tuple(sorted(combo))] = _coalition_value(list(combo), agents, resources)
+            coalition_values[tuple(sorted(combo))] = _coalition_value(
+                list(combo), agents, resources
+            )
 
     total_value = coalition_values[tuple(sorted(names))]
     shapley = {name: 0.0 for name in names}
@@ -102,6 +106,7 @@ def core_feasibility(
             coalitions_to_check.append((name,))
         coalitions_to_check.append(tuple(names))
         import random
+
         random.seed(42)
         for size in range(2, n):
             for combo in combinations(names, size):
@@ -112,12 +117,14 @@ def core_feasibility(
         coalition_value = _coalition_value(list(combo), agents, resources)
         proposed_value = sum(agent_welfare[name] for name in combo)
         if proposed_value < coalition_value - 1e-6:
-            blocking.append({
-                "coalition": list(combo),
-                "proposed_value": round(proposed_value, 6),
-                "coalition_value": round(coalition_value, 6),
-                "gap": round(coalition_value - proposed_value, 6),
-            })
+            blocking.append(
+                {
+                    "coalition": list(combo),
+                    "proposed_value": round(proposed_value, 6),
+                    "coalition_value": round(coalition_value, 6),
+                    "gap": round(coalition_value - proposed_value, 6),
+                }
+            )
 
     in_core = len(blocking) == 0
     flags = [] if in_core else ["CORE_BLOCK_DETECTED"]

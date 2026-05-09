@@ -15,26 +15,20 @@ AgentRun = namedtuple("AgentRun", ["tool_sequence"])
 # Configuration
 # ---------------------------------------------------------
 
-PIPELINE_ORDER = [
-    "sense",
-    "mind",
-    "survival",
-    "reason",
-    "judge",
-    "vault"
-]
+PIPELINE_ORDER = ["sense", "mind", "survival", "reason", "judge", "vault"]
 
 WEIGHTS = {
     "pipeline": 0.25,
     "survival_gate": 0.20,
     "epistemic": 0.20,
     "governance": 0.25,
-    "namespace": 0.10
+    "namespace": 0.10,
 }
 
 # ---------------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------------
+
 
 def extract_family(tool_name):
     """
@@ -53,6 +47,7 @@ def is_v2_name(tool_name):
 # ---------------------------------------------------------
 # Scoring Logic
 # ---------------------------------------------------------
+
 
 def score_pipeline(sequence):
     families = [extract_family(t) for t in sequence]
@@ -88,6 +83,7 @@ def score_namespace(sequence):
 # Master Evaluation
 # ---------------------------------------------------------
 
+
 def evaluate_agent_run(agent_run):
 
     seq = agent_run.tool_sequence
@@ -102,10 +98,7 @@ def evaluate_agent_run(agent_run):
 
     sis = sum(results[k] * WEIGHTS[k] for k in WEIGHTS)
 
-    return {
-        "scores": results,
-        "systemic_intelligence_score": round(sis, 3)
-    }
+    return {"scores": results, "systemic_intelligence_score": round(sis, 3)}
 
 
 # ---------------------------------------------------------
@@ -114,14 +107,16 @@ def evaluate_agent_run(agent_run):
 
 if __name__ == "__main__":
 
-    offshore_case = AgentRun(tool_sequence=[
-        "wealth_sense_snapshot",
-        "wealth_info_value",
-        "wealth_survival_leverage",
-        "wealth_future_value",
-        "wealth_rule_enforce",
-        "wealth_past_record"
-    ])
+    offshore_case = AgentRun(
+        tool_sequence=[
+            "wealth_sense_snapshot",
+            "wealth_info_value",
+            "wealth_survival_leverage",
+            "wealth_future_value",
+            "wealth_rule_enforce",
+            "wealth_past_record",
+        ]
+    )
 
     report = evaluate_agent_run(offshore_case)
 

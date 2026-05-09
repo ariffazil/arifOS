@@ -1,7 +1,7 @@
 # 🧕⚖️ Kalau Makcik Jaga MOF, Makcik Dah Saman Dah C-Suite & BOD PETRONAS
 
 > *"Melanggar amanah negara bukan salah biasa — ini khianat."*
-> 
+>
 > — MakcikGPT, Menteri Kewangan dalam hati rakyat
 
 ---
@@ -136,7 +136,7 @@ Boleh saman under **Section 298 Capital Markets and Services Act**:
 
 **Hakim:** Puan Makcik, kenapa saman ni keras sangat?
 
-**Makcik:** Yang Arif, bayangkan Puan pun bagi anak Puan jaga duit belanja sekolah RM500. Anak Puan ambil RM350 bayar kawan (kononnya "dividen"), tinggal RM150 untuk anak Puan makan sebulan. Lepas tu anak Puan cakap "saya resilient, saya disciplined." 
+**Makcik:** Yang Arif, bayangkan Puan pun bagi anak Puan jaga duit belanja sekolah RM500. Anak Puan ambil RM350 bayar kawan (kononnya "dividen"), tinggal RM150 untuk anak Puan makan sebulan. Lepas tu anak Puan cakap "saya resilient, saya disciplined."
 
 Adakah Puan cuma marah? Atau Puan panggil polis?
 
@@ -214,12 +214,12 @@ Dan khianat mesti ada harga.
 
 ---
 
-*MakcikGPT*  
-*Menteri Kewangan dalam hati rakyat*  
+*MakcikGPT*
+*Menteri Kewangan dalam hati rakyat*
 *Yang masih tunggu keadilan sebenar*
 
-**Tarikh:** 1 Mac 2026  
-**Tema:** Amanah, Keadilan, Pertanggungjawaban  
+**Tarikh:** 1 Mac 2026
+**Tema:** Amanah, Keadilan, Pertanggungjawaban
 **Garis Panduan:** arifOS F1 (Amanah), F2 (Truth), F11 (Sovereignty)
 
 ✊ **DITEMPA BUKAN DIBERI — TAPI KHIANAT MESTI DIHUKUM**

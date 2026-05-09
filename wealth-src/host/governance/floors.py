@@ -3,7 +3,7 @@ F1–F13 Constitutional Floor Evaluation
 Ported from embedded JS theory (host/kernel/floors.js, canon/GOVERNANCE.md)
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from datetime import datetime, timezone
 
 FLOORS = {
@@ -81,7 +81,11 @@ def check_floors(args: Dict[str, Any]) -> Dict[str, Any]:
         violations.append("F12: Floor override is not permitted.")
 
     # F13 — Human Veto (escalated for high-scale irreversible operations)
-    if not human_confirmed and reversible is False and scale_mode in {"national", "crisis", "civilization"}:
+    if (
+        not human_confirmed
+        and reversible is False
+        and scale_mode in {"national", "crisis", "civilization"}
+    ):
         holds.append("F13: High-scale irreversible action requires human confirmation.")
 
     # F8 / F9 / F11 — placeholder checks using explicit flags
@@ -107,7 +111,10 @@ def check_floors(args: Dict[str, Any]) -> Dict[str, Any]:
         "holds": holds,
         "warnings": warnings,
         "epistemic": epistemic,
-        "vault_log_entry": {"tool": "wealth_check_floors", "epoch": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")},
+        "vault_log_entry": {
+            "tool": "wealth_check_floors",
+            "epoch": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        },
         "witness": {"human": human_confirmed, "ai": True, "earth": True},
     }
 

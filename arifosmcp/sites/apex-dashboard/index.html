@@ -1004,35 +1004,17 @@ async function loadOrganDiscovery() {
     const healthStatus = probed.health || 'unknown';
     const isHealthy = healthStatus === 'healthy';
     const isDegraded = healthStatus === 'degraded';
+    const toolCount = probed.tool_count ?? o.verifiedCount ?? null;
 
-    let discoveryOk = false;
-    let tools = '—', resources = '—', prompts = '—';
-
-    // Only attempt CORS discovery if server-side probe says organ is up
-    if (isHealthy || isDegraded) {
-      try {
-        const r = await fetch(o.url + '/.well-known/mcp/server.json', {mode:'cors'});
-        if (r.ok) {
-          const d = await r.json();
-          tools = d.tools?.length ?? '—';
-          resources = d.resources?.length ?? '—';
-          prompts = d.prompts?.length ?? '—';
-          discoveryOk = true;
-        }
-      } catch(e) { discoveryOk = false; }
-    }
+    let resources = '—', prompts = '—';
 
     const el = document.getElementById(o.id+'-tools');
     const el2 = document.getElementById(o.id+'-resources');
     const el3 = document.getElementById(o.id+'-prompts');
 
-    if (discoveryOk) {
-      if (el) el.textContent = tools + ' tools';
-      if (el2) el2.textContent = resources + ' resources';
-      if (el3) el3.textContent = prompts + ' prompts';
-    } else if (isHealthy && o.verifiedCount) {
-      if (el) el.textContent = o.verifiedCount + ' tools (MCP verified 2026-05-03)';
-      if (el2) el2.textContent = o.note;
+    if (toolCount !== null) {
+      if (el) el.textContent = toolCount + ' tools';
+      if (el2) el2.textContent = o.note || '';
       if (el3) el3.textContent = '';
     } else if (isHealthy) {
       if (el) el.textContent = 'MCP discovery unavailable';
@@ -1043,7 +1025,6 @@ async function loadOrganDiscovery() {
       if (el2) el2.textContent = '';
       if (el3) el3.textContent = '';
     } else {
-      // unknown or unreachable
       if (el) el.textContent = healthStatus === 'unreachable' ? 'unreachable' : 'unknown';
       if (el2) el2.textContent = '';
       if (el3) el3.textContent = '';

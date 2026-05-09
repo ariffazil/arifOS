@@ -1,8 +1,8 @@
 # W@W Authority Envelope — Operational Spec
 
-> **Version:** v1.0.0-canonical  
-> **Status:** SEALED  
-> **Epistemic:** CLAIM  
+> **Version:** v1.0.0-canonical
+> **Status:** SEALED
+> **Epistemic:** CLAIM
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

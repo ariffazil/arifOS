@@ -117,9 +117,7 @@ def safe_json_get(url: str, headers: dict[str, str] | None = None) -> dict:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def safe_json_post(
-    url: str, payload: dict, headers: dict[str, str] | None = None
-) -> dict:
+def safe_json_post(url: str, payload: dict, headers: dict[str, str] | None = None) -> dict:
     merged_headers = {"Content-Type": "application/json"}
     if headers:
         merged_headers.update(headers)
@@ -133,9 +131,7 @@ def safe_json_post(
         return json.loads(resp.read().decode("utf-8"))
 
 
-def safe_json_put(
-    url: str, payload: dict, headers: dict[str, str] | None = None
-) -> dict:
+def safe_json_put(url: str, payload: dict, headers: dict[str, str] | None = None) -> dict:
     merged_headers = {"Content-Type": "application/json"}
     if headers:
         merged_headers.update(headers)
@@ -186,9 +182,7 @@ def parse_retain_facts(file_path: Path, workspace: Path) -> list[Fact]:
 
         entities = sorted(set(ENTITY_PATTERN.findall(content)))
         rel_path = str(file_path.relative_to(workspace))
-        fact_hash = hashlib.sha1(
-            f"{rel_path}:{idx}:{content}".encode("utf-8")
-        ).hexdigest()
+        fact_hash = hashlib.sha1(f"{rel_path}:{idx}:{content}".encode("utf-8")).hexdigest()
         facts.append(
             Fact(
                 kind=kind,
@@ -351,9 +345,7 @@ def cmd_index(args: argparse.Namespace) -> int:
     return 0
 
 
-def fetch_sql_rows(
-    conn: sqlite3.Connection, args: argparse.Namespace
-) -> list[sqlite3.Row]:
+def fetch_sql_rows(conn: sqlite3.Connection, args: argparse.Namespace) -> list[sqlite3.Row]:
     where = []
     params: list[object] = []
 
@@ -427,9 +419,7 @@ def cmd_recall(args: argparse.Namespace) -> int:
 
     rows = fetch_sql_rows(conn, args)
     if args.hybrid and args.query:
-        collection = os.environ.get(
-            "MEMORY_QDRANT_COLLECTION", "openclaw_workspace_memory"
-        )
+        collection = os.environ.get("MEMORY_QDRANT_COLLECTION", "openclaw_workspace_memory")
         try:
             sem = semantic_search(args.query, args.k, collection)
             sem_ids = []
@@ -670,9 +660,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     try:
         tags = safe_json_get("http://127.0.0.1:11434/api/tags")
         names = [m.get("name", "?") for m in tags.get("models", [])]
-        print(
-            f"Ollama: ok ({len(names)} models) -> {', '.join(names) if names else '-'}"
-        )
+        print(f"Ollama: ok ({len(names)} models) -> {', '.join(names) if names else '-'}")
     except Exception as exc:  # noqa: BLE001
         print(f"Ollama: unavailable ({exc})")
 
@@ -691,16 +679,10 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     url = os.environ.get("QDRANT_URL", "http://127.0.0.1:6333")
     try:
         cols = safe_json_get(f"{url}/collections", headers=headers)
-        names = [
-            c.get("name", "?") for c in cols.get("result", {}).get("collections", [])
-        ]
-        print(
-            f"Qdrant: ok ({len(names)} collections) -> {', '.join(names) if names else '-'}"
-        )
+        names = [c.get("name", "?") for c in cols.get("result", {}).get("collections", [])]
+        print(f"Qdrant: ok ({len(names)} collections) -> {', '.join(names) if names else '-'}")
         if names:
-            preferred = os.environ.get(
-                "MEMORY_QDRANT_COLLECTION", "openclaw_workspace_memory"
-            )
+            preferred = os.environ.get("MEMORY_QDRANT_COLLECTION", "openclaw_workspace_memory")
             target = preferred if preferred in names else names[0]
             meta = safe_json_get(f"{url}/collections/{target}", headers=headers)
             dim = (
@@ -749,9 +731,7 @@ def cmd_env_lint(args: argparse.Namespace) -> int:
     else:
         mode = stat.S_IMODE(env_file.stat().st_mode)
         if mode != 0o600:
-            warnings.append(
-                f"env file permissions are {oct(mode)} (recommended: 0o600)"
-            )
+            warnings.append(f"env file permissions are {oct(mode)} (recommended: 0o600)")
         keys = _read_env_keys(env_file)
         missing = [k for k in REQUIRED_ENV_KEYS if k not in keys]
         if missing:
@@ -770,17 +750,11 @@ def cmd_env_lint(args: argparse.Namespace) -> int:
             )
 
     try:
-        proc = subprocess.run(
-            ["crontab", "-l"], check=False, capture_output=True, text=True
-        )
+        proc = subprocess.run(["crontab", "-l"], check=False, capture_output=True, text=True)
         if proc.returncode == 0:
-            lines = [
-                l for l in proc.stdout.splitlines() if "memory_tools/run_cycle.sh" in l
-            ]
+            lines = [l for l in proc.stdout.splitlines() if "memory_tools/run_cycle.sh" in l]
             if not lines:
-                issues.append(
-                    "memory cron line missing (run_cycle.sh not found in crontab)"
-                )
+                issues.append("memory cron line missing (run_cycle.sh not found in crontab)")
             else:
                 for line in lines:
                     if "OPENCLAW_ENV_FILE=" not in line:
@@ -823,24 +797,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_index = sub.add_parser(
-        "index", help="Index memory/YYYY-MM-DD.md retain bullets into SQLite"
-    )
-    p_index.add_argument(
-        "--rebuild", action="store_true", help="Rebuild index from scratch"
-    )
+    p_index = sub.add_parser("index", help="Index memory/YYYY-MM-DD.md retain bullets into SQLite")
+    p_index.add_argument("--rebuild", action="store_true", help="Rebuild index from scratch")
     p_index.set_defaults(func=cmd_index)
 
     p_recall = sub.add_parser("recall", help="Recall facts from SQLite FTS index")
     p_recall.add_argument("query", nargs="?", default="", help="FTS query text")
     p_recall.add_argument("--k", type=int, default=12, help="Max results")
-    p_recall.add_argument(
-        "--kind", choices=["world", "experience", "opinion", "summary"]
-    )
+    p_recall.add_argument("--kind", choices=["world", "experience", "opinion", "summary"])
     p_recall.add_argument("--entity", help="Entity slug without @")
-    p_recall.add_argument(
-        "--since-days", type=int, default=0, help="Filter by recent days"
-    )
+    p_recall.add_argument("--since-days", type=int, default=0, help="Filter by recent days")
     p_recall.add_argument(
         "--hybrid",
         action="store_true",
@@ -853,21 +819,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_reflect.set_defaults(func=cmd_reflect)
 
-    p_upsert = sub.add_parser(
-        "semantic-upsert", help="Embed SQLite facts and upsert into Qdrant"
-    )
+    p_upsert = sub.add_parser("semantic-upsert", help="Embed SQLite facts and upsert into Qdrant")
     p_upsert.set_defaults(func=cmd_semantic_upsert)
 
-    p_sem = sub.add_parser(
-        "semantic-search", help="Semantic search over Qdrant memory collection"
-    )
+    p_sem = sub.add_parser("semantic-search", help="Semantic search over Qdrant memory collection")
     p_sem.add_argument("query", help="Semantic query")
     p_sem.add_argument("--k", type=int, default=8, help="Max semantic hits")
     p_sem.set_defaults(func=cmd_semantic_search)
 
-    p_retain = sub.add_parser(
-        "retain-add", help="Append one retain bullet to a daily memory file"
-    )
+    p_retain = sub.add_parser("retain-add", help="Append one retain bullet to a daily memory file")
     p_retain.add_argument("entry", help="Retain entry text, e.g. W @Arif: ...")
     p_retain.add_argument("--date", help="Date YYYY-MM-DD (default: today)")
     p_retain.set_defaults(func=cmd_retain_add)

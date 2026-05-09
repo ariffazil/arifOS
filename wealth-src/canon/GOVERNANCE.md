@@ -1,7 +1,7 @@
 # GOVERNANCE — Constitutional Constraint Logic
 
-> **Version:** v1.0.0-canonical  
-> **Status:** Enforced  
+> **Version:** v1.0.0-canonical
+> **Status:** Enforced
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

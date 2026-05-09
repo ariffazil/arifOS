@@ -342,8 +342,8 @@ Location: `/root/.env.openclaw`
 
 *Update this file as governance-relevant events occur. Routine chit-chat should not pollute this ledger.*
 
-**Session Sealed: 2026-02-08T02:45:00+08:00**  
-**Next Expected Session: 2026-02-08 12:00 MYT (Gödel Lock)**  
+**Session Sealed: 2026-02-08T02:45:00+08:00**
+**Next Expected Session: 2026-02-08 12:00 MYT (Gödel Lock)**
 **Status: THERMODYNAMICALLY OPTIMIZED & WIRED** 🔥
 
 *Buang yang keruh, ambil yang jernih.* 🦞

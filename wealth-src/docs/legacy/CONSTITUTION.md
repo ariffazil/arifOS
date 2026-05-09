@@ -87,5 +87,5 @@ elif verdict.status == "888_HOLD":
 
 ---
 
-_AGI-bot Constitutional Kernel v63_  
+_AGI-bot Constitutional Kernel v63_
 _Ω₀ = 0.04 | Peace² = 1.5 | SEAL_

@@ -57,6 +57,6 @@ Untuk yang percaya **teknologi boleh jadi lembut**, tapi tetap **berbatas**.
 
 ## Status
 
-Projek ini sedang **ditempa** — macam besi yang masih merah di tungku. 
+Projek ini sedang **ditempa** — macam besi yang masih merah di tungku.
 
 *Ditempa, bukan diberi.*

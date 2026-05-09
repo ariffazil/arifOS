@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -98,13 +98,11 @@ class PortfolioCorrelationGuard:
 
         for lineage_hash, prospects_list in lineage_to_prospects.items():
             if len(prospects_list) >= self.correlation_threshold:
-                correlated_groups[lineage_hash] = [
-                    p.prospect_id for p in prospects_list
-                ]
+                correlated_groups[lineage_hash] = [p.prospect_id for p in prospects_list]
                 all_correlated.extend(prospects_list)
 
         if all_correlated:
-            prospect_ids = [p.prospect_id for p in all_correlated]
+            [p.prospect_id for p in all_correlated]
             lineage_hashes = list(set([p.model_lineage_hash for p in all_correlated]))
             return CorrelationReport(
                 systemic_risk=True,

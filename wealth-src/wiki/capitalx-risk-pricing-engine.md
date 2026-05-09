@@ -16,7 +16,7 @@ tags: [capitalx, engine, pricing, risk, enforcement]
 
 > **"What should this actor pay to borrow capital, given their entropy, dignity, peace, and civilization impact?"**
 
-Without `capitalx`, WEALTH is moral philosophy.  
+Without `capitalx`, WEALTH is moral philosophy.
 With `capitalx`, WEALTH becomes **sovereign infrastructure**.
 
 ## Core Thesis

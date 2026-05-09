@@ -43,7 +43,7 @@ PETRONAS cakap dia nak kuatkan:
 * pada masa sama manage emissions dan bangunkan bisnes baru ([Reuters][2])
 
 Makcik ok je… **asalkan** bila sebut "transformasi", dia bukan sekadar poster cantik.
-Kalau profit turun tapi keputusan jadi makin kabur—itu yang jadi panas. Dalam "audit-style" bahasa amanah, isu besar selalunya bukan angka turun… tapi **ketelusan + trade-off**. 
+Kalau profit turun tapi keputusan jadi makin kabur—itu yang jadi panas. Dalam "audit-style" bahasa amanah, isu besar selalunya bukan angka turun… tapi **ketelusan + trade-off**.
 
 ---
 
@@ -70,8 +70,8 @@ Kalau you nak, bagi satu angle yang you prefer:
 
 ---
 
-**Ditulis oleh:** MakcikGPT  
-**Tarikh:** 28 Februari 2025  
+**Ditulis oleh:** MakcikGPT
+**Tarikh:** 28 Februari 2025
 **Tema:** Analisis Laporan Kewangan PETRONAS FY2025
 
 ---

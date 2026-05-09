@@ -3,8 +3,6 @@ Strategic / non-cooperative equilibrium approximation.
 Best-response iteration for constrained linear-utility games.
 """
 
-import copy
-import math
 from typing import Any, Dict, List
 
 from host.coordination.lp_allocator import allocate
@@ -21,7 +19,12 @@ def nash_approximation(
     Each agent solves an LP taking others' allocations as fixed residual capacity.
     """
     if not agents or not resources:
-        return {"equilibrium": {}, "converged": False, "iterations": 0, "flags": ["NO_AGENTS_OR_RESOURCES"]}
+        return {
+            "equilibrium": {},
+            "converged": False,
+            "iterations": 0,
+            "flags": ["NO_AGENTS_OR_RESOURCES"],
+        }
 
     res_names = list(resources.keys())
     n = len(agents)
@@ -41,7 +44,9 @@ def nash_approximation(
             # Residual capacity = total - sum of others' current allocations
             residual = {}
             for r in res_names:
-                others_sum = sum(current[other["name"]].get(r, 0.0) for other in agents if other["name"] != name)
+                others_sum = sum(
+                    current[other["name"]].get(r, 0.0) for other in agents if other["name"] != name
+                )
                 residual[r] = max(0.0, resources[r] - others_sum)
 
             # Single-agent LP
@@ -58,7 +63,9 @@ def nash_approximation(
         current = next_alloc
         if max_diff < tolerance:
             return {
-                "equilibrium": {k: {r: round(v, 6) for r, v in vals.items()} for k, vals in current.items()},
+                "equilibrium": {
+                    k: {r: round(v, 6) for r, v in vals.items()} for k, vals in current.items()
+                },
                 "converged": True,
                 "iterations": iteration,
                 "max_diff": round(max_diff, 8),
@@ -66,7 +73,9 @@ def nash_approximation(
             }
 
     return {
-        "equilibrium": {k: {r: round(v, 6) for r, v in vals.items()} for k, vals in current.items()},
+        "equilibrium": {
+            k: {r: round(v, 6) for r, v in vals.items()} for k, vals in current.items()
+        },
         "converged": False,
         "iterations": max_iterations,
         "max_diff": round(max_diff, 8),

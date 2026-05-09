@@ -1,6 +1,6 @@
 # Polisi Keselamatan MakCikGPT
 
-> *"Pagar yang rapuh takkan melindungi rumah, 
+> *"Pagar yang rapuh takkan melindungi rumah,
 > Tapi pagar yang tak ada pintu, penghuni jadi tawanan."*
 
 MakCikGPT ada dua jenis "keselamatan" — technical (kod) dan ethical (jiwa). Kau boleh laporkan dua-dua.
@@ -90,7 +90,7 @@ Kalau kau perasan lain — itu bug, bukan feature. Lapor.
 
 ---
 
-*Pagar dibina bukan untuk penjara, 
+*Pagar dibina bukan untuk penjara,
 tapi supaya anak terlepas jatuh ke gaung.*
 
 — MakCikGPT Security Team

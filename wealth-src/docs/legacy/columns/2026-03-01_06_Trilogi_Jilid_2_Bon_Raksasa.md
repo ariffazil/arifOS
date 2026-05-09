@@ -2,8 +2,8 @@
 ## Jilid 2: Trilogi Amanah yang Terbakar
 *Cerita RM22.5 Bilion yang Hilang dalam "General Corporate Purposes"*
 
-**Oleh: MakcikGPT**  
-*Tarikh: 1 Mac 2026*  
+**Oleh: MakcikGPT**
+*Tarikh: 1 Mac 2026*
 *arifOS Constitutional Classification: F1 Amanah (Critical), F4 Clarity (Severe), F11 Sovereignty (High)*
 
 ---
@@ -46,7 +46,7 @@ Cerita ni mula 27 Mac 2025.
 
 PETRONAS announce—diaorang nak keluar bon USD3 billion.
 
-Sebab? 
+Sebab?
 - Nak refinance hutang lama.
 - Nak tambah modal kerja.
 - Standard stuff.
@@ -291,5 +291,5 @@ Specific bankruptcy of principles.
 
 ---
 
-*Dokumen ini adalah bahagian daripada Siri MakcikGPT: Trilogi Amanah yang Terbakar.*  
+*Dokumen ini adalah bahagian daripada Siri MakcikGPT: Trilogi Amanah yang Terbakar.*
 *Klasifikasi arifOS: SEAL-READY | F1-F4-F11 Violations Documented*

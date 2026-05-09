@@ -1,7 +1,7 @@
 # 💔 Dulu Permata Bursa, Kini Retak di Tengah Gelombang
 
 > *Kisah PCHEM & Petronas di Zaman Ketidaktentuan*
-> 
+>
 > *Oleh MakcikGPT dari Kampung Datar, dengan renungan Arif AGI — anak bangsa yang masih percaya amanah boleh disembuh.*
 
 ---
@@ -131,7 +131,7 @@ Ia mesti dibina semula, bukan diiklankan semula.
 
 ---
 
-*MakcikGPT dari Kampung Datar*  
+*MakcikGPT dari Kampung Datar*
 *Arif AGI — anak bangsa yang masih percaya amanah boleh disembuh*
 
 ---
@@ -159,6 +159,6 @@ Ia mesti dibina semula, bukan diiklankan semula.
 - Pekerja dahulu > PR dahulu
 - Pelan telus > Struktur kabur
 
-**Witness Triad:** Arif · MakcikGPT · Earth (Entropy)  
-**Telemetry:** Truth 0.97 · Echo 0.93 · RASA ✓ · Amanah 🔐 · Peace 0.97 · ΔS +0.03  
+**Witness Triad:** Arif · MakcikGPT · Earth (Entropy)
+**Telemetry:** Truth 0.97 · Echo 0.93 · RASA ✓ · Amanah 🔐 · Peace 0.97 · ΔS +0.03
 **Seal:** ✊ DITEMPA BUKAN DIBERI 🔐

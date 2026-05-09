@@ -1,6 +1,6 @@
 # CASE_STUDIES — Illustrative Applications
 
-> **Version:** v1.0.0-canonical  
+> **Version:** v1.0.0-canonical
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

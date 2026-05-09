@@ -1,7 +1,7 @@
 # ECONOMIC_MODEL — Formal WEALTH Logic
 
-> **Version:** v1.0.0-canonical  
-> **Status:** Formal Spec  
+> **Version:** v1.0.0-canonical
+> **Status:** Formal Spec
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

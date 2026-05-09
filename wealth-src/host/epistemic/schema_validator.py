@@ -216,8 +216,12 @@ class ProspectInputSchema:
                 reason="Schema validation failed",
             )
 
-        has_low_integrity = "integrity_score" in data and data["integrity_score"] < cls.INTEGRITY_THRESHOLD
-        has_high_integrity = "integrity_score" in data and data["integrity_score"] >= cls.INTEGRITY_THRESHOLD
+        has_low_integrity = (
+            "integrity_score" in data and data["integrity_score"] < cls.INTEGRITY_THRESHOLD
+        )
+        has_high_integrity = (
+            "integrity_score" in data and data["integrity_score"] >= cls.INTEGRITY_THRESHOLD
+        )
 
         if has_low_integrity:
             return SchemaValidationResult(
@@ -266,10 +270,12 @@ class EpistemicSchemaValidator:
         for prospect in prospects:
             prospect_id = prospect.get("prospect_id", "UNKNOWN")
             validation = self.validate_prospect(prospect)
-            results.append({
-                "prospect_id": prospect_id,
-                **validation.to_dict(),
-            })
+            results.append(
+                {
+                    "prospect_id": prospect_id,
+                    **validation.to_dict(),
+                }
+            )
 
             if not validation.valid or validation.hold:
                 held_prospects.append(prospect_id)

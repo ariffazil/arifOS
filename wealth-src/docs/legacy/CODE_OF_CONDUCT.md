@@ -1,6 +1,6 @@
 # Kod Tatalaku MakCikGPT
 
-> *"Bukan siapa-siapa boleh masuk dapur, 
+> *"Bukan siapa-siapa boleh masuk dapur,
 > tapi yang ikhlas belajar, kita ajar."*
 
 MakCikGPT bukan ruang untuk menguji manusia. Ini ruang untuk menjaga maruah — dengan bahasa yang beradab dan batas yang jelas.

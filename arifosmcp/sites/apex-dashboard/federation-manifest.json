@@ -44,6 +44,7 @@
       "role": "Governance Kernel · ΔΩΨ Trinity",
       "base_url": "https://arifos.arif-fazil.com",
       "repo": "https://github.com/ariffazil/arifOS",
+      "tool_count": 13,
       "endpoints": {
         "health": "/health",
         "discovery": "/.well-known/mcp/server.json",
@@ -139,6 +140,7 @@
       },
       "discovery_status": "mcp-only",
       "discovery_note": "No REST discovery. 53 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 4 dot-notation aliases.",
+      "tool_count": 53,
       "stack": {
         "runtime": "Python 3.11+",
         "framework": "FastMCP, Pydantic v2, Uvicorn",
@@ -199,6 +201,7 @@
       },
       "discovery_status": "mcp-only",
       "discovery_note": "No REST discovery. 50 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 2 generic-name tools (vault_write, vault_query).",
+      "tool_count": 50,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP (single-file monolith)",
@@ -270,6 +273,7 @@
       },
       "discovery_status": "mcp-only",
       "discovery_note": "No REST discovery. 31 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 3 apparent alias pairs.",
+      "tool_count": 31,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP",
@@ -321,6 +325,8 @@
         "discovery": "/.well-known/mcp/server.json",
         "a2a": "/a2a"
       },
+      "tool_count": null,
+      "discovery_status": "a2a-gateway",
       "stack": {
         "runtime": "Node.js 22+ / Python 3.12+",
         "framework": "Express / FastMCP",
@@ -355,6 +361,8 @@
       "endpoints": {
         "health": "/health"
       },
+      "tool_count": null,
+      "discovery_status": "mcp-http",
       "stack": {
         "runtime": "Node.js 22+",
         "framework": "Express 4.x, TypeScript 5.8+, @modelcontextprotocol/sdk ^1.29.0",
@@ -401,6 +409,8 @@
         "health": null,
         "discovery": null
       },
+      "tool_count": 0,
+      "discovery_status": "static",
       "stack": {
         "runtime": "Static site",
         "framework": "HTML/CSS/JS or React",

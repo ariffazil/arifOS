@@ -111,7 +111,7 @@ button, a {
     h1 {
         font-size: 2.5rem !important;
     }
-    
+
     h2 {
         font-size: 2rem !important;
     }
@@ -144,7 +144,7 @@ button:focus-visible {
     nav, footer, .no-print {
         display: none !important;
     }
-    
+
     body {
         background: white !important;
         color: black !important;

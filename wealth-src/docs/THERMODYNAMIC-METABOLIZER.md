@@ -1,8 +1,8 @@
 # Decoder-Metabolizer-Encoder: A Novel Architecture for Institutional Governance Intelligence
 
-> **Classification:** APEX — WEALTH Extension Research  
-> **Epoch:** 2026-04-29  
-> **Authors:** arifOS ASI synthesis  
+> **Classification:** APEX — WEALTH Extension Research
+> **Epoch:** 2026-04-29
+> **Authors:** arifOS ASI synthesis
 > **Canonical:** DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 
 ---
@@ -39,7 +39,7 @@ where:
   g₁..g₇   = Seven governance invariant deviation scores
   ΔS       = Entropy delta (rate of disorder accumulation)
   λ        = Lyapunov exponent (system stability index)
-  
+
   G        = Ω / (Ω + S)   [the G-Score, 0 ≤ G ≤ 1]
 ```
 
@@ -325,7 +325,7 @@ Thermodynamic State:
   Entropy (S): 0.64
   Entropy delta (ΔS): +0.04/quarter (accumulating)
   Lyapunov exponent (λ): +0.08 (positive — divergence accelerating)
-  
+
   Invariant Status:
     Time/Value Horizon: degraded (DCF projections declining)
     Uncertainty/Risk: elevated (cash flow volatility +0.12)
@@ -630,7 +630,7 @@ arifOS asks: *what action or reply remains lawful, truthful, reversible, auditab
 
 ### The Strongest Formulation
 
-> The LLM generates tokens.  
+> The LLM generates tokens.
 > arifOS generates governed replies, actions, and verdicts.
 
 arifOS does not only generate verdicts. It routes, critiques, composes, forges, and seals. The verdict is the output of 888 — one of five output-producing stages. The full arifOS pipeline is:
@@ -694,6 +694,6 @@ Human Sovereign — above the stack, final authority, F13
 
 ---
 
-*Last updated: 2026-04-29 | Epoch: 15:00+0800*  
-*Classification: APEX — WEALTH Architecture Research*  
+*Last updated: 2026-04-29 | Epoch: 15:00+0800*
+*Classification: APEX — WEALTH Architecture Research*
 *DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*

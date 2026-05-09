@@ -1,9 +1,9 @@
 # WEALTH — Roadmap H1–H4
 
-**Version:** v2026.05.06  
-**Organ:** WEALTH (Capital · Ω Node)  
-**Maturity:** PRODUCTION (155 commits, 48 tools)  
-**Role:** Capital intelligence coprocessor — NPV, EMV, crisis triage, Makcik² relational credit  
+**Version:** v2026.05.06
+**Organ:** WEALTH (Capital · Ω Node)
+**Maturity:** PRODUCTION (155 commits, 48 tools)
+**Role:** Capital intelligence coprocessor — NPV, EMV, crisis triage, Makcik² relational credit
 **Status:** SEALED — pending APEX ratification
 
 ---
@@ -77,7 +77,7 @@ A pure financial optimization will destroy natural capital and human wellbeing.
 Exergy and negentropy give arifOS a thermodynamic language for trade-offs that
 financial models cannot express.
 
-**Owner:** WEALTH science team  
+**Owner:** WEALTH science team
 **Target:** September 2026
 
 ### H1.2 Cross-Scale Stress Testing
@@ -114,7 +114,7 @@ class StressTestScenario:
 
 **Target:** All constitutional floors hold at all scales by September 2026.
 
-**Owner:** WEALTH risk team  
+**Owner:** WEALTH risk team
 **Target:** September 2026
 
 ### H1.3 WEALTH ↔ GEOX Coupling
@@ -131,11 +131,11 @@ class PlanetaryBoundaryInput:
     groundwater_depletion_rate: float   # m³/year
     soil_erosion_flux: float            # tonnes/year
     carbon_storage_delta: float         # tonnes CO2/year
-    
+
     # WEALTH processing
     ecological_damage_price: float      # MYR/year
     planetary_boundary_indicator: float # 0–1 (1 = boundary exceeded)
-    
+
     # Alert thresholds
     boundary_warning: bool              # True if > 0.8
     boundary_exceeded: bool             # True if > 1.0
@@ -149,7 +149,7 @@ class PlanetaryBoundaryInput:
 
 Makcik² relational credit scoring reaches General Availability.
 
-**Current state:** Prototype  
+**Current state:** Prototype
 **Target:** GA with full VAULT999 audit trail
 
 ### H2.2 Cross-Institutional Capital Flow

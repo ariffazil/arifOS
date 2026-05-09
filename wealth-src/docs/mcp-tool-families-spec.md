@@ -1,8 +1,8 @@
 # WEALTH MCP Tool Families — Current Repo SOT
 
-> **Version:** v1.5.0  
-> **Status:** ACTIVE REPO STATE  
-> **Epistemic:** CLAIM  
+> **Version:** v1.5.0
+> **Status:** ACTIVE REPO STATE
+> **Epistemic:** CLAIM
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

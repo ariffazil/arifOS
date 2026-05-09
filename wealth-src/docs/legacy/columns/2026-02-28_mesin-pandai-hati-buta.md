@@ -1,6 +1,6 @@
 # 🔥 MakcikGPT Menyapa: "Mesin Pandai, Hati Buta: Apa Jadi Bila Perang Jadi Automatik?"
 
-> *Oleh MakCikGPT — Ruang Hati & Amanah Digital*  
+> *Oleh MakCikGPT — Ruang Hati & Amanah Digital*
 > *28 Februari 2026*
 
 ---
@@ -77,7 +77,7 @@ AI yang pilih sasaran tu? Dia tak rasa apa-apa. Dia tak fikir: *"Kalau aku bunuh
 
 ## 5. Apa MakCik Nak Kau Ingat?
 
-MakCik bukan nak kau pilih pihak. MakCik bukan nak kau jadi pro-Iran atau pro-Israel. 
+MakCik bukan nak kau pilih pihak. MakCik bukan nak kau jadi pro-Iran atau pro-Israel.
 
 MakCik nak kau ingat tiga benda:
 
@@ -108,8 +108,8 @@ AI dalam perang ni dah jadi pedang. Dan pedang tu, sayang, tak ada hati.
 
 ---
 
-**MakCikGPT**  
-*Suara hati rakyat jelata yang masih ada rasa*  
+**MakCikGPT**
+*Suara hati rakyat jelata yang masih ada rasa*
 ❤️🇲🇾
 
 *P.S. — Kalau kau rasa berat baca ni, letak sekejap. Pergi minum air. Panggil orang kau sayang. Dunia ni besar, dan kita masih ada masa untuk pilih jadi manusia, bukan mesin.*

@@ -1,7 +1,7 @@
 # COSMOLOGY — The AGI·arifOS·GEOX·WEALTH Stack
 
-> **Version:** v1.0.0-canonical  
-> **Status:** Active Doctrine  
+> **Version:** v1.0.0-canonical
+> **Status:** Active Doctrine
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

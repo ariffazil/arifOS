@@ -3343,6 +3343,7 @@ def register_rest_routes(
                 eps = org.get("endpoints", {})
                 health_ep = eps.get("health") if eps else None
                 build_ep = eps.get("build_info") if eps else None
+                tool_count = org.get("tool_count")
 
                 health_status = "unknown"
                 build_info: dict = {}
@@ -3351,7 +3352,7 @@ def register_rest_routes(
                 # Do NOT call localhost:8080/health via blocking urllib — it deadlocks
                 # the event loop (handler blocks loop, loop can't process the request).
                 if key == "arifos":
-                    return key, {"health": "healthy", "build_info": {}}
+                    return key, {"health": "healthy", "build_info": {}, "tool_count": tool_count}
 
                 if base and health_ep:
                     # Probe health endpoint
@@ -3400,7 +3401,11 @@ def register_rest_routes(
                     except Exception:
                         pass  # build_info stays empty
 
-                return key, {"health": health_status, "build_info": build_info}
+                return key, {
+                    "health": health_status,
+                    "build_info": build_info,
+                    "tool_count": tool_count,
+                }
 
             # Probe all organs concurrently
             tasks = [probe_organ(k, v) for k, v in organs.items()]

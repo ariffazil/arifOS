@@ -1,7 +1,7 @@
 # WEALTH 3-Axis Basis — Operational Spec
 
-> **Status:** Draft — awaiting Δbps_proven test  
-> **Epistemic:** ESTIMATE / HYPOTHESIS  
+> **Status:** Draft — awaiting Δbps_proven test
+> **Epistemic:** ESTIMATE / HYPOTHESIS
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

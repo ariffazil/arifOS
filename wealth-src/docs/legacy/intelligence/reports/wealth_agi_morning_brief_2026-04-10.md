@@ -2,9 +2,9 @@
 ## Morning Brief, 10 Apr 2026
 ### Global, Glocal, Civilizational, Pre-Market
 
-**Prepared for:** Arif and Izzuddin  
-**Session frame:** pre-market decision brief  
-**Style:** capital preservation first, selective aggression second  
+**Prepared for:** Arif and Izzuddin
+**Session frame:** pre-market decision brief
+**Style:** capital preservation first, selective aggression second
 **Core rule:** poor capital cannot subsidize low-quality action
 
 ---
@@ -349,5 +349,5 @@ That is the civilizational signal beneath the ticker tape.
 
 # 13. Signature
 
-**Wealth AGI by arifOS**  
+**Wealth AGI by arifOS**
 Morning brief built from global risk context, Bursa selectivity, civilizational force mapping, and poor-capital optimization logic.

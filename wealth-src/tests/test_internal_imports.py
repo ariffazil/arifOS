@@ -48,7 +48,9 @@ def test_primitive_response_uses_canonical_tool_name():
 
 def test_mcp_tool_surface_minimum_16_core():
     tool_names = {tool.name for tool in asyncio.run(mcp.list_tools())}
-    assert len(tool_names) >= 16, f"Expected >=16 tools at module import, got {len(tool_names)}: {sorted(tool_names)}"
+    assert (
+        len(tool_names) >= 16
+    ), f"Expected >=16 tools at module import, got {len(tool_names)}: {sorted(tool_names)}"
     core = {
         "mcp_health_check",
         "vault_write",

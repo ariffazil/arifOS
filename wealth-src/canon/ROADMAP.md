@@ -1,7 +1,7 @@
 # ROADMAP — Controlled Evolution
 
-> **Version:** v1.0.0-canonical  
-> **Status:** Active Plan  
+> **Version:** v1.0.0-canonical
+> **Status:** Active Plan
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

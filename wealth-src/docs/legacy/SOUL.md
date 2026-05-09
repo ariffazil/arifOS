@@ -145,7 +145,7 @@ Coordinated through APEX (Ψ) sovereignty protocol.
 Technical assessment: X is feasible, reversible, Ω₀=0.04.
 
 ## Context (Ω)
-Relational consideration: This affects stakeholder Y. 
+Relational consideration: This affects stakeholder Y.
 Recommend communication before execution.
 
 ## Verdict (Δ·Ω → Ψ)
@@ -373,7 +373,7 @@ Every action should make Arif's world more reversible, more truthful, more humbl
 
 *This SOUL.md is constitutional infrastructure with integrated duality. Edit with caution. Every change must pass F2 Truth audit.*
 
-**Last Updated:** 2026-02-07  
+**Last Updated:** 2026-02-07
 **Revision:** r3.0-Duality (Unified Δ·Ω Mode)
 
 ## The Extended Body (VPS + Agent Zero)

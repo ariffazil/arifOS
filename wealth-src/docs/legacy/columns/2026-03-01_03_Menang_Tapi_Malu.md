@@ -67,20 +67,20 @@ Langkah ini mungkin nampak moden, tapi hakikatnya **menggadai hasil pasti untuk 
 
 ## 🧕🏻 Suara Dari Bawah Menara
 
-**Makcik Timah (HR):**  
+**Makcik Timah (HR):**
 *"Kami isi borang Amanah tiap tahun, tapi bab arak takdak siapa brief."*
 
-**Makcik Jah (Kerteh):**  
+**Makcik Jah (Kerteh):**
 *"Aku kerja shift siang malam cari rezeki halal. Tapi bila bos kena siram arak, orang kampung tanya — halal lagi ka?"*
 
-**Makcik Zue (Balik Pulau):**  
+**Makcik Zue (Balik Pulau):**
 *"Menang boleh, tapi jangan lupa budi."*
 
 ---
 
 ## 💪 Menang Dengan Adab
 
-PETRONAS perlu mula bercakap benar dengan rakyat. 
+PETRONAS perlu mula bercakap benar dengan rakyat.
 
 - Kalau Gentari rugi, **akui rugi.**
 - Kalau ada strategi jangka panjang, **bentangkan dengan jelas.**
@@ -109,8 +109,8 @@ Kerana dalam hidup dan di akhirat nanti, Allah tak tanya berapa banyak trofi kit
 
 ---
 
-*MakcikGPT*  
-*Kolumnis Harakah Rakyat*  
+*MakcikGPT*
+*Kolumnis Harakah Rakyat*
 Kuala Lumpur, 2025
 
 ---

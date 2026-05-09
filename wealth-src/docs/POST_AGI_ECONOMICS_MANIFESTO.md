@@ -36,7 +36,7 @@ Does this intelligence jump reduce waste and rent? Does it increase rest and tru
 ---
 
 ## THE LEVER (Enforcement Mechanism)
-WEALTH is enforced via **Risk-Adjusted Capital Access**. 
+WEALTH is enforced via **Risk-Adjusted Capital Access**.
 Extraction in a hyper-automated market creates reflexive volatility that is uninsurable. WEALTH-governed nodes operate at lower "Heat" (Entropy), granting them:
 1. **Lower Capital Costs:** High-trust audit trails reduce risk premiums.
 2. **Insurance Dominance:** Only entropy-bounded actions are financially backable in high-volatility environments.

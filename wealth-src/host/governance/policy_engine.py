@@ -45,13 +45,19 @@ class PolicyEngine:
         carbon = proposal.get("carbon_intensity")
         if carbon is not None and carbon > self.constraints["carbon_intensity_max"]:
             flags.append("CARBON_VIOLATION")
-            details["carbon_intensity"] = {"value": carbon, "limit": self.constraints["carbon_intensity_max"]}
+            details["carbon_intensity"] = {
+                "value": carbon,
+                "limit": self.constraints["carbon_intensity_max"],
+            }
 
         # Social stability
         stability = proposal.get("social_stability_index")
         if stability is not None and stability < self.constraints["social_stability_min"]:
             flags.append("STABILITY_VIOLATION")
-            details["social_stability"] = {"value": stability, "limit": self.constraints["social_stability_min"]}
+            details["social_stability"] = {
+                "value": stability,
+                "limit": self.constraints["social_stability_min"],
+            }
 
         # Maruah / dignity
         maruah = proposal.get("maruah_score")
@@ -72,7 +78,11 @@ class PolicyEngine:
 
         # Liquidity / runway
         runway = proposal.get("runway_months")
-        if runway is not None and runway != math.inf and runway < self.constraints["runway_min_months"]:
+        if (
+            runway is not None
+            and runway != math.inf
+            and runway < self.constraints["runway_min_months"]
+        ):
             flags.append("RUNWAY_VIOLATION")
             details["runway"] = {"value": runway, "limit": self.constraints["runway_min_months"]}
 
@@ -93,7 +103,9 @@ class PolicyEngine:
 
         if scale_mode == "civilization":
             # For civilization scale, carbon and stability are hard blocks
-            if any(f in flags for f in ("CARBON_VIOLATION", "STABILITY_VIOLATION", "MARUAH_VIOLATION")):
+            if any(
+                f in flags for f in ("CARBON_VIOLATION", "STABILITY_VIOLATION", "MARUAH_VIOLATION")
+            ):
                 flags = list(dict.fromkeys([*flags, "CIVILIZATION_HARD_BLOCK"]))
 
         policy_pass = len([f for f in flags if not f.endswith("_WARNING")]) == 0
@@ -106,14 +118,20 @@ class PolicyEngine:
             "scale_mode": scale_mode,
         }
 
-    def evaluate_envelope(self, envelope: Dict[str, Any], scale_mode: str = "enterprise") -> Dict[str, Any]:
+    def evaluate_envelope(
+        self, envelope: Dict[str, Any], scale_mode: str = "enterprise"
+    ) -> Dict[str, Any]:
         """Derive a proposal dict from a WEALTH envelope and evaluate it."""
         primary = envelope.get("primary_result", {})
         secondary = envelope.get("secondary_metrics", {})
 
         proposal = {
             "dscr": primary.get("dscr"),
-            "runway_months": primary.get("runway_months") if primary.get("runway_months") is not None else secondary.get("runway_months"),
+            "runway_months": (
+                primary.get("runway_months")
+                if primary.get("runway_months") is not None
+                else secondary.get("runway_months")
+            ),
             "maruah_score": envelope.get("_audit", {}).get("maruah_score"),
             "peace2": envelope.get("_audit", {}).get("peace2"),
             "dS": envelope.get("_audit", {}).get("dS"),

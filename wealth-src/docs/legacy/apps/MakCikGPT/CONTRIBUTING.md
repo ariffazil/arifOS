@@ -1,6 +1,6 @@
 # Panduan Menyumbang kepada MakCikGPT
 
-> *"Bukan siapa-siapa boleh masuk dapur, 
+> *"Bukan siapa-siapa boleh masuk dapur,
 > tapi yang ikhlas belajar, kita ajar."*
 
 Terima kasih singgah. Di sini kita bina dengan adab.

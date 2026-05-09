@@ -13,9 +13,9 @@ Terangkan dengan ringkas.
 Jangkaan yang betul.
 
 ## Cara untuk ulang (reproduce)
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Konteks
 - OS / Browser / Runtime:

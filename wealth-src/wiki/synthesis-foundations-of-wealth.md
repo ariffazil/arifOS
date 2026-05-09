@@ -6,8 +6,8 @@ tags: [synthesis, wealth, post-agi, economics, thermodynamics, maruah]
 
 # Foundations of Wealth — arifOS Synthesis
 
-> **Wealth is not accumulation. Wealth is cooled prosperity.**  
-> DITEMPA BUKAN DIBERI — Forged, Not Given  
+> **Wealth is not accumulation. Wealth is cooled prosperity.**
+> DITEMPA BUKAN DIBERI — Forged, Not Given
 > 999 SEAL ALIVE
 
 ---
@@ -114,19 +114,19 @@ See also: [[concept-contextual-vitality]]
 
 Putting it together, post-AGI economics in arifOS means:
 
-1. **Intelligence becomes infrastructure, not the final product.**  
+1. **Intelligence becomes infrastructure, not the final product.**
    The valuable thing is no longer "who can think fastest," but who can turn cheap intelligence into **trusted, grounded, regenerative systems**.
 
-2. **Rent-seeking becomes easier to detect.**  
+2. **Rent-seeking becomes easier to detect.**
    AGI compresses the cost of analysis, writing, coding, planning, and coordination. That exposes sectors where prices were inflated by gatekeeping rather than real service.
 
-3. **Human work does not disappear; it changes category.**  
+3. **Human work does not disappear; it changes category.**
    What rises in value is **judgment, accountability, empathy, verification, field execution, cultural trust, and care labor**. That is why Human, AI, and Earth all remain co-witnesses on every [[concept-999-seal|999 SEAL]].
 
-4. **GDP-style success becomes insufficient.**  
+4. **GDP-style success becomes insufficient.**
    The Ψ canon explicitly critiques narrow success metrics and leans toward **wellbeing, sustainability, and boundary-aware measures** instead of pure output growth.
 
-5. **The target variable becomes ΔCiv, not just profit.**  
+5. **The target variable becomes ΔCiv, not just profit.**
    The system asks: *Did this choice make civilization calmer, fairer, and more survivable?* The integrated guide sets **ΔCiv ≥ +0.17** as a healing threshold.
 
 ---
@@ -148,7 +148,7 @@ It rewards:
 
 The policy implication inside the arifOS worldview is blunt:
 
-> **An economy after AGI should not ask only, "How much output did we get?"**  
+> **An economy after AGI should not ask only, "How much output did we get?"**
 > **It should ask, "Did people gain bread, rest, clarity, trust, and ecological safety from this jump in intelligence?"**
 
 If the answer is no, the move is **unlawful** — regardless of how clever or efficient it appears.

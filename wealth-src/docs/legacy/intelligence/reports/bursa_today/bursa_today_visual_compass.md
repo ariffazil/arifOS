@@ -1,12 +1,12 @@
 # Bursa Today Visual Compass
 
-**Date:** 10 Apr 2026  
-**Audience:** Arif  
+**Date:** 10 Apr 2026
+**Audience:** Arif
 **Mode:** strict capital preservation, only setups worth human attention
 
 ## One-line verdict
 
-**Today is not a broad Bursa hunting day.**  
+**Today is not a broad Bursa hunting day.**
 Only two counters are worth serious attention from the current read:
 
 1. **QL Resources (7084)**

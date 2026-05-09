@@ -12,7 +12,6 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 import hashlib
 import json
 import os
-import time
 from datetime import datetime, date, timezone
 from typing import Any, Dict, Optional, List
 
@@ -21,7 +20,7 @@ import httpx
 DEFAULT_VAULT_PATH = os.path.join(os.getcwd(), "data", "vault999.jsonl")
 INTEGRITY_SALT = "WEALTH-VAULT999-2026"
 SUPABASE_URL = "https://utbmmjmbolmuahwixjqc.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0Ym1tam1ib2xtdWFod2l4anFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTQzMzEsImV4cCI6MjA5MTk5MDMzMX0.Nxg2Rkf-PyqnemVGz-_H1VW22jhNbmq67hH6EZ2EzEs"
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")  # Set via env — never hardcode
 
 _MIGRATED = False
 _client: Optional[httpx.AsyncClient] = None
@@ -93,9 +92,7 @@ def _fallback_jsonl(payload: Dict[str, Any]) -> None:
         pass
 
 
-async def _supabase_insert(
-    table: str, record: Dict[str, Any]
-) -> Optional[Dict[str, Any]]:
+async def _supabase_insert(table: str, record: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Insert record into Supabase table via REST API. Returns inserted row or None."""
     client = _get_client()
     try:
@@ -263,9 +260,7 @@ def record_transaction(
 
             result = asyncio.run(_supabase_insert("wealth_transactions", record))
         else:
-            result = loop.run_until_complete(
-                _supabase_insert("wealth_transactions", record)
-            )
+            result = loop.run_until_complete(_supabase_insert("wealth_transactions", record))
     except Exception:
         _fallback_jsonl({**record, "source_tool": source_tool, "verdict": "VAULT999"})
         return {"status": "NO_ASYNC", "integrity": integrity}
@@ -327,9 +322,7 @@ def snapshot_portfolio(
         if loop.is_running():
             import asyncio
 
-            result_obj = asyncio.run(
-                _supabase_insert("arifosmcp_portfolio_snapshots", record)
-            )
+            result_obj = asyncio.run(_supabase_insert("arifosmcp_portfolio_snapshots", record))
         else:
             result_obj = loop.run_until_complete(
                 _supabase_insert("arifosmcp_portfolio_snapshots", record)
@@ -346,9 +339,7 @@ def snapshot_portfolio(
     }
 
 
-def append_vault999(
-    record: Dict[str, Any], path: str = DEFAULT_VAULT_PATH
-) -> Dict[str, Any]:
+def append_vault999(record: Dict[str, Any], path: str = DEFAULT_VAULT_PATH) -> Dict[str, Any]:
     """
     Legacy VAULT999 append — auto-snapshots to portfolio_snapshots on scale_mode
     triggers (national/civilization/agentic/crisis), and records as transaction
@@ -419,9 +410,7 @@ def health_check() -> Dict[str, Any]:
         if loop.is_running():
             import asyncio
 
-            response = asyncio.run(
-                client.get("/rest/v1/wealth_transactions?select=id&limit=1")
-            )
+            response = asyncio.run(client.get("/rest/v1/wealth_transactions?select=id&limit=1"))
         else:
             response = loop.run_until_complete(
                 client.get("/rest/v1/wealth_transactions?select=id&limit=1")

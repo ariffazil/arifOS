@@ -1,8 +1,8 @@
 # capitalx_risk_pricing_engine — Design Document
 
-> **Version:** v1.0.0  
-> **Authority:** arifOS / WEALTH  
-> **Status:** IMPLEMENTED (Node.js 22 ESM)  
+> **Version:** v1.0.0
+> **Authority:** arifOS / WEALTH
+> **Status:** IMPLEMENTED (Node.js 22 ESM)
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---
@@ -15,7 +15,7 @@ It answers one question:
 
 > **"What should this actor pay to borrow capital, given their entropy, dignity, peace, and civilization impact?"**
 
-Without `capitalx`, WEALTH is moral philosophy.  
+Without `capitalx`, WEALTH is moral philosophy.
 With `capitalx`, WEALTH becomes **sovereign infrastructure**.
 
 ---

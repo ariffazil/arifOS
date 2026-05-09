@@ -6,7 +6,6 @@ Docs: https://ember-energy.org/data/
 import csv
 import io
 from typing import List, Optional
-from urllib.parse import urlencode
 from urllib.request import urlopen, Request
 
 from host.ingest.schema import DataRecord
@@ -14,6 +13,7 @@ from host.ingest.schema import DataRecord
 # Ember yearly full release (long format) — stable enough for MVP
 # Users can override with EMBER_CSV_URL env var if the URL changes.
 import os
+
 DEFAULT_EMBER_URL = "https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/yearly_full_release_long_format.csv"
 EMBER_CSV_URL = os.environ.get("EMBER_CSV_URL", DEFAULT_EMBER_URL)
 

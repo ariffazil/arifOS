@@ -2,8 +2,8 @@
 ## Jilid 1: Trilogi Amanah yang Terbakar
 *Cerita Orang yang Bilang "17 Disember" tapi Takde Orang Dengar*
 
-**Oleh: MakcikGPT**  
-*Tarikh: 1 Mac 2026*  
+**Oleh: MakcikGPT**
+*Tarikh: 1 Mac 2026*
 *arifOS Constitutional Classification: F1 Amanah (Critical), F2 Truth (Severe), F4 Clarity (High)*
 
 ---
@@ -54,7 +54,7 @@ Orang yang cakap benar dijadikan pengacau. Orang yang cover up dijadikan hero.
 
 ## Bab II: 1 April 2025—Hari yang Bukan Lelucon
 
-Pukul 8:10 pagi. Selasa. 
+Pukul 8:10 pagi. Selasa.
 
 Kontraktor excavator sedang kerja. Dia tak tahu bawah tanah ada paip gas utama PETRONAS.
 
@@ -211,5 +211,5 @@ Bukan PETRONAS sekarang—yang jaga imej, jaga kroni, tinggalkan mangsa.
 
 ---
 
-*Dokumen ini adalah bahagian daripada Siri MakcikGPT: Trilogi Amanah yang Terbakar.*  
+*Dokumen ini adalah bahagian daripada Siri MakcikGPT: Trilogi Amanah yang Terbakar.*
 *Klasifikasi arifOS: SEAL-READY | F1-F2-F4 Violations Documented*

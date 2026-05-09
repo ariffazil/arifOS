@@ -1,7 +1,7 @@
 # CAPITALX_SPEC — Risk Pricing Engine
 
-> **Version:** v1.0.0-canonical  
-> **Status:** Enforcement Spec  
+> **Version:** v1.0.0-canonical
+> **Status:** Enforcement Spec
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

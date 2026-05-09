@@ -37,14 +37,14 @@ def _resolve_cache_dir() -> str:
 CACHE_DIR = _resolve_cache_dir()
 
 BUS_TTL_HOURS = {
-    "slow": 24 * 7,      # weekly refresh for macro
-    "daily": 24,         # daily refresh for rates/FX
-    "fast": 1,           # hourly refresh for energy grid
+    "slow": 24 * 7,  # weekly refresh for macro
+    "daily": 24,  # daily refresh for rates/FX
+    "fast": 1,  # hourly refresh for energy grid
     "archive": 24 * 30,  # monthly refresh for vintages
 }
 
 OBSERVATION_FRESHNESS_DAYS = {
-    "annual": 730,      # 2 years
+    "annual": 730,  # 2 years
     "quarterly": 180,
     "monthly": 60,
     "weekly": 14,
@@ -73,7 +73,9 @@ def _cache_age_hours(path: str) -> float:
     return (datetime.now(timezone.utc) - mtime).total_seconds() / 3600.0
 
 
-def load_cache(series_id: str, source: str, entity_code: str, bus: str) -> Optional[List[DataRecord]]:
+def load_cache(
+    series_id: str, source: str, entity_code: str, bus: str
+) -> Optional[List[DataRecord]]:
     path = _cache_path(series_id, source, entity_code)
     if not _is_fresh(path, bus):
         return None
@@ -99,7 +101,15 @@ def _field_completeness(records: List[DataRecord]) -> float:
         return 0.0
     total_fields = 0
     filled_fields = 0
-    required = ["source_system", "series_id", "entity_code", "observation_time", "value", "unit", "retrieval_time"]
+    required = [
+        "source_system",
+        "series_id",
+        "entity_code",
+        "observation_time",
+        "value",
+        "unit",
+        "retrieval_time",
+    ]
     for r in records:
         total_fields += len(required)
         for field in required:
@@ -138,26 +148,31 @@ class IngestRegistry:
     def _register_defaults(self):
         try:
             from host.ingest.adapters import fred
+
             self._adapters["FRED"] = fred
         except Exception:
             pass
         try:
             from host.ingest.adapters import worldbank
+
             self._adapters["WorldBank"] = worldbank
         except Exception:
             pass
         try:
             from host.ingest.adapters import ecb
+
             self._adapters["ECB"] = ecb
         except Exception:
             pass
         try:
             from host.ingest.adapters import ember
+
             self._adapters["Ember"] = ember
         except Exception:
             pass
         try:
             from host.ingest.adapters import owid
+
             self._adapters["OWID"] = owid
         except Exception:
             pass
@@ -175,7 +190,9 @@ class IngestRegistry:
     ) -> Dict[str, Any]:
         adapter = self._adapters.get(source)
         if adapter is None:
-            self._health.record_attempt(source, False, 0.0, error_message=f"ADAPTER_NOT_FOUND:{source}")
+            self._health.record_attempt(
+                source, False, 0.0, error_message=f"ADAPTER_NOT_FOUND:{source}"
+            )
             return {
                 "records": [],
                 "flags": [f"ADAPTER_NOT_FOUND:{source}"],
@@ -318,9 +335,7 @@ class IngestRegistry:
     def _call_adapter(fetcher: Any, *args, **kwargs):
         signature = inspect.signature(fetcher)
         accepted_kwargs = {
-            key: value
-            for key, value in kwargs.items()
-            if key in signature.parameters
+            key: value for key, value in kwargs.items() if key in signature.parameters
         }
         return fetcher(*args, **accepted_kwargs)
 
@@ -334,8 +349,8 @@ class IngestRegistry:
         specs = {
             "WorldBank": [
                 {"series_id": "NY.GDP.MKTP.KD.ZG", "kwargs": {}},  # GDP growth
-                {"series_id": "FP.CPI.TOTL.ZG", "kwargs": {}},     # CPI inflation
-                {"series_id": "SL.UEM.TOTL.ZS", "kwargs": {}},     # Unemployment
+                {"series_id": "FP.CPI.TOTL.ZG", "kwargs": {}},  # CPI inflation
+                {"series_id": "SL.UEM.TOTL.ZS", "kwargs": {}},  # Unemployment
             ],
             "OWID": [
                 {"series_id": "carbon-intensity-electricity", "kwargs": {}},
@@ -349,7 +364,9 @@ class IngestRegistry:
         for source in sources:
             source_specs = specs.get(source, [])
             for spec in source_specs:
-                result = self.fetch(source, spec["series_id"], entity_code, **spec.get("kwargs", {}))
+                result = self.fetch(
+                    source, spec["series_id"], entity_code, **spec.get("kwargs", {})
+                )
                 key = f"{source}:{spec['series_id']}"
                 # Keep only latest observation per series for snapshot
                 latest = None
@@ -398,12 +415,16 @@ class IngestRegistry:
         # Carbon intensity vs economic scale heuristic
         if carbon_val is not None and gdp_val is not None:
             if carbon_val > 500 and gdp_val > 5.0:
-                divergences.append({
-                    "signal": "HIGH_CARBON_HIGH_GROWTH",
-                    "severity": "WARNING",
-                    "reason": "High carbon intensity alongside rapid GDP growth suggests dirty-growth path.",
-                })
-                self._health.flag_divergence("OWID", "WorldBank", "HIGH_CARBON_HIGH_GROWTH", "dirty_growth")
+                divergences.append(
+                    {
+                        "signal": "HIGH_CARBON_HIGH_GROWTH",
+                        "severity": "WARNING",
+                        "reason": "High carbon intensity alongside rapid GDP growth suggests dirty-growth path.",
+                    }
+                )
+                self._health.flag_divergence(
+                    "OWID", "WorldBank", "HIGH_CARBON_HIGH_GROWTH", "dirty_growth"
+                )
 
         flags = [d["signal"] for d in divergences] if divergences else []
         return {

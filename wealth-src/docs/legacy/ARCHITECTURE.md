@@ -28,7 +28,7 @@ Specialized MCP servers that expose tools, resources, and prompts:
 ## 3. Design Rules
 - **Host Decides Policy:** Only the Host can seal a 999 verdict.
 - **Apps Provide Facts:** MCP apps provide analysis but have no sovereign authority.
-- **Approval Classes:** 
+- **Approval Classes:**
     - `read-only`: Automatic execution.
     - `sensitive`: Requires 888_GATE hold.
     - `destructive`: Requires F13 Human Veto.

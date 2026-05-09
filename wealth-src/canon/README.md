@@ -1,6 +1,6 @@
 # WEALTH Canonical Knowledge Spine
 
-> **11 artifacts. No more. No less.**  
+> **11 artifacts. No more. No less.**
 > DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 
 ---

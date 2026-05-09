@@ -90,28 +90,28 @@ This layer defines the **constitutional state bus and governance**. It is the ul
 
 ## Canon Rules (Conflict Resolution)
 
-1. **oo0-STATE is the constitutional source of truth.**  
+1. **oo0-STATE is the constitutional source of truth.**
    - If there is a conflict about state layout, governance rules, or floor semantics, the oo0-STATE contracts win.
 
-2. **AGI_ASI_bot is the client behavioral contract.**  
-   - It describes how the governed OpenClaw personality should behave on top of oo0-STATE.  
+2. **AGI_ASI_bot is the client behavioral contract.**
+   - It describes how the governed OpenClaw personality should behave on top of oo0-STATE.
    - If AGI_ASI_bot/AGENTS.md conflicts with the runtime workspace AGENTS.md, AGI_ASI_bot wins (after migration is complete).
 
-3. **Runtime workspace reflects the active execution layer.**  
+3. **Runtime workspace reflects the active execution layer.**
    - It can drift temporarily during development, but the goal is for workspace files to be a **view** of oo0-STATE + AGI_ASI_bot, not an independent canon.
 
-4. **Conflict precedence (long-term target):**  
+4. **Conflict precedence (long-term target):**
    - `oo0-STATE` **>** `AGI_ASI_bot` **>** `~/.openclaw/workspace`.
 
-5. **Migration note:**  
-   - Older documentation and scripts may treat `sovereign_data/workspace` or `~/.openclaw/workspace` as the canonical bus.  
+5. **Migration note:**
+   - Older documentation and scripts may treat `sovereign_data/workspace` or `~/.openclaw/workspace` as the canonical bus.
    - **Future versions** will relocate the canonical workspace under `oo0-STATE/state/runtime/openclaw/workspace/` and treat `~/.openclaw/workspace` as a mounted view or compatibility lane.
 
 ---
 
 ## DSUP and Governance
 
-- DSUP (Dual Status Update Protocol) is the **mandatory format** for status/progress reporting across this stack.  
+- DSUP (Dual Status Update Protocol) is the **mandatory format** for status/progress reporting across this stack.
 - Full 13-LAW enforcement requires arifOS / aaa-mcp; when arifOS is unavailable, the system operates in **degraded advisory mode**.
 
 CANON.md does not redefine DSUP or floors; it declares **where those definitions live** and which files override which when there is a disagreement.

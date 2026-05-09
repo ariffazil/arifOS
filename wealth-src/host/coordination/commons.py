@@ -2,7 +2,6 @@
 Commons-risk scoring using actual LP shadow prices and scarcity metrics.
 """
 
-import math
 from typing import Any, Dict, List
 
 from host.coordination.lp_allocator import allocate
@@ -44,7 +43,11 @@ def commons_risk(
         weighted_scarcity += scarcity[r] * sp
         weight_sum += max(sp, 1e-9)
 
-    tragedy_risk = min(1.0, weighted_scarcity / max(weight_sum, 1e-9)) if weight_sum > 0 else max(scarcity.values()) if scarcity else 0.0
+    tragedy_risk = (
+        min(1.0, weighted_scarcity / max(weight_sum, 1e-9))
+        if weight_sum > 0
+        else max(scarcity.values()) if scarcity else 0.0
+    )
     unmet_count = sum(1 for a in lp_result.get("unmet_demand", {}).values() if a)
 
     flags = []

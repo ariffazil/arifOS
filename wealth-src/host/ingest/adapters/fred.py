@@ -83,10 +83,16 @@ def fetch_series(
                 value=value,
                 unit=unit,
                 frequency=freq or frequency,
-                revision_flag=bool(vintage_date) and bool(realtime_start) and realtime_start != vintage_date,
+                revision_flag=bool(vintage_date)
+                and bool(realtime_start)
+                and realtime_start != vintage_date,
                 vintage_id=vintage_date,
                 methodology_url=f"https://fred.stlouisfed.org/series/{series_id}",
-                metadata={"title": title, "vintage_date": vintage_date, "realtime_end": obs.get("realtime_end")},
+                metadata={
+                    "title": title,
+                    "vintage_date": vintage_date,
+                    "realtime_end": obs.get("realtime_end"),
+                },
                 bus="daily" if freq in {"d", "w", "bw", "wef"} else "slow",
             )
         )

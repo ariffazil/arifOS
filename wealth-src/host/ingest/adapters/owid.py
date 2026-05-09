@@ -50,9 +50,13 @@ def fetch_series(
     indicator = indicators[0] if indicators else {}
     unit = indicator.get("display", {}).get("unit") or indicator.get("unit", "")
     short_name = indicator.get("name", slug)
-    methodology = indicator.get("descriptionProcessing") or indicator.get("descriptionKey", "")
+    indicator.get("descriptionProcessing") or indicator.get("descriptionKey", "")
     source_info = indicator.get("source", {})
-    source_name = source_info.get("name", "Our World in Data") if isinstance(source_info, dict) else "Our World in Data"
+    source_name = (
+        source_info.get("name", "Our World in Data")
+        if isinstance(source_info, dict)
+        else "Our World in Data"
+    )
 
     time_col = "Year" if any(r.get("Year") for r in rows[:5]) else "Day"
     records = []
@@ -81,7 +85,8 @@ def fetch_series(
                 unit=unit,
                 frequency="annual" if time_col == "Year" else "daily",
                 revision_flag=False,
-                methodology_url=meta.get("originUrl") or f"https://ourworldindata.org/grapher/{slug}",
+                methodology_url=meta.get("originUrl")
+                or f"https://ourworldindata.org/grapher/{slug}",
                 metadata={
                     "indicator_name": short_name,
                     "source_name": source_name,

@@ -1,8 +1,8 @@
 # First Governed Loop — Current Acceptance Checklist
 
-> **Target:** One end-to-end WEALTH decision using the current packaged kernel (`server.py`).  
-> **Epistemic:** CLAIM for structure, ESTIMATE for thresholds  
-> **Status:** Phase A runtime checklist  
+> **Target:** One end-to-end WEALTH decision using the current packaged kernel (`server.py`).
+> **Epistemic:** CLAIM for structure, ESTIMATE for thresholds
+> **Status:** Phase A runtime checklist
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---
@@ -68,7 +68,7 @@
 
 Once the steps above pass on the **current** packaged kernel:
 
-**Phase A runtime loop:** validated against repo SOT  
+**Phase A runtime loop:** validated against repo SOT
 **Next move:** prove `Δbps_proven > 0` with a real capital decision
 
 ---

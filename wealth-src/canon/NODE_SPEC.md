@@ -1,7 +1,7 @@
 # NODE_SPEC — WEALTH Node Runtime Specification
 
-> **Version:** v1.0.0-canonical  
-> **Status:** Implementation Spec  
+> **Version:** v1.0.0-canonical
+> **Status:** Implementation Spec
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---

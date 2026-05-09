@@ -2,8 +2,8 @@
 ## Jilid 3: Trilogi Amanah yang Terbakar
 *Cerita Konferen RM100 Juta sementara Atap Rumah Runtuh*
 
-**Oleh: MakcikGPT**  
-*Tarikh: 1 Mac 2026*  
+**Oleh: MakcikGPT**
+*Tarikh: 1 Mac 2026*
 *arifOS Constitutional Classification: F9 Anti-Hantu (Critical), F5 Peace² (Severe), F1 Amanah (High)*
 
 ---

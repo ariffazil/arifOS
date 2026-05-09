@@ -4,13 +4,16 @@ import sys
 from datetime import datetime, timezone
 from typing import Dict, Any
 
+
 class HarnessAlarmSystem:
     """
     Harness Violation Alarm System.
     Detects 'Constraint Snapping' and emits high-priority telemetry to arifOS.
     """
 
-    def __init__(self, vault_path: str = "C:/ariffazil/arifOS/arifosmcp/VAULT999/harness_breaches.jsonl"):
+    def __init__(
+        self, vault_path: str = "C:/ariffazil/arifOS/arifosmcp/VAULT999/harness_breaches.jsonl"
+    ):
         self.vault_path = vault_path
         # Ensure the vault directory exists
         try:
@@ -28,7 +31,7 @@ class HarnessAlarmSystem:
             "harness": harness_name,
             "tool": tool_name,
             "detail": detail,
-            "message": f"CRITICAL: {harness_name} Harness SNAPPED in {tool_name}."
+            "message": f"CRITICAL: {harness_name} Harness SNAPPED in {tool_name}.",
         }
 
         # For real-time terminal monitor (simulated)
@@ -41,6 +44,7 @@ class HarnessAlarmSystem:
             event["error"] = f"Vault write failed: {str(e)}"
 
         return event
+
 
 if __name__ == "__main__":
     # Test trigger

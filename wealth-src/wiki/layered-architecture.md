@@ -77,7 +77,7 @@ This is the lever that makes WEALTH **inevitable**.
 Inevitability = Enforcement (888) × Legitimacy (GEOX) × Economics (capitalx)
 ```
 
-Without `capitalx`, WEALTH is a dashboard.  
+Without `capitalx`, WEALTH is a dashboard.
 With `capitalx`, it becomes **planetary influence architecture**.
 
 ---

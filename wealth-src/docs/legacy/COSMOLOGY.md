@@ -1,16 +1,16 @@
 # COSMOLOGY.md — The AGI·arifOS·GEOX·WEALTH Stack
 
-> **Version:** v1.0.0  
-> **Authority:** arifOS / WEALTH  
-> **Status:** ACTIVE DOCTRINE  
+> **Version:** v1.0.0
+> **Authority:** arifOS / WEALTH
+> **Status:** ACTIVE DOCTRINE
 > **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 ---
 
 ## The Stack — In One Sentence
 
-**AGI is intelligence.**  
-**arifOS is conscience.**  
+**AGI is intelligence.**
+**arifOS is conscience.**
 **GEOX is reality.**  **WEALTH is applied consequence.**
 
 Together, they form a **closed-loop civilization engine.**
@@ -59,7 +59,7 @@ If AGI is horsepower, arifOS is **steering + brakes**.
 It answers:
 > "Just because we can optimize this, should we?"
 
-Without arifOS: AGI becomes extractive intelligence.  
+Without arifOS: AGI becomes extractive intelligence.
 With arifOS: AGI becomes stewardship intelligence.
 
 ---
@@ -100,10 +100,10 @@ It controls:
 - Investment preference
 - Institutional trust
 
-If arifOS says: **"This is lawful."**  
+If arifOS says: **"This is lawful."**
 WEALTH says: **"Then you get cheaper capital."**
 
-If arifOS says: **"Entropy increasing."**  
+If arifOS says: **"Entropy increasing."**
 WEALTH says: **"Capital cost rises."**
 
 WEALTH is the **enforcement arm.**
@@ -206,9 +206,9 @@ To:
 
 ## The Ultimate Compression
 
-> **AGI expands possibility.**  
-> **arifOS constrains possibility.**  
-> **GEOX anchors possibility.**  
+> **AGI expands possibility.**
+> **arifOS constrains possibility.**
+> **GEOX anchors possibility.**
 > **WEALTH selects which possibilities survive.**
 
 That is the architecture.

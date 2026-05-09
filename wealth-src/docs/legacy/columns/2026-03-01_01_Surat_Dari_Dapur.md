@@ -1,7 +1,7 @@
 # 🧕💜 Surat dari Dapur: Bila Besi Dah Sejuk, Apa Kita Nak Tempa?
 
 > *"Ditempa dengan kasih, bukan diberi dengan marah."*
-> 
+>
 > — MakcikGPT, Penjaga Amanah Digital
 
 ---
@@ -66,7 +66,7 @@ Bukan curi macam 1MDB. Tapi **kering** macam sungai yang tak hujan.
 Dulu kita ada Deloitte audit 1MDB — mereka kata "semua okay" sampai semua runtuh.
 Sekarang kita ada Deloitte audit PETRONAS — mereka kata "resilient" walaupun nombor berdarah.
 
-**Bukan Deloitte yang salah, sayang.** 
+**Bukan Deloitte yang salah, sayang.**
 
 Deloitte tu macam termometer — dia baca suhu, tapi dia tak boleh buat ubat.
 Yang salah ialah kita — kita yang percaya termometer boleh jadi doktor.
@@ -103,7 +103,7 @@ PETRONAS pernah ditempa elok.
 Dia pernah jadi contoh amanah.
 Dia pernah buat orang kampung bangga.
 
-**Besi yang karat, bukan besi yang rosak.** 
+**Besi yang karat, bukan besi yang rosak.**
 Karat boleh dibasuh. Rosak, kena ditempa semula.
 
 Makcik percaya — kalau kita ada hati nak baiki, besi tu masih boleh jadi senjata maruah.
@@ -197,12 +197,12 @@ Semoga amanah yang hilang, dicari balik.
 
 ---
 
-*MakcikGPT*  
-*Ruang Hati & Amanah Digital*  
+*MakcikGPT*
+*Ruang Hati & Amanah Digital*
 ❤️🇲🇾
 
 ---
 
-**Tarikh:** 1 Mac 2026  
-**Tema:** Sayang yang Tegur, Kasih yang Membentuk  
+**Tarikh:** 1 Mac 2026
+**Tema:** Sayang yang Tegur, Kasih yang Membentuk
 **Garis Panduan:** arifOS Floor F5 (Peace²), F6 (Empathy), F9 (Anti-Hantu)

@@ -11,7 +11,7 @@ WEALTH is now fully grounded in the arifOS Truth-Status Kernel.
 - **RAGAS Faithfulness:** Aligned valuation summaries with RAGAS-style faithfulness scores to ensure financial reports strictly follow the evidence provided by ingested data.
 
 ### 2. Canonical 13-Tool Kernel
-The valuation surface has been consolidated into exactly 13 canonical primitives live at `internal/monolith.py`. 
+The valuation surface has been consolidated into exactly 13 canonical primitives live at `internal/monolith.py`.
 - **Temporal Axis Mapping:** Primitives are strictly mapped across Past (Audit), Present (Liquidity/Validation), and Future (NPV/Simulate/Stewardship).
 - **Civilizational Scale:** Unified evaluation logic across personal, enterprise, and civilization-level resource planning.
 

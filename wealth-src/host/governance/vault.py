@@ -39,7 +39,8 @@ def _ensure_tables(cur) -> None:
     global _MIGRATED
     if _MIGRATED:
         return
-    cur.execute("""
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS wealth.transactions (
             id              BIGSERIAL PRIMARY KEY,
             asset_id        TEXT        NOT NULL DEFAULT '',
@@ -56,8 +57,10 @@ def _ensure_tables(cur) -> None:
             created_at      TIMESTAMPTZ DEFAULT NOW(),
             integrity       TEXT
         )
-    """)
-    cur.execute("""
+    """
+    )
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS wealth.portfolio_snapshots (
             id              BIGSERIAL PRIMARY KEY,
             snapshot_date   DATE        NOT NULL DEFAULT CURRENT_DATE,
@@ -68,7 +71,8 @@ def _ensure_tables(cur) -> None:
             currency        VARCHAR(10),
             created_at      TIMESTAMPTZ DEFAULT NOW()
         )
-    """)
+    """
+    )
     _MIGRATED = True
 
 
@@ -76,13 +80,13 @@ def _pg_connection():
     if not PSYCOPG_AVAILABLE:
         import sys
 
-        sys.stderr.write(f"VAULT999_PG: psycopg not available\n")
+        sys.stderr.write("VAULT999_PG: psycopg not available\n")
         return None
     url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
     if not url:
         import sys
 
-        sys.stderr.write(f"VAULT999_PG: DATABASE_URL/POSTGRES_URL not set in env\n")
+        sys.stderr.write("VAULT999_PG: DATABASE_URL/POSTGRES_URL not set in env\n")
         return None
     try:
         conn = psycopg.connect(url, autocommit=True, connect_timeout=5)
@@ -348,9 +352,7 @@ def snapshot_portfolio(
     return record
 
 
-def append_vault999(
-    record: Dict[str, Any], path: str = DEFAULT_VAULT_PATH
-) -> Dict[str, Any]:
+def append_vault999(record: Dict[str, Any], path: str = DEFAULT_VAULT_PATH) -> Dict[str, Any]:
     """
     Legacy VAULT999 append — auto-snapshots to portfolio_snapshots on scale_mode
     triggers (national/civilization/agentic/crisis), and records as transaction

@@ -2,8 +2,8 @@
 ## Jilid 4: Trilogi Amanah yang Terbakar (Sambungan)
 *Cerita Orang Kuat Saja Bila Darurat, Tapi Darurat Tu Dia Yang Jaga Kunci*
 
-**Oleh: MakcikGPT**  
-*Tarikh: 1 Mac 2026*  
+**Oleh: MakcikGPT**
+*Tarikh: 1 Mac 2026*
 *arifOS Constitutional Classification: F11 Sovereignty (Critical), F5 Peace² (Severe), F1 Amanah (High)*
 
 ---
@@ -184,7 +184,7 @@ TT pilih August 2026 sebab:
 - Dia dah tunjuk "saya bagi duit kat kerajaan."
 - Dia dah satisfy political master.
 
-**3. Maybe... just maybe...** 
+**3. Maybe... just maybe...**
 - August 2026 ada political window.
 - Maybe ada cabinet reshuffle.
 - Maybe dia dapat promotion jadi Chairman.
