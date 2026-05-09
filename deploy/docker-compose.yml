@@ -116,6 +116,11 @@ services:
     ports:
       - "127.0.0.1:3001:3001"
     networks: [arifos_core]
+    environment:
+      VAULT_WRITER_URL: http://vault999-writer:5001
+      VAULT_WRITER_TOKEN: ${VAULT_WRITER_TOKEN}
+    volumes:
+      - /root/AAA/a2a-server/vault.js:/app/vault.js:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
   # ── PLANE 3: DATA & MEMORY ──────────────────────────────────────────
@@ -226,9 +231,15 @@ services:
     restart: unless-stopped
     command: ["python", "main.py"]
     networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os; [open(f'/proc/{p}/cmdline').read() for p in os.listdir('/proc') if p.isdigit() and 'main.py' in open(f'/proc/{p}/cmdline').read()]\""]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:d9c4450-efix2
+    image: well:2026.05.08-reforge
     container_name: well
     init: true
     restart: unless-stopped
