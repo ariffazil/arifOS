@@ -1,0 +1,26 @@
+{
+  "agent_id": "wealth",
+  "display_name": "WEALTH",
+  "version": "wealth/next-horizon-refactor",
+  "provider": "python312-fastmcp",
+  "declared_lane": "AGI",
+  "federation_role": "capital_engine",
+  "compliance_tier": "AGI",
+  "constitutional_floors": 13,
+  "side_effect_policy": "dry_run_by_default",
+  "human_authority_required": true,
+  "registry_status": "SEALED",
+  "registered_at": "2026-05-10T03:42:00+00:00",
+  "sovereign": "Arif Fazil",
+  "card_hash": "sha256:wealth-capital-engine-777",
+  "phase": 0,
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "verdict": "SEAL",
+  "authority_note": "Capital intelligence organ — NPV, EMV, risk, crisis triage. Must never become unchecked allocator of irreversible capital moves.",
+  "_meta": {
+    "registered_by": "arifOS-kernel",
+    "registration_method": "constitutional_audit_batch",
+    "arifos_version": "v2026.05.10-KANON",
+    "registry_file": "runtime/agent_registry/cards/wealth.json"
+  }
+}

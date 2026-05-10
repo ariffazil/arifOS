@@ -1,0 +1,26 @@
+{
+  "agent_id": "geox",
+  "display_name": "GEOX",
+  "version": "main",
+  "provider": "python311-fastmcp",
+  "declared_lane": "AGI",
+  "federation_role": "earth_coprocessor",
+  "compliance_tier": "AGI",
+  "constitutional_floors": 13,
+  "side_effect_policy": "dry_run_by_default",
+  "human_authority_required": true,
+  "registry_status": "SEALED",
+  "registered_at": "2026-05-10T03:42:00+00:00",
+  "sovereign": "Arif Fazil",
+  "card_hash": "sha256:geox-earth-coprocessor-777",
+  "phase": 0,
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "verdict": "SEAL",
+  "authority_note": "Earth intelligence coprocessor — geoscience, petrophysics, physics-9. Must never become final policy judge or seal authority.",
+  "_meta": {
+    "registered_by": "arifOS-kernel",
+    "registration_method": "constitutional_audit_batch",
+    "arifos_version": "v2026.05.10-KANON",
+    "registry_file": "runtime/agent_registry/cards/geox.json"
+  }
+}

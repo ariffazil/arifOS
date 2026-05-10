@@ -480,14 +480,32 @@ class EmbodiedToolEngine:
         )
 
         # Stage 10: Update self-model
-        self.self_model.get(tool_id).mark_used(
-            result_summary=str(result)[:100],
-            error=error,
-        )
-
+        # (self-model update is handled by EmbodiedTool.postflight()
+        #  to avoid double-update when run_postflight() is called directly)
         return envelope
 
     # ── Helpers ─────────────────────────────────────────────────────────────
+
+    def update_self_model_from_outcome(
+        self,
+        tool_id: str,
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
+    ) -> None:
+        """
+        Update the global self-model after tool execution.
+
+        Called by EmbodiedTool.postflight() after every execution.
+        This closes the feedback loop: execute → witness → update self-model.
+
+        The smart summary extraction (verdict, confidence, latency) lives
+        in ToolSelfModel.update_from_outcome().
+        """
+        self.self_model.update_from_outcome(
+            tool_id=tool_id,
+            result=result,
+            error=error,
+        )
 
     def _infer_domain(self, tool_id: str) -> str:
         """Infer domain from tool ID prefix.

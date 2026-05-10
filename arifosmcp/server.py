@@ -109,7 +109,7 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
 
 # ─── Deployment Identity ─────────────────────────────────────────────────────
 def _get_git_info() -> tuple[str, str, str]:
-    import subprocess
+    import subprocess  # nosec B404
 
     commit = os.environ.get("DEPLOY_GIT_COMMIT", "").strip()
     branch = os.environ.get("DEPLOY_GIT_BRANCH", "").strip()
@@ -119,21 +119,21 @@ def _get_git_info() -> tuple[str, str, str]:
     try:
         cwd = os.path.dirname(os.path.abspath(__file__))
         commit = (
-            subprocess.check_output(
+            subprocess.check_output(  # nosec
                 ["git", "describe", "--always", "--long"], stderr=subprocess.DEVNULL, cwd=cwd
             )
             .decode()
             .strip()
         )
         branch = (
-            subprocess.check_output(
+            subprocess.check_output(  # nosec
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, cwd=cwd
             )
             .decode()
             .strip()
         )
         build_time = (
-            subprocess.check_output(
+            subprocess.check_output(  # nosec
                 ["git", "log", "-1", "--format=%ci"], stderr=subprocess.DEVNULL, cwd=cwd
             )
             .decode()
@@ -187,10 +187,16 @@ IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
-    from arifosmcp.runtime.tools import register_tools
+    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
+    from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
+        embodied_mind_reason_handler,
+    )
     from arifosmcp.tools.embodied_tool import register_all_arifos_tools
 
     register_all_arifos_tools()
+
+    _CANONICAL_HANDLERS["arif_mind_reason"] = embodied_mind_reason_handler
+
     v2_tools_registered = register_tools(mcp)
     _assert_registered_surface(v2_tools_registered)
     v2_prompts_registered = register_prompts(mcp)
@@ -277,7 +283,7 @@ def main() -> None:
     import uvicorn
 
     port = int(os.getenv("ARIFOS_PORT", "8080"))
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")  # nosec B104
 
 
 if __name__ == "__main__":

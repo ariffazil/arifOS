@@ -101,11 +101,11 @@ def temp_witness_log():
 
 
 def test_register_all_arifos_tools():
-    """All 13 canonical tools must be registered in the self-model."""
+    """All canonical tools (13 AOS + 13 WELL = 26) must be registered in the self-model."""
     model = get_tool_self_model()
     register_all_arifos_tools()
 
-    assert len(model.list_all()) == 13
+    assert len(model.list_all()) == len(ARIFOS_TOOL_MANIFESTS)
     for tool_id in ARIFOS_TOOL_MANIFESTS:
         entry = model.get(tool_id)
         assert entry is not None, f"{tool_id} not registered"
@@ -406,7 +406,7 @@ def test_self_model_resource():
     resource = get_tool_self_model_resource()
     assert resource["uri"] == "arifos://tools/self-model"
     assert "tools" in resource["body"]
-    assert len(resource["body"]["tools"]) == 13
+    assert len(resource["body"]["tools"]) == len(ARIFOS_TOOL_MANIFESTS)
 
 
 def test_permissions_resource():

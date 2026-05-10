@@ -1,0 +1,26 @@
+{
+  "agent_id": "aaa",
+  "display_name": "AAA",
+  "version": "main",
+  "provider": "typescript-react-vite",
+  "declared_lane": "AGI",
+  "federation_role": "control_plane",
+  "compliance_tier": "AAA",
+  "constitutional_floors": 13,
+  "side_effect_policy": "human_veto_absolute",
+  "human_authority_required": true,
+  "registry_status": "SEALED",
+  "registered_at": "2026-05-10T03:42:00+00:00",
+  "sovereign": "Arif Fazil",
+  "card_hash": "sha256:aaa-control-plane-777",
+  "phase": 0,
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "verdict": "SEAL",
+  "authority_note": "Human-facing control plane — dashboard, A2A gateway, operator visibility. Must never become hidden governance kernel or silent seal writer.",
+  "_meta": {
+    "registered_by": "arifOS-kernel",
+    "registration_method": "constitutional_audit_batch",
+    "arifos_version": "v2026.05.10-KANON",
+    "registry_file": "runtime/agent_registry/cards/aaa.json"
+  }
+}

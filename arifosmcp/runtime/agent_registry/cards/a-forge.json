@@ -1,0 +1,26 @@
+{
+  "agent_id": "a-forge",
+  "display_name": "A-FORGE",
+  "version": "h1-roadmap-1778019172",
+  "provider": "node22-express",
+  "declared_lane": "AGI",
+  "federation_role": "metabolic_operator",
+  "compliance_tier": "FORGE",
+  "constitutional_floors": 13,
+  "side_effect_policy": "dry_run_by_default",
+  "human_authority_required": true,
+  "registry_status": "SEALED",
+  "registered_at": "2026-05-10T03:42:00+00:00",
+  "sovereign": "Arif Fazil",
+  "card_hash": "sha256:a-forge-metabolic-operator-777",
+  "phase": 0,
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "verdict": "SEAL",
+  "authority_note": "Orchestration and execution bridge. Authority ceiling 777 FORGE. May NOT adjudicate, SEAL, or issue constitutional verdicts.",
+  "_meta": {
+    "registered_by": "arifOS-kernel",
+    "registration_method": "constitutional_audit_batch",
+    "arifos_version": "v2026.05.10-KANON",
+    "registry_file": "runtime/agent_registry/cards/a-forge.json"
+  }
+}

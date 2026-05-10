@@ -238,6 +238,50 @@ class ToolSelfModel:
         """Get all tools that can be safely executed now."""
         return [e for e in self._tools.values() if e.is_safe_to_execute]
 
+    def update_from_outcome(
+        self,
+        tool_id: str,
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
+    ) -> None:
+        """
+        Update tool runtime state from an execution outcome.
+
+        Called by EmbodiedTool.postflight() after every tool execution.
+        This closes the feedback loop: execute → update self-model → future
+        preflight decisions are informed by past performance.
+
+        Args:
+            tool_id: Canonical tool identifier
+            result: Tool result dict. For arif_mind_reason this contains
+                verdict, confidence, synthesis. Used to build result_summary.
+            error: Error message if execution failed.
+        """
+        entry = self._tools.get(tool_id)
+        if entry is None:
+            return
+
+        if error:
+            entry.mark_used(result_summary=f"ERROR: {error[:80]}", error=error)
+            return
+
+        if result is None:
+            entry.mark_used(result_summary="OK", error=None)
+            return
+
+        verdict = result.get("verdict") or result.get("status") or "OK"
+        confidence = result.get("confidence") or result.get("result", {}).get("confidence")
+        confidence_str = f"{confidence:.2f}" if confidence else "?"
+        latency = result.get("latency_ms")
+
+        summary_parts = [verdict]
+        if confidence_str != "?":
+            summary_parts.append(f"conf={confidence_str}")
+        if latency:
+            summary_parts.append(f"lat={latency:.0f}ms")
+
+        entry.mark_used(result_summary=" | ".join(summary_parts), error=None)
+
     def check_composition(self, tool_a: str, tool_b: str) -> tuple[bool, str]:
         """
         Check if tool_b can safely follow tool_a.

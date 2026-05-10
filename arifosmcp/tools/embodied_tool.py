@@ -247,6 +247,13 @@ class EmbodiedTool:
             latency_ms=latency_ms,
         )
 
+        # Also update the self-model — closes the feedback loop
+        self.engine().update_self_model_from_outcome(
+            tool_id=self.tool_id,
+            result=result,
+            error=error,
+        )
+
         return envelope
 
     async def run(
@@ -461,6 +468,261 @@ ARIFOS_TOOL_MANIFESTS = {
         blast_radius=BlastRadius.CRITICAL,
         required_permissions=["vault"],
         required_floors=["F01", "F11", "F13"],
+    ),
+    "well_classify_substrate": ToolManifest(
+        tool_id="well_classify_substrate",
+        tool_name="well_classify_substrate",
+        domain="WELL",
+        description="Ω-WELL-01: Substrate classification and boundary sensing — T0 observe only",
+        risk_tier="T0",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F05", "F07"],
+        safe_compose_with=[
+            "well_trace_lineage",
+            "well_detect_boundary",
+            "well_measure_gradient",
+            "well_assess_metabolism",
+            "well_reflect_intelligence",
+        ],
+    ),
+    "well_trace_lineage": ToolManifest(
+        tool_id="well_trace_lineage",
+        tool_name="well_trace_lineage",
+        domain="WELL",
+        description="Ω-WELL-02: Memory, trend, ledger, and vault chain tracing — T0 observe only",
+        risk_tier="T0",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F01", "F08"],
+        safe_compose_with=[
+            "well_classify_substrate",
+            "well_detect_boundary",
+            "well_assess_homeostasis",
+            "well_reflect_intelligence",
+        ],
+    ),
+    "well_detect_boundary": ToolManifest(
+        tool_id="well_detect_boundary",
+        tool_name="well_detect_boundary",
+        domain="WELL",
+        description=(
+            "Ω-WELL-03: Boundary detection across membrane, body, machine, "
+            "and federation — T0 observe"
+        ),
+        risk_tier="T0",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F10"],
+        safe_compose_with=[
+            "well_classify_substrate",
+            "well_measure_gradient",
+            "well_assess_metabolism",
+            "well_guard_dignity",
+        ],
+    ),
+    "well_measure_gradient": ToolManifest(
+        tool_id="well_measure_gradient",
+        tool_name="well_measure_gradient",
+        domain="WELL",
+        description=(
+            "Ω-WELL-04: Measure chemical, energy, pressure, attention gradients " "— T1 reversible"
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F04", "F07"],
+        safe_compose_with=[
+            "well_classify_substrate",
+            "well_detect_boundary",
+            "well_assess_metabolism",
+            "well_assess_homeostasis",
+            "well_assess_livelihood",
+        ],
+    ),
+    "well_assess_metabolism": ToolManifest(
+        tool_id="well_assess_metabolism",
+        tool_name="well_assess_metabolism",
+        domain="WELL",
+        description="Ω-WELL-05: Assess biological metabolism and system throughput — T1 reversible",
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F07"],
+        safe_compose_with=[
+            "well_classify_substrate",
+            "well_measure_gradient",
+            "well_assess_homeostasis",
+            "well_assess_livelihood",
+            "well_guard_dignity",
+        ],
+    ),
+    "well_assess_homeostasis": ToolManifest(
+        tool_id="well_assess_homeostasis",
+        tool_name="well_assess_homeostasis",
+        domain="WELL",
+        description=(
+            "Ω-WELL-06: Assess regulation, stability, empathic balance under change "
+            "— T1 reversible"
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F09"],
+        safe_compose_with=[
+            "well_assess_metabolism",
+            "well_assess_livelihood",
+            "well_guard_dignity",
+            "well_reflect_intelligence",
+        ],
+    ),
+    "well_check_repair": ToolManifest(
+        tool_id="well_check_repair",
+        tool_name="well_check_repair",
+        domain="WELL",
+        description=(
+            "Ω-WELL-07: Check repair, recovery, resilience, forge cycle integrity "
+            "— T1 reversible"
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F01", "F04", "F08"],
+        safe_compose_with=[
+            "well_assess_homeostasis",
+            "well_assess_reliability",
+            "well_reflect_intelligence",
+        ],
+    ),
+    "well_validate_vitality": ToolManifest(
+        tool_id="well_validate_vitality",
+        tool_name="well_validate_vitality",
+        domain="WELL",
+        description=(
+            "Ω-WELL-08: Validate vitality, readiness, NIAT, floor compliance " "— T1 reversible"
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F11"],
+        safe_compose_with=[
+            "well_assess_metabolism",
+            "well_assess_homeostasis",
+            "well_assess_livelihood",
+            "well_guard_dignity",
+            "well_anchor_evidence",
+        ],
+    ),
+    "well_assess_livelihood": ToolManifest(
+        tool_id="well_assess_livelihood",
+        tool_name="well_assess_livelihood",
+        domain="WELL",
+        description=(
+            "Ω-WELL-09: Assess human wellness, role, dignity, support, meaning " "— T1 reversible"
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F07"],
+        safe_compose_with=[
+            "well_assess_metabolism",
+            "well_assess_homeostasis",
+            "well_guard_dignity",
+            "well_validate_vitality",
+        ],
+    ),
+    "well_assess_reliability": ToolManifest(
+        tool_id="well_assess_reliability",
+        tool_name="well_assess_reliability",
+        domain="WELL",
+        description=(
+            "Ω-WELL-10: Assess machine, tool, institution, operational reliability "
+            "— T1 reversible"
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F04", "F08"],
+        safe_compose_with=[
+            "well_check_repair",
+            "well_reflect_intelligence",
+            "well_anchor_evidence",
+        ],
+    ),
+    "well_reflect_intelligence": ToolManifest(
+        tool_id="well_reflect_intelligence",
+        tool_name="well_reflect_intelligence",
+        domain="WELL",
+        description=(
+            "Ω-WELL-11: Reflect cognition, reasoning, adaptation, coherence, "
+            "routing — T0 observe"
+        ),
+        risk_tier="T0",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F07", "F08"],
+        safe_compose_with=[
+            "well_classify_substrate",
+            "well_detect_boundary",
+            "well_assess_homeostasis",
+            "well_assess_reliability",
+            "well_guard_dignity",
+        ],
+    ),
+    "well_guard_dignity": ToolManifest(
+        tool_id="well_guard_dignity",
+        tool_name="well_guard_dignity",
+        domain="WELL",
+        description=(
+            "Ω-WELL-12: Guard soul, personhood, meaning, symbolic boundaries " "— T2 consequential"
+        ),
+        risk_tier="T2",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F09", "F10"],
+        safe_compose_with=[
+            "well_assess_metabolism",
+            "well_assess_homeostasis",
+            "well_assess_livelihood",
+            "well_validate_vitality",
+        ],
+        dangerous_compose_with=[
+            "well_anchor_evidence",
+        ],
+    ),
+    "well_anchor_evidence": ToolManifest(
+        tool_id="well_anchor_evidence",
+        tool_name="well_anchor_evidence",
+        domain="WELL",
+        description="Ω-WELL-13: Anchor evidence to VAULT999 — T2 irreversible once sealed",
+        risk_tier="T2",
+        reversibility="partial",
+        blast_radius=BlastRadius.HIGH,
+        required_permissions=["vault"],
+        required_floors=["F01", "F11", "F13"],
+        safe_compose_with=[
+            "well_classify_substrate",
+            "well_detect_boundary",
+            "well_assess_metabolism",
+            "well_validate_vitality",
+            "well_assess_reliability",
+        ],
+        dangerous_compose_with=[
+            "well_guard_dignity",
+            "well_assess_homeostasis",
+        ],
     ),
 }
 
