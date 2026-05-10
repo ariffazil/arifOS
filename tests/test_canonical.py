@@ -17,7 +17,12 @@ from arifosmcp.constitutional_map import (
     list_probe_tools,
 )
 from arifosmcp.prompts import CANONICAL_PROMPTS, register_prompts
-from arifosmcp.resources import CANONICAL_RESOURCES, EVIDENCE_RESOURCES, register_resources
+from arifosmcp.resources import (
+    CANONICAL_RESOURCES,
+    EMBODIED_RESOURCES,
+    EVIDENCE_RESOURCES,
+    register_resources,
+)
 from arifosmcp.runtime.floors import get_floor_status
 from arifosmcp.runtime.tools import (
     IrreversibleConfirmation,
@@ -82,7 +87,7 @@ def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
     registered_tuple = tuple(registered)
-    assert registered_tuple == CANONICAL_RESOURCES + EVIDENCE_RESOURCES
+    assert registered_tuple == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES
 
 
 def test_init_creates_session():

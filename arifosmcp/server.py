@@ -188,7 +188,9 @@ try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
     from arifosmcp.runtime.tools import register_tools
+    from arifosmcp.tools.embodied_tool import register_all_arifos_tools
 
+    register_all_arifos_tools()
     v2_tools_registered = register_tools(mcp)
     _assert_registered_surface(v2_tools_registered)
     v2_prompts_registered = register_prompts(mcp)

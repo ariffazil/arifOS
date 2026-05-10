@@ -24,6 +24,7 @@ from fastmcp import FastMCP
 
 from .civilization import register_civilization
 from .doctrine import register_doctrine
+from .embodied_resources import register_embodied_resources
 from .evidence import register_evidence_resources
 from .forge import register_forge
 from .schema import register_schema
@@ -35,6 +36,15 @@ CANONICAL_RESOURCES = (
     "arifos://schema",
     "arifos://forge",
     "arifos://civilization",
+)
+
+EMBODIED_RESOURCES = (
+    "arifos://tools/self-model/{view}",
+    "arifos://tools/permissions/{scope}",
+    "arifos://tools/composition-matrix/{format}",
+    "arifos://witness/log/{filter}",
+    "arifos://witness/stats/{period}",
+    "arifos://boundaries/domain/{domain_id}",
 )
 
 EVIDENCE_RESOURCES = (
@@ -56,4 +66,5 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_forge(mcp))
     registered.extend(register_civilization(mcp))
     registered.extend(register_evidence_resources(mcp))
+    registered.extend(register_embodied_resources(mcp))
     return registered
