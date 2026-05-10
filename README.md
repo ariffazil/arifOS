@@ -125,18 +125,19 @@ Request received
 arifOS is live and under active hardening.
 
 **Working now:**
-- 13 canonical MCP tools, all Nine-Signal compliant
-- Session initialization with trace spine and identity binding
+- 13 canonical MCP tools with live embodiment contracts
+- Kernel + REST fail-closed embodiment gates before handler invocation
+- Runtime attestation endpoint for constitution, contracts, and policy state
+- Session initialization with persistence fallback, grace period, and TTL refresh
 - Constitutional verdict flow (SEAL / HOLD / VOID)
-- Basic VAULT999 ledger interface
-- Observatory governance dashboard
-- Pre-commit constitutional floor enforcement
+- Model registry deep lookup, including nested provider resolution
+- VAULT999 ledger interface and observatory governance dashboard
 
 **In progress:**
-- Durable VAULT999 Postgres writer deployment (`DRIFT-WITNESS-INFRA` sprint)
-- Full Trinity witness lane activation (Human / AI / Earth — currently 0.00 pending durable receipts)
-- Full Langfuse tracing across all 13 tools (currently 5/13)
-- Complete output schema enforcement across all tools
+- Cryptographic identity attestation (Ed25519 / ES256)
+- Institutional memory and precedent graph
+- Federation treaties and proof-carrying judgments
+- Cross-organ conflict resolution and latency budgets
 - Plain-English cockpit mode for non-kernel audiences
 
 **Governance discipline:**
@@ -168,14 +169,14 @@ arifOS is live and under active hardening.
 
 ```bash
 # Pull the latest sovereign build
-docker pull ghcr.io/ariffazil/arifos:2026.05.01
+docker pull ghcr.io/ariffazil/arifos:latest
 
 # Run the MCP server
 docker run -d \
   --name arifos-mcp \
   -p 8080:8080 \
   -v $(pwd)/VAULT999:/app/VAULT999 \
-  ghcr.io/ariffazil/arifos:2026.05.01
+  ghcr.io/ariffazil/arifos:latest
 
 # Verify
 curl http://localhost:8080/health
