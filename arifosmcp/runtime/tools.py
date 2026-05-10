@@ -5234,7 +5234,7 @@ def _arif_memory_recall(
         }
 
         async def _embed(text: str) -> list[float]:
-            async with _httpx.AsyncClient() as c:
+            async with _httpx.AsyncClient() as c:  # nosec B113
                 r = await c.post(
                     f"{_OLLAMA}/api/embeddings",
                     json={"model": "bge-m3:latest", "prompt": text},
@@ -5244,7 +5244,7 @@ def _arif_memory_recall(
                 return r.json()["embedding"]
 
         async def _qsearch(collection: str, vector: list[float], top_k: int = 8) -> list[dict]:
-            async with _httpx.AsyncClient() as c:
+            async with _httpx.AsyncClient() as c:  # nosec B113
                 r = await c.post(
                     f"{_QDRANT}/collections/{collection}/points/search",
                     json={
@@ -5266,7 +5266,7 @@ def _arif_memory_recall(
         async def _follow_rels(eids: list[str], rtypes: list[str]) -> list[dict]:
             results = []
             for eid in eids:
-                async with _httpx.AsyncClient() as c:
+                async with _httpx.AsyncClient() as c:  # nosec B113
                     r = await c.post(
                         f"{_QDRANT}/collections/{_COLL_RELS}/points/search",
                         json={
@@ -6574,7 +6574,11 @@ def _arif_vault_seal(
             if dev_mode_bypass
             else _KERNEL.evaluate_intent(
                 tool_name="arif_vault_seal",
-                params={"mode": mode, "ack_irreversible": ack_irreversible},
+                params={
+                    "mode": mode,
+                    "ack_irreversible": ack_irreversible,
+                    "session_registry": set(_SESSIONS.keys()),
+                },
                 session_id=session_id,
                 witness_type=wt,
             )
@@ -7191,7 +7195,11 @@ def _arif_forge_execute(
         wt = WitnessType.HUMAN if witness_type == "human" else WitnessType.AI
         k_verdict = _KERNEL.evaluate_intent(
             tool_name="arif_forge_execute",
-            params={"mode": mode, "manifest": manifest},
+            params={
+                "mode": mode,
+                "manifest": manifest,
+                "session_registry": set(_SESSIONS.keys()),
+            },
             session_id=session_id,
             actor_id=actor_id,
             witness_type=wt,
@@ -7287,6 +7295,7 @@ def _arif_forge_execute(
             "ack_irreversible": ack_irreversible,
             "manifest": manifest,
             "plan_id": plan_id,
+            "session_registry": set(_SESSIONS.keys()),
             "plan_registry": set(_PLAN_REGISTRY.keys()),
         },
         session_id=session_id,
