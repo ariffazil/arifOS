@@ -123,7 +123,31 @@ aaa.arif-fazil.com {
     encode zstd gzip
     root * /var/www/html/aaa
 
+    handle /a2a {
+        reverse_proxy aaa-a2a:3001
+    }
     handle /a2a/* {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /.well-known/agent-card.json {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /.well-known/agent.json {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /.well-known/arifos-federation.json {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /agent-card.json {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /aaa-card-treaty {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /tasks {
+        reverse_proxy aaa-a2a:3001
+    }
+    handle /tasks/* {
         reverse_proxy aaa-a2a:3001
     }
     handle /api/* {

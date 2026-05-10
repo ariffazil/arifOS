@@ -121,6 +121,51 @@ class ConstitutionalKernel:
             )
             return hold_result
 
+        # ── Tool Embodiment Contract Gate (F11 AUTH + embodiment enforcement) ────────
+        from arifosmcp.runtime.embodiment_contracts import enforce_embodiment
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        session = _SESSIONS.get(session_id) if session_id else None
+        plan_id = arguments.get("plan_id")
+        judge_verdict = arguments.get("judge_verdict")
+        embodiment = enforce_embodiment(
+            canonical_name, session, plan_id=plan_id, judge_verdict=judge_verdict
+        )
+        if not embodiment.get("ok"):
+            hold_result = {
+                "tool": canonical_name,
+                "stage": "444_KERNEL",
+                "status": "HOLD",
+                "result": {
+                    "error": "EMBODIMENT_HOLD",
+                    "reason": embodiment.get("reason"),
+                    "failed_floors": embodiment.get("floors", ["F11"]),
+                    "embodiment_violation": embodiment.get("embodiment_violation"),
+                    "next_safe_action": embodiment.get(
+                        "next_safe_action", "Review agent card and constitutional lane."
+                    ),
+                },
+                "verdict": "HOLD",
+                "nine_signal": "RETAK",
+            }
+            trace_tool_call(
+                tool_name=canonical_name,
+                arguments=arguments,
+                result=hold_result,
+                session_id=session_id,
+                actor_id=actor_id,
+                latency_ms=0.0,
+            )
+            record_session_tool_event(
+                session_id=session_id,
+                tool_name=canonical_name,
+                stage="444_KERNEL",
+                verdict="HOLD",
+                payload=hold_result,
+                execution_state=current_state_str,
+            )
+            return hold_result
+
         handler = FINAL_TOOL_IMPLEMENTATIONS.get(canonical_name)
         if handler is None:
             result = {

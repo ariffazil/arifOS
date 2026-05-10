@@ -2778,6 +2778,79 @@ def register_rest_routes(
         }
         return JSONResponse(fingerprint)
 
+    @route("/runtime/attestation", methods=["GET"])
+    async def runtime_attestation(request: Request) -> Response:
+        """
+        Constitutional attestation endpoint.
+        Returns verifiable governance proofs: constitution hash, embodiment contracts,
+        tool registry hash, and runtime policy state.
+        """
+        from arifosmcp.runtime.embodiment_contracts import list_contracts
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        # Constitution identity
+        try:
+            from arifosmcp.runtime.tools import get_constitution_identity
+
+            identity = get_constitution_identity()
+        except Exception:
+            identity = {}
+
+        # Tool registry hash
+        registry_text = json.dumps(public_tool_names(), sort_keys=True)
+        registry_hash = hashlib.sha256(registry_text.encode()).hexdigest()
+
+        # Embodiment contracts hash
+        contracts = list_contracts()
+        contracts_text = json.dumps(contracts, sort_keys=True)
+        contracts_hash = hashlib.sha256(contracts_text.encode()).hexdigest()
+
+        # Runtime policy state
+        dry_run_enforced = os.getenv("ARIFOS_FORGE_DRY_RUN", "true").lower() in ("1", "true", "yes")
+        state_machine_enforced = os.getenv("ARIFOS_STATE_MACHINE_ENFORCE", "false").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+        ontology_enforced = os.getenv("ARIFOS_ONTOLOGY_VALIDATE", "false").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+
+        # Session attestation sample (active sessions count, not contents)
+        active_sessions = len(_SESSIONS)
+
+        payload = {
+            "status": "attested",
+            "constitution_hash": identity.get("constitution_hash", "unknown"),
+            "constitution_id": identity.get("constitution_id", "unknown"),
+            "invariants_hash": identity.get("invariants_hash", "unknown"),
+            "tool_registry_hash": registry_hash,
+            "embodiment_contracts_hash": contracts_hash,
+            "contracts_count": len(contracts),
+            "policies": {
+                "dry_run_enforced": dry_run_enforced,
+                "state_machine_enforced": state_machine_enforced,
+                "ontology_enforced": ontology_enforced,
+                "judge_required_for_irreversible": True,
+                "vault_mode": "guarded",
+                "forge_default": "dry_run_only",
+            },
+            "runtime": {
+                "git_commit": os.getenv("DEPLOY_GIT_COMMIT", "unknown"),
+                "build_time": os.getenv("DEPLOY_BUILD_TIME", "unknown"),
+                "image": os.getenv("DEPLOY_IMAGE", "unknown"),
+                "started_at": os.getenv("START_TIME", datetime.now(timezone.utc).isoformat()),
+            },
+            "sessions": {
+                "active_count": active_sessions,
+                "ttl_seconds": int(os.getenv("ARIFOS_SESSION_TTL_SECONDS", "86400")),
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
+
     @route("/tools", methods=["GET"])
     async def list_tools(request: Request) -> Response:
         if err := _auth_error_response(request):

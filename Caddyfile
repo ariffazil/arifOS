@@ -450,7 +450,16 @@ aaa.arif-fazil.com {
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
+	handle /a2a {
+		reverse_proxy 127.0.0.1:3001
+	}
 	handle /a2a/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /tasks {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /tasks/* {
 		reverse_proxy 127.0.0.1:3001
 	}
 	handle /api/* {
