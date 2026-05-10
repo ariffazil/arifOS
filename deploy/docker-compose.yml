@@ -70,9 +70,7 @@ services:
       start_period: 15s
   # ── GEOX: Earth Intelligence ──────────────────────────────────────────
   geox:
-    build:
-      context: /root/geox
-      dockerfile: Dockerfile
+    image: ghcr.io/ariffazil/geox:c62354f7
     container_name: geox_eic
     restart: unless-stopped
     command: ["python", "server.py"]
@@ -114,7 +112,7 @@ services:
     networks: [arifos_core]
   # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
   aaa-a2a:
-    image: aaa-a2a:v1.0.0
+    image: ghcr.io/ariffazil/aaa-a2a:b1df697
     container_name: aaa-a2a
     restart: unless-stopped
     command: ["node", "server.js"]
@@ -244,7 +242,7 @@ services:
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: well:2026.05.08-reforge
+    image: ghcr.io/ariffazil/well:5b017e2
     container_name: well
     init: true
     restart: unless-stopped

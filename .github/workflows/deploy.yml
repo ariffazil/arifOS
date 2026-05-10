@@ -23,6 +23,8 @@ jobs:
 
             # Work from the arifOS source repo — always up to date after push
             cd /root/arifOS
+            git fetch origin main
+            git reset --hard "${{ github.sha }}"
 
             # Derive build metadata from VPS git — reliable, no env var dependency
             LOCAL_SHA=$(git rev-parse HEAD)
