@@ -112,7 +112,7 @@ services:
     networks: [arifos_core]
   # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
   aaa-a2a:
-    image: ghcr.io/ariffazil/aaa-a2a:7826bd2
+    image: ghcr.io/ariffazil/aaa-a2a:fc830d0
     container_name: aaa-a2a
     restart: unless-stopped
     command: ["node", "server.js"]
