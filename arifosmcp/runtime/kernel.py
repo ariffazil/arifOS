@@ -155,6 +155,22 @@ class ConstitutionalKernel:
             }
         latency_ms = (_time.perf_counter_ns() - start_ns) / 1e6
 
+        # ── Ontology bridge: canonicalize + validate output ─────────────────────────────
+        try:
+            from arifosmcp.runtime.ontology_bridge import ontology_bridge
+
+            if isinstance(result, dict):
+                result = ontology_bridge.process(
+                    tool_name=canonical_name,
+                    result=result,
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    execution_state=current_state,
+                )
+        except Exception:
+            # Ontology bridge must never break tool execution
+            pass
+
         # ── State progression ───────────────────────────────────────────────────────────
         next_state = ExecutionStateMachine.get_next_state(canonical_name, current_state)
         if session_id and next_state != current_state:
