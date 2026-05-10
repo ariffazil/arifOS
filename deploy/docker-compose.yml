@@ -242,7 +242,7 @@ services:
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:e878e88
+    image: ghcr.io/ariffazil/well:5c9d0ff
     container_name: well
     init: true
     restart: unless-stopped
