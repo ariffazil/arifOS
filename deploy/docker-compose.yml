@@ -70,7 +70,7 @@ services:
       start_period: 15s
   # ── GEOX: Earth Intelligence ──────────────────────────────────────────
   geox:
-    image: ghcr.io/ariffazil/geox:c62354f7
+    image: ghcr.io/ariffazil/geox:970feedb
     container_name: geox_eic
     restart: unless-stopped
     command: ["python", "server.py"]
@@ -96,7 +96,7 @@ services:
       start_period: 15s
   # ── WEALTH: Capital Intelligence ───────────────────────────────────────
   wealth-organ:
-    image: ghcr.io/ariffazil/wealth:ac9da38
+    image: ghcr.io/ariffazil/wealth:11ad2ff
     container_name: wealth-organ
     restart: unless-stopped
     # Canonical implementation: internal/monolith.py (AGENTS.md Tier A)
@@ -112,7 +112,7 @@ services:
     networks: [arifos_core]
   # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
   aaa-a2a:
-    image: ghcr.io/ariffazil/aaa-a2a:b1df697
+    image: ghcr.io/ariffazil/aaa-a2a:238c5c7
     container_name: aaa-a2a
     restart: unless-stopped
     command: ["node", "server.js"]
@@ -242,7 +242,7 @@ services:
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:5b017e2
+    image: ghcr.io/ariffazil/well:e878e88
     container_name: well
     init: true
     restart: unless-stopped
