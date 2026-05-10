@@ -180,6 +180,8 @@ def _build_transport_envelope(
         if isinstance(payload.get("human_language"), dict)
         else None
     )
+    execution_state = envelope.state.get("execution_state") if envelope.state else None
+    next_execution_state = envelope.state.get("next_execution_state") if envelope.state else None
     wrapped = {
         "tool": tool,
         "stage": envelope.stage,
@@ -202,6 +204,8 @@ def _build_transport_envelope(
             "vault_seal_candidate": verdict == "SEAL",
             "next_recommended_tools": allowed_next_tools,
             "stage_progression": allowed_next_tools,
+            "execution_state": execution_state,
+            "next_execution_state": next_execution_state,
         },
     }
     wrapped.update(payload)

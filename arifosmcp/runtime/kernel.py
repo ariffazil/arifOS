@@ -68,16 +68,59 @@ class ConstitutionalKernel:
         }
 
     async def dispatch_with_fail_closed(self, tool_name: str, arguments: dict):
-        """Fail-Closed Dispatch Gateway (F12/F13)."""
+        """Fail-Closed Dispatch Gateway (F12/F13) + Formal Execution State Machine."""
         import time as _time
 
+        from arifosmcp.runtime.execution_state_machine import (
+            ExecutionState,
+            ExecutionStateMachine,
+        )
         from arifosmcp.runtime.output_formatter import format_output
+        from arifosmcp.runtime.session import (
+            get_session_execution_state,
+            record_session_tool_event,
+            set_session_execution_state,
+        )
         from arifosmcp.runtime.telemetry import trace_tool_call
         from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, LEGACY_TOOL_ALIASES
 
         print(f"KERNEL: Dispatching {tool_name} through Fail-Closed Gates...")
 
         canonical_name = LEGACY_TOOL_ALIASES.get(tool_name, tool_name)
+        session_id = arguments.get("session_id")
+        actor_id = arguments.get("actor_id") or "system"
+
+        # ── Formal Execution State Machine Gate ───────────────────────────────────────
+        current_state_str = get_session_execution_state(session_id)
+        try:
+            current_state = ExecutionState(current_state_str) if current_state_str else None
+        except ValueError:
+            current_state = None
+
+        if ExecutionStateMachine.is_enforced() and not ExecutionStateMachine.can_execute(
+            canonical_name, current_state
+        ):
+            hold_result = ExecutionStateMachine.get_hold_response(
+                canonical_name, current_state, session_id=session_id
+            )
+            trace_tool_call(
+                tool_name=canonical_name,
+                arguments=arguments,
+                result=hold_result,
+                session_id=session_id,
+                actor_id=actor_id,
+                latency_ms=0.0,
+            )
+            record_session_tool_event(
+                session_id=session_id,
+                tool_name=canonical_name,
+                stage="888",
+                verdict="HOLD",
+                payload=hold_result,
+                execution_state=current_state_str,
+            )
+            return hold_result
+
         handler = FINAL_TOOL_IMPLEMENTATIONS.get(canonical_name)
         if handler is None:
             result = {
@@ -91,8 +134,8 @@ class ConstitutionalKernel:
                 tool_name=canonical_name,
                 arguments=arguments,
                 result=result,
-                session_id=arguments.get("session_id"),
-                actor_id=arguments.get("actor_id") or "system",
+                session_id=session_id,
+                actor_id=actor_id,
                 latency_ms=0.0,
             )
             return result
@@ -111,6 +154,21 @@ class ConstitutionalKernel:
                 "result": {},
             }
         latency_ms = (_time.perf_counter_ns() - start_ns) / 1e6
+
+        # ── State progression ───────────────────────────────────────────────────────────
+        next_state = ExecutionStateMachine.get_next_state(canonical_name, current_state)
+        if session_id and next_state != current_state:
+            set_session_execution_state(session_id, next_state.value)
+
+        # Record event with execution state
+        record_session_tool_event(
+            session_id=session_id,
+            tool_name=canonical_name,
+            stage="444_KERNEL",
+            verdict=result.get("verdict") or result.get("status", "UNKNOWN"),
+            payload=result if isinstance(result, dict) else {},
+            execution_state=next_state.value,
+        )
 
         if result.__class__.__name__ == "RuntimeEnvelope":
             platform = arguments.get("platform", "mcp")
