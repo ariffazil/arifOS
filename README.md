@@ -1,6 +1,6 @@
 <!--
   arifOS README — Constitutional Intelligence Kernel
-  Version: 2026.05.05-SSCT
+  Version: 2026.05.10-EMBODY
   Canonical: https://github.com/ariffazil/arifOS
   SOT marker — do not remove
 -->
@@ -46,7 +46,7 @@
 <br>
 
 <!-- SOT:badges -->
-[![arifOS](https://img.shields.io/badge/arifOS-KANON_2026.05.04-FF6B00?style=flat-square)](https://github.com/ariffazil/arifOS)
+[![arifOS](https://img.shields.io/badge/arifOS-EMBODIED_2026.05.10-FF6B00?style=flat-square)](https://github.com/ariffazil/arifOS)
 [![MCP](https://img.shields.io/badge/MCP-FastMCP_3.2-7C3AED?style=flat-square)](https://github.com/ariffazil/arifOS)
 [![Constitution](https://img.shields.io/badge/Constitution-13_Floors_Enforced-1a1a1a?style=flat-square)](./arifosmcp/constitutional_map.py)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python)](https://python.org)
