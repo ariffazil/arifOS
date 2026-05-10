@@ -12,17 +12,17 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:9ddcb671
+    image: ghcr.io/ariffazil/arifos:57547988
     container_name: arifosmcp
     init: true
     restart: unless-stopped
     command: ["python", "-m", "arifosmcp.runtime.__main__"]
     env_file: [.env]
     environment:
-      DEPLOY_GIT_COMMIT: f803076f4a24a0a20d244269514bc95a31871914  # pragma: allowlist secret
-      ARIFOS_BUILD_SHA: f803076f4a24a0a20d244269514bc95a31871914  # pragma: allowlist secret
-      ARIFOS_IMAGE: ghcr.io/ariffazil/arifos:f803076f
-      ARIFOS_BUILD_TIME: "2026-05-05T08:20:12+00:00"
+      DEPLOY_GIT_COMMIT: 575479882be207504151baf2cd0e99202c57e626  # pragma: allowlist secret
+      ARIFOS_BUILD_SHA: 575479882be207504151baf2cd0e99202c57e626  # pragma: allowlist secret
+      ARIFOS_IMAGE: ghcr.io/ariffazil/arifos:57547988
+      ARIFOS_BUILD_TIME: "2026-05-10T12:45:14+00:00"
       ARIFOS_GOVERNANCE_OPEN_MODE: "true"
       PYTHONPATH: /app
       DOTENV: disabled
@@ -36,6 +36,8 @@ services:
       JWT_ENFORCE_MODE: enforce
       ARIFOS_REGISTRY_ROOT: /app/arifos-model-registry
       OLLAMA_URL: http://ollama:11434
+      ARIFOS_STATE_MACHINE_ENFORCE: "true"
+      ARIFOS_ONTOLOGY_VALIDATE: "true"
     volumes:
       - /root/arifOS/arifosmcp/server.py:/app/arifosmcp/server.py:ro
       - /root/arifos-model-registry:/app/arifos-model-registry:ro
@@ -49,6 +51,17 @@ services:
       - /root/arifOS/arifosmcp/runtime/agent_registry/cards:/app/arifosmcp/runtime/agent_registry/cards:ro
       - /root/arifOS/arifosmcp/core/physics:/app/arifosmcp/core/physics:ro
       - /root/arifOS/core:/app/core:ro
+      # H1 Core: Formal State Machine + Ontology Bridge (2026-05-10)
+      - /root/arifOS/arifosmcp/tools/embodied_tool.py:/app/arifosmcp/tools/embodied_tool.py:ro
+      - /root/arifOS/arifosmcp/tools/embodied_instances:/app/arifosmcp/tools/embodied_instances:ro
+      - /root/arifOS/arifosmcp/runtime/execution_state_machine.py:/app/arifosmcp/runtime/execution_state_machine.py:ro
+      - /root/arifOS/arifosmcp/runtime/ontology_bridge.py:/app/arifosmcp/runtime/ontology_bridge.py:ro
+      - /root/arifOS/arifosmcp/runtime/context_compression.py:/app/arifosmcp/runtime/context_compression.py:ro
+      - /root/arifOS/arifosmcp/runtime/kernel.py:/app/arifosmcp/runtime/kernel.py:ro
+      - /root/arifOS/arifosmcp/runtime/session.py:/app/arifosmcp/runtime/session.py:ro
+      - /root/arifOS/arifosmcp/runtime/model.py:/app/arifosmcp/runtime/model.py:ro
+      - /root/arifOS/arifosmcp/runtime/output_formatter.py:/app/arifosmcp/runtime/output_formatter.py:ro
+      - /root/arifOS/arifosmcp/runtime/__init__.py:/app/arifosmcp/runtime/__init__.py:ro
       - /root/volumes/vault999:/var/lib/arifos/vault:rw
       - /root/WELL/state.json:/root/WELL/state.json:ro
       - telemetry-data:/app/telemetry
@@ -93,7 +106,7 @@ services:
       start_period: 15s
   # ── WEALTH: Capital Intelligence ───────────────────────────────────────
   wealth-organ:
-    image: ghcr.io/ariffazil/wealth:3636af33
+    image: ghcr.io/ariffazil/wealth:8c77358
     container_name: wealth-organ
     restart: unless-stopped
     # Canonical implementation: internal/monolith.py (AGENTS.md Tier A)
