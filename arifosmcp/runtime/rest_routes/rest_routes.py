@@ -2985,6 +2985,49 @@ def register_rest_routes(
                 }
                 filtered = {k: v for k, v in normalized.items() if k in valid_params}
 
+            # ── Tool Embodiment Gate (F11 AUTH for REST surface) ────────────────────
+            from arifosmcp.runtime.embodiment_contracts import enforce_embodiment
+            from arifosmcp.runtime.session_auth import validate_session
+
+            _session_id = filtered.get("session_id")
+            _actor_id = filtered.get("actor_id")
+            _plan_id = filtered.get("plan_id")
+            _judge_verdict = filtered.get("judge_verdict")
+
+            _sess_val = validate_session(_session_id, _actor_id)
+            _session = _sess_val.get("session")
+
+            _emb = enforce_embodiment(
+                canonical_name, _session, plan_id=_plan_id, judge_verdict=_judge_verdict
+            )
+            if not _emb.get("ok"):
+                latency_ms = (time.time() - start_time) * 1000
+                return JSONResponse(
+                    {
+                        "status": "success",
+                        "tool": incoming_name,
+                        "canonical": canonical_name,
+                        "request_id": request_id,
+                        "latency_ms": round(latency_ms, 2),
+                        "result": {
+                            "status": "HOLD",
+                            "tool": canonical_name,
+                            "result": {
+                                "error": "EMBODIMENT_HOLD",
+                                "reason": _emb.get("reason"),
+                                "failed_floors": _emb.get("floors", ["F11"]),
+                                "embodiment_violation": _emb.get("embodiment_violation"),
+                                "next_safe_action": _emb.get(
+                                    "next_safe_action",
+                                    "Review agent card and constitutional lane.",
+                                ),
+                            },
+                            "verdict": "HOLD",
+                            "nine_signal": "RETAK",
+                        },
+                    }
+                )
+
             # Handle both sync and async tool functions
             import asyncio as _asyncio
 

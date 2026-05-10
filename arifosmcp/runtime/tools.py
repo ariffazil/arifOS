@@ -2021,6 +2021,9 @@ def _arif_session_init(
                 session_warnings.append(warning_msg)
         sess["session_warnings"] = session_warnings
 
+        # Persist fully enriched session before returning
+        _SESSIONS[sid] = sess
+
         # H2: Store write acknowledgment
         store_ack = {"_SESSIONS": False, "_SESSION_IDENTITY": False}
         if sid in _SESSIONS:
