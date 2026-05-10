@@ -52,16 +52,8 @@ services:
       - /root/arifOS/arifosmcp/core/physics:/app/arifosmcp/core/physics:ro
       - /root/arifOS/core:/app/core:ro
       # H1 Core: Formal State Machine + Ontology Bridge (2026-05-10)
-      - /root/arifOS/arifosmcp/tools/embodied_tool.py:/app/arifosmcp/tools/embodied_tool.py:ro
-      - /root/arifOS/arifosmcp/tools/embodied_instances:/app/arifosmcp/tools/embodied_instances:ro
-      - /root/arifOS/arifosmcp/runtime/execution_state_machine.py:/app/arifosmcp/runtime/execution_state_machine.py:ro
-      - /root/arifOS/arifosmcp/runtime/ontology_bridge.py:/app/arifosmcp/runtime/ontology_bridge.py:ro
-      - /root/arifOS/arifosmcp/runtime/context_compression.py:/app/arifosmcp/runtime/context_compression.py:ro
-      - /root/arifOS/arifosmcp/runtime/kernel.py:/app/arifosmcp/runtime/kernel.py:ro
-      - /root/arifOS/arifosmcp/runtime/session.py:/app/arifosmcp/runtime/session.py:ro
-      - /root/arifOS/arifosmcp/runtime/model.py:/app/arifosmcp/runtime/model.py:ro
-      - /root/arifOS/arifosmcp/runtime/output_formatter.py:/app/arifosmcp/runtime/output_formatter.py:ro
-      - /root/arifOS/arifosmcp/runtime/__init__.py:/app/arifosmcp/runtime/__init__.py:ro
+      # Mount entire arifosmcp package to ensure all new/modified files are available
+      - /root/arifOS/arifosmcp:/app/arifosmcp:ro
       - /root/volumes/vault999:/var/lib/arifos/vault:rw
       - /root/WELL/state.json:/root/WELL/state.json:ro
       - telemetry-data:/app/telemetry
