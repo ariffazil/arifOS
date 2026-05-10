@@ -78,8 +78,24 @@ _GUARD_EXPORTS = {
     "validate_ontology",
 }
 
+_ONTOLOGY_EXPORTS = {
+    "ConstitutionalOntologyPayload",
+    "OntologyValidator",
+    "OntologyViolation",
+    "ValidationResult",
+    "RuntimeState",
+    "RiskLevel",
+    "ConfidenceLevel",
+    "Reversibility",
+}
+
 __all__ = sorted(
-    _ATLAS_EXPORTS | _PHYSICS_EXPORTS | _TYPE_EXPORTS | _CRYPTO_EXPORTS | _GUARD_EXPORTS
+    _ATLAS_EXPORTS
+    | _PHYSICS_EXPORTS
+    | _TYPE_EXPORTS
+    | _CRYPTO_EXPORTS
+    | _GUARD_EXPORTS
+    | _ONTOLOGY_EXPORTS
 )
 
 
@@ -94,6 +110,8 @@ def __getattr__(name: str):
         return getattr(import_module(".crypto", __name__), name)
     if name in _GUARD_EXPORTS:
         return getattr(import_module(".guards", __name__), name)
+    if name in _ONTOLOGY_EXPORTS:
+        return getattr(import_module(".constitutional_ontology", __name__), name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
