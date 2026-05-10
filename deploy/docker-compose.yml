@@ -98,7 +98,7 @@ services:
       start_period: 15s
   # ── WEALTH: Capital Intelligence ───────────────────────────────────────
   wealth-organ:
-    image: ghcr.io/ariffazil/wealth:8c77358
+    image: ghcr.io/ariffazil/wealth:ac9da38
     container_name: wealth-organ
     restart: unless-stopped
     # Canonical implementation: internal/monolith.py (AGENTS.md Tier A)
