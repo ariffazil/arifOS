@@ -65,8 +65,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health')\""]
       interval: 60s
-      timeout: 10s
-      retries: 3
       start_period: 15s
   # ── GEOX: Earth Intelligence ──────────────────────────────────────────
   geox:
@@ -91,8 +89,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8081/health')\""]
       interval: 60s
-      timeout: 10s
-      retries: 3
       start_period: 15s
   # ── WEALTH: Capital Intelligence ───────────────────────────────────────
   wealth-organ:
@@ -106,10 +102,6 @@ services:
       - "127.0.0.1:8082:8082"
     networks: [arifos_core]
   # ── AAA: Control Plane Seed ─────────────────────────────────────────────
-  aaa:
-    image: compose-aaa:v1.0.0
-    container_name: aaa
-    networks: [arifos_core]
   # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
   aaa-a2a:
     image: ghcr.io/ariffazil/aaa-a2a:fc830d0
@@ -158,8 +150,42 @@ services:
     volumes: [/root/volumes/qdrant:/qdrant/storage:rw]
     networks: [arifos_core]
   # ── PLANE 5: OBSERVABILITY ──────────────────────────────────────────
-  # Note: Prometheus + Grafana stack removed from runtime.
-  # Re-add when observability is needed: prometheus, grafana, node_exporter.
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: arifos-loki
+    restart: unless-stopped
+    ports: ["127.0.0.1:3100:3100"]
+    volumes:
+      - /root/compose/loki-data:/loki
+    networks: [arifos_core]
+
+  promtail:
+    image: grafana/promtail:2.9.6
+    container_name: arifos-promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /root/compose/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks: [arifos_core]
+    depends_on: [loki]
+
+  grafana:
+    image: grafana/grafana:12.0.2
+    container_name: arifos-grafana
+    restart: unless-stopped
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=arifOS_grafana_secure_pass
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - /root/compose/grafana-data:/var/lib/grafana
+      - /root/compose/grafana-provisioning:/etc/grafana/provisioning:ro
+    networks: [arifos_core]
+    user: "472"
+    depends_on: [loki]
   # ── PLANE 6: ENGINES & PROXIES ──────────────────────────────────────
   ollama:
     image: ollama/ollama:latest
@@ -168,25 +194,6 @@ services:
     ports: ["127.0.0.1:11434:11434"]
     volumes: [/root/volumes/ollama:/root/.ollama:rw]
     networks: [arifos_core]
-  caddy:
-    image: caddy:2-alpine
-    container_name: caddy
-    init: true
-    ports: ["80:80", "443:443"]
-    volumes:
-      - /root/arifOS/Caddyfile:/etc/caddy/Caddyfile:ro
-      - /root/volumes/caddy/data:/data:rw
-      - /root/volumes/caddy/config:/config:rw
-      - /root/sites:/var/www/html:ro
-    networks: [arifos_core]
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost/ > /dev/null 2>&1 || curl -sf http://localhost/ > /dev/null 2>&1 || exit 1"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
   # ── PLANE 7: UTILITIES ──────────────────────────────────────────────
   vault999:
     build:
@@ -203,8 +210,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\""]
       interval: 60s
-      timeout: 10s
-      retries: 3
   vault999-writer:
     build:
       context: ./vault999-writer
@@ -213,7 +218,7 @@ services:
     container_name: vault999-writer
     init: true
     environment:
-      VAULT999_DB: "postgresql://arifos_admin:ArifPostgres2026!@postgres:5432/vault999"
+      VAULT999_DB: "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999"
       VAULT_WRITER_TOKEN_FILE: /run/secrets/vault_writer_token
       VAULT_WRITER_TOKEN: ade8242fcd8882cfd6b22b489b6c66d21c2234f9f4f35b187d84d9e814e1a56e  # pragma: allowlist secret
     volumes:
@@ -225,8 +230,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\""]
       interval: 60s
-      timeout: 10s
-      retries: 3
       start_period: 10s
   forge-notifier:
     image: compose-forge-notifier:v1.0.0
@@ -237,8 +240,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import os; [open(f'/proc/{p}/cmdline').read() for p in os.listdir('/proc') if p.isdigit() and 'main.py' in open(f'/proc/{p}/cmdline').read()]\""]
       interval: 60s
-      timeout: 10s
-      retries: 3
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
@@ -253,8 +254,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8083/health')\""]
       interval: 60s
-      timeout: 10s
-      retries: 3
       start_period: 10s
   # ── HERMES AGENT: ASI Deliberative Server ─────────────────────────────────
   hermes-agent:
@@ -273,7 +272,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3002/health >/dev/null 2>&1 && exit 0 || exit 1"]
       interval: 30s
-      timeout: 10s
       retries: 5
       start_period: 15s
 
