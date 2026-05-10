@@ -18,6 +18,18 @@ from pydantic import BaseModel, ConfigDict, Field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+class ExecutionState(str, Enum):
+    """Canonical execution pipeline states (formal state machine)."""
+
+    OBSERVE = "OBSERVE"
+    ANALYZE = "ANALYZE"
+    SIMULATE = "SIMULATE"
+    AWAIT_APPROVAL = "AWAIT_APPROVAL"
+    EXECUTE = "EXECUTE"
+    VERIFY = "VERIFY"
+    SEAL = "SEAL"
+
+
 class ClaimStatus(str, Enum):
     ANONYMOUS = "anonymous"
     CLAIMED = "claimed"

@@ -724,6 +724,276 @@ ARIFOS_TOOL_MANIFESTS = {
             "well_assess_homeostasis",
         ],
     ),
+    "wealth_health_check": ToolManifest(
+        tool_id="wealth_health_check",
+        tool_name="wealth_health_check",
+        domain="WEALTH",
+        description=(
+            "Pre-flight gate — verify WEALTH MCP is alive, authenticated, "
+            "schema-valid, and constitutionally aligned before any computation"
+        ),
+        risk_tier="T0",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F01", "F04"],
+    ),
+    "wealth_sense_ingest": ToolManifest(
+        tool_id="wealth_sense_ingest",
+        tool_name="wealth_sense_ingest",
+        domain="WEALTH",
+        description=(
+            "Reality intake — fetch data, snapshot conditions, check source health, "
+            "reconcile divergence. Evidence before reasoning (F02 TRUTH)"
+        ),
+        risk_tier="T0",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F02", "F03", "F07"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_present_expect",
+            "wealth_future_value",
+        ],
+    ),
+    "wealth_present_expect": ToolManifest(
+        tool_id="wealth_present_expect",
+        tool_name="wealth_present_expect",
+        domain="WEALTH",
+        description=(
+            "Expected Monetary Value — probability-weighted outcomes under "
+            "defined scenarios. Forces explicit probability and payoff."
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F02", "F07", "F08"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_future_value",
+            "wealth_future_simulate",
+            "wealth_survival_liquidity",
+        ],
+    ),
+    "wealth_future_value": ToolManifest(
+        tool_id="wealth_future_value",
+        tool_name="wealth_future_value",
+        domain="WEALTH",
+        description=(
+            "Time-discounted value — NPV, IRR, PI, payback, terminal value. "
+            "Time-value witness: future money must survive discounting."
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F02", "F04", "F08"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_present_expect",
+            "wealth_future_simulate",
+            "wealth_survival_liquidity",
+            "wealth_rule_enforce",
+        ],
+    ),
+    "wealth_future_simulate": ToolManifest(
+        tool_id="wealth_future_simulate",
+        tool_name="wealth_future_simulate",
+        domain="WEALTH",
+        description=(
+            "Stochastic simulation — Monte Carlo P10/P50/P90, downside probability, "
+            "tail risk. Future humility: distribution not point estimate."
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F02", "F07", "F08"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_present_expect",
+            "wealth_future_value",
+            "wealth_survival_liquidity",
+            "wealth_info_value",
+        ],
+    ),
+    "wealth_survival_liquidity": ToolManifest(
+        tool_id="wealth_survival_liquidity",
+        tool_name="wealth_survival_liquidity",
+        domain="WEALTH",
+        description=(
+            "Liquidity survival — cashflow, burn rate, runway, triage. "
+            "Survival floor: profitable path that dies before payoff is invalid."
+        ),
+        risk_tier="T2",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F01", "F04", "F05"],
+        safe_compose_with=[
+            "wealth_sense_ingest",
+            "wealth_truth_validate",
+            "wealth_rule_enforce",
+        ],
+    ),
+    "wealth_survival_leverage": ToolManifest(
+        tool_id="wealth_survival_leverage",
+        tool_name="wealth_survival_leverage",
+        domain="WEALTH",
+        description=(
+            "Structural load — DSCR, leverage ratio, balance sheet resilience. "
+            "Load-bearing test: do not allocate into structures that cannot carry stress."
+        ),
+        risk_tier="T2",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F01", "F04", "F05", "F06"],
+        safe_compose_with=[
+            "wealth_survival_liquidity",
+            "wealth_truth_validate",
+            "wealth_rule_enforce",
+        ],
+    ),
+    "wealth_info_value": ToolManifest(
+        tool_id="wealth_info_value",
+        tool_name="wealth_info_value",
+        domain="WEALTH",
+        description=(
+            "Expected Value of Information — EVOI before spending on data, studies, "
+            "seismic, due diligence. Know-before-spend gate."
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F02", "F07", "F08"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_present_expect",
+            "wealth_future_simulate",
+        ],
+    ),
+    "wealth_truth_validate": ToolManifest(
+        tool_id="wealth_truth_validate",
+        tool_name="wealth_truth_validate",
+        domain="WEALTH",
+        description=(
+            "Epistemic integrity — schema, data quality, correlation, entropy. "
+            "Truth gate: bad evidence cannot command good capital (F02)."
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.LOW,
+        required_permissions=[],
+        required_floors=["F02", "F03", "F08"],
+        safe_compose_with=[
+            "wealth_sense_ingest",
+            "wealth_present_expect",
+            "wealth_future_value",
+            "wealth_future_simulate",
+        ],
+    ),
+    "wealth_rule_enforce": ToolManifest(
+        tool_id="wealth_rule_enforce",
+        tool_name="wealth_rule_enforce",
+        domain="WEALTH",
+        description=(
+            "Constitutional floors + policy constraints — F1-F13 audit, breach detection, "
+            "required mitigations. Return does not outrank rule."
+        ),
+        risk_tier="T2",
+        reversibility="reversible",
+        blast_radius=BlastRadius.HIGH,
+        required_permissions=[],
+        required_floors=["F01", "F04", "F11", "F13"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_allocate_optimize",
+            "wealth_future_steward",
+        ],
+    ),
+    "wealth_allocate_optimize": ToolManifest(
+        tool_id="wealth_allocate_optimize",
+        tool_name="wealth_allocate_optimize",
+        domain="WEALTH",
+        description=(
+            "Capital allocation — rank or optimize under constraints. "
+            "Decision synthesis after survival, truth, and rule gates pass."
+        ),
+        risk_tier="T2",
+        reversibility="partial",
+        blast_radius=BlastRadius.HIGH,
+        required_permissions=[],
+        required_floors=["F01", "F05", "F06", "F11"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_rule_enforce",
+            "wealth_game_coordinate",
+        ],
+    ),
+    "wealth_game_coordinate": ToolManifest(
+        tool_id="wealth_game_coordinate",
+        tool_name="wealth_game_coordinate",
+        domain="WEALTH",
+        description=(
+            "Multi-agent coordination — equilibrium, incentives, Shapley, Nash. "
+            "Coordination witness: good allocation must remain stable among actors."
+        ),
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F08"],
+        safe_compose_with=[
+            "wealth_allocate_optimize",
+            "wealth_rule_enforce",
+        ],
+    ),
+    "wealth_past_record": ToolManifest(
+        tool_id="wealth_past_record",
+        tool_name="wealth_past_record",
+        domain="WEALTH",
+        description=(
+            "VAULT999 ledger — record sessions, events, transactions, snapshots. "
+            "Past witness: decisions become auditable memory. F01 irreversible guard."
+        ),
+        risk_tier="T2",
+        reversibility="partial",
+        blast_radius=BlastRadius.HIGH,
+        required_permissions=["vault"],
+        required_floors=["F01", "F11", "F13"],
+        safe_compose_with=[
+            "wealth_allocate_optimize",
+            "wealth_rule_enforce",
+            "wealth_truth_validate",
+        ],
+        dangerous_compose_with=[
+            "wealth_allocate_optimize",
+        ],
+    ),
+    "wealth_future_steward": ToolManifest(
+        tool_id="wealth_future_steward",
+        tool_name="wealth_future_steward",
+        domain="WEALTH",
+        description=(
+            "Long-horizon stewardship — planetary boundaries, civilization continuity, "
+            "intergenerational burden. Future witness: do not convert present gain "
+            "into future collapse."
+        ),
+        risk_tier="T2",
+        reversibility="reversible",
+        blast_radius=BlastRadius.HIGH,
+        required_permissions=[],
+        required_floors=["F01", "F05", "F06", "F08"],
+        safe_compose_with=[
+            "wealth_truth_validate",
+            "wealth_rule_enforce",
+            "wealth_allocate_optimize",
+        ],
+    ),
 }
 
 
