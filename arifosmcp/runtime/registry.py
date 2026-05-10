@@ -77,7 +77,19 @@ def load_json(path: Path) -> dict:
 
 def get_model_spec(model_key: str) -> dict:
     """Load model spec by key (provider/family/variant)."""
-    return load_json(MODELS_PATH / f"{model_key}.json")
+    # 1. Flat lookup (legacy / short key)
+    flat_path = MODELS_PATH / f"{model_key}.json"
+    if flat_path.exists():
+        return load_json(flat_path)
+    # 2. Nested lookup (canonical catalog path: provider/family/variant)
+    nested_path = MODELS_PATH / f"{model_key}.json"
+    if nested_path.exists():
+        return load_json(nested_path)
+    # 3. Deep search fallback (search all subdirs for basename match)
+    basename = f"{model_key}.json"
+    for candidate in MODELS_PATH.rglob(basename):
+        return load_json(candidate)
+    return {}
 
 
 def get_provider_soul(soul_key: str) -> dict:
