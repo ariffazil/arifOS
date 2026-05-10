@@ -165,7 +165,15 @@ class ExecutionStateMachine:
         allowed execution state.
         """
         allowed = ExecutionStateMachine.get_allowed_states(tool_name)
-        allowed_names = sorted([s.value for s in allowed]) if allowed else []
+        if allowed:
+            # Sort by pipeline order (earliest first)
+            pipeline = list(ExecutionState)
+            allowed_names = sorted(
+                [s.value for s in allowed],
+                key=lambda n: pipeline.index(ExecutionState(n)),
+            )
+        else:
+            allowed_names = []
         next_required = allowed_names[0] if allowed_names else "OBSERVE"
 
         return {
