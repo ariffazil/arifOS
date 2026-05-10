@@ -17,6 +17,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from arifosmcp.constitutional_map import RiskClass, RiskDecision  # noqa: F401
 from arifosmcp.core.authority_gate import AuthorityGate, AuthorityProof, WitnessType
 from arifosmcp.core.floor_evaluator import FloorEvaluator, FloorResult
 from arifosmcp.core.threat_engine import (
@@ -288,6 +289,7 @@ class ConstitutionKernel:
             actor_id=actor_id,
             witness_type=witness_type,
             plan_id=params.get("plan_id"),
+            session_registry=params.get("session_registry", set()),
             plan_registry=params.get("plan_registry", set()),
         )
         verdict = self.evaluate(context)
