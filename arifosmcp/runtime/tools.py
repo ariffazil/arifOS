@@ -2316,7 +2316,7 @@ def _arif_sense_observe(
             mm_error = "bridge_unavailable"
         else:
             try:
-                result = asyncio.run(minimax_bridge.web_search(query or ""))
+                result = _run_async(minimax_bridge.web_search(query or ""))
                 mm_hits = result.get("hits", [])
                 if mm_hits:
                     # ── F-WEB Evidence Receipt (L1) ──
@@ -2384,7 +2384,7 @@ def _arif_sense_observe(
             try:
                 from arifosmcp.runtime.tavily_bridge import tavily_bridge as _tvly
 
-                tvly_result = asyncio.run(_tvly.search(query or ""))
+                tvly_result = _run_async(_tvly.search(query or ""))
                 tvly_hits = tvly_result.get("hits", [])
                 if tvly_hits:
                     evidence_receipt = {
@@ -2428,7 +2428,7 @@ def _arif_sense_observe(
             try:
                 from arifosmcp.runtime.firecrawl_bridge import firecrawl_bridge as _fc
 
-                fc_result = asyncio.run(_fc.search(query or ""))
+                fc_result = _run_async(_fc.search(query or ""))
                 fc_hits = fc_result.get("hits", [])
                 if fc_hits:
                     evidence_receipt = {
@@ -2472,7 +2472,7 @@ def _arif_sense_observe(
             try:
                 from arifosmcp.runtime.exa_bridge import exa_bridge as _exa
 
-                exa_result = asyncio.run(_exa.search(query or ""))
+                exa_result = _run_async(_exa.search(query or ""))
                 exa_hits = exa_result.get("hits", [])
                 if exa_hits:
                     evidence_receipt = {
