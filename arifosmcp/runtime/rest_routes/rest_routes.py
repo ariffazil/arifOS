@@ -853,6 +853,63 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
     load_avg = vitals.get("load_avg", [])
     load_text = ", ".join(f"{float(value):.2f}" for value in load_avg[:3]) if load_avg else "n/a"
+
+    # ── Nine-Signal computation ───────────────────────────────────────────────
+    _dS = float(telemetry.get("dS") or 0.0)
+    _peace2 = float(telemetry.get("peace2") or 0.0)
+    _conf = float(telemetry.get("confidence") or 0.0)
+    _echo = float(telemetry.get("echoDebt") or 0.0)
+    _shadow = float(floors.get("F9") or 0.0)
+    _kappa = float(floors.get("F6") or telemetry.get("kappa_r") or 0.0)
+    _verdict_str = str(telemetry.get("verdict") or "SEAL")
+    _stage = int(payload["metabolic_stage"])
+    _n_pass = sum(
+        1
+        for fid in FLOOR_SPEC_KEYS
+        if _floor_passes(fid, float(floors.get(fid, _FLOOR_DEFAULTS.get(fid, 0.0))))
+    )
+    _BIJAK = ("BIJAK", "WISE", "#f8c95e")
+    _KUKUH = ("KUKUH", "SOLID", "#2dfab6")
+    _RETAK = ("RETAK", "CRACKED", "#ffb347")
+    _LEBUR = ("LEBUR", "DISSOLVED", "#ff5555")
+    _GANTUNG = ("GANTUNG", "SUSPENDED", "#9b89ff")
+    _sig_ds = (
+        _BIJAK
+        if abs(_dS) < 0.05
+        else (_KUKUH if abs(_dS) < 0.3 else (_RETAK if abs(_dS) < 0.7 else _LEBUR))
+    )
+    _sig_stage = _KUKUH if _stage > 333 else (_RETAK if _stage > 0 else _GANTUNG)
+    _sig_floors = (
+        _BIJAK
+        if _n_pass == 13
+        else (_KUKUH if _n_pass >= 11 else (_RETAK if _n_pass >= 8 else _LEBUR))
+    )
+    _sig_conf = (
+        _BIJAK
+        if _conf >= 0.99
+        else (_KUKUH if _conf >= 0.8 else (_RETAK if _conf >= 0.5 else _LEBUR))
+    )
+    _sig_verdict = (
+        _BIJAK
+        if _verdict_str == "SEAL"
+        else (
+            _KUKUH
+            if _verdict_str == "PROCEED"
+            else (_GANTUNG if _verdict_str in ("HOLD", "SABAR") else _LEBUR)
+        )
+    )
+    _sig_shadow = _KUKUH if _shadow <= 0.05 else (_RETAK if _shadow <= 0.3 else _LEBUR)
+    _sig_peace = (
+        _BIJAK
+        if _peace2 >= 1.5
+        else (_KUKUH if _peace2 >= 0.8 else (_RETAK if _peace2 >= 0.5 else _LEBUR))
+    )
+    _sig_kappa = (
+        _BIJAK
+        if _kappa >= 0.95
+        else (_KUKUH if _kappa >= 0.8 else (_RETAK if _kappa >= 0.5 else _LEBUR))
+    )
+    _sig_echo = _KUKUH if _echo <= 0.15 else (_RETAK if _echo <= 0.4 else _LEBUR)
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -984,6 +1041,35 @@ def _render_status_html(payload: dict[str, Any]) -> str:
     tr.pass td {{
       color: #9ef5d4;
     }}
+    .nine-signal {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }}
+    .nine-signal th {{
+      color: #8aa6c4;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      padding: 0.4rem 0.7rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }}
+    .nine-signal td {{
+      padding: 0.3rem 0.7rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }}
+    .plane-cell {{
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.07em;
+      text-align: center;
+      border-right: 2px solid rgba(255,255,255,0.1);
+      white-space: nowrap;
+    }}
+    .plane-delta {{ color: #00d4ff; }}
+    .plane-psi   {{ color: #b47dff; }}
+    .plane-omega {{ color: #2dfab6; }}
+    .plane-divider td {{ border-top: 1px solid rgba(255,255,255,0.12) !important; }}
     @media (max-width: 700px) {{
       body {{
         padding: 1rem;
@@ -1022,6 +1108,62 @@ def _render_status_html(payload: dict[str, Any]) -> str:
       {floor_html}
     </div>
     <p style="margin-top:1rem; color:#92a1b5;">Each floor is rendered as a status chip that pulses when passing and glows red when locked.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Nine-Signal Observatory</h2>
+    <table class="nine-signal">
+      <thead>
+        <tr><th>Plane</th><th>#</th><th>Signal</th><th>BM</th><th>EN</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="plane-cell plane-delta" rowspan="3">Δ DELTA<br><small>Execution</small></td>
+          <td>1</td><td>Entropy dS</td>
+          <td style="color:{_sig_ds[2]}"><strong>{_sig_ds[0]}</strong></td>
+          <td style="color:{_sig_ds[2]}">{_sig_ds[1]}</td>
+          <td>{_dS:+.3f}</td></tr>
+        <tr>
+          <td>2</td><td>Stage</td>
+          <td style="color:{_sig_stage[2]}"><strong>{_sig_stage[0]}</strong></td>
+          <td style="color:{_sig_stage[2]}">{_sig_stage[1]}</td>
+          <td>{_stage}</td></tr>
+        <tr>
+          <td>3</td><td>Floors</td>
+          <td style="color:{_sig_floors[2]}"><strong>{_sig_floors[0]}</strong></td>
+          <td style="color:{_sig_floors[2]}">{_sig_floors[1]}</td>
+          <td>{_n_pass}/13</td></tr>
+        <tr class="plane-divider"><td class="plane-cell plane-psi" rowspan="3">Ψ PSI<br><small>Governance</small></td>
+          <td>4</td><td>Confidence τ</td>
+          <td style="color:{_sig_conf[2]}"><strong>{_sig_conf[0]}</strong></td>
+          <td style="color:{_sig_conf[2]}">{_sig_conf[1]}</td>
+          <td>{_conf:.3f}</td></tr>
+        <tr>
+          <td>5</td><td>Verdict</td>
+          <td style="color:{_sig_verdict[2]}"><strong>{_sig_verdict[0]}</strong></td>
+          <td style="color:{_sig_verdict[2]}">{_sig_verdict[1]}</td>
+          <td>{_verdict_str}</td></tr>
+        <tr>
+          <td>6</td><td>Shadow F9</td>
+          <td style="color:{_sig_shadow[2]}"><strong>{_sig_shadow[0]}</strong></td>
+          <td style="color:{_sig_shadow[2]}">{_sig_shadow[1]}</td>
+          <td>{_shadow:.3f}</td></tr>
+        <tr class="plane-divider"><td class="plane-cell plane-omega" rowspan="3">Ω OMEGA<br><small>Vitality</small></td>
+          <td>7</td><td>Peace²</td>
+          <td style="color:{_sig_peace[2]}"><strong>{_sig_peace[0]}</strong></td>
+          <td style="color:{_sig_peace[2]}">{_sig_peace[1]}</td>
+          <td>{_peace2:.3f}</td></tr>
+        <tr>
+          <td>8</td><td>Dignity κ</td>
+          <td style="color:{_sig_kappa[2]}"><strong>{_sig_kappa[0]}</strong></td>
+          <td style="color:{_sig_kappa[2]}">{_sig_kappa[1]}</td>
+          <td>{_kappa:.3f}</td></tr>
+        <tr>
+          <td>9</td><td>Echo Debt</td>
+          <td style="color:{_sig_echo[2]}"><strong>{_sig_echo[0]}</strong></td>
+          <td style="color:{_sig_echo[2]}">{_sig_echo[1]}</td>
+          <td>{_echo:.3f}</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <div class="grid">

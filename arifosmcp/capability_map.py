@@ -23,7 +23,12 @@ class InitAnchorMode(str, Enum):
     REFRESH = "refresh"
 
 
-# ── Legacy mega-tool definitions (backward compat for tests + server.py) ────────
+# ════════════════════════════════════════════════════════════════════════════════
+# LEGACY_FROZEN — do not extend. Canonical surface lives in constitutional_map.py
+# These constants exist solely for backward-compat with tests written against the
+# old arifos_<name> naming scheme. No live MCP routing goes through these names.
+# Any new integration MUST use arif_<noun>_<verb> (13-tool canonical surface).
+# ════════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_TOOL_HANDLERS: dict[str, str] = {
     "arifos_init": "arifos_init",
@@ -45,7 +50,7 @@ MEGA_TOOL_MODES: dict[str, set[str]] = {name: {"default"} for name in MEGA_TOOLS
 
 FINAL_TOOL_IMPLEMENTATIONS: dict[str, str] = CANONICAL_TOOL_HANDLERS
 
-# Legacy dotted-map for v1 compatibility
+# LEGACY_FROZEN — dotted v1 aliases; no live routing
 LEGACY_TOOL_MAP: dict[str, str] = {
     "arifos.init": "arifos_init",
     "arifos.sense": "arifos_sense",
@@ -101,7 +106,7 @@ ALIGNED_STAGES: dict[str, str] = {
 }
 
 
-# ── Iterator shims (legacy — all trivially valid in current architecture) ────────
+# LEGACY_FROZEN — iterator shims; always return empty (no live gap to report)
 
 
 def iter_unmapped_legacy_tools() -> list[str]:
