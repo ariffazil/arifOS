@@ -113,7 +113,7 @@ services:
       - /root/wealth/internal/monolith.py:/app/internal/monolith.py:ro
       - /root/wealth:/opt/wealth-src:ro
     environment:
-      WEALTH_REPO_HEAD: fd14938
+      WEALTH_REPO_HEAD: 2fe1114
       WEALTH_REPO_DIR: /opt/wealth-src
     ports:
       - "127.0.0.1:8082:8082"
