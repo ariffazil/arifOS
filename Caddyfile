@@ -97,6 +97,9 @@ arifos.arif-fazil.com {
     handle /health {
         reverse_proxy 127.0.0.1:8080
     }
+    handle /ready {
+        reverse_proxy 127.0.0.1:8080
+    }
     handle /tools {
         reverse_proxy 127.0.0.1:8080
     }
@@ -132,6 +135,10 @@ aaa.arif-fazil.com {
         reverse_proxy 127.0.0.1:3001
     }
     handle /health {
+        reverse_proxy 127.0.0.1:3001
+    }
+    handle /ready {
+        rewrite * /health
         reverse_proxy 127.0.0.1:3001
     }
     handle {
@@ -177,6 +184,12 @@ geox.arif-fazil.com {
         }
     }
     handle /health {
+        import cors_public
+        reverse_proxy 127.0.0.1:8081 {
+            header_up Host geox.arif-fazil.com
+        }
+    }
+    handle /ready {
         import cors_public
         reverse_proxy 127.0.0.1:8081 {
             header_up Host geox.arif-fazil.com
@@ -241,6 +254,10 @@ wealth.arif-fazil.com {
         import cors_public
         reverse_proxy 127.0.0.1:8082
     }
+    handle /ready {
+        import cors_public
+        reverse_proxy 127.0.0.1:8082
+    }
     handle {
         try_files {path} /index.html
         file_server
@@ -262,6 +279,11 @@ well.arif-fazil.com {
     }
     handle /health {
         import cors_public
+        reverse_proxy 127.0.0.1:8083
+    }
+    handle /ready {
+        import cors_public
+        rewrite * /health
         reverse_proxy 127.0.0.1:8083
     }
     handle /sse* {
@@ -298,6 +320,26 @@ mcp.arif-fazil.com {
     }
 }
 
+# ═══════════════════════════════════════════════════════════════════════
+# FORGE WEBHOOK — A-FORGE event receiver + arifOS governance gateway
+# Route: forge.arif-fazil.com/webhook/forge → port 8443 (local)
+# ─────────────────────────────────────────────────────────────────────
+forge.arif-fazil.com {
+    import tls_origin
+    handle /webhook/forge* {
+        reverse_proxy 127.0.0.1:8443
+    }
+    handle /webhook/github* {
+        reverse_proxy 127.0.0.1:8443
+    }
+    handle /health {
+        reverse_proxy 127.0.0.1:8443
+    }
+    handle {
+        respond "forge.arif-fazil.com — A-FORGE webhook gateway"
+    }
+}
+
 wiki.arif-fazil.com {
     import tls_origin
     import shared_assets
@@ -310,19 +352,9 @@ wiki.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
-# STATIC — FORGE CI/CD Surface
-# ═══════════════════════════════════════════════════════════════════════
-forge.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/forge
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
-}
-
-# ═══════════════════════════════════════════════════════════════════════
 # INFRASTRUCTURE
 # ═══════════════════════════════════════════════════════════════════════
+ollama.arif-fazil.com {
+    import tls_origin
+    reverse_proxy ollama-engine-prod:11434
+}

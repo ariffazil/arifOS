@@ -109,6 +109,8 @@ services:
     # Canonical implementation: internal/monolith.py (AGENTS.md Tier A)
     # server.py is a thin backward-compat wrapper.
     command: ["python", "internal/monolith.py"]
+    volumes:
+      - /root/wealth/internal/monolith.py:/app/internal/monolith.py:ro
     ports:
       - "127.0.0.1:8082:8082"
     networks: [arifos_core]
