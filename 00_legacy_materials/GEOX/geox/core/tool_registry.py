@@ -342,8 +342,14 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         ),
         output_schema=ToolSchema(
             properties={
-                "ac_risk": {"type": "number", "description": "Calculated AC_Risk score"},
-                "verdict": {"type": "string", "enum": ["SEAL", "QUALIFY", "HOLD", "VOID"]},
+                "ac_risk": {
+                    "type": "number",
+                    "description": "Calculated AC_Risk score",
+                },
+                "verdict": {
+                    "type": "string",
+                    "enum": ["SEAL", "QUALIFY", "HOLD", "VOID"],
+                },
                 "explanation": {"type": "string"},
                 "components": {
                     "type": "object",
@@ -405,7 +411,10 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                     "properties": {
                         "cdp_interval_m": {"type": "number"},
                         "sample_interval_ms": {"type": "number"},
-                        "polarity": {"type": "string", "enum": ["SEG_normal", "SEG_reverse"]},
+                        "polarity": {
+                            "type": "string",
+                            "enum": ["SEG_normal", "SEG_reverse"],
+                        },
                     },
                 },
             },
@@ -456,7 +465,10 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
         """,
         input_schema=ToolSchema(
             properties={
-                "line_id": {"type": "string", "description": "Line ID from geox_load_seismic_line"},
+                "line_id": {
+                    "type": "string",
+                    "description": "Line ID from geox_load_seismic_line",
+                },
                 "structural_style": {
                     "type": "string",
                     "enum": [
@@ -484,7 +496,10 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                             "geological_setting": {"type": "string"},
                             "faults": {"type": "array"},
                             "horizons": {"type": "array"},
-                            "key_assumptions": {"type": "array", "items": {"type": "string"}},
+                            "key_assumptions": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                            },
                         },
                     },
                 },
@@ -522,8 +537,15 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                     "type": "string",
                     "description": "Path to seismic data or base64 image",
                 },
-                "data_type": {"type": "string", "enum": ["raster", "segy"], "default": "raster"},
-                "goal": {"type": "string", "description": "Interpretation goal/context"},
+                "data_type": {
+                    "type": "string",
+                    "enum": ["raster", "segy"],
+                    "default": "raster",
+                },
+                "goal": {
+                    "type": "string",
+                    "description": "Interpretation goal/context",
+                },
             },
             required=["seismic_data"],
         ),
@@ -565,7 +587,12 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
                 "image_path": {"type": "string"},
                 "map_type": {
                     "type": "string",
-                    "enum": ["geological", "topographic", "seismic_line_map", "cross_section"],
+                    "enum": [
+                        "geological",
+                        "topographic",
+                        "seismic_line_map",
+                        "cross_section",
+                    ],
                 },
                 "bounds_hint": {
                     "type": "object",
@@ -657,7 +684,10 @@ GEOX_TOOLS: dict[str, ToolMetadata] = {
             required=["image_path"],
         ),
         output_schema=ToolSchema(
-            properties={"curves": {"type": "array"}, "ac_risk_result": {"type": "object"}},
+            properties={
+                "curves": {"type": "array"},
+                "ac_risk_result": {"type": "object"},
+            },
             required=["curves", "ac_risk_result"],
         ),
         error_codes=[

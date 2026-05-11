@@ -73,7 +73,10 @@ class AgentRoleRegistry:
     ):
         """Register a new agent role."""
         self._roles[name] = AgentRole(
-            name=name, description=description, permissions=permissions, metadata=metadata or {}
+            name=name,
+            description=description,
+            permissions=permissions,
+            metadata=metadata or {},
         )
 
     def assign_role(self, agent_id: str, role_name: str, session_id: str):

@@ -3,7 +3,9 @@ from datetime import datetime
 from typing import Any, Dict
 
 
-async def execute(operator_id: str, epoch: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+async def execute(
+    operator_id: str, epoch: str, context: Dict[str, Any] = None
+) -> Dict[str, Any]:
     """
     arifos.000_init: Bind operator identity and anchor session to a temporal epoch.
     Consolidates logic from arifosmcp/apps/init_app.py and sessions substrate.

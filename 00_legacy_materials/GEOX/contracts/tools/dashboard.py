@@ -1,6 +1,10 @@
 import logging
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.dashboard")
 

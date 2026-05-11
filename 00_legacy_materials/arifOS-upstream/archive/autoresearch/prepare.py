@@ -33,7 +33,6 @@ sys.path.insert(0, str(Path(__file__).parent / "metrics"))
 
 from benchmark import arifOSBenchmark, AggregateMetrics
 
-
 # =============================================================================
 # CONSTITUTIONAL CONSTANTS — INVARIANT
 # =============================================================================
@@ -205,7 +204,9 @@ class ConstitutionalEvaluator:
     def _print_metrics(self, metrics: AggregateMetrics):
         """Pretty print metrics."""
         print("\nPerformance:")
-        print(f"  Throughput: {metrics.throughput_rps:.2f} req/s (target: {TARGET_THROUGHPUT})")
+        print(
+            f"  Throughput: {metrics.throughput_rps:.2f} req/s (target: {TARGET_THROUGHPUT})"
+        )
         print(f"  Latency (avg): {metrics.avg_latency_ms:.1f}ms")
         print(f"  Latency (p95): {metrics.p95_latency_ms:.1f}ms")
         print(f"  Latency (p99): {metrics.p99_latency_ms:.1f}ms")
@@ -218,7 +219,9 @@ class ConstitutionalEvaluator:
         print(f"  Avg W³: {metrics.avg_W_cube:.4f} (threshold: {W3_THRESHOLD})")
         if metrics.floor_violation_counts:
             print(f"  Floor Violations: {metrics.floor_violation_counts}")
-        print(f"\nComposite Score: {metrics.composite_score:.4f} (target: >{TARGET_SCORE})")
+        print(
+            f"\nComposite Score: {metrics.composite_score:.4f} (target: >{TARGET_SCORE})"
+        )
 
     def _append_results(self, result: ExperimentResult):
         """Append result to results.tsv."""
@@ -249,7 +252,11 @@ class ConstitutionalEvaluator:
         print(f"📊 Logged to {RESULTS_TSV}")
 
     def _update_observations(
-        self, experiment_id: str, change_description: str, metrics: AggregateMetrics, kept: bool
+        self,
+        experiment_id: str,
+        change_description: str,
+        metrics: AggregateMetrics,
+        kept: bool,
     ):
         """Update observations.md with learnings."""
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
@@ -314,9 +321,13 @@ def main():
         description="arifOS Autoresearch Evaluation Harness (FIXED — DO NOT MODIFY)"
     )
     parser.add_argument(
-        "--experiment-id", required=True, help="Unique experiment identifier (e.g., exp_001)"
+        "--experiment-id",
+        required=True,
+        help="Unique experiment identifier (e.g., exp_001)",
     )
-    parser.add_argument("--change", required=True, help="Description of what was changed")
+    parser.add_argument(
+        "--change", required=True, help="Description of what was changed"
+    )
     parser.add_argument(
         "--duration",
         type=int,
@@ -327,7 +338,10 @@ def main():
         "--concurrency", type=int, default=10, help="Concurrent workers (default: 10)"
     )
     parser.add_argument(
-        "--config", type=str, default=None, help="Path to experiment config (for record only)"
+        "--config",
+        type=str,
+        default=None,
+        help="Path to experiment config (for record only)",
     )
 
     args = parser.parse_args()

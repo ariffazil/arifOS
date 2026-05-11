@@ -16,7 +16,9 @@ def test_canonical_vps_compose_uses_runtime_http_profile():
     compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
 
     assert "dockerfile: Dockerfile" in compose
-    assert "ARIFOS_PUBLIC_TOOL_PROFILE: ${ARIFOS_PUBLIC_TOOL_PROFILE:-public}" in compose
+    assert (
+        "ARIFOS_PUBLIC_TOOL_PROFILE: ${ARIFOS_PUBLIC_TOOL_PROFILE:-public}" in compose
+    )
     assert "arifosmcp_PATH: ${arifosmcp_PATH:-/mcp}" in compose
     assert "/root/arifosmcp/infrastructure/prometheus/prometheus.yml" in compose
     assert "/root/arifosmcp/infrastructure/deploy_from_git.sh" in compose
@@ -28,7 +30,10 @@ def test_canonical_vps_compose_uses_runtime_http_profile():
 def test_canonical_vps_env_template_declares_public_profile_and_governance_secret():
     env_template = (ROOT / ".env.docker.example").read_text(encoding="utf-8")
 
-    assert "ARIFOS_GOVERNANCE_SECRET_FILE=/opt/arifos/secrets/governance.secret" in env_template
+    assert (
+        "ARIFOS_GOVERNANCE_SECRET_FILE=/opt/arifos/secrets/governance.secret"
+        in env_template
+    )
     assert "ARIFOS_GOVERNANCE_SECRET=" in env_template
     assert "ARIFOS_PUBLIC_TOOL_PROFILE=public" in env_template
     assert "arifosmcp_PATH=/mcp" in env_template

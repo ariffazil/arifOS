@@ -1,6 +1,10 @@
 import logging
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.time4d")
 
@@ -17,7 +21,11 @@ def register_time4d_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="time4d_simulate_burial")
     async def time4d_simulate_burial(prospect_ref: str) -> dict:
         """Compute: Simulate sediment burial and thermal maturation through time."""
-        artifact = {"prospect_ref": prospect_ref, "heat_flow": "standard", "maturity": "Oil_Window"}
+        artifact = {
+            "prospect_ref": prospect_ref,
+            "heat_flow": "standard",
+            "maturity": "Oil_Window",
+        }
         return get_standard_envelope(
             artifact,
             tool_class="compute",
@@ -51,6 +59,8 @@ def register_time4d_tools(mcp: FastMCP, profile: str = "full"):
             artifact,
             tool_class="verify",
             governance_status=GovernanceStatus.SEAL if valid else GovernanceStatus.HOLD,
-            artifact_status=ArtifactStatus.VERIFIED if valid else ArtifactStatus.REJECTED,
+            artifact_status=(
+                ArtifactStatus.VERIFIED if valid else ArtifactStatus.REJECTED
+            ),
             ui_resource_uri="ui://time4d-dashboard",
         )

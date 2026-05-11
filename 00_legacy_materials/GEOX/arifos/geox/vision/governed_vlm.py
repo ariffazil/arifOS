@@ -268,7 +268,9 @@ class GovernedSeismicVLM:
                 is_raster=not has_segy,
             )
             # Compare VLM hypotheses to computed attributes
-            physics_agreement = self._validate_vs_physics(view_hypotheses, computed_attrs)
+            physics_agreement = self._validate_vs_physics(
+                view_hypotheses, computed_attrs
+            )
 
         # Stage 5: AC_Risk calculation
         transform_stack = self._aggregate_transforms(contrast_views)
@@ -293,7 +295,8 @@ class GovernedSeismicVLM:
         return VisionInterpretationResult(
             hypotheses=all_hypotheses,
             contrast_views=[
-                {"name": v["name"], "transforms": v["transforms"]} for v in contrast_views
+                {"name": v["name"], "transforms": v["transforms"]}
+                for v in contrast_views
             ],
             view_consistency_score=consistency_score,
             computed_attributes=computed_attrs.to_dict() if computed_attrs else None,
@@ -424,7 +427,9 @@ Respond in structured format:
             "before any operational decision."
         )
 
-        warnings.append("Reference: Bond et al. (2007) — 79% expert failure rate on similar data.")
+        warnings.append(
+            "Reference: Bond et al. (2007) — 79% expert failure rate on similar data."
+        )
 
         return " ".join(warnings)
 

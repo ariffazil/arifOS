@@ -39,7 +39,9 @@ def verify_sync():
             missing_from_wiki.append(name)
 
     if missing_from_wiki:
-        print("❌ SYNC VIOLATION: The following MCP tools are missing from Ω-Wiki synthesis:")
+        print(
+            "❌ SYNC VIOLATION: The following MCP tools are missing from Ω-Wiki synthesis:"
+        )
         for tool in missing_from_wiki:
             print(f"  - {tool}")
         return False

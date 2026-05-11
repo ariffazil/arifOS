@@ -10,7 +10,9 @@ class TestVaultSealWidget:
 
     def test_vault_seal_widget_html_exists(self):
         """Test widget HTML is returned and contains required elements"""
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import vault_seal_widget_html
+        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
+            vault_seal_widget_html,
+        )
 
         html = vault_seal_widget_html()
         assert isinstance(html, str)
@@ -19,21 +21,27 @@ class TestVaultSealWidget:
 
     def test_vault_seal_widget_has_csp(self):
         """Test widget HTML includes CSP metadata"""
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import vault_seal_widget_html
+        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
+            vault_seal_widget_html,
+        )
 
         html = vault_seal_widget_html()
         assert "Content-Security-Policy" in html
 
     def test_vault_seal_widget_has_domain(self):
         """Test widget HTML includes domain metadata"""
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import vault_seal_widget_html
+        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
+            vault_seal_widget_html,
+        )
 
         html = vault_seal_widget_html()
         assert "arifosmcp.arif-fazil.com" in html
 
     def test_vault_seal_widget_has_chatgpt_frame_ancestor(self):
         """Test widget allows chatgpt.com in frame-ancestors"""
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import vault_seal_widget_html
+        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
+            vault_seal_widget_html,
+        )
 
         html = vault_seal_widget_html()
         assert "https://chatgpt.com" in html
@@ -44,7 +52,9 @@ class TestRegisterChatgptAppTools:
 
     def test_register_chatgpt_app_tools_runs(self):
         """Test registration function executes without error"""
-        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import register_chatgpt_app_tools
+        from arifosmcp.runtime.chatgpt_integration.apps_sdk_tools import (
+            register_chatgpt_app_tools,
+        )
         from fastmcp import FastMCP
 
         mcp = FastMCP("test-chatgpt")

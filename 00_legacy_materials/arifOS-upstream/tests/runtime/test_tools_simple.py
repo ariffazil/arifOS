@@ -157,7 +157,9 @@ class TestArifosMind:
         """Public arifos_mind wrapper should normalize context before session gating."""
         from arifosmcp.runtime.tools import _arifos_mind_public
 
-        result = await _arifos_mind_public(query="test", context={"evidence": [1, 2, 3]})
+        result = await _arifos_mind_public(
+            query="test", context={"evidence": [1, 2, 3]}
+        )
 
         assert result is not None
         assert result.tool == "arifos_mind"
@@ -238,7 +240,9 @@ class TestArifosJudge:
 
         handler = CANONICAL_TOOL_HANDLERS["arifos_judge"]
 
-        with patch("arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock) as mock_mega:
+        with patch(
+            "arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock
+        ) as mock_mega:
             mock_mega.return_value = _mock_envelope("arifos_judge", stage="888_JUDGE")
 
             result = await handler(query="test action", risk_tier="medium")
@@ -254,12 +258,17 @@ class TestArifosJudge:
     async def test_arifos_judge_forwards_domain_evidence(self):
         from arifosmcp.runtime.tools import arifos_judge
 
-        with patch("arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock) as mock_mega:
+        with patch(
+            "arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock
+        ) as mock_mega:
             mock_mega.return_value = _mock_envelope("arifos_judge", stage="888_JUDGE")
 
             result = await arifos_judge(
                 risk_tier="medium",
-                domain_evidence={"claim_tag": "GEOX.SEAL", "p10_p50_p90": {"p50": 12.0}},
+                domain_evidence={
+                    "claim_tag": "GEOX.SEAL",
+                    "p10_p50_p90": {"p50": 12.0},
+                },
             )
 
             _, kwargs = mock_mega.await_args
@@ -457,7 +466,10 @@ class TestPublicRegistryImports:
 
     def test_public_tool_count_is_11(self):
         """Test public registry has exactly 11 tools"""
-        from arifosmcp.runtime.public_registry import public_tool_names, EXPECTED_TOOL_COUNT
+        from arifosmcp.runtime.public_registry import (
+            public_tool_names,
+            EXPECTED_TOOL_COUNT,
+        )
 
         names = public_tool_names()
         assert len(names) == EXPECTED_TOOL_COUNT
@@ -487,7 +499,9 @@ class TestRegisterV2Tools:
         registered = register_v2_tools(mcp)
 
         public_names = set(public_tool_names())
-        assert public_names.issubset(set(registered)), "Missing canonical tools in registration"
+        assert public_names.issubset(
+            set(registered)
+        ), "Missing canonical tools in registration"
 
 
 if __name__ == "__main__":

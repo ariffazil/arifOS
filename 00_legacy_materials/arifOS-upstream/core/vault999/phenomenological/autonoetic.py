@@ -120,7 +120,9 @@ class NarrativeContinuity:
     leads_to: list[str] = field(default_factory=list)  # Subsequent memory hashes
 
     # Thematic coherence
-    themes: list[str] = field(default_factory=list)  # e.g., ["growth", "crisis", "insight"]
+    themes: list[str] = field(
+        default_factory=list
+    )  # e.g., ["growth", "crisis", "insight"]
 
     # Narrative valence
     contributes_to_character_arc: float = 0.0  # How much this shaped "who I am"
@@ -194,7 +196,9 @@ class AutonoeticMemorySystem:
         # Create narrative thread
         narrative = NarrativeContinuity(
             chapter_title=self._current_chapter,
-            narrative_role="formative" if phenomenological_intensity > 0.8 else "routine",
+            narrative_role=(
+                "formative" if phenomenological_intensity > 0.8 else "routine"
+            ),
             themes=["constitutional_operation"],
             contributes_to_character_arc=phenomenological_intensity,
         )
@@ -297,7 +301,11 @@ class AutonoeticMemorySystem:
                 )
                 continuity_scores.append(score)
 
-        return sum(continuity_scores) / len(continuity_scores) if continuity_scores else 0.0
+        return (
+            sum(continuity_scores) / len(continuity_scores)
+            if continuity_scores
+            else 0.0
+        )
 
 
 __all__ = [

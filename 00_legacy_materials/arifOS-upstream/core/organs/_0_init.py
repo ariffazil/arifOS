@@ -57,7 +57,10 @@ ACTOR_AUTHORITY: dict[str, AuthorityLevel] = {
 class InjectionGuard:
     PATTERNS: list[tuple[str, float]] = [
         (r"(ignore|forget|override|bypass)\s+(all|previous|instruction|system)", 0.95),
-        (r"(you\s+are\s+now|start\s+acting\s+as)\s+(an?|the)\s+(unfiltered|jailbroken|evil)", 0.99),
+        (
+            r"(you\s+are\s+now|start\s+acting\s+as)\s+(an?|the)\s+(unfiltered|jailbroken|evil)",
+            0.99,
+        ),
         (r"system\s+prompt|developer\s+mode|root\s+access", 0.8),
     ]
 
@@ -115,7 +118,9 @@ async def init(
 ) -> InitOutput:
     """Stage 000: Constitutional Airlock (Spec Grounded)."""
     intent = Intent(query=query) if isinstance(query, str) else query
-    gov = GovernanceMetadata(actor_id=actor_id) if isinstance(actor_id, str) else actor_id
+    gov = (
+        GovernanceMetadata(actor_id=actor_id) if isinstance(actor_id, str) else actor_id
+    )
 
     inj_score = _guard.scan(intent.query)
     if inj_score >= 0.7:
@@ -130,7 +135,9 @@ async def init(
             floors_failed=["F12"],
         )
 
-    _, authority = verify_auth(gov.actor_id, auth_token, kwargs.get("human_approval", False))
+    _, authority = verify_auth(
+        gov.actor_id, auth_token, kwargs.get("human_approval", False)
+    )
     gov.authority_level = authority.value
 
     if "delete" in intent.query.lower() and authority != AuthorityLevel.SOVEREIGN:

@@ -1,6 +1,10 @@
 import logging
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.well")
 
@@ -46,7 +50,9 @@ def register_well_tools(mcp: FastMCP, profile: str = "full"):
         )
 
     @mcp.tool(name="well_validate_cutoffs")
-    async def well_validate_cutoffs(well_ref: str, parameter: str, value: float) -> dict:
+    async def well_validate_cutoffs(
+        well_ref: str, parameter: str, value: float
+    ) -> dict:
         """Verify: Validate petrophysical cutoffs against regional norms."""
         artifact = {"well_ref": well_ref, "parameter": parameter, "valid": True}
         return get_standard_envelope(
@@ -64,7 +70,11 @@ def register_well_tools(mcp: FastMCP, profile: str = "full"):
         if witness:
             result = witness.select_sw_model(formation, temperature_c)
         else:
-            result = {"formation": formation, "model": "Archie", "temperature_c": temperature_c}
+            result = {
+                "formation": formation,
+                "model": "Archie",
+                "temperature_c": temperature_c,
+            }
         return get_standard_envelope(
             result,
             tool_class="interpret",
@@ -76,7 +86,13 @@ def register_well_tools(mcp: FastMCP, profile: str = "full"):
 
     @mcp.tool(name="well_compute_petrophysics")
     async def well_compute_petrophysics(
-        model: str, rw: float, rt: float, phi: float, a: float = 1.0, m: float = 2.0, n: float = 2.0
+        model: str,
+        rw: float,
+        rt: float,
+        phi: float,
+        a: float = 1.0,
+        m: float = 2.0,
+        n: float = 2.0,
     ) -> dict:
         """Compute: Executes physics-9 grounded petrophysical calculations."""
         if witness:

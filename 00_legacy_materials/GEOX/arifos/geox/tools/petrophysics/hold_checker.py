@@ -36,7 +36,10 @@ class PetrophysicalHoldChecker:
 
         # Check Rw
         if state and state.water_saturation:
-            if state.water_saturation.params.rw_source in ["assumed", "regional_default"]:
+            if state.water_saturation.params.rw_source in [
+                "assumed",
+                "regional_default",
+            ]:
                 triggers.append("Rw uncalibrated (assumed or default)")
 
         # Check for assumption violations

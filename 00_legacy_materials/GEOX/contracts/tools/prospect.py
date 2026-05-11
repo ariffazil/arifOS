@@ -1,6 +1,10 @@
 import logging
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.prospect")
 
@@ -41,7 +45,10 @@ def register_prospect_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="prospect_build_structural_candidates")
     async def prospect_build_structural_candidates(prospect_ref: str) -> dict:
         """Interpret: Generate structural trap candidates for a prospect."""
-        artifact = {"prospect_ref": prospect_ref, "candidates": ["Anticline_01", "Fault_Trap_Beta"]}
+        artifact = {
+            "prospect_ref": prospect_ref,
+            "candidates": ["Anticline_01", "Fault_Trap_Beta"],
+        }
         return get_standard_envelope(
             artifact,
             tool_class="interpret",
@@ -59,7 +66,11 @@ def register_prospect_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="prospect_verify_feasibility")
     async def prospect_verify_feasibility(prospect_ref: str) -> dict:
         """Verify: Technical and economic gating for the prospect."""
-        artifact = {"prospect_ref": prospect_ref, "feasible": True, "confidence": "High"}
+        artifact = {
+            "prospect_ref": prospect_ref,
+            "feasible": True,
+            "confidence": "High",
+        }
         return get_standard_envelope(
             artifact,
             tool_class="verify",

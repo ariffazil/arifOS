@@ -39,7 +39,9 @@ def test_mcp_manifest_matches_registry() -> None:
     assert {tool["name"] for tool in manifest_json["tools"]} == CANONICAL_NAMES
 
 
-def test_public_profile_stays_minimal_and_internal_profile_includes_internal_tools() -> None:
+def test_public_profile_stays_minimal_and_internal_profile_includes_internal_tools() -> (
+    None
+):
     """Canonical 11 tools are public."""
     public_names = tool_names_for_profile("public")
     internal_names = tool_names_for_profile("internal")

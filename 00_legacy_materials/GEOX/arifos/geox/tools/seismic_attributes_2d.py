@@ -128,7 +128,9 @@ def compute_instantaneous_attributes(
     }
 
 
-def compute_spectral_2d(trace: np.ndarray, sample_rate_ms: float = 4.0) -> dict[str, Any]:
+def compute_spectral_2d(
+    trace: np.ndarray, sample_rate_ms: float = 4.0
+) -> dict[str, Any]:
     """Spectral content of a single trace. Returns band energy."""
     from numpy.fft import fft, fftfreq
 
@@ -144,7 +146,9 @@ def compute_spectral_2d(trace: np.ndarray, sample_rate_ms: float = 4.0) -> dict[
     result = {}
     for band_name, (f_low, f_high) in bands.items():
         mask = (freqs >= f_low) & (freqs <= f_high)
-        result[band_name] = float(np.sqrt(np.mean(spectrum[mask] ** 2)) if mask.any() else 0.0)
+        result[band_name] = float(
+            np.sqrt(np.mean(spectrum[mask] ** 2)) if mask.any() else 0.0
+        )
     return result
 
 
@@ -237,7 +241,9 @@ def auto_pick_horizons(
                 best_peak_idx = i
         elif not high_coherence and in_pick:
             in_pick = False
-            coherence_avg = float(np.mean(coherence[pick_start:i])) if i > pick_start else 0.3
+            coherence_avg = (
+                float(np.mean(coherence[pick_start:i])) if i > pick_start else 0.3
+            )
             uncertainty_ms = (i - pick_start) * sample_rate_ms / 2
             picks.add_pick(
                 Pick(
@@ -255,7 +261,9 @@ def auto_pick_horizons(
     return picks
 
 
-def detect_faults_from_coherence(coherence: np.ndarray, threshold: float = 0.4) -> list[Pick]:
+def detect_faults_from_coherence(
+    coherence: np.ndarray, threshold: float = 0.4
+) -> list[Pick]:
     """
     Detect fault candidates from low-coherence zones on 2D line.
     Returns a list of fault picks with throw estimates.
@@ -329,18 +337,26 @@ def interpret_structural(picks: PickSet) -> dict[str, Any]:
         elif dip_change > 20:
             assemblage = "gentle fold / flexure"
             confidence = 0.65
-            descriptions.append(f"Subtle flexure detected (~{dip_change:.0f} ms relief).")
+            descriptions.append(
+                f"Subtle flexure detected (~{dip_change:.0f} ms relief)."
+            )
         else:
             assemblage = "flat-lying / sub-horizontal stratigraphy"
             confidence = 0.75
-            descriptions.append("Relatively flat horizons consistent with tabular stratigraphy.")
+            descriptions.append(
+                "Relatively flat horizons consistent with tabular stratigraphy."
+            )
 
     if faults:
         n_faults = len(faults)
         assemblage = f"faulted_{assemblage}"
         confidence = min(confidence + 0.05 * n_faults, 0.85)
-        descriptions.append(f"{n_faults} fault(s) identified from coherence discontinuity.")
-        caveats.append("Fault planes cannot be resolved on 2D line. Fault geometry is qualitative.")
+        descriptions.append(
+            f"{n_faults} fault(s) identified from coherence discontinuity."
+        )
+        caveats.append(
+            "Fault planes cannot be resolved on 2D line. Fault geometry is qualitative."
+        )
 
     description = (
         " ".join(descriptions)
@@ -377,12 +393,18 @@ def audit_2d_limits(interpretation: dict[str, Any]) -> dict[str, Any]:
     hard_blocks: list[str] = []
     soft_caveats: list[str] = []
 
-    hard_blocks.append("Full 3D trap geometry, closure area, or spill point determination")
-    hard_blocks.append("Reliable areal extent or true volumetrics (only 2D cross-section possible)")
+    hard_blocks.append(
+        "Full 3D trap geometry, closure area, or spill point determination"
+    )
+    hard_blocks.append(
+        "Reliable areal extent or true volumetrics (only 2D cross-section possible)"
+    )
     hard_blocks.append(
         "Confident channel sinuosity or fault network connectivity (out-of-plane effects)"
     )
-    hard_blocks.append("Definitive hydrocarbon presence — always treat as DHI candidate only")
+    hard_blocks.append(
+        "Definitive hydrocarbon presence — always treat as DHI candidate only"
+    )
 
     soft_caveats.append(
         "Apparent throw estimates from 2D may exaggerate or underestimate true fault displacement"
@@ -554,7 +576,9 @@ class SeismicAttributes2DTool(BaseTool):
             elif attr_name.lower() == "envelope":
                 panel = np.zeros_like(seismic_data, dtype=np.float64)
                 for t in range(num_traces):
-                    inst = compute_instantaneous_attributes(seismic_data[t, :], sample_rate_ms)
+                    inst = compute_instantaneous_attributes(
+                        seismic_data[t, :], sample_rate_ms
+                    )
                     panel[t, :] = inst["envelope"]
                 contrast_metadata_out[attr_name] = {
                     "attribute_name": attr_name,
@@ -588,7 +612,9 @@ class SeismicAttributes2DTool(BaseTool):
             attribute_panels[attr_name] = panel.tolist()
 
         mean_trace = seismic_data.mean(axis=0)
-        envelope_trace = compute_instantaneous_attributes(mean_trace, sample_rate_ms)["envelope"]
+        envelope_trace = compute_instantaneous_attributes(mean_trace, sample_rate_ms)[
+            "envelope"
+        ]
         coherence_trace = compute_2d_coherence(mean_trace)
 
         picks = auto_pick_horizons(
@@ -601,7 +627,9 @@ class SeismicAttributes2DTool(BaseTool):
         picks.num_traces = num_traces
         picks.sample_rate_ms = sample_rate_ms
 
-        faults = detect_faults_from_coherence(coherence_trace, threshold=fault_threshold)
+        faults = detect_faults_from_coherence(
+            coherence_trace, threshold=fault_threshold
+        )
         for f in faults:
             picks.add_pick(f)
 
@@ -615,11 +643,18 @@ class SeismicAttributes2DTool(BaseTool):
             std_val = float(np.std(arr))
             uncertainty = 0.15 if is_high_contrast_risk(attr_name) else 0.08
             location = (
-                trace_coords[0] if trace_coords else CoordinatePoint(latitude=0.0, longitude=0.0)
+                trace_coords[0]
+                if trace_coords
+                else CoordinatePoint(latitude=0.0, longitude=0.0)
             )
             geoquantities.append(
                 _make_quantity(
-                    round(mean_val, 6), "ms", f"attr_twt_{attr_name}", location, prov, uncertainty
+                    round(mean_val, 6),
+                    "ms",
+                    f"attr_twt_{attr_name}",
+                    location,
+                    prov,
+                    uncertainty,
                 )
             )
             geoquantities.append(
@@ -676,7 +711,9 @@ class SeismicAttributes2DTool(BaseTool):
                 "attributes_computed": list(attribute_panels.keys()),
                 "verdict": verdict,
                 "num_picks": len(picks.picks),
-                "num_faults": len([p for p in picks.picks if p.pick_type == PickType.FAULT]),
+                "num_faults": len(
+                    [p for p in picks.picks if p.pick_type == PickType.FAULT]
+                ),
                 "contrast_canon": True,
                 "audit_2d_limits": True,
                 "telemetry": audit.get("telemetry", {}),

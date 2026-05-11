@@ -15,6 +15,7 @@ Deprecated aliases removed — use mode params on canonical tools instead:
   arifos_monitor_metabolism → arifos_ops(mode="metabolism")
   arifos_get_vault_data    → arifos_vault(mode="read")
 """
+
 import sys
 import os
 import json

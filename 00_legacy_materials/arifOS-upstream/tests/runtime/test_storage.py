@@ -17,7 +17,8 @@ def test_get_storage_prefers_explicit_backend(monkeypatch):
     monkeypatch.delenv("ARIFOS_MINIMAL_STDIO", raising=False)
 
     with patch(
-        "arifosmcp.runtime.storage.build_encrypted_redis_store", return_value="redis-store"
+        "arifosmcp.runtime.storage.build_encrypted_redis_store",
+        return_value="redis-store",
     ) as mock_build:
         assert get_storage() == "redis-store"
 
@@ -30,7 +31,8 @@ def test_get_storage_uses_redis_when_host_is_configured(monkeypatch):
     monkeypatch.delenv("ARIFOS_MINIMAL_STDIO", raising=False)
 
     with patch(
-        "arifosmcp.runtime.storage.build_encrypted_redis_store", return_value="redis-store"
+        "arifosmcp.runtime.storage.build_encrypted_redis_store",
+        return_value="redis-store",
     ) as mock_build:
         assert get_storage() == "redis-store"
 

@@ -178,7 +178,9 @@ class MockSeismicVLMTool(BaseTool):
             _qty(round(fault_probability, 4), "fraction", "fault_probability"),
             _qty(round(amplitude_anomaly, 4), "fraction", "amplitude_anomaly"),
             _qty(round(structural_closure_m, 2), "m", "structural_closure_m"),
-            _qty(round(structural_confidence, 4), "fraction", "structural_interpretation"),
+            _qty(
+                round(structural_confidence, 4), "fraction", "structural_interpretation"
+            ),
             _qty(round(reflector_continuity, 4), "fraction", "reflector_continuity"),
         ]
 
@@ -302,6 +304,8 @@ if __name__ == "__main__":
         print(f"  perception_only: {result.metadata['perception_only']}")
         print(f"  uncertainty_floor: {result.metadata['uncertainty_floor']}")
         print(f"  max_confidence: {result.metadata['max_confidence']}")
-        print(f"\nWarning excerpt: {result.raw_output['perception_bridge_warning'][:100]}...")
+        print(
+            f"\nWarning excerpt: {result.raw_output['perception_bridge_warning'][:100]}..."
+        )
 
     asyncio.run(_selftest())

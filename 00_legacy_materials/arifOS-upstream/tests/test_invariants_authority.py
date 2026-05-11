@@ -56,7 +56,10 @@ class TestAuthorityProvenanceInvariant:
 
         result = envelope.payload["result"]
         # In V2, auth_state is the source
-        assert result["auth_state"] in ["verified", "claimed_only"], "auth_state must be valid"
+        assert result["auth_state"] in [
+            "verified",
+            "claimed_only",
+        ], "auth_state must be valid"
 
 
 class TestCapabilityGatingInvariant:
@@ -66,14 +69,18 @@ class TestCapabilityGatingInvariant:
     async def test_sovereign_next_action_is_kernel(self):
         """Sovereign anchor should suggest kernel"""
         envelope = await init_anchor(
-            actor_id="arif", intent="test next action", session_id="next-action-test-004"
+            actor_id="arif",
+            intent="test next action",
+            session_id="next-action-test-004",
         )
 
         # In V2 success, we check continuation
         result = envelope.payload["result"]
         assert "continuation" in result
         next_tools = result["continuation"].get("next_allowed_tools", [])
-        assert "arifos_kernel" in next_tools, "Sovereign allowed tools should include kernel"
+        assert (
+            "arifos_kernel" in next_tools
+        ), "Sovereign allowed tools should include kernel"
 
     @pytest.mark.asyncio
     async def test_anonymous_next_action_is_anchor(self):
@@ -108,7 +115,9 @@ class TestErrorRemediationInvariant:
     async def test_auth_error_has_next_tool(self):
         """Auth failure must specify next tool"""
         result = await arifos_kernel(
-            query="test remediation", session_id="remediation-test-005", risk_tier="high"
+            query="test remediation",
+            session_id="remediation-test-005",
+            risk_tier="high",
         )
 
         # Check remediation in envelope or errors or payload
@@ -133,7 +142,9 @@ class TestErrorRemediationInvariant:
     async def test_auth_error_has_required_fields(self):
         """Auth failure must specify required fields"""
         result = await arifos_kernel(
-            query="test remediation", session_id="remediation-test-006", risk_tier="high"
+            query="test remediation",
+            session_id="remediation-test-006",
+            risk_tier="high",
         )
 
         if result.verdict in [Verdict.HOLD, Verdict.VOID, Verdict.HOLD_888]:

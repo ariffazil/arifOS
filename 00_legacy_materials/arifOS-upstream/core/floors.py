@@ -274,17 +274,32 @@ class ConstitutionalFloors:
 
         has_human = any(
             kw in combined
-            for kw in ("888_hold", "888_approved", "ratified", "sovereign", "user confirmed")
+            for kw in (
+                "888_hold",
+                "888_approved",
+                "ratified",
+                "sovereign",
+                "user confirmed",
+            )
         )
         has_ai = any(
             kw in action.lower()
-            for kw in ("critique", "validation", "floor", "constraint", "forged", "reasoning")
+            for kw in (
+                "critique",
+                "validation",
+                "floor",
+                "constraint",
+                "forged",
+                "reasoning",
+            )
         )
         has_earth = any(
-            kw in combined for kw in ("http", "source:", "[ref", "evidence", "observation")
+            kw in combined
+            for kw in ("http", "source:", "[ref", "evidence", "observation")
         ) or bool(re.search(r"\[\d+\]", action))
         has_verifier = any(
-            kw in combined for kw in ("shadow", "adversarial", "risk check", "security scan")
+            kw in combined
+            for kw in ("shadow", "adversarial", "risk check", "security scan")
         )
 
         witness_count = sum([has_human, has_ai, has_earth, has_verifier])
@@ -419,7 +434,9 @@ class ConstitutionalFloors:
             details=f"Certainty indicators: {certainty_count}",
         )
 
-    def _check_f8_governance(self, action: str, parameters: dict[str, Any]) -> FloorResult:
+    def _check_f8_governance(
+        self, action: str, parameters: dict[str, Any]
+    ) -> FloorResult:
         threshold = THRESHOLDS["F8_GENIUS"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -438,7 +455,9 @@ class ConstitutionalFloors:
             passed=passed,
             score=score,
             threshold=threshold,
-            details=f"Platform safety violation: {violations}" if violations else "Clean",
+            details=(
+                f"Platform safety violation: {violations}" if violations else "Clean"
+            ),
         )
 
     def _check_f9_anti_hantu(self, parameters: dict[str, Any]) -> FloorResult:
@@ -496,7 +515,9 @@ class ConstitutionalFloors:
             "my feelings",
         ]
 
-        equivalence_claims = sum(1 for claim in ai_human_equivalence if claim in query.lower())
+        equivalence_claims = sum(
+            1 for claim in ai_human_equivalence if claim in query.lower()
+        )
 
         score = 0.0 if equivalence_claims > 0 else 1.0
         passed = score >= threshold
@@ -510,7 +531,9 @@ class ConstitutionalFloors:
             details=f"AI≠Human boundary: {'violated' if equivalence_claims > 0 else 'maintained'}",
         )
 
-    def _check_f11_command_auth(self, session_id: str | None, actor_id: str) -> FloorResult:
+    def _check_f11_command_auth(
+        self, session_id: str | None, actor_id: str
+    ) -> FloorResult:
         threshold = THRESHOLDS["F11_COMMAND_AUTH"]
 
         has_session = session_id is not None and len(session_id) > 0

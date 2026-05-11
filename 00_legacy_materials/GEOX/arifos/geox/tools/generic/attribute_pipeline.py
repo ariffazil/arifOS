@@ -180,7 +180,9 @@ class AttributePipeline:
 
     def get_summary(self) -> dict[str, Any]:
         """Get execution summary."""
-        completed = sum(1 for s in self.stages.values() if s.status == StageStatus.COMPLETE)
+        completed = sum(
+            1 for s in self.stages.values() if s.status == StageStatus.COMPLETE
+        )
         failed = sum(1 for s in self.stages.values() if s.status == StageStatus.FAILED)
 
         return {

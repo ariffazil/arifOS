@@ -149,7 +149,9 @@ class ContrastGovernedTool(ABC):
             floor_violations = self._check_compliance(output, taxonomy)
 
             # Step 5: Generate verdict
-            verdict, reason = self._generate_verdict(taxonomy, transform_chain, floor_violations)
+            verdict, reason = self._generate_verdict(
+                taxonomy, transform_chain, floor_violations
+            )
 
             return ToolResult(
                 output=output,
@@ -294,10 +296,16 @@ class ContrastGovernedTool(ABC):
         geox_verdict = verdict.to_geox_verdict()
 
         if geox_verdict == GEOX_HOLD:
-            return GEOX_HOLD, f"CONFLATION RISK: {metadata.get('risk_level', 'unknown')}"
+            return (
+                GEOX_HOLD,
+                f"CONFLATION RISK: {metadata.get('risk_level', 'unknown')}",
+            )
 
         if geox_verdict == GEOX_BLOCK:
-            return GEOX_BLOCK, "CRITICAL CONFLATION RISK: Visual and physical conflation detected"
+            return (
+                GEOX_BLOCK,
+                "CRITICAL CONFLATION RISK: Visual and physical conflation detected",
+            )
 
         # All checks passed
         return GEOX_SEAL, "All compliance checks passed, no critical conflation risk"

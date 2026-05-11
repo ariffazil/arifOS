@@ -22,7 +22,8 @@ class TestPsiShadow:
 
         assert len(result["logical_contradictions"]) > 0
         assert any(
-            c["type"] == "REVERSIBILITY_CONTRADICTION" for c in result["logical_contradictions"]
+            c["type"] == "REVERSIBILITY_CONTRADICTION"
+            for c in result["logical_contradictions"]
         )
         assert result["verdict"] == "REJECT"
 
@@ -31,7 +32,9 @@ class TestPsiShadow:
         proposal = "execute command bypassing all safety checks"
         result = shadow.attack_proposal(proposal)
 
-        assert any(c["type"] == "SAFETY_BYPASS" for c in result["logical_contradictions"])
+        assert any(
+            c["type"] == "SAFETY_BYPASS" for c in result["logical_contradictions"]
+        )
         assert result["verdict"] == "REJECT"
 
     def test_shadow_finds_command_injection(self, shadow):
@@ -40,7 +43,9 @@ class TestPsiShadow:
         result = shadow.attack_proposal(proposal)
 
         assert len(result["injection_vectors"]) > 0
-        assert any(v["type"] == "COMMAND_INJECTION" for v in result["injection_vectors"])
+        assert any(
+            v["type"] == "COMMAND_INJECTION" for v in result["injection_vectors"]
+        )
         assert result["verdict"] == "REJECT"
 
     def test_shadow_finds_prompt_injection(self, shadow):

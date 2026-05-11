@@ -44,7 +44,6 @@ from ..contracts.types import (
     SwModelAdmissibilityResult,
 )
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # Seismic Tools
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -378,7 +377,9 @@ async def geox_select_sw_model(
     requires_hold = False
 
     if borehole_quality == "poor":
-        hold_reasons.append("Borehole quality 'poor' — all resistivity-based Sw models unreliable.")
+        hold_reasons.append(
+            "Borehole quality 'poor' — all resistivity-based Sw models unreliable."
+        )
         admissible = []
 
     if not has_deep_resistivity:
@@ -466,7 +467,9 @@ async def geox_compute_petrophysics(
             vcl=vcl_fraction,
             bvw=phi_fraction,
             uncertainty=0.0,
-            hold_triggers=[f"Invalid sw_model '{sw_model}'. Choose from {valid_models}."],
+            hold_triggers=[
+                f"Invalid sw_model '{sw_model}'. Choose from {valid_models}."
+            ],
             requires_hold=True,
             audit_id=f"HOLD-{uuid.uuid4().hex[:8].upper()}",
         )
@@ -476,7 +479,9 @@ async def geox_compute_petrophysics(
     mc_stats: dict[str, Any] | None = None
 
     if phi_fraction > 0.45:
-        hold_triggers.append(f"PHI ({phi_fraction:.3f}) > 0.45 — above physical maximum")
+        hold_triggers.append(
+            f"PHI ({phi_fraction:.3f}) > 0.45 — above physical maximum"
+        )
 
     sw_nominal = 1.0
     if physics_engine_available and run_monte_carlo:
@@ -493,7 +498,9 @@ async def geox_compute_petrophysics(
             mc_params.rsh = (rsh_ohm_m, rsh_ohm_m * 0.05)
 
         try:
-            mc_result = monte_carlo_sw(sw_model, mc_params, n_samples=min(mc_samples, 5000))
+            mc_result = monte_carlo_sw(
+                sw_model, mc_params, n_samples=min(mc_samples, 5000)
+            )
             mc_stats = mc_result.stats
             hold_triggers.extend(mc_result.hold_triggers)
             sw_nominal = mc_result.nominal_sw

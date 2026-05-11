@@ -13,7 +13,9 @@ from typing import Literal
 
 def _estimate_cost(action: str, domain: str) -> float:
     """Estimate operational cost in USD with domain complexity multiplier."""
-    base = {"GEOX": 50.0, "WEALTH": 100.0, "WELL": 25.0, "SYSTEM": 10.0}.get(domain, 10.0)
+    base = {"GEOX": 50.0, "WEALTH": 100.0, "WELL": 25.0, "SYSTEM": 10.0}.get(
+        domain, 10.0
+    )
     complexity_multiplier = 1.0 + (len(action) / 100.0)
     return base * complexity_multiplier
 

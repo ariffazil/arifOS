@@ -81,7 +81,9 @@ def compute_ac_risk(
         "ai_vision_only": 0.42,
         "ai_with_physics": 0.30,
     }
-    b_cog = custom_b_cog if custom_b_cog is not None else bias_map.get(bias_scenario, 0.42)
+    b_cog = (
+        custom_b_cog if custom_b_cog is not None else bias_map.get(bias_scenario, 0.42)
+    )
     b_cog = max(0.0, min(1.0, b_cog))
 
     # Calculate AC_Risk
@@ -91,9 +93,7 @@ def compute_ac_risk(
     # Determine verdict
     if ac_risk < 0.15:
         verdict = "SEAL"
-        explanation = (
-            f"AC_Risk={ac_risk:.3f}: Low risk. Physical grounding strong. Proceed with standard QC."
-        )
+        explanation = f"AC_Risk={ac_risk:.3f}: Low risk. Physical grounding strong. Proceed with standard QC."
     elif ac_risk < 0.35:
         verdict = "QUALIFY"
         explanation = f"AC_Risk={ac_risk:.3f}: Moderate risk. Proceed with caveats. Document assumptions per F2 Truth."

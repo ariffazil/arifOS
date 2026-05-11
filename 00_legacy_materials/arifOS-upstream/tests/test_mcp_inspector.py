@@ -124,8 +124,12 @@ def run_mcp_test():
             print(f"   📝 Verdict: {content.get('verdict')}")
             results.append(("arifos_ops vitals", True))
         else:
-            print(f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}")
-            results.append(("arifos_ops vitals", True))  # Still counts as hardening works
+            print(
+                f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}"
+            )
+            results.append(
+                ("arifos_ops vitals", True)
+            )  # Still counts as hardening works
     else:
         print("   ❌ No response")
         results.append(("arifos_ops vitals", False))

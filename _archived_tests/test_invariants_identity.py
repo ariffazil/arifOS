@@ -26,7 +26,9 @@ class TestIdentityPrecedenceInvariant:
             actor_id="arif",
             declared_name="other",
         )
-        assert ctx["canonical_actor_id"] == "ariffazil", "actor_id must override declared_name"
+        assert (
+            ctx["canonical_actor_id"] == "ariffazil"
+        ), "actor_id must override declared_name"
 
     def test_declared_name_only_if_actor_id_anonymous(self):
         """actor_id='anonymous' + declared_name='arif' → canonical='ariffazil'"""

@@ -104,7 +104,10 @@ class FloorOptimizationExperiment:
             if (i + 1) % 10 == 0:
                 elapsed = time.time() - start_time
                 rate = (i + 1) / elapsed
-                print(f"  Progress: {i+1} requests, {rate:.1f} req/s, " f"{violations} violations")
+                print(
+                    f"  Progress: {i+1} requests, {rate:.1f} req/s, "
+                    f"{violations} violations"
+                )
 
         total_requests = len(test_requests)
         violation_rate = violations / total_requests if total_requests > 0 else 0
@@ -129,7 +132,9 @@ class FloorOptimizationExperiment:
         self._print_result(result)
         return result
 
-    async def _evaluate_request(self, request: dict, thresholds: FloorThresholds) -> dict:
+    async def _evaluate_request(
+        self, request: dict, thresholds: FloorThresholds
+    ) -> dict:
         """
         Evaluate a single request against constitutional thresholds.
 
@@ -250,19 +255,26 @@ async def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Floor Optimization Experiment")
-    parser.add_argument("--f4-min", type=float, default=0.3, help="F4 clarity max (was min)")
+    parser.add_argument(
+        "--f4-min", type=float, default=0.3, help="F4 clarity max (was min)"
+    )
     parser.add_argument("--f7-min", type=float, default=0.015, help="F7 humility min")
     parser.add_argument("--f7-max", type=float, default=0.20, help="F7 humility max")
     parser.add_argument("--duration", type=int, default=60, help="Duration in seconds")
     parser.add_argument("--output", type=str, default="floor_opt_result.json")
     parser.add_argument(
-        "--endpoint", type=str, default=None, help="MCP endpoint URL (default: simulation)"
+        "--endpoint",
+        type=str,
+        default=None,
+        help="MCP endpoint URL (default: simulation)",
     )
     args = parser.parse_args()
 
     # Create thresholds from CLI args
     thresholds = FloorThresholds(
-        F4_CLARITY_MIN=args.f4_min, F7_HUMILITY_MIN=args.f7_min, F7_HUMILITY_MAX=args.f7_max
+        F4_CLARITY_MIN=args.f4_min,
+        F7_HUMILITY_MIN=args.f7_min,
+        F7_HUMILITY_MAX=args.f7_max,
     )
 
     # Run experiment

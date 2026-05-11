@@ -89,7 +89,9 @@ class arifOSBenchmark:
 
         # Spawn workers
         for i in range(concurrency):
-            task = asyncio.create_task(self._worker(i, start_time, duration_seconds, request_rate))
+            task = asyncio.create_task(
+                self._worker(i, start_time, duration_seconds, request_rate)
+            )
             tasks.append(task)
 
         # Wait for completion
@@ -99,7 +101,11 @@ class arifOSBenchmark:
         return self._calculate_metrics(start_time)
 
     async def _worker(
-        self, worker_id: int, start_time: float, duration: int, request_rate: Optional[float]
+        self,
+        worker_id: int,
+        start_time: float,
+        duration: int,
+        request_rate: Optional[float],
     ):
         """Worker that sends requests until time expires."""
         while time.time() - start_time < duration:
@@ -116,7 +122,9 @@ class arifOSBenchmark:
             if request_rate:
                 await asyncio.sleep(1.0 / request_rate)
 
-    async def _call_mcp(self, query: str = "What is constitutional AI?") -> Optional[Dict]:
+    async def _call_mcp(
+        self, query: str = "What is constitutional AI?"
+    ) -> Optional[Dict]:
         """
         Call the live arifOS MCP endpoint.
         Returns parsed JSON response or None on failure.
@@ -306,7 +314,9 @@ class arifOSBenchmark:
         violation_rate = violations / len(self.results)
 
         omegas = [r.omega for r in self.results]
-        omega_in_range = sum(1 for o in omegas if self.omega_range[0] <= o <= self.omega_range[1])
+        omega_in_range = sum(
+            1 for o in omegas if self.omega_range[0] <= o <= self.omega_range[1]
+        )
 
         # Floor violation counts
         floor_counts = {}
@@ -341,13 +351,17 @@ class arifOSBenchmark:
 def main():
     parser = argparse.ArgumentParser(description="arifOS Autoresearch Benchmark")
     parser.add_argument("--duration", type=int, default=300, help="Duration in seconds")
-    parser.add_argument("--concurrency", type=int, default=10, help="Concurrent requests")
+    parser.add_argument(
+        "--concurrency", type=int, default=10, help="Concurrent requests"
+    )
     parser.add_argument("--output", type=str, default="benchmark_results.json")
     args = parser.parse_args()
 
     benchmark = arifOSBenchmark()
     metrics = asyncio.run(
-        benchmark.run_benchmark(duration_seconds=args.duration, concurrency=args.concurrency)
+        benchmark.run_benchmark(
+            duration_seconds=args.duration, concurrency=args.concurrency
+        )
     )
 
     # Print results

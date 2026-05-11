@@ -315,7 +315,12 @@ class A2AMessageBus:
 
     async def _deliver(self, message: A2AMessage, recipient: Agent):
         """Deliver message to recipient (internal)."""
-        logger.debug("A2A: %s -> %s (%s)", message.sender_id, recipient.agent_id, message.msg_type)
+        logger.debug(
+            "A2A: %s -> %s (%s)",
+            message.sender_id,
+            recipient.agent_id,
+            message.msg_type,
+        )
 
         # Trigger registered handlers
         handlers = self._handlers.get(message.msg_type, [])
@@ -358,7 +363,10 @@ class FloorEnforcer:
         }
 
     async def validate(
-        self, proposal: dict, agent: Agent, required_floors: Optional[List[FloorId]] = None
+        self,
+        proposal: dict,
+        agent: Agent,
+        required_floors: Optional[List[FloorId]] = None,
     ) -> List[FloorCheck]:
         """
         Validate a proposal against all required constitutional floors.
@@ -391,7 +399,9 @@ class FloorEnforcer:
         return FloorCheck(
             floor=FloorId.F2_TRUTH,
             passed=has_evidence,
-            message="F2: Evidence grounded" if has_evidence else "F2: No evidence basis",
+            message=(
+                "F2: Evidence grounded" if has_evidence else "F2: No evidence basis"
+            ),
             confidence=0.9 if has_evidence else 0.2,
         )
 
@@ -400,12 +410,15 @@ class FloorEnforcer:
         # Check for valid units in proposal
         units = proposal.get("units", {})
         valid_units = all(
-            u in ["m", "m/s", "kg/m3", "Pa", "K", "ohm.m", "v/v"] for u in units.values()
+            u in ["m", "m/s", "kg/m3", "Pa", "K", "ohm.m", "v/v"]
+            for u in units.values()
         )
         return FloorCheck(
             floor=FloorId.F4_CLARITY,
             passed=valid_units,
-            message="F4: Units validated" if valid_units else "F4: Invalid units detected",
+            message=(
+                "F4: Units validated" if valid_units else "F4: Invalid units detected"
+            ),
             confidence=0.95 if valid_units else 0.3,
         )
 
@@ -559,7 +572,9 @@ class DiscordanceDetector:
             "discordance": discordance,
             "threshold": self._threshold,
             "agent_count": len(agents),
-            "message": "Converged" if converged else f"Discordance: {discordance*100:.1f}%",
+            "message": (
+                "Converged" if converged else f"Discordance: {discordance*100:.1f}%"
+            ),
         }
 
     def _calculate_discordance(self, proposals: List[dict]) -> float:
@@ -601,7 +616,9 @@ class Judge888:
         self._verdict_history: List[dict] = []
         self._pending_proposals: Dict[str, dict] = {}
 
-    async def evaluate(self, proposal: dict, agent: Agent, auto_low_risk: bool = True) -> dict:
+    async def evaluate(
+        self, proposal: dict, agent: Agent, auto_low_risk: bool = True
+    ) -> dict:
         """
         Evaluate a proposal and issue verdict.
         Returns verdict with full floor analysis.
@@ -613,7 +630,8 @@ class Judge888:
         all_passed = all(r.passed for r in floor_results)
         any_critical_fail = any(
             not r.passed
-            and r.floor in [FloorId.F2_TRUTH, FloorId.F7_HUMILITY, FloorId.F13_SOVEREIGN]
+            and r.floor
+            in [FloorId.F2_TRUTH, FloorId.F7_HUMILITY, FloorId.F13_SOVEREIGN]
             for r in floor_results
         )
 
@@ -714,7 +732,11 @@ class GEOSXACP:
         tools: Optional[List[str]] = None,
     ) -> Agent:
         """Register an agent with the ACP."""
-        role_enum = AgentRole(role) if role in [r.value for r in AgentRole] else AgentRole.GEOLOGIST
+        role_enum = (
+            AgentRole(role)
+            if role in [r.value for r in AgentRole]
+            else AgentRole.GEOLOGIST
+        )
         return await self.registry.register(agent_id, role_enum, name, resources, tools)
 
     async def submit_proposal(self, agent_id: str, proposal: dict) -> dict:

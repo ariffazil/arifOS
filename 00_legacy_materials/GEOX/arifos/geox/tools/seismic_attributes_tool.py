@@ -74,7 +74,9 @@ def _compute_coherence(volume: np.ndarray, window: int = 3) -> np.ndarray:
         windowed = np.array([padded[y, x : x + window] for x in range(w)])
         mean = windowed.mean(axis=0)
         numerator = ((windowed - mean) ** 2).sum(axis=0)
-        denominator = window * ((windowed - padded[y : y + 1, half : half + w].T) ** 2).sum(axis=1)
+        denominator = window * (
+            (windowed - padded[y : y + 1, half : half + w].T) ** 2
+        ).sum(axis=1)
         denom_safe = np.where(denominator > 1e-10, denominator, 1e-10)
         output[y] = np.clip(1 - numerator / (window * denom_safe), 0, 1)
     return output
@@ -161,7 +163,11 @@ def compute_attribute(
     params: dict[str, Any] | None = None,
 ) -> AttributeResult:
     """Apply a single attribute to a seismic volume."""
-    ft = AttributeType(attribute_type) if isinstance(attribute_type, str) else attribute_type
+    ft = (
+        AttributeType(attribute_type)
+        if isinstance(attribute_type, str)
+        else attribute_type
+    )
     fn = _ATTRIBUTE_DISPATCH.get(ft)
     if fn is None:
         raise ValueError(f"Unknown attribute type: {attribute_type}")
@@ -348,10 +354,14 @@ class SeismicAttributesTool(BaseTool):
         stack_attributes: dict[str, Any] = {}
         for attr_name, arr in attributes.items():
             uncertainty = 0.15 if attr_name == "meta_fault_prob" else 0.08
-            matching_result = next((r for r in results_list if r.attribute_type == attr_name), None)
+            matching_result = next(
+                (r for r in results_list if r.attribute_type == attr_name), None
+            )
             stack_attributes[attr_name] = {
                 "contrast": (
-                    matching_result.contrast_metadata.model_dump() if matching_result else {}
+                    matching_result.contrast_metadata.model_dump()
+                    if matching_result
+                    else {}
                 ),
                 "uncertainty": uncertainty,
                 "data": arr.tolist(),
@@ -376,7 +386,8 @@ class SeismicAttributesTool(BaseTool):
                 "tool_version": "SAT-GEOX-v0.3.0",
                 "attribute_list": attribute_list,
                 "contrast_metadata": {
-                    r.attribute_type: r.contrast_metadata.model_dump() for r in results_list
+                    r.attribute_type: r.contrast_metadata.model_dump()
+                    for r in results_list
                 },
                 "verdict": verdict,
                 "explanation": explanation,

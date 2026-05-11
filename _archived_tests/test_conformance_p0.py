@@ -17,7 +17,9 @@ from arifosmcp.runtime.model import Verdict
 async def test_protected_id_hard_fail():
     """Verify arif cannot be claimed without a token (F11 Hardening)."""
     # Note: No auth_token provided
-    res = await init_anchor(mode="init", payload={"actor_id": "arif", "intent": "Audit"})
+    res = await init_anchor(
+        mode="init", payload={"actor_id": "arif", "intent": "Audit"}
+    )
 
     assert res.ok is False
     assert res.verdict == Verdict.VOID

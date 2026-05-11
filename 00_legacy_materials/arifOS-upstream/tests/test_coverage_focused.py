@@ -32,7 +32,11 @@ class TestRealityGroundingRealAPI:
         from arifosmcp.intelligence.tools.reality_grounding import SearchResult
 
         result = SearchResult(
-            title="Test", url="https://test.com", snippet="Snippet", source="ddgs", rank=1
+            title="Test",
+            url="https://test.com",
+            snippet="Snippet",
+            source="ddgs",
+            rank=1,
         )
 
         assert result.uncertainty == 0.04
@@ -124,14 +128,18 @@ class TestRealityGroundingRealAPI:
 
     def test_playwright_google_engine_creation(self):
         """Test PlaywrightGoogleEngine creation"""
-        from arifosmcp.intelligence.tools.reality_grounding import PlaywrightGoogleEngine
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            PlaywrightGoogleEngine,
+        )
 
         engine = PlaywrightGoogleEngine(headless=True)
         assert engine is not None
 
     def test_reality_grounding_cascade_creation(self):
         """Test RealityGroundingCascade creation"""
-        from arifosmcp.intelligence.tools.reality_grounding import RealityGroundingCascade
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            RealityGroundingCascade,
+        )
 
         cascade = RealityGroundingCascade()
         assert cascade is not None
@@ -364,7 +372,11 @@ class TestRealityDossierRealAPI:
         from arifosmcp.runtime.reality_dossier import Witness
 
         witness = Witness(
-            source="human", confidence=0.95, weight=1.5, evidence_refs=["ref1"], notes="Test"
+            source="human",
+            confidence=0.95,
+            weight=1.5,
+            evidence_refs=["ref1"],
+            notes="Test",
         )
 
         assert witness.source == "human"
@@ -374,7 +386,9 @@ class TestRealityDossierRealAPI:
         """Test DossierVerdict model"""
         from arifosmcp.runtime.reality_dossier import DossierVerdict
 
-        verdict = DossierVerdict(claim="Test claim", verdict="SUPPORTED", confidence=0.9)
+        verdict = DossierVerdict(
+            claim="Test claim", verdict="SUPPORTED", confidence=0.9
+        )
 
         assert verdict.claim == "Test claim"
         assert verdict.verdict == "SUPPORTED"
@@ -385,7 +399,9 @@ class TestRealityDossierRealAPI:
         from arifosmcp.runtime.reality_models import BundleStatus
 
         status = BundleStatus(state="SUCCESS", stage="111_SENSE", verdict="SEAL")
-        dossier = RealityDossier(session_id="test-session", actor_id="test-actor", status=status)
+        dossier = RealityDossier(
+            session_id="test-session", actor_id="test-actor", status=status
+        )
 
         assert dossier.session_id == "test-session"
         assert dossier.id.startswith("dossier-")

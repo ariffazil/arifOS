@@ -83,7 +83,9 @@ class TestAsiBasic:
         """Test ASI critique_thought action only."""
         mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(
-            return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
+            return_value=Mock(
+                f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9
+            )
         )
         sys.modules["core.shared.sbert_floors"] = mock_sbert
 
@@ -147,7 +149,9 @@ class TestAsiBasic:
             from core.organs._2_asi import asi
 
             result = await asi(
-                action="simulate_heart", session_id="test-asi-risk", scenario="Something concerning"
+                action="simulate_heart",
+                session_id="test-asi-risk",
+                scenario="Something concerning",
             )
 
             assert result["session_id"] == "test-asi-risk"
@@ -175,7 +179,9 @@ class TestAsiEdgeCases:
         """Test ASI with unicode content."""
         mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(
-            return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
+            return_value=Mock(
+                f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9
+            )
         )
         sys.modules["core.shared.sbert_floors"] = mock_sbert
 
@@ -200,7 +206,9 @@ class TestAsiEdgeCases:
         """Test ASI with very long content."""
         mock_sbert = ModuleType("core.shared.sbert_floors")
         mock_sbert.classify_asi_floors = MagicMock(
-            return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
+            return_value=Mock(
+                f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9
+            )
         )
         sys.modules["core.shared.sbert_floors"] = mock_sbert
 

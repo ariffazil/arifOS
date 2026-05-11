@@ -86,7 +86,9 @@ def search_notion(query: str, filter_type=None):
     try:
         results = notion.search(
             query=query,
-            filter={"value": filter_type, "property": "object"} if filter_type else None,
+            filter=(
+                {"value": filter_type, "property": "object"} if filter_type else None
+            ),
         )
         return {
             "ok": True,
@@ -105,7 +107,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="arifOS Notion Tool")
     parser.add_argument(
-        "action", choices=["query_database", "create_page", "get_page", "update_page", "search"]
+        "action",
+        choices=["query_database", "create_page", "get_page", "update_page", "search"],
     )
     parser.add_argument("--database-id", help="Notion database ID")
     parser.add_argument("--page-id", help="Notion page ID")

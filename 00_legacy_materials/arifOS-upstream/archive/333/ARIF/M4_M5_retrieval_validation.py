@@ -104,7 +104,11 @@ if __name__ == "__main__":
     # Test M4/M5
     m4m5 = M4M5RetrievalValidation()
     intent = "How do the 13 constitutional floors prevent hallucinations?"
-    queries = ["13 constitutional floors", "prevent hallucinations", "truth-gated inference"]
+    queries = [
+        "13 constitutional floors",
+        "prevent hallucinations",
+        "truth-gated inference",
+    ]
 
     print("--- A-RIF M4/M5 TEST ---")
     results = m4m5.search_and_retrieve(queries)

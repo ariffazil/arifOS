@@ -33,7 +33,12 @@ try:
     import os as _os
 
     _VITALITY_LEDGER_DIR = _os.path.join(
-        _os.path.dirname(_os.path.abspath(__file__)), "..", "..", "arifOS_mcp", "tools", "arifos"
+        _os.path.dirname(_os.path.abspath(__file__)),
+        "..",
+        "..",
+        "arifOS_mcp",
+        "tools",
+        "arifos",
     )
 except Exception:
     _emit_vitality = None
@@ -181,7 +186,8 @@ def governed_return(
 
     # Perform single constitutional transition with witness bits
     IDENTITY_MANAGER.transition(
-        metabolic_state, witness={"human": human_override is not None, "ai": True, "earth": False}
+        metabolic_state,
+        witness={"human": human_override is not None, "ai": True, "earth": False},
     )
 
     # Update values ONCE after transition
@@ -259,8 +265,16 @@ def governed_return(
                 tri_witness_score=metrics.tri_witness_score,
                 stakeholder_safety=metrics.stakeholder_safety,
             )
-            v_perf = _VitalityPerfMetrics(**performance) if performance else _VitalityPerfMetrics()
-            v_corr = _VitalityCorrMetrics(**correctness) if correctness else _VitalityCorrMetrics()
+            v_perf = (
+                _VitalityPerfMetrics(**performance)
+                if performance
+                else _VitalityPerfMetrics()
+            )
+            v_corr = (
+                _VitalityCorrMetrics(**correctness)
+                if correctness
+                else _VitalityCorrMetrics()
+            )
 
             record = _emit_vitality(
                 tool_name=tool_name,

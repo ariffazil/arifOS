@@ -54,7 +54,9 @@ class ExecutionEnvelope:
 
     # Temporal constraints
     created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: datetime = field(default_factory=lambda: datetime.utcnow() + timedelta(hours=1))
+    expires_at: datetime = field(
+        default_factory=lambda: datetime.utcnow() + timedelta(hours=1)
+    )
 
     # Anti-replay
     nonce: str = field(default_factory=lambda: secrets.token_hex(16))
@@ -252,7 +254,9 @@ class ExecutionAttestor:
         """
         if self.kms_endpoint:
             # Call out to KMS for signing
-            signature = await self._kms_sign(envelope.canonical_payload(), envelope.authority)
+            signature = await self._kms_sign(
+                envelope.canonical_payload(), envelope.authority
+            )
             envelope.signature = signature
             envelope.status = ExecutionStatus.SIGNED
         else:

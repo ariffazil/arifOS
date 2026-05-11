@@ -17,7 +17,8 @@ async def test_constitutional_heartbeat_on_error():
     from unittest.mock import patch
 
     with patch(
-        "arifosmcp.runtime.tools.call_kernel", side_effect=Exception("Simulated mechanical failure")
+        "arifosmcp.runtime.tools.call_kernel",
+        side_effect=Exception("Simulated mechanical failure"),
     ):
         envelope = await check_vital(session_id="crash-test-session")
 
@@ -29,7 +30,9 @@ async def test_constitutional_heartbeat_on_error():
         assert envelope.errors[0].code == "HARDENED_RUNTIME_FAILURE"
 
         # Assert recovery guidance is present even on crash
-        assert envelope.caller_state == "anonymous"  # Default for unknown session in failure
+        assert (
+            envelope.caller_state == "anonymous"
+        )  # Default for unknown session in failure
         assert envelope.next_action is not None
         assert envelope.next_action["tool"] == "init_anchor"
 
@@ -43,7 +46,12 @@ async def test_anonymous_restriction_and_recovery():
     envelope = await forge(spec="build me a world", session_id="global")
 
     # Should be blocked by Stage Contract or Auth check
-    assert envelope.verdict in [Verdict.HOLD, Verdict.VOID, Verdict.SABAR, Verdict.PAUSED]
+    assert envelope.verdict in [
+        Verdict.HOLD,
+        Verdict.VOID,
+        Verdict.SABAR,
+        Verdict.PAUSED,
+    ]
     assert envelope.caller_state == "anonymous"
     assert envelope.next_action is not None
     assert envelope.next_action["tool"] == "init_anchor"

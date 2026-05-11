@@ -4,7 +4,6 @@ from logging import getLogger
 from arifosmcp.runtime.tools import init_anchor, arifos_kernel
 from arifosmcp.runtime.model import Verdict
 
-
 logger = getLogger(__name__)
 
 
@@ -91,7 +90,8 @@ async def test_e3e_valid_kernel_execution():
     """
     # 1. Agent correctly anchors
     anchor_env = await init_anchor(
-        mode="init", payload={"actor_id": "test_user", "intent": "testing valid execution"}
+        mode="init",
+        payload={"actor_id": "test_user", "intent": "testing valid execution"},
     )
     assert anchor_env.verdict in [Verdict.SEAL, "SEAL"]
 

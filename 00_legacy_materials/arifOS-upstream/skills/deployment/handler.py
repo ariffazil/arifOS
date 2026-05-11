@@ -32,7 +32,11 @@ class DeploymentSkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _execute_deployment(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         environment = params.get("environment", "")
         operator = params.get("operator", "anonymous")
@@ -84,7 +88,11 @@ class DeploymentSkill:
         return {"verdict": "VOID", "error": "No reality bridge available"}
 
     async def _rollback(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         environment = params.get("environment", "")
 
@@ -126,7 +134,9 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     skill = DeploymentSkill()
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

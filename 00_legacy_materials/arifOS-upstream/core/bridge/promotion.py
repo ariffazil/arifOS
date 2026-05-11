@@ -148,7 +148,9 @@ class PromotionBridge:
         # Determine record type
         if memory.memory_type == MemoryType.CONSTITUTIONAL:
             record_type = VaultRecordType.POLICY
-        elif "decided" in memory.content.lower() or "decision" in memory.content.lower():
+        elif (
+            "decided" in memory.content.lower() or "decision" in memory.content.lower()
+        ):
             record_type = VaultRecordType.VERDICT
         elif "release" in memory.content.lower():
             record_type = VaultRecordType.RELEASE
@@ -176,7 +178,11 @@ class PromotionBridge:
                 evidence_hash=hash(memory.content) % (2**32),  # Simplified
             ),
             governance=Governance(
-                risk_tier="medium" if memory.governance.sensitivity.value == "medium" else "low",
+                risk_tier=(
+                    "medium"
+                    if memory.governance.sensitivity.value == "medium"
+                    else "low"
+                ),
                 judgment_required=True,
                 human_confirmed=memory.source.origin.value == "user",
                 decision_authority="ARIF",  # Would be actual authority

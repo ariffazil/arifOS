@@ -58,7 +58,11 @@ class VPSMonitorSkill:
             # We use subprocess directly here as a fallback or if reality_bridge is the arifOS kernel
             # In production, we'd use reality_bridge.execute_shell() if it exists
             process = subprocess.Popen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
             stdout, stderr = process.communicate(timeout=5)
 
@@ -73,7 +77,11 @@ class VPSMonitorSkill:
             }
         except Exception as e:
             logger.error(f"VPS Monitor execution error: {e}")
-            return {"ok": False, "verdict": "VOID", "error": f"EXECUTION_FAILED: {str(e)}"}
+            return {
+                "ok": False,
+                "verdict": "VOID",
+                "error": f"EXECUTION_FAILED: {str(e)}",
+            }
 
 
 skill = VPSMonitorSkill()
@@ -88,7 +96,9 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     """Entry point for OpenClaw skill execution."""
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

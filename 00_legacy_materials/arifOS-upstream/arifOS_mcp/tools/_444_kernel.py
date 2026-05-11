@@ -10,7 +10,19 @@ async def execute(
     Consolidates routing logic and sovereignty boundary checks.
     """
     # Validation loop
-    stages = ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999", "forge"]
+    stages = [
+        "000",
+        "111",
+        "222",
+        "333",
+        "444",
+        "555",
+        "666",
+        "777",
+        "888",
+        "999",
+        "forge",
+    ]
     target_index = stages.index(stage) if stage in stages else -1
 
     # orthogonality logic

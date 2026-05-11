@@ -33,11 +33,15 @@ from arifos.geox.geox_validator import (
 # ---------------------------------------------------------------------------
 
 
-def _coord(lat: float = 4.5, lon: float = 104.2, depth: float = 2500.0) -> CoordinatePoint:
+def _coord(
+    lat: float = 4.5, lon: float = 104.2, depth: float = 2500.0
+) -> CoordinatePoint:
     return CoordinatePoint(latitude=lat, longitude=lon, depth_m=depth)
 
 
-def _prov(source_id: str = "TEST-PROV-001", source_type: str = "LEM") -> ProvenanceRecord:
+def _prov(
+    source_id: str = "TEST-PROV-001", source_type: str = "LEM"
+) -> ProvenanceRecord:
     return ProvenanceRecord(
         source_id=source_id,
         source_type=source_type,  # type: ignore[arg-type]
@@ -183,13 +187,17 @@ class TestExtractPredictions:
         assert "reservoir_pressure" in targets
 
     def test_temperature_extraction(self):
-        text = "Formation temperature of 120 degC is consistent with the maturity window."
+        text = (
+            "Formation temperature of 120 degC is consistent with the maturity window."
+        )
         preds = self.validator.extract_predictions(text, self.location)
         targets = [p.target for p in preds]
         assert "temperature" in targets
 
     def test_velocity_extraction(self):
-        text = "Seismic velocity of 2800 m/s is recorded in the Miocene clastic section."
+        text = (
+            "Seismic velocity of 2800 m/s is recorded in the Miocene clastic section."
+        )
         preds = self.validator.extract_predictions(text, self.location)
         targets = [p.target for p in preds]
         assert "seismic_velocity" in targets
@@ -211,7 +219,9 @@ class TestExtractPredictions:
             assert isinstance(p, GeoPrediction)
 
     def test_no_quantitative_claims_returns_empty(self):
-        text = "The geological setting is broadly favourable for hydrocarbon accumulation."
+        text = (
+            "The geological setting is broadly favourable for hydrocarbon accumulation."
+        )
         preds = self.validator.extract_predictions(text, self.location)
         assert isinstance(preds, list)
         # No quantitative patterns → may be empty
@@ -390,8 +400,16 @@ class TestValidateBatch:
         """When all insights are validated as supported, verdict should be SEAL."""
         # Build insights whose predictions fall within mock data ranges
         # MockEarthNetTool returns porosity in [0.08, 0.28] and velocity in [2200, 3800]
-        pred1 = _pred(target="porosity", lo=0.01, hi=0.35, units="fraction", confidence=0.80)
-        pred2 = _pred(target="seismic_velocity", lo=1000.0, hi=5000.0, units="m/s", confidence=0.80)
+        pred1 = _pred(
+            target="porosity", lo=0.01, hi=0.35, units="fraction", confidence=0.80
+        )
+        pred2 = _pred(
+            target="seismic_velocity",
+            lo=1000.0,
+            hi=5000.0,
+            units="m/s",
+            confidence=0.80,
+        )
         # Craft insights with very broad ranges to ensure mock tool values land inside
         i1 = _insight(
             text="Porosity measured at 15-28 fraction in the reservoir interval.",
@@ -426,7 +444,9 @@ class TestValidateBatch:
             requires_human_signoff=False,
             support=[pred_impossible],
         )
-        result = await self.validator.validate_batch([insight_contradicted], [self.mock_earthnet])
+        result = await self.validator.validate_batch(
+            [insight_contradicted], [self.mock_earthnet]
+        )
         # match_ratio will be 0 → contradicted → VOID
         assert result.overall == "VOID"
         assert result.void_count >= 1

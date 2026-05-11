@@ -53,7 +53,9 @@ async def test_legacy_aliases_routing():
     ]
 
     for alias in active_aliases:
-        assert alias in registered_names, f"Legacy alias '{alias}' is missing from registration"
+        assert (
+            alias in registered_names
+        ), f"Legacy alias '{alias}' is missing from registration"
         CAPABILITY_MAP[alias]
         tool = next(t for t in tools if t.name == alias)
         # Verify the tool is callable and has a description
@@ -92,4 +94,6 @@ def test_no_forbidden_public_exposure():
 
     # These should be shims in the MCP object but NOT tool specs in public_registry
     intersection = public_names.intersection(internal_only)
-    assert not intersection, f"Internal tools exposed in public ToolSpecs: {intersection}"
+    assert (
+        not intersection
+    ), f"Internal tools exposed in public ToolSpecs: {intersection}"

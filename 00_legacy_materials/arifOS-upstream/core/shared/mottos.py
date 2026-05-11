@@ -175,9 +175,7 @@ class MatrixCell:
 
     def to_prompt_framing(self) -> str:
         """Convert to a prompt framing constraint."""
-        return (
-            f"[{self.row.value.upper()} × {self.col.value.upper()}] {self.motto}: {self.constraint}"
-        )
+        return f"[{self.row.value.upper()} × {self.col.value.upper()}] {self.motto}: {self.constraint}"
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -405,7 +403,9 @@ MOTTOS_BY_FLOOR: dict[str, ConstitutionalMotto] = {
 }
 
 STAGE_MOTTO_MAP: dict[str, StageMotto] = {
-    "000_INIT": StageMotto("DITEMPA", "BUKAN DIBERI", "000/999", "Forged, Not Given", "F1 Amanah"),
+    "000_INIT": StageMotto(
+        "DITEMPA", "BUKAN DIBERI", "000/999", "Forged, Not Given", "F1 Amanah"
+    ),
     "111_SENSE": StageMotto(
         "DIKAJI", "BUKAN DISUAPI", "111", "Examined, Not Spoon-fed", "F2 Truth"
     ),
@@ -431,12 +431,22 @@ STAGE_MOTTO_MAP: dict[str, StageMotto] = {
         "DIUSAHAKAN", "BUKAN DIHARAPI", "777", "Worked, Not Hoped", "F8 Genius"
     ),
     "888_JUDGE": StageMotto(
-        "DISEDARKAN", "BUKAN DIYAKINKAN", "888", "Made Aware, Not Over-assured", "F7 Humility"
+        "DISEDARKAN",
+        "BUKAN DIYAKINKAN",
+        "888",
+        "Made Aware, Not Over-assured",
+        "F7 Humility",
     ),
     "888_APEX_JUDGE": StageMotto(
-        "DISEDARKAN", "BUKAN DIYAKINKAN", "888", "Made Aware, Not Over-assured", "F7 Humility"
+        "DISEDARKAN",
+        "BUKAN DIYAKINKAN",
+        "888",
+        "Made Aware, Not Over-assured",
+        "F7 Humility",
     ),
-    "999_SEAL": StageMotto("DITEMPA", "BUKAN DIBERI", "000/999", "Forged, Not Given", "F1 Amanah"),
+    "999_SEAL": StageMotto(
+        "DITEMPA", "BUKAN DIBERI", "000/999", "Forged, Not Given", "F1 Amanah"
+    ),
 }
 
 STAGE_MOTTO_ORDER: list[str] = [
@@ -578,8 +588,12 @@ def get_motto_by_stage(stage: str) -> ConstitutionalMotto | None:
 
     # Normalize stage code
     stage_clean = stage.replace("_INIT", "").replace("_SENSE", "").replace("_THINK", "")
-    stage_clean = stage_clean.replace("_REASON", "").replace("_SYNC", "").replace("_EMPATHY", "")
-    stage_clean = stage_clean.replace("_ALIGN", "").replace("_BRIDGE", "").replace("_JUDGE", "")
+    stage_clean = (
+        stage_clean.replace("_REASON", "").replace("_SYNC", "").replace("_EMPATHY", "")
+    )
+    stage_clean = (
+        stage_clean.replace("_ALIGN", "").replace("_BRIDGE", "").replace("_JUDGE", "")
+    )
     stage_clean = stage_clean.replace("_SEAL", "").replace("_FORGE", "")
 
     try:
@@ -626,7 +640,9 @@ def format_all_stage_mottos() -> str:
     """Format all stage mottos as a multi-line output string."""
     lines = []
     for motto in get_all_stage_mottos():
-        lines.append(f"[{motto.stage}] {motto.positive}, {motto.negative} | {motto.meaning}")
+        lines.append(
+            f"[{motto.stage}] {motto.positive}, {motto.negative} | {motto.meaning}"
+        )
     return "\n".join(lines)
 
 
@@ -791,7 +807,10 @@ def get_ditempa_bookends() -> tuple[str, str]:
     Returns:
         (init_header, seal_header) with emojis
     """
-    return ("🔥 IGNITE — DITEMPA, BUKAN DIBERI 💎", "💎🧠 SEAL — DITEMPA, BUKAN DIBERI 🔒")
+    return (
+        "🔥 IGNITE — DITEMPA, BUKAN DIBERI 💎",
+        "💎🧠 SEAL — DITEMPA, BUKAN DIBERI 🔒",
+    )
 
 
 def get_failure_anthem() -> str:
@@ -862,11 +881,15 @@ def render_full_pipeline_output(stages_data: list[tuple[str, str, str]] = None) 
     for stage_code, verdict, context in stages_data:
         motto = get_motto_by_stage(stage_code)
         if motto:
-            lines.append(f"[{stage_code}] {motto.stage_name:8} | {verdict:8} | {motto.malay}")
+            lines.append(
+                f"[{stage_code}] {motto.stage_name:8} | {verdict:8} | {motto.malay}"
+            )
             if context:
                 lines.append(f"                              {context}")
 
-    lines.extend(["", "=" * 70, "  DITEMPA BUKAN DIBERI — The loop is complete.", "=" * 70])
+    lines.extend(
+        ["", "=" * 70, "  DITEMPA BUKAN DIBERI — The loop is complete.", "=" * 70]
+    )
 
     return "\n".join(lines)
 
@@ -935,7 +958,9 @@ class PromptManifold:
 
         if cell.row == MatrixAxis.TRUTH and cell.col == MatrixAxis.JUSTICE:
             if "uncertain" not in output.lower() and "aware" not in output.lower():
-                suggestions.append("Add humility/uncertainty acknowledgment (DISEDARKAN)")
+                suggestions.append(
+                    "Add humility/uncertainty acknowledgment (DISEDARKAN)"
+                )
 
         adherence = 1.0 - (len(violations) * 0.2)
 

@@ -99,7 +99,9 @@ class TestToolPayloadAlignment:
             },
         )
 
-        with patch("arifosmcp.runtime.tools.arifos_health", new_callable=AsyncMock) as mock_tool:
+        with patch(
+            "arifosmcp.runtime.tools.arifos_health", new_callable=AsyncMock
+        ) as mock_tool:
             mock_tool.return_value = mock_envelope
 
             result = await tools.arifos_health()

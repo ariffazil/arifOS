@@ -61,13 +61,21 @@ class APEXDials(BaseModel):
     Each dial represents a dimension of constitutional compliance.
     """
 
-    A: float = Field(ge=0.0, le=1.0, description="Akal: Mind/Clarity cluster (F2, F4, F7, F10)")
-    P: float = Field(ge=0.0, le=1.0, description="Presence: Stability/Trust cluster (F1, F5, F11)")
+    A: float = Field(
+        ge=0.0, le=1.0, description="Akal: Mind/Clarity cluster (F2, F4, F7, F10)"
+    )
+    P: float = Field(
+        ge=0.0, le=1.0, description="Presence: Stability/Trust cluster (F1, F5, F11)"
+    )
     X: float = Field(
-        ge=0.0, le=1.0, description="Exploration: Heart/Navigation cluster (F3, F6, F8_prev, F9)"
+        ge=0.0,
+        le=1.0,
+        description="Exploration: Heart/Navigation cluster (F3, F6, F8_prev, F9)",
     )
     E: float = Field(
-        ge=0.0, le=1.0, description="Energy: Vitality/Boundary cluster (F12, F13 + Budget)"
+        ge=0.0,
+        le=1.0,
+        description="Energy: Vitality/Boundary cluster (F12, F13 + Budget)",
     )
 
     def to_dict(self) -> dict[str, float]:
@@ -287,7 +295,8 @@ def floors_to_dials(
             x_breadth = min(1.0, 0.5 + (len(hypotheses) * 0.1))
 
     exploration = (
-        geometric_mean([w3, floors.f6_empathy, floors.f8_genius, anti_hantu_compliance]) * x_breadth
+        geometric_mean([w3, floors.f6_empathy, floors.f8_genius, anti_hantu_compliance])
+        * x_breadth
     )
 
     # 5. E = ENERGY (Vitality/Entropy)
@@ -320,7 +329,9 @@ def calculate_genius(
     """
     The Unified Genius Equation: G = (A × P × X × E²) × (1 - h)
     """
-    dials = floors_to_dials(floors, compute_budget_used, compute_budget_max, telemetry=telemetry)
+    dials = floors_to_dials(
+        floors, compute_budget_used, compute_budget_max, telemetry=telemetry
+    )
 
     akal = dials.A
     presence = dials.P
@@ -336,7 +347,9 @@ def calculate_genius(
         "dials": dials.to_dict(),
         "hysteresis": h,
         "passed": final_g >= 0.80,
-        "verdict": "SEAL" if final_g >= 0.80 else "PARTIAL" if final_g >= 0.60 else "VOID",
+        "verdict": (
+            "SEAL" if final_g >= 0.80 else "PARTIAL" if final_g >= 0.60 else "VOID"
+        ),
     }
 
 

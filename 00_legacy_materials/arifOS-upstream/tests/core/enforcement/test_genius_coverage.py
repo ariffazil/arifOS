@@ -40,7 +40,11 @@ def test_audit_result_to_floor_scores():
 
     # Test with dict
     audit_dict = {
-        "floor_results": {"F1": {"score": 0.7, "passed": True}, "F11": "pass", "F12": "fail"}
+        "floor_results": {
+            "F1": {"score": 0.7, "passed": True},
+            "F11": "pass",
+            "F12": "fail",
+        }
     }
     scores_dict = audit_result_to_floor_scores(audit_dict)
     assert scores_dict.f1_amanah == 0.7
@@ -50,7 +54,13 @@ def test_audit_result_to_floor_scores():
 
 def test_coerce_floor_scores():
     # Test with aliases
-    payload = {"f1": 0.5, "truth_score": 0.6, "omega_0": 0.045, "human_score": 0.8, "f10": "yes"}
+    payload = {
+        "f1": 0.5,
+        "truth_score": 0.6,
+        "omega_0": 0.045,
+        "human_score": 0.8,
+        "f10": "yes",
+    }
     scores = coerce_floor_scores(payload)
     assert scores.f1_amanah == 0.5
     assert scores.f2_truth == 0.6
@@ -84,7 +94,9 @@ def test_calculate_genius_edge_cases():
     assert res_h1["verdict"] == "VOID"
 
     # 3. High Energy usage
-    res_e_low = calculate_genius(floors, compute_budget_used=1.0, compute_budget_max=1.0)
+    res_e_low = calculate_genius(
+        floors, compute_budget_used=1.0, compute_budget_max=1.0
+    )
     # Energy dial will be (Energy_floors + 0)/2
     # G = A * P * X * E^2
     assert res_e_low["genius_score"] < calculate_genius(floors)["genius_score"]
@@ -101,7 +113,9 @@ def test_humility_normalization():
     f_opt = FloorScores(f7_humility=0.04)
     d_opt = floors_to_dials(f_opt)
 
-    f_high = FloorScores(f7_humility=0.1)  # Diff = 0.06 -> Penalty = 0.6 -> f7_norm = 0.4
+    f_high = FloorScores(
+        f7_humility=0.1
+    )  # Diff = 0.06 -> Penalty = 0.6 -> f7_norm = 0.4
     d_high = floors_to_dials(f_high)
 
     assert d_high.A < d_opt.A

@@ -86,7 +86,9 @@ class FilterResult:
 # ---------------------------------------------------------------------------
 
 
-def _gaussian_filter(image: np.ndarray, kernel_size: int = 5, sigma: float = 1.4) -> FilterResult:
+def _gaussian_filter(
+    image: np.ndarray, kernel_size: int = 5, sigma: float = 1.4
+) -> FilterResult:
     """Gaussian smoothing for denoise and continuity enhancement."""
     start = time.perf_counter()
 
@@ -167,7 +169,9 @@ def _kuwahara_filter(image: np.ndarray, window_size: int = 5) -> FilterResult:
             best = int(np.argmin(variances))
             output[y, x] = means[best]
 
-    output = np.clip(output, 0, 255).astype(np.uint8) if image.dtype == np.uint8 else output
+    output = (
+        np.clip(output, 0, 255).astype(np.uint8) if image.dtype == np.uint8 else output
+    )
     elapsed = (time.perf_counter() - start) * 1000
 
     return FilterResult(
@@ -313,7 +317,9 @@ def _clahe_filter(
                 continue
 
             # Normalize to [0, 255] range for histogram
-            normalized = ((tile - tile.min()) / (tile.max() - tile.min()) * 255).astype(np.uint8)
+            normalized = ((tile - tile.min()) / (tile.max() - tile.min()) * 255).astype(
+                np.uint8
+            )
             hist, bins = np.histogram(normalized.flatten(), bins=256, range=(0, 256))
 
             # Clip histogram
@@ -340,7 +346,9 @@ def _clahe_filter(
             equalized = cdf_normalized[normalized].reshape(tile.shape)
             output[y0:y1, x0:x1] = equalized
 
-    output = np.clip(output, 0, 255).astype(np.uint8) if image.dtype == np.uint8 else output
+    output = (
+        np.clip(output, 0, 255).astype(np.uint8) if image.dtype == np.uint8 else output
+    )
     elapsed = (time.perf_counter() - start) * 1000
 
     return FilterResult(
@@ -426,7 +434,8 @@ def load_seismic_slice(path: str | Path) -> np.ndarray:
         return np.array(img, dtype=np.float64)
     except ImportError as exc:
         raise ImportError(
-            "Pillow is required for image file loading. " "Install with: pip install Pillow"
+            "Pillow is required for image file loading. "
+            "Install with: pip install Pillow"
         ) from exc
 
 
@@ -652,7 +661,11 @@ class SeismicVisualFilterTool(BaseTool):
             if "image_array" in inputs:
                 image = inputs["image_array"]
                 if image.ndim == 3:
-                    image = 0.299 * image[:, :, 0] + 0.587 * image[:, :, 1] + 0.114 * image[:, :, 2]
+                    image = (
+                        0.299 * image[:, :, 0]
+                        + 0.587 * image[:, :, 1]
+                        + 0.114 * image[:, :, 2]
+                    )
                 image = image.astype(np.float64)
                 image_path = inputs.get("image_path", "<in-memory>")
             else:

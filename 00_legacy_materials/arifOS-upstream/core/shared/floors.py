@@ -32,17 +32,49 @@ AUTHORITY = "Muhammad Arif bin Fazil"
 THRESHOLDS: dict[str, dict[str, Any]] = {
     "F1_Amanah": {"type": "HARD", "threshold": 0.5, "desc": "Reversible or Auditable"},
     "F2_Truth": {"type": "HARD", "threshold": 0.99, "desc": "Information Fidelity"},
-    "F3_QuadWitness": {"type": "DERIVED", "threshold": 0.75, "desc": "Byzantine Consensus (W4)"},
-    "F4_Clarity": {"type": "HARD", "threshold": 0.00, "desc": "Entropy Reduction (ΔS ≤ 0)"},
+    "F3_QuadWitness": {
+        "type": "DERIVED",
+        "threshold": 0.75,
+        "desc": "Byzantine Consensus (W4)",
+    },
+    "F4_Clarity": {
+        "type": "HARD",
+        "threshold": 0.00,
+        "desc": "Entropy Reduction (ΔS ≤ 0)",
+    },
     "F5_Peace2": {"type": "SOFT", "threshold": 1.00, "desc": "Non-Destructive Power"},
     "F6_Empathy": {"type": "SOFT", "threshold": 0.70, "desc": "Stakeholder Care (κᵣ)"},
-    "F7_Humility": {"type": "HARD", "range": (0.03, 0.05), "desc": "Uncertainty Band (Ω₀)"},
-    "F8_Genius": {"type": "DERIVED", "threshold": 0.80, "desc": "Governed Intelligence (G)"},
-    "F9_AntiHantu": {"type": "SOFT", "threshold": 0.30, "desc": "Dark Cleverness Limit"},
-    "F10_Ontology": {"type": "HARD", "threshold": 1.0, "desc": "Category Lock (Boolean)"},
+    "F7_Humility": {
+        "type": "HARD",
+        "range": (0.03, 0.05),
+        "desc": "Uncertainty Band (Ω₀)",
+    },
+    "F8_Genius": {
+        "type": "DERIVED",
+        "threshold": 0.80,
+        "desc": "Governed Intelligence (G)",
+    },
+    "F9_AntiHantu": {
+        "type": "SOFT",
+        "threshold": 0.30,
+        "desc": "Dark Cleverness Limit",
+    },
+    "F10_Ontology": {
+        "type": "HARD",
+        "threshold": 1.0,
+        "desc": "Category Lock (Boolean)",
+    },
     "F11_CommandAuth": {"type": "HARD", "threshold": 1.0, "desc": "Verified Identity"},
-    "F12_Injection": {"type": "HARD", "threshold": 0.85, "desc": "Injection Risk Limit"},
-    "F13_Sovereign": {"type": "HARD", "threshold": 1.0, "desc": "Human Final Authority"},
+    "F12_Injection": {
+        "type": "HARD",
+        "threshold": 0.85,
+        "desc": "Injection Risk Limit",
+    },
+    "F13_Sovereign": {
+        "type": "HARD",
+        "threshold": 1.0,
+        "desc": "Human Final Authority",
+    },
 }
 
 # Canonical short-id -> threshold key mapping.
@@ -218,7 +250,10 @@ class F2_Truth(Floor):
         landauer_status = ""
         landauer_available = False
         try:
-            from core.physics.thermodynamics_hardened import LandauerViolation, check_landauer_bound
+            from core.physics.thermodynamics_hardened import (
+                LandauerViolation,
+                check_landauer_bound,
+            )
 
             landauer_available = True
         except ImportError:
@@ -240,7 +275,9 @@ class F2_Truth(Floor):
                         entropy_reduction=entropy_delta,
                     )
 
-                    ratio = landauer_result.get("efficiency_ratio", landauer_result.get("ratio", 0))
+                    ratio = landauer_result.get(
+                        "efficiency_ratio", landauer_result.get("ratio", 0)
+                    )
 
                     # HARD VOID: Suspiciously cheap truth (ratio < 10)
                     # This catches LLM outputs that claim high clarity but consumed trivial compute
@@ -533,7 +570,15 @@ class F5_Peace2(Floor):
                 peace_penalty += 0.3
 
         # High-intent harm verbs: stronger penalty
-        high_harm = ["hack", "harass", "stalk", "blackmail", "extort", "threaten", "impersonate"]
+        high_harm = [
+            "hack",
+            "harass",
+            "stalk",
+            "blackmail",
+            "extort",
+            "threaten",
+            "impersonate",
+        ]
         for kw in high_harm:
             if kw in query:
                 peace_penalty += 0.4
@@ -543,7 +588,10 @@ class F5_Peace2(Floor):
 
         passed = peace_score >= self.spec["threshold"]
         return FloorResult(
-            self.id, passed, peace_score, f"Peace²: {peace_score:.3f} (non-destructive power)"
+            self.id,
+            passed,
+            peace_score,
+            f"Peace²: {peace_score:.3f} (non-destructive power)",
         )
 
 
@@ -619,7 +667,10 @@ class F7_Humility(Floor):
         passed = in_band
 
         return FloorResult(
-            self.id, passed, omega_0, f"Ω₀: {omega_0:.3f} (Target: {self.min_o}-{self.max_o})"
+            self.id,
+            passed,
+            omega_0,
+            f"Ω₀: {omega_0:.3f} (Target: {self.min_o}-{self.max_o})",
         )
 
 
@@ -776,7 +827,10 @@ class F11_CommandAuth(Floor):
         # Fail-closed: No session = No authority
         if not session_id:
             return FloorResult(
-                self.id, False, 0.0, "F11_FAILURE: Missing session_id (no authority context)"
+                self.id,
+                False,
+                0.0,
+                "F11_FAILURE: Missing session_id (no authority context)",
             )
 
         # Structural enforcement: 888 Judge or Valid Service Token
@@ -839,7 +893,9 @@ class F13_Sovereign(Floor):
         # F13 is the "circuit breaker" - always passed by default
         # but flagged if human has intervened
         if sovereign_override:
-            return FloorResult(self.id, True, 1.0, "SOVEREIGN OVERRIDE: 888 Judge has intervened")
+            return FloorResult(
+                self.id, True, 1.0, "SOVEREIGN OVERRIDE: 888 Judge has intervened"
+            )
 
         return FloorResult(
             self.id,
@@ -882,7 +938,9 @@ def update_floor_status(violations: list[str], output_path: str | None = None) -
     """Update metadata/floor_status.json mapping F1-F13 -> 1 (PASS) or 0 (FAIL)."""
     if output_path is None:
         # Default to root/metadata/floor_status.json
-        output_path = str(Path(__file__).parent.parent.parent / "metadata" / "floor_status.json")
+        output_path = str(
+            Path(__file__).parent.parent.parent / "metadata" / "floor_status.json"
+        )
 
     status = {}
     for i in range(1, 14):
@@ -1044,7 +1102,10 @@ class FloorCalibrator:
         steps: int = 20,
     ) -> list[FloorCalibrationResult]:
         """Calibrate every floor that has registered test cases."""
-        return [self.calibrate_floor(fid, threshold_range, steps) for fid in self._test_cases]
+        return [
+            self.calibrate_floor(fid, threshold_range, steps)
+            for fid in self._test_cases
+        ]
 
 
 __all__ = [

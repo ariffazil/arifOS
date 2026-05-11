@@ -6,4 +6,10 @@ from .metabolic_bridge import (
     ProposalObject,
 )
 
-__all__ = ["metabolic_bridge", "extract_proposal", "kernel_audit", "BridgeResult", "ProposalObject"]
+__all__ = [
+    "metabolic_bridge",
+    "extract_proposal",
+    "kernel_audit",
+    "BridgeResult",
+    "ProposalObject",
+]

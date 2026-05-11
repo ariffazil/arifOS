@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 @contrast_governed_tool(physical_axes=["inline", "depth"])
-async def extract_lineaments(views: list[GEOX_SEISMIC_VIEW]) -> list[list[GEOPROXY_LINEAMENT]]:
+async def extract_lineaments(
+    views: list[GEOX_SEISMIC_VIEW],
+) -> list[list[GEOPROXY_LINEAMENT]]:
     """
     Extract perceptual lineaments from a set of contrast views.
     """

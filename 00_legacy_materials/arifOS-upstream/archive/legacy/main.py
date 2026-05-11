@@ -94,7 +94,9 @@ def load_profile(soul_key: str) -> dict:
     """Load a provider soul profile by soul key (e.g. 'anthropic_claude')."""
     path = PROFILES_PATH / f"{soul_key}.json"
     if not path.exists():
-        raise HTTPException(status_code=404, detail=f"Soul profile '{soul_key}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Soul profile '{soul_key}' not found"
+        )
     return load_json(path)
 
 
@@ -108,7 +110,9 @@ def soul_key_for_model(model: dict) -> str:
 def load_runtime(mode_key: str) -> dict:
     path = RUNTIME_PATH / f"{mode_key}.json"
     if not path.exists():
-        raise HTTPException(status_code=404, detail=f"Runtime mode {mode_key} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Runtime mode {mode_key} not found"
+        )
     return load_json(path)
 
 
@@ -119,7 +123,11 @@ def load_runtime(mode_key: str) -> dict:
 
 @app.get("/")
 def root():
-    return {"service": "arifOS Model Registry", "version": "0.1.0", "status": "operational"}
+    return {
+        "service": "arifOS Model Registry",
+        "version": "0.1.0",
+        "status": "operational",
+    }
 
 
 @app.get("/health")
@@ -255,8 +263,14 @@ def init_anchor_v2(req: InitAnchorRequest):
             "scope": {"granted": req.requested_scope},
         },
         "identity_anchor": {
-            "declared": {"model_key": req.declared_model_key, "provider": model.get("provider")},
-            "verified": {"model_key": req.declared_model_key, "provider": model.get("provider")},
+            "declared": {
+                "model_key": req.declared_model_key,
+                "provider": model.get("provider"),
+            },
+            "verified": {
+                "model_key": req.declared_model_key,
+                "provider": model.get("provider"),
+            },
             "verification_status": verification_status,
             "mismatch_detected": mismatch_detected,
         },

@@ -34,7 +34,11 @@ class ConstitutionalCheckSkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _evaluate_proposal(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         human = params.get("human_score", 0)
         ai = params.get("ai_score", 0)
@@ -61,7 +65,11 @@ class ConstitutionalCheckSkill:
         }
 
     async def _verify_system_state(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         component = params.get("component", "system")
 
@@ -108,7 +116,9 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     skill = ConstitutionalCheckSkill()
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

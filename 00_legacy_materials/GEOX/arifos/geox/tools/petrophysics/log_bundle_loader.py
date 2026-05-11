@@ -13,7 +13,6 @@ from typing import Any
 
 from arifos.geox.schemas.petrophysics.measurements import WellLogCurve, LogBundle
 
-
 # In-memory store (replace with persistent storage in production)
 _bundle_store: dict[str, LogBundle] = {}
 
@@ -141,7 +140,9 @@ class LogBundleLoader:
 
         return bundle
 
-    def _parse_las_file(self, filepath: str) -> tuple[dict[str, WellLogCurve], dict[str, str]]:
+    def _parse_las_file(
+        self, filepath: str
+    ) -> tuple[dict[str, WellLogCurve], dict[str, str]]:
         """Parse LAS 2.0 file."""
         curves = {}
         header = {}
@@ -251,7 +252,12 @@ class LogBundleLoader:
             return None
         try:
             # Remove common suffixes and parse
-            clean = value.replace("N", "").replace("S", "-").replace("E", "").replace("W", "-")
+            clean = (
+                value.replace("N", "")
+                .replace("S", "-")
+                .replace("E", "")
+                .replace("W", "-")
+            )
             return float(clean.strip())
         except (ValueError, TypeError):
             return None
@@ -286,7 +292,9 @@ class LogBundleLoader:
 
 
 # Standalone functions for async interface
-async def load_bundle(well_id: str, sources: list[str], depth_reference: str = "MD") -> LogBundle:
+async def load_bundle(
+    well_id: str, sources: list[str], depth_reference: str = "MD"
+) -> LogBundle:
     """Convenience function to load a bundle."""
     loader = LogBundleLoader()
     bundle = await loader.load(well_id, sources, depth_reference)

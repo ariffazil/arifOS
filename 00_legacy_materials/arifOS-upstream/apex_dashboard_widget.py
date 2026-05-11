@@ -125,7 +125,9 @@ def _build_dashboard_meta(data: dict) -> dict:
                                 "kind": "badge",
                                 "label": f"Governance: {status['governance']}",
                                 "status": (
-                                    "success" if status["governance"] == "Stable" else "warning"
+                                    "success"
+                                    if status["governance"] == "Stable"
+                                    else "warning"
                                 ),
                             },
                         ],
@@ -167,7 +169,11 @@ def _build_dashboard_meta(data: dict) -> dict:
                         "type": "component",
                         "kind": "progress",
                         "labels": ["Clarity", "Stability", "Judgment"],
-                        "values": [health["clarity"], health["stability"], health["judgment"]],
+                        "values": [
+                            health["clarity"],
+                            health["stability"],
+                            health["judgment"],
+                        ],
                     },
                     # Recent Verdicts
                     {

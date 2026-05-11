@@ -191,8 +191,12 @@ class VolumetricsEconomicsTool(BaseTool):
         )
 
         quantities = [
-            _make_quantity(vol_results["stoiip_p50"], "MMbbl", "stoiip_p50", location, prov, 0.2),
-            _make_quantity(econ_results["emv_m_usd"], "MUSD", "prospect_emv", location, prov, 0.3),
+            _make_quantity(
+                vol_results["stoiip_p50"], "MMbbl", "stoiip_p50", location, prov, 0.2
+            ),
+            _make_quantity(
+                econ_results["emv_m_usd"], "MUSD", "prospect_emv", location, prov, 0.3
+            ),
         ]
 
         raw_output = {

@@ -20,7 +20,8 @@ import asyncpg
 # CONFIG
 # ============================================================
 DB_DSN = os.getenv(
-    "VAULT999_DB", "postgresql://arifos_admin:ArifPostgresVault2026!@72.62.71.199:5432/vault999"
+    "VAULT999_DB",
+    "postgresql://arifos_admin:ArifPostgresVault2026!@72.62.71.199:5432/vault999",
 )
 
 TESTS_PASSED = 0
@@ -177,7 +178,9 @@ async def test_successful_seal_path(conn_vw):
         witness = await conn.fetchrow(
             "SELECT ledger_id FROM vault999_witness WHERE ledger_id = $1", seal_id
         )
-        cq = await conn.fetchrow("SELECT status FROM cooling_queue WHERE id = $1", cooling_id)
+        cq = await conn.fetchrow(
+            "SELECT status FROM cooling_queue WHERE id = $1", cooling_id
+        )
 
         log(
             seal and seal["verdict"] == "SEAL" and seal["cooling_id"] == cooling_id,
@@ -229,11 +232,15 @@ async def test_successful_void_path(conn_vw):
         )
 
         # Verify NO vault_seals
-        seal = await conn.fetchrow("SELECT id FROM vault_seals WHERE cooling_id = $1", cooling_id)
+        seal = await conn.fetchrow(
+            "SELECT id FROM vault_seals WHERE cooling_id = $1", cooling_id
+        )
         hr = await conn.fetchrow(
             "SELECT decision FROM human_reviews WHERE cooling_id = $1", cooling_id
         )
-        cq = await conn.fetchrow("SELECT status FROM cooling_queue WHERE id = $1", cooling_id)
+        cq = await conn.fetchrow(
+            "SELECT status FROM cooling_queue WHERE id = $1", cooling_id
+        )
 
         log(seal is None, "NO vault_seals record for VOID")
         log(hr and hr["decision"] == "VOID", "human_reviews record created with VOID")
@@ -342,10 +349,15 @@ async def test_already_reviewed_item(conn_vw):
         )
 
         # Try to ratify again
-        row = await conn.fetchrow("SELECT status FROM cooling_queue WHERE id = $1", cooling_id)
+        row = await conn.fetchrow(
+            "SELECT status FROM cooling_queue WHERE id = $1", cooling_id
+        )
 
         if row["status"] != "awaiting_human":
-            log(True, f"Already-reviewed item correctly has status={row['status']}, cannot ratify")
+            log(
+                True,
+                f"Already-reviewed item correctly has status={row['status']}, cannot ratify",
+            )
         else:
             log(False, "Status still awaiting_human — not correctly protected")
 
@@ -387,7 +399,10 @@ async def test_missing_cooling_id_new_seal(conn_vw):
             log(False, "New seal without cooling_id was NOT rejected")
         except Exception as e:
             if "cooling_id" in str(e) or "new_require" in str(e):
-                log(True, f"New seal without cooling_id correctly rejected: {str(e)[:80]}")
+                log(
+                    True,
+                    f"New seal without cooling_id correctly rejected: {str(e)[:80]}",
+                )
             else:
                 log(True, f"Rejected by constraint: {str(e)[:80]}")
     finally:

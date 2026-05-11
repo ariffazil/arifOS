@@ -69,7 +69,9 @@ class M6M7InferenceEngine:
 if __name__ == "__main__":
     # Test M6/M7
     m6m7 = M6M7InferenceEngine()
-    test_mandate = {"normalized_intent": "How do constitutional floors prevent hallucinations?"}
+    test_mandate = {
+        "normalized_intent": "How do constitutional floors prevent hallucinations?"
+    }
     test_validation = {
         "amanah_score": 0.95,
         "validated_evidence": [

@@ -1,6 +1,10 @@
 import logging
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.earth3d")
 
@@ -16,7 +20,11 @@ def register_earth3d_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="earth3d_load_volume")
     async def earth3d_load_volume(volume_ref: str) -> dict:
         """Observe: Load a structural seismic volume for analysis."""
-        artifact = {"volume_ref": volume_ref, "status": "Active", "bbox": [0, 0, 100, 100]}
+        artifact = {
+            "volume_ref": volume_ref,
+            "status": "Active",
+            "bbox": [0, 0, 100, 100],
+        }
         return get_standard_envelope(
             artifact,
             tool_class="observe",
@@ -29,7 +37,10 @@ def register_earth3d_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="earth3d_interpret_horizons")
     async def earth3d_interpret_horizons(volume_ref: str) -> dict:
         """Interpret: Automatically/Manually pick horizons within the 3D volume."""
-        artifact = {"volume_ref": volume_ref, "horizons": ["Top_Reservoir", "Base_Seal"]}
+        artifact = {
+            "volume_ref": volume_ref,
+            "horizons": ["Top_Reservoir", "Base_Seal"],
+        }
         return get_standard_envelope(
             artifact,
             tool_class="interpret",
@@ -55,7 +66,11 @@ def register_earth3d_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="earth3d_verify_structural_integrity")
     async def earth3d_verify_structural_integrity(model_ref: str) -> dict:
         """Verify: Check model for structural paradoxes (e.g., overlapping faults)."""
-        artifact = {"model_ref": model_ref, "consistent": True, "verdict": "PHYSICALLY_FEASIBLE"}
+        artifact = {
+            "model_ref": model_ref,
+            "consistent": True,
+            "verdict": "PHYSICALLY_FEASIBLE",
+        }
         return get_standard_envelope(
             artifact,
             tool_class="verify",

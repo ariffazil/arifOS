@@ -12,7 +12,6 @@ from ..adapters.geox_adapter import geox_witness
 from ..adapters.wealth_adapter import wealth_witness
 from ..adapters.well_adapter import well_witness
 
-
 geox_context_resource = Resource(
     uri="resource://geox/context",
     name="GEOX Context",

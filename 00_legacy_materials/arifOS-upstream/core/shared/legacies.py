@@ -48,7 +48,11 @@ class Quote:
     floor_resonance: str | None = None  # Which floor this quote embodies
 
     def to_dict(self) -> dict[str, Any]:
-        return {"text": self.text, "source": self.source, "floor_resonance": self.floor_resonance}
+        return {
+            "text": self.text,
+            "source": self.source,
+            "floor_resonance": self.floor_resonance,
+        }
 
 
 @dataclass(frozen=True)
@@ -149,7 +153,9 @@ class Legacies99:
                 "Cargo Cult Science",
                 "F2",
             ),
-            Quote("What I cannot create, I do not understand.", "Caltech Lectures", "F1"),
+            Quote(
+                "What I cannot create, I do not understand.", "Caltech Lectures", "F1"
+            ),
         ),
         thermodynamic_role="Defines Truth (F2) through verifiable construction. Anti-hallucination baseline.",
         tags=("truth", "integrity", "physics", "quantum"),
@@ -377,7 +383,9 @@ class Legacies99:
         secondary_floors=("F2", "F6"),
         dial_affinity=(DialAffinity.AKAL, DialAffinity.PRESENT),
         quotes=(
-            Quote("The only true wisdom is in knowing you know nothing.", "Apology", "F7"),
+            Quote(
+                "The only true wisdom is in knowing you know nothing.", "Apology", "F7"
+            ),
             Quote("The unexamined life is not worth living.", "Apology", "F8"),
         ),
         thermodynamic_role="Defines Humility (F7). Absolute certainty is a lie — uncertainty band origin.",
@@ -394,7 +402,11 @@ class Legacies99:
         secondary_floors=("F2", "F6"),
         dial_affinity=(DialAffinity.PRESENT, DialAffinity.EXPLORATION),
         quotes=(
-            Quote("Doubt is the beginning of true knowledge.", "Deliverance from Error", "F7"),
+            Quote(
+                "Doubt is the beginning of true knowledge.",
+                "Deliverance from Error",
+                "F7",
+            ),
         ),
         thermodynamic_role="Doubt as epistemic foundation. Skepticism prevents certainty traps.",
         tags=("skepticism", "faith", "knowledge", "islamic-philosophy"),
@@ -460,8 +472,14 @@ class Legacies99:
         secondary_floors=("F4", "F8"),
         dial_affinity=(DialAffinity.PRESENT, DialAffinity.ENERGY),
         quotes=(
-            Quote("The Tao that can be told is not the eternal Tao.", "Tao Te Ching", "F7"),
-            Quote("Nature does not hurry, yet everything is accomplished.", "Tao Te Ching", "F5"),
+            Quote(
+                "The Tao that can be told is not the eternal Tao.", "Tao Te Ching", "F7"
+            ),
+            Quote(
+                "Nature does not hurry, yet everything is accomplished.",
+                "Tao Te Ching",
+                "F5",
+            ),
         ),
         thermodynamic_role="Wu Wei — Vitality Index prevents over-computation. Natural flow minimizes energy.",
         tags=("taoism", "wu-wei", "nature", "flow"),
@@ -478,9 +496,15 @@ class Legacies99:
         dial_affinity=(DialAffinity.EXPLORATION, DialAffinity.ENERGY),
         quotes=(
             Quote(
-                "He who has a why to live can bear almost any how.", "Twilight of the Idols", "F8"
+                "He who has a why to live can bear almost any how.",
+                "Twilight of the Idols",
+                "F8",
             ),
-            Quote("That which does not kill us makes us stronger.", "Thus Spoke Zarathustra", "F5"),
+            Quote(
+                "That which does not kill us makes us stronger.",
+                "Thus Spoke Zarathustra",
+                "F5",
+            ),
         ),
         thermodynamic_role="Genius requires overcoming. X (exploration) through existential crisis.",
         tags=("existentialism", "overcoming", "genius", "will"),
@@ -561,9 +585,15 @@ class Legacies99:
         secondary_floors=("F5", "F6"),
         dial_affinity=(DialAffinity.PRESENT, DialAffinity.ENERGY),
         quotes=(
-            Quote("Luck is what happens when preparation meets opportunity.", "Letter", "F8"),
             Quote(
-                "We suffer more often in imagination than in reality.", "Letter to Lucilius", "F5"
+                "Luck is what happens when preparation meets opportunity.",
+                "Letter",
+                "F8",
+            ),
+            Quote(
+                "We suffer more often in imagination than in reality.",
+                "Letter to Lucilius",
+                "F5",
             ),
         ),
         thermodynamic_role="Reversibility (F1) and preparation. Fortune favors the prepared mind.",

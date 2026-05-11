@@ -346,14 +346,19 @@ class SeismicInterpretationProtocol:
             "current_step": self.current_step,
             "total_steps": len(self.steps),
             "step_name": current_step.step_name if current_step else None,
-            "checkpoint_id": current_checkpoint.checkpoint_id if current_checkpoint else None,
-            "checkpoint_passed": current_checkpoint.passed if current_checkpoint else None,
+            "checkpoint_id": (
+                current_checkpoint.checkpoint_id if current_checkpoint else None
+            ),
+            "checkpoint_passed": (
+                current_checkpoint.passed if current_checkpoint else None
+            ),
             "can_override": (
                 current_checkpoint.override_available if current_checkpoint else False
             ),
             "steps_completed": sum(1 for s in self.steps if s.status == "COMPLETE"),
             "checkpoints_passed": sum(1 for c in self.checkpoints if c.passed),
-            "is_complete": self.state in (ProtocolState.COMPLETE, ProtocolState.REJECTED),
+            "is_complete": self.state
+            in (ProtocolState.COMPLETE, ProtocolState.REJECTED),
             "is_rejected": self.state == ProtocolState.REJECTED,
         }
 
@@ -377,7 +382,9 @@ class SeismicInterpretationProtocol:
                 "total_steps": len(self.steps),
                 "completed": sum(1 for s in self.steps if s.status == "COMPLETE"),
                 "checkpoints_passed": sum(1 for c in self.checkpoints if c.passed),
-                "checkpoints_overridden": sum(1 for c in self.checkpoints if c.overridden),
+                "checkpoints_overridden": sum(
+                    1 for c in self.checkpoints if c.overridden
+                ),
                 "success": self.state == ProtocolState.COMPLETE,
             },
         }

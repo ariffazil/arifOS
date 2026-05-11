@@ -4,7 +4,12 @@ tests/core/test_unified_memory.py — Tests for the Unified Memory (Stage 555)
 
 import pytest
 from unittest.mock import patch
-from core.organs.unified_memory import UnifiedMemory, get_unified_memory, vault, MemoryResult
+from core.organs.unified_memory import (
+    UnifiedMemory,
+    get_unified_memory,
+    vault,
+    MemoryResult,
+)
 from core.shared.types import Verdict
 
 

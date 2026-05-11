@@ -52,7 +52,10 @@ class TestAdversarialIdentity:
         # 2. Try to use session A's auth_context for session B
         session_b = "session-beta"
         env_b = await arifos_kernel(
-            query="test mismatch", session_id=session_b, auth_context=auth_a_dict, risk_tier="high"
+            query="test mismatch",
+            session_id=session_b,
+            auth_context=auth_a_dict,
+            risk_tier="high",
         )
 
         # Result should be HOLD or VOID or SABAR
@@ -73,7 +76,9 @@ class TestAdversarialIdentity:
         'Arif\0' or ' Arif '
         Requirement: Normalization must strip and clean identity claims.
         """
-        envelope = await init_anchor(mode="init", actor_id="  Arif  ", declared_name="Arif\0")
+        envelope = await init_anchor(
+            mode="init", actor_id="  Arif  ", declared_name="Arif\0"
+        )
 
         # Result must be clean
         resolved_id = envelope.authority.actor_id

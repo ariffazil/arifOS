@@ -1,7 +1,11 @@
 import logging
 from typing import Optional
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.physics")
 
@@ -15,20 +19,28 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
     try:
         from services.governance.judge import judge
         from services.evidence_store.store import store
-        from geox.shared.contracts.schemas import EvidenceObject, EvidenceRef, EvidenceKind
+        from geox.shared.contracts.schemas import (
+            EvidenceObject,
+            EvidenceRef,
+            EvidenceKind,
+        )
         from datetime import datetime, timezone
     except ImportError:
         logger.error("Physics services unavailable")
         return
 
     @mcp.tool(name="physics_judge_verdict")
-    async def physics_judge_verdict(intent_ref: str, well_ref: str, prospect_ref: str) -> dict:
+    async def physics_judge_verdict(
+        intent_ref: str, well_ref: str, prospect_ref: str
+    ) -> dict:
         """Judge: Execute the Sovereign 888_JUDGE on a Causal Scene."""
         well = store.get_evidence(well_ref)
         prospect = store.get_evidence(prospect_ref)
 
         if not well or not prospect:
-            artifact = {"error": f"Evidence not found: well={well_ref}, prospect={prospect_ref}"}
+            artifact = {
+                "error": f"Evidence not found: well={well_ref}, prospect={prospect_ref}"
+            }
             return get_standard_envelope(
                 artifact,
                 tool_class="judge",
@@ -64,7 +76,11 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="physics_validate_operation")
     async def physics_validate_operation(operation_ref: str) -> dict:
         """Verify: Check if current operation adheres to safety and physical bounds."""
-        artifact = {"operation_ref": operation_ref, "status": "validated", "seal": "F9_PHYSICS_9"}
+        artifact = {
+            "operation_ref": operation_ref,
+            "status": "validated",
+            "seal": "F9_PHYSICS_9",
+        }
         return get_standard_envelope(
             artifact,
             tool_class="verify",
@@ -103,7 +119,9 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
         Compute: Reservoir calculation over physical parameters (Stock Tank Oil Initially In Place).
         """
         try:
-            from arifos.geox.tools.volumetrics_economics_tool import VolumetricsEconomicsTool
+            from arifos.geox.tools.volumetrics_economics_tool import (
+                VolumetricsEconomicsTool,
+            )
 
             tool = VolumetricsEconomicsTool()
             result = await tool.run(inputs)
@@ -148,7 +166,11 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
             )
         except Exception as e:
             logger.error(f"STOIIP calculation failed: {e}")
-            artifact = {"error": str(e), "verdict": "HOLD", "seal": "DITEMPA_BUKAN_DIBERI"}
+            artifact = {
+                "error": str(e),
+                "verdict": "HOLD",
+                "seal": "DITEMPA_BUKAN_DIBERI",
+            }
             return get_standard_envelope(
                 artifact,
                 tool_class="compute",
@@ -225,7 +247,9 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
             )
 
         @mcp.tool(name="physics_acp_grant_seal")
-        async def physics_acp_grant_seal(proposal_ref: str, human_auth_token: str) -> dict:
+        async def physics_acp_grant_seal(
+            proposal_ref: str, human_auth_token: str
+        ) -> dict:
             """Grant 999_SEAL (sovereign human authority)."""
             artifact = await acp_grant_seal(proposal_ref, human_auth_token)
             return get_standard_envelope(
@@ -264,7 +288,9 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
 
             # Anti-Hantu check: prevent consciousness claims in transform logic
             for t in transform_stack:
-                if any(banned in t.lower() for banned in ["conscious", "sentient", "feel"]):
+                if any(
+                    banned in t.lower() for banned in ["conscious", "sentient", "feel"]
+                ):
                     artifact = {
                         "error": "Anti-Hantu Violation: Consciousness claim detected in transform stack."
                     }
@@ -277,7 +303,9 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
                     )
 
             result = ACRiskCalculator.calculate(
-                u_phys=u_phys, transform_stack=transform_stack, bias_scenario=bias_scenario
+                u_phys=u_phys,
+                transform_stack=transform_stack,
+                bias_scenario=bias_scenario,
             )
 
             artifact = result.to_dict()

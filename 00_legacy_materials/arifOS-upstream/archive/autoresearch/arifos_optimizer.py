@@ -31,7 +31,6 @@ from typing import Dict, List, Optional, Tuple
 from train import ExperimentConfig, apply_config, revert_config
 from prepare import ConstitutionalEvaluator, TARGET_SCORE
 
-
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
@@ -147,10 +146,19 @@ class ArifOSOptimizer:
         variations = [
             ("throughput_focus", {"stage_333_mind": 1.0, "stage_888_judge": 0.8}),
             ("parallel_max", {"enable_parallel_555_666": True}),
-            ("early_exit_aggressive", {"enable_early_exit": True, "early_exit_epsilon": 0.005}),
-            ("cache_aggressive", {"cache_ttl_short_term": 600, "cache_ttl_medium_term": 3600}),
+            (
+                "early_exit_aggressive",
+                {"enable_early_exit": True, "early_exit_epsilon": 0.005},
+            ),
+            (
+                "cache_aggressive",
+                {"cache_ttl_short_term": 600, "cache_ttl_medium_term": 3600},
+            ),
             ("w3_tight", {"w3_threshold": 0.97}),
-            ("omega_humble", {"omega_simple_tasks": 0.035, "omega_medium_tasks": 0.045}),
+            (
+                "omega_humble",
+                {"omega_simple_tasks": 0.035, "omega_medium_tasks": 0.045},
+            ),
         ]
 
         # Pick a variation not yet tried
@@ -237,7 +245,10 @@ class ArifOSOptimizer:
         }
 
     def run_overnight(
-        self, max_experiments: int = 20, experiment_duration: int = 300, sleep_between: int = 10
+        self,
+        max_experiments: int = 20,
+        experiment_duration: int = 300,
+        sleep_between: int = 10,
     ):
         """
         Run experiments overnight (or until max_experiments reached).
@@ -247,7 +258,9 @@ class ArifOSOptimizer:
         """
         print("\n🌙 OVERNIGHT MODE")
         print(f"Max experiments: {max_experiments}")
-        print(f"Duration per experiment: {experiment_duration}s ({experiment_duration/60:.1f} min)")
+        print(
+            f"Duration per experiment: {experiment_duration}s ({experiment_duration/60:.1f} min)"
+        )
         print(
             f"Total estimated time: {(experiment_duration + sleep_between) * max_experiments / 60:.1f} min"
         )
@@ -308,7 +321,9 @@ class ArifOSOptimizer:
         history = self.load_history()
         if history:
             print("Top 5 experiments:")
-            sorted_history = sorted(history, key=lambda x: x["composite_score"], reverse=True)
+            sorted_history = sorted(
+                history, key=lambda x: x["composite_score"], reverse=True
+            )
             for i, exp in enumerate(sorted_history[:5], 1):
                 print(
                     f"  {i}. {exp['experiment_id']}: {exp['composite_score']:.4f} ({exp['change_description'][:50]})"
@@ -367,14 +382,23 @@ def main():
 
     parser = argparse.ArgumentParser(description="arifOS Autoresearch Optimizer")
     parser.add_argument("--status", action="store_true", help="Show status and exit")
-    parser.add_argument("--runs", type=int, default=0, help="Number of experiments to run")
     parser.add_argument(
-        "--overnight", action="store_true", help="Run overnight mode (up to 20 experiments)"
+        "--runs", type=int, default=0, help="Number of experiments to run"
+    )
+    parser.add_argument(
+        "--overnight",
+        action="store_true",
+        help="Run overnight mode (up to 20 experiments)",
     )
     parser.add_argument("--experiment", type=str, help="Run a specific experiment")
-    parser.add_argument("--change", type=str, help="Change description for specific experiment")
     parser.add_argument(
-        "--duration", type=int, default=300, help="Experiment duration in seconds (default: 300)"
+        "--change", type=str, help="Change description for specific experiment"
+    )
+    parser.add_argument(
+        "--duration",
+        type=int,
+        default=300,
+        help="Experiment duration in seconds (default: 300)",
     )
 
     args = parser.parse_args()

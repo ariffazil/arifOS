@@ -81,7 +81,11 @@ class TimeSubstrateHandler(SubstrateHandler):
 
     def handle_health(self):
         self.send_json_response(
-            {"status": "OK", "service": "mcp_time", "timestamp": datetime.now(UTC).isoformat()}
+            {
+                "status": "OK",
+                "service": "mcp_time",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
         )
 
     def handle_list_tools(self):
@@ -90,7 +94,10 @@ class TimeSubstrateHandler(SubstrateHandler):
                 "tools": [
                     {"name": "get_current_time", "description": "Get current UTC time"},
                     {"name": "get_epoch", "description": "Get Unix epoch timestamp"},
-                    {"name": "convert_timezone", "description": "Convert between timezones"},
+                    {
+                        "name": "convert_timezone",
+                        "description": "Convert between timezones",
+                    },
                 ]
             }
         )
@@ -138,8 +145,14 @@ class FilesystemSubstrateHandler(SubstrateHandler):
             {
                 "tools": [
                     {"name": "read_file", "description": "Read file contents"},
-                    {"name": "write_file", "description": "Write file (requires 888_HOLD)"},
-                    {"name": "list_directory", "description": "List directory contents"},
+                    {
+                        "name": "write_file",
+                        "description": "Write file (requires 888_HOLD)",
+                    },
+                    {
+                        "name": "list_directory",
+                        "description": "List directory contents",
+                    },
                     {
                         "name": "delete_file",
                         "description": "Delete file (F1 - requires ratification)",
@@ -163,7 +176,10 @@ class FilesystemSubstrateHandler(SubstrateHandler):
         elif tool_name == "list_directory":
             result = {"status": "OK", "action": "list", "path": arguments.get("path")}
         elif tool_name == "write_file":
-            result = {"status": "HOLD", "message": "Write operations require verification"}
+            result = {
+                "status": "HOLD",
+                "message": "Write operations require verification",
+            }
         else:
             result = {"error": f"Unknown tool: {tool_name}"}
 
@@ -176,7 +192,9 @@ class GitSubstrateHandler(SubstrateHandler):
     substrate_name = "mcp_git"
 
     def handle_health(self):
-        self.send_json_response({"status": "OK", "service": "mcp_git", "f11_enforcement": True})
+        self.send_json_response(
+            {"status": "OK", "service": "mcp_git", "f11_enforcement": True}
+        )
 
     def handle_list_tools(self):
         self.send_json_response(
@@ -240,8 +258,14 @@ class MemorySubstrateHandler(SubstrateHandler):
                 "tools": [
                     {"name": "create_entity", "description": "Create new entity"},
                     {"name": "get_entity", "description": "Retrieve entity by ID"},
-                    {"name": "create_relation", "description": "Create relation between entities"},
-                    {"name": "search_entities", "description": "Search entities by property"},
+                    {
+                        "name": "create_relation",
+                        "description": "Create relation between entities",
+                    },
+                    {
+                        "name": "search_entities",
+                        "description": "Search entities by property",
+                    },
                 ]
             }
         )
@@ -312,9 +336,15 @@ class FetchSubstrateHandler(SubstrateHandler):
         self.send_json_response(
             {
                 "tools": [
-                    {"name": "fetch_url", "description": "Fetch URL content (F9 protected)"},
+                    {
+                        "name": "fetch_url",
+                        "description": "Fetch URL content (F9 protected)",
+                    },
                     {"name": "fetch_json", "description": "Fetch and parse JSON"},
-                    {"name": "check_url_safety", "description": "Check if URL is safe to fetch"},
+                    {
+                        "name": "check_url_safety",
+                        "description": "Check if URL is safe to fetch",
+                    },
                 ]
             }
         )
@@ -357,7 +387,12 @@ class EverythingSubstrateHandler(SubstrateHandler):
 
     def handle_health(self):
         self.send_json_response(
-            {"status": "OK", "service": "mcp_everything", "conformance": True, "version": "1.0"}
+            {
+                "status": "OK",
+                "service": "mcp_everything",
+                "conformance": True,
+                "version": "1.0",
+            }
         )
 
     def handle_list_tools(self):
@@ -366,7 +401,10 @@ class EverythingSubstrateHandler(SubstrateHandler):
                 "tools": [
                     {"name": "echo", "description": "Echo back input"},
                     {"name": "add", "description": "Add two numbers"},
-                    {"name": "long_running_op", "description": "Test long-running operation"},
+                    {
+                        "name": "long_running_op",
+                        "description": "Test long-running operation",
+                    },
                 ]
             }
         )

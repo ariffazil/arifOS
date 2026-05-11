@@ -46,7 +46,11 @@ def geox_feasibility_check(constraints: list[str]) -> dict[str, Any]:
     Physical possibility is bounded by known Earth limits.
     """
     if not constraints:
-        return {"feasible": False, "verdict": "VOID", "reason": "No constraints provided"}
+        return {
+            "feasible": False,
+            "verdict": "VOID",
+            "reason": "No constraints provided",
+        }
 
     # Hard physics bounds — these are non-negotiable Earth limits
     _PHYSICAL_BOUNDS = {
@@ -86,7 +90,11 @@ def geox_feasibility_check(constraints: list[str]) -> dict[str, Any]:
             "violations": violations,
         }
 
-    return {"feasible": True, "verdict": "PASS", "reason": "Within known physical bounds"}
+    return {
+        "feasible": True,
+        "verdict": "PASS",
+        "reason": "Within known physical bounds",
+    }
 
 
 def evaluate_prospect(prospect_id: str) -> GeoxVerdict:

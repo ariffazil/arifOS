@@ -98,7 +98,11 @@ class EntropyIncreaseError(ThermodynamicError):
     """F4: Semantic clarity loss (output less informative than input)."""
 
     def __init__(
-        self, delta_s: float, input_metric: float, output_metric: float, reason: str = None
+        self,
+        delta_s: float,
+        input_metric: float,
+        output_metric: float,
+        reason: str = None,
     ):
         if reason:
             msg = f"F4 Clarity VIOLATED: {reason}"
@@ -278,7 +282,9 @@ class ThermodynamicBudget:
         if not result["passed"]:
             self.landauer_violations += 1
             if self.landauer_violations >= self.max_violations:
-                raise LandauerError(result["efficiency_ratio"], delta_s, result["actual_joules"])
+                raise LandauerError(
+                    result["efficiency_ratio"], delta_s, result["actual_joules"]
+                )
 
         return {
             "passed": result["passed"],
@@ -605,7 +611,9 @@ def check_landauer_bound(
 _thermodynamic_registry: dict[str, ThermodynamicBudget] = {}
 
 
-def init_thermodynamic_budget(session_id: str, initial_budget: float = 1.0) -> ThermodynamicBudget:
+def init_thermodynamic_budget(
+    session_id: str, initial_budget: float = 1.0
+) -> ThermodynamicBudget:
     """
     Initialize mandatory thermodynamic budget for a session.
 
@@ -656,7 +664,9 @@ def consume_token_energy(session_id: str, n_tokens: int) -> None:
     budget.consume_tokens(n_tokens)
 
 
-def record_entropy_io(session_id: str, input_entropy: float, output_entropy: float) -> float:
+def record_entropy_io(
+    session_id: str, input_entropy: float, output_entropy: float
+) -> float:
     """
     Record entropy input/output and check F4 Clarity.
 
@@ -710,7 +720,9 @@ def get_thermodynamic_report(session_id: str) -> dict[str, Any]:
     compliance = {
         "F4_clarity": all(
             out[1] <= inp[1]
-            for out, inp in zip(budget.entropy_output_log, budget.entropy_input_log, strict=False)
+            for out, inp in zip(
+                budget.entropy_output_log, budget.entropy_input_log, strict=False
+            )
         ),
         "F7_budget": not budget.is_exhausted,
         "landauer_violations": budget.landauer_violations,

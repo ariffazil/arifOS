@@ -35,7 +35,11 @@ class CodeRefactorSkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _propose_refactor(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         params.get("code", "")
         params.get("goal", "")
@@ -57,7 +61,11 @@ class CodeRefactorSkill:
         }
 
     async def _apply_refactor(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         file_path = params.get("file_path", "")
 
@@ -70,7 +78,12 @@ class CodeRefactorSkill:
             }
 
         if reality_bridge:
-            return {"verdict": "SEAL", "mode": "real", "file": file_path, "checkpoint": checkpoint}
+            return {
+                "verdict": "SEAL",
+                "mode": "real",
+                "file": file_path,
+                "checkpoint": checkpoint,
+            }
 
         return {"verdict": "VOID", "error": "No reality bridge available"}
 
@@ -87,7 +100,9 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     skill = CodeRefactorSkill()
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

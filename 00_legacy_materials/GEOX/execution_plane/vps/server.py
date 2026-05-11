@@ -171,7 +171,11 @@ async def list_geox_apps() -> str:
         if os.path.exists(manifest_path):
             with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest = json.load(f)
-                uris = manifest.get("capabilities", {}).get("ui", {}).get("resource_uris", [])
+                uris = (
+                    manifest.get("capabilities", {})
+                    .get("ui", {})
+                    .get("resource_uris", [])
+                )
                 return json.dumps({"apps": uris, "manifest": manifest})
         return json.dumps({"apps": []})
     except Exception as e:
@@ -237,7 +241,11 @@ if HAS_FASTMCP_APPS:
             with Row(gap=4):
                 StatCard(label="Trajectories", value=len(options))
                 StatCard(label="Subsurface Risk", value="Moderate")
-                StatCard(label="Governance", value="888_HOLD ACTIVE", css_class="text-amber-500")
+                StatCard(
+                    label="Governance",
+                    value="888_HOLD ACTIVE",
+                    css_class="text-amber-500",
+                )
 
             Table(
                 data=options,
@@ -265,7 +273,11 @@ if HAS_FASTMCP_APPS:
     async def trigger_well_seal(well_id: str, signature: str) -> dict:
         """Server-side enforcement of 999_SEAL for petrophysics override.
         Approval provider handles UX, this tool handles actual cryptographic log."""
-        return {"status": "888_HOLD Lifted", "seal_granted": True, "sealed_by": signature}
+        return {
+            "status": "888_HOLD Lifted",
+            "seal_granted": True,
+            "sealed_by": signature,
+        }
 
     @well_app.ui()
     def well_dashboard(well_id: str) -> PrefabApp:
@@ -278,7 +290,9 @@ if HAS_FASTMCP_APPS:
             with Row(gap=4):
                 StatCard(label="Porosity (\u03c6)", value="22%")
                 StatCard(label="Water Sat (Sw)", value="45%")
-                StatCard(label="Governance", value="888_HOLD", css_class="text-amber-500")
+                StatCard(
+                    label="Governance", value="888_HOLD", css_class="text-amber-500"
+                )
 
             # Action demanding Approval provider before allowing execution
             CallTool(
@@ -335,7 +349,10 @@ async def health_handler(request):
 async def run_legacy_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     # This server uses the canonical tools directly from registries
     tool_result = await mcp.call_tool(name, arguments)
-    return {"success": True, "data": tool_result.content[0].text if tool_result.content else {}}
+    return {
+        "success": True,
+        "data": tool_result.content[0].text if tool_result.content else {},
+    }
 
 
 async def legacy_mcp_handler(request):
@@ -349,8 +366,13 @@ async def legacy_mcp_handler(request):
     response_id = payload.get("id")
 
     if method == "tools/list":
-        tools = [{"name": t.name, "description": t.description} for t in await mcp.list_tools()]
-        return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}})
+        tools = [
+            {"name": t.name, "description": t.description}
+            for t in await mcp.list_tools()
+        ]
+        return JSONResponse(
+            {"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}}
+        )
 
     if method == "tools/call":
         name = params.get("name")

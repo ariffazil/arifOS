@@ -18,7 +18,9 @@ class TestVaultOrgan:
         from core.organs._4_vault import vault
 
         result = await vault(
-            action="commit", session_id="test-vault-001", payload={"data": "test commit data"}
+            action="commit",
+            session_id="test-vault-001",
+            payload={"data": "test commit data"},
         )
 
         assert result["session_id"] == "test-vault-001"
@@ -31,7 +33,9 @@ class TestVaultOrgan:
         from core.organs._4_vault import vault
 
         result = await vault(
-            action="seal", session_id="test-vault-002", payload={"final_state": "complete"}
+            action="seal",
+            session_id="test-vault-002",
+            payload={"final_state": "complete"},
         )
 
         assert result["session_id"] == "test-vault-002"
@@ -64,7 +68,9 @@ class TestVaultOrgan:
 
         # Create multiple commits
         for i in range(3):
-            await vault(action="commit", session_id="test-vault-004", payload={"index": i})
+            await vault(
+                action="commit", session_id="test-vault-004", payload={"index": i}
+            )
 
         # List commits
         result = await vault(action="list", session_id="test-vault-004")
@@ -81,7 +87,11 @@ class TestVaultOrgan:
             action="commit",
             session_id="test-vault-005",
             payload={"data": "test"},
-            metadata={"author": "test-user", "tags": ["test", "vault"], "priority": "high"},
+            metadata={
+                "author": "test-user",
+                "tags": ["test", "vault"],
+                "priority": "high",
+            },
         )
 
         assert result["session_id"] == "test-vault-005"
@@ -116,7 +126,9 @@ class TestVaultOrgan:
         from core.organs._4_vault import vault
 
         result = await vault(
-            action="retrieve", session_id="test-vault-008", commit_id="nonexistent-id-12345"
+            action="retrieve",
+            session_id="test-vault-008",
+            commit_id="nonexistent-id-12345",
         )
 
         assert result["found"] is False
@@ -129,7 +141,9 @@ class TestVaultOrgan:
         large_data = "x" * 10000  # 10KB of data
 
         result = await vault(
-            action="commit", session_id="test-vault-009", payload={"large_field": large_data}
+            action="commit",
+            session_id="test-vault-009",
+            payload={"large_field": large_data},
         )
 
         assert result["session_id"] == "test-vault-009"
@@ -172,10 +186,18 @@ class TestVaultEdgeCases:
         from core.organs._4_vault import vault
 
         # Commit in session 1
-        await vault(action="commit", session_id="session-a", payload={"secret": "session-a-data"})
+        await vault(
+            action="commit",
+            session_id="session-a",
+            payload={"secret": "session-a-data"},
+        )
 
         # Commit in session 2
-        await vault(action="commit", session_id="session-b", payload={"secret": "session-b-data"})
+        await vault(
+            action="commit",
+            session_id="session-b",
+            payload={"secret": "session-b-data"},
+        )
 
         # List should only show session-a commits
         result_a = await vault(action="list", session_id="session-a")
@@ -193,9 +215,13 @@ class TestVaultEdgeCases:
         """Test vault with deeply nested data structures."""
         from core.organs._4_vault import vault
 
-        nested_data = {"level1": {"level2": {"level3": {"level4": ["deep", "data", "here"]}}}}
+        nested_data = {
+            "level1": {"level2": {"level3": {"level4": ["deep", "data", "here"]}}}
+        }
 
-        result = await vault(action="commit", session_id="test-vault-nested", payload=nested_data)
+        result = await vault(
+            action="commit", session_id="test-vault-nested", payload=nested_data
+        )
 
         assert result["status"] == "committed"
 
@@ -207,7 +233,9 @@ class TestVaultEdgeCases:
         binary_like = b"\x00\x01\x02\x03\xff\xfe".decode("latin-1", errors="replace")
 
         result = await vault(
-            action="commit", session_id="test-vault-binary", payload={"binary": binary_like}
+            action="commit",
+            session_id="test-vault-binary",
+            payload={"binary": binary_like},
         )
 
         assert result["status"] == "committed"

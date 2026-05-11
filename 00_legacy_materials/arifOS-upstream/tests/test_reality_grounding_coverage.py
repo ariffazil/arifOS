@@ -33,7 +33,11 @@ class TestSearchResult:
         from arifosmcp.intelligence.tools.reality_grounding import SearchResult
 
         result = SearchResult(
-            title="Test", url="https://test.com", snippet="Snippet", source="test", rank=1
+            title="Test",
+            url="https://test.com",
+            snippet="Snippet",
+            source="test",
+            rank=1,
         )
 
         d = result.to_dict()
@@ -43,10 +47,17 @@ class TestSearchResult:
 
     def test_search_result_defaults(self):
         """Test SearchResult with default values"""
-        from arifosmcp.intelligence.tools.reality_grounding import SearchResult, UNCERTAINTY_DDGS
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            SearchResult,
+            UNCERTAINTY_DDGS,
+        )
 
         result = SearchResult(
-            title="Test", url="https://test.com", snippet="Snippet", source="ddgs", rank=1
+            title="Test",
+            url="https://test.com",
+            snippet="Snippet",
+            source="ddgs",
+            rank=1,
         )
 
         assert result.uncertainty == UNCERTAINTY_DDGS
@@ -61,7 +72,9 @@ class TestGroundingSearch:
         """Test grounding search returning results"""
         from arifosmcp.intelligence.tools.reality_grounding import grounding_search
 
-        with patch("arifosmcp.intelligence.tools.reality_grounding._search_ddgs") as mock_ddgs:
+        with patch(
+            "arifosmcp.intelligence.tools.reality_grounding._search_ddgs"
+        ) as mock_ddgs:
             mock_ddgs.return_value = [
                 Mock(
                     title="Result 1",
@@ -90,7 +103,9 @@ class TestGroundingSearch:
         """Test grounding search with no results"""
         from arifosmcp.intelligence.tools.reality_grounding import grounding_search
 
-        with patch("arifosmcp.intelligence.tools.reality_grounding._search_ddgs") as mock_ddgs:
+        with patch(
+            "arifosmcp.intelligence.tools.reality_grounding._search_ddgs"
+        ) as mock_ddgs:
             mock_ddgs.return_value = []
 
             results = await grounding_search("test query")
@@ -102,7 +117,9 @@ class TestGroundingSearch:
         """Test grounding search falls back to playwright"""
         from arifosmcp.intelligence.tools.reality_grounding import grounding_search
 
-        with patch("arifosmcp.intelligence.tools.reality_grounding._search_ddgs") as mock_ddgs:
+        with patch(
+            "arifosmcp.intelligence.tools.reality_grounding._search_ddgs"
+        ) as mock_ddgs:
             mock_ddgs.return_value = []  # DDGS fails
 
             with patch(
@@ -127,12 +144,21 @@ class TestSearchResultProcessing:
 
     def test_rank_results(self):
         """Test result ranking/sorting"""
-        from arifosmcp.intelligence.tools.reality_grounding import SearchResult, _rank_results
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            SearchResult,
+            _rank_results,
+        )
 
         results = [
-            SearchResult(title="C", url="https://c.com", snippet="C", source="ddgs", rank=3),
-            SearchResult(title="A", url="https://a.com", snippet="A", source="ddgs", rank=1),
-            SearchResult(title="B", url="https://b.com", snippet="B", source="ddgs", rank=2),
+            SearchResult(
+                title="C", url="https://c.com", snippet="C", source="ddgs", rank=3
+            ),
+            SearchResult(
+                title="A", url="https://a.com", snippet="A", source="ddgs", rank=1
+            ),
+            SearchResult(
+                title="B", url="https://b.com", snippet="B", source="ddgs", rank=2
+            ),
         ]
 
         ranked = _rank_results(results)
@@ -142,14 +168,25 @@ class TestSearchResultProcessing:
 
     def test_dedupe_results(self):
         """Test result deduplication"""
-        from arifosmcp.intelligence.tools.reality_grounding import SearchResult, _dedupe_results
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            SearchResult,
+            _dedupe_results,
+        )
 
         results = [
-            SearchResult(title="A", url="https://a.com", snippet="A", source="ddgs", rank=1),
             SearchResult(
-                title="A Duplicate", url="https://a.com", snippet="A", source="ddgs", rank=2
+                title="A", url="https://a.com", snippet="A", source="ddgs", rank=1
             ),
-            SearchResult(title="B", url="https://b.com", snippet="B", source="ddgs", rank=3),
+            SearchResult(
+                title="A Duplicate",
+                url="https://a.com",
+                snippet="A",
+                source="ddgs",
+                rank=2,
+            ),
+            SearchResult(
+                title="B", url="https://b.com", snippet="B", source="ddgs", rank=3
+            ),
         ]
 
         deduped = _dedupe_results(results)
@@ -157,12 +194,21 @@ class TestSearchResultProcessing:
 
     def test_filter_asean_sources(self):
         """Test ASEAN source filtering"""
-        from arifosmcp.intelligence.tools.reality_grounding import SearchResult, _filter_asean
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            SearchResult,
+            _filter_asean,
+        )
 
         results = [
-            SearchResult(title="MY", url="https://test.my", snippet="MY", source="ddgs", rank=1),
-            SearchResult(title="SG", url="https://test.sg", snippet="SG", source="ddgs", rank=2),
-            SearchResult(title="US", url="https://test.com", snippet="US", source="ddgs", rank=3),
+            SearchResult(
+                title="MY", url="https://test.my", snippet="MY", source="ddgs", rank=1
+            ),
+            SearchResult(
+                title="SG", url="https://test.sg", snippet="SG", source="ddgs", rank=2
+            ),
+            SearchResult(
+                title="US", url="https://test.com", snippet="US", source="ddgs", rank=3
+            ),
         ]
 
         asean = _filter_asean(results)
@@ -175,7 +221,9 @@ class TestThrottlingAndConfig:
 
     def test_default_throttle_constant(self):
         """Test throttle constant exists"""
-        from arifosmcp.intelligence.tools.reality_grounding import DEFAULT_THROTTLE_SECONDS
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            DEFAULT_THROTTLE_SECONDS,
+        )
 
         assert DEFAULT_THROTTLE_SECONDS == 2.0
 
@@ -238,7 +286,9 @@ class TestSearchWithConsensus:
                 "arifosmcp.intelligence.tools.reality_grounding.ConsensusArbitrator"
             ) as mock_ca:
                 mock_instance = Mock()
-                mock_instance.arbitrate.return_value = Mock(consensus=0.95, verdict="SUPPORTED")
+                mock_instance.arbitrate.return_value = Mock(
+                    consensus=0.95, verdict="SUPPORTED"
+                )
                 mock_ca.return_value = mock_instance
 
                 result = await search_with_consensus("test query")
@@ -257,7 +307,11 @@ class TestUnifiedToolOutput:
 
         results = [
             SearchResult(
-                title="Test", url="https://test.com", snippet="Snippet", source="ddgs", rank=1
+                title="Test",
+                url="https://test.com",
+                snippet="Snippet",
+                source="ddgs",
+                rank=1,
             )
         ]
 
@@ -268,7 +322,9 @@ class TestUnifiedToolOutput:
 
     def test_unified_output_empty(self):
         """Test unified output with no results"""
-        from arifosmcp.intelligence.tools.reality_grounding import _format_unified_output
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            _format_unified_output,
+        )
 
         output = _format_unified_output([], query="test")
         assert output["results"] == []
@@ -283,7 +339,9 @@ class TestErrorHandling:
         """Test grounding handles exceptions gracefully"""
         from arifosmcp.intelligence.tools.reality_grounding import grounding_search
 
-        with patch("arifosmcp.intelligence.tools.reality_grounding._search_ddgs") as mock_ddgs:
+        with patch(
+            "arifosmcp.intelligence.tools.reality_grounding._search_ddgs"
+        ) as mock_ddgs:
             mock_ddgs.side_effect = Exception("Network error")
 
             with patch("arifosmcp.intelligence.tools.reality_grounding.logger"):
@@ -297,17 +355,27 @@ class TestResultValidation:
 
     def test_validate_search_result_valid(self):
         """Test valid result passes validation"""
-        from arifosmcp.intelligence.tools.reality_grounding import SearchResult, _validate_result
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            SearchResult,
+            _validate_result,
+        )
 
         result = SearchResult(
-            title="Valid", url="https://valid.com", snippet="Valid snippet", source="ddgs", rank=1
+            title="Valid",
+            url="https://valid.com",
+            snippet="Valid snippet",
+            source="ddgs",
+            rank=1,
         )
 
         assert _validate_result(result) is True
 
     def test_validate_search_result_invalid(self):
         """Test invalid result fails validation"""
-        from arifosmcp.intelligence.tools.reality_grounding import SearchResult, _validate_result
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            SearchResult,
+            _validate_result,
+        )
 
         result = SearchResult(
             title="",  # Empty title

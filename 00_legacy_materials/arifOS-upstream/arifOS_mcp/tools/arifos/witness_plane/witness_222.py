@@ -113,7 +113,9 @@ def _fuse_geox_witness(query: str, evidence: Optional[dict]) -> dict:
         "evidence_type": "spatial_geological",
         "claim_tag": evidence.get("claim_tag", "OBSERVED") if evidence else "UNKNOWN",
         "summary": (
-            evidence.get("summary", "No GEOX evidence provided") if evidence else "NO_CONTEXT"
+            evidence.get("summary", "No GEOX evidence provided")
+            if evidence
+            else "NO_CONTEXT"
         ),
         "ontology_clean": True,
     }
@@ -127,7 +129,9 @@ def _fuse_wealth_witness(query: str, evidence: Optional[dict]) -> dict:
         "evidence_type": "capital_resource",
         "claim_tag": evidence.get("claim_tag", "COMPUTED") if evidence else "UNKNOWN",
         "summary": (
-            evidence.get("summary", "No WEALTH evidence provided") if evidence else "NO_CONTEXT"
+            evidence.get("summary", "No WEALTH evidence provided")
+            if evidence
+            else "NO_CONTEXT"
         ),
         "ontology_clean": True,
     }
@@ -141,7 +145,9 @@ def _fuse_well_witness(query: str, evidence: Optional[dict]) -> dict:
         "evidence_type": "biological_readiness",
         "claim_tag": evidence.get("claim_tag", "MEASURED") if evidence else "UNKNOWN",
         "summary": (
-            evidence.get("summary", "No WELL evidence provided") if evidence else "NO_CONTEXT"
+            evidence.get("summary", "No WELL evidence provided")
+            if evidence
+            else "NO_CONTEXT"
         ),
         "ontology_clean": True,
     }

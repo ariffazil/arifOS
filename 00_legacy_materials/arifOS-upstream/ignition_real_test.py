@@ -37,7 +37,9 @@ async def ignition():
 
     # 3. Initialize the ACTUAL SabarLoopController
     # (No mocks, no stubs. Real physics thresholds.)
-    controller = SabarLoopController(max_iterations=2, entropy_threshold=0.05, budget=10.0)
+    controller = SabarLoopController(
+        max_iterations=2, entropy_threshold=0.05, budget=10.0
+    )
 
     # 4. RUN THE LOOP
     print(f"Goal: {goal}")

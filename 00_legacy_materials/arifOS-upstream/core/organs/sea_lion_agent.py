@@ -14,7 +14,9 @@ class SeaLionEnvelope:
 
 
 async def sea_lion_generate(
-    prompt: str, max_tokens: int = 1000, model: str = "aisingapore/Gemma-SEA-LION-v4-27B-IT"
+    prompt: str,
+    max_tokens: int = 1000,
+    model: str = "aisingapore/Gemma-SEA-LION-v4-27B-IT",
 ) -> SeaLionEnvelope:
     """
     Real Intelligence via SEA-LION API (Singapore gov-backed LLM).

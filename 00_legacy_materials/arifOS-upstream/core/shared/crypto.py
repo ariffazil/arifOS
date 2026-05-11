@@ -112,7 +112,9 @@ def ed25519_sign(message: str, private_key: str) -> str:
         private_key_bytes = bytes.fromhex(private_key)
 
         # Load private key
-        private_key_obj = ed25519.Ed25519PrivateKey.from_private_bytes(private_key_bytes)
+        private_key_obj = ed25519.Ed25519PrivateKey.from_private_bytes(
+            private_key_bytes
+        )
 
         # Sign message
         signature = private_key_obj.sign(message.encode("utf-8"))
@@ -124,7 +126,9 @@ def ed25519_sign(message: str, private_key: str) -> str:
         # ValueError fires when private_key is a passphrase rather than hex bytes
         import hmac
 
-        return hmac.new(private_key.encode(), message.encode(), hashlib.sha256).hexdigest()
+        return hmac.new(
+            private_key.encode(), message.encode(), hashlib.sha256
+        ).hexdigest()
 
 
 def ed25519_verify(message: str, signature: str, public_key: str) -> bool:
@@ -375,7 +379,9 @@ class VaultSigner:
 
     def __init__(self, private_key_bytes: bytes | None = None):
         if private_key_bytes:
-            self._private_key = ed25519.Ed25519PrivateKey.from_private_bytes(private_key_bytes)
+            self._private_key = ed25519.Ed25519PrivateKey.from_private_bytes(
+                private_key_bytes
+            )
         else:
             self._private_key = ed25519.Ed25519PrivateKey.generate()
         self._public_key = self._private_key.public_key()
@@ -394,7 +400,9 @@ class VaultSigner:
         return sig.hex()
 
     @classmethod
-    def verify_hash(cls, blake3_hash_hex: str, signature_hex: str, public_key_hex: str) -> bool:
+    def verify_hash(
+        cls, blake3_hash_hex: str, signature_hex: str, public_key_hex: str
+    ) -> bool:
         """Verify the cryptographic seal."""
         try:
             pub_bytes = bytes.fromhex(public_key_hex)
@@ -423,7 +431,9 @@ def generate_zkpc_receipt(
         verdict=verdict,
         floors=floors,
         hash_commitment=hash_commitment,
-        policy_digest=blake3.blake3(f"policy-{verdict}-{signature}".encode()).hexdigest(),
+        policy_digest=blake3.blake3(
+            f"policy-{verdict}-{signature}".encode()
+        ).hexdigest(),
         trace_root=blake3.blake3(f"trace-{hash_commitment}".encode()).hexdigest(),
         program_id="arifOS-TPCP-Circuit-v1",
         output_commitment=blake3.blake3(f"out-{hash_commitment}".encode()).hexdigest(),

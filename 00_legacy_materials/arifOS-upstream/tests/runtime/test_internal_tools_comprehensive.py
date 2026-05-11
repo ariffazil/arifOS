@@ -55,7 +55,9 @@ class TestChromaQuery:
                 mock_point.payload = {"content": "text1", "key": "value"}
                 mock_point.vector = None
 
-                mock_client_instance.query_points.return_value = Mock(points=[mock_point])
+                mock_client_instance.query_points.return_value = Mock(
+                    points=[mock_point]
+                )
 
                 result = query_memory("test query")
 
@@ -78,7 +80,9 @@ class TestChromaQuery:
                 mock_point.payload = {"content": "text1"}
                 mock_point.vector = [0.1, 0.2, 0.3]
 
-                mock_client_instance.query_points.return_value = Mock(points=[mock_point])
+                mock_client_instance.query_points.return_value = Mock(
+                    points=[mock_point]
+                )
 
                 result = query_memory(
                     query="semantic search",
@@ -153,7 +157,9 @@ class TestCostEstimator:
 
             assert callable(cost_estimator)
         except ImportError:
-            pytest.skip("cost_estimator not found in runtime.tools - documentation mismatch")
+            pytest.skip(
+                "cost_estimator not found in runtime.tools - documentation mismatch"
+            )
 
 
 class TestForgeGuard:
@@ -211,7 +217,9 @@ class TestFsInspect:
 
                         result = inspect_path("/test/path")
 
-                        assert isinstance(result, dict), f"Expected dict, got {type(result)}"
+                        assert isinstance(
+                            result, dict
+                        ), f"Expected dict, got {type(result)}"
         except ImportError:
             pytest.skip("fs_inspector.inspect_path not found")
 
@@ -298,7 +306,9 @@ class TestLogTail:
         from arifosmcp.intelligence.tools.log_reader import log_tail
 
         with patch("os.path.exists") as mock_exists:
-            with patch("builtins.open", mock_open(read_data="test log line\nanother line")):
+            with patch(
+                "builtins.open", mock_open(read_data="test log line\nanother line")
+            ):
                 mock_exists.return_value = True
 
                 result = log_tail(
@@ -360,7 +370,9 @@ class TestMetabolicLoop:
         """Verify metabolic_loop returns dictionary"""
         from arifosmcp.runtime.orchestrator import metabolic_loop
 
-        with patch("arifosmcp.runtime.orchestrator.run_stage", new_callable=AsyncMock) as mock_run:
+        with patch(
+            "arifosmcp.runtime.orchestrator.run_stage", new_callable=AsyncMock
+        ) as mock_run:
             return_mock = Mock()
             return_mock.verdict = Mock()
             return_mock.verdict.value = "SEAL"
@@ -380,14 +392,18 @@ class TestMetabolicLoop:
         """Test metabolic_loop with timeout_seconds parameter"""
         from arifosmcp.runtime.orchestrator import metabolic_loop
 
-        with patch("arifosmcp.runtime.orchestrator.run_stage", new_callable=AsyncMock) as mock_run:
+        with patch(
+            "arifosmcp.runtime.orchestrator.run_stage", new_callable=AsyncMock
+        ) as mock_run:
             return_mock = Mock()
             return_mock.verdict = Mock()
             return_mock.verdict.value = "SEAL"
             return_mock.model_dump.return_value = {"ok": True}
             mock_run.return_value = return_mock
 
-            result = await metabolic_loop(query="test", session_id="test", timeout_seconds=30.0)
+            result = await metabolic_loop(
+                query="test", session_id="test", timeout_seconds=30.0
+            )
 
             assert isinstance(result, dict)
 
@@ -597,7 +613,9 @@ class TestSystemHealth:
         """Test system_health with all documented parameters"""
         from arifosmcp.intelligence.tools.system_monitor import get_resource_usage
 
-        result = get_resource_usage(include_swap=True, include_io=True, include_temp=True)
+        result = get_resource_usage(
+            include_swap=True, include_io=True, include_temp=True
+        )
 
         assert isinstance(result, dict)
 
@@ -735,7 +753,9 @@ class TestInternalToolsDocumentationAccuracy:
                 print(f"  • {tool}")
 
         # Document what we found vs what was documented
-        assert len(available_tools) >= 8, "Too many internal tools missing from documentation"
+        assert (
+            len(available_tools) >= 8
+        ), "Too many internal tools missing from documentation"
 
 
 class TestInputOutputConsistency:

@@ -123,9 +123,13 @@ class EarthModelTool(BaseTool):
         prov = _make_provenance(source_id, "LEM", confidence=0.82)
 
         quantities = [
-            _make_quantity(round(velocity, 1), "m/s", "seismic_velocity", location, prov, 0.08),
+            _make_quantity(
+                round(velocity, 1), "m/s", "seismic_velocity", location, prov, 0.08
+            ),
             _make_quantity(round(density, 3), "g/cm3", "density", location, prov, 0.06),
-            _make_quantity(round(porosity, 4), "fraction", "porosity", location, prov, 0.10),
+            _make_quantity(
+                round(porosity, 4), "fraction", "porosity", location, prov, 0.10
+            ),
         ]
 
         raw_output = {
@@ -236,7 +240,12 @@ class EOFoundationModelTool(BaseTool):
             ),
             _make_quantity(round(ndvi, 4), "fraction", "ndvi", location, prov, 0.09),
             _make_quantity(
-                round(thermal_anomaly, 2), "degC", "thermal_anomaly", location, prov, 0.12
+                round(thermal_anomaly, 2),
+                "degC",
+                "thermal_anomaly",
+                location,
+                prov,
+                0.12,
             ),
         ]
 
@@ -256,7 +265,11 @@ class EOFoundationModelTool(BaseTool):
         return GeoToolResult(
             quantities=quantities,
             raw_output=raw_output,
-            metadata={"model_version": "EO-FDN-GEOX-v0.1-mock", "seed": seed, "bands": bands},
+            metadata={
+                "model_version": "EO-FDN-GEOX-v0.1-mock",
+                "seed": seed,
+                "bands": bands,
+            },
             tool_name=self.name,
             latency_ms=round(latency_ms, 2),
             success=True,
@@ -486,7 +499,9 @@ class SimulatorTool(BaseTool):
         water_density_kgm3 = 1020.0
         g = 9.81
         hydrostatic_pa = water_density_kgm3 * g * depth
-        overpressure_factor = scenario.get("overpressure_factor", 1.0 + rng.uniform(0, 0.3))
+        overpressure_factor = scenario.get(
+            "overpressure_factor", 1.0 + rng.uniform(0, 0.3)
+        )
         pressure_pa = hydrostatic_pa * overpressure_factor
         pressure_psi = pressure_pa / 6894.76  # Pa to psi
 
@@ -495,9 +510,15 @@ class SimulatorTool(BaseTool):
         maturity_ro = min(4.0, max(0.2, maturity_ro))
 
         quantities = [
-            _make_quantity(round(pressure_psi, 1), "psi", "pressure_psi", location, prov, 0.08),
-            _make_quantity(round(temperature, 2), "degC", "temperature_degC", location, prov, 0.06),
-            _make_quantity(round(maturity_ro, 3), "fraction", "maturity_ro", location, prov, 0.10),
+            _make_quantity(
+                round(pressure_psi, 1), "psi", "pressure_psi", location, prov, 0.08
+            ),
+            _make_quantity(
+                round(temperature, 2), "degC", "temperature_degC", location, prov, 0.06
+            ),
+            _make_quantity(
+                round(maturity_ro, 3), "fraction", "maturity_ro", location, prov, 0.10
+            ),
         ]
 
         raw_output = {
@@ -624,7 +645,9 @@ class GeoRAGTool(BaseTool):
         candidates = self._LITERATURE_DB
         if basin:
             basin_lower = basin.lower()
-            candidates = [d for d in candidates if basin_lower in d.get("basin", "").lower()]
+            candidates = [
+                d for d in candidates if basin_lower in d.get("basin", "").lower()
+            ]
         # Fall back to all if no match
         if not candidates:
             candidates = self._LITERATURE_DB
@@ -638,10 +661,14 @@ class GeoRAGTool(BaseTool):
         citations_used: list[str] = []
 
         for hit in hits:
-            citation = f"{hit['authors']} ({hit['year']}). {hit['title']}. DOI: {hit['doi']}"
+            citation = (
+                f"{hit['authors']} ({hit['year']}). {hit['title']}. DOI: {hit['doi']}"
+            )
             citations_used.append(citation)
             source_id = f"LIT-{hit['doi'].replace('/', '-')}"
-            prov = _make_provenance(source_id, "literature", confidence=0.70, citation=citation)
+            prov = _make_provenance(
+                source_id, "literature", confidence=0.70, citation=citation
+            )
             location = CoordinatePoint(latitude=4.5, longitude=103.7)  # basin centroid
 
             # Sample mid-range values from literature ranges
@@ -649,14 +676,21 @@ class GeoRAGTool(BaseTool):
                 lo, hi = hit["porosity_range"]
                 porosity = rng.uniform(lo, hi)
                 quantities.append(
-                    _make_quantity(round(porosity, 4), "fraction", "porosity", location, prov, 0.12)
+                    _make_quantity(
+                        round(porosity, 4), "fraction", "porosity", location, prov, 0.12
+                    )
                 )
             if "velocity_range" in hit:
                 lo, hi = hit["velocity_range"]
                 velocity = rng.uniform(lo, hi)
                 quantities.append(
                     _make_quantity(
-                        round(velocity, 1), "m/s", "seismic_velocity", location, prov, 0.10
+                        round(velocity, 1),
+                        "m/s",
+                        "seismic_velocity",
+                        location,
+                        prov,
+                        0.10,
                     )
                 )
 
@@ -731,7 +765,8 @@ class ToolRegistry:
         """
         if name not in self._tools:
             raise KeyError(
-                f"Tool '{name}' not found in registry. " f"Available tools: {self.list_tools()}"
+                f"Tool '{name}' not found in registry. "
+                f"Available tools: {self.list_tools()}"
             )
         return self._tools[name]
 

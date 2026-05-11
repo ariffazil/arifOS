@@ -85,7 +85,12 @@ class MinimaxMCPBridge:
                 self._proc = await self._spawn()
 
             self._request_id += 1
-            req = {"jsonrpc": "2.0", "id": self._request_id, "method": method, "params": params}
+            req = {
+                "jsonrpc": "2.0",
+                "id": self._request_id,
+                "method": method,
+                "params": params,
+            }
 
             self._proc.stdin.write(json.dumps(req) + "\n")
             self._proc.stdin.flush()
@@ -118,10 +123,18 @@ class MinimaxMCPBridge:
                             "error": text,
                             "base_resp": {"status_code": 400, "status_msg": text},
                         }
-                    return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
-        return {"organic": [], "base_resp": {"status_code": -1, "status_msg": "no text content"}}
+                    return {
+                        "result": text,
+                        "base_resp": {"status_code": 200, "status_msg": "ok"},
+                    }
+        return {
+            "organic": [],
+            "base_resp": {"status_code": -1, "status_msg": "no text content"},
+        }
 
-    async def understand_image(self, image_url: str, prompt: str = "") -> dict[str, Any]:
+    async def understand_image(
+        self, image_url: str, prompt: str = ""
+    ) -> dict[str, Any]:
         """Analyze image via MiniMax MCP."""
         args: dict[str, Any] = {"image_source": image_url}
         if prompt:
@@ -144,8 +157,14 @@ class MinimaxMCPBridge:
                             "error": text,
                             "base_resp": {"status_code": 400, "status_msg": text},
                         }
-                    return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
-        return {"result": "", "base_resp": {"status_code": -1, "status_msg": "no text content"}}
+                    return {
+                        "result": text,
+                        "base_resp": {"status_code": 200, "status_msg": "ok"},
+                    }
+        return {
+            "result": "",
+            "base_resp": {"status_code": -1, "status_msg": "no text content"},
+        }
 
 
 # Singleton bridge instance

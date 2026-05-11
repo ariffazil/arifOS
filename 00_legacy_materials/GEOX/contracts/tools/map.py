@@ -1,6 +1,10 @@
 import logging
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.map")
 
@@ -24,7 +28,10 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="map_verify_coordinates")
     async def map_verify_coordinates(x: float, y: float, epsg: int) -> dict:
         """Verify: Check if coordinates are within valid geospatial bounds."""
-        artifact = {"valid": True, "message": "Coordinate integrity verified (F9_PHYSICS_9)"}
+        artifact = {
+            "valid": True,
+            "message": "Coordinate integrity verified (F9_PHYSICS_9)",
+        }
         return get_standard_envelope(
             artifact,
             tool_class="verify",
@@ -36,7 +43,10 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="map_get_context_summary")
     async def map_get_context_summary(bounds: list) -> dict:
         """Observe: Spatial fabric introspection. Get summary of spatial context within bounds."""
-        artifact = {"summary": "Spatial context summary (F2_TRUTH checked)", "bounds": bounds}
+        artifact = {
+            "summary": "Spatial context summary (F2_TRUTH checked)",
+            "bounds": bounds,
+        }
         return get_standard_envelope(
             artifact,
             tool_class="observe",
@@ -72,7 +82,10 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
     @mcp.tool(name="map_earth_signals")
     async def map_earth_signals(location_ref: str) -> dict:
         """Observe: Live Earth observation = spatial context. Fetch raw earth signals."""
-        artifact = {"location_ref": location_ref, "signals": "Observational stream healthy"}
+        artifact = {
+            "location_ref": location_ref,
+            "signals": "Observational stream healthy",
+        }
         return get_standard_envelope(
             artifact,
             tool_class="observe",
@@ -113,7 +126,11 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
                 xt, yt = fabric.transform_point(p[0], p[1], head_epsg, target_epsg)
                 projected.append({"x": xt, "y": yt, "z": p[2]})
 
-            artifact = {"well_ref": well_ref, "points": projected, "crs": f"EPSG:{target_epsg}"}
+            artifact = {
+                "well_ref": well_ref,
+                "points": projected,
+                "crs": f"EPSG:{target_epsg}",
+            }
             return get_standard_envelope(
                 artifact,
                 tool_class="compute",
@@ -132,11 +149,15 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
             )
 
     # CRITICAL ALIAS for Cockpit UI - DO NOT REMOVE
-    async def alias_geox_project_well_trajectory(well_ref: str, target_epsg: int = 4326):
+    async def alias_geox_project_well_trajectory(
+        well_ref: str, target_epsg: int = 4326
+    ):
         return await map_project_well(well_ref, target_epsg)
 
     @mcp.tool(name="map_transform_coordinates")
-    async def map_transform_coordinates(x: float, y: float, from_epsg: int, to_epsg: int) -> dict:
+    async def map_transform_coordinates(
+        x: float, y: float, from_epsg: int, to_epsg: int
+    ) -> dict:
         """Project a point between coordinate systems."""
         try:
             xt, yt = fabric.transform_point(x, y, from_epsg, to_epsg)

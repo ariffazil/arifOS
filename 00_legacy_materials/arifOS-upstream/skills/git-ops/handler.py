@@ -36,7 +36,11 @@ class GitOpsSkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _status(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Check git status."""
         path = params.get("path", ".")
@@ -69,7 +73,11 @@ class GitOpsSkill:
         return {"verdict": "VOID", "error": "No reality bridge available"}
 
     async def _checkout_branch(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Checkout a branch."""
         branch = params.get("branch", "main")
@@ -105,7 +113,11 @@ class GitOpsSkill:
         return {"verdict": "VOID", "error": "No reality bridge available"}
 
     async def _commit(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Create a commit."""
         message = params.get("message", "arifOS automated commit")
@@ -151,7 +163,9 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     """Entry point for skill execution."""
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

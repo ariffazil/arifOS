@@ -32,7 +32,9 @@ async def geox_interpret_single_line(inputs: dict[str, Any]) -> GeoxMcpEnvelope:
     Follows GEOX Agent Success Metrics Blueprint for Minimum Artifact Set.
     """
     # 1. Ingest (Metric 1: Normalized input record)
-    ingest_envelope = await ingest_seismic_image(GEOX_SEISMIC_IMAGE_INPUT.model_validate(inputs))
+    ingest_envelope = await ingest_seismic_image(
+        GEOX_SEISMIC_IMAGE_INPUT.model_validate(inputs)
+    )
     raster = ingest_envelope.result
 
     # 2. Contrast Variants (Metric 2: Multiple contrast views)
@@ -75,12 +77,17 @@ async def geox_interpret_single_line(inputs: dict[str, Any]) -> GeoxMcpEnvelope:
             source=inputs.get("image_path", "unknown"),
             method="geox_interpret_single_line_v0.3.1_SEALED",
         ),
-        verdict="PASS" if all(c.final_audit_passed for c in final_candidates) else "QUALIFY",
+        verdict=(
+            "PASS" if all(c.final_audit_passed for c in final_candidates) else "QUALIFY"
+        ),
     )
 
     # Final wrap in envelope
     return GeoxMcpEnvelope(
         result=summary,
         uncertainty={"weighted_avg": 0.45, "perception_floor_enforced": True},
-        governance={"constitutional_floors": [1, 2, 3, 7, 13], "blueprint_compliant": True},
+        governance={
+            "constitutional_floors": [1, 2, 3, 7, 13],
+            "blueprint_compliant": True,
+        },
     )

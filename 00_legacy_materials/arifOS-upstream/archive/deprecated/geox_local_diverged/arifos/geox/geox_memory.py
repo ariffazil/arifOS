@@ -418,7 +418,9 @@ class DualMemoryStore:
             "fused_ranking": fused,
         }
 
-    async def _query_discrete(self, location: CoordinatePoint, top_k: int) -> list[dict[str, Any]]:
+    async def _query_discrete(
+        self, location: CoordinatePoint, top_k: int
+    ) -> list[dict[str, Any]]:
         """Mock discrete query."""
         # This would normally interface with MacrostratTool or its results cache
         return [{"type": "unit", "name": "Formation A", "confidence": 0.85}]
@@ -428,7 +430,14 @@ class DualMemoryStore:
     ) -> list[dict[str, Any]]:
         """Mock continuous query."""
         # This would normally interface with Qdrant
-        return [{"type": "embedding", "source": "TerraFM", "similarity": 0.92, "confidence": 0.75}]
+        return [
+            {
+                "type": "embedding",
+                "source": "TerraFM",
+                "similarity": 0.92,
+                "confidence": 0.75,
+            }
+        ]
 
     def _fuse_results(
         self, discrete: list[dict[str, Any]], continuous: list[dict[str, Any]]
@@ -441,7 +450,9 @@ class DualMemoryStore:
             d_val = discrete[d_idx] if d_idx < len(discrete) else None
             c_val = continuous[c_idx] if c_idx < len(continuous) else None
 
-            if d_val and (not c_val or d_val.get("confidence", 0) >= c_val.get("confidence", 0)):
+            if d_val and (
+                not c_val or d_val.get("confidence", 0) >= c_val.get("confidence", 0)
+            ):
                 fused.append({"origin": "discrete", "data": d_val})
                 d_idx += 1
             elif c_val:

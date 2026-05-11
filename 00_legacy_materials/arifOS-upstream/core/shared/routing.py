@@ -10,8 +10,13 @@ from __future__ import annotations
 import warnings
 
 from core.enforcement.routing import FACTUAL_INDICATORS as CANONICAL_FACTUAL_INDICATORS
-from core.enforcement.routing import compatibility_category_for_domain, detect_refusal_rule
-from core.enforcement.routing import should_reality_check as canonical_should_reality_check
+from core.enforcement.routing import (
+    compatibility_category_for_domain,
+    detect_refusal_rule,
+)
+from core.enforcement.routing import (
+    should_reality_check as canonical_should_reality_check,
+)
 
 # Issue deprecation warning on import
 warnings.warn(

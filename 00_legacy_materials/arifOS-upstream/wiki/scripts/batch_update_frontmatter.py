@@ -23,7 +23,13 @@ REGISTRY = {
     "Prerequisite_Map": ("00_INDEX", "[onboarding]", "all", "beginner", "[]"),
     # 10_FOUNDATIONS
     "What-is-arifOS": ("10_FOUNDATIONS", "[philosophy]", "all", "beginner", "[]"),
-    "Floors": ("10_FOUNDATIONS", "[constitutional]", "all", "beginner", "[What-is-arifOS]"),
+    "Floors": (
+        "10_FOUNDATIONS",
+        "[constitutional]",
+        "all",
+        "beginner",
+        "[What-is-arifOS]",
+    ),
     "Trinity_Architecture": (
         "10_FOUNDATIONS",
         "[architecture]",
@@ -39,7 +45,13 @@ REGISTRY = {
         "intermediate",
         "[Trinity_Architecture]",
     ),
-    "MCP_Tools": ("20_RUNTIME", "[tools]", "engineers", "intermediate", "[Metabolic_Loop]"),
+    "MCP_Tools": (
+        "20_RUNTIME",
+        "[tools]",
+        "engineers",
+        "intermediate",
+        "[Metabolic_Loop]",
+    ),
     "Tool_Surface_Architecture": (
         "20_RUNTIME",
         "[architecture]",
@@ -89,8 +101,20 @@ REGISTRY = {
         "intermediate",
         "[MCP_Tools, Metabolic_Loop]",
     ),
-    "arifos_forge": ("20_RUNTIME", "[tools]", "engineers", "intermediate", "[MCP_Tools]"),
-    "arifos_health": ("20_RUNTIME", "[tools]", "engineers", "intermediate", "[MCP_Tools]"),
+    "arifos_forge": (
+        "20_RUNTIME",
+        "[tools]",
+        "engineers",
+        "intermediate",
+        "[MCP_Tools]",
+    ),
+    "arifos_health": (
+        "20_RUNTIME",
+        "[tools]",
+        "engineers",
+        "intermediate",
+        "[MCP_Tools]",
+    ),
     "Concept_Decision_Velocity": (
         "20_RUNTIME",
         "[paradox]",
@@ -113,7 +137,13 @@ REGISTRY = {
         "advanced",
         "[Floors, Philosophy_Registry]",
     ),
-    "Concept_Godellock": ("30_GOVERNANCE", "[paradox]", "researchers", "advanced", "[Floors]"),
+    "Concept_Godellock": (
+        "30_GOVERNANCE",
+        "[paradox]",
+        "researchers",
+        "advanced",
+        "[Floors]",
+    ),
     "Concept_Floor_Tensions": (
         "30_GOVERNANCE",
         "[paradox]",
@@ -187,11 +217,23 @@ REGISTRY = {
         "intermediate",
         "[MCP_Tools]",
     ),
-    "Changelog": ("50_AUDITS", "[operations]", "operators", "beginner", "[What-is-arifOS]"),
+    "Changelog": (
+        "50_AUDITS",
+        "[operations]",
+        "operators",
+        "beginner",
+        "[What-is-arifOS]",
+    ),
     # 90_ENTITIES
     "GEOX": ("90_ENTITIES", "[architecture]", "all", "beginner", "[]"),
     "Entity_Andrej_Karpathy": ("90_ENTITIES", "[philosophy]", "all", "beginner", "[]"),
-    "Source_Karpathy_LLM_Wiki": ("90_ENTITIES", "[philosophy]", "researchers", "beginner", "[]"),
+    "Source_Karpathy_LLM_Wiki": (
+        "90_ENTITIES",
+        "[philosophy]",
+        "researchers",
+        "beginner",
+        "[]",
+    ),
     "Source_NotebookLM_HighLevel_Overview": (
         "90_ENTITIES",
         "[philosophy]",
@@ -240,7 +282,12 @@ def parse_existing_frontmatter(content: str) -> dict:
 
 
 def update_page(
-    filepath: Path, tier: str, strand: str, audience: str, difficulty: str, prerequisites: str
+    filepath: Path,
+    tier: str,
+    strand: str,
+    audience: str,
+    difficulty: str,
+    prerequisites: str,
 ) -> bool:
     """Update a single page with new frontmatter."""
     content = filepath.read_text()
@@ -292,7 +339,13 @@ def main():
     skipped = 0
     errors = 0
 
-    for filename, (tier, strand, audience, difficulty, prerequisites) in REGISTRY.items():
+    for filename, (
+        tier,
+        strand,
+        audience,
+        difficulty,
+        prerequisites,
+    ) in REGISTRY.items():
         filepath = PAGES_DIR / f"{filename}.md"
 
         if not filepath.exists():

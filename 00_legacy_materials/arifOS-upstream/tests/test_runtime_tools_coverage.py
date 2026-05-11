@@ -51,7 +51,9 @@ class TestWrapCall:
         """Test successful wrap call"""
         from arifosmcp.runtime.tools import _wrap_call, Stage
 
-        with patch("arifosmcp.runtime.tools.call_kernel", new_callable=AsyncMock) as mock_call:
+        with patch(
+            "arifosmcp.runtime.tools.call_kernel", new_callable=AsyncMock
+        ) as mock_call:
             mock_data = {
                 "ok": True,
                 "tool": "test_tool",
@@ -65,7 +67,9 @@ class TestWrapCall:
             }
             mock_call.return_value = mock_data
 
-            result = await _wrap_call("test_tool", Stage.INIT_000, "test-session", {}, None)
+            result = await _wrap_call(
+                "test_tool", Stage.INIT_000, "test-session", {}, None
+            )
 
             assert result is not None
             assert result.ok is True
@@ -89,7 +93,9 @@ class TestWrapCall:
                 "meta": {},
             }
 
-            result = await _wrap_call("test_tool", Stage.INIT_000, "test-session", payload, None)
+            result = await _wrap_call(
+                "test_tool", Stage.INIT_000, "test-session", payload, None
+            )
 
             assert result is not None
 
@@ -102,13 +108,17 @@ class TestInitAnchor:
         """Test basic init_anchor execution"""
         from arifosmcp.runtime.tools import init_anchor
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
             mock_wrap.return_value = mock_envelope
 
-            result = await init_anchor(raw_input="Start session", declared_name="TestUser")
+            result = await init_anchor(
+                raw_input="Start session", declared_name="TestUser"
+            )
 
             assert result is not None
 
@@ -117,12 +127,16 @@ class TestInitAnchor:
         """Test init_anchor with intent object"""
         from arifosmcp.runtime.tools import init_anchor
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
 
-            result = await init_anchor(intent={"query": "test query"}, session_id="test-session")
+            result = await init_anchor(
+                intent={"query": "test query"}, session_id="test-session"
+            )
 
             assert result is not None
 
@@ -135,11 +149,15 @@ class TestAgiReason:
         """Test basic agi_reason execution"""
         from arifosmcp.runtime.tools import agi_reason
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
-            mock_envelope.metrics.model_dump.return_value = {"telemetry": {"verdict": "SEAL"}}
+            mock_envelope.metrics.model_dump.return_value = {
+                "telemetry": {"verdict": "SEAL"}
+            }
             mock_envelope.intelligence_state = {}
             mock_wrap.return_value = mock_envelope
 
@@ -152,7 +170,9 @@ class TestAgiReason:
         """Test agi_reason with context"""
         from arifosmcp.runtime.tools import agi_reason
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
@@ -177,7 +197,9 @@ class TestAgiReflect:
         """Test basic agi_reflect execution"""
         from arifosmcp.runtime.tools import agi_reflect
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -195,7 +217,9 @@ class TestAsiCritique:
         """Test basic asi_critique execution"""
         from arifosmcp.runtime.tools import asi_critique
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
@@ -206,7 +230,9 @@ class TestAsiCritique:
             mock_envelope.metrics.telemetry.dS = 0.0
             mock_envelope.metrics.telemetry.peace2 = 1.0
             mock_envelope.metrics.telemetry.truth = 0.99
-            mock_envelope.metrics.model_dump.return_value = {"telemetry": {"verdict": "Alive"}}
+            mock_envelope.metrics.model_dump.return_value = {
+                "telemetry": {"verdict": "Alive"}
+            }
             mock_envelope.model_dump.return_value = {
                 "ok": True,
                 "tool": "asi_critique",
@@ -228,7 +254,9 @@ class TestAsiSimulate:
         """Test basic asi_simulate execution"""
         from arifosmcp.runtime.tools import asi_simulate
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
@@ -239,7 +267,9 @@ class TestAsiSimulate:
             mock_envelope.metrics.telemetry.dS = 0.0
             mock_envelope.metrics.telemetry.peace2 = 1.0
             mock_envelope.metrics.telemetry.truth = 0.99
-            mock_envelope.metrics.model_dump.return_value = {"telemetry": {"verdict": "Alive"}}
+            mock_envelope.metrics.model_dump.return_value = {
+                "telemetry": {"verdict": "Alive"}
+            }
             mock_envelope.model_dump.return_value = {
                 "ok": True,
                 "tool": "asi_simulate",
@@ -261,7 +291,9 @@ class TestForge:
         """Test basic forge execution"""
         from arifosmcp.runtime.tools import forge
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
@@ -272,7 +304,9 @@ class TestForge:
             mock_envelope.metrics.telemetry.dS = 0.0
             mock_envelope.metrics.telemetry.peace2 = 1.0
             mock_envelope.metrics.telemetry.truth = 0.99
-            mock_envelope.metrics.model_dump.return_value = {"telemetry": {"verdict": "Alive"}}
+            mock_envelope.metrics.model_dump.return_value = {
+                "telemetry": {"verdict": "Alive"}
+            }
             mock_envelope.model_dump.return_value = {
                 "ok": True,
                 "tool": "forge",
@@ -291,7 +325,9 @@ class TestForge:
         """Test forge with risk tier"""
         from arifosmcp.runtime.tools import forge
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
@@ -302,7 +338,9 @@ class TestForge:
             mock_envelope.metrics.telemetry.dS = 0.0
             mock_envelope.metrics.telemetry.peace2 = 1.0
             mock_envelope.metrics.telemetry.truth = 0.99
-            mock_envelope.metrics.model_dump.return_value = {"telemetry": {"verdict": "Alive"}}
+            mock_envelope.metrics.model_dump.return_value = {
+                "telemetry": {"verdict": "Alive"}
+            }
             mock_envelope.model_dump.return_value = {
                 "ok": True,
                 "tool": "forge",
@@ -325,7 +363,9 @@ class TestApexJudge:
         """Test basic apex_judge execution"""
         from arifosmcp.runtime.tools import apex_judge
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
@@ -347,7 +387,9 @@ class TestVaultSeal:
         """Test basic vault_seal execution"""
         from arifosmcp.runtime.tools import vault_seal
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_envelope.verdict = Verdict.SEAL
@@ -390,7 +432,9 @@ class TestRealityTools:
         """Test reality_compass tool"""
         from arifosmcp.runtime.tools import reality_compass
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -404,7 +448,9 @@ class TestRealityTools:
         """Test search_reality tool"""
         from arifosmcp.runtime.tools import search_reality
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -418,7 +464,9 @@ class TestRealityTools:
         """Test ingest_evidence tool"""
         from arifosmcp.runtime.tools import ingest_evidence
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -436,7 +484,9 @@ class TestAgentZeroTools:
         """Test agentzero_engineer tool"""
         from arifosmcp.runtime.tools import agentzero_engineer
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -450,7 +500,9 @@ class TestAgentZeroTools:
         """Test agentzero_validate tool"""
         from arifosmcp.runtime.tools import agentzero_validate
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -468,7 +520,9 @@ class TestUtilityTools:
         """Test check_vital tool"""
         from arifosmcp.runtime.tools import check_vital
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -482,7 +536,9 @@ class TestUtilityTools:
         """Test audit_rules tool"""
         from arifosmcp.runtime.tools import audit_rules
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -496,7 +552,9 @@ class TestUtilityTools:
         """Test verify_vault_ledger tool"""
         from arifosmcp.runtime.tools import verify_vault_ledger
 
-        with patch("arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock) as mock_wrap:
+        with patch(
+            "arifosmcp.runtime.tools._wrap_call", new_callable=AsyncMock
+        ) as mock_wrap:
             mock_envelope = MagicMock()
             mock_envelope.ok = True
             mock_wrap.return_value = mock_envelope
@@ -515,8 +573,12 @@ class TestErrorHandling:
         from arifosmcp.runtime.tools import agi_reason
         from arifosmcp.runtime.model import ArifOSError
 
-        with patch("arifosmcp.runtime.tools.call_kernel", new_callable=AsyncMock) as mock_call:
-            mock_call.side_effect = ArifOSError("Test error", "CONSTITUTIONAL", "F2_TRUTH", "VOID")
+        with patch(
+            "arifosmcp.runtime.tools.call_kernel", new_callable=AsyncMock
+        ) as mock_call:
+            mock_call.side_effect = ArifOSError(
+                "Test error", "CONSTITUTIONAL", "F2_TRUTH", "VOID"
+            )
 
             with pytest.raises(ArifOSError):
                 await agi_reason(query="test")

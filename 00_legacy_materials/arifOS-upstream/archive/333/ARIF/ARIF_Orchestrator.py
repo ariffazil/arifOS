@@ -30,7 +30,9 @@ class ARIFOrchestrator:
         self.m11 = M11TableQA()
         self.m12 = M12DocQA()
 
-    def process_sovereign_intent(self, raw_input: str, sensory_context: dict = None) -> dict:
+    def process_sovereign_intent(
+        self, raw_input: str, sensory_context: dict = None
+    ) -> dict:
         """
         Executes the full A-RIF pipeline for a given input.
         """
@@ -45,15 +47,22 @@ class ARIFOrchestrator:
         print(f"[A-RIF] M2: Governance Decision: {triage_report.get('decision')}")
 
         if triage_report.get("decision") == "REJECT":
-            return {"status": "REJECTED", "reason": triage_report.get("rejection_reason")}
+            return {
+                "status": "REJECTED",
+                "reason": triage_report.get("rejection_reason"),
+            }
 
         # M3: Query Interpretation
         interpretation = self.m3.interpret(mandate.get("normalized_intent"))
-        print(f"[A-RIF] M3: Generated {len(interpretation.get('queries', []))} search queries.")
+        print(
+            f"[A-RIF] M3: Generated {len(interpretation.get('queries', []))} search queries."
+        )
 
         # M4/M5: Retrieval & Evidence Validation
         results = self.m4m5.search_and_retrieve(interpretation.get("queries", []))
-        validation = self.m4m5.validate_evidence(results, mandate.get("normalized_intent"))
+        validation = self.m4m5.validate_evidence(
+            results, mandate.get("normalized_intent")
+        )
         print(
             f"[A-RIF] M4/M5: Evidence Sufficiency Score: {validation.get('sufficiency_score', 0.0)}"
         )

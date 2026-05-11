@@ -50,7 +50,11 @@ class SecurityAuditSkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _check_injection(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """F12: Scan for injection attempts."""
         content = params.get("content", "")
@@ -79,7 +83,11 @@ class SecurityAuditSkill:
         }
 
     async def _scan_files(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Scan files for security issues."""
         path = params.get("path", ".")
@@ -107,7 +115,9 @@ class SecurityAuditSkill:
                 "mode": "real",
                 "path": path,
                 "suspicious_files": (
-                    result.get("stdout", "").split("\n") if result.get("success") else []
+                    result.get("stdout", "").split("\n")
+                    if result.get("success")
+                    else []
                 ),
                 "checkpoint": checkpoint,
             }
@@ -128,7 +138,9 @@ async def execute(
 ) -> dict[str, Any]:
     """Main entry point."""
     skill = SecurityAuditSkill()
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

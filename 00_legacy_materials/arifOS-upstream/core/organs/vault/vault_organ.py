@@ -90,7 +90,9 @@ class VaultOrgan:
         """
         # Must have evidence
         if not entry.evidence or not entry.evidence.summary:
-            return SealGateResult(allowed=False, reason="Vault entries must have evidence")
+            return SealGateResult(
+                allowed=False, reason="Vault entries must have evidence"
+            )
 
         # Must have clear authority
         if not entry.governance.decision_authority:
@@ -305,7 +307,11 @@ class VaultOrgan:
 
     def get_by_authority(self, authority: str) -> list[VaultEntry]:
         """Get all entries by decision authority."""
-        return [e for e in self._entries.values() if e.governance.decision_authority == authority]
+        return [
+            e
+            for e in self._entries.values()
+            if e.governance.decision_authority == authority
+        ]
 
     def get_current_policy(self) -> list[VaultEntry]:
         """Get current (non-superseded) policy entries."""

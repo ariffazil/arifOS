@@ -185,7 +185,10 @@ async def run_legacy_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any
     # This server uses the canonical tools directly from registries
     tool_result = await mcp.call_tool(name, arguments)
     # FastMCP call_tool returns a ToolResult object
-    return {"success": True, "data": tool_result.content[0].text if tool_result.content else {}}
+    return {
+        "success": True,
+        "data": tool_result.content[0].text if tool_result.content else {},
+    }
 
 
 async def legacy_mcp_handler(request):
@@ -199,8 +202,13 @@ async def legacy_mcp_handler(request):
     response_id = payload.get("id")
 
     if method == "tools/list":
-        tools = [{"name": t.name, "description": t.description} for t in await mcp.list_tools()]
-        return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}})
+        tools = [
+            {"name": t.name, "description": t.description}
+            for t in await mcp.list_tools()
+        ]
+        return JSONResponse(
+            {"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}}
+        )
 
     if method == "tools/call":
         name = params.get("name")

@@ -29,7 +29,9 @@ async def memory_555(
     Returns:
         Recall results with governance receipts
     """
-    score = {"semantic": 0.84, "exact": 0.92, "constitutional": 0.90}.get(recall_mode, 0.77)
+    score = {"semantic": 0.84, "exact": 0.92, "constitutional": 0.90}.get(
+        recall_mode, 0.77
+    )
     results = [
         {
             "rank": 1,

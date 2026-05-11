@@ -90,7 +90,10 @@ def register_cross_tools(mcp: FastMCP, profile: str = "full"):
         """Observe: Returns the architectural TOOLS_REGISTRY for UI synchronization."""
         artifact = {
             "dimensions": {
-                "prospect": {"name": "Prospecting", "description": "Play Fairway Discovery"},
+                "prospect": {
+                    "name": "Prospecting",
+                    "description": "Play Fairway Discovery",
+                },
                 "well": {"name": "Well", "description": "Borehole Truth Channel"},
                 "section": {"name": "Section", "description": "2D Correlation"},
                 "earth3d": {"name": "Earth 3D", "description": "Volumetric Seismic"},

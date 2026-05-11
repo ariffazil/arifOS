@@ -35,7 +35,13 @@ def register_legacy_aliases(mcp: FastMCP):
     # ─── WELL ALIASES ──────────────────────────────────────────────────
     @mcp.tool(name="geox_compute_petrophysics")
     async def legacy_geox_compute_petrophysics(
-        model: str, rw: float, rt: float, phi: float, a: float = 1.0, m: float = 2.0, n: float = 2.0
+        model: str,
+        rw: float,
+        rt: float,
+        phi: float,
+        a: float = 1.0,
+        m: float = 2.0,
+        n: float = 2.0,
     ) -> dict:
         """[DEPRECATED] Use well_compute_petrophysics instead."""
         logger.warning(

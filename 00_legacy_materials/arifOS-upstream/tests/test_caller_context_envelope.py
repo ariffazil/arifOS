@@ -91,7 +91,9 @@ class TestCallerContextModel:
         assert dumped["model_id"] == "claude-3"
 
     def test_caller_context_extra_fields(self):
-        ctx = CallerContext(extra={"environment": "production", "region": "ap-southeast-1"})
+        ctx = CallerContext(
+            extra={"environment": "production", "region": "ap-southeast-1"}
+        )
         assert ctx.extra["environment"] == "production"
 
 
@@ -121,7 +123,11 @@ class TestRuntimeEnvelopeCallerContext:
 
     def test_envelope_separation_of_concerns(self):
         """F9/F10: auth_context (human) and caller_context (AI) must be separate."""
-        auth_ctx = {"actor_id": "arif", "authority_level": "judge", "continuity": "session"}
+        auth_ctx = {
+            "actor_id": "arif",
+            "authority_level": "judge",
+            "continuity": "session",
+        }
         caller_ctx = CallerContext(
             agent_id="gpt-runtime-01",
             persona_id=PersonaId.ENGINEER,
@@ -170,7 +176,10 @@ class TestRuntimeEnvelopeCallerContext:
         assert env.user_model is not None
         assert env.user_model.stated_goal is not None
         assert env.user_model.stated_goal.source == UserModelSource.EXPLICIT
-        assert env.user_model.behavioral_constraints[0].source == UserModelSource.OBSERVABLE
+        assert (
+            env.user_model.behavioral_constraints[0].source
+            == UserModelSource.OBSERVABLE
+        )
 
 
 # ─── _resolve_caller_context helper tests ────────────────────────────────────
@@ -236,7 +245,8 @@ class TestBuildUserModel:
         assert user_model.stated_goal is not None
         assert user_model.stated_goal.source == UserModelSource.EXPLICIT
         assert any(
-            field.value == "keep_response_concise" and field.source == UserModelSource.EXPLICIT
+            field.value == "keep_response_concise"
+            and field.source == UserModelSource.EXPLICIT
             for field in user_model.output_constraints
         )
         assert any(

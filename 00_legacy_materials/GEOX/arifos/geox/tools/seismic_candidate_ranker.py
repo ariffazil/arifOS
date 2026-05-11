@@ -32,7 +32,9 @@ async def rank_candidates(
     for view_features in lineaments_per_view:
         for feat in view_features:
             # Simple spatial binning for stability matching (mock)
-            bin_id = f"pos_{int(feat.centroid_pixel[0]/5)}_{int(feat.centroid_pixel[1]/5)}"
+            bin_id = (
+                f"pos_{int(feat.centroid_pixel[0]/5)}_{int(feat.centroid_pixel[1]/5)}"
+            )
             if bin_id not in candidate_map:
                 candidate_map[bin_id] = {"lineaments": [], "stability": 0.0}
             candidate_map[bin_id]["lineaments"].append(feat)

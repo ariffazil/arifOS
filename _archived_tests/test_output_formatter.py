@@ -51,7 +51,9 @@ def test_format_output_exposes_human_language_and_universal_context() -> None:
     output = format_output(_build_envelope())
 
     assert output["human_language"]["summary"].startswith("Routing completed.")
-    assert output["human_language"]["next_step"] == "Call arifos_heart before execution."
+    assert (
+        output["human_language"]["next_step"] == "Call arifos_heart before execution."
+    )
     assert output["universal_context"] == {
         "actor": "arif",
         "session": "sess-output-001",

@@ -119,7 +119,10 @@ def mock_kernel_call(tool_name: str, session_id: str, payload: dict) -> dict:
     elif tool_name == "init_anchor":
         return {
             "verdict": "SEAL",
-            "payload": {"initialized": True, "actor_id": payload.get("actor_id", "anonymous")},
+            "payload": {
+                "initialized": True,
+                "actor_id": payload.get("actor_id", "anonymous"),
+            },
         }
     else:
         raise ValueError(f"Unknown tool: {tool_name}")
@@ -198,7 +201,14 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
     session_id = payload.get("session_id")
 
     # PHASE 0 FIX: Validate mode parameter
-    valid_modes = ["engineer", "write", "vector_query", "query", "vector_store", "vector_forget"]
+    valid_modes = [
+        "engineer",
+        "write",
+        "vector_query",
+        "query",
+        "vector_store",
+        "vector_forget",
+    ]
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="engineering_memory",
@@ -229,7 +239,11 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
-            payload={"stored": True, "memory_id": "test-id-123", "bytes_written": len(content)},
+            payload={
+                "stored": True,
+                "memory_id": "test-id-123",
+                "bytes_written": len(content),
+            },
         )
 
     elif mode == "vector_forget":
@@ -266,7 +280,9 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
             payload={
-                "results": [{"id": "1", "content": f"Result for: {query}", "score": 0.95}],
+                "results": [
+                    {"id": "1", "content": f"Result for: {query}", "score": 0.95}
+                ],
                 "count": 1,
                 "query": query,
             },
@@ -528,7 +544,9 @@ def test_ops_lane():
     )
     assert result.ok is True, "Should return success for cost"
     assert result.payload.get("mode") == "cost"
-    assert result.payload["estimate"]["risk_score"] > 0.5  # deploy should be higher risk
+    assert (
+        result.payload["estimate"]["risk_score"] > 0.5
+    )  # deploy should be higher risk
     print("  ✅ PASS: Cost mode works")
 
     # Test 3d: Health mode

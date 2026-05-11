@@ -618,7 +618,9 @@ def run_optimization():
                 f"tri_witness={s.tri_witness_score:.2f} (best={best.tri_witness_score:.2f}). "
                 f"Discarded to reduce system entropy and improve constitutional compliance."
             )
-            archived = archive_to_forget(tool_name, s.variant_id, v["source"], reason, scored)
+            archived = archive_to_forget(
+                tool_name, s.variant_id, v["source"], reason, scored
+            )
             print(f"  → FORGET {s.variant_id}: {archived}")
 
         results.append(

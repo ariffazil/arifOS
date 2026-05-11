@@ -96,7 +96,9 @@ async def check_philosophy_injection():
     if result.get("band") == 0:
         print("  ✅ G★ band mapping works (0.1 → Band 0)")
     else:
-        print(f"  ❌ G★ band mapping failed (expected Band 0, got {result.get('band')})")
+        print(
+            f"  ❌ G★ band mapping failed (expected Band 0, got {result.get('band')})"
+        )
         return False
 
     return True

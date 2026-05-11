@@ -40,9 +40,13 @@ class TestMegaToolDispatch:
         from arifosmcp.runtime.tools import init_anchor
 
         # Patch where the implementation is imported in tools.py
-        with patch("arifosmcp.runtime.tools.init_anchor_impl", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "arifosmcp.runtime.tools.init_anchor_impl", new_callable=AsyncMock
+        ) as mock_impl:
             mock_impl.return_value = MagicMock()
-            await init_anchor(mode="init", payload={"actor_id": "arif", "intent": "test"})
+            await init_anchor(
+                mode="init", payload={"actor_id": "arif", "intent": "test"}
+            )
             mock_impl.assert_called_once()
 
     @pytest.mark.asyncio

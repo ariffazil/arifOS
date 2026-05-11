@@ -102,7 +102,9 @@ class TestImplementationStructure:
 
     def test_init_anchor_dispatch_handles_all_modes(self):
         """hardened_init_anchor_dispatch has logic for all 5 modes."""
-        from arifosmcp.runtime.tools_hardened_dispatch import hardened_init_anchor_dispatch
+        from arifosmcp.runtime.tools_hardened_dispatch import (
+            hardened_init_anchor_dispatch,
+        )
         import inspect
 
         source = inspect.getsource(hardened_init_anchor_dispatch)

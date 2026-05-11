@@ -20,7 +20,11 @@ ParityStatus = Literal["FULL", "PARTIAL", "DEPRECATED"]
 RUNTIME_PARITY_MATRIX: Dict[str, Dict[str, str | bool | List[str]]] = {
     # ─── PROSPECT DIMENSION ──────────────────────────────────────────
     "prospect_evaluate": {"fastmcp": "FULL", "vps": "FULL", "public": True},
-    "prospect_build_structural_candidates": {"fastmcp": "FULL", "vps": "FULL", "public": True},
+    "prospect_build_structural_candidates": {
+        "fastmcp": "FULL",
+        "vps": "FULL",
+        "public": True,
+    },
     "prospect_verify_feasibility": {"fastmcp": "FULL", "vps": "FULL", "public": True},
     # ─── WELL DIMENSION ──────────────────────────────────────────────
     "well_load_bundle": {"fastmcp": "FULL", "vps": "FULL", "public": True},
@@ -33,7 +37,11 @@ RUNTIME_PARITY_MATRIX: Dict[str, Dict[str, str | bool | List[str]]] = {
     "earth3d_load_volume": {"fastmcp": "FULL", "vps": "FULL", "public": True},
     "earth3d_interpret_horizons": {"fastmcp": "FULL", "vps": "FULL", "public": True},
     "earth3d_model_geometries": {"fastmcp": "FULL", "vps": "FULL", "public": True},
-    "earth3d_verify_structural_integrity": {"fastmcp": "FULL", "vps": "FULL", "public": True},
+    "earth3d_verify_structural_integrity": {
+        "fastmcp": "FULL",
+        "vps": "FULL",
+        "public": True,
+    },
     # ─── TIME4D DIMENSION ────────────────────────────────────────────
     "time4d_simulate_burial": {
         "fastmcp": "FULL",

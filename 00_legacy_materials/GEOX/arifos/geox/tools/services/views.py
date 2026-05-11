@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-
 ViewType = Literal[
     "seismic_section",
     "structural_candidates",

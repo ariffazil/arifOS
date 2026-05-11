@@ -11,7 +11,9 @@ class M8M9M10DeciderAudit:
     The final constitutional seal on any A-RIF output.
     """
 
-    def __init__(self, ledger_path: str = "C:/ariffazil/arifOS/data/COOLING_LEDGER.json"):
+    def __init__(
+        self, ledger_path: str = "C:/ariffazil/arifOS/data/COOLING_LEDGER.json"
+    ):
         self.ledger_path = ledger_path
         # Ensure directory exists
         os.makedirs(os.path.dirname(self.ledger_path), exist_ok=True)
@@ -96,9 +98,14 @@ class M8M9M10DeciderAudit:
 
 if __name__ == "__main__":
     # Test M8/M9/M10
-    m8m9m10 = M8M9M10DeciderAudit(ledger_path="C:/ariffazil/arifOS/data/MOCK_LEDGER.json")
+    m8m9m10 = M8M9M10DeciderAudit(
+        ledger_path="C:/ariffazil/arifOS/data/MOCK_LEDGER.json"
+    )
 
-    test_mandate = {"id": "MANDATE-001", "normalized_intent": "How to prevent hallucinations?"}
+    test_mandate = {
+        "id": "MANDATE-001",
+        "normalized_intent": "How to prevent hallucinations?",
+    }
     test_validation = {"validated_evidence": ["Floor 2 (Truth) demands grounding."]}
     test_inference = {
         "response": "You prevent them using Floor 2.",
@@ -112,5 +119,7 @@ if __name__ == "__main__":
     decision = m8m9m10.decide(test_mandate, verification, test_inference)
     print(f"Decision: {json.dumps(decision, indent=2)}")
 
-    audit_success = m8m9m10.audit_trail(test_mandate, decision, {"trace": "Prototype run success."})
+    audit_success = m8m9m10.audit_trail(
+        test_mandate, decision, {"trace": "Prototype run success."}
+    )
     print(f"Audit Log Success: {audit_success}")

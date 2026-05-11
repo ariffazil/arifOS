@@ -60,7 +60,11 @@ def governed_tool(fn):
         tool_name = fn.__name__
 
         # ── 1. F11 Session Gate (Option C) ─────────────────────────────────
-        is_anonymous = not actor_id or actor_id.strip().lower() in {"anonymous", "", "none"}
+        is_anonymous = not actor_id or actor_id.strip().lower() in {
+            "anonymous",
+            "",
+            "none",
+        }
         if is_anonymous and tool_name not in ANONYMOUS_ALLOWED_TOOLS:
             # Force function: redirect to init before any state mutation
             return {

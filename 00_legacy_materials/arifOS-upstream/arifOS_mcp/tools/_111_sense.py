@@ -9,7 +9,9 @@ async def execute(query: str, intent_type: Optional[str] = None) -> Dict[str, An
     """
     # Intent classification logic
     classification = intent_type or (
-        "COMMAND" if any(v in query.lower() for v in ["run", "execute", "start"]) else "INQUIRY"
+        "COMMAND"
+        if any(v in query.lower() for v in ["run", "execute", "start"])
+        else "INQUIRY"
     )
 
     # Grounding check (entropy reduction simulation)

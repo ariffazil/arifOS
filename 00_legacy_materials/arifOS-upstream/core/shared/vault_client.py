@@ -24,7 +24,9 @@ class VaultClient:
 
         if not url or not key:
             self.client = None
-            print(f"WARN: VaultClient({organ_id}) Supabase config missing. Sealing disabled.")
+            print(
+                f"WARN: VaultClient({organ_id}) Supabase config missing. Sealing disabled."
+            )
         else:
             self.client = create_client(url, key)
 

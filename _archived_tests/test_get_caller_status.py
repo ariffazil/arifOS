@@ -24,7 +24,9 @@ async def test_get_caller_status_anchored_visibility():
     """Verify get_caller_status shows mind/heart tools when anchored."""
     session_id = "test-anchored-visibility"
     # Anchor first
-    await init_anchor(mode="init", actor_id="arif", intent="test visibility", session_id=session_id)
+    await init_anchor(
+        mode="init", actor_id="arif", intent="test visibility", session_id=session_id
+    )
 
     envelope = await init_anchor(mode="status", session_id=session_id)
 

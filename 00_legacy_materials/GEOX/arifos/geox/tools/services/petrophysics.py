@@ -11,7 +11,6 @@ import random
 from dataclasses import dataclass
 from typing import Literal
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # Data Classes
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -21,7 +20,9 @@ from typing import Literal
 class SwInputParams:
     """Input parameters for Sw calculation."""
 
-    rw: float | tuple[float, float]  # Formation water resistivity (nominal or (mean, std))
+    rw: (
+        float | tuple[float, float]
+    )  # Formation water resistivity (nominal or (mean, std))
     rt: float | tuple[float, float]  # True formation resistivity
     phi: float | tuple[float, float]  # Porosity
     a: float = 1.0  # Tortuosity factor
@@ -155,7 +156,9 @@ def calculate_sw_indonesia(
     return min(1.0, max(0.0, sw))
 
 
-def _extract_value_and_uncertainty(param: float | tuple[float, float]) -> tuple[float, float]:
+def _extract_value_and_uncertainty(
+    param: float | tuple[float, float],
+) -> tuple[float, float]:
     """Extract nominal value and uncertainty from param."""
     if isinstance(param, tuple):
         return param[0], param[1]
@@ -214,7 +217,9 @@ def monte_carlo_sw(
 
     # Nominal calculation
     if model == "archie":
-        nominal_sw = calculate_sw_archie(rw_val, rt_val, phi_val, params.a, params.m, params.n)
+        nominal_sw = calculate_sw_archie(
+            rw_val, rt_val, phi_val, params.a, params.m, params.n
+        )
     elif model == "simandoux" and rsh_val is not None:
         nominal_sw = calculate_sw_simandoux(
             rw_val, rt_val, phi_val, vcl_val, rsh_val, params.a, params.m, params.n
@@ -225,7 +230,9 @@ def monte_carlo_sw(
         )
     else:
         # Fallback to Archie
-        nominal_sw = calculate_sw_archie(rw_val, rt_val, phi_val, params.a, params.m, params.n)
+        nominal_sw = calculate_sw_archie(
+            rw_val, rt_val, phi_val, params.a, params.m, params.n
+        )
 
     # Monte Carlo sampling
     for _ in range(n_samples):

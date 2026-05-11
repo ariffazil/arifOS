@@ -13,7 +13,6 @@ import time
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, Optional
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Verdicts (888)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -127,7 +126,10 @@ def apex_constitutional_review(metrics: ThermodynamicMetrics) -> str:
 
 
 def seal_to_vault999(
-    tool_name: str, payload: Dict[str, Any], verdict: str, previous_hash: str = "GENESIS"
+    tool_name: str,
+    payload: Dict[str, Any],
+    verdict: str,
+    previous_hash: str = "GENESIS",
 ) -> str:
     """
     Append the decision to a Merkle-style cooling ledger.
@@ -175,7 +177,11 @@ def governed_return(
     verdict = apex_constitutional_review(metrics)
     receipt_hash = seal_to_vault999(
         tool_name=tool_name,
-        payload={"output": raw_output, "metrics": asdict(metrics), "identity": identity},
+        payload={
+            "output": raw_output,
+            "metrics": asdict(metrics),
+            "identity": identity,
+        },
         verdict=verdict,
         previous_hash=previous_hash,
     )

@@ -13,7 +13,6 @@ from typing import Optional
 
 import httpx
 
-
 VAULT_URL = os.environ.get("VAULT_URL", "http://localhost:8100")
 
 

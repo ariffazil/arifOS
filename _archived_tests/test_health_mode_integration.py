@@ -17,7 +17,6 @@ from arifosmcp.runtime.model import (
     Verdict,
 )
 
-
 # =============================================================================
 # Health Mode Tests
 # =============================================================================
@@ -263,9 +262,20 @@ class TestModeCount:
         source = inspect.getsource(apex_judge_dispatch_impl)
 
         # Should have 8 mode branches: judge, rules, validate, hold, armor, notify, probe, health
-        modes = ["judge", "rules", "validate", "hold", "armor", "notify", "probe", "health"]
+        modes = [
+            "judge",
+            "rules",
+            "validate",
+            "hold",
+            "armor",
+            "notify",
+            "probe",
+            "health",
+        ]
         for mode in modes:
-            assert f'mode == "{mode}"' in source or f'"{mode}"' in source, f"Mode {mode} not found"
+            assert (
+                f'mode == "{mode}"' in source or f'"{mode}"' in source
+            ), f"Mode {mode} not found"
 
 
 if __name__ == "__main__":

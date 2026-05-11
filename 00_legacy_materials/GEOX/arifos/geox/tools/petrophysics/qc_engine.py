@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import statistics
 
-from arifos.geox.schemas.petrophysics.measurements import LogBundle, WellLogCurve, QCReport, CurveQC
-
+from arifos.geox.schemas.petrophysics.measurements import (
+    LogBundle,
+    WellLogCurve,
+    QCReport,
+    CurveQC,
+)
 
 # In-memory store
 _qc_store: dict[str, QCReport] = {}
@@ -89,7 +93,9 @@ class QCEngine:
         unit_inconsistencies = self._check_units(bundle)
 
         # Overall status
-        overall = self._determine_overall_status(curve_reports, missing_critical, depth_issues)
+        overall = self._determine_overall_status(
+            curve_reports, missing_critical, depth_issues
+        )
 
         # Generate recommendations
         recommendations = self._generate_recommendations(
@@ -112,7 +118,9 @@ class QCEngine:
 
         return report
 
-    def _analyze_curve(self, mnemonic: str, curve: WellLogCurve, bundle: LogBundle) -> CurveQC:
+    def _analyze_curve(
+        self, mnemonic: str, curve: WellLogCurve, bundle: LogBundle
+    ) -> CurveQC:
         """Analyze a single curve."""
         n_total = len(curve.values)
         n_null = sum(1 for v in curve.values if v is None)
@@ -170,7 +178,9 @@ class QCEngine:
                     flags.append("SUSPECT_DENSITY_RANGE")
 
         # Determine usability
-        usable = completeness > 0.7 and not has_washouts and "COMPLETELY_NULL" not in flags
+        usable = (
+            completeness > 0.7 and not has_washouts and "COMPLETELY_NULL" not in flags
+        )
 
         return CurveQC(
             mnemonic=mnemonic,
@@ -204,7 +214,9 @@ class QCEngine:
         # Check monotonicity
         depths = depth_curve.depth
         if len(depths) > 1:
-            non_monotonic = [i for i in range(len(depths) - 1) if depths[i] > depths[i + 1]]
+            non_monotonic = [
+                i for i in range(len(depths) - 1) if depths[i] > depths[i + 1]
+            ]
             if non_monotonic:
                 issues.append(f"Non-monotonic depth at {len(non_monotonic)} points")
 
@@ -247,7 +259,10 @@ class QCEngine:
         return issues
 
     def _determine_overall_status(
-        self, curve_reports: list[CurveQC], missing_critical: list[str], depth_issues: list[str]
+        self,
+        curve_reports: list[CurveQC],
+        missing_critical: list[str],
+        depth_issues: list[str],
     ) -> str:
         """Determine overall QC status."""
         # FAIL if critical curves missing or major depth issues
@@ -255,20 +270,27 @@ class QCEngine:
             return "FAIL"
 
         # WARNING if any issues
-        any_issues = any(c.flags for c in curve_reports) or depth_issues or missing_critical
+        any_issues = (
+            any(c.flags for c in curve_reports) or depth_issues or missing_critical
+        )
         if any_issues:
             return "WARNING"
 
         return "PASS"
 
     def _generate_recommendations(
-        self, curve_reports: list[CurveQC], missing_critical: list[str], depth_issues: list[str]
+        self,
+        curve_reports: list[CurveQC],
+        missing_critical: list[str],
+        depth_issues: list[str],
     ) -> list[str]:
         """Generate actionable recommendations."""
         recommendations = []
 
         if missing_critical:
-            recommendations.append(f"Acquire missing critical curves: {missing_critical}")
+            recommendations.append(
+                f"Acquire missing critical curves: {missing_critical}"
+            )
 
         # Check for washouts
         washout_curves = [c.mnemonic for c in curve_reports if c.has_washouts]

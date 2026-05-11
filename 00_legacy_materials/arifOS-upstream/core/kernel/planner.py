@@ -305,7 +305,9 @@ def evaluate_plan_against_governance(plan: Plan) -> Plan:
         has_explicit_risk = (
             task.approval_required
             or task.reversibility_score >= 0.7
-            or any(m in ("irreversible", "destructive_detected") for m in task.risk_markers)
+            or any(
+                m in ("irreversible", "destructive_detected") for m in task.risk_markers
+            )
         )
         if result.floor_violations == ["F1_UNKNOWN_TOOL"] and not has_explicit_risk:
             adjusted_score = 0.3
@@ -408,7 +410,11 @@ def reconcile_abandoned_plans(max_age_minutes: float = 5.0) -> list[dict[str, An
 
     for plan_id, plan in list(planner._plans.items()):
         # Skip actor-bound plans — sovereign territory
-        if plan.actor_id and plan.actor_id.strip().lower() not in {"", "anonymous", "none"}:
+        if plan.actor_id and plan.actor_id.strip().lower() not in {
+            "",
+            "anonymous",
+            "none",
+        }:
             continue
 
         # Skip already-resolved plans

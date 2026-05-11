@@ -36,7 +36,9 @@ def test_resources_register_llm_context_resource():
     register_resources(mcp)
 
     assert "arifos://mcp/context" in runtime_resources._resource_content_functions
-    payload = json.loads(runtime_resources._resource_content_functions["arifos://mcp/context"]())
+    payload = json.loads(
+        runtime_resources._resource_content_functions["arifos://mcp/context"]()
+    )
     assert payload["schema"] == "arifos-llm-context/v1"
     assert payload["discovery"]["tool_contracts_resource"] == "arifos://contracts/tools"
     assert (

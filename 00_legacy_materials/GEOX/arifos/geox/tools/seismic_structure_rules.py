@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 @contrast_governed_tool(physical_axes=["inline", "depth"])
-async def check_structure_rules(candidates: list[STRUCT_CANDIDATE]) -> list[STRUCT_CANDIDATE]:
+async def check_structure_rules(
+    candidates: list[STRUCT_CANDIDATE],
+) -> list[STRUCT_CANDIDATE]:
     """
     Apply geological plausibility rules to filter structural candidates.
     """

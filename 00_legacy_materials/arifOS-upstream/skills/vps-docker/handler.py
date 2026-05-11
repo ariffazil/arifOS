@@ -46,7 +46,11 @@ class VPSDockerSkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _check_status(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Check Docker container status."""
         container = params.get("container", "arifos-agent")
@@ -80,10 +84,17 @@ class VPSDockerSkill:
                 "success": result.get("success", False),
             }
 
-        return {"verdict": "VOID", "error": "No reality bridge available for real execution"}
+        return {
+            "verdict": "VOID",
+            "error": "No reality bridge available for real execution",
+        }
 
     async def _restart_container(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Restart Docker container."""
         container = params.get("container", "arifos-agent")
@@ -117,10 +128,17 @@ class VPSDockerSkill:
                 "f1_note": f"Rollback: aclip checkpoint restore {checkpoint}",
             }
 
-        return {"verdict": "VOID", "error": "No reality bridge available for real execution"}
+        return {
+            "verdict": "VOID",
+            "error": "No reality bridge available for real execution",
+        }
 
     async def _inspect_logs(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Inspect container logs."""
         container = params.get("container", "arifos-agent")
@@ -154,7 +172,10 @@ class VPSDockerSkill:
                 "success": result.get("success", False),
             }
 
-        return {"verdict": "VOID", "error": "No reality bridge available for real execution"}
+        return {
+            "verdict": "VOID",
+            "error": "No reality bridge available for real execution",
+        }
 
 
 # Export
@@ -170,7 +191,9 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     """Entry point for skill execution."""
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

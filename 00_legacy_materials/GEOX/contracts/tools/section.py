@@ -1,6 +1,10 @@
 import logging
 from fastmcp import FastMCP
-from contracts.enums.statuses import get_standard_envelope, GovernanceStatus, ArtifactStatus
+from contracts.enums.statuses import (
+    get_standard_envelope,
+    GovernanceStatus,
+    ArtifactStatus,
+)
 
 logger = logging.getLogger("geox.section")
 
@@ -62,7 +66,8 @@ def register_section_tools(mcp: FastMCP, profile: str = "full"):
             "feature_ref": feature_ref,
             "transform_chain": ["AGC", "Normalization", "FeatureDetection"],
             "porosity_phi": 0.22,
-            "permeability_k": 1000 * (0.22**3),  # Kozeny-Carman order-of-magnitude proxy
+            "permeability_k": 1000
+            * (0.22**3),  # Kozeny-Carman order-of-magnitude proxy
             "seal": "DITEMPA_BUKAN_DIBERI",
         }
         return get_standard_envelope(

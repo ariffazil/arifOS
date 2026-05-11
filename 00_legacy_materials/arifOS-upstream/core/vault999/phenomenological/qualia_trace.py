@@ -120,7 +120,9 @@ class QualiaTrace:
             "rasa_score": self.rasa.rasa_score,
             "self_continuity": self.self_continuity_score,
         }
-        return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:32]
+        return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[
+            :32
+        ]
 
     @property
     def trace_hash(self) -> str:

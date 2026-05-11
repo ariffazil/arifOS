@@ -5,7 +5,11 @@ from ..governance import ThermodynamicMetrics, governed_return
 
 
 async def execute(
-    ctx: Context, operator_id: str, session_id: str, epoch: str = None, context: dict = None
+    ctx: Context,
+    operator_id: str,
+    session_id: str,
+    epoch: str = None,
+    context: dict = None,
 ):
     """
     arifos_000_init: Ignition, identity binding, session anchoring.

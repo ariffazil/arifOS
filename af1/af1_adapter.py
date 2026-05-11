@@ -173,7 +173,9 @@ def af1_wrap_handler(
             "inputs": raw_inputs,
             "expected_effect": "tool_execution",
             "risk_level": AF1_GATE.validator.get_tool_risk(tool_name).value,
-            "requires_human_confirmation": AF1_GATE.validator.requires_confirmation(tool_name),
+            "requires_human_confirmation": AF1_GATE.validator.requires_confirmation(
+                tool_name
+            ),
             "reason": f"AF1 gate pre-flight for {tool_name}",
             "evidence_ref": call_id,
             "ttl_seconds": 300,
@@ -206,14 +208,16 @@ def af1_wrap_handler(
             received_at=received_at,
             completed_at=None,
             blocked=validation_result.status == "BLOCK",
-            input_hash=hashlib.sha256(json.dumps(raw_inputs, sort_keys=True).encode()).hexdigest()[
-                :16
-            ],
+            input_hash=hashlib.sha256(
+                json.dumps(raw_inputs, sort_keys=True).encode()
+            ).hexdigest()[:16],
         )
 
         # Log receipt
         AF1_GATE.receipt_logger.emit(receipt)
-        AF1_GATE.record_call(tool_name, actual_call_source, validation_result.status.value)
+        AF1_GATE.record_call(
+            tool_name, actual_call_source, validation_result.status.value
+        )
 
         # Shadow mode: always call original
         if AF1_GATE.SHADOW_MODE:
@@ -384,7 +388,9 @@ async def af1_rest_intercept(
         "inputs": payload,
         "expected_effect": "tool_execution",
         "risk_level": AF1_GATE.validator.get_tool_risk(tool_name).value,
-        "requires_human_confirmation": AF1_GATE.validator.requires_confirmation(tool_name),
+        "requires_human_confirmation": AF1_GATE.validator.requires_confirmation(
+            tool_name
+        ),
         "reason": f"AF1 REST intercept for {tool_name}",
         "evidence_ref": call_id,
         "ttl_seconds": 300,
@@ -392,7 +398,9 @@ async def af1_rest_intercept(
 
     validation_result = AF1_GATE.validator.validate(af1_obj)
 
-    input_hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]
+    input_hash = hashlib.sha256(
+        json.dumps(payload, sort_keys=True).encode()
+    ).hexdigest()[:16]
 
     receipt = AF1Receipt(
         af1_id=call_id,
@@ -424,7 +432,9 @@ async def af1_rest_intercept(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-async def af1_on_call_tool(tool_name: str, kwargs: dict[str, Any]) -> dict[str, Any] | None:
+async def af1_on_call_tool(
+    tool_name: str, kwargs: dict[str, Any]
+) -> dict[str, Any] | None:
     """
     FastMCP on_call_tool hook. FastMCP calls this before every tool invocation.
 
@@ -447,7 +457,9 @@ async def af1_on_call_tool(tool_name: str, kwargs: dict[str, Any]) -> dict[str, 
         "inputs": kwargs,
         "expected_effect": "tool_execution",
         "risk_level": AF1_GATE.validator.get_tool_risk(tool_name).value,
-        "requires_human_confirmation": AF1_GATE.validator.requires_confirmation(tool_name),
+        "requires_human_confirmation": AF1_GATE.validator.requires_confirmation(
+            tool_name
+        ),
         "reason": f"AF1 FastMCP hook for {tool_name}",
         "evidence_ref": call_id,
         "ttl_seconds": 300,
@@ -455,7 +467,9 @@ async def af1_on_call_tool(tool_name: str, kwargs: dict[str, Any]) -> dict[str, 
 
     validation_result = AF1_GATE.validator.validate(af1_obj)
 
-    input_hash = hashlib.sha256(json.dumps(kwargs, sort_keys=True).encode()).hexdigest()[:16]
+    input_hash = hashlib.sha256(
+        json.dumps(kwargs, sort_keys=True).encode()
+    ).hexdigest()[:16]
 
     receipt = AF1Receipt(
         af1_id=call_id,
@@ -472,7 +486,9 @@ async def af1_on_call_tool(tool_name: str, kwargs: dict[str, Any]) -> dict[str, 
     )
 
     AF1_GATE.receipt_logger.emit(receipt)
-    AF1_GATE.record_call(tool_name, "fastmcp_on_call_tool", validation_result.status.value)
+    AF1_GATE.record_call(
+        tool_name, "fastmcp_on_call_tool", validation_result.status.value
+    )
 
     # Shadow mode: always proceed
     if AF1_GATE.SHADOW_MODE:

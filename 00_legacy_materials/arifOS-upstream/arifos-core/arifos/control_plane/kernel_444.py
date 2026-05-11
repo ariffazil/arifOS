@@ -4,7 +4,11 @@ from ..governance import ThermodynamicMetrics, governed_return
 
 
 async def execute(
-    ctx: Context, route_target: str, operator_id: str, session_id: str, data_payload: dict = None
+    ctx: Context,
+    route_target: str,
+    operator_id: str,
+    session_id: str,
+    data_payload: dict = None,
 ):
     """
     arifos_444_kernel: Router and orthogonality enforcement.

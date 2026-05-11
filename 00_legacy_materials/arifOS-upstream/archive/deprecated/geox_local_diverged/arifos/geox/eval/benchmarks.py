@@ -22,7 +22,9 @@ try:
     from arifos.geox.geox_validator import GeoXValidator
 except ImportError:
     # If not installed as a package, try relative or direct import setup
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+    sys.path.append(
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+    )
     from arifos.geox.geox_agent import GeoXAgent, GeoXConfig
     from arifos.geox.geox_memory import DualMemoryStore
     from arifos.geox.geox_schemas import CoordinatePoint, GeoRequest
@@ -90,7 +92,10 @@ class MalayBasinAnalogBenchmark:
 
         # Success if we have fused results from both caches and a valid response
         # In mock state, this will be TRUE because our MockMemoryStore provides default data
-        success = len(dual_results["fused_ranking"]) > 0 and response.verdict in ("SEAL", "PARTIAL")
+        success = len(dual_results["fused_ranking"]) > 0 and response.verdict in (
+            "SEAL",
+            "PARTIAL",
+        )
 
         return {
             "test_case": "TC-01_Fusion",

@@ -33,7 +33,9 @@ logger = logging.getLogger("geox.tools.earth_realtime")
 
 _USGS_BASE = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 _OPENMETEO_BASE = "https://api.open-meteo.com/v1/forecast"
-_NOAA_GEOMAG_BASE = "https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination"
+_NOAA_GEOMAG_BASE = (
+    "https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination"
+)
 _BGS_WMM_BASE = "https://geomag.bgs.ac.uk/web_service/GMModels/wmm/2020/"
 
 # F7 HUMILITY: default uncertainty bands for each source type
@@ -98,7 +100,11 @@ class EarthRealtimeTool(BaseTool):
 
             if isinstance(usgs_result, Exception):
                 warnings.append(f"USGS fetch failed: {usgs_result}")
-                raw["earthquakes"] = {"count": 0, "events": [], "largest_magnitude": None}
+                raw["earthquakes"] = {
+                    "count": 0,
+                    "events": [],
+                    "largest_magnitude": None,
+                }
             else:
                 quantities.extend(usgs_result["quantities"])
                 raw["earthquakes"] = usgs_result["raw"]
@@ -215,7 +221,9 @@ class EarthRealtimeTool(BaseTool):
                 {
                     "id": f.get("id"),
                     "magnitude": f["properties"].get("mag"),
-                    "depth_km": (f.get("geometry", {}).get("coordinates") or [None, None, None])[2],
+                    "depth_km": (
+                        f.get("geometry", {}).get("coordinates") or [None, None, None]
+                    )[2],
                     "place": f["properties"].get("place"),
                     "time_utc": datetime.fromtimestamp(
                         f["properties"]["time"] / 1000, tz=timezone.utc
@@ -388,7 +396,11 @@ class EarthRealtimeTool(BaseTool):
             f"EARTH REALTIME SIGNALS @ ({location.latitude:.3f}°, {location.longitude:.3f}°)",
             f"Seismic: {eq_count} events within {radius_km:.0f}km"
             + (f", max M{max_mag:.1f}" if max_mag else ", no significant events"),
-            f"Climate: {temp}°C, {pressure} hPa" if temp else "Climate: data unavailable",
+            (
+                f"Climate: {temp}°C, {pressure} hPa"
+                if temp
+                else "Climate: data unavailable"
+            ),
             f"GeoMag: declination {decl:.2f}°" if decl else "GeoMag: data unavailable",
             "Sources: USGS (CC0) | Open-Meteo (CC-BY 4.0) | NOAA NGDC (public domain)",
             "DITEMPA BUKAN DIBERI 🔨",
@@ -400,7 +412,9 @@ class EarthRealtimeTool(BaseTool):
         try:
             import urllib.request
 
-            urllib.request.urlopen(f"{_USGS_BASE}?format=geojson&limit=1&minmagnitude=5", timeout=5)
+            urllib.request.urlopen(
+                f"{_USGS_BASE}?format=geojson&limit=1&minmagnitude=5", timeout=5
+            )
             return True
         except Exception:
             return False

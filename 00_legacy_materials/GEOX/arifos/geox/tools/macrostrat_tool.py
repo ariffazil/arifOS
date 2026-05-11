@@ -114,10 +114,14 @@ class MacrostratTool(BaseTool):
         except Exception as exc:
             logger.error(f"Macrostrat API request failed: {exc}")
             return GeoToolResult(
-                tool_name=self.name, success=False, error=f"Macrostrat API failed: {exc}"
+                tool_name=self.name,
+                success=False,
+                error=f"Macrostrat API failed: {exc}",
             )
 
-    async def _query_api(self, endpoint: str, location: CoordinatePoint) -> dict[str, Any]:
+    async def _query_api(
+        self, endpoint: str, location: CoordinatePoint
+    ) -> dict[str, Any]:
         """Query stratigraphic columns at location. Results cached for 1 hour."""
         cache_key = f"{endpoint}:{location.latitude:.4f}:{location.longitude:.4f}"
         cached = _CACHE.get(cache_key)
@@ -165,7 +169,9 @@ class MacrostratTool(BaseTool):
                         quantity_type="stratigraphic_age_top",
                         coordinates=location,
                         timestamp=now,
-                        uncertainty=abs(float(b_age) - float(t_age)) / 2 if b_age else 5.0,
+                        uncertainty=(
+                            abs(float(b_age) - float(t_age)) / 2 if b_age else 5.0
+                        ),
                         provenance=ProvenanceRecord(
                             source_id=f"macrostrat-unit-{unit_id}",
                             source_type="literature",

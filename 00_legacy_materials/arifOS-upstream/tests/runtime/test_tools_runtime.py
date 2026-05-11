@@ -31,7 +31,9 @@ async def test_arifos_init_basic():
 @pytest.mark.asyncio
 async def test_arifos_init_payload_compat():
     """Test arifos_init with payload dict (backward compatibility)."""
-    result = await arifos_init(payload={"actor_id": "test-user", "intent": "payload test"})
+    result = await arifos_init(
+        payload={"actor_id": "test-user", "intent": "payload test"}
+    )
     assert result.ok is True
     assert result.session_id is not None
 

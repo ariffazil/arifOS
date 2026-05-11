@@ -30,12 +30,13 @@ from arifos.geox.schemas.petrophysics.rock_state import (
     ProvenanceRecord,
 )
 
-
 # In-memory store
 _state_store: dict[str, RockFluidState] = {}
 
 
-async def load_rock_state(well_id: str, top: float, base: float) -> RockFluidState | None:
+async def load_rock_state(
+    well_id: str, top: float, base: float
+) -> RockFluidState | None:
     """Load rock state for interval."""
     key = f"{well_id}:{top}:{base}"
     return _state_store.get(key)
@@ -243,7 +244,9 @@ class PetrophysicsCalculator:
             units="fraction",
             confidence_95_low=phi_result.phi_low,
             confidence_95_high=phi_result.phi_high,
-            uncertainty_source="model" if phi_result.phi_uncertainty > 0 else "measurement",
+            uncertainty_source=(
+                "model" if phi_result.phi_uncertainty > 0 else "measurement"
+            ),
             porosity_type="effective",
             measurement_physics="neutron_density_crossover",
             mixing_law="gardner",
@@ -264,7 +267,9 @@ class PetrophysicsCalculator:
         # Create WaterSaturationEstimate
         saturation = WaterSaturationEstimate(
             value=sw_result.sw,
-            model_family="archie_clean" if self.model_id == "archie" else "simandoux_dispersed",
+            model_family=(
+                "archie_clean" if self.model_id == "archie" else "simandoux_dispersed"
+            ),
             params=SaturationModelParameters(
                 archie_a=self.model_params.get("a", 1.0),
                 archie_m=self.model_params.get("m", 2.0),
@@ -279,7 +284,9 @@ class PetrophysicsCalculator:
             alternative_models_considered=(
                 ["simandoux"] if self.model_id == "archie" else ["archie"]
             ),
-            model_selection_confidence=0.85 if not sw_result.assumption_violations else 0.6,
+            model_selection_confidence=(
+                0.85 if not sw_result.assumption_violations else 0.6
+            ),
             confidence_95_low=sw_result.sw_low,
             confidence_95_high=sw_result.sw_high,
             rw_sensitivity=0.1,  # dSw/dRw approximate
@@ -360,7 +367,8 @@ class PetrophysicsCalculator:
             floor_check={
                 "F2_truth": len(sw_result.assumption_violations) == 0,
                 "F4_clarity": True,
-                "F7_humility": phi_result.phi_uncertainty > 0 and sw_result.sw_uncertainty > 0,
+                "F7_humility": phi_result.phi_uncertainty > 0
+                and sw_result.sw_uncertainty > 0,
                 "F9_anti_hantu": True,
                 "F11_authority": True,
                 "F13_sovereign": verdict != "888_HOLD",
