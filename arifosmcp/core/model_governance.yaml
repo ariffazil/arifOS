@@ -33,6 +33,54 @@ models:
       - human_decision_required
       - raw_output_hash
 
+  # ── Tier 1b: DeepSeek V4 Pro (Remote reasoning witness, China) ──────────────
+  deepseek/deepseek-v4-pro:
+    provider: DeepSeek
+    role: reasoning_witness
+    authority: instrument_only
+    allowed_tools:
+      - arif_mind_reason
+      - arif_heart_critique
+      - arif_reply_compose
+      - arif_judge_deliberate
+    forbidden_roles:
+      - sovereign_judge
+      - irreversible_executor
+      - vault_sealer
+    rate_limit: 10_req_per_min
+    fallback:
+      - aisingapore/Qwen-SEA-LION-v4-32B-IT
+      - ollama:qwen2.5:7b
+      - deterministic
+    output_required:
+      - schema_valid
+      - uncertainty
+      - human_decision_required
+      - raw_output_hash
+
+  # ── Tier 1c: DeepSeek V4 Flash (Fast reasoning witness, China) ──────────────
+  deepseek/deepseek-v4-flash:
+    provider: DeepSeek
+    role: fast_witness
+    authority: instrument_only
+    allowed_tools:
+      - arif_mind_reason
+      - arif_heart_critique
+      - arif_reply_compose
+    forbidden_roles:
+      - sovereign_judge
+      - irreversible_executor
+      - vault_sealer
+    rate_limit: 30_req_per_min
+    fallback:
+      - deepseek/deepseek-v4-pro
+      - aisingapore/Qwen-SEA-LION-v4-32B-IT
+      - deterministic
+    output_required:
+      - schema_valid
+      - uncertainty
+      - human_decision_required
+
   # ── Tier 2: Ollama (Local fallback, qwen2.5:7b) ─────────────────────────────
   qwen2.5:7b:
     provider: Ollama

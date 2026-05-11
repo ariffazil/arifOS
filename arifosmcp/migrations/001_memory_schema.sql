@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS memory_records (
 -- We will use 1536 as requested in TypeScript prompt, but configurable in implementation.
 CREATE TABLE IF NOT EXISTS memory_embeddings (
     memory_id UUID PRIMARY KEY REFERENCES memory_records(memory_id) ON DELETE CASCADE,
-    embedding vector(1536),
+    embedding vector(1024),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 

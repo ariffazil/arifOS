@@ -23,7 +23,7 @@ async def minimax_generate(prompt: str, max_tokens: int = 1000) -> MinimaxEnvelo
         return MinimaxEnvelope(False, "", "MINIMAX_API_KEY missing from environment")
 
     # Minimax V2 (ChatCompletion)
-    url = "https://api.minimax.chat/v1/text/chatcompletion_v2"
+    url = "https://api.minimax.io/text/chatcompletion_v2"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
     payload = {

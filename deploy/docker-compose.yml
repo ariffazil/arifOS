@@ -120,7 +120,7 @@ services:
       - "host.docker.internal:host-gateway"
   # ── PLANE 3: DATA & MEMORY ──────────────────────────────────────────
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: postgres
     restart: unless-stopped
     environment:

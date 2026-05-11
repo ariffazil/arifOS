@@ -1,33 +1,39 @@
 """
-arifosmcp/runtime/memory_store.py — 555_MEMORY Persistent Storage Layer
+arifosmcp/runtime/memory_store.py -- 555_MEMORY Canonical Backend v2
 
-FIXES THE HOLE: arif_memory_recall previously returned stub data.
-Now: actual JSON file persistence in /root/.arifOS/memory/
+CONSOLIDATED: This module is now the SINGLE canonical memory backend.
+Previously there were 3 competing systems (memory_store.py, memory_engine.py,
+vector_memory_qdrant.py). They have been unified here.
 
-Storage schema:
-  /root/.arifOS/memory/
-    .index.json          — master index: memory_id → {timestamp, tags, mode, summary}
-    {memory_id}.json     — individual memory records
+Backend: Qdrant (vector store) + Ollama bge-m3 (embeddings) + JSON index
+Index:   /root/.arifOS/memory/.qdrant_index.json -- memory_id -> point_id
 
-DITEMPA BUKAN DIBERI — Forged, Not Given
+Migration: 6 legacy JSON files from v1 were migrated to Qdrant on 2026-05-11.
+
+DITEMPA BUKAN DIBERI -- Forged, Not Given
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-# ── Storage root ──────────────────────────────────────────────────────────────
+logger = logging.getLogger(__name__)
 
 _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/root/.arifOS/memory"))
-_INDEX_FILE = _MEMORY_DIR / ".index.json"
+_INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
+_LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
 
-# ── Internal helpers ─────────────────────────────────────────────────────────
+_QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
+_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
+_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
+_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 
 
 def _ensure_dir() -> None:
@@ -49,14 +55,51 @@ def _index_write(idx: dict[str, dict[str, Any]]) -> None:
         json.dump(idx, f, indent=2, default=str)
 
 
+def _get_qdrant_client():
+    from qdrant_client import QdrantClient
+
+    return QdrantClient(url=_QDRANT_URL)
+
+
+def _generate_embedding(text: str) -> list[float]:
+    import httpx
+
+    response = httpx.post(
+        f"{_OLLAMA_URL}/api/embeddings",
+        json={"model": _EMBEDDING_MODEL, "prompt": text},
+        timeout=30.0,
+    )
+    response.raise_for_status()
+    embedding = response.json().get("embedding", [])
+    if not embedding:
+        raise RuntimeError("Ollama returned empty embedding")
+    return embedding
+
+
+def _summarize(content: Any) -> str:
+    if isinstance(content, str):
+        return content[:120].strip()
+    if isinstance(content, dict):
+        for key in ("synthesis", "verdict", "composed", "summary", "output"):
+            if key in content and content[key]:
+                val = content[key]
+                if isinstance(val, str):
+                    return f"[{key}] {val}"[:120].strip()
+        return f"dict with keys: {', '.join(list(content.keys())[:5])}"
+    if isinstance(content, list):
+        return f"list of {len(content)} items"
+    return str(type(content).__name__)
+
+
 def _content_hash(content: Any) -> str:
-    """Stable SHA-256 hash of content for deduplication."""
     return hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()[
         :16
     ]
 
 
-# ── Public API ───────────────────────────────────────────────────────────────
+# =============================================================================
+# PUBLIC API -- Same interface as v1, but backed by Qdrant + embeddings
+# =============================================================================
 
 
 def store(
@@ -67,57 +110,95 @@ def store(
     session_id: str | None = None,
     summary: str | None = None,
 ) -> dict[str, Any]:
-    """
-    Persist a memory record.
-
-    Returns: {"stored": True, "memory_id": str, "indexed": bool}
-    """
     _ensure_dir()
     memory_id = uuid.uuid4().hex[:12]
+    text = _summarize(content)
 
-    record = {
-        "memory_id": memory_id,
+    try:
+        vector = _generate_embedding(text)
+    except Exception as exc:
+        logger.warning(f"Embedding generation failed: {exc}")
+        vector = []
+
+    payload = {
         "content": content,
         "mode": mode,
         "tags": tags or [],
         "actor_id": actor_id,
         "session_id": session_id,
-        "summary": summary or _summarize(content),
+        "summary": summary or text,
         "content_hash": _content_hash(content),
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "version": "v2",
     }
 
-    record_path = _MEMORY_DIR / f"{memory_id}.json"
-    with open(record_path, "w", encoding="utf-8") as f:
-        json.dump(record, f, indent=2, default=str)
+    point_id = str(uuid.uuid4())
+    try:
+        client = _get_qdrant_client()
+        client.upsert(
+            collection_name=_QDRANT_COLLECTION,
+            points=[{"id": point_id, "vector": vector, "payload": payload}],
+        )
+    except Exception as exc:
+        logger.error(f"Qdrant store failed: {exc}")
+        return {"stored": False, "memory_id": memory_id, "error": str(exc)}
 
     idx = _index_read()
     idx[memory_id] = {
+        "point_id": point_id,
         "mode": mode,
         "tags": tags or [],
-        "summary": record["summary"],
-        "content_hash": record["content_hash"],
-        "created_at": record["created_at"],
+        "summary": payload["summary"],
+        "content_hash": payload["content_hash"],
+        "created_at": payload["created_at"],
         "session_id": session_id,
     }
     _index_write(idx)
 
-    return {"stored": True, "memory_id": memory_id, "indexed": True}
+    return {"stored": True, "memory_id": memory_id, "indexed": True, "point_id": point_id}
 
 
-def recall(
-    memory_id: str,
-) -> dict[str, Any] | None:
-    """Retrieve a single memory by ID. Returns None if not found."""
+def recall(memory_id: str) -> dict[str, Any] | None:
     _ensure_dir()
-    record_path = _MEMORY_DIR / f"{memory_id}.json"
-    if not record_path.exists():
-        return None
-    try:
-        with open(record_path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return None
+    idx = _index_read()
+
+    if memory_id in idx:
+        point_id = idx[memory_id].get("point_id")
+        if point_id:
+            try:
+                client = _get_qdrant_client()
+                points = client.retrieve(
+                    collection_name=_QDRANT_COLLECTION,
+                    ids=[point_id],
+                    with_payload=True,
+                )
+                if points and points[0].payload:
+                    p = points[0].payload
+                    return {
+                        "memory_id": memory_id,
+                        "content": p.get("content"),
+                        "mode": p.get("mode"),
+                        "tags": p.get("tags", []),
+                        "actor_id": p.get("actor_id"),
+                        "session_id": p.get("session_id"),
+                        "summary": p.get("summary"),
+                        "content_hash": p.get("content_hash"),
+                        "created_at": p.get("created_at"),
+                        "point_id": point_id,
+                        "version": p.get("version", "v2"),
+                    }
+            except Exception as exc:
+                logger.warning(f"Qdrant recall failed for {memory_id}: {exc}")
+
+    legacy_path = _MEMORY_DIR / f"{memory_id}.json"
+    if legacy_path.exists():
+        try:
+            with open(legacy_path, encoding="utf-8") as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    return None
 
 
 def search(
@@ -127,44 +208,63 @@ def search(
     session_id: str | None = None,
     limit: int = 20,
 ) -> list[dict[str, Any]]:
-    """
-    Search memories by text query, tags, mode, or session.
-
-    Query matches against summary + tags (case-insensitive).
-    Returns up to `limit` records ordered by newest first.
-    """
     _ensure_dir()
     idx = _index_read()
     results: list[tuple[float, dict[str, Any]]] = []
 
-    for mid, meta in idx.items():
-        # Filter: mode
-        if mode and meta.get("mode") != mode:
-            continue
-        # Filter: session_id
-        if session_id and meta.get("session_id") != session_id:
-            continue
-        # Filter: tags (all must match)
-        if tags and not all(t in meta.get("tags", []) for t in tags):
-            continue
-        # Score: query match
-        score = 0.0
-        if query:
-            q = query.lower()
-            if q in (meta.get("summary") or "").lower():
-                score += 2.0
-            if q in " ".join(meta.get("tags", [])).lower():
-                score += 1.0
-        else:
-            score = 1.0
-
-        if score > 0:
-            record = recall(mid)
+    if query and query.strip():
+        try:
+            vector = _generate_embedding(query)
+            client = _get_qdrant_client()
+            hits = client.search(
+                collection_name=_QDRANT_COLLECTION,
+                query_vector=vector,
+                limit=limit * 2,
+                with_payload=True,
+            )
+            for hit in hits:
+                p = hit.payload or {}
+                if mode and p.get("mode") != mode:
+                    continue
+                if session_id and p.get("session_id") != session_id:
+                    continue
+                if tags and not all(t in p.get("tags", []) for t in tags):
+                    continue
+                results.append(
+                    (
+                        hit.score,
+                        {
+                            "memory_id": "",
+                            "content": p.get("content"),
+                            "mode": p.get("mode"),
+                            "tags": p.get("tags", []),
+                            "actor_id": p.get("actor_id"),
+                            "session_id": p.get("session_id"),
+                            "summary": p.get("summary"),
+                            "content_hash": p.get("content_hash"),
+                            "created_at": p.get("created_at"),
+                            "point_id": hit.id,
+                            "score": hit.score,
+                            "version": p.get("version", "v2"),
+                        },
+                    )
+                )
+        except Exception as exc:
+            logger.warning(f"Vector search failed: {exc}")
+    else:
+        # No query: list by filters
+        for memory_id, meta in idx.items():
+            if mode and meta.get("mode") != mode:
+                continue
+            if session_id and meta.get("session_id") != session_id:
+                continue
+            if tags and not all(t in meta.get("tags", []) for t in tags):
+                continue
+            record = recall(memory_id)
             if record:
-                results.append((score, record))
+                results.append((1.0, record))
 
-    # Sort by score desc, then created_at desc
-    results.sort(key=lambda x: (x[0], x[1].get("created_at", "")), reverse=True)
+    results.sort(key=lambda x: x[0], reverse=True)
     return [r for _, r in results[:limit]]
 
 
@@ -173,19 +273,15 @@ def prune(
     before: str | None = None,
     reason: str = "manual",
 ) -> dict[str, Any]:
-    """
-    Delete memory records.
-
-    Args:
-        memory_id: Delete specific record.
-        before: Delete records created before this ISO timestamp.
-        reason: Reason for pruning (logged).
-
-    Returns: {"pruned": [memory_ids], "count": int}
-    """
     _ensure_dir()
     idx = _index_read()
     pruned: list[str] = []
+    client = None
+
+    try:
+        client = _get_qdrant_client()
+    except Exception as exc:
+        logger.warning(f"Qdrant client unavailable for prune: {exc}")
 
     to_delete: list[str] = []
     if memory_id:
@@ -197,9 +293,23 @@ def prune(
                 to_delete.append(mid)
 
     for mid in to_delete:
-        record_path = _MEMORY_DIR / f"{mid}.json"
-        if record_path.exists():
-            record_path.unlink()
+        meta = idx.get(mid)
+        if meta and client:
+            point_id = meta.get("point_id")
+            if point_id:
+                try:
+                    client.delete(
+                        collection_name=_QDRANT_COLLECTION,
+                        points_selector=[point_id],
+                    )
+                except Exception as exc:
+                    logger.warning(f"Qdrant delete failed for {point_id}: {exc}")
+
+        # Also clean legacy file
+        legacy_path = _MEMORY_DIR / f"{mid}.json"
+        if legacy_path.exists():
+            legacy_path.unlink()
+
         if mid in idx:
             del idx[mid]
             pruned.append(mid)
@@ -212,41 +322,29 @@ def context_for_session(
     session_id: str,
     limit: int = 50,
 ) -> list[dict[str, Any]]:
-    """Retrieve all memories for a given session, newest first."""
     return search(session_id=session_id, limit=limit)
 
 
-def _summarize(content: Any) -> str:
-    """Generate a one-line summary from content."""
-    if isinstance(content, str):
-        return content[:120].strip()
-    if isinstance(content, dict):
-        # Pull most meaningful key as summary
-        for key in ("synthesis", "verdict", "composed", "summary", "output"):
-            if key in content and content[key]:
-                val = content[key]
-                if isinstance(val, str):
-                    return f"[{key}] {val}"[:120].strip()
-        return f"dict with keys: {', '.join(list(content.keys())[:5])}"
-    if isinstance(content, list):
-        return f"list of {len(content)} items"
-    return str(type(content).__name__)
-
-
 def stats() -> dict[str, Any]:
-    """Return memory store statistics."""
     _ensure_dir()
     idx = _index_read()
-    total_size = sum(
-        (_MEMORY_DIR / f"{mid}.json").stat().st_size
-        for mid in idx
-        if (_MEMORY_DIR / f"{mid}.json").exists()
-    )
+    qdrant_count = 0
+    try:
+        client = _get_qdrant_client()
+        info = client.get_collection(_QDRANT_COLLECTION)
+        qdrant_count = info.points_count
+    except Exception as exc:
+        logger.warning(f"Qdrant stats unavailable: {exc}")
+
     return {
         "total_records": len(idx),
-        "total_bytes": total_size,
+        "qdrant_vectors": qdrant_count,
+        "legacy_files": len(list(_MEMORY_DIR.glob("*.json")))
+        - (1 if _INDEX_FILE.exists() else 0)
+        - (1 if _LEGACY_INDEX_FILE.exists() else 0),
         "by_mode": _mode_counts(idx),
         "by_session": _session_counts(idx),
+        "backend": "qdrant_v2",
     }
 
 

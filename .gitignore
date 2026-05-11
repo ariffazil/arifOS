@@ -152,3 +152,4 @@ evidence/
 *.zkey
 zkp_artifacts/
 arifos.egg-info/
+.archive/
