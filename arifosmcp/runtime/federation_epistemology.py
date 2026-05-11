@@ -100,7 +100,7 @@ def _vault_dir() -> Path:
     raw = (
         os.getenv("ARIFOS_VAULT_DIR")
         or os.getenv("VAULT999_PATH")
-        or os.getenv("ARIFOS_VAULT_DIR", "/app/telemetry")
+        or str(Path(__file__).resolve().parents[2] / "VAULT999")
     )
     path = Path(raw)
     path.mkdir(parents=True, exist_ok=True)

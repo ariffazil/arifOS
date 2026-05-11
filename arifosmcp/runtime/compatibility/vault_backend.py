@@ -90,7 +90,7 @@ class VaultBackend:
             return {
                 "canonical_tool_name": "arifos.vault",
                 "tool": "arifos.vault",
-                "stage": "999_VAULT",
+                "stage": "999_SEAL",
                 "vault_id": vault_id,
                 "valid": report.valid,
                 "verification_grade": report.grade.to_dict() if report.grade else None,
@@ -102,7 +102,7 @@ class VaultBackend:
             return {
                 "canonical_tool_name": "arifos.vault",
                 "tool": "arifos.vault",
-                "stage": "999_VAULT",
+                "stage": "999_SEAL",
                 "vault_id": vault_id,
                 "valid": True,
                 "backend_version": "v1",
@@ -114,7 +114,7 @@ class VaultBackend:
             return {
                 "canonical_tool_name": "arifos.vault",
                 "tool": "arifos.vault",
-                "stage": "999_VAULT",
+                "stage": "999_SEAL",
                 "status": "ERROR",
                 "error": "Seal rejected by gate",
                 "backend_version": "v2",
@@ -123,7 +123,7 @@ class VaultBackend:
         return {
             "canonical_tool_name": "arifos.vault",
             "tool": "arifos.vault",
-            "stage": "999_VAULT",
+            "stage": "999_SEAL",
             "status": "SUCCESS",
             "vault_id": receipt.vault_id,
             "record_hash": receipt.record_hash,
@@ -137,7 +137,7 @@ class VaultBackend:
         if isinstance(result, dict):
             result["canonical_tool_name"] = "arifos.vault"
             result["tool"] = "arifos.vault"
-            result["stage"] = "999_VAULT"
+            result["stage"] = "999_SEAL"
             result["backend_version"] = "v1"
         return result
 

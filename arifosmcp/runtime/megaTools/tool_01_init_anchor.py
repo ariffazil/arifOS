@@ -397,7 +397,7 @@ async def init_anchor(
             "anchor_state": "created",
         },
         "result": _bootstrap_result(
-            _session_id, _dn, verified, risk_tier, "mcp", "444_ROUTER"
+            _session_id, _dn, verified, risk_tier, "mcp", "555_ROUTE"
         ),
         "telos_manifold": telos_manifold,
         "godel_lock": godel_lock,
@@ -426,7 +426,7 @@ async def init_anchor(
             risk_tier=risk_tier,
             platform="mcp",
             verified=verified,
-            stage="444_ROUTER",
+            stage="555_ROUTE",
             governance={"verdict": "SEAL"},
             sign=True,  # ← FIXED: generates continuity token
         )

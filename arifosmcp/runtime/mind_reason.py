@@ -251,7 +251,7 @@ Distinguish CLAIM from FACT."""
             response_schema=RESPONSE_SCHEMA,
             temperature=0.3,
             max_tokens=1200,
-            tool_origin="333_MIND",
+            tool_origin="333_REASON",
             mode=mode,
         )
         llm_available = True
@@ -287,7 +287,7 @@ Distinguish CLAIM from FACT."""
                 }
             ],
             "axioms_used": ["F07"],
-            "next_safe_action": ["222_FETCH", "888_JUDGE"],
+            "next_safe_action": ["222_EVIDENCE", "888_JUDGE"],
         }
         provenance = _FIELD_PROVENANCE_FALLBACK
         witness = _build_witness_statement(None)
@@ -371,7 +371,7 @@ Distinguish CLAIM from FACT."""
     else:
         result["_envelope"] = {
             "provider": "none",
-            "tool_origin": "333_MIND",
+            "tool_origin": "333_REASON",
             "mode": mode,
             "raw_output_hash": "none",
             "schema_valid": False,

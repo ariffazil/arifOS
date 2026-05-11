@@ -366,7 +366,7 @@ def _trace_replay_envelope(
             {
                 "code": code,
                 "message": error,
-                "stage": "999_VAULT",
+                "stage": "999_SEAL",
                 "recoverable": replay_status != "TAMPERED",
             }
         )
@@ -375,7 +375,7 @@ def _trace_replay_envelope(
         "ok": ok,
         "tool": "trace_replay",
         "session_id": session_id,
-        "stage": "999_VAULT",
+        "stage": "999_SEAL",
         "verdict": "SEAL" if ok else "VOID",
         "status": "ERROR" if not ok else "SUCCESS",
         "metrics": {},

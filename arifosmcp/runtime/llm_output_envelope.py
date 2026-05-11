@@ -196,7 +196,7 @@ def _assess_uncertainty_and_risk(
         risk_flags.append("F12_INJECTION_DETECTED")
         uncertainty.append("F12_injection_scan_triggered_in_LLM_output")
 
-    if tool_origin in ("333_MIND", "666_HEART", "444r_REPLY"):
+    if tool_origin in ("333_REASON", "444_CRITIQUE", "444r_REPLY"):
         uncertainty.append(f"{tool_origin}_output_is_testimony_not_verdict")
 
     return uncertainty, risk_flags
@@ -225,7 +225,7 @@ def wrap_llm_output(
         parsed_output  — JSON dict from LLM
         provider       — "sea_lion" | "ollama" | "deterministic"
         model          — model identifier string
-        tool_origin    — canonical tool name (e.g. "333_MIND", "666_HEART")
+        tool_origin    — canonical tool name (e.g. "333_REASON", "444_CRITIQUE")
         mode           — cognitive mode (e.g. "reason", "critique", "compose")
         prompt         — the original prompt sent to LLM (for audit hash)
         schema_valid   — whether parsed_output is valid JSON

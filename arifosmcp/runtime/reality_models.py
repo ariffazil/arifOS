@@ -6,7 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 StatusState = Literal["SUCCESS", "PARTIAL", "SABAR", "VOID", "ERROR"]
-Stage = Literal["111_SENSE", "222_REALITY", "333_MIND"]
+Stage = Literal["111_OBSERVE", "222_REALITY", "333_REASON"]
 Verdict = Literal["SEAL", "SABAR", "VOID"]
 
 ErrorCode = Literal[
@@ -59,11 +59,11 @@ class BundleStatus(BaseModel):
 
     @classproperty
     def PENDING(self):
-        return self(state="SABAR", stage="111_SENSE", verdict="SABAR", label="PENDING")
+        return self(state="SABAR", stage="111_OBSERVE", verdict="SABAR", label="PENDING")
 
     @classproperty
     def ERROR(self):
-        return self(state="ERROR", stage="111_SENSE", verdict="VOID", label="ERROR")
+        return self(state="ERROR", stage="111_OBSERVE", verdict="VOID", label="ERROR")
 
 
 class Policy(BaseModel):

@@ -408,8 +408,66 @@ class JudgmentKernel:
             session_id=session_id,
         )
 
+        # Paradox Conductance: compute Φₚ per PARADOX_DOCTRINE_V1 Section 7 (P6)
+        phi_p = _calculate_paradox_conductance(
+            delta_p=-combined_floors.f4_clarity,
+            omega_p=agi_result.uncertainty if hasattr(agi_result, 'uncertainty') else 0.04,
+            psi_p=0.5,
+            kappa_r=combined_floors.f6_empathy,
+            amanah=combined_floors.f1_amanah,
+            failure_drag=kernel.hysteresis_penalty,
+        )
+        
+        # P6: Canonical Circuit Breaker evaluation (PARADOX_DOCTRINE_V1 Section 7)
+        from core.paradox.circuit_breakers import evaluate_all_breakers, CircuitBreakerState
+
+        omega_0 = getattr(agi_result, 'uncertainty', agi_result.safety_omega)
+        evidence_count = getattr(agi_result, 'evidence_count', len(agi_result.evidence_sources or []))
+        evidence_relevance = getattr(agi_result, 'evidence_relevance', 0.5)
+
+        # Derive witness scores from evidence_sources if available
+        human_witness = 0.7
+        ai_witness = 0.7
+        earth_witness = 0.7
+        if agi_result.evidence_sources:
+            src_types = [s.get('type', '') for s in agi_result.evidence_sources]
+            human_witness = 0.8 if 'human' in src_types else 0.7
+            ai_witness = 0.8 if 'ai' in src_types else 0.7
+            earth_witness = 0.8 if 'earth' in src_types else 0.7
+
+        breakers = evaluate_all_breakers(
+            omega_0=omega_0,
+            tau_truth=agi_result.truth_score,
+            evidence_count=evidence_count,
+            evidence_relevance=evidence_relevance,
+            human_witness=human_witness,
+            ai_witness=ai_witness,
+            earth_witness=earth_witness,
+            self_reference_depth=getattr(agi_result, 'self_reference_depth', 0),
+        )
+
+        active_breakers = [b for b in breakers if b.state == CircuitBreakerState.TRIPPED]
+
+        _BREAKER_VERDICT: dict[str, str] = {
+            "CB3": "VOID",
+            "CB1": "SABAR",
+            "CB4": "SABAR",
+            "CB5": "HOLD",
+            "CB2": "HOLD",
+        }
+
+        cb_override: str | None = None
+        cb_reason: str | None = None
+        if active_breakers:
+            top = active_breakers[0]
+            cb_override = top.breaker_id
+            cb_reason = f"{top.name}: {top.reason}"
+
         # RULE: 888 JUDGE allows VOID
-        if g_score >= 0.8:
+        if cb_override == "CB3":
+            verdict = Verdict.VOID
+            reasoning = f"Paradox detected — {cb_reason}. Fabrication risk."
+        elif g_score >= 0.8:
             verdict = Verdict.SEAL
         elif g_score >= 0.6:
             verdict = Verdict.PARTIAL
@@ -417,6 +475,19 @@ class JudgmentKernel:
             verdict = Verdict.HOLD
         else:
             verdict = Verdict.VOID
+
+        if cb_override == "CB1" and verdict == Verdict.SEAL:
+            verdict = Verdict.SABAR
+            reasoning = f"Godellock detected — {cb_reason}. Downgrading SEAL to SABAR."
+        elif cb_override == "CB4":
+            verdict = Verdict.SABAR
+            reasoning = f"Recursive Stack detected — {cb_reason}. Downgrading to SABAR."
+        elif cb_override == "CB5":
+            verdict = Verdict.HOLD
+            reasoning = f"Confidence Cascade detected — {cb_reason}. Downgrading to HOLD."
+        elif cb_override == "CB2":
+            verdict = Verdict.HOLD
+            reasoning = f"Single Witness detected — {cb_reason}. Downgrading to HOLD."
 
         return VerdictResult(
             verdict=verdict.value,
@@ -427,6 +498,7 @@ class JudgmentKernel:
             vitality_index=round(g_score / 0.5, 4),
             floor_scores=combined_floors.model_dump(),
             provenance=apex_provenance,
+            paradox_conductance=round(phi_p, 4),
         )
 
 

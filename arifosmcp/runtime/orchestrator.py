@@ -544,7 +544,7 @@ async def metabolic_loop(
             "ok": True,
             "tool": tool_name,
             "session_id": _actual_session,
-            "stage": "444_ROUTER",
+            "stage": "555_ROUTE",
             "verdict": "SEAL",
             "status": "DRY_RUN",
             "authority": {
@@ -706,7 +706,7 @@ async def metabolic_loop(
                     deps = [] if idx == 0 else [plan[idx - 1]]
                     dag_exec.add_node(
                         node_id=stage_id,
-                        tool_name=stage_id,  # Full stage_id e.g. "333_MIND"
+                        tool_name=stage_id,  # Full stage_id e.g. "333_REASON"
                         mode="default",
                         args={"query": query, "session_id": current_session_id},
                         dependencies=deps,

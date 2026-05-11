@@ -36,6 +36,35 @@ RUNTIME_ENVELOPE_SCHEMA = {
 _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_ping": "Lightweight liveness probe — confirms kernel reachability.",
     "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
+    "arif_session_init": "000_INIT: + birth — Session bootstrap + identity binding.",
+    "arif_sense_observe": "111_OBSERVE: + contact reality — Multimodal reality observation.",
+    "arif_evidence_fetch": "222_EVIDENCE: + gather — Verified external evidence retrieval.",
+    "arif_mind_reason": "333_REASON: + reason — Symbolic reasoning kernel.",
+    "arif_kernel_route": "555_ROUTE: + route — Central orchestration and tool routing.",
+    "arif_heart_critique": "444_CRITIQUE: + feel consequence — Ethical critique and impact assessment.",
+    "arif_reply_compose": "444_REPLY: + express — Governed response composition.",
+    "arif_memory_recall": "555m_MEMORY: + remember — Associative retrieval from VAULT999.",
+    "arif_gateway_connect": "666_GATEWAY: connect outward — Federated cross-agent bridge.",
+    "arif_judge_deliberate": "888_JUDGE: < arbitrate — Final constitutional arbitration.",
+    "arif_vault_seal": "999_SEAL: + seal finally — Immutable ledger anchoring.",
+    "arif_forge_execute": "666_FORGE: < build — System modification and build execution.",
+    "arif_ops_measure": "777_MEASURE: measure — Resource thermodynamics.",
+    "arif_mcp_health": "Lightweight service health check for the arifOS MCP gateway.",
+    "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
+}
+
+RUNTIME_ENVELOPE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "ok": {"type": "boolean"},
+        "verdict": {"type": "string"},
+        "payload": {"type": "object"},
+    },
+}
+
+_TOOL_DESCRIPTIONS: dict[str, str] = {
+    "arif_ping": "Lightweight liveness probe — confirms kernel reachability.",
+    "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
     "arif_session_init": (
         "000_INIT: Constitutional session bootstrap and identity binding. "
         "Initializes a governed session anchored to the 13-floor constitution. "
@@ -44,6 +73,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F11 AUTH identity binding, F12 INJECTION sanitization, F13 SOVEREIGN veto enforced."
     ),
     "arif_sense_observe": (
+        "111_OBSERVE: + contact reality — Multimodal reality observation."
         "111_SENSE: Multimodal reality observation and environmental sensing. "
         "Grounds queries in physical reality via PARSE → CLASSIFY → DECIDE → PLAN → RETRIEVE → "
         "NORMALIZE → GATE → HANDOFF protocol. Gathers raw observational data across sensory. "
@@ -52,6 +82,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F2 TRUTH, F3 WITNESS, F4 CLARITY, F10 ONTOLOGY enforced."
     ),
     "arif_evidence_fetch": (
+        "222_EVIDENCE: + gather — Verified external evidence retrieval."
         "222_FETCH: Evidence-preserving web ingestion with sequential thinking. "
         "Fetches verified external evidence with full traceability chain. "
         "Supports thinking_depth (0–10), thinking_budget (0.0–10.0), sequential modes "
@@ -60,6 +91,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F2 TRUTH source citation, F3 WITNESS verifiable evidence required."
     ),
     "arif_mind_reason": (
+        "333_REASON: + reason — Symbolic reasoning kernel."
         "333_MIND: Symbolic constitutional reasoning kernel. "
         "Performs governed reasoning using explicit axioms from F1–F13. "
         "Modes: reason (standard AGI pipeline), sequential (multi-step constitutional chain), "
@@ -69,6 +101,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F2 TRUTH, F4 CLARITY, F7 HUMILITY, F8 GENIUS enforced."
     ),
     "arif_kernel_route": (
+        "555_ROUTE: + route — Central orchestration and tool routing."
         "444_KERNEL: Central orchestration, intent routing, and stage dispatch. "
         "Routes sovereign intent to the correct constitutional stage. "
         "Modes: kernel (route to metabolic lane), status (routing decision without execution). "
@@ -76,12 +109,14 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F4 CLARITY transparent intent, F11 AUTH identity verification."
     ),
     "arif_reply_compose": (
+        "444_REPLY: + express — Governed response composition."
         "444_REPLY: Governed response composition with constitutional tone control. "
         "Composes human-facing replies that are truthful, clear, empathetic, and peace-preserving. "
         "Modes: compose (governed reply), rewrite (re-tone existing), analyze (tone audit). "
         "F2 TRUTH no fabrication, F5 PEACE human dignity, F6 EMPATHY consequence awareness."
     ),
     "arif_memory_recall": (
+        "555m_MEMORY: + remember — Associative retrieval from VAULT999."
         "555_MEMORY: Associative retrieval from VAULT999 and vector memory. "
         "Recalls prior session artifacts, reasoning traces, and sealed events. "
         "Modes: vector_query (semantic search), vector_store (store), engineer (engineering), "
@@ -89,18 +124,21 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F2 TRUTH no fabrication, F10 ONTOLOGY structural coherence, F11 AUTH identity."
     ),
     "arif_heart_critique": (
+        "444_CRITIQUE: + feel consequence — Ethical critique and impact assessment."
         "666_HEART: Ethical critique, risk assessment, and empathy scan. "
         "Evaluates proposed actions against 8 risk categories and F5/F6/F9. "
         "Modes: critique (identify risks/violations), simulate (predict downstream consequences). "
         "Prevents F9 ANTIHANTU manipulation, F5 PEACE dignity violations, F6 EMPATHY blindness."
     ),
     "arif_gateway_connect": (
+        "666_GATEWAY: connect outward — Federated cross-agent bridge."
         "666_GATEWAY: Federated cross-agent bridge and A2A mesh protocol. "
         "Connects to other constitutional agents (WEALTH, GEOX) through governed routing. "
         "Modes: connect (establish bridge), status (connection health), disconnect (close). "
         "F4 CLARITY transparent intent, F11 AUTH verified identity, F13 SOVEREIGN veto preserved."
     ),
     "arif_ops_measure": (
+        "777_MEASURE: measure — Resource thermodynamics."
         "777_OPS: Resource thermodynamics, health telemetry, and metabolic monitoring. "
         "Measures operational health using entropy, Landauer limits, G-score, and ΔS. "
         "Modes: cost (Landauer gate), health (system gauge), vitals (metabolic telemetry), "
@@ -109,6 +147,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F4 CLARITY transparent capacity, F5 PEACE resource stewardship."
     ),
     "arif_judge_deliberate": (
+        "888_JUDGE: < arbitrate — Final constitutional arbitration."
         "888_JUDGE: Final constitutional arbitration and verdict sealing. "
         "The apex adjudication organ. Evaluates against all 13 floors. "
         "Outputs: SEAL (proceed), PARTIAL (conditional), VOID (halt), HOLD (escalate). "
@@ -117,6 +156,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F10 ONTOLOGY, F12 INJECTION, F13 SOVEREIGN enforced."
     ),
     "arif_vault_seal": (
+        "999_SEAL: + seal finally — Immutable ledger anchoring."
         "999_VAULT: Immutable ledger anchoring and cryptographic seal. "
         "Writes terminal verdicts to VAULT999 with Merkle-hashed integrity. "
         "Modes: append (write verdict record), read (query ledger). "
@@ -124,6 +164,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "F1 AMANAH accountability, F13 SOVEREIGN human veto preserved. Append-only — immutable."
     ),
     "arif_forge_execute": (
+        "666_FORGE: < build — System modification and build execution."
         "010_FORGE: Metabolic execution, build orchestration, and artifact forging. "
         "Executes approved actions under constitutional supervision. "
         "NEVER executes without prior arif_judge_deliberate SEAL. "

@@ -1,0 +1,20 @@
+[Unit]
+Description=arifOS Webhook Deploy Server
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/arifOS/scripts
+Environment=ARIFOS_WEBHOOK_SECRET=% secrets.arifos_webhook_secret%
+Environment=ARIFOS_DEPLOY_SCRIPT=/root/arifOS/scripts/deploy_arifosmcp.sh
+Environment=WEBHOOK_PORT=8443
+ExecStart=/root/arifOS/scripts/run_webhook.sh
+Restart=unless-stopped
+RestartSec=10
+StandardOutput=append:/var/log/arifos/webhook.log
+StandardError=append:/var/log/arifos/webhook-error.log
+
+[Install]
+WantedBy=multi-user.target

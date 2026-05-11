@@ -292,6 +292,26 @@ if app:
     except Exception as e:
         logger.warning(f"REST routes registration failed: {e}")
 
+    # Register constitutional webhook intake + Observatory SSE feed
+    # Mounted as FastAPI sub-apps because mcp.http_app() returns Starlette
+    try:
+        from fastapi import FastAPI
+
+        from arifosmcp.runtime.sse_router import router as sse_router
+        from arifosmcp.runtime.webhook_router import router as webhook_router
+
+        wh_app = FastAPI()
+        wh_app.include_router(webhook_router)
+        app.mount("/api/webhook", wh_app)
+
+        ev_app = FastAPI()
+        ev_app.include_router(sse_router)
+        app.mount("/api/events", ev_app)
+
+        logger.info("Webhook + SSE routers mounted on ASGI app")
+    except Exception as e:
+        logger.warning(f"Webhook/SSE mount failed: {e}")
+
 
 def main() -> None:
     import uvicorn

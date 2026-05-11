@@ -249,14 +249,14 @@ class TestIntegration:
         stages = {spec.stage for spec in CANONICAL_TOOL_SPECS}
         expected_stages = {
             "000_INIT",
-            "111_SENSE",
-            "333_MIND",
-            "444_ROUTER",
-            "555_MEMORY",
-            "666_HEART",
-            "777_OPS",
+            "111_OBSERVE",
+            "333_REASON",
+            "555_ROUTE",
+            "555m_MEMORY",
+            "444_CRITIQUE",
+            "777_MEASURE",
             "888_JUDGE",
-            "999_VAULT",
+            "999_SEAL",
             "M-3_EXEC",
             "M-4_ARCH",
         }

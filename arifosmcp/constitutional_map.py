@@ -61,18 +61,18 @@ class TrinityLane(str, Enum):
 
 class ToolStage(str, Enum):
     INIT = "000"
-    SENSE = "111"
-    FETCH = "222"
-    MIND = "333"
-    KERNEL = "444"
+    OBSERVE = "111"
+    EVIDENCE = "222"
+    REASON = "333"
+    CRITIQUE = "444"
     REPLY = "444r"
-    MEMORY = "555"
-    HEART = "666"
+    ROUTE = "555"
+    MEMORY = "555m"
+    FORGE = "666"
     GATEWAY = "666g"
-    OPS = "777"
+    MEASURE = "777"
     JUDGE = "888"
-    FORGE = "010"
-    VAULT = "999"
+    SEAL = "999"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -202,12 +202,8 @@ class RiskDecision:
     reason: str  # Human-readable gate message
     floors_activated: list[str]  # Which floors are on watch
     requires_human_confirmation: bool  # F13 gate — human must sign off
-    human_approval_reference: (
-        str | None
-    )  # If confirmed, the approval token / session_ref
-    uncertainty_band: tuple[
-        float, float
-    ]  # (lower, upper) — F07 Ω band if evidence is thin
+    human_approval_reference: str | None  # If confirmed, the approval token / session_ref
+    uncertainty_band: tuple[float, float]  # (lower, upper) — F07 Ω band if evidence is thin
     preflight_passed: bool  # Did the action pass all preflight checks?
 
 
@@ -402,9 +398,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
-        "description": "111_SENSE: + contact reality — Multimodal reality observation.",
+        "description": "111_OBSERVE: + contact reality — Multimodal reality observation.",
         "access": "public",
-        "stage": ToolStage.SENSE,
+        "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
         "floors": [Floor.F02_TRUTH, Floor.F07_HUMILITY],
         "risk_tier": "low",
@@ -414,9 +410,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_evidence_fetch": {
         "name": "arif_evidence_fetch",
-        "description": "222_FETCH: + gather — Verified external evidence retrieval.",
+        "description": "222_EVIDENCE: + gather — Verified external evidence retrieval.",
         "access": "public",
-        "stage": ToolStage.FETCH,
+        "stage": ToolStage.EVIDENCE,
         "lane": TrinityLane.AGI,
         "floors": [
             Floor.F02_TRUTH,
@@ -435,9 +431,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_mind_reason": {
         "name": "arif_mind_reason",
-        "description": "333_MIND: + reason — Symbolic reasoning kernel.",
+        "description": "333_REASON: + reason — Symbolic reasoning kernel.",
         "access": "public",
-        "stage": ToolStage.MIND,
+        "stage": ToolStage.REASON,
         "lane": TrinityLane.AGI,
         "floors": [
             Floor.F02_TRUTH,
@@ -465,9 +461,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
-        "description": "666_HEART: + feel consequence — Ethical critique and impact assessment.",
+        "description": "444_CRITIQUE: + feel consequence — Ethical critique and impact assessment.",
         "access": "public",
-        "stage": ToolStage.HEART,
+        "stage": ToolStage.CRITIQUE,
         "lane": TrinityLane.ASI,
         "floors": [Floor.F05_PEACE, Floor.F06_EMPATHY, Floor.F09_ANTIHANTU],
         "risk_tier": "medium",
@@ -484,9 +480,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_kernel_route": {
         "name": "arif_kernel_route",
-        "description": "444_KERNEL: + route — Central orchestration and tool routing.",
+        "description": "555_ROUTE: + route — Central orchestration and tool routing.",
         "access": "public",
-        "stage": ToolStage.KERNEL,
+        "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
         "floors": [
             Floor.F01_AMANAH,
@@ -520,7 +516,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_memory_recall": {
         "name": "arif_memory_recall",
-        "description": "555_MEMORY: + remember — Associative retrieval from VAULT999.",
+        "description": "555m_MEMORY: + remember — Associative retrieval from VAULT999.",
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
@@ -565,9 +561,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_vault_seal": {
         "name": "arif_vault_seal",
-        "description": "999_VAULT: + seal finally — Immutable ledger anchoring.",
+        "description": "999_SEAL: + seal finally — Immutable ledger anchoring.",
         "access": "authenticated",
-        "stage": ToolStage.VAULT,
+        "stage": ToolStage.SEAL,
         "lane": TrinityLane.APEX,
         "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
         "risk_tier": "critical",
@@ -580,7 +576,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_forge_execute": {
         "name": "arif_forge_execute",
-        "description": "010_FORGE: < build — System modification and build execution.",
+        "description": "666_FORGE: < build — System modification and build execution.",
         "access": "sovereign",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.AGI,
@@ -603,9 +599,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_ops_measure": {
         "name": "arif_ops_measure",
-        "description": "777_OPS: measure — Resource thermodynamics.",
+        "description": "777_MEASURE: measure — Resource thermodynamics.",
         "access": "public",
-        "stage": ToolStage.OPS,
+        "stage": ToolStage.MEASURE,
         "lane": TrinityLane.AGI,
         "floors": [Floor.F04_CLARITY],
         "risk_tier": "low",
@@ -645,9 +641,7 @@ def list_probe_tools() -> list[str]:
 
 
 def _list_tools_by_access(access: str) -> list[str]:
-    return [
-        name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") == access
-    ]
+    return [name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") == access]
 
 
 def list_public_tools() -> list[str]:
@@ -1000,9 +994,7 @@ NINE_SIGNAL_FIELDS = [
 ]
 
 
-def validate_tool_response_schema(
-    tool_name: str, response: dict
-) -> tuple[bool, list[str]]:
+def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool, list[str]]:
     """
     Validate a tool response against its canonical output schema.
 
@@ -1022,9 +1014,7 @@ def validate_tool_response_schema(
     # Nine-Signal block check
     nine = response.get("nine_signal")
     if nine is None:
-        violations.append(
-            f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]"
-        )
+        violations.append(f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]")
 
     # F10 ONTOLOGY: omega_ont must be present
     if nine is not None and "omega_ont" not in nine:
@@ -1041,9 +1031,7 @@ def validate_tool_response_schema(
 
     # output_policy check
     if response.get("domain_payload_present") and not response.get("output_policy"):
-        violations.append(
-            f"{tool_name}: domain payload without output_policy [F2 addendum]"
-        )
+        violations.append(f"{tool_name}: domain payload without output_policy [F2 addendum]")
 
     return len(violations) == 0, violations
 
@@ -1091,9 +1079,7 @@ def generate_pydantic_models() -> dict[str, Any]:
         # F11: authenticated tools must include actor_id
         if spec["access"] == "authenticated":
             if "actor_id" not in annotations:
-                violations.append(
-                    f"{tool_name}: authenticated tool missing actor_id field [F11]"
-                )
+                violations.append(f"{tool_name}: authenticated tool missing actor_id field [F11]")
 
         model_name = _to_model_name(tool_name) + "Input"
         model_dict = {"model_config": ConfigDict(arbitrary_types_allowed=True)}
@@ -1158,9 +1144,7 @@ def check_schema_coverage() -> dict[str, Any]:
         ),
         "floor_coverage": {f: len(t) for f, t in floor_cov.items()},
         "thin_floors": thin_floors,  # floors with < 2 tools
-        "PASS": len(missing_input) == 0
-        and len(missing_output) == 0
-        and len(thin_floors) == 0,
+        "PASS": len(missing_input) == 0 and len(missing_output) == 0 and len(thin_floors) == 0,
     }
 
 

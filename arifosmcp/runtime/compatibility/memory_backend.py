@@ -63,7 +63,7 @@ class MemoryBackend:
         return {
             "canonical_tool_name": "arifos.memory",
             "tool": "arifos.memory",
-            "stage": "555_MEMORY",
+            "stage": "555m_MEMORY",
             "results": [
                 {
                     "memory_id": r.memory_id,
@@ -86,7 +86,7 @@ class MemoryBackend:
         if isinstance(result, dict):
             result["canonical_tool_name"] = "arifos.memory"
             result["tool"] = "arifos.memory"
-            result["stage"] = "555_MEMORY"
+            result["stage"] = "555m_MEMORY"
             result["backend_version"] = "v1"
         return result
 

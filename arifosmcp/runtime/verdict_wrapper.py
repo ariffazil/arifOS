@@ -101,13 +101,13 @@ def forge_verdict(
     cont_allowed = code == VerdictCode.SEAL
 
     # Artifact state logic
-    if stage == "999_VAULT":
+    if stage == "999_SEAL":
         art_status = (
             ArtifactStatus.SEALED
             if code == VerdictCode.SEAL
             else ArtifactStatus.REJECTED
         )
-    elif stage == "777_FORGE":
+    elif stage == "666_FORGE":
         art_status = (
             ArtifactStatus.STAGED
             if code == VerdictCode.SEAL
@@ -125,7 +125,7 @@ def forge_verdict(
         artifact_status=art_status,
         continue_allowed=cont_allowed,
         primary_artifact=Artifact(
-            type="reasoning" if stage == "333_MIND" else "generic",
+            type="reasoning" if stage == "333_REASON" else "generic",
             status=art_status,
             payload=payload,
             creator_id="arif",  # Default to arif for now per CF-01

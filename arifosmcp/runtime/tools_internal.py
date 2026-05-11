@@ -320,7 +320,7 @@ def _internal_tools():
 def _resolve_motto(stage_value: str) -> str | None:
     if stage_value == Stage.INIT_000.value:
         return MOTTO_000_INIT_HEADER
-    if stage_value == Stage.VAULT_999.value:
+    if stage_value == Stage.SEAL_999.value:
         return MOTTO_999_SEAL_HEADER
     stage_motto = get_motto_for_stage(stage_value)
     return f"{stage_motto.positive}, {stage_motto.negative}" if stage_motto else None
@@ -745,7 +745,7 @@ async def arifos_kernel_impl(
         "dry_run": dry_run,
         "allow_execution": allow_execution,
     }
-    return await _wrap_call("arifos_kernel", Stage.ROUTER_444, session_id, payload, ctx)
+    return await _wrap_call("arifos_kernel", Stage.ROUTE_555, session_id, payload, ctx)
 
 
 async def apex_judge_dispatch_impl(
@@ -905,7 +905,7 @@ async def vault_ledger_dispatch_impl(
         if not jwt_result["ok"]:
             return _create_error_envelope(
                 tool_name="vault_ledger",
-                stage=Stage.VAULT_999.value,
+                stage=Stage.SEAL_999.value,
                 session_id=session_id,
                 error_msg=f"JWT enforcement rejected: {jwt_result['violations']}",
                 error_code="JWT_VIOLATION",
@@ -955,7 +955,7 @@ async def vault_ledger_dispatch_impl(
                             "evidence": evidence,
                             "source_agent": payload.get("source_agent", "arifOS_bot"),
                             "pipeline_stage": payload.get(
-                                "pipeline_stage", "999_VAULT"
+                                "pipeline_stage", "999_SEAL"
                             ),
                             "test": payload.get("test", False),
                         },
@@ -971,7 +971,7 @@ async def vault_ledger_dispatch_impl(
                     ok=True,
                     tool="vault_ledger",
                     session_id=session_id,
-                    stage=Stage.VAULT_999.value,
+                    stage=Stage.SEAL_999.value,
                     verdict=Verdict.SEAL,
                     status=RuntimeStatus.SUCCESS,
                     payload={
@@ -985,7 +985,7 @@ async def vault_ledger_dispatch_impl(
             else:
                 return _create_error_envelope(
                     tool_name="vault_ledger",
-                    stage=Stage.VAULT_999.value,
+                    stage=Stage.SEAL_999.value,
                     session_id=session_id,
                     error_msg=f"vault999_writer failed: {r.status_code} {r.text}",
                     error_code="WRITER_ERROR",
@@ -995,7 +995,7 @@ async def vault_ledger_dispatch_impl(
             logger.error(f"vault_ledger_dispatch_impl writer error: {e}")
             return _create_error_envelope(
                 tool_name="vault_ledger",
-                stage=Stage.VAULT_999.value,
+                stage=Stage.SEAL_999.value,
                 session_id=session_id,
                 error_msg=f"vault999_writer unreachable: {e}",
                 error_code="WRITER_UNAVAILABLE",
@@ -1004,7 +1004,7 @@ async def vault_ledger_dispatch_impl(
     elif mode == "verify":
         return await _wrap_call(
             "verify_vault_ledger",
-            Stage.VAULT_999,
+            Stage.SEAL_999,
             session_id,
             {"full_scan": payload.get("full_scan", True)},
             ctx,
@@ -1014,7 +1014,7 @@ async def vault_ledger_dispatch_impl(
         if not decision_id:
             return _create_error_envelope(
                 tool_name="vault_ledger",
-                stage=Stage.VAULT_999.value,
+                stage=Stage.SEAL_999.value,
                 session_id=session_id,
                 error_msg="resolve requires decision_id",
                 error_code="MISSING_PARAMETER",
@@ -1033,7 +1033,7 @@ async def vault_ledger_dispatch_impl(
         if resolved is None:
             return _create_error_envelope(
                 tool_name="vault_ledger",
-                stage=Stage.VAULT_999.value,
+                stage=Stage.SEAL_999.value,
                 session_id=session_id,
                 error_msg=f"No PENDING outcome found for decision_id={decision_id}",
                 error_code="NOT_FOUND",
@@ -1053,7 +1053,7 @@ async def vault_ledger_dispatch_impl(
             ok=True,
             tool="vault_ledger",
             session_id=session_id,
-            stage=Stage.VAULT_999.value,
+            stage=Stage.SEAL_999.value,
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             payload=res_payload,
@@ -1062,7 +1062,7 @@ async def vault_ledger_dispatch_impl(
     # PHASE 0 FIX: Return error envelope instead of raising
     return _create_error_envelope(
         tool_name="vault_ledger",
-        stage=Stage.VAULT_999.value,
+        stage=Stage.SEAL_999.value,
         session_id=session_id,
         error_msg=f"Invalid mode for vault_ledger: {mode}",
         error_code="INVALID_MODE",
@@ -1093,7 +1093,7 @@ async def agi_mind_dispatch_impl(
     if not query:
         return _create_error_envelope(
             tool_name="agi_mind",
-            stage=Stage.MIND_333.value,
+            stage=Stage.REASON_333.value,
             session_id=session_id,
             error_msg="Query is required for agi_mind",
             error_code="MISSING_QUERY",
@@ -1165,7 +1165,7 @@ async def agi_mind_dispatch_impl(
             return forge_verdict(
                 tool_id="arifos_mind",
                 canonical_tool_name="arifos_mind",
-                stage=Stage.MIND_333.value,
+                stage=Stage.REASON_333.value,
                 payload=basis.model_dump(),
                 session_id=session_id,
                 metrics=metrics,
@@ -1176,12 +1176,12 @@ async def agi_mind_dispatch_impl(
 
         # Fallback: no decision_packet — compute via kernel (direct agi_mind call)
         return await _wrap_call(
-            "agi_reason", Stage.MIND_333, session_id, {"query": query}, ctx
+            "agi_reason", Stage.REASON_333, session_id, {"query": query}, ctx
         )
     elif mode == "reflect":
         return await _wrap_call(
             "agi_reflect",
-            Stage.MEMORY_555,
+            Stage.MEMORY_555m,
             session_id,
             {"topic": payload.get("topic") or query},
             ctx,
@@ -1198,7 +1198,7 @@ async def agi_mind_dispatch_impl(
             logger.error(f"Metabolic loop failed: {e}")
             return _create_error_envelope(
                 tool_name="agi_mind",
-                stage=Stage.MIND_333.value,
+                stage=Stage.REASON_333.value,
                 session_id=session_id,
                 error_msg=f"Forge mode failed: {e}",
                 error_code="FORGE_ERROR",
@@ -1208,7 +1208,7 @@ async def agi_mind_dispatch_impl(
     # PHASE 0 FIX: Return error envelope instead of raising
     return _create_error_envelope(
         tool_name="agi_mind",
-        stage=Stage.MIND_333.value,
+        stage=Stage.REASON_333.value,
         session_id=session_id,
         error_msg=f"Invalid mode for agi_mind: {mode}",
         error_code="INVALID_MODE",
@@ -1247,7 +1247,7 @@ async def asi_heart_dispatch_impl(
         )
     elif mode == "simulate":
         return await _wrap_call(
-            "asi_simulate", Stage.HEART_666, session_id, {"scenario": content}, ctx
+            "asi_simulate", Stage.CRITIQUE_444, session_id, {"scenario": content}, ctx
         )
 
     return _create_error_envelope(
@@ -1311,7 +1311,7 @@ async def engineering_memory_dispatch_impl(
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="engineering_memory",
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             session_id=session_id,
             error_msg=f"Invalid mode '{mode}'. Valid modes: {valid_modes}",
             error_code="INVALID_MODE",
@@ -1326,7 +1326,7 @@ async def engineering_memory_dispatch_impl(
             ok=True,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SABAR,
             status=RuntimeStatus.SABAR,
             payload={
@@ -1351,7 +1351,7 @@ async def engineering_memory_dispatch_impl(
             logger.error(f"Engineer mode failed: {e}")
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg=f"Engineer task failed: {e}",
                 error_code="ENGINEER_ERROR",
@@ -1383,7 +1383,7 @@ async def engineering_memory_dispatch_impl(
                         ok=True,
                         tool="engineering_memory",
                         session_id=session_id,
-                        stage="555_MEMORY",
+                        stage="555m_MEMORY",
                         verdict=Verdict.SEAL,
                         status=RuntimeStatus.SUCCESS,
                         payload={
@@ -1410,7 +1410,7 @@ async def engineering_memory_dispatch_impl(
                 else:
                     return _create_error_envelope(
                         tool_name="engineering_memory",
-                        stage="555_MEMORY",
+                        stage="555m_MEMORY",
                         session_id=session_id,
                         error_msg=error or "Qdrant write failed",
                         error_code="STORE_ERROR",
@@ -1420,7 +1420,7 @@ async def engineering_memory_dispatch_impl(
                 logger.error(f"Write mode failed: {e}")
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Write failed: {e}",
                     error_code="WRITE_ERROR",
@@ -1432,7 +1432,7 @@ async def engineering_memory_dispatch_impl(
             ok=True,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             payload={
@@ -1503,7 +1503,7 @@ async def engineering_memory_dispatch_impl(
                 ok=True,
                 tool="engineering_memory",
                 session_id=session_id,
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1576,7 +1576,7 @@ async def engineering_memory_dispatch_impl(
             except Exception as emb_err:
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Embedding service not reachable: {emb_err}",
                     error_code="EMBEDDING_UNAVAILABLE",
@@ -1606,7 +1606,7 @@ async def engineering_memory_dispatch_impl(
                 ok=True,
                 tool="engineering_memory",
                 session_id=session_id,
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1631,7 +1631,7 @@ async def engineering_memory_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg=f"Legacy memory query failed: {e}",
                 error_code="QUERY_ERROR",
@@ -1660,7 +1660,7 @@ async def engineering_memory_dispatch_impl(
                     ok=True,
                     tool="engineering_memory",
                     session_id=session_id,
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     verdict=Verdict.SEAL,
                     status=RuntimeStatus.SUCCESS,
                     payload={
@@ -1674,7 +1674,7 @@ async def engineering_memory_dispatch_impl(
             except Exception as e:
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Query failed: {e}",
                     error_code="QUERY_ERROR",
@@ -1685,7 +1685,7 @@ async def engineering_memory_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg=f"Legacy query failed: {e}",
                 error_code="QUERY_ERROR",
@@ -1697,7 +1697,7 @@ async def engineering_memory_dispatch_impl(
         if not content.strip():
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg="vector_store requires non-empty 'content'",
                 error_code="MISSING_CONTENT",
@@ -1728,7 +1728,7 @@ async def engineering_memory_dispatch_impl(
                         ok=True,
                         tool="engineering_memory",
                         session_id=session_id,
-                        stage="555_MEMORY",
+                        stage="555m_MEMORY",
                         verdict=Verdict.SEAL,
                         status=RuntimeStatus.SUCCESS,
                         payload={
@@ -1742,7 +1742,7 @@ async def engineering_memory_dispatch_impl(
                     )
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=error or "Store failed",
                     error_code="STORE_ERROR",
@@ -1751,7 +1751,7 @@ async def engineering_memory_dispatch_impl(
             except Exception as e:
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Store failed: {e}",
                     error_code="STORE_ERROR",
@@ -1763,7 +1763,7 @@ async def engineering_memory_dispatch_impl(
             ok=True,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             payload={
@@ -1783,7 +1783,7 @@ async def engineering_memory_dispatch_impl(
         if not memory_ids and not query:
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg="vector_forget requires 'memory_ids' list or 'query' to identify targets",
                 error_code="MISSING_PARAMETER",
@@ -1810,7 +1810,7 @@ async def engineering_memory_dispatch_impl(
             ok=len(errors) == 0,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL if len(errors) == 0 else Verdict.SABAR,
             status=RuntimeStatus.SUCCESS if len(errors) == 0 else RuntimeStatus.ERROR,
             payload={
@@ -1824,7 +1824,7 @@ async def engineering_memory_dispatch_impl(
     # Should not reach here due to mode validation at start
     return _create_error_envelope(
         tool_name="engineering_memory",
-        stage="555_MEMORY",
+        stage="555m_MEMORY",
         session_id=session_id,
         error_msg=f"Unhandled mode: {mode}",
         error_code="UNHANDLED_MODE",
@@ -1857,7 +1857,7 @@ async def math_estimator_dispatch_impl(
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="math_estimator",
-            stage="444_ROUTER",
+            stage="555_ROUTE",
             session_id=session_id,
             error_msg=f"Invalid mode '{mode}'. Valid modes: {valid_modes}",
             error_code="INVALID_MODE",
@@ -1887,7 +1887,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos_ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1917,7 +1917,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos_ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1938,7 +1938,7 @@ async def math_estimator_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="math_estimator",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 session_id=session_id,
                 error_msg=f"Vitals collection failed: {e}",
                 error_code="VITALS_ERROR",
@@ -1970,7 +1970,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos_ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1991,7 +1991,7 @@ async def math_estimator_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="math_estimator",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 session_id=session_id,
                 error_msg=f"Cost estimation failed: {e}",
                 error_code="COST_ERROR",
@@ -2006,7 +2006,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos_ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -2023,7 +2023,7 @@ async def math_estimator_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="math_estimator",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 session_id=session_id,
                 error_msg=f"Health check failed: {e}",
                 error_code="HEALTH_ERROR",
@@ -2033,7 +2033,7 @@ async def math_estimator_dispatch_impl(
     # Fallback for unhandled modes (shouldn't reach here due to validation)
     return _create_error_envelope(
         tool_name="math_estimator",
-        stage="444_ROUTER",
+        stage="555_ROUTE",
         session_id=session_id,
         error_msg=f"Mode '{mode}' validation passed but not implemented",
         error_code="NOT_IMPLEMENTED",

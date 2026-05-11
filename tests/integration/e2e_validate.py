@@ -159,7 +159,7 @@ class E2EValidator:
         compass = HardenedRealityCompass()
         atlas = HardenedRealityAtlas()
 
-        trace = generate_trace_context("111_SENSE", "e2e-test")
+        trace = generate_trace_context("111_OBSERVE", "e2e-test")
 
         # Test compass search
         result = await compass.search(
@@ -196,7 +196,7 @@ class E2EValidator:
         from arifosmcp.runtime.tools_hardened_v2 import HardenedAGIReason
 
         reason = HardenedAGIReason()
-        trace = generate_trace_context("333_MIND", "e2e-test")
+        trace = generate_trace_context("333_REASON", "e2e-test")
 
         result = await reason.reason(
             query="Should we deploy the hardened toolchain?",
@@ -320,7 +320,7 @@ class E2EValidator:
         from arifosmcp.runtime.tools_hardened_v2 import HardenedVaultSeal
 
         vault = HardenedVaultSeal()
-        trace = generate_trace_context("999_VAULT", "e2e-test")
+        trace = generate_trace_context("999_SEAL", "e2e-test")
 
         decision = {
             "verdict": "approved",
@@ -386,7 +386,7 @@ class E2EValidator:
         # Stage 111: Compass
         log_info("Stage 111: reality_compass")
         compass = HardenedRealityCompass()
-        trace1 = generate_trace_context("111_SENSE", session_id)
+        trace1 = generate_trace_context("111_OBSERVE", session_id)
         result1 = await compass.search(
             query="hardened toolchain deployment",
             auth_context=auth_context,
@@ -413,7 +413,7 @@ class E2EValidator:
         # Stage 333: Reason
         log_info("Stage 333: agi_reason")
         reason = HardenedAGIReason()
-        trace3 = generate_trace_context("333_MIND", session_id)
+        trace3 = generate_trace_context("333_REASON", session_id)
         result3 = await reason.reason(
             query="Should we deploy?",
             context={"claim_graph": result2.payload["claim_graph"]},
@@ -457,7 +457,7 @@ class E2EValidator:
         # Stage 999: Seal
         log_info("Stage 999: vault_seal")
         vault = HardenedVaultSeal()
-        trace9 = generate_trace_context("999_VAULT", session_id)
+        trace9 = generate_trace_context("999_SEAL", session_id)
         result9 = await vault.seal(
             decision={
                 "verdict": result8.payload["verdict"],
@@ -466,9 +466,9 @@ class E2EValidator:
                 "approver_id": "arif",
                 "tool_chain": [
                     "000_INIT",
-                    "111_SENSE",
+                    "111_OBSERVE",
                     "222_ATLAS",
-                    "333_MIND",
+                    "333_REASON",
                     "666_CRITIQUE",
                     "888_JUDGE",
                 ],

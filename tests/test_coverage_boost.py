@@ -118,15 +118,15 @@ class TestRuntimeToolsExtended:
 
         # Stage is a Literal type, not an Enum - values are strings
         assert Stage.INIT_000 == "000_INIT"
-        assert Stage.SENSE_111 == "111_SENSE"
+        assert Stage.SENSE_111 == "111_OBSERVE"
         assert Stage.REALITY_222 == "222_REALITY"
-        assert Stage.MIND_333 == "333_MIND"
-        assert Stage.ROUTER_444 == "444_ROUTER"
-        assert Stage.MEMORY_555 == "555_MEMORY"
-        assert Stage.HEART_666 == "666_HEART"
-        assert Stage.FORGE_777 == "777_FORGE"
+        assert Stage.MIND_333 == "333_REASON"
+        assert Stage.ROUTER_444 == "555_ROUTE"
+        assert Stage.MEMORY_555 == "555m_MEMORY"
+        assert Stage.HEART_666 == "444_CRITIQUE"
+        assert Stage.FORGE_777 == "666_FORGE"
         assert Stage.JUDGE_888 == "888_JUDGE"
-        assert Stage.VAULT_999 == "999_VAULT"
+        assert Stage.VAULT_999 == "999_SEAL"
 
     def test_verdict_enum_values(self):
         """Test Verdict enum values"""
@@ -418,7 +418,7 @@ class TestStatusStates:
     def test_stages(self):
         """Test Stage values"""
 
-        stages = ["111_SENSE", "222_REALITY", "333_MIND"]
+        stages = ["111_OBSERVE", "222_REALITY", "333_REASON"]
 
         for stage in stages:
             assert isinstance(stage, str)

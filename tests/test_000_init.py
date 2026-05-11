@@ -132,7 +132,7 @@ def make_valid_floor_mapping():
 def make_valid_pipeline_state():
     return {
         "current_stage": "000_INIT",
-        "next_allowed_stage": "111_SENSE",
+        "next_allowed_stage": "111_OBSERVE",
         "verdict_authority": "888_JUDGE",
     }
 

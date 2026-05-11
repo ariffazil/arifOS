@@ -398,7 +398,7 @@ class TestRealityDossierRealAPI:
         from arifosmcp.runtime.reality_dossier import RealityDossier
         from arifosmcp.runtime.reality_models import BundleStatus
 
-        status = BundleStatus(state="SUCCESS", stage="111_SENSE", verdict="SEAL")
+        status = BundleStatus(state="SUCCESS", stage="111_OBSERVE", verdict="SEAL")
         dossier = RealityDossier(
             session_id="test-session", actor_id="test-actor", status=status
         )

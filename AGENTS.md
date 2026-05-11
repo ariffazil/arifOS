@@ -34,13 +34,14 @@ This file is the single source of truth for AI coding agents working on the arif
 | Vector DB | `qdrant-client`, `chromadb`, `lancedb` | Primary: Qdrant; legacy/local: Chroma/Lance |
 | Postgres | `asyncpg`, `psycopg2-binary` | For Vault999 persistence |
 | Redis | `redis>=5.0.0` | Session persistence + VAULT999 storage |
+| ML / Embeddings | `torch==2.5.1`, `transformers==4.46.3`, `sentence-transformers==3.3.1` | ASI floor enforcement (F5, F6, F9) |
+| NumPy/SciPy | `numpy==2.1.3`, `scipy==1.14.1`, `scikit-learn==1.5.2` | Pinned for reproducibility |
 | Observability | `prometheus-client`, `rich` | Metrics + CLI output |
 | Testing | `pytest`, `pytest-asyncio`, `pytest-cov` | asyncio_mode = auto |
 | Linting | `ruff`, `black`, `mypy` | Line length 100, target py312 |
 | Security | `bandit`, `detect-secrets`, `gitleaks` | Pre-commit + CI gates |
 | Runtime (Docker) | `python:3.12-slim` | Multi-stage build, non-root user |
 | ZKPC Crypto | `snarkjs` (Node.js 22) | Groth16 proof verification |
-| Embeddings | `sentence-transformers` (BGE-M3) | ASI floor enforcement (F5, F6, F9) |
 | Browser | `playwright` | Chromium for web evidence fetching |
 
 ### 1.3 Key Configuration Files
@@ -48,13 +49,13 @@ This file is the single source of truth for AI coding agents working on the arif
 | File | Purpose |
 |------|---------|
 | `pyproject.toml` (root) | Minimal canonical package charter (`name: arifos`, `version: 2026.5.11`). Used for root-level `pip install .`. |
-| `arifosmcp/pyproject.toml` | Comprehensive package manifest (`version: 2026.05.04`). Used for **PyPI publishing** (`make publish-pypi` runs `uv build --project arifosmcp`). |
+| `arifosmcp/pyproject.toml` | Comprehensive package manifest (`version: 2026.05.04`). Used for **PyPI publishing** (`make publish-pypi` runs `uv build --project arifosmcp`). Also contains detailed Ruff, MyPy, Black, Bandit, and coverage configuration. |
 | `uv.lock` | Locked dependency tree for the entire repo. |
-| `arifosmcp/requirements.txt` | Runtime deps for the lean Docker build (`fastmcp`, `fastapi`, `blake3`, `asyncpg`, etc.). |
-| `arifosmcp/tool_registry.json` | ** Sole source of truth** for the 13 canonical tools. Generated from `constitutional_map.py`; do not hand-edit. |
+| `arifosmcp/requirements.txt` | Runtime deps for the lean Docker build (`fastmcp`, `fastapi`, `blake3`, `asyncpg`, pinned ML stack, etc.). |
+| `arifosmcp/tool_registry.json` | **Sole source of truth** for the 13 canonical tools. Generated from `constitutional_map.py`; do not hand-edit. |
 | `fastmcp.json` / `arifosmcp/fastmcp.json` | FastMCP deployment descriptors. |
 | `federation.charter.json` | Federation mesh charter. |
-| `docker-compose.yml` (root) | Legacy stub; canonical production deploy uses external VPS Compose outside the repo. |
+| `docker-compose.yml` (root) | Canonical production compose — reconciled with runtime reality (arifosmcp, postgres, redis, qdrant, caddy, ollama, etc.). |
 | `Caddyfile` | Reverse proxy configuration for the public HTTPS surface. |
 | `.pre-commit-config.yaml` | Pre-commit hooks: Black, Ruff, Bandit, detect-secrets, F9 Anti-Hantu scan, F1 Amanah scan. |
 | `.github/workflows/01-unified-ci.yml` | Canonical CI/CD pipeline (9 jobs). |
@@ -71,7 +72,7 @@ arifOS/
 ├── arifosmcp/Dockerfile            # Lean multi-stage image (used by Makefile deploy-local / publish-ghcr)
 ├── Dockerfile.hardened             # Hardened variant
 ├── Dockerfile.unified              # Unified variant
-├── docker-compose.yml              # Legacy stub
+├── docker-compose.yml              # Canonical production compose
 ├── .env.example                    # Exhaustive environment template
 ├── fastmcp.json                    # FastMCP deployment descriptor
 │
@@ -87,7 +88,7 @@ arifOS/
 │   ├── g02_router.py               # Ω_ortho kernel router
 │   ├── run.py                      # CLI entry for individual agent servers
 │   ├── core/                       # Governance kernel shims (constitution_kernel, floors, embodied_tool_engine, …)
-│   ├── runtime/                    # Runtime implementation (tools.py, sessions, bridges, contracts, sense, megaTools, …)
+│   ├── runtime/                    # Runtime implementation (~140 modules: tools.py, sessions, bridges, contracts, sense, megaTools, …)
 │   ├── tools/                      # Canonical tool implementations (session, sense_observe, evidence_fetch, mind_reason, kernel, reply, memory, heart, gateway, ops, judge, forge, vault)
 │   ├── schemas/                    # Pydantic output schemas (verdict, cognition, forge, …)
 │   ├── prompts/                    # Constitutional context injection prompts
@@ -104,7 +105,7 @@ arifOS/
 │   └── adapters/                   # MCP adapters
 │
 ├── core/                           # ROOT-LEVEL constitutional core
-│   ├── floors.py                   # F1–F13 enforcement logic
+│   ├── floors.py                   # F1–F13 enforcement logic (~27K lines)
 │   ├── governance_kernel.py        # Kernel orchestration
 │   ├── judgment.py                 # Verdict engine
 │   ├── vault999/                   # Ledger implementation (layer1–layer4, phenomenological, seals)
@@ -116,8 +117,8 @@ arifOS/
 │   ├── recovery/                   # Rollback engine
 │   └── shared/                     # Types, floors, crypto, guards, atlas, formatter, verdict_contract
 │
-├── tests/                          # Comprehensive test suite
-│   ├── conftest.py                 # Global fixtures (disable physics, legacy spec bypass)
+├── tests/                          # Comprehensive test suite (~110 test_*.py files)
+│   ├── conftest.py                 # Global fixtures (disable physics, legacy spec bypass, SyncASGIClient, mock WELL)
 │   ├── test_*.py                   # ~80+ top-level test files
 │   ├── runtime/                    # Runtime-specific tests (ZKPC, memory, judge, OAuth, sessions, …)
 │   ├── adversarial/                # Injection / jailbreak tests
@@ -168,8 +169,12 @@ python -m arifosmcp.server
 # Or via the packaged CLI entry point
 python -m arifosmcp.runtime.__main__ --mode http
 
-# Docker (production-like)
+# Docker (lean production-like)
 docker build -t arifos:latest -f arifosmcp/Dockerfile .
+docker run -p 8080:8080 -e ARIFOS_PUBLIC_TOOL_PROFILE=public arifos:latest
+
+# Docker (full-featured, includes ZKPC + Playwright)
+docker build -t arifos:latest -f Dockerfile .
 docker run -p 8080:8080 -e ARIFOS_PUBLIC_TOOL_PROFILE=public arifos:latest
 
 # Health check
@@ -211,12 +216,15 @@ pytest tests/test_phase0_standalone.py tests/test_mcp_inspector.py tests/test_su
 - `testpaths = ["tests"]`
 - `python_files = ["test_*.py"]`
 - `asyncio_mode = "auto"` — you do **not** need `@pytest.mark.asyncio` decorators.
+- Custom markers: `asyncio`, `constitutional`, `slow`, `integration`
 
 **Global test fixtures** (`tests/conftest.py`):
 - `ARIFOS_PHYSICS_DISABLED=1` is set globally for performance.
 - `ARIFOS_ALLOW_LEGACY_SPEC=1` bypasses cryptographic manifest requirements during tests.
 - `AAA_MCP_OUTPUT_MODE=debug` preserves rich contracts for assertions.
 - A healthy WELL state stub is injected at `/root/WELL/state.json` for biological readiness gates.
+- `SyncASGIClient` wraps `httpx.ASGITransport` for FastMCP/FastAPI route testing.
+- `require_postgres` / `require_redis` fixtures skip when those services are unavailable.
 
 ### 2.4 Makefile Targets
 
@@ -228,7 +236,7 @@ pytest tests/test_phase0_standalone.py tests/test_mcp_inspector.py tests/test_su
 | `make health` | CURL localhost:8080/health |
 | `make deploy-local` | Build GHCR image from `arifosmcp/Dockerfile`, deploy to local VPS compose, verify SHA |
 | `make sot-check` | Run `scripts/audit_sot.py` |
-| `make publish-check` | Pre-flight for PyPI + GHCR |
+| `make publish-check` | Pre-flight for PyPI + GHCR (tests must pass) |
 | `make publish-pypi` | Build and publish to PyPI (uses `arifosmcp/pyproject.toml`) |
 | `make publish-ghcr` | Build, tag, and push Docker image to GHCR (uses `arifosmcp/Dockerfile`) |
 | `make publish-law` | Sync `000_LAW.md` to public Gist |
@@ -263,6 +271,7 @@ bandit -c pyproject.toml -r arifosmcp/
 - `arifosmcp/schemas/semantic_gate.py` → `E501`
 - `arifosmcp/runtime/tools_internal.py` → `UP038`
 - `runtime/tools.py` (in `arifosmcp/pyproject.toml`) → `E402`, `E501`, `F821`, `F841`, `N803`, `N806`
+- `runtime/mind_reason.py` (in `arifosmcp/pyproject.toml`) → `E501`
 
 ### 3.2 Naming Conventions
 
@@ -296,14 +305,17 @@ bandit -c pyproject.toml -r arifosmcp/
 | Directory | Purpose |
 |-----------|---------|
 | `tests/` (root flat files) | Fast unit & integration tests (~80 files) |
-| `tests/runtime/` | Runtime-specific tests: ZKPC, memory, judge reversibility, forge, OAuth, sessions |
+| `tests/runtime/` | Runtime-specific tests: ZKPC, memory, judge reversibility, forge, OAuth, sessions, ChatGPT apps, federation epistemology, reality wiring, SSE feeds |
 | `tests/adversarial/` | Injection hardening, jailbreak attempts |
 | `tests/integration/` | End-to-end federation flows |
-| `tests/core/` | Constitutional core logic (floors, physics, atlas, BLS vault, SBERT) |
+| `tests/core/` | Constitutional core logic (floors, physics, atlas, BLS vault, SBERT, governance routing) |
 | `tests/constitutional/` | Floor-specific compliance tests |
 | `tests/e3e/` | Extended E2E tests (trinity choreography) |
 | `tests/seal_harness/` | Compatibility and trinity test harness |
 | `tests/specs/` | Specification validation |
+| `tests/apps/` | App-level integration tests |
+| `tests/enforcement/` | Enforcement logic tests |
+| `tests/invariants/` | Invariant preservation tests |
 
 ### 4.3 Critical Test Categories
 
@@ -314,6 +326,7 @@ bandit -c pyproject.toml -r arifosmcp/
 5. **Registry integrity** — `test_registry.py`, `test_canonical.py`
 6. **Security / adversarial** — `tests/adversarial/test_p3_hardening.py`
 7. **MCP conformance** — `test_mcp_inspector.py`, `test_mcp_phase0.py`
+8. **Budget / reversibility** — `test_budget_hold_compliance.py`, `test_budget_contract.py`, `tests/runtime/test_judge_reversibility.py`
 
 ### 4.4 Writing Tests
 
@@ -324,6 +337,7 @@ bandit -c pyproject.toml -r arifosmcp/
 - Use `@pytest.mark.slow` for tests that take >5s.
 - Use `@pytest.mark.constitutional` for floor-specific tests.
 - Use `@pytest.mark.integration` for tests requiring external services.
+- The `pytest_ignore_collect` hook in `conftest.py` excludes `tests/archive/` and `tests/legacy/` by default.
 
 ---
 
@@ -411,13 +425,13 @@ Build args required (all three):
 
 The canonical CI workflow is `.github/workflows/01-unified-ci.yml`. It runs:
 
-1. **Fast Signal** — verify 13 canonical tools load, registry integrity
+1. **Fast Signal** — verify 13 canonical tools load, registry integrity, charter naming audit
 2. **Constitutional Chain** — 000_INIT manifest, 888_JUDGE trust_state, vault seal path
 3. **Shim Verification** — 9 runtime shims + 17 tool shims resolve
-4. **F9 Anti-Hantu Scan** — grep for consciousness claims
+4. **F9 Anti-Hantu Scan** — grep for consciousness claims in tool sources
 5. **888_JUDGE PR Enforcement** — floor audit on pull requests
 6. **MCP Conformance** — transport creation smoke test
-7. **Test Suite** — core pytest subset
+7. **Test Suite** — core pytest subset (phase0, inspector, surface_lock, memory, registry, psi_shadow)
 8. **Secrets Gate** — gitleaks full-history scan
 9. **Daily Health** — scheduled live endpoint check
 

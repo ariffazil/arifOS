@@ -969,7 +969,7 @@ class SensePacket:
     """
 
     packet_id: str = field(default_factory=lambda: f"spk_{uuid.uuid4().hex[:12]}")
-    stage: str = "111_SENSE"
+    stage: str = "111_OBSERVE"
 
     input_summary: InputSummary = field(default_factory=InputSummary)
     truth_classification: TruthClassification = field(

@@ -1,5 +1,5 @@
 """
-arifOS Hardened Kernel Router (444_ROUTER)
+arifOS Hardened Kernel Router (555_ROUTE)
 ═══════════════════════════════════════════════════════════════════════════════
 
 FIX: Proper sequencing to prevent HOLD/VOID bypass
@@ -35,7 +35,7 @@ from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
 class HardenedKernelRouter:
     """
-    Hardened 444_ROUTER with strict governance enforcement.
+    Hardened 555_ROUTE with strict governance enforcement.
 
     PREVENTS: Model being called before verdict evaluation
     ENSURES: HOLD/VOID is terminal (no bypass)
@@ -203,7 +203,7 @@ class HardenedKernelRouter:
             # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)
             return RuntimeEnvelope(
                 tool=tool_name,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 status=RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL,  # Dispatch failure ≠ governance failure
                 session_id=session_id,
@@ -312,7 +312,7 @@ class HardenedKernelRouter:
 
         return RuntimeEnvelope(
             tool=tool_name,
-            stage="444_ROUTER",
+            stage="555_ROUTE",
             status=RuntimeStatus.ERROR,
             verdict=Verdict.VOID,
             session_id=session_id,

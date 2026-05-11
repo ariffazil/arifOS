@@ -134,10 +134,10 @@ class TestBindArtifactValidation:
 
     def test_wrong_lifecycle_stage_raises(self):
         artifact = make_valid_bind_artifact()
-        artifact["lifecycle"]["current_stage"] = "111_SENSE"
+        artifact["lifecycle"]["current_stage"] = "111_OBSERVE"
         with pytest.raises(_mind_mod.BindArtifactError) as exc:
             _mind_mod._validate_bind_artifact(artifact)
-        assert "333_MIND" in exc.value.reason
+        assert "333_REASON" in exc.value.reason
 
     def test_extract_godel_invariants(self):
         artifact = make_valid_bind_artifact()

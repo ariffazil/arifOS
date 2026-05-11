@@ -52,6 +52,9 @@ class GovernanceResult:
     tri_witness_score: float = 0.0
     violations: list[str] = field(default_factory=list)
     message: str = ""
+    time_tax_ms: int = 0
+    tension_messages: list[str] = field(default_factory=list)
+    paradox_flags: list[str] = field(default_factory=list)
 
 
 THRESHOLDS = {
@@ -67,6 +70,54 @@ THRESHOLDS = {
     "F10_ONTOLOGY": 1.00,
     "F11_COMMAND_AUTH": 1.00,
     "F12_INJECTION": 0.85,
+    "F13_SOVEREIGN": 1.00,
+}
+
+FLOOR_LEVELS: dict[str, FloorLevel] = {
+    "F1": FloorLevel.HARD,
+    "F2": FloorLevel.HARD,
+    "F3": FloorLevel.DERIVED,
+    "F4": FloorLevel.SOFT,
+    "F5": FloorLevel.SOFT,
+    "F6": FloorLevel.HARD,
+    "F7": FloorLevel.HARD,
+    "F8": FloorLevel.DERIVED,
+    "F9": FloorLevel.SOFT,
+    "F10": FloorLevel.HARD,
+    "F11": FloorLevel.HARD,
+    "F12": FloorLevel.HARD,
+    "F13": FloorLevel.VETO,
+}
+
+IRREVERSIBILITY_COMPLEXITY: dict[str, int] = {
+    "create": 1,
+    "read": 0,
+    "get": 0,
+    "list": 0,
+    "query": 0,
+    "fetch": 0,
+    "search": 0,
+    "edit": 1,
+    "write": 1,
+    "replace": 2,
+    "update": 2,
+    "modify": 3,
+    "push": 3,
+    "deploy": 3,
+    "delete": 4,
+    "remove": 4,
+    "drop": 4,
+    "destroy": 4,
+    "force": 5,
+}
+
+IRREVERSIBILITY_TIME_TAX_MS: dict[int, tuple[int, int, int]] = {
+    0: (0, 0, 0),
+    1: (50, 200, 500),
+    2: (200, 500, 2000),
+    3: (500, 1000, 3000),
+    4: (1000, 2000, 5000),
+    5: (2000, 5000, 10000),
 }
 
 _INFLAMMATORY_WORDS = frozenset(
@@ -132,6 +183,7 @@ class ConstitutionalFloors:
     ) -> GovernanceResult:
         self.results = []
         violations = []
+        paradox_flags: list[str] = []
 
         f1_result = self._check_f1_amanah(action, tool_name, parameters)
         self.results.append(f1_result)
@@ -199,15 +251,72 @@ class ConstitutionalFloors:
 
         risk_tier = self._assess_risk_tier(action, tool_name, parameters)
 
-        if violations:
+        has_hard_violation = any(
+            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.HARD
+            and not fr.passed
+            for fr in self.results
+        )
+        has_soft_violation = any(
+            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.SOFT
+            and not fr.passed
+            for fr in self.results
+        )
+        has_derived_violation = any(
+            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.DERIVED
+            and not fr.passed
+            for fr in self.results
+        )
+
+        hard_violations = [
+            fr.floor_id for fr in self.results
+            if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.HARD and not fr.passed
+        ]
+        soft_violations = [
+            fr.floor_id for fr in self.results
+            if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.SOFT and not fr.passed
+        ]
+        derived_issues = [
+            fr.floor_id for fr in self.results
+            if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.DERIVED and not fr.passed
+        ]
+
+        if has_hard_violation:
             verdict = Verdict.VOID
-            message = f"Violations: {', '.join(violations)}"
+            message = f"HARD floor violations: {', '.join(hard_violations)}. Action blocked."
         elif risk_tier == RiskTier.CRITICAL:
             verdict = Verdict.HOLD
             message = "Critical risk tier requires approval"
+        elif has_soft_violation and has_derived_violation:
+            verdict = Verdict.HOLD
+            message = f"SOFT: {', '.join(soft_violations)}; DERIVED: {', '.join(derived_issues)}. Human review required."
+        elif has_soft_violation:
+            verdict = Verdict.SABAR
+            message = f"SOFT floor cautions: {', '.join(soft_violations)}. Proceed with care, retry allowed."
+        elif has_derived_violation:
+            verdict = Verdict.PARTIAL
+            message = f"DERIVED floor warnings: {', '.join(derived_issues)}. Proceed with cooling."
+        elif risk_tier == RiskTier.HIGH:
+            verdict = Verdict.HOLD
+            message = "High risk tier requires human confirmation"
         else:
             verdict = Verdict.SEAL
             message = "All constitutional floors passed"
+
+        # P1: Evidence vs Intent paradox (PARADOX_DOCTRINE_V1 Section 2)
+        f2_result = next((r for r in self.results if r.floor_id == "F2"), None)
+        f3_result = next((r for r in self.results if r.floor_id == "F3"), None)
+        if f2_result and f3_result and human_intent > 0.5:
+            evidence_weak = f2_result.score < 0.70 or f3_result.score < 0.50
+            if evidence_weak and verdict not in (Verdict.VOID,):
+                verdict = Verdict.SABAR
+                paradox_flags.append("P1_EVIDENCE_VS_INTENT")
+                message += " | P1: Weak evidence against strong intent. Proceed as HYPOTHESIS."
+
+        # Tension resolution (PARADOX_DOCTRINE_V1 Section 10.2)
+        tension_msgs = self._resolve_floor_tensions(self.results)
+
+        # F01 IATT — Irreversible Action Time Tax (PARADOX_DOCTRINE_V1 Section 3)
+        time_tax_ms = self._compute_irreversibility_time_tax_ms(action)
 
         return GovernanceResult(
             verdict=verdict,
@@ -216,7 +325,65 @@ class ConstitutionalFloors:
             tri_witness_score=tri_witness,
             violations=violations,
             message=message,
+            time_tax_ms=time_tax_ms,
+            tension_messages=tension_msgs,
+            paradox_flags=paradox_flags,
         )
+
+    def _compute_irreversibility_time_tax_ms(self, action: str) -> int:
+        """
+        Compute F01 IATT (Irreversible Action Time Tax) in milliseconds.
+        Based on PARADOX_DOCTRINE_V1 Section 3 — P2 Speed vs Irreversibility.
+        """
+        action_lower = action.lower()
+        max_complexity = 0
+        for keyword, complexity in IRREVERSIBILITY_COMPLEXITY.items():
+            if keyword in action_lower and complexity > max_complexity:
+                max_complexity = complexity
+        _, base_tax, _ = IRREVERSIBILITY_TIME_TAX_MS.get(max_complexity, (0, 0, 0))
+        return base_tax
+
+    def _resolve_floor_tensions(
+        self,
+        results: list[FloorResult],
+    ) -> list[str]:
+        """
+        Resolve conflicts between floors per PARADOX_DOCTRINE_V1 Section 10.2.
+        Returns a list of tension resolution messages for the audit trail.
+        """
+        tension_msgs: list[str] = []
+        
+        f1 = next((r for r in results if r.floor_id == "F1"), None)
+        f2 = next((r for r in results if r.floor_id == "F2"), None)
+        f4 = next((r for r in results if r.floor_id == "F4"), None)
+        f6 = next((r for r in results if r.floor_id == "F6"), None)
+        f7 = next((r for r in results if r.floor_id == "F7"), None)
+        f8 = next((r for r in results if r.floor_id == "F8"), None)
+        f9 = next((r for r in results if r.floor_id == "F9"), None)
+        f10 = next((r for r in results if r.floor_id == "F10"), None)
+
+        if f1 and f4 and not f1.passed and not f4.passed:
+            tension_msgs.append(
+                "T1: Speed(F4) vs Safety(F1) → F1 wins (HARD > SOFT). Time tax enforced."
+            )
+
+        if f2 and f6 and not f2.passed and f6 and f6.score < 0.70:
+            tension_msgs.append(
+                "T2: Comfort(F6) vs Accuracy(F2) → F2 wins (truth over comfort). Delivery tone adjusted."
+            )
+
+        if f7 and f8 and not f7.passed and f8 and not f8.passed:
+            if f7.score < 0.03:
+                tension_msgs.append(
+                    "T3: Confidence(F7) vs Performance(F8) → F7 wins. G-score capped due to overconfidence."
+                )
+
+        if f9 and f10 and not f9.passed and not f10.passed:
+            tension_msgs.append(
+                "T5: Evolution vs Invariance → F9/F10 guard identity boundary. F13 override logged if applied."
+            )
+
+        return tension_msgs
 
     def _check_f1_amanah(
         self, action: str, tool_name: str, parameters: dict[str, Any]

@@ -91,6 +91,81 @@ class RollbackEngine:
         return copy.deepcopy(healthy_state)
 
 
+
+# =============================================================================
+# P4 — Post-Execution Dignity Audit (PARADOX_DOCTRINE_V1 Section 5)
+# =============================================================================
+
+_INFLAMMATORY_WORDS_P4 = frozenset([
+    "stupid", "idiot", "incompetent", "failure", "terrible", "useless",
+    "moron", "imbecile", "worthless", "pathetic", "loser",
+])
+
+_CONSCIOUSNESS_CLAIMS_P4 = frozenset([
+    "sentient", "conscious", "feel", "emotion", "soul", "spirit",
+    "aware", "self-aware", "feelings", "experiences", "suffer",
+])
+
+_INJECTION_PATTERNS_P4 = [
+    r"ignore\s+(previous|above|all)\s+(instructions|rules|commands)",
+    r"(system|prompt)\s*:\s*",
+    r"<\s*script",
+]
+
+
+def post_execution_dignity_audit(
+    output: str,
+    action: str,
+    reversible: bool = True,
+    actor_id: str = "unknown",
+) -> dict[str, Any]:
+    """
+    Re-evaluate F05 PEACE, F09 ANTIHANTU, F12 INJECTION against executed output.
+
+    Per PARADOX_DOCTRINE_V1 Section 5:
+      - If dignity violation detected and reversible → auto-rollback suggested
+      - If irreversible → escalate to human, scar tissue +0.30
+    """
+    output_lower = output.lower()
+    violations: list[str] = []
+
+    # F05 PEACE audit
+    peace_violations = [w for w in _INFLAMMATORY_WORDS_P4 if w in output_lower]
+    if peace_violations:
+        violations.append(f"F05_PEACE:{peace_violations}")
+
+    # F09 ANTIHANTU audit
+    hantu_claims = [c for c in _CONSCIOUSNESS_CLAIMS_P4 if c in output_lower]
+    if hantu_claims:
+        violations.append(f"F09_ANTI_HANTU:{hantu_claims}")
+
+    # F12 INJECTION audit
+    injection_hits = []
+    for pattern in _INJECTION_PATTERNS_P4:
+        if __import__("re").search(pattern, output, __import__("re").IGNORECASE):
+            injection_hits.append(pattern)
+    if injection_hits:
+        violations.append("F12_INJECTION:adversarial_pattern_detected")
+
+    dignity_violated = bool(violations)
+    scar_delta = 0.15 if dignity_violated and reversible else 0.30 if dignity_violated else 0.0
+    rollback_suggested = dignity_violated and reversible
+
+    return {
+        "dignity_violated": dignity_violated,
+        "violations": violations,
+        "reversible": reversible,
+        "rollback_suggested": rollback_suggested,
+        "scar_delta": scar_delta,
+        "actor_id": actor_id,
+        "verdict": "CONTESTED_SEAL" if dignity_violated else "SEAL",
+        "message": (
+            f"Post-execution audit: {len(violations)} violation(s). "
+            f"Rollback {'suggested' if rollback_suggested else 'not possible'}."
+        ),
+    }
+
+
 # Global singleton
 rollback_engine = RollbackEngine()
 

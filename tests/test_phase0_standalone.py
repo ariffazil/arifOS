@@ -141,7 +141,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
     if not query:
         return _create_error_envelope(
             tool_name="agi_mind",
-            stage="333_MIND",
+            stage="333_REASON",
             session_id=session_id,
             error_msg="Query is required for agi_mind",
             error_code="MISSING_QUERY",
@@ -152,7 +152,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="agi_mind",
-            stage="333_MIND",
+            stage="333_REASON",
             session_id=session_id,
             error_msg=f"Invalid mode '{mode}'. Valid modes: {valid_modes}",
             error_code="INVALID_MODE",
@@ -166,7 +166,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
                 ok=True,
                 tool="agi_mind",
                 canonical_tool_name="arifos.mind",
-                stage="333_MIND",
+                stage="333_REASON",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 session_id=session_id,
@@ -175,7 +175,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
         except Exception as e:
             return _create_error_envelope(
                 tool_name="agi_mind",
-                stage="333_MIND",
+                stage="333_REASON",
                 session_id=session_id,
                 error_msg=f"Kernel call failed: {e}",
                 error_code="KERNEL_ERROR",
@@ -184,7 +184,7 @@ def agi_mind_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvelope:
 
     return _create_error_envelope(
         tool_name="agi_mind",
-        stage="333_MIND",
+        stage="333_REASON",
         session_id=session_id,
         error_msg=f"Mode '{mode}' not implemented in test",
         error_code="NOT_IMPLEMENTED",
@@ -212,7 +212,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="engineering_memory",
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             session_id=session_id,
             error_msg=f"Invalid mode '{mode}'. Valid modes: {valid_modes}",
             error_code="INVALID_MODE",
@@ -224,7 +224,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
         if not content.strip():
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg="vector_store requires non-empty 'content'",
                 error_code="MISSING_CONTENT",
@@ -235,7 +235,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             ok=True,
             tool="engineering_memory",
             canonical_tool_name="arifos.memory",
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
@@ -251,7 +251,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
         if not memory_ids and not payload.get("query"):
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg="vector_forget requires 'memory_ids' list or 'query'",
                 error_code="MISSING_PARAMETER",
@@ -261,7 +261,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             ok=True,
             tool="engineering_memory",
             canonical_tool_name="arifos.memory",
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
@@ -275,7 +275,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             ok=True,
             tool="engineering_memory",
             canonical_tool_name="arifos.memory",
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
@@ -290,7 +290,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
 
     return _create_error_envelope(
         tool_name="engineering_memory",
-        stage="555_MEMORY",
+        stage="555m_MEMORY",
         session_id=session_id,
         error_msg=f"Mode '{mode}' not implemented in test",
         error_code="NOT_IMPLEMENTED",
@@ -311,7 +311,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="math_estimator",
-            stage="444_ROUTER",
+            stage="555_ROUTE",
             session_id=session_id,
             error_msg=f"Invalid mode '{mode}'. Valid modes: {valid_modes}",
             error_code="INVALID_MODE",
@@ -328,7 +328,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
                 ok=True,
                 tool="math_estimator",
                 canonical_tool_name="arifos.ops",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 session_id=session_id,
@@ -350,7 +350,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
         except Exception as e:
             return _create_error_envelope(
                 tool_name="math_estimator",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 session_id=session_id,
                 error_msg=f"Vitals collection failed: {e}",
                 error_code="VITALS_ERROR",
@@ -370,7 +370,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
             ok=True,
             tool="math_estimator",
             canonical_tool_name="arifos.ops",
-            stage="444_ROUTER",
+            stage="555_ROUTE",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
@@ -390,7 +390,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
             ok=True,
             tool="math_estimator",
             canonical_tool_name="arifos.ops",
-            stage="444_ROUTER",
+            stage="555_ROUTE",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
@@ -403,7 +403,7 @@ def math_estimator_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeEnvel
 
     return _create_error_envelope(
         tool_name="math_estimator",
-        stage="444_ROUTER",
+        stage="555_ROUTE",
         session_id=session_id,
         error_msg=f"Mode '{mode}' not implemented",
         error_code="NOT_IMPLEMENTED",

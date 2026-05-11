@@ -150,7 +150,7 @@ class ConstitutionalKernel:
         if not embodiment.get("ok"):
             hold_result = {
                 "tool": canonical_name,
-                "stage": "444_KERNEL",
+                "stage": "555_ROUTE",
                 "status": "HOLD",
                 "result": {
                     "error": "EMBODIMENT_HOLD",
@@ -175,7 +175,7 @@ class ConstitutionalKernel:
             record_session_tool_event(
                 session_id=session_id,
                 tool_name=canonical_name,
-                stage="444_KERNEL",
+                stage="555_ROUTE",
                 verdict="HOLD",
                 payload=hold_result,
                 execution_state=current_state_str,
@@ -186,7 +186,7 @@ class ConstitutionalKernel:
         if handler is None:
             result = {
                 "tool": canonical_name,
-                "stage": "444_ROUTER",
+                "stage": "555_ROUTE",
                 "status": "error",
                 "summary": f"No canonical handler registered for {tool_name}.",
                 "result": {"error": "TOOL_NOT_FOUND", "requested_tool": tool_name},
@@ -209,7 +209,7 @@ class ConstitutionalKernel:
         except Exception as e:
             result = {
                 "tool": canonical_name,
-                "stage": "444_KERNEL",
+                "stage": "555_ROUTE",
                 "status": "ERROR",
                 "error_message": str(e),
                 "result": {},
@@ -241,7 +241,7 @@ class ConstitutionalKernel:
         record_session_tool_event(
             session_id=session_id,
             tool_name=canonical_name,
-            stage="444_KERNEL",
+            stage="555_ROUTE",
             verdict=result.get("verdict") or result.get("status", "UNKNOWN"),
             payload=result if isinstance(result, dict) else {},
             execution_state=next_state.value,

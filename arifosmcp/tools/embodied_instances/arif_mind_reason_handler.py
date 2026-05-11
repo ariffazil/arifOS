@@ -32,10 +32,14 @@ async def embodied_mind_reason_handler(
     ctx: Any = None,
 ) -> dict[str, Any]:
     """
-    MCP handler for arif_mind_reason — routes through EmbodiedTool.run().
+    333_REASON: + reason — Symbolic reasoning kernel.
 
-    Extracts session_id from ctx if not provided in params.
-    The full EmbodiedToolEnvelope is returned as a dict.
+    Routes cognitive modes through LLM inference (SEA-LION → Ollama → rule fallback).
+    Structural modes (plan, plan_review, plan_approve, axioms) are deterministic.
+    Cognitive modes (reason, reflect, verify, critique, debate, socratic) use LLM.
+
+    F13 SOVEREIGN: plan_approve remains deterministic — LLM must never
+    adjudicate sovereign approval.
     """
     if session_id is None and ctx is not None:
         session_id = getattr(ctx, "session_id", None)

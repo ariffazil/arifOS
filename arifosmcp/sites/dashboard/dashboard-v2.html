@@ -730,7 +730,7 @@
                     // Determine API endpoint based on current host
                     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                     const API_BASE = isLocalhost
-                        ? 'http://localhost:8081'
+                        ? '' // local dev points to same origin (arifOS 8080)
                         : '';
 
                     // Fetch all metrics in parallel
@@ -744,7 +744,7 @@
                     const metricsData = await metricsRes.json();
                     const vaultData = vaultRes.ok ? await vaultRes.json() : { entries: [] };
 
-                    if (metricsData.verdict === "SEAL" || metricsData.verdict === "PARTIAL") {
+                    // Always update with live data — even HOLD/VOID reflect truth
                         const transformed = transformLiveData(metricsData);
 
                         // Merge VAULT history
@@ -762,9 +762,6 @@
                         setData(transformed);
                         setLastUpdate(new Date());
                         setError(null);
-                    } else {
-                        setError(`API returned verdict: ${metricsData.verdict}`);
-                    }
                 } catch (err) {
                     console.error('Failed to fetch live metrics:', err);
                     setError(err.message);

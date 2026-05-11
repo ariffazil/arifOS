@@ -435,7 +435,7 @@ async def seal_vault(
         event_type=action,
         session_id=payload.get("session_id", "UNKNOWN"),
         actor_id=agent_id,
-        stage="999_VAULT",
+        stage="999_SEAL",
         verdict=verdict,
         payload=payload,
     )

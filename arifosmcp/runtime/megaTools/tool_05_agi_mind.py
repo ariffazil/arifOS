@@ -101,7 +101,7 @@ async def agi_mind(
         return forge_verdict(
             tool_id="arifos_mind",
             canonical_tool_name="arifos_mind",
-            stage="333_MIND",
+            stage="333_REASON",
             payload=res_dict.get("payload", res_dict),
             session_id=session_id,
             metrics=metrics,
@@ -126,7 +126,7 @@ async def agi_mind(
         return forge_verdict(
             tool_id="arifos_mind",
             canonical_tool_name="arifos_mind",
-            stage=res.get("stage", "333_MIND"),
+            stage=res.get("stage", "333_REASON"),
             payload=res.get("payload", {}),
             session_id=session_id,
             override_code=(

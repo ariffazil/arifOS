@@ -39,7 +39,7 @@
     "public_tools": [
       {
         "name": "arifOS_kernel",
-        "stage": "444_ROUTER",
+        "stage": "555_ROUTE",
         "trinity": "Ψ (APEX Soul)",
         "floors": ["F1", "F2", "F3", "F7", "F11", "F13"],
         "description": "Primary constitutional inference engine. Full metabolic pipeline 000→999.",
@@ -52,7 +52,7 @@
       },
       {
         "name": "reality_compass",
-        "stage": "111_SENSE",
+        "stage": "111_OBSERVE",
         "trinity": "Δ (AGI Mind)",
         "floors": ["F2", "F4", "F7"],
         "description": "Unified search and fetch with constitutional grounding. Returns source URLs, confidence scores, and conflict detection.",
@@ -106,7 +106,7 @@
       },
       {
         "name": "audit_rules",
-        "stage": "333_MIND",
+        "stage": "333_REASON",
         "trinity": "Δ (AGI Mind)",
         "floors": ["F2", "F4", "F10"],
         "description": "Floor inspection and governance audit. Returns all 13 floor specs, current thresholds, and pass/fail status.",
@@ -114,14 +114,14 @@
       },
       {
         "name": "session_memory",
-        "stage": "555_MEMORY",
+        "stage": "555m_MEMORY",
         "trinity": "Ω (ASI Heart)",
         "floors": ["F1", "F2"],
         "description": "Vector persistence via Qdrant (BGE-M3 embeddings). Store and retrieve verified facts across sessions."
       },
       {
         "name": "verify_vault_ledger",
-        "stage": "999_VAULT",
+        "stage": "999_SEAL",
         "trinity": "Ψ (APEX Soul)",
         "floors": ["F1", "F2", "F11"],
         "description": "Merkle chain integrity verification for VAULT999 immutable ledger. Ensures no tampering.",
@@ -137,7 +137,7 @@
       },
       {
         "name": "search_reality",
-        "stage": "111_SENSE",
+        "stage": "111_OBSERVE",
         "trinity": "Δ (AGI Mind)",
         "floors": ["F2"],
         "description": "Legacy alias for reality_compass. Maintained for compatibility.",
@@ -170,7 +170,7 @@
           "floor_scores": "dict[str, float] — per-floor scores",
           "hold_id": "string | null — 888_HOLD escalation ID",
           "void_reason": "string | null — why VOID was issued",
-          "metabolic_stage": "string — last completed stage (e.g. 777_FORGE)"
+          "metabolic_stage": "string — last completed stage (e.g. 666_FORGE)"
         }
       },
       "intelligence": {

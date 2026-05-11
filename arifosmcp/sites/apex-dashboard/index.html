@@ -96,6 +96,18 @@ a:hover{color:var(--color-gold)}
 .live-err{background:var(--color-error);box-shadow:0 0 6px var(--color-error)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
+/* LEGEND BAR */
+.legend-bar{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);margin-bottom:var(--space-6);padding:var(--space-2) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-xs);color:var(--color-text-muted);align-items:center}
+.legend-item{display:inline-flex;align-items:center;gap:var(--space-1)}
+.legend-sym{font-family:var(--font-mono);font-weight:700;color:var(--color-text)}
+.legend-sym.delta{color:var(--color-primary)}
+.legend-sym.omega{color:var(--color-gold)}
+.legend-sym.psi{color:oklch(0.7 0.14 192)}
+.legend-sep{color:var(--color-text-faint);padding:0 var(--space-1)}
+
+/* STATUS GROUP */
+.status-group{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center}
+
 /* HERO */
 .hero{margin-bottom:var(--space-12);padding:var(--space-8) var(--space-6);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--color-primary),var(--color-gold),var(--color-primary));opacity:0.6}
@@ -223,6 +235,8 @@ a:hover{color:var(--color-gold)}
 .floor-chip.lock{border-color:oklch(from var(--color-gold) l c h / 0.35);background:oklch(from var(--color-gold) l c h / 0.05)}
 .floor-chip.human{border-color:oklch(from var(--color-gold) l c h / 0.35);background:oklch(from var(--color-gold) l c h / 0.05)}
 .floor-chip.band{border-color:var(--color-border)}
+.floor-chip.fail{border-color:oklch(from var(--color-error) l c h / 0.35);background:oklch(from var(--color-error) l c h / 0.05)}
+.floor-chip.fail .floor-score{color:var(--color-error)}
 .floor-id{font-family:var(--font-mono);font-size:var(--text-base);font-weight:700}
 .floor-name{font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-muted);margin-top:2px}
 .floor-score{font-family:var(--font-mono);font-size:var(--text-xs);font-weight:700;margin-top:4px}
@@ -312,17 +326,32 @@ a:hover{color:var(--color-gold)}
     <a class="nav-chip" href="https://apex.arif-fazil.com/"><span class="icon">⚡</span>APEX</a>
   </div>
 
+  <!-- LEGEND BAR -->
+  <div class="legend-bar" id="legendBar">
+    <span class="legend-item" title="Evidence lane"><span class="legend-sym delta">Δ</span> Evidence</span>
+    <span class="legend-item" title="Judgment lane"><span class="legend-sym omega">Ω</span> Judgment</span>
+    <span class="legend-item" title="Authority lane"><span class="legend-sym psi">Ψ</span> Authority</span>
+    <span class="legend-sep">·</span>
+    <span class="legend-item" title="System vitality index"><span class="legend-sym">Ψ_v</span> Vitality</span>
+    <span class="legend-item" title="Entropy delta"><span class="legend-sym">ΔS</span> Entropy</span>
+    <span class="legend-sep">·</span>
+    <span class="legend-item" title="000 INIT → 999 SEAL"><span class="legend-sym">000→999</span> Loop</span>
+  </div>
+
   <!-- STATUS STRIP -->
   <div class="status-strip" id="statusStrip">
-    <span class="status-pill"><span class="live-dot live-ok" id="statusDot"></span><span class="val" id="verdictVal">—</span></span>
-    <span class="status-pill"><span class="val-ok" id="toolsCount">—</span> <span>tools</span></span>
-    <span class="status-pill"><span class="val-gold" id="floorsActive">—/13</span> <span>floors</span></span>
-    <span class="status-pill"><span class="val" id="psiVital">—</span> <span>Ψ_v</span></span>
-    <span class="status-pill"><span class="val" id="vaultStatus">—</span> <span>VAULT999</span></span>
-    <span class="status-pill"><span class="val" id="langfuseStatus">—</span> <span>langfuse</span></span>
-    <span class="status-pill"><span class="val" id="runtimeDrift">—</span> <span>drift</span></span>
-    <span class="status-pill"><span class="val" id="trinityStatus">—</span> <span>trinity</span></span>
-    <span class="status-pill staleness-pill" id="stalenessPill" style="display:none"><span class="val-hold">⚠️</span> <span id="lastUpdated">—</span></span>
+    <div class="status-group">
+      <span class="status-pill"><span class="live-dot live-ok" id="statusDot"></span><span class="val" id="verdictVal">—</span></span>
+      <span class="status-pill"><span class="val-ok" id="toolsCount">—</span> <span>tools</span></span>
+      <span class="status-pill"><span class="val-gold" id="floorsActive">—/13</span> <span>floors</span></span>
+    </div>
+    <div class="status-group">
+      <span class="status-pill"><span class="val" id="vaultStatus">—</span> <span>VAULT999</span></span>
+      <span class="status-pill"><span class="val" id="trinityStatus">—</span> <span>trinity</span></span>
+    </div>
+    <div class="status-group" style="margin-left:auto;">
+      <span class="status-pill staleness-pill" id="stalenessPill" style="display:none"><span class="val-hold">⚠️</span> <span id="lastUpdated">—</span></span>
+    </div>
   </div>
 
   <!-- I. HERO -->
@@ -700,26 +729,31 @@ a:hover{color:var(--color-gold)}
 
   <!-- VI. TOOL REGISTRY -->
   <div class="section-label">VI · Constitutional Tool Registry (13)</div>
+  <p style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-4);margin-top:calc(var(--space-2)*-1);line-height:1.5">
+    Tool stage codes are <strong>binding identifiers</strong> in the constitutional map.
+    The canonical governing loop is: 000&nbsp;INIT → 111&nbsp;OBSERVE → 222&nbsp;EVIDENCE → 333&nbsp;REASON → 444&nbsp;CRITIQUE → 555&nbsp;ROUTE → 666&nbsp;FORGE → 777&nbsp;MEASURE → 888&nbsp;JUDGE → 999&nbsp;SEAL.
+  </p>
   <div class="tools-grid fade-up" id="toolsGrid" style="margin-bottom:var(--space-12)">
     <!-- JS populates -->
   </div>
 
   <!-- VII. CAPABILITY MAP -->
   <div class="section-label">VII · Capability Map</div>
-  <div class="card fade-up" style="margin-bottom:var(--space-12);overflow:hidden;">
-    <table class="cap-table">
-      <thead>
-        <tr>
-          <th>Capability</th>
-          <th>Provider</th>
-          <th>Status</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody id="capBody">
-        <tr><td colspan="4" style="text-align:center;color:var(--color-text-faint);padding:var(--space-6)">Loading capability map...</td></tr>
-      </tbody>
-    </table>
+  <div class="card fade-up" style="margin-bottom:var(--space-12);padding:var(--space-4);">
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);font-size:var(--text-xs);color:var(--color-text-muted);">
+      <span class="pill">Governed Continuity</span>
+      <span class="pill">Vault Persistence</span>
+      <span class="pill">Vector Memory</span>
+      <span class="pill">Langfuse Tracing</span>
+      <span class="pill">Local Model Runtime</span>
+      <span class="pill">Git Substrate</span>
+      <span class="pill">Fetch Substrate</span>
+      <span class="pill">Memory Substrate</span>
+      <span class="pill">Filesystem Substrate</span>
+    </div>
+    <p style="font-size:var(--text-xs);color:var(--color-text-faint);margin-top:var(--space-3);">
+      All core substrates configured. Expanded provider map available via <code>/api/status</code>.
+    </p>
   </div>
 
   <!-- VIII. KNOWN GAPS -->
@@ -757,7 +791,7 @@ a:hover{color:var(--color-gold)}
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-logo">arifOS Observatory</div>
-  <div class="footer-sub">DITEMPA BUKAN DIBERI · v2.0-KANON · FEDERATION GOVERNANCE HUB</div>
+  <div class="footer-sub">DITEMPA BUKAN DIBERI · v2026.05.11-EMBODY · FEDERATION GOVERNANCE HUB</div>
   <div class="footer-links">
     <a href="https://github.com/ariffazil/arifOS">GitHub</a>
     <a href="https://arif-fazil.com/">arif-fazil.com</a>
@@ -772,10 +806,27 @@ a:hover{color:var(--color-gold)}
 
 <script>
 const FLOOR_NAMES = {
-  F1:'AMANAH',F2:'TRUTH',F3:'WITNESS',F4:'ΔS',F5:'PEACE²',
+  F1:'AMANAH',F2:'TRUTH',F3:'WITNESS',F4:'CLARITY',F5:'PEACE²',
   F6:'EMPATHY',F7:'HUMILITY',F8:'GENIUS',F9:'ANTIHANTU',
   F10:'ONTOLOGY',F11:'AUTH',F12:'INJECTION',F13:'SOVEREIGN'
 };
+
+function floorStatus(fid, score) {
+  // Per-floor thresholds derived from constitutional_map.py
+  if (fid === 'F04') return score <= 0 ? 'pass' : 'fail';           // ΔS ≤ 0
+  if (fid === 'F07') return (score >= 0.03 && score <= 0.05) ? 'pass' : 'fail'; // Ω band
+  if (fid === 'F09') return score <= 0.30 ? 'pass' : 'fail';        // C_dark ≤ 0.30
+  if (fid === 'F12') return score < 0.85 ? 'pass' : 'fail';         // injection < 0.85
+  if (fid === 'F13') return score >= 1.0 ? 'pass' : 'fail';         // sovereign absolute
+  return score >= 0.8 ? 'pass' : 'fail';
+}
+
+function floorChipClass(fid, status) {
+  if (status !== 'pass') return 'fail';
+  const idx = parseInt(fid.slice(1), 10);
+  if (idx >= 10) return 'lock';
+  return 'pass';
+}
 
 function statusToNavDot(status) {
   if (status === 'healthy') return 'dot-ok';
@@ -797,7 +848,7 @@ function applyOrganStatusDots(organId, status) {
 }
 
 function splitOrganTruth(org, probed) {
-  const healthStatus = probed.health || 'unknown';
+  const healthStatus = probed.health || probed.status || 'unknown';
   const activeGaps = [];
   const historicalNotes = [];
   const architecture = [];
@@ -842,12 +893,10 @@ function renderFloors(rf) {
   for (let i = 1; i <= 13; i++) {
     const fid = 'F' + i;
     const score = rf[fid] ?? 0;
-    let status = 'band';
-    if (score >= 0.8) {
-      status = i >= 10 ? 'lock' : i === 13 ? 'human' : 'pass';
-      pass++;
-    }
-    html += `<div class="floor-chip ${status}">
+    const st = floorStatus(fid, score);
+    const chipClass = floorChipClass(fid, st);
+    if (st === 'pass') pass++;
+    html += `<div class="floor-chip ${chipClass}">
       <div class="floor-id">${fid}</div>
       <div class="floor-name">${FLOOR_NAMES[fid]}</div>
       <div class="floor-score">${score.toFixed(2)}</div>
@@ -898,6 +947,7 @@ function renderGaps(gaps) {
 
 function renderCap(cap) {
   const tbody = document.getElementById('capBody');
+  if (!tbody) return;
   if (!cap) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--color-text-faint)">No data.</td></tr>'; return; }
   const caps = cap.capabilities || {};
   const storage = cap.storage || {};
@@ -957,7 +1007,8 @@ async function poll() {
     document.getElementById('vaultStatus').textContent = (h.vault999_health || '—').toUpperCase();
     document.getElementById('vaultStatus').className = 'val ' + (h.vault999_health === 'healthy' ? 'ok' : 'err');
     const lf = h.langfuse_tracing || {};
-    document.getElementById('langfuseStatus').textContent = (lf.status || '—') + ' · ' + (lf.traced_tools_count || 0) + '/13';
+    const lfStatus = typeof lf.status === 'boolean' ? (lf.status ? 'ON' : 'OFF') : (lf.status || '—');
+    document.getElementById('langfuseStatus').textContent = lfStatus + ' · ' + (lf.traced_tools_count || 0) + '/13';
     document.getElementById('runtimeDrift').textContent = String(sr.runtime_drift || false).toUpperCase();
     document.getElementById('runtimeDrift').className = 'val ' + (sr.runtime_drift ? 'err' : 'ok');
     document.getElementById('trinityStatus').textContent = ok ? 'ALIGNED' : 'MISALIGNED';
@@ -1016,7 +1067,7 @@ async function poll() {
     document.getElementById('imageTag').textContent = (h.image || '—').replace('ghcr.io/ariffazil/', '');
     document.getElementById('toolsLoaded').textContent = h.tools_loaded || '—';
     document.getElementById('buildTime').textContent = (h.build_time || '—').substring(0, 19);
-    document.getElementById('langfuseVal').textContent = (lf.status || '—');
+    document.getElementById('langfuseVal').textContent = lfStatus;
 
     // Populate dynamic sections
     if (d.tools && d.tools.length) renderTools(d.tools);

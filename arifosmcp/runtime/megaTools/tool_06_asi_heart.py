@@ -1,8 +1,8 @@
 """
 arifosmcp/runtime/megaTools/06_asi_heart.py
 
-666_HEART: Safety, empathy, and consequence modeling
-Stage: 666_HEART | Trinity: OMEGA Ω | Floors: F5, F6, F9
+444_CRITIQUE: Safety, empathy, and consequence modeling
+Stage: 444_CRITIQUE | Trinity: OMEGA Ω | Floors: F5, F6, F9
 
 Modes: critique, simulate
 """
@@ -91,7 +91,7 @@ async def asi_heart(
             return RuntimeEnvelope(
                 tool="arifos_heart",
                 canonical_tool_name="arifos_heart",
-                stage=res.get("stage", "666_HEART"),
+                stage=res.get("stage", "444_CRITIQUE"),
                 status=RuntimeStatus.SUCCESS if ok else RuntimeStatus.ERROR,
                 verdict=Verdict.SEAL if ok else Verdict.VOID,
                 allowed_next_tools=_next_tools,

@@ -364,7 +364,7 @@ class RealityHandler:
         bundle = EvidenceBundle(
             status=BundleStatus(
                 state="PARTIAL",
-                stage="111_SENSE",
+                stage="111_OBSERVE",
                 verdict="SABAR",
                 message="Reality acquisition initiated.",
             ),

@@ -87,13 +87,15 @@ class PipelineStage(int, Enum):
     """
 
     S000_INIT = 0
-    S111_SENSE = 111
-    S333_MIND = 333
-    S444_KERNEL = 444
-    S666_HEART = 666
-    S777_FORGE = 777
+    S111_OBSERVE = 111
+    S222_EVIDENCE = 222
+    S333_REASON = 333
+    S444_CRITIQUE = 444
+    S555_ROUTE = 555
+    S666_FORGE = 666
+    S777_MEASURE = 777
     S888_JUDGE = 888
-    S999_VAULT = 999
+    S999_SEAL = 999
 
 
 class ConstitutionalThresholds(BaseModel):

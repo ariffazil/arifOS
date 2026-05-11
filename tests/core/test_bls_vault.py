@@ -34,7 +34,7 @@ pytestmark = pytest.mark.skipif(
 _PAYLOAD = {
     "verdict": "SEAL",
     "tool": "vault_ledger",
-    "stage": "999_VAULT",
+    "stage": "999_SEAL",
     "session_id": "test_001",
     "decision": "Constitutional amendment ratified",
 }

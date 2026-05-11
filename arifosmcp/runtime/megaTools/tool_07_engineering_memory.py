@@ -69,7 +69,7 @@ async def engineering_memory(
         return forge_verdict(
             tool_id="arifos_memory",
             canonical_tool_name="arifos_memory",
-            stage=res_dict.get("stage", "555_MEMORY"),
+            stage=res_dict.get("stage", "555m_MEMORY"),
             payload=res_dict.get("payload", {}),
             session_id=session_id,
             override_code=(

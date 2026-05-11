@@ -237,7 +237,7 @@ async def call_llm(
         response_schema: JSON schema describing required output fields
         temperature:  Sampling temperature (0.1–0.3 for adjudication, 0.4–0.7 for reply)
         max_tokens:   Maximum tokens in response
-        tool_origin:  Canonical tool name calling this LLM (e.g. "333_MIND")
+        tool_origin:  Canonical tool name calling this LLM (e.g. "333_REASON")
         mode:         Cognitive mode of the call (e.g. "reason", "critique")
     """
     # Build combined prompt string for audit trail

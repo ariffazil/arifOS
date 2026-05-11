@@ -115,6 +115,68 @@ def inject_biological_context(governance_state: dict[str, Any]) -> dict[str, Any
     return governance_state
 
 
+def apply_metabolic_constraints(
+    governance_state: dict[str, Any],
+    action_risk_tier: str = "LOW",
+    last_high_stakes_timestamp: float | None = None,
+) -> dict[str, Any]:
+    """
+    W6 Metabolic Pause + P7 Sovereign Overload hard-downgrade.
+
+    Per PARADOX_DOCTRINE_V1 Section 8:
+      - LOW_CAPACITY (< 0.60): non-critical auto-HOLD, irreversible blocked,
+        min rest interval 30 min, F13 override only after rest interval
+      - DEGRADED: ALL operations auto-HOLD, only EMERGENCY_STOP and STATUS_REPORT accepted
+    """
+    readiness = get_biological_readiness()
+    if not readiness["ok"]:
+        return governance_state
+
+    verdict = readiness["verdict"]
+    constraints_applied: list[str] = []
+
+    if verdict == "DEGRADED":
+        # Hard-downgrade ALL operations to HOLD
+        if governance_state.get("verdict") != "HOLD":
+            governance_state["verdict"] = "HOLD"
+            constraints_applied.append("W6-DEGRADED-HOLD")
+        governance_state["message"] = (
+            governance_state.get("message", "")
+            + " [W6-DEGRADED] All operations auto-HOLD. Only EMERGENCY_STOP / STATUS_REPORT accepted."
+        )
+        governance_state["only_emergency"] = True
+
+    elif verdict == "LOW_CAPACITY":
+        # Block irreversible regardless of verdict
+        if action_risk_tier in ("HIGH", "CRITICAL"):
+            governance_state["verdict"] = "HOLD"
+            constraints_applied.append("W6-LOW_CAPACITY-IRREVERSIBLE_BLOCKED")
+            governance_state["message"] = (
+                governance_state.get("message", "")
+                + " [W6-LOW_CAPACITY] Irreversible action blocked. Sovereign rest interval required."
+            )
+        else:
+            # Non-critical auto-HOLD unless rest interval met
+            if last_high_stakes_timestamp is not None:
+                elapsed_min = (__import__("time").time() - last_high_stakes_timestamp) / 60.0
+                if elapsed_min < 30:
+                    governance_state["verdict"] = "HOLD"
+                    constraints_applied.append("W6-LOW_CAPACITY-REST_INTERVAL")
+                    governance_state["message"] = (
+                        governance_state.get("message", "")
+                        + f" [W6-LOW_CAPACITY] Rest interval active ({30 - int(elapsed_min)} min remaining)."
+                    )
+                else:
+                    constraints_applied.append("W6-LOW_CAPACITY-F13_AVAILABLE")
+            else:
+                constraints_applied.append("W6-LOW_CAPACITY-F13_AVAILABLE")
+
+    if constraints_applied:
+        governance_state["metabolic_constraints"] = constraints_applied
+
+    return governance_state
+
+
 def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
     """
     Signal cognitive pressure/load to WELL.
@@ -190,7 +252,7 @@ async def anchor_well_to_vault(
             ),
             telemetry=telemetry,
             source_agent="well",
-            pipeline_stage="999_VAULT",
+            pipeline_stage="999_SEAL",
             risk_tier="LOW",
         )
 

@@ -79,7 +79,7 @@ async def vault_ledger(
         return forge_verdict(
             tool_id="arifos_vault",
             canonical_tool_name="arifos_vault",
-            stage="999_VAULT",
+            stage="999_SEAL",
             payload=_res.get("payload", _res),
             session_id=session_id,
             metrics=CanonicalMetrics(),

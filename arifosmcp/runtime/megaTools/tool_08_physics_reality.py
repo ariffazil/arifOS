@@ -66,7 +66,7 @@ async def physics_reality(
         return RuntimeEnvelope(
             tool="arifos_sense",
             canonical_tool_name="arifos_sense",
-            stage="111_SENSE",
+            stage="111_OBSERVE",
             status=RuntimeStatus.ERROR,
             verdict=Verdict.VOID,
             session_id=session_id,

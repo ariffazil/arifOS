@@ -587,7 +587,7 @@
                 { id: "F4", name: "ΔS", status: "pass", score: -0.1 },
                 { id: "F5", name: "Peace²", status: "pass", score: 1.21 },
                 { id: "F6", name: "κᵣ", status: "pass", score: 0.97 },
-                { id: "F7", name: "Humility", status: "band", score: 0.04 },
+                { id: "F7", name: "Humility", status: "pass", score: 0.04 },
                 { id: "F8", name: "Genius", status: "pass", score: 0.80 },
                 { id: "F9", name: "C_dark", status: "pass", score: 0.15 },
                 { id: "F10", name: "Ontology", status: "lock", score: 1.0 },
@@ -638,20 +638,54 @@
                         const peace2 = th.peace_squared ?? 0.5;
                         const witness = th.witness || { human: 0, ai: 0, earth: 0 };
 
+                        // Mirror of arifOS _floor_passes logic (runtime/rest_routes/rest_routes.py)
+                        const _FLOOR_SPEC = {
+                            F1:  { thr: 0.5,  comp: '>=' },
+                            F2:  { thr: 0.99, comp: '>=' },
+                            F3:  { thr: 0.75, comp: '>=' },
+                            F4:  { thr: 0.0,  comp: '<=' },
+                            F5:  { thr: 1.0,  comp: '>=' },
+                            F6:  { thr: 0.7,  comp: '>=' },
+                            F7:  { range: [0.03, 0.05] },
+                            F8:  { thr: 0.8,  comp: '>=' },
+                            F9:  { thr: 0.3,  comp: '<' },
+                            F10: { thr: 1.0,  comp: '>=' },
+                            F11: { thr: 1.0,  comp: '>=' },
+                            F12: { thr: 0.85, comp: '<' },
+                            F13: { thr: 1.0,  comp: '>=' },
+                        };
+                        function _passes(fid, score) {
+                            const spec = _FLOOR_SPEC[fid];
+                            if (!spec) return false;
+                            if (fid === 'F7') {
+                                return spec.range[0] <= score && score <= spec.range[1];
+                            }
+                            const { thr, comp } = spec;
+                            if (comp === '<')  return score < thr;
+                            if (comp === '<=') return score <= thr;
+                            if (comp === '>')  return score > thr;
+                            return score >= thr;
+                        }
+                        function _status(fid, score) {
+                            const pass = _passes(fid, score);
+                            if (fid === 'F13') return pass ? 'human' : 'band';
+                            if (fid === 'F10' || fid === 'F11') return pass ? 'lock' : 'band';
+                            return pass ? 'pass' : 'band';
+                        }
                         const floors = [
-                            { id: "F1", name: "Amanah",     status: src.F1  >= 0.8 ? "pass" : "band", score: src.F1  ?? 0 },
-                            { id: "F2", name: "Truth",      status: src.F2  >= 0.8 ? "pass" : "band", score: src.F2  ?? 0 },
-                            { id: "F3", name: "Tri-Witness",status: src.F3  >= 0.8 ? "pass" : "band", score: src.F3  ?? 0 },
-                            { id: "F4", name: "ΔS",          status: src.F4  >= 0   ? "pass" : "band", score: src.F4  ?? 0 },
-                            { id: "F5", name: "Peace²",     status: src.F5  >= 0.8 ? "pass" : "band", score: src.F5  ?? 0 },
-                            { id: "F6", name: "κᵣ",          status: src.F6  >= 0.8 ? "pass" : "band", score: src.F6  ?? 0 },
-                            { id: "F7", name: "Humility",    status: src.F7  >= 0.8 ? "pass" : "band", score: src.F7  ?? 0 },
-                            { id: "F8", name: "Genius",      status: src.F8  >= 0.8 ? "pass" : "band", score: src.F8  ?? 0 },
-                            { id: "F9", name: "C_dark",      status: src.F9  >= 0.8 ? "pass" : "band", score: src.F9  ?? 0 },
-                            { id: "F10", name: "Ontology",   status: src.F10 >= 0.8 ? "lock" : "band", score: src.F10 ?? 0 },
-                            { id: "F11", name: "Command",    status: src.F11 >= 0.8 ? "lock" : "band", score: src.F11 ?? 0 },
-                            { id: "F12", name: "Injection",  status: src.F12 >= 0.8 ? "pass" : "band", score: src.F12 ?? 0 },
-                            { id: "F13", name: "Sovereign",   status: src.F13 >= 0.8 ? "human" : "band", score: src.F13 ?? 0 },
+                            { id: "F1",  name: "Amanah",      status: _status('F1',  src.F1  ?? 0), score: src.F1  ?? 0 },
+                            { id: "F2",  name: "Truth",       status: _status('F2',  src.F2  ?? 0), score: src.F2  ?? 0 },
+                            { id: "F3",  name: "Tri-Witness", status: _status('F3',  src.F3  ?? 0), score: src.F3  ?? 0 },
+                            { id: "F4",  name: "ΔS",           status: _status('F4',  src.F4  ?? 0), score: src.F4  ?? 0 },
+                            { id: "F5",  name: "Peace²",      status: _status('F5',  src.F5  ?? 0), score: src.F5  ?? 0 },
+                            { id: "F6",  name: "κᵣ",           status: _status('F6',  src.F6  ?? 0), score: src.F6  ?? 0 },
+                            { id: "F7",  name: "Humility",    status: _status('F7',  src.F7  ?? 0), score: src.F7  ?? 0 },
+                            { id: "F8",  name: "Genius",       status: _status('F8',  src.F8  ?? 0), score: src.F8  ?? 0 },
+                            { id: "F9",  name: "C_dark",       status: _status('F9',  src.F9  ?? 0), score: src.F9  ?? 0 },
+                            { id: "F10", name: "Ontology",     status: _status('F10', src.F10 ?? 0), score: src.F10 ?? 0 },
+                            { id: "F11", name: "Command",     status: _status('F11', src.F11 ?? 0), score: src.F11 ?? 0 },
+                            { id: "F12", name: "Injection",   status: _status('F12', src.F12 ?? 0), score: src.F12 ?? 0 },
+                            { id: "F13", name: "Sovereign",    status: _status('F13', src.F13 ?? 0), score: src.F13 ?? 0 },
                         ];
 
                         const passFloors = floors.filter(f => f.status === "pass" || f.status === "lock" || f.status === "human");

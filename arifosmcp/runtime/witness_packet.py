@@ -14,7 +14,7 @@ ARCHITECTURE (per 777_WITNESS blueprint):
 WitnessPacket schema:
   provider            — sea_lion | ollama | deterministic
   model               — model identifier
-  tool_origin         — 333_MIND | 444r_REPLY | 666_HEART | wisdom | unknown
+  tool_origin         — 333_REASON | 444r_REPLY | 444_CRITIQUE | wisdom | unknown
   mode                — reason | critique | compose | interpret | unknown
   raw_output_hash     — SHA-256 of raw LLM text
   prompt_hash         — SHA-256 of (system + user) prompt
@@ -56,7 +56,7 @@ class WitnessPacket:
     # Identity
     provider: str = "unknown"
     model: str = "unknown"
-    tool_origin: str = "unknown"  # 333_MIND | 444r_REPLY | 666_HEART | wisdom
+    tool_origin: str = "unknown"  # 333_REASON | 444r_REPLY | 444_CRITIQUE | wisdom
     mode: str = "unknown"  # reason | critique | compose | interpret
 
     # Integrity
@@ -496,7 +496,7 @@ def quarantine_release(packet: WitnessPacket) -> dict[str, Any]:
       }
     """
     next_tool = "arif_judge_deliberate"
-    if packet.tool_origin == "666_HEART":
+    if packet.tool_origin == "444_CRITIQUE":
         next_tool = "arif_judge_deliberate"
     elif packet.tool_origin == "444r_REPLY":
         next_tool = "arif_heart_critique"

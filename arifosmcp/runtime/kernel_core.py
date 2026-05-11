@@ -1,7 +1,7 @@
 """
 arifOS KERNEL rCore — Unified Metabolic Orchestrator
 
-444_KERNEL: Primary metabolic conductor that unifies:
+555_ROUTE: Primary metabolic conductor that unifies:
   - INPUT Stage: Query normalization, session context assembly
   - ORCHESTRATE Stage: Classification, tool selection, governance enforcement
   - OUTPUT Stage: Envelope sealing, continuity state management
@@ -393,7 +393,7 @@ class KernelCore:
         return {
             "ok": False,
             "tool": "arifos_kernel",
-            "stage": "444_ROUTER",
+            "stage": "555_ROUTE",
             "status": "error",
             "error": code,
             "summary": summary,
@@ -471,7 +471,7 @@ class KernelCore:
                 ok=tool_result.get("ok", True),
                 tool=tool_name,
                 canonical_tool_name=tool_name,
-                stage=PipelineStage.S444_KERNEL.value,
+                stage=PipelineStage.S555_ROUTE.value,
                 session_id=session_id,
                 payload=tool_result,
             )
