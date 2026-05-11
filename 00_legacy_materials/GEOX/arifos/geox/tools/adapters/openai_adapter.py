@@ -38,11 +38,17 @@ class OpenAIAppAdapter:
                     "description": "Load and QC seismic cross-sections.",
                     "parameters": {
                         "type": "object",
-                        "properties": {"line_id": {"type": "string"}, "survey": {"type": "string"}},
+                        "properties": {
+                            "line_id": {"type": "string"},
+                            "survey": {"type": "string"},
+                        },
                     },
                 }
             ],
-            "capabilities": {"ui_mode": "sandboxed-iframe", "storage": "per-user-per-app"},
+            "capabilities": {
+                "ui_mode": "sandboxed-iframe",
+                "storage": "per-user-per-app",
+            },
         }
 
     async def handle_request(self, payload: dict[str, Any]) -> dict[str, Any]:

@@ -117,7 +117,9 @@ async def build_structural_models(
 
     non_rejected = [c for c in candidate_set.candidates if not c.rejected]
 
-    sorted_candidates = sorted(non_rejected, key=lambda x: x.composite_score, reverse=True)
+    sorted_candidates = sorted(
+        non_rejected, key=lambda x: x.composite_score, reverse=True
+    )
 
     [c for c in sorted_candidates if c.candidate_type.value == "fault"]
     [c for c in sorted_candidates if c.candidate_type.value == "horizon"]
@@ -134,10 +136,14 @@ async def build_structural_models(
     setting_confidence = candidate_set.telemetry.get("setting_confidence", 0.40)
 
     overall_geometry = (
-        float(np.mean([c.geometry_score for c in non_rejected])) if non_rejected else 0.0
+        float(np.mean([c.geometry_score for c in non_rejected]))
+        if non_rejected
+        else 0.0
     )
     overall_stability = (
-        float(np.mean([c.stability_score for c in non_rejected])) if non_rejected else 0.0
+        float(np.mean([c.stability_score for c in non_rejected]))
+        if non_rejected
+        else 0.0
     )
     overall_geology = (
         float(np.mean([c.geology_score for c in non_rejected])) if non_rejected else 0.0
@@ -157,7 +163,9 @@ async def build_structural_models(
         alternative_models=[],
         physical_axes=["structural_geometry", "fault_horizon_relationships"],
         anomalous_risk=(
-            candidate_set.candidates[0].anomalous_risk if candidate_set.candidates else {}
+            candidate_set.candidates[0].anomalous_risk
+            if candidate_set.candidates
+            else {}
         ),
         provenance=_make_provenance(f"MODEL-{prov_base}", "LEM", confidence=composite),
         uncertainty=base_uncertainty,

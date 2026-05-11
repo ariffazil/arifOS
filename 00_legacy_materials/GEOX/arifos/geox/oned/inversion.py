@@ -74,7 +74,9 @@ class JointInversion1D:
         self.w_prior = 0.1
 
     def forward(
-        self, profile: Canon9Profile, mineral_fractions: list[dict[str, float]] | None = None
+        self,
+        profile: Canon9Profile,
+        mineral_fractions: list[dict[str, float]] | None = None,
     ) -> tuple[SyntheticCMP, dict]:
         """
         Forward model: CANON_9 → synthetic seismic + predicted logs.
@@ -96,7 +98,9 @@ class JointInversion1D:
                 minerals = {"quartz": 0.9, "clay": 0.1}
             elif isinstance(mineral_fractions, list):
                 minerals = (
-                    mineral_fractions[i] if i < len(mineral_fractions) else mineral_fractions[-1]
+                    mineral_fractions[i]
+                    if i < len(mineral_fractions)
+                    else mineral_fractions[-1]
                 )
             else:
                 minerals = mineral_fractions
@@ -147,7 +151,9 @@ class JointInversion1D:
 
             for i in range(len(obs_seismic.angles)):
                 # Interpolate predicted to observed time
-                trace_pred = np.interp(t_obs, t_pred, synthetic.traces[:, i], left=0, right=0)
+                trace_pred = np.interp(
+                    t_obs, t_pred, synthetic.traces[:, i], left=0, right=0
+                )
                 diff = obs_seismic.traces[:, i] - trace_pred
                 seis_misfit += np.sum(diff**2)
 
@@ -161,16 +167,23 @@ class JointInversion1D:
         # Prior misfit (regularization)
         prior_misfit = 0.0
         if prior_profile is not None:
-            for i, (s, s_prior) in enumerate(zip(profile.samples, prior_profile.samples)):
+            for i, (s, s_prior) in enumerate(
+                zip(profile.samples, prior_profile.samples)
+            ):
                 prior_misfit += (s.porosity - s_prior.porosity) ** 2
                 prior_misfit += (s.sw - s_prior.sw) ** 2
 
         total = (
-            self.w_seismic * seis_misfit + self.w_logs * logs_misfit + self.w_prior * prior_misfit
+            self.w_seismic * seis_misfit
+            + self.w_logs * logs_misfit
+            + self.w_prior * prior_misfit
         )
 
         return MisfitResult(
-            total=total, seismic=seis_misfit, logs=logs_misfit, regularization=prior_misfit
+            total=total,
+            seismic=seis_misfit,
+            logs=logs_misfit,
+            regularization=prior_misfit,
         )
 
     def invert_gradient(
@@ -219,9 +232,13 @@ class JointInversion1D:
 
                 # Perturb phi
                 sample.porosity += delta
-                misfit_plus = self.misfit(current, obs_seismic, obs_logs, prior_profile).total
+                misfit_plus = self.misfit(
+                    current, obs_seismic, obs_logs, prior_profile
+                ).total
                 sample.porosity -= 2 * delta
-                misfit_minus = self.misfit(current, obs_seismic, obs_logs, prior_profile).total
+                misfit_minus = self.misfit(
+                    current, obs_seismic, obs_logs, prior_profile
+                ).total
                 sample.porosity += delta  # Reset
 
                 grad_phi = (misfit_plus - misfit_minus) / (2 * delta)
@@ -232,9 +249,13 @@ class JointInversion1D:
 
                 # Gradient w.r.t. Sw
                 sample.sw += delta
-                misfit_plus = self.misfit(current, obs_seismic, obs_logs, prior_profile).total
+                misfit_plus = self.misfit(
+                    current, obs_seismic, obs_logs, prior_profile
+                ).total
                 sample.sw -= 2 * delta
-                misfit_minus = self.misfit(current, obs_seismic, obs_logs, prior_profile).total
+                misfit_minus = self.misfit(
+                    current, obs_seismic, obs_logs, prior_profile
+                ).total
                 sample.sw += delta  # Reset
 
                 grad_sw = (misfit_plus - misfit_minus) / (2 * delta)
@@ -244,7 +265,10 @@ class JointInversion1D:
                 sample.sw = np.clip(sample.sw, 0.0, 1.0)
 
         return InversionResult(
-            profile=current, misfit_history=misfit_history, converged=False, iterations=max_iter
+            profile=current,
+            misfit_history=misfit_history,
+            converged=False,
+            iterations=max_iter,
         )
 
     def invert(

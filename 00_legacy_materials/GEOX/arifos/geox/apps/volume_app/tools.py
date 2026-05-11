@@ -20,7 +20,6 @@ from typing import Any
 
 from arifos.geox.apps.volume_app.app import VolumeApp
 
-
 _volume_app_instance: VolumeApp | None = None
 
 

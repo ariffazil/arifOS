@@ -11,6 +11,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass
 from typing import Any
@@ -27,6 +28,12 @@ try:
     SBERT_AVAILABLE = True
 except ImportError:
     SBERT_AVAILABLE = False
+
+
+DEFAULT_SBERT_MODEL_NAME = os.getenv(
+    "ARIFOS_ML_MODEL_NAME",
+    "sentence-transformers/all-MiniLM-L6-v2",
+)
 
 
 @dataclass
@@ -168,7 +175,7 @@ class SbertFloorClassifier:
         ],
     }
 
-    def __init__(self, model_name: str = "BAAI/bge-m3"):
+    def __init__(self, model_name: str = DEFAULT_SBERT_MODEL_NAME):
         """
         Initialize SBERT classifier.
 

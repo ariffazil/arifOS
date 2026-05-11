@@ -48,7 +48,9 @@ class ContrastFeature:
 
     def __post_init__(self):
         if self.coordinates.shape != (3,):
-            raise ValueError("coordinates must be 3D vector [physical, display, perceptual]")
+            raise ValueError(
+                "coordinates must be 3D vector [physical, display, perceptual]"
+            )
         if self.uncertainty.shape != (3, 3):
             raise ValueError("uncertainty must be 3x3 covariance matrix")
 
@@ -149,7 +151,9 @@ class ContrastSpace:
             verdict, metadata = self._verdict_cache[feature_id]
         else:
             # Run full assessment
-            verdict, triggers, metadata = assess_conflation_risk(feature.taxonomy, self.domain)
+            verdict, triggers, metadata = assess_conflation_risk(
+                feature.taxonomy, self.domain
+            )
             self._verdict_cache[feature_id] = (verdict, metadata)
 
         return {

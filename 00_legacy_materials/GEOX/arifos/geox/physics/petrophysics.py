@@ -135,7 +135,9 @@ def compute_petrophysics_logic(inp: PetrophysicsInput) -> PetrophysicsOutput:
     return output
 
 
-def validate_cutoffs_logic(out: PetrophysicsOutput, policy: CutoffPolicy) -> CutoffValidationResult:
+def validate_cutoffs_logic(
+    out: PetrophysicsOutput, policy: CutoffPolicy
+) -> CutoffValidationResult:
     """
     Apply cutoff policy to petrophysical results (F1 Amanah).
     """
@@ -148,7 +150,9 @@ def validate_cutoffs_logic(out: PetrophysicsOutput, policy: CutoffPolicy) -> Cut
 
     violations = []
     if not phi_pass:
-        violations.append(f"PHIe {out.phi_effective:.3f} < cutoff {policy.phi_cutoff:.3f}")
+        violations.append(
+            f"PHIe {out.phi_effective:.3f} < cutoff {policy.phi_cutoff:.3f}"
+        )
     if not vcl_pass:
         violations.append(f"Vcl {out.vcl:.3f} > cutoff {policy.vcl_cutoff:.3f}")
     if is_net_res and not sw_pass:
@@ -183,7 +187,11 @@ def archie_sw(
 
     Equation: Sw = ( (a * Rw) / (phi^m * Rt) )^(1/n)
     """
-    if np.any(np.asarray(phi) <= 0) or np.any(np.asarray(rt) <= 0) or np.any(np.asarray(rw) <= 0):
+    if (
+        np.any(np.asarray(phi) <= 0)
+        or np.any(np.asarray(rt) <= 0)
+        or np.any(np.asarray(rw) <= 0)
+    ):
         return 1.0
 
     # Floor check (F13 Sovereign) - will be handled by the caller
@@ -314,7 +322,9 @@ def monte_carlo_sw(
     sw_results = func(**sampled_params)
 
     # Clip Sw to physical bounds [0, 1]
-    sw_results = np.clip(sw_results, 0, 1.1)  # Allow slight overshot for 888_HOLD detection
+    sw_results = np.clip(
+        sw_results, 0, 1.1
+    )  # Allow slight overshot for 888_HOLD detection
 
     # Statistics
     stats = {

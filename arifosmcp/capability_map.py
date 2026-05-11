@@ -30,18 +30,20 @@ class InitAnchorMode(str, Enum):
 # Any new integration MUST use arif_<noun>_<verb> (13-tool canonical surface).
 # ════════════════════════════════════════════════════════════════════════════════
 
+# Maps old arifos_<name> → live arif_<noun>_<verb> canonical names.
+# get_legacy_redirect() in public_registry.py uses this for backward-compat resolution.
 CANONICAL_TOOL_HANDLERS: dict[str, str] = {
-    "arifos_init": "arifos_init",
-    "arifos_sense": "arifos_sense",
-    "arifos_mind": "arifos_mind",
-    "arifos_kernel": "arifos_kernel",
-    "arifos_heart": "arifos_heart",
-    "arifos_ops": "arifos_ops",
-    "arifos_judge": "arifos_judge",
-    "arifos_memory": "arifos_memory",
-    "arifos_vault": "arifos_vault",
-    "arifos_forge": "arifos_forge",
-    "arifos_gateway": "arifos_gateway",
+    "arifos_init": "arif_session_init",
+    "arifos_sense": "arif_sense_observe",
+    "arifos_mind": "arif_mind_reason",
+    "arifos_kernel": "arif_kernel_route",
+    "arifos_heart": "arif_heart_critique",
+    "arifos_ops": "arif_ops_measure",
+    "arifos_judge": "arif_judge_deliberate",
+    "arifos_memory": "arif_memory_recall",
+    "arifos_vault": "arif_vault_seal",
+    "arifos_forge": "arif_forge_execute",
+    "arifos_gateway": "arif_gateway_connect",
 }
 
 MEGA_TOOLS: list[str] = list(CANONICAL_TOOL_HANDLERS.keys())

@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 class GEOX_SEISMIC_IMAGE_INPUT(BaseModel):
     """Input for a single seismic image line."""
 
-    image_path: str = Field(..., description="Path to the seismic image file (PNG, JPG, etc.)")
+    image_path: str = Field(
+        ..., description="Path to the seismic image file (PNG, JPG, etc.)"
+    )
     line_id: str = Field(..., description="User-supplied identifier for the line")
     domain: Literal["time", "depth", "unknown"] = "unknown"
     polarity: Literal["normal", "reverse", "unknown"] = "unknown"
@@ -33,7 +35,9 @@ class GEOX_SEISMIC_IMAGE_INPUT(BaseModel):
     )
     play_type: Literal["structural", "stratigraphic", "hybrid"] = "structural"
     notes: str | None = None
-    provenance: ProvenanceRecord = Field(..., description="Mandatory audit trail for the input")
+    provenance: ProvenanceRecord = Field(
+        ..., description="Mandatory audit trail for the input"
+    )
 
 
 class GEOX_SEISMIC_RASTER(BaseModel):
@@ -79,10 +83,20 @@ class STRUCT_CANDIDATE(BaseModel):
 
     candidate_id: str
     family: Literal[
-        "normal_fault", "reverse_fault", "fold", "duplex", "stratigraphic", "flower", "other"
+        "normal_fault",
+        "reverse_fault",
+        "fold",
+        "duplex",
+        "stratigraphic",
+        "flower",
+        "other",
     ]
-    stability_score: float = Field(ge=0.0, le=1.0, description="Persistence across contrast views")
-    bias_risk: float = Field(ge=0.0, le=1.0, description="Risk that this is a display artifact")
+    stability_score: float = Field(
+        ge=0.0, le=1.0, description="Persistence across contrast views"
+    )
+    bias_risk: float = Field(
+        ge=0.0, le=1.0, description="Risk that this is a display artifact"
+    )
     uncertainty_floor: float = Field(default=0.15, ge=0.10)
     plausibility_rule_failed: list[str] = Field(default_factory=list)
     final_audit_passed: bool = False

@@ -53,7 +53,9 @@ class ZoeppritzModel:
     - Shuey approximation (AVO analysis)
     """
 
-    def __init__(self, approximation: Literal["exact", "aki-richards", "shuey"] = "exact"):
+    def __init__(
+        self, approximation: Literal["exact", "aki-richards", "shuey"] = "exact"
+    ):
         self.approximation = approximation
 
     def _zoeppritz_exact(
@@ -123,7 +125,14 @@ class ZoeppritzModel:
             return self._shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1)
 
     def _aki_richards(
-        self, vp1: float, vs1: float, rho1: float, vp2: float, vs2: float, rho2: float, theta: float
+        self,
+        vp1: float,
+        vs1: float,
+        rho1: float,
+        vp2: float,
+        vs2: float,
+        rho2: float,
+        theta: float,
     ) -> float:
         """
         Aki-Richards linearized approximation.
@@ -152,7 +161,14 @@ class ZoeppritzModel:
         return term1 - term2 + term3
 
     def _shuey(
-        self, vp1: float, vs1: float, rho1: float, vp2: float, vs2: float, rho2: float, theta: float
+        self,
+        vp1: float,
+        vs1: float,
+        rho1: float,
+        vp2: float,
+        vs2: float,
+        rho2: float,
+        theta: float,
     ) -> float:
         """
         Shuey's 2-term AVO approximation.
@@ -214,7 +230,9 @@ class ZoeppritzModel:
                         s1.vp, s1.vs, s1.density, s2.vp, s2.vs, s2.density, theta
                     )
                 else:  # shuey
-                    r = self._shuey(s1.vp, s1.vs, s1.density, s2.vp, s2.vs, s2.density, theta)
+                    r = self._shuey(
+                        s1.vp, s1.vs, s1.density, s2.vp, s2.vs, s2.density, theta
+                    )
 
                 reflectivity[i, j] = r
 

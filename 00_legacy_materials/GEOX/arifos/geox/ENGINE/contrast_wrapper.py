@@ -171,7 +171,11 @@ def _generate_anomalous_risk(name: str, is_meta: bool) -> dict[str, Any]:
 
 def _generate_uncertainty_factors(name: str) -> list[str]:
     """Generate list of uncertainty sources for this attribute type."""
-    factors = ["acquisition_footprint", "processing_noise", "velocity_model_uncertainty"]
+    factors = [
+        "acquisition_footprint",
+        "processing_noise",
+        "velocity_model_uncertainty",
+    ]
 
     if "coherence" in name.lower():
         factors.extend(["spatial_window_size", "dip_estimation_error"])

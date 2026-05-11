@@ -36,6 +36,7 @@ RUN pip install uv
 
 COPY arifosmcp/requirements.txt requirements.txt
 RUN uv pip install --system --no-cache -r requirements.txt
+RUN python -c "import numpy, scipy, sklearn, torch, transformers, sentence_transformers"
 
 
 # ── Stage 2: runtime image ────────────────────────────────────────────────

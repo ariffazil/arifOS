@@ -270,7 +270,9 @@ def interpret_las(
                 (
                     float(v)
                     if (
-                        v != null and v is not None and not (isinstance(v, float) and math.isnan(v))
+                        v != null
+                        and v is not None
+                        and not (isinstance(v, float) and math.isnan(v))
                     )
                     else float("nan")
                 )
@@ -415,7 +417,9 @@ def interpret_las(
         # NET / PAY flags
         vsand_val = derived["VSAND"][i]
         sw_val = derived["SW"][i]
-        is_net = (vsand_val or 0) > (1 - vshale_cutoff) and (phi_dn_val or 0) > phi_cutoff
+        is_net = (vsand_val or 0) > (1 - vshale_cutoff) and (
+            phi_dn_val or 0
+        ) > phi_cutoff
         is_pay = is_net and (sw_val or 1) < sw_cutoff
         derived["NET"][i] = 1.0 if is_net else 0.0
         derived["PAY"][i] = 1.0 if is_pay else 0.0
@@ -430,8 +434,12 @@ def interpret_las(
         if not mask:
             continue
 
-        phi_vals = [derived["PHI_DN"][i] for i in mask if derived["PHI_DN"][i] is not None]
-        vsh_vals = [derived["VSHALE"][i] for i in mask if derived["VSHALE"][i] is not None]
+        phi_vals = [
+            derived["PHI_DN"][i] for i in mask if derived["PHI_DN"][i] is not None
+        ]
+        vsh_vals = [
+            derived["VSHALE"][i] for i in mask if derived["VSHALE"][i] is not None
+        ]
         sw_vals = [derived["SW"][i] for i in mask if derived["SW"][i] is not None]
         pay_vals = [derived["PAY"][i] for i in mask]
         gas_count = 0
@@ -482,7 +490,9 @@ def interpret_las(
     if valid_count == 0:
         hold_triggers.append(_HT["zero_well_control"])
     if phi_vals and max(phi_vals) > 0.35:
-        hold_triggers.append("Anomalously high porosity (>35%) — possible gas effect or cycle skip")
+        hold_triggers.append(
+            "Anomalously high porosity (>35%) — possible gas effect or cycle skip"
+        )
     if all(sw_vals) and min(sw_vals) < 0.05:
         hold_triggers.append("Unusually low Sw (<5%) — possible interpretation error")
     if zones and all(z.pay_samples == 0 for z in zones):
@@ -549,7 +559,10 @@ def write_enhanced_las(
     def add_curve(mnem: str, data: list, unit: str = "", descr: str = ""):
         if data is None:
             return
-        arr = [float(v) if v is not None and not math.isnan(v) else report.null_value for v in data]
+        arr = [
+            float(v) if v is not None and not math.isnan(v) else report.null_value
+            for v in data
+        ]
         out.append_curve(mnem, arr, unit=unit, descr=descr)
 
     # Original curves already in derived dict
@@ -721,11 +734,15 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
             import re
 
             # RFC 2046: boundary may be quoted. Strip quotes.
-            boundary_match = re.search(r'boundary=(?:"([^"]+)"|([^;\s]+))', content_type)
+            boundary_match = re.search(
+                r'boundary=(?:"([^"]+)"|([^;\s]+))', content_type
+            )
             if not boundary_match:
                 self.send_error(400, "No boundary found in Content-Type")
                 return
-            boundary_str = (boundary_match.group(1) or boundary_match.group(2) or "").strip()
+            boundary_str = (
+                boundary_match.group(1) or boundary_match.group(2) or ""
+            ).strip()
             if not boundary_str:
                 self.send_error(400, "Empty boundary")
                 return
@@ -738,7 +755,9 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
                 if b"filename=" not in part:
                     continue
                 # Extract filename
-                fn_match = re.findall(r'filename="([^"]+)"', part.decode("utf-8", errors="ignore"))
+                fn_match = re.findall(
+                    r'filename="([^"]+)"', part.decode("utf-8", errors="ignore")
+                )
                 if fn_match:
                     fn_match[0]
                 # Find start of file data (after double CRLF)
@@ -759,7 +778,9 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
             import os
 
             # lasio 0.32 requires a file path or string stream, not bytes
-            with tempfile.NamedTemporaryFile(suffix=".las", delete=False, mode="wb") as tmp:
+            with tempfile.NamedTemporaryFile(
+                suffix=".las", delete=False, mode="wb"
+            ) as tmp:
                 tmp.write(las_data)
                 tmp_path = tmp.name
             try:
@@ -787,14 +808,24 @@ class LASIHandler(http.server.BaseHTTPRequestHandler):
         self.send_header("X-GEOX-Version", GEOX_VERSION)
         self.send_header(
             "X-Interpreted-Curves",
-            str(len([k for k in derived if k not in ["DEPT"] and derived[k][0] is not None])),
+            str(
+                len(
+                    [
+                        k
+                        for k in derived
+                        if k not in ["DEPT"] and derived[k][0] is not None
+                    ]
+                )
+            ),
         )
         self.end_headers()
 
         response = {
             "ok": True,
             "report": report.to_dict(),
-            "derived_curve_count": len([k for k in derived if derived[k][0] is not None]),
+            "derived_curve_count": len(
+                [k for k in derived if derived[k][0] is not None]
+            ),
             "enhanced_las_size_bytes": len(enhanced_las),
             "enhanced_las_md5": las_hash,
             "note": "Enhanced LAS available at same endpoint via GET /interpreted/{md5}",

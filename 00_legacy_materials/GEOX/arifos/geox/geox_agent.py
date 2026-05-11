@@ -180,7 +180,9 @@ class GeoXAgent:
                     logger.info("Using LLM planner. Plan: %s", tool_names)
                     return tool_names
             except Exception as exc:
-                logger.warning("LLM planner failed (%s). Falling back to heuristic.", exc)
+                logger.warning(
+                    "LLM planner failed (%s). Falling back to heuristic.", exc
+                )
 
         return self._heuristic_plan(request)
 
@@ -199,11 +201,16 @@ class GeoXAgent:
         plan.append("EarthModelTool")
 
         # Add simulator if we have well logs or are doing pressure analysis
-        if any(d in request.available_data for d in ("well_logs", "core", "production")):
+        if any(
+            d in request.available_data for d in ("well_logs", "core", "production")
+        ):
             plan.append("SimulatorTool")
 
         # Add EO tool if satellite data could help
-        if "eo" in request.available_data or request.play_type in ("stratigraphic", "combination"):
+        if "eo" in request.available_data or request.play_type in (
+            "stratigraphic",
+            "combination",
+        ):
             plan.append("EOFoundationModelTool")
 
         # Add VLM if seismic is available
@@ -242,7 +249,9 @@ class GeoXAgent:
     # execute()
     # ------------------------------------------------------------------
 
-    async def execute(self, plan: list[str], request: GeoRequest) -> list[GeoToolResult]:
+    async def execute(
+        self, plan: list[str], request: GeoRequest
+    ) -> list[GeoToolResult]:
         """
         Execute tools in plan order with retry logic.
 
@@ -344,7 +353,9 @@ class GeoXAgent:
         }
         return common
 
-    async def _run_with_retry(self, tool: BaseTool, inputs: dict[str, Any]) -> GeoToolResult:
+    async def _run_with_retry(
+        self, tool: BaseTool, inputs: dict[str, Any]
+    ) -> GeoToolResult:
         """Run a tool with retry logic up to max_retries."""
         last_result: GeoToolResult | None = None
         for attempt in range(1, self.config.max_tool_retries + 1):
@@ -437,7 +448,9 @@ class GeoXAgent:
         porosity_qtys = [q for q in all_quantities if "porosity" in q.quantity_type]
         velocity_qtys = [q for q in all_quantities if "velocity" in q.quantity_type]
         if porosity_qtys or velocity_qtys:
-            insights.append(self._make_reservoir_insight(porosity_qtys + velocity_qtys, request))
+            insights.append(
+                self._make_reservoir_insight(porosity_qtys + velocity_qtys, request)
+            )
 
         # --- Insight 3: VLM Structural Interpretation (perception bridge rule) ---
         if vlm_only_quantities:
@@ -447,7 +460,9 @@ class GeoXAgent:
         pt_qtys = [
             q
             for q in all_quantities
-            if any(t in q.quantity_type for t in ("pressure", "temperature", "maturity"))
+            if any(
+                t in q.quantity_type for t in ("pressure", "temperature", "maturity")
+            )
         ]
         if pt_qtys:
             insights.append(self._make_pt_insight(pt_qtys, request))
@@ -471,7 +486,9 @@ class GeoXAgent:
 
         return insights
 
-    def _risk_level_for_request(self, request: GeoRequest, base_level: str = "medium") -> str:
+    def _risk_level_for_request(
+        self, request: GeoRequest, base_level: str = "medium"
+    ) -> str:
         """Map request risk_tolerance to insight risk_level."""
         risk_map = {"low": "low", "medium": "medium", "high": "high"}
         req_risk = risk_map.get(request.risk_tolerance, "medium")
@@ -485,7 +502,9 @@ class GeoXAgent:
         action = self.config.auto_risk_levels.get(risk_level, "human_signoff")
         return action != "auto"
 
-    def _make_prov_from_tool_result(self, tool_name: str, confidence: float) -> ProvenanceRecord:
+    def _make_prov_from_tool_result(
+        self, tool_name: str, confidence: float
+    ) -> ProvenanceRecord:
         source_type_map = {
             "EarthModelTool": "LEM",
             "SeismicVLMTool": "VLM",
@@ -501,7 +520,9 @@ class GeoXAgent:
             confidence=confidence,
         )
 
-    def _make_lem_insight(self, quantities: list[GeoQuantity], request: GeoRequest) -> GeoInsight:
+    def _make_lem_insight(
+        self, quantities: list[GeoQuantity], request: GeoRequest
+    ) -> GeoInsight:
         """Build a LEM physics assessment insight."""
         velocity_vals = [q.value for q in quantities if "velocity" in q.quantity_type]
         porosity_vals = [q.value for q in quantities if "porosity" in q.quantity_type]
@@ -564,8 +585,12 @@ class GeoXAgent:
         porosity_vals = [q.value for q in quantities if "porosity" in q.quantity_type]
         velocity_vals = [q.value for q in quantities if "velocity" in q.quantity_type]
 
-        avg_porosity = sum(porosity_vals) / len(porosity_vals) if porosity_vals else None
-        avg_velocity = sum(velocity_vals) / len(velocity_vals) if velocity_vals else None
+        avg_porosity = (
+            sum(porosity_vals) / len(porosity_vals) if porosity_vals else None
+        )
+        avg_velocity = (
+            sum(velocity_vals) / len(velocity_vals) if velocity_vals else None
+        )
 
         por_str = f"{avg_porosity*100:.1f}%" if avg_porosity is not None else "unknown"
         vel_str = f"{avg_velocity:.0f} m/s" if avg_velocity is not None else "unknown"
@@ -595,7 +620,9 @@ class GeoXAgent:
             requires_human_signoff=signoff,
         )
 
-    def _make_vlm_insight(self, quantities: list[GeoQuantity], request: GeoRequest) -> GeoInsight:
+    def _make_vlm_insight(
+        self, quantities: list[GeoQuantity], request: GeoRequest
+    ) -> GeoInsight:
         """
         Build a VLM structural insight.
 
@@ -635,7 +662,9 @@ class GeoXAgent:
             requires_human_signoff=signoff,
         )
 
-    def _make_pt_insight(self, quantities: list[GeoQuantity], request: GeoRequest) -> GeoInsight:
+    def _make_pt_insight(
+        self, quantities: list[GeoQuantity], request: GeoRequest
+    ) -> GeoInsight:
         """Build a pressure-temperature-maturity insight."""
         pres_vals = [q.value for q in quantities if "pressure" in q.quantity_type]
         temp_vals = [q.value for q in quantities if "temperature" in q.quantity_type]

@@ -33,12 +33,12 @@ COPY . .
 # Initialize git submodules (arifOS-model-registry)
 #RUN git submodule update --init --recursive
 
-# Install dependencies in build stage to keep runtime image clean
-# NOTE: torch is NOT installed separately — sentence-transformers moved to optional deps.
-# Embeddings are served by Ollama (bge-m3:latest) as an external service.
+# Install dependencies in build stage to keep runtime image clean.
+# The ML floor runtime is part of the image truth and must be reproducible.
 RUN python -m pip install --upgrade pip && \
     if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && \
     pip install --no-cache-dir .
+RUN python -c "import numpy, scipy, sklearn, torch, transformers, sentence_transformers"
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
 RUN pip install --no-cache-dir itsdangerous prefab-ui fastapi uvicorn redis python-multipart psutil playwright
@@ -50,8 +50,8 @@ RUN pip install --no-cache-dir "fastapi>=0.100.0"
 # Remove pip-installed arifosmcp from site-packages to avoid conflict with /usr/src/app source
 RUN rm -rf /usr/local/lib/python3.12/site-packages/arifosmcp*
 
-# BGE-M3 model is served by Ollama (ollama_engine container).
-# No local HuggingFace model baking required — eliminates ~750MB torch + ~570MB model from image.
+# Graph embeddings are still served by Ollama, but ML floor inference dependencies
+# are baked into the runtime image so semantic readiness is reproducible.
 
 
 FROM python:3.12-slim AS runtime

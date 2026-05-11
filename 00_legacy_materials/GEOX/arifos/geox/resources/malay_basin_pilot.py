@@ -135,18 +135,34 @@ MALAY_BASIN_GEOMETRY = {
             "geometry": {
                 "type": "Polygon",
                 "coordinates": [
-                    [[102.0, 5.0], [105.0, 7.5], [107.0, 5.0], [105.0, 3.0], [102.0, 5.0]]
+                    [
+                        [102.0, 5.0],
+                        [105.0, 7.5],
+                        [107.0, 5.0],
+                        [105.0, 3.0],
+                        [102.0, 5.0],
+                    ]
                 ],
             },
         },
         {
             "type": "Feature",
             "id": "p1_zone",
-            "properties": {"name": "P1: Basin-centre Anticline", "play": "P1", "fill": "#ff4444"},
+            "properties": {
+                "name": "P1: Basin-centre Anticline",
+                "play": "P1",
+                "fill": "#ff4444",
+            },
             "geometry": {
                 "type": "Polygon",
                 "coordinates": [
-                    [[103.5, 5.5], [105.0, 6.0], [105.5, 5.5], [104.5, 4.5], [103.5, 5.5]]
+                    [
+                        [103.5, 5.5],
+                        [105.0, 6.0],
+                        [105.5, 5.5],
+                        [104.5, 4.5],
+                        [103.5, 5.5],
+                    ]
                 ],
             },
         },

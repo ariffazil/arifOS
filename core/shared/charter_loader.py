@@ -15,7 +15,7 @@ _DEFAULT_MIND_ROOT = (
 )
 
 
-class ManifestLoader:
+class CharterLoader:
     """
     Dynamically loads constitutional thresholds from the Mind (arifOS kernel).
     Bridges Markdown theory into Python runtime enforcement.
@@ -75,7 +75,7 @@ def sync_runtime_floors():
     try:
         from core.shared.floors import FLOOR_SPEC_KEYS, THRESHOLDS
 
-        dynamic_thresholds = ManifestLoader.load_thresholds()
+        dynamic_thresholds = CharterLoader.load_thresholds()
 
         for f_id, val in dynamic_thresholds.items():
             spec_key = FLOOR_SPEC_KEYS.get(f_id)
@@ -92,6 +92,6 @@ def sync_runtime_floors():
 
 
 if __name__ == "__main__":
-    t = ManifestLoader.load_thresholds()
+    t = CharterLoader.load_thresholds()
     print(f"Dynamic Thresholds Scraped: {t}")
     sync_runtime_floors()

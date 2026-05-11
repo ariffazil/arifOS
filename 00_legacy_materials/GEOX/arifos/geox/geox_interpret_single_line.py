@@ -136,14 +136,20 @@ async def interpret_single_line(
 
     bias_audit = _build_bias_audit(
         is_raster=is_raster,
-        setting=ranked_models.models[0].tectonic_setting if ranked_models.models else None,
-        confidence=ranked_models.models[0].setting_confidence if ranked_models.models else 0.0,
+        setting=(
+            ranked_models.models[0].tectonic_setting if ranked_models.models else None
+        ),
+        confidence=(
+            ranked_models.models[0].setting_confidence if ranked_models.models else 0.0
+        ),
         n_alternatives=len(ranked_models.models) - 1,
     )
 
     validation_recommendations = _build_validation_recommendations(
         is_raster=is_raster,
-        confidence=ranked_models.models[0].setting_confidence if ranked_models.models else 0.0,
+        confidence=(
+            ranked_models.models[0].setting_confidence if ranked_models.models else 0.0
+        ),
         source_type=source_type,
     )
 
@@ -177,7 +183,9 @@ async def interpret_single_line(
             )
     else:
         final_verdict = Line2DVerdict.HOLD
-        verdict_explanation = "No structural candidates passed rule engine. Acquire better data."
+        verdict_explanation = (
+            "No structural candidates passed rule engine. Acquire better data."
+        )
 
     return GEOXInterpretationResult(
         image_ref=image_ref,
@@ -300,9 +308,13 @@ def _build_validation_recommendations(
     recs = []
 
     if is_raster:
-        recs.append("ACQUIRE SEG-Y DATA — raster-only interpretation has 79% failure rate")
+        recs.append(
+            "ACQUIRE SEG-Y DATA — raster-only interpretation has 79% failure rate"
+        )
 
-    recs.append("Acquire intersecting 2D line or 3D data to resolve out-of-plane ambiguity")
+    recs.append(
+        "Acquire intersecting 2D line or 3D data to resolve out-of-plane ambiguity"
+    )
     recs.append("Perform structural restoration to test kinematic viability")
     recs.append("Compare with regional tectonic model before accepting interpretation")
 
@@ -311,7 +323,9 @@ def _build_validation_recommendations(
             f"Low confidence ({confidence:.2f}) — do not use for critical decisions without validation"
         )
 
-    recs.append("Check for acquisition footprint artifacts before accepting fault candidates")
+    recs.append(
+        "Check for acquisition footprint artifacts before accepting fault candidates"
+    )
 
     return recs
 
@@ -378,7 +392,9 @@ class GEOXInterpretSingleLineTool(BaseTool):
                 "uncertainty": result.aggregate_uncertainty,
                 "latency_ms": round(latency_ms, 2),
                 "tectonic_setting": (
-                    result.best_model.tectonic_setting.value if result.best_model else "uncertain"
+                    result.best_model.tectonic_setting.value
+                    if result.best_model
+                    else "uncertain"
                 ),
             },
             latency_ms=round(latency_ms, 2),

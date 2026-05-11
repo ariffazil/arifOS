@@ -41,7 +41,13 @@ class Wavelet(BaseModel):
 
     @classmethod
     def ormsby(
-        cls, f1: float, f2: float, f3: float, f4: float, dt: float, duration: float = 0.2
+        cls,
+        f1: float,
+        f2: float,
+        f3: float,
+        f4: float,
+        dt: float,
+        duration: float = 0.2,
     ) -> Wavelet:
         """
         Generate Ormsby (trapezoidal) wavelet.
@@ -50,7 +56,9 @@ class Wavelet(BaseModel):
         # Simplified Ormsby
         t = np.arange(-duration / 2, duration / 2, dt)
         fcent = (f2 + f3) / 2
-        ricker = (1 - 2 * (np.pi * fcent * t) ** 2) * np.exp(-((np.pi * fcent * t) ** 2))
+        ricker = (1 - 2 * (np.pi * fcent * t) ** 2) * np.exp(
+            -((np.pi * fcent * t) ** 2)
+        )
         return cls(amplitude=ricker, time=t, dt=dt, fdom=fcent)
 
 
@@ -90,7 +98,9 @@ class SyntheticCMP(BaseModel):
             return self.traces[:, 0]
         return np.mean(self.traces[:, mask], axis=1)
 
-    def extract_amplitude(self, time_window: tuple[float, float], angle: float) -> float:
+    def extract_amplitude(
+        self, time_window: tuple[float, float], angle: float
+    ) -> float:
         """Extract amplitude in time window at given angle."""
         angle_idx = np.argmin(np.abs(self.angles - angle))
         time_mask = (self.time >= time_window[0]) & (self.time <= time_window[1])
@@ -145,7 +155,9 @@ class SyntheticSeismic:
 
         return refl_time, time_reg
 
-    def generate(self, profile: Canon9Profile, angles: np.ndarray | None = None) -> SyntheticCMP:
+    def generate(
+        self, profile: Canon9Profile, angles: np.ndarray | None = None
+    ) -> SyntheticCMP:
         """
         Generate synthetic CMP gather from profile.
 
@@ -181,7 +193,9 @@ class SyntheticSeismic:
 
         for i in range(n_angles):
             # Use angle-dependent reflectivity
-            refl = reflectivity[:, i] if i < reflectivity.shape[1] else reflectivity[:, 0]
+            refl = (
+                reflectivity[:, i] if i < reflectivity.shape[1] else reflectivity[:, 0]
+            )
 
             # Interpolate to time grid
             refl_time_interp = np.interp(

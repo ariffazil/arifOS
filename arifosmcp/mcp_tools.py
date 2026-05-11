@@ -314,31 +314,27 @@ def create_unified_mcp(agents: list[str] | None = None, visibility: str = "publi
 # TOOL CATALOG
 # =============================================================================
 
-TOOL_CATALOG = """arifOS 13-Tool Canonical Surface (Hard Cutover 2026-04-19)
-=================================================================
+TOOL_CATALOG = """arifOS 13-Tool Canonical Surface — arif_<noun>_<verb> namespace (v1.1 patch 2026-05-12)
+=================================================================================================
 
-CONSTITUTIONAL (5):  [from runtime/tools.py via register_v2_tools]
-  arifos_init         — Constitutional session anchor
-  arifos_sense        — Physical reality grounding (GEOX)
-  arifos_mind         — Constitutional reasoning
-  arifos_heart        — Ethical critique and safety simulation
-  arifos_judge        — Final constitutional verdict (888_JUDGE)
+GOVERNED LOOP (13):  [canonical arif_<noun>_<verb> surface — AGENTS.md SOT]
+  000  arif_session_init       — Identity bootstrap, session anchor
+  111  arif_sense_observe      — Physical reality grounding (GEOX / Δ organ)
+  222  arif_evidence_fetch     — Web / external evidence retrieval
+  333  arif_mind_reason        — Constitutional reasoning (F2/F7/F8)
+  444h arif_heart_critique     — Ethical critique, F9/F12 safety gate
+  444r arif_kernel_route       — Metabolic syscall routing (444_ROUTER)
+       arif_reply_compose      — Dual-axis governed response composition
+  555  arif_memory_recall      — Vector memory retrieval (Qdrant + bge-m3)
+  666g arif_gateway_connect    — A2A mesh, agent-to-agent governed connection
+  777  arif_ops_measure        — Health probe, brent_score, ops telemetry
+  888  arif_judge_deliberate   — Constitutional verdict engine (888_JUDGE)
+  999  arif_vault_seal         — Append-only VAULT999 ledger write
+  010  arif_forge_execute      — A-FORGE dispatch (requires 888 SEAL)
 
-INFRASTRUCTURE (3):  [from runtime/tools.py via register_v2_tools]
-  arifos_kernel       — Metabolic orchestration
-  arifos_memory       — Governed context retrieval
-  arifos_vault        — Sealed Merkle audit logging
-
-CANONICAL ENGINES (5):  [from mcp_tools.py via agent factories]
-  arifos_compute_physics      — P/T transform: petrophysics | stratigraphy | geometry | monte_carlo | entropy | growth
-  arifos_compute_finance      — V transform: npv | irr | mirr | emv | dscr | payback | PI | allocation | budget
-  arifos_compute_civilization — G transform: sustainability_path | game_theory | cross_evidence
-  arifos_oracle_bio           — P感知: snapshot_read | readiness_check | floor_scan | log_update
-  arifos_oracle_world         — E执行: geox_scene_load | geox_skills_query | macro_snapshot | series | vintage
-
-METABOLIC (0):  Routed through arifos_vault(mode="read")
-
-TOTAL: 13 TOOLS  (5 constitutional + 3 infrastructure + 5 canonical engines)
+DEPRECATED (do not use):  arifos_<name> names retired 2026-04-19 hard cutover.
+  Canonical surface lives in arifosmcp/constitutional_map.py
+  Legacy constants frozen in arifosmcp/capability_map.py (backward compat only)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

@@ -31,7 +31,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Provenance Tag Enum (literal union for strict JSON schema)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -124,7 +123,8 @@ class LogQCFlags(BaseModel):
     available_curves: list[str] = Field(
         default_factory=list,
         description=(
-            "List of QC-passed log curve mnemonics " "(e.g. ['GR', 'NPHI', 'RHOB', 'ILD', 'DT'])."
+            "List of QC-passed log curve mnemonics "
+            "(e.g. ['GR', 'NPHI', 'RHOB', 'ILD', 'DT'])."
         ),
     )
     provenance_tag: ProvenanceTag = Field(
@@ -165,7 +165,8 @@ class SwModelAdmissibility(BaseModel):
     recommended_model: Literal["archie", "simandoux", "indonesia", "none"] = Field(
         ...,
         description=(
-            "'none' means no Sw model is admissible given the QC flags; " "888_HOLD must be raised."
+            "'none' means no Sw model is admissible given the QC flags; "
+            "888_HOLD must be raised."
         ),
     )
     admissible_models: list[Literal["archie", "simandoux", "indonesia"]] = Field(
@@ -252,13 +253,21 @@ class PetrophysicsInput(BaseModel):
     )
     rsh_ohm_m: float | None = Field(
         default=None,
-        description=("Shale resistivity [ohm·m]. " "Required for simandoux/indonesia models."),
+        description=(
+            "Shale resistivity [ohm·m]. " "Required for simandoux/indonesia models."
+        ),
     )
 
     # ── Archie parameters ────────────────────────────────────────────────────
-    archie_a: float = Field(default=1.0, gt=0.0, description="Archie tortuosity factor a.")
-    archie_m: float = Field(default=2.0, gt=0.0, description="Archie cementation exponent m.")
-    archie_n: float = Field(default=2.0, gt=0.0, description="Archie saturation exponent n.")
+    archie_a: float = Field(
+        default=1.0, gt=0.0, description="Archie tortuosity factor a."
+    )
+    archie_m: float = Field(
+        default=2.0, gt=0.0, description="Archie cementation exponent m."
+    )
+    archie_n: float = Field(
+        default=2.0, gt=0.0, description="Archie saturation exponent n."
+    )
 
     # ── Monte Carlo ──────────────────────────────────────────────────────────
     run_monte_carlo: bool = Field(
@@ -313,13 +322,23 @@ class PetrophysicsOutput(BaseModel):
         ge=0.0,
         description="Nominal water saturation (P50 of MC if run, else deterministic).",
     )
-    sw_p10: float | None = Field(default=None, description="Sw P10 (optimistic) from MC.")
+    sw_p10: float | None = Field(
+        default=None, description="Sw P10 (optimistic) from MC."
+    )
     sw_p50: float | None = Field(default=None, description="Sw P50 (median) from MC.")
-    sw_p90: float | None = Field(default=None, description="Sw P90 (pessimistic) from MC.")
-    sw_std: float | None = Field(default=None, description="Sw standard deviation from MC.")
+    sw_p90: float | None = Field(
+        default=None, description="Sw P90 (pessimistic) from MC."
+    )
+    sw_std: float | None = Field(
+        default=None, description="Sw standard deviation from MC."
+    )
 
-    phi_effective: float = Field(..., gt=0.0, le=0.50, description="Effective porosity [fraction].")
-    vcl: float = Field(default=0.0, ge=0.0, le=1.0, description="Clay volume [fraction].")
+    phi_effective: float = Field(
+        ..., gt=0.0, le=0.50, description="Effective porosity [fraction]."
+    )
+    vcl: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Clay volume [fraction]."
+    )
     bvw: float = Field(
         ...,
         ge=0.0,
@@ -475,7 +494,9 @@ class CutoffValidationResult(BaseModel):
     phi_tested: float = Field(..., description="PHIe value tested [fraction].")
     sw_tested: float = Field(..., description="Sw value tested [fraction].")
     vcl_tested: float = Field(..., description="Vcl value tested [fraction].")
-    rt_tested: float | None = Field(default=None, description="Rt value tested [ohm·m].")
+    rt_tested: float | None = Field(
+        default=None, description="Rt value tested [ohm·m]."
+    )
 
     violations: list[str] = Field(
         default_factory=list,

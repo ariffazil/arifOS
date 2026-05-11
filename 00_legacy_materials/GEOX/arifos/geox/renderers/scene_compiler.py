@@ -193,7 +193,9 @@ class SceneCompiler:
                     visible=True,
                 )
             )
-            scene.metadata.warnings.append("Polarity unknown - quantitative measurements disabled")
+            scene.metadata.warnings.append(
+                "Polarity unknown - quantitative measurements disabled"
+            )
 
         if state.get("stretch_artifacts", False):
             scene.metadata.warnings.append("Stretch artifacts detected")
@@ -227,7 +229,9 @@ class SceneCompiler:
             scene.surfaces.extend(seismic_scene.surfaces)
 
         if scene.bbox is None:
-            scene.bbox = BoundingBox(min_x=0, max_x=100, min_y=0, max_y=10, min_z=-5000, max_z=0)
+            scene.bbox = BoundingBox(
+                min_x=0, max_x=100, min_y=0, max_y=10, min_z=-5000, max_z=0
+            )
 
         return scene
 
@@ -260,7 +264,9 @@ class SceneCompiler:
         """Compile well data to trajectory primitive."""
         trajectory_points = []
         for pt in well_data.get("trajectory", []):
-            trajectory_points.append(Vector3(x=pt.get("x", 0), y=pt.get("y", 0), z=pt.get("z", 0)))
+            trajectory_points.append(
+                Vector3(x=pt.get("x", 0), y=pt.get("y", 0), z=pt.get("z", 0))
+            )
 
         formation_tops = {}
         for top in well_data.get("formation_tops", []):
@@ -281,7 +287,9 @@ class SceneCompiler:
         vertices = []
         for pt in fault_data.get("trace_points", []):
             if isinstance(pt, dict):
-                vertices.append(Vector3(x=pt.get("x", 0), y=pt.get("y", 0), z=pt.get("z", 0)))
+                vertices.append(
+                    Vector3(x=pt.get("x", 0), y=pt.get("y", 0), z=pt.get("z", 0))
+                )
 
         fault_color = RenderColor(r=1.0, g=0.0, b=0.0)
         is_inferred = fault_data.get("is_observed", True) is False
@@ -296,12 +304,16 @@ class SceneCompiler:
             is_interpreted=is_inferred,
         )
 
-    def compile_reflector_surface(self, reflector_data: dict[str, Any]) -> SurfacePrimitive:
+    def compile_reflector_surface(
+        self, reflector_data: dict[str, Any]
+    ) -> SurfacePrimitive:
         """Compile horizon reflector to surface primitive."""
         vertices = []
         for pt in reflector_data.get("points", []):
             if isinstance(pt, dict):
-                vertices.append(Vector3(x=pt.get("x", 0), y=pt.get("y", 0), z=pt.get("z", 0)))
+                vertices.append(
+                    Vector3(x=pt.get("x", 0), y=pt.get("y", 0), z=pt.get("z", 0))
+                )
 
         return SurfacePrimitive(
             name=reflector_data.get("name", "Horizon"),
@@ -323,7 +335,11 @@ class SceneCompiler:
                 points_2d.append((pt[0], pt[1]))
 
         color_str = unit_data.get("color", "#808080")
-        color = RenderColor.from_hex(color_str) if isinstance(color_str, str) else RenderColor()
+        color = (
+            RenderColor.from_hex(color_str)
+            if isinstance(color_str, str)
+            else RenderColor()
+        )
 
         return UnitPolygonPrimitive(
             name=unit_data.get("unit_name", "Unknown Unit"),
@@ -337,7 +353,9 @@ class SceneCompiler:
             is_interpreted=unit_data.get("is_interpreted", False),
         )
 
-    def compile_uncertainty_zone(self, zone_data: dict[str, Any]) -> UncertaintyZonePrimitive:
+    def compile_uncertainty_zone(
+        self, zone_data: dict[str, Any]
+    ) -> UncertaintyZonePrimitive:
         """Compile uncertainty zone to primitive."""
         polygon_2d = []
         for pt in zone_data.get("polygon", []):
@@ -356,10 +374,16 @@ class SceneCompiler:
     def compute_bbox_from_points(self, points: list[dict[str, Any]]) -> BoundingBox:
         """Compute bounding box from list of points."""
         if not points:
-            return BoundingBox(min_x=0, max_x=100, min_y=0, max_y=10, min_z=-5000, max_z=0)
+            return BoundingBox(
+                min_x=0, max_x=100, min_y=0, max_y=10, min_z=-5000, max_z=0
+            )
 
-        xs = [p.get("x", p.get("distance_km", 0)) for p in points if isinstance(p, dict)]
-        ys = [p.get("y", p.get("elevation_m", 0)) for p in points if isinstance(p, dict)]
+        xs = [
+            p.get("x", p.get("distance_km", 0)) for p in points if isinstance(p, dict)
+        ]
+        ys = [
+            p.get("y", p.get("elevation_m", 0)) for p in points if isinstance(p, dict)
+        ]
         zs = [p.get("z", 0) for p in points if isinstance(p, dict)]
 
         return BoundingBox(
@@ -394,7 +418,11 @@ class SceneCompiler:
 
         for unit in units:
             color_str = unit.get("color", "#808080")
-            color = RenderColor.from_hex(color_str) if isinstance(color_str, str) else RenderColor()
+            color = (
+                RenderColor.from_hex(color_str)
+                if isinstance(color_str, str)
+                else RenderColor()
+            )
             legend.entries.append(
                 LegendEntry(
                     label=unit.get("unit_name", "Unit"),

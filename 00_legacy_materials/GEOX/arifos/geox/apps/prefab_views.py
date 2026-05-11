@@ -130,7 +130,10 @@ def seismic_section_view(
             Badge("ToAC: Contrast Canon Active", variant="warning")
             Badge("F4 Clarity: Units Required", variant="warning")
             Badge("Scale: UNKNOWN", variant="destructive")
-            Badge(f"Status: {status}", variant="success" if status == "IGNITED" else "default")
+            Badge(
+                f"Status: {status}",
+                variant="success" if status == "IGNITED" else "default",
+            )
 
         # --- F4 Hold Alert ---
         with Alert(variant="warning"):
@@ -350,7 +353,9 @@ def feasibility_check_view(
                     constraint_md = "\n".join(f"- {c}" for c in constraints)
                     Markdown(constraint_md)
                 else:
-                    Muted("No explicit constraints provided — world-state defaults applied.")
+                    Muted(
+                        "No explicit constraints provided — world-state defaults applied."
+                    )
 
         # --- Constitutional Floors ---
         with Card():
@@ -484,7 +489,9 @@ def prospect_verdict_view(
 
     with Column(gap=4, css_class="p-6") as view:
         H2(f"Prospect Evaluation — {prospect_id}")
-        Muted(f"Interpretation: {interpretation_id}  ·  Stage: 222_REFLECT  ·  999_VAULT logged")
+        Muted(
+            f"Interpretation: {interpretation_id}  ·  Stage: 222_REFLECT  ·  999_VAULT logged"
+        )
         Separator()
 
         # --- Status strip ---
@@ -701,26 +708,43 @@ def petrophysics_compute_view(
                 with Grid(columns=2, gap=4):
                     with Card():
                         with CardContent():
-                            Text("Vsh (Shale Volume)", css_class="text-sm text-muted-foreground")
+                            Text(
+                                "Vsh (Shale Volume)",
+                                css_class="text-sm text-muted-foreground",
+                            )
                             Metric(value=f"{vsh[0]:.2f}–{vsh[1]:.2f}", label="fraction")
                     with Card():
                         with CardContent():
-                            Text("φt (Total Porosity)", css_class="text-sm text-muted-foreground")
-                            Metric(value=f"{phi_t[0]:.2f}–{phi_t[1]:.2f}", label="fraction")
+                            Text(
+                                "φt (Total Porosity)",
+                                css_class="text-sm text-muted-foreground",
+                            )
+                            Metric(
+                                value=f"{phi_t[0]:.2f}–{phi_t[1]:.2f}", label="fraction"
+                            )
                     with Card():
                         with CardContent():
                             Text(
-                                "φe (Effective Porosity)", css_class="text-sm text-muted-foreground"
+                                "φe (Effective Porosity)",
+                                css_class="text-sm text-muted-foreground",
                             )
-                            Metric(value=f"{phi_e[0]:.2f}–{phi_e[1]:.2f}", label="fraction")
+                            Metric(
+                                value=f"{phi_e[0]:.2f}–{phi_e[1]:.2f}", label="fraction"
+                            )
                     with Card():
                         with CardContent():
-                            Text("Sw (Water Saturation)", css_class="text-sm text-muted-foreground")
+                            Text(
+                                "Sw (Water Saturation)",
+                                css_class="text-sm text-muted-foreground",
+                            )
                             Metric(value=f"{sw[0]:.2f}–{sw[1]:.2f}", label="fraction")
 
                 with Card(css_class="mt-4"):
                     with CardContent():
-                        Text("BVW (Bulk Volume Water)", css_class="text-sm text-muted-foreground")
+                        Text(
+                            "BVW (Bulk Volume Water)",
+                            css_class="text-sm text-muted-foreground",
+                        )
                         Metric(value=f"{bvw[0]:.3f}–{bvw[1]:.3f}", label="fraction")
 
         # --- Uncertainty note ---
@@ -781,15 +805,24 @@ def cutoff_validation_view(
                 with Grid(columns=3, gap=4):
                     with Card():
                         with CardContent():
-                            Text("Net Thickness", css_class="text-sm text-muted-foreground")
+                            Text(
+                                "Net Thickness",
+                                css_class="text-sm text-muted-foreground",
+                            )
                             Metric(value=f"{net_thick:.1f}", label="meters")
                     with Card():
                         with CardContent():
-                            Text("Pay Thickness", css_class="text-sm text-muted-foreground")
+                            Text(
+                                "Pay Thickness",
+                                css_class="text-sm text-muted-foreground",
+                            )
                             Metric(value=f"{pay_thick:.1f}", label="meters")
                     with Card():
                         with CardContent():
-                            Text("Net-to-Gross", css_class="text-sm text-muted-foreground")
+                            Text(
+                                "Net-to-Gross",
+                                css_class="text-sm text-muted-foreground",
+                            )
                             Metric(value=f"{ntg:.2f}", label="ratio")
 
         # --- Cutoffs applied ---

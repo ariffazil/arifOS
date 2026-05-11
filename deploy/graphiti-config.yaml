@@ -1,0 +1,56 @@
+server:
+  transport: "http"
+  host: "0.0.0.0"
+  port: 8000
+
+llm:
+  provider: "openai"
+  model: "qwen2.5:7b"
+  max_tokens: 4096
+  providers:
+    openai:
+      api_key: ${OPENAI_API_KEY:ollama}  # pragma: allowlist secret
+      api_url: ${OPENAI_API_URL:http://ollama:11434/v1}
+      organization_id: ""
+
+embedder:
+  provider: "openai"
+  model: "bge-m3:latest"
+  dimensions: 1024
+  providers:
+    openai:
+      api_key: ${OPENAI_API_KEY:ollama}  # pragma: allowlist secret
+      api_url: ${OPENAI_API_URL:http://ollama:11434/v1}
+      organization_id: ""
+
+database:
+  provider: "falkordb"
+  providers:
+    falkordb:
+      uri: ${FALKORDB_URI:redis://localhost:6379}
+      password: ${FALKORDB_PASSWORD:}
+      database: ${FALKORDB_DATABASE:arifos}
+
+graphiti:
+  group_id: ${GRAPHITI_GROUP_ID:af-forge}
+  episode_id_prefix: ${EPISODE_ID_PREFIX:}
+  user_id: ${USER_ID:mcp_user}
+  entity_types:
+    - name: "Preference"
+      description: "User preferences, choices, opinions, or selections"
+    - name: "Requirement"
+      description: "Specific needs, features, or functionality that must be fulfilled"
+    - name: "Procedure"
+      description: "Standard operating procedures and sequential instructions"
+    - name: "Location"
+      description: "Physical or virtual places where activities occur"
+    - name: "Event"
+      description: "Time-bound activities, occurrences, or experiences"
+    - name: "Organization"
+      description: "Companies, institutions, groups, or formal entities"
+    - name: "Document"
+      description: "Information content in various forms"
+    - name: "Topic"
+      description: "Subject of conversation, interest, or knowledge domain"
+    - name: "Object"
+      description: "Physical items, tools, devices, or possessions"

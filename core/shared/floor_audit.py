@@ -12,6 +12,7 @@ Version: 2026.02.22-FORGE-KERNEL-SEAL
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import re
 from dataclasses import dataclass, field
@@ -40,10 +41,23 @@ except Exception:
 from core.shared.types import Verdict
 
 SBERT_AVAILABLE = False
+_ML_MODEL_NAME = os.getenv("ARIFOS_ML_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
+_ML_SELFTEST_TEXT = os.getenv("ARIFOS_ML_SELFTEST_TEXT", "seal confirmed")
+_ML_REQUIRED_MODULES = (
+    "numpy",
+    "scipy",
+    "torch",
+    "transformers",
+    "sentence_transformers",
+    "sklearn",
+)
 
 
 @lru_cache(maxsize=1)
 def _load_sbert_runtime() -> tuple[bool, Any | None]:
+    runtime = _probe_ml_embedding_runtime()
+    if not runtime["ml_runtime_ready"]:
+        return False, None
     try:
         from core.shared.sbert_floors import SBERT_AVAILABLE as runtime_available
         from core.shared.sbert_floors import classify_asi_floors as runtime_classifier
@@ -51,6 +65,51 @@ def _load_sbert_runtime() -> tuple[bool, Any | None]:
         return bool(runtime_available), runtime_classifier
     except Exception:
         return False, None
+
+
+def _missing_ml_dependencies() -> list[str]:
+    return [
+        module_name
+        for module_name in _ML_REQUIRED_MODULES
+        if importlib.util.find_spec(module_name) is None
+    ]
+
+
+@lru_cache(maxsize=1)
+def _probe_ml_embedding_runtime() -> dict[str, Any]:
+    missing_dependencies = _missing_ml_dependencies()
+    if missing_dependencies:
+        return {
+            "ml_runtime_ready": False,
+            "ml_dependency_status": "missing_dependencies",
+            "ml_missing_dependencies": missing_dependencies,
+            "ml_hold_reason": (
+                "embedding runtime unavailable: missing "
+                + ", ".join(missing_dependencies)
+            ),
+        }
+
+    try:
+        from sentence_transformers import SentenceTransformer
+
+        model = SentenceTransformer(_ML_MODEL_NAME)
+        vector = model.encode(_ML_SELFTEST_TEXT)
+        vector_length = len(vector[0]) if hasattr(vector, "ndim") and vector.ndim > 1 else len(vector)
+        if vector_length <= 0:
+            raise RuntimeError("self-test returned empty embedding")
+        return {
+            "ml_runtime_ready": True,
+            "ml_dependency_status": "healthy",
+            "ml_missing_dependencies": [],
+            "ml_hold_reason": None,
+        }
+    except Exception as exc:
+        return {
+            "ml_runtime_ready": False,
+            "ml_dependency_status": "runtime_unavailable",
+            "ml_missing_dependencies": [],
+            "ml_hold_reason": f"{exc.__class__.__name__}: {exc}",
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -215,6 +274,16 @@ def _env_truthy(name: str) -> bool:
 def get_ml_floor_runtime() -> dict[str, Any]:
     """Return runtime status for optional SBERT-backed floor scoring."""
     enabled = _env_truthy("ARIFOS_ML_FLOORS")
+    runtime_probe = (
+        _probe_ml_embedding_runtime()
+        if enabled
+        else {
+            "ml_runtime_ready": False,
+            "ml_dependency_status": "disabled",
+            "ml_missing_dependencies": [],
+            "ml_hold_reason": None,
+        }
+    )
     sbert_available, _ = _load_sbert_runtime() if enabled else (False, None)
     method = "sbert" if enabled and sbert_available else "heuristic"
     if enabled and not sbert_available:
@@ -223,6 +292,16 @@ def get_ml_floor_runtime() -> dict[str, Any]:
         "ml_floors_enabled": enabled,
         "ml_model_available": sbert_available,
         "ml_method": method,
+        "ml_runtime_ready": bool(runtime_probe["ml_runtime_ready"]) if enabled else False,
+        "ml_dependency_status": runtime_probe["ml_dependency_status"],
+        "ml_missing_dependencies": runtime_probe["ml_missing_dependencies"],
+        "ml_model_name": _ML_MODEL_NAME,
+        "ml_hold_reason": runtime_probe["ml_hold_reason"],
+        "ml_hold_state": (
+            "disabled"
+            if not enabled
+            else ("ready" if runtime_probe["ml_runtime_ready"] else "hold")
+        ),
     }
 
 

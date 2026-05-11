@@ -16,7 +16,12 @@ Components:
 
 from .floor_enforcer import FloorEnforcer, FloorCheckResult
 from .audit_logger import AuditLogger, AuditEntry, AuditEventType, get_audit_logger
-from .verdict_renderer import VerdictRenderer, RenderedVerdict, GeoxVerdict, get_verdict_renderer
+from .verdict_renderer import (
+    VerdictRenderer,
+    RenderedVerdict,
+    GeoxVerdict,
+    get_verdict_renderer,
+)
 from .conflation_report import ConflationReport, generate_conflation_report
 
 __all__ = [

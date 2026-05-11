@@ -158,8 +158,16 @@ class IntervalRockStateResource(Resource):
             "state_id": state.state_id,
             "porosity": (
                 {
-                    "value": state.effective_porosity.value if state.effective_porosity else None,
-                    "units": state.effective_porosity.units if state.effective_porosity else None,
+                    "value": (
+                        state.effective_porosity.value
+                        if state.effective_porosity
+                        else None
+                    ),
+                    "units": (
+                        state.effective_porosity.units
+                        if state.effective_porosity
+                        else None
+                    ),
                     "ci_95": [
                         (
                             state.effective_porosity.confidence_95_low
@@ -179,9 +187,13 @@ class IntervalRockStateResource(Resource):
             ),
             "water_saturation": (
                 {
-                    "value": state.water_saturation.value if state.water_saturation else None,
+                    "value": (
+                        state.water_saturation.value if state.water_saturation else None
+                    ),
                     "model": (
-                        state.water_saturation.model_family if state.water_saturation else None
+                        state.water_saturation.model_family
+                        if state.water_saturation
+                        else None
                     ),
                     "ci_95": [
                         (
@@ -206,7 +218,9 @@ class IntervalRockStateResource(Resource):
             ),
             "permeability": (
                 {
-                    "value_md": state.permeability.value_md if state.permeability else None,
+                    "value_md": (
+                        state.permeability.value_md if state.permeability else None
+                    ),
                     "method": state.permeability.method if state.permeability else None,
                 }
                 if state.permeability
@@ -256,7 +270,9 @@ class CutoffPolicyResource(Resource):
             "cutoffs": {
                 "porosity": {
                     "threshold": (
-                        policy.porosity_cutoff.threshold_value if policy.porosity_cutoff else None
+                        policy.porosity_cutoff.threshold_value
+                        if policy.porosity_cutoff
+                        else None
                     ),
                     "rationale": (
                         policy.porosity_cutoff.physics_justification
@@ -265,12 +281,20 @@ class CutoffPolicyResource(Resource):
                     ),
                 },
                 "vsh": {
-                    "threshold": policy.vsh_cutoff.threshold_value if policy.vsh_cutoff else None,
-                    "rationale": policy.vsh_cutoff.calibration_basis if policy.vsh_cutoff else None,
+                    "threshold": (
+                        policy.vsh_cutoff.threshold_value if policy.vsh_cutoff else None
+                    ),
+                    "rationale": (
+                        policy.vsh_cutoff.calibration_basis
+                        if policy.vsh_cutoff
+                        else None
+                    ),
                 },
                 "sw_oil": {
                     "threshold": (
-                        policy.sw_cutoff_oil.threshold_value if policy.sw_cutoff_oil else None
+                        policy.sw_cutoff_oil.threshold_value
+                        if policy.sw_cutoff_oil
+                        else None
                     ),
                 },
             },
@@ -280,9 +304,15 @@ class CutoffPolicyResource(Resource):
                 "fluid_systems": policy.applicable_fluid_systems,
             },
             "governance": {
-                "defined_by": policy.porosity_cutoff.defined_by if policy.porosity_cutoff else None,
+                "defined_by": (
+                    policy.porosity_cutoff.defined_by
+                    if policy.porosity_cutoff
+                    else None
+                ),
                 "approved_by": policy.approved_by,
-                "approval_date": policy.approval_date.isoformat() if policy.approval_date else None,
+                "approval_date": (
+                    policy.approval_date.isoformat() if policy.approval_date else None
+                ),
             },
             "is_active": policy.is_active,
             "provenance": "POLICY",
@@ -312,7 +342,9 @@ class QCReportResource(Resource):
         return {
             "uri": f"geox://well/{well_id}/qc/report",
             "well_id": well_id,
-            "generated": report.report_generated.isoformat() if report.report_generated else None,
+            "generated": (
+                report.report_generated.isoformat() if report.report_generated else None
+            ),
             "overall_status": report.overall,
             "curve_count": len(report.curve_reports),
             "curves": [

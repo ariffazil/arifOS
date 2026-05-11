@@ -82,7 +82,9 @@ async def geox_list_tools(
         }
     except Exception as e:
         return create_standardized_error(
-            ErrorCode.INTERNAL_ERROR, detail=str(e), context={"traceback": traceback.format_exc()}
+            ErrorCode.INTERNAL_ERROR,
+            detail=str(e),
+            context={"traceback": traceback.format_exc()},
         )
 
 
@@ -215,7 +217,10 @@ async def geox_workflow_seismic_full(
                 "verdict": ac_result.verdict.value,
                 "explanation": ac_result.explanation,
             },
-            "governance": {"non_uniqueness_acknowledged": True, "f2_truth_compliant": True},
+            "governance": {
+                "non_uniqueness_acknowledged": True,
+                "f2_truth_compliant": True,
+            },
             "seal": SERVER_SEAL,
         }
     except Exception as e:

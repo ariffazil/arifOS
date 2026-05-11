@@ -52,7 +52,9 @@ class UncertaintyEnvelope(BaseModel):
     ci_95_high: float
 
     # Distribution
-    distribution_type: Literal["normal", "lognormal", "triangular", "uniform", "empirical"]
+    distribution_type: Literal[
+        "normal", "lognormal", "triangular", "uniform", "empirical"
+    ]
     distribution_params: dict[str, float] = Field(default_factory=dict)
 
     # Sources of uncertainty

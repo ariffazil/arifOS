@@ -138,7 +138,9 @@ class ConflationReport:
             )
             for floor, check in self.floor_checks.items():
                 status = "✅" if check.get("passed") else "❌"
-                lines.append(f"- {status} **{floor}:** {check.get('status', 'Unknown')}")
+                lines.append(
+                    f"- {status} **{floor}:** {check.get('status', 'Unknown')}"
+                )
                 violations = check.get("violations", [])
                 for v in violations:
                     lines.append(f"  - {v}")
@@ -233,10 +235,14 @@ def generate_conflation_report(
     recommendations = []
 
     if transform_analysis.get("risk_level") == "HIGH":
-        recommendations.append("Reduce transform amplification factors or add validation steps")
+        recommendations.append(
+            "Reduce transform amplification factors or add validation steps"
+        )
 
     if anomaly_alerts:
-        recommendations.append("Review features with high anomalous scores against raw data")
+        recommendations.append(
+            "Review features with high anomalous scores against raw data"
+        )
 
     if not taxonomy or taxonomy.data_source.traceability == "none":
         recommendations.append("Improve data provenance documentation")
@@ -259,7 +265,9 @@ def generate_conflation_report(
         operation_id=operation_id,
         tool_name=tool_name,
         taxonomy=taxonomy.to_dict() if taxonomy else None,
-        contrast_space_summary=contrast_space.get_population_stats() if contrast_space else None,
+        contrast_space_summary=(
+            contrast_space.get_population_stats() if contrast_space else None
+        ),
         transform_analysis=transform_analysis,
         anomaly_alerts=anomaly_alerts,
         floor_checks=floor_checks,

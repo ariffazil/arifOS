@@ -12,7 +12,7 @@ class ToolRegistry:
         self._load_charters()
 
     def _load_charters(self):
-        if not MANIFEST_DIR.exists():
+        if not CHARTER_DIR.exists():
             return
 
         for charter_path in CHARTER_DIR.glob("**/*.yaml"):

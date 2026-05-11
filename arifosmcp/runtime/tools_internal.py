@@ -782,7 +782,21 @@ async def apex_judge_dispatch_impl(
 
         health_payload = {
             "mode": "health",
-            "floors_active": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
+            "floors_active": [
+                "F1",
+                "F2",
+                "F3",
+                "F4",
+                "F5",
+                "F6",
+                "F7",
+                "F8",
+                "F9",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+            ],
             "telemetry_snapshot": {
                 "ds": -0.32,
                 "peace2": 1.21,

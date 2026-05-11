@@ -19,6 +19,10 @@ def test_rest_health_endpoint():
     assert data["status"] == "healthy"
     assert "ml_floors" in data
     assert "ml_floors_enabled" in data["ml_floors"]
+    assert "ml_dependency_status" in data["ml_floors"]
+    assert "ml_hold_state" in data["ml_floors"]
+    assert "semantic_readiness" in data
+    assert "graphiti_embedding_runtime" in data["semantic_readiness"]
     assert "capability_map" in data
     assert data["capability_map"]["schema"] == "capability-map/v1"
     assert "server_identity" in data["capability_map"]

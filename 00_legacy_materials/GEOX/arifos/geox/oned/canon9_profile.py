@@ -39,14 +39,22 @@ class DepthSample(BaseModel):
     pressure: float = Field(..., ge=0, le=200e6, description="Pore pressure P [Pa]")
     temperature: float = Field(..., ge=273, le=800, description="Temperature T [K]")
     porosity: float = Field(..., ge=0, le=1, description="Porosity φ [fraction]")
-    porosity_type: Literal["total", "effective", "isolated", "primary", "secondary"] = "total"
+    porosity_type: Literal["total", "effective", "isolated", "primary", "secondary"] = (
+        "total"
+    )
 
     # Fluid state (LAYER-2 context)
-    sw: float = Field(default=1.0, ge=0, le=1, description="Water saturation Sw [fraction]")
-    salinity: float = Field(default=35000, ge=0, le=300000, description="Salinity [ppm]")
+    sw: float = Field(
+        default=1.0, ge=0, le=1, description="Water saturation Sw [fraction]"
+    )
+    salinity: float = Field(
+        default=35000, ge=0, le=300000, description="Salinity [ppm]"
+    )
 
     # Provenance (F11)
-    sources: dict[str, str] = Field(default_factory=dict, description="Measurement sources")
+    sources: dict[str, str] = Field(
+        default_factory=dict, description="Measurement sources"
+    )
 
     @property
     def acoustic_impedance(self) -> float:
@@ -119,8 +127,12 @@ class Canon9Profile(BaseModel):
     samples: list[DepthSample] = Field(default_factory=list)
 
     # Time-depth relationship
-    tdr_depths: list[float] = Field(default_factory=list, description="Check-shot depths")
-    tdr_times: list[float] = Field(default_factory=list, description="Two-way times [s]")
+    tdr_depths: list[float] = Field(
+        default_factory=list, description="Check-shot depths"
+    )
+    tdr_times: list[float] = Field(
+        default_factory=list, description="Two-way times [s]"
+    )
 
     class Config:
         arbitrary_types_allowed = True
@@ -180,13 +192,15 @@ class Canon9Profile(BaseModel):
                         density=s0.density + w * (s1.density - s0.density),
                         vp=s0.vp + w * (s1.vp - s1.vp),
                         vs=s0.vs + w * (s1.vs - s0.vs),
-                        resistivity=s0.resistivity + w * (s1.resistivity - s0.resistivity),
+                        resistivity=s0.resistivity
+                        + w * (s1.resistivity - s0.resistivity),
                         magnetic_suscept=s0.magnetic_suscept
                         + w * (s1.magnetic_suscept - s0.magnetic_suscept),
                         thermal_conduct=s0.thermal_conduct
                         + w * (s1.thermal_conduct - s0.thermal_conduct),
                         pressure=s0.pressure + w * (s1.pressure - s0.pressure),
-                        temperature=s0.temperature + w * (s1.temperature - s0.temperature),
+                        temperature=s0.temperature
+                        + w * (s1.temperature - s0.temperature),
                         porosity=s0.porosity + w * (s1.porosity - s0.porosity),
                         sw=s0.sw + w * (s1.sw - s0.sw),
                         salinity=s0.salinity,

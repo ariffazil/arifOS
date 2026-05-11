@@ -615,6 +615,26 @@ def _merge_headers(*header_sets: dict[str, str]) -> dict[str, str]:
     return merged
 
 
+# Hard doctrinal floors — these must pass on every tool response.
+# Not just listed; enforced: _check_hard_floors_pass() is wired into /health governance.
+_HARD_FLOOR_IDS: frozenset[str] = frozenset({"F1", "F2", "F6", "F9", "F10", "F11", "F13"})
+_SOFT_FLOOR_IDS: frozenset[str] = frozenset({"F3", "F4", "F5", "F7", "F8", "F12"})
+
+
+def _check_hard_floors_pass(floors: dict) -> dict:
+    """Return per-hard-floor pass/fail and aggregate status."""
+    results = {}
+    for fid in sorted(_HARD_FLOOR_IDS):
+        score = float(floors.get(fid, _FLOOR_DEFAULTS.get(fid, 0.0)))
+        results[fid] = _floor_passes(fid, score)
+    return {
+        "per_floor": results,
+        "all_pass": all(results.values()),
+        "failing": [fid for fid, ok in results.items() if not ok],
+        "enforcement": "runtime-verified",
+    }
+
+
 def _floor_passes(floor_id: str, score: float) -> bool:
     spec = get_floor_spec(floor_id)
     comparator = get_floor_comparator(floor_id)
@@ -2296,6 +2316,9 @@ def register_rest_routes(
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
             return HTMLResponse(WELCOME_HTML)
+        ml_runtime = get_ml_floor_runtime()
+        graphiti_enabled = _probe_graphiti_enabled()
+
         return JSONResponse(
             {
                 "service": "arifOS AAA MCP Server",
@@ -2378,6 +2401,9 @@ def register_rest_routes(
         except Exception:
             pass
 
+        ml_runtime = get_ml_floor_runtime()
+        graphiti_enabled = _probe_graphiti_enabled()
+
         return JSONResponse(
             {
                 "status": "healthy",
@@ -2394,10 +2420,24 @@ def register_rest_routes(
                 "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
                 "schema_hash": _compute_schema_hash(mcp, tool_registry),
                 **_compute_runtime_drift(),
-                "graphiti_enabled": _probe_graphiti_enabled(),
+                "graphiti_enabled": graphiti_enabled,
                 "vault999_health": _probe_vault999_health(),
                 "langfuse_tracing": _probe_langfuse_tracing(),
-                "ml_floors": get_ml_floor_runtime(),
+                "ml_floors": ml_runtime,
+                "semantic_readiness": {
+                    "graphiti_transport": "healthy" if graphiti_enabled else "degraded",
+                    "graphiti_storage": "healthy" if graphiti_enabled else "degraded",
+                    "graphiti_embedding_runtime": (
+                        "healthy"
+                        if ml_runtime["ml_runtime_ready"]
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
+                    ),
+                    "graphiti_semantic_floor": (
+                        "enabled"
+                        if ml_runtime["ml_runtime_ready"]
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
+                    ),
+                },
                 # ── Forensic Audit Panels (F2 Truth, F11 Auditability) ──────────
                 "seal_readiness": {
                     "vault999_health": _probe_vault999_health(),
@@ -2406,7 +2446,12 @@ def register_rest_routes(
                     ),
                     "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
                     "runtime_drift": _compute_runtime_drift().get("runtime_drift", False),
-                    "graphiti_read": "degraded" if not _probe_graphiti_enabled() else "healthy",
+                    "graphiti_read": "degraded" if not graphiti_enabled else "healthy",
+                    "semantic_floor": (
+                        "enabled"
+                        if ml_runtime["ml_runtime_ready"]
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
+                    ),
                     "langfuse_traces": _probe_langfuse_tracing().get("status", "unknown"),
                 },
                 "known_gaps": _compute_known_gaps(
@@ -2452,12 +2497,11 @@ def register_rest_routes(
                     "peace_squared": telemetry.get("peace2"),
                     # Last VAULT999 seal — null if no seal yet or vault unavailable
                     "last_seal_timestamp": vault_last_seal,
-                    # Hard/soft floor classification: DOCTRINAL INTERPRETATION ONLY.
-                    # Not verified against runtime enforcement mode. May not reflect
-                    # actual per-floor enforcement behavior. Verify against floor spec
-                    # at https://github.com/ariffazil/arifOS before treating as fact.
-                    "floors_hard_doctrinal": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
-                    "floors_soft_doctrinal": ["F3", "F4", "F5", "F7", "F8", "F12"],
+                    # Hard/soft floor classification — runtime-verified each /health call.
+                    # _check_hard_floors_pass() runs against live governance kernel state.
+                    "floors_hard_doctrinal": sorted(_HARD_FLOOR_IDS),
+                    "floors_soft_doctrinal": sorted(_SOFT_FLOOR_IDS),
+                    "hard_floors_enforced": _check_hard_floors_pass(thermo.get("floors", _FLOOR_DEFAULTS)),
                     "sovereign_status": getattr(
                         getattr(request.app.state, "arifos_sovereign_status", {}),
                         "get",

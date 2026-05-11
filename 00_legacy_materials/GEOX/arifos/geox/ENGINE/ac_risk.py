@@ -42,10 +42,14 @@ class TransformRegistry:
     _transforms: dict[str, Transform] = {
         # Linear operations (low risk)
         "linear_scaling": Transform(
-            name="linear_scaling", invertibility=1.0, description="Linear amplitude normalization"
+            name="linear_scaling",
+            invertibility=1.0,
+            description="Linear amplitude normalization",
         ),
         "affine_warp": Transform(
-            name="affine_warp", invertibility=0.95, description="Affine geometric transformation"
+            name="affine_warp",
+            invertibility=0.95,
+            description="Affine geometric transformation",
         ),
         # Display operations (medium risk)
         "colormap_mapping": Transform(
@@ -54,11 +58,15 @@ class TransformRegistry:
             description="Mapping amplitude to color (information loss)",
         ),
         "perspective_warp": Transform(
-            name="perspective_warp", invertibility=0.8, description="Perspective georeferencing"
+            name="perspective_warp",
+            invertibility=0.8,
+            description="Perspective georeferencing",
         ),
         # Non-linear operations (high risk)
         "agc_rms": Transform(
-            name="agc_rms", invertibility=0.4, description="Automatic Gain Control (RMS window)"
+            name="agc_rms",
+            invertibility=0.4,
+            description="Automatic Gain Control (RMS window)",
         ),
         "clahe": Transform(
             name="clahe",
@@ -72,10 +80,14 @@ class TransformRegistry:
         ),
         # Digitization operations (high risk)
         "ocr_extraction": Transform(
-            name="ocr_extraction", invertibility=0.5, description="Optical Character Recognition"
+            name="ocr_extraction",
+            invertibility=0.5,
+            description="Optical Character Recognition",
         ),
         "curve_tracing": Transform(
-            name="curve_tracing", invertibility=0.6, description="Manual or AI curve digitization"
+            name="curve_tracing",
+            invertibility=0.6,
+            description="Manual or AI curve digitization",
         ),
         "color_decomposition": Transform(
             name="color_decomposition",
@@ -89,7 +101,9 @@ class TransformRegistry:
             description="Vision Language Model pattern recognition",
         ),
         "cnn_segmentation": Transform(
-            name="cnn_segmentation", invertibility=0.4, description="CNN-based image segmentation"
+            name="cnn_segmentation",
+            invertibility=0.4,
+            description="CNN-based image segmentation",
         ),
     }
 
@@ -212,7 +226,9 @@ class ACRiskCalculator:
         verdict = cls._risk_to_verdict(ac_risk)
 
         # Generate explanation
-        explanation = cls._generate_explanation(ac_risk, u_phys, d_transform, b_cog, verdict)
+        explanation = cls._generate_explanation(
+            ac_risk, u_phys, d_transform, b_cog, verdict
+        )
 
         return ACRiskResult(
             ac_risk=ac_risk,
@@ -277,7 +293,8 @@ class ACRiskCalculator:
         # Component breakdown
         if u_phys > 0.7:
             explanations.append(
-                f"Physical ambiguity high ({u_phys:.2f}): " "Multiple geological models fit data."
+                f"Physical ambiguity high ({u_phys:.2f}): "
+                "Multiple geological models fit data."
             )
 
         if d_transform > 0.5:

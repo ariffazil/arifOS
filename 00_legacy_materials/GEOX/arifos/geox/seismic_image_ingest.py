@@ -282,9 +282,7 @@ async def ingest_seismic_array(
         source_quality = 1.0
         uncertainty = 0.10
         verdict = "QUALIFY"
-        verdict_explanation = (
-            "SEG-Y source — full trace data. Standard seismic QC applies. Uncertainty = 0.10."
-        )
+        verdict_explanation = "SEG-Y source — full trace data. Standard seismic QC applies. Uncertainty = 0.10."
     elif source_type == ImageSourceType.UNKNOWN:
         source_quality = 0.6
         uncertainty = 0.18

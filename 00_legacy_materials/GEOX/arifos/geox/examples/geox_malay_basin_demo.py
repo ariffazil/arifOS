@@ -239,7 +239,9 @@ async def run_demo() -> None:
         memory_store=memory_store,
     )
     print("\n  GeoXAgent initialised (heuristic planner mode).")
-    print("  [arifOS integration: inject llm_planner=agi_mind and audit_sink=vault_ledger]")
+    print(
+        "  [arifOS integration: inject llm_planner=agi_mind and audit_sink=vault_ledger]"
+    )
 
     # ---- Build Request ----
     _section("STEP 1: GeoRequest — Blok Selatan Prospect")
@@ -249,7 +251,9 @@ async def run_demo() -> None:
     print(f"  Prospect:        {request.prospect_name}")
     print(f"  Basin:           {request.basin}")
     print(f"  Play type:       {request.play_type}")
-    print(f"  Location:        {request.location.latitude}°N, {request.location.longitude}°E")
+    print(
+        f"  Location:        {request.location.latitude}°N, {request.location.longitude}°E"
+    )
     print(f"  Target depth:    {request.location.depth_m} m")
     print(f"  Available data:  {request.available_data}")
     print(f"  Risk tolerance:  {request.risk_tolerance}")
@@ -270,7 +274,9 @@ async def run_demo() -> None:
     print(f"  Confidence:      {response.confidence_aggregate:.1%}")
     print(f"  Insights:        {len(response.insights)}")
     print(f"  Predictions:     {len(response.predictions)}")
-    print(f"  Human Signoff:   {'YES — 888 HOLD' if response.human_signoff_required else 'No'}")
+    print(
+        f"  Human Signoff:   {'YES — 888 HOLD' if response.human_signoff_required else 'No'}"
+    )
 
     _subsection("arifOS Telemetry Block")
     import json
@@ -321,7 +327,9 @@ async def run_demo() -> None:
     print(f"  Total entries in store: {memory_store.count()}")
 
     # Retrieve similar prospects
-    similar = await memory_store.retrieve("Malay Basin structural closure", basin="Malay Basin")
+    similar = await memory_store.retrieve(
+        "Malay Basin structural closure", basin="Malay Basin"
+    )
     print(f"  Similar prospects retrieved: {len(similar)}")
     for entry in similar:
         print(
@@ -355,8 +363,7 @@ async def run_demo() -> None:
 
     # ---- Demo Complete ----
     _section("DEMO COMPLETE — 999 SEAL")
-    print(
-        f"""
+    print(f"""
   Verdict:    {response.verdict}
   Confidence: {response.confidence_aggregate:.1%}
   Hold:       {response.arifos_telemetry.get('hold', 'UNKNOWN')}
@@ -372,8 +379,7 @@ async def run_demo() -> None:
     3. Inject llm_planner=agi_mind and audit_sink=vault_ledger into GeoXAgent
 
   DITEMPA BUKAN DIBERI
-"""
-    )
+""")
 
 
 # ---------------------------------------------------------------------------

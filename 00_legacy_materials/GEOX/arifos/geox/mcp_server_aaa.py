@@ -53,7 +53,9 @@ if IS_FASTMCP_3:
 else:
 
     class ToolResult:
-        def __init__(self, content: str, structured_content: Any = None, meta: dict = None):
+        def __init__(
+            self, content: str, structured_content: Any = None, meta: dict = None
+        ):
             self.content = content
             self.structured_content = structured_content
             self.meta = meta or {}
@@ -105,7 +107,9 @@ try:
     )
 
     _HAS_REGISTRY = True
-    logger.info("✅ Unified Tool Registry loaded — %d tools registered", len(GEOX_TOOLS))
+    logger.info(
+        "✅ Unified Tool Registry loaded — %d tools registered", len(GEOX_TOOLS)
+    )
 except ImportError as e:
     _HAS_REGISTRY = False
     logger.warning("⚠️ Tool Registry unavailable: %s", e)
@@ -181,8 +185,17 @@ try:
             ToolRegistry.get_capabilities()
             if _HAS_REGISTRY
             else {
-                "server": {"name": "GEOX LEM", "version": GEOX_VERSION, "seal": GEOX_SEAL},
-                "tool_count": {"total": 0, "production": 0, "preview": 0, "scaffold": 0},
+                "server": {
+                    "name": "GEOX LEM",
+                    "version": GEOX_VERSION,
+                    "seal": GEOX_SEAL,
+                },
+                "tool_count": {
+                    "total": 0,
+                    "production": 0,
+                    "preview": 0,
+                    "scaffold": 0,
+                },
                 "governance": {
                     "floors_active": ["F1", "F2", "F4", "F7", "F9", "F13"],
                     "ac_risk_enabled": True,
@@ -225,7 +238,8 @@ try:
         """AAA Grade tool registry endpoint."""
         if not _HAS_REGISTRY:
             return JSONResponse(
-                {"error": "Tool Registry unavailable", "code": "GEOX_500_REGISTRY"}, status_code=500
+                {"error": "Tool Registry unavailable", "code": "GEOX_500_REGISTRY"},
+                status_code=500,
             )
 
         tools = ToolRegistry.list_tools_dict(include_scaffold=True)
@@ -243,7 +257,8 @@ try:
         tool_name = request.path_params.get("tool_name", "")
         if not _HAS_REGISTRY:
             return JSONResponse(
-                {"error": "Tool Registry unavailable", "code": "GEOX_500_REGISTRY"}, status_code=500
+                {"error": "Tool Registry unavailable", "code": "GEOX_500_REGISTRY"},
+                status_code=500,
             )
 
         tool = ToolRegistry.get(tool_name)
@@ -322,7 +337,9 @@ def _create_success_response(
     if ac_risk:
         meta["ac_risk"] = ac_risk
 
-    result = ToolResult(content=content, structured_content=structured_content, meta=meta)
+    result = ToolResult(
+        content=content, structured_content=structured_content, meta=meta
+    )
     return _tool_result_to_dict(result)
 
 
@@ -332,7 +349,9 @@ def _create_success_response(
 
 
 @mcp.tool(name="geox_list_tools")
-async def geox_list_tools(include_scaffold: bool = False, status_filter: str | None = None) -> dict:
+async def geox_list_tools(
+    include_scaffold: bool = False, status_filter: str | None = None
+) -> dict:
     """
     List all available GEOX tools with AAA Grade metadata.
 
@@ -398,7 +417,10 @@ async def geox_compute_ac_risk(
             context={"parameter": "u_phys", "value": u_phys, "valid_range": [0.0, 1.0]},
         )
         return _tool_result_to_dict(
-            ToolResult(content=f"Validation error: {error['message']}", structured_content=error)
+            ToolResult(
+                content=f"Validation error: {error['message']}",
+                structured_content=error,
+            )
         )
 
     # Calculate D_transform (display distortion factor)
@@ -427,7 +449,9 @@ async def geox_compute_ac_risk(
         "ai_vision_only": 0.42,
         "ai_with_physics": 0.30,
     }
-    b_cog = custom_b_cog if custom_b_cog is not None else bias_map.get(bias_scenario, 0.42)
+    b_cog = (
+        custom_b_cog if custom_b_cog is not None else bias_map.get(bias_scenario, 0.42)
+    )
     b_cog = max(0.0, min(1.0, b_cog))
 
     # Calculate AC_Risk
@@ -437,22 +461,18 @@ async def geox_compute_ac_risk(
     # Determine verdict
     if ac_risk < 0.15:
         verdict = "SEAL"
-        explanation = (
-            f"AC_Risk={ac_risk:.3f}: Low risk. Physical grounding strong. Proceed with standard QC."
-        )
+        explanation = f"AC_Risk={ac_risk:.3f}: Low risk. Physical grounding strong. Proceed with standard QC."
     elif ac_risk < 0.35:
         verdict = "QUALIFY"
-        explanation = (
-            f"AC_Risk={ac_risk:.3f}: Moderate risk. Proceed with caveats. Document assumptions."
-        )
+        explanation = f"AC_Risk={ac_risk:.3f}: Moderate risk. Proceed with caveats. Document assumptions."
     elif ac_risk < 0.60:
         verdict = "HOLD"
-        explanation = f"AC_Risk={ac_risk:.3f}: Elevated risk. Human review required per 888_HOLD."
+        explanation = (
+            f"AC_Risk={ac_risk:.3f}: Elevated risk. Human review required per 888_HOLD."
+        )
     else:
         verdict = "VOID"
-        explanation = (
-            f"AC_Risk={ac_risk:.3f}: Critical risk. Interpretation unsafe. Acquire better data."
-        )
+        explanation = f"AC_Risk={ac_risk:.3f}: Critical risk. Interpretation unsafe. Acquire better data."
 
     structured = {
         "ac_risk": round(ac_risk, 4),
@@ -555,7 +575,9 @@ async def geox_build_structural_candidates(
     base_confidence = 0.12  # 12% per F7 Humility
 
     for i in range(min(max_candidates, 5)):
-        confidence = base_confidence * (1.0 - i * 0.15)  # Decay for lower-ranked candidates
+        confidence = base_confidence * (
+            1.0 - i * 0.15
+        )  # Decay for lower-ranked candidates
         candidate = {
             "candidate_id": f"{line_id}_c{i+1}",
             "confidence": round(confidence, 4),
@@ -616,15 +638,25 @@ async def geox_feasibility_check(
     """
     # Check constraints against constitutional floors
     floor_checks = {
-        "F1_Amanah": any("revers" in c.lower() or "undo" in c.lower() for c in constraints),
-        "F2_Truth": any("ground" in c.lower() or "evidence" in c.lower() for c in constraints),
-        "F4_Clarity": any("unit" in c.lower() or "scale" in c.lower() for c in constraints),
+        "F1_Amanah": any(
+            "revers" in c.lower() or "undo" in c.lower() for c in constraints
+        ),
+        "F2_Truth": any(
+            "ground" in c.lower() or "evidence" in c.lower() for c in constraints
+        ),
+        "F4_Clarity": any(
+            "unit" in c.lower() or "scale" in c.lower() for c in constraints
+        ),
         "F7_Humility": any("confidence" in c.lower() for c in constraints),
-        "F9_AntiHantu": any("physic" in c.lower() or "impossib" in c.lower() for c in constraints),
+        "F9_AntiHantu": any(
+            "physic" in c.lower() or "impossib" in c.lower() for c in constraints
+        ),
         "F11_Authority": any(
             "provenance" in c.lower() or "source" in c.lower() for c in constraints
         ),
-        "F13_Sovereign": any("human" in c.lower() or "approv" in c.lower() for c in constraints),
+        "F13_Sovereign": any(
+            "human" in c.lower() or "approv" in c.lower() for c in constraints
+        ),
     }
 
     grounding_confidence = sum(floor_checks.values()) / len(floor_checks)
@@ -692,7 +724,10 @@ async def geox_verify_geospatial(
             context={"valid_lat": [-90, 90], "valid_lon": [-180, 180]},
         )
         return _tool_result_to_dict(
-            ToolResult(content=f"Validation error: {error['message']}", structured_content=error)
+            ToolResult(
+                content=f"Validation error: {error['message']}",
+                structured_content=error,
+            )
         )
 
     # Resolve province
@@ -703,10 +738,14 @@ async def geox_verify_geospatial(
             location = CoordinatePoint(latitude=lat, longitude=lon)
             col_data = await _macrostrat._query_api("columns", location)
             geo_data = col_data.get("success", {}).get("data", {})
-            features = geo_data.get("features", []) if isinstance(geo_data, dict) else []
+            features = (
+                geo_data.get("features", []) if isinstance(geo_data, dict) else []
+            )
             if features:
                 geological_province = (
-                    features[0].get("properties", {}).get("col_name", "Unknown Province")
+                    features[0]
+                    .get("properties", {})
+                    .get("col_name", "Unknown Province")
                 )
                 len(features)
         except Exception as e:
@@ -809,7 +848,11 @@ async def geox_earth_signals(
                             for f in features[:eq_limit]
                         ],
                         "max_magnitude": max(
-                            [f["properties"]["mag"] for f in features if f["properties"]["mag"]],
+                            [
+                                f["properties"]["mag"]
+                                for f in features
+                                if f["properties"]["mag"]
+                            ],
                             default=0.0,
                         ),
                     }
@@ -986,7 +1029,11 @@ async def geox_evaluate_prospect(
             "reason": reason,
             "grounding_score": grounding_score,
             "next_actions": [
-                "Acquire well-tie data" if status == "888_HOLD" else "Proceed to economics",
+                (
+                    "Acquire well-tie data"
+                    if status == "888_HOLD"
+                    else "Proceed to economics"
+                ),
                 "Document assumptions per F2 Truth",
                 "Log to 999_VAULT",
             ],
@@ -1010,8 +1057,12 @@ async def geox_evaluate_prospect(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="GEOX Large Earth Model — AAA Grade MCP Server")
-    parser.add_argument("--transport", choices=["stdio", "sse", "http"], default="stdio")
+    parser = argparse.ArgumentParser(
+        description="GEOX Large Earth Model — AAA Grade MCP Server"
+    )
+    parser.add_argument(
+        "--transport", choices=["stdio", "sse", "http"], default="stdio"
+    )
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--host", default="0.0.0.0")
 
@@ -1023,7 +1074,9 @@ if __name__ == "__main__":
     logger.info("   Transport: %s", args.transport)
     logger.info("   Registry: %s", "✅ Loaded" if _HAS_REGISTRY else "❌ Unavailable")
     logger.info("   Prefab Views: %s", "✅ Loaded" if _HAS_PREFAB else "❌ Unavailable")
-    logger.info("   Seismic Engine: %s", "✅ Loaded" if _HAS_SEISMIC else "⚠️ Stub Mode")
+    logger.info(
+        "   Seismic Engine: %s", "✅ Loaded" if _HAS_SEISMIC else "⚠️ Stub Mode"
+    )
 
     if args.transport == "stdio":
         mcp.run(transport="stdio")

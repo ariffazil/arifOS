@@ -35,16 +35,24 @@ class FluidProperties(BaseModel):
         """
         if abs(sw + so + sg - 1.0) > 0.01:
             raise ValueError("Saturations must sum to 1")
-        inv_kf = sw / self.water_bulk_mod + so / self.oil_bulk_mod + sg / self.gas_bulk_mod
+        inv_kf = (
+            sw / self.water_bulk_mod + so / self.oil_bulk_mod + sg / self.gas_bulk_mod
+        )
         return 1.0 / inv_kf
 
 
 class MineralProperties(BaseModel):
     """Mineral/matrix properties."""
 
-    quartz: dict = Field(default_factory=lambda: {"density": 2650, "k": 37e9, "mu": 44e9})
-    calcite: dict = Field(default_factory=lambda: {"density": 2710, "k": 71e9, "mu": 30e9})
-    dolomite: dict = Field(default_factory=lambda: {"density": 2870, "k": 95e9, "mu": 45e9})
+    quartz: dict = Field(
+        default_factory=lambda: {"density": 2650, "k": 37e9, "mu": 44e9}
+    )
+    calcite: dict = Field(
+        default_factory=lambda: {"density": 2710, "k": 71e9, "mu": 30e9}
+    )
+    dolomite: dict = Field(
+        default_factory=lambda: {"density": 2870, "k": 95e9, "mu": 45e9}
+    )
     clay: dict = Field(default_factory=lambda: {"density": 2600, "k": 25e9, "mu": 9e9})
 
     def voigt_matrix_moduli(self, fractions: dict[str, float]) -> tuple[float, float]:
@@ -108,7 +116,9 @@ class GassmannModel:
 
         return k_sat_new
 
-    def saturated_density(self, rho_matrix: float, rho_fluid: float, porosity: float) -> float:
+    def saturated_density(
+        self, rho_matrix: float, rho_fluid: float, porosity: float
+    ) -> float:
         """
         Bulk density of fluid-saturated rock.
         ρ_sat = (1 - φ) × ρ_matrix + φ × ρ_fluid
@@ -127,7 +137,9 @@ class GassmannModel:
         vs = np.sqrt(mu_sat / rho_sat)
         return vp, vs
 
-    def velocities_to_moduli(self, vp: float, vs: float, rho: float) -> tuple[float, float]:
+    def velocities_to_moduli(
+        self, vp: float, vs: float, rho: float
+    ) -> tuple[float, float]:
         """
         Convert seismic velocities to elastic moduli.
         μ = ρ × Vs²
@@ -138,7 +150,10 @@ class GassmannModel:
         return k, mu
 
     def forward(
-        self, sample: DepthSample, mineral_fractions: dict[str, float], sw_new: float | None = None
+        self,
+        sample: DepthSample,
+        mineral_fractions: dict[str, float],
+        sw_new: float | None = None,
     ) -> DepthSample:
         """
         Forward rock physics: compute saturated elastic properties.
@@ -196,11 +211,19 @@ class GassmannModel:
             porosity=sample.porosity,
             sw=np.clip(sw, 0.0, 1.0),
             salinity=sample.salinity,
-            sources={"rock_physics": "Gassmann", "fluid_sub": f"Sw={np.clip(sw,0,1):.2f}"},
+            sources={
+                "rock_physics": "Gassmann",
+                "fluid_sub": f"Sw={np.clip(sw,0,1):.2f}",
+            },
         )
 
     def inverse_solve_porosity(
-        self, vp: float, vs: float, rho: float, mineral_fractions: dict[str, float], sw: float = 1.0
+        self,
+        vp: float,
+        vs: float,
+        rho: float,
+        mineral_fractions: dict[str, float],
+        sw: float = 1.0,
     ) -> float:
         """
         Inverse: solve for porosity given velocities and density.

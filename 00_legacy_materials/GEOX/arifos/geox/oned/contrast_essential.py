@@ -106,7 +106,10 @@ def propagate_td_uncertainty(
 
 
 def dual_frequency_stability_test(
-    profile: Canon9Profile, f1: float = 25.0, f2: float = 35.0, angles: np.ndarray | None = None
+    profile: Canon9Profile,
+    f1: float = 25.0,
+    f2: float = 35.0,
+    angles: np.ndarray | None = None,
 ) -> StabilityScore:
     """
     ESSENTIAL ToAC: Two-frequency stability test.
@@ -184,7 +187,9 @@ def hilbert_transform(signal: np.ndarray) -> np.ndarray:
 
 
 def run_essential_toac_checks(
-    profile: Canon9Profile, wavelet: Wavelet, layer_thicknesses: list[float] | None = None
+    profile: Canon9Profile,
+    wavelet: Wavelet,
+    layer_thicknesses: list[float] | None = None,
 ) -> list[Alert]:
     """
     Run all essential ToAC checks on a 1D profile.

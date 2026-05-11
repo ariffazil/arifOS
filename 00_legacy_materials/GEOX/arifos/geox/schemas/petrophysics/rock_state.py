@@ -24,7 +24,9 @@ class MineralVolume(BaseModel):
     mineral_name: str
     volume_fraction: float = Field(..., ge=0.0, le=1.0)
     confidence: float = Field(..., ge=0.0, le=1.0)
-    derivation: Literal["multi_mineral_solver", "log_response", "core_xrd", "assumed", "default"]
+    derivation: Literal[
+        "multi_mineral_solver", "log_response", "core_xrd", "assumed", "default"
+    ]
 
 
 class PorosityEstimate(BaseModel):
@@ -45,9 +47,17 @@ class PorosityEstimate(BaseModel):
     uncertainty_source: Literal["measurement", "model", "calibration", "combined"]
 
     # Physics basis
-    porosity_type: Literal["total", "effective", "micro", "isolated", "secondary", "frac"]
+    porosity_type: Literal[
+        "total", "effective", "micro", "isolated", "secondary", "frac"
+    ]
     measurement_physics: Literal[
-        "density", "neutron", "sonic", "nmr", "image", "core", "neutron_density_crossover"
+        "density",
+        "neutron",
+        "sonic",
+        "nmr",
+        "image",
+        "core",
+        "neutron_density_crossover",
     ]
     mixing_law: str = Field(..., description="Wyllie, Raymer-Hunt-Gardner, etc.")
 
@@ -171,7 +181,13 @@ class PermeabilityEstimate(BaseModel):
 
     # Method
     method: Literal[
-        "core", "timur_coates", "sdr", "winland_r35", "hfu_fzi", "kozeny_carman", "ml_estimate"
+        "core",
+        "timur_coates",
+        "sdr",
+        "winland_r35",
+        "hfu_fzi",
+        "kozeny_carman",
+        "ml_estimate",
     ]
 
     # Uncertainty (log-normal)
@@ -215,7 +231,9 @@ class RockFluidState(BaseModel):
     """
 
     # Identity
-    state_id: str = Field(default_factory=lambda: f"RFS-{datetime.utcnow().timestamp()}")
+    state_id: str = Field(
+        default_factory=lambda: f"RFS-{datetime.utcnow().timestamp()}"
+    )
     well_id: str
     interval_top_m: float
     interval_base_m: float

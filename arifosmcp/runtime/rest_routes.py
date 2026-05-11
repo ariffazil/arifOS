@@ -1010,9 +1010,28 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
   <section class="panel">
     <div class="floor-mosaic">
-      {floor_html}
+      {{floor_html}}
     </div>
     <p style="margin-top:1rem; color:#92a1b5;">Each floor is rendered as a status chip that pulses when passing and glows red when locked.</p>
+  </section>
+
+  <section class="panel nine-signal">
+    <h2 style="margin:0 0 0.75rem; font-size:1.05rem; letter-spacing:0.08em; color:#7fb8ff;">&#916;&#936;&#937; Nine-Signal</h2>
+    <div class="sig-row {{_d_cls}}">
+      <div class="sig-plane">&#916;</div>
+      <div class="sig-state"><span class="sig-name">DELTA &middot; Infrastructure</span>{{_d_bm}} &mdash; {{_d_en}}</div>
+      <div class="sig-ev">{{_d_ev}}</div>
+    </div>
+    <div class="sig-row {{_p_cls}}">
+      <div class="sig-plane">&#936;</div>
+      <div class="sig-state"><span class="sig-name">PSI &middot; Governance</span>{{_p_bm}} &mdash; {{_p_en}}</div>
+      <div class="sig-ev">{{_p_ev}}</div>
+    </div>
+    <div class="sig-row {{_o_cls}}">
+      <div class="sig-plane">&#937;</div>
+      <div class="sig-state"><span class="sig-name">OMEGA &middot; Intelligence</span>{{_o_bm}} &mdash; {{_o_en}}</div>
+      <div class="sig-ev">{{_o_ev}}</div>
+    </div>
   </section>
 
   <div class="grid">
@@ -2123,6 +2142,9 @@ def register_rest_routes(
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
             return HTMLResponse(WELCOME_HTML)
+        ml_runtime = get_ml_floor_runtime()
+        graphiti_enabled = _probe_graphiti_enabled()
+
         return JSONResponse(
             {
                 "service": "arifOS AAA MCP Server",
@@ -2205,6 +2227,9 @@ def register_rest_routes(
         except Exception:
             pass
 
+        ml_runtime = get_ml_floor_runtime()
+        graphiti_enabled = _probe_graphiti_enabled()
+
         return JSONResponse(
             {
                 "status": "healthy",
@@ -2221,10 +2246,24 @@ def register_rest_routes(
                 "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
                 "schema_hash": _compute_schema_hash(mcp, tool_registry),
                 **_compute_runtime_drift(),
-                "graphiti_enabled": _probe_graphiti_enabled(),
+                "graphiti_enabled": graphiti_enabled,
                 "vault999_health": _probe_vault999_health(),
                 "langfuse_tracing": _probe_langfuse_tracing(),
-                "ml_floors": get_ml_floor_runtime(),
+                "ml_floors": ml_runtime,
+                "semantic_readiness": {
+                    "graphiti_transport": "healthy" if graphiti_enabled else "degraded",
+                    "graphiti_storage": "healthy" if graphiti_enabled else "degraded",
+                    "graphiti_embedding_runtime": (
+                        "healthy"
+                        if ml_runtime["ml_runtime_ready"]
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
+                    ),
+                    "graphiti_semantic_floor": (
+                        "enabled"
+                        if ml_runtime["ml_runtime_ready"]
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
+                    ),
+                },
                 # ── Forensic Audit Panels (F2 Truth, F11 Auditability) ──────────
                 "seal_readiness": {
                     "vault999_health": _probe_vault999_health(),
@@ -2233,7 +2272,12 @@ def register_rest_routes(
                     ),
                     "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
                     "runtime_drift": _compute_runtime_drift().get("runtime_drift", False),
-                    "graphiti_read": "degraded" if not _probe_graphiti_enabled() else "healthy",
+                    "graphiti_read": "degraded" if not graphiti_enabled else "healthy",
+                    "semantic_floor": (
+                        "enabled"
+                        if ml_runtime["ml_runtime_ready"]
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
+                    ),
                     "langfuse_traces": _probe_langfuse_tracing().get("status", "unknown"),
                 },
                 "known_gaps": _compute_known_gaps(

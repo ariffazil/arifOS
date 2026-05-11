@@ -235,7 +235,9 @@ class TransformRegistry:
                 )
 
             if profile.distortion_potential > 0.5:
-                warnings_list.append(f"{profile.transform_name}: severe distortion potential")
+                warnings_list.append(
+                    f"{profile.transform_name}: severe distortion potential"
+                )
 
         # Determine overall risk
         if total_amp > 10.0 or max_single > 5.0:

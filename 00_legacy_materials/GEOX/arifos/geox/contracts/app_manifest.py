@@ -11,7 +11,6 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # Enums
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -305,16 +304,27 @@ class GeoXAppManifest(BaseModel):
                 "domain": "seismic",
                 "display_name": "Seismic Viewer",
                 "description": "Interactive 2D/3D seismic data visualization",
-                "required_tools": ["mcp.geox.seismic.ingest", "mcp.geox.seismic.detect_reflectors"],
+                "required_tools": [
+                    "mcp.geox.seismic.ingest",
+                    "mcp.geox.seismic.detect_reflectors",
+                ],
                 "ui_entry": {
                     "resource_uri": "https://geox.apps/seismic-viewer",
                     "mode": "inline-or-external",
                     "capability_required": ["webgl2"],
                     "csp_policy": "default-src 'self'; connect-src 'self' https://api.geox.arif-fazil.com",
                 },
-                "auth": {"mode": "jwt", "scopes": ["tenant:{tenant_id}", "role:geoscientist"]},
+                "auth": {
+                    "mode": "jwt",
+                    "scopes": ["tenant:{tenant_id}", "role:geoscientist"],
+                },
                 "events": {
-                    "supported": ["app.initialize", "tool.request", "ui.action", "telemetry.emit"]
+                    "supported": [
+                        "app.initialize",
+                        "tool.request",
+                        "ui.action",
+                        "telemetry.emit",
+                    ]
                 },
                 "fallback": {"chain": ["inline", "external", "card"]},
                 "arifos": {"required_floors": ["F1", "F2", "F4", "F7", "F9", "F11"]},

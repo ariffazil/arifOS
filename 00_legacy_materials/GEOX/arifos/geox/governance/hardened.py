@@ -62,7 +62,9 @@ try:
     from arifosmcp.core.shared.physics import delta_S, genius_score, humility_band
 except ImportError:
     # Fallback/Shim if arifOS is genuinely missing (F9 Anti-Hantu warning)
-    logger.warning("arifosmcp.core.shared.physics or governance not found. Using shims.")
+    logger.warning(
+        "arifosmcp.core.shared.physics or governance not found. Using shims."
+    )
 
     def delta_S(i: str, o: str) -> float:
         return 0.0
@@ -90,7 +92,10 @@ class HardenedGeoxAgent:
         logger.info(f"HardenedGeoxAgent initialized [ID: {session_id}]")
 
     async def execute_tool(
-        self, tool_name: str, params: dict[str, Any], context: dict[str, Any] | None = None
+        self,
+        tool_name: str,
+        params: dict[str, Any],
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Execute a geological tool with arifOS hardening."""
         start_time = datetime.now(timezone.utc)
@@ -130,7 +135,12 @@ class HardenedGeoxAgent:
             # P0: Fix missing attribute error by calling the newly implemented method
             try:
                 self.kernel.apply_temporal_grounding(
-                    {"latency_ms": (datetime.now(timezone.utc) - start_time).total_seconds() * 1000}
+                    {
+                        "latency_ms": (
+                            datetime.now(timezone.utc) - start_time
+                        ).total_seconds()
+                        * 1000
+                    }
                 )
                 k_state = self.kernel.get_current_state()
                 indices = calculate_indices(k_state)
@@ -140,7 +150,8 @@ class HardenedGeoxAgent:
 
         # 4. Genius Score Calculation (F8)
         g = indices.get(
-            "apex_readiness", genius_score(A=0.9, P=1.0, X=1.0, E=1.0 if ds <= 0 else 0.8)
+            "apex_readiness",
+            genius_score(A=0.9, P=1.0, X=1.0, E=1.0 if ds <= 0 else 0.8),
         )
 
         # 5. Geox Eureka: Goldilocks & Godellock (The Paradox Eureka)
@@ -157,7 +168,9 @@ class HardenedGeoxAgent:
             "session": self.session_id,
             "tool": tool_name,
             "timestamp": start_time.isoformat(),
-            "duration_ms": int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000),
+            "duration_ms": int(
+                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            ),
             "payload": payload,
             "explanation": notes,
             "verdict": "VOID" if is_godellock else verdict,
@@ -165,14 +178,18 @@ class HardenedGeoxAgent:
                 "delta_s": round(ds, 4),
                 "genius_score": round(g, 4),
                 "stable": ds <= 0,
-                "humility": round(omega, 4) if isinstance(omega, (float, int)) else omega,
+                "humility": (
+                    round(omega, 4) if isinstance(omega, (float, int)) else omega
+                ),
                 "indices": indices,
                 "governance_advice": verdict_advice,
                 "geox_eureka": {
                     "is_goldilocks": is_goldilocks,
                     "is_godellock": is_godellock,
                     "verdict": (
-                        "HABITABLE" if is_goldilocks else ("LOCKED" if is_godellock else "UNSTABLE")
+                        "HABITABLE"
+                        if is_goldilocks
+                        else ("LOCKED" if is_godellock else "UNSTABLE")
                     ),
                 },
             },
@@ -186,7 +203,9 @@ class HardenedGeoxAgent:
             or tool_name == "macrostrat_query"
         ) and verdict == "OK":
             envelope["verdict"] = "888_HOLD"
-            envelope["explanation"] += " [Sovereign verification required: Low No-Risk Threshold]"
+            envelope[
+                "explanation"
+            ] += " [Sovereign verification required: Low No-Risk Threshold]"
 
         return envelope
 

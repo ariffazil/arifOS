@@ -41,7 +41,9 @@ class HardenedToolOutput(BaseModel):
     """
 
     result: Any  # The tool-specific result (usually a BaseModel)
-    artifacts: dict[str, str] = Field(default_factory=dict)  # image paths / base64 strings
+    artifacts: dict[str, str] = Field(
+        default_factory=dict
+    )  # image paths / base64 strings
     continuity: ContinuityRecord
     contrast_metadata: dict | None = None
     verdict: Literal["SEAL", "QUALIFY", "HOLD", "GEOX_BLOCK"] = "QUALIFY"

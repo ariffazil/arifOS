@@ -29,7 +29,9 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="GEOX commands")
 
     # ── command: evaluate ────────────────────────
-    eval_parser = subparsers.add_parser("evaluate", help="Perform geological evaluation")
+    eval_parser = subparsers.add_parser(
+        "evaluate", help="Perform geological evaluation"
+    )
     eval_parser.add_argument("--query", required=True, help="Geological query")
     eval_parser.add_argument("--lat", type=float, required=True, help="Latitude")
     eval_parser.add_argument("--lon", type=float, required=True, help="Longitude")
@@ -38,7 +40,10 @@ def main():
         "--risk", default="low", choices=["low", "medium", "high"], help="Risk level"
     )
     eval_parser.add_argument(
-        "--output", default="markdown", choices=["json", "markdown"], help="Output format"
+        "--output",
+        default="markdown",
+        choices=["json", "markdown"],
+        help="Output format",
     )
 
     # ── command: health ──────────────────────────
@@ -46,7 +51,9 @@ def main():
 
     # ── command: config ──────────────────────────
     config_parser = subparsers.add_parser("config", help="Manage GEOX configuration")
-    config_parser.add_argument("--show", action="store_true", help="Show current config")
+    config_parser.add_argument(
+        "--show", action="store_true", help="Show current config"
+    )
 
     args = parser.parse_args()
 

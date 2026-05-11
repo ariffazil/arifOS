@@ -100,14 +100,16 @@ class ProvenanceRecord(BaseModel):
         description="Unique identifier of the data source or model run.",
         examples=["LEM-MALAY-2024-001", "WELL-LOG-PM3-1987"],
     )
-    source_type: Literal["LEM", "VLM", "sensor", "simulator", "human", "literature"] = Field(
-        ...,
-        description=(
-            "Category of source. LEM = Large Earth Model, VLM = Vision Language Model, "
-            "sensor = physical instrument, simulator = basin/PVT model, "
-            "human = expert annotation, literature = published research."
-        ),
-        examples=["LEM", "sensor"],
+    source_type: Literal["LEM", "VLM", "sensor", "simulator", "human", "literature"] = (
+        Field(
+            ...,
+            description=(
+                "Category of source. LEM = Large Earth Model, VLM = Vision Language Model, "
+                "sensor = physical instrument, simulator = basin/PVT model, "
+                "human = expert annotation, literature = published research."
+            ),
+            examples=["LEM", "sensor"],
+        )
     )
     timestamp: datetime = Field(
         ...,
@@ -132,7 +134,9 @@ class ProvenanceRecord(BaseModel):
             "Human-readable citation string for literature sources. "
             "Format: Author (Year), Journal/Report, DOI/URL."
         ),
-        examples=["Hutchison (1996), Geology of North-West Borneo, ISBN 978-0-444-52862-1"],
+        examples=[
+            "Hutchison (1996), Geology of North-West Borneo, ISBN 978-0-444-52862-1"
+        ],
     )
     floor_check: dict[str, bool] = Field(
         default_factory=lambda: {
@@ -615,9 +619,13 @@ class GeoxUncertainty(BaseModel):
     Standard uncertainty block for GEOX tools.
     """
 
-    level: float = Field(..., ge=0.0, le=1.0, description="Confidence/Uncertainty level [0,1].")
+    level: float = Field(
+        ..., ge=0.0, le=1.0, description="Confidence/Uncertainty level [0,1]."
+    )
     type: str = Field(..., description="Type of interpretation/analysis domain.")
-    notes: list[str] = Field(default_factory=list, description="Specific uncertainty caveats.")
+    notes: list[str] = Field(
+        default_factory=list, description="Specific uncertainty caveats."
+    )
 
 
 class GeoxGovernance(BaseModel):
@@ -628,7 +636,9 @@ class GeoxGovernance(BaseModel):
     floors_ok: list[str] = Field(
         default_factory=list, description="Verified constitutional floors."
     )
-    warnings: list[str] = Field(default_factory=list, description="Mandatory governance warnings.")
+    warnings: list[str] = Field(
+        default_factory=list, description="Mandatory governance warnings."
+    )
 
 
 class GeoxMcpEnvelope(BaseModel):
@@ -641,12 +651,18 @@ class GeoxMcpEnvelope(BaseModel):
     verdict: Literal["PASS", "FAIL", "PARTIAL", "VOID", "SABAR"] = Field(
         "PASS", description="Tool-level verdict."
     )
-    source_domain: str = Field("geox-earth-witness", description="Tool execution domain.")
-    uncertainty: GeoxUncertainty = Field(..., description="Mandatory uncertainty reporting.")
+    source_domain: str = Field(
+        "geox-earth-witness", description="Tool execution domain."
+    )
+    uncertainty: GeoxUncertainty = Field(
+        ..., description="Mandatory uncertainty reporting."
+    )
     contrast_metadata: ContrastMetadata | None = Field(
         None, description="Contrast/display bias tracking (mandatory for image tools)."
     )
-    governance: GeoxGovernance = Field(..., description="Governance and floor verification.")
+    governance: GeoxGovernance = Field(
+        ..., description="Governance and floor verification."
+    )
     result: Any = Field(..., description="The actual tool-specific output.")
 
     model_config = {"json_schema_extra": {"title": "GeoxMcpEnvelope"}}

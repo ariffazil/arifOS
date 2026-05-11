@@ -169,7 +169,9 @@ class AuditLogger:
             if i > 0:
                 expected_prev_hash = self._entries[i - 1].entry_hash
                 if entry.previous_hash != expected_prev_hash:
-                    violations.append(f"Entry {i}: previous_hash mismatch (tampering detected)")
+                    violations.append(
+                        f"Entry {i}: previous_hash mismatch (tampering detected)"
+                    )
 
         return len(violations) == 0, violations
 

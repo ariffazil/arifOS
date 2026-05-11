@@ -41,7 +41,12 @@ class GeoxAppContract(BaseModel):
 
     # Lifecycle & Events
     event_types: list[str] = Field(
-        default_factory=lambda: ["initialize", "context.patch", "ui.action", "ui.state.sync"]
+        default_factory=lambda: [
+            "initialize",
+            "context.patch",
+            "ui.action",
+            "ui.state.sync",
+        ]
     )
 
     class ConfigDict:
