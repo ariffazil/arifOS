@@ -22,9 +22,7 @@ class ToolMetadata:
     description: str
     required_floors: list[str] = field(default_factory=lambda: ["F4", "F7", "F11"])
     ac_risk_enabled: bool = False
-    error_codes: list[str] = field(
-        default_factory=lambda: ["UNKNOWN_ERROR", "PHYSICS_VIOLATION"]
-    )
+    error_codes: list[str] = field(default_factory=lambda: ["UNKNOWN_ERROR", "PHYSICS_VIOLATION"])
     tags: list[str] = field(default_factory=list)
     status: str = "production"
 
@@ -203,9 +201,7 @@ class ToolRegistry:
 
         counts = {
             "total": len(tools),
-            "production": sum(
-                1 for t in tools if t.status == ToolStatus.PRODUCTION.value
-            ),
+            "production": sum(1 for t in tools if t.status == ToolStatus.PRODUCTION.value),
             "preview": sum(1 for t in tools if t.status == ToolStatus.PREVIEW.value),
             "scaffold": sum(1 for t in tools if t.status == ToolStatus.SCAFFOLD.value),
         }

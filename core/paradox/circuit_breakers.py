@@ -13,7 +13,7 @@ Five circuit breakers prevent epistemic collapse:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 
@@ -255,8 +255,10 @@ def evaluate_all_breakers(
     if current_confidence is not None and previous_confidence is not None:
         results.append(
             check_confidence_cascade(
-                current_confidence, previous_confidence,
-                new_evidence_since_last, cascade_step,
+                current_confidence,
+                previous_confidence,
+                new_evidence_since_last,
+                cascade_step,
             )
         )
 

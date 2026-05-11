@@ -1,6 +1,7 @@
 """
 tests/runtime/test_wealth_kernel.py — WEALTH Capital Intelligence Tests
 """
+
 from __future__ import annotations
 
 import pytest
@@ -168,6 +169,7 @@ class TestWealthDscrLeverage:
 class TestAnalyzeCostBenefit:
     def test_compatibility_wrapper(self):
         from core.organs._5_wealth import analyze_cost_benefit
+
         r = analyze_cost_benefit(1000, [500, 500, 500], 0.1)
         assert "initial_investment" in r
         assert "npv" in r

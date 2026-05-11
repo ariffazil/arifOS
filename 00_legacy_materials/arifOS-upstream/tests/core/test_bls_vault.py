@@ -51,9 +51,7 @@ def three_sigs(signer: BLSVaultSigner) -> list[JurorSignature]:
 
 
 @pytest.fixture(scope="module")
-def valid_seal(
-    signer: BLSVaultSigner, three_sigs: list[JurorSignature]
-) -> VaultBLSSeal:
+def valid_seal(signer: BLSVaultSigner, three_sigs: list[JurorSignature]) -> VaultBLSSeal:
     return signer.aggregate_seal(_PAYLOAD, three_sigs)
 
 
@@ -150,9 +148,7 @@ class TestAggregation:
         assert len(valid_seal.aggregate_signature_hex) == 192
         assert len(valid_seal.aggregate_pubkey_hex) == 96
 
-    def test_aggregate_verify_true(
-        self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal
-    ):
+    def test_aggregate_verify_true(self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal):
         """O(1) aggregate verify must pass for a valid seal."""
         assert signer.verify_seal(valid_seal) is True
 
@@ -162,17 +158,13 @@ class TestAggregation:
         assert seal.quorum_fraction == 1.0
         assert signer.verify_seal(seal) is True
 
-    def test_tampered_payload_hash_fails(
-        self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal
-    ):
+    def test_tampered_payload_hash_fails(self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal):
         """F2 TRUTH: modifying payload_hash must break verify."""
         bad = deepcopy(valid_seal)
         bad.payload_hash = "b" * 64
         assert signer.verify_seal(bad) is False
 
-    def test_tampered_aggregate_sig_fails(
-        self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal
-    ):
+    def test_tampered_aggregate_sig_fails(self, signer: BLSVaultSigner, valid_seal: VaultBLSSeal):
         bad = deepcopy(valid_seal)
         bad.aggregate_signature_hex = "cc" * 96
         assert signer.verify_seal(bad) is False
@@ -216,9 +208,7 @@ class TestQuorumEnforcement:
         assert len(seal.juror_ids) == 2
 
     def test_exactly_at_threshold_succeeds(self, signer: BLSVaultSigner):
-        sigs = [
-            signer.sign(_PAYLOAD, jid) for jid in JUROR_IDS[:SUPERMAJORITY_THRESHOLD]
-        ]
+        sigs = [signer.sign(_PAYLOAD, jid) for jid in JUROR_IDS[:SUPERMAJORITY_THRESHOLD]]
         seal = signer.aggregate_seal(_PAYLOAD, sigs)
         assert signer.verify_seal(seal) is True
 

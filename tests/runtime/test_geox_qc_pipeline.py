@@ -1,6 +1,7 @@
 """
 tests/runtime/test_geox_qc_pipeline.py — GeoX Confidence & QC Pipeline Tests
 """
+
 from __future__ import annotations
 
 import math
@@ -131,9 +132,7 @@ class TestQcVerifyClaim:
         assert any("F07 HUMILITY" in i for i in result["issues"])
 
     def test_physics_failure(self):
-        claim = self._base_claim(
-            {"physics_check": {"valid": False, "error": "rhob out of range"}}
-        )
+        claim = self._base_claim({"physics_check": {"valid": False, "error": "rhob out of range"}})
         result = qc_verify_claim(claim)
         assert result["claim_state"] == "QC_HOLD"
         assert any("F09 ANTIHANTU" in i for i in result["issues"])

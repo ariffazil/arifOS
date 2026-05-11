@@ -153,9 +153,7 @@ class Legacies99:
                 "Cargo Cult Science",
                 "F2",
             ),
-            Quote(
-                "What I cannot create, I do not understand.", "Caltech Lectures", "F1"
-            ),
+            Quote("What I cannot create, I do not understand.", "Caltech Lectures", "F1"),
         ),
         thermodynamic_role="Defines Truth (F2) through verifiable construction. Anti-hallucination baseline.",
         tags=("truth", "integrity", "physics", "quantum"),
@@ -383,9 +381,7 @@ class Legacies99:
         secondary_floors=("F2", "F6"),
         dial_affinity=(DialAffinity.AKAL, DialAffinity.PRESENT),
         quotes=(
-            Quote(
-                "The only true wisdom is in knowing you know nothing.", "Apology", "F7"
-            ),
+            Quote("The only true wisdom is in knowing you know nothing.", "Apology", "F7"),
             Quote("The unexamined life is not worth living.", "Apology", "F8"),
         ),
         thermodynamic_role="Defines Humility (F7). Absolute certainty is a lie — uncertainty band origin.",
@@ -472,9 +468,7 @@ class Legacies99:
         secondary_floors=("F4", "F8"),
         dial_affinity=(DialAffinity.PRESENT, DialAffinity.ENERGY),
         quotes=(
-            Quote(
-                "The Tao that can be told is not the eternal Tao.", "Tao Te Ching", "F7"
-            ),
+            Quote("The Tao that can be told is not the eternal Tao.", "Tao Te Ching", "F7"),
             Quote(
                 "Nature does not hurry, yet everything is accomplished.",
                 "Tao Te Ching",

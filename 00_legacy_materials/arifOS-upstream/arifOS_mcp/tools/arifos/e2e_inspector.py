@@ -68,9 +68,7 @@ async def run_e2e():
     try:
         r = await sense_111(ctx, "What is the capital of France?")
         if r.get("status") == "SEAL":
-            results.ok(
-                "111_SENSE", f"perception type={r.get('perception', {}).get('type')}"
-            )
+            results.ok("111_SENSE", f"perception type={r.get('perception', {}).get('type')}")
         else:
             results.fail("111_SENSE", f"status={r.get('status')}")
     except Exception as e:
@@ -91,10 +89,7 @@ async def run_e2e():
     print("\n[333_MIND]")
     try:
         r = await mind_333(ctx, "Should we deploy the new model?", mode="reason")
-        if (
-            r.get("status") == "SEAL"
-            and r.get("decision_packet", {}).get("confidence") == 0.82
-        ):
+        if r.get("status") == "SEAL" and r.get("decision_packet", {}).get("confidence") == 0.82:
             results.ok("333_MIND", "confidence=0.82 (organ-integrated)")
         else:
             results.fail(
@@ -118,9 +113,7 @@ async def run_e2e():
     # ── 555_MEMORY ───────────────────────────────────────────────
     print("\n[555_MEMORY]")
     try:
-        r = await memory_555(
-            ctx, "mineral deposit", asset_scope="GEOX_A", recall_mode="semantic"
-        )
+        r = await memory_555(ctx, "mineral deposit", asset_scope="GEOX_A", recall_mode="semantic")
         if r.get("status") == "SEAL" and len(r.get("results", [])) == 2:
             results.ok(
                 "555_MEMORY",
@@ -134,17 +127,11 @@ async def run_e2e():
     # ── 666_HEART ────────────────────────────────────────────────
     print("\n[666_HEART]")
     try:
-        r = await heart_666(
-            ctx, "deploy model", stakeholder_count=3, well_readiness=0.8
-        )
+        r = await heart_666(ctx, "deploy model", stakeholder_count=3, well_readiness=0.8)
         if r.get("status") == "SEAL" and r.get("emotional_impact_score", 0) > 0.5:
-            results.ok(
-                "666_HEART", f"emotional_impact={r.get('emotional_impact_score'):.3f}"
-            )
+            results.ok("666_HEART", f"emotional_impact={r.get('emotional_impact_score'):.3f}")
         else:
-            results.fail(
-                "666_HEART", f"emotional_impact={r.get('emotional_impact_score')}"
-            )
+            results.fail("666_HEART", f"emotional_impact={r.get('emotional_impact_score')}")
     except Exception as e:
         results.fail("666_HEART", str(e))
 
@@ -206,9 +193,7 @@ async def run_e2e():
     # ── 999_VAULT ───────────────────────────────────────────────
     print("\n[999_VAULT]")
     try:
-        r = await vault_999(
-            ctx, mode="append", record={"e2e": "test", "timestamp": time.time()}
-        )
+        r = await vault_999(ctx, mode="append", record={"e2e": "test", "timestamp": time.time()})
         if r.get("status") == "SEAL" and "VAULT_" in r.get("vault_receipt", ""):
             results.ok("999_VAULT", f"receipt={r.get('vault_receipt')}")
         else:
@@ -238,11 +223,7 @@ async def run_e2e():
         ww = await wealth_witness("test_prospect")
         wl = await well_witness("test_zone")
 
-        if (
-            gw.get("organ") == "GEOX"
-            and ww.get("organ") == "WEALTH"
-            and wl.get("organ") == "WELL"
-        ):
+        if gw.get("organ") == "GEOX" and ww.get("organ") == "WEALTH" and wl.get("organ") == "WELL":
             results.ok(
                 "GEOX adapter",
                 f"status={gw.get('status')}, confidence={gw.get('confidence', 0)}",
@@ -277,9 +258,7 @@ async def run_e2e():
                 f"{len(records)} tool records (JSONL + TSV dual ledger)",
             )
         else:
-            results.fail(
-                "VitalityLedger", f"only {len(records)} records, expected >=13"
-            )
+            results.fail("VitalityLedger", f"only {len(records)} records, expected >=13")
     except Exception as e:
         results.fail("VitalityLedger", str(e))
 

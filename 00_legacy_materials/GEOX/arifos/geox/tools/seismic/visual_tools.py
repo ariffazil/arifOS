@@ -35,9 +35,7 @@ async def extract_seismic_views(seismic_data: str) -> List[Dict[str, str]]:
             # Generate synthetic 'folded' seismic pattern
             arr = np.zeros((400, 600), dtype=np.uint8)
             for i in range(400):
-                arr[i, :] = 127 + 50 * np.sin(
-                    np.pi * (np.arange(600) / 100 + 4 * np.sin(i / 100))
-                )
+                arr[i, :] = 127 + 50 * np.sin(np.pi * (np.arange(600) / 100 + 4 * np.sin(i / 100)))
             raw_img = Image.fromarray(arr).convert("L")
         else:
             raw_img = Image.open(seismic_data).convert("L")

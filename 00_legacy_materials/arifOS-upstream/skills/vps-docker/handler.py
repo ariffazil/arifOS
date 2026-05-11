@@ -191,9 +191,7 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     """Entry point for skill execution."""
-    return await skill.execute(
-        action, params, session_id, dry_run, reality_bridge, checkpoint
-    )
+    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 
 
 metadata = {

@@ -134,10 +134,7 @@ class ReversibilityVerdict:
 
     @property
     def requires_human_approval(self) -> bool:
-        return (
-            self.requires_888_hold
-            or self.reversibility_class == ReversibilityClass.CRITICAL
-        )
+        return self.requires_888_hold or self.reversibility_class == ReversibilityClass.CRITICAL
 
 
 class ReversibilityEngine:
@@ -276,8 +273,7 @@ class ReversibilityEngine:
                 reversal_window_seconds=None,
                 blast_radius_estimate=(
                     "LOW"
-                    if default_class
-                    in (ReversibilityClass.TRIVIAL, ReversibilityClass.REVERSIBLE)
+                    if default_class in (ReversibilityClass.TRIVIAL, ReversibilityClass.REVERSIBLE)
                     else "MEDIUM"
                 ),
                 reasoning=reasoning,
@@ -321,15 +317,11 @@ class ReversibilityEngine:
         params_str = json_dumps_frozensafe(params).lower()
 
         # Production targets
-        if any(
-            kw in params_str
-            for kw in ["production", "prod", "main", "primary", "/", "~", "$"]
-        ):
+        if any(kw in params_str for kw in ["production", "prod", "main", "primary", "/", "~", "$"]):
             return "CRITICAL"
         # System directories
         if any(
-            kw in params_str
-            for kw in ["/etc", "/var", "/usr", "/bin", "/sbin", "/sys", "/proc"]
+            kw in params_str for kw in ["/etc", "/var", "/usr", "/bin", "/sbin", "/sys", "/proc"]
         ):
             return "HIGH"
         # Home directory
@@ -340,9 +332,7 @@ class ReversibilityEngine:
             return "LOW"
         return "MEDIUM"
 
-    def _estimate_reversal_window(
-        self, tool_id: str, params: dict[str, Any]
-    ) -> float | None:
+    def _estimate_reversal_window(self, tool_id: str, params: dict[str, Any]) -> float | None:
         """Estimate seconds available to reverse before permanent."""
         if "ttl" in params:
             return float(params["ttl"])

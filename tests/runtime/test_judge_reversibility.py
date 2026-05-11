@@ -35,17 +35,13 @@ class TestJudgeReversibilityNoContradiction:
         jc = result.get("judge_contract", {})
         rs = result.get("reversibility_state", {})
 
-        assert (
-            result.get("verdict") == "SEAL"
-        ), f"Expected SEAL, got {result.get('verdict')}"
+        assert result.get("verdict") == "SEAL", f"Expected SEAL, got {result.get('verdict')}"
         assert jc.get("irreversibility_level") in (
             "reversible",
             "none",
             "None",
         ), f"Expected reversible/none, got {jc.get('irreversibility_level')}"
-        assert (
-            rs.get("state") == "REVERSIBLE"
-        ), f"Expected REVERSIBLE, got {rs.get('state')}"
+        assert rs.get("state") == "REVERSIBLE", f"Expected REVERSIBLE, got {rs.get('state')}"
         assert rs.get("external_effect") is False
         assert rs.get("vault_committed") is False
 
@@ -77,9 +73,7 @@ class TestJudgeReversibilityNoContradiction:
             actor_id="test-agent",
         )
         nine = result.get("nine_signal", {})
-        assert (
-            nine.get("overall") == "SELAMAT"
-        ), f"Expected SELAMAT, got {nine.get('overall')}"
+        assert nine.get("overall") == "SELAMAT", f"Expected SELAMAT, got {nine.get('overall')}"
 
     def test_reversibility_state_actively_populated(self, session_id):
         """

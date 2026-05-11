@@ -56,9 +56,7 @@ class TestCanonicalSurface:
         with open(path) as f:
             data = json.load(f)
         tools = data if isinstance(data, list) else data.get("tools", [])
-        return [
-            t.get("name") or (t.get("function", {}) or {}).get("name") for t in tools
-        ]
+        return [t.get("name") or (t.get("function", {}) or {}).get("name") for t in tools]
 
     def _tools_from_registry(self):
         with open(TOOL_REGISTRY) as f:
@@ -67,16 +65,12 @@ class TestCanonicalSurface:
 
     def test_public_count_is_11(self):
         public = self._public_tools_from_spec()
-        assert (
-            len(public) == 11
-        ), f"Expected 11 public tools in spec, got {len(public)}: {public}"
+        assert len(public) == 11, f"Expected 11 public tools in spec, got {len(public)}: {public}"
         print(f"  public tools in spec: {public}")
 
     def test_fastmcp_has_11(self):
         tools = self._tools_from_manifest(FASTMCP_JSON)
-        assert (
-            len(tools) == 11
-        ), f"fastmcp.json has {len(tools)} tools, want 11: {tools}"
+        assert len(tools) == 11, f"fastmcp.json has {len(tools)} tools, want 11: {tools}"
 
     def test_mcp_has_11(self):
         tools = self._tools_from_manifest(MCP_JSON)

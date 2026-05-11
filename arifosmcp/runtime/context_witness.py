@@ -108,8 +108,7 @@ async def arifos_context_witness(
             "interpretation": "System cannot retrieve wisdom witnesses.",
             "arifos_alignment": {"physics": "", "math": "", "linguistic": ""},
             "decision_boundary": "No autonomous action without ledger.",
-            "human_decision_required": risk_level
-            in ("high", "critical", "irreversible"),
+            "human_decision_required": risk_level in ("high", "critical", "irreversible"),
             "recommended_action": "HOLD — inspect ledger integrity.",
             "uncertainty": ["Ledger load error."],
             "safety_notes": [str(exc)],
@@ -137,8 +136,7 @@ async def arifos_context_witness(
             "interpretation": "The event falls outside the current coverage of the wisdom ledger.",
             "arifos_alignment": {"physics": "", "math": "", "linguistic": ""},
             "decision_boundary": "No autonomous action without witness.",
-            "human_decision_required": risk_level
-            in ("high", "critical", "irreversible"),
+            "human_decision_required": risk_level in ("high", "critical", "irreversible"),
             "recommended_action": "HOLD — expand ledger or defer to human judgment.",
             "uncertainty": ["No matching quotes in approved ledger."],
             "safety_notes": ["Ledger coverage gap detected."],
@@ -189,8 +187,7 @@ async def arifos_context_witness(
             "interpretation": "The interpretation failed safety validation.",
             "arifos_alignment": {"physics": "", "math": "", "linguistic": ""},
             "decision_boundary": "No autonomous action while safety gate is active.",
-            "human_decision_required": risk_level
-            in ("high", "critical", "irreversible"),
+            "human_decision_required": risk_level in ("high", "critical", "irreversible"),
             "recommended_action": "HOLD — review safety error and retry.",
             "uncertainty": [safety["error"] or "unknown safety failure"],
             "safety_notes": [safety["error_code"] or "safety_gate_failure"],
@@ -214,8 +211,7 @@ async def arifos_context_witness(
                 "arifos_alignment", {"physics": "", "math": "", "linguistic": ""}
             ),
             "decision_boundary": "No autonomous action.",
-            "human_decision_required": risk_level
-            in ("high", "critical", "irreversible"),
+            "human_decision_required": risk_level in ("high", "critical", "irreversible"),
             "recommended_action": "HOLD — inspect ledger integrity.",
             "uncertainty": ["Ledger inconsistency."],
             "safety_notes": ["selected_quote_id not found in ledger post-safety."],
@@ -260,11 +256,7 @@ def should_emit_context_witness(meta: dict[str, Any] | None = None) -> bool:
     risk_trigger = risk_level in {"high", "critical", "irreversible"}
     mode_trigger = mode in {"governed", "witness"}
     domain_trigger = domain in GOVERNANCE_DOMAINS
-    return (
-        explicit
-        or mode_trigger
-        or (risk_trigger and audience == "human" and domain_trigger)
-    )
+    return explicit or mode_trigger or (risk_trigger and audience == "human" and domain_trigger)
 
 
 def build_internal_context_witness(
@@ -288,8 +280,7 @@ def build_internal_context_witness(
             "quote_witness": None,
             "interpretation": "System cannot retrieve context witnesses.",
             "boundary": "No autonomous action without ledger.",
-            "human_decision_required": risk_level
-            in {"high", "critical", "irreversible"},
+            "human_decision_required": risk_level in {"high", "critical", "irreversible"},
             "recommended_action": "HOLD — inspect ledger integrity.",
             "safety_notes": [str(exc)],
         }
@@ -306,8 +297,7 @@ def build_internal_context_witness(
             "quote_witness": None,
             "interpretation": "The event falls outside the current coverage of the wisdom ledger.",
             "boundary": "No autonomous action without witness.",
-            "human_decision_required": risk_level
-            in {"high", "critical", "irreversible"},
+            "human_decision_required": risk_level in {"high", "critical", "irreversible"},
             "recommended_action": "HOLD — expand ledger or defer to human judgment.",
             "safety_notes": ["Ledger coverage gap detected."],
         }
@@ -330,8 +320,7 @@ def build_internal_context_witness(
             "quote_witness": None,
             "interpretation": "The interpretation failed safety validation.",
             "boundary": "No autonomous action while safety gate is active.",
-            "human_decision_required": risk_level
-            in {"high", "critical", "irreversible"},
+            "human_decision_required": risk_level in {"high", "critical", "irreversible"},
             "recommended_action": "HOLD — review safety error and retry.",
             "safety_notes": [safety["error_code"] or "context_witness_safety_failure"],
         }

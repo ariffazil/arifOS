@@ -103,9 +103,7 @@ class ToolContract:
             # Compute hash from contract content
             floors_json = json.dumps(self.floors_enforced, sort_keys=True)
             content = f"{self.name}:{self.contract_version}:{floors_json}"
-            object.__setattr__(
-                self, "hash", hashlib.sha256(content.encode()).hexdigest()[:16]
-            )
+            object.__setattr__(self, "hash", hashlib.sha256(content.encode()).hexdigest()[:16])
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -914,9 +912,7 @@ class ContractDriftDetector:
             )
 
         # Side effect compliance
-        effect_check = cls.check_side_effect_compliance(
-            tool_name, observed_effects, contract
-        )
+        effect_check = cls.check_side_effect_compliance(tool_name, observed_effects, contract)
         if not effect_check.get("valid"):
             violations.append({"type": "SIDE_EFFECT_DRIFT", "details": effect_check})
 
@@ -971,10 +967,10 @@ class ExecutionStep:
 
     def __post_init__(self):
         if not self._hash:
-            content = f"{self.prev_hash}:{self.tool}:{self.output_hash}:{self.verdict}:{self.timestamp}"
-            object.__setattr__(
-                self, "_hash", hashlib.sha256(content.encode()).hexdigest()
+            content = (
+                f"{self.prev_hash}:{self.tool}:{self.output_hash}:{self.verdict}:{self.timestamp}"
             )
+            object.__setattr__(self, "_hash", hashlib.sha256(content.encode()).hexdigest())
 
     @property
     def hash(self) -> str:
@@ -1032,12 +1028,12 @@ class ExecutionTrace:
     ) -> str:
         """Append a step to the trace. Returns the new trace hash."""
 
-        input_hash = hashlib.sha256(
-            json.dumps(input_data, sort_keys=True).encode()
-        ).hexdigest()[:32]
-        output_hash = hashlib.sha256(
-            json.dumps(output_data, sort_keys=True).encode()
-        ).hexdigest()[:32]
+        input_hash = hashlib.sha256(json.dumps(input_data, sort_keys=True).encode()).hexdigest()[
+            :32
+        ]
+        output_hash = hashlib.sha256(json.dumps(output_data, sort_keys=True).encode()).hexdigest()[
+            :32
+        ]
 
         step = ExecutionStep(
             step_n=len(self.steps),
@@ -1079,9 +1075,7 @@ class ExecutionTrace:
             "step_count": len(self.steps),
             "trace_aggregate": trace_aggregate,
             "final_entropy": self.steps[-1].entropy_after,
-            "total_entropy_delta": sum(
-                s.entropy_after - s.entropy_before for s in self.steps
-            ),
+            "total_entropy_delta": sum(s.entropy_after - s.entropy_before for s in self.steps),
             "verification_endpoint": f"/verify/{self.session_id}",
         }
 
@@ -1172,8 +1166,7 @@ class KernelRuntime:
             "contract_count": len(contracts),
             "tools": [name for name in contracts.keys()],
             "contracts": {
-                name: ContractRegistry.describe_contract(name)
-                for name in contracts.keys()
+                name: ContractRegistry.describe_contract(name) for name in contracts.keys()
             },
         }
 
@@ -1188,9 +1181,7 @@ class KernelRuntime:
 
         Returns allowed=True/False with reason and remediation.
         """
-        result = MetabolicRouter.validate_transition(
-            current_tool, requested_tool, context
-        )
+        result = MetabolicRouter.validate_transition(current_tool, requested_tool, context)
 
         return {
             "allowed": result.allowed,

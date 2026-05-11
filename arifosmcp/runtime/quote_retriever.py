@@ -150,9 +150,7 @@ def retrieve_witnesses(
         score += _W_DOMAIN_MATCH * domain_overlap
 
         # 2. Risk level match
-        score += _W_RISK_MATCH * _risk_match_score(
-            quote.get("risk_use", []), risk_level
-        )
+        score += _W_RISK_MATCH * _risk_match_score(quote.get("risk_use", []), risk_level)
 
         # 3. Trigger conditions match
         triggers = " ".join(quote.get("trigger_conditions", []))

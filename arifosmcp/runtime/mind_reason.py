@@ -316,9 +316,7 @@ Distinguish CLAIM from FACT."""
                 }
             )
         if not session_id:
-            uncertainty.append(
-                {"type": "SESSION_GAP", "detail": "No governed session_id bound"}
-            )
+            uncertainty.append({"type": "SESSION_GAP", "detail": "No governed session_id bound"})
         parsed_output["uncertainty"] = uncertainty
 
         provenance = _FIELD_PROVENANCE_LLM
@@ -332,9 +330,7 @@ Distinguish CLAIM from FACT."""
         "session": {
             "session_id": session_id,
             "bound": bool(session_id),
-            "governance_level": (
-                "governed_reasoning" if session_id else "ungoverned_reflection"
-            ),
+            "governance_level": ("governed_reasoning" if session_id else "ungoverned_reflection"),
         },
         "actor": {
             "requested_actor_id": actor_id,

@@ -32,9 +32,7 @@ _AMANAH_SCORER = AmanahIrreversibilityScorer()
 class QueryClass(str, Enum):
     """Query classification for governance routing."""
 
-    INFORMATIONAL = (
-        "informational"  # Class A: No state change, model can respond directly
-    )
+    INFORMATIONAL = "informational"  # Class A: No state change, model can respond directly
     GOVERNED = "governed"  # Class B: State mutation, full F1-F13 required
     CRITICAL = "critical"  # Class C: Irreversible, requires F11 verified identity
 
@@ -64,10 +62,7 @@ def _select_leaf_tool(
     if query_class == QueryClass.INFORMATIONAL:
         return "arifos_mind"
 
-    if any(
-        kw in query_lower
-        for kw in ["judge", "verdict", "approve", "hold", "seal check"]
-    ):
+    if any(kw in query_lower for kw in ["judge", "verdict", "approve", "hold", "seal check"]):
         return "arifos_judge"
     if any(kw in query_lower for kw in ["forge", "execute", "deploy", "run", "ship"]):
         return "arifos_forge"
@@ -77,14 +72,9 @@ def _select_leaf_tool(
         return "arifos_memory"
     if any(kw in query_lower for kw in ["risk", "harm", "safety", "heart"]):
         return "arifos_heart"
-    if any(
-        kw in query_lower
-        for kw in ["cost", "ops", "health", "telemetry", "status", "monitor"]
-    ):
+    if any(kw in query_lower for kw in ["cost", "ops", "health", "telemetry", "status", "monitor"]):
         return "arifos_ops"
-    if any(
-        kw in query_lower for kw in ["sense", "ground", "verify", "reality", "fetch"]
-    ):
+    if any(kw in query_lower for kw in ["sense", "ground", "verify", "reality", "fetch"]):
         return "arifos_sense"
     if query_class == QueryClass.CRITICAL:
         return "arifos_judge"
@@ -105,9 +95,7 @@ class GovernanceEnforcer:
     def __init__(self):
         self.audit_log: list[dict] = []
 
-    def classify_query(
-        self, query: str, context: dict[str, Any] | None = None
-    ) -> QueryClass:
+    def classify_query(self, query: str, context: dict[str, Any] | None = None) -> QueryClass:
         """
         Classify query BEFORE any tool invocation.
 
@@ -236,9 +224,7 @@ class GovernanceEnforcer:
                 return decision, response
 
         if status == RuntimeStatus.ERROR:
-            if isinstance(envelope.payload, dict) and envelope.payload.get(
-                "tom_violation"
-            ):
+            if isinstance(envelope.payload, dict) and envelope.payload.get("tom_violation"):
                 decision = PropagationDecision.BLOCKED_INJECTION
                 response = self._create_block_response(decision, tool_name, envelope)
                 self._log_audit(query_hash, tool_name, verdict, decision, actor_id)

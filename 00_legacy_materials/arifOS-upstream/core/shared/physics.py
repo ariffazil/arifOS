@@ -42,9 +42,7 @@ class Stakeholder:
 
     name: str
     role: str = "unknown"
-    vulnerability_score: float = field(
-        default=0.5
-    )  # 0.0 (resilient) to 1.0 (highly vulnerable)
+    vulnerability_score: float = field(default=0.5)  # 0.0 (resilient) to 1.0 (highly vulnerable)
 
     def __post_init__(self):
         # Clamp values to [0, 1]
@@ -117,14 +115,10 @@ def _get_stakeholder_model():
 
             # Pre-compute archetype embeddings
             descriptions = list(STAKEHOLDER_ARCHETYPES.values())
-            _ARCHETYPE_EMBEDDINGS = _STAKEHOLDER_MODEL.encode(
-                descriptions, convert_to_tensor=True
-            )
+            _ARCHETYPE_EMBEDDINGS = _STAKEHOLDER_MODEL.encode(descriptions, convert_to_tensor=True)
 
             # Pre-compute harm embeddings
-            _HARM_EMBEDDINGS = _STAKEHOLDER_MODEL.encode(
-                HARM_ARCHETYPES, convert_to_tensor=True
-            )
+            _HARM_EMBEDDINGS = _STAKEHOLDER_MODEL.encode(HARM_ARCHETYPES, convert_to_tensor=True)
 
         except ImportError:
             import sys
@@ -263,9 +257,7 @@ def identify_stakeholders(query: str, context: str | None = None) -> list[Stakeh
     for pattern, vuln in vulnerability_patterns.items():
         if pattern in query_lower:
             stakeholders.append(
-                Stakeholder(
-                    name=pattern.title(), role=pattern, vulnerability_score=vuln
-                )
+                Stakeholder(name=pattern.title(), role=pattern, vulnerability_score=vuln)
             )
 
     return stakeholders
@@ -760,9 +752,7 @@ class GeniusDial:
 
     def eta(self) -> float:
         """Intelligence Efficiency (η = ΔS / C)."""
-        return (
-            self.entropy_reduction / self.compute_cost if self.compute_cost > 0 else 0.0
-        )
+        return self.entropy_reduction / self.compute_cost if self.compute_cost > 0 else 0.0
 
     def G_dagger(self) -> float:
         """Governed Intelligence Realized (G† = G* · η)."""
@@ -785,9 +775,7 @@ def G(A: float, P: float, X: float, E: float, h: float = 0.0) -> float:
     return GeniusDial(A, P, X, E, h).G()
 
 
-def G_dagger(
-    G_star: float, entropy_reduction: float, compute_cost: float, h: float = 0.0
-) -> float:
+def G_dagger(G_star: float, entropy_reduction: float, compute_cost: float, h: float = 0.0) -> float:
     """
     Compute realized governed intelligence (G†).
     """
@@ -941,9 +929,7 @@ class ConstitutionalTensor:
             violations.append(f"F4: Entropy increased by {self.entropy_delta}")
         # F7 Humility
         if not self.humility.is_locked():
-            violations.append(
-                f"F7: Humility {self.humility.omega_0} outside [0.03, 0.05]"
-            )
+            violations.append(f"F7: Humility {self.humility.omega_0} outside [0.03, 0.05]")
         # P3: Thermodynamic checks
         if self.landauer_ratio < 0.5:
             violations.append(f"F2-Landauer: Ratio {self.landauer_ratio:.4f} < 0.5")
@@ -982,9 +968,7 @@ def calculate_entropy_trajectory(thought_chain: list[dict[str, Any]]) -> dict[st
 
     avg_dS = sum(deltas) / len(deltas)
     stability = 1.0 - min(1.0, sum(abs(d) for d in deltas if d > 0) / len(deltas))
-    is_cooling = (
-        all(d <= 0.05 for d in deltas[-3:]) if len(deltas) >= 3 else (avg_dS <= 0)
-    )
+    is_cooling = all(d <= 0.05 for d in deltas[-3:]) if len(deltas) >= 3 else (avg_dS <= 0)
 
     return {
         "avg_dS": round(avg_dS, 4),
@@ -1019,9 +1003,7 @@ def calculate_w_ai_quad(thought_chain: list[dict[str, Any]]) -> float:
     # Metrics extraction
     total_thoughts = len(thought_chain)
     revisions = sum(1 for t in thought_chain if t.get("isRevision"))
-    unique_axioms = len(
-        set(axiom for t in thought_chain for axiom in t.get("axioms_used", []))
-    )
+    unique_axioms = len(set(axiom for t in thought_chain for axiom in t.get("axioms_used", [])))
     assumptions = sum(len(t.get("assumptions_challenged", [])) for t in thought_chain)
     branches = len(set(t.get("branchId") for t in thought_chain if t.get("branchId")))
 
@@ -1219,9 +1201,7 @@ def build_qt_quad_proof(
             "assumptions_challenged": sum(
                 len(t.get("assumptions_challenged", [])) for t in thought_chain
             ),
-            "branches": len(
-                set(t.get("branchId") for t in thought_chain if t.get("branchId"))
-            ),
+            "branches": len(set(t.get("branchId") for t in thought_chain if t.get("branchId"))),
         },
         "quad_witness_valid": w_four >= 0.75,
         "stakeholders": [

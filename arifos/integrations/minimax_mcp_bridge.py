@@ -131,9 +131,7 @@ class _RawMinimaxBridge:
             "base_resp": {"status_code": -1, "status_msg": "no text content"},
         }
 
-    async def understand_image(
-        self, image_url: str, prompt: str = ""
-    ) -> dict[str, Any]:
+    async def understand_image(self, image_url: str, prompt: str = "") -> dict[str, Any]:
         arguments: dict[str, Any] = {"image_source": image_url}
         if prompt:
             arguments["prompt"] = prompt
@@ -179,12 +177,8 @@ class _RawFullMinimaxBridge:
         env = os.environ.copy()
         env.setdefault("MINIMAX_API_KEY", _MINIMAX_API_KEY)
         env.setdefault("MINIMAX_API_HOST", _MINIMAX_API_HOST)
-        env.setdefault(
-            "MINIMAX_MCP_BASE_PATH", os.getenv("MINIMAX_MCP_BASE_PATH", "/tmp/minimax")
-        )
-        env.setdefault(
-            "MINIMAX_API_RESOURCE_MODE", os.getenv("MINIMAX_API_RESOURCE_MODE", "url")
-        )
+        env.setdefault("MINIMAX_MCP_BASE_PATH", os.getenv("MINIMAX_MCP_BASE_PATH", "/tmp/minimax"))
+        env.setdefault("MINIMAX_API_RESOURCE_MODE", os.getenv("MINIMAX_API_RESOURCE_MODE", "url"))
         return env
 
     async def _spawn(self) -> subprocess.Popen:
@@ -393,9 +387,7 @@ class MinimaxMCPBridge:
                 },
             }
 
-    async def understand_image(
-        self, image_url: str, question: str | None = None
-    ) -> dict[str, Any]:
+    async def understand_image(self, image_url: str, question: str | None = None) -> dict[str, Any]:
         """Image understanding with old-code compatibility wrapper."""
         try:
             raw = await _raw_bridge.understand_image(image_url, question or "")
@@ -446,9 +438,7 @@ class MinimaxMCPBridge:
                 "sentient",
                 "mind",
             ]
-            hantu_score = sum(1 for w in hantu_words if w in description.lower()) / len(
-                hantu_words
-            )
+            hantu_score = sum(1 for w in hantu_words if w in description.lower()) / len(hantu_words)
             verdict = "VOID" if hantu_score > 0.5 else "SEAL"
 
             return {

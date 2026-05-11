@@ -42,9 +42,7 @@ def arif_kernel_route(
     """
     floor_check = check_floors("arif_kernel_route", {"target": target or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_kernel_route", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_kernel_route", floor_check["reason"], floor_check["failed_floors"])
 
     if mode == "route":
         return _ok(
@@ -53,17 +51,13 @@ def arif_kernel_route(
         )
 
     if mode == "kernel":
-        return _ok(
-            "arif_kernel_route", {"status": "running", "uptime": time.time() % 10000}
-        )
+        return _ok("arif_kernel_route", {"status": "running", "uptime": time.time() % 10000})
 
     if mode == "triage":
         return _ok("arif_kernel_route", {"priority": "normal", "queue": 0})
 
     if mode == "delegate":
-        return _ok(
-            "arif_kernel_route", {"agent": target, "task": task, "status": "delegated"}
-        )
+        return _ok("arif_kernel_route", {"agent": target, "task": task, "status": "delegated"})
 
     if mode == "status":
         from arifosmcp.runtime.tools import _SESSIONS
@@ -74,9 +68,7 @@ def arif_kernel_route(
         )
 
     if mode == "telemetry":
-        return _ok(
-            "arif_kernel_route", {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91}
-        )
+        return _ok("arif_kernel_route", {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91})
 
     if mode == "bridge":
         return _bridge_organ_call(organ, tool_name, arguments)

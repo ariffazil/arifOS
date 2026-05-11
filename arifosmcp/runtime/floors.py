@@ -36,9 +36,7 @@ def get_floor_count() -> int:
     return len(ACTIVE_FLOORS)
 
 
-def check_floors(
-    tool_name: str, params: dict[str, Any], actor_id: str | None
-) -> dict[str, Any]:
+def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -> dict[str, Any]:
     """Compatibility wrapper for the canonical runtime floor enforcer."""
     from arifosmcp.runtime.floor import check_floors as _check_floors
 

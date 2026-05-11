@@ -69,9 +69,7 @@ class GeologicalRuleEngine:
             return False
 
         if not candidate.location:
-            self.rejected.append(
-                (candidate.candidate_id, "No location — cannot verify rooting")
-            )
+            self.rejected.append((candidate.candidate_id, "No location — cannot verify rooting"))
             return True
 
         has_horizon_association = any(
@@ -161,13 +159,10 @@ class GeologicalRuleEngine:
         if candidate.candidate_type != StructuralCandidateType.UNCONFORMITY:
             return False
 
-        candidate_type_is_unconf = (
-            candidate.candidate_type == StructuralCandidateType.UNCONFORMITY
-        )
+        candidate_type_is_unconf = candidate.candidate_type == StructuralCandidateType.UNCONFORMITY
 
         has_subcrop_horizons = any(
-            ref.candidate_type == StructuralCandidateType.HORIZON
-            and ref.location is not None
+            ref.candidate_type == StructuralCandidateType.HORIZON and ref.location is not None
             for ref in all_candidates
             if ref.candidate_id != candidate.candidate_id
         )
@@ -411,9 +406,7 @@ async def generate_structural_candidates(
                 stability_score=stability,
                 geology_score=geology_score,
                 composite_score=composite if not rejected else 0.0,
-                supporting_features=[
-                    f"discontinuity_at_{disc.get('location', 'unknown')}"
-                ],
+                supporting_features=[f"discontinuity_at_{disc.get('location', 'unknown')}"],
                 alternative_interpretations=[
                     "Acquisition footprint artifact",
                     "Processing-related linear noise",
@@ -485,12 +478,8 @@ async def generate_structural_candidates(
             )
             candidates.append(cand)
 
-    n_faults = sum(
-        1 for c in candidates if c.candidate_type == StructuralCandidateType.FAULT
-    )
-    n_folds = sum(
-        1 for c in candidates if c.candidate_type == StructuralCandidateType.FOLD
-    )
+    n_faults = sum(1 for c in candidates if c.candidate_type == StructuralCandidateType.FAULT)
+    n_folds = sum(1 for c in candidates if c.candidate_type == StructuralCandidateType.FOLD)
 
     setting, setting_conf, alternatives = infer_tectonic_setting_from_features(
         dip_stats, curvature_stats, n_faults, n_folds

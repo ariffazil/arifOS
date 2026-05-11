@@ -135,16 +135,12 @@ def _fetch_live_health() -> dict[str, Any]:
             status_response = client.get("http://localhost:8080/api/status")
             if status_response.status_code == 200:
                 payload = status_response.json()
-                payload["_latency_ms"] = round(
-                    (time.perf_counter() - started) * 1000, 2
-                )
+                payload["_latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
                 return payload
             r = client.get("http://localhost:8080/health")
             if r.status_code == 200:
                 payload = r.json()
-                payload["_latency_ms"] = round(
-                    (time.perf_counter() - started) * 1000, 2
-                )
+                payload["_latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
                 return payload
     except Exception:
         pass
@@ -256,8 +252,7 @@ _OPERATOR_ACTIONS: list[tuple[str, str, str, str]] = [
 
 def _unknown_floors() -> list[dict[str, Any]]:
     return [
-        {"id": f["id"], "name": f["name"], "stability": 0.5, "status": "UNKNOWN"}
-        for f in FLOORS
+        {"id": f["id"], "name": f["name"], "stability": 0.5, "status": "UNKNOWN"} for f in FLOORS
     ]
 
 
@@ -291,13 +286,9 @@ def _live_floor_status(session_id: str) -> list[dict[str, Any]]:
             floor_state = live.get(fid) or {}
             stability = float(floor_state.get("stability", 0.95 if state else 0.5))
             status = floor_state.get("status") or (
-                "PASS"
-                if stability >= 0.90
-                else ("STRAIN" if stability >= 0.70 else "FAIL")
+                "PASS" if stability >= 0.90 else ("STRAIN" if stability >= 0.70 else "FAIL")
             )
-            result.append(
-                {"id": fid, "name": f["name"], "stability": stability, "status": status}
-            )
+            result.append({"id": fid, "name": f["name"], "stability": stability, "status": status})
         return result
     except Exception:
         return _unknown_floors()
@@ -431,12 +422,7 @@ def _derive_signal_matrix(
             "variant": "negative",
             "detail": "A hard floor is violated or anti-hantu protection is triggered.",
         }
-    elif (
-        continuity_enabled
-        and all_floors_verified
-        and verdict == "SEAL"
-        and confidence >= 0.99
-    ):
+    elif continuity_enabled and all_floors_verified and verdict == "SEAL" and confidence >= 0.99:
         psi = {
             "axis": "PSI",
             "title": "Compliance",
@@ -509,21 +495,13 @@ def _derive_next_actions(
     cap = (health.get("capability_map") or {}).get("capabilities") or {}
 
     if "F4" in failed_ids:
-        actions.append(
-            ("Simplify prompt chain. Remove conflicting meta-instructions.", "critical")
-        )
+        actions.append(("Simplify prompt chain. Remove conflicting meta-instructions.", "critical"))
     if "F1" in failed_ids:
-        actions.append(
-            ("Identify and map rollback path before proceeding.", "critical")
-        )
+        actions.append(("Identify and map rollback path before proceeding.", "critical"))
     if "F12" in failed_ids:
-        actions.append(
-            ("Inspect for prompt injection or override-style instructions.", "critical")
-        )
+        actions.append(("Inspect for prompt injection or override-style instructions.", "critical"))
     if peace_sq < 1.0:
-        actions.append(
-            ("System instability detected. Reduce tool call frequency.", "advisory")
-        )
+        actions.append(("System instability detected. Reduce tool call frequency.", "advisory"))
 
     # Substrate-based actions
     if cap.get("governed_continuity") == "degraded":
@@ -558,9 +536,7 @@ def _derive_next_actions(
         )
 
     if not failed_ids and not strain_ids and not actions:
-        actions.append(
-            ("Session healthy. Proceed with normal operations. Monitor ΔS.", "info")
-        )
+        actions.append(("Session healthy. Proceed with normal operations. Monitor ΔS.", "info"))
     elif not actions:
         actions.append(
             (
@@ -579,9 +555,7 @@ def _latest_vault_receipts(limit: int = 5) -> list[dict[str, Any]]:
     """
     import json as _json
 
-    vault_path = (
-        Path(os.environ.get("VAULT999_PATH", "/root/VAULT999")) / "SEALED_EVENTS.jsonl"
-    )
+    vault_path = Path(os.environ.get("VAULT999_PATH", "/root/VAULT999")) / "SEALED_EVENTS.jsonl"
     if not vault_path.exists():
         # Fallback to cwd-relative path (Docker runtime layout)
         vault_path = Path("VAULT999") / "SEALED_EVENTS.jsonl"
@@ -606,9 +580,7 @@ def _latest_vault_receipts(limit: int = 5) -> list[dict[str, Any]]:
         return []
 
 
-def _constitutional_radar(
-    receipts: list[dict[str, Any]], health: dict[str, Any]
-) -> dict[str, Any]:
+def _constitutional_radar(receipts: list[dict[str, Any]], health: dict[str, Any]) -> dict[str, Any]:
     """Build a dense Constitutional Radar from receipts + live health."""
     thermo = health.get("thermodynamic") or {}
     health.get("governance") or {}
@@ -670,9 +642,7 @@ def _register(mcp: FastMCP) -> None:
         tags={"public", "meta"},
     )
     def monitor_metabolism(
-        session_id: Annotated[
-            str, Field(description="Active arifOS session ID")
-        ] = "global",
+        session_id: Annotated[str, Field(description="Active arifOS session ID")] = "global",
     ) -> ToolResult:
         """
         Open the arifOS Metabolic Monitor — a real-time constitutional dashboard
@@ -737,11 +707,7 @@ def _register(mcp: FastMCP) -> None:
                         "variant": (
                             "positive"
                             if entry.get("color") == "teal"
-                            else (
-                                "neutral"
-                                if entry.get("color") == "amber"
-                                else "negative"
-                            )
+                            else ("neutral" if entry.get("color") == "amber" else "negative")
                         ),
                         "detail": " · ".join(
                             [
@@ -853,9 +819,7 @@ def _register(mcp: FastMCP) -> None:
 
             # ══ 3. RESTART FRAGILITY WARNING ═══════════════════════════════════
             if is_ephemeral:
-                with Alert(
-                    variant="destructive", css_class="border-2 border-destructive/50"
-                ):
+                with Alert(variant="destructive", css_class="border-2 border-destructive/50"):
                     with AlertTitle(css_class="text-sm font-bold"):
                         Text(
                             "⚠ restart fragility — anchored auth will break on restart or replica change"
@@ -906,9 +870,7 @@ def _register(mcp: FastMCP) -> None:
                             variant=(
                                 "success"
                                 if entropy_delta <= 0
-                                else (
-                                    "warning" if entropy_delta < 0.1 else "destructive"
-                                )
+                                else ("warning" if entropy_delta < 0.1 else "destructive")
                             ),
                             css_class="text-[8px] h-3 px-1 mt-1",
                         )
@@ -949,9 +911,7 @@ def _register(mcp: FastMCP) -> None:
 
                 with Card():
                     with CardContent(css_class="py-2 text-center"):
-                        Text(
-                            f"{confidence:.2f}", css_class="text-lg font-bold font-mono"
-                        )
+                        Text(f"{confidence:.2f}", css_class="text-lg font-bold font-mono")
                         Muted("Confidence (Ω₀)", css_class="text-[10px]")
 
                 with Card():
@@ -1031,9 +991,7 @@ def _register(mcp: FastMCP) -> None:
                 Separator()
 
                 # Credential classes
-                Muted(
-                    "Credential Classes", css_class="text-xs uppercase tracking-wider"
-                )
+                Muted("Credential Classes", css_class="text-xs uppercase tracking-wider")
                 for cred_key in [
                     "server_identity",
                     "storage_access",
@@ -1198,9 +1156,7 @@ def _register(mcp: FastMCP) -> None:
         tags={"public", "meta", "ui"},
     )
     def get_metabolic_status(
-        session_id: Annotated[
-            str, Field(description="Active arifOS session ID")
-        ] = "global",
+        session_id: Annotated[str, Field(description="Active arifOS session ID")] = "global",
         receipt_limit: Annotated[
             int, Field(description="Max VAULT999 receipts to scan", ge=1, le=20)
         ] = 5,

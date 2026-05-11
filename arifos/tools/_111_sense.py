@@ -41,9 +41,7 @@ def _is_public_https(url: str | None) -> bool:
             return False
         try:
             ip = ipaddress.ip_address(hostname)
-            return not (
-                ip.is_private or ip.is_loopback or ip.is_unspecified or ip.is_reserved
-            )
+            return not (ip.is_private or ip.is_loopback or ip.is_unspecified or ip.is_reserved)
         except ValueError:
             pass
         hostname_lower = hostname.lower()
@@ -144,9 +142,7 @@ def _build_grounded_scene(query: str, mode: str) -> dict:
     }
 
 
-def _build_evidence_bundle(
-    query: str, mode: str, bridge_result: dict | None = None
-) -> dict:
+def _build_evidence_bundle(query: str, mode: str, bridge_result: dict | None = None) -> dict:
     """
     Build typed evidence_bundle with weights.
 
@@ -312,9 +308,7 @@ def _generate_assumptions(query: str, mode: str) -> list[str]:
             "Image interpretation depends on MiniMax vision bridge — F9 hantu risk present."
         )
     if _needs_live_search(query):
-        assumptions.append(
-            "Live search implied by query — staleness risk not yet assessed."
-        )
+        assumptions.append("Live search implied by query — staleness risk not yet assessed.")
     return assumptions
 
 
@@ -431,9 +425,7 @@ async def execute(
                     "uncertainty_acknowledged": True,
                     "verdict": "CLAIM_ONLY",
                     "input_hash": input_hash,
-                    "reasoning_hash": hashlib.sha256(
-                        b"visual_missing_image_url"
-                    ).hexdigest(),
+                    "reasoning_hash": hashlib.sha256(b"visual_missing_image_url").hexdigest(),
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "floors_evaluated": ["F8", "F9"],
                     "floors_deferred": ["F2", "F3", "F4"],
@@ -462,9 +454,7 @@ async def execute(
                     tri_witness_score=TRI_WITNESS_PARTIAL,
                     stakeholder_safety=1.0,
                 )
-                return governed_return(
-                    "arifos_111_sense", report, metrics, operator_id, session_id
-                )
+                return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
             if not _is_public_https(image_url):
                 report = {
@@ -488,9 +478,7 @@ async def execute(
                     "uncertainty_acknowledged": True,
                     "verdict": "CLAIM_ONLY",
                     "input_hash": input_hash,
-                    "reasoning_hash": hashlib.sha256(
-                        b"visual_non_public_url"
-                    ).hexdigest(),
+                    "reasoning_hash": hashlib.sha256(b"visual_non_public_url").hexdigest(),
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "floors_evaluated": ["F8", "F9", "F12"],
                     "floors_deferred": ["F2", "F3", "F4"],
@@ -519,9 +507,7 @@ async def execute(
                     tri_witness_score=TRI_WITNESS_PARTIAL,
                     stakeholder_safety=1.0,
                 )
-                return governed_return(
-                    "arifos_111_sense", report, metrics, operator_id, session_id
-                )
+                return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
             bridge_result = await minimax_bridge.understand_image(
                 image_url=image_url, question=query or None
@@ -543,18 +529,14 @@ async def execute(
                     },
                     "grounded_scene": _build_grounded_scene(query, "visual"),
                     "truth_class": "unknown",
-                    "evidence_bundle": _build_evidence_bundle(
-                        query, "visual", bridge_result
-                    ),
+                    "evidence_bundle": _build_evidence_bundle(query, "visual", bridge_result),
                     "ambiguity_score": ambiguity_score,
                     "assumptions": assumptions,
                     "confidence": 0.5,
                     "uncertainty_acknowledged": True,
                     "verdict": "CLAIM_ONLY",
                     "input_hash": input_hash,
-                    "reasoning_hash": hashlib.sha256(
-                        b"visual_bridge_failure"
-                    ).hexdigest(),
+                    "reasoning_hash": hashlib.sha256(b"visual_bridge_failure").hexdigest(),
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "floors_evaluated": ["F8", "F9"],
                     "floors_deferred": ["F2", "F3", "F4"],
@@ -583,9 +565,7 @@ async def execute(
                     tri_witness_score=TRI_WITNESS_PARTIAL,
                     stakeholder_safety=1.0,
                 )
-                return governed_return(
-                    "arifos_111_sense", report, metrics, operator_id, session_id
-                )
+                return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
             f9_hantu = bridge_result["metrics"]["f9_hantu_score"]
             f2_truth = 0.99 if f9_hantu < 0.3 else 0.7 if f9_hantu < 0.5 else 0.4
@@ -610,9 +590,7 @@ async def execute(
                 "bridge_metrics": bridge_result["metrics"],
                 "grounded_scene": _build_grounded_scene(query, "visual"),
                 "truth_class": "operational_principle",
-                "evidence_bundle": _build_evidence_bundle(
-                    query, "visual", bridge_result
-                ),
+                "evidence_bundle": _build_evidence_bundle(query, "visual", bridge_result),
                 "ambiguity_score": ambiguity_score,
                 "assumptions": assumptions,
                 "confidence": confidence,
@@ -620,9 +598,7 @@ async def execute(
                 "verdict": "CLAIM_ONLY",
                 "input_hash": input_hash,
                 "reasoning_hash": hashlib.sha256(
-                    json.dumps(
-                        bridge_result["metrics"], sort_keys=True, default=str
-                    ).encode()
+                    json.dumps(bridge_result["metrics"], sort_keys=True, default=str).encode()
                 ).hexdigest(),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "floors_evaluated": ["F2", "F3", "F8", "F9"],
@@ -654,14 +630,10 @@ async def execute(
                 tri_witness_score=tri_witness,
                 stakeholder_safety=1.0,
                 floor_9_signal=(
-                    "pass"
-                    if f9_hantu < 0.3
-                    else "fail" if f9_hantu >= 0.5 else "caution"
+                    "pass" if f9_hantu < 0.3 else "fail" if f9_hantu >= 0.5 else "caution"
                 ),
             )
-            return governed_return(
-                "arifos_111_sense", report, metrics, operator_id, session_id
-            )
+            return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
         # ── Default grounded text branch ────────────────────────────────────
         intent = intent_class or (
@@ -669,9 +641,7 @@ async def execute(
         )
 
         # Derive confidence and ambiguity from internal metrics (AGI invariant)
-        confidence, ambiguity_score = _derive_confidence_and_ambiguity(
-            query, mode, truth_class
-        )
+        confidence, ambiguity_score = _derive_confidence_and_ambiguity(query, mode, truth_class)
         assumptions = _derive_assumptions(query, mode, truth_class)
 
         report = {
@@ -720,9 +690,7 @@ async def execute(
                 }
             )
             # Re-normalize
-            total = sum(
-                e["weight"] for e in report["evidence_bundle"]["evidence_items"]
-            )
+            total = sum(e["weight"] for e in report["evidence_bundle"]["evidence_items"])
             if total > 1.0:
                 for e in report["evidence_bundle"]["evidence_items"]:
                     e["weight"] = round(e["weight"] / total, 3)
@@ -731,9 +699,7 @@ async def execute(
             ]
 
         metrics = ThermodynamicMetrics(0.995, -0.12, 0.045, 1.2, True, 0.98, 1.0)
-        return governed_return(
-            "arifos_111_sense", report, metrics, operator_id, session_id
-        )
+        return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
     except Exception as exc:
         floor = "F4"
@@ -761,9 +727,7 @@ async def execute(
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "floors_evaluated": sorted({floor, "F8"}),
             "floors_deferred": ["F2", "F3", "F9"],
-            "meta_intelligence": _build_meta_intelligence(
-                mode, False, snr_threshold, intent_class
-            ),
+            "meta_intelligence": _build_meta_intelligence(mode, False, snr_threshold, intent_class),
             "raw_vision_data": None,
             "metabolic_metrics": {
                 "delta_s": 0.0,
@@ -784,6 +748,4 @@ async def execute(
             stakeholder_safety=1.0,
             floor_9_signal="fail",
         )
-        return governed_return(
-            "arifos_111_sense", error_report, metrics, operator_id, session_id
-        )
+        return governed_return("arifos_111_sense", error_report, metrics, operator_id, session_id)

@@ -21,9 +21,7 @@ def _check_floors(action: str, evidence: Optional[dict]) -> dict:
     return {f"F{i}": True for i in range(1, 14)}
 
 
-def _compute_verdict(
-    floor_results: dict, domain_evidence: Optional[dict] = None
-) -> tuple:
+def _compute_verdict(floor_results: dict, domain_evidence: Optional[dict] = None) -> tuple:
     """
     Compute verdict from floor results with organ evidence tri-witness boost.
     Returns (verdict: str, tri_boost: float).
@@ -31,8 +29,7 @@ def _compute_verdict(
     failed = [f for f, p in floor_results.items() if not p]
     tri_boost = (
         0.1
-        if domain_evidence
-        and any(k in str(domain_evidence) for k in ["geox", "wealth", "well"])
+        if domain_evidence and any(k in str(domain_evidence) for k in ["geox", "wealth", "well"])
         else 0.0
     )
     severity = (
@@ -96,9 +93,7 @@ async def judge_888(
         "floor_results": floors,
         "human_approval": human_approval,
         "message": (
-            f"Action {verdict_str}"
-            if verdict_str == "SEAL"
-            else "HUMAN APPROVAL REQUIRED"
+            f"Action {verdict_str}" if verdict_str == "SEAL" else "HUMAN APPROVAL REQUIRED"
         ),
         "vault_receipt": f"JUDGE_{verdict_str}",
     }

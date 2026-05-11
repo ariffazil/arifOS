@@ -73,8 +73,6 @@ def validateAgentMessage(msg: AgentMessage) -> List[str]:
         errors.append("TTL_EXCEEDED: ttl_seconds max is 3600")
 
     if msg.irreversible and not msg.ack_required:
-        errors.append(
-            "IRREVERSIBLE_REQUIRES_ACK: irreversible messages must set ack_required=true"
-        )
+        errors.append("IRREVERSIBLE_REQUIRES_ACK: irreversible messages must set ack_required=true")
 
     return errors

@@ -252,31 +252,31 @@ class ConstitutionalFloors:
         risk_tier = self._assess_risk_tier(action, tool_name, parameters)
 
         has_hard_violation = any(
-            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.HARD
-            and not fr.passed
+            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.HARD and not fr.passed
             for fr in self.results
         )
         has_soft_violation = any(
-            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.SOFT
-            and not fr.passed
+            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.SOFT and not fr.passed
             for fr in self.results
         )
         has_derived_violation = any(
-            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.DERIVED
-            and not fr.passed
+            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.DERIVED and not fr.passed
             for fr in self.results
         )
 
         hard_violations = [
-            fr.floor_id for fr in self.results
+            fr.floor_id
+            for fr in self.results
             if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.HARD and not fr.passed
         ]
         soft_violations = [
-            fr.floor_id for fr in self.results
+            fr.floor_id
+            for fr in self.results
             if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.SOFT and not fr.passed
         ]
         derived_issues = [
-            fr.floor_id for fr in self.results
+            fr.floor_id
+            for fr in self.results
             if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.DERIVED and not fr.passed
         ]
 
@@ -352,7 +352,7 @@ class ConstitutionalFloors:
         Returns a list of tension resolution messages for the audit trail.
         """
         tension_msgs: list[str] = []
-        
+
         f1 = next((r for r in results if r.floor_id == "F1"), None)
         f2 = next((r for r in results if r.floor_id == "F2"), None)
         f4 = next((r for r in results if r.floor_id == "F4"), None)
@@ -461,12 +461,10 @@ class ConstitutionalFloors:
             )
         )
         has_earth = any(
-            kw in combined
-            for kw in ("http", "source:", "[ref", "evidence", "observation")
+            kw in combined for kw in ("http", "source:", "[ref", "evidence", "observation")
         ) or bool(re.search(r"\[\d+\]", action))
         has_verifier = any(
-            kw in combined
-            for kw in ("shadow", "adversarial", "risk check", "security scan")
+            kw in combined for kw in ("shadow", "adversarial", "risk check", "security scan")
         )
 
         witness_count = sum([has_human, has_ai, has_earth, has_verifier])
@@ -601,9 +599,7 @@ class ConstitutionalFloors:
             details=f"Certainty indicators: {certainty_count}",
         )
 
-    def _check_f8_governance(
-        self, action: str, parameters: dict[str, Any]
-    ) -> FloorResult:
+    def _check_f8_governance(self, action: str, parameters: dict[str, Any]) -> FloorResult:
         threshold = THRESHOLDS["F8_GENIUS"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -622,9 +618,7 @@ class ConstitutionalFloors:
             passed=passed,
             score=score,
             threshold=threshold,
-            details=(
-                f"Platform safety violation: {violations}" if violations else "Clean"
-            ),
+            details=(f"Platform safety violation: {violations}" if violations else "Clean"),
         )
 
     def _check_f9_anti_hantu(self, parameters: dict[str, Any]) -> FloorResult:
@@ -682,9 +676,7 @@ class ConstitutionalFloors:
             "my feelings",
         ]
 
-        equivalence_claims = sum(
-            1 for claim in ai_human_equivalence if claim in query.lower()
-        )
+        equivalence_claims = sum(1 for claim in ai_human_equivalence if claim in query.lower())
 
         score = 0.0 if equivalence_claims > 0 else 1.0
         passed = score >= threshold
@@ -698,9 +690,7 @@ class ConstitutionalFloors:
             details=f"AI≠Human boundary: {'violated' if equivalence_claims > 0 else 'maintained'}",
         )
 
-    def _check_f11_command_auth(
-        self, session_id: str | None, actor_id: str
-    ) -> FloorResult:
+    def _check_f11_command_auth(self, session_id: str | None, actor_id: str) -> FloorResult:
         threshold = THRESHOLDS["F11_COMMAND_AUTH"]
 
         has_session = session_id is not None and len(session_id) > 0

@@ -214,9 +214,7 @@ class TestRealityDossierExtended:
         """Test DossierProvenance completeness score"""
         from arifosmcp.runtime.reality_dossier import DossierProvenance
 
-        prov = DossierProvenance(
-            bundles_processed=10, atlas_nodes=25, completeness_score=0.85
-        )
+        prov = DossierProvenance(bundles_processed=10, atlas_nodes=25, completeness_score=0.85)
 
         assert prov.completeness_score == 0.85
         assert prov.bundles_processed == 10

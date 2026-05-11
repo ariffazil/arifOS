@@ -123,9 +123,7 @@ def test_webmcp_manifest_and_assets_reachable(client):
 
 def test_webmcp_init_returns_session(client):
     """Test that WebMCP init returns a governed session payload."""
-    response = client.post(
-        "/webmcp/init", json={"actor_id": "test", "human_approval": True}
-    )
+    response = client.post("/webmcp/init", json={"actor_id": "test", "human_approval": True})
     assert response.status_code == 200
     data = response.json()
     assert data["verdict"] in {"SEAL", "PARTIAL"}

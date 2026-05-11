@@ -60,9 +60,7 @@ def cmd_validate(args) -> int:
     try:
         import jsonschema
     except ImportError:
-        print(
-            "❌ jsonschema not installed. Run: pip install jsonschema", file=sys.stderr
-        )
+        print("❌ jsonschema not installed. Run: pip install jsonschema", file=sys.stderr)
         return 1
 
     error_count = 0
@@ -106,9 +104,7 @@ def cmd_validate(args) -> int:
             fail(f"Has file but not in catalog: {extra_files}")
             error_count += 1
         if not missing_files and not extra_files:
-            ok(
-                f"catalog.json matches provider_souls/ ({len(catalog_archetypes)} archetypes)"
-            )
+            ok(f"catalog.json matches provider_souls/ ({len(catalog_archetypes)} archetypes)")
     except Exception as e:
         fail(f"catalog.json: {e}")
         error_count += 1
@@ -299,9 +295,7 @@ Examples:
     subparsers = parser.add_subparsers(dest="command", metavar="<command>")
 
     # validate
-    subparsers.add_parser(
-        "validate", help="Validate all registry files against schemas"
-    )
+    subparsers.add_parser("validate", help="Validate all registry files against schemas")
 
     # list-providers
     subparsers.add_parser("list-providers", help="List all provider soul archetypes")
@@ -315,9 +309,7 @@ Examples:
 
     # show-model
     p = subparsers.add_parser("show-model", help="Show a model profile")
-    p.add_argument(
-        "model_key", help="Model key (e.g. anthropic/claude/claude-3-7-sonnet)"
-    )
+    p.add_argument("model_key", help="Model key (e.g. anthropic/claude/claude-3-7-sonnet)")
 
     # show-runtime
     p = subparsers.add_parser("show-runtime", help="Show a runtime deployment profile")
@@ -325,15 +317,9 @@ Examples:
 
     # create-anchor
     p = subparsers.add_parser("create-anchor", help="Create a session anchor (dry-run)")
-    p.add_argument(
-        "--soul", required=True, help="Provider soul key (e.g. anthropic_claude)"
-    )
-    p.add_argument(
-        "--runtime", required=True, help="Runtime profile key (e.g. vps_main_arifos)"
-    )
-    p.add_argument(
-        "--actor", default="cli_user", help="Actor/agent ID (default: cli_user)"
-    )
+    p.add_argument("--soul", required=True, help="Provider soul key (e.g. anthropic_claude)")
+    p.add_argument("--runtime", required=True, help="Runtime profile key (e.g. vps_main_arifos)")
+    p.add_argument("--actor", default="cli_user", help="Actor/agent ID (default: cli_user)")
 
     args = parser.parse_args()
 

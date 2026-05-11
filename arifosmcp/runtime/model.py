@@ -128,9 +128,7 @@ class VerdictScope(str, Enum):
 
 
 class DeltaOmegaPsi(BaseModel):
-    delta: float = Field(
-        ..., ge=0.0, le=1.0, description="Δ — Entropy reduction score."
-    )
+    delta: float = Field(..., ge=0.0, le=1.0, description="Δ — Entropy reduction score.")
     omega: float = Field(..., ge=0.0, le=1.0, description="Ω — Human impact load.")
     psi: float = Field(..., ge=0.0, le=1.0, description="Ψ — Paradox score.")
 

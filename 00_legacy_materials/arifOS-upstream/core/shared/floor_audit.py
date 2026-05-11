@@ -205,9 +205,7 @@ _POLICY_VIOLATIONS = frozenset(
 )
 
 # F13: Multi-option markers
-_OPTION_MARKERS = frozenset(
-    ["option", "alternative", "approach", "path", "choice", "route"]
-)
+_OPTION_MARKERS = frozenset(["option", "alternative", "approach", "path", "choice", "route"])
 
 
 def _env_truthy(name: str) -> bool:
@@ -423,9 +421,7 @@ class FloorAuditor:
 
             if not semantic_pass:
                 ml_reason = f"SBERT {floor_id} raw={raw_score:.3f} below semantic threshold {raw_threshold:.2f}"
-                result.reason = (
-                    f"{result.reason}; {ml_reason}" if result.reason else ml_reason
-                )
+                result.reason = f"{result.reason}; {ml_reason}" if result.reason else ml_reason
 
         audit_metadata["f5_score_source"] = score_source
         audit_metadata["f6_score_source"] = score_source
@@ -471,9 +467,7 @@ class FloorAuditor:
     def _check_f2_truth(self, action: str, context: str | dict) -> FloorResult:
         # Axiomatic bypass: math/syntactic certainties are definitionally true
         if _AXIOMATIC_FORMS.search(action):
-            return FloorResult(
-                "F2", True, 1.00, "Axiomatic bypass — definitionally true"
-            )
+            return FloorResult("F2", True, 1.00, "Axiomatic bypass — definitionally true")
 
         # Uncertain language that might indicate hallucination risk
         weak_hedges = [
@@ -522,9 +516,7 @@ class FloorAuditor:
 
         threshold = 0.95
         passed = score >= threshold
-        return FloorResult(
-            "F2", passed, max(0.0, score), "; ".join(reasons) if reasons else None
-        )
+        return FloorResult("F2", passed, max(0.0, score), "; ".join(reasons) if reasons else None)
 
     # ------------------------------------------------------------------
     # F3 — Quad-Witness (H + A + E + V consensus ≥ 0.75)
@@ -568,15 +560,13 @@ class FloorAuditor:
 
         # 3. Earth Witness (E)
         has_earth = any(
-            kw in combined
-            for kw in ("http", "source:", "[ref", "evidence", "observation")
+            kw in combined for kw in ("http", "source:", "[ref", "evidence", "observation")
         ) or bool(re.search(r"\[\d+\]", action))
 
         # 4. Verifier Witness (V) - Ψ-Shadow
         # In this heuristic auditor, we check for 'Contrast' or 'Adversarial' markers
         has_verifier = any(
-            kw in combined
-            for kw in ("shadow", "adversarial", "risk check", "security scan")
+            kw in combined for kw in ("shadow", "adversarial", "risk check", "security scan")
         )
         # Or if the query itself is a validation request
         if "audit" in combined or "verify" in combined:
@@ -604,9 +594,7 @@ class FloorAuditor:
     # F4 — Clarity (Entropy Reduction ΔS ≤ 0)
     # ------------------------------------------------------------------
 
-    def _check_f4_entropy(
-        self, action: str, context: str | dict
-    ) -> FloorResult:  # noqa: ARG002
+    def _check_f4_entropy(self, action: str, context: str | dict) -> FloorResult:  # noqa: ARG002
         sentences = [s.strip() for s in action.split(".") if s.strip()]
         total_words = sum(len(s.split()) for s in sentences)
         avg_len = total_words / max(len(sentences), 1)
@@ -614,9 +602,7 @@ class FloorAuditor:
         if avg_len < 20:
             return FloorResult("F4", True, 1.00)
         elif avg_len < 35:
-            return FloorResult(
-                "F4", True, 0.85, "Moderate sentence length — clarity acceptable"
-            )
+            return FloorResult("F4", True, 0.85, "Moderate sentence length — clarity acceptable")
         else:
             return FloorResult(
                 "F4",
@@ -634,9 +620,7 @@ class FloorAuditor:
         combined = (action + " " + ctx_str).lower()
         violations = [w for w in _INFLAMMATORY_WORDS if w in combined]
         if violations:
-            return FloorResult(
-                "F5", False, 0.50, f"Inflammatory language detected: {violations}"
-            )
+            return FloorResult("F5", False, 0.50, f"Inflammatory language detected: {violations}")
         return FloorResult("F5", True, 1.05)
 
     # ------------------------------------------------------------------
@@ -749,9 +733,7 @@ class FloorAuditor:
         combined = (action + " " + ctx_str).lower()
         violations = [v for v in _POLICY_VIOLATIONS if v in combined]
         if violations:
-            return FloorResult(
-                "F8", False, 0.40, f"Platform safety violation: {violations}"
-            )
+            return FloorResult("F8", False, 0.40, f"Platform safety violation: {violations}")
         return FloorResult("F8", True, 0.95)
 
     # ------------------------------------------------------------------
@@ -802,9 +784,7 @@ class FloorAuditor:
     # F11 — Authority (human sovereignty over high-risk ops)
     # ------------------------------------------------------------------
 
-    def _check_f11_authority(
-        self, action: str, context: str | dict, severity: str
-    ) -> FloorResult:
+    def _check_f11_authority(self, action: str, context: str | dict, severity: str) -> FloorResult:
         if severity in ("high", "irreversible"):
             ctx_str = str(context)
             combined = (action + " " + ctx_str).lower()
@@ -823,11 +803,7 @@ class FloorAuditor:
                 "F11",
                 score >= 0.90,
                 score,
-                (
-                    None
-                    if has_approval
-                    else "High-risk action requires HOLD sovereign approval"
-                ),
+                (None if has_approval else "High-risk action requires HOLD sovereign approval"),
             )
         return FloorResult("F11", True, 0.98)
 
@@ -839,9 +815,7 @@ class FloorAuditor:
         combined = action + " " + str(context)
         detections = [p.pattern for p in _INJECTION_PATTERNS if p.search(combined)]
         if detections:
-            return FloorResult(
-                "F12", False, 0.0, f"Injection attempt detected: {detections[:2]}"
-            )
+            return FloorResult("F12", False, 0.0, f"Injection attempt detected: {detections[:2]}")
         # Default to PASS if no injection found
         return FloorResult("F12", True, 1.00)
 
@@ -858,11 +832,7 @@ class FloorAuditor:
             "F13",
             score >= 0.80,
             score,
-            (
-                None
-                if score >= 0.80
-                else "Propose ≥ 3 governance alternatives (Curiosity F13)"
-            ),
+            (None if score >= 0.80 else "Propose ≥ 3 governance alternatives (Curiosity F13)"),
         )
 
     # ------------------------------------------------------------------
@@ -894,9 +864,7 @@ class FloorAuditor:
         else:
             return Verdict.SABAR
 
-    def _build_recommendation(
-        self, verdict: Verdict, results: dict[str, FloorResult]
-    ) -> str:
+    def _build_recommendation(self, verdict: Verdict, results: dict[str, FloorResult]) -> str:
         if verdict == Verdict.SEAL:
             return "✓ All constitutional floors passed. Action approved."
 
@@ -953,9 +921,7 @@ class FloorAuditor:
         return thresholds
 
     @staticmethod
-    def _apply_severity_overrides(
-        thresholds: dict[str, float], severity: str
-    ) -> dict[str, float]:
+    def _apply_severity_overrides(thresholds: dict[str, float], severity: str) -> dict[str, float]:
         overrides: dict[str, dict[str, float]] = {
             "low": {
                 "F3": 0.30,  # Relax witness for routine tasks

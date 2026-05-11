@@ -42,7 +42,9 @@ class ArifMindReasonEmbodied(EmbodiedTool):
     tool_id = "arif_mind_reason"
     tool_name = "arif_mind_reason"
     domain = "AOS"
-    description = "Structured reasoning with constitutional awareness — axiom trace, synthesis, verification"
+    description = (
+        "Structured reasoning with constitutional awareness — axiom trace, synthesis, verification"
+    )
     risk_tier = "T1"
     reversibility = "reversible"
     blast_radius = "low"

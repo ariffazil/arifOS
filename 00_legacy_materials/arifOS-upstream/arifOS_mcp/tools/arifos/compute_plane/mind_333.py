@@ -14,9 +14,7 @@ from typing import Literal
 async def mind_333(
     ctx: Context,
     query: str,
-    mode: Literal[
-        "reason", "sequential", "step", "branch", "merge", "review"
-    ] = "reason",
+    mode: Literal["reason", "sequential", "step", "branch", "merge", "review"] = "reason",
     session_id: str = None,
 ) -> dict:
     """

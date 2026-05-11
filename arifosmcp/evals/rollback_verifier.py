@@ -237,9 +237,7 @@ class RollbackVerifier:
 
         # 3. Tag docker image
         print("\n[3/4] Tagging docker image...")
-        rc, _, stderr = self._run_cmd(
-            ["docker", "tag", "arifosmcp:latest", f"arifosmcp:{name}"]
-        )
+        rc, _, stderr = self._run_cmd(["docker", "tag", "arifosmcp:latest", f"arifosmcp:{name}"])
         if rc == 0:
             print(f"  ✅ Image tagged: arifosmcp:{name}")
         else:
@@ -292,9 +290,7 @@ class RollbackVerifier:
 
         # 2. Docker rollback
         print("\n[2/3] Docker rollback...")
-        rc, _, stderr = self._run_cmd(
-            ["docker", "tag", f"arifosmcp:{target}", "arifosmcp:latest"]
-        )
+        rc, _, stderr = self._run_cmd(["docker", "tag", f"arifosmcp:{target}", "arifosmcp:latest"])
         if rc == 0:
             print("  ✅ Docker image rolled back")
         else:
@@ -349,12 +345,8 @@ async def main():
         action="store_true",
         help="Verify rollback capabilities (default)",
     )
-    parser.add_argument(
-        "--create-point", "-c", metavar="NAME", help="Create a new rollback point"
-    )
-    parser.add_argument(
-        "--rollback-to", "-r", metavar="TARGET", help="Execute rollback to target"
-    )
+    parser.add_argument("--create-point", "-c", metavar="NAME", help="Create a new rollback point")
+    parser.add_argument("--rollback-to", "-r", metavar="TARGET", help="Execute rollback to target")
     parser.add_argument(
         "--output",
         "-o",

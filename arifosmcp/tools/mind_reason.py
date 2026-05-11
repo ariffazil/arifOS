@@ -53,12 +53,8 @@ def _build_delta_bundle(
     reasoning_trace = []
     if context:
         session_id = context.get("session_id", "unknown")
-        g_score = context.get(
-            "g_score", context.get("vitals", {}).get("g_score", "unavailable")
-        )
-        reasoning_trace.append(
-            f"[333_MIND context] session_id={session_id}, g_score={g_score}"
-        )
+        g_score = context.get("g_score", context.get("vitals", {}).get("g_score", "unavailable"))
+        reasoning_trace.append(f"[333_MIND context] session_id={session_id}, g_score={g_score}")
 
     return {
         "query": query,
@@ -95,9 +91,7 @@ def _run_reasoning_sync(coro: Any) -> dict[str, Any]:
     def _runner() -> None:
         try:
             result["value"] = asyncio.run(coro)
-        except (
-            BaseException
-        ) as exc:  # pragma: no cover - passthrough for sync bridge failures
+        except BaseException as exc:  # pragma: no cover - passthrough for sync bridge failures
             error.append(exc)
 
     thread = threading.Thread(target=_runner, daemon=True)
@@ -124,9 +118,7 @@ def arif_mind_reason(
 
     session_id = context.get("session_id") if context else None
 
-    reason_result = _run_reasoning_sync(
-        run_reasoning(query or "", mode, session_id, actor_id)
-    )
+    reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
 
     # Floor check (Manual override check)
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
@@ -139,9 +131,7 @@ def arif_mind_reason(
 
     bundle = _build_delta_bundle(
         query=query,
-        status=(
-            "HOLD" if floor_verdict != "SEAL" else reason_result.get("status", "HOLD")
-        ),
+        status=("HOLD" if floor_verdict != "SEAL" else reason_result.get("status", "HOLD")),
         claim_state=reason_result.get("claim_state", "HYPOTHESIS"),
         synthesis=reason_result.get("synthesis", ""),
         reasoning=reason_result.get("reasoning", {}),

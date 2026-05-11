@@ -59,8 +59,6 @@ def register_time4d_tools(mcp: FastMCP, profile: str = "full"):
             artifact,
             tool_class="verify",
             governance_status=GovernanceStatus.SEAL if valid else GovernanceStatus.HOLD,
-            artifact_status=(
-                ArtifactStatus.VERIFIED if valid else ArtifactStatus.REJECTED
-            ),
+            artifact_status=(ArtifactStatus.VERIFIED if valid else ArtifactStatus.REJECTED),
             ui_resource_uri="ui://time4d-dashboard",
         )

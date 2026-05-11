@@ -49,9 +49,7 @@ class PromotionBackend:
         if self.version == "v2" and self._backend:
             result = self._backend.promote(memory_id, session_id)
             return {
-                "outcome": (
-                    result.outcome.value if result else "rejected_non_consequential"
-                ),
+                "outcome": (result.outcome.value if result else "rejected_non_consequential"),
                 "memory_id": memory_id,
                 "vault_id": result.vault_id if result else None,
                 "reason": result.reason if result else "No result",

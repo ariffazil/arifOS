@@ -81,9 +81,7 @@ async def physics_reality(
     payload = dict(payload or {})
     # Ensure validated query is in payload (physics_reality uses "query" field)
     payload["query"] = effective_query
-    payload["input"] = (
-        effective_query  # Keep for backward compatibility during transition
-    )
+    payload["input"] = effective_query  # Keep for backward compatibility during transition
 
     if caller_context:
         payload.setdefault("caller_context", caller_context)
@@ -101,18 +99,14 @@ async def physics_reality(
     if "physics_reality" in HARDENED_DISPATCH_MAP:
         if mode is None:
             mode = "search"
-        res_dict = await HARDENED_DISPATCH_MAP["physics_reality"](
-            mode=mode, payload=payload
-        )
+        res_dict = await HARDENED_DISPATCH_MAP["physics_reality"](mode=mode, payload=payload)
 
         # ─── V1.0 VERDICT FORGING ───
         from arifosmcp.runtime.model import CanonicalMetrics, VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
         metrics = CanonicalMetrics()
-        metrics.telemetry.ds = (
-            res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
-        )
+        metrics.telemetry.ds = res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
         metrics.telemetry.confidence = (
             res_dict.get("metrics", {})
             .get("telemetry", {})
@@ -130,9 +124,7 @@ async def physics_reality(
                 if hasattr(res_dict.get("verdict"), "value")
                 else VerdictCode.SABAR
             ),
-            message=res_dict.get("payload", {}).get(
-                "note", "Physics review completed."
-            ),
+            message=res_dict.get("payload", {}).get("note", "Physics review completed."),
         )
 
     resolved_payload = dict(payload or {})

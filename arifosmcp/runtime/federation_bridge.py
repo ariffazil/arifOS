@@ -75,9 +75,7 @@ async def _init_well_session() -> str:
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         resp = await client.post(f"{WELL_BASE}/mcp", json=payload, headers=headers)
         if resp.status_code >= 400:
-            raise ConnectionError(
-                f"WELL initialize HTTP {resp.status_code}: {resp.text[:200]}"
-            )
+            raise ConnectionError(f"WELL initialize HTTP {resp.status_code}: {resp.text[:200]}")
 
         # Extract session ID from SSE content
         session_id = None
@@ -153,13 +151,9 @@ async def _well_json_rpc(
                 sid = await _init_well_session()
                 _WELL_SESSIONS[sid] = time.time()
                 headers["mcp-session-id"] = sid
-                resp = await client.post(
-                    f"{WELL_BASE}/mcp", json=payload, headers=headers
-                )
+                resp = await client.post(f"{WELL_BASE}/mcp", json=payload, headers=headers)
                 if resp.status_code >= 400:
-                    raise ConnectionError(
-                        f"WELL HTTP {resp.status_code}: {resp.text[:200]}"
-                    )
+                    raise ConnectionError(f"WELL HTTP {resp.status_code}: {resp.text[:200]}")
 
         content_type = resp.headers.get("content-type", "")
         text = resp.text

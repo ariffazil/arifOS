@@ -113,14 +113,10 @@ def register_evidence_resources(mcp: FastMCP) -> list[str]:
         store = get_evidence_store()
         receipt = store.get_receipt(receipt_id)
         if receipt is None:
-            return json.dumps(
-                {"error": "receipt_not_found", "receipt_id": receipt_id}, indent=2
-            )
+            return json.dumps({"error": "receipt_not_found", "receipt_id": receipt_id}, indent=2)
 
         proven_level = calculate_max_evidence_level(receipt)
-        validation = validate_sufficiency(
-            receipt, receipt.get("claimed_evidence_level", "L0")
-        )
+        validation = validate_sufficiency(receipt, receipt.get("claimed_evidence_level", "L0"))
 
         output = dict(receipt)
         output["_kernel"] = {
@@ -181,9 +177,7 @@ def register_evidence_resources(mcp: FastMCP) -> list[str]:
         store = get_evidence_store()
         contrast = store.get_contrast(contrast_id)
         if contrast is None:
-            return json.dumps(
-                {"error": "contrast_not_found", "contrast_id": contrast_id}, indent=2
-            )
+            return json.dumps({"error": "contrast_not_found", "contrast_id": contrast_id}, indent=2)
         return json.dumps(contrast, indent=2, default=str)
 
     registered.append("contrast://{id}")

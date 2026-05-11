@@ -153,9 +153,7 @@ def check_floors(
             # but this is F13 WORKING, not F13 BREACHING.
             # We log it and return VOID so execution stops, but do NOT add to failed.
             if params.get("sovereign_veto"):
-                logger.critical(
-                    "F13 SOVEREIGN VETO exercised by Arif — operation halted"
-                )
+                logger.critical("F13 SOVEREIGN VETO exercised by Arif — operation halted")
                 # Return VOID but do NOT append F13 to failed — veto usage is not a breach
                 return {
                     "verdict": "VOID",

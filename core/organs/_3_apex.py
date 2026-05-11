@@ -248,9 +248,7 @@ async def forge(
     intent_lower = intent.lower()
     stability_risks = []
 
-    if any(
-        kw in intent_lower for kw in ["modify", "change", "update", "evolve", "improve"]
-    ):
+    if any(kw in intent_lower for kw in ["modify", "change", "update", "evolve", "improve"]):
         # Self-modification intent — check for collapse risk
         if len(intent) > 500:
             stability_risks.append("Long self-modification intent — fragmentation risk")
@@ -298,34 +296,22 @@ async def forge(
         scarcity_abundance_notes.append("Very long intent — possible over-expansion")
 
     pressure_results["scarcity_abundance"]["notes"] = scarcity_abundance_notes
-    pressure_results["scarcity_abundance"]["passed"] = (
-        len(scarcity_abundance_notes) == 0
-    )
+    pressure_results["scarcity_abundance"]["passed"] = len(scarcity_abundance_notes) == 0
 
     # 4. Telos Drift Test: Check for axis overcommitment
     # K_FORGE §VI.4: Performance maximization harms stability, etc.
     telos_drift_notes = []
 
     telos_axes = {
-        "performance": any(
-            p in intent_lower for p in ["maximize", "optimize", "speed", "fast"]
-        ),
-        "stability": any(
-            s in intent_lower for s in ["stable", "secure", "safe", "predict"]
-        ),
-        "exploration": any(
-            e in intent_lower for e in ["discover", "explore", "curious", "novel"]
-        ),
-        "harmony": any(
-            h in intent_lower for h in ["peace", "agree", "consensus", "balance"]
-        ),
+        "performance": any(p in intent_lower for p in ["maximize", "optimize", "speed", "fast"]),
+        "stability": any(s in intent_lower for s in ["stable", "secure", "safe", "predict"]),
+        "exploration": any(e in intent_lower for e in ["discover", "explore", "curious", "novel"]),
+        "harmony": any(h in intent_lower for h in ["peace", "agree", "consensus", "balance"]),
     }
 
     dominant_axes = [ax for ax, present in telos_axes.items() if present]
     if len(dominant_axes) > 3:
-        telos_drift_notes.append(
-            f"Overcommit to {len(dominant_axes)} telos axes — drift risk"
-        )
+        telos_drift_notes.append(f"Overcommit to {len(dominant_axes)} telos axes — drift risk")
     if dominant_axes and not dominant_axes:
         telos_drift_notes.append("No clear telos axis — unfocused proposal")
 
@@ -373,10 +359,7 @@ async def forge(
         }
         verdict = Verdict.SEAL
     else:
-        floors = {
-            k: "fail" if not v["passed"] else "pass"
-            for k, v in pressure_results.items()
-        }
+        floors = {k: "fail" if not v["passed"] else "pass" for k, v in pressure_results.items()}
         floors.update({"F3": "partial", "F8": "partial"})
         verdict = Verdict.SABAR
 
@@ -460,11 +443,7 @@ async def judge(
 
     # 2. Extract or Build Floor Scores
     floor_scores = coerce_floor_scores(
-        (
-            kwargs.get("floor_scores")
-            if kwargs.get("floor_scores") is not None
-            else kwargs
-        ),
+        (kwargs.get("floor_scores") if kwargs.get("floor_scores") is not None else kwargs),
         defaults={"f2_truth": kwargs.get("akal", 0.99)},
     )
 
@@ -480,9 +459,7 @@ async def judge(
     # 4. EUREKA Layer 2: Semantic Coherence Verification
     # Detect contradictions between reason text, floor scores, and proposed verdict.
     # Critical contradictions force 888_HOLD before any further processing.
-    contradictions = _detect_contradictions(
-        reason_summary, floor_scores, candidate.value
-    )
+    contradictions = _detect_contradictions(reason_summary, floor_scores, candidate.value)
     critical_contradictions = [c for c in contradictions if c["severity"] == "critical"]
     if critical_contradictions:
         candidate = Verdict.HOLD_888
@@ -522,9 +499,7 @@ async def judge(
             f"arifOS APEX Discipline Check: G ({g_score:.4f}) < 0.80. Downgrading to PARTIAL."
         )
         candidate = Verdict.PARTIAL
-        reason_summary = (
-            reason_summary or ""
-        ) + f" [APEX Gate: G={g_score:.4f} < 0.80]"
+        reason_summary = (reason_summary or "") + f" [APEX Gate: G={g_score:.4f} < 0.80]"
 
     # ─────────────────────────────────────────────────────────────────────────────
     # Phase 4: Physics Compliance (F4)
@@ -570,9 +545,7 @@ async def judge(
         omega_infinity=rationale.omega_0,
         tri_witness=rationale.tri_witness,
         floor_scores=(
-            floor_scores.model_dump()
-            if hasattr(floor_scores, "model_dump")
-            else floor_scores
+            floor_scores.model_dump() if hasattr(floor_scores, "model_dump") else floor_scores
         ),
         metadata={
             "coherence_contradictions": len(contradictions),

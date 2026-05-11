@@ -47,9 +47,7 @@ if IS_FASTMCP_3:
 else:
 
     class ToolResult:
-        def __init__(
-            self, content: str, structured_content: Any = None, meta: dict = None
-        ):
+        def __init__(self, content: str, structured_content: Any = None, meta: dict = None):
             self.content = content
             self.structured_content = structured_content
             self.meta = meta or {}
@@ -207,9 +205,7 @@ def _result_to_tool_result(result_obj: Any) -> ToolResult:
     # Check if this result suggests an app intent
     if structured.get("status") == "SEAL" and "views" in structured:
         meta["appIntent"] = {
-            "appId": (
-                "geox.seismic-viewer" if "line_id" in structured else "geox.generic"
-            ),
+            "appId": ("geox.seismic-viewer" if "line_id" in structured else "geox.generic"),
             "action": "open",
             "params": structured,
             "preferredMode": "inline",

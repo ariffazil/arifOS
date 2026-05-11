@@ -43,26 +43,20 @@ class _FakeQdrantClient:
         items = list(self.points.get(collection_name, []))
         if query_filter and getattr(query_filter, "must", None):
             expected = query_filter.must[0].match.value
-            items = [
-                item for item in items if item.payload.get("session_id") == expected
-            ]
+            items = [item for item in items if item.payload.get("session_id") == expected]
         return SimpleNamespace(points=items[:limit])
 
     def delete(self, collection_name: str, points_selector):
         to_delete = set(points_selector.points)
         self.points[collection_name] = [
-            item
-            for item in self.points.get(collection_name, [])
-            if item.id not in to_delete
+            item for item in self.points.get(collection_name, []) if item.id not in to_delete
         ]
 
 
 def test_unified_memory_store_search_and_forget(monkeypatch):
     fake_client = _FakeQdrantClient()
 
-    monkeypatch.setattr(
-        "core.organs.unified_memory.embed", lambda text: [0.1, 0.2, 0.3]
-    )
+    monkeypatch.setattr("core.organs.unified_memory.embed", lambda text: [0.1, 0.2, 0.3])
 
     memory = UnifiedMemory(qdrant_url=None)
     memory.client = fake_client
@@ -130,17 +124,11 @@ async def test_vault_store_and_recall_uses_unified_memory(monkeypatch):
         def forget(self, memory_ids: list[str]):
             return memory_ids
 
-    monkeypatch.setattr(
-        "core.organs.unified_memory.get_unified_memory", lambda: _FakeMemory()
-    )
+    monkeypatch.setattr("core.organs.unified_memory.get_unified_memory", lambda: _FakeMemory())
 
-    stored = await vault(
-        operation="store", session_id="vault-session", content="remember me"
-    )
+    stored = await vault(operation="store", session_id="vault-session", content="remember me")
     assert stored.result.stored_ids == ["mem-123"]
 
-    recalled = await vault(
-        operation="search", session_id="vault-session", content="remember me"
-    )
+    recalled = await vault(operation="search", session_id="vault-session", content="remember me")
     assert recalled.result.memories[0].content == "remember me"
     assert recalled.result.memories[0].id == "mem-123"

@@ -139,13 +139,12 @@ async def geox_health_check() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-
 def compute_confidence_bands(values: Sequence[float]) -> dict[str, float | None]:
     """
     Compute p10/p50/p90 confidence bands from a series of geoscience values.
     Returns None for all bands if fewer than 3 data points.
     """
-    clean = [v for v in values if isinstance(v, (int, float)) and math.isfinite(v)]
+    clean = [v for v in values if isinstance(v, int | float) and math.isfinite(v)]
     n = len(clean)
     if n < 3:
         return {"p10": None, "p50": None, "p90": None, "n": n}
@@ -190,7 +189,7 @@ def validate_physics_constraint(
     if val is None:
         return {"valid": False, "error": f"Missing key: {spec['key']}"}
 
-    if not isinstance(val, (int, float)) or not math.isfinite(val):
+    if not isinstance(val, int | float) or not math.isfinite(val):
         return {"valid": False, "error": f"Non-numeric value for {spec['key']}: {val}"}
 
     if val < spec["min"] or val > spec["max"]:
@@ -232,9 +231,7 @@ def qc_verify_claim(
     # 2. Confidence
     actual_conf = result.get("confidence", "LOW")
     if confidence_order.get(actual_conf, 0) < confidence_order.get(min_confidence, 1):
-        issues.append(
-            f"F07 HUMILITY: Confidence {actual_conf} below threshold {min_confidence}"
-        )
+        issues.append(f"F07 HUMILITY: Confidence {actual_conf} below threshold {min_confidence}")
 
     # 3. Physics-9
     physics_check = result.get("physics_check", {})

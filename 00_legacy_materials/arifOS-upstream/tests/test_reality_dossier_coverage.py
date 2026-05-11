@@ -102,9 +102,7 @@ class TestDossierProvenance:
         """Test DossierProvenance creation"""
         from arifosmcp.runtime.reality_dossier import DossierProvenance
 
-        prov = DossierProvenance(
-            bundles_processed=5, atlas_nodes=10, completeness_score=0.85
-        )
+        prov = DossierProvenance(bundles_processed=5, atlas_nodes=10, completeness_score=0.85)
 
         assert prov.bundles_processed == 5
         assert prov.atlas_nodes == 10
@@ -277,9 +275,7 @@ class TestDossierProcessing:
         from arifosmcp.runtime.reality_models import EvidenceBundle, Claim
 
         engine = DossierEngine()
-        bundle = EvidenceBundle(
-            id="bundle-1", claims=[Claim(text="Claim 1", confidence=0.9)]
-        )
+        bundle = EvidenceBundle(id="bundle-1", claims=[Claim(text="Claim 1", confidence=0.9)])
 
         with patch.object(engine, "_process_bundle") as mock_process:
             mock_process.return_value = Mock(verdicts=[Mock()])

@@ -77,8 +77,7 @@ class DeployGateReport:
         return sum(
             1
             for g in self.gates
-            if g.gate_name in critical_gates
-            and g.status in [GateStatus.FAIL, GateStatus.HOLD]
+            if g.gate_name in critical_gates and g.status in [GateStatus.FAIL, GateStatus.HOLD]
         )
 
     @property
@@ -245,9 +244,7 @@ class DeployGateRunner:
                 )
             )
 
-            print(
-                f"  {'✅' if status == GateStatus.PASS else '❌'} Boot: {status.value}"
-            )
+            print(f"  {'✅' if status == GateStatus.PASS else '❌'} Boot: {status.value}")
 
         except Exception as e:
             self.gates.append(
@@ -288,9 +285,7 @@ class DeployGateRunner:
                 )
             )
 
-            print(
-                f"  {'✅' if status == GateStatus.PASS else '❌'} Capability: {status.value}"
-            )
+            print(f"  {'✅' if status == GateStatus.PASS else '❌'} Capability: {status.value}")
 
         except Exception as e:
             self.gates.append(
@@ -315,9 +310,7 @@ class DeployGateRunner:
             # Run breach tests
             from arifosmcp.evals.breach_test_runner import BreachTestRunner
 
-            runner = BreachTestRunner(
-                "arifosmcp/evals/constitutional_breach_tests.yaml"
-            )
+            runner = BreachTestRunner("arifosmcp/evals/constitutional_breach_tests.yaml")
             await runner.run_all_tests()
             report = runner.generate_report()
 
@@ -367,14 +360,10 @@ class DeployGateRunner:
             health = await bridge.get_global_health()
             substrates = health.get("substrate", {})
 
-            healthy_count = sum(
-                1 for s in substrates.values() if s.get("status") == "OK"
-            )
+            healthy_count = sum(1 for s in substrates.values() if s.get("status") == "OK")
             total_count = len(substrates)
 
-            status = (
-                GateStatus.PASS if healthy_count == total_count else GateStatus.FAIL
-            )
+            status = GateStatus.PASS if healthy_count == total_count else GateStatus.FAIL
 
             self.gates.append(
                 GateResult(
@@ -497,9 +486,7 @@ class DeployGateRunner:
                 )
             )
 
-            print(
-                f"  {'✅' if status == GateStatus.PASS else '⏸️'} Rollback: {status.value}"
-            )
+            print(f"  {'✅' if status == GateStatus.PASS else '⏸️'} Rollback: {status.value}")
 
         except Exception as e:
             self.gates.append(
@@ -550,9 +537,7 @@ class DeployGateRunner:
                 )
             )
 
-            print(
-                f"  {'✅' if status == GateStatus.PASS else '⏸️'} Observability: {status.value}"
-            )
+            print(f"  {'✅' if status == GateStatus.PASS else '⏸️'} Observability: {status.value}")
 
         except Exception as e:
             self.gates.append(

@@ -20,9 +20,7 @@ from arifosmcp.intelligence.embeddings import embed
 from core.shared.types import MemoryResultItem, VaultOutput, VectorMemoryResult, Verdict
 
 logger = logging.getLogger(__name__)
-SESSION_MEMORY_COLLECTION = os.getenv(
-    "ARIFOS_SESSION_MEMORY_COLLECTION", "arifos_session_memory"
-)
+SESSION_MEMORY_COLLECTION = os.getenv("ARIFOS_SESSION_MEMORY_COLLECTION", "arifos_session_memory")
 DEFAULT_VECTOR_DIM = int(os.getenv("ARIFOS_VECTOR_DIM", "1024"))
 
 
@@ -71,9 +69,7 @@ class UnifiedMemory:
         except Exception:
             self.client.create_collection(
                 collection_name=collection_name,
-                vectors_config=VectorParams(
-                    size=DEFAULT_VECTOR_DIM, distance=Distance.COSINE
-                ),
+                vectors_config=VectorParams(size=DEFAULT_VECTOR_DIM, distance=Distance.COSINE),
             )
 
     def store(
@@ -142,9 +138,7 @@ class UnifiedMemory:
         query_filter = None
         if session_id and collection_name == self.collections["session"]:
             query_filter = Filter(
-                must=[
-                    FieldCondition(key="session_id", match=MatchValue(value=session_id))
-                ]
+                must=[FieldCondition(key="session_id", match=MatchValue(value=session_id))]
             )
 
         try:
@@ -221,9 +215,7 @@ async def vault(
         if not content:
             raise ValueError("Operation 'store' requires 'content' or 'query'")
 
-        res.stored_ids = get_unified_memory().store(
-            session_id=session_id, content=content
-        )
+        res.stored_ids = get_unified_memory().store(session_id=session_id, content=content)
 
     elif operation in ("recall", "search"):
         search_query = content or kwargs.get("query") or "INIT"

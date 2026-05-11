@@ -25,9 +25,7 @@ class TestSystemHealthHardened:
 
         result = await system_health()
 
-        assert isinstance(
-            result, RuntimeEnvelope
-        ), f"Expected RuntimeEnvelope, got {type(result)}"
+        assert isinstance(result, RuntimeEnvelope), f"Expected RuntimeEnvelope, got {type(result)}"
 
     @pytest.mark.asyncio
     async def test_system_health_accepts_session_id(self):
@@ -82,9 +80,7 @@ class TestFsInspectHardened:
         from arifosmcp.intelligence.console_tools import fs_inspect
         from arifosmcp.runtime.model import RuntimeEnvelope
 
-        with patch(
-            "arifosmcp.intelligence.tools.fs_inspector.inspect_path"
-        ) as mock_inspect:
+        with patch("arifosmcp.intelligence.tools.fs_inspector.inspect_path") as mock_inspect:
             mock_inspect.return_value = {"files": [], "directories": []}
 
             result = await fs_inspect(path="/test")
@@ -96,9 +92,7 @@ class TestFsInspectHardened:
         """Verify fs_inspect accepts session_id and auth_context"""
         from arifosmcp.intelligence.console_tools import fs_inspect
 
-        with patch(
-            "arifosmcp.intelligence.tools.fs_inspector.inspect_path"
-        ) as mock_inspect:
+        with patch("arifosmcp.intelligence.tools.fs_inspector.inspect_path") as mock_inspect:
             mock_inspect.return_value = {"files": []}
 
             result = await fs_inspect(
@@ -122,9 +116,7 @@ class TestChromaQueryHardened:
         from arifosmcp.intelligence.console_tools import chroma_query
         from arifosmcp.runtime.model import RuntimeEnvelope
 
-        with patch(
-            "arifosmcp.intelligence.tools.chroma_query.query_memory"
-        ) as mock_query:
+        with patch("arifosmcp.intelligence.tools.chroma_query.query_memory") as mock_query:
             mock_query.return_value = AsyncMock()
             mock_query.return_value = {"ids": [["doc1"]], "distances": [[0.1]]}
 
@@ -137,9 +129,7 @@ class TestChromaQueryHardened:
         """Verify chroma_query accepts session_id and auth_context"""
         from arifosmcp.intelligence.console_tools import chroma_query
 
-        with patch(
-            "arifosmcp.intelligence.tools.chroma_query.query_memory"
-        ) as mock_query:
+        with patch("arifosmcp.intelligence.tools.chroma_query.query_memory") as mock_query:
             mock_query.return_value = AsyncMock()
             mock_query.return_value = {"results": []}
 
@@ -205,9 +195,7 @@ class TestProcessListHardened:
         """Verify process_list accepts session_id and auth_context"""
         from arifosmcp.intelligence.console_tools import process_list
 
-        result = await process_list(
-            session_id="proc-session", auth_context={"role": "monitor"}
-        )
+        result = await process_list(session_id="proc-session", auth_context={"role": "monitor"})
 
         assert result.session_id == "proc-session"
 
@@ -221,9 +209,7 @@ class TestNetStatusHardened:
         from arifosmcp.intelligence.console_tools import net_status
         from arifosmcp.runtime.model import RuntimeEnvelope
 
-        with patch(
-            "arifosmcp.intelligence.tools.net_monitor.check_connectivity"
-        ) as mock_check:
+        with patch("arifosmcp.intelligence.tools.net_monitor.check_connectivity") as mock_check:
             mock_check.return_value = AsyncMock()
             mock_check.return_value = {"status": "ok", "latency": 10}
 
@@ -236,9 +222,7 @@ class TestNetStatusHardened:
         """Verify net_status accepts session_id and auth_context"""
         from arifosmcp.intelligence.console_tools import net_status
 
-        with patch(
-            "arifosmcp.intelligence.tools.net_monitor.check_connectivity"
-        ) as mock_check:
+        with patch("arifosmcp.intelligence.tools.net_monitor.check_connectivity") as mock_check:
             mock_check.return_value = AsyncMock()
             mock_check.return_value = {"status": "ok"}
 

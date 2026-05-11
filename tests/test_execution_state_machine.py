@@ -84,15 +84,11 @@ def test_infrastructure_tools_omni_state():
 
 def test_observe_tools_advance_to_analyze():
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_sense_observe", ExecutionState.OBSERVE
-        )
+        ExecutionStateMachine.get_next_state("arif_sense_observe", ExecutionState.OBSERVE)
         == ExecutionState.ANALYZE
     )
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_evidence_fetch", ExecutionState.OBSERVE
-        )
+        ExecutionStateMachine.get_next_state("arif_evidence_fetch", ExecutionState.OBSERVE)
         == ExecutionState.ANALYZE
     )
 
@@ -103,36 +99,28 @@ def test_analyze_tools_advance_to_simulate():
         == ExecutionState.SIMULATE
     )
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_kernel_route", ExecutionState.ANALYZE
-        )
+        ExecutionStateMachine.get_next_state("arif_kernel_route", ExecutionState.ANALYZE)
         == ExecutionState.SIMULATE
     )
 
 
 def test_simulate_tools_advance_to_await_approval():
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_heart_critique", ExecutionState.SIMULATE
-        )
+        ExecutionStateMachine.get_next_state("arif_heart_critique", ExecutionState.SIMULATE)
         == ExecutionState.AWAIT_APPROVAL
     )
 
 
 def test_approval_tools_advance_to_execute():
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_judge_deliberate", ExecutionState.AWAIT_APPROVAL
-        )
+        ExecutionStateMachine.get_next_state("arif_judge_deliberate", ExecutionState.AWAIT_APPROVAL)
         == ExecutionState.EXECUTE
     )
 
 
 def test_execute_tools_advance_to_verify():
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_forge_execute", ExecutionState.EXECUTE
-        )
+        ExecutionStateMachine.get_next_state("arif_forge_execute", ExecutionState.EXECUTE)
         == ExecutionState.VERIFY
     )
 
@@ -147,15 +135,11 @@ def test_verify_tools_advance_to_seal():
 def test_self_loop_when_no_progression_mapped():
     """Tools without a progression mapping keep the session in the current state."""
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_memory_recall", ExecutionState.ANALYZE
-        )
+        ExecutionStateMachine.get_next_state("arif_memory_recall", ExecutionState.ANALYZE)
         == ExecutionState.ANALYZE
     )
     assert (
-        ExecutionStateMachine.get_next_state(
-            "arif_reply_compose", ExecutionState.EXECUTE
-        )
+        ExecutionStateMachine.get_next_state("arif_reply_compose", ExecutionState.EXECUTE)
         == ExecutionState.EXECUTE
     )
 
@@ -166,25 +150,15 @@ def test_self_loop_when_no_progression_mapped():
 
 
 def test_can_execute_in_allowed_state():
-    assert ExecutionStateMachine.can_execute(
-        "arif_sense_observe", ExecutionState.OBSERVE
-    )
+    assert ExecutionStateMachine.can_execute("arif_sense_observe", ExecutionState.OBSERVE)
     assert ExecutionStateMachine.can_execute("arif_mind_reason", ExecutionState.ANALYZE)
-    assert ExecutionStateMachine.can_execute(
-        "arif_forge_execute", ExecutionState.EXECUTE
-    )
+    assert ExecutionStateMachine.can_execute("arif_forge_execute", ExecutionState.EXECUTE)
 
 
 def test_cannot_execute_in_wrong_state():
-    assert not ExecutionStateMachine.can_execute(
-        "arif_forge_execute", ExecutionState.OBSERVE
-    )
-    assert not ExecutionStateMachine.can_execute(
-        "arif_vault_seal", ExecutionState.OBSERVE
-    )
-    assert not ExecutionStateMachine.can_execute(
-        "arif_mind_reason", ExecutionState.EXECUTE
-    )
+    assert not ExecutionStateMachine.can_execute("arif_forge_execute", ExecutionState.OBSERVE)
+    assert not ExecutionStateMachine.can_execute("arif_vault_seal", ExecutionState.OBSERVE)
+    assert not ExecutionStateMachine.can_execute("arif_mind_reason", ExecutionState.EXECUTE)
 
 
 def test_legacy_session_first_contact_defaults_to_observe():
@@ -195,9 +169,7 @@ def test_legacy_session_first_contact_defaults_to_observe():
 
 
 def test_unknown_tool_fail_closed():
-    assert not ExecutionStateMachine.can_execute(
-        "arif_nonexistent_tool", ExecutionState.OBSERVE
-    )
+    assert not ExecutionStateMachine.can_execute("arif_nonexistent_tool", ExecutionState.OBSERVE)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -219,9 +191,7 @@ def test_hold_response_has_required_fields():
 
 
 def test_hold_response_suggests_observe_re_anchor():
-    hold = ExecutionStateMachine.get_hold_response(
-        "arif_forge_execute", ExecutionState.OBSERVE
-    )
+    hold = ExecutionStateMachine.get_hold_response("arif_forge_execute", ExecutionState.OBSERVE)
     assert hold["next_safe_action"]["tool"] == "arif_sense_observe"
 
 

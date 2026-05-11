@@ -118,9 +118,7 @@ def detect_discontinuities(
 
     for i in range(window_size, h - window_size, window_size * 2):
         for j in range(window_size, w - window_size, window_size * 2):
-            window = coherence[
-                i - window_size : i + window_size, j - window_size : j + window_size
-            ]
+            window = coherence[i - window_size : i + window_size, j - window_size : j + window_size]
             window_mean = float(np.mean(window))
 
             if window_mean < threshold:
@@ -310,9 +308,7 @@ async def extract_features(
             "RASTER INPUT: Features are perceptual approximations only"
         )
 
-    prov = _make_provenance(
-        f"FEAT-{prov_base}", "LEM", confidence=1.0 - base_uncertainty
-    )
+    prov = _make_provenance(f"FEAT-{prov_base}", "LEM", confidence=1.0 - base_uncertainty)
 
     uncertainty = min(0.20, base_uncertainty + 0.02)
 

@@ -127,13 +127,9 @@ class arifOSMCPConnector:
         except asyncio.TimeoutError:
             return self._create_error_telemetry(self.timeout * 1000, "TIMEOUT")
         except Exception as e:
-            return self._create_error_telemetry(
-                (time.time() - start_time) * 1000, str(e)
-            )
+            return self._create_error_telemetry((time.time() - start_time) * 1000, str(e))
 
-    def _parse_telemetry(
-        self, response_data: Dict[str, Any], latency_ms: float
-    ) -> MCPTelemetry:
+    def _parse_telemetry(self, response_data: Dict[str, Any], latency_ms: float) -> MCPTelemetry:
         """Parse MCP response into telemetry object."""
 
         # Extract verdict
@@ -146,9 +142,7 @@ class arifOSMCPConnector:
         W_cube = response_data.get("constitutional_context", {}).get("W_cube", 0.0)
 
         # Extract violations
-        violations = response_data.get("constitutional_context", {}).get(
-            "violations", []
-        )
+        violations = response_data.get("constitutional_context", {}).get("violations", [])
         floors_violated = [v.split(":")[0] for v in violations] if violations else []
 
         # Calculate request complexity (from payload analysis)
@@ -325,9 +319,7 @@ if __name__ == "__main__":
 
         # Test with fallback (simulation)
         print("\n1. Simulated telemetry:")
-        telemetry = await get_telemetry(
-            {"query": "Explain constitutional AI"}, use_live_mcp=False
-        )
+        telemetry = await get_telemetry({"query": "Explain constitutional AI"}, use_live_mcp=False)
         print(f"   Verdict: {telemetry.verdict}")
         print(f"   Ω: {telemetry.omega:.4f}")
         print(f"   ΔS: {telemetry.delta_s:.4f}")

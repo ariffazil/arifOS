@@ -35,9 +35,7 @@ def test_env_precedence_docker_compose_wins_over_dotenv_file(tmp_path: Path) -> 
             with patch.dict(os.environ, {"SEA_LION_API_KEY": runtime_key}):
                 import importlib.util
 
-                spec = importlib.util.spec_from_file_location(
-                    "server_regression", server_path
-                )
+                spec = importlib.util.spec_from_file_location("server_regression", server_path)
                 assert spec is not None and spec.loader is not None
                 module = importlib.util.module_from_spec(spec)
 

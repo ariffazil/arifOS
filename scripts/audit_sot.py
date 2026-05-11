@@ -78,17 +78,13 @@ def main() -> int:
     print(f"== arifOS SOT audit: {expected_summary}")
 
     if registered_tools != total_tools:
-        failures.append(
-            f"registered tool count {registered_tools} != map count {total_tools}"
-        )
+        failures.append(f"registered tool count {registered_tools} != map count {total_tools}")
         fail(failures[-1])
     else:
         ok("registered tool count matches constitutional map")
 
     if constitutional_tools != 13 or probe_tools != 2 or total_tools != 15:
-        failures.append(
-            "tool partition mismatch: expected 15 total, 13 constitutional, 2 probes"
-        )
+        failures.append("tool partition mismatch: expected 15 total, 13 constitutional, 2 probes")
         fail(failures[-1])
     else:
         ok("tool partition is 15 total / 13 constitutional / 2 probes")
@@ -114,9 +110,7 @@ def main() -> int:
     for key, expected in registry_expectations.items():
         actual = registry.get(key)
         if actual != expected:
-            failures.append(
-                f"tool_registry.json {key}={actual!r}, expected {expected!r}"
-            )
+            failures.append(f"tool_registry.json {key}={actual!r}, expected {expected!r}")
             fail(failures[-1])
         else:
             ok(f"tool_registry.json {key}={actual}")
@@ -127,32 +121,18 @@ def main() -> int:
     pyproject = read_text("pyproject.toml")
     server = read_text("arifosmcp/server.py")
 
-    check_contains(
-        "README.md", readme, f"Package version | `{package_version}`", failures
-    )
-    check_contains(
-        "README.md", readme, f"Runtime version | `{runtime_version}`", failures
-    )
+    check_contains("README.md", readme, f"Package version | `{package_version}`", failures)
+    check_contains("README.md", readme, f"Runtime version | `{runtime_version}`", failures)
     check_contains("README.md", readme, "13 canonical MCP capability tools", failures)
     check_contains("README.md", readme, "Canonical prompts | 8", failures)
     check_contains("README.md", readme, "Canonical resources | 5", failures)
-    check_contains(
-        "pyproject.toml", pyproject, "13 canonical MCP capability tools", failures
-    )
-    check_contains(
-        "Dockerfile", dockerfile, f"ARIFOS_VERSION={runtime_version}", failures
-    )
-    check_contains(
-        "Dockerfile", dockerfile, f'server.version="{runtime_version}"', failures
-    )
-    check_contains(
-        "Dockerfile", dockerfile, "13 canonical MCP capability tools", failures
-    )
+    check_contains("pyproject.toml", pyproject, "13 canonical MCP capability tools", failures)
+    check_contains("Dockerfile", dockerfile, f"ARIFOS_VERSION={runtime_version}", failures)
+    check_contains("Dockerfile", dockerfile, f'server.version="{runtime_version}"', failures)
+    check_contains("Dockerfile", dockerfile, "13 canonical MCP capability tools", failures)
     check_contains("Makefile", makefile, "http://localhost:8080/health", failures)
     check_contains("Makefile", makefile, "python scripts/audit_sot.py", failures)
-    check_contains(
-        "arifosmcp/server.py", server, "13 canonical MCP capability tools", failures
-    )
+    check_contains("arifosmcp/server.py", server, "13 canonical MCP capability tools", failures)
 
     if re.search(r"localhost:8000/health", makefile):
         failures.append("Makefile still references localhost:8000/health")
@@ -168,9 +148,7 @@ def main() -> int:
             live_version = live.get("version")
             print(f"INFO: live version={live_version!r} live_tools={live_tools!r}")
             if live_tools is not None and int(live_tools) != total_tools:
-                failures.append(
-                    f"live tool count {live_tools!r} != source total {total_tools}"
-                )
+                failures.append(f"live tool count {live_tools!r} != source total {total_tools}")
                 fail(failures[-1])
         except Exception as exc:  # noqa: BLE001
             failures.append(f"live check failed for {args.live}: {exc}")

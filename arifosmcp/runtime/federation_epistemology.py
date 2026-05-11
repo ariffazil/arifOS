@@ -252,9 +252,7 @@ def _coerce_event(payload: dict[str, Any], source: str) -> FederationEpistemicEv
     timestamp_raw = candidate.get("timestamp") or raw.get("sealed_at") or raw.get("created_at")
     try:
         timestamp = (
-            datetime.fromisoformat(timestamp_raw)
-            if isinstance(timestamp_raw, str)
-            else _utcnow()
+            datetime.fromisoformat(timestamp_raw) if isinstance(timestamp_raw, str) else _utcnow()
         )
     except ValueError:
         timestamp = _utcnow()
@@ -426,17 +424,13 @@ class FederationEpistemicLedger:
             )
         ]
         top_claim = claim_states[0]
-        contributors = sorted(
-            {node for state in claim_states for node in state["contributors"]}
-        )
+        contributors = sorted({node for state in claim_states for node in state["contributors"]})
         last_changed_at = max(event.timestamp for event in subject_events).isoformat()
-        aggregate_score = (
-            sum(state["belief_score"] for state in claim_states) / max(len(claim_states), 1)
+        aggregate_score = sum(state["belief_score"] for state in claim_states) / max(
+            len(claim_states), 1
         )
         witness = self._subject_witness_audit(subject_events, claim_states)
-        contradiction_count = sum(
-            len(state["contradicting_claims"]) for state in claim_states
-        )
+        contradiction_count = sum(len(state["contradicting_claims"]) for state in claim_states)
         position = top_claim["state"] if len(claim_states) == 1 else "compound"
         result = {
             "status": "ok",
@@ -475,12 +469,18 @@ class FederationEpistemicLedger:
             "claim_id": claim_id,
             "subject_id": events[0].subject_id,
             "claim_state": state,
-            "lineage": [_event_to_dict(event) for event in sorted(events, key=lambda item: item.timestamp)],
+            "lineage": [
+                _event_to_dict(event) for event in sorted(events, key=lambda item: item.timestamp)
+            ],
             "witness_audit": self._claim_witness_audit(events, state),
         }
 
     def witness_audit(
-        self, *, subject_id: str | None = None, claim_id: str | None = None, query: str | None = None
+        self,
+        *,
+        subject_id: str | None = None,
+        claim_id: str | None = None,
+        query: str | None = None,
     ) -> dict[str, Any]:
         if claim_id:
             lineage = self.claim_lineage(claim_id)
@@ -563,9 +563,7 @@ class FederationEpistemicLedger:
             return None
         return max(score_map.items(), key=lambda item: item[1])[0]
 
-    def _subject_name(
-        self, subject_id: str, events: list[FederationEpistemicEvent]
-    ) -> str:
+    def _subject_name(self, subject_id: str, events: list[FederationEpistemicEvent]) -> str:
         row = self._conn.execute(
             "SELECT subject_name FROM federation_subjects WHERE subject_id = ?",
             (subject_id,),
@@ -580,13 +578,14 @@ class FederationEpistemicLedger:
     def _event_weight(self, event: FederationEpistemicEvent) -> float:
         authority = _AUTHORITY_WEIGHTS.get(_enum_value(event.authority_class), 1.0)
         event_weight = _EVENT_WEIGHTS.get(_enum_value(event.event_type), 1.0)
-        return authority * event_weight * max(0.05, event.confidence) * _freshness_weight(
-            event.timestamp
+        return (
+            authority
+            * event_weight
+            * max(0.05, event.confidence)
+            * _freshness_weight(event.timestamp)
         )
 
-    def _synthesise_claim_state(
-        self, events: list[FederationEpistemicEvent]
-    ) -> dict[str, Any]:
+    def _synthesise_claim_state(self, events: list[FederationEpistemicEvent]) -> dict[str, Any]:
         ordered = sorted(events, key=lambda item: item.timestamp)
         support = 0.0
         contradict = 0.0
@@ -613,7 +612,9 @@ class FederationEpistemicLedger:
                 uncertain += weight
 
         total = support + contradict + uncertain
-        score = 0.5 if total == 0 else max(0.0, min(1.0, (support - contradict + total) / (2 * total)))
+        score = (
+            0.5 if total == 0 else max(0.0, min(1.0, (support - contradict + total) / (2 * total)))
+        )
         has_verification = any(
             _enum_value(event.event_type)
             in {
@@ -623,8 +624,7 @@ class FederationEpistemicLedger:
             for event in ordered
         )
         has_seal = any(
-            _enum_value(event.event_type) == EpistemicEventType.SEAL.value
-            for event in ordered
+            _enum_value(event.event_type) == EpistemicEventType.SEAL.value for event in ordered
         )
         has_retraction = any(
             _enum_value(event.event_type) == EpistemicEventType.RETRACTION.value
@@ -632,7 +632,11 @@ class FederationEpistemicLedger:
         ) or latest.claim_status in {"retracted", "superseded"}
 
         if has_retraction:
-            state = latest.claim_status if latest.claim_status in {"retracted", "superseded"} else "retracted"
+            state = (
+                latest.claim_status
+                if latest.claim_status in {"retracted", "superseded"}
+                else "retracted"
+            )
         elif contradict > 0 and abs(support - contradict) / max(total, 0.01) < 0.2:
             state = "contested"
         elif has_seal and score >= 0.75:
@@ -678,7 +682,11 @@ class FederationEpistemicLedger:
             or EpistemicEventType.SEAL.value in event_types
         ):
             gaps.append("witness_missing")
-        if claim_state["state"] in {"verified", "sealed"} and EpistemicEventType.VERIFICATION.value not in event_types and EpistemicEventType.WITNESS.value not in event_types:
+        if (
+            claim_state["state"] in {"verified", "sealed"}
+            and EpistemicEventType.VERIFICATION.value not in event_types
+            and EpistemicEventType.WITNESS.value not in event_types
+        ):
             gaps.append("verification_missing")
 
         if gaps:
@@ -720,9 +728,7 @@ class FederationEpistemicLedger:
         return {
             "status": status,
             "claims": claim_audits,
-            "gaps": sorted(
-                {gap for audit in claim_audits for gap in audit.get("gaps", [])}
-            ),
+            "gaps": sorted({gap for audit in claim_audits for gap in audit.get("gaps", [])}),
         }
 
     def _truth_dynamics(
@@ -733,11 +739,11 @@ class FederationEpistemicLedger:
         if not events:
             return {"mode": "held", "reason": "no_events"}
         latest_at = max(event.timestamp for event in events)
-        recent = [event for event in events if (latest_at - event.timestamp).total_seconds() <= 86_400 * 7]
+        recent = [
+            event for event in events if (latest_at - event.timestamp).total_seconds() <= 86_400 * 7
+        ]
         contradictions = sum(
-            1
-            for event in recent
-            if _enum_value(event.polarity) == ClaimPolarity.CONTRADICTS.value
+            1 for event in recent if _enum_value(event.polarity) == ClaimPolarity.CONTRADICTS.value
         )
         reversals = sum(
             1

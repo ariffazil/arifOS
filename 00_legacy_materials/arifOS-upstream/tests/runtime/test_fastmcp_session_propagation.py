@@ -50,9 +50,7 @@ async def test_init_propagates_verified_identity_to_kernel_and_ops():
 
 @pytest.mark.asyncio
 async def test_kernel_status_degrades_instead_of_void_without_session():
-    env = await _arifos_kernel_public(
-        query="status", mode="status", session_id="missing-session"
-    )
+    env = await _arifos_kernel_public(query="status", mode="status", session_id="missing-session")
 
     assert env.verdict.value == "PARTIAL"
     assert env.payload["result"]["status"] == "degraded"

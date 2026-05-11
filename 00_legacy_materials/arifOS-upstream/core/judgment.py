@@ -41,9 +41,7 @@ class CognitionResult:
     reasoning: dict[str, Any] = field(default_factory=dict)
     evidence_sources: list[dict] = field(default_factory=list)
     evidence_records: list[EvidenceRecord] = field(default_factory=list)
-    provenance: ScoreProvenance | None = (
-        None  # EUREKA Layer 1: auditable score decomposition
-    )
+    provenance: ScoreProvenance | None = None  # EUREKA Layer 1: auditable score decomposition
     error: str | None = None
 
 
@@ -74,9 +72,7 @@ class VerdictResult:
     vitality_index: float | None = None  # Ψ
     tri_witness: float | None = None  # W₃ (Legacy Alias)
     paradox_conductance: float | None = None  # Φₚ
-    provenance: ScoreProvenance | None = (
-        None  # EUREKA Layer 1: auditable score decomposition
-    )
+    provenance: ScoreProvenance | None = None  # EUREKA Layer 1: auditable score decomposition
 
 
 # ═══════════════════════════════════════════════════════
@@ -310,9 +306,7 @@ class JudgmentKernel:
         from core.shared.types import Verdict
 
         peace_squared = (1.0 - impact_severity) ** 2
-        empathy_score = min(
-            1.0, 0.6 + (stakeholder_count * 0.08) - (vulnerability_score * 0.2)
-        )
+        empathy_score = min(1.0, 0.6 + (stakeholder_count * 0.08) - (vulnerability_score * 0.2))
         motto = get_motto_by_stage("555")
 
         # RULE: 555 HEART (Safety) forbidden: VOID
@@ -352,9 +346,7 @@ class JudgmentKernel:
         kernel = get_governance_kernel(session_id)
         combined_floors = FloorScores(
             f1_amanah=(
-                asi_result.reversibility_score
-                if asi_result
-                else 1.0 - irreversibility_index
+                asi_result.reversibility_score if asi_result else 1.0 - irreversibility_index
             ),
             f2_truth=agi_result.truth_score,
             f4_clarity=0.9,
@@ -421,9 +413,7 @@ class JudgmentKernel:
         return VerdictResult(
             verdict=verdict.value,
             confidence=g_score,
-            motto=(
-                f"{motto.malay} | {motto.english}" if motto else "DITEMPA, BUKAN DIBERI"
-            ),
+            motto=(f"{motto.malay} | {motto.english}" if motto else "DITEMPA, BUKAN DIBERI"),
             vitality_index=round(g_score / 0.5, 4),
             floor_scores=combined_floors.model_dump(),
             provenance=apex_provenance,

@@ -135,16 +135,12 @@ class GovernanceKernel:
         # --- Signal extraction ---
         evidence_count = len(self._event_log)
         contradiction_signals = sum(
-            1
-            for e in self._event_log
-            if e["type"] in ("conflict", "failure", "violation")
+            1 for e in self._event_log if e["type"] in ("conflict", "failure", "violation")
         )
         reversibility_flags = sum(
             1 for e in self._event_log if e["payload"].get("reversible", False)
         )
-        total_actions = max(
-            1, len([e for e in self._event_log if e["type"] == "action"])
-        )
+        total_actions = max(1, len([e for e in self._event_log if e["type"] == "action"]))
         shadow_signals = sum(
             query_text.count(w)
             for w in (
@@ -280,30 +276,30 @@ class GovernanceKernel:
         """
         P3: Resolve conflicting verdicts using Conservative Wins protocol.
         Per PARADOX_DOCTRINE_V1 Section 4.
-        
+
         Args:
             verdicts: List of dicts with keys: agent, verdict, reasoning_hash, confidence
-        
+
         Returns:
             Resolution dict with: final_verdict, method, dissenter, dissenter_preserved
         """
         if not verdicts:
             return {"final_verdict": "SEAL", "method": "UNANIMOUS_EMPTY", "dissenter": None}
-        
+
         if len(verdicts) == 1:
             return {
                 "final_verdict": verdicts[0]["verdict"],
                 "method": "SINGLE_AGENT",
                 "dissenter": None,
             }
-        
+
         verdict_values = [v.get("verdict", "SEAL") for v in verdicts]
         void_count = sum(1 for v in verdict_values if v == "VOID" or v == "void")
         hold_count = sum(1 for v in verdict_values if v == "HOLD" or v == "hold" or v == "HOLD_888")
         sabar_count = sum(1 for v in verdict_values if v == "SABAR" or v == "sabar")
         partial_count = sum(1 for v in verdict_values if v == "PARTIAL" or v == "partial")
-        seal_count = sum(1 for v in verdict_values if v == "SEAL" or v == "seal")
-        
+        sum(1 for v in verdict_values if v == "SEAL" or v == "seal")
+
         if void_count > 0:
             final = "VOID"
         elif hold_count > 0:
@@ -314,22 +310,22 @@ class GovernanceKernel:
             final = "PARTIAL"
         else:
             final = "SEAL"
-        
+
         non_consensus = all(v == final for v in verdict_values)
         method = "UNANIMOUS" if non_consensus else "CONSERVATIVE_WINS"
-        
-        dissenters = [
-            v["agent"] for v in verdicts 
-            if v.get("verdict", "") != final
-        ]
-        
-        self.record_event("conflicting_verdicts", {
-            "candidate_count": len(verdicts),
-            "resolution_method": method,
-            "final_verdict": final,
-            "dissenters": dissenters,
-        })
-        
+
+        dissenters = [v["agent"] for v in verdicts if v.get("verdict", "") != final]
+
+        self.record_event(
+            "conflicting_verdicts",
+            {
+                "candidate_count": len(verdicts),
+                "resolution_method": method,
+                "final_verdict": final,
+                "dissenters": dissenters,
+            },
+        )
+
         return {
             "final_verdict": final,
             "method": method,
@@ -368,9 +364,7 @@ class GovernanceKernel:
     def get_current_state(self) -> dict[str, Any]:
         """Return dynamically computed governance state."""
         state = self.evaluate_floors(
-            query=(
-                self.temporal_contract.get("query") if self.temporal_contract else None
-            ),
+            query=(self.temporal_contract.get("query") if self.temporal_contract else None),
             options=self.temporal_contract,
         )
         state["genius"] = self.genius_score

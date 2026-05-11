@@ -22,7 +22,7 @@ _BRIDGE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 def _run_async_bridge(coro) -> Any:
     """Run an async coroutine from sync context, using executor for thread-safety."""
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
         # Already in async context — schedule on executor
         future = _BRIDGE_EXECUTOR.submit(asyncio.run, coro)
         return future.result(timeout=60)
@@ -58,9 +58,7 @@ def arif_kernel_route(
     """
     floor_check = check_floors("arif_kernel_route", {"target": target or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_kernel_route", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_kernel_route", floor_check["reason"], floor_check["failed_floors"])
 
     if mode == "route":
         return _ok(
@@ -69,17 +67,13 @@ def arif_kernel_route(
         )
 
     if mode == "kernel":
-        return _ok(
-            "arif_kernel_route", {"status": "running", "uptime": time.time() % 10000}
-        )
+        return _ok("arif_kernel_route", {"status": "running", "uptime": time.time() % 10000})
 
     if mode == "triage":
         return _ok("arif_kernel_route", {"priority": "normal", "queue": 0})
 
     if mode == "delegate":
-        return _ok(
-            "arif_kernel_route", {"agent": target, "task": task, "status": "delegated"}
-        )
+        return _ok("arif_kernel_route", {"agent": target, "task": task, "status": "delegated"})
 
     if mode == "status":
         from arifosmcp.runtime.tools import _SESSIONS
@@ -90,14 +84,10 @@ def arif_kernel_route(
         )
 
     if mode == "telemetry":
-        return _ok(
-            "arif_kernel_route", {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91}
-        )
+        return _ok("arif_kernel_route", {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91})
 
     if mode == "bridge":
-        return _run_async_bridge(
-            _bridge_organ_call(organ, tool_name, arguments)
-        )
+        return _run_async_bridge(_bridge_organ_call(organ, tool_name, arguments))
 
     if mode == "command_center":
         return _command_center_cockpit()

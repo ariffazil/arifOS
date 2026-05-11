@@ -152,9 +152,7 @@ class SeismicSingleLineTool:
         return SeismicInterpretationResult(
             primary_interpretation=interpretation,
             confidence=self._calculate_confidence(source_type, attributes),
-            plausible_model_candidates=self._generate_plausible_candidates(
-                interpretation
-            ),
+            plausible_model_candidates=self._generate_plausible_candidates(interpretation),
             attributes=attributes,
             bias_audit=bias_audit,
             transform_chain=transform_chain,
@@ -167,9 +165,7 @@ class SeismicSingleLineTool:
             return data
 
         # ACTIVATE ENGINE: If no data, use the Synthetic Generator (ToAC Grounding)
-        logger.info(
-            "[GEOX] Seismic Engine Ignite: Generating synthetic extensional block."
-        )
+        logger.info("[GEOX] Seismic Engine Ignite: Generating synthetic extensional block.")
         return self.generator.generate_extensional_block()
 
     def _compute_grounding_attributes(self, data: np.ndarray) -> dict[str, np.ndarray]:
@@ -215,19 +211,17 @@ class SeismicSingleLineTool:
 
         return audit
 
-    def _interpret_orchestrated(
-        self, data: np.ndarray, attributes: dict[str, np.ndarray]
-    ) -> str:
+    def _interpret_orchestrated(self, data: np.ndarray, attributes: dict[str, np.ndarray]) -> str:
         """Pattern recognition informed by attributes."""
         if "coherence" in attributes and np.mean(attributes["coherence"]) < 0.7:
-            return "Interpreted as a complex faulted extensional block with significant discontinuity."
+            return (
+                "Interpreted as a complex faulted extensional block with significant discontinuity."
+            )
         return "Interpreted as dominated by continuous stratigraphy with minimal structural deformation."
 
     def _interpret_from_visual_only(self, data: np.ndarray) -> str:
         """Pattern recognition without attribute grounding (DANGEROUS)."""
-        return (
-            "Preliminary visual interpretation: potential structural closures observed."
-        )
+        return "Preliminary visual interpretation: potential structural closures observed."
 
     def _calculate_confidence(self, source: str, attributes: dict) -> float:
         """Calculate humility-aware confidence score (F7)."""
@@ -285,9 +279,7 @@ class SeismicSingleLineTool:
             "## Bias Mitigation",
         ]
         for i, audit in enumerate(bias_audit):
-            audit_log.append(
-                f"Audit {i+1}: {audit.bias_type} - Severity: {audit.severity}"
-            )
+            audit_log.append(f"Audit {i+1}: {audit.bias_type} - Severity: {audit.severity}")
             audit_log.append(f" Mitigation: {audit.mitigation}")
 
         # Add physical grounding status

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 RULE_NO_IRREVERSIBLE_ACTION_WITHOUT_EXPLICIT_HUMAN_ACK = (
     "NO_IRREVERSIBLE_ACTION_WITHOUT_EXPLICIT_HUMAN_ACK"

@@ -18,9 +18,7 @@ from arifosmcp.runtime.quote_ledger import (
     QuoteSchemaError,
 )
 
-LEDGER_PATH = (
-    Path(__file__).resolve().parents[1] / "arifosmcp" / "data" / "wisdom_quotes_99.json"
-)
+LEDGER_PATH = Path(__file__).resolve().parents[1] / "arifosmcp" / "data" / "wisdom_quotes_99.json"
 
 
 class TestLoadLedger:

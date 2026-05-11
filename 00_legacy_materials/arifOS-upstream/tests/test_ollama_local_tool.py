@@ -10,9 +10,7 @@ from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 async def test_ollama_local_generate_routes_payload(monkeypatch):
     captured: dict[str, object] = {}
 
-    async def _fake_wrap_call(
-        tool_name, stage, session_id, payload, ctx=None, caller_context=None
-    ):
+    async def _fake_wrap_call(tool_name, stage, session_id, payload, ctx=None, caller_context=None):
         captured["tool_name"] = tool_name
         captured["session_id"] = session_id
         captured["payload"] = payload
@@ -50,9 +48,7 @@ async def test_ollama_local_generate_routes_payload(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_check_vital_includes_intelligence_service_probes(monkeypatch):
-    async def _fake_wrap_call(
-        tool_name, stage, session_id, payload, ctx=None, caller_context=None
-    ):
+    async def _fake_wrap_call(tool_name, stage, session_id, payload, ctx=None, caller_context=None):
         return RuntimeEnvelope(
             tool=tool_name,
             session_id=session_id,

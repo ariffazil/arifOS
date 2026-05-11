@@ -78,9 +78,7 @@ class TestCapabilityGatingInvariant:
         result = envelope.payload["result"]
         assert "continuation" in result
         next_tools = result["continuation"].get("next_allowed_tools", [])
-        assert (
-            "arifos_kernel" in next_tools
-        ), "Sovereign allowed tools should include kernel"
+        assert "arifos_kernel" in next_tools, "Sovereign allowed tools should include kernel"
 
     @pytest.mark.asyncio
     async def test_anonymous_next_action_is_anchor(self):

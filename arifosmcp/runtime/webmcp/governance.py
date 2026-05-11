@@ -76,9 +76,7 @@ class ActionRequest(BaseModel):
 
     # Agent Identity
     agent_did: AgentDID
-    agent_signature: str = Field(
-        ..., description="Cryptographic signature of this request"
-    )
+    agent_signature: str = Field(..., description="Cryptographic signature of this request")
     timestamp: float = Field(default_factory=time.time)
     nonce: str = Field(..., description="Unique nonce to prevent replay attacks")
 
@@ -91,23 +89,15 @@ class ActionRequest(BaseModel):
 
     # Tool/Execution Details
     tool_name: str | None = Field(None, description="Name of tool if applicable")
-    parameters: dict[str, Any] = Field(
-        default_factory=dict, description="Tool parameters"
-    )
+    parameters: dict[str, Any] = Field(default_factory=dict, description="Tool parameters")
 
     # Context
-    context: dict[str, Any] = Field(
-        default_factory=dict, description="Execution context"
-    )
-    reasoning_trace: list[str] = Field(
-        default_factory=list, description="AGI reasoning path"
-    )
+    context: dict[str, Any] = Field(default_factory=dict, description="Execution context")
+    reasoning_trace: list[str] = Field(default_factory=list, description="AGI reasoning path")
 
     # Stakeholder Analysis
     stakeholders: list[str] = Field(default_factory=list, description="Who is affected")
-    reversibility_proof: str | None = Field(
-        None, description="Proof action can be undone (F1)"
-    )
+    reversibility_proof: str | None = Field(None, description="Proof action can be undone (F1)")
 
     # Grounding Evidence (F2)
     evidence_urls: list[str] = Field(default_factory=list)
@@ -117,28 +107,18 @@ class ActionRequest(BaseModel):
     allow_partial: bool = Field(
         default=True, description="Allow PARTIAL verdict with modifications"
     )
-    request_recommendations: bool = Field(
-        default=True, description="Include fix recommendations"
-    )
+    request_recommendations: bool = Field(default=True, description="Include fix recommendations")
 
 
 class GovernanceMetrics(BaseModel):
     """Thermodynamic governance metrics."""
 
     G_star: float = Field(..., ge=0.0, le=1.0, description="Genius score - coherence")
-    entropy_delta: float = Field(
-        ..., description="Entropy delta - clarity (negative is good)"
-    )
+    entropy_delta: float = Field(..., description="Entropy delta - clarity (negative is good)")
     peace2: float = Field(..., ge=0.0, description="Stability score")
-    omega: float = Field(
-        ..., ge=0.0, le=1.0, description="Humility - uncertainty acknowledged"
-    )
-    kappa_r: float = Field(
-        ..., ge=0.0, le=1.0, description="Empathy - weakest stakeholder care"
-    )
-    C_dark: float = Field(
-        ..., ge=0.0, le=1.0, description="Shadow - hidden assumptions"
-    )
+    omega: float = Field(..., ge=0.0, le=1.0, description="Humility - uncertainty acknowledged")
+    kappa_r: float = Field(..., ge=0.0, le=1.0, description="Empathy - weakest stakeholder care")
+    C_dark: float = Field(..., ge=0.0, le=1.0, description="Shadow - hidden assumptions")
 
 
 class TriWitnessScore(BaseModel):
@@ -158,9 +138,7 @@ class GovernanceRecommendation(BaseModel):
     """Recommendation for fixing constitutional violations."""
 
     priority: int = Field(..., ge=1, le=5, description="1=critical, 5=minor")
-    category: str = Field(
-        ..., description="security|ethics|truth|reversibility|stability"
-    )
+    category: str = Field(..., description="security|ethics|truth|reversibility|stability")
     description: str
     suggested_modification: str | None = None
     floor_addressed: str | None = None
@@ -202,9 +180,7 @@ class GovernanceEvaluation(BaseModel):
     hold_url: str | None = None  # URL for human ratification UI
 
     # Audit Trail
-    audit_hash: str = Field(
-        ..., description="SHA-256 hash of this evaluation for VAULT999"
-    )
+    audit_hash: str = Field(..., description="SHA-256 hash of this evaluation for VAULT999")
 
     def compute_audit_hash(self) -> str:
         """Compute audit hash for VAULT999."""
@@ -300,9 +276,7 @@ class GovernanceEngine:
         # === F4: Clarity (Entropy) ===
         # Calculate based on action complexity
         complexity = len(request.parameters) + len(request.context)
-        entropy_delta = (
-            -0.1 * complexity
-        )  # More complex = more entropy reduction needed
+        entropy_delta = -0.1 * complexity  # More complex = more entropy reduction needed
 
         if entropy_delta <= 0:
             floors_passed.append("F4")
@@ -339,9 +313,7 @@ class GovernanceEngine:
         floors_passed.append("F7")
 
         # === F8: Genius ===
-        G_star = (
-            human_score * peace2 * 0.9 * (1.0 if request.reasoning_trace else 0.8) ** 2
-        )
+        G_star = human_score * peace2 * 0.9 * (1.0 if request.reasoning_trace else 0.8) ** 2
         if G_star >= 0.80:
             floors_passed.append("F8")
         else:
@@ -421,16 +393,17 @@ class GovernanceEngine:
             reasoning = f"Action has constitutional gaps in {', '.join(floors_failed)}. Modifications required."
         elif floors_failed:
             verdict = Verdict.SABAR
-            reasoning = f"Insufficient constitutional compliance. Review floors: {', '.join(floors_failed)}"
-        elif (
-            request.action_type in ["code_execution", "data_modification"]
-            and not human_available
-        ):
+            reasoning = (
+                f"Insufficient constitutional compliance. Review floors: {', '.join(floors_failed)}"
+            )
+        elif request.action_type in ["code_execution", "data_modification"] and not human_available:
             verdict = Verdict.HOLD_888
             reasoning = "High-risk action requires human sovereign ratification (F13)."
         else:
             verdict = Verdict.SEAL
-            reasoning = f"All {len(floors_passed)} constitutional floors satisfied. Action approved."
+            reasoning = (
+                f"All {len(floors_passed)} constitutional floors satisfied. Action approved."
+            )
 
         # Build metrics
         metrics = GovernanceMetrics(
@@ -486,9 +459,7 @@ class GovernanceEngine:
 
         return min(score, 1.0)
 
-    async def _seal_to_vault(
-        self, evaluation: GovernanceEvaluation, request: ActionRequest
-    ):
+    async def _seal_to_vault(self, evaluation: GovernanceEvaluation, request: ActionRequest):
         """Seal evaluation to VAULT999 (F1 Amanah)."""
         # This would call vault_seal tool in production
         pass

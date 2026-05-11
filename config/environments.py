@@ -422,9 +422,7 @@ TOOL_ACCESS_POLICY = {
 def is_tool_available(tool_name: str) -> bool:
     """Check if a tool should be available in current environment."""
     env = get_environment().mode.value
-    access_class = TOOL_ACCESS_POLICY.get(
-        tool_name, ToolAccessClass.SOVEREIGN_ONLY.value
-    )
+    access_class = TOOL_ACCESS_POLICY.get(tool_name, ToolAccessClass.SOVEREIGN_ONLY.value)
     if env == "horizon":
         return access_class == ToolAccessClass.PUBLIC.value
     if env in {"vps", "local"}:

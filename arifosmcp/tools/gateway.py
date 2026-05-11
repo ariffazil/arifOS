@@ -23,9 +23,7 @@ def arif_gateway_connect(
         "arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_gateway_connect", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_gateway_connect", floor_check["reason"], floor_check["failed_floors"])
 
     if mode == "route":
         return _ok(

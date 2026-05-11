@@ -191,9 +191,7 @@ class HandoffSealer:
 
         # Response = HMAC proving agent knows the secret key
         challenge_payload = f"{agent_state_hash}:{witness_challenge}:{action_digest}"
-        response = hmac.new(
-            self._secret, challenge_payload.encode(), hashlib.sha256
-        ).hexdigest()
+        response = hmac.new(self._secret, challenge_payload.encode(), hashlib.sha256).hexdigest()
 
         return AuthProof(
             agent_state_hash=agent_state_hash,
@@ -203,9 +201,7 @@ class HandoffSealer:
             response=response,
         )
 
-    def _sign_receipt(
-        self, receipt: HandoffReceipt, for_verification: bool = False
-    ) -> str:
+    def _sign_receipt(self, receipt: HandoffReceipt, for_verification: bool = False) -> str:
         """
         HMAC sign the receipt.
 
@@ -299,9 +295,7 @@ class HandoffSealer:
             return False, "HMAC signature mismatch"
 
         # 3. Auth proof verification
-        auth_valid, auth_reason = self._verify_auth_proof(
-            receipt.auth_proof, receipt.action_digest
-        )
+        auth_valid, auth_reason = self._verify_auth_proof(receipt.auth_proof, receipt.action_digest)
         if not auth_valid:
             return False, f"Auth proof verification failed: {auth_reason}"
 
@@ -323,9 +317,7 @@ class HandoffSealer:
 
         return True, "verified"
 
-    def _verify_auth_proof(
-        self, proof_str: str, action_digest: str
-    ) -> tuple[bool, str]:
+    def _verify_auth_proof(self, proof_str: str, action_digest: str) -> tuple[bool, str]:
         """Verify the HMAC auth proof structure."""
         try:
             parts = proof_str.split(":")

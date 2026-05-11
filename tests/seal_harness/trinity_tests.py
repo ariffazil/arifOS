@@ -43,15 +43,9 @@ class TrinityTestHarness:
         session_id = data.get("session_id") or result.get("session_id")
 
         assertions = [
-            self._assert(
-                verdict == "SEAL", f"Expected verdict 'SEAL', got '{verdict}'"
-            ),
-            self._assert(
-                session_id is not None and len(session_id) > 0, "Missing session_id"
-            ),
-            self._assert(
-                "anonymous" in session_id or "-" in session_id, "Malformed session_id"
-            ),
+            self._assert(verdict == "SEAL", f"Expected verdict 'SEAL', got '{verdict}'"),
+            self._assert(session_id is not None and len(session_id) > 0, "Missing session_id"),
+            self._assert("anonymous" in session_id or "-" in session_id, "Malformed session_id"),
         ]
 
         passed = all(a[0] for a in assertions)

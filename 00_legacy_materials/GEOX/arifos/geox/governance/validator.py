@@ -217,9 +217,7 @@ class GeoXValidator:
     SEAL_THRESHOLD: float = 0.80
     PARTIAL_LOWER: float = 0.50
 
-    def extract_predictions(
-        self, text: str, location: CoordinatePoint
-    ) -> list[GeoPrediction]:
+    def extract_predictions(self, text: str, location: CoordinatePoint) -> list[GeoPrediction]:
         """
         Parse LLM output text to extract testable geological claims.
 
@@ -254,9 +252,7 @@ class GeoXValidator:
 
                 # Normalise units
                 units = (
-                    detected_units.strip().replace("°", "deg")
-                    if detected_units
-                    else default_units
+                    detected_units.strip().replace("°", "deg") if detected_units else default_units
                 )
                 # Convert percent porosity to fraction if needed
                 if quantity_type == "porosity_pct" and (lo > 1.0 or hi > 1.0):
@@ -325,16 +321,8 @@ class GeoXValidator:
                         "query": f"verify {pred.target}",
                         "location": pred.location,
                         "depth_range_m": (
-                            (
-                                pred.location.depth_m - 500
-                                if pred.location.depth_m
-                                else 1000
-                            ),
-                            (
-                                pred.location.depth_m + 500
-                                if pred.location.depth_m
-                                else 3000
-                            ),
+                            (pred.location.depth_m - 500 if pred.location.depth_m else 1000),
+                            (pred.location.depth_m + 500 if pred.location.depth_m else 3000),
                         ),
                         "scenario": {
                             "latitude": pred.location.latitude,
@@ -377,9 +365,7 @@ class GeoXValidator:
         if total_count == 0:
             score = 0.5  # no tool evidence → ambiguous
             verdict: Literal["supported", "ambiguous", "contradicted"] = "ambiguous"
-            explanation = (
-                f"No tool returned data for '{pred.target}'. Result is ambiguous."
-            )
+            explanation = f"No tool returned data for '{pred.target}'. Result is ambiguous."
         else:
             match_ratio = matching_count / total_count
             if match_ratio >= 0.7:
@@ -471,9 +457,7 @@ class GeoXValidator:
         all_evidence = [qty for r in sub_results for qty in r.evidence]
 
         if "contradicted" in verdicts:
-            agg_verdict: Literal["supported", "ambiguous", "contradicted"] = (
-                "contradicted"
-            )
+            agg_verdict: Literal["supported", "ambiguous", "contradicted"] = "contradicted"
         elif all(v == "supported" for v in verdicts):
             agg_verdict = "supported"
         else:
@@ -629,11 +613,7 @@ class GeoXValidator:
         for pred in insight.support:
             for qty in pred.supporting_quantities:
                 if not qty.f7_override:
-                    if not (
-                        self.F7_UNCERTAINTY_MIN
-                        <= qty.uncertainty
-                        <= self.F7_UNCERTAINTY_MAX
-                    ):
+                    if not (self.F7_UNCERTAINTY_MIN <= qty.uncertainty <= self.F7_UNCERTAINTY_MAX):
                         f7_ok = False
                         break
         compliance["F7_humility"] = f7_ok

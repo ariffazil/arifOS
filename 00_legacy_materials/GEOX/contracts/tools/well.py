@@ -50,9 +50,7 @@ def register_well_tools(mcp: FastMCP, profile: str = "full"):
         )
 
     @mcp.tool(name="well_validate_cutoffs")
-    async def well_validate_cutoffs(
-        well_ref: str, parameter: str, value: float
-    ) -> dict:
+    async def well_validate_cutoffs(well_ref: str, parameter: str, value: float) -> dict:
         """Verify: Validate petrophysical cutoffs against regional norms."""
         artifact = {"well_ref": well_ref, "parameter": parameter, "valid": True}
         return get_standard_envelope(

@@ -57,7 +57,9 @@ def _check_contract() -> bool:
         af_min_client = data.get("min_compatible_client", "unknown")
 
         if af_min_client != "unknown" and A_FORGE_API_VERSION < af_min_client:
-            _contract_failure_reason = f"version_incompatible:client={A_FORGE_API_VERSION} requires_af>={af_min_client}"
+            _contract_failure_reason = (
+                f"version_incompatible:client={A_FORGE_API_VERSION} requires_af>={af_min_client}"
+            )
             _contract_checked = True
             _contract_valid = False
             print(
@@ -67,7 +69,9 @@ def _check_contract() -> bool:
             return False
 
         if af_api_version != "unknown" and af_api_version < MIN_COMPATIBLE_A_FORGE:
-            _contract_failure_reason = f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_A_FORGE}"
+            _contract_failure_reason = (
+                f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_A_FORGE}"
+            )
             _contract_checked = True
             _contract_valid = False
             print(
@@ -174,9 +178,7 @@ def call_a_forge_sense(
         data = resp.json()
 
         if not data.get("ok"):
-            print(
-                f"[A-FORGE] Bridge returned ok=false: {data.get('error')}", flush=True
-            )
+            print(f"[A-FORGE] Bridge returned ok=false: {data.get('error')}", flush=True)
             return None
 
         return data

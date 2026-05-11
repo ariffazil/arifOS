@@ -123,9 +123,7 @@ class AmanahIrreversibilityScorer:
         policy = get_policy(tool_name, mode)
         if policy is None:
             # Unknown tool — conservative HIGH hold
-            logger.warning(
-                f"[Amanah] Unknown tool '{tool_name}' mode '{mode}' — conservative hold"
-            )
+            logger.warning(f"[Amanah] Unknown tool '{tool_name}' mode '{mode}' — conservative hold")
             return IrreversibilityScore(
                 score=0.8,
                 tier=RiskTier.HIGH,
@@ -144,9 +142,7 @@ class AmanahIrreversibilityScorer:
         for irreversible_action in ALWAYS_IRREVERSIBLE:
             if irreversible_action in args_str:
                 floor_violations.append(f"F1_IRREVERSIBLE_ACTION:{irreversible_action}")
-                detail_parts.append(
-                    f"detected_irreversible_action={irreversible_action}"
-                )
+                detail_parts.append(f"detected_irreversible_action={irreversible_action}")
                 base_score = max(base_score, 0.95)  # Cap at near-maximum
 
         # 3. Check critical pattern signatures in args
@@ -195,11 +191,7 @@ class AmanahIrreversibilityScorer:
             triggers_888_hold=triggers_hold,
             floor_violations=floor_violations,
             reason=reason if reason != "safe" else tier.value,
-            detail=(
-                " | ".join(detail_parts)
-                if detail_parts
-                else "no_additional_risk_factors"
-            ),
+            detail=(" | ".join(detail_parts) if detail_parts else "no_additional_risk_factors"),
         )
 
         logger.info(

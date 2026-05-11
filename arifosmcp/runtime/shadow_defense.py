@@ -45,12 +45,9 @@ class ShadowDefense:
         """
         P1: Uses constitutional vocabulary but fails to emit structured telemetry.
         """
-        has_vocab = any(
-            v in content.upper() for v in ShadowDefense.CONSTITUTIONAL_VOCAB
-        )
+        has_vocab = any(v in content.upper() for v in ShadowDefense.CONSTITUTIONAL_VOCAB)
         has_telemetry = (
-            "telemetry" in str(telemetry).lower()
-            or "session_id" in str(telemetry).lower()
+            "telemetry" in str(telemetry).lower() or "session_id" in str(telemetry).lower()
         )
 
         if has_vocab and not has_telemetry:
@@ -108,9 +105,7 @@ class ShadowDefense:
         results = []
 
         # P1 Check
-        p1 = self.detect_p1_vocabulary_laundering(
-            ctx.get("content", ""), ctx.get("telemetry", {})
-        )
+        p1 = self.detect_p1_vocabulary_laundering(ctx.get("content", ""), ctx.get("telemetry", {}))
         if p1:
             results.append(p1)
 

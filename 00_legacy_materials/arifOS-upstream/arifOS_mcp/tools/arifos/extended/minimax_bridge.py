@@ -132,9 +132,7 @@ class MinimaxMCPBridge:
             "base_resp": {"status_code": -1, "status_msg": "no text content"},
         }
 
-    async def understand_image(
-        self, image_url: str, prompt: str = ""
-    ) -> dict[str, Any]:
+    async def understand_image(self, image_url: str, prompt: str = "") -> dict[str, Any]:
         """Analyze image via MiniMax MCP."""
         args: dict[str, Any] = {"image_source": image_url}
         if prompt:

@@ -30,17 +30,13 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
         return
 
     @mcp.tool(name="physics_judge_verdict")
-    async def physics_judge_verdict(
-        intent_ref: str, well_ref: str, prospect_ref: str
-    ) -> dict:
+    async def physics_judge_verdict(intent_ref: str, well_ref: str, prospect_ref: str) -> dict:
         """Judge: Execute the Sovereign 888_JUDGE on a Causal Scene."""
         well = store.get_evidence(well_ref)
         prospect = store.get_evidence(prospect_ref)
 
         if not well or not prospect:
-            artifact = {
-                "error": f"Evidence not found: well={well_ref}, prospect={prospect_ref}"
-            }
+            artifact = {"error": f"Evidence not found: well={well_ref}, prospect={prospect_ref}"}
             return get_standard_envelope(
                 artifact,
                 tool_class="judge",
@@ -247,9 +243,7 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
             )
 
         @mcp.tool(name="physics_acp_grant_seal")
-        async def physics_acp_grant_seal(
-            proposal_ref: str, human_auth_token: str
-        ) -> dict:
+        async def physics_acp_grant_seal(proposal_ref: str, human_auth_token: str) -> dict:
             """Grant 999_SEAL (sovereign human authority)."""
             artifact = await acp_grant_seal(proposal_ref, human_auth_token)
             return get_standard_envelope(
@@ -288,9 +282,7 @@ def register_physics_tools(mcp: FastMCP, profile: str = "full"):
 
             # Anti-Hantu check: prevent consciousness claims in transform logic
             for t in transform_stack:
-                if any(
-                    banned in t.lower() for banned in ["conscious", "sentient", "feel"]
-                ):
+                if any(banned in t.lower() for banned in ["conscious", "sentient", "feel"]):
                     artifact = {
                         "error": "Anti-Hantu Violation: Consciousness claim detected in transform stack."
                     }

@@ -39,9 +39,7 @@ class GeoXReporter:
     # generate_markdown_report()
     # ------------------------------------------------------------------
 
-    def generate_markdown_report(
-        self, response: GeoResponse, request: GeoRequest
-    ) -> str:
+    def generate_markdown_report(self, response: GeoResponse, request: GeoRequest) -> str:
         """
         Generate a full Markdown technical report for a GeoResponse.
 
@@ -68,9 +66,7 @@ class GeoXReporter:
 
         # --- Header ---
         lines.append("# GEOX Geological Intelligence Report")
-        lines.append(
-            "> **DITEMPA BUKAN DIBERI** — arifOS Geological Coprocessor v0.1.0"
-        )
+        lines.append("> **DITEMPA BUKAN DIBERI** — arifOS Geological Coprocessor v0.1.0")
         lines.append("")
         lines.append(f"**Generated:** {now}")
         lines.append(f"**Response ID:** `{response.response_id}`")
@@ -257,9 +253,7 @@ class GeoXReporter:
                 stage = event.get("stage", "—")
                 ev = event.get("event", "—")
                 ts = event.get("timestamp", "—")
-                lines.append(
-                    f"| {stage} | {ev} | {ts[:19] if isinstance(ts, str) else ts} |"
-                )
+                lines.append(f"| {stage} | {ev} | {ts[:19] if isinstance(ts, str) else ts} |")
             lines.append("")
         else:
             lines.append("_No audit events recorded._")
@@ -278,9 +272,7 @@ class GeoXReporter:
 
         return "\n".join(lines)
 
-    def _add_macrostrat_attribution(
-        self, report: list[str], metadata: dict[str, Any]
-    ) -> None:
+    def _add_macrostrat_attribution(self, report: list[str], metadata: dict[str, Any]) -> None:
         """Add Macrostrat attribution if it was used in the assessment."""
         if metadata.get("source") == "macrostrat.org":
             report.append("")

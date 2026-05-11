@@ -16,9 +16,7 @@ from .fastmcp_ext.transports import run_server
 def _bootstrap_environment() -> None:
     try:
         mode = (
-            sys.argv[1]
-            if len(sys.argv) > 1
-            else os.getenv("AAA_MCP_TRANSPORT", "stdio")
+            sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")
         ).lower()
         if mode == "stdio":
             os.environ.setdefault("ARIFOS_MINIMAL_STDIO", "1")
@@ -209,8 +207,7 @@ def _run_minimal_stdio_server() -> None:
                     contents.append(
                         {
                             "uri": str(c.uri),
-                            "mimeType": getattr(c, "mime_type", "text/plain")
-                            or "text/plain",
+                            "mimeType": getattr(c, "mime_type", "text/plain") or "text/plain",
                             "text": c.text,
                         }
                     )
@@ -258,9 +255,7 @@ def _run_minimal_stdio_server() -> None:
                     content = content.text
                 elif hasattr(content, "texts"):
                     content = "".join(getattr(t, "text", str(t)) for t in content.texts)
-                messages.append(
-                    {"role": role, "content": {"type": "text", "text": content}}
-                )
+                messages.append({"role": role, "content": {"type": "text", "text": content}})
         return {
             "description": getattr(prompt, "description", "") or "",
             "messages": messages,
@@ -359,9 +354,7 @@ def _run_minimal_stdio_server() -> None:
         if method == "prompts/list":
             try:
                 prompts = _async_loop.run_until_complete(_list_prompts())
-                send(
-                    {"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}}
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}})
             except Exception as exc:
                 send(
                     {
@@ -404,9 +397,7 @@ def _run_minimal_stdio_server() -> None:
                 {
                     "jsonrpc": "2.0",
                     "id": request_id,
-                    "result": {
-                        "tools": [tool_descriptor(name) for name in tool_handlers]
-                    },
+                    "result": {"tools": [tool_descriptor(name) for name in tool_handlers]},
                 }
             )
             continue

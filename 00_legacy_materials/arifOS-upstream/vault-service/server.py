@@ -111,28 +111,30 @@ def compute_chain_hash(prev_hash: str, payload_hash: str) -> str:
 
 async def get_last_seal(pool: asyncpg.Pool) -> dict | None:
     async with pool.acquire() as conn:
-        row = await conn.fetchrow("""
+        row = await conn.fetchrow(
+            """
             SELECT id, chain_hash
             FROM vault_seals
             ORDER BY epoch DESC
             LIMIT 1
-            """)
+            """
+        )
     return dict(row) if row else None
 
 
 async def verify_chain(pool: asyncpg.Pool) -> dict:
     """Walk vault_seals chain verifying BLAKE3(prev_chain_hash | action | epoch | payload) == seal_hash
     and BLAKE3(prev_seal_hash | seal_hash) == chain_hash for each link."""
-    GENESIS_CHAIN_HASH = (
-        "9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43"
-    )
+    GENESIS_CHAIN_HASH = "9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43"
 
     async with pool.acquire() as conn:
-        rows = await conn.fetch("""
+        rows = await conn.fetch(
+            """
             SELECT id, seal_hash, chain_hash, prev_seal_id, action, epoch, payload
             FROM vault_seals
             ORDER BY epoch ASC
-            """)
+            """
+        )
     if not rows:
         return {"INTACT": True, "gaps": 0, "total": 0}
 
@@ -154,9 +156,7 @@ async def verify_chain(pool: asyncpg.Pool) -> dict:
             else payload
         )
         epoch_iso = (
-            row["epoch"].isoformat()
-            if hasattr(row["epoch"], "isoformat")
-            else str(row["epoch"])
+            row["epoch"].isoformat() if hasattr(row["epoch"], "isoformat") else str(row["epoch"])
         )
         seal_input = f"{prev_chain_hash}|{row['action']}|{epoch_iso}|{canonical}"
         if _HAS_BLAKE3:
@@ -292,12 +292,14 @@ async def cli_pending(
         total = await conn.fetchval(
             "SELECT count(*) FROM cooling_queue WHERE status = 'awaiting_human'"
         )
-        breakdown = await conn.fetch("""
+        breakdown = await conn.fetch(
+            """
             SELECT risk_class, count(*) as cnt
             FROM cooling_queue
             WHERE status = 'awaiting_human'
             GROUP BY risk_class
-            """)
+            """
+        )
 
     risk_breakdown = {rc["risk_class"]: rc["cnt"] for rc in breakdown}
     oldest_min = min((i["hold_age_min"] for i in items), default=0)
@@ -344,9 +346,7 @@ async def cli_inspect(cooling_id: str):
         "hold_initiated_at": (
             r["hold_initiated_at"].isoformat() if r.get("hold_initiated_at") else None
         ),
-        "hold_deadline": (
-            r["hold_deadline"].isoformat() if r.get("hold_deadline") else None
-        ),
+        "hold_deadline": (r["hold_deadline"].isoformat() if r.get("hold_deadline") else None),
         "created_at": r["created_at"].isoformat() if r.get("created_at") else None,
         "updated_at": r["updated_at"].isoformat() if r.get("updated_at") else None,
         "reviewed_by": r.get("reviewed_by"),
@@ -402,9 +402,7 @@ async def cli_ratify(
         )
 
     if writer_resp.status_code >= 400:
-        raise HTTPException(
-            status_code=502, detail=f"vault_writer call failed: {writer_resp.text}"
-        )
+        raise HTTPException(status_code=502, detail=f"vault_writer call failed: {writer_resp.text}")
 
     result = writer_resp.json()
     return result
@@ -496,9 +494,7 @@ async def vault_audit(seal_id: str):
                 "reviewer_id": hr.get("reviewer_id"),
                 "decision": hr.get("decision"),
                 "reason": hr.get("reason"),
-                "reviewed_at": (
-                    hr["reviewed_at"].isoformat() if hr.get("reviewed_at") else None
-                ),
+                "reviewed_at": (hr["reviewed_at"].isoformat() if hr.get("reviewed_at") else None),
             }
 
         # Prev seal info
@@ -526,9 +522,7 @@ async def vault_audit(seal_id: str):
         "payload": s.get("payload"),
         "chain": {
             "prev_seal_id": str(s["prev_seal_id"]) if s.get("prev_seal_id") else None,
-            "prev_chain_hash": (
-                prev_seal_info["prev_chain_hash"] if prev_seal_info else None
-            ),
+            "prev_chain_hash": (prev_seal_info["prev_chain_hash"] if prev_seal_info else None),
             "is_genesis": s["prev_seal_id"] is None,
         },
         "human_review": human_review,

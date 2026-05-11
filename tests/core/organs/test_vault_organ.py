@@ -68,9 +68,7 @@ class TestVaultOrgan:
 
         # Create multiple commits
         for i in range(3):
-            await vault(
-                action="commit", session_id="test-vault-004", payload={"index": i}
-            )
+            await vault(action="commit", session_id="test-vault-004", payload={"index": i})
 
         # List commits
         result = await vault(action="list", session_id="test-vault-004")
@@ -215,13 +213,9 @@ class TestVaultEdgeCases:
         """Test vault with deeply nested data structures."""
         from core.organs._4_vault import vault
 
-        nested_data = {
-            "level1": {"level2": {"level3": {"level4": ["deep", "data", "here"]}}}
-        }
+        nested_data = {"level1": {"level2": {"level3": {"level4": ["deep", "data", "here"]}}}}
 
-        result = await vault(
-            action="commit", session_id="test-vault-nested", payload=nested_data
-        )
+        result = await vault(action="commit", session_id="test-vault-nested", payload=nested_data)
 
         assert result["status"] == "committed"
 

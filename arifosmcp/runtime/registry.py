@@ -158,9 +158,7 @@ def build_governance_card(
         # ── Graceful Degraded Card (Task 3) ──
         model_spec = {
             "provider": (
-                declared_model_key.split("/")[0]
-                if "/" in declared_model_key
-                else "unknown"
+                declared_model_key.split("/")[0] if "/" in declared_model_key else "unknown"
             ),
             "model_family": "unknown",
         }
@@ -212,9 +210,7 @@ def build_governance_card(
                 "provider_capabilities", runtime.get("tools_live", [])
             ),
             "tools_live": runtime.get("tools_live", []),
-            "arifos_public_tools": runtime.get(
-                "arifos_public_tools", CANONICAL_ARIFOS_TOOLS
-            ),
+            "arifos_public_tools": runtime.get("arifos_public_tools", CANONICAL_ARIFOS_TOOLS),
             "verified_arifos_tools": runtime.get(
                 "verified_arifos_tools",
                 runtime.get("arifos_public_tools", CANONICAL_ARIFOS_TOOLS),

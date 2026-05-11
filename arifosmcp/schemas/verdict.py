@@ -324,9 +324,7 @@ class AmanahProof(BaseModel):
     floors_checked: list[str] = Field(
         default_factory=list, description="F1-F13 floors evaluated for this action"
     )
-    floors_passed: list[str] = Field(
-        default_factory=list, description="Floors that passed"
-    )
+    floors_passed: list[str] = Field(default_factory=list, description="Floors that passed")
     floors_failed: list[str] = Field(
         default_factory=list, description="Floors that blocked or required override"
     )
@@ -344,9 +342,7 @@ class AmanahProof(BaseModel):
     override_acknowledged: bool = Field(
         default=False, description="Did sovereign (F13) override any floor?"
     )
-    override_reason: str | None = Field(
-        default=None, description="Why sovereign chose to override"
-    )
+    override_reason: str | None = Field(default=None, description="Why sovereign chose to override")
     override_authorizer: str | None = Field(
         default=None, description="Who authorized the override (must be sovereign)"
     )
@@ -411,9 +407,7 @@ class FloorComplianceProof(BaseModel):
     )
 
     # F13 Sovereign
-    f13_invoked: bool = Field(
-        default=False, description="Was F13 (sovereign veto) triggered?"
-    )
+    f13_invoked: bool = Field(default=False, description="Was F13 (sovereign veto) triggered?")
     f13_veto_triggered: bool = Field(
         default=False, description="Did sovereign actually exercise veto?"
     )
@@ -449,9 +443,7 @@ class DissentReasoning(BaseModel):
     )
 
     # Why dissent was overruled
-    dissent_overruled: bool = Field(
-        default=False, description="Was dissent formally overruled?"
-    )
+    dissent_overruled: bool = Field(default=False, description="Was dissent formally overruled?")
     overruling_rationale: str | None = Field(
         default=None, description="Why dissent was not adopted as the verdict"
     )
@@ -486,9 +478,7 @@ class CivilizationalAnchor(BaseModel):
     dimension: str = Field(
         description="'entropy' | 'ethics' | 'uncertainty' | 'growth' | 'identity' | 'governance'"
     )
-    stage_relevance: str = Field(
-        description="Which 13-stage tool this anchor stabilizes"
-    )
+    stage_relevance: str = Field(description="Which 13-stage tool this anchor stabilizes")
 
     # Selection justification
     selection_rationale: str | None = Field(
@@ -550,9 +540,7 @@ class VerdictOutput(BaseModel):
     )
 
     # ── Growth Layer ──
-    growth_paradox: GrowthParadox | None = Field(
-        default=None, description="Scale risk detection"
-    )
+    growth_paradox: GrowthParadox | None = Field(default=None, description="Scale risk detection")
 
     # ── AKAL Layer ──
     akal_state: AkalState | None = Field(
@@ -710,9 +698,7 @@ class EntropyDelta(BaseModel):
 class EpistemicSnapshot(BaseModel):
     """State of knowledge at time of sealing."""
 
-    omega_ortho: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Orthogonal coherence"
-    )
+    omega_ortho: float = Field(default=0.0, ge=0.0, le=1.0, description="Orthogonal coherence")
     confidence: float = Field(default=0.5, ge=0.0, le=1.0)
     data_gaps: list[str] = Field(default_factory=list)
     assumptions: list[str] = Field(default_factory=list)

@@ -191,24 +191,16 @@ Examples:
     )
 
     parser.add_argument("--validate", action="store_true", help="Validate setup")
-    parser.add_argument(
-        "--list", action="store_true", help="List available experiments"
-    )
-    parser.add_argument(
-        "--baseline", action="store_true", help="Run baseline experiment"
-    )
-    parser.add_argument(
-        "--overnight", action="store_true", help="Run overnight optimization"
-    )
+    parser.add_argument("--list", action="store_true", help="List available experiments")
+    parser.add_argument("--baseline", action="store_true", help="Run baseline experiment")
+    parser.add_argument("--overnight", action="store_true", help="Run overnight optimization")
     parser.add_argument("--status", action="store_true", help="Show status")
 
     parser.add_argument("--experiment", type=str, help="Experiment ID")
     parser.add_argument("--change", type=str, help="Change description")
     parser.add_argument("--apply", action="store_true", help="Apply config and run")
 
-    parser.add_argument(
-        "--duration", type=int, default=300, help="Experiment duration (seconds)"
-    )
+    parser.add_argument("--duration", type=int, default=300, help="Experiment duration (seconds)")
 
     args = parser.parse_args()
 

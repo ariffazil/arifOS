@@ -81,9 +81,7 @@ def test_run_remote_bash_normalizes_crlf_and_uses_bytes(monkeypatch):
 
     monkeypatch.setattr(module.subprocess, "run", _fake_run)
 
-    result = module.run_remote_bash(
-        "root@example.com", "set -euo pipefail\r\nprintf 'ok'\r\n"
-    )
+    result = module.run_remote_bash("root@example.com", "set -euo pipefail\r\nprintf 'ok'\r\n")
 
     assert result.returncode == 0
     assert recorded["cmd"] == [

@@ -204,9 +204,7 @@ class TestOutputFormatterSchemaMode:
         assert "answer" in result
 
     def test_schema_metadata_present(self):
-        result = self.fmt.format(
-            {"confidence": 0.8, "verdict": "SEAL"}, template_name="decision"
-        )
+        result = self.fmt.format({"confidence": 0.8, "verdict": "SEAL"}, template_name="decision")
         assert "_metadata" in result
         assert result["_metadata"]["template"] == "decision"
 

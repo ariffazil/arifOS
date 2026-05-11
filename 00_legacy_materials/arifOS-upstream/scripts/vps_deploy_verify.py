@@ -197,9 +197,7 @@ def check_layer3_commit(node_url: str, health: dict[str, Any]) -> LayerReport:
     )
 
 
-def check_layer4_tool_registration(
-    node_url: str, health: dict[str, Any]
-) -> LayerReport:
+def check_layer4_tool_registration(node_url: str, health: dict[str, Any]) -> LayerReport:
     """Layer 4: Tool registration at boot determines what's visible to MCP clients."""
     tools_loaded = health.get("tools_loaded", 0)
 
@@ -312,9 +310,7 @@ def verify_node(node_url: str, check_all: bool = True) -> NodeVerification:
 
 def main():
     parser = argparse.ArgumentParser(description="arifOS 4-Layer Runtime Verification")
-    parser.add_argument(
-        "--node", "-n", default="https://mcp.arif-fazil.com", help="Node URL"
-    )
+    parser.add_argument("--node", "-n", default="https://mcp.arif-fazil.com", help="Node URL")
     parser.add_argument("--check-all", action="store_true", help="Run all layer checks")
     parser.add_argument("--check-commit", action="store_true", help="Layer 3 only")
     parser.add_argument("--output-json", "-o", help="Write report to JSON file")

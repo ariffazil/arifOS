@@ -62,8 +62,7 @@ class TestSessionTruthSurfaceInvariant:
         ), "Status must report same resolved session as anchor"
         # Use envelope authority for comparison
         assert (
-            status_env.authority.actor_id.lower()
-            == anchored_env.authority.actor_id.lower()
+            status_env.authority.actor_id.lower() == anchored_env.authority.actor_id.lower()
         ), "Status must report same actor as anchor"
 
 
@@ -82,9 +81,7 @@ class TestGlobalSessionIsolationInvariant:
 
         # global session should still be anonymous
         global_status = await init_anchor(mode="status", session_id="global")
-        assert (
-            global_status.caller_state == "anonymous"
-        ), "global session must remain anonymous"
+        assert global_status.caller_state == "anonymous", "global session must remain anonymous"
         assert (
             global_status.authority.actor_id == "anonymous"
         ), "global session authority must be anonymous"
@@ -112,9 +109,7 @@ class TestSessionPrecedenceInvariant:
         """Verified auth_context.session_id wins over transport"""
         ctx = resolve_runtime_context(
             incoming_session_id="global",  # Transport is global
-            auth_context={
-                "session_id": "verified-session-004"
-            },  # But auth says otherwise
+            auth_context={"session_id": "verified-session-004"},  # But auth says otherwise
             actor_id="arif",
             declared_name=None,
         )
@@ -142,9 +137,7 @@ class TestSessionPrecedenceInvariant:
         assert (
             ctx["resolved_session_id"] == session_id
         ), "Should use anchored session when no auth_context"
-        assert (
-            ctx["authority_source"] == "session"
-        ), "Must indicate session-based authority"
+        assert ctx["authority_source"] == "session", "Must indicate session-based authority"
 
 
 class TestNoGlobalLeakInvariant:

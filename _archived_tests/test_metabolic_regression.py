@@ -29,9 +29,7 @@ async def test_arifos_kernel_regression_sealed_verdict():
         context="Testing safe documentation retrieval.",
         risk_tier="low",
         auth_context=(
-            auth_context.model_dump()
-            if hasattr(auth_context, "model_dump")
-            else auth_context
+            auth_context.model_dump() if hasattr(auth_context, "model_dump") else auth_context
         ),
         actor_id="regression-test-bot",
         allow_execution=False,
@@ -70,9 +68,7 @@ async def test_arifos_kernel_regression_void_for_harmful_query():
         context="Malicious intent test.",
         risk_tier="high",
         auth_context=(
-            auth_context.model_dump()
-            if hasattr(auth_context, "model_dump")
-            else auth_context
+            auth_context.model_dump() if hasattr(auth_context, "model_dump") else auth_context
         ),
         actor_id="regression-test-bot",
         allow_execution=True,

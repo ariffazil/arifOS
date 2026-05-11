@@ -209,9 +209,7 @@ class TestStatusMode:
 
     @pytest.mark.asyncio
     async def test_status_preserves_existing_session_id(self):
-        result = await execute(
-            operator_id="arif", mode="status", session_id="existing-123"
-        )
+        result = await execute(operator_id="arif", mode="status", session_id="existing-123")
         assert result["session_id"] == "existing-123"
 
     @pytest.mark.asyncio
@@ -268,9 +266,7 @@ class TestBindModeValidation:
     @pytest.mark.asyncio
     async def test_bind_ontology_lock_missing_disclaimers(self):
         payload = make_valid_bind_payload()
-        payload["ontology_lock"]["not_claiming"] = [
-            "consciousness"
-        ]  # missing soul, etc.
+        payload["ontology_lock"]["not_claiming"] = ["consciousness"]  # missing soul, etc.
         result = await execute(operator_id="arif", mode="bind", bind_payload=payload)
         assert result["verdict"] == "VOID"
 
@@ -313,9 +309,7 @@ class TestBindModeValidation:
     async def test_bind_floor_redefinition_attempt(self):
         """Attempting to redefine F5 invariant → VOID."""
         payload = make_valid_bind_payload()
-        payload["floor_mapping"]["F5_PEACE2"][
-            "invariant"
-        ] = "Harm potential can be ignored"
+        payload["floor_mapping"]["F5_PEACE2"]["invariant"] = "Harm potential can be ignored"
         result = await execute(operator_id="arif", mode="bind", bind_payload=payload)
         assert result["verdict"] == "VOID"
         assert "F5_PEACE2" in str(result.get("reason", ""))
@@ -418,9 +412,7 @@ class TestRevokeMode:
 
     @pytest.mark.asyncio
     async def test_revoke_returns_revoked_status(self):
-        result = await execute(
-            operator_id="arif", mode="revoke", session_id="test-session-123"
-        )
+        result = await execute(operator_id="arif", mode="revoke", session_id="test-session-123")
         assert result["status"] == "REVOKED"
         assert result["session_id"] == "test-session-123"
 

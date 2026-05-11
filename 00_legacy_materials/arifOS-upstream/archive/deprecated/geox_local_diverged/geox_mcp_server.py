@@ -65,9 +65,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     """Execute tools with hardening."""
     if name == "geox_health":
         status = GEOXFoundation.ignite()
-        return [
-            TextContent(type="text", text=f"GEOX Health: {status['verdict']}\n{status}")
-        ]
+        return [TextContent(type="text", text=f"GEOX Health: {status['verdict']}\n{status}")]
 
     # Delegate to hardened agent
     envelope = await agent.execute_tool(name, arguments)
@@ -78,9 +76,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         text += f"Reason: {envelope['explanation']}\n\n"
         text += f"Result Payload: {envelope['payload']}"
     else:
-        text = (
-            f"Explanation: {envelope['explanation']}\n\nPayload: {envelope['payload']}"
-        )
+        text = f"Explanation: {envelope['explanation']}\n\nPayload: {envelope['payload']}"
 
     # Inject arifOS branding
     text += f"\n\n---\nGEOX v{envelope['version']} | G-Score: {envelope['metrics']['genius_score']} | delta_S: {envelope['metrics']['delta_s']}"

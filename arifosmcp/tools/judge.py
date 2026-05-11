@@ -72,9 +72,7 @@ def arif_judge_deliberate(
                 "tool": "arif_judge_deliberate",
                 "candidate": candidate,
                 "verdict": result.get("verdict", ""),
-                "constitutional_chain_id": result.get("meta", {}).get(
-                    "constitutional_chain_id"
-                ),
+                "constitutional_chain_id": result.get("meta", {}).get("constitutional_chain_id"),
                 "state_hash": result.get("meta", {}).get("state_hash"),
             }
 
@@ -89,9 +87,7 @@ def arif_judge_deliberate(
             if "meta" not in result:
                 result["meta"] = {}
             result["meta"]["vault_sealed"] = True
-            result["meta"]["vault_entry_id"] = getattr(
-                seal_result, "entry_id", vault_entry_id
-            )
+            result["meta"]["vault_entry_id"] = getattr(seal_result, "entry_id", vault_entry_id)
         except Exception:
             if "meta" not in result:
                 result["meta"] = {}

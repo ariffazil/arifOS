@@ -49,14 +49,10 @@ def check_tool_registry() -> list[str]:
     canonical_order = data.get("canonical_order", [])
     for name in canonical_order:
         if not name.startswith("arif_"):
-            errors.append(
-                f"tool_registry.json: canonical_order contains non-arif_* name: {name}"
-            )
+            errors.append(f"tool_registry.json: canonical_order contains non-arif_* name: {name}")
     for name in tools:
         if not name.startswith("arif_"):
-            errors.append(
-                f"tool_registry.json: tools dict contains non-arif_* name: {name}"
-            )
+            errors.append(f"tool_registry.json: tools dict contains non-arif_* name: {name}")
     if len(canonical_order) != 13:
         errors.append(
             f"tool_registry.json: expected 13 canonical tools, found {len(canonical_order)}"
@@ -87,9 +83,7 @@ def check_readme() -> list[str]:
                 # Allow database URL example
                 if all("DATABASE_URL" in bl for bl in bad_lines):
                     continue
-                errors.append(
-                    f"README.md: contains legacy name '{name}' in: {bad_lines[0]}"
-                )
+                errors.append(f"README.md: contains legacy name '{name}' in: {bad_lines[0]}")
     return errors
 
 

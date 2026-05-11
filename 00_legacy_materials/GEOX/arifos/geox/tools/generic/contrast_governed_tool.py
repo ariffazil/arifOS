@@ -149,9 +149,7 @@ class ContrastGovernedTool(ABC):
             floor_violations = self._check_compliance(output, taxonomy)
 
             # Step 5: Generate verdict
-            verdict, reason = self._generate_verdict(
-                taxonomy, transform_chain, floor_violations
-            )
+            verdict, reason = self._generate_verdict(taxonomy, transform_chain, floor_violations)
 
             return ToolResult(
                 output=output,

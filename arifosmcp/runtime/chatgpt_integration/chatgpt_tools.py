@@ -40,9 +40,7 @@ async def search(query: str) -> dict[str, Any]:
 
     try:
         # Use physics_reality in search mode to find information
-        result = await physics_reality(
-            mode="search", payload={"query": query, "limit": 10}
-        )
+        result = await physics_reality(mode="search", payload={"query": query, "limit": 10})
 
         # Extract results from arifOS response
         payload = result.payload if hasattr(result, "payload") else result
@@ -75,19 +73,11 @@ async def search(query: str) -> dict[str, Any]:
             chatgpt_results.append({"id": doc_id, "title": title, "url": url})
 
         # Return in MCP content format
-        return {
-            "content": [
-                {"type": "text", "text": json.dumps({"results": chatgpt_results})}
-            ]
-        }
+        return {"content": [{"type": "text", "text": json.dumps({"results": chatgpt_results})}]}
 
     except Exception as e:
         logger.error(f"[ChatGPT] search error: {e}")
-        return {
-            "content": [
-                {"type": "text", "text": json.dumps({"results": [], "error": str(e)})}
-            ]
-        }
+        return {"content": [{"type": "text", "text": json.dumps({"results": [], "error": str(e)})}]}
 
 
 async def fetch(id: str) -> dict[str, Any]:

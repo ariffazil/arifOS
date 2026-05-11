@@ -246,9 +246,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         arguments=(
             _arg("candidate", True, "Action to evaluate"),
-            _arg(
-                "risk_tier", False, "Risk level: low, medium, high, critical", "medium"
-            ),
+            _arg("risk_tier", False, "Risk level: low, medium, high, critical", "medium"),
         ),
         template_text=(
             "Please render constitutional verdict for: {{candidate}}. "
@@ -273,9 +271,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         arguments=(
             _arg("verdict_json", True, "Machine verdict to explain"),
-            _arg(
-                "audience", False, "Target: technical, executive, or general", "general"
-            ),
+            _arg("audience", False, "Target: technical, executive, or general", "general"),
         ),
         template_text=(
             "Please explain this constitutional verdict in "

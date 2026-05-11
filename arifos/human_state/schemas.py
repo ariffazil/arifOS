@@ -25,6 +25,4 @@ class HumanStateEstimate:
     safe_statement: str
     forbidden_claims: List[str]
     human_confirmation_required: bool
-    medical_boundary: str = (
-        "This is operational readiness inference, not medical diagnosis."
-    )
+    medical_boundary: str = "This is operational readiness inference, not medical diagnosis."

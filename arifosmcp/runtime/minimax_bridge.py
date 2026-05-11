@@ -153,9 +153,7 @@ class _RawMinimaxBridge:
         arguments: dict[str, Any] = {"image_source": image_url}
         if prompt:
             arguments["prompt"] = prompt
-        result = self._call_sync(
-            "tools/call", {"name": "understand_image", "arguments": arguments}
-        )
+        result = self._call_sync("tools/call", {"name": "understand_image", "arguments": arguments})
         if result is None:
             return {
                 "result": "",
@@ -299,9 +297,7 @@ class MinimaxMCPBridge:
             },
         }
 
-    async def understand_image(
-        self, image_url: str, question: str | None = None
-    ) -> dict[str, Any]:
+    async def understand_image(self, image_url: str, question: str | None = None) -> dict[str, Any]:
         if not _MINIMAX_API_KEY:
             return {
                 "status": "error",

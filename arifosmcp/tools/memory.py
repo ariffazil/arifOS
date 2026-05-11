@@ -29,9 +29,7 @@ def arif_memory_recall(
 ) -> dict[str, Any]:
     floor_check = check_floors("arif_memory_recall", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_memory_recall", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
 
     # Langfuse sync trace — 555_MEMORY
     _sync_trace(
@@ -119,20 +117,14 @@ def arif_memory_recall(
         )
 
     if mode == "recall":
-        return _ok(
-            "arif_memory_recall", {"query": query, "memories": [], "confidence": 0.0}
-        )
+        return _ok("arif_memory_recall", {"query": query, "memories": [], "confidence": 0.0})
     if mode == "store":
-        return _ok(
-            "arif_memory_recall", {"stored": True, "memory_id": uuid.uuid4().hex[:8]}
-        )
+        return _ok("arif_memory_recall", {"stored": True, "memory_id": uuid.uuid4().hex[:8]})
     if mode == "search":
         return _ok("arif_memory_recall", {"query": query, "results": []})
     if mode == "prune":
         return _ok("arif_memory_recall", {"pruned": memory_id, "reason": "entropy"})
     if mode == "context":
-        return _ok(
-            "arif_memory_recall", {"session_id": session_id, "context_window": []}
-        )
+        return _ok("arif_memory_recall", {"session_id": session_id, "context_window": []})
 
     return _hold("arif_memory_recall", f"Unknown mode: {mode}")

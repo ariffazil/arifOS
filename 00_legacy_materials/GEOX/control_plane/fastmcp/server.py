@@ -202,13 +202,8 @@ async def legacy_mcp_handler(request):
     response_id = payload.get("id")
 
     if method == "tools/list":
-        tools = [
-            {"name": t.name, "description": t.description}
-            for t in await mcp.list_tools()
-        ]
-        return JSONResponse(
-            {"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}}
-        )
+        tools = [{"name": t.name, "description": t.description} for t in await mcp.list_tools()]
+        return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}})
 
     if method == "tools/call":
         name = params.get("name")

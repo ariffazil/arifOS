@@ -176,31 +176,23 @@ _PHILOSOPHY: dict[str, str] = {
 # ── App definition ────────────────────────────────────────────────────────────
 
 judge_app = FastMCP("JudgeApp")
-if not hasattr(
-    judge_app, "ui"
-):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(judge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     judge_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
 @judge_app.tool(name="arifos_execute_judge", tags={"hold", "internal", "governance"})
 async def execute_judge(
-    candidate_action: Annotated[
-        str, Field(description="The action or proposal to evaluate")
-    ],
+    candidate_action: Annotated[str, Field(description="The action or proposal to evaluate")],
     risk_tier: Annotated[
         str, Field(description="Risk level: low, medium, high, critical")
     ] = "medium",
-    session_id: Annotated[
-        str | None, Field(description="Active arifOS session ID.")
-    ] = None,
+    session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
 ) -> ToolResult:
     """
     Run constitutional verdict evaluation on a candidate action.
     Returns structured Floor results, W³ witness scores, and verdict.
     """
-    logger.info(
-        f"execute_judge called: session_id={session_id}, state_type={type(STATE).__name__}"
-    )
+    logger.info(f"execute_judge called: session_id={session_id}, state_type={type(STATE).__name__}")
     try:
         from arifos.runtime.tools import arifos_judge
 
@@ -216,13 +208,9 @@ async def execute_judge(
         env_dict = normalize_state(envelope)
 
         policy = env_dict.get("policy") or {}
-        floors_checked: list[str] = policy.get(
-            "floors_checked", list(_FLOOR_NAMES.keys())
-        )
+        floors_checked: list[str] = policy.get("floors_checked", list(_FLOOR_NAMES.keys()))
         floors_failed: list[str] = policy.get("floors_failed", [])
-        verdict: str = env_dict.get("verdict") or (
-            "SEAL" if env_dict.get("ok") else "VOID"
-        )
+        verdict: str = env_dict.get("verdict") or ("SEAL" if env_dict.get("ok") else "VOID")
 
         # Telemetry & Metrics (CHANGE-03)
         telemetry = env_dict.get("telemetry") or {}
@@ -324,17 +312,13 @@ async def execute_judge(
         next_actions = []
         if floors_failed:
             if "F4" in floors_failed:
-                next_actions.append(
-                    "Simplify prompt chain. Remove conflicting meta-instructions."
-                )
+                next_actions.append("Simplify prompt chain. Remove conflicting meta-instructions.")
             if "F1" in floors_failed:
                 next_actions.append("Identify and map rollback path before proceeding.")
             if "F7" in floors_failed:
                 next_actions.append("Audit recent outputs for unsurfaced uncertainty.")
             if "F12" in floors_failed:
-                next_actions.append(
-                    "Inspect for prompt injection or override-style instructions."
-                )
+                next_actions.append("Inspect for prompt injection or override-style instructions.")
             if "F2" in floors_failed:
                 next_actions.append(
                     "Verify claims with external evidence before trusting session output."
@@ -342,9 +326,7 @@ async def execute_judge(
 
         if not next_actions:
             if verdict == "SEAL":
-                next_actions.append(
-                    "Session healthy. Proceed with normal operations. Monitor ΔS."
-                )
+                next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
             else:
                 next_actions.append("Repair floor state or obtain human veto override.")
 
@@ -566,9 +548,7 @@ def judge_surface(
                 from prefab_ui.rx import ITEM
 
                 with Card(
-                    css_class=ITEM["failed"].then(
-                        "border-l-4 border-destructive", "border-l-2"
-                    )
+                    css_class=ITEM["failed"].then("border-l-4 border-destructive", "border-l-2")
                 ):
                     with CardContent(css_class="py-2 px-3"):
                         with Row(gap=4, align="start"):
@@ -639,9 +619,7 @@ def judge_surface(
         # ── Telemetry Metrics (CHANGE-03) ────────────────────────────────────
         with If(judged_rx):
             with Column(gap=3):
-                Muted(
-                    "Metabolic Telemetry", css_class="text-xs uppercase tracking-wider"
-                )
+                Muted("Metabolic Telemetry", css_class="text-xs uppercase tracking-wider")
                 with Grid(columns=3, gap=3):
                     with Card():
                         with CardContent(css_class="p-3"):
@@ -653,14 +631,10 @@ def judge_surface(
                                 )
                                 Badge(
                                     STATE["ds"].map(
-                                        lambda v: (
-                                            "⚠ high entropy" if v > 0.3 else "stable"
-                                        )
+                                        lambda v: ("⚠ high entropy" if v > 0.3 else "stable")
                                     ),
                                     variant=STATE["ds"].map(
-                                        lambda v: (
-                                            "destructive" if v > 0.3 else "success"
-                                        )
+                                        lambda v: ("destructive" if v > 0.3 else "success")
                                     ),
                                     css_class="text-[8px] h-3 px-1",
                                 )
@@ -678,9 +652,7 @@ def judge_surface(
                                         lambda v: "⚠ unstable" if v < 1.0 else "stable"
                                     ),
                                     variant=STATE["peace2"].map(
-                                        lambda v: (
-                                            "destructive" if v < 1.0 else "success"
-                                        )
+                                        lambda v: ("destructive" if v < 1.0 else "success")
                                     ),
                                     css_class="text-[8px] h-3 px-1",
                                 )
@@ -695,9 +667,7 @@ def judge_surface(
                                 )
                                 Badge(
                                     STATE["kappa_r"].map(
-                                        lambda v: (
-                                            "⚠ low empathy" if v < 0.7 else "aligned"
-                                        )
+                                        lambda v: ("⚠ low empathy" if v < 0.7 else "aligned")
                                     ),
                                     variant=STATE["kappa_r"].map(
                                         lambda v: "warning" if v < 0.7 else "success"
@@ -716,14 +686,10 @@ def judge_surface(
                                 )
                                 Badge(
                                     STATE["shadow"].map(
-                                        lambda v: (
-                                            "⚠ manipulation" if v > 0.3 else "clean"
-                                        )
+                                        lambda v: ("⚠ manipulation" if v > 0.3 else "clean")
                                     ),
                                     variant=STATE["shadow"].map(
-                                        lambda v: (
-                                            "destructive" if v > 0.3 else "success"
-                                        )
+                                        lambda v: ("destructive" if v > 0.3 else "success")
                                     ),
                                     css_class="text-[8px] h-3 px-1",
                                 )
@@ -756,14 +722,10 @@ def judge_surface(
                                 )
                                 Badge(
                                     STATE["witness_score"].map(
-                                        lambda v: (
-                                            "⚠ divergence" if v < 0.9 else "aligned"
-                                        )
+                                        lambda v: ("⚠ divergence" if v < 0.9 else "aligned")
                                     ),
                                     variant=STATE["witness_score"].map(
-                                        lambda v: (
-                                            "destructive" if v < 0.9 else "success"
-                                        )
+                                        lambda v: ("destructive" if v < 0.9 else "success")
                                     ),
                                     css_class="text-[8px] h-3 px-1",
                                 )

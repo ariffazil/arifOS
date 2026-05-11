@@ -514,9 +514,7 @@ async def app(scope: dict, receive: Any, send: Any) -> None:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="GEOX MCP Server — DITEMPA BUKAN DIBERI"
-    )
+    parser = argparse.ArgumentParser(description="GEOX MCP Server — DITEMPA BUKAN DIBERI")
     parser.add_argument("--host", default="0.0.0.0", help="Bind host")
     parser.add_argument("--port", type=int, default=8100, help="Bind port")
     parser.add_argument("--log-level", default="info", help="Log level")
@@ -531,8 +529,7 @@ if __name__ == "__main__":
     logger.info("Host: %s | Port: %d", args_parsed.host, args_parsed.port)
     logger.info("Registered tools: %s", _tool_registry.list_tools())
     logger.info(
-        "arifOS registration: add geox to mcp_servers with url "
-        "http://geox-server:%d/mcp",
+        "arifOS registration: add geox to mcp_servers with url " "http://geox-server:%d/mcp",
         args_parsed.port,
     )
 

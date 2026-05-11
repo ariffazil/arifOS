@@ -100,16 +100,14 @@ class ProvenanceRecord(BaseModel):
         description="Unique identifier of the data source or model run.",
         examples=["LEM-MALAY-2024-001", "WELL-LOG-PM3-1987"],
     )
-    source_type: Literal["LEM", "VLM", "sensor", "simulator", "human", "literature"] = (
-        Field(
-            ...,
-            description=(
-                "Category of source. LEM = Large Earth Model, VLM = Vision Language Model, "
-                "sensor = physical instrument, simulator = basin/PVT model, "
-                "human = expert annotation, literature = published research."
-            ),
-            examples=["LEM", "sensor"],
-        )
+    source_type: Literal["LEM", "VLM", "sensor", "simulator", "human", "literature"] = Field(
+        ...,
+        description=(
+            "Category of source. LEM = Large Earth Model, VLM = Vision Language Model, "
+            "sensor = physical instrument, simulator = basin/PVT model, "
+            "human = expert annotation, literature = published research."
+        ),
+        examples=["LEM", "sensor"],
     )
     timestamp: datetime = Field(
         ...,
@@ -134,9 +132,7 @@ class ProvenanceRecord(BaseModel):
             "Human-readable citation string for literature sources. "
             "Format: Author (Year), Journal/Report, DOI/URL."
         ),
-        examples=[
-            "Hutchison (1996), Geology of North-West Borneo, ISBN 978-0-444-52862-1"
-        ],
+        examples=["Hutchison (1996), Geology of North-West Borneo, ISBN 978-0-444-52862-1"],
     )
     floor_check: dict[str, bool] = Field(
         default_factory=lambda: {

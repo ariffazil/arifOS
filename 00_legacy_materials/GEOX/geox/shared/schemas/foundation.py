@@ -129,15 +129,9 @@ class DomainRef(BaseModel):
 
     @model_validator(mode="after")
     def check_time_flag(self) -> "DomainRef":
-        if (
-            self.z_kind in {DomainKind.twt_ms, DomainKind.time_s}
-            and not self.is_time_domain
-        ):
+        if self.z_kind in {DomainKind.twt_ms, DomainKind.time_s} and not self.is_time_domain:
             raise ValueError("z_kind is time-based but is_time_domain is False")
-        if (
-            self.z_kind not in {DomainKind.twt_ms, DomainKind.time_s}
-            and self.is_time_domain
-        ):
+        if self.z_kind not in {DomainKind.twt_ms, DomainKind.time_s} and self.is_time_domain:
             raise ValueError("z_kind is depth-based but is_time_domain is True")
         return self
 
@@ -323,17 +317,11 @@ class PolicyBand(BaseModel):
             Comparator.lt,
             Comparator.le,
         }:
-            if (
-                self.green_max is None
-                and self.red_min is None
-                and self.amber_max is None
-            ):
+            if self.green_max is None and self.red_min is None and self.amber_max is None:
                 raise ValueError("threshold policy requires at least one threshold")
         if self.comparator == Comparator.between:
             if self.lower_bound is None or self.upper_bound is None:
-                raise ValueError(
-                    "between comparator requires lower_bound and upper_bound"
-                )
+                raise ValueError("between comparator requires lower_bound and upper_bound")
             if self.upper_bound < self.lower_bound:
                 raise ValueError("upper_bound must be >= lower_bound")
         return self
@@ -416,11 +404,7 @@ class MarkerObservation(BaseModel):
 
     @model_validator(mode="after")
     def at_least_one_position(self) -> "MarkerObservation":
-        if (
-            self.md_value is None
-            and self.tvdss_value is None
-            and self.twt_value_ms is None
-        ):
+        if self.md_value is None and self.tvdss_value is None and self.twt_value_ms is None:
             raise ValueError("marker must carry at least one positional value")
         return self
 
@@ -458,9 +442,7 @@ class TruthWitness(WitnessBase):
     @model_validator(mode="after")
     def requires_truth_payload(self) -> "TruthWitness":
         if not self.markers and not self.logs:
-            raise ValueError(
-                "truth witness must contain at least one marker or one log"
-            )
+            raise ValueError("truth witness must contain at least one marker or one log")
         return self
 
 
@@ -544,9 +526,7 @@ class IntentEnvelope(BaseModel):
     target_witness_ids: list[str] = Field(default_factory=list)
     floor_policies: list[FloorPolicy] = Field(default_factory=list)
     policy_bands: list[PolicyBand] = Field(default_factory=list)
-    io_parameters: dict[str, str | int | float | bool | None] = Field(
-        default_factory=dict
-    )
+    io_parameters: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
     audit_message: Optional[str] = None
 
     @model_validator(mode="after")

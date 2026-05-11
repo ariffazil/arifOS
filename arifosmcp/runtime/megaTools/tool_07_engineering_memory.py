@@ -59,9 +59,7 @@ async def engineering_memory(
     if "engineering_memory" in HARDENED_DISPATCH_MAP:
         if mode is None:
             mode = "engineer"
-        res_dict = await HARDENED_DISPATCH_MAP["engineering_memory"](
-            mode=mode, payload=payload
-        )
+        res_dict = await HARDENED_DISPATCH_MAP["engineering_memory"](mode=mode, payload=payload)
 
         from arifosmcp.runtime.model import VerdictCode
         from arifosmcp.runtime.verdict_wrapper import forge_verdict
@@ -77,9 +75,7 @@ async def engineering_memory(
                 if hasattr(res_dict.get("verdict"), "value")
                 else VerdictCode.SABAR
             ),
-            message=res_dict.get("payload", {}).get(
-                "note", "Memory operation processed."
-            ),
+            message=res_dict.get("payload", {}).get("note", "Memory operation processed."),
         )
 
     resolved_payload = dict(payload or {})

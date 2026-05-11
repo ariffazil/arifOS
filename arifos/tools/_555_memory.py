@@ -50,9 +50,7 @@ async def execute(
     if redis_probe["configured"] and redis_probe["reachable"] is False:
         readiness_probe = "FAIL"
 
-    readiness_detail = (
-        ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
-    )
+    readiness_detail = ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
 
     # ─── Main logic ───────────────────────────────────────────────────────────
     report = {
@@ -92,9 +90,7 @@ async def execute(
         stakeholder_safety=None,
     )
 
-    result = governed_return(
-        "arifos_555_memory", report, metrics, operator_id, session_id
-    )
+    result = governed_return("arifos_555_memory", report, metrics, operator_id, session_id)
 
     # ─── Phase 1: Append metabolic_metadata ───────────────────────────────────
     output_str = json.dumps(report, sort_keys=True, ensure_ascii=False)

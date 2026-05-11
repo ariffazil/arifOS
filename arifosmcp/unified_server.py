@@ -295,9 +295,7 @@ if __name__ == "__main__":
     visibility = sys.argv[1] if len(sys.argv) > 1 else "public_only"
     enable_router = "--no-router" not in sys.argv
 
-    print(
-        f"Starting arifOS Federation MCP (visibility={visibility}, router={enable_router})"
-    )
+    print(f"Starting arifOS Federation MCP (visibility={visibility}, router={enable_router})")
 
     mcp = create_unified_mcp(
         visibility_filter=visibility,

@@ -30,9 +30,7 @@ async def execute(
         readiness_probe = "FAIL"
         readiness_detail_parts.append(f"internal:FAIL({e})")
 
-    readiness_detail = (
-        ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
-    )
+    readiness_detail = ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
 
     # ─── Main logic ───────────────────────────────────────────────────────────
     is_orthogonal = a != b

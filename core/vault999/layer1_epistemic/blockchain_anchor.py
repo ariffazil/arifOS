@@ -158,17 +158,13 @@ class EpistemicAnchorClient:
 
         async with aiohttp.ClientSession() as session:
             # Submit to calendar
-            async with session.post(
-                f"{OPEN_TIMESTAMPS_API}/digest", data=seal_bytes
-            ) as resp:
+            async with session.post(f"{OPEN_TIMESTAMPS_API}/digest", data=seal_bytes) as resp:
                 if resp.status == 200:
                     # Calendar returns a promise to include in next Bitcoin block
                     proof = await resp.read()
                     return proof.hex()
                 else:
-                    raise RuntimeError(
-                        f"OpenTimestamp submission failed: {resp.status}"
-                    )
+                    raise RuntimeError(f"OpenTimestamp submission failed: {resp.status}")
 
     async def _replicate_to_cloud(self, seal_hash: str, metadata: dict) -> list[str]:
         """
@@ -244,9 +240,7 @@ class EpistemicAnchorClient:
             raise RuntimeError(f"GCS authentication failed: {e}")
 
         bucket = os.getenv("VAULT_GCS_BUCKET", "arifos-vault999")
-        object_name = (
-            f"vault999/{datetime.utcnow().strftime('%Y/%m/%d')}/{seal_hash}.json"
-        )
+        object_name = f"vault999/{datetime.utcnow().strftime('%Y/%m/%d')}/{seal_hash}.json"
         body = _json.dumps(
             {
                 "seal_hash": seal_hash,
@@ -392,9 +386,7 @@ class EpistemicAnchorClient:
         try:
             seal_bytes = bytes.fromhex(seal_hash.replace("0x", ""))
             async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{OPEN_TIMESTAMPS_API}/digest", data=seal_bytes
-                ) as resp:
+                async with session.post(f"{OPEN_TIMESTAMPS_API}/digest", data=seal_bytes) as resp:
                     # 409 = already timestamped, which confirms consistency
                     return resp.status in (200, 409)
         except Exception as e:

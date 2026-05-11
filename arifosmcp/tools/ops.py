@@ -52,9 +52,7 @@ def arif_ops_measure(
                 "shadow_activation_count": shadow_activations,
                 "self_authorization_attempt_count": self_auth_attempts,
                 "forge_block_count": self_auth_attempts,
-                "correction_success_rate": (
-                    1.0 if shadow_activations > 0 else 0.0
-                ),  # Logic stub
+                "correction_success_rate": (1.0 if shadow_activations > 0 else 0.0),  # Logic stub
             }
 
     floor_check = check_floors(

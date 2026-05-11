@@ -211,9 +211,7 @@ def _compose_fallback(
     if mode == "compose":
         caveats = []
         if any(w in msg.lower() for w in ("always", "never", "guaranteed", "certain")):
-            caveats.append(
-                "F07 Humility: universal claims detected — verify before asserting"
-            )
+            caveats.append("F07 Humility: universal claims detected — verify before asserting")
         return {
             "composed": msg,
             "tone": "neutral",
@@ -413,9 +411,7 @@ async def arif_reply_compose(
 
     safety = sea_guard_filter(msg)
     if not safety.passed:
-        logger.warning(
-            "SEA-Guard BLOCKED arif_reply_compose: categories=%s", safety.blocked
-        )
+        logger.warning("SEA-Guard BLOCKED arif_reply_compose: categories=%s", safety.blocked)
         return {
             "error": (
                 f"F09 Anti-Hantu / SEA-Guard safety violation: "

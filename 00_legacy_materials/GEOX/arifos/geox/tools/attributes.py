@@ -79,9 +79,7 @@ class AttributeStack:
 
     attributes: dict[str, AttributeResult] = field(default_factory=dict)
     source_volume_checksum: str = ""
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def add(self, result: AttributeResult) -> None:
         self.attributes[result.name] = result
@@ -134,9 +132,7 @@ def compute_coherence(
     wi, wx, ws = window_shape
     hi, hx, hs = wi // 2, wx // 2, ws // 2
 
-    padded = np.pad(
-        volume.astype(np.float64), ((hi, hi), (hx, hx), (hs, hs)), mode="reflect"
-    )
+    padded = np.pad(volume.astype(np.float64), ((hi, hi), (hx, hx), (hs, hs)), mode="reflect")
 
     coherence = np.zeros((ni, nx, ns), dtype=np.float64)
 
@@ -428,9 +424,7 @@ def compute_spectral_decomposition(
                 spectrum = np.fft.rfft(segment)
                 # RMS energy in band
                 band_energy[t, s] = (
-                    np.sqrt(np.mean(np.abs(spectrum[freq_mask]) ** 2))
-                    if freq_mask.any()
-                    else 0.0
+                    np.sqrt(np.mean(np.abs(spectrum[freq_mask]) ** 2)) if freq_mask.any() else 0.0
                 )
 
         # Reshape back if 3D input

@@ -129,12 +129,8 @@ async def test_phase0_hardening():
             {"mode": "invalid_mode", "query": "test", "session_id": "test-session"},
         )
         content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") is False and "Invalid mode" in str(
-            content.get("errors", [])
-        ):
-            print(
-                f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}"
-            )
+        if content.get("ok") is False and "Invalid mode" in str(content.get("errors", [])):
+            print(f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}")
         else:
             print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
 
@@ -145,12 +141,8 @@ async def test_phase0_hardening():
             "arifos_memory", {"mode": "invalid_mode", "session_id": "test-session"}
         )
         content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") is False and "Invalid mode" in str(
-            content.get("detail", "")
-        ):
-            print(
-                f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}"
-            )
+        if content.get("ok") is False and "Invalid mode" in str(content.get("detail", "")):
+            print(f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}")
         else:
             print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
 
@@ -161,9 +153,7 @@ async def test_phase0_hardening():
         )
         content = json.loads(result["result"]["content"][0]["text"])
         if content.get("ok") is False:
-            print(
-                f"   ✅ Empty content handled: {content.get('errors', [{}])[0].get('code')}"
-            )
+            print(f"   ✅ Empty content handled: {content.get('errors', [{}])[0].get('code')}")
         else:
             print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
 
@@ -186,12 +176,8 @@ async def test_phase0_hardening():
             "arifos_ops", {"mode": "invalid_mode", "session_id": "test-session"}
         )
         content = json.loads(result["result"]["content"][0]["text"])
-        if content.get("ok") is False and "Invalid mode" in str(
-            content.get("detail", "")
-        ):
-            print(
-                f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}"
-            )
+        if content.get("ok") is False and "Invalid mode" in str(content.get("detail", "")):
+            print(f"   ✅ Invalid mode handled: {content.get('errors', [{}])[0].get('code')}")
         else:
             print(f"   ⚠️ Response: {content.get('ok', 'unknown')}")
 
@@ -204,9 +190,7 @@ async def test_phase0_hardening():
         if content.get("ok") is True:
             print(f"   ✅ Vitals mode works: {content.get('verdict')}")
         else:
-            print(
-                f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}"
-            )
+            print(f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}")
 
         print("   5c. Testing health mode...")
         result = await client.call_tool(
@@ -216,9 +200,7 @@ async def test_phase0_hardening():
         if content.get("ok") is True:
             print(f"   ✅ Health mode works: {content.get('verdict')}")
         else:
-            print(
-                f"   ⚠️ Health failed: {content.get('errors', [{}])[0].get('message', 'unknown')}"
-            )
+            print(f"   ⚠️ Health failed: {content.get('errors', [{}])[0].get('message', 'unknown')}")
 
         # Summary
         print("\n" + "=" * 70)

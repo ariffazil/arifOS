@@ -141,9 +141,7 @@ class EmbodiedToolEngine:
 
     # ── Pipeline Stage 4: Classify Risk ─────────────────────────────────────
 
-    def classify_risk(
-        self, entry: ToolSelfModelEntry, params: dict[str, Any]
-    ) -> RiskTier:
+    def classify_risk(self, entry: ToolSelfModelEntry, params: dict[str, Any]) -> RiskTier:
         """
         Stage 4: CLASSIFY.
         Assign T0-T4 risk tier based on tool charter + params.
@@ -168,9 +166,7 @@ class EmbodiedToolEngine:
             if flag in params_str:
                 # Upgrade by one tier
                 tier_order = ["T0", "T1", "T2", "T3", "T4"]
-                current_idx = (
-                    tier_order.index(declared) if declared in tier_order else 1
-                )
+                current_idx = tier_order.index(declared) if declared in tier_order else 1
                 next_idx = min(current_idx + 1, len(tier_order) - 1)
                 declared = tier_order[next_idx]
 
@@ -602,12 +598,8 @@ def embodied_tool(
         register_tool_in_self_model,
     )
 
-    capabilities_obj = (
-        [ToolCapability(**c) for c in capabilities] if capabilities else []
-    )
-    limitations_obj = (
-        [ToolLimitation(**lim) for lim in limitations] if limitations else []
-    )
+    capabilities_obj = [ToolCapability(**c) for c in capabilities] if capabilities else []
+    limitations_obj = [ToolLimitation(**lim) for lim in limitations] if limitations else []
 
     manifest = ToolManifest(
         tool_id=tool_id,

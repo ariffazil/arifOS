@@ -242,15 +242,11 @@ class TestTrinitySessionFlow:
                 else:
                     print(f"[E3E] Session init response: {list(result.keys())}")
             else:
-                print(
-                    f"[E3E] Session init: HTTP {response.status_code} (may need datetime fix)"
-                )
+                print(f"[E3E] Session init: HTTP {response.status_code} (may need datetime fix)")
 
         except Exception as e:
             # Known issue: datetime serialization in REST layer
-            print(
-                f"[E3E] Session init: Known datetime serialization issue - {type(e).__name__}"
-            )
+            print(f"[E3E] Session init: Known datetime serialization issue - {type(e).__name__}")
             pytest.skip(f"REST datetime serialization issue: {type(e).__name__}")
 
     def test_e3e_register_tools_via_rest(self, test_client):
@@ -275,9 +271,7 @@ class TestTrinitySessionFlow:
             print(f"[E3E] Tools registered: {list(result.keys())[:5]}...")
         except Exception as e:
             # Known issue: datetime serialization in REST layer
-            print(
-                f"[E3E] Register tools: Known datetime serialization issue - {type(e).__name__}"
-            )
+            print(f"[E3E] Register tools: Known datetime serialization issue - {type(e).__name__}")
             pytest.skip(f"REST datetime serialization issue: {type(e).__name__}")
 
 
@@ -337,16 +331,12 @@ class TestTrinityConstitutionalEnforcement:
         # Telemetry may be in different location
         # Check for various possible telemetry locations
         has_telemetry = (
-            "telemetry" in data
-            or "floors" in data.get("ml_floors", {})
-            or "capability_map" in data
+            "telemetry" in data or "floors" in data.get("ml_floors", {}) or "capability_map" in data
         )
 
         if not has_telemetry:
             # Just verify the health endpoint works
-            print(
-                "[E3E] F7 Humility: health endpoint active (telemetry in check_vital)"
-            )
+            print("[E3E] F7 Humility: health endpoint active (telemetry in check_vital)")
         else:
             print("[E3E] F7 Humility: telemetry present")
 
@@ -502,9 +492,7 @@ class TestTrinityFullLoop:
         assert vital_res.status_code == 200
 
         vital_data = vital_res.json()
-        print(
-            f"[E3E] Step 1 (SENSE): vitals={vital_data['result']['authority']['auth_state']}"
-        )
+        print(f"[E3E] Step 1 (SENSE): vitals={vital_data['result']['authority']['auth_state']}")
 
         # Step 2: MIND
         audit_res = test_client.post("/tools/audit_rules", json={})
@@ -518,9 +506,7 @@ class TestTrinityFullLoop:
         assert tools_res.status_code == 200
 
         tools_data = tools_res.json()
-        print(
-            f"[E3E] Step 3 (INTROSPECTION): {tools_data.get('count', 0)} tools mapped"
-        )
+        print(f"[E3E] Step 3 (INTROSPECTION): {tools_data.get('count', 0)} tools mapped")
 
 
 # ============================================================================

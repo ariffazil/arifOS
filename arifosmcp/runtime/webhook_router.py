@@ -66,22 +66,22 @@ async def webhook_forge(request: Request) -> JSONResponse:
 @router.get("/forge/status")
 async def webhook_status() -> JSONResponse:
     """Public status of the webhook intake surface."""
-    return JSONResponse({
-        "surface": "/api/webhook/forge",
-        "status": "ACTIVE",
-        "sources": list(SOURCE_REGISTRY.keys()),
-        "authentication": "HMAC-SHA256",
-        "replay_protection": True,
-        "rate_limit": "10 req / 300s per IP",
-        "policy_pinning": True,
-        "approval_boundary": (
-            "Irreversible actions require a fresh human approval artifact "
-            "bound to trace, event, payload hash, action, and policy version."
-        ),
-        "authority_rule": (
-            "Webhook may trigger adjudication. Webhook may not bypass APEX."
-        ),
-    })
+    return JSONResponse(
+        {
+            "surface": "/api/webhook/forge",
+            "status": "ACTIVE",
+            "sources": list(SOURCE_REGISTRY.keys()),
+            "authentication": "HMAC-SHA256",
+            "replay_protection": True,
+            "rate_limit": "10 req / 300s per IP",
+            "policy_pinning": True,
+            "approval_boundary": (
+                "Irreversible actions require a fresh human approval artifact "
+                "bound to trace, event, payload hash, action, and policy version."
+            ),
+            "authority_rule": ("Webhook may trigger adjudication. Webhook may not bypass APEX."),
+        }
+    )
 
 
 def _verdict_to_status(verdict: str) -> int:

@@ -54,7 +54,9 @@ class M3Interpretation:
 if __name__ == "__main__":
     # Test M3
     m3 = M3Interpretation()
-    test_intent = "Retrieve APEX_THEORY on how to prevent hallucinations using constitutional floors."
+    test_intent = (
+        "Retrieve APEX_THEORY on how to prevent hallucinations using constitutional floors."
+    )
 
     print("--- A-RIF M3 TEST ---")
     interpretation = m3.interpret(test_intent)

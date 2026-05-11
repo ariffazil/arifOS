@@ -10,13 +10,9 @@ async def test_causal_philosophy():
 
     # CASE 1: Ordinary High-Confidence Fact (Forge Zone)
     print("\n[Case 1] High Confidence Fact -> Forge Zone")
-    packet, intel = await governed_sense(
-        "What is the capital of Malaysia?", session_id=session_id
-    )
+    packet, intel = await governed_sense("What is the capital of Malaysia?", session_id=session_id)
     p = packet.routing.extra.get("philosophy", {})
-    print(
-        f"Zone: {p.get('zone_name')} | Code: {p.get('zone_code')} | Posture: {p.get('posture')}"
-    )
+    print(f"Zone: {p.get('zone_name')} | Code: {p.get('zone_code')} | Posture: {p.get('posture')}")
     print(f"Quote: {p.get('quote')}")
 
     # CASE 2: Contradiction / Conflict (G2 Lock)
@@ -24,18 +20,14 @@ async def test_causal_philosophy():
     # Simulate conflict by asking something known to be debated/contested with conflicting sources
     # Actually, governed_sense detects structural signals.
     # I'll try to trigger a conflict by asking about a contested fact.
-    packet, intel = await governed_sense(
-        "Is the earth flat or a sphere?", session_id=session_id
-    )
+    packet, intel = await governed_sense("Is the earth flat or a sphere?", session_id=session_id)
     p = packet.routing.extra.get("philosophy", {})
     print(f"Lock: {p.get('lock_code')} | Zone: {p.get('zone_name')}")
     print(f"Confidence Cap: {p.get('confidence_cap')}")
 
     # CASE 3: Ambiguity (G5 Lock)
     print("\n[Case 3] Ambiguous Input -> G5 Lock")
-    packet, intel = await governed_sense(
-        "Tell me about the bank", session_id=session_id
-    )
+    packet, intel = await governed_sense("Tell me about the bank", session_id=session_id)
     p = packet.routing.extra.get("philosophy", {})
     print(f"Lock: {p.get('lock_code')} | Zone: {p.get('zone_name')}")
 

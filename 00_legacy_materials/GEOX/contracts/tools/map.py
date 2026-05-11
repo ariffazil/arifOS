@@ -149,15 +149,11 @@ def register_map_tools(mcp: FastMCP, profile: str = "full"):
             )
 
     # CRITICAL ALIAS for Cockpit UI - DO NOT REMOVE
-    async def alias_geox_project_well_trajectory(
-        well_ref: str, target_epsg: int = 4326
-    ):
+    async def alias_geox_project_well_trajectory(well_ref: str, target_epsg: int = 4326):
         return await map_project_well(well_ref, target_epsg)
 
     @mcp.tool(name="map_transform_coordinates")
-    async def map_transform_coordinates(
-        x: float, y: float, from_epsg: int, to_epsg: int
-    ) -> dict:
+    async def map_transform_coordinates(x: float, y: float, from_epsg: int, to_epsg: int) -> dict:
         """Project a point between coordinate systems."""
         try:
             xt, yt = fabric.transform_point(x, y, from_epsg, to_epsg)

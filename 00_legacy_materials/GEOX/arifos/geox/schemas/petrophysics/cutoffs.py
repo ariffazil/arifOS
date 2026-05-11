@@ -30,9 +30,7 @@ class CutoffDefinition(BaseModel):
     physics_justification: str | None = Field(
         default=None, description="Capillary pressure, relative perm, etc."
     )
-    calibration_basis: str = Field(
-        ..., description="Which cores/MDT/SCAL calibrated this cutoff"
-    )
+    calibration_basis: str = Field(..., description="Which cores/MDT/SCAL calibrated this cutoff")
     calibration_sample_count: int = Field(default=0)
 
     # Economic basis (for pay cutoffs)
@@ -175,6 +173,4 @@ class CutoffPolicy(BaseModel):
     def is_active(self) -> bool:
         """Check if policy is currently active."""
         now = datetime.utcnow()
-        return self.valid_from <= now and (
-            self.valid_until is None or now < self.valid_until
-        )
+        return self.valid_from <= now and (self.valid_until is None or now < self.valid_until)

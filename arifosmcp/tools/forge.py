@@ -93,9 +93,7 @@ def arif_forge_execute(
             timestamp=datetime.now(timezone.utc).isoformat(),
         ).model_dump(mode="json")
         injected = _inject_nine_signal(raw, "HOLD")
-        injected["reasons"] = (
-            [floor_check["reason"]] if floor_check.get("reason") else []
-        )
+        injected["reasons"] = [floor_check["reason"]] if floor_check.get("reason") else []
         return ForgeOutput(**injected)
     return ForgeOutput(
         **_arif_forge_execute(

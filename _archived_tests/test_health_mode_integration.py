@@ -273,9 +273,7 @@ class TestModeCount:
             "health",
         ]
         for mode in modes:
-            assert (
-                f'mode == "{mode}"' in source or f'"{mode}"' in source
-            ), f"Mode {mode} not found"
+            assert f'mode == "{mode}"' in source or f'"{mode}"' in source, f"Mode {mode} not found"
 
 
 if __name__ == "__main__":

@@ -122,9 +122,7 @@ class OntologyBridge:
 
     def __init__(self, strict: bool = False):
         self.strict = strict
-        self._validator = (
-            OntologyValidator(strict=strict) if OntologyValidator else None
-        )
+        self._validator = OntologyValidator(strict=strict) if OntologyValidator else None
 
     @staticmethod
     def is_validation_enabled() -> bool:
@@ -204,9 +202,7 @@ class OntologyBridge:
             "ontology_valid": validation.valid,
             "ontology_error": validation.error,
             "ontology_payload": (
-                validation.payload.model_dump(mode="json")
-                if validation.payload
-                else canonical
+                validation.payload.model_dump(mode="json") if validation.payload else canonical
             ),
         }
 

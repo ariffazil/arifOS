@@ -35,24 +35,16 @@ class FluidProperties(BaseModel):
         """
         if abs(sw + so + sg - 1.0) > 0.01:
             raise ValueError("Saturations must sum to 1")
-        inv_kf = (
-            sw / self.water_bulk_mod + so / self.oil_bulk_mod + sg / self.gas_bulk_mod
-        )
+        inv_kf = sw / self.water_bulk_mod + so / self.oil_bulk_mod + sg / self.gas_bulk_mod
         return 1.0 / inv_kf
 
 
 class MineralProperties(BaseModel):
     """Mineral/matrix properties."""
 
-    quartz: dict = Field(
-        default_factory=lambda: {"density": 2650, "k": 37e9, "mu": 44e9}
-    )
-    calcite: dict = Field(
-        default_factory=lambda: {"density": 2710, "k": 71e9, "mu": 30e9}
-    )
-    dolomite: dict = Field(
-        default_factory=lambda: {"density": 2870, "k": 95e9, "mu": 45e9}
-    )
+    quartz: dict = Field(default_factory=lambda: {"density": 2650, "k": 37e9, "mu": 44e9})
+    calcite: dict = Field(default_factory=lambda: {"density": 2710, "k": 71e9, "mu": 30e9})
+    dolomite: dict = Field(default_factory=lambda: {"density": 2870, "k": 95e9, "mu": 45e9})
     clay: dict = Field(default_factory=lambda: {"density": 2600, "k": 25e9, "mu": 9e9})
 
     def voigt_matrix_moduli(self, fractions: dict[str, float]) -> tuple[float, float]:
@@ -116,9 +108,7 @@ class GassmannModel:
 
         return k_sat_new
 
-    def saturated_density(
-        self, rho_matrix: float, rho_fluid: float, porosity: float
-    ) -> float:
+    def saturated_density(self, rho_matrix: float, rho_fluid: float, porosity: float) -> float:
         """
         Bulk density of fluid-saturated rock.
         ρ_sat = (1 - φ) × ρ_matrix + φ × ρ_fluid
@@ -137,9 +127,7 @@ class GassmannModel:
         vs = np.sqrt(mu_sat / rho_sat)
         return vp, vs
 
-    def velocities_to_moduli(
-        self, vp: float, vs: float, rho: float
-    ) -> tuple[float, float]:
+    def velocities_to_moduli(self, vp: float, vs: float, rho: float) -> tuple[float, float]:
         """
         Convert seismic velocities to elastic moduli.
         μ = ρ × Vs²

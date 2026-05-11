@@ -75,9 +75,7 @@ class TestCatalog:
         """Model keys should follow provider/family/variant format."""
         for m in catalog["models"]:
             parts = m.split("/")
-            assert (
-                len(parts) == 3
-            ), f"Model key '{m}' should have 3 parts: provider/family/variant"
+            assert len(parts) == 3, f"Model key '{m}' should have 3 parts: provider/family/variant"
 
     def test_catalog_archetypes_are_strings(self, catalog):
         for soul in catalog["soul_archetypes"]:

@@ -178,9 +178,7 @@ async def test_successful_seal_path(conn_vw):
         witness = await conn.fetchrow(
             "SELECT ledger_id FROM vault999_witness WHERE ledger_id = $1", seal_id
         )
-        cq = await conn.fetchrow(
-            "SELECT status FROM cooling_queue WHERE id = $1", cooling_id
-        )
+        cq = await conn.fetchrow("SELECT status FROM cooling_queue WHERE id = $1", cooling_id)
 
         log(
             seal and seal["verdict"] == "SEAL" and seal["cooling_id"] == cooling_id,
@@ -232,15 +230,11 @@ async def test_successful_void_path(conn_vw):
         )
 
         # Verify NO vault_seals
-        seal = await conn.fetchrow(
-            "SELECT id FROM vault_seals WHERE cooling_id = $1", cooling_id
-        )
+        seal = await conn.fetchrow("SELECT id FROM vault_seals WHERE cooling_id = $1", cooling_id)
         hr = await conn.fetchrow(
             "SELECT decision FROM human_reviews WHERE cooling_id = $1", cooling_id
         )
-        cq = await conn.fetchrow(
-            "SELECT status FROM cooling_queue WHERE id = $1", cooling_id
-        )
+        cq = await conn.fetchrow("SELECT status FROM cooling_queue WHERE id = $1", cooling_id)
 
         log(seal is None, "NO vault_seals record for VOID")
         log(hr and hr["decision"] == "VOID", "human_reviews record created with VOID")
@@ -349,9 +343,7 @@ async def test_already_reviewed_item(conn_vw):
         )
 
         # Try to ratify again
-        row = await conn.fetchrow(
-            "SELECT status FROM cooling_queue WHERE id = $1", cooling_id
-        )
+        row = await conn.fetchrow("SELECT status FROM cooling_queue WHERE id = $1", cooling_id)
 
         if row["status"] != "awaiting_human":
             log(

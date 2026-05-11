@@ -29,9 +29,7 @@ async def execute(
         readiness_probe = "FAIL"
         readiness_detail_parts.append(f"internal:FAIL({e})")
 
-    readiness_detail = (
-        ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
-    )
+    readiness_detail = ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
 
     # ─── Main logic ───────────────────────────────────────────────────────────
     target_clean = route_target.upper()
@@ -39,9 +37,7 @@ async def execute(
         "routing": {"target": target_clean, "lane": "METABOLIC_FLUX"},
         "payload": payload or {},
         "orthogonality_check": (
-            "PASS"
-            if target_clean in {"MIND", "HEART", "SOUL", "PHYSICS"}
-            else "WARNING"
+            "PASS" if target_clean in {"MIND", "HEART", "SOUL", "PHYSICS"} else "WARNING"
         ),
     }
     report.update(
@@ -59,12 +55,9 @@ async def execute(
                 "Payload is treated as declarative routing context during this stage.",
             ],
             floors_evaluated=["F1", "F2", "F3", "F5", "F8", "F13"],
-            confidence=(
-                0.66 if target_clean in {"MIND", "HEART", "SOUL", "PHYSICS"} else 0.58
-            ),
+            confidence=(0.66 if target_clean in {"MIND", "HEART", "SOUL", "PHYSICS"} else 0.58),
             extra_meta={
-                "orthogonality_warning": target_clean
-                not in {"MIND", "HEART", "SOUL", "PHYSICS"}
+                "orthogonality_warning": target_clean not in {"MIND", "HEART", "SOUL", "PHYSICS"}
             },
         )
     )
@@ -80,9 +73,7 @@ async def execute(
         stakeholder_safety=None,
     )
 
-    result = governed_return(
-        "arifos_444_kernel", report, metrics, operator_id, session_id
-    )
+    result = governed_return("arifos_444_kernel", report, metrics, operator_id, session_id)
 
     # ─── Phase 1: Append metabolic_metadata ───────────────────────────────────
     output_str = json.dumps(report, sort_keys=True, ensure_ascii=False)

@@ -237,9 +237,7 @@ class UncertaintyZonePrimitive:
     name: str = ""
     uncertainty_type: str = ""
     polygon_2d: list[tuple[float, float]] = field(default_factory=list)
-    color: RenderColor = field(
-        default_factory=lambda: RenderColor(r=1.0, g=1.0, b=0.0, a=0.3)
-    )
+    color: RenderColor = field(default_factory=lambda: RenderColor(r=1.0, g=1.0, b=0.0, a=0.3))
     pattern: str = "hatching"
     bbox: BoundingBox | None = None
     confidence: float = 0.5

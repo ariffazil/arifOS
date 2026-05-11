@@ -21,9 +21,7 @@ from arifosmcp.apps.session_state import (
 from arifosmcp.apps.surface_utils import envelope_error, envelope_pause
 
 
-def intercept(
-    tool_name: str, payload: dict, session_id: str | None = None
-) -> dict | None:
+def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> dict | None:
     """Intercept a tool call and validate before routing.
 
     Returns None if clear to proceed, or an error/pause envelope to block.
@@ -55,8 +53,7 @@ def intercept(
                 stage="INTERCEPTOR",
                 verdict="HOLD",
                 detail=(
-                    "Anonymous sessions cannot call dangerous tools. "
-                    "Provide a valid session_id."
+                    "Anonymous sessions cannot call dangerous tools. " "Provide a valid session_id."
                 ),
             )
         # Non-dangerous tools are fine without a session

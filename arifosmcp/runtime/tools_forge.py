@@ -92,9 +92,7 @@ class ExecutionManifest:
 
     def sign(self, session_key: str) -> str:
         """Sign manifest with session key (HMAC-SHA256)."""
-        self.signature = hashlib.sha256(
-            f"{self.manifest_id}:{session_key}".encode()
-        ).hexdigest()
+        self.signature = hashlib.sha256(f"{self.manifest_id}:{session_key}".encode()).hexdigest()
         return self.signature
 
     def to_dict(self) -> dict[str, Any]:

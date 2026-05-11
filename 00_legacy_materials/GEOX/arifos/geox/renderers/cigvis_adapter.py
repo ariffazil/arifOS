@@ -86,12 +86,9 @@ if CIGVIS_AVAILABLE and cigvis is not None:
 
     _viserplot_shim = _types.SimpleNamespace(
         create_server=lambda port=8100: (
-            logger.warning("cigvis.viserplot.create_server unavailable")
-            or {"port": port}
+            logger.warning("cigvis.viserplot.create_server unavailable") or {"port": port}
         ),
-        plot3D=lambda nodes, **kw: logger.warning(
-            "cigvis.viserplot.plot3D unavailable"
-        ),
+        plot3D=lambda nodes, **kw: logger.warning("cigvis.viserplot.plot3D unavailable"),
     )
 
     for _attr, _shim in [
@@ -247,9 +244,7 @@ class CigvisAdapter(RendererAdapter):
             if not surface.vertices:
                 return []
 
-            vertices = np.array(
-                [[v.x, v.y, v.z] for v in surface.vertices], dtype=np.float32
-            )
+            vertices = np.array([[v.x, v.y, v.z] for v in surface.vertices], dtype=np.float32)
 
             if len(vertices) == 0:
                 return []
@@ -308,9 +303,7 @@ class CigvisAdapter(RendererAdapter):
             if not well.trajectory:
                 return []
 
-            points = np.array(
-                [[p.x, p.y, p.z] for p in well.trajectory], dtype=np.float32
-            )
+            points = np.array([[p.x, p.y, p.z] for p in well.trajectory], dtype=np.float32)
 
             if len(points) == 0:
                 return []
@@ -505,9 +498,7 @@ class CigvisAdapter(RendererAdapter):
 
     def cleanup_expired_sessions(self) -> int:
         """Remove expired sessions. Returns count of removed sessions."""
-        expired = [
-            sid for sid, session in self._sessions.items() if session.is_expired()
-        ]
+        expired = [sid for sid, session in self._sessions.items() if session.is_expired()]
         for sid in expired:
             self.shutdown_session(sid)
         return len(expired)

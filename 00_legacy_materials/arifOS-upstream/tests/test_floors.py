@@ -40,9 +40,7 @@ def get_floors_enforced() -> list[str]:
     try:
         import urllib.request
 
-        req = urllib.request.urlopen(
-            "http://127.0.0.1:8080/.well-known/mcp/server.json", timeout=3
-        )
+        req = urllib.request.urlopen("http://127.0.0.1:8080/.well-known/mcp/server.json", timeout=3)
         d = json.loads(req.read())
         count = d.get("floors_count", 0)
         return [f"F{i:02d}" for i in range(1, count + 1)]
@@ -69,9 +67,7 @@ class TestF1_Amanah:
     def test_irreversible_actions_require_seal(self):
         """Git commits, secret writes, infra mutations need F1 gate."""
         tools = get_floors_enforced()
-        assert (
-            "F01" in tools or "F1" in tools
-        ), "F1 not in runtime floor enforcement list"
+        assert "F01" in tools or "F1" in tools, "F1 not in runtime floor enforcement list"
 
 
 # ─── F2 — Truth (τ ≥ 0.99) ────────────────────────────────────────────────
@@ -84,16 +80,12 @@ class TestF2_Truth:
         """Confidence must be ≥ 0.99 for truth claims."""
         t = get_telemetry()
         tau = t.get("thermodynamic", {}).get("confidence", 0)
-        assert (
-            tau >= 0.99
-        ), f"F2 violated: confidence τ={tau} < 0.99 (ungrounded claim risk)"
+        assert tau >= 0.99, f"F2 violated: confidence τ={tau} < 0.99 (ungrounded claim risk)"
 
     def test_grounded_tools_exist(self):
         """At least one grounding tool must be present."""
         tools = get_floors_enforced()
-        assert (
-            len(tools) >= 10
-        ), "Fewer than 10 floors enforced — grounding may be incomplete"
+        assert len(tools) >= 10, "Fewer than 10 floors enforced — grounding may be incomplete"
 
 
 # ─── F3 — Tri-Witness ─────────────────────────────────────────────────────
@@ -148,9 +140,7 @@ class TestF6_Empathy:
         # At minimum, arifos_heart (red-team) should exist
         # This is tested via floor enforcement count
         tools = get_floors_enforced()
-        assert (
-            "F06" in tools or "F6" in tools
-        ), "F6 (harm/dignity) not in runtime floor list"
+        assert "F06" in tools or "F6" in tools, "F6 (harm/dignity) not in runtime floor list"
 
 
 # ─── F7 — Humility (Ω₀ ∈ [0.03, 0.05]) ──────────────────────────────────
@@ -188,9 +178,7 @@ class TestF8_Grounding:
         """vitality_index should reflect real system state."""
         t = get_telemetry()
         v = t.get("thermodynamic", {}).get("vitality_index", 0)
-        assert (
-            0 < v <= 1.0
-        ), f"F8 violated: vitality_index={v} outside [0, 1] (malformed)"
+        assert 0 < v <= 1.0, f"F8 violated: vitality_index={v} outside [0, 1] (malformed)"
 
 
 # ─── F9 — Anti-Hantu ─────────────────────────────────────────────────────
@@ -205,16 +193,12 @@ class TestF9_AntiHantu:
         ver = t.get("version", "")
         forbidden = ["soul", "sentient", "conscious", "aware", "feeling"]
         for kw in forbidden:
-            assert (
-                kw.lower() not in ver.lower()
-            ), f"F9 violated: version='{ver}' contains '{kw}'"
+            assert kw.lower() not in ver.lower(), f"F9 violated: version='{ver}' contains '{kw}'"
 
     def test_antihantu_floor_enforced(self):
         """F9 must be in runtime floor enforcement."""
         tools = get_floors_enforced()
-        assert (
-            "F09" in tools or "F9" in tools
-        ), "F9 (Anti-Hantu) not in runtime floor list"
+        assert "F09" in tools or "F9" in tools, "F9 (Anti-Hantu) not in runtime floor list"
 
 
 # ─── F10 — Ontology ────────────────────────────────────────────────────────
@@ -226,9 +210,7 @@ class TestF10_Ontology:
     def test_floor_registry_exists(self):
         """Floor registry must be accessible."""
         tools = get_floors_enforced()
-        assert (
-            len(tools) >= 10
-        ), "F10 violated: floor registry inaccessible or incomplete"
+        assert len(tools) >= 10, "F10 violated: floor registry inaccessible or incomplete"
 
 
 # ─── F11 — Authority ─────────────────────────────────────────────────────
@@ -241,9 +223,7 @@ class TestF11_Authority:
         """arifos_repo_read must exist for authority checks."""
         # If we reach here, floors are enforced (checked by F1 test)
         tools = get_floors_enforced()
-        assert "F11" in tools or "F11" in str(
-            tools
-        ), "F11 (authority) floor not confirmed"
+        assert "F11" in tools or "F11" in str(tools), "F11 (authority) floor not confirmed"
 
 
 # ─── F12 — Resilience ─────────────────────────────────────────────────────
@@ -330,6 +310,5 @@ def test_ci_gate():
 
     if violations:
         pytest.fail(
-            "CI GATE FAILED — Floor violations:\n"
-            + "\n".join(f"  - {v}" for v in violations)
+            "CI GATE FAILED — Floor violations:\n" + "\n".join(f"  - {v}" for v in violations)
         )

@@ -157,9 +157,7 @@ class TestArifosMind:
         """Public arifos_mind wrapper should normalize context before session gating."""
         from arifosmcp.runtime.tools import _arifos_mind_public
 
-        result = await _arifos_mind_public(
-            query="test", context={"evidence": [1, 2, 3]}
-        )
+        result = await _arifos_mind_public(query="test", context={"evidence": [1, 2, 3]})
 
         assert result is not None
         assert result.tool == "arifos_mind"
@@ -240,9 +238,7 @@ class TestArifosJudge:
 
         handler = CANONICAL_TOOL_HANDLERS["arifos_judge"]
 
-        with patch(
-            "arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock
-        ) as mock_mega:
+        with patch("arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock) as mock_mega:
             mock_mega.return_value = _mock_envelope("arifos_judge", stage="888_JUDGE")
 
             result = await handler(query="test action", risk_tier="medium")
@@ -258,9 +254,7 @@ class TestArifosJudge:
     async def test_arifos_judge_forwards_domain_evidence(self):
         from arifosmcp.runtime.tools import arifos_judge
 
-        with patch(
-            "arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock
-        ) as mock_mega:
+        with patch("arifosmcp.runtime.tools._mega_apex_judge", new_callable=AsyncMock) as mock_mega:
             mock_mega.return_value = _mock_envelope("arifos_judge", stage="888_JUDGE")
 
             result = await arifos_judge(
@@ -499,9 +493,7 @@ class TestRegisterV2Tools:
         registered = register_v2_tools(mcp)
 
         public_names = set(public_tool_names())
-        assert public_names.issubset(
-            set(registered)
-        ), "Missing canonical tools in registration"
+        assert public_names.issubset(set(registered)), "Missing canonical tools in registration"
 
 
 if __name__ == "__main__":

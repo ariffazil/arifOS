@@ -21,9 +21,7 @@ def test_public_registry_exposes_only_11():
     names = public_tool_names()
     drift = verify_no_drift()
 
-    assert (
-        len(names) == EXPECTED_TOOL_COUNT
-    ), f"Expected {EXPECTED_TOOL_COUNT}, got {len(names)}"
+    assert len(names) == EXPECTED_TOOL_COUNT, f"Expected {EXPECTED_TOOL_COUNT}, got {len(names)}"
     assert set(names) == CANONICAL_PUBLIC_TOOLS, "Names don't match canonical set"
     assert drift["ok"], f"Drift detected: {drift}"
 
@@ -89,9 +87,7 @@ def test_legacy_alias_mappings_exist():
 
     for legacy, target in CAPABILITY_MAP.items():
         assert isinstance(target, str), f"{legacy} maps to non-string target: {target}"
-        assert (
-            target in ALL_TOOL_HANDLERS
-        ), f"{legacy} maps to invalid canonical tool: {target}"
+        assert target in ALL_TOOL_HANDLERS, f"{legacy} maps to invalid canonical tool: {target}"
 
 
 # GATE 6: Stage correctness (000-999)
@@ -181,9 +177,7 @@ def test_full_capability_map_integration():
 
         # Target must be a string in canonical handlers
         assert isinstance(target, str), f"{legacy} -> non-string target {target!r}"
-        assert (
-            target in ALL_TOOL_HANDLERS
-        ), f"{legacy} -> invalid canonical tool {target}"
+        assert target in ALL_TOOL_HANDLERS, f"{legacy} -> invalid canonical tool {target}"
 
         # Target must have at least one mode defined
         assert target in TOOL_MODES, f"{legacy} -> {target} missing from TOOL_MODES"
@@ -204,9 +198,7 @@ def test_no_legacy_tools_in_public_registry():
     expected_set = set(CANONICAL_PUBLIC_TOOLS)
 
     # Public tools should be exactly the 11 canonical tools
-    assert (
-        public_tools == canonical_set
-    ), "Public registry mismatch with canonical handlers"
+    assert public_tools == canonical_set, "Public registry mismatch with canonical handlers"
 
     # Public tools should match canonical set
     assert public_tools == expected_set, "Public registry mismatch with canonical set"

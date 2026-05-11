@@ -192,9 +192,7 @@ class GitSubstrateHandler(SubstrateHandler):
     substrate_name = "mcp_git"
 
     def handle_health(self):
-        self.send_json_response(
-            {"status": "OK", "service": "mcp_git", "f11_enforcement": True}
-        )
+        self.send_json_response({"status": "OK", "service": "mcp_git", "f11_enforcement": True})
 
     def handle_list_tools(self):
         self.send_json_response(

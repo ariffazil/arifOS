@@ -159,9 +159,7 @@ class ModelRegistryClient:
             payload = {"claimed_identity": claimed_identity}
             if claimed_provider:
                 payload["claimed_provider"] = claimed_provider
-            response = await client.post(
-                f"{self.base_url}/verify/identity", json=payload
-            )
+            response = await client.post(f"{self.base_url}/verify/identity", json=payload)
             response.raise_for_status()
             data = response.json()
             result = data.get("result", {})
@@ -174,9 +172,7 @@ class ModelRegistryClient:
                 drift_risk=result.get("drift_risk", "unknown"),
             )
         except Exception as exc:
-            logger.warning(
-                f"Identity verification failed for {claimed_identity}: {exc}"
-            )
+            logger.warning(f"Identity verification failed for {claimed_identity}: {exc}")
             return IdentityVerification(
                 verified=False,
                 declared=claimed_identity,
@@ -230,9 +226,7 @@ class ModelRegistryClient:
                 "declared_role": declared_role,
                 "requested_scope": requested_scope or ["read", "query"],
             }
-            response = await client.post(
-                f"{self.base_url}/init_anchor_v2", json=payload
-            )
+            response = await client.post(f"{self.base_url}/init_anchor_v2", json=payload)
             response.raise_for_status()
             return response.json()
         except Exception as exc:

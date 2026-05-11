@@ -100,29 +100,21 @@ class SessionAnchor(BaseModel):
 
     # Identity layers
     declared_actor_id: str | None = Field(None, description="Self-claimed identity")
-    verified_actor_id: str | None = Field(
-        None, description="Cryptographically verified identity"
-    )
-    canonical_actor_id: str = Field(
-        default="anonymous", description="Resolved effective identity"
-    )
+    verified_actor_id: str | None = Field(None, description="Cryptographically verified identity")
+    canonical_actor_id: str = Field(default="anonymous", description="Resolved effective identity")
 
     # State and authority
     state: SessionState = Field(default=SessionState.ANONYMOUS)
-    authority_level: Literal[
-        "anonymous", "claimed", "user", "agent", "operator", "sovereign"
-    ] = Field(default="anonymous")
+    authority_level: Literal["anonymous", "claimed", "user", "agent", "operator", "sovereign"] = (
+        Field(default="anonymous")
+    )
 
     # Trinity alignment
     trinity_seed: TrinityAspect = Field(default=TrinityAspect.PSI)
 
     # Telemetry baseline (established at anchor time)
-    baseline_tau: float = Field(
-        default=1.0, ge=0.0, le=1.0, description="Truth baseline"
-    )
-    baseline_omega: float = Field(
-        default=0.05, ge=0.0, le=1.0, description="Humility baseline"
-    )
+    baseline_tau: float = Field(default=1.0, ge=0.0, le=1.0, description="Truth baseline")
+    baseline_omega: float = Field(default=0.05, ge=0.0, le=1.0, description="Humility baseline")
 
 
 class ToolAuthContext(BaseModel):
@@ -137,15 +129,9 @@ class ToolAuthContext(BaseModel):
 
     actor_id: str = Field(..., description="Verified actor identity")
     session_id: str = Field(..., description="Bound session")
-    approval_scope: list[str] = Field(
-        default_factory=list, description="Granted tool scopes"
-    )
-    human_approval_persisted: bool = Field(
-        default=False, description="F13 human override"
-    )
-    proof_timestamp: str | None = Field(
-        None, description="ISO 8601 of proof generation"
-    )
+    approval_scope: list[str] = Field(default_factory=list, description="Granted tool scopes")
+    human_approval_persisted: bool = Field(default=False, description="F13 human override")
+    proof_timestamp: str | None = Field(None, description="ISO 8601 of proof generation")
 
     @field_validator("approval_scope")
     @classmethod
@@ -158,9 +144,7 @@ class ToolAuthContext(BaseModel):
             "*",
         )
         for scope in v:
-            if not any(
-                scope.startswith(p) or scope == p.rstrip(":") for p in valid_prefixes
-            ):
+            if not any(scope.startswith(p) or scope == p.rstrip(":") for p in valid_prefixes):
                 raise ValueError(f"Invalid scope: {scope}")
         return v
 
@@ -180,13 +164,9 @@ class WitnessTriple(BaseModel):
     - earth: Observable reality and facts
     """
 
-    human: float = Field(
-        default=1.0, ge=0.0, le=1.0, description="Human witness confidence"
-    )
+    human: float = Field(default=1.0, ge=0.0, le=1.0, description="Human witness confidence")
     ai: float = Field(default=0.0, ge=0.0, le=1.0, description="AI witness confidence")
-    earth: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Earth witness confidence"
-    )
+    earth: float = Field(default=0.0, ge=0.0, le=1.0, description="Earth witness confidence")
 
     @property
     def coherence(self) -> float:
@@ -236,28 +216,16 @@ class TelemetryEnvelope(BaseModel):
     timestamp: str = Field(..., description="ISO 8601 timestamp")
 
     # Six canonical constitutional metrics
-    tau_truth: float = Field(
-        default=0.95, ge=0.0, le=1.0, description="F2: Truth alignment"
-    )
-    omega_0: float = Field(
-        default=0.05, ge=0.0, le=1.0, description="F7: Humility level"
-    )
-    delta_s: float = Field(
-        default=0.0, ge=-1.0, le=1.0, description="F4: Entropy delta"
-    )
+    tau_truth: float = Field(default=0.95, ge=0.0, le=1.0, description="F2: Truth alignment")
+    omega_0: float = Field(default=0.05, ge=0.0, le=1.0, description="F7: Humility level")
+    delta_s: float = Field(default=0.0, ge=-1.0, le=1.0, description="F4: Entropy delta")
     peace2: float = Field(default=1.0, ge=0.0, description="F6: Conflict resolution")
-    kappa_r: float = Field(
-        default=0.9, ge=0.0, le=1.0, description="F3: Reality grounding"
-    )
-    tri_witness: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="F9: Witness coherence"
-    )
+    kappa_r: float = Field(default=0.9, ge=0.0, le=1.0, description="F3: Reality grounding")
+    tri_witness: float = Field(default=0.0, ge=0.0, le=1.0, description="F9: Witness coherence")
 
     # Derived
     psi_le: float | None = Field(None, description="Life/entropy index (computed)")
-    verdict_hint: VerdictCode = Field(
-        default=VerdictCode.SABAR, description="Suggested verdict"
-    )
+    verdict_hint: VerdictCode = Field(default=VerdictCode.SABAR, description="Suggested verdict")
 
 
 class ConstitutionalHealthView(BaseModel):
@@ -325,9 +293,9 @@ class EvidenceBundle(BaseModel):
     timestamp: str = Field(..., description="ISO 8601 creation time")
 
     # Content
-    evidence_type: Literal[
-        "synthesis", "critique", "verification", "observation", "judgment"
-    ] = Field(default="observation")
+    evidence_type: Literal["synthesis", "critique", "verification", "observation", "judgment"] = (
+        Field(default="observation")
+    )
     content: str = Field(..., max_length=100000, description="Evidence payload")
     content_hash: str | None = Field(None, description="SHA-256 of content")
 
@@ -358,9 +326,7 @@ class VerdictRecord(BaseModel):
 
     # Decision
     verdict: VerdictCode
-    candidate_action: str = Field(
-        ..., max_length=10000, description="What was evaluated"
-    )
+    candidate_action: str = Field(..., max_length=10000, description="What was evaluated")
     risk_tier: RiskTier
 
     # Constitutional basis
@@ -398,9 +364,7 @@ class InitSessionInput(BaseModel):
 
     actor_id: str | None = Field(None, description="Identity claim")
     intent: str | None = Field(None, description="Purpose of session")
-    session_class: Literal["query", "execute", "elevated", "sovereign"] = Field(
-        default="execute"
-    )
+    session_class: Literal["query", "execute", "elevated", "sovereign"] = Field(default="execute")
     human_approval: bool = False
 
 
@@ -408,9 +372,7 @@ class SenseRealityInput(BaseModel):
     """Input schema for sense_reality tool."""
 
     query: str = Field(..., description="What to search/verify")
-    operation: Literal["search", "ingest", "compass", "atlas", "time"] = Field(
-        default="search"
-    )
+    operation: Literal["search", "ingest", "compass", "atlas", "time"] = Field(default="search")
     top_k: int = Field(default=5, ge=1, le=20)
     session_id: str | None = None
 
@@ -419,8 +381,8 @@ class RouteExecutionInput(BaseModel):
     """Input schema for route_execution tool."""
 
     query: str = Field(..., description="User request to route")
-    intent_type: Literal["ask", "audit", "design", "decide", "analyze", "execute"] = (
-        Field(default="ask")
+    intent_type: Literal["ask", "audit", "design", "decide", "analyze", "execute"] = Field(
+        default="ask"
     )
     max_steps: int = Field(default=13, ge=1, le=50)
     session_id: str | None = None
@@ -464,9 +426,7 @@ def compute_psi_le(telemetry: TelemetryEnvelope) -> float:
     # Geometric mean with witness weight
     witness_weight = telemetry.tri_witness if telemetry.tri_witness > 0 else 0.5
 
-    psi = math.pow(
-        truth_component * entropy_component * peace_component * witness_weight, 0.25
-    )
+    psi = math.pow(truth_component * entropy_component * peace_component * witness_weight, 0.25)
     return round(psi + 1.0, 3)  # Scale to 1.0-2.0 range
 
 

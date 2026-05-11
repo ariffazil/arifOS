@@ -771,9 +771,7 @@ def get_by_class(
     attribute_class: AttributeClass,
 ) -> list[SeismicAttributeDef]:
     """Return all attributes in a given class."""
-    return [
-        a for a in SEISMIC_ATTRIBUTES.values() if a.attribute_class == attribute_class
-    ]
+    return [a for a in SEISMIC_ATTRIBUTES.values() if a.attribute_class == attribute_class]
 
 
 def get_by_contrast_risk(risk: ContrastRisk) -> list[SeismicAttributeDef]:

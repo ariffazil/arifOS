@@ -233,9 +233,7 @@ def wrap_llm_output(
     """
     if confidence is None:
         confidence = (
-            parsed_output.get("confidence", 0.5)
-            if isinstance(parsed_output, dict)
-            else 0.5
+            parsed_output.get("confidence", 0.5) if isinstance(parsed_output, dict) else 0.5
         )
 
     # F12 INJECTION scan — detect prompt injection in LLM output before release
@@ -269,9 +267,7 @@ def wrap_llm_output(
         latency_ms=latency_ms,
         timestamp=datetime.now(timezone.utc).isoformat(),
         human_decision_required=human_decision_required,
-        authority_level=_governance_of(
-            model
-        ),  # F11: looked up from model_governance.yaml
+        authority_level=_governance_of(model),  # F11: looked up from model_governance.yaml
     )
 
 

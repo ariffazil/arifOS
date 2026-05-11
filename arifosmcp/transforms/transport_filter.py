@@ -53,9 +53,7 @@ class TransportFilter(Transform):
         )
         return filtered
 
-    async def get_tool(
-        self, name: str, call_next: Any, *, version: Any = None
-    ) -> Tool | None:
+    async def get_tool(self, name: str, call_next: Any, *, version: Any = None) -> Tool | None:
         tool = await call_next(name, version=version)
         if tool is None:
             return None

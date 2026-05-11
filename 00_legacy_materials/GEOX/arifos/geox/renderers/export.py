@@ -108,9 +108,7 @@ class RenderExporter:
             "export_timestamp": datetime.now(timezone.utc).isoformat(),
             "canonical_state": canonical_state,
             "neutral_scene": {
-                "primitive_count": neutral_scene.get("metadata", {}).get(
-                    "primitive_count", 0
-                ),
+                "primitive_count": neutral_scene.get("metadata", {}).get("primitive_count", 0),
                 "metadata": neutral_scene.get("metadata"),
             },
         }

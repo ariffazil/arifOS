@@ -36,20 +36,15 @@ except ImportError:
 # --- Paradox Engine Primitives ---
 QUOTES = {
     "triumph": (
-        "In the midst of winter, I found there was, within me, "
-        "an invincible summer. (Camus)"
+        "In the midst of winter, I found there was, within me, " "an invincible summer. (Camus)"
     ),
     "wisdom": "He who knows others is wise; he who knows himself is enlightened. (Lao Tzu)",
     "warning": (
         "The first principle is that you must not fool yourself, "
         "and you are the easiest person to fool. (Feynman)"
     ),
-    "tension": (
-        "Out of the strain of the doing, into the peace of the done. (St. Augustine)"
-    ),
-    "void": (
-        "The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)"
-    ),
+    "tension": ("Out of the strain of the doing, into the peace of the done. (St. Augustine)"),
+    "void": ("The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)"),
 }
 
 
@@ -106,15 +101,12 @@ class ConstitutionalKernel:
         # ── Formal Execution State Machine Gate ───────────────────────────────────────
         current_state_str = get_session_execution_state(session_id)
         try:
-            current_state = (
-                ExecutionState(current_state_str) if current_state_str else None
-            )
+            current_state = ExecutionState(current_state_str) if current_state_str else None
         except ValueError:
             current_state = None
 
-        if (
-            ExecutionStateMachine.is_enforced()
-            and not ExecutionStateMachine.can_execute(canonical_name, current_state)
+        if ExecutionStateMachine.is_enforced() and not ExecutionStateMachine.can_execute(
+            canonical_name, current_state
         ):
             hold_result = ExecutionStateMachine.get_hold_response(
                 canonical_name, current_state, session_id=session_id

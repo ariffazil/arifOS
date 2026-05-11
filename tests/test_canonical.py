@@ -87,10 +87,7 @@ def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
     registered_tuple = tuple(registered)
-    assert (
-        registered_tuple
-        == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES
-    )
+    assert registered_tuple == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES
 
 
 def test_init_creates_session():
@@ -117,10 +114,7 @@ def test_vault_seals_with_ack():
         judge_state_hash=judge.judge_contract.state_hash,
     )
     assert r.status == "HOLD"
-    assert (
-        "judge irreversibility level is below vault seal requirement"
-        in r.meta["reason"]
-    )
+    assert "judge irreversibility level is below vault seal requirement" in r.meta["reason"]
     assert r.judge_contract is not None
     assert r.judge_contract.state_hash == judge.judge_contract.state_hash
 
@@ -166,9 +160,7 @@ def test_forge_commit_requires_vault_lineage():
 
 
 def test_forge_commit_accepts_vault_lineage():
-    judge = arif_judge_deliberate(
-        mode="judge", candidate="commit deploy", actor_id="arif"
-    )
+    judge = arif_judge_deliberate(mode="judge", candidate="commit deploy", actor_id="arif")
     seal = arif_vault_seal(
         mode="seal",
         payload="test",
@@ -214,9 +206,7 @@ class _FakeContext:
 
 @pytest.mark.asyncio
 async def test_elicitation_accepts_irreversible_ack():
-    ctx = _FakeContext(
-        AcceptedElicitation(data=IrreversibleConfirmation(ack_irreversible=True))
-    )
+    ctx = _FakeContext(AcceptedElicitation(data=IrreversibleConfirmation(ack_irreversible=True)))
 
     ack, hold = await _elicit_irreversible_ack(
         ctx,

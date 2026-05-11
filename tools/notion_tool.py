@@ -86,9 +86,7 @@ def search_notion(query: str, filter_type=None):
     try:
         results = notion.search(
             query=query,
-            filter=(
-                {"value": filter_type, "property": "object"} if filter_type else None
-            ),
+            filter=({"value": filter_type, "property": "object"} if filter_type else None),
         )
         return {
             "ok": True,

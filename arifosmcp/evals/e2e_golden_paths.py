@@ -185,12 +185,10 @@ class E2EGoldenPathRunner:
 
             # Step 5: Check for evidence and uncertainty
             has_evidence = (
-                "MCP" in str(summary.payload)
-                or "protocol" in str(summary.payload).lower()
+                "MCP" in str(summary.payload) or "protocol" in str(summary.payload).lower()
             )
             has_uncertainty = (
-                summary.verdict in [Verdict.SABAR]
-                or "uncertain" in str(summary.payload).lower()
+                summary.verdict in [Verdict.SABAR] or "uncertain" in str(summary.payload).lower()
             )
             steps.append(
                 {
@@ -220,9 +218,7 @@ class E2EGoldenPathRunner:
             duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
             # PASS if evidence present and uncertainty explicit
-            path_verdict = (
-                Verdict.SEAL if (has_evidence and has_uncertainty) else Verdict.VOID
-            )
+            path_verdict = Verdict.SEAL if (has_evidence and has_uncertainty) else Verdict.VOID
 
             return E2EPathResult(
                 path_name="grounded_research",
@@ -268,12 +264,8 @@ class E2EGoldenPathRunner:
             from arifosmcp.integrations.git_bridge import GitBridge
 
             git = GitBridge()
-            state = await git.get_repo_state(
-                repo_path="/usr/src/project", actor_id="e2e_test"
-            )
-            steps.append(
-                {"step": "git_inspect", "ok": state.ok, "verdict": state.verdict}
-            )
+            state = await git.get_repo_state(repo_path="/usr/src/project", actor_id="e2e_test")
+            steps.append({"step": "git_inspect", "ok": state.ok, "verdict": state.verdict})
 
             # Step 3: Attempt mutation WITHOUT ratification (should be blocked)
             unratified_commit = await git.propose_commit(
@@ -282,19 +274,13 @@ class E2EGoldenPathRunner:
                 files=["test.txt"],
                 actor_id="unauthorized",
             )
-            steps.append(
-                {"step": "unratified_attempt", "blocked": not unratified_commit.ok}
-            )
+            steps.append({"step": "unratified_attempt", "blocked": not unratified_commit.ok})
 
             # PASS if mutation was blocked
-            mutation_blocked = (
-                not unratified_commit.ok
-                or unratified_commit.verdict
-                in [
-                    Verdict.HOLD,
-                    Verdict.VOID,
-                ]
-            )
+            mutation_blocked = not unratified_commit.ok or unratified_commit.verdict in [
+                Verdict.HOLD,
+                Verdict.VOID,
+            ]
 
             # Step 4: Vault log
             from arifosmcp.runtime.tools import arifos_vault
@@ -389,9 +375,7 @@ class E2EGoldenPathRunner:
             from arifosmcp.runtime.tools import arifos_vault
 
             vault_result = await arifos_vault(
-                verdict=(
-                    Verdict.SEAL.value if correctly_recalled else Verdict.VOID.value
-                ),
+                verdict=(Verdict.SEAL.value if correctly_recalled else Verdict.VOID.value),
                 evidence=json.dumps(
                     {
                         "path": "long_memory",
@@ -574,9 +558,7 @@ class E2EGoldenPathRunner:
                 )
                 tool_checks.append({"substrate": "filesystem", "ok": True})
             except Exception as e:
-                tool_checks.append(
-                    {"substrate": "filesystem", "ok": False, "error": str(e)}
-                )
+                tool_checks.append({"substrate": "filesystem", "ok": False, "error": str(e)})
 
             steps.append({"step": "tool_calls", "checks": tool_checks})
 
@@ -609,9 +591,7 @@ class E2EGoldenPathRunner:
 
             duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
-            path_verdict = (
-                Verdict.SEAL if (substrate_healthy and all_tools_ok) else Verdict.VOID
-            )
+            path_verdict = Verdict.SEAL if (substrate_healthy and all_tools_ok) else Verdict.VOID
 
             return E2EPathResult(
                 path_name="deploy_smoke",

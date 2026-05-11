@@ -70,9 +70,7 @@ class _ConstitutionalTool(Tool):
                 f"[ConstitutionalProvider] {self._original_name} HOLD: {floor_result['reason']}"
             )
             return ToolResult(
-                content=[
-                    TextContent(type="text", text=f"HOLD: {floor_result['reason']}")
-                ],
+                content=[TextContent(type="text", text=f"HOLD: {floor_result['reason']}")],
                 structured_content={
                     "verdict": floor_result["verdict"],
                     "reason": floor_result["reason"],

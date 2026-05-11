@@ -31,9 +31,7 @@ async def gateway(ctx: Context, tool_name: str, namespace: str = None) -> dict:
         "tool_name": tool_name,
         "orthogonality_verified": allowed,
         "ontology_clean": allowed,
-        "message": (
-            "Orthogonality verified" if allowed else "ONTOLOGY VIOLATION — BLOCKED"
-        ),
+        "message": ("Orthogonality verified" if allowed else "ONTOLOGY VIOLATION — BLOCKED"),
         "vault_receipt": f"GATEWAY_{'OK' if allowed else 'BLOCK'}",
     }
 

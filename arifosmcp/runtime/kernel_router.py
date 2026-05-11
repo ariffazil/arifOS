@@ -149,9 +149,7 @@ class HardenedKernelRouter:
             return "arifos.memory"
 
         # Execution/forge queries
-        if any(
-            kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]
-        ):
+        if any(kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]):
             return "arifos.forge"
 
         # Seal/vault queries
@@ -266,9 +264,7 @@ class HardenedKernelRouter:
                 if actor_id and actor_id != "anonymous":
                     belief = update_belief(
                         actor_id=actor_id,
-                        declared_intent=str(payload.get("declared_intent") or query)[
-                            :200
-                        ],
+                        declared_intent=str(payload.get("declared_intent") or query)[:200],
                         echo_debt=float(context.get("echo_debt", 0.0)),
                         shadow=float(context.get("shadow", 0.0)),
                         injection_score=float(context.get("injection_score", 0.0)),
@@ -292,9 +288,7 @@ class HardenedKernelRouter:
                 query=str(payload.get("query") or query), **extra_args, **common_args
             )
         if tool_name in ("arifos.kernel", "arifos_kernel"):
-            return await handler(
-                request=str(payload.get("query") or query), **common_args
-            )
+            return await handler(request=str(payload.get("query") or query), **common_args)
         if tool_name in ("arifos.heart", "arifos_heart"):
             return await handler(
                 content=str(payload.get("content") or payload.get("query") or query),
@@ -306,9 +300,7 @@ class HardenedKernelRouter:
                 **common_args,
             )
         if tool_name in ("arifos.judge", "arifos_judge"):
-            return await handler(
-                candidate_action=str(payload.get("query") or query), **common_args
-            )
+            return await handler(candidate_action=str(payload.get("query") or query), **common_args)
 
         return RuntimeEnvelope(
             tool=tool_name,

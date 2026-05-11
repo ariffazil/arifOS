@@ -89,9 +89,7 @@ class TestUnifiedMemoryEdgeCases:
         """Test vault with empty session."""
         from core.organs.unified_memory import vault
 
-        result = await vault(
-            operation="seal", session_id="", summary="Empty session test"
-        )
+        result = await vault(operation="seal", session_id="", summary="Empty session test")
 
         assert result is not None
 

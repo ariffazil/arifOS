@@ -386,9 +386,7 @@ class TestRealityDossierRealAPI:
         """Test DossierVerdict model"""
         from arifosmcp.runtime.reality_dossier import DossierVerdict
 
-        verdict = DossierVerdict(
-            claim="Test claim", verdict="SUPPORTED", confidence=0.9
-        )
+        verdict = DossierVerdict(claim="Test claim", verdict="SUPPORTED", confidence=0.9)
 
         assert verdict.claim == "Test claim"
         assert verdict.verdict == "SUPPORTED"
@@ -399,9 +397,7 @@ class TestRealityDossierRealAPI:
         from arifosmcp.runtime.reality_models import BundleStatus
 
         status = BundleStatus(state="SUCCESS", stage="111_OBSERVE", verdict="SEAL")
-        dossier = RealityDossier(
-            session_id="test-session", actor_id="test-actor", status=status
-        )
+        dossier = RealityDossier(session_id="test-session", actor_id="test-actor", status=status)
 
         assert dossier.session_id == "test-session"
         assert dossier.id.startswith("dossier-")

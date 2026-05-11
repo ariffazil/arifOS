@@ -132,9 +132,7 @@ def compute_checksum(data: Any) -> str:
             return obj.isoformat()
         return str(obj)
 
-    canonical = json.dumps(
-        data, sort_keys=True, separators=(",", ":"), default=_default_serialiser
-    )
+    canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), default=_default_serialiser)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -256,9 +254,7 @@ def merge_provenances(records: list[ProvenanceRecord]) -> ProvenanceRecord:
     # Floor check: AND across all records
     merged_floors: dict[str, bool] = dict(_DEFAULT_FLOOR_CHECK)
     for floor_id in merged_floors:
-        merged_floors[floor_id] = all(
-            r.floor_check.get(floor_id, True) for r in records
-        )
+        merged_floors[floor_id] = all(r.floor_check.get(floor_id, True) for r in records)
 
     # Combine citations
     citations = [r.citation for r in records if r.citation]

@@ -258,9 +258,7 @@ class ArifOSOptimizer:
         """
         print("\n🌙 OVERNIGHT MODE")
         print(f"Max experiments: {max_experiments}")
-        print(
-            f"Duration per experiment: {experiment_duration}s ({experiment_duration/60:.1f} min)"
-        )
+        print(f"Duration per experiment: {experiment_duration}s ({experiment_duration/60:.1f} min)")
         print(
             f"Total estimated time: {(experiment_duration + sleep_between) * max_experiments / 60:.1f} min"
         )
@@ -321,9 +319,7 @@ class ArifOSOptimizer:
         history = self.load_history()
         if history:
             print("Top 5 experiments:")
-            sorted_history = sorted(
-                history, key=lambda x: x["composite_score"], reverse=True
-            )
+            sorted_history = sorted(history, key=lambda x: x["composite_score"], reverse=True)
             for i, exp in enumerate(sorted_history[:5], 1):
                 print(
                     f"  {i}. {exp['experiment_id']}: {exp['composite_score']:.4f} ({exp['change_description'][:50]})"
@@ -382,18 +378,14 @@ def main():
 
     parser = argparse.ArgumentParser(description="arifOS Autoresearch Optimizer")
     parser.add_argument("--status", action="store_true", help="Show status and exit")
-    parser.add_argument(
-        "--runs", type=int, default=0, help="Number of experiments to run"
-    )
+    parser.add_argument("--runs", type=int, default=0, help="Number of experiments to run")
     parser.add_argument(
         "--overnight",
         action="store_true",
         help="Run overnight mode (up to 20 experiments)",
     )
     parser.add_argument("--experiment", type=str, help="Run a specific experiment")
-    parser.add_argument(
-        "--change", type=str, help="Change description for specific experiment"
-    )
+    parser.add_argument("--change", type=str, help="Change description for specific experiment")
     parser.add_argument(
         "--duration",
         type=int,

@@ -47,9 +47,7 @@ def _load_governance() -> dict[str, Any]:
         with open(yaml_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         _GOVERNANCE_CACHE = data or {"models": {}, "global_constraints": {}}
-        log.debug(
-            "Loaded %d model governance cards", len(_GOVERNANCE_CACHE.get("models", {}))
-        )
+        log.debug("Loaded %d model governance cards", len(_GOVERNANCE_CACHE.get("models", {})))
         return _GOVERNANCE_CACHE
     except Exception as exc:
         log.error("Failed to load model_governance.yaml: %s", exc)

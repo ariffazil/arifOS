@@ -176,9 +176,7 @@ def apply_config(config: ExperimentConfig) -> bool:
     config_payload = config.to_config_dict()
 
     # Save experiment config
-    exp_config_path = (
-        Path("/root/arifOS/autoresearch/experiments") / f"{config.experiment_id}.json"
-    )
+    exp_config_path = Path("/root/arifOS/autoresearch/experiments") / f"{config.experiment_id}.json"
     exp_config_path.parent.mkdir(parents=True, exist_ok=True)
     exp_config_path.write_text(json.dumps(config_payload, indent=2))
     print(f"📝 Saved experiment config: {exp_config_path}")
@@ -197,9 +195,7 @@ def revert_config():
     Revert to baseline configuration.
     Called when experiment score degrades.
     """
-    baseline = ExperimentConfig(
-        experiment_id="baseline", change_description="reverted to baseline"
-    )
+    baseline = ExperimentConfig(experiment_id="baseline", change_description="reverted to baseline")
     apply_config(baseline)
     print("🔄 Reverted to baseline configuration\n")
 
@@ -309,9 +305,7 @@ if __name__ == "__main__":
     parser.add_argument("--change", required=True, help="Change description")
     parser.add_argument("--apply", action="store_true", help="Apply config and exit")
     parser.add_argument("--revert", action="store_true", help="Revert to baseline")
-    parser.add_argument(
-        "--print-config", action="store_true", help="Print current config"
-    )
+    parser.add_argument("--print-config", action="store_true", help="Print current config")
 
     args = parser.parse_args()
 

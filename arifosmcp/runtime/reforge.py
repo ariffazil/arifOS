@@ -43,9 +43,7 @@ class MetabolicForge:
             for f in files:
                 if f.endswith((".py", ".js", ".html", ".css")):
                     fcount += 1
-                    with open(
-                        os.path.join(root, f), encoding="utf-8", errors="ignore"
-                    ) as file:
+                    with open(os.path.join(root, f), encoding="utf-8", errors="ignore") as file:
                         loc += len(file.readlines())
 
         density = round(loc / max(1, fcount), 2)
@@ -74,9 +72,7 @@ class MetabolicForge:
         print(f"--- arifOS Metabolic Reforge v{VERSION} ---")
         self.scan_for_entropy()
         metrics = self.calculate_density()
-        print(
-            f"Intelligence Density: {metrics['density']} ({metrics['delta_i']}% of Target)"
-        )
+        print(f"Intelligence Density: {metrics['density']} ({metrics['delta_i']}% of Target)")
         print(f"Files targeted for pruning: {len(self.audit_report['pruned'])}")
 
         if self.audit_report["pruned"]:

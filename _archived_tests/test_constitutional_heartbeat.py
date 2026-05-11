@@ -30,9 +30,7 @@ async def test_constitutional_heartbeat_on_error():
         assert envelope.errors[0].code == "HARDENED_RUNTIME_FAILURE"
 
         # Assert recovery guidance is present even on crash
-        assert (
-            envelope.caller_state == "anonymous"
-        )  # Default for unknown session in failure
+        assert envelope.caller_state == "anonymous"  # Default for unknown session in failure
         assert envelope.next_action is not None
         assert envelope.next_action["tool"] == "init_anchor"
 

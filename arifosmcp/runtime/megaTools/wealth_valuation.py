@@ -45,9 +45,7 @@ async def wealth_irr_yield_handler(
     initial_investment: float, cash_flows: list[float], session_id: str | None = None
 ) -> dict[str, Any]:
     """Handler for wealth_irr_yield tool."""
-    result = wealth_irr_yield(
-        initial_investment=initial_investment, cash_flows=cash_flows
-    )
+    result = wealth_irr_yield(initial_investment=initial_investment, cash_flows=cash_flows)
     return result.model_dump()
 
 

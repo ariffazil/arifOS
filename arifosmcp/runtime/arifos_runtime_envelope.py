@@ -74,9 +74,9 @@ class Provenance(BaseModel):
     """
 
     intelligence_type: Literal["statistical", "embodied", "hybrid"] = "statistical"
-    grounding_status: Literal[
-        "data-based", "sensor-based", "human-mediated", "ungrounded"
-    ] = "human-mediated"
+    grounding_status: Literal["data-based", "sensor-based", "human-mediated", "ungrounded"] = (
+        "human-mediated"
+    )
     actor_id: str = "anonymous"  # Ψ-Continuity: canonical identity
     verified_actor_id: str | None = None
     stakes_model: Literal["none", "simulated", "externalized-to-human", "shared"] = (
@@ -85,9 +85,9 @@ class Provenance(BaseModel):
     confidence_domain: Literal[
         "narrow-task", "broad-context", "ambiguous", "human-judgment-required"
     ] = "ambiguous"
-    meaning_source: Literal[
-        "human-attributed", "statistical-inference", "ungrounded"
-    ] = "statistical-inference"
+    meaning_source: Literal["human-attributed", "statistical-inference", "ungrounded"] = (
+        "statistical-inference"
+    )
     human_equivalence_claimed: bool = False  # F9/F13: must remain False
 
 
@@ -111,9 +111,7 @@ class MindState(BaseModel):
     provenance: Provenance = Field(default_factory=Provenance)
     # Audit trail
     session_id: str = Field(default_factory=lambda: f"ms_{uuid.uuid4().hex[:12]}")
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     pipeline_trace: list[str] = Field(default_factory=list)
 
 
@@ -373,9 +371,7 @@ def mind_stage(
 
     # Fallback to structural templates if no facts present (but still dynamic)
     short_obj = objective[:100] if len(objective) > 100 else objective
-    context_note = (
-        f" (context: {additional_context[:60]})" if additional_context else ""
-    )
+    context_note = f" (context: {additional_context[:60]})" if additional_context else ""
 
     return [
         Hypothesis(
@@ -412,8 +408,7 @@ def heart_stage(hypotheses: list[Hypothesis]) -> list[str]:
         )
         if h.evidence_against:
             risks.append(
-                f"[{h.id}] Countervailing evidence present: "
-                f"{h.evidence_against[0][:80]}"
+                f"[{h.id}] Countervailing evidence present: " f"{h.evidence_against[0][:80]}"
             )
     return risks
 
@@ -508,7 +503,9 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
     if state.decision_required:
         next_step = "Human judgment required before proceeding."
     elif status == "HOLD" and g_star < 0.3:
-        next_step = "Low epistemic quality (G* < 0.3). Acquire more grounding facts before proceeding."
+        next_step = (
+            "Low epistemic quality (G* < 0.3). Acquire more grounding facts before proceeding."
+        )
     elif top_hypotheses:
         next_step = (
             f"Test the top hypothesis against its falsifier: "
@@ -592,9 +589,7 @@ def build_audit_packet(
         "raw_input": raw_input,
         "session_id": session_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "full_hypothesis_set": (
-            [h.model_dump() for h in mind.hypotheses] if mind else []
-        ),
+        "full_hypothesis_set": ([h.model_dump() for h in mind.hypotheses] if mind else []),
         "full_facts": mind.facts if mind else [],
         "full_assumptions": mind.assumptions if mind else [],
         "risk_trace": runtime_state.heart_risks,

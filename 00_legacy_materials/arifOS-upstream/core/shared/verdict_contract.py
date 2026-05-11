@@ -112,9 +112,7 @@ def _coerce_verdict(raw: str):
     try:
         return Verdict(normalized)
     except ValueError:
-        logger.warning(
-            "verdict_contract: unknown verdict string %r — coerced to SABAR", raw
-        )
+        logger.warning("verdict_contract: unknown verdict string %r — coerced to SABAR", raw)
         return Verdict.SABAR
 
 

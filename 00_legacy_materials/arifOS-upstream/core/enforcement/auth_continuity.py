@@ -93,9 +93,7 @@ _AUTH_VERIFY_CACHE_TTL_SECONDS = 60
 _auth_verify_cache: dict[str, tuple[bool, str, float, str]] = {}
 
 
-def _sign_auth_context_with_secret(
-    unsigned_context: dict[str, Any], secret: str
-) -> str:
+def _sign_auth_context_with_secret(unsigned_context: dict[str, Any], secret: str) -> str:
     canonical = json.dumps(
         unsigned_context, ensure_ascii=True, sort_keys=True, separators=(",", ":")
     )
@@ -139,9 +137,7 @@ def mint_auth_context(
     }
 
 
-def verify_auth_context(
-    session_id: str, auth_context: dict[str, Any]
-) -> tuple[bool, str]:
+def verify_auth_context(session_id: str, auth_context: dict[str, Any]) -> tuple[bool, str]:
     signature_fields = [
         "session_id",
         "actor_id",
@@ -172,24 +168,19 @@ def verify_auth_context(
         return False, "auth_context expired"
 
     unsigned_context = {
-        field: auth_context[field]
-        for field in signature_fields
-        if field in auth_context
+        field: auth_context[field] for field in signature_fields if field in auth_context
     }
     expected_signatures = [
         _sign_auth_context_with_secret(unsigned_context, _GOVERNANCE_TOKEN_SECRET)
     ]
     if _GOVERNANCE_TOKEN_SECRET_PREVIOUS:
         expected_signatures.append(
-            _sign_auth_context_with_secret(
-                unsigned_context, _GOVERNANCE_TOKEN_SECRET_PREVIOUS
-            )
+            _sign_auth_context_with_secret(unsigned_context, _GOVERNANCE_TOKEN_SECRET_PREVIOUS)
         )
 
     presented_signature = auth_context.get("signature", "")
     if not any(
-        hmac.compare_digest(presented_signature, expected)
-        for expected in expected_signatures
+        hmac.compare_digest(presented_signature, expected) for expected in expected_signatures
     ):
         return False, "signature mismatch"
 
@@ -204,9 +195,7 @@ def _auth_cache_key(session_id: str, auth_context: dict[str, Any]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def verify_auth_context_cached(
-    session_id: str, auth_context: dict[str, Any]
-) -> tuple[bool, str]:
+def verify_auth_context_cached(session_id: str, auth_context: dict[str, Any]) -> tuple[bool, str]:
     now = time.time()
     cache_key = _auth_cache_key(session_id, auth_context)
     cached = _auth_verify_cache.get(cache_key)
@@ -244,9 +233,7 @@ _REVOKED_SESSIONS: dict[str, tuple[str, float, str]] = {}
 _REVOCATION_TTL_SECONDS = 86400
 
 
-def revoke_session(
-    session_id: str, reason: str, revoked_by: str = "system"
-) -> dict[str, Any]:
+def revoke_session(session_id: str, reason: str, revoked_by: str = "system") -> dict[str, Any]:
     now = time.time()
     _REVOKED_SESSIONS[session_id] = (reason, now, revoked_by)
     clear_auth_context_cache(session_id)
@@ -270,9 +257,7 @@ def is_session_revoked(session_id: str) -> tuple[bool, str | None]:
 def _prune_expired_revocations() -> None:
     now = time.time()
     stale = [
-        sid
-        for sid, (_, ts, _) in _REVOKED_SESSIONS.items()
-        if (now - ts) > _REVOCATION_TTL_SECONDS
+        sid for sid, (_, ts, _) in _REVOKED_SESSIONS.items() if (now - ts) > _REVOCATION_TTL_SECONDS
     ]
     for sid in stale:
         _REVOKED_SESSIONS.pop(sid, None)

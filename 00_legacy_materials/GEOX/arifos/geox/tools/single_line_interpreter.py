@@ -68,9 +68,7 @@ class TectonicSetting(Enum):
 class StructuralElement:
     """A identified structural element from attribute analysis."""
 
-    element_type: Literal[
-        "fault", "fold", "unconformity", "zone_of_interest", "ambiguous"
-    ]
+    element_type: Literal["fault", "fold", "unconformity", "zone_of_interest", "ambiguous"]
     location: tuple[int, int]  # (inline_sample, time_sample)
     confidence: float  # 0.0-1.0
     supporting_attributes: list[str]  # Which attributes detected this
@@ -133,9 +131,7 @@ def _compute_coherence_2d(
 
 def _compute_curvature_2d(
     data: np.ndarray,
-    curvature_type: Literal[
-        "most_positive", "most_negative", "gaussian", "mean"
-    ] = "most_positive",
+    curvature_type: Literal["most_positive", "most_negative", "gaussian", "mean"] = "most_positive",
 ) -> dict[str, Any]:
     """Compute 2D curvature from seismic data."""
     rng = np.random.default_rng(int(data.sum()) % 10000 + 1)
@@ -461,9 +457,7 @@ async def link_attributes_to_geology(
 
     # Analyze curvature for fold geometry
     if any("curvature" in name for name in attr_stack.attributes):
-        curvature_attrs = [
-            name for name in attr_stack.attributes if "curvature" in name
-        ]
+        curvature_attrs = [name for name in attr_stack.attributes if "curvature" in name]
         structures.append(
             StructuralElement(
                 element_type="fold",
@@ -501,9 +495,7 @@ async def link_attributes_to_geology(
         )
 
     # Determine tectonic setting from structural patterns
-    tectonic_setting, setting_confidence, alternatives = _infer_tectonic_setting(
-        structures
-    )
+    tectonic_setting, setting_confidence, alternatives = _infer_tectonic_setting(structures)
 
     # Calculate overall uncertainty (F7 Humility)
     # Higher for raster, complex structures, multiple alternatives
@@ -769,9 +761,7 @@ class SingleLineInterpreter(BaseTool):
         interpretation = await link_attributes_to_geology(attr_stack)
 
         # Step 4: Audit conceptual bias (Bond et al. 2007)
-        interpretation.bias_audit = await audit_conceptual_bias(
-            interpretation, attr_stack
-        )
+        interpretation.bias_audit = await audit_conceptual_bias(interpretation, attr_stack)
 
         # Step 5: Generate final verdict
         final_verdict, verdict_explanation = self._determine_final_verdict(
@@ -782,9 +772,7 @@ class SingleLineInterpreter(BaseTool):
         latency_ms = (time.perf_counter() - start) * 1000
 
         CoordinatePoint(latitude=4.5, longitude=103.7)
-        _make_provenance(
-            f"LINE-{data_ref}", "LEM", confidence=interpretation.setting_confidence
-        )
+        _make_provenance(f"LINE-{data_ref}", "LEM", confidence=interpretation.setting_confidence)
 
         raw_output = {
             "interpretation": {

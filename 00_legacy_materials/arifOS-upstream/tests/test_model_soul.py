@@ -80,9 +80,7 @@ async def test_init_anchor_v2_with_deployment_id():
 @pytest.mark.asyncio
 async def test_init_anchor_v2_no_soul():
     """Test init_anchor V2 without model_soul."""
-    envelope = await init_anchor(
-        mode="init", actor_id="BasicUser", intent="No soul test"
-    )
+    envelope = await init_anchor(mode="init", actor_id="BasicUser", intent="No soul test")
     res = envelope.payload
 
     assert res["result_type"] == "init_anchor_result@v2"

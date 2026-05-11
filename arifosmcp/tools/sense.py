@@ -23,9 +23,7 @@ def arif_sense_observe(
 ) -> dict[str, Any]:
     floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_sense_observe", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"])
 
     if mode == "search":
         return _ok(
@@ -33,9 +31,7 @@ def arif_sense_observe(
             {"query": query, "results": [], "source": "sense", "omega_0": 0.04},
         )
     if mode == "ingest":
-        return _ok(
-            "arif_sense_observe", {"url": url, "ingested": False, "note": "stub"}
-        )
+        return _ok("arif_sense_observe", {"url": url, "ingested": False, "note": "stub"})
     if mode == "compass":
         return _ok("arif_sense_observe", {"heading": "north", "confidence": 0.95})
     if mode == "atlas":

@@ -22,9 +22,7 @@ async def anthropic_generate(
     """
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
-        return AnthropicEnvelope(
-            False, "", "ANTHROPIC_API_KEY missing from environment"
-        )
+        return AnthropicEnvelope(False, "", "ANTHROPIC_API_KEY missing from environment")
 
     url = "https://api.anthropic.com/v1/messages"
     headers = {

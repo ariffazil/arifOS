@@ -55,7 +55,5 @@ if __name__ == "__main__":
     # Quick test
     import asyncio
 
-    res = asyncio.run(
-        generate_nusantara_wisdom("arif_vault_seal", "Hardening the Merkle trail")
-    )
+    res = asyncio.run(generate_nusantara_wisdom("arif_vault_seal", "Hardening the Merkle trail"))
     print(json.dumps(res, indent=2))

@@ -70,9 +70,7 @@ async def test_valid_msap_ack(signing_key, registered_keys):
     judge_hash = "sha256:judge123"
     chain_id = "CHAIN-123"
 
-    challenge = msap.create_challenge(
-        actor_id, session_id, payload_hash, judge_hash, chain_id
-    )
+    challenge = msap.create_challenge(actor_id, session_id, payload_hash, judge_hash, chain_id)
 
     packet = msap.SovereignAckPacket(
         actor_id=actor_id,
@@ -100,9 +98,7 @@ async def test_replay_attack(signing_key, registered_keys):
     judge_hash = "sha256:judge123"
     chain_id = "CHAIN-123"
 
-    challenge = msap.create_challenge(
-        actor_id, session_id, payload_hash, judge_hash, chain_id
-    )
+    challenge = msap.create_challenge(actor_id, session_id, payload_hash, judge_hash, chain_id)
     packet = msap.SovereignAckPacket(
         actor_id=actor_id,
         session_id=session_id,
@@ -132,9 +128,7 @@ async def test_wrong_binding(signing_key, registered_keys):
     judge_hash = "sha256:judge123"
     chain_id = "CHAIN-123"
 
-    challenge = msap.create_challenge(
-        actor_id, session_id, payload_hash, judge_hash, chain_id
-    )
+    challenge = msap.create_challenge(actor_id, session_id, payload_hash, judge_hash, chain_id)
 
     # Packet with wrong session_id
     packet = msap.SovereignAckPacket(
@@ -163,9 +157,7 @@ async def test_dev_override(signing_key, registered_keys, monkeypatch):
     judge_hash = "sha256:judge123"
     chain_id = "CHAIN-123"
 
-    challenge = msap.create_challenge(
-        actor_id, session_id, payload_hash, judge_hash, chain_id
-    )
+    challenge = msap.create_challenge(actor_id, session_id, payload_hash, judge_hash, chain_id)
     packet = msap.SovereignAckPacket(
         actor_id=actor_id,
         session_id=session_id,
@@ -217,9 +209,7 @@ async def test_vault_seal_integration(signing_key, registered_keys, monkeypatch)
     judge_hash = "sha256:judge123"
     chain_id = "CHAIN-123"
 
-    challenge = msap.create_challenge(
-        actor_id, session_id, payload_hash, judge_hash, chain_id
-    )
+    challenge = msap.create_challenge(actor_id, session_id, payload_hash, judge_hash, chain_id)
     packet = msap.SovereignAckPacket(
         actor_id=actor_id,
         session_id=session_id,
@@ -247,9 +237,7 @@ async def test_vault_seal_integration(signing_key, registered_keys, monkeypatch)
     monkeypatch.setenv("ARIFOS_DEV_ALLOW_MSAP_LEVEL2", "true")
 
     # Need new challenge because previous one was marked used
-    challenge2 = msap.create_challenge(
-        actor_id, session_id, payload_hash, judge_hash, chain_id
-    )
+    challenge2 = msap.create_challenge(actor_id, session_id, payload_hash, judge_hash, chain_id)
     packet2 = msap.SovereignAckPacket(
         actor_id=actor_id,
         session_id=session_id,

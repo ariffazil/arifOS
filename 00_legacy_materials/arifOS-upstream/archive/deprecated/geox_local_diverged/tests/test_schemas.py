@@ -171,9 +171,7 @@ class TestCoordinatePoint:
         assert cp.depth_m == -50.0
 
     def test_round_trip(self):
-        cp = CoordinatePoint(
-            latitude=4.5, longitude=104.2, depth_m=2500.0, crs="EPSG:4326"
-        )
+        cp = CoordinatePoint(latitude=4.5, longitude=104.2, depth_m=2500.0, crs="EPSG:4326")
         data = cp.model_dump()
         restored = CoordinatePoint(**data)
         assert restored.latitude == cp.latitude
@@ -431,9 +429,7 @@ class TestGeoInsight:
         i2 = _make_geo_insight()
         assert i1.insight_id != i2.insight_id  # unique per instance
 
-    @pytest.mark.parametrize(
-        "status", ["supported", "ambiguous", "contradicted", "unverified"]
-    )
+    @pytest.mark.parametrize("status", ["supported", "ambiguous", "contradicted", "unverified"])
     def test_valid_status_values(self, status: str):
         insight = GeoInsight(
             text="Net pay estimated at 25 m in the test zone.",
@@ -681,12 +677,8 @@ class TestGeoResponse:
 
     def test_response_id_unique(self):
         req = _make_geo_request()
-        r1 = GeoResponse(
-            request_id=req.request_id, verdict="SEAL", confidence_aggregate=0.90
-        )
-        r2 = GeoResponse(
-            request_id=req.request_id, verdict="SEAL", confidence_aggregate=0.90
-        )
+        r1 = GeoResponse(request_id=req.request_id, verdict="SEAL", confidence_aggregate=0.90)
+        r2 = GeoResponse(request_id=req.request_id, verdict="SEAL", confidence_aggregate=0.90)
         assert r1.response_id != r2.response_id
 
     def test_round_trip(self):

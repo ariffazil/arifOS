@@ -12,7 +12,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight
@@ -86,17 +85,11 @@ class KernelCore:
                 _bound_actor = _identity.get("actor_id")
 
         effective_actor = (
-            (_bound_actor or payload.get("actor_id") or actor_id or "anonymous")
-            .strip()
-            .lower()
+            (_bound_actor or payload.get("actor_id") or actor_id or "anonymous").strip().lower()
         )
 
-        selected_pattern = self.pattern_selector.select(
-            {"query": effective_query, **payload}
-        )
-        adaptive_depth = self._compute_adaptive_depth(
-            effective_query, risk_tier, payload
-        )
+        selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
+        adaptive_depth = self._compute_adaptive_depth(effective_query, risk_tier, payload)
 
         context = {
             "payload": payload,
@@ -118,9 +111,7 @@ class KernelCore:
         }
         return context
 
-    def _compute_adaptive_depth(
-        self, query: str, risk_tier: str, payload: dict[str, Any]
-    ) -> str:
+    def _compute_adaptive_depth(self, query: str, risk_tier: str, payload: dict[str, Any]) -> str:
         q = query.lower()
         destructive_signals = {
             "delete",
@@ -135,17 +126,9 @@ class KernelCore:
             "drop",
         }
         has_destructive = any(s in q for s in destructive_signals)
-        if (
-            risk_tier == "low"
-            and not has_destructive
-            and not payload.get("allow_execution")
-        ):
+        if risk_tier == "low" and not has_destructive and not payload.get("allow_execution"):
             return "fast"
-        return (
-            "deep"
-            if (risk_tier in ("high", "critical") or has_destructive)
-            else "standard"
-        )
+        return "deep" if (risk_tier in ("high", "critical") or has_destructive) else "standard"
 
     def _get_session_state(self, session_id: str | None) -> dict[str, Any]:
         """Fetch session continuity state for G02 RouteContext population."""
@@ -173,9 +156,7 @@ class KernelCore:
             if state_hash:
                 current["judge_state_hash"] = state_hash
             set_session_continuity_state(session_id, current)
-            logger.info(
-                f"[G02] Judge verdict stored: session={session_id[:20]}, verdict={verdict}"
-            )
+            logger.info(f"[G02] Judge verdict stored: session={session_id[:20]}, verdict={verdict}")
         except Exception as e:
             logger.warning(f"[G02] Failed to persist judge verdict: {e}")
 
@@ -350,9 +331,7 @@ class KernelCore:
         if not tool_result.get("ok", True):
             return self._router_error(
                 code=str(tool_result.get("error_code") or "ROUTER_DOWNSTREAM_ERROR"),
-                summary=str(
-                    tool_result.get("error") or "Downstream tool execution failed."
-                ),
+                summary=str(tool_result.get("error") or "Downstream tool execution failed."),
                 context=context,
                 resolved_lane=tool_name,
                 route_intent=routing_result.get("route_intent"),
@@ -437,9 +416,9 @@ class KernelCore:
             g02_axis = context.get("g02_axis")
             if g02_axis and g02_axis.value == "E":
                 session_state = self._get_session_state(context.get("session_id"))
-                kwargs["judge_verdict"] = session_state.get(
-                    "judge_verdict"
-                ) or context.get("g02_verdict")
+                kwargs["judge_verdict"] = session_state.get("judge_verdict") or context.get(
+                    "g02_verdict"
+                )
                 kwargs["judge_state_hash"] = session_state.get("judge_state_hash")
 
             from arifosmcp.runtime.tools_hardened_dispatch import (
@@ -533,14 +512,10 @@ class KernelCore:
                 base_detail = envelope.detail or ""
                 envelope.detail = f'{base_detail}\n\n"{quote}" — {author}'
         except Exception as phil_err:
-            logger.debug(
-                f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}"
-            )
+            logger.debug(f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}")
 
         # Seal with continuity (Harden G02 public routing)
-        sealed = seal_runtime_envelope(
-            envelope=envelope, tool_id=tool_name, session_id=session_id
-        )
+        sealed = seal_runtime_envelope(envelope=envelope, tool_id=tool_name, session_id=session_id)
 
         # ── Health Band Injection ──
         if isinstance(sealed, RuntimeEnvelope):
@@ -550,9 +525,7 @@ class KernelCore:
                 "ds": getattr(sealed.metrics.telemetry, "ds", 0.0),
                 "peace2": getattr(sealed.metrics.telemetry, "peace2", 1.0),
                 "omega": getattr(sealed.metrics.telemetry, "omega_ortho", 1.0),
-                "w3": getattr(
-                    sealed.metrics.witness, "ai", 0.95
-                ),  # Simplification for now
+                "w3": getattr(sealed.metrics.witness, "ai", 0.95),  # Simplification for now
                 "shadow": getattr(sealed.metrics.telemetry, "shadow", 0.0),
             }
             payload = dict(sealed.payload or {})
@@ -605,9 +578,7 @@ class KernelCore:
 
         verdict = final_result.get("verdict", "SABAR")
         final_result["kernel_status"] = (
-            "READY"
-            if verdict == "SEAL"
-            else ("BLOCKED" if verdict == "VOID" else "HOLD")
+            "READY" if verdict == "SEAL" else ("BLOCKED" if verdict == "VOID" else "HOLD")
         )
 
         # ── WELL Biological Context Injection ────────────────────────

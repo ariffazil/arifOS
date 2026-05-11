@@ -10,9 +10,7 @@ from fastmcp import FastMCP
 
 
 def _register(mcp: FastMCP) -> None:
-    @mcp.tool(
-        name="metabolic_vitals", description="Live thermodynamic telemetry dashboard"
-    )
+    @mcp.tool(name="metabolic_vitals", description="Live thermodynamic telemetry dashboard")
     def metabolic_vitals() -> dict:
         return {
             "g_score": 0.97,

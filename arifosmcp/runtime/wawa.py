@@ -314,9 +314,7 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
                                     "SUN",
                                 ]
                             },
-                            "start_time": {
-                                "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
-                            },
+                            "start_time": {"pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"},
                             "end_time": {"pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"},
                             "room": {"type": "string"},
                         },
@@ -530,9 +528,7 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
                 "Log: action=timetable_conflict_scan."
             ),
         }
-        return templates.get(action, templates["VIEW"]).format(
-            class_data=class_data or {}
-        )
+        return templates.get(action, templates["VIEW"]).format(class_data=class_data or {})
 
     # ── wawa.deadline_engine ─────────────────────────────────────────────────
     @mcp.prompt("wawa.deadline_engine")
@@ -616,9 +612,7 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
                 "Log to VAULT999: action=group_member_report (private — student_id only)."
             ),
         }
-        return templates.get(action, templates["VIEW_BOARD"]).format(
-            project=project or {}
-        )
+        return templates.get(action, templates["VIEW_BOARD"]).format(project=project or {})
 
     # ── wawa.lecture_companion ───────────────────────────────────────────────
     @mcp.prompt("wawa.lecture_companion")
@@ -786,9 +780,7 @@ def register_wawa_resources(mcp: FastMCP) -> list[str]:
     def wawa_floor_overlay() -> str:
         """WAWA-specific constitutional floor emphasis — student data governance."""
         lines = ["# WAWA Constitutional Floor Overlay\n"]
-        lines.append(
-            "WAWA operates under full F1-F13, with these student-domain emphases:\n"
-        )
+        lines.append("WAWA operates under full F1-F13, with these student-domain emphases:\n")
         for _key, floor in WAWA_FLOOR_OVERLAY.items():
             lines.append(f"## {floor['name']} ({floor['floor']})\n")
             lines.append(f"**Principle:** {floor['principle']}\n")

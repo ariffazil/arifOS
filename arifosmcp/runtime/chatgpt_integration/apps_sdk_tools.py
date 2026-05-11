@@ -30,9 +30,7 @@ VAULT_WIDGET_URI = f"{ARIFOS_WIDGET_DOMAIN}/widget/vault-seal"
 RESOURCE_MIME_TYPE = "text/html;profile=mcp-app"
 
 # Standalone widget HTML file (served via /ui/ static route)
-_WIDGET_FILE = (
-    pathlib.Path(__file__).parent.parent / "widgets" / "vault_seal_widget.html"
-)
+_WIDGET_FILE = pathlib.Path(__file__).parent.parent / "widgets" / "vault_seal_widget.html"
 
 
 def _clamp_score(value: Any, default: float = 0.0) -> float:
@@ -320,9 +318,7 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
                 "telemetry": status.get("telemetry", {}),
                 "widget_uri": VAULT_WIDGET_URI,
             },
-            "content": [
-                {"type": "text", "text": "Constitutional health snapshot retrieved."}
-            ],
+            "content": [{"type": "text", "text": "Constitutional health snapshot retrieved."}],
         }
 
     @mcp.tool(

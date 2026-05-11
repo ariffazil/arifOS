@@ -27,9 +27,7 @@ def test_capability_map_enables_external_grounding_with_ddgs(monkeypatch):
     monkeypatch.delenv("PERPLEXITY_API_KEY", raising=False)
     monkeypatch.delenv("FIRECRAWL_API_KEY", raising=False)
     monkeypatch.delenv("BROWSERLESS_TOKEN", raising=False)
-    monkeypatch.setattr(
-        capability_map_module, "_module_available", lambda name: name == "ddgs"
-    )
+    monkeypatch.setattr(capability_map_module, "_module_available", lambda name: name == "ddgs")
 
     capability_map = build_runtime_capability_map()
 

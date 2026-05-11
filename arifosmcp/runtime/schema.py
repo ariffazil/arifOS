@@ -106,9 +106,7 @@ class IdentityResolution(BaseModel):
         "demoted",
         "rejected_protected_id",
     ] = Field(description="Resolution status")
-    why_demoted: str | None = Field(
-        default=None, description="Explanation if identity was demoted"
-    )
+    why_demoted: str | None = Field(default=None, description="Explanation if identity was demoted")
 
 
 class InitAnchorOutput(BaseModel):
@@ -121,32 +119,22 @@ class InitAnchorOutput(BaseModel):
     )
     identity: IdentityResolution
     abi_version: str = Field(default="1.0", description="ABI version used")
-    approval_state: Literal["not_required", "pending", "approved"] = Field(
-        default="not_required"
-    )
+    approval_state: Literal["not_required", "pending", "approved"] = Field(default="not_required")
 
 
 class MegaToolInput(BaseModel):
     """Unified input envelope for all tools (ABI v1.0)."""
 
     mode: str = Field(..., description="Operation mode for this tool")
-    payload: dict[str, Any] = Field(
-        default_factory=dict, description="Mode-specific payload data"
-    )
+    payload: dict[str, Any] = Field(default_factory=dict, description="Mode-specific payload data")
     auth_context: dict[str, Any] | None = Field(
         default=None, description="Authentication context (F11)"
     )
-    caller_context: dict[str, Any] | None = Field(
-        default=None, description="Caller metadata"
-    )
+    caller_context: dict[str, Any] | None = Field(default=None, description="Caller metadata")
     risk_tier: Literal["low", "medium", "high", "critical"] = Field(default="medium")
     dry_run: bool = Field(default=True, description="Validate only without execution")
-    allow_execution: bool = Field(
-        default=False, description="Permit execution if floors pass"
-    )
-    abi_version: str = Field(
-        default="1.0", description="ABI version requested by client"
-    )
+    allow_execution: bool = Field(default=False, description="Permit execution if floors pass")
+    abi_version: str = Field(default="1.0", description="ABI version requested by client")
     platform: PlatformType = Field(
         default="unknown",
         description="Caller platform surface (chatgpt|perplexity|mcp-cli|playground|api|unknown)",
@@ -158,15 +146,9 @@ class CanonicalErrorDetail(BaseModel):
 
     code: str = Field(description="Machine-readable error code")
     message: str = Field(description="Human-readable error message")
-    recoverable: bool = Field(
-        default=True, description="Whether client can retry/recover"
-    )
-    remediation: str | None = Field(
-        default=None, description="Suggested fix or next action"
-    )
-    required_next_tool: str | None = Field(
-        default=None, description="Tool to call to resolve"
-    )
+    recoverable: bool = Field(default=True, description="Whether client can retry/recover")
+    remediation: str | None = Field(default=None, description="Suggested fix or next action")
+    required_next_tool: str | None = Field(default=None, description="Tool to call to resolve")
 
 
 class ErrorResponse(BaseModel):
@@ -185,13 +167,9 @@ class ErrorResponse(BaseModel):
 class QueryOptions(BaseModel):
     """Optional controls for output verbosity."""
 
-    verbose: bool = Field(
-        default=False, description="Include governance + system details"
-    )
+    verbose: bool = Field(default=False, description="Include governance + system details")
     debug: bool = Field(default=False, description="Include full forensic state")
-    include: list[str] = Field(
-        default_factory=list, description="Specific sections to include"
-    )
+    include: list[str] = Field(default_factory=list, description="Specific sections to include")
 
 
 class CleanInput(BaseModel):
@@ -245,9 +223,7 @@ class HumanLanguageBlock(BaseModel):
     """Human-first language block shared across surfaces."""
 
     summary: str = Field(description="Plain-language explanation of what happened")
-    explanation: str | None = Field(
-        default=None, description="Why it happened, in plain language"
-    )
+    explanation: str | None = Field(default=None, description="Why it happened, in plain language")
     next_step: str | None = Field(
         default=None, description="Actionable next step in plain language"
     )
@@ -275,9 +251,7 @@ class CleanError(BaseModel):
 class DebugForensics(BaseModel):
     """Full forensic state — only when options.debug = true."""
 
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     caller_state: str | None = None
     allowed_next_tools: list[str] = Field(default_factory=list)
     blocked_tools: list[dict] = Field(default_factory=list)
@@ -343,9 +317,7 @@ def build_operator_view(
         ),
         execution=ExecutionResult(ok=ok, status=status, stage=stage),
         governance=GovernanceVerdict(verdict=verdict, reason=reason),
-        operator=OperatorAction(
-            summary=summary, next_step=next_step, retryable=retryable
-        ),
+        operator=OperatorAction(summary=summary, next_step=next_step, retryable=retryable),
         context=ContextSummary(
             actor=actor,
             session=session,
@@ -353,9 +325,7 @@ def build_operator_view(
             risk=risk,
             platform=platform,
         ),
-        error=(
-            CleanError(code=error_code, message=error_message) if error_code else None
-        ),
+        error=(CleanError(code=error_code, message=error_message) if error_code else None),
     )
 
 
@@ -470,9 +440,7 @@ class AgiReplyHeader(BaseModel):
         default_factory=list,
         description="Secondary recipients: audit agents, downstream agents, vault ref",
     )
-    TITLE: str = Field(
-        description="One-line verdict statement (becomes the TITLE line)"
-    )
+    TITLE: str = Field(description="One-line verdict statement (becomes the TITLE line)")
     KEY_CONTEXT: str = Field(
         description="1-2 essential sentences — what the recipient must know to act"
     )
@@ -518,9 +486,7 @@ class AgiReplyGovernanceTrace(BaseModel):
     verdict: Literal["888_HOLD", "SEAL", "PARTIAL", "VOID"] = Field(
         description="Constitutional verdict at time of governance check"
     )
-    escalate_to: str = Field(
-        description="Principal who must ratify — format: human:<actor_id>"
-    )
+    escalate_to: str = Field(description="Principal who must ratify — format: human:<actor_id>")
     audit_ref: str = Field(description="Short audit hash from AgiReplySeal")
     rights_impact: bool = Field(
         default=False,
@@ -556,18 +522,10 @@ class AgiReplySeal(BaseModel):
             "manual = caller-supplied override"
         ),
     )
-    floors_passed: list[str] = Field(
-        default_factory=list, description="F1-F13 floors that passed"
-    )
-    floors_triggered: list[str] = Field(
-        default_factory=list, description="Floors that flagged"
-    )
-    audit_hash: str = Field(
-        description="sha256(TITLE + timestamp + forged_by + judge_verdict)"
-    )
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    floors_passed: list[str] = Field(default_factory=list, description="F1-F13 floors that passed")
+    floors_triggered: list[str] = Field(default_factory=list, description="Floors that flagged")
+    audit_hash: str = Field(description="sha256(TITLE + timestamp + forged_by + judge_verdict)")
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     vault_ref: str | None = Field(
         default=None,
         description="arifos.vault ledger reference if sealed",
@@ -631,9 +589,7 @@ class AgiReplyEnvelopeHuman(BaseModel):
     raci: AgiReplyRACI
 
     # Context state (STEP -1)
-    prior_state: str | None = Field(
-        default=None, description="Compressed prior context"
-    )
+    prior_state: str | None = Field(default=None, description="Compressed prior context")
     delta: str | None = Field(default=None, description="What changed this turn")
     depth: Literal["SURFACE", "ENGINEER", "ARCHITECT"] = Field(default="ENGINEER")
 

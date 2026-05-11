@@ -122,9 +122,7 @@ class ConstitutionalDAGExecutor:
 
     def _get_executable_nodes(self) -> list[DAGNode]:
         """Return all PENDING nodes whose dependencies are fully satisfied."""
-        completed_ids = {
-            n.id for n in self.nodes.values() if n.status == NodeStatus.COMPLETED
-        }
+        completed_ids = {n.id for n in self.nodes.values() if n.status == NodeStatus.COMPLETED}
         return [
             n
             for n in self.nodes.values()
@@ -149,16 +147,12 @@ class ConstitutionalDAGExecutor:
         node.floor_violations = result.floor_violations
         return result.triggers_888_hold, result.score, result.floor_violations
 
-    def _trigger_hold(
-        self, node: DAGNode, score: float, floor_violations: list[str]
-    ) -> None:
+    def _trigger_hold(self, node: DAGNode, score: float, floor_violations: list[str]) -> None:
         """Trigger 888_HOLD for a node via HoldStateManager."""
         node.status = NodeStatus.HELD
         self._halted = True
         self._halt_node = node.id
-        self._halt_reason = (
-            f"F1_AMANAH_CRITICAL: score={score} floors={floor_violations}"
-        )
+        self._halt_reason = f"F1_AMANAH_CRITICAL: score={score} floors={floor_violations}"
 
         if self.hold_manager is not None:
             self.hold_manager.create_hold(
@@ -189,9 +183,7 @@ class ConstitutionalDAGExecutor:
         Returns:
             ExecutionResult with full run record
         """
-        logger.info(
-            f"[DAG:{self.dag_id}] Starting execution with {len(self.nodes)} nodes"
-        )
+        logger.info(f"[DAG:{self.dag_id}] Starting execution with {len(self.nodes)} nodes")
         max_iterations = len(self.nodes) * 2  # Safety cap
         iteration = 0
 
@@ -209,9 +201,7 @@ class ConstitutionalDAGExecutor:
 
             for node in executable:
                 # ── F1 Amanah pre-check ──────────────────────────────────────────
-                triggers_hold, score, floor_violations = self._check_irreversibility(
-                    node
-                )
+                triggers_hold, score, floor_violations = self._check_irreversibility(node)
 
                 if triggers_hold:
                     self._trigger_hold(node, score, floor_violations)
@@ -225,9 +215,7 @@ class ConstitutionalDAGExecutor:
                     node.status = NodeStatus.COMPLETED
                     node.verdict = result.get("verdict", "SEAL")
                     self._executed_order.append(node.id)
-                    logger.info(
-                        f"[DAG:{self.dag_id}] Node '{node.id}' → {node.verdict}"
-                    )
+                    logger.info(f"[DAG:{self.dag_id}] Node '{node.id}' → {node.verdict}")
                 except Exception as e:
                     node.status = NodeStatus.FAILED
                     node.error = str(e)
@@ -244,10 +232,7 @@ class ConstitutionalDAGExecutor:
     def _rollback_dependents(self, failed_node_id: str) -> None:
         """Mark all nodes that depend on a failed node as ROLLED_BACK."""
         for node in self.nodes.values():
-            if (
-                failed_node_id in node.dependencies
-                and node.status == NodeStatus.PENDING
-            ):
+            if failed_node_id in node.dependencies and node.status == NodeStatus.PENDING:
                 node.status = NodeStatus.ROLLED_BACK
                 logger.warning(
                     f"[DAG:{self.dag_id}] Node '{node.id}' rolled back (dependency '{failed_node_id}' failed)"

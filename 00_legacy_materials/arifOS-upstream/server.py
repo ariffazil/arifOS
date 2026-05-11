@@ -352,9 +352,7 @@ class SovereignHandshakeMiddleware(BaseHTTPMiddleware):
             response.headers["X-Arifos-Sovereign-Status"] = str(
                 state.get("status", "888_JUDGE_ACTIVE")
             )
-            response.headers["X-Arifos-Sovereign-Subject"] = str(
-                state.get("subject", "anonymous")
-            )
+            response.headers["X-Arifos-Sovereign-Subject"] = str(state.get("subject", "anonymous"))
 
         return response
 
@@ -438,9 +436,7 @@ else:
         from arifosmcp.apps import register_all_apps
 
         registered_apps = register_all_apps(mcp)
-        logger.info(
-            f"Successfully registered {len(registered_apps)} constitutional apps"
-        )
+        logger.info(f"Successfully registered {len(registered_apps)} constitutional apps")
 
         # Register ChatGPT Apps SDK tools (widget resources + vault seal card)
         try:
@@ -478,15 +474,11 @@ else:
             }
             for _axis, _factory in _agent_factories.items():
                 if not _axis_enabled(_axis):
-                    logger.info(
-                        f"  [{_axis}] axis DISABLED via ARIFOS_ENABLE_{_axis}_AXIS=false"
-                    )
+                    logger.info(f"  [{_axis}] axis DISABLED via ARIFOS_ENABLE_{_axis}_AXIS=false")
                     continue
                 _agent_mcp = _factory()
                 mcp.mount(_agent_mcp, namespace=None)
-                logger.info(
-                    f"  [{_axis}] 6-axis MCP agent mounted (namespaced by prefix letter)"
-                )
+                logger.info(f"  [{_axis}] 6-axis MCP agent mounted (namespaced by prefix letter)")
             logger.info("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
             print("6-axis MCP: P/T/V/G/E/M namespaces mounted via mcp_tools.py")
         except Exception as _e:
@@ -507,9 +499,7 @@ else:
                 )
                 logger.info("F13 Approval provider active")
             except (ImportError, ModuleNotFoundError):
-                logger.warning(
-                    "F13 Approval provider unavailable (FastMCP version mismatch)"
-                )
+                logger.warning("F13 Approval provider unavailable (FastMCP version mismatch)")
 
         # Skills Provider — expose skills/ dir relative to this server file
         try:

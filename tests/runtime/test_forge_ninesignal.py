@@ -29,14 +29,10 @@ class TestForgeNineSignalContract:
             mode=mode, query="status check", session_id=None, actor_id=None
         )
 
-        assert (
-            result.get("status") == "OK"
-        ), f"Expected OK for {mode}, got {result.get('status')}"
+        assert result.get("status") == "OK", f"Expected OK for {mode}, got {result.get('status')}"
 
         failed = result.get("meta", {}).get("failed_floors", [])
-        assert (
-            "F11" not in failed
-        ), f"F11 breach on {mode} despite being read-only: {failed}"
+        assert "F11" not in failed, f"F11 breach on {mode} despite being read-only: {failed}"
 
         nine = result.get("nine_signal", {})
         assert (
@@ -45,9 +41,7 @@ class TestForgeNineSignalContract:
 
     def test_nine_signal_present_on_query_ok(self):
         """Query mode must emit nine_signal on success path."""
-        result = _arif_forge_execute(
-            mode="query", query="status", session_id=None, actor_id=None
-        )
+        result = _arif_forge_execute(mode="query", query="status", session_id=None, actor_id=None)
         assert "nine_signal" in result, "nine_signal missing from query OK response"
         assert result["nine_signal"].get("overall") == "SELAMAT"
 
@@ -76,9 +70,7 @@ class TestForgeNineSignalContract:
         assert (
             result.get("status") == "HOLD"
         ), f"Expected HOLD for engineer without plan_id, got {result.get('status')}"
-        assert (
-            "nine_signal" in result
-        ), "nine_signal missing from engineer HOLD response"
+        assert "nine_signal" in result, "nine_signal missing from engineer HOLD response"
         assert result["nine_signal"].get("overall") in (
             "RETAK",
             "SABAR",

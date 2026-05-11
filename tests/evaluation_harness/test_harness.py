@@ -81,9 +81,7 @@ class TestKernelPrimitives(unittest.TestCase):
                 "required": ["expression"],
             },
         }
-        self.tool_registry.register_tool(
-            "calculate", "Evaluate math expression", schema
-        )
+        self.tool_registry.register_tool("calculate", "Evaluate math expression", schema)
 
         # Valid call
         is_valid = self.tool_registry.validate_call("calculate", {"expression": "2+2"})

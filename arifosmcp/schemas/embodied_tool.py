@@ -81,15 +81,9 @@ class PermissionGap(BaseModel):
 class StateDelta(BaseModel):
     """Describes what changed in system state from a tool call."""
 
-    before: dict[str, Any] = Field(
-        default_factory=dict, description="State before action"
-    )
-    after: dict[str, Any] = Field(
-        default_factory=dict, description="State after action"
-    )
-    changed_keys: list[str] = Field(
-        default_factory=list, description="Which keys changed"
-    )
+    before: dict[str, Any] = Field(default_factory=dict, description="State before action")
+    after: dict[str, Any] = Field(default_factory=dict, description="State after action")
+    changed_keys: list[str] = Field(default_factory=list, description="Which keys changed")
 
 
 class UncertaintyItem(BaseModel):
@@ -115,12 +109,8 @@ class WitnessEntry(BaseModel):
     domain: Domain = Field(default=Domain.UNKNOWN)
     risk_tier: RiskTier = Field(description="Risk tier at invocation")
     reversibility: Reversibility = Field(description="Reversibility of action")
-    authority_verified: bool = Field(
-        default=False, description="Was authority confirmed?"
-    )
-    reasoning_summary: str = Field(
-        default="", description="Brief reasoning for decision"
-    )
+    authority_verified: bool = Field(default=False, description="Was authority confirmed?")
+    reasoning_summary: str = Field(default="", description="Brief reasoning for decision")
     execution_status: ExecutionStatus = Field(default=ExecutionStatus.EXECUTED)
     latency_ms: float | None = Field(default=None, description="Execution time")
     error: str | None = Field(default=None, description="Error message if failed")
@@ -149,21 +139,15 @@ class EmbodiedToolEnvelope(BaseModel):
     """
 
     # Identity
-    tool_id: str = Field(
-        description="Canonical tool identifier e.g. 'arif_mind_reason'"
-    )
+    tool_id: str = Field(description="Canonical tool identifier e.g. 'arif_mind_reason'")
     tool_name: str = Field(description="Human-readable tool name")
     domain: Domain = Field(description="Which MCP organ")
 
     # Authorization
     actor_id: str | None = Field(default=None, description="Who is asking")
     session_id: str | None = Field(default=None, description="Governed session token")
-    authority_required: bool = Field(
-        default=False, description="Does this need Arif approval?"
-    )
-    authority_verified: bool = Field(
-        default=False, description="Has authority been confirmed?"
-    )
+    authority_required: bool = Field(default=False, description="Does this need Arif approval?")
+    authority_verified: bool = Field(default=False, description="Has authority been confirmed?")
 
     # Risk
     risk_tier: RiskTier = Field(description="T0-T4 risk classification")
@@ -186,9 +170,7 @@ class EmbodiedToolEnvelope(BaseModel):
     )
 
     # Content
-    result: dict[str, Any] = Field(
-        default_factory=dict, description="Tool-specific result"
-    )
+    result: dict[str, Any] = Field(default_factory=dict, description="Tool-specific result")
     error: str | None = Field(default=None, description="Error if failed")
 
     # Witness
@@ -201,9 +183,7 @@ class EmbodiedToolEnvelope(BaseModel):
     )
 
     # Meta
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -285,9 +265,7 @@ def build_embodied_envelope(
         risk_tier=risk_tier,
         reversibility=reversibility,
         authority_verified=(
-            authority_required is False or authority_verified
-            if authority_required
-            else True
+            authority_required is False or authority_verified if authority_required else True
         ),
         reasoning_summary=reasoning_summary,
         execution_status=(
@@ -296,9 +274,7 @@ def build_embodied_envelope(
             else (
                 ExecutionStatus.HELD
                 if status == "HOLD"
-                else (
-                    ExecutionStatus.VOID if status == "VOID" else ExecutionStatus.FAILED
-                )
+                else (ExecutionStatus.VOID if status == "VOID" else ExecutionStatus.FAILED)
             )
         ),
         latency_ms=latency_ms,

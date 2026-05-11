@@ -36,9 +36,7 @@ class TestRetrieveWitnesses:
         if len(results) >= 2:
             # All returned results should have at least some governance relevance
             for q in results:
-                assert "governance" in q["domain"] or any(
-                    "governance" in d for d in q["domain"]
-                )
+                assert "governance" in q["domain"] or any("governance" in d for d in q["domain"])
 
     def test_high_risk_prefers_cautionary_bias(self):
         results = retrieve_witnesses(
@@ -49,17 +47,11 @@ class TestRetrieveWitnesses:
         )
         # At least one result should have a cautious bias
         biases = [q["action_bias"] for q in results]
-        assert any(
-            b in ("refuse", "hold", "request_approval") for b in biases
-        ), f"Biases: {biases}"
+        assert any(b in ("refuse", "hold", "request_approval") for b in biases), f"Biases: {biases}"
 
     def test_no_randomness_across_calls(self):
-        r1 = retrieve_witnesses(
-            "System failure", domain="ethics", risk_level="high", top_k=3
-        )
-        r2 = retrieve_witnesses(
-            "System failure", domain="ethics", risk_level="high", top_k=3
-        )
+        r1 = retrieve_witnesses("System failure", domain="ethics", risk_level="high", top_k=3)
+        r2 = retrieve_witnesses("System failure", domain="ethics", risk_level="high", top_k=3)
         ids1 = [q["id"] for q in r1]
         ids2 = [q["id"] for q in r2]
         assert ids1 == ids2, "Retrieval must be deterministic"
@@ -79,9 +71,7 @@ class TestRetrieveWitnesses:
             assert q["source_status"] != "uncertain"
 
     def test_result_contains_all_schema_fields(self):
-        results = retrieve_witnesses(
-            "Test", domain="ethics", risk_level="medium", top_k=1
-        )
+        results = retrieve_witnesses("Test", domain="ethics", risk_level="medium", top_k=1)
         if results:
             q = results[0]
             required = {

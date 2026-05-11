@@ -311,9 +311,7 @@ class BeliefRegistry:
                 conn.close()
                 self._audit(state, "belief_update")
             except Exception as exc:
-                logger.error(
-                    "BeliefRegistry.save failed for %s: %s", state.actor_id, exc
-                )
+                logger.error("BeliefRegistry.save failed for %s: %s", state.actor_id, exc)
 
     def _audit(self, state: BeliefState, event_type: str) -> None:
         """Append belief update to VAULT999 audit trail (SEALED_EVENTS.jsonl)."""
@@ -337,9 +335,7 @@ class BeliefRegistry:
                 conn = _get_conn()
                 # Rough heuristic: purge entries not seen in > 7 days
                 threshold = datetime.now(timezone.utc).timestamp() - 7 * 86_400
-                threshold_iso = datetime.fromtimestamp(
-                    threshold, tz=timezone.utc
-                ).isoformat()
+                threshold_iso = datetime.fromtimestamp(threshold, tz=timezone.utc).isoformat()
                 cur = conn.execute(
                     "DELETE FROM belief_states WHERE last_seen < ? AND confidence <= ?",
                     (threshold_iso, _CONFIDENCE_FLOOR * 2),

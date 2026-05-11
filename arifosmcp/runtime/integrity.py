@@ -302,11 +302,7 @@ def validate_core_tool_ontology(
         tool = tool_registry[tool_name]
 
         # Stage must match
-        actual_stage = (
-            tool.get("stage")
-            if isinstance(tool, dict)
-            else getattr(tool, "stage", None)
-        )
+        actual_stage = tool.get("stage") if isinstance(tool, dict) else getattr(tool, "stage", None)
         _require(
             actual_stage == expected["stage"],
             "ONTOLOGY_STAGE_MISMATCH",
@@ -315,9 +311,7 @@ def validate_core_tool_ontology(
         )
 
         # Lane must match
-        actual_lane = (
-            tool.get("lane") if isinstance(tool, dict) else getattr(tool, "lane", None)
-        )
+        actual_lane = tool.get("lane") if isinstance(tool, dict) else getattr(tool, "lane", None)
         _require(
             actual_lane == expected["lane"],
             "ONTOLOGY_LANE_MISMATCH",
@@ -492,9 +486,7 @@ def perform_boot_integrity_check(
     # Validate tool ontology (only if contracts loaded)
     ontology_ok = False
     if contracts_ok and tool_registry:
-        ontology_ok = validate_core_tool_ontology(
-            tool_registry, stage_map, trinity_map, failed
-        )
+        ontology_ok = validate_core_tool_ontology(tool_registry, stage_map, trinity_map, failed)
 
     # Validate router visibility
     router_visible_tools = router_visible_tools or set()

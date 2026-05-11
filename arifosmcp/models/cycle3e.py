@@ -54,15 +54,11 @@ class SourceAttribution(BaseModel):
     """
 
     source_id: str = Field(..., description="Unique identifier for this source")
-    source_type: str = Field(
-        ..., description="Type of source (web, document, database, etc.)"
-    )
+    source_type: str = Field(..., description="Type of source (web, document, database, etc.)")
     uri: str | None = Field(default=None, description="URI/URL of the source")
     title: str | None = Field(default=None, description="Title or name of source")
     author: str | None = Field(default=None, description="Author or creator of source")
-    publication_date: datetime | None = Field(
-        default=None, description="Date of publication"
-    )
+    publication_date: datetime | None = Field(default=None, description="Date of publication")
     access_date: datetime = Field(
         default_factory=datetime.utcnow, description="When this source was accessed"
     )
@@ -78,9 +74,7 @@ class SourceAttribution(BaseModel):
     raw_content_hash: str | None = Field(
         default=None, description="Hash of raw content for verification"
     )
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional source metadata"
-    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional source metadata")
 
 
 class EvidenceBundle(BaseModel):
@@ -92,9 +86,7 @@ class EvidenceBundle(BaseModel):
     with full provenance tracking.
     """
 
-    bundle_id: str = Field(
-        ..., description="Unique identifier for this evidence bundle"
-    )
+    bundle_id: str = Field(..., description="Unique identifier for this evidence bundle")
     query: str = Field(..., description="Original query that generated this bundle")
     sources: list[SourceAttribution] = Field(
         default_factory=list, description="Attributed sources in this bundle"
@@ -102,9 +94,7 @@ class EvidenceBundle(BaseModel):
     raw_evidence: dict[str, Any] = Field(
         default_factory=dict, description="Raw evidence data by source_id"
     )
-    aggregated_content: str = Field(
-        default="", description="Aggregated and deduplicated content"
-    )
+    aggregated_content: str = Field(default="", description="Aggregated and deduplicated content")
     confidence: float = Field(
         default=0.0, ge=0.0, le=1.0, description="Aggregate confidence in this evidence"
     )
@@ -161,9 +151,7 @@ class Contradiction(BaseModel):
     severity: float = Field(
         default=0.5, ge=0.0, le=1.0, description="Severity of contradiction (0-1)"
     )
-    resolution: str | None = Field(
-        default=None, description="Proposed or applied resolution"
-    )
+    resolution: str | None = Field(default=None, description="Proposed or applied resolution")
 
 
 class VectorNode(BaseModel):
@@ -178,9 +166,7 @@ class VectorNode(BaseModel):
     vector: list[float] | None = Field(default=None, description="Embedding vector")
     content: str = Field(..., description="Text content of node")
     content_hash: str = Field(..., description="Hash of content")
-    evidence_bundle_id: str | None = Field(
-        default=None, description="Source evidence bundle"
-    )
+    evidence_bundle_id: str | None = Field(default=None, description="Source evidence bundle")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -198,12 +184,8 @@ class VectorEdge(BaseModel):
     source_node: str = Field(..., description="Source node ID")
     target_node: str = Field(..., description="Target node ID")
     relationship_type: str = Field(..., description="Type of relationship")
-    strength: float = Field(
-        default=0.5, ge=0.0, le=1.0, description="Relationship strength (0-1)"
-    )
-    bidirectional: bool = Field(
-        default=False, description="Whether edge is bidirectional"
-    )
+    strength: float = Field(default=0.5, ge=0.0, le=1.0, description="Relationship strength (0-1)")
+    bidirectional: bool = Field(default=False, description="Whether edge is bidirectional")
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -294,9 +276,7 @@ class WitnessStatement(BaseModel):
 
     witness_type: WitnessType = Field(..., description="Type of witness")
     statement: str = Field(..., description="The witness statement")
-    confidence: float = Field(
-        default=0.5, ge=0.0, le=1.0, description="Witness confidence"
-    )
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0, description="Witness confidence")
     evidence_refs: list[str] = Field(
         default_factory=list, description="References to supporting evidence"
     )

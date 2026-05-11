@@ -136,9 +136,7 @@ def arifos_compute_physics(
                     results.append(outcome)
                     break
         if not results:
-            results = [
-                sum(o * p for o, p in zip(outcomes, probabilities, strict=False))
-            ]
+            results = [sum(o * p for o, p in zip(outcomes, probabilities, strict=False))]
         mean_val = sum(results) / len(results)
         variance_val = sum((x - mean_val) ** 2 for x in results) / len(results)
         sorted_res = sorted(results)
@@ -215,12 +213,8 @@ def arifos_compute_physics(
             }
         first, last = cashflows[0], cashflows[-1]
         n = len(cashflows) - 1
-        cagr = (
-            (abs(last) / abs(first)) ** (1.0 / n) - 1 if first != 0 and n > 0 else 0.0
-        )
-        runway_months = (
-            first / burn_rate if burn_rate and burn_rate > 0 and first > 0 else 0
-        )
+        cagr = (abs(last) / abs(first)) ** (1.0 / n) - 1 if first != 0 and n > 0 else 0.0
+        runway_months = first / burn_rate if burn_rate and burn_rate > 0 and first > 0 else 0
         return {
             "agent": "T",
             "domain": "math",
@@ -297,9 +291,7 @@ def arifos_compute_finance(
     if mode == "npv":
         from core.organs._5_wealth import calculate_npv as _calc_npv
 
-        result = _calc_npv(
-            initial_investment or 0, cash_flows or [], discount_rate, terminal_value
-        )
+        result = _calc_npv(initial_investment or 0, cash_flows or [], discount_rate, terminal_value)
         npv_val = result.get("npv", 0.0)
         return {
             "agent": "V",
@@ -311,9 +303,7 @@ def arifos_compute_finance(
                 "discount_rate": discount_rate,
                 "initial_investment": initial_investment,
                 "terminal_value": terminal_value,
-                "criterion": (
-                    "accept" if npv_val > 0 else "reject" if npv_val < 0 else "marginal"
-                ),
+                "criterion": ("accept" if npv_val > 0 else "reject" if npv_val < 0 else "marginal"),
                 "flags": result.get("flags", []),
             },
         }
@@ -444,9 +434,7 @@ def arifos_compute_finance(
             "result": {
                 "pi": round(pi, 6) if pi is not None else None,
                 "npv": npv_future,
-                "criterion": (
-                    "accept" if pi and pi > 1 else "reject" if pi else "undefined"
-                ),
+                "criterion": ("accept" if pi and pi > 1 else "reject" if pi else "undefined"),
             },
         }
 
@@ -462,10 +450,7 @@ def arifos_compute_finance(
             }
         scored = [(c.get("score", 0), c) for c in candidates]
         scored.sort(key=lambda x: x[0], reverse=True)
-        ranked = [
-            {"rank": i + 1, "candidate": c, "score": s}
-            for i, (s, c) in enumerate(scored)
-        ]
+        ranked = [{"rank": i + 1, "candidate": c, "score": s} for i, (s, c) in enumerate(scored)]
         return {
             "agent": "V",
             "domain": "allocation",
@@ -486,10 +471,7 @@ def arifos_compute_finance(
             }
         scored = [(a.get("score", 0), a) for a in alternatives]
         scored.sort(key=lambda x: x[0], reverse=True)
-        ranked = [
-            {"rank": i + 1, "alternative": a, "score": s}
-            for i, (s, a) in enumerate(scored)
-        ]
+        ranked = [{"rank": i + 1, "alternative": a, "score": s} for i, (s, a) in enumerate(scored)]
         return {
             "agent": "V",
             "domain": "personal",
@@ -849,9 +831,7 @@ def arifos_oracle_bio(
                 "readiness": readiness,
                 "well_score": score,
                 "verdict": (
-                    "SEAL"
-                    if readiness == "HIGH"
-                    else "HOLD" if readiness == "LOW" else "PARTIAL"
+                    "SEAL" if readiness == "HIGH" else "HOLD" if readiness == "LOW" else "PARTIAL"
                 ),
             },
         }
@@ -934,9 +914,7 @@ def arifos_oracle_bio(
         dims = dimensions or {}
         action_weight = float(dims.get("action_weight", 0.5))
         kappa_r = float(dims.get("kappa_r", current.get("kappa_r", 0.7)))
-        baseline_score = float(
-            dims.get("baseline_well_score", current.get("well_score", 70.0))
-        )
+        baseline_score = float(dims.get("baseline_well_score", current.get("well_score", 70.0)))
         current_score = float(current.get("well_score", 70.0))
 
         raw_delta = current_score - baseline_score
@@ -1088,9 +1066,7 @@ async def arifos_oracle_world(
         try:
             from arifosmcp.runtime.geox_bridge import call_geox_tool
 
-            result = await call_geox_tool(
-                "geox_list_skills", {"query": query, "domain": domain}
-            )
+            result = await call_geox_tool("geox_list_skills", {"query": query, "domain": domain})
             skills = result if isinstance(result, list) else result.get("skills", [])
             return {
                 "agent": "P",

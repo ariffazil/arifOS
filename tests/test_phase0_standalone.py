@@ -280,9 +280,7 @@ def engineering_memory_dispatch_impl_fixed(mode: str, payload: dict) -> RuntimeE
             status=RuntimeStatus.SUCCESS,
             session_id=session_id,
             payload={
-                "results": [
-                    {"id": "1", "content": f"Result for: {query}", "score": 0.95}
-                ],
+                "results": [{"id": "1", "content": f"Result for: {query}", "score": 0.95}],
                 "count": 1,
                 "query": query,
             },
@@ -544,9 +542,7 @@ def test_ops_lane():
     )
     assert result.ok is True, "Should return success for cost"
     assert result.payload.get("mode") == "cost"
-    assert (
-        result.payload["estimate"]["risk_score"] > 0.5
-    )  # deploy should be higher risk
+    assert result.payload["estimate"]["risk_score"] > 0.5  # deploy should be higher risk
     print("  ✅ PASS: Cost mode works")
 
     # Test 3d: Health mode

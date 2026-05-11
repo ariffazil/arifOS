@@ -86,9 +86,7 @@ class ThinkingSession:
     tags: list[str] = field(default_factory=list)
     template: str | None = None  # e.g. "scientific-method", "five-whys"
     steps: list[ThinkingStep] = field(default_factory=list)
-    branches: dict[str, list[int]] = field(
-        default_factory=dict
-    )  # branch_id → [step_nums]
+    branches: dict[str, list[int]] = field(default_factory=dict)  # branch_id → [step_nums]
     status: SessionStatus = SessionStatus.ACTIVE
     quality_score: float = 0.0
     created_at: float = field(default_factory=time.time)
@@ -243,9 +241,7 @@ def compute_session_quality(steps: list[ThinkingStep]) -> float:
     # Depth
     depth = min(len(steps) / 10.0, 1.0)
 
-    return round(
-        0.25 * diversity + 0.25 * evidence_score + 0.25 * density + 0.25 * depth, 4
-    )
+    return round(0.25 * diversity + 0.25 * evidence_score + 0.25 * density + 0.25 * depth, 4)
 
 
 # ---------------------------------------------------------------------------
@@ -499,9 +495,7 @@ class ThinkingSessionManager:
             "",
         ]
         for step in session.steps:
-            lines.append(
-                f"## Step {step.step_number}: [{step.step_type.value.upper()}]"
-            )
+            lines.append(f"## Step {step.step_number}: [{step.step_type.value.upper()}]")
             if step.branch_id:
                 lines.append(f"**Branch:** `{step.branch_id}`")
             if step.parent_step:
@@ -525,9 +519,7 @@ class ThinkingSessionManager:
         for step in session.steps:
             indent = "  " * (step.step_number - 1)
             branch = f" [{step.branch_id}]" if step.branch_id else ""
-            lines.append(
-                f"{indent}├── Step {step.step_number}: [{step.step_type.value}]{branch}"
-            )
+            lines.append(f"{indent}├── Step {step.step_number}: [{step.step_type.value}]{branch}")
             lines.append(f"{indent}│   {step.content[:60]}...")
         return "\n".join(lines)
 

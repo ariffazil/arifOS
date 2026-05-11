@@ -37,9 +37,7 @@ class ODSiphon:
 
         try:
             self.survey = (
-                odsurvey.Survey.current()
-                if not survey_name
-                else odsurvey.Survey(survey_name)
+                odsurvey.Survey.current() if not survey_name else odsurvey.Survey(survey_name)
             )
             self.info = self.survey.info
             self.error = None
@@ -132,10 +130,7 @@ class ODSiphon:
                 "id": well_name,
                 "support": {"kind": "track", "u_source": "Survey_Trajectory"},
                 "witnesses": {
-                    "markers": [
-                        {"name": m.name, "z_md": m.depth, "z_twt": m.twt}
-                        for m in markers
-                    ],
+                    "markers": [{"name": m.name, "z_md": m.depth, "z_twt": m.twt} for m in markers],
                     "logs": self.distill_logs(well_name),
                 },
                 "storage_ref": self._get_storage_ref(well_name, "Well"),

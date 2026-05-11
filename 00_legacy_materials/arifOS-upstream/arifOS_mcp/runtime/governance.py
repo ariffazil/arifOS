@@ -265,16 +265,8 @@ def governed_return(
                 tri_witness_score=metrics.tri_witness_score,
                 stakeholder_safety=metrics.stakeholder_safety,
             )
-            v_perf = (
-                _VitalityPerfMetrics(**performance)
-                if performance
-                else _VitalityPerfMetrics()
-            )
-            v_corr = (
-                _VitalityCorrMetrics(**correctness)
-                if correctness
-                else _VitalityCorrMetrics()
-            )
+            v_perf = _VitalityPerfMetrics(**performance) if performance else _VitalityPerfMetrics()
+            v_corr = _VitalityCorrMetrics(**correctness) if correctness else _VitalityCorrMetrics()
 
             record = _emit_vitality(
                 tool_name=tool_name,

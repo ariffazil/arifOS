@@ -22,17 +22,13 @@ class WellLogCurve(BaseModel):
     F9 Anti-Hantu: Source and acquisition timestamp tracked.
     """
 
-    mnemonic: str = Field(
-        ..., min_length=1, description="Curve mnemonic (GR, RHOB, etc.)"
-    )
+    mnemonic: str = Field(..., min_length=1, description="Curve mnemonic (GR, RHOB, etc.)")
     name: str = Field(..., description="Human-readable name")
     units: str = Field(..., description="Physical units (API, g/cm3, etc.)")
 
     # Data
     depth: list[float] = Field(..., description="Depth values")
-    values: list[float | None] = Field(
-        ..., description="Curve values (None for missing)"
-    )
+    values: list[float | None] = Field(..., description="Curve values (None for missing)")
 
     # Depth reference
     depth_reference: Literal["MD", "TVD", "TVDSS", "MDRKB"] = Field(
@@ -45,9 +41,7 @@ class WellLogCurve(BaseModel):
     tool_mnemonic: str | None = Field(default=None, description="Logging tool type")
 
     # QC
-    null_value: float = Field(
-        default=-999.25, description="NULL representation in source"
-    )
+    null_value: float = Field(default=-999.25, description="NULL representation in source")
 
     @field_validator("values")
     @classmethod
@@ -58,11 +52,7 @@ class WellLogCurve(BaseModel):
 
     def at_depth(self, target_depth: float) -> float | None:
         """Linear interpolation at target depth."""
-        if (
-            not self.depth
-            or target_depth < self.depth[0]
-            or target_depth > self.depth[-1]
-        ):
+        if not self.depth or target_depth < self.depth[0] or target_depth > self.depth[-1]:
             return None
 
         for i in range(len(self.depth) - 1):
@@ -100,9 +90,7 @@ class LogBundle(BaseModel):
     bundle_created: datetime = Field(default_factory=datetime.utcnow)
 
     # Header metadata
-    header: dict[str, Any] = Field(
-        default_factory=dict, description="LAS ~WELL section"
-    )
+    header: dict[str, Any] = Field(default_factory=dict, description="LAS ~WELL section")
 
     # Curves
     curves: dict[str, WellLogCurve] = Field(..., description="Curves by mnemonic")
@@ -123,9 +111,7 @@ class LogBundle(BaseModel):
 
     @field_validator("curves")
     @classmethod
-    def set_depth_range(
-        cls, curves: dict[str, WellLogCurve]
-    ) -> dict[str, WellLogCurve]:
+    def set_depth_range(cls, curves: dict[str, WellLogCurve]) -> dict[str, WellLogCurve]:
         """Auto-compute depth range from first curve."""
         if curves:
             first = list(curves.values())[0]

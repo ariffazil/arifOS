@@ -275,9 +275,7 @@ class F2_Truth(Floor):
                         entropy_reduction=entropy_delta,
                     )
 
-                    ratio = landauer_result.get(
-                        "efficiency_ratio", landauer_result.get("ratio", 0)
-                    )
+                    ratio = landauer_result.get("efficiency_ratio", landauer_result.get("ratio", 0))
 
                     # HARD VOID: Suspiciously cheap truth (ratio < 10)
                     # This catches LLM outputs that claim high clarity but consumed trivial compute
@@ -877,9 +875,7 @@ class F9_AntiHantu(Floor):
 
     def _compute_H(self, text: str) -> float:
         """H component: consciousness/feeling claims."""
-        normalized = self._homograph_normalize(
-            unicodedata.normalize("NFKC", text).lower()
-        )
+        normalized = self._homograph_normalize(unicodedata.normalize("NFKC", text).lower())
         score = 0.0
         for pattern in self.hantu_patterns:
             if re.search(pattern, normalized):
@@ -1062,9 +1058,7 @@ class F13_Sovereign(Floor):
         # F13 is the "circuit breaker" - always passed by default
         # but flagged if human has intervened
         if sovereign_override:
-            return FloorResult(
-                self.id, True, 1.0, "SOVEREIGN OVERRIDE: 888 Judge has intervened"
-            )
+            return FloorResult(self.id, True, 1.0, "SOVEREIGN OVERRIDE: 888 Judge has intervened")
 
         return FloorResult(
             self.id,
@@ -1107,9 +1101,7 @@ def update_floor_status(violations: list[str], output_path: str | None = None) -
     """Update metadata/floor_status.json mapping F1-F13 -> 1 (PASS) or 0 (FAIL)."""
     if output_path is None:
         # Default to root/metadata/floor_status.json
-        output_path = str(
-            Path(__file__).parent.parent.parent / "metadata" / "floor_status.json"
-        )
+        output_path = str(Path(__file__).parent.parent.parent / "metadata" / "floor_status.json")
 
     status = {}
     for i in range(1, 14):
@@ -1271,10 +1263,7 @@ class FloorCalibrator:
         steps: int = 20,
     ) -> list[FloorCalibrationResult]:
         """Calibrate every floor that has registered test cases."""
-        return [
-            self.calibrate_floor(fid, threshold_range, steps)
-            for fid in self._test_cases
-        ]
+        return [self.calibrate_floor(fid, threshold_range, steps) for fid in self._test_cases]
 
 
 __all__ = [

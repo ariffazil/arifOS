@@ -219,8 +219,7 @@ def enforce_embodiment(
         return {
             "ok": False,
             "reason": (
-                f"F11 EMBODIMENT: {tool_name} requires an approved plan_id "
-                "(H2 ratification)."
+                f"F11 EMBODIMENT: {tool_name} requires an approved plan_id " "(H2 ratification)."
             ),
             "floors": ["F11", "H2"],
             "embodiment_violation": "plan_id",

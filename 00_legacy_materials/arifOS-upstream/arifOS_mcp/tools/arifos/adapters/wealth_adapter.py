@@ -51,9 +51,7 @@ async def wealth_analyze_prospect(
         }
 
 
-async def wealth_market_signal(
-    ticker: str, signal_type: str = "sentiment"
-) -> Dict[str, Any]:
+async def wealth_market_signal(ticker: str, signal_type: str = "sentiment") -> Dict[str, Any]:
     """
     Fetch market signal for a given ticker.
     Returns capital evidence for Tri-Witness fusion.
@@ -62,9 +60,7 @@ async def wealth_market_signal(
         import sys
         from pathlib import Path
 
-        _wealth_markets = (
-            Path(__file__).resolve().parents[3] / "WEALTH" / "domains" / "markets"
-        )
+        _wealth_markets = Path(__file__).resolve().parents[3] / "WEALTH" / "domains" / "markets"
         if str(_wealth_markets) not in sys.path:
             sys.path.insert(0, str(_wealth_markets))
 

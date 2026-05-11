@@ -25,9 +25,7 @@ async def test_hardened_9_tools():
     async with Client(mcp_server) as client:
         # 1. Anchor session to get auth_context
         print("Anchoring session...")
-        anchor_call = await client.call_tool(
-            "init_anchor", {"raw_input": "Internal Test Session"}
-        )
+        anchor_call = await client.call_tool("init_anchor", {"raw_input": "Internal Test Session"})
 
         # Parse the RuntimeEnvelope from the CallToolResult
         anchor_data = json.loads(anchor_call.content[0].text)

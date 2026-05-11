@@ -31,9 +31,7 @@ class VaultLogger:
 
     async def connect(self) -> None:
         if not _VAULT_ENABLED:
-            logger.info(
-                "[VaultLogger] Vault persistence disabled (ARIFOS_VAULT_ENABLED=false)"
-            )
+            logger.info("[VaultLogger] Vault persistence disabled (ARIFOS_VAULT_ENABLED=false)")
             return
         try:
             import asyncpg  # type: ignore[import-untyped]
@@ -41,9 +39,7 @@ class VaultLogger:
             self._pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=4)
             logger.info("[VaultLogger] Postgres pool created")
         except ImportError:
-            logger.warning(
-                "[VaultLogger] asyncpg not installed; vault writes will log only"
-            )
+            logger.warning("[VaultLogger] asyncpg not installed; vault writes will log only")
         except Exception as e:
             logger.error(f"[VaultLogger] Failed to connect: {e}")
 

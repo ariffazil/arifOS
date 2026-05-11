@@ -278,9 +278,7 @@ class DensityNeutronSolver(PorositySolver):
 
         # Matrix density uncertainty (lithology uncertainty)
         sigma_rho_matrix = 0.05  # g/cm³
-        d_phi_d_matrix = (rhob - self.rho_fluid) / (
-            self.rho_matrix - self.rho_fluid
-        ) ** 2
+        d_phi_d_matrix = (rhob - self.rho_fluid) / (self.rho_matrix - self.rho_fluid) ** 2
         phi_unc_matrix = abs(d_phi_d_matrix * sigma_rho_matrix)
 
         # Combine uncertainties

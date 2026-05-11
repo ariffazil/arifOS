@@ -113,9 +113,7 @@ class GEOXBridge:
                 raise ConnectionError(f"GEOX JSON-RPC error: {parsed['error']}")
             return parsed.get("result", {})
 
-    async def _judge_pre_check(
-        self, operation: str, data_classification: str
-    ) -> dict[str, Any]:
+    async def _judge_pre_check(self, operation: str, data_classification: str) -> dict[str, Any]:
         """Run arifOS Judge pre-check before delegating to GEOX."""
         try:
             from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
@@ -241,9 +239,7 @@ class GEOXBridge:
                 "well_id": well_id,
             }
 
-    async def ingest_well_log(
-        self, source_uri: str, well_id: str | None = None
-    ) -> dict[str, Any]:
+    async def ingest_well_log(self, source_uri: str, well_id: str | None = None) -> dict[str, Any]:
         """Ingest a LAS/CSV well log file into GEOX."""
         verdict = await self._judge_pre_check(
             operation="ingest_well_log",

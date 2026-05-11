@@ -200,15 +200,9 @@ class WellLogTool(BaseTool):
 
         quantities = [
             _make_quantity(net_pay, "m", "net_pay_m", location, prov, 0.06),
-            _make_quantity(
-                phi_avg, "fraction", "average_porosity_eff", location, prov, 0.07
-            ),
-            _make_quantity(
-                vsh_avg, "fraction", "clay_volume_avg", location, prov, 0.08
-            ),
-            _make_quantity(
-                sw_avg, "fraction", "water_saturation_avg", location, prov, 0.09
-            ),
+            _make_quantity(phi_avg, "fraction", "average_porosity_eff", location, prov, 0.07),
+            _make_quantity(vsh_avg, "fraction", "clay_volume_avg", location, prov, 0.08),
+            _make_quantity(sw_avg, "fraction", "water_saturation_avg", location, prov, 0.09),
         ]
 
         raw_output = {
@@ -338,9 +332,7 @@ class WellLogTool(BaseTool):
         except (ValueError, TypeError):
             pass
 
-        return LASFile(
-            well_name=well_name, location=location, curves=curves, metadata=metadata
-        )
+        return LASFile(well_name=well_name, location=location, curves=curves, metadata=metadata)
 
     # ─────────────────────────────────────────────────────────────────
     # Derived Curve Computation
@@ -414,11 +406,7 @@ class WellLogTool(BaseTool):
         if not gr_values or len(gr_values) < 2:
             return None
 
-        gr_clean = (
-            min(g for g in gr_values if g is not None and g > 0)
-            if gr_values
-            else GR_SAND
-        )
+        gr_clean = min(g for g in gr_values if g is not None and g > 0) if gr_values else GR_SAND
         gr_sh = max(gr_values) if gr_values else GR_SHALE
         if gr_sh == gr_clean:
             return None
@@ -426,9 +414,7 @@ class WellLogTool(BaseTool):
         igr = (gr_value - gr_clean) / (gr_sh - gr_clean)
         igr = max(0.0, min(1.0, igr))
         # Clavier-Fertl
-        vsh = (
-            1.7 - (0.3 * igr - 0.0103 * igr**2) / (1 - igr + 0.003) if igr < 1 else 1.0
-        )
+        vsh = 1.7 - (0.3 * igr - 0.0103 * igr**2) / (1 - igr + 0.003) if igr < 1 else 1.0
         return max(0.0, min(1.0, vsh))
 
     def _compute_phie_nd(
@@ -501,12 +487,7 @@ class WellLogTool(BaseTool):
                     break
 
             # Gas zone: high resistivity + low NPHI
-            if (
-                computed["PHIE"]
-                and ild
-                and i < len(ild.values)
-                and i < len(computed["PHIE"])
-            ):
+            if computed["PHIE"] and ild and i < len(ild.values) and i < len(computed["PHIE"]):
                 if (
                     ild.values[i]
                     and ild.values[i] > 50

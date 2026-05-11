@@ -337,446 +337,122 @@
       "last_updated": "2026-05-11",
       "change_note": "Universal federation health check"
     },
-    "vault_query": {
+    "wealth_system_registry_status": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_VAULT",
+      "stage": "WEALTH_DIAGNOSTIC",
       "claim_tag": "OBSERVED",
-      "schema_hash": "vault_query_v1",
+      "schema_hash": "wealth_system_registry_status_v1",
       "last_updated": "2026-05-11",
-      "change_note": "VAULT999 ledger read"
+      "change_note": "Registry truth diagnostic"
     },
-    "vault_write": {
+    "wealth_conservation_capital": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_VAULT",
-      "claim_tag": "RECORDED",
-      "schema_hash": "vault_write_v1",
+      "stage": "WEALTH_INVARIANT",
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_conservation_capital_v1",
       "last_updated": "2026-05-11",
-      "change_note": "VAULT999 ledger append \u2014 irreversible"
+      "change_note": "Capital stock reality"
     },
-    "wealth_allocate_optimize": {
+    "wealth_flow_liquidity": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_ALLOCATE",
-      "claim_tag": "ALLOCATED",
-      "schema_hash": "wealth_allocate_optimize_v1",
+      "stage": "WEALTH_INVARIANT",
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_flow_liquidity_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Capital allocation brain"
+      "change_note": "Liquidity movement"
     },
-    "wealth_future_simulate": {
+    "wealth_gradient_price": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_FUTURE",
-      "claim_tag": "SIMULATED",
-      "schema_hash": "wealth_future_simulate_v1",
+      "stage": "WEALTH_INVARIANT",
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_gradient_price_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Stochastic projection engine"
+      "change_note": "Price pressure and mispricing"
     },
-    "wealth_future_steward": {
+    "wealth_entropy_risk": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_FUTURE",
-      "claim_tag": "GOVERNED",
-      "schema_hash": "wealth_future_steward_v1",
+      "stage": "WEALTH_INVARIANT",
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_entropy_risk_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Long-horizon planetary boundaries"
+      "change_note": "Uncertainty and tail risk"
     },
-    "wealth_future_value": {
+    "wealth_energy_productivity": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_FUTURE",
+      "stage": "WEALTH_INVARIANT",
       "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_future_value_v1",
+      "schema_hash": "wealth_energy_productivity_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Time-discounted projection engine"
+      "change_note": "Output per input"
     },
-    "wealth_game_coordinate": {
+    "wealth_time_discount": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_GAME",
-      "claim_tag": "COORDINATED",
-      "schema_hash": "wealth_game_coordinate_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Multi-agent dynamics"
-    },
-    "wealth_info_value": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_INFO",
+      "stage": "WEALTH_INVARIANT",
       "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_info_value_v1",
+      "schema_hash": "wealth_time_discount_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Expected value of information"
+      "change_note": "NPV, IRR, payback"
     },
-    "wealth_judge_entropy": {
+    "wealth_inertia_leverage": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_JUDGE",
-      "claim_tag": "AUDITED",
-      "schema_hash": "wealth_judge_entropy_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Audit project cash flows for noise"
-    },
-    "wealth_judge_floors": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_JUDGE",
-      "claim_tag": "CHECKED",
-      "schema_hash": "wealth_judge_floors_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Evaluate F1-F13 constitutional floors"
-    },
-    "wealth_judge_kernel": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_JUDGE",
-      "claim_tag": "JUDGED",
-      "schema_hash": "wealth_judge_kernel_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Final sovereign allocation verdict"
-    },
-    "wealth_judge_policy": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_JUDGE",
-      "claim_tag": "AUDITED",
-      "schema_hash": "wealth_judge_policy_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Audit allocation against policy constraints"
-    },
-    "wealth_mind_correlation": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_MIND",
-      "claim_tag": "CHECKED",
-      "schema_hash": "wealth_mind_correlation_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Portfolio correlated model bias check"
-    },
-    "wealth_mind_emv": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_MIND",
+      "stage": "WEALTH_INVARIANT",
       "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_mind_emv_v1",
+      "schema_hash": "wealth_inertia_leverage_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Expected monetary value"
+      "change_note": "Leverage stress and fragility"
     },
-    "wealth_mind_evoi": {
+    "wealth_field_macro": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_MIND",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_mind_evoi_v1",
+      "stage": "WEALTH_INVARIANT",
+      "claim_tag": "OBSERVED",
+      "schema_hash": "wealth_field_macro_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Expected value of information point-estimate"
+      "change_note": "Macro environment"
     },
-    "wealth_mind_evoi_mc": {
+    "wealth_signal_information": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_MIND",
-      "claim_tag": "SIMULATED",
-      "schema_hash": "wealth_mind_evoi_mc_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Monte Carlo EVOI computation"
-    },
-    "wealth_mind_monte_carlo": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_MIND",
-      "claim_tag": "SIMULATED",
-      "schema_hash": "wealth_mind_monte_carlo_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Stochastic forecast"
-    },
-    "wealth_mind_schema": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_MIND",
+      "stage": "WEALTH_INVARIANT",
       "claim_tag": "VALIDATED",
-      "schema_hash": "wealth_mind_schema_v1",
+      "schema_hash": "wealth_signal_information_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Validate prospect inputs"
+      "change_note": "Info value and evidence quality"
     },
-    "wealth_npv_reward": {
+    "wealth_game_coordination": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_npv_reward_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "NPV, terminal value, EAA"
-    },
-    "wealth_past_record": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_VAULT",
-      "claim_tag": "RECORDED",
-      "schema_hash": "wealth_past_record_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Vault + Merkle anchoring"
-    },
-    "wealth_present_expect": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_present_expect_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Probability-weighted expectation"
-    },
-    "wealth_reason_agent": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_reason_agent_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Optimal action sequence for AI agent"
-    },
-    "wealth_reason_equilibrium": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
+      "stage": "WEALTH_INVARIANT",
       "claim_tag": "COORDINATED",
-      "schema_hash": "wealth_reason_equilibrium_v1",
+      "schema_hash": "wealth_game_coordination_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Multi-agent resource coordination"
+      "change_note": "Multi-agent incentives"
     },
-    "wealth_reason_game": {
+    "wealth_boundary_governance": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "SOLVED",
-      "schema_hash": "wealth_reason_game_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Multi-agent allocation brain"
-    },
-    "wealth_reason_irr": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_reason_irr_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "IRR and MIRR"
-    },
-    "wealth_reason_npv": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_reason_npv_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "NPV, terminal value, EAA"
-    },
-    "wealth_reason_payback": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_reason_payback_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Payback period"
-    },
-    "wealth_reason_personal": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "DECIDED",
-      "schema_hash": "wealth_reason_personal_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Rank personal alternatives"
-    },
-    "wealth_reason_pi": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_REASON",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_reason_pi_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Profitability index"
-    },
-    "wealth_rule_enforce": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_JUDGE",
+      "stage": "WEALTH_INVARIANT",
       "claim_tag": "CHECKED",
-      "schema_hash": "wealth_rule_enforce_v1",
+      "schema_hash": "wealth_boundary_governance_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Governance constraint enforcement"
+      "change_note": "Constitutional floors and stewardship"
     },
-    "wealth_sense_fetch": {
+    "wealth_hysteresis_ledger": {
       "server": "WEALTH",
       "version": "1.0.0",
-      "stage": "WEALTH_SENSE",
-      "claim_tag": "FETCHED",
-      "schema_hash": "wealth_sense_fetch_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Fetch live data series"
-    },
-    "wealth_sense_health": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SENSE",
-      "claim_tag": "OBSERVED",
-      "schema_hash": "wealth_sense_health_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Bus health metrics"
-    },
-    "wealth_sense_ingest": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SENSE",
-      "claim_tag": "INGESTED",
-      "schema_hash": "wealth_sense_ingest_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Reality intake"
-    },
-    "wealth_sense_reconcile": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SENSE",
-      "claim_tag": "RECONCILED",
-      "schema_hash": "wealth_sense_reconcile_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Cross-source divergence detection"
-    },
-    "wealth_sense_snapshot": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SENSE",
-      "claim_tag": "SNAPSHOTTED",
-      "schema_hash": "wealth_sense_snapshot_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Cross-source macro snapshot"
-    },
-    "wealth_sense_sources": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SENSE",
-      "claim_tag": "OBSERVED",
-      "schema_hash": "wealth_sense_sources_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "List data sources and adapter status"
-    },
-    "wealth_sense_vintage": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SENSE",
-      "claim_tag": "VINTAGED",
-      "schema_hash": "wealth_sense_vintage_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Fetch specific vintage"
-    },
-    "wealth_survival_cashflow": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "OBSERVED",
-      "schema_hash": "wealth_survival_cashflow_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Metabolic liquidity"
-    },
-    "wealth_survival_civilization": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "GOVERNED",
-      "schema_hash": "wealth_survival_civilization_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Long-term civilization sustainability"
-    },
-    "wealth_survival_dscr": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_survival_dscr_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Debt service coverage ratio"
-    },
-    "wealth_survival_leverage": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_survival_leverage_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Structural load"
-    },
-    "wealth_survival_liquidity": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "OBSERVED",
-      "schema_hash": "wealth_survival_liquidity_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Survival liquidity"
-    },
-    "wealth_survival_networth": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "OBSERVED",
-      "schema_hash": "wealth_survival_networth_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Portfolio balance sheet"
-    },
-    "wealth_survival_triage": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "TRIAGED",
-      "schema_hash": "wealth_survival_triage_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Survival-oriented resource triage"
-    },
-    "wealth_survival_velocity": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_SURVIVAL",
-      "claim_tag": "COMPUTED",
-      "schema_hash": "wealth_survival_velocity_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Compound growth and runway"
-    },
-    "wealth_truth_validate": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_TRUTH",
-      "claim_tag": "VALIDATED",
-      "schema_hash": "wealth_truth_validate_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Epistemic integrity validation"
-    },
-    "wealth_vault_init": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_VAULT",
-      "claim_tag": "INIT",
-      "schema_hash": "wealth_vault_init_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Open WEALTH governance session"
-    },
-    "wealth_vault_record": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_VAULT",
+      "stage": "WEALTH_INVARIANT",
       "claim_tag": "RECORDED",
-      "schema_hash": "wealth_vault_record_v1",
+      "schema_hash": "wealth_hysteresis_ledger_v1",
       "last_updated": "2026-05-11",
-      "change_note": "Record financial transaction"
-    },
-    "wealth_vault_snapshot": {
-      "server": "WEALTH",
-      "version": "1.0.0",
-      "stage": "WEALTH_VAULT",
-      "claim_tag": "SNAPSHOTTED",
-      "schema_hash": "wealth_vault_snapshot_v1",
-      "last_updated": "2026-05-11",
-      "change_note": "Snapshot tool computation result"
+      "change_note": "Ledger and path dependence"
     }
   },
   "escalation_tiers": {

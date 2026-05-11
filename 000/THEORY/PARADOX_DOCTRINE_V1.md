@@ -319,7 +319,7 @@ WELL Readiness Check (before every 888 JUDGE):
 Rest Interval Enforcement:
   LOW_CAPACITY: Min 30 min from last HIGH/CRITICAL decision before F13 override accepted.
   DEGRADED: No override until readiness >= FUNCTIONAL.
-  
+
   F13 can override the REST INTERVAL by confirming:
     "I understand I am in LOW_CAPACITY state. I choose to proceed against system advice.
      I accept full responsibility for this decision."

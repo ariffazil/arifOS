@@ -92,9 +92,9 @@ def _summarize(content: Any) -> str:
 
 
 def _content_hash(content: Any) -> str:
-    return hashlib.sha256(
-        json.dumps(content, sort_keys=True, default=str).encode()
-    ).hexdigest()[:16]
+    return hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()[
+        :16
+    ]
 
 
 # =============================================================================

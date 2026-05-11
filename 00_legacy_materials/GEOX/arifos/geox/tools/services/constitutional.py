@@ -52,14 +52,10 @@ def check_f2_truth(
         violations.append(
             f"PHIe ({phi_value:.4f}) > 0.50 — above physical maximum for clastic reservoir."
         )
-        remediation.append(
-            "Review NPHI-RHOB crossplot; check matrix density assumption."
-        )
+        remediation.append("Review NPHI-RHOB crossplot; check matrix density assumption.")
 
     if vcl_value is not None and not (0.0 <= vcl_value <= 1.0):
-        violations.append(
-            f"Vcl ({vcl_value:.4f}) outside [0, 1] — physical impossibility."
-        )
+        violations.append(f"Vcl ({vcl_value:.4f}) outside [0, 1] — physical impossibility.")
         remediation.append("Re-compute Vsh from GR using calibrated GR_min / GR_max.")
 
     return ConstitutionalCheckResult(
@@ -85,9 +81,7 @@ def check_f4_clarity(
     remediation = []
 
     if not has_deep_resistivity:
-        violations.append(
-            "No deep resistivity available — Sw has no physical measurement basis."
-        )
+        violations.append("No deep resistivity available — Sw has no physical measurement basis.")
         remediation.append("Acquire ILD/LLD before computing Sw.")
 
     if not has_crs:
@@ -164,9 +158,7 @@ def check_f9_anti_hantu(
         )
 
     if sw_model is not None and sw_model not in valid_models:
-        violations.append(
-            f"Unknown Sw model '{sw_model}' — unverified computation path."
-        )
+        violations.append(f"Unknown Sw model '{sw_model}' — unverified computation path.")
         remediation.append(f"Use one of: {valid_models}.")
 
     if not has_verification:
@@ -271,17 +263,13 @@ def check_sw_model_admissibility(
             f"Washout fraction {washout_fraction:.0%} > 30% — resistivity unreliable."
         )
     if has_shale and vsh_max > 0.20:
-        archie_violations.append(
-            f"Vsh_max {vsh_max:.2f} > 0.20 — Archie invalid for shaly sand."
-        )
+        archie_violations.append(f"Vsh_max {vsh_max:.2f} > 0.20 — Archie invalid for shaly sand.")
 
     results["archie"] = ConstitutionalCheckResult(
         passed=len(archie_violations) == 0,
         violated_floors=["F4", "F9"] if archie_violations else [],
         violations=archie_violations,
-        remediation=(
-            ["Use Simandoux or Indonesia for shaly sands."] if archie_violations else []
-        ),
+        remediation=(["Use Simandoux or Indonesia for shaly sands."] if archie_violations else []),
     )
 
     # Simandoux / Indonesia: require shale indicators

@@ -96,20 +96,14 @@ class PhenomenologicalVaultRecord:
                 },
             },
             "anchors": {
-                "blockchain": (
-                    self.blockchain_anchor.__dict__ if self.blockchain_anchor else None
-                ),
+                "blockchain": (self.blockchain_anchor.__dict__ if self.blockchain_anchor else None),
             },
             "attestation": {
                 "envelope_hash": (
-                    self.execution_envelope.compute_hash()
-                    if self.execution_envelope
-                    else None
+                    self.execution_envelope.compute_hash() if self.execution_envelope else None
                 ),
                 "status": (
-                    self.execution_envelope.status.value
-                    if self.execution_envelope
-                    else None
+                    self.execution_envelope.status.value if self.execution_envelope else None
                 ),
             },
         }
@@ -202,9 +196,7 @@ class SovereignVault999:
         )
 
         # 4. Get narrative thread
-        narrative_hash = hashlib.sha256(
-            f"{session_id}:{seal_hash}".encode()
-        ).hexdigest()[:16]
+        narrative_hash = hashlib.sha256(f"{session_id}:{seal_hash}".encode()).hexdigest()[:16]
         narrative = self.autonoetic_system._narrative_threads.get(
             narrative_hash,
             NarrativeContinuity(
@@ -315,9 +307,7 @@ class SovereignVault999:
         # Layer 4: Survivability
         # (Would check mirror consistency)
         if self.mirror_sync:
-            report["layers"][
-                "mirrors"
-            ] = await self.mirror_sync.verify_mirror_integrity()
+            report["layers"]["mirrors"] = await self.mirror_sync.verify_mirror_integrity()
 
         # Phenomenological
         report["phenomenological"][

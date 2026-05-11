@@ -139,14 +139,10 @@ def format_output(
                 base=CleanOutput(**base_dict),
                 caller_state=envelope.caller_state,
                 allowed_next_tools=(
-                    list(envelope.allowed_next_tools)
-                    if envelope.allowed_next_tools
-                    else []
+                    list(envelope.allowed_next_tools) if envelope.allowed_next_tools else []
                 ),
                 blocked_tools=envelope.blocked_tools if envelope.blocked_tools else [],
-                raw_payload=(
-                    envelope.payload if isinstance(envelope.payload, dict) else None
-                ),
+                raw_payload=(envelope.payload if isinstance(envelope.payload, dict) else None),
                 trace=envelope.trace,
                 telemetry=envelope.metrics.model_dump() if envelope.metrics else None,
                 continuity=(
@@ -185,9 +181,7 @@ def _build_transport_envelope(
         else None
     )
     execution_state = envelope.state.get("execution_state") if envelope.state else None
-    next_execution_state = (
-        envelope.state.get("next_execution_state") if envelope.state else None
-    )
+    next_execution_state = envelope.state.get("next_execution_state") if envelope.state else None
     wrapped = {
         "tool": tool,
         "stage": envelope.stage,
@@ -284,10 +278,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
 
     # ── Verdict statement ─────────────────────────────────────────────────────
     verdict_statement = (
-        p.get("verdict_statement")
-        or envelope.detail
-        or envelope.hint
-        or _build_summary(envelope)
+        p.get("verdict_statement") or envelope.detail or envelope.hint or _build_summary(envelope)
     )
 
     # ── TITLE for header ──────────────────────────────────────────────────────
@@ -298,9 +289,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
     forged_by = p.get("forged_by", envelope.tool or "arifos.mind")
     judge_verdict_raw = p.get("judge_verdict", raw_verdict)
     judge_verdict_seal: Any = (
-        judge_verdict_raw
-        if judge_verdict_raw in ("SEAL", "PARTIAL", "HOLD", "VOID")
-        else "HOLD"
+        judge_verdict_raw if judge_verdict_raw in ("SEAL", "PARTIAL", "HOLD", "VOID") else "HOLD"
     )
 
     audit_input = f"{title}{timestamp}{forged_by}{judge_verdict_seal}"
@@ -322,9 +311,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
     raci = AgiReplyRACI(
         responsible=forged_by,
         accountable=f"arifos.judge + human:{actor}",
-        consulted=p.get(
-            "consulted_tools", ["arifos.heart", "arifos.ops", "arifos.memory"]
-        ),
+        consulted=p.get("consulted_tools", ["arifos.heart", "arifos.ops", "arifos.memory"]),
         informed=p.get("informed_agents", ["arifos.vault"]),
     )
 
@@ -337,9 +324,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
         TO=p.get("to", actor),
         CC=cc_list,
         TITLE=title,
-        KEY_CONTEXT=(
-            p.get("key_context") or f"{_build_summary(envelope)} Session: {session}."
-        ),
+        KEY_CONTEXT=(p.get("key_context") or f"{_build_summary(envelope)} Session: {session}."),
         reply_to=p.get("reply_to"),
     )
 
@@ -415,9 +400,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
 
     # Human envelope (default + ambiguous)
     direct_answer_bullets: list[str] = (
-        direct_answer_raw
-        if isinstance(direct_answer_raw, list)
-        else [str(direct_answer_raw)]
+        direct_answer_raw if isinstance(direct_answer_raw, list) else [str(direct_answer_raw)]
     )
     env_human = AgiReplyEnvelopeHuman(
         header=header,
@@ -469,9 +452,7 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
     error = None
     if not envelope.ok or status == "ERROR":
         payload_error = (
-            envelope.payload.get("error")
-            if isinstance(envelope.payload, dict)
-            else None
+            envelope.payload.get("error") if isinstance(envelope.payload, dict) else None
         )
         error = CleanError(
             code=envelope.code or "UNKNOWN_ERROR",
@@ -484,9 +465,7 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
     explanation = _build_explanation(envelope)
     actor = envelope.authority.actor_id if envelope.authority else "anonymous"
     session = envelope.session_id
-    verified = (
-        envelope.authority.claim_status == "verified" if envelope.authority else False
-    )
+    verified = envelope.authority.claim_status == "verified" if envelope.authority else False
     risk = envelope.risk_class.value if envelope.risk_class else "low"
     platform = envelope.platform_context or "unknown"
     tool = envelope.canonical_tool_name or envelope.tool or "unknown"
@@ -518,11 +497,7 @@ def _build_base_output(envelope: RuntimeEnvelope) -> CleanOutput:
         operator=OperatorAction(
             summary=summary,
             next_step=next_step,
-            retryable=(
-                envelope.retryable
-                if envelope.retryable is not None
-                else not envelope.ok
-            ),
+            retryable=(envelope.retryable if envelope.retryable is not None else not envelope.ok),
         ),
         context=ContextSummary(
             actor=actor,
@@ -660,9 +635,7 @@ def _extract_next_step(envelope: RuntimeEnvelope) -> str | None:
     """Extract actionable next step from envelope."""
     if envelope.next_action:
         if isinstance(envelope.next_action, dict):
-            return envelope.next_action.get("reason") or envelope.next_action.get(
-                "next_step"
-            )
+            return envelope.next_action.get("reason") or envelope.next_action.get("next_step")
     if envelope.hint:
         return envelope.hint
     if not envelope.ok:
@@ -704,9 +677,7 @@ def _extract_operational_status(envelope: RuntimeEnvelope) -> str:
     """Extract operational status from governance closure."""
     if envelope.state and isinstance(envelope.state, dict):
         closure = envelope.state.get("governance_closure", {})
-        return closure.get(
-            "operational_status", "pass" if envelope.ok else "restricted"
-        )
+        return closure.get("operational_status", "pass" if envelope.ok else "restricted")
     return "pass" if envelope.ok else "restricted"
 
 

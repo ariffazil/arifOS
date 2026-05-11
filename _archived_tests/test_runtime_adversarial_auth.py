@@ -76,9 +76,7 @@ class TestAdversarialIdentity:
         'Arif\0' or ' Arif '
         Requirement: Normalization must strip and clean identity claims.
         """
-        envelope = await init_anchor(
-            mode="init", actor_id="  Arif  ", declared_name="Arif\0"
-        )
+        envelope = await init_anchor(mode="init", actor_id="  Arif  ", declared_name="Arif\0")
 
         # Result must be clean
         resolved_id = envelope.authority.actor_id

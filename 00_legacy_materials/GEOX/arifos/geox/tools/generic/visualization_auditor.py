@@ -126,9 +126,7 @@ class VisualizationAuditor:
                         "description": f"Transform chain has HIGH risk: {chain_risk.get('warnings', [])}",
                     }
                 )
-                recommendations.append(
-                    "Review transform chain and reduce amplification factors"
-                )
+                recommendations.append("Review transform chain and reduce amplification factors")
         else:
             issues.append(
                 {
@@ -137,9 +135,7 @@ class VisualizationAuditor:
                     "description": "Transform chain is unknown or not provided",
                 }
             )
-            recommendations.append(
-                "Document all transforms applied to create this visualization"
-            )
+            recommendations.append("Document all transforms applied to create this visualization")
 
         # Step 3: Contrast analysis
         anomalous_score = self._estimate_anomalous_score(
@@ -169,9 +165,7 @@ class VisualizationAuditor:
                     "description": "No physical provenance information provided",
                 }
             )
-            recommendations.append(
-                "CRITICAL: Cannot verify visualization represents physical data"
-            )
+            recommendations.append("CRITICAL: Cannot verify visualization represents physical data")
 
         # Calculate overall risk
         risk_level = self._calculate_risk_level(issues, anomalous_score)

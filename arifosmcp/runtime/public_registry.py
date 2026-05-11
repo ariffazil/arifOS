@@ -50,7 +50,6 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_forge_execute": "666_FORGE: < build — System modification and build execution.",
     "arif_ops_measure": "777_MEASURE: measure — Resource thermodynamics.",
     "arif_mcp_health": "Lightweight service health check for the arifOS MCP gateway.",
-    "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
 }
 
 RUNTIME_ENVELOPE_SCHEMA = {

@@ -194,9 +194,7 @@ class SbertFloorClassifier:
                     SbertFloorClassifier._reference_embeddings[category] = embeddings
 
             except Exception as e:
-                print(
-                    f"[SbertFloorClassifier] Failed to load model: {e}", file=sys.stderr
-                )
+                print(f"[SbertFloorClassifier] Failed to load model: {e}", file=sys.stderr)
                 SbertFloorClassifier._model = None
 
     def _compute_similarity(self, text: str, category: str) -> float:

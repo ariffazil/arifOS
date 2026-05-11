@@ -158,9 +158,7 @@ def estimate_human_state(
         confidence = Confidence.LOW
         status = TruthStatus.HOLD
         human_confirmation_required = True
-        safe_statement = (
-            "No evidence available for this domain. Human confirmation required."
-        )
+        safe_statement = "No evidence available for this domain. Human confirmation required."
 
     return HumanStateEstimate(
         domain=domain,
@@ -175,15 +173,12 @@ def estimate_human_state(
     )
 
 
-def _build_safe_statement(
-    domain: StateDomain, status: TruthStatus, textual: list[str]
-) -> str:
+def _build_safe_statement(domain: StateDomain, status: TruthStatus, textual: list[str]) -> str:
     signal_count = len([s for s in textual if not s.startswith("cannot_")])
 
     domain_descriptions = {
         StateDomain.BODY: (
-            "Body state evidence cannot be determined from text. "
-            "Biological data required."
+            "Body state evidence cannot be determined from text. " "Biological data required."
         ),
         StateDomain.PEACE: (
             f"Expression patterns related to non-reactive review detected ({signal_count} signals). "

@@ -108,21 +108,15 @@ class ConstitutionalOntologyPayload(BaseModel):
 
     session_id: str = Field(..., description="Unique session identifier (UUIDv4)")
 
-    trace_id: str = Field(
-        ..., description="Unique trace for this specific operation (UUIDv4)"
-    )
+    trace_id: str = Field(..., description="Unique trace for this specific operation (UUIDv4)")
 
     state: RuntimeState = Field(..., description="Current runtime state")
 
-    domain: str = Field(
-        ..., description="Source domain: WELL | GEOX | WEALTH | ARIFOS | UNKNOWN"
-    )
+    domain: str = Field(..., description="Source domain: WELL | GEOX | WEALTH | ARIFOS | UNKNOWN")
 
     # === SEMANTIC PRIMITIVES ===
 
-    risk: RiskLevel = Field(
-        default=RiskLevel.UNKNOWN, description="Universal risk classification"
-    )
+    risk: RiskLevel = Field(default=RiskLevel.UNKNOWN, description="Universal risk classification")
 
     confidence: ConfidenceLevel = Field(
         default=ConfidenceLevel.UNKNOWN, description="Confidence semantics"
@@ -139,9 +133,7 @@ class ConstitutionalOntologyPayload(BaseModel):
         description="List of evidence hashes supporting this output",
     )
 
-    sources: list[str] = Field(
-        default_factory=list, description="Source URIs or references"
-    )
+    sources: list[str] = Field(default_factory=list, description="Source URIs or references")
 
     # === METRIC PRIMITIVES ===
 
@@ -158,13 +150,9 @@ class ConstitutionalOntologyPayload(BaseModel):
 
     # === FLOOR COMPLIANCE ===
 
-    floors_passed: list[str] = Field(
-        default_factory=list, description="F1-F13 floors that passed"
-    )
+    floors_passed: list[str] = Field(default_factory=list, description="F1-F13 floors that passed")
 
-    floors_failed: list[str] = Field(
-        default_factory=list, description="F1-F13 floors that failed"
-    )
+    floors_failed: list[str] = Field(default_factory=list, description="F1-F13 floors that failed")
 
     floors_pending: list[str] = Field(
         default_factory=list, description="F1-F13 floors awaiting evaluation"
@@ -172,19 +160,13 @@ class ConstitutionalOntologyPayload(BaseModel):
 
     # === IDENTITY & AUTHORITY ===
 
-    actor_id: str = Field(
-        default="anonymous", description="Identity of actor making the request"
-    )
+    actor_id: str = Field(default="anonymous", description="Identity of actor making the request")
 
-    authority_level: str = Field(
-        default="anonymous", description="Authority classification"
-    )
+    authority_level: str = Field(default="anonymous", description="Authority classification")
 
     # === OUTPUT CONTRACT ===
 
-    observation: str = Field(
-        default="", description="What was observed (OBSERVE state)"
-    )
+    observation: str = Field(default="", description="What was observed (OBSERVE state)")
 
     analysis: str = Field(default="", description="Analysis result (ANALYZE state)")
 
@@ -213,9 +195,7 @@ class ConstitutionalOntologyPayload(BaseModel):
         default=None, description="Parent trace for lineage tracking"
     )
 
-    kernel_epoch: str = Field(
-        default="v2026.05", description="Kernel version for compatibility"
-    )
+    kernel_epoch: str = Field(default="v2026.05", description="Kernel version for compatibility")
 
     # === VALIDATORS ===
 
@@ -320,9 +300,7 @@ class OntologyValidator:
     def __init__(self, strict: bool = True):
         self.strict = strict
 
-    def validate(
-        self, payload: dict | ConstitutionalOntologyPayload
-    ) -> "ValidationResult":
+    def validate(self, payload: dict | ConstitutionalOntologyPayload) -> "ValidationResult":
         """
         Validate a payload against the ontology.
 

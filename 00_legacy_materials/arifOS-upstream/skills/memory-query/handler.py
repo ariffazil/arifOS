@@ -141,9 +141,7 @@ async def execute(
 ) -> dict[str, Any]:
     """Main entry point."""
     skill = MemoryQuerySkill()
-    return await skill.execute(
-        action, params, session_id, dry_run, reality_bridge, checkpoint
-    )
+    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 
 
 metadata = {

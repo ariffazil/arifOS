@@ -139,12 +139,8 @@ class ReasoningTrace(BaseModel):
     reasoning_mode: ReasoningMode = Field(
         default=ReasoningMode.INDUCTIVE, description="Primary reasoning mode used"
     )
-    conclusion: str | None = Field(
-        default=None, description="Final conclusion after all steps"
-    )
-    final_confidence: float = Field(
-        ge=0.0, le=1.0, description="Confidence after all steps"
-    )
+    conclusion: str | None = Field(default=None, description="Final conclusion after all steps")
+    final_confidence: float = Field(ge=0.0, le=1.0, description="Confidence after all steps")
     confidence_trajectory: list[float] = Field(
         default_factory=list, description="Confidence at each step for visualization"
     )
@@ -155,9 +151,7 @@ class ReasoningTrace(BaseModel):
     coherence_score: float = Field(
         ge=0.0, le=1.0, description="Internal consistency of the reasoning"
     )
-    total_landauer_cost_eV: float = Field(
-        default=0.0, description="Total thermodynamic cost"
-    )
+    total_landauer_cost_eV: float = Field(default=0.0, description="Total thermodynamic cost")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -242,9 +236,7 @@ class MindOutput(BaseModel):
     @classmethod
     def enforce_humility(cls, v: float) -> float:
         if v < 0.03:
-            raise ValueError(
-                "F7 VOID: Omega_0 < 0.03. Perfect certainty violates Gödel Humility."
-            )
+            raise ValueError("F7 VOID: Omega_0 < 0.03. Perfect certainty violates Gödel Humility.")
         return v
 
     # Constitutional grounding

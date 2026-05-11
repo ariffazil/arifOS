@@ -19,9 +19,7 @@ def _round_value(value: float | None, digits: int = 6) -> float | None:
     return round(value, digits)
 
 
-def _build_cashflow_series(
-    initial: float, flows: list[float], terminal: float = 0
-) -> list[float]:
+def _build_cashflow_series(initial: float, flows: list[float], terminal: float = 0) -> list[float]:
     series = [-abs(initial), *flows]
     if terminal and len(series) > 1:
         series[-1] += terminal
@@ -52,9 +50,7 @@ def npv(
         "discount_rate": discount_rate,
         "initial_investment": initial_investment,
         "terminal_value": terminal_value,
-        "criterion": (
-            "accept" if npv_val > 0 else "reject" if npv_val < 0 else "marginal"
-        ),
+        "criterion": ("accept" if npv_val > 0 else "reject" if npv_val < 0 else "marginal"),
         "flags": [] if math.isfinite(npv_val) else ["INVALID_NPV"],
     }
 

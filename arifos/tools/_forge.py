@@ -21,9 +21,7 @@ from arifos.tools._tool_support import (
 # Constants
 # ──────────────────────────────────────────────────────────────────────────────
 
-SABAR_LOCK_PATH = os.path.join(
-    os.getenv("ARIFOS_RUNTIME_DIR", "/run/arifos"), "sabar.lock"
-)
+SABAR_LOCK_PATH = os.path.join(os.getenv("ARIFOS_RUNTIME_DIR", "/run/arifos"), "sabar.lock")
 VAULT999_LEDGER_PATH = os.getenv(
     "ARIFOS_VAULT999_LEDGER",
     str(
@@ -87,9 +85,7 @@ def readiness_probe(organ: str) -> dict:
             default_port=int(POSTGRES_DEFAULT_PORT),
         )
     )
-    pg_ok = (
-        True if not postgres_probe["configured"] else bool(postgres_probe["reachable"])
-    )
+    pg_ok = True if not postgres_probe["configured"] else bool(postgres_probe["reachable"])
     organ_ok = _probe_organ(organ)
 
     checks = {"vault999": vault_ok, "postgres": pg_ok, "organ": organ_ok}

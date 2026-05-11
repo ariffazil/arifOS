@@ -142,9 +142,7 @@ async def test_all_skills_wired():
             except Exception as e:
                 print(f"    Warning: {skill_name} may not be fully wired: {e}")
 
-    print(
-        f"  Skills Wired: OK ({wired_count}/{len(skills)} skills accept reality_bridge)"
-    )
+    print(f"  Skills Wired: OK ({wired_count}/{len(skills)} skills accept reality_bridge)")
     return wired_count == len(skills)
 
 

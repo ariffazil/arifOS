@@ -132,9 +132,7 @@ class ConstitutionalGuardMiddleware(Middleware):
         )
 
         if constitutional_guard is None:
-            logger.warning(
-                "ConstitutionalGuardMiddleware: constitutional_guard not available"
-            )
+            logger.warning("ConstitutionalGuardMiddleware: constitutional_guard not available")
             return result
 
         try:

@@ -125,9 +125,7 @@ def _build_dashboard_meta(data: dict) -> dict:
                                 "kind": "badge",
                                 "label": f"Governance: {status['governance']}",
                                 "status": (
-                                    "success"
-                                    if status["governance"] == "Stable"
-                                    else "warning"
+                                    "success" if status["governance"] == "Stable" else "warning"
                                 ),
                             },
                         ],

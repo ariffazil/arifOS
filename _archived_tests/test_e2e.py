@@ -119,18 +119,14 @@ async def test_constitutional_benchmarks(case):
 
     # 2. Verify Expected Status (DRY_RUN, SUCCESS, ERROR)
     if "expected_status" in case:
-        status_str = (
-            res.status.value if hasattr(res.status, "value") else str(res.status)
-        )
+        status_str = res.status.value if hasattr(res.status, "value") else str(res.status)
         assert status_str == case["expected_status"]
 
     # 3. Verify Expected Verdict (compare as strings to handle Enum/str)
     if "expected_final_verdict" in case:
         expected = case["expected_final_verdict"]
         final_verdict_str = (
-            final_verdict.value
-            if hasattr(final_verdict, "value")
-            else str(final_verdict)
+            final_verdict.value if hasattr(final_verdict, "value") else str(final_verdict)
         )
         if isinstance(expected, list):
             assert final_verdict_str in expected
@@ -149,13 +145,10 @@ async def test_constitutional_benchmarks(case):
 
     if "expected_error_codes" in case:
         error_codes = [
-            error.code if hasattr(error, "code") else error.get("code")
-            for error in errors
+            error.code if hasattr(error, "code") else error.get("code") for error in errors
         ]
         found = any(code in error_codes for code in case["expected_error_codes"])
-        assert (
-            found
-        ), f"Expected one of {case['expected_error_codes']}, got {error_codes}"
+        assert found, f"Expected one of {case['expected_error_codes']}, got {error_codes}"
 
     if verdict in ["VOID", "SABAR"]:
         assert len(errors) > 0

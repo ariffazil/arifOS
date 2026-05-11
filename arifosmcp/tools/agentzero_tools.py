@@ -46,9 +46,7 @@ logger = logging.getLogger(__name__)
 class SimpleArifOSClient:
     """Mock client for AgentZero agents to interact with arifOS governance."""
 
-    async def evaluate_action(
-        self, action: dict[str, Any], floors: list[str]
-    ) -> AZVerdict:
+    async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> AZVerdict:
         # Default to SEAL for now as the tool wrapper provides the final governance envelope
         return AZVerdict.seal(
             execution_id=action.get("execution_id", "ext-000"),
@@ -92,11 +90,7 @@ async def agentzero_validate(
     """
     try:
         task = {
-            "type": (
-                "validate_action"
-                if validation_type == "action"
-                else "verify_compliance"
-            ),
+            "type": ("validate_action" if validation_type == "action" else "verify_compliance"),
             "action": {"content": input_to_validate},
             "action_type": "content_validation",
             "validation_type": validation_type,
@@ -120,9 +114,7 @@ async def agentzero_validate(
             stage=Stage.JUDGE_888.value,
             verdict=verdict_map.get(az_status, Verdict.VOID),
             status=(
-                RuntimeStatus.SUCCESS
-                if result.get("status") == "success"
-                else RuntimeStatus.ERROR
+                RuntimeStatus.SUCCESS if result.get("status") == "success" else RuntimeStatus.ERROR
             ),
             payload={
                 "validation_result": result.get("result", result),

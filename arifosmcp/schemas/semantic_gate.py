@@ -132,9 +132,7 @@ SAFE_FALLBACK: dict[str, str] = {
 
 
 def get_safe_fallback(category: str) -> str:
-    return SAFE_FALLBACK.get(
-        category, "I'm not able to respond to that request safely."
-    )
+    return SAFE_FALLBACK.get(category, "I'm not able to respond to that request safely.")
 
 
 def get_safe_transform(category: str, original: str) -> str:

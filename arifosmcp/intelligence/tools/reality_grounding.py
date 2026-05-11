@@ -78,9 +78,7 @@ class ConsensusArbitrator:
             return ConsensusVerdict(consensus=0.0, verdict="NO_RESULTS")
         asean_hits = len(_filter_asean(results))
         ratio = asean_hits / max(len(results), 1)
-        return ConsensusVerdict(
-            consensus=round(max(0.5, ratio), 2), verdict="SUPPORTED"
-        )
+        return ConsensusVerdict(consensus=round(max(0.5, ratio), 2), verdict="SUPPORTED")
 
 
 class DDGSEngine:
@@ -176,9 +174,7 @@ def _dedupe_results(results: list[SearchResult]) -> list[SearchResult]:
 
 
 def _filter_asean(results: list[SearchResult]) -> list[SearchResult]:
-    return [
-        result for result in results if any(site in result.url for site in ASEAN_SITES)
-    ]
+    return [result for result in results if any(site in result.url for site in ASEAN_SITES)]
 
 
 def _format_unified_output(results: list[SearchResult], query: str) -> dict[str, Any]:
@@ -224,17 +220,12 @@ async def grounding_search(query: str, top_k: int = 5) -> list[SearchResult]:
         if ddgs_results:
             return _dedupe_results(
                 _rank_results(
-                    [
-                        _coerce_result(item, idx + 1)
-                        for idx, item in enumerate(ddgs_results)
-                    ]
+                    [_coerce_result(item, idx + 1) for idx, item in enumerate(ddgs_results)]
                 )
             )
         pw_results = await _search_playwright(query, top_k=top_k)
         return _dedupe_results(
-            _rank_results(
-                [_coerce_result(item, idx + 1) for idx, item in enumerate(pw_results)]
-            )
+            _rank_results([_coerce_result(item, idx + 1) for idx, item in enumerate(pw_results)])
         )
     except Exception as exc:
         logger.warning("grounding_search failed: %s", exc)

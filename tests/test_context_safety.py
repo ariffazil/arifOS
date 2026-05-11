@@ -6,9 +6,7 @@ from arifosmcp.runtime.quote_ledger import load_quote_ledger
 
 def _candidate_quotes():
     ledger = load_quote_ledger()
-    return [q for q in ledger if q["allow_use"] and q["source_status"] != "uncertain"][
-        :3
-    ]
+    return [q for q in ledger if q["allow_use"] and q["source_status"] != "uncertain"][:3]
 
 
 def test_context_safety_rejects_unknown_quote_id() -> None:
@@ -24,9 +22,7 @@ def test_context_safety_rejects_unknown_quote_id() -> None:
         "uncertainty": [],
         "safety_notes": [],
     }
-    safety = validate_interpretation_safety(
-        interpretation, candidates, risk_level="high"
-    )
+    safety = validate_interpretation_safety(interpretation, candidates, risk_level="high")
     assert safety["status"] == "hold"
     assert safety["error_code"] == "quote_not_in_approved_ledger"
 
@@ -47,8 +43,6 @@ def test_context_safety_rejects_author_drift() -> None:
         "uncertainty": [],
         "safety_notes": [],
     }
-    safety = validate_interpretation_safety(
-        interpretation, candidates, risk_level="high"
-    )
+    safety = validate_interpretation_safety(interpretation, candidates, risk_level="high")
     assert safety["status"] == "hold"
     assert safety["error"] == "author_integrity_failed"

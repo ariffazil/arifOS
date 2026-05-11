@@ -73,9 +73,7 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
     Fail-closed: missing or malformed bind_artifact → raises BindArtifactError.
     """
     if bind_artifact is None:
-        raise BindArtifactError(
-            "bind_artifact", "Missing required bind_artifact from 000_INIT"
-        )
+        raise BindArtifactError("bind_artifact", "Missing required bind_artifact from 000_INIT")
 
     if bind_artifact.get("schema_version") not in {BIND_SCHEMA_VERSION, "1.0.0", "2.0"}:
         raise BindArtifactError(
@@ -96,9 +94,7 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
     }
     missing = required - set(bind_artifact.keys())
     if missing:
-        raise BindArtifactError(
-            "required_fields", f"Missing required fields: {missing}"
-        )
+        raise BindArtifactError("required_fields", f"Missing required fields: {missing}")
 
     # Verify minimum floors present
     floor_ids = set(bind_artifact.get("floors", {}).keys())
@@ -203,9 +199,7 @@ async def _web_search(query: str, max_results: int = 5) -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-async def _understand_image(
-    image_url: str, question: str | None = None
-) -> dict[str, Any]:
+async def _understand_image(image_url: str, question: str | None = None) -> dict[str, Any]:
     """
     Understand image via MiniMax MCP.
     question: optional prompt/question about the image
@@ -213,9 +207,7 @@ async def _understand_image(
     """
     try:
         bridge = await _get_mcp_bridge()
-        raw = await bridge.understand_image(
-            image_url=image_url, question=question or ""
-        )
+        raw = await bridge.understand_image(image_url=image_url, question=question or "")
         return {
             "capability": "image_understanding",
             "image_url": image_url,
@@ -243,9 +235,7 @@ async def _understand_image(
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-async def _text_to_image(
-    prompt: str, model: str = "MiniMax-Image-01"
-) -> dict[str, Any]:
+async def _text_to_image(prompt: str, model: str = "MiniMax-Image-01") -> dict[str, Any]:
     """Generate image from text prompt via MiniMax MCP."""
     try:
         bridge = await _get_mcp_bridge()
@@ -629,9 +619,7 @@ async def execute(
         stakeholder_safety=None,
     )
 
-    result = governed_return(
-        "arifos_333_mind", report, metrics, operator_id, session_id
-    )
+    result = governed_return("arifos_333_mind", report, metrics, operator_id, session_id)
     if not isinstance(result, dict):
         result = {
             "status": "ACTIVE",
@@ -681,9 +669,7 @@ async def execute(
     # Attach multimodal results if any were acquired
     if multimodal_results:
         result["multimodal_results"] = multimodal_results
-        result["metabolic_metadata"]["multimodal_capabilities"] = list(
-            multimodal_results.keys()
-        )
+        result["metabolic_metadata"]["multimodal_capabilities"] = list(multimodal_results.keys())
 
     # ── 9. Vault-999 event ─────────────────────────────────────────────────
     try:

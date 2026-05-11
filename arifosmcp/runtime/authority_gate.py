@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 AXIOMS = {
     "AXIOM_001": "Language is a control surface for authority, memory, and constraints.",
@@ -63,7 +64,11 @@ def validate_authority_envelope(
         violations.append("authority_smuggling:model_claimed_sovereign_authority")
 
     requires_human_ack = payload.get("requires_human_ack")
-    if consequential and authority_level in NON_SOVEREIGN_AUTHORITIES and requires_human_ack is not True:
+    if (
+        consequential
+        and authority_level in NON_SOVEREIGN_AUTHORITIES
+        and requires_human_ack is not True
+    ):
         violations.append("human_ack_required_for_non_sovereign_consequential_output")
 
     return violations

@@ -55,15 +55,11 @@ def arif_sense_observe(
     """
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
-        return _hold(
-            "arif_sense_observe", auth["reason"], ["F11"], session_id=session_id
-        )
+        return _hold("arif_sense_observe", auth["reason"], ["F11"], session_id=session_id)
 
     floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_sense_observe", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"])
 
     if partition_mode == "DEAD":
         return {
@@ -144,10 +140,7 @@ def arif_sense_observe(
                     "verdict": bundle.status.verdict,
                     "results_count": len(bundle.results),
                     "partition": "ONLINE",
-                    "errors": [
-                        {"code": e.code, "detail": e.detail}
-                        for e in bundle.status.errors
-                    ],
+                    "errors": [{"code": e.code, "detail": e.detail} for e in bundle.status.errors],
                 },
             )
         except Exception as e:

@@ -339,15 +339,9 @@ class WitnessLog:
                         total += 1
                         try:
                             record = WitnessRecord.model_validate_json(line)
-                            by_domain[record.domain] = (
-                                by_domain.get(record.domain, 0) + 1
-                            )
-                            by_status[record.status] = (
-                                by_status.get(record.status, 0) + 1
-                            )
-                            by_risk[record.risk_tier] = (
-                                by_risk.get(record.risk_tier, 0) + 1
-                            )
+                            by_domain[record.domain] = by_domain.get(record.domain, 0) + 1
+                            by_status[record.status] = by_status.get(record.status, 0) + 1
+                            by_risk[record.risk_tier] = by_risk.get(record.risk_tier, 0) + 1
                             if record.status == "SEAL":
                                 seals += 1
                             elif record.status == "HOLD":

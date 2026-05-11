@@ -53,9 +53,7 @@ class ZoeppritzModel:
     - Shuey approximation (AVO analysis)
     """
 
-    def __init__(
-        self, approximation: Literal["exact", "aki-richards", "shuey"] = "exact"
-    ):
+    def __init__(self, approximation: Literal["exact", "aki-richards", "shuey"] = "exact"):
         self.approximation = approximation
 
     def _zoeppritz_exact(
@@ -230,9 +228,7 @@ class ZoeppritzModel:
                         s1.vp, s1.vs, s1.density, s2.vp, s2.vs, s2.density, theta
                     )
                 else:  # shuey
-                    r = self._shuey(
-                        s1.vp, s1.vs, s1.density, s2.vp, s2.vs, s2.density, theta
-                    )
+                    r = self._shuey(s1.vp, s1.vs, s1.density, s2.vp, s2.vs, s2.density, theta)
 
                 reflectivity[i, j] = r
 

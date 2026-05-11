@@ -77,9 +77,7 @@ def main():
     print("\n[1] Creating synthetic true model...")
     true_profile = create_synthetic_well()
     print(f"    Well: {true_profile.well_id}")
-    print(
-        f"    Depths: {true_profile.samples[0].depth} to {true_profile.samples[-1].depth} m"
-    )
+    print(f"    Depths: {true_profile.samples[0].depth} to {true_profile.samples[-1].depth} m")
     print(f"    Telemetry: {true_profile.to_telemetry()}")
 
     # 2. Generate synthetic seismic
@@ -89,9 +87,7 @@ def main():
     synthetic_cmp = synthetic_gen.generate(true_profile)
     print(f"    Wavelet: Ricker {wavelet.fdom} Hz")
     print(f"    Angles: {synthetic_cmp.angles}")
-    print(
-        f"    Time range: {synthetic_cmp.time[0]:.3f} to {synthetic_cmp.time[-1]:.3f} s"
-    )
+    print(f"    Time range: {synthetic_cmp.time[0]:.3f} to {synthetic_cmp.time[-1]:.3f} s")
 
     # 3. Extract observed logs
     print("\n[3] Extracting observed logs...")

@@ -115,9 +115,7 @@ class MacrostratTool(BaseTool):
                 error=f"Macrostrat API failed: {exc}",
             )
 
-    async def _query_api(
-        self, endpoint: str, location: CoordinatePoint
-    ) -> dict[str, Any]:
+    async def _query_api(self, endpoint: str, location: CoordinatePoint) -> dict[str, Any]:
         """Query stratigraphic columns at location."""
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.get(
@@ -153,9 +151,7 @@ class MacrostratTool(BaseTool):
                         quantity_type="stratigraphic_age_top",
                         coordinates=location,
                         timestamp=now,
-                        uncertainty=(
-                            abs(float(b_age) - float(t_age)) / 2 if b_age else 5.0
-                        ),
+                        uncertainty=(abs(float(b_age) - float(t_age)) / 2 if b_age else 5.0),
                         provenance=ProvenanceRecord(
                             source_id=f"macrostrat-unit-{unit_id}",
                             source_type="literature",

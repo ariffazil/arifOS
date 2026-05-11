@@ -66,9 +66,7 @@ def arif_memory_recall(
         actor_id,
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_memory_recall", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
 
     # ── Session init ──────────────────────────────────────────────────────────
     if mode == "init_recall":
@@ -214,9 +212,7 @@ def arif_memory_recall(
     if mode == "prune":
         from arifosmcp.runtime.memory_store import prune as _prune
 
-        result = _prune(
-            memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}"
-        )
+        result = _prune(memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}")
         return _ok("arif_memory_recall", result)
 
     # ── Session context ──────────────────────────────────────────────────────

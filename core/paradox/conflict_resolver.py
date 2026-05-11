@@ -92,10 +92,7 @@ def resolve_verdict_conflict(
     non_consensus = any(v != final for v in verdict_values)
     method = "CONSERVATIVE_WINS" if non_consensus else "UNANIMOUS"
 
-    dissenters = [
-        v["agent"] for v in verdicts
-        if v.get("verdict", "") != final
-    ]
+    dissenters = [v["agent"] for v in verdicts if v.get("verdict", "") != final]
 
     # Escalation trigger: same pair(s) conflicting 3+ times in 24h window
     escalation = recent_conflict_count >= 3

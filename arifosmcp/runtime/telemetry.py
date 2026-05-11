@@ -38,9 +38,7 @@ def _get_langfuse():
             _lf_client = _gc()
             logger.info(f"[Telemetry] Langfuse v4 initialized — host={host}")
         else:
-            logger.warning(
-                "[Telemetry] LANGFUSE_PUBLIC_KEY or LANGFUSE_SECRET_KEY not set"
-            )
+            logger.warning("[Telemetry] LANGFUSE_PUBLIC_KEY or LANGFUSE_SECRET_KEY not set")
     except ImportError:
         logger.debug("[Telemetry] langfuse SDK not installed")
     except Exception as e:
@@ -211,9 +209,7 @@ class Telemetry:
             except Exception as e:
                 logger.debug(f"[Telemetry] Langfuse span failed: {e}")
 
-        logger.debug(
-            f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency}"
-        )
+        logger.debug(f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency}")
 
     def record_floor_breach(self, floor: str, tool: str) -> None:
         if _METRICS_ENABLED and "floor_breaches" in self._counters:
@@ -264,12 +260,8 @@ def trace_tool_call(
         or "OK"
     )
     reasons = result.get("reasons", []) or result.get("result", {}).get("reasons", [])
-    next_action = result.get("next_safe_action") or result.get("result", {}).get(
-        "next_safe_action"
-    )
-    vault_receipt = (
-        result.get("result", {}).get("entry_id") or result.get("vault_receipt") or None
-    )
+    next_action = result.get("next_safe_action") or result.get("result", {}).get("next_safe_action")
+    vault_receipt = result.get("result", {}).get("entry_id") or result.get("vault_receipt") or None
 
     get_telemetry().record_tool_call(
         tool=tool_name,

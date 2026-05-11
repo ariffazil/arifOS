@@ -95,6 +95,7 @@ class TestWealthHealthCheck:
 class TestResetSession:
     def test_clears_session(self) -> None:
         from arifosmcp.runtime import wealth_bridge
+
         wealth_bridge._WEALTH_SESSION_ID = "old"
         reset_session()
         assert wealth_bridge._WEALTH_SESSION_ID is None

@@ -11,7 +11,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from arifosmcp.runtime.reality_models import FetchResult, SearchResult
@@ -57,9 +56,7 @@ class TestSenseObserveStubWiring:
     def test_search_mode_graceful_degradation(self, mock_rh, mock_floors, mock_auth):
         mock_auth.return_value = {"valid": True}
         mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
-        mock_rh.search_brave = AsyncMock(
-            side_effect=Exception("network down")
-        )
+        mock_rh.search_brave = AsyncMock(side_effect=Exception("network down"))
 
         from arifosmcp.tools.sense_observe import arif_sense_observe
 
@@ -152,9 +149,7 @@ class TestEvidenceStubWiring:
                 engine="ddgs",
                 query="python",
                 status_code=200,
-                results=[
-                    {"title": "Py", "url": "https://py.org", "description": "Python"}
-                ],
+                results=[{"title": "Py", "url": "https://py.org", "description": "Python"}],
                 latency_ms=80.0,
             )
         )

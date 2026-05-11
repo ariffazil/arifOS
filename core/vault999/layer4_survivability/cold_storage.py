@@ -183,9 +183,7 @@ class ColdStorageManager:
         5. Arif's personal possession (physical)
         """
         if not HAS_SSS:
-            raise RuntimeError(
-                "secretsharing library required for Shamir's Secret Sharing"
-            )
+            raise RuntimeError("secretsharing library required for Shamir's Secret Sharing")
 
         locations = [
             "bank_vault_primary",
@@ -196,9 +194,7 @@ class ColdStorageManager:
         ]
 
         # Split into 5 shares, need 3 to reconstruct
-        shares = secretsharing.SecretSharer.split_secret(
-            key_material, threshold=3, num_shares=5
-        )
+        shares = secretsharing.SecretSharer.split_secret(key_material, threshold=3, num_shares=5)
 
         return [
             ShamirShare(
@@ -243,9 +239,7 @@ class ColdStorageManager:
                 hashlib.sha256(f.read()).hexdigest()
 
             # 3. Extract
-            subprocess.run(
-                ["tar", "-xzf", str(decrypted_path), "-C", str(restore_dir)], check=True
-            )
+            subprocess.run(["tar", "-xzf", str(decrypted_path), "-C", str(restore_dir)], check=True)
 
             return True
 

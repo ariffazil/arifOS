@@ -60,9 +60,7 @@ def check_site(site):
     expected = site["expected_status"]
 
     try:
-        req = urllib.request.Request(
-            url, headers={"User-Agent": "arifOS-SiteHealth/1.0"}
-        )
+        req = urllib.request.Request(url, headers={"User-Agent": "arifOS-SiteHealth/1.0"})
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
             actual = resp.getcode()
             if actual == expected:

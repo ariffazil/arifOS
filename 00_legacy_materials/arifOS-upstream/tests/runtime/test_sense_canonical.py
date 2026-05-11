@@ -52,9 +52,7 @@ def test_invariant_routes_to_mind():
     assert (
         packet.routing.next_stage == RoutingTarget.MIND
     ), f"Expected MIND routing for invariant, got {packet.routing.next_stage}"
-    assert (
-        not packet.truth_classification.search_required
-    ), "Invariant must not require live search"
+    assert not packet.truth_classification.search_required, "Invariant must not require live search"
     assert (
         packet.evidence_plan.retrieval_lane == "offline_reason"
     ), f"Invariant should use offline_reason lane, got {packet.evidence_plan.retrieval_lane}"
@@ -196,9 +194,7 @@ def test_stale_time_sensitive_query():
 
 def test_sense_packet_fields_complete():
     """Verify SensePacket carries all canonical fields."""
-    packet, intel = asyncio.run(
-        _sense("What is the boiling point of water at sea level?")
-    )
+    packet, intel = asyncio.run(_sense("What is the boiling point of water at sea level?"))
     # Core fields
     assert packet.packet_id
     assert packet.input_summary is not None

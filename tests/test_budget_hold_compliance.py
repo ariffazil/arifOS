@@ -16,9 +16,7 @@ from unittest.mock import patch
 class FakeBudgetContract:
     """Minimal budget contract with configurable exhaustion."""
 
-    def __init__(
-        self, turns_ok=True, turn_reason="", tool_calls_ok=True, tool_reason=""
-    ):
+    def __init__(self, turns_ok=True, turn_reason="", tool_calls_ok=True, tool_reason=""):
         self._turns_ok = turns_ok
         self._turn_reason = turn_reason
         self._tool_calls_ok = tool_calls_ok
@@ -111,12 +109,8 @@ def test_budget_hold_includes_nine_signal():
     assert "nine_signal" in result, "HOLD response MUST include 'nine_signal'"
     ns = result["nine_signal"]
     assert "overall" in ns, "nine_signal must have 'overall' field"
-    assert (
-        ns["overall"] == "RETAK"
-    ), f"nine_signal.overall must be RETAK, got {ns['overall']}"
-    assert (
-        "delta" in ns and "psi" in ns and "omega" in ns
-    ), "nine_signal must have delta/psi/omega"
+    assert ns["overall"] == "RETAK", f"nine_signal.overall must be RETAK, got {ns['overall']}"
+    assert "delta" in ns and "psi" in ns and "omega" in ns, "nine_signal must have delta/psi/omega"
 
 
 def test_budget_tool_call_hold_includes_reasons():

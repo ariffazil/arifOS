@@ -76,9 +76,7 @@ def apply_clahe(
             clip = clip_limit * mean_val / 256.0
             excess = np.maximum(equalized - clip, 0)
             equalized = np.minimum(equalized, clip)
-            equalized += (
-                excess * (mean_val - clip) / (1.0 - clip) if mean_val > clip else 0
-            )
+            equalized += excess * (mean_val - clip) / (1.0 - clip) if mean_val > clip else 0
 
             result[i : i + tile_h, j : j + tile_w] = equalized
 
@@ -301,15 +299,11 @@ async def generate_contrast_views(
         )
         views.append(view)
 
-    canonical_view_ref = next(
-        v.view_id for v in views if v.view_type == ContrastViewType.LINEAR
-    )
+    canonical_view_ref = next(v.view_id for v in views if v.view_type == ContrastViewType.LINEAR)
 
     worst_uncertainty = max(v.uncertainty for v in views)
 
-    prov_set = _make_provenance(
-        f"VIEWSET-{prov_base}", "LEM", confidence=1.0 - worst_uncertainty
-    )
+    prov_set = _make_provenance(f"VIEWSET-{prov_base}", "LEM", confidence=1.0 - worst_uncertainty)
 
     return GEOXContrastViewSet(
         image_ref=image_ref,

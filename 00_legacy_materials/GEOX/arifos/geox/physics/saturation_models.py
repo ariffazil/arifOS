@@ -172,9 +172,7 @@ class ArchieModel(SaturationModel):
         dsw_drw = sw / (self.n * rw)
 
         sw_variance = (
-            (dsw_drt * sigma_rt) ** 2
-            + (dsw_dphi * sigma_phi) ** 2
-            + (dsw_drw * sigma_rw) ** 2
+            (dsw_drt * sigma_rt) ** 2 + (dsw_dphi * sigma_phi) ** 2 + (dsw_drw * sigma_rw) ** 2
         )
         sw_uncertainty = np.sqrt(sw_variance)
 
@@ -330,20 +328,12 @@ class SimandouxModel(SaturationModel):
 
         # Approximate partial derivatives numerically
         delta = 0.001
-        sw_plus_rt = self._compute_sw_numerical(
-            rt + delta, phi, rw, vsh, rsh_used, self.n
-        )
-        sw_minus_rt = self._compute_sw_numerical(
-            rt - delta, phi, rw, vsh, rsh_used, self.n
-        )
+        sw_plus_rt = self._compute_sw_numerical(rt + delta, phi, rw, vsh, rsh_used, self.n)
+        sw_minus_rt = self._compute_sw_numerical(rt - delta, phi, rw, vsh, rsh_used, self.n)
         dsw_drt = (sw_plus_rt - sw_minus_rt) / (2 * delta)
 
-        sw_plus_phi = self._compute_sw_numerical(
-            rt, phi + delta, rw, vsh, rsh_used, self.n
-        )
-        sw_minus_phi = self._compute_sw_numerical(
-            rt, phi - delta, rw, vsh, rsh_used, self.n
-        )
+        sw_plus_phi = self._compute_sw_numerical(rt, phi + delta, rw, vsh, rsh_used, self.n)
+        sw_minus_phi = self._compute_sw_numerical(rt, phi - delta, rw, vsh, rsh_used, self.n)
         dsw_dphi = (sw_plus_phi - sw_minus_phi) / (2 * delta)
 
         sw_variance = (

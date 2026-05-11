@@ -70,9 +70,7 @@ class GitBridge:
 
         try:
             status = await bridge.git.call_tool("git_status", {"repo_path": repo_path})
-            log = await bridge.git.call_tool(
-                "git_log", {"repo_path": repo_path, "max_count": 5}
-            )
+            log = await bridge.git.call_tool("git_log", {"repo_path": repo_path, "max_count": 5})
 
             return RE(
                 ok=True,
@@ -128,14 +126,10 @@ class GitBridge:
 
         # 2. Call Substrate
         try:
-            logger.info(
-                f"F11 LOG: [arifOS Governed] Committing change: {message} by {actor_id}"
-            )
+            logger.info(f"F11 LOG: [arifOS Governed] Committing change: {message} by {actor_id}")
 
             # Stage files
-            await bridge.git.call_tool(
-                "git_add", {"repo_path": repo_path, "files": files}
-            )
+            await bridge.git.call_tool("git_add", {"repo_path": repo_path, "files": files})
 
             # Commit
             result = await bridge.git.call_tool(

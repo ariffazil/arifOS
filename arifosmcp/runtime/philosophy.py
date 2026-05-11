@@ -117,9 +117,7 @@ def euclidean_distance_3d(
 ) -> float:
     """Compute 3D Euclidean distance."""
     return math.sqrt(
-        (coord1[0] - coord2[0]) ** 2
-        + (coord1[1] - coord2[1]) ** 2
-        + (coord1[2] - coord2[2]) ** 2
+        (coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2 + (coord1[2] - coord2[2]) ** 2
     )
 
 
@@ -218,10 +216,7 @@ def select_atlas_philosophy(
     atlas = _load_atlas()
 
     # Special handling: INIT and SEAL sessions get motto
-    if (
-        scores.get("session_stage") in ("INIT", "SEAL")
-        or scores.get("verdict") == "SEAL"
-    ):
+    if scores.get("session_stage") in ("INIT", "SEAL") or scores.get("verdict") == "SEAL":
         motto = atlas.get("motto", {})
         if motto:
             # Return motto as primary, plus a zone quote
@@ -412,15 +407,9 @@ def select_governed_philosophy(
             "atlas_zones": [z["id"] for z in _load_atlas().get("zones", [])],
             "legacy_33": ["wisdom", "power", "paradox", "void", "seal"],
         },
-        "agi": (
-            primary if result.get("zone", {}).get("id", "").startswith("Z1") else None
-        ),
-        "asi": (
-            primary if result.get("zone", {}).get("id", "").startswith("Z2") else None
-        ),
-        "apex": (
-            primary if result.get("zone", {}).get("id", "").startswith("Z3") else None
-        ),
+        "agi": (primary if result.get("zone", {}).get("id", "").startswith("Z1") else None),
+        "asi": (primary if result.get("zone", {}).get("id", "").startswith("Z2") else None),
+        "apex": (primary if result.get("zone", {}).get("id", "").startswith("Z3") else None),
         "atlas_result": result,  # Full atlas result for debugging
     }
 
@@ -497,9 +486,7 @@ def get_wisdom_for_context(
     failed_floors: list[str] | None = None,
 ) -> Quote:
     """Legacy API - use select_governed_philosophy instead."""
-    anchor = get_philosophical_anchor(
-        stage, g_score, failed_floors or [], context=context
-    )
+    anchor = get_philosophical_anchor(stage, g_score, failed_floors or [], context=context)
     return anchor
 
 

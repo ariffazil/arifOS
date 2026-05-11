@@ -13,9 +13,7 @@ class OllamaClient:
     def __init__(self, base_url: str = None):
         self.base_url = base_url or os.getenv("OLLAMA_URL", "http://ollama:11434")
 
-    async def generate(
-        self, model: str, prompt: str, format: str = None
-    ) -> Dict[str, Any]:
+    async def generate(self, model: str, prompt: str, format: str = None) -> Dict[str, Any]:
         async with httpx.AsyncClient(timeout=60.0) as client:
             payload = {"model": model, "prompt": prompt, "stream": False}
             if format == "json":
@@ -143,9 +141,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
 
     # F1 Amanah — reversibility check
     if proposal.irreversible:
-        violations.append(
-            {"floor": "F1", "reason": "irreversible_action", "verdict": "HOLD"}
-        )
+        violations.append({"floor": "F1", "reason": "irreversible_action", "verdict": "HOLD"})
 
     # F2 Truth — Landauer Bound + Confidence
     # P3 HARDENING: Truth must be thermodynamically grounded.
@@ -191,9 +187,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
 
         # F2 requires confidence >= 0.99 for non-axiomatic claims
         # Axiomatic claims (math, syntax) can be confidence >= 0.95
-        is_technical = (
-            has_citation or has_technical_detail or proposal.tier == "physics"
-        )
+        is_technical = has_citation or has_technical_detail or proposal.tier == "physics"
         f2_threshold = 0.95 if is_technical else 0.99
 
         if proposal.confidence < f2_threshold:
@@ -229,9 +223,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
         # (module not available or other error)
         if proposal.confidence < 0.95:
             f2_passed = False
-            f2_reason = (
-                "F2 ERROR: Could not verify Landauer bound — treating as ungrounded"
-            )
+            f2_reason = "F2 ERROR: Could not verify Landauer bound — treating as ungrounded"
 
     if not f2_passed:
         violations.append({"floor": "F2", "reason": f2_reason, "verdict": "VOID"})
@@ -268,9 +260,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
 
     # F13 Sovereignty — human required
     if proposal.requires_human:
-        violations.append(
-            {"floor": "F13", "reason": "human_approval_required", "verdict": "HOLD"}
-        )
+        violations.append({"floor": "F13", "reason": "human_approval_required", "verdict": "HOLD"})
 
     # Compute verdict
     if any(v["verdict"] == "VOID" for v in violations):
@@ -284,9 +274,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
         proposal_id=proposal.proposal_id,
         verdict=final_verdict,
         violations=violations,
-        floors_passed=[
-            f for f in ALL_FLOORS if f not in [v["floor"] for v in violations]
-        ],
+        floors_passed=[f for f in ALL_FLOORS if f not in [v["floor"] for v in violations]],
         timestamp=datetime.utcnow().isoformat(),
     )
 
@@ -304,9 +292,7 @@ async def execute_consequence(proposal: ProposalObject, ctx: Dict[str, Any]) -> 
     return {"status": "executed", "action": proposal.action_type}
 
 
-async def vault_seal(
-    proposal: ProposalObject, verdict: KernelVerdict, result: Any
-) -> Any:
+async def vault_seal(proposal: ProposalObject, verdict: KernelVerdict, result: Any) -> Any:
     """Stage 999 — Write the Merkle seal."""
     from arifosmcp.runtime.vault_postgres import VaultManager
 
@@ -347,9 +333,7 @@ async def metabolic_bridge(raw_input: str, ctx: Dict[str, Any]) -> BridgeResult:
         return BridgeResult(verdict="VOID", reason=verdict.violations)
 
     if verdict.verdict == "HOLD":
-        return BridgeResult(
-            verdict="HOLD", reason=verdict.violations, proposal=proposal
-        )
+        return BridgeResult(verdict="HOLD", reason=verdict.violations, proposal=proposal)
 
     # Stage 777 — execute (SEAL only)
     result = await execute_consequence(proposal, ctx)
@@ -358,6 +342,4 @@ async def metabolic_bridge(raw_input: str, ctx: Dict[str, Any]) -> BridgeResult:
     # Stage 999 — vault seal
     seal = await vault_seal(proposal, verdict, result)
 
-    return BridgeResult(
-        verdict="SEAL", proposal=proposal, result=result, seal_id=seal.id
-    )
+    return BridgeResult(verdict="SEAL", proposal=proposal, result=result, seal_id=seal.id)

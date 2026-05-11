@@ -84,9 +84,7 @@ class RouteResponse(BaseModel):
     target_agent: str = Field(description="Agent to call")
     lane: str = Field(description="Execution lane")
     omega_ortho: float = Field(description="Computed orthogonality score")
-    correlation_detected: bool = Field(
-        description="Whether harmful correlation detected"
-    )
+    correlation_detected: bool = Field(description="Whether harmful correlation detected")
     reason: str = Field(description="Approval/rejection reason")
 
 
@@ -117,10 +115,7 @@ class CorrelationTracker:
         axis_caller = caller[0]
         axis_target = target[0]
 
-        if (
-            axis_caller in ORTHOGONALITY_MATRIX
-            and axis_target in ORTHOGONALITY_MATRIX[axis_caller]
-        ):
+        if axis_caller in ORTHOGONALITY_MATRIX and axis_target in ORTHOGONALITY_MATRIX[axis_caller]:
             omega = ORTHOGONALITY_MATRIX[axis_caller][axis_target]
         else:
             omega = 0.0
@@ -193,9 +188,7 @@ def route_call(request: RouteRequest) -> RouteResponse:
 
     # Check for same-axis calls (always allowed within axis)
     if caller_axis == target_axis:
-        correlation, omega = _tracker.check_correlation(
-            request.caller_agent, request.target_agent
-        )
+        correlation, omega = _tracker.check_correlation(request.caller_agent, request.target_agent)
         _tracker.record(request.caller_agent, request.target_agent, approved=True)
         return RouteResponse(
             approved=True,

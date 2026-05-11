@@ -171,11 +171,7 @@ async def list_geox_apps() -> str:
         if os.path.exists(manifest_path):
             with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest = json.load(f)
-                uris = (
-                    manifest.get("capabilities", {})
-                    .get("ui", {})
-                    .get("resource_uris", [])
-                )
+                uris = manifest.get("capabilities", {}).get("ui", {}).get("resource_uris", [])
                 return json.dumps({"apps": uris, "manifest": manifest})
         return json.dumps({"apps": []})
     except Exception as e:
@@ -290,9 +286,7 @@ if HAS_FASTMCP_APPS:
             with Row(gap=4):
                 StatCard(label="Porosity (\u03c6)", value="22%")
                 StatCard(label="Water Sat (Sw)", value="45%")
-                StatCard(
-                    label="Governance", value="888_HOLD", css_class="text-amber-500"
-                )
+                StatCard(label="Governance", value="888_HOLD", css_class="text-amber-500")
 
             # Action demanding Approval provider before allowing execution
             CallTool(
@@ -366,13 +360,8 @@ async def legacy_mcp_handler(request):
     response_id = payload.get("id")
 
     if method == "tools/list":
-        tools = [
-            {"name": t.name, "description": t.description}
-            for t in await mcp.list_tools()
-        ]
-        return JSONResponse(
-            {"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}}
-        )
+        tools = [{"name": t.name, "description": t.description} for t in await mcp.list_tools()]
+        return JSONResponse({"jsonrpc": "2.0", "id": response_id, "result": {"tools": tools}})
 
     if method == "tools/call":
         name = params.get("name")

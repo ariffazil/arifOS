@@ -109,9 +109,7 @@ class TestVaultFixed:
 
         long_content = "Test content " * 100
 
-        result = await vault(
-            operation="store", session_id="test-vault-long", content=long_content
-        )
+        result = await vault(operation="store", session_id="test-vault-long", content=long_content)
 
         assert result is not None
 
@@ -149,7 +147,5 @@ class TestVaultOperations:
         operations = ["store", "recall", "search", "forget", "seal"]
 
         for op in operations:
-            result = await vault(
-                operation=op, session_id=f"test-{op}", content=f"Test {op}"
-            )
+            result = await vault(operation=op, session_id=f"test-{op}", content=f"Test {op}")
             assert result is not None

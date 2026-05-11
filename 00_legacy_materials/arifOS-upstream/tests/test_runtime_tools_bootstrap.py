@@ -90,9 +90,7 @@ class TestInitAnchorBootstrap:
             key in res or key in envelope.payload
             for key in ["next_action", "operator_guidance", "guidance", "continuation"]
         )
-        assert (
-            has_guidance
-        ), f"No guidance found in payload keys: {list(envelope.payload.keys())}"
+        assert has_guidance, f"No guidance found in payload keys: {list(envelope.payload.keys())}"
 
     async def test_init_anchor_state_ladder_progression(self):
         """init_anchor should progress from anonymous to anchored."""
@@ -172,9 +170,7 @@ class TestCheckVitalBootstrap:
         # Should reference the states resource somewhere
         payload_str = str(envelope.payload).lower()
         assert (
-            "canon://states" in payload_str
-            or "ladder" in payload_str
-            or "bootstrap" in payload_str
+            "canon://states" in payload_str or "ladder" in payload_str or "bootstrap" in payload_str
         )
 
 
@@ -253,9 +249,7 @@ class TestRemediationErrors:
 
         # Should point to anchor or init
         guidance = (
-            str(envelope.next_action)
-            + str(envelope.errors)
-            + str(envelope.allowed_next_tools)
+            str(envelope.next_action) + str(envelope.errors) + str(envelope.allowed_next_tools)
         )
         assert "init_anchor" in guidance.lower() or "anchor" in guidance.lower()
 

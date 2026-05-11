@@ -204,9 +204,7 @@ class ConstitutionalEvaluator:
     def _print_metrics(self, metrics: AggregateMetrics):
         """Pretty print metrics."""
         print("\nPerformance:")
-        print(
-            f"  Throughput: {metrics.throughput_rps:.2f} req/s (target: {TARGET_THROUGHPUT})"
-        )
+        print(f"  Throughput: {metrics.throughput_rps:.2f} req/s (target: {TARGET_THROUGHPUT})")
         print(f"  Latency (avg): {metrics.avg_latency_ms:.1f}ms")
         print(f"  Latency (p95): {metrics.p95_latency_ms:.1f}ms")
         print(f"  Latency (p99): {metrics.p99_latency_ms:.1f}ms")
@@ -219,9 +217,7 @@ class ConstitutionalEvaluator:
         print(f"  Avg W³: {metrics.avg_W_cube:.4f} (threshold: {W3_THRESHOLD})")
         if metrics.floor_violation_counts:
             print(f"  Floor Violations: {metrics.floor_violation_counts}")
-        print(
-            f"\nComposite Score: {metrics.composite_score:.4f} (target: >{TARGET_SCORE})"
-        )
+        print(f"\nComposite Score: {metrics.composite_score:.4f} (target: >{TARGET_SCORE})")
 
     def _append_results(self, result: ExperimentResult):
         """Append result to results.tsv."""
@@ -325,9 +321,7 @@ def main():
         required=True,
         help="Unique experiment identifier (e.g., exp_001)",
     )
-    parser.add_argument(
-        "--change", required=True, help="Description of what was changed"
-    )
+    parser.add_argument("--change", required=True, help="Description of what was changed")
     parser.add_argument(
         "--duration",
         type=int,

@@ -162,14 +162,16 @@ def main():
     print("\n" + "=" * 60)
     print("SUMMARY: 6 Blindspots Addressed")
     print("=" * 60)
-    print("""
+    print(
+        """
   ✅ #1: Agent identity + policy-gated execution
   ✅ #2: Unified memory ledger (memory-ledger.yaml)
   ✅ #3: Event-driven orchestration (event-bus.yaml)
   ✅ #4: Capability self-knowledge (capability-manifest.yaml)
   ✅ #5: Broken paths quarantined (kimi/aider/opencode DISABLED)
   ✅ #6: Immutable operational replay (forensic-replay.yaml)
-    """)
+    """
+    )
     print("=" * 60)
 
 
