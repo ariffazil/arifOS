@@ -2515,7 +2515,7 @@ def _arif_sense_observe(
         try:
             from arifosmcp.runtime.reality_handlers import handler as _rh_handler
 
-            rh_res = asyncio.run(_rh_handler.search_brave(query or "", top_k=5))
+            rh_res = _run_async(_rh_handler.search_brave(query or "", top_k=5))
             if rh_res.results:
                 rh_hits = [
                     {
