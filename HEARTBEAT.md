@@ -21,19 +21,19 @@ If `risk_level` rises to `critical` OR `loop_count` > 20: **pause and summarize 
 
 ```yaml
 session_id:     OC-003
-status:         sealed        # idle | active | paused | degraded | sealed
-stage:          999_SEAL
+status:         active        # idle | active | paused | degraded | sealed
+stage:          777_MEASURE
 risk_level:     low           # low | medium | high | critical
-entropy_delta:  0.09          # Confusion delta since last beat (0.0–1.0)
+entropy_delta:  0.16          # Confusion delta since last beat (0.0–1.0)
 tool_health:    healthy       # unknown | healthy | degraded | failing
-loop_count:     1             # Increments each turn
-last_action:    999 SEAL — completed charter canon across active repo, kernel internals, and VPS guidance
-next_gate:      none          # Next governance gate
+loop_count:     2             # Increments each turn
+last_action:    777 MEASURE — added severity-based pre-push guard + repo/MCP stabilization runbook and weekly hygiene workflow
+next_gate:      888_JUDGE          # Next governance gate
 human_approval_required: false
-current_task:   OC-003 — Charter canon complete across active surfaces
+current_task:   OC-005 — Reduce chaos in GitHub + MCP via constraints and hygiene
 blockers:       []
 autonomy_level: L3
-timestamp:      2026-05-11T14:45:00Z
+timestamp:      2026-05-11T17:12:00Z
 ```
 
 ---

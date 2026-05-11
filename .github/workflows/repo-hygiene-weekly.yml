@@ -1,0 +1,58 @@
+name: Weekly Repo Hygiene
+
+on:
+  schedule:
+    - cron: "30 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build hygiene report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          open_prs=$(gh pr list --repo "$REPO" --state open --json number,title,updatedAt,headRefName --jq 'length')
+          stale_prs=$(gh pr list --repo "$REPO" --state open --json number,title,updatedAt,headRefName --jq '[.[] | select((now - (.updatedAt | fromdateiso8601)) > (14*24*3600))]')
+          stale_pr_count=$(echo "$stale_prs" | jq 'length')
+
+          report_file=report.md
+          {
+            echo "## Weekly Repo Hygiene"
+            echo
+            echo "- Open PRs: $open_prs"
+            echo "- Stale PRs (>14d no update): $stale_pr_count"
+            echo
+            echo "### Stale PR Candidates"
+            if [ "$stale_pr_count" -eq 0 ]; then
+              echo "- None"
+            else
+              echo "$stale_prs" | jq -r '.[] | "- #\(.number) \(.title) (branch: \(.headRefName), updated: \(.updatedAt))"'
+            fi
+            echo
+            echo "### Checklist"
+            echo "- [ ] Close or supersede stale PRs"
+            echo "- [ ] Archive dead branches"
+            echo "- [ ] Review failed workflows"
+            echo "- [ ] Review secret/token hygiene"
+            echo "- [ ] Review MCP routing and overlap"
+          } > "$report_file"
+
+          issue_title="Weekly Repo Hygiene"
+          existing=$(gh issue list --repo "$REPO" --state open --search "in:title $issue_title" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body-file "$report_file"
+            echo "Updated issue #$existing"
+          else
+            gh issue create --repo "$REPO" --title "$issue_title" --body-file "$report_file"
+            echo "Created hygiene issue"
+          fi

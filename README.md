@@ -711,6 +711,14 @@ python -m pytest tests/ -q --tb=short
 
 **Branch discipline:** use `feature/<name>` branches and submit PRs. Direct pushes to `main` are emergency sovereign bypasses and must be logged.
 
+For operational stabilization policy and weekly hygiene protocol, see [`docs/operations/repo-mcp-stabilization.md`](docs/operations/repo-mcp-stabilization.md).
+
+Install the severity-based pre-push guard:
+
+```bash
+bash scripts/hooks/install_hooks.sh
+```
+
 ### Reporting Security Vulnerabilities
 
 Do **not** open public GitHub issues for security vulnerabilities. Contact the sovereign operator directly through the secure channel listed in `.security/policy`.
