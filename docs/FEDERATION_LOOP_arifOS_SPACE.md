@@ -85,7 +85,7 @@ A decision sealed without all three legs active fails F3 and cannot proceed past
 | Organ | Entry Stage | Entry Tool | Evidence Field in arifOS |
 |---|---|---|---|
 | **WELL** | 222 | `well_reflect_readiness`, `well_get_packet` | `substrate_readiness` |
-| **WEALTH** | 222 | `wealth_reason_npv`, `wealth_mind_emv`, `wealth_judge_floors` | `capital_intelligence` |
+| **WEALTH** | 222 | `wealth_sense_ingest`, `wealth_truth_validate`, `wealth_reason_npv`, `wealth_mind_emv`, `wealth_judge_floors`, `wealth_allocate_optimize`, `wealth_vault_init` | `capital_intelligence` |
 | **GEOX** | 222 | `geox_evidence_summarize_cross`, `geox_prospect_evaluate` | `earth_evidence` |
 | **GEOX (special)** | 888 | `geox_prospect_judge_verdict` | Direct 888_JUDGE gateway |
 

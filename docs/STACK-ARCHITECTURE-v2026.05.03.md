@@ -93,13 +93,19 @@ Covers: NPV / IRR / PI / payback · EMV / Monte Carlo · DSCR / net worth / cash
 
 | User intent | Canonical WEALTH tool |
 |---|---|
-| NPV / IRR / payback | `wealth_future_value` |
-| Monte Carlo | `wealth_future_simulate` |
-| Liquidity / runway | `wealth_survival_liquidity` |
-| Debt load | `wealth_survival_leverage` |
-| EVOI | `wealth_info_value` |
-| Governance floors | `wealth_rule_enforce` |
-| Final allocation | `wealth_allocate_optimize` |
+| NPV / IRR / payback / PI / terminal value | `wealth_future_value`, `wealth_reason_npv`, `wealth_reason_irr`, `wealth_reason_pi`, `wealth_reason_payback`, `wealth_npv_reward` |
+| Monte Carlo / stochastic forecast | `wealth_future_simulate`, `wealth_mind_monte_carlo` |
+| Liquidity / runway / burn rate | `wealth_survival_liquidity`, `wealth_survival_cashflow`, `wealth_survival_triage`, `wealth_survival_velocity` |
+| Debt load / DSCR / leverage | `wealth_survival_leverage`, `wealth_survival_dscr` |
+| Net worth / balance sheet | `wealth_survival_networth` |
+| EVOI / info value | `wealth_info_value`, `wealth_mind_evoi`, `wealth_mind_evoi_mc` |
+| Schema / correlation / entropy validation | `wealth_truth_validate`, `wealth_mind_schema`, `wealth_mind_correlation`, `wealth_judge_entropy` |
+| Governance floors / policy audit | `wealth_judge_floors`, `wealth_judge_policy`, `wealth_rule_enforce` |
+| Final allocation / optimization | `wealth_allocate_optimize` |
+| Multi-agent / game theory / equilibrium | `wealth_game_coordinate`, `wealth_reason_game`, `wealth_reason_equilibrium`, `wealth_reason_agent` |
+| Civilization / long-horizon stewardship | `wealth_future_steward`, `wealth_survival_civilization` |
+| Sense / data intake | `wealth_sense_ingest`, `wealth_sense_fetch`, `wealth_sense_snapshot`, `wealth_sense_sources`, `wealth_sense_vintage`, `wealth_sense_reconcile`, `wealth_sense_health` |
+| Vault / ledger | `wealth_vault_init`, `wealth_vault_record`, `wealth_vault_snapshot`, `vault_query`, `vault_write` |
 
 **EVOI link to GEOX:**
 > "Should we buy more information before committing capital?" — that is the exploration question. GEOX computes uncertainty → WEALTH computes EVOI → decision.

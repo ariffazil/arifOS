@@ -124,7 +124,7 @@ async def call_wealth_tool(
     Call a WEALTH MCP tool by name with arguments.
 
     Example:
-        result = await call_wealth_tool("wealth_npv_rank", {
+        result = await call_wealth_tool("wealth_reason_npv", {
             "cashflows": [...],
             "discount_rate": 0.12
         })
