@@ -42,7 +42,9 @@ def test_floor_breach_returns_hold_envelope(monkeypatch: pytest.MonkeyPatch) -> 
     assert result.meta["reason"] == "floor block"
     assert result.meta["failed_floors"] == ["F12"]
     assert result.result["status"] == "HOLD"
-    assert any(u.get("type") == "FLOOR_BREACH" for u in result.result.get("uncertainty", []))
+    assert any(
+        u.get("type") == "FLOOR_BREACH" for u in result.result.get("uncertainty", [])
+    )
 
 
 @pytest.mark.asyncio

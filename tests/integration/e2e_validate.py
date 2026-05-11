@@ -139,7 +139,9 @@ class E2EValidator:
             session_id="e2e-test",
             trace=trace,
         )
-        assert result.status == ToolStatus.OK, f"Should OK with auth, got {result.status}"
+        assert (
+            result.status == ToolStatus.OK
+        ), f"Should OK with auth, got {result.status}"
         assert "session_id" in result.payload
 
         log_pass("Hardened init_anchor works correctly")
@@ -206,7 +208,9 @@ class E2EValidator:
 
         assert result.status == ToolStatus.OK
         assert "lanes" in result.payload
-        assert len(result.payload["lanes"]) == 4  # baseline, alternative, adversarial, null
+        assert (
+            len(result.payload["lanes"]) == 4
+        )  # baseline, alternative, adversarial, null
         assert "decision_forks" in result.payload
 
         log_pass("AGI reason with 4-lane reasoning works correctly")
@@ -524,13 +528,21 @@ class E2EValidator:
             self.test("Contracts v2 imports", self.validate_contracts_v2)
 
             # Individual tool validations
-            await self.test_async("Hardened init_anchor", self.validate_init_anchor_hardened)
+            await self.test_async(
+                "Hardened init_anchor", self.validate_init_anchor_hardened
+            )
             await self.test_async("Truth pipeline", self.validate_truth_pipeline)
             await self.test_async("AGI reason (4-lane)", self.validate_agi_reason)
-            await self.test_async("ASI critique (counter-seal)", self.validate_asi_critique)
-            await self.test_async("AgentZero engineer (2-phase)", self.validate_agentzero_engineer)
+            await self.test_async(
+                "ASI critique (counter-seal)", self.validate_asi_critique
+            )
+            await self.test_async(
+                "AgentZero engineer (2-phase)", self.validate_agentzero_engineer
+            )
             await self.test_async("Apex judge (verifiable)", self.validate_apex_judge)
-            await self.test_async("Vault seal (decision objects)", self.validate_vault_seal)
+            await self.test_async(
+                "Vault seal (decision objects)", self.validate_vault_seal
+            )
 
             # Full pipeline
             await self.test_async("Full hardened pipeline", self.run_full_pipeline)
@@ -541,7 +553,9 @@ class E2EValidator:
             # Summary
             log_section("VALIDATION SUMMARY")
             print(f"{BOLD}Passed:{RESET} {GREEN}{self.passed}{RESET}")
-            print(f"{BOLD}Failed:{RESET} {RED if self.failed > 0 else GREEN}{self.failed}{RESET}")
+            print(
+                f"{BOLD}Failed:{RESET} {RED if self.failed > 0 else GREEN}{self.failed}{RESET}"
+            )
 
             if self.failed == 0 and ready:
                 print(f"\n{GREEN}{BOLD}{'#'*60}{RESET}")

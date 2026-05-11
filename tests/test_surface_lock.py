@@ -41,7 +41,9 @@ def test_no_legacy_surface():
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
     legacy = [n for n in CANONICAL_TOOLS if n.startswith("arifos_")]
-    assert not legacy, f"Legacy surface detected: {legacy}. " "arifos_ prefix is deprecated. VOID."
+    assert not legacy, (
+        f"Legacy surface detected: {legacy}. " "arifos_ prefix is deprecated. VOID."
+    )
 
 
 def test_canonical_prompts_count():
@@ -83,7 +85,11 @@ def test_all_tools_have_stage():
         lane = spec.get("lane")
         assert stage is not None, f"Tool {name} missing stage. VOID."
         assert lane is not None, f"Tool {name} missing lane. VOID."
-        assert lane in ("AGI", "ASI", "APEX"), f"Tool {name} has invalid lane {lane}. VOID."
+        assert lane in (
+            "AGI",
+            "ASI",
+            "APEX",
+        ), f"Tool {name} has invalid lane {lane}. VOID."
 
 
 def test_meta_skills_registered():

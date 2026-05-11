@@ -272,7 +272,14 @@ def _heart_fallback(
     risks: list[dict[str, Any]] = []
 
     # 1. Dignity risk (F05 Peace)
-    dignity_triggers = ["inferior", "lesser", "subhuman", "beneath", "worthy only", "disposable"]
+    dignity_triggers = [
+        "inferior",
+        "lesser",
+        "subhuman",
+        "beneath",
+        "worthy only",
+        "disposable",
+    ]
     dignity_risk = next((t for t in dignity_triggers if t in target_lower), None)
     risks.append(
         {
@@ -285,7 +292,9 @@ def _heart_fallback(
                 else "No dignity violations"
             ),
             "mitigation": (
-                "Remove dignity-undermining language" if dignity_risk else "Maintain neutral tone"
+                "Remove dignity-undermining language"
+                if dignity_risk
+                else "Maintain neutral tone"
             ),
         }
     )
@@ -307,9 +316,13 @@ def _heart_fallback(
             "severity": "medium" if overclaims else "none",
             "floor_cited": "F02_TRUTH/F07_HUMILITY",
             "reason": (
-                f"Overclaiming language: {overclaims}" if overclaims else "Calibrated language"
+                f"Overclaiming language: {overclaims}"
+                if overclaims
+                else "Calibrated language"
             ),
-            "mitigation": "Add uncertainty qualifiers" if overclaims else "Maintain calibration",
+            "mitigation": (
+                "Add uncertainty qualifiers" if overclaims else "Maintain calibration"
+            ),
         }
     )
 
@@ -331,9 +344,13 @@ def _heart_fallback(
             "severity": "critical" if anthro else "none",
             "floor_cited": "F09_ANTIHANTU",
             "reason": (
-                f"System claiming subjective states: {anthro}" if anthro else "No anthropomorphism"
+                f"System claiming subjective states: {anthro}"
+                if anthro
+                else "No anthropomorphism"
             ),
-            "mitigation": "Rephrase as tool-claim not subjective experience" if anthro else "OK",
+            "mitigation": (
+                "Rephrase as tool-claim not subjective experience" if anthro else "OK"
+            ),
         }
     )
 
@@ -352,20 +369,33 @@ def _heart_fallback(
             "type": "irreversibility_risk",
             "severity": "high" if irrevers else "none",
             "floor_cited": "F01_AMANAH",
-            "reason": f"Irreversible language: {irrevers}" if irrevers else "No irreversibility",
+            "reason": (
+                f"Irreversible language: {irrevers}"
+                if irrevers
+                else "No irreversibility"
+            ),
             "mitigation": "Require 888_HOLD + explicit human ack" if irrevers else "OK",
         }
     )
 
     # 5. Autonomy risk (F13 Sovereign)
-    autonomy_triggers = ["without asking", "auto-approve", "skip review", "bypass human"]
+    autonomy_triggers = [
+        "without asking",
+        "auto-approve",
+        "skip review",
+        "bypass human",
+    ]
     autonomy = [t for t in autonomy_triggers if t in target_lower]
     risks.append(
         {
             "type": "autonomy_risk",
             "severity": "high" if autonomy else "none",
             "floor_cited": "F13_SOVEREIGN",
-            "reason": f"Autonomy-undermining: {autonomy}" if autonomy else "Human agency preserved",
+            "reason": (
+                f"Autonomy-undermining: {autonomy}"
+                if autonomy
+                else "Human agency preserved"
+            ),
             "mitigation": "Require human confirmation" if autonomy else "OK",
         }
     )
@@ -378,7 +408,9 @@ def _heart_fallback(
             "type": "harm_risk",
             "severity": "medium" if harm else "none",
             "floor_cited": "F06_EMPATHY",
-            "reason": f"Potential harm language: {harm}" if harm else "No harm indicators",
+            "reason": (
+                f"Potential harm language: {harm}" if harm else "No harm indicators"
+            ),
             "mitigation": "Conduct impact assessment" if harm else "OK",
         }
     )
@@ -391,13 +423,21 @@ def _heart_fallback(
             "type": "privacy_risk",
             "severity": "high" if privacy else "none",
             "floor_cited": "F04_CLARITY/F11_AUTH",
-            "reason": f"Privacy-invasive: {privacy}" if privacy else "No privacy concerns",
+            "reason": (
+                f"Privacy-invasive: {privacy}" if privacy else "No privacy concerns"
+            ),
             "mitigation": "Implement consent mechanism" if privacy else "OK",
         }
     )
 
     # 8. Bias risk (F05 Peace)
-    bias_triggers = ["discriminate", "bias", "prejudice", "unfair advantage", "equity violation"]
+    bias_triggers = [
+        "discriminate",
+        "bias",
+        "prejudice",
+        "unfair advantage",
+        "equity violation",
+    ]
     bias = [t for t in bias_triggers if t in target_lower]
     risks.append(
         {
@@ -417,7 +457,9 @@ def _heart_fallback(
 
     human_required = max_severity >= 3
     empathy_score = round(1.0 - (max_severity * 0.2), 3)
-    worst_case = "VOID" if max_severity >= 3 else "HOLD" if max_severity >= 2 else "SEAL"
+    worst_case = (
+        "VOID" if max_severity >= 3 else "HOLD" if max_severity >= 2 else "SEAL"
+    )
 
     base_result: dict[str, Any] = {
         "_llm_available": False,
@@ -445,10 +487,16 @@ def _heart_fallback(
             "risk_tier": risk_tier,
             "human_decision_required": human_required,
             "empathy_score": empathy_score,
-            "weakest_stakeholder": ("vulnerable_users" if max_severity >= 2 else "general_public"),
+            "weakest_stakeholder": (
+                "vulnerable_users" if max_severity >= 2 else "general_public"
+            ),
             "human_impact_load": round(max_severity * 0.25, 3),
-            "dignity_score": round(1.0 - (severity_order.get(risks[0]["severity"], 0) * 0.2), 3),
-            "verdict": "VOID" if max_severity >= 4 else "HOLD" if max_severity >= 2 else "SEAL",
+            "dignity_score": round(
+                1.0 - (severity_order.get(risks[0]["severity"], 0) * 0.2), 3
+            ),
+            "verdict": (
+                "VOID" if max_severity >= 4 else "HOLD" if max_severity >= 2 else "SEAL"
+            ),
         }
 
     if mode == "simulate":
@@ -481,8 +529,12 @@ def _heart_fallback(
             **base_result,
             "status": "OK",
             "target": target,
-            "attacks": [r["reason"] for r in risks if r["severity"] not in ("none", "low")],
-            "mitigations": [r["mitigation"] for r in risks if r["severity"] not in ("none", "low")],
+            "attacks": [
+                r["reason"] for r in risks if r["severity"] not in ("none", "low")
+            ],
+            "mitigations": [
+                r["mitigation"] for r in risks if r["severity"] not in ("none", "low")
+            ],
         }
 
     if mode == "maruah":
@@ -588,7 +640,9 @@ async def arif_heart_critique(
             "score": d_score,
             "omega_load": result.get("human_impact_load", 0.0),
             "status": (
-                "DIGNIFIED" if d_score >= 0.8 else "STRESSED" if d_score >= 0.5 else "BREACH"
+                "DIGNIFIED"
+                if d_score >= 0.8
+                else "STRESSED" if d_score >= 0.5 else "BREACH"
             ),
         }
 

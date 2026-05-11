@@ -18,7 +18,9 @@ from arifosmcp.runtime.quote_ledger import (
     QuoteSchemaError,
 )
 
-LEDGER_PATH = Path(__file__).resolve().parents[1] / "arifosmcp" / "data" / "wisdom_quotes_99.json"
+LEDGER_PATH = (
+    Path(__file__).resolve().parents[1] / "arifosmcp" / "data" / "wisdom_quotes_99.json"
+)
 
 
 class TestLoadLedger:
@@ -48,7 +50,13 @@ class TestLoadLedger:
 
     def test_action_bias_values_are_canonical(self):
         ledger = load_quote_ledger()
-        valid = {"pause_and_reflect", "request_approval", "proceed_carefully", "refuse", "hold"}
+        valid = {
+            "pause_and_reflect",
+            "request_approval",
+            "proceed_carefully",
+            "refuse",
+            "hold",
+        }
         for q in ledger:
             assert (
                 q["action_bias"] in valid

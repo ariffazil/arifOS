@@ -34,7 +34,13 @@ class SovereigntyStampGenerator:
     Generates and verifies arifOS sovereignty stamps.
     """
 
-    LEVEL_NAMES = {0: "Captive", 1: "Portable", 2: "Resilient", 3: "Sovereign", 4: "Absolute"}
+    LEVEL_NAMES = {
+        0: "Captive",
+        1: "Portable",
+        2: "Resilient",
+        3: "Sovereign",
+        4: "Absolute",
+    }
 
     def __init__(self, signing_key: bytes | None = None):
         self.signing_key = signing_key
@@ -194,7 +200,10 @@ class SovereigntyStampGenerator:
                 try:
                     content = py_file.read_text()
                     for forbidden in forbidden_imports:
-                        if f"import {forbidden}" in content or f"from {forbidden}" in content:
+                        if (
+                            f"import {forbidden}" in content
+                            or f"from {forbidden}" in content
+                        ):
                             violations.append(f"{py_file}: {forbidden}")
                 except Exception:
                     continue
@@ -213,7 +222,9 @@ class SovereigntyStampGenerator:
 
         return result
 
-    def _test_constitutional_enforcement(self, config: dict[str, Any]) -> dict[str, Any]:
+    def _test_constitutional_enforcement(
+        self, config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Test that F1-F13 enforcement is inline."""
         constitution = config.get("constitution", {})
         enforcement_mode = constitution.get("enforcement_mode", "permissive")
@@ -381,13 +392,17 @@ Examples:
     )
 
     parser.add_argument(
-        "--signing-key", type=Path, help="Path to BLS signing key file (for signed stamps)"
+        "--signing-key",
+        type=Path,
+        help="Path to BLS signing key file (for signed stamps)",
     )
 
     parser.add_argument("--verify", type=Path, help="Verify an existing stamp file")
 
     parser.add_argument(
-        "--public-key", type=Path, help="Public key for verification (required with --verify)"
+        "--public-key",
+        type=Path,
+        help="Public key for verification (required with --verify)",
     )
 
     args = parser.parse_args()

@@ -33,7 +33,9 @@ def test_public_profile_stays_canonical13() -> None:
 
     assert len(public_names) == EXPECTED_TOOL_COUNT
     assert set(public_names) == CANONICAL_PUBLIC_TOOLS
-    assert not [name for name in public_names if name.startswith(BLOCKED_PUBLIC_PREFIXES)]
+    assert not [
+        name for name in public_names if name.startswith(BLOCKED_PUBLIC_PREFIXES)
+    ]
 
 
 def test_internal_profile_contains_public_surface_without_leaking_into_public() -> None:

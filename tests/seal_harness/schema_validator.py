@@ -20,7 +20,9 @@ class SchemaValidator:
     Validates MCP server schema against a snapshot.
     """
 
-    def __init__(self, client: MCPClient, snapshot_path: str = "aaa-schema-snapshot.json"):
+    def __init__(
+        self, client: MCPClient, snapshot_path: str = "aaa-schema-snapshot.json"
+    ):
         self.client = client
         self.snapshot_path = snapshot_path
 

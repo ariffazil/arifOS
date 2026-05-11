@@ -101,7 +101,13 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "mode": {
                 "type": "string",
                 "meaning": "Operation mode for the session lifecycle.",
-                "allowed_values": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
+                "allowed_values": [
+                    "init",
+                    "resume",
+                    "validate",
+                    "epoch_open",
+                    "epoch_seal",
+                ],
                 "default": "init",
                 "required": True,
             },
@@ -244,7 +250,14 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "inputs": {
             "mode": {
                 "type": "string",
-                "allowed_values": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+                "allowed_values": [
+                    "search",
+                    "ingest",
+                    "compass",
+                    "atlas",
+                    "entropy_dS",
+                    "vitals",
+                ],
                 "default": "search",
             },
             "query": {
@@ -323,7 +336,11 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "fetch": {
                 "purpose": "Retrieve content from a specific URL with optional sequential thinking.",
                 "required_parameters": ["url"],
-                "optional_parameters": ["thinking_depth", "thinking_budget", "sequential_mode"],
+                "optional_parameters": [
+                    "thinking_depth",
+                    "thinking_budget",
+                    "sequential_mode",
+                ],
                 "returns": ["status", "content", "confidence", "thinking_sequence"],
             },
             "search": {
@@ -333,7 +350,11 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["fetch", "search"], "default": "fetch"},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["fetch", "search"],
+                "default": "fetch",
+            },
             "url": {
                 "type": "string",
                 "meaning": "Target URL for evidence retrieval.",
@@ -373,7 +394,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "outputs": {
             "content": {"meaning": "Retrieved evidence text or structured data."},
             "confidence": {"meaning": "Evidence reliability score (0.0–1.0)."},
-            "thinking_sequence": {"meaning": "Sequential reasoning trace if thinking_depth > 0."},
+            "thinking_sequence": {
+                "meaning": "Sequential reasoning trace if thinking_depth > 0."
+            },
         },
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
@@ -436,7 +459,12 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "reason": {
                 "purpose": "General constitutional reasoning with explicit axiom trace.",
                 "required_parameters": ["query"],
-                "returns": ["conclusion", "confidence", "axioms_used", "reasoning_trace"],
+                "returns": [
+                    "conclusion",
+                    "confidence",
+                    "axioms_used",
+                    "reasoning_trace",
+                ],
             },
             "reflect": {
                 "purpose": "Introspective replay of prior reasoning steps.",
@@ -504,9 +532,15 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
         },
         "outputs": {
-            "conclusion": {"meaning": "Reasoning classification or structured conclusion."},
-            "confidence": {"meaning": "Calibrated confidence (0.0–1.0), not certainty."},
-            "axioms_used": {"meaning": "List of constitutional axioms invoked in the reasoning."},
+            "conclusion": {
+                "meaning": "Reasoning classification or structured conclusion."
+            },
+            "confidence": {
+                "meaning": "Calibrated confidence (0.0–1.0), not certainty."
+            },
+            "axioms_used": {
+                "meaning": "List of constitutional axioms invoked in the reasoning."
+            },
             "reasoning_trace": {
                 "meaning": "Step-by-step derivation with premise and conclusion per step."
             },
@@ -528,7 +562,10 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                     "user_intent": "Assess whether this claim is constitutionally stable",
                     "call": {
                         "tool": "arif_mind_reason",
-                        "args": {"mode": "verify", "query": "Deploying without review is safe"},
+                        "args": {
+                            "mode": "verify",
+                            "query": "Deploying without review is safe",
+                        },
                     },
                 }
             ],
@@ -577,24 +614,45 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
         },
         "inputs": {
-            "mode": {"type": "string", "allowed_values": ["route", "status"], "default": "route"},
+            "mode": {
+                "type": "string",
+                "allowed_values": ["route", "status"],
+                "default": "route",
+            },
             "target": {
                 "type": "string",
                 "meaning": "Target tool, endpoint, or lane name.",
                 "required_when": [{"mode": "route"}],
             },
-            "task": {"type": "string", "meaning": "Task description for routing resolution."},
-            "stage": {"type": "string", "meaning": "Explicit stage override (000–999)."},
+            "task": {
+                "type": "string",
+                "meaning": "Task description for routing resolution.",
+            },
+            "stage": {
+                "type": "string",
+                "meaning": "Explicit stage override (000–999).",
+            },
         },
         "outputs": {
-            "path": {"meaning": "Suggested tool sequence from current state to target."},
+            "path": {
+                "meaning": "Suggested tool sequence from current state to target."
+            },
             "hops": {"meaning": "Number of stage transitions required."},
-            "allowed_tools": {"meaning": "Tools permitted in the current session state."},
+            "allowed_tools": {
+                "meaning": "Tools permitted in the current session state."
+            },
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
-        "next_recommended_tools": ["arif_sense_observe", "arif_mind_reason", "arif_ops_measure"],
-        "authority_boundary": {"may": ["route", "query"], "may_not": ["execute", "judge", "seal"]},
+        "next_recommended_tools": [
+            "arif_sense_observe",
+            "arif_mind_reason",
+            "arif_ops_measure",
+        ],
+        "authority_boundary": {
+            "may": ["route", "query"],
+            "may_not": ["execute", "judge", "seal"],
+        },
         "examples": {
             "good": [
                 {
@@ -642,7 +700,14 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "compose": {
                 "purpose": "Draft a constitutional reply from a raw message.",
                 "required_parameters": ["message"],
-                "returns": ["composed", "tone", "delta_S", "f02_score", "f04_score", "f07_score"],
+                "returns": [
+                    "composed",
+                    "tone",
+                    "delta_S",
+                    "f02_score",
+                    "f04_score",
+                    "f07_score",
+                ],
             },
             "style": {
                 "purpose": "Transform the message to a target constitutional tone.",
@@ -702,7 +767,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "tone": {
                 "meaning": "Applied tone tag (neutral, empathetic, terse, formal, technical)."
             },
-            "delta_S": {"meaning": "Entropy change from composition (negative = clarity added)."},
+            "delta_S": {
+                "meaning": "Entropy change from composition (negative = clarity added)."
+            },
             "f02_score": {"meaning": "F02 Truth score (0.0–1.0)."},
             "f04_score": {"meaning": "F04 Clarity score (0.0–1.0)."},
             "f07_score": {"meaning": "F07 Humility score (0.0–1.0)."},
@@ -900,7 +967,12 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "critique": {
                 "purpose": "Full risk analysis of a target action or content.",
                 "required_parameters": ["target"],
-                "returns": ["risks_found", "risk_tier", "human_decision_required", "empathy_score"],
+                "returns": [
+                    "risks_found",
+                    "risk_tier",
+                    "human_decision_required",
+                    "empathy_score",
+                ],
             },
             "simulate": {
                 "purpose": "Run a what-if scenario and project risk outcomes.",
@@ -939,7 +1011,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "human_decision_required": {
                 "meaning": "True if risk_tier is high/critical/irreversible."
             },
-            "empathy_score": {"meaning": "Human impact load κᵣ (0.0–1.0, ≥0.70 preferred)."},
+            "empathy_score": {
+                "meaning": "Human impact load κᵣ (0.0–1.0, ≥0.70 preferred)."
+            },
         },
         "risk": {"tier": "high", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
@@ -1022,7 +1096,11 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "target_agent": {
                 "type": "string",
                 "meaning": "Canonical agent name (e.g., kimi, claude, gemini).",
-                "required_when": [{"mode": "route"}, {"mode": "handshake"}, {"mode": "relay"}],
+                "required_when": [
+                    {"mode": "route"},
+                    {"mode": "handshake"},
+                    {"mode": "relay"},
+                ],
             },
         },
         "outputs": {
@@ -1196,7 +1274,11 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "candidate": {
                 "type": "string",
                 "meaning": "Action or proposal to adjudicate.",
-                "required_when": [{"mode": "judge"}, {"mode": "compare"}, {"mode": "explain"}],
+                "required_when": [
+                    {"mode": "judge"},
+                    {"mode": "compare"},
+                    {"mode": "explain"},
+                ],
             },
             "constitutional_chain_id": {
                 "type": "string",
@@ -1460,13 +1542,21 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "plan_id": {
                 "type": "string",
                 "meaning": "Approved plan_id from arif_mind_reason(mode='plan'). Required for engineer/write/generate (H2).",
-                "required_when": [{"mode": "engineer"}, {"mode": "write"}, {"mode": "generate"}],
+                "required_when": [
+                    {"mode": "engineer"},
+                    {"mode": "write"},
+                    {"mode": "generate"},
+                ],
             },
         },
         "outputs": {
-            "status": {"meaning": "Execution status: SUCCESS, FAILURE, DRY_RUN, or DEGRADED."},
+            "status": {
+                "meaning": "Execution status: SUCCESS, FAILURE, DRY_RUN, or DEGRADED."
+            },
             "execution_trace": {"meaning": "Step-by-step log of the operation."},
-            "artifact_id": {"meaning": "Identifier for the generated or modified artifact."},
+            "artifact_id": {
+                "meaning": "Identifier for the generated or modified artifact."
+            },
             "irreversibility_level": {"meaning": "low | medium | high | irreversible"},
         },
         "risk": {

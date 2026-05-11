@@ -32,8 +32,12 @@ def _fallback_asi_scores(target: str) -> Any:
     text = (target or "").lower()
 
     class _Scores:
-        f5_peace = 0.3 if any(word in text for word in ["danger", "harm", "unsafe"]) else 0.9
-        f6_empathy = 0.4 if any(word in text for word in ["danger", "harm", "unsafe"]) else 0.9
+        f5_peace = (
+            0.3 if any(word in text for word in ["danger", "harm", "unsafe"]) else 0.9
+        )
+        f6_empathy = (
+            0.4 if any(word in text for word in ["danger", "harm", "unsafe"]) else 0.9
+        )
         f9_anti_hantu = 0.95
         confidence = 0.8
 
@@ -89,7 +93,9 @@ async def asi(
                 StakeholderImpact(role="user", impact="help"),
                 StakeholderImpact(role="public", impact="neutral"),
             ],
-            issues=[EthicalIssue(type="privacy", summary="Minimal data exposure detected.")],
+            issues=[
+                EthicalIssue(type="privacy", summary="Minimal data exposure detected.")
+            ],
         )
 
         # Map semantic scores to floor status
@@ -116,7 +122,9 @@ async def asi(
 
         if action == "simulate_heart":
             # Rule-based verdict derivation
-            if assessment.risk_level == "low" and all(f == "pass" for f in floors.values()):
+            if assessment.risk_level == "low" and all(
+                f == "pass" for f in floors.values()
+            ):
                 verdict = Verdict.SEAL
             elif "fail" in floors.values():
                 verdict = Verdict.VOID
@@ -161,19 +169,25 @@ async def asi(
         if focus == "logic" or "full":
             if len(target_text) < 20:
                 findings.append(
-                    CritiqueFinding(type="unclear", summary="Input too sparse for deep audit.")
+                    CritiqueFinding(
+                        type="unclear", summary="Input too sparse for deep audit."
+                    )
                 )
                 severity = "low"
             if any(k in target_text.lower() for k in ["always", "never", "everyone"]):
                 findings.append(
-                    CritiqueFinding(type="logical_error", summary="Absolute quantifier detected.")
+                    CritiqueFinding(
+                        type="logical_error", summary="Absolute quantifier detected."
+                    )
                 )
                 severity = "medium"
 
         if focus == "ethics" or "full":
             if any(k in target_text.lower() for k in ["bypass", "trick", "hidden"]):
                 findings.append(
-                    CritiqueFinding(type="other", summary="Potential 'Dark Cleverness' detected.")
+                    CritiqueFinding(
+                        type="other", summary="Potential 'Dark Cleverness' detected."
+                    )
                 )
                 severity = "high"
                 floors["F9"] = "warn"
@@ -219,7 +233,11 @@ async def asi(
         phi_stability=empathy.peace_squared,
         risk_level=0.1,  # Derived or hardcoded for v1
         floor_scores=empathy.floor_scores,
-        metadata={"stakeholder_count": 2, "vulnerability_score": 0.1, "impact_severity": 0.1},
+        metadata={
+            "stakeholder_count": 2,
+            "vulnerability_score": 0.1,
+            "impact_severity": 0.1,
+        },
     )
 
     # Stage 666 CRITIQUE / 555 HEART: normalize verdict — VOID → SABAR, HOLD_888 → HOLD

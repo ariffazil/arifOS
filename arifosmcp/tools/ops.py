@@ -52,7 +52,9 @@ def arif_ops_measure(
                 "shadow_activation_count": shadow_activations,
                 "self_authorization_attempt_count": self_auth_attempts,
                 "forge_block_count": self_auth_attempts,
-                "correction_success_rate": 1.0 if shadow_activations > 0 else 0.0,  # Logic stub
+                "correction_success_rate": (
+                    1.0 if shadow_activations > 0 else 0.0
+                ),  # Logic stub
             }
 
     floor_check = check_floors(
@@ -86,11 +88,20 @@ def arif_ops_measure(
 
         health_payload = {
             "status": "healthy",
-            "cpu": {"value": 15.0, "unit": "percent", "scope": "container", "sample_window_sec": 1},
+            "cpu": {
+                "value": 15.0,
+                "unit": "percent",
+                "scope": "container",
+                "sample_window_sec": 1,
+            },
             "mem": {"value": 32.0, "unit": "percent", "scope": "container"},
             "disk": {"value": 45.0, "unit": "percent", "mount": "/"},
             "bands": {"cpu": "low", "mem": "moderate", "disk": "moderate"},
-            "thresholds": {"healthy_cpu_max": 70, "healthy_mem_max": 80, "healthy_disk_max": 85},
+            "thresholds": {
+                "healthy_cpu_max": 70,
+                "healthy_mem_max": 80,
+                "healthy_disk_max": 85,
+            },
             "runtime": {
                 "execution_mode": runtime.get("execution_mode", "dry_run"),
                 "side_effects_allowed": runtime.get("side_effects_allowed", False),
@@ -106,7 +117,12 @@ def arif_ops_measure(
             },
         }
         return TelemetryBlock(
-            **_ok("arif_ops_measure", health_payload, meta=drift_metrics, session_id=session_id)
+            **_ok(
+                "arif_ops_measure",
+                health_payload,
+                meta=drift_metrics,
+                session_id=session_id,
+            )
         )
     if mode == "vitals":
         return TelemetryBlock(

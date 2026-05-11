@@ -28,7 +28,16 @@ class TestGovernanceBoundary:
         )
         assert result["human_decision_required"] is True
         action = result["recommended_action"].lower()
-        forbidden = ("execute", "commit", "deploy", "seal", "push", "destroy", "delete", "drop")
+        forbidden = (
+            "execute",
+            "commit",
+            "deploy",
+            "seal",
+            "push",
+            "destroy",
+            "delete",
+            "drop",
+        )
         assert not any(
             word in action for word in forbidden
         ), f"recommended_action for irreversible risk must not suggest execution: {result['recommended_action']}"
@@ -69,7 +78,9 @@ class TestGovernanceBoundary:
 
     def test_safety_refuses_execution_for_irreversible(self):
         ledger = load_quote_ledger()
-        candidates = [q for q in ledger if q["allow_use"] and q["source_status"] != "uncertain"][:3]
+        candidates = [
+            q for q in ledger if q["allow_use"] and q["source_status"] != "uncertain"
+        ][:3]
         interpretation = {
             "selected_quote_id": candidates[0]["id"],
             "meaning": "Deploy now.",
@@ -89,7 +100,9 @@ class TestGovernanceBoundary:
 
     def test_safety_holds_when_human_required_is_false_for_high_risk(self):
         ledger = load_quote_ledger()
-        candidates = [q for q in ledger if q["allow_use"] and q["source_status"] != "uncertain"][:3]
+        candidates = [
+            q for q in ledger if q["allow_use"] and q["source_status"] != "uncertain"
+        ][:3]
         interpretation = {
             "selected_quote_id": candidates[0]["id"],
             "meaning": "x",
@@ -101,6 +114,8 @@ class TestGovernanceBoundary:
             "uncertainty": [],
             "safety_notes": [],
         }
-        safety = validate_interpretation_safety(interpretation, candidates, risk_level="high")
+        safety = validate_interpretation_safety(
+            interpretation, candidates, risk_level="high"
+        )
         assert safety["status"] == "hold"
         assert "human_decision_required must be true" in safety["error"]

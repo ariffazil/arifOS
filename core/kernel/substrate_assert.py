@@ -46,7 +46,9 @@ class SubstrateAssertResult:
     epoch: str | None = None
 
 
-def _dns_resolve(hostname: str = "localhost", timeout_ms: int = 5000) -> SubstrateCheckResult:
+def _dns_resolve(
+    hostname: str = "localhost", timeout_ms: int = 5000
+) -> SubstrateCheckResult:
     """S0.C1: DNS resolve from inside container."""
     t0 = time.monotonic()
     code = None
@@ -168,14 +170,22 @@ async def _embed_endpoint() -> SubstrateCheckResult:
         import aiohttp
 
         async with aiohttp.ClientSession() as session:
-            payload = {"model": os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"), "input": "ping"}
-            async with session.post(f"{embed_url}/api/embeddings", json=payload, timeout=3) as resp:
+            payload = {
+                "model": os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"),
+                "input": "ping",
+            }
+            async with session.post(
+                f"{embed_url}/api/embeddings", json=payload, timeout=3
+            ) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     embedding = data.get("embedding")
                     if embedding and isinstance(embedding, list) and len(embedding) > 0:
                         did_pass = True
-                        detail = {"embedding_dim": len(embedding), "model": payload["model"]}
+                        detail = {
+                            "embedding_dim": len(embedding),
+                            "model": payload["model"],
+                        }
                     else:
                         code = "E_EMBED_OFFLINE"
                         detail = {"invalid_embedding": embedding}
@@ -244,17 +254,17 @@ async def _telemetry_channel() -> SubstrateCheckResult:
         import asyncpg
 
         conn = await asyncpg.connect(pg_url, timeout=5)
-        await conn.execute(
-            """
+        await conn.execute("""
             CREATE TABLE IF NOT EXISTS substrate_assert_heartbeat (
                 id SERIAL PRIMARY KEY, ts TIMESTAMPTZ DEFAULT NOW()
             )
-        """
-        )
+        """)
         row = await conn.fetchrow(
             "INSERT INTO substrate_assert_heartbeat DEFAULT VALUES RETURNING id"
         )
-        await conn.execute("DELETE FROM substrate_assert_heartbeat WHERE id = $1", row["id"])
+        await conn.execute(
+            "DELETE FROM substrate_assert_heartbeat WHERE id = $1", row["id"]
+        )
         await conn.close()
         did_pass = True
         detail = {"telemetry_channel": "open", "ack_received": True}
@@ -471,7 +481,11 @@ if __name__ == "__main__":
                     "pipeline_gate": result.pipeline_gate,
                     "failure_codes": result.failure_codes,
                     "checks": {
-                        c.check_id: {"pass": c.passed, "code": c.code, "latency_ms": c.latency_ms}
+                        c.check_id: {
+                            "pass": c.passed,
+                            "code": c.code,
+                            "latency_ms": c.latency_ms,
+                        }
                         for c in result.checks
                     },
                 },

@@ -167,7 +167,8 @@ async def test_phase0_hardening():
 
         print("   4b. Testing vector_store with empty content...")
         result = await client.call_tool(
-            "arif_memory_recall", {"mode": "store", "query": "", "session_id": "test-session"}
+            "arif_memory_recall",
+            {"mode": "store", "query": "", "session_id": "test-session"},
         )
         content = _extract_content_payload(result)
         if isinstance(content, dict):
@@ -213,7 +214,9 @@ async def test_phase0_hardening():
         )
         content = _extract_content_payload(result)
         if isinstance(content, dict):
-            print(f"   ✅ Vitals mode works: {content.get('verdict', content.get('status', 'ok'))}")
+            print(
+                f"   ✅ Vitals mode works: {content.get('verdict', content.get('status', 'ok'))}"
+            )
         else:
             print(f"   ❌ Vitals failed: {content}")
             return False
@@ -224,7 +227,9 @@ async def test_phase0_hardening():
         )
         content = _extract_content_payload(result)
         if isinstance(content, dict):
-            print(f"   ✅ Health mode works: {content.get('verdict', content.get('status', 'ok'))}")
+            print(
+                f"   ✅ Health mode works: {content.get('verdict', content.get('status', 'ok'))}"
+            )
         else:
             print(f"   ❌ Health failed: {content}")
             return False

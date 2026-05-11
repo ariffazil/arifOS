@@ -12,7 +12,6 @@ import anyio
 import httpx
 import pytest
 
-
 # Add project root to sys.path for imports when running from repo checkout.
 sys.path.insert(0, str(Path(__file__).parents[1]))
 

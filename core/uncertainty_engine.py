@@ -117,11 +117,18 @@ def calculate_uncertainty(
             0.0, min(1.0, evidence_relevance if evidence_relevance is not None else 0.5)
         )
         consistency = max(
-            0.0, min(1.0, reasoning_consistency if reasoning_consistency is not None else 0.5)
+            0.0,
+            min(
+                1.0, reasoning_consistency if reasoning_consistency is not None else 0.5
+            ),
         )
         gaps = len(knowledge_gaps or [])
         logits = max(
-            0.0, min(1.0, model_logits_confidence if model_logits_confidence is not None else 0.5)
+            0.0,
+            min(
+                1.0,
+                model_logits_confidence if model_logits_confidence is not None else 0.5,
+            ),
         )
         safety_omega = round(
             max(

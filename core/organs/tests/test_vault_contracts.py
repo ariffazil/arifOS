@@ -56,7 +56,9 @@ class TestVaultEntrySchema:
             record_type=VaultRecordType.POLICY,
             verdict=Verdict.APPROVED,
             candidate_action="Test policy",
-            evidence=Evidence(summary="Policy evidence", evidence_refs=[], evidence_hash="hash1"),
+            evidence=Evidence(
+                summary="Policy evidence", evidence_refs=[], evidence_hash="hash1"
+            ),
             governance=Governance(
                 risk_tier="medium",
                 judgment_required=True,

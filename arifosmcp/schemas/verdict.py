@@ -88,10 +88,14 @@ class AnomalousContrast(BaseModel):
 
     # Manipulation detection
     manipulation_signal: bool = Field(
-        default=False, description="Does contrast suggest intentional manipulation (F09)?"
+        default=False,
+        description="Does contrast suggest intentional manipulation (F09)?",
     )
     anti_hantu_score: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Likelihood of hantu (manipulation) detected"
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Likelihood of hantu (manipulation) detected",
     )
 
 
@@ -120,7 +124,8 @@ class ThermodynamicState(BaseModel):
 
     # Direction
     entropy_direction: str = Field(
-        default="unknown", description="'increasing' | 'decreasing' | 'stable' | 'unknown'"
+        default="unknown",
+        description="'increasing' | 'decreasing' | 'stable' | 'unknown'",
     )
 
     # Reversibility
@@ -136,12 +141,14 @@ class ThermodynamicState(BaseModel):
 
     # Landauer compliance
     landauer_cost_eV: float | None = Field(
-        default=None, description="Minimum thermodynamic cost (kT * ln 2) in electron volts"
+        default=None,
+        description="Minimum thermodynamic cost (kT * ln 2) in electron volts",
     )
 
     # Quantum layer indicator
     decision_collapse_triggered: bool = Field(
-        default=False, description="Did probabilistic state collapse occur at decision point?"
+        default=False,
+        description="Did probabilistic state collapse occur at decision point?",
     )
 
 
@@ -179,7 +186,9 @@ class DecisionCollapse(BaseModel):
 
     # Post-collapse
     residual_uncertainty: float = Field(
-        ge=0.0, le=1.0, description="Uncertainty remaining after collapse (0=certain, 1=maximum)"
+        ge=0.0,
+        le=1.0,
+        description="Uncertainty remaining after collapse (0=certain, 1=maximum)",
     )
 
     # Confidence shift
@@ -209,17 +218,23 @@ class GrowthParadox(BaseModel):
 
     # Stability
     stability_margin: float = Field(
-        ge=0.0, le=1.0, description="Margin before instability (0=no margin, 1=maximum margin)"
+        ge=0.0,
+        le=1.0,
+        description="Margin before instability (0=no margin, 1=maximum margin)",
     )
 
     # Systemic risk
     systemic_risk: float = Field(
-        ge=0.0, le=1.0, description="Likelihood that scaling creates system-wide instability"
+        ge=0.0,
+        le=1.0,
+        description="Likelihood that scaling creates system-wide instability",
     )
 
     # Fragility
     fragility_index: float = Field(
-        ge=0.0, le=1.0, description="Structural fragility under scaling (0=robust, 1=brittle)"
+        ge=0.0,
+        le=1.0,
+        description="Structural fragility under scaling (0=robust, 1=brittle)",
     )
 
     # Paradox detection
@@ -263,7 +278,9 @@ class AkalState(BaseModel):
 
     # Cognitive load
     cognitive_load: float = Field(
-        ge=0.0, le=1.0, description="Current load as ratio of capacity (0=idle, 1=fully loaded)"
+        ge=0.0,
+        le=1.0,
+        description="Current load as ratio of capacity (0=idle, 1=fully loaded)",
     )
 
     # System capacity
@@ -279,10 +296,12 @@ class AkalState(BaseModel):
 
     # Energy trajectory
     energy_trend: str = Field(
-        default="stable", description="'increasing' | 'stable' | 'decreasing' | 'depleted'"
+        default="stable",
+        description="'increasing' | 'stable' | 'decreasing' | 'depleted'",
     )
     projected_depletion_seconds: float | None = Field(
-        default=None, description="Estimated seconds until energy depletion (if decreasing)"
+        default=None,
+        description="Estimated seconds until energy depletion (if decreasing)",
     )
 
 
@@ -305,7 +324,9 @@ class AmanahProof(BaseModel):
     floors_checked: list[str] = Field(
         default_factory=list, description="F1-F13 floors evaluated for this action"
     )
-    floors_passed: list[str] = Field(default_factory=list, description="Floors that passed")
+    floors_passed: list[str] = Field(
+        default_factory=list, description="Floors that passed"
+    )
     floors_failed: list[str] = Field(
         default_factory=list, description="Floors that blocked or required override"
     )
@@ -315,14 +336,17 @@ class AmanahProof(BaseModel):
         default_factory=list, description="Specific floor breaches detected"
     )
     violation_mitigation: list[str] = Field(
-        default_factory=list, description="How each violation was addressed or acknowledged"
+        default_factory=list,
+        description="How each violation was addressed or acknowledged",
     )
 
     # Override
     override_acknowledged: bool = Field(
         default=False, description="Did sovereign (F13) override any floor?"
     )
-    override_reason: str | None = Field(default=None, description="Why sovereign chose to override")
+    override_reason: str | None = Field(
+        default=None, description="Why sovereign chose to override"
+    )
     override_authorizer: str | None = Field(
         default=None, description="Who authorized the override (must be sovereign)"
     )
@@ -339,7 +363,8 @@ class AmanahProof(BaseModel):
 
     # Minimal entropy path
     entropy_minimal: bool = Field(
-        default=True, description="Is this the minimum entropy path to achieve the goal?"
+        default=True,
+        description="Is this the minimum entropy path to achieve the goal?",
     )
     entropy_alternatives_considered: int = Field(
         default=0,
@@ -368,7 +393,8 @@ class FloorComplianceProof(BaseModel):
 
     # Per-floor results
     floor_results: dict[str, str] = Field(
-        default_factory=dict, description="Per-floor result: 'PASS' | 'FAIL' | 'OVERRIDE' | 'N/A'"
+        default_factory=dict,
+        description="Per-floor result: 'PASS' | 'FAIL' | 'OVERRIDE' | 'N/A'",
     )
 
     # Failed floors
@@ -385,7 +411,9 @@ class FloorComplianceProof(BaseModel):
     )
 
     # F13 Sovereign
-    f13_invoked: bool = Field(default=False, description="Was F13 (sovereign veto) triggered?")
+    f13_invoked: bool = Field(
+        default=False, description="Was F13 (sovereign veto) triggered?"
+    )
     f13_veto_triggered: bool = Field(
         default=False, description="Did sovereign actually exercise veto?"
     )
@@ -421,7 +449,9 @@ class DissentReasoning(BaseModel):
     )
 
     # Why dissent was overruled
-    dissent_overruled: bool = Field(default=False, description="Was dissent formally overruled?")
+    dissent_overruled: bool = Field(
+        default=False, description="Was dissent formally overruled?"
+    )
     overruling_rationale: str | None = Field(
         default=None, description="Why dissent was not adopted as the verdict"
     )
@@ -456,11 +486,14 @@ class CivilizationalAnchor(BaseModel):
     dimension: str = Field(
         description="'entropy' | 'ethics' | 'uncertainty' | 'growth' | 'identity' | 'governance'"
     )
-    stage_relevance: str = Field(description="Which 13-stage tool this anchor stabilizes")
+    stage_relevance: str = Field(
+        description="Which 13-stage tool this anchor stabilizes"
+    )
 
     # Selection justification
     selection_rationale: str | None = Field(
-        default=None, description="Why this anchor was selected for this specific decision"
+        default=None,
+        description="Why this anchor was selected for this specific decision",
     )
 
 
@@ -502,7 +535,8 @@ class VerdictOutput(BaseModel):
 
     # ── TOAC Layer ──
     anomalous_contrast: AnomalousContrast | None = Field(
-        default=None, description="Contrast detection for manipulation/deception identification"
+        default=None,
+        description="Contrast detection for manipulation/deception identification",
     )
 
     # ── Thermodynamic Layer ──
@@ -516,7 +550,9 @@ class VerdictOutput(BaseModel):
     )
 
     # ── Growth Layer ──
-    growth_paradox: GrowthParadox | None = Field(default=None, description="Scale risk detection")
+    growth_paradox: GrowthParadox | None = Field(
+        default=None, description="Scale risk detection"
+    )
 
     # ── AKAL Layer ──
     akal_state: AkalState | None = Field(
@@ -525,12 +561,14 @@ class VerdictOutput(BaseModel):
 
     # ── Floor Compliance ──
     floor_compliance: FloorComplianceProof = Field(
-        default_factory=FloorComplianceProof, description="Constitutional floor enforcement proof"
+        default_factory=FloorComplianceProof,
+        description="Constitutional floor enforcement proof",
     )
 
     # ── Amanah Genius ──
     amanah_proof: AmanahProof = Field(
-        default_factory=AmanahProof, description="Ethical stewardship + structural elegance proof"
+        default_factory=AmanahProof,
+        description="Ethical stewardship + structural elegance proof",
     )
 
     # ── Dissent ──
@@ -562,7 +600,8 @@ class VerdictOutput(BaseModel):
         description="F2 truth: CERTAIN | HIGH_CONF | PLAUSIBLE | SPECULATIVE | UNKNOWN",
     )
     confidence_note: str | None = Field(
-        default=None, description="F2 human-readable confidence declaration at judgment time"
+        default=None,
+        description="F2 human-readable confidence declaration at judgment time",
     )
 
     # ── Reversibility State (CRP v1.0) ──────────────────────────────────────
@@ -671,7 +710,9 @@ class EntropyDelta(BaseModel):
 class EpistemicSnapshot(BaseModel):
     """State of knowledge at time of sealing."""
 
-    omega_ortho: float = Field(default=0.0, ge=0.0, le=1.0, description="Orthogonal coherence")
+    omega_ortho: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Orthogonal coherence"
+    )
     confidence: float = Field(default=0.5, ge=0.0, le=1.0)
     data_gaps: list[str] = Field(default_factory=list)
     assumptions: list[str] = Field(default_factory=list)
@@ -730,7 +771,8 @@ class SealOutput(BaseModel):
 
     # Epistemic state at seal time
     epistemic_snapshot: EpistemicSnapshot = Field(
-        default_factory=EpistemicSnapshot, description="Knowledge state when seal was made"
+        default_factory=EpistemicSnapshot,
+        description="Knowledge state when seal was made",
     )
 
     judge_contract: JudgeSealContract | None = Field(
@@ -758,14 +800,16 @@ class SealOutput(BaseModel):
         description="Safe Verifiable Share: fraction of AI output safely underwritable at acceptable cost",
     )
     entropy_band: str | None = Field(
-        default=None, description="Entropy classification: LOW | MEDIUM | HIGH | EXTREME"
+        default=None,
+        description="Entropy classification: LOW | MEDIUM | HIGH | EXTREME",
     )
     liability_owner: str | None = Field(
         default=None,
         description="Human or institution who bears downside accountability — no owner = no SEAL",
     )
     verification_bottlenecks: list[str] = Field(
-        default_factory=list, description="Top verification bottlenecks at decision time"
+        default_factory=list,
+        description="Top verification bottlenecks at decision time",
     )
     wealth_final_score: float | None = Field(
         default=None,
@@ -780,7 +824,8 @@ class SealOutput(BaseModel):
         description="F2 truth: CERTAIN | HIGH_CONF | PLAUSIBLE | SPECULATIVE | UNKNOWN",
     )
     confidence_note: str | None = Field(
-        default=None, description="F2 human-readable confidence declaration at seal time"
+        default=None,
+        description="F2 human-readable confidence declaration at seal time",
     )
 
     # ── Constitutional Doctrine (F9 Anti-Hallucination: witness, not authority) ──

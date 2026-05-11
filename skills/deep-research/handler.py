@@ -42,7 +42,11 @@ class DeepResearchSkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _web_search(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Execute web search with F2 verification."""
         query = params.get("query", "")
@@ -71,7 +75,9 @@ class DeepResearchSkill:
             verified = self._cross_reference([result])
 
             # F3: Tri-Witness
-            w3 = compute_w3(human_score=0.95, ai_score=0.92, earth_score=verified["consistency"])
+            w3 = compute_w3(
+                human_score=0.95, ai_score=0.92, earth_score=verified["consistency"]
+            )
 
             # F7: Uncertainty
             omega = calculate_omega_zero([0.03])
@@ -86,10 +92,17 @@ class DeepResearchSkill:
                 "search_output": result.get("stdout", "")[:500],
             }
 
-        return {"verdict": "VOID", "error": "No reality bridge available for real search"}
+        return {
+            "verdict": "VOID",
+            "error": "No reality bridge available for real search",
+        }
 
     async def _verify_facts(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Verify facts against multiple sources."""
         facts = params.get("facts", [])
@@ -135,7 +148,9 @@ async def execute(
 ) -> dict[str, Any]:
     """Main entry point."""
     skill = DeepResearchSkill(session_id, dry_run)
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

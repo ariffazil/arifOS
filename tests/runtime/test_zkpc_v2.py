@@ -161,7 +161,11 @@ async def test_judge_zkpc_level_2_all_flags_true():
 @pytest.mark.asyncio
 async def test_vault_rejects_natural_language_and_actor_id(monkeypatch):
     monkeypatch.setenv("ARIFOS_DEV_ALLOW_MSAP_LEVEL2", "false")
-    payload = {"approval_text": "I approve", "ack_irreversible": True, "data": "important_action"}
+    payload = {
+        "approval_text": "I approve",
+        "ack_irreversible": True,
+        "data": "important_action",
+    }
     res = await _999_vault.execute(
         action="seal", payload=payload, operator_id="ARIF", session_id="SESS-1"
     )
@@ -182,7 +186,9 @@ async def test_vault_zkpc_v2_success(monkeypatch):
 
     monkeypatch.setenv("ARIFOS_DEV_MODE", "0")
     monkeypatch.setenv("ARIFOS_DEV_ALLOW_MSAP_LEVEL2", "false")
-    monkeypatch.setenv("ARIFOS_DEV_ALLOW_STRUCTURAL_ZKPC", "false")  # explicitly disabled
+    monkeypatch.setenv(
+        "ARIFOS_DEV_ALLOW_STRUCTURAL_ZKPC", "false"
+    )  # explicitly disabled
     importlib.reload(_888_judge)
     importlib.reload(_999_vault)
 
@@ -234,7 +240,9 @@ async def test_vault_zkpc_v2_success(monkeypatch):
                 last_entry = json.loads(lines[-1])
                 zkpc_meta = last_entry.get("zkpc_metadata", {})
                 assert "secret" not in str(zkpc_meta), "Secrets must not be stored"
-                assert zkpc_meta.get("proof_hash") is not None, "Proof hash must be stored"
+                assert (
+                    zkpc_meta.get("proof_hash") is not None
+                ), "Proof hash must be stored"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -257,7 +265,9 @@ class TestRealGroth16Verification:
 
     def test_snarkjs_is_available(self):
         """snarkjs must be installed for real verification."""
-        assert _snarkjs_available(), "snarkjs not installed — cannot run real ZKPC verification"
+        assert (
+            _snarkjs_available()
+        ), "snarkjs not installed — cannot run real ZKPC verification"
 
     def test_real_proof_passes(self):
         """T1: Generate real proof + verify → proof_verified=True, zkpc_level=2."""
@@ -280,7 +290,9 @@ class TestRealGroth16Verification:
             "judge_state_hash": gen["judge_state_hash"],
         }
 
-        result = verify_zkpc_v2_epoch(proof, public_inputs, "SESS-REAL", is_irreversible=True)
+        result = verify_zkpc_v2_epoch(
+            proof, public_inputs, "SESS-REAL", is_irreversible=True
+        )
 
         assert (
             result["proof_verified"] is True
@@ -315,7 +327,9 @@ class TestRealGroth16Verification:
         assert result["proof_verified"] is False
         assert result["zkpc_level"] == 1
         assert result["continuity_proven"] is False
-        assert "ERROR" in result["error_reason"] or result["error_reason"].startswith("[ERROR]")
+        assert "ERROR" in result["error_reason"] or result["error_reason"].startswith(
+            "[ERROR]"
+        )
 
     def test_missing_proof_data_fails(self):
         """T3: None proof → MISSING_PROOF_DATA."""
@@ -338,7 +352,9 @@ class TestRealGroth16Verification:
             "pi_b": [["1", "2"], ["3", "4"], ["1", "0"]],
             "pi_c": ["9", "8", "7"],
         }
-        result = verify_zkpc_v2_epoch(fake_proof, {"identity_commitment": "1"}, "SESS-BAD")
+        result = verify_zkpc_v2_epoch(
+            fake_proof, {"identity_commitment": "1"}, "SESS-BAD"
+        )
 
         assert result["proof_verified"] is False
         assert "MISSING_PUBLIC_INPUTS" in result["error_reason"]
@@ -357,7 +373,9 @@ class TestRealGroth16Verification:
         }
         result = verify_zkpc_v2_epoch(gen["proof"], tampered_inputs, "SESS-TAMPER")
 
-        assert result["proof_verified"] is False, "Tampered inputs must cause verification to fail"
+        assert (
+            result["proof_verified"] is False
+        ), "Tampered inputs must cause verification to fail"
         assert result["continuity_proven"] is False
 
     def test_fail_closed_all_flags_false_on_error(self):

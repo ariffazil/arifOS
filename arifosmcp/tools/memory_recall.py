@@ -66,22 +66,36 @@ def arif_memory_recall(
         actor_id,
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
+        return _hold(
+            "arif_memory_recall", floor_check["reason"], floor_check["failed_floors"]
+        )
 
     # ── Session init ──────────────────────────────────────────────────────────
     if mode == "init_recall":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
         sacred_resources = [
-            {"uri": "arifos://doctrine", "label": "Immutable Law (Ψ)", "tier": "sacred"},
+            {
+                "uri": "arifos://doctrine",
+                "label": "Immutable Law (Ψ)",
+                "tier": "sacred",
+            },
             {"uri": "arifos://vitals", "label": "Living Pulse (Ω)", "tier": "sacred"},
-            {"uri": "arifos://schema", "label": "Complete Blueprint (Δ)", "tier": "sacred"},
+            {
+                "uri": "arifos://schema",
+                "label": "Complete Blueprint (Δ)",
+                "tier": "sacred",
+            },
             {
                 "uri": "arifos://session/" + (session_id or "new"),
                 "label": "Ephemeral Instance",
                 "tier": "ephemeral",
             },
-            {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
+            {
+                "uri": "arifos://forge",
+                "label": "Execution Bridge",
+                "tier": "operational",
+            },
         ]
         floor_summary = [
             {
@@ -89,16 +103,32 @@ def arif_memory_recall(
                 "name": "AMANAH",
                 "purpose": "Trustworthiness — every action accountable",
             },
-            {"floor": "F02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
-            {"floor": "F03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
+            {
+                "floor": "F02",
+                "name": "TRUTH",
+                "purpose": "Truthfulness — no fabrication",
+            },
+            {
+                "floor": "F03",
+                "name": "WITNESS",
+                "purpose": "Evidence must be verifiable",
+            },
             {"floor": "F04", "name": "CLARITY", "purpose": "Transparent intent"},
             {"floor": "F05", "name": "PEACE", "purpose": "Human dignity"},
             {"floor": "F06", "name": "EMPATHY", "purpose": "Consider consequence"},
             {"floor": "F07", "name": "HUMILITY", "purpose": "Acknowledge limits"},
-            {"floor": "F08", "name": "GENIUS", "purpose": "Elegant correctness (G ≥ 0.80)"},
+            {
+                "floor": "F08",
+                "name": "GENIUS",
+                "purpose": "Elegant correctness (G ≥ 0.80)",
+            },
             {"floor": "F09", "name": "ANTIHANTU", "purpose": "Reject manipulation"},
             {"floor": "F10", "name": "ONTOLOGY", "purpose": "Structural coherence"},
-            {"floor": "F11", "name": "AUTH", "purpose": "Verify identity before sensitive ops"},
+            {
+                "floor": "F11",
+                "name": "AUTH",
+                "purpose": "Verify identity before sensitive ops",
+            },
             {"floor": "F12", "name": "INJECTION", "purpose": "Sanitize inputs"},
             {"floor": "F13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
         ]
@@ -121,7 +151,8 @@ def arif_memory_recall(
         record = recall(memory_id)
         if record is None:
             return _ok(
-                "arif_memory_recall", {"memory_id": memory_id, "found": False, "content": None}
+                "arif_memory_recall",
+                {"memory_id": memory_id, "found": False, "content": None},
             )
         return _ok(
             "arif_memory_recall",
@@ -183,7 +214,9 @@ def arif_memory_recall(
     if mode == "prune":
         from arifosmcp.runtime.memory_store import prune as _prune
 
-        result = _prune(memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}")
+        result = _prune(
+            memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}"
+        )
         return _ok("arif_memory_recall", result)
 
     # ── Session context ──────────────────────────────────────────────────────

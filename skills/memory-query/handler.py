@@ -35,14 +35,23 @@ class MemoryQuerySkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _vector_search(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Search memory with F2 freshness check."""
         query = params.get("query", "")
         params.get("k", 5)
 
         if dry_run:
-            return {"verdict": "SEAL", "mode": "dry_run", "query": query, "checkpoint": checkpoint}
+            return {
+                "verdict": "SEAL",
+                "mode": "dry_run",
+                "query": query,
+                "checkpoint": checkpoint,
+            }
 
         # REALITY: Query via filesystem
         if reality_bridge:
@@ -74,14 +83,23 @@ class MemoryQuerySkill:
         return {"verdict": "VOID", "error": "No reality bridge available"}
 
     async def _store_memory(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict[str, Any]:
         """Store memory with timestamp."""
         key = params.get("key", "")
         value = params.get("value", {})
 
         if dry_run:
-            return {"verdict": "SEAL", "mode": "dry_run", "key": key, "checkpoint": checkpoint}
+            return {
+                "verdict": "SEAL",
+                "mode": "dry_run",
+                "key": key,
+                "checkpoint": checkpoint,
+            }
 
         if reality_bridge:
             import json
@@ -123,7 +141,9 @@ async def execute(
 ) -> dict[str, Any]:
     """Main entry point."""
     skill = MemoryQuerySkill()
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

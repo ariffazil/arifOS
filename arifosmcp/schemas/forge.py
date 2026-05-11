@@ -57,7 +57,8 @@ class IrreversibilityBond(BaseModel):
     """
 
     level: IrreversibilityLevel = Field(
-        default=IrreversibilityLevel.REVERSIBLE, description="How irreversible is this action?"
+        default=IrreversibilityLevel.REVERSIBLE,
+        description="How irreversible is this action?",
     )
     delta_S: float = Field(
         default=0.0, description="Entropy change (J/K). Positive = heat to environment."
@@ -91,10 +92,16 @@ class DeltaSEvidence(BaseModel):
     delta_S_positive: float = Field(
         default=0.0, description="Entropy produced (heat to environment)"
     )
-    delta_S_negative: float = Field(default=0.0, description="Entropy absorbed (cooling)")
+    delta_S_negative: float = Field(
+        default=0.0, description="Entropy absorbed (cooling)"
+    )
     delta_S_net: float = Field(default=0.0, description="Net entropy change")
-    energy_cost_joules: float | None = Field(default=None, description="Direct energy cost")
-    landauer_optimal: bool = Field(default=True, description="Is action within Landauer bound?")
+    energy_cost_joules: float | None = Field(
+        default=None, description="Direct energy cost"
+    )
+    landauer_optimal: bool = Field(
+        default=True, description="Is action within Landauer bound?"
+    )
     entropy_budget_remaining: float | None = Field(
         default=None, description="F13 entropy budget remaining"
     )
@@ -112,7 +119,9 @@ class ExecutionNode(BaseModel):
     action: str = Field(default="", description="What was done")
     artifact_id: str | None = Field(default=None, description="ID of artifact produced")
     delta_S: float = Field(default=0.0, description="Entropy change at this step")
-    reversible: bool = Field(default=True, description="Whether this step can be undone")
+    reversible: bool = Field(
+        default=True, description="Whether this step can be undone"
+    )
     meta: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -186,7 +195,8 @@ class ForgeOutput(BaseModel):
 
     # Irreversibility
     irreversibility_bond: IrreversibilityBond = Field(
-        default_factory=IrreversibilityBond, description="Thermodynamic irreversibility assessment"
+        default_factory=IrreversibilityBond,
+        description="Thermodynamic irreversibility assessment",
     )
 
     # Entropy

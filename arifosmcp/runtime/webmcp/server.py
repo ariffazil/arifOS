@@ -254,7 +254,9 @@ class WebMCPGateway:
         @self.app.get("/webmcp/sdk.js")
         async def webmcp_sdk():
             """Minimal browser SDK for imperative WebMCP calls."""
-            return HTMLResponse(content=self._build_sdk_js(), media_type="application/javascript")
+            return HTMLResponse(
+                content=self._build_sdk_js(), media_type="application/javascript"
+            )
 
         @self.app.get("/webmcp/tools.json")
         async def tools_charter():
@@ -381,7 +383,10 @@ class WebMCPGateway:
             if not session_id:
                 return JSONResponse(
                     status_code=401,
-                    content={"verdict": "VOID", "error": "No session. Call /webmcp/init first."},
+                    content={
+                        "verdict": "VOID",
+                        "error": "No session. Call /webmcp/init first.",
+                    },
                 )
 
             session = await self.session_manager.get_session(session_id)
@@ -391,7 +396,10 @@ class WebMCPGateway:
                     session = type(
                         "FallbackSession",
                         (),
-                        {"auth_context": {"actor_id": actor_id}, "session_id": session_id},
+                        {
+                            "auth_context": {"actor_id": actor_id},
+                            "session_id": session_id,
+                        },
                     )()
             if not session:
                 return JSONResponse(
@@ -524,8 +532,11 @@ class WebMCPGateway:
                                 entries.append(
                                     {
                                         "timestamp": entry.get("timestamp", ""),
-                                        "session_id": entry.get("session_id", "")[:16] + "...",
-                                        "action": entry.get("action", entry.get("tool", "unknown")),
+                                        "session_id": entry.get("session_id", "")[:16]
+                                        + "...",
+                                        "action": entry.get(
+                                            "action", entry.get("tool", "unknown")
+                                        ),
                                         "verdict": entry.get("verdict", "UNKNOWN"),
                                         "seal_hash": (
                                             entry.get("seal_hash", "")[:16] + "..."
@@ -578,7 +589,9 @@ class WebMCPGateway:
                     "recommendations": [...]
                 }
             """
-            logger.info(f"Governance evaluation requested for action: {request.action_id}")
+            logger.info(
+                f"Governance evaluation requested for action: {request.action_id}"
+            )
 
             # Run through constitutional engine
             evaluation = await governance_engine.evaluate(request)
@@ -603,7 +616,9 @@ class WebMCPGateway:
                 "verified": True,
                 "trust_score": 0.85,
                 "policy_level": "general",
-                "governance_endpoints": ["https://arifosmcp.arif-fazil.com/governance/evaluate"],
+                "governance_endpoints": [
+                    "https://arifosmcp.arif-fazil.com/governance/evaluate"
+                ],
                 "verdict": "SEAL",
             }
 
@@ -779,7 +794,9 @@ class WebMCPGateway:
                             "risk_level": h.risk_level,
                             "floor_violations": h.floor_violations,
                             "created_at": h.created_at.isoformat(),
-                            "time_elapsed_seconds": (_utcnow() - h.created_at).total_seconds(),
+                            "time_elapsed_seconds": (
+                                _utcnow() - h.created_at
+                            ).total_seconds(),
                             "action_payload_preview": str(h.action_payload)[:200],
                         }
                         for h in pending
@@ -814,7 +831,10 @@ class WebMCPGateway:
             if decision not in ("APPROVED", "DENIED"):
                 return JSONResponse(
                     status_code=400,
-                    content={"verdict": "VOID", "error": "Decision must be APPROVED or DENIED"},
+                    content={
+                        "verdict": "VOID",
+                        "error": "Decision must be APPROVED or DENIED",
+                    },
                 )
 
             try:

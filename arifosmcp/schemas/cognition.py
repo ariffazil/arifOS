@@ -61,9 +61,15 @@ class ThinkingStep(BaseModel):
     thought: str = Field(description="Structured description of reasoning at this step")
 
     # Confidence trajectory
-    confidence_before: float = Field(ge=0.0, le=1.0, description="Confidence before this step")
-    confidence_after: float = Field(ge=0.0, le=1.0, description="Confidence after this step")
-    confidence_delta: float = Field(description="Improvement from this step (can be negative)")
+    confidence_before: float = Field(
+        ge=0.0, le=1.0, description="Confidence before this step"
+    )
+    confidence_after: float = Field(
+        ge=0.0, le=1.0, description="Confidence after this step"
+    )
+    confidence_delta: float = Field(
+        description="Improvement from this step (can be negative)"
+    )
 
     # Resource consumption
     resource_cost: float = Field(ge=0.0, description="Tokens/energy consumed this step")
@@ -95,12 +101,16 @@ class ThinkingSequence(BaseModel):
     """Complete sequential thinking process with resource accounting."""
 
     # Configuration
-    mode: ThinkingMode = Field(default=ThinkingMode.DELIBERATE, description="Thinking mode used")
+    mode: ThinkingMode = Field(
+        default=ThinkingMode.DELIBERATE, description="Thinking mode used"
+    )
     depth_requested: int = Field(ge=0, le=10, description="Maximum steps requested")
     depth_completed: int = Field(ge=0, le=10, description="Steps actually executed")
 
     # Budget accounting
-    budget_allocated: float = Field(ge=0.0, description="Total thinking budget allocated")
+    budget_allocated: float = Field(
+        ge=0.0, description="Total thinking budget allocated"
+    )
     budget_consumed: float = Field(ge=0.0, description="Actual budget consumed")
     budget_utilization: float = Field(
         ge=0.0, le=1.0, description="Percentage of budget used (consumed/allocated)"
@@ -110,24 +120,32 @@ class ThinkingSequence(BaseModel):
     total_thermodynamic_cost_eV: float = Field(
         default=0.0, description="Total energy cost in electron volts"
     )
-    landauer_cost_effective: float = Field(description="Efficiency: confidence gained per eV")
+    landauer_cost_effective: float = Field(
+        description="Efficiency: confidence gained per eV"
+    )
 
     # Steps
-    steps: list[ThinkingStep] = Field(default_factory=list, description="All reasoning steps")
+    steps: list[ThinkingStep] = Field(
+        default_factory=list, description="All reasoning steps"
+    )
 
     # Outcome
     outcome: ThinkingOutcome = Field(description="How the thinking sequence ended")
-    final_confidence: float = Field(ge=0.0, le=1.0, description="Final confidence after all steps")
+    final_confidence: float = Field(
+        ge=0.0, le=1.0, description="Final confidence after all steps"
+    )
 
     # Confidence trajectory for visualization
     confidence_trajectory: list[float] = Field(
-        default_factory=list, description="Confidence at each step [step0, step1, ..., stepN]"
+        default_factory=list,
+        description="Confidence at each step [step0, step1, ..., stepN]",
     )
 
     # Conclusions
     conclusion: str | None = Field(default=None, description="Final conclusion reached")
     evidence_identified: list[str] = Field(
-        default_factory=list, description="Evidence identifiers needed to validate reasoning"
+        default_factory=list,
+        description="Evidence identifiers needed to validate reasoning",
     )
 
     # Quality assessment
@@ -152,15 +170,23 @@ class ResourceMetrics(BaseModel):
     """Tracks computational resource usage and efficiency."""
 
     # Token budget
-    tokens_allocated: float = Field(default=0.0, ge=0.0, description="Token budget for thinking")
-    tokens_consumed: float = Field(default=0.0, ge=0.0, description="Tokens actually used")
-    tokens_per_step: list[float] = Field(default_factory=list, description="Tokens per step")
+    tokens_allocated: float = Field(
+        default=0.0, ge=0.0, description="Token budget for thinking"
+    )
+    tokens_consumed: float = Field(
+        default=0.0, ge=0.0, description="Tokens actually used"
+    )
+    tokens_per_step: list[float] = Field(
+        default_factory=list, description="Tokens per step"
+    )
 
     # Energy (Landauer principle)
     landauer_cost_per_step_eV: list[float] = Field(
         default_factory=list, description="Thermodynamic cost per step in eV"
     )
-    total_thermodynamic_cost_eV: float = Field(default=0.0, description="Total energy cost")
+    total_thermodynamic_cost_eV: float = Field(
+        default=0.0, description="Total energy cost"
+    )
 
     # Efficiency metrics
     reasoning_efficiency: float = Field(
@@ -174,14 +200,20 @@ class ResourceMetrics(BaseModel):
     )
 
     # Time
-    steps_executed: int = Field(default=0, ge=0, description="Number of thinking steps run")
+    steps_executed: int = Field(
+        default=0, ge=0, description="Number of thinking steps run"
+    )
     time_budget_exhausted: bool = Field(
         default=False, description="Did thinking exceed time budget?"
     )
 
     # Budget status
-    budget_exhausted: bool = Field(default=False, description="Was the thinking budget exhausted?")
-    early_termination: bool = Field(default=False, description="Was thinking terminated early?")
+    budget_exhausted: bool = Field(
+        default=False, description="Was the thinking budget exhausted?"
+    )
+    early_termination: bool = Field(
+        default=False, description="Was thinking terminated early?"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -193,10 +225,12 @@ class RealityAnchor(BaseModel):
     """Physical constraints for evidence grounding."""
 
     entropy_direction: str = Field(
-        default="unknown", description="'increasing' | 'stable' | 'decreasing' | 'unknown'"
+        default="unknown",
+        description="'increasing' | 'stable' | 'decreasing' | 'unknown'",
     )
     energy_cost_estimate: float | None = Field(
-        default=None, description="Estimated energy cost of the phenomenon being studied"
+        default=None,
+        description="Estimated energy cost of the phenomenon being studied",
     )
     resource_constraints: list[str] = Field(
         default_factory=list, description="Named resource constraints that limit action"
@@ -239,7 +273,9 @@ class EvidenceOutput(BaseModel):
 
     # Result
     result: dict[str, Any] = Field(default_factory=dict, description="Evidence content")
-    meta: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    meta: dict[str, Any] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
     timestamp: str | None = None
 
 
@@ -274,7 +310,9 @@ class UncertaintyGeometry(BaseModel):
     rejected_alternatives: list[str] = Field(
         default_factory=list, description="Rejected scenarios with reasons"
     )
-    sensitivity_to_unknown: str = Field(default="low", description="'low' | 'medium' | 'high'")
+    sensitivity_to_unknown: str = Field(
+        default="low", description="'low' | 'medium' | 'high'"
+    )
     ambiguity_fused: bool = Field(
         default=False, description="Were multiple interpretations merged?"
     )
@@ -289,12 +327,18 @@ class UncertaintyGeometry(BaseModel):
 class EvidenceCivilizationContext(BaseModel):
     """Civilization-level context for evidence assessment."""
 
-    time_horizon_years: int = Field(default=0, ge=0, description="Consequence time horizon")
+    time_horizon_years: int = Field(
+        default=0, ge=0, description="Consequence time horizon"
+    )
     stakeholder_scope: str = Field(
-        default="individual", description="'individual' | 'organization' | 'national' | 'global'"
+        default="individual",
+        description="'individual' | 'organization' | 'national' | 'global'",
     )
     impact_radius: str = Field(
-        default="reversible", description="'reversible' | 'structural' | 'civilizational'"
+        default="reversible",
+        description="'reversible' | 'structural' | 'civilizational'",
     )
     domain: str = Field(default="unknown", description="Domain context")
-    cascade_risk: bool = Field(default=False, description="Could cascade to other domains?")
+    cascade_risk: bool = Field(
+        default=False, description="Could cascade to other domains?"
+    )

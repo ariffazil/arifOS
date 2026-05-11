@@ -31,7 +31,11 @@ class RecoverySkill:
         return await handler(params, dry_run, reality_bridge, checkpoint)
 
     async def _system_restore(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         cp = params.get("checkpoint", "")
 
@@ -47,12 +51,20 @@ class RecoverySkill:
             }
 
         if dry_run:
-            return {"verdict": "SEAL", "mode": "dry_run", "checkpoint": cp, "peace2": peace2}
+            return {
+                "verdict": "SEAL",
+                "mode": "dry_run",
+                "checkpoint": cp,
+                "peace2": peace2,
+            }
 
         # REALITY: Execute restore
         if reality_bridge:
             result = reality_bridge.execute(
-                tool="shell", command=f"git checkout {cp}", params={}, checkpoint_id=checkpoint
+                tool="shell",
+                command=f"git checkout {cp}",
+                params={},
+                checkpoint_id=checkpoint,
             )
 
             return {
@@ -66,12 +78,21 @@ class RecoverySkill:
         return {"verdict": "VOID", "error": "No reality bridge available"}
 
     async def _verify_integrity(
-        self, params: dict, dry_run: bool, reality_bridge: Any | None, checkpoint: str | None
+        self,
+        params: dict,
+        dry_run: bool,
+        reality_bridge: Any | None,
+        checkpoint: str | None,
     ) -> dict:
         path = params.get("path", ".")
 
         if dry_run:
-            return {"verdict": "SEAL", "mode": "dry_run", "path": path, "checkpoint": checkpoint}
+            return {
+                "verdict": "SEAL",
+                "mode": "dry_run",
+                "path": path,
+                "checkpoint": checkpoint,
+            }
 
         if reality_bridge:
             result = reality_bridge.execute(
@@ -109,7 +130,9 @@ async def execute(
     checkpoint: str | None = None,
 ) -> dict[str, Any]:
     skill = RecoverySkill()
-    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
+    return await skill.execute(
+        action, params, session_id, dry_run, reality_bridge, checkpoint
+    )
 
 
 metadata = {

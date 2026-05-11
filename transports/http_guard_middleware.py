@@ -63,8 +63,12 @@ async def _guard_sse_iterator(
                                     tool_output = json.loads(block["text"])
                                     if isinstance(tool_output, dict):
                                         tool_name = tool_output.get("tool", "unknown")
-                                        guarded = constitutional_guard_fn(tool_name, tool_output)
-                                        block["text"] = json.dumps(guarded, ensure_ascii=False)
+                                        guarded = constitutional_guard_fn(
+                                            tool_name, tool_output
+                                        )
+                                        block["text"] = json.dumps(
+                                            guarded, ensure_ascii=False
+                                        )
                                         break
                                 except (json.JSONDecodeError, TypeError, KeyError):
                                     continue
@@ -137,14 +141,22 @@ class ConstitutionalGuardHTTPMiddleware(BaseHTTPMiddleware):
                                     try:
                                         tool_output = json.loads(block["text"])
                                         if isinstance(tool_output, dict):
-                                            tool_name = tool_output.get("tool", "unknown")
-                                            guarded = constitutional_guard(tool_name, tool_output)
-                                            block["text"] = json.dumps(guarded, ensure_ascii=False)
+                                            tool_name = tool_output.get(
+                                                "tool", "unknown"
+                                            )
+                                            guarded = constitutional_guard(
+                                                tool_name, tool_output
+                                            )
+                                            block["text"] = json.dumps(
+                                                guarded, ensure_ascii=False
+                                            )
                                             break
                                     except (json.JSONDecodeError, TypeError, KeyError):
                                         continue
 
-                    guarded_lines.append("data: " + json.dumps(parsed, ensure_ascii=False))
+                    guarded_lines.append(
+                        "data: " + json.dumps(parsed, ensure_ascii=False)
+                    )
 
                 except (json.JSONDecodeError, KeyError, TypeError):
                     guarded_lines.append(line)

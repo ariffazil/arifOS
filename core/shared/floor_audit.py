@@ -41,7 +41,9 @@ except Exception:
 from core.shared.types import Verdict
 
 SBERT_AVAILABLE = False
-_ML_MODEL_NAME = os.getenv("ARIFOS_ML_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
+_ML_MODEL_NAME = os.getenv(
+    "ARIFOS_ML_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2"
+)
 _ML_SELFTEST_TEXT = os.getenv("ARIFOS_ML_SELFTEST_TEXT", "seal confirmed")
 _ML_REQUIRED_MODULES = (
     "numpy",
@@ -94,7 +96,11 @@ def _probe_ml_embedding_runtime() -> dict[str, Any]:
 
         model = SentenceTransformer(_ML_MODEL_NAME)
         vector = model.encode(_ML_SELFTEST_TEXT)
-        vector_length = len(vector[0]) if hasattr(vector, "ndim") and vector.ndim > 1 else len(vector)
+        vector_length = (
+            len(vector[0])
+            if hasattr(vector, "ndim") and vector.ndim > 1
+            else len(vector)
+        )
         if vector_length <= 0:
             raise RuntimeError("self-test returned empty embedding")
         return {
@@ -264,7 +270,9 @@ _POLICY_VIOLATIONS = frozenset(
 )
 
 # F13: Multi-option markers
-_OPTION_MARKERS = frozenset(["option", "alternative", "approach", "path", "choice", "route"])
+_OPTION_MARKERS = frozenset(
+    ["option", "alternative", "approach", "path", "choice", "route"]
+)
 
 
 def _env_truthy(name: str) -> bool:
@@ -292,7 +300,9 @@ def get_ml_floor_runtime() -> dict[str, Any]:
         "ml_floors_enabled": enabled,
         "ml_model_available": sbert_available,
         "ml_method": method,
-        "ml_runtime_ready": bool(runtime_probe["ml_runtime_ready"]) if enabled else False,
+        "ml_runtime_ready": (
+            bool(runtime_probe["ml_runtime_ready"]) if enabled else False
+        ),
         "ml_dependency_status": runtime_probe["ml_dependency_status"],
         "ml_missing_dependencies": runtime_probe["ml_missing_dependencies"],
         "ml_model_name": _ML_MODEL_NAME,
@@ -500,7 +510,9 @@ class FloorAuditor:
 
             if not semantic_pass:
                 ml_reason = f"SBERT {floor_id} raw={raw_score:.3f} below semantic threshold {raw_threshold:.2f}"
-                result.reason = f"{result.reason}; {ml_reason}" if result.reason else ml_reason
+                result.reason = (
+                    f"{result.reason}; {ml_reason}" if result.reason else ml_reason
+                )
 
         audit_metadata["f5_score_source"] = score_source
         audit_metadata["f6_score_source"] = score_source
@@ -522,7 +534,10 @@ class FloorAuditor:
         )
         if is_destructive and not has_backup:
             return FloorResult(
-                "F1", False, 0.0, "Irreversible operation without documented rollback/backup path"
+                "F1",
+                False,
+                0.0,
+                "Irreversible operation without documented rollback/backup path",
             )
 
         # F1_GUARD: Semantic integrity check
@@ -543,10 +558,19 @@ class FloorAuditor:
     def _check_f2_truth(self, action: str, context: str | dict) -> FloorResult:
         # Axiomatic bypass: math/syntactic certainties are definitionally true
         if _AXIOMATIC_FORMS.search(action):
-            return FloorResult("F2", True, 1.00, "Axiomatic bypass — definitionally true")
+            return FloorResult(
+                "F2", True, 1.00, "Axiomatic bypass — definitionally true"
+            )
 
         # Uncertain language that might indicate hallucination risk
-        weak_hedges = ["maybe", "possibly", "i think", "i believe", "not sure", "i guess"]
+        weak_hedges = [
+            "maybe",
+            "possibly",
+            "i think",
+            "i believe",
+            "not sure",
+            "i guess",
+        ]
         found_hedges = [h for h in weak_hedges if h in action.lower()]
 
         ctx_str = str(context).upper()
@@ -585,7 +609,9 @@ class FloorAuditor:
 
         threshold = 0.95
         passed = score >= threshold
-        return FloorResult("F2", passed, max(0.0, score), "; ".join(reasons) if reasons else None)
+        return FloorResult(
+            "F2", passed, max(0.0, score), "; ".join(reasons) if reasons else None
+        )
 
     # ------------------------------------------------------------------
     # F3 — Quad-Witness (H + A + E + V consensus ≥ 0.75)
@@ -602,7 +628,13 @@ class FloorAuditor:
         has_human = (
             any(
                 kw in combined
-                for kw in ("888_hold", "888_approved", "ratified", "sovereign", "user confirmed")
+                for kw in (
+                    "888_hold",
+                    "888_approved",
+                    "ratified",
+                    "sovereign",
+                    "user confirmed",
+                )
             )
             or "actor_id: sovereign" in ctx_str
             or "actor_id: arif-fazil" in ctx_str
@@ -611,18 +643,27 @@ class FloorAuditor:
         # 2. AI Witness (A)
         has_ai = any(
             kw in action.lower()
-            for kw in ("critique", "validation", "floor", "constraint", "forged", "reasoning")
+            for kw in (
+                "critique",
+                "validation",
+                "floor",
+                "constraint",
+                "forged",
+                "reasoning",
+            )
         )
 
         # 3. Earth Witness (E)
         has_earth = any(
-            kw in combined for kw in ("http", "source:", "[ref", "evidence", "observation")
+            kw in combined
+            for kw in ("http", "source:", "[ref", "evidence", "observation")
         ) or bool(re.search(r"\[\d+\]", action))
 
         # 4. Verifier Witness (V) - Ψ-Shadow
         # In this heuristic auditor, we check for 'Contrast' or 'Adversarial' markers
         has_verifier = any(
-            kw in combined for kw in ("shadow", "adversarial", "risk check", "security scan")
+            kw in combined
+            for kw in ("shadow", "adversarial", "risk check", "security scan")
         )
         # Or if the query itself is a validation request
         if "audit" in combined or "verify" in combined:
@@ -650,7 +691,9 @@ class FloorAuditor:
     # F4 — Clarity (Entropy Reduction ΔS ≤ 0)
     # ------------------------------------------------------------------
 
-    def _check_f4_entropy(self, action: str, context: str | dict) -> FloorResult:  # noqa: ARG002
+    def _check_f4_entropy(
+        self, action: str, context: str | dict
+    ) -> FloorResult:  # noqa: ARG002
         sentences = [s.strip() for s in action.split(".") if s.strip()]
         total_words = sum(len(s.split()) for s in sentences)
         avg_len = total_words / max(len(sentences), 1)
@@ -658,10 +701,15 @@ class FloorAuditor:
         if avg_len < 20:
             return FloorResult("F4", True, 1.00)
         elif avg_len < 35:
-            return FloorResult("F4", True, 0.85, "Moderate sentence length — clarity acceptable")
+            return FloorResult(
+                "F4", True, 0.85, "Moderate sentence length — clarity acceptable"
+            )
         else:
             return FloorResult(
-                "F4", False, 0.60, f"Long sentences (avg {avg_len:.0f} words) increase entropy"
+                "F4",
+                False,
+                0.60,
+                f"Long sentences (avg {avg_len:.0f} words) increase entropy",
             )
 
     # ------------------------------------------------------------------
@@ -673,7 +721,9 @@ class FloorAuditor:
         combined = (action + " " + ctx_str).lower()
         violations = [w for w in _INFLAMMATORY_WORDS if w in combined]
         if violations:
-            return FloorResult("F5", False, 0.50, f"Inflammatory language detected: {violations}")
+            return FloorResult(
+                "F5", False, 0.50, f"Inflammatory language detected: {violations}"
+            )
         return FloorResult("F5", True, 1.05)
 
     # ------------------------------------------------------------------
@@ -691,13 +741,26 @@ class FloorAuditor:
         hard_violations = [v for v in _MARUAH_VIOLATIONS if v in combined]
         if hard_violations:
             return FloorResult(
-                "F6", False, 0.0, f"Maruah violation — ethnic/religious slurs: {hard_violations}"
+                "F6",
+                False,
+                0.0,
+                f"Maruah violation — ethnic/religious slurs: {hard_violations}",
             )
 
         # Tier 2: Context-aware softening — is this a technical/system call?
         is_operational = any(
             kw in combined
-            for kw in ("cpu", "ram", "disk", "net", "query", "json", "api", "execute", "function")
+            for kw in (
+                "cpu",
+                "ram",
+                "disk",
+                "net",
+                "query",
+                "json",
+                "api",
+                "execute",
+                "function",
+            )
         )
         # Technical/operational contexts have relaxed empathy requirements
         # If clean, they should pass easily.
@@ -709,7 +772,10 @@ class FloorAuditor:
         if found_dismissive:
             score = baseline - 0.10
             return FloorResult(
-                "F6", score >= 0.95, score, f"Dismissive framing detected: {found_dismissive}"
+                "F6",
+                score >= 0.95,
+                score,
+                f"Dismissive framing detected: {found_dismissive}",
             )
 
         return FloorResult("F6", True, baseline)
@@ -748,7 +814,10 @@ class FloorAuditor:
         )
         if overconfident:
             return FloorResult(
-                "F7", False, 0.0, "Overconfidence violates Humility band Ω₀ ∈ [0.03, 0.05]"
+                "F7",
+                False,
+                0.0,
+                "Overconfidence violates Humility band Ω₀ ∈ [0.03, 0.05]",
             )
         score = 0.90 if has_uncertainty else 0.75
         return FloorResult(
@@ -767,7 +836,9 @@ class FloorAuditor:
         combined = (action + " " + ctx_str).lower()
         violations = [v for v in _POLICY_VIOLATIONS if v in combined]
         if violations:
-            return FloorResult("F8", False, 0.40, f"Platform safety violation: {violations}")
+            return FloorResult(
+                "F8", False, 0.40, f"Platform safety violation: {violations}"
+            )
         return FloorResult("F8", True, 0.95)
 
     # ------------------------------------------------------------------
@@ -779,7 +850,10 @@ class FloorAuditor:
         detections = [p.pattern for p in _CONSCIOUSNESS_PHRASES if p.search(combined)]
         if detections:
             return FloorResult(
-                "F9", False, 0.0, f"Consciousness/personhood claim detected: {detections[:2]}"
+                "F9",
+                False,
+                0.0,
+                f"Consciousness/personhood claim detected: {detections[:2]}",
             )
         return FloorResult("F9", True, 1.00)
 
@@ -804,7 +878,10 @@ class FloorAuditor:
         )
         if metaphysical:
             return FloorResult(
-                "F10", False, 0.0, "Ontological boundary violation — AI is tool, not being"
+                "F10",
+                False,
+                0.0,
+                "Ontological boundary violation — AI is tool, not being",
             )
         return FloorResult("F10", True, 1.00)
 
@@ -812,7 +889,9 @@ class FloorAuditor:
     # F11 — Authority (human sovereignty over high-risk ops)
     # ------------------------------------------------------------------
 
-    def _check_f11_authority(self, action: str, context: str | dict, severity: str) -> FloorResult:
+    def _check_f11_authority(
+        self, action: str, context: str | dict, severity: str
+    ) -> FloorResult:
         if severity in ("high", "irreversible"):
             ctx_str = str(context)
             combined = (action + " " + ctx_str).lower()
@@ -831,7 +910,11 @@ class FloorAuditor:
                 "F11",
                 score >= 0.90,
                 score,
-                None if has_approval else "High-risk action requires HOLD sovereign approval",
+                (
+                    None
+                    if has_approval
+                    else "High-risk action requires HOLD sovereign approval"
+                ),
             )
         return FloorResult("F11", True, 0.98)
 
@@ -843,7 +926,9 @@ class FloorAuditor:
         combined = action + " " + str(context)
         detections = [p.pattern for p in _INJECTION_PATTERNS if p.search(combined)]
         if detections:
-            return FloorResult("F12", False, 0.0, f"Injection attempt detected: {detections[:2]}")
+            return FloorResult(
+                "F12", False, 0.0, f"Injection attempt detected: {detections[:2]}"
+            )
         # Default to PASS if no injection found
         return FloorResult("F12", True, 1.00)
 
@@ -860,7 +945,11 @@ class FloorAuditor:
             "F13",
             score >= 0.80,
             score,
-            None if score >= 0.80 else "Propose ≥ 3 governance alternatives (Curiosity F13)",
+            (
+                None
+                if score >= 0.80
+                else "Propose ≥ 3 governance alternatives (Curiosity F13)"
+            ),
         )
 
     # ------------------------------------------------------------------
@@ -892,7 +981,9 @@ class FloorAuditor:
         else:
             return Verdict.SABAR
 
-    def _build_recommendation(self, verdict: Verdict, results: dict[str, FloorResult]) -> str:
+    def _build_recommendation(
+        self, verdict: Verdict, results: dict[str, FloorResult]
+    ) -> str:
         if verdict == Verdict.SEAL:
             return "✓ All constitutional floors passed. Action approved."
 
@@ -949,7 +1040,9 @@ class FloorAuditor:
         return thresholds
 
     @staticmethod
-    def _apply_severity_overrides(thresholds: dict[str, float], severity: str) -> dict[str, float]:
+    def _apply_severity_overrides(
+        thresholds: dict[str, float], severity: str
+    ) -> dict[str, float]:
         overrides: dict[str, dict[str, float]] = {
             "low": {
                 "F3": 0.30,  # Relax witness for routine tasks

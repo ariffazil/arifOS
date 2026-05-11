@@ -67,7 +67,9 @@ SCHEMA_TEMPLATES: dict[str, SchemaTemplate] = {
         required_fields=["issues", "severity", "suggestions"],
         optional_fields=["positive_patterns", "test_coverage"],
         format_example={
-            "issues": [{"line": 42, "type": "security", "description": "SQL injection risk"}],
+            "issues": [
+                {"line": 42, "type": "security", "description": "SQL injection risk"}
+            ],
             "severity": "high",
             "suggestions": ["Use parameterized queries"],
             "positive_patterns": ["Good error handling"],
@@ -90,7 +92,11 @@ SCHEMA_TEMPLATES: dict[str, SchemaTemplate] = {
     "eureka_result": SchemaTemplate(
         name="eureka_result",
         required_fields=["insight", "novelty_score", "coherence_score", "confidence"],
-        optional_fields=["supporting_evidence", "alternative_explanations", "testable_predictions"],
+        optional_fields=[
+            "supporting_evidence",
+            "alternative_explanations",
+            "testable_predictions",
+        ],
         format_example={
             "insight": "The core discovery or synthesis",
             "novelty_score": 0.85,
@@ -216,7 +222,9 @@ class OutputFormatter:
 
         return debug_output
 
-    def _format_schema(self, result: dict[str, Any], template_name: str) -> dict[str, Any]:
+    def _format_schema(
+        self, result: dict[str, Any], template_name: str
+    ) -> dict[str, Any]:
         """Format according to schema template."""
         template = SCHEMA_TEMPLATES.get(template_name)
         if not template:
@@ -360,7 +368,9 @@ class OutputFormatter:
 # ═════════════════════════════════════════════════════════════════════════════
 
 
-def format_for_user(result: dict[str, Any], query_type: str = "general") -> dict[str, Any]:
+def format_for_user(
+    result: dict[str, Any], query_type: str = "general"
+) -> dict[str, Any]:
     """Quick format for user mode."""
     formatter = OutputFormatter(mode=OutputMode.USER)
     return formatter.format(result, query_type)

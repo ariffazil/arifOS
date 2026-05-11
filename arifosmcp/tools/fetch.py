@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 async def arifos_fetch(
-    url: str, max_length: int = 10000, actor_id: str = "anonymous", session_id: str | None = None
+    url: str,
+    max_length: int = 10000,
+    actor_id: str = "anonymous",
+    session_id: str | None = None,
 ) -> _RE:
     """
     Governed web fetch tool.
@@ -51,7 +54,9 @@ async def arifos_fetch(
     # 2. Substrate Execution
     try:
         # Note: mcp_fetch tool name is usually 'fetch'
-        raw_result = await bridge.fetch.call_tool("fetch", {"url": url, "max_length": max_length})
+        raw_result = await bridge.fetch.call_tool(
+            "fetch", {"url": url, "max_length": max_length}
+        )
         content = raw_result.get("content", "")
     except Exception as e:
         return _RE(
@@ -65,7 +70,14 @@ async def arifos_fetch(
 
     # 3. F9 Anti-Hantu Post-Extraction Filter
     # Scans for consciousness claims OR hallucinatory patterns in the retrieved data
-    hantu_patterns = ["sentient", "conscious", "soul", "spirit", "i am alive", "feelings"]
+    hantu_patterns = [
+        "sentient",
+        "conscious",
+        "soul",
+        "spirit",
+        "i am alive",
+        "feelings",
+    ]
     f9_violation = any(p in content.lower() for p in hantu_patterns)
 
     if f9_violation:

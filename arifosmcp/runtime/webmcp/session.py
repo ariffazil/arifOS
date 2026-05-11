@@ -91,9 +91,9 @@ class WebSessionManager:
         auth_context = mint_auth_context(
             session_id=session_id,
             actor_id=actor_id,
-            token_fingerprint=hashlib.sha256(f"{session_id}:{actor_id}:{now}".encode()).hexdigest()[
-                :16
-            ],
+            token_fingerprint=hashlib.sha256(
+                f"{session_id}:{actor_id}:{now}".encode()
+            ).hexdigest()[:16],
             approval_scope=["web", "read", "search"] if not human_approval else ["*"],
             parent_signature="",
             authority_level="web_session",
@@ -187,7 +187,9 @@ class WebSessionManager:
         # This would call vault_seal in production
         pass
 
-    async def list_active_sessions(self, actor_id: str | None = None) -> list[WebSession]:
+    async def list_active_sessions(
+        self, actor_id: str | None = None
+    ) -> list[WebSession]:
         """List all active web sessions."""
         try:
             keys = await asyncio.wait_for(
@@ -200,7 +202,9 @@ class WebSessionManager:
 
         for key in keys:
             try:
-                data = await asyncio.wait_for(self.redis.get(key), timeout=self._redis_timeout)
+                data = await asyncio.wait_for(
+                    self.redis.get(key), timeout=self._redis_timeout
+                )
             except Exception:
                 continue
             if data:

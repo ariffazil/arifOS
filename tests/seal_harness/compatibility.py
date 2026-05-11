@@ -29,7 +29,6 @@ from tests.seal_harness.client import (
     parse_tool_result_json,
 )
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # Data Structures
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -310,7 +309,9 @@ class CompatibilityProbe:
 
                 if anchor_result.is_error:
                     result.status = "FAIL"
-                    result.error = f"anchor_session failed: {anchor_result.raw_response}"
+                    result.error = (
+                        f"anchor_session failed: {anchor_result.raw_response}"
+                    )
                     result.duration_ms = (time.perf_counter() - start) * 1000
                     return result
 
@@ -468,7 +469,9 @@ class CompatibilityProbe:
 
         # Check for differences
         successful_results = [
-            r for r in comparison.client_results.values() if r.get("success") and "verdict" in r
+            r
+            for r in comparison.client_results.values()
+            if r.get("success") and "verdict" in r
         ]
 
         if len(successful_results) > 1:

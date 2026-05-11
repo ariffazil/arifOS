@@ -63,7 +63,9 @@ def growth_runway(
     first, last = cashflows[0], cashflows[-1]
     n = len(cashflows) - 1
     cagr = (abs(last) / abs(first)) ** (1.0 / n) - 1 if first != 0 and n > 0 else 0.0
-    runway_months = first / burn_rate if burn_rate and burn_rate > 0 and first > 0 else 0
+    runway_months = (
+        first / burn_rate if burn_rate and burn_rate > 0 and first > 0 else 0
+    )
 
     return {
         "cagr": round(cagr, 4),

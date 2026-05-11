@@ -20,7 +20,9 @@ def arif_mind_reason(
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return Synthesis(
-            **_hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"])
+            **_hold(
+                "arif_mind_reason", floor_check["reason"], floor_check["failed_floors"]
+            )
         )
 
     if mode == "reason":
@@ -37,11 +39,16 @@ def arif_mind_reason(
         )
     if mode == "reflect":
         return Synthesis(
-            **_ok("arif_mind_reason", {"query": query, "verdict": "PLAUSIBLE", "reflection": ""})
+            **_ok(
+                "arif_mind_reason",
+                {"query": query, "verdict": "PLAUSIBLE", "reflection": ""},
+            )
         )
     if mode == "forge":
         return Synthesis(
-            **_ok("arif_mind_reason", {"query": query, "artifact": "", "delta_S": -0.01})
+            **_ok(
+                "arif_mind_reason", {"query": query, "artifact": "", "delta_S": -0.01}
+            )
         )
     if mode == "debate":
         return Synthesis(
@@ -52,7 +59,10 @@ def arif_mind_reason(
         )
     if mode == "socratic":
         return Synthesis(
-            **_ok("arif_mind_reason", {"query": query, "questions": ["Why?", "What if not?"]})
+            **_ok(
+                "arif_mind_reason",
+                {"query": query, "questions": ["Why?", "What if not?"]},
+            )
         )
 
     return Synthesis(**_hold("arif_mind_reason", f"Unknown mode: {mode}"))

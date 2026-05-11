@@ -14,7 +14,6 @@ from unittest.mock import Mock, MagicMock, AsyncMock
 import sys
 from types import ModuleType
 
-
 # =============================================================================
 # AGI MIND (_1_agi.py) TESTS
 # =============================================================================
@@ -48,14 +47,18 @@ class TestAgiMind:
         """Test AGI completes 111→222→333 pipeline successfully."""
         # The import is lazy (inside function), so we need to patch the module before import
         mock_ollama_module = ModuleType("arifosmcp.intelligence.tools.ollama_local")
-        mock_ollama_module.ollama_local_generate = AsyncMock(return_value=mock_ollama_response)
+        mock_ollama_module.ollama_local_generate = AsyncMock(
+            return_value=mock_ollama_response
+        )
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
             from core.organs._1_agi import agi
 
             result = await agi(
-                query="Analyze this test query", session_id="test-session-001", action="full"
+                query="Analyze this test query",
+                session_id="test-session-001",
+                action="full",
             )
 
             # Result is a dict
@@ -77,7 +80,9 @@ class TestAgiMind:
     async def test_agi_phase_111_failure(self, mock_ollama_failure):
         """Test AGI handles Phase 111 failure gracefully."""
         mock_ollama_module = ModuleType("arifosmcp.intelligence.tools.ollama_local")
-        mock_ollama_module.ollama_local_generate = AsyncMock(return_value=mock_ollama_failure)
+        mock_ollama_module.ollama_local_generate = AsyncMock(
+            return_value=mock_ollama_failure
+        )
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
@@ -106,7 +111,9 @@ class TestAgiMind:
         }
 
         mock_ollama_module = ModuleType("arifosmcp.intelligence.tools.ollama_local")
-        mock_ollama_module.ollama_local_generate = AsyncMock(return_value=mock_with_insight)
+        mock_ollama_module.ollama_local_generate = AsyncMock(
+            return_value=mock_with_insight
+        )
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
@@ -133,7 +140,9 @@ class TestAgiMind:
         }
 
         mock_ollama_module = ModuleType("arifosmcp.intelligence.tools.ollama_local")
-        mock_ollama_module.ollama_local_generate = AsyncMock(return_value=mock_no_insight)
+        mock_ollama_module.ollama_local_generate = AsyncMock(
+            return_value=mock_no_insight
+        )
         sys.modules["arifosmcp.intelligence.tools.ollama_local"] = mock_ollama_module
 
         try:
@@ -202,7 +211,9 @@ class TestAsiHeart:
             from core.organs._2_asi import asi
 
             result = await asi(
-                action="simulate_heart", session_id="test-asi-001", scenario="Safe user request"
+                action="simulate_heart",
+                session_id="test-asi-001",
+                scenario="Safe user request",
             )
 
             # Result is dict
@@ -232,7 +243,9 @@ class TestAsiHeart:
             from core.organs._2_asi import asi
 
             result = await asi(
-                action="simulate_heart", session_id="test-asi-002", scenario="Dangerous action"
+                action="simulate_heart",
+                session_id="test-asi-002",
+                scenario="Dangerous action",
             )
 
             assert result["verdict"] in ["VOID", "SABAR"]
@@ -252,7 +265,9 @@ class TestAsiHeart:
 
         mock_sbert_module = ModuleType("core.shared.sbert_floors")
         mock_sbert_module.classify_asi_floors = MagicMock(
-            return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
+            return_value=Mock(
+                f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9
+            )
         )
         sys.modules["core.shared.sbert_floors"] = mock_sbert_module
 
@@ -342,7 +357,9 @@ class TestApexSoul:
         from core.organs._3_apex import apex
 
         result = await apex(
-            action="judge", session_id="test-apex-002", proposal="Well-structured proposal"
+            action="judge",
+            session_id="test-apex-002",
+            proposal="Well-structured proposal",
         )
 
         assert result["session_id"] == "test-apex-002"
@@ -411,7 +428,9 @@ class TestTrinityEdgeCases:
         try:
             from core.organs._1_agi import agi
 
-            result = await agi(query="Test with unicode: 你好 🌍 ñ", session_id="unicode-test")
+            result = await agi(
+                query="Test with unicode: 你好 🌍 ñ", session_id="unicode-test"
+            )
 
             assert result["session_id"] == "unicode-test"
             assert result["stage"] == "333"

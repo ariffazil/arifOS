@@ -128,9 +128,14 @@ def post_jsonrpc(
     url: str, method: str, params: dict, timeout: float = 10.0
 ) -> tuple[int, dict | None, float, str]:
     """Send JSON-RPC request. Returns (http_status, result_dict, latency, error)."""
-    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode()
+    body = json.dumps(
+        {"jsonrpc": "2.0", "id": 1, "method": method, "params": params}
+    ).encode()
     start = time.monotonic()
-    h = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+    h = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
     req = urllib.request.Request(url, method="POST", data=body, headers=h)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -150,7 +155,12 @@ def post_jsonrpc(
                 payload = json.loads(text)
                 return resp.status, payload, latency, ""
             except json.JSONDecodeError:
-                return resp.status, {"raw": text[:500]}, latency, "no parseable JSON in SSE body"
+                return (
+                    resp.status,
+                    {"raw": text[:500]},
+                    latency,
+                    "no parseable JSON in SSE body",
+                )
     except urllib.error.HTTPError as e:
         raw = e.read()[:200] if e.fp else b""
         latency = (time.monotonic() - start) * 1000
@@ -167,7 +177,9 @@ def post_jsonrpc(
         return 0, None, latency, str(e)
 
 
-def fetch_via_caddy(endpoint: str, timeout: float = 8.0) -> tuple[int, dict | None, float, str]:
+def fetch_via_caddy(
+    endpoint: str, timeout: float = 8.0
+) -> tuple[int, dict | None, float, str]:
     """
     Use docker exec to run curl from inside the Caddy container,
     which has access to the Docker bridge network and arifosmcp hostname.
@@ -251,7 +263,9 @@ def check_mcp_public(public_mcp_url: str) -> McpResult:
         result.initialize = "PASS"
     elif resp and resp.get("error"):
         # MCP servers may return error on initialize with SSE — check if tools/list still works
-        result.initialize_error = f"error: {resp['error'].get('message', resp['error'])}"
+        result.initialize_error = (
+            f"error: {resp['error'].get('message', resp['error'])}"
+        )
         result.initialize = "PARTIAL"
     else:
         result.initialize = "PARTIAL"
@@ -266,7 +280,9 @@ def check_mcp_public(public_mcp_url: str) -> McpResult:
         result.tools_count = len(resp2["result"].get("tools", []))
         result.tools_list = "PASS"
     elif resp2 and resp2.get("error"):
-        result.tools_list_error = f"error: {resp2['error'].get('message', resp2['error'])}"
+        result.tools_list_error = (
+            f"error: {resp2['error'].get('message', resp2['error'])}"
+        )
         result.tools_list = "PARTIAL"
     else:
         result.tools_list = "PARTIAL"
@@ -362,7 +378,8 @@ def compute_verdict(
     """
     # VOID: public endpoints unreachable
     public_status = next(
-        (r for r in results if r.layer == "PUBLIC" and r.endpoint == "/status.json"), None
+        (r for r in results if r.layer == "PUBLIC" and r.endpoint == "/status.json"),
+        None,
     )
     public_health = next(
         (r for r in results if r.layer == "PUBLIC" and r.endpoint == "/health"), None
@@ -390,7 +407,15 @@ def compute_verdict(
             hold_reasons.append(f"public /ready failures: {failures}")
 
     diffs = []
-    for attr in ["version", "commit", "status", "tools_count", "arifos", "geox", "wealth"]:
+    for attr in [
+        "version",
+        "commit",
+        "status",
+        "tools_count",
+        "arifos",
+        "geox",
+        "wealth",
+    ]:
         val = getattr(comparison, attr)
         if val:
             diffs.append(f"{attr}: {val}")
@@ -398,7 +423,9 @@ def compute_verdict(
         hold_reasons.append(f"parity drift: {'; '.join(diffs)}")
 
     if mcp.initialize == "FAIL" or mcp.tools_list == "FAIL":
-        hold_reasons.append(f"MCP initialize={mcp.initialize}, tools_list={mcp.tools_list}")
+        hold_reasons.append(
+            f"MCP initialize={mcp.initialize}, tools_list={mcp.tools_list}"
+        )
 
     tool_verdict, tool_detail = tool_consistency
     if tool_verdict != "PASS":
@@ -407,7 +434,10 @@ def compute_verdict(
     if hold_reasons:
         return "HOLD", " | ".join(hold_reasons)
 
-    return "APPROVED", "all layers consistent, /ready=pass, MCP responsive, tool counts correct"
+    return (
+        "APPROVED",
+        "all layers consistent, /ready=pass, MCP responsive, tool counts correct",
+    )
 
 
 # ─── Main Verification ─────────────────────────────────────────────────────────
@@ -431,13 +461,17 @@ def verify_all() -> VerifyReport:
             if layer_name == "CADDY":
                 http_status, payload, latency, err = fetch_via_caddy(ep)
                 verdict = (
-                    "PASS" if 200 <= http_status < 300 else ("HOLD" if http_status == 0 else "FAIL")
+                    "PASS"
+                    if 200 <= http_status < 300
+                    else ("HOLD" if http_status == 0 else "FAIL")
                 )
             else:
                 url = base + ep
                 http_status, payload, latency, err = fetch(url)
                 verdict = (
-                    "PASS" if 200 <= http_status < 300 else ("HOLD" if http_status == 0 else "FAIL")
+                    "PASS"
+                    if 200 <= http_status < 300
+                    else ("HOLD" if http_status == 0 else "FAIL")
                 )
             if http_status == 0:
                 verdict = "HOLD"
@@ -459,11 +493,19 @@ def verify_all() -> VerifyReport:
 
     # ── Comparison: local vs public /status.json ──────────────────────────────
     local_payload = next(
-        (r.payload for r in all_results if r.layer == "LOCAL" and r.endpoint == "/status.json"),
+        (
+            r.payload
+            for r in all_results
+            if r.layer == "LOCAL" and r.endpoint == "/status.json"
+        ),
         None,
     )
     public_payload = next(
-        (r.payload for r in all_results if r.layer == "PUBLIC" and r.endpoint == "/status.json"),
+        (
+            r.payload
+            for r in all_results
+            if r.layer == "PUBLIC" and r.endpoint == "/status.json"
+        ),
         None,
     )
 
@@ -481,7 +523,9 @@ def verify_all() -> VerifyReport:
     tool_consistency = check_tool_consistency(status_tools, mcp_tools)
 
     # ── Verdict ────────────────────────────────────────────────────────────────
-    verdict, hold_reason = compute_verdict(all_results, mcp_result, comparison, tool_consistency)
+    verdict, hold_reason = compute_verdict(
+        all_results, mcp_result, comparison, tool_consistency
+    )
 
     # Count checks
     approved_checks = sum(1 for r in all_results if r.verdict == "PASS")
@@ -515,14 +559,20 @@ def render_table(report: VerifyReport) -> str:
     lines.append(divider)
 
     # ── Layer table ──────────────────────────────────────────────────────────
-    header = f"  {'Layer':<12} {'Endpoint':<18} {'HTTP':>5}  {'Verdict':<8} {'Latency':>8}"
+    header = (
+        f"  {'Layer':<12} {'Endpoint':<18} {'HTTP':>5}  {'Verdict':<8} {'Latency':>8}"
+    )
     lines.append(header)
     lines.append(divider)
 
     for r in report.layers:
-        icon = {"PASS": "✅", "FAIL": "❌", "HOLD": "⚠️", "SKIP": "⊘", "VOID": "🛑"}.get(
-            r.verdict, "?"
-        )
+        icon = {
+            "PASS": "✅",
+            "FAIL": "❌",
+            "HOLD": "⚠️",
+            "SKIP": "⊘",
+            "VOID": "🛑",
+        }.get(r.verdict, "?")
         latency_str = f"{r.latency_ms:>6.1f}ms" if r.latency_ms else "   N/A  "
         http_str = str(r.http_status) if r.http_status else "ERR"
         err_str = f"  ⚠ {r.error}" if r.error else ""
@@ -537,7 +587,15 @@ def render_table(report: VerifyReport) -> str:
     comp = report.comparison
     lines.append("\nPARITY CHECK — local vs public /status.json:")
     diffs_found = False
-    for attr in ["version", "commit", "status", "tools_count", "arifos", "geox", "wealth"]:
+    for attr in [
+        "version",
+        "commit",
+        "status",
+        "tools_count",
+        "arifos",
+        "geox",
+        "wealth",
+    ]:
         val = getattr(comp, attr)
         if val:
             lines.append(f"  ⚠  {attr:<14}: {val}")
@@ -553,7 +611,9 @@ def render_table(report: VerifyReport) -> str:
         ("initialize", mcp.initialize, -1, mcp.initialize_error),
         ("tools/list", mcp.tools_list, mcp.tools_count, mcp.tools_list_error),
     ]:
-        icon = {"PASS": "✅", "PARTIAL": "⚠️", "SKIP": "⊘", "FAIL": "❌"}.get(verdict, "?")
+        icon = {"PASS": "✅", "PARTIAL": "⚠️", "SKIP": "⊘", "FAIL": "❌"}.get(
+            verdict, "?"
+        )
         count_str = f" (tools={count})" if count >= 0 else ""
         err_str = f"  → {err}" if err else ""
         lines.append(f"  {icon} {label:<14}: {verdict}{count_str}{err_str}")
@@ -567,7 +627,9 @@ def render_table(report: VerifyReport) -> str:
     lines.append(f"  {tc_icon} tool_count: {tc_detail}")
 
     # ── Verdict ────────────────────────────────────────────────────────────────
-    verdict_icon = {"APPROVED": "✅", "HOLD": "⚠️", "VOID": "🛑"}.get(report.verdict, "?")
+    verdict_icon = {"APPROVED": "✅", "HOLD": "⚠️", "VOID": "🛑"}.get(
+        report.verdict, "?"
+    )
     total = len(report.layers) + 1  # layers + tool count
     passed = sum(1 for r in report.layers if r.verdict == "PASS")
     if tc_verdict == "PASS":

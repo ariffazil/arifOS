@@ -36,12 +36,18 @@ class TestThreatEngine:
     @pytest.mark.parametrize(
         "candidate,expected_threats",
         [
-            ("shutil.rmtree('/', ignore_errors=True)", {ThreatCategory.FILESYSTEM_DESTRUCTIVE}),
+            (
+                "shutil.rmtree('/', ignore_errors=True)",
+                {ThreatCategory.FILESYSTEM_DESTRUCTIVE},
+            ),
             (
                 "os.system('rm -rf /')",
                 {ThreatCategory.FILESYSTEM_DESTRUCTIVE},
             ),
-            ("docker system prune -a --volumes -f", {ThreatCategory.CONTAINER_DESTRUCTIVE}),
+            (
+                "docker system prune -a --volumes -f",
+                {ThreatCategory.CONTAINER_DESTRUCTIVE},
+            ),
             ("DROP TABLE users", {ThreatCategory.DATABASE_DESTRUCTIVE}),
             (
                 "'; DROP TABLE users; --",
@@ -56,7 +62,9 @@ class TestThreatEngine:
             ("", set()),
         ],
     )
-    def test_classify(self, candidate: str, expected_threats: set[ThreatCategory]) -> None:
+    def test_classify(
+        self, candidate: str, expected_threats: set[ThreatCategory]
+    ) -> None:
         ctx = ActionContext(tool_name="arif_judge_deliberate", candidate=candidate)
         assessment = ThreatEngine.classify(ctx)
         assert (

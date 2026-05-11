@@ -118,7 +118,10 @@ class Tool(ABC):
         pass
 
     async def run(
-        self, payload: dict, session_id: str | None = None, auth_context: dict | None = None
+        self,
+        payload: dict,
+        session_id: str | None = None,
+        auth_context: dict | None = None,
     ) -> RuntimeEnvelope:
         """
         Run the tool with full governance.

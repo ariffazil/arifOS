@@ -146,7 +146,10 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "query": {"type": "string", "description": "What to search, verify, or ingest"},
+                "query": {
+                    "type": "string",
+                    "description": "What to search, verify, or ingest",
+                },
                 "operation": {
                     "type": "string",
                     "enum": ["search", "ingest", "compass", "atlas", "time"],
@@ -180,7 +183,10 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "query": {"type": "string", "description": "Question or topic to reason about"},
+                "query": {
+                    "type": "string",
+                    "description": "Question or topic to reason about",
+                },
                 "mode": {
                     "type": "string",
                     "enum": ["reason", "reflect", "forge"],
@@ -290,7 +296,11 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
                     "description": "Memory operation",
                 },
                 "content": {"type": "string", "description": "Content to store"},
-                "k": {"type": "integer", "default": 5, "description": "Items to retrieve"},
+                "k": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Items to retrieve",
+                },
             }
         ),
         stage="555_MEMORY",
@@ -335,7 +345,10 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "candidate_action": {"type": "string", "description": "Action to evaluate"},
+                "candidate_action": {
+                    "type": "string",
+                    "description": "Action to evaluate",
+                },
                 "risk_tier": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "critical"],
@@ -366,9 +379,16 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         ),
         input_schema=_build_input_schema(
             properties={
-                "verdict": {"type": "string", "enum": ["SEAL", "PARTIAL", "VOID", "SABAR", "HOLD"]},
+                "verdict": {
+                    "type": "string",
+                    "enum": ["SEAL", "PARTIAL", "VOID", "SABAR", "HOLD"],
+                },
                 "evidence": {"type": "string", "description": "Supporting evidence"},
-                "mode": {"type": "string", "enum": ["seal", "verify"], "default": "seal"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["seal", "verify"],
+                    "default": "seal",
+                },
             }
         ),
         stage="999_VAULT",

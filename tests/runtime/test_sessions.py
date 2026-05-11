@@ -36,7 +36,10 @@ class TestSessionIdentityBinding:
 
     def test_bind_and_get_identity(self):
         """Test binding and retrieving session identity."""
-        from arifosmcp.runtime.sessions import bind_session_identity, get_session_identity
+        from arifosmcp.runtime.sessions import (
+            bind_session_identity,
+            get_session_identity,
+        )
 
         # Bind identity with explicit verified actor_id
         bind_session_identity(
@@ -116,7 +119,10 @@ class TestRuntimeContext:
         from arifosmcp.runtime.sessions import resolve_runtime_context
 
         context = resolve_runtime_context(
-            incoming_session_id=None, auth_context=None, actor_id=None, declared_name=None
+            incoming_session_id=None,
+            auth_context=None,
+            actor_id=None,
+            declared_name=None,
         )
 
         assert context["canonical_actor_id"] == "anonymous"
@@ -169,7 +175,10 @@ class TestSessionCounting:
 
         # Bind a new session
         bind_session_identity(
-            session_id="count-test-001", actor_id="test", authority_level="user", auth_context={}
+            session_id="count-test-001",
+            actor_id="test",
+            authority_level="user",
+            auth_context={},
         )
 
         # Count should increase

@@ -21,7 +21,9 @@ def allocation_rank(
 
     scored = [(c.get("score", 0), c) for c in candidates]
     scored.sort(key=lambda x: x[0], reverse=True)
-    ranked = [{"rank": i + 1, "candidate": c, "score": s} for i, (s, c) in enumerate(scored)]
+    ranked = [
+        {"rank": i + 1, "candidate": c, "score": s} for i, (s, c) in enumerate(scored)
+    ]
 
     return {
         "ranked": ranked,
@@ -70,7 +72,9 @@ def personal_decision_rank(
 
     scored = [(a.get("score", 0), a) for a in alternatives]
     scored.sort(key=lambda x: x[0], reverse=True)
-    ranked = [{"rank": i + 1, "alternative": a, "score": s} for i, (s, a) in enumerate(scored)]
+    ranked = [
+        {"rank": i + 1, "alternative": a, "score": s} for i, (s, a) in enumerate(scored)
+    ]
 
     return {"ranked": ranked}
 

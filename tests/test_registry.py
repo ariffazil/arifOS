@@ -97,7 +97,9 @@ class TestCatalog:
         """Model keys should follow provider/family/variant format."""
         for m in catalog["models"]:
             parts = m.split("/")
-            assert len(parts) == 3, f"Model key '{m}' should have 3 parts: provider/family/variant"
+            assert (
+                len(parts) == 3
+            ), f"Model key '{m}' should have 3 parts: provider/family/variant"
 
     def test_catalog_archetypes_are_strings(self, catalog):
         for soul in catalog["soul_archetypes"]:
@@ -150,7 +152,8 @@ class TestProviderSouls:
         assert len(list(SOULS_PATH.glob("*.json"))) > 0
 
     @pytest.mark.parametrize(
-        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+        "soul_file",
+        [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")],
     )
     def test_soul_required_fields(self, soul_file):
         data = load_json(soul_file)
@@ -158,7 +161,8 @@ class TestProviderSouls:
             assert field in data, f"{soul_file.name}: missing field '{field}'"
 
     @pytest.mark.parametrize(
-        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+        "soul_file",
+        [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")],
     )
     def test_soul_provider_key_no_underscore(self, soul_file):
         data = load_json(soul_file)
@@ -168,7 +172,8 @@ class TestProviderSouls:
         ), f"{soul_file.name}: provider_key '{provider_key}' must not contain underscore"
 
     @pytest.mark.parametrize(
-        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+        "soul_file",
+        [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")],
     )
     def test_soul_array_fields(self, soul_file):
         data = load_json(soul_file)
@@ -184,7 +189,8 @@ class TestProviderSouls:
                 ), f"{soul_file.name}: field '{field}' must be an array"
 
     @pytest.mark.parametrize(
-        "soul_file", [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")]
+        "soul_file",
+        [f for f in SOULS_PATH.glob("*.json") if not f.stem.startswith("wrong_")],
     )
     def test_soul_schema_validation(self, soul_file, soul_schema):
         jsonschema = pytest.importorskip("jsonschema")

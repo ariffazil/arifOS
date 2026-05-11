@@ -116,7 +116,8 @@ class ColdStorageManager:
     async def _create_tarball(self, source: Path, dest: Path):
         """Create compressed archive."""
         subprocess.run(
-            ["tar", "-czf", str(dest), "-C", str(source.parent), source.name], check=True
+            ["tar", "-czf", str(dest), "-C", str(source.parent), source.name],
+            check=True,
         )
 
     async def _gpg_encrypt(self, source: Path, dest: Path, recipients: list[str]):
@@ -151,7 +152,8 @@ class ColdStorageManager:
         if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
             gcs_bucket = os.getenv("VAULT_BACKUP_GCS_BUCKET", "arifos-vault-backups")
             subprocess.run(
-                ["gsutil", "cp", str(backup_path), f"gs://{gcs_bucket}/vault999/"], check=False
+                ["gsutil", "cp", str(backup_path), f"gs://{gcs_bucket}/vault999/"],
+                check=False,
             )
 
         # Backblaze B2 (independent provider)
@@ -181,7 +183,9 @@ class ColdStorageManager:
         5. Arif's personal possession (physical)
         """
         if not HAS_SSS:
-            raise RuntimeError("secretsharing library required for Shamir's Secret Sharing")
+            raise RuntimeError(
+                "secretsharing library required for Shamir's Secret Sharing"
+            )
 
         locations = [
             "bank_vault_primary",
@@ -192,11 +196,17 @@ class ColdStorageManager:
         ]
 
         # Split into 5 shares, need 3 to reconstruct
-        shares = secretsharing.SecretSharer.split_secret(key_material, threshold=3, num_shares=5)
+        shares = secretsharing.SecretSharer.split_secret(
+            key_material, threshold=3, num_shares=5
+        )
 
         return [
             ShamirShare(
-                share_id=i + 1, threshold=3, total_shares=5, share_data=share, location=locations[i]
+                share_id=i + 1,
+                threshold=3,
+                total_shares=5,
+                share_data=share,
+                location=locations[i],
             )
             for i, share in enumerate(shares)
         ]
@@ -224,7 +234,8 @@ class ColdStorageManager:
             # 1. Decrypt
             decrypted_path = restore_dir / "restored_vault.tar.gz"
             subprocess.run(
-                ["gpg", "--decrypt", "--output", str(decrypted_path), str(backup_path)], check=True
+                ["gpg", "--decrypt", "--output", str(decrypted_path), str(backup_path)],
+                check=True,
             )
 
             # 2. Verify integrity
@@ -232,7 +243,9 @@ class ColdStorageManager:
                 hashlib.sha256(f.read()).hexdigest()
 
             # 3. Extract
-            subprocess.run(["tar", "-xzf", str(decrypted_path), "-C", str(restore_dir)], check=True)
+            subprocess.run(
+                ["tar", "-xzf", str(decrypted_path), "-C", str(restore_dir)], check=True
+            )
 
             return True
 

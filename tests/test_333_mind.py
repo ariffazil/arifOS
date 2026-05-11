@@ -20,7 +20,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import arifos.tools._333_mind as _mind_mod
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPERS — valid bind artifact
 # ─────────────────────────────────────────────────────────────────────────────
@@ -317,7 +316,9 @@ class TestMultimodalHelpers:
 
     @pytest.mark.asyncio
     async def test_understand_image_returns_structure(self):
-        result = await _mind_mod._understand_image("http://example.com/img.png", "what is this?")
+        result = await _mind_mod._understand_image(
+            "http://example.com/img.png", "what is this?"
+        )
         assert result["capability"] == "image_understanding"
         assert result["image_url"] == "http://example.com/img.png"
         assert result["question"] == "what is this?"

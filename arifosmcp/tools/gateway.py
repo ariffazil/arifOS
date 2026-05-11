@@ -23,15 +23,19 @@ def arif_gateway_connect(
         "arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_gateway_connect", floor_check["reason"], floor_check["failed_floors"])
+        return _hold(
+            "arif_gateway_connect", floor_check["reason"], floor_check["failed_floors"]
+        )
 
     if mode == "route":
         return _ok(
-            "arif_gateway_connect", {"target": target_agent, "protocol": "A2A", "status": "routed"}
+            "arif_gateway_connect",
+            {"target": target_agent, "protocol": "A2A", "status": "routed"},
         )
     if mode == "discover":
         return _ok(
-            "arif_gateway_connect", {"agents": ["kimi", "claude", "gemini"], "protocol": "A2A"}
+            "arif_gateway_connect",
+            {"agents": ["kimi", "claude", "gemini"], "protocol": "A2A"},
         )
     if mode == "handshake":
         return _ok(

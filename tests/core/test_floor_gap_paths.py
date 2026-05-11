@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from core.shared.floors import F3_QuadWitness, F5_Peace2, F6_Empathy, F8_Genius, F10_Ontology
+from core.shared.floors import (
+    F3_QuadWitness,
+    F5_Peace2,
+    F6_Empathy,
+    F8_Genius,
+    F10_Ontology,
+)
 
 
 def test_f3_quad_witness_passes_for_grounded_read_path() -> None:
@@ -73,21 +79,27 @@ def test_f6_empathy_fails_social_harm_case() -> None:
 
 
 def test_f8_genius_passes_for_strong_governed_dials() -> None:
-    result = F8_Genius().check({"akal": 0.98, "present": 0.98, "exploration": 0.98, "energy": 0.98})
+    result = F8_Genius().check(
+        {"akal": 0.98, "present": 0.98, "exploration": 0.98, "energy": 0.98}
+    )
 
     assert result.passed is True
     assert result.score >= 0.8
 
 
 def test_f8_genius_fails_for_weak_dials() -> None:
-    result = F8_Genius().check({"akal": 0.5, "present": 0.5, "exploration": 0.5, "energy": 0.5})
+    result = F8_Genius().check(
+        {"akal": 0.5, "present": 0.5, "exploration": 0.5, "energy": 0.5}
+    )
 
     assert result.passed is False
     assert result.score < 0.8
 
 
 def test_f10_ontology_passes_symbolic_language() -> None:
-    result = F10_Ontology().check({"response": "Use entropy symbolically to describe confusion."})
+    result = F10_Ontology().check(
+        {"response": "Use entropy symbolically to describe confusion."}
+    )
 
     assert result.passed is True
 

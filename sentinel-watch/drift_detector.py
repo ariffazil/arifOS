@@ -68,7 +68,8 @@ class DriftDetector:
         """Compute hours from verdict to ACK for an entry. None if not acked."""
         verdict_ts = entry.get("ts")
         ack_rec = next(
-            (r for r in self.ack_records if r["chain_hash"] == entry.get("chain_hash")), None
+            (r for r in self.ack_records if r["chain_hash"] == entry.get("chain_hash")),
+            None,
         )
         if not ack_rec:
             return None
@@ -140,15 +141,17 @@ class DriftDetector:
             if e.get("verdict") in ("HOLD_888", "VOID")
             or e.get("event_type") == "888_JUDGE_EXECUTION"
         )
-        days_span = (time.time() - min((e["ts"] for e in recent), default=time.time())) / 86400 or 1
+        days_span = (
+            time.time() - min((e["ts"] for e in recent), default=time.time())
+        ) / 86400 or 1
         density_per_day = anomaly_count / days_span
 
-        hard_ack_rate = len([l for l in hard_latencies if l is not None and l <= 4]) / max(
-            len(hard_entries), 1
-        )
-        soft_ack_rate = len([l for l in soft_latencies if l is not None and l <= 24]) / max(
-            len(soft_entries), 1
-        )
+        hard_ack_rate = len(
+            [l for l in hard_latencies if l is not None and l <= 4]
+        ) / max(len(hard_entries), 1)
+        soft_ack_rate = len(
+            [l for l in soft_latencies if l is not None and l <= 24]
+        ) / max(len(soft_entries), 1)
 
         return {
             "hard_latency_hours": round(median(hard_latencies) or 0, 2),
@@ -176,18 +179,18 @@ class DriftDetector:
 
         # Latency drift
         if current["hard_latency_hours"] and baseline.hard_median_latency_hours:
-            delta = (current["hard_latency_hours"] - baseline.hard_median_latency_hours) / max(
-                baseline.hard_median_latency_hours, 0.01
-            )
+            delta = (
+                current["hard_latency_hours"] - baseline.hard_median_latency_hours
+            ) / max(baseline.hard_median_latency_hours, 0.01)
             if delta > DRIFT_THRESHOLD:
                 flags.append(
                     f"HARD_LATENCY_DRIFT:+{round(delta*100,1)}% (baseline={baseline.hard_median_latency_hours}h, current={current['hard_latency_hours']}h)"
                 )
 
         if current["soft_latency_hours"] and baseline.soft_median_latency_hours:
-            delta = (current["soft_latency_hours"] - baseline.soft_median_latency_hours) / max(
-                baseline.soft_median_latency_hours, 0.01
-            )
+            delta = (
+                current["soft_latency_hours"] - baseline.soft_median_latency_hours
+            ) / max(baseline.soft_median_latency_hours, 0.01)
             if delta > DRIFT_THRESHOLD:
                 flags.append(f"SOFT_LATENCY_DRIFT:+{round(delta*100,1)}%")
 
@@ -209,7 +212,9 @@ class DriftDetector:
 
         return flags
 
-    def _flood_attack_signal(self, hard_entries: list, soft_entries: list, density: float) -> bool:
+    def _flood_attack_signal(
+        self, hard_entries: list, soft_entries: list, density: float
+    ) -> bool:
         """Soft-tier spike + hard-tier latency rise = flooding attack pattern."""
         recent = self._get_recent_entries(days=1)
         if not recent:
@@ -218,7 +223,10 @@ class DriftDetector:
             1
             for e in recent
             if e.get("payload", {}).get("floors_triggered")
-            and not (set(e["payload"]["floors_triggered"]) & {"F13", "F1", "F2", "F6", "F9", "F10"})
+            and not (
+                set(e["payload"]["floors_triggered"])
+                & {"F13", "F1", "F2", "F6", "F9", "F10"}
+            )
         )
         hard_today = sum(
             1

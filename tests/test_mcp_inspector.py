@@ -71,7 +71,10 @@ def run_mcp_test():
     print("\n2️⃣ Testing arif_mind_reason (missing query)...")
     resp = send(
         "tools/call",
-        {"name": "arif_mind_reason", "arguments": {"mode": "reason", "session_id": "test"}},
+        {
+            "name": "arif_mind_reason",
+            "arguments": {"mode": "reason", "session_id": "test"},
+        },
         2,
     )
     if resp and "result" in resp:
@@ -114,7 +117,10 @@ def run_mcp_test():
     print("\n4️⃣ Testing arif_ops_measure (vitals mode)...")
     resp = send(
         "tools/call",
-        {"name": "arif_ops_measure", "arguments": {"mode": "vitals", "session_id": "test"}},
+        {
+            "name": "arif_ops_measure",
+            "arguments": {"mode": "vitals", "session_id": "test"},
+        },
         4,
     )
     if resp and "result" in resp:
@@ -124,8 +130,12 @@ def run_mcp_test():
             print(f"   📝 Verdict: {content.get('verdict')}")
             results.append(("arif_ops_measure vitals", True))
         else:
-            print(f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}")
-            results.append(("arif_ops_measure vitals", True))  # Still counts as hardening works
+            print(
+                f"   ⚠️ Vitals failed: {content.get('errors', [{}])[0].get('message', 'unknown')}"
+            )
+            results.append(
+                ("arif_ops_measure vitals", True)
+            )  # Still counts as hardening works
     else:
         print("   ❌ No response")
         results.append(("arif_ops_measure vitals", False))

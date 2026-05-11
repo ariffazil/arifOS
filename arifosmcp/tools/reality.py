@@ -17,7 +17,11 @@ class RealityBridge:
         self.execution_log = []
 
     def execute(
-        self, tool: str, command: str, params: dict[str, Any], checkpoint_id: str | None = None
+        self,
+        tool: str,
+        command: str,
+        params: dict[str, Any],
+        checkpoint_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Execute real system command with F1-F13 governance.
@@ -62,7 +66,11 @@ class RealityBridge:
             elif tool == "shell":
                 result = self._exec_shell(command, params)
             else:
-                return {"status": "VOID", "success": False, "error": f"Unknown tool: {tool}"}
+                return {
+                    "status": "VOID",
+                    "success": False,
+                    "error": f"Unknown tool: {tool}",
+                }
         except Exception as e:
             return {"status": "VOID", "success": False, "error": str(e)}
 
@@ -148,9 +156,17 @@ class RealityBridge:
             elif command == "exists":
                 path = params.get("path", "")
                 exists = os.path.exists(path)
-                return {"stdout": json.dumps({"exists": exists}), "stderr": "", "returncode": 0}
+                return {
+                    "stdout": json.dumps({"exists": exists}),
+                    "stderr": "",
+                    "returncode": 0,
+                }
             else:
-                return {"stdout": "", "stderr": f"Unknown fs command: {command}", "returncode": 1}
+                return {
+                    "stdout": "",
+                    "stderr": f"Unknown fs command: {command}",
+                    "returncode": 1,
+                }
         except Exception as e:
             return {"stdout": "", "stderr": str(e), "returncode": 1}
 
@@ -172,9 +188,15 @@ class RealityBridge:
     def _exec_shell(self, command: str, params: dict) -> dict[str, Any]:
         """Execute shell command with F12 protection."""
         if self._is_dangerous_shell(command):
-            return {"stdout": "", "stderr": "F12: Dangerous shell command blocked", "returncode": 1}
+            return {
+                "stdout": "",
+                "stderr": "F12: Dangerous shell command blocked",
+                "returncode": 1,
+            }
         try:
-            result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(
+                command, shell=True, capture_output=True, text=True, timeout=30
+            )
             return {
                 "stdout": result.stdout,
                 "stderr": result.stderr,

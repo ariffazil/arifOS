@@ -68,10 +68,14 @@ class VersionGate(Transform):
 
     async def list_tools(self, tools: Sequence[Tool]) -> Sequence[Tool]:
         filtered = [t for t in tools if self._allowed(t)]
-        logger.debug(f"[VersionGate] {self.actor_id}: {len(filtered)}/{len(tools)} tools in gate")
+        logger.debug(
+            f"[VersionGate] {self.actor_id}: {len(filtered)}/{len(tools)} tools in gate"
+        )
         return filtered
 
-    async def get_tool(self, name: str, call_next: Any, *, version: Any = None) -> Tool | None:
+    async def get_tool(
+        self, name: str, call_next: Any, *, version: Any = None
+    ) -> Tool | None:
         tool = await call_next(name, version=version)
         if tool is None:
             return None

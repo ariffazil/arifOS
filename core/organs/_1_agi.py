@@ -17,7 +17,13 @@ import logging
 from typing import Any, Literal
 
 from core.shared.atlas import Phi
-from core.shared.types import AgiOutput, EurekaInsight, ReasonMindAnswer, ReasonMindStep, Verdict
+from core.shared.types import (
+    AgiOutput,
+    EurekaInsight,
+    ReasonMindAnswer,
+    ReasonMindStep,
+    Verdict,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +51,9 @@ def _build_reasoning_steps(query: str, reason_mode: str) -> list[ReasonMindStep]
             phase="222_analyze",
             thought="Comparing implications and testing assumptions.",
             uncertainty=(
-                "Limited by current context window." if reason_mode == "strict_truth" else None
+                "Limited by current context window."
+                if reason_mode == "strict_truth"
+                else None
             ),
         ),
         ReasonMindStep(
@@ -125,7 +133,9 @@ async def agi(
     def _f12_scrub(text: str, phase: str) -> str:
         """F12: scan LLM output before injecting into next phase prompt."""
         if _f12(text) >= 0.7:
-            logger.warning("[%s] F12 injection pattern in %s output — excised", session_id, phase)
+            logger.warning(
+                "[%s] F12 injection pattern in %s output — excised", session_id, phase
+            )
             return f"[F12_EXCISED:{phase}]"
         return text
 
@@ -151,12 +161,16 @@ async def agi(
             status="SABAR",
             stage="111",
             answer=ReasonMindAnswer(
-                summary="Reasoning failed at 111", confidence=0.0, verdict="needs_evidence"
+                summary="Reasoning failed at 111",
+                confidence=0.0,
+                verdict="needs_evidence",
             ),
             error=f"LLM_UNREACHABLE_PHASE_111: {search_env.payload.get('response', '')}",
         )
     search_text = _f12_scrub(search_env.payload.get("response", ""), "111")
-    usage_111 = search_env.payload.get("usage", {}).get("completion_tokens", len(search_text) // 4)
+    usage_111 = search_env.payload.get("usage", {}).get(
+        "completion_tokens", len(search_text) // 4
+    )
     phase_usage["111_search"] = usage_111
     actual_total += usage_111
 
@@ -235,7 +249,9 @@ async def agi(
         stage="333",
         steps=steps,
         eureka=eureka,
-        answer=ReasonMindAnswer(summary=synthesis_text, confidence=0.99, verdict="ready"),
+        answer=ReasonMindAnswer(
+            summary=synthesis_text, confidence=0.99, verdict="ready"
+        ),
     )
 
 

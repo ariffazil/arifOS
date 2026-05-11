@@ -21,7 +21,6 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-
 # ============================================================================
 # CANONICAL RISK LEVELS — Shared across all domains
 # ============================================================================
@@ -109,15 +108,21 @@ class ConstitutionalOntologyPayload(BaseModel):
 
     session_id: str = Field(..., description="Unique session identifier (UUIDv4)")
 
-    trace_id: str = Field(..., description="Unique trace for this specific operation (UUIDv4)")
+    trace_id: str = Field(
+        ..., description="Unique trace for this specific operation (UUIDv4)"
+    )
 
     state: RuntimeState = Field(..., description="Current runtime state")
 
-    domain: str = Field(..., description="Source domain: WELL | GEOX | WEALTH | ARIFOS | UNKNOWN")
+    domain: str = Field(
+        ..., description="Source domain: WELL | GEOX | WEALTH | ARIFOS | UNKNOWN"
+    )
 
     # === SEMANTIC PRIMITIVES ===
 
-    risk: RiskLevel = Field(default=RiskLevel.UNKNOWN, description="Universal risk classification")
+    risk: RiskLevel = Field(
+        default=RiskLevel.UNKNOWN, description="Universal risk classification"
+    )
 
     confidence: ConfidenceLevel = Field(
         default=ConfidenceLevel.UNKNOWN, description="Confidence semantics"
@@ -130,10 +135,13 @@ class ConstitutionalOntologyPayload(BaseModel):
     # === EVIDENCE CHAIN ===
 
     evidence_chain: list[str] = Field(
-        default_factory=list, description="List of evidence hashes supporting this output"
+        default_factory=list,
+        description="List of evidence hashes supporting this output",
     )
 
-    sources: list[str] = Field(default_factory=list, description="Source URIs or references")
+    sources: list[str] = Field(
+        default_factory=list, description="Source URIs or references"
+    )
 
     # === METRIC PRIMITIVES ===
 
@@ -142,14 +150,21 @@ class ConstitutionalOntologyPayload(BaseModel):
     )
 
     stability: float = Field(
-        default=1.0, ge=0.0, le=1.0, description="Stability score (1.0 = perfectly stable)"
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Stability score (1.0 = perfectly stable)",
     )
 
     # === FLOOR COMPLIANCE ===
 
-    floors_passed: list[str] = Field(default_factory=list, description="F1-F13 floors that passed")
+    floors_passed: list[str] = Field(
+        default_factory=list, description="F1-F13 floors that passed"
+    )
 
-    floors_failed: list[str] = Field(default_factory=list, description="F1-F13 floors that failed")
+    floors_failed: list[str] = Field(
+        default_factory=list, description="F1-F13 floors that failed"
+    )
 
     floors_pending: list[str] = Field(
         default_factory=list, description="F1-F13 floors awaiting evaluation"
@@ -157,13 +172,19 @@ class ConstitutionalOntologyPayload(BaseModel):
 
     # === IDENTITY & AUTHORITY ===
 
-    actor_id: str = Field(default="anonymous", description="Identity of actor making the request")
+    actor_id: str = Field(
+        default="anonymous", description="Identity of actor making the request"
+    )
 
-    authority_level: str = Field(default="anonymous", description="Authority classification")
+    authority_level: str = Field(
+        default="anonymous", description="Authority classification"
+    )
 
     # === OUTPUT CONTRACT ===
 
-    observation: str = Field(default="", description="What was observed (OBSERVE state)")
+    observation: str = Field(
+        default="", description="What was observed (OBSERVE state)"
+    )
 
     analysis: str = Field(default="", description="Analysis result (ANALYZE state)")
 
@@ -192,14 +213,25 @@ class ConstitutionalOntologyPayload(BaseModel):
         default=None, description="Parent trace for lineage tracking"
     )
 
-    kernel_epoch: str = Field(default="v2026.05", description="Kernel version for compatibility")
+    kernel_epoch: str = Field(
+        default="v2026.05", description="Kernel version for compatibility"
+    )
 
     # === VALIDATORS ===
 
     @field_validator("domain")
     @classmethod
     def domain_must_be_valid(cls, v: str) -> str:
-        valid = {"WELL", "GEOX", "WEALTH", "ARIFOS", "AAA", "HERMES", "A-FORGE", "UNKNOWN"}
+        valid = {
+            "WELL",
+            "GEOX",
+            "WEALTH",
+            "ARIFOS",
+            "AAA",
+            "HERMES",
+            "A-FORGE",
+            "UNKNOWN",
+        }
         if v.upper() not in valid:
             raise ValueError(f"Invalid domain: {v}. Must be one of {valid}")
         return v.upper()
@@ -207,7 +239,16 @@ class ConstitutionalOntologyPayload(BaseModel):
     @field_validator("verdict")
     @classmethod
     def verdict_must_be_constitutional(cls, v: str) -> str:
-        valid = {"SEAL", "PROVISIONAL", "PARTIAL", "SABAR", "HOLD", "HOLD_888", "VOID", "PAUSED"}
+        valid = {
+            "SEAL",
+            "PROVISIONAL",
+            "PARTIAL",
+            "SABAR",
+            "HOLD",
+            "HOLD_888",
+            "VOID",
+            "PAUSED",
+        }
         if v.upper() not in valid:
             raise ValueError(f"Invalid verdict: {v}. Must be one of {valid}")
         return v.upper()
@@ -223,7 +264,11 @@ class ConstitutionalOntologyPayload(BaseModel):
 
     def is_terminal(self) -> bool:
         """Check if this payload represents a terminal state."""
-        return self.state in {RuntimeState.SEAL, RuntimeState.VOID, RuntimeState.LOCKDOWN}
+        return self.state in {
+            RuntimeState.SEAL,
+            RuntimeState.VOID,
+            RuntimeState.LOCKDOWN,
+        }
 
     def requires_approval(self) -> bool:
         """Check if this payload requires human approval."""
@@ -275,7 +320,9 @@ class OntologyValidator:
     def __init__(self, strict: bool = True):
         self.strict = strict
 
-    def validate(self, payload: dict | ConstitutionalOntologyPayload) -> "ValidationResult":
+    def validate(
+        self, payload: dict | ConstitutionalOntologyPayload
+    ) -> "ValidationResult":
         """
         Validate a payload against the ontology.
 
@@ -287,7 +334,9 @@ class OntologyValidator:
                 validated = ConstitutionalOntologyPayload(**payload)
             except Exception as e:
                 return ValidationResult(
-                    valid=False, error=f"Ontology mapping failed: {str(e)}", payload=None
+                    valid=False,
+                    error=f"Ontology mapping failed: {str(e)}",
+                    payload=None,
                 )
         else:
             validated = payload
@@ -295,7 +344,9 @@ class OntologyValidator:
         # Check required fields
         if not validated.session_id:
             return ValidationResult(
-                valid=False, error="Missing required field: session_id", payload=validated
+                valid=False,
+                error="Missing required field: session_id",
+                payload=validated,
             )
 
         if not validated.trace_id:
@@ -308,7 +359,9 @@ class OntologyValidator:
             RuntimeState(validated.state.value)
         except ValueError:
             return ValidationResult(
-                valid=False, error=f"Invalid runtime state: {validated.state}", payload=validated
+                valid=False,
+                error=f"Invalid runtime state: {validated.state}",
+                payload=validated,
             )
 
         # Check if kernel can process

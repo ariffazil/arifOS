@@ -52,7 +52,10 @@ def arif_session_init(
         )
         return SessionManifest(
             status="OK",
-            result={"session": sess, "model_governance_card": sess.get("model_governance_card")},
+            result={
+                "session": sess,
+                "model_governance_card": sess.get("model_governance_card"),
+            },
             doctrine=ARIF_DOCTRINE,
         )
 

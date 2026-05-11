@@ -32,16 +32,26 @@ class SurfaceCheck:
 
 
 FULL_SURFACES: tuple[SurfaceCheck, ...] = (
-    SurfaceCheck("runtime.handlers", ROOT / "arifosmcp" / "runtime" / "tools.py", "full"),
-    SurfaceCheck("runtime.stdio", ROOT / "arifosmcp" / "runtime" / "__main__.py", "full"),
+    SurfaceCheck(
+        "runtime.handlers", ROOT / "arifosmcp" / "runtime" / "tools.py", "full"
+    ),
+    SurfaceCheck(
+        "runtime.stdio", ROOT / "arifosmcp" / "runtime" / "__main__.py", "full"
+    ),
     SurfaceCheck(
         "runtime.hardened_dispatch",
         ROOT / "arifosmcp" / "runtime" / "tools_hardened_dispatch.py",
         "full",
     ),
-    SurfaceCheck("transport.resources", ROOT / "arifosmcp" / "runtime" / "resources.py", "full"),
-    SurfaceCheck("transport.registry_json", ROOT / "arifosmcp" / "tool_registry.json", "full"),
-    SurfaceCheck("wiki.mcp_inventory", ROOT / "wiki" / "pages" / "MCP_Tools.md", "full"),
+    SurfaceCheck(
+        "transport.resources", ROOT / "arifosmcp" / "runtime" / "resources.py", "full"
+    ),
+    SurfaceCheck(
+        "transport.registry_json", ROOT / "arifosmcp" / "tool_registry.json", "full"
+    ),
+    SurfaceCheck(
+        "wiki.mcp_inventory", ROOT / "wiki" / "pages" / "MCP_Tools.md", "full"
+    ),
     SurfaceCheck(
         "wiki.surface_architecture",
         ROOT / "wiki" / "pages" / "Tool_Surface_Architecture.md",
@@ -198,7 +208,9 @@ def main() -> int:
     for path in sorted(approved):
         print(f"  - {path}")
     for path in AUDITED_CODE_SURFACES:
-        dotted = sorted(token for token in _extract_tokens(path) if token in dotted_alias_set)
+        dotted = sorted(
+            token for token in _extract_tokens(path) if token in dotted_alias_set
+        )
         if not dotted:
             continue
         rel = _format_path(path)
@@ -219,7 +231,9 @@ def main() -> int:
     for path in AUDITED_CODE_SURFACES:
         text = _read_text(path)
         hits = sorted(
-            alias for alias in legacy_aliases if re.search(rf"\b{re.escape(alias)}\b", text)
+            alias
+            for alias in legacy_aliases
+            if re.search(rf"\b{re.escape(alias)}\b", text)
         )
         if hits:
             print(f"* {_format_path(path)} -> {hits}")

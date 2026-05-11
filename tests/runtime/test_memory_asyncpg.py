@@ -36,7 +36,9 @@ class TestMemoryOrganAsyncpg:
         # Must not be a HOLD with ImportError as the reason
         if result.get("status") == "HOLD":
             reason = str(result.get("meta", {}).get("reason", ""))
-            assert "ImportError" not in reason, f"Memory returned ImportError HOLD: {reason}"
+            assert (
+                "ImportError" not in reason
+            ), f"Memory returned ImportError HOLD: {reason}"
             assert "No module named 'asyncpg'" not in reason
 
     def test_memory_recall_returns_nine_signal(self):
@@ -48,7 +50,9 @@ class TestMemoryOrganAsyncpg:
         )
 
         nine = result.get("nine_signal", {})
-        assert "overall" in nine, "nine_signal block missing from memory recall response"
+        assert (
+            "overall" in nine
+        ), "nine_signal block missing from memory recall response"
         assert nine["overall"] in (
             "SELAMAT",
             "SABAR",
@@ -58,14 +62,18 @@ class TestMemoryOrganAsyncpg:
 
     def test_memory_engine_imports_without_error(self):
         """MemoryEngine class must be importable (prevents silent breakage)."""
-        pytest.importorskip("asyncpg", reason="asyncpg required for MemoryEngine import")
+        pytest.importorskip(
+            "asyncpg", reason="asyncpg required for MemoryEngine import"
+        )
         from arifosmcp.memory_engine import MemoryEngine
 
         assert callable(MemoryEngine)
 
     def test_memory_engine_can_be_instantiated_with_env_urls(self):
         """MemoryEngine can be initialized when DATABASE_URL and QDRANT_URL are set."""
-        pytest.importorskip("asyncpg", reason="asyncpg required for MemoryEngine instantiation")
+        pytest.importorskip(
+            "asyncpg", reason="asyncpg required for MemoryEngine instantiation"
+        )
         import os
 
         os.environ.setdefault(

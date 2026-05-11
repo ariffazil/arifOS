@@ -12,7 +12,6 @@ import pytest
 
 from arifosmcp.runtime.context_witness import arifos_context_witness
 
-
 REQUIRED_TOP_LEVEL_FIELDS = {
     "status",
     "meaning",

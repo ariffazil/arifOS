@@ -10,7 +10,6 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-
 ALL_ZERO = "0" * 40
 SAFETY_TEST_PATTERNS = [
     re.compile(r"^tests/.+", re.IGNORECASE),
@@ -150,7 +149,9 @@ def is_safety_test(path: str) -> bool:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Severity-based repo guard for pre-push")
+    parser = argparse.ArgumentParser(
+        description="Severity-based repo guard for pre-push"
+    )
     parser.add_argument("--remote-name", default="origin")
     parser.add_argument("--remote-url", default="")
     args = parser.parse_args()
@@ -184,7 +185,9 @@ def main() -> int:
     commit_bodies = read_commit_bodies(commits)
 
     if pushes_to_main:
-        findings.append(Finding("WARN", "Direct push to main detected; PR flow is preferred."))
+        findings.append(
+            Finding("WARN", "Direct push to main detected; PR flow is preferred.")
+        )
         for idx, body in enumerate(commit_bodies):
             declared_repo = declared_repo_from_body(body)
             if not declared_repo:
@@ -221,20 +224,26 @@ def main() -> int:
         findings.append(
             Finding(
                 "BLOCK",
-                "Deletion of safety-critical tests detected: " + ", ".join(deleted_safety),
+                "Deletion of safety-critical tests detected: "
+                + ", ".join(deleted_safety),
             )
         )
 
     bad_json = validate_changed_json(changed_paths)
     if bad_json:
         findings.append(
-            Finding("BLOCK", "Malformed governance JSON detected: " + ", ".join(bad_json))
+            Finding(
+                "BLOCK", "Malformed governance JSON detected: " + ", ".join(bad_json)
+            )
         )
 
     secret_hits = scan_for_secrets(changed_paths)
     if secret_hits:
         findings.append(
-            Finding("BLOCK", "Potential secret patterns detected in: " + ", ".join(secret_hits))
+            Finding(
+                "BLOCK",
+                "Potential secret patterns detected in: " + ", ".join(secret_hits),
+            )
         )
 
     if not findings:

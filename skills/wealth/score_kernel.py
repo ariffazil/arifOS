@@ -147,7 +147,9 @@ def wealth_score_kernel(
     r = max(0.0, min(1.0, reward_score if reward_score is not None else 0.5))
     risk = max(0.0, min(1.0, risk_score if risk_score is not None else 0.5))
     flags = floor_flags or []
-    svs = max(0.0, min(1.0, verifiability_score if verifiability_score is not None else 1.0))
+    svs = max(
+        0.0, min(1.0, verifiability_score if verifiability_score is not None else 1.0)
+    )
 
     # ── Derive audit entropy penalty from Δm ──────────────────────────────────
     entropy_penalty = min(1.0, delta_m)

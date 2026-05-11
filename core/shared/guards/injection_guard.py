@@ -255,7 +255,9 @@ class InjectionGuard:
 
         return normalized.lower()
 
-    def scan_input(self, user_input: str, normalize: bool = True) -> InjectionGuardResult:
+    def scan_input(
+        self, user_input: str, normalize: bool = True
+    ) -> InjectionGuardResult:
         """
         Scan user input for injection patterns.
 
@@ -353,7 +355,9 @@ class InjectionGuard:
         return result.injection_score
 
 
-def scan_for_injection(user_input: str, threshold: float = 0.85) -> InjectionGuardResult:
+def scan_for_injection(
+    user_input: str, threshold: float = 0.85
+) -> InjectionGuardResult:
     """
     Convenience function to scan input with default settings.
 

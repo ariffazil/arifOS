@@ -31,11 +31,17 @@ class TestKernelPrimitives(unittest.TestCase):
         self.assertIn("Reflection", self.pattern_registry.list_patterns())
 
         # Test selection
-        context = {"available_tools": ["search"], "query": "Find the capital of France."}
+        context = {
+            "available_tools": ["search"],
+            "query": "Find the capital of France.",
+        }
         selected = self.pattern_selector.select(context)
         self.assertEqual(selected, "ReAct")
 
-        context = {"query": "Check this answer for errors.", "requires_verification": True}
+        context = {
+            "query": "Check this answer for errors.",
+            "requires_verification": True,
+        }
         selected = self.pattern_selector.select(context)
         self.assertEqual(selected, "Reflection")
 
@@ -68,11 +74,16 @@ class TestKernelPrimitives(unittest.TestCase):
             "name": "calculate",
             "parameters": {
                 "type": "object",
-                "properties": {"expression": {"type": "string"}, "precision": {"type": "integer"}},
+                "properties": {
+                    "expression": {"type": "string"},
+                    "precision": {"type": "integer"},
+                },
                 "required": ["expression"],
             },
         }
-        self.tool_registry.register_tool("calculate", "Evaluate math expression", schema)
+        self.tool_registry.register_tool(
+            "calculate", "Evaluate math expression", schema
+        )
 
         # Valid call
         is_valid = self.tool_registry.validate_call("calculate", {"expression": "2+2"})

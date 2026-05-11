@@ -23,7 +23,10 @@ class TestRealityGroundingEngines:
 
     def test_consensus_arbitrator_arbitrate(self):
         """Test ConsensusArbitrator arbitrate method"""
-        from arifosmcp.intelligence.tools.reality_grounding import ConsensusArbitrator, SearchResult
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            ConsensusArbitrator,
+            SearchResult,
+        )
 
         ca = ConsensusArbitrator(asean_sites=[".my", ".sg", ".id"])
 
@@ -47,7 +50,9 @@ class TestRealityGroundingEngines:
 
     def test_reality_grounding_result_with_empty(self):
         """Test RealityGroundingResult with empty results"""
-        from arifosmcp.intelligence.tools.reality_grounding import RealityGroundingResult
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            RealityGroundingResult,
+        )
 
         result = RealityGroundingResult(
             status="no_results",
@@ -153,7 +158,10 @@ class TestRealityDossierExtended:
         from arifosmcp.runtime.reality_dossier import Witness
 
         witness = Witness(
-            source="earth", confidence=0.85, weight=1.2, notes="Evidence from web search"
+            source="earth",
+            confidence=0.85,
+            weight=1.2,
+            notes="Evidence from web search",
         )
 
         assert witness.notes == "Evidence from web search"
@@ -206,7 +214,9 @@ class TestRealityDossierExtended:
         """Test DossierProvenance completeness score"""
         from arifosmcp.runtime.reality_dossier import DossierProvenance
 
-        prov = DossierProvenance(bundles_processed=10, atlas_nodes=25, completeness_score=0.85)
+        prov = DossierProvenance(
+            bundles_processed=10, atlas_nodes=25, completeness_score=0.85
+        )
 
         assert prov.completeness_score == 0.85
         assert prov.bundles_processed == 10
@@ -255,7 +265,10 @@ class TestSearchResultVariations:
 
     def test_search_result_with_uncertainty_brave(self):
         """Test SearchResult with Brave uncertainty"""
-        from arifosmcp.intelligence.tools.reality_grounding import SearchResult, UNCERTAINTY_BRAVE
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            SearchResult,
+            UNCERTAINTY_BRAVE,
+        )
 
         result = SearchResult(
             title="Brave Result",
@@ -300,7 +313,9 @@ class TestEngineConfigurations:
 
     def test_reality_grounding_cascade_with_engines(self):
         """Test RealityGroundingCascade with engines"""
-        from arifosmcp.intelligence.tools.reality_grounding import RealityGroundingCascade
+        from arifosmcp.intelligence.tools.reality_grounding import (
+            RealityGroundingCascade,
+        )
 
         cascade = RealityGroundingCascade()
         assert cascade is not None

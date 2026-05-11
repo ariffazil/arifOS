@@ -311,7 +311,8 @@ class BLSVaultSigner:
             aggregate_signature_hex=agg_sig.hex(),
             aggregate_pubkey_hex=agg_pk.hex(),
             individual_pubkeys_hex=[
-                bytes.fromhex(self._juror_keypairs[jid].public_key_hex).hex() for jid in juror_ids
+                bytes.fromhex(self._juror_keypairs[jid].public_key_hex).hex()
+                for jid in juror_ids
             ],
         )
 

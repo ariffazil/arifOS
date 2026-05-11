@@ -106,7 +106,9 @@ class SabarLoopController:
             if step_result.verdict == Verdict.HOLD:
                 logger.warning(f"888 HOLD triggered on Task {task.id}. Halting loop.")
                 status = "HALTED"
-                planner.update_task_status(plan.id, task.id, "FAILED", step_result.message)
+                planner.update_task_status(
+                    plan.id, task.id, "FAILED", step_result.message
+                )
                 break
 
             if step_result.verdict == Verdict.VOID:
@@ -142,7 +144,9 @@ class SabarLoopController:
 
             # 4. Success: Update Planner and Metrics
             if step_result.verdict == Verdict.SEAL:
-                planner.update_task_status(plan.id, task.id, "COMPLETED", step_result.receipt)
+                planner.update_task_status(
+                    plan.id, task.id, "COMPLETED", step_result.receipt
+                )
                 self.budget_remaining -= 1.0  # Simple cost model
 
                 # Check Entropy Trend (Sliding Window of 3)
@@ -221,7 +225,9 @@ class SabarLoopController:
 
             # 111-333: MIND (AGI Reasoning & Truth)
             agi_out = await _1_agi.agi(
-                query=task.description, session_id=session_id, constitutional_context=plan.goal
+                query=task.description,
+                session_id=session_id,
+                constitutional_context=plan.goal,
             )
 
             # 444-666: HEART (ASI Alignment & Empathy)
@@ -259,8 +265,16 @@ class SabarLoopController:
                 evidence=f"Loop Iteration {self.current_iteration} for Task {task.id}",
                 payload={
                     "task": task.description,
-                    "agi": agi_out.model_dump() if hasattr(agi_out, "model_dump") else str(agi_out),
-                    "asi": asi_out.model_dump() if hasattr(asi_out, "model_dump") else str(asi_out),
+                    "agi": (
+                        agi_out.model_dump()
+                        if hasattr(agi_out, "model_dump")
+                        else str(agi_out)
+                    ),
+                    "asi": (
+                        asi_out.model_dump()
+                        if hasattr(asi_out, "model_dump")
+                        else str(asi_out)
+                    ),
                     "apex": apex_out,
                 },
             )
@@ -275,7 +289,9 @@ class SabarLoopController:
         except Exception as e:
             logger.exception(f"Critical metabolic collapse in SabarLoop step: {e}")
             return LoopStepResult(
-                task_id=task.id, verdict=Verdict.VOID, message=f"METABOLIC_COLLAPSE: {str(e)}"
+                task_id=task.id,
+                verdict=Verdict.VOID,
+                message=f"METABOLIC_COLLAPSE: {str(e)}",
             )
 
     def _is_entropy_runaway(self, latest_delta: float) -> bool:
@@ -285,7 +301,9 @@ class SabarLoopController:
 
         if len(self.entropy_window) == 3:
             # Monotonic increase and above total threshold
-            increasing = self.entropy_window[2] > self.entropy_window[1] > self.entropy_window[0]
+            increasing = (
+                self.entropy_window[2] > self.entropy_window[1] > self.entropy_window[0]
+            )
             high_entropy = sum(self.entropy_window) > self.entropy_threshold
             return increasing and high_entropy
         return False

@@ -29,14 +29,22 @@ def _apply_path_priority() -> None:
     project_root = os.path.dirname(os.path.abspath(__file__))
     parent = os.path.dirname(project_root)
     parent_idx = sys.path.index(parent) if parent in sys.path else len(sys.path)
-    project_root_idx = sys.path.index(project_root) if project_root in sys.path else len(sys.path)
-    if parent not in sys.path or project_root not in sys.path or parent_idx > project_root_idx:
+    project_root_idx = (
+        sys.path.index(project_root) if project_root in sys.path else len(sys.path)
+    )
+    if (
+        parent not in sys.path
+        or project_root not in sys.path
+        or parent_idx > project_root_idx
+    ):
         _prioritize_paths(parent, project_root)
 
 
 from dotenv import load_dotenv  # noqa: E402
 
-_env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+_env_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"
+)
 if os.path.exists(_env_path):
     load_dotenv(_env_path)
 
@@ -120,14 +128,18 @@ def _get_git_info() -> tuple[str, str, str]:
         cwd = os.path.dirname(os.path.abspath(__file__))
         commit = (
             subprocess.check_output(  # nosec
-                ["git", "describe", "--always", "--long"], stderr=subprocess.DEVNULL, cwd=cwd
+                ["git", "describe", "--always", "--long"],
+                stderr=subprocess.DEVNULL,
+                cwd=cwd,
             )
             .decode()
             .strip()
         )
         branch = (
             subprocess.check_output(  # nosec
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, cwd=cwd
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                cwd=cwd,
             )
             .decode()
             .strip()
@@ -170,7 +182,9 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
     expected_set = set(CANONICAL_TOOLS)
     if len(registered_names) != len(expected_set):
         logger.warning(
-            "Surface drift: expected %d tools, got %d", len(expected_set), len(registered_names)
+            "Surface drift: expected %d tools, got %d",
+            len(expected_set),
+            len(registered_names),
         )
     if any(name.startswith("arifos_") for name in registered_names):
         raise RuntimeError("Legacy surface detected in registered MCP tools")

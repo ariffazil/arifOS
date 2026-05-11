@@ -20,7 +20,8 @@ import asyncpg
 # CONFIG
 # ============================================================
 DB_DSN = os.getenv(
-    "VAULT999_DB", "postgresql://vault_writer_svc:VaultWriterSecret2026!@72.62.71.199:5432/vault999"
+    "VAULT999_DB",
+    "postgresql://vault_writer_svc:VaultWriterSecret2026!@72.62.71.199:5432/vault999",
 )
 TELEMETRY_SEQ = {"value": 0}
 
@@ -47,8 +48,7 @@ async def get_conn():
 # ============================================================
 async def cmd_list_pending(conn):
     """List all pending 888_HOLD items"""
-    rows = await conn.fetch(
-        """
+    rows = await conn.fetch("""
         SELECT
             id::text, action_type, risk_class, judge_verdict,
             proposal_hash, session_id, created_at, hold_initiated_at,
@@ -58,8 +58,7 @@ async def cmd_list_pending(conn):
         ORDER BY
             CASE risk_class WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END,
             created_at ASC
-    """
-    )
+    """)
 
     if not rows:
         print("✅ No pending 888_HOLD items")
@@ -79,7 +78,9 @@ async def cmd_list_pending(conn):
         )
 
         print(f"  [{i}] {risk_emoji} {r['action_type']}")
-        print(f"      risk={r['risk_class']} | verdict={r['judge_verdict']} | age={age_str}")
+        print(
+            f"      risk={r['risk_class']} | verdict={r['judge_verdict']} | age={age_str}"
+        )
         print(f"      id={r['id'][:8]}... | session={r['session_id'] or 'n/a'}")
         print()
 
@@ -133,7 +134,9 @@ async def cmd_inspect(conn, cooling_id: str):
     print()
 
 
-async def cmd_ratify(conn, cooling_id: str, decision: str, reason: str, irr_ack: bool = False):
+async def cmd_ratify(
+    conn, cooling_id: str, decision: str, reason: str, irr_ack: bool = False
+):
     """Ratify (SEAL or VOID) a cooling_queue record"""
     # Validate decision
     if decision not in ("SEAL", "VOID"):
@@ -201,7 +204,9 @@ async def cmd_ratify(conn, cooling_id: str, decision: str, reason: str, irr_ack:
     import json as jsonmod
 
     payload_dict = (
-        json.loads(row["payload"]) if isinstance(row["payload"], str) else dict(row["payload"])
+        json.loads(row["payload"])
+        if isinstance(row["payload"], str)
+        else dict(row["payload"])
     )
 
     canonical = {
@@ -314,7 +319,9 @@ async def cmd_recent_reviews(conn, limit: int = 10):
 # MAIN
 # ============================================================
 async def main():
-    parser = argparse.ArgumentParser(description="review_operator — CLI for 888_HOLD ratification")
+    parser = argparse.ArgumentParser(
+        description="review_operator — CLI for 888_HOLD ratification"
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("list", help="List pending 888_HOLD items")
@@ -327,7 +334,9 @@ async def main():
     rat.add_argument("cooling_id", help="cooling_queue UUID")
     rat.add_argument("decision", help="SEAL or VOID")
     rat.add_argument("--reason", "-r", default="", help="Review reason")
-    rat.add_argument("--irr-ack", action="store_true", help="Set irreversibility_ack=true")
+    rat.add_argument(
+        "--irr-ack", action="store_true", help="Set irreversibility_ack=true"
+    )
 
     args = parser.parse_args()
 

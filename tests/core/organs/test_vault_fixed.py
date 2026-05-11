@@ -16,7 +16,9 @@ class TestVaultFixed:
         from core.organs.unified_memory import vault
 
         result = await vault(
-            operation="store", session_id="test-vault-001", content="Test content to store"
+            operation="store",
+            session_id="test-vault-001",
+            content="Test content to store",
         )
 
         assert result is not None
@@ -47,7 +49,9 @@ class TestVaultFixed:
         from core.organs.unified_memory import vault
 
         result = await vault(
-            operation="forget", session_id="test-vault-004", memory_ids=["memory-001", "memory-002"]
+            operation="forget",
+            session_id="test-vault-004",
+            memory_ids=["memory-001", "memory-002"],
         )
 
         assert result is not None
@@ -58,7 +62,9 @@ class TestVaultFixed:
         from core.organs.unified_memory import vault
 
         result = await vault(
-            operation="seal", session_id="test-vault-005", content="Sealing this content"
+            operation="seal",
+            session_id="test-vault-005",
+            content="Sealing this content",
         )
 
         assert result is not None
@@ -89,7 +95,9 @@ class TestVaultFixed:
         from core.organs.unified_memory import vault
 
         result = await vault(
-            operation="store", session_id="test-vault-unicode", content="Unicode: 你好 🌍 ñ"
+            operation="store",
+            session_id="test-vault-unicode",
+            content="Unicode: 你好 🌍 ñ",
         )
 
         assert result is not None
@@ -101,7 +109,9 @@ class TestVaultFixed:
 
         long_content = "Test content " * 100
 
-        result = await vault(operation="store", session_id="test-vault-long", content=long_content)
+        result = await vault(
+            operation="store", session_id="test-vault-long", content=long_content
+        )
 
         assert result is not None
 
@@ -139,5 +149,7 @@ class TestVaultOperations:
         operations = ["store", "recall", "search", "forget", "seal"]
 
         for op in operations:
-            result = await vault(operation=op, session_id=f"test-{op}", content=f"Test {op}")
+            result = await vault(
+                operation=op, session_id=f"test-{op}", content=f"Test {op}"
+            )
             assert result is not None

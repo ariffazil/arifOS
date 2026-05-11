@@ -56,11 +56,19 @@ class PromptSpec:
 
 
 def _arg(
-    name: str, required: bool, description: str, arg_type: str = "string", default: Any = None
+    name: str,
+    required: bool,
+    description: str,
+    arg_type: str = "string",
+    default: Any = None,
 ) -> PromptArgument:
     """Helper to create prompt arguments."""
     return PromptArgument(
-        name=name, required=required, description=description, arg_type=arg_type, default=default
+        name=name,
+        required=required,
+        description=description,
+        arg_type=arg_type,
+        default=default,
     )
 
 
@@ -141,7 +149,12 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         arguments=(
             _arg("proposal", True, "What to critique"),
-            _arg("stakeholders", False, "Who might be affected", default="all affected parties"),
+            _arg(
+                "stakeholders",
+                False,
+                "Who might be affected",
+                default="all affected parties",
+            ),
         ),
         template_text=(
             "Please critique this proposal for safety and dignity concerns: "
@@ -233,7 +246,9 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         arguments=(
             _arg("candidate", True, "Action to evaluate"),
-            _arg("risk_tier", False, "Risk level: low, medium, high, critical", "medium"),
+            _arg(
+                "risk_tier", False, "Risk level: low, medium, high, critical", "medium"
+            ),
         ),
         template_text=(
             "Please render constitutional verdict for: {{candidate}}. "
@@ -258,7 +273,9 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         ),
         arguments=(
             _arg("verdict_json", True, "Machine verdict to explain"),
-            _arg("audience", False, "Target: technical, executive, or general", "general"),
+            _arg(
+                "audience", False, "Target: technical, executive, or general", "general"
+            ),
         ),
         template_text=(
             "Please explain this constitutional verdict in "

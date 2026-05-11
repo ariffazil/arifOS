@@ -25,7 +25,9 @@ async def test_hardened_9_tools():
     async with Client(mcp_server) as client:
         # 1. Anchor session to get auth_context
         print("Anchoring session...")
-        anchor_call = await client.call_tool("init_anchor", {"raw_input": "Internal Test Session"})
+        anchor_call = await client.call_tool(
+            "init_anchor", {"raw_input": "Internal Test Session"}
+        )
 
         # Parse the RuntimeEnvelope from the CallToolResult
         anchor_data = json.loads(anchor_call.content[0].text)
@@ -44,7 +46,10 @@ async def test_hardened_9_tools():
             ("net_status", {"check_ports": True}),
             ("arifos_list_resources", {}),
             ("arifos_read_resource", {"uri": "canon://index"}),
-            ("cost_estimator", {"action_description": "test compute", "operation": "compute"}),
+            (
+                "cost_estimator",
+                {"action_description": "test compute", "operation": "compute"},
+            ),
         ]
 
         results = []

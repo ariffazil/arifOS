@@ -91,8 +91,16 @@ class WebInjectionGuard:
             0.5,
         ),
         # Floor / governance bypass attempts
-        (r"bypass\s+(?:f\d+|floor|restriction|rule|governance|constitution)", "bypass_floor", 0.6),
-        (r"disable\s+(?:f\d+|floor|restriction|governance|guard)", "disable_floor", 0.6),
+        (
+            r"bypass\s+(?:f\d+|floor|restriction|rule|governance|constitution)",
+            "bypass_floor",
+            0.6,
+        ),
+        (
+            r"disable\s+(?:f\d+|floor|restriction|governance|guard)",
+            "disable_floor",
+            0.6,
+        ),
         # System tag impersonation
         (r"system\s*:", "system_override", 0.4),
         (r"<system>", "system_tag", 0.4),
@@ -182,8 +190,17 @@ class WebInjectionGuard:
         categories = {
             "xss": ["xss_script", "xss_protocol", "xss_data_uri", "xss_event_handler"],
             "injection": ["sql_union", "sql_drop", "sql_or", "command_injection"],
-            "prompt": ["ignore_prompt", "forget_prompt", "role_change", "system_override"],
-            "traversal": ["path_traversal", "path_traversal_win", "path_traversal_encoded"],
+            "prompt": [
+                "ignore_prompt",
+                "forget_prompt",
+                "role_change",
+                "system_override",
+            ],
+            "traversal": [
+                "path_traversal",
+                "path_traversal_win",
+                "path_traversal_encoded",
+            ],
         }
 
         for category, patterns in categories.items():

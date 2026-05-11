@@ -50,7 +50,8 @@ async def _fake_sea_lion_mutated_text(*args, **kwargs):
 class TestNoQuoteGeneration:
     @pytest.mark.anyio
     @patch(
-        "arifosmcp.runtime.context_witness.interpret_with_sea_lion", _fake_sea_lion_not_in_ledger
+        "arifosmcp.runtime.context_witness.interpret_with_sea_lion",
+        _fake_sea_lion_not_in_ledger,
     )
     async def test_mock_sea_lion_returns_unknown_quote(self):
         result = await arifos_context_witness(
@@ -66,7 +67,10 @@ class TestNoQuoteGeneration:
         ) or "quote_not_in_approved_ledger" in result.get("meaning", "")
 
     @pytest.mark.anyio
-    @patch("arifosmcp.runtime.context_witness.interpret_with_sea_lion", _fake_sea_lion_mutated_text)
+    @patch(
+        "arifosmcp.runtime.context_witness.interpret_with_sea_lion",
+        _fake_sea_lion_mutated_text,
+    )
     async def test_mock_sea_lion_mutates_quote_text(self):
         result = await arifos_context_witness(
             event="Test event",

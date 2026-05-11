@@ -34,7 +34,9 @@ async def test_seal_e2e():
                 },
             )
             judge_payload = json.loads(res_judge.content[0].text)
-            cc_id = judge_payload.get("judge_contract", {}).get("constitutional_chain_id")
+            cc_id = judge_payload.get("judge_contract", {}).get(
+                "constitutional_chain_id"
+            )
             state_hash = judge_payload.get("judge_contract", {}).get("state_hash")
             res_seal = await session.call_tool(
                 "arif_vault_seal",

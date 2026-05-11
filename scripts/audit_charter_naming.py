@@ -58,7 +58,11 @@ def audit_names() -> list[str]:
         rel = str(path.relative_to(ROOT))
         if rel in ALLOWED_RELATIVE_PATHS:
             continue
-        if path.is_file() and "manifest" in path.name and path.name not in ALLOWED_FILE_NAMES:
+        if (
+            path.is_file()
+            and "manifest" in path.name
+            and path.name not in ALLOWED_FILE_NAMES
+        ):
             issues.append(f"file-name: {rel}")
         if path.is_dir() and path.name == "manifest":
             issues.append(f"directory-name: {rel}")

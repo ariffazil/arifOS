@@ -59,12 +59,18 @@ def register_embodied_tool(
     Call this at module import time for every embodied tool.
     """
     capabilities_obj = (
-        [ToolCapability(name=c["name"], description=c["description"]) for c in capabilities]
+        [
+            ToolCapability(name=c["name"], description=c["description"])
+            for c in capabilities
+        ]
         if capabilities
         else []
     )
     limitations_obj = (
-        [ToolLimitation(name=lim["name"], description=lim["description"]) for lim in limitations]
+        [
+            ToolLimitation(name=lim["name"], description=lim["description"])
+            for lim in limitations
+        ]
         if limitations
         else []
     )
@@ -314,7 +320,9 @@ class EmbodiedTool:
             error=error,
             confidence=0.5,  # TODO: extract from result
             reasoning_summary=(
-                "Tool executed successfully" if error is None else f"Tool error: {error}"
+                "Tool executed successfully"
+                if error is None
+                else f"Tool error: {error}"
             ),
         )
 
@@ -529,7 +537,8 @@ ARIFOS_TOOL_CHARTERS = {
         tool_name="well_measure_gradient",
         domain="WELL",
         description=(
-            "Ω-WELL-04: Measure chemical, energy, pressure, attention gradients " "— T1 reversible"
+            "Ω-WELL-04: Measure chemical, energy, pressure, attention gradients "
+            "— T1 reversible"
         ),
         risk_tier="T1",
         reversibility="reversible",
@@ -606,7 +615,8 @@ ARIFOS_TOOL_CHARTERS = {
         tool_name="well_validate_vitality",
         domain="WELL",
         description=(
-            "Ω-WELL-08: Validate vitality, readiness, NIAT, floor compliance " "— T1 reversible"
+            "Ω-WELL-08: Validate vitality, readiness, NIAT, floor compliance "
+            "— T1 reversible"
         ),
         risk_tier="T1",
         reversibility="reversible",
@@ -626,7 +636,8 @@ ARIFOS_TOOL_CHARTERS = {
         tool_name="well_assess_livelihood",
         domain="WELL",
         description=(
-            "Ω-WELL-09: Assess human wellness, role, dignity, support, meaning " "— T1 reversible"
+            "Ω-WELL-09: Assess human wellness, role, dignity, support, meaning "
+            "— T1 reversible"
         ),
         risk_tier="T1",
         reversibility="reversible",
@@ -685,7 +696,8 @@ ARIFOS_TOOL_CHARTERS = {
         tool_name="well_guard_dignity",
         domain="WELL",
         description=(
-            "Ω-WELL-12: Guard soul, personhood, meaning, symbolic boundaries " "— T2 consequential"
+            "Ω-WELL-12: Guard soul, personhood, meaning, symbolic boundaries "
+            "— T2 consequential"
         ),
         risk_tier="T2",
         reversibility="reversible",

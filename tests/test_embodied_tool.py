@@ -55,7 +55,6 @@ from arifosmcp.tools.embodied_tool import (
     register_all_arifos_tools,
 )
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
 
@@ -533,7 +532,9 @@ def test_build_embodied_envelope_defaults():
     )
     assert envelope.status == "SEAL"
     assert envelope.witness.execution_status == ExecutionStatus.EXECUTED
-    assert envelope.next_safe_action == "Proceed to 888_JUDGE if action is consequential."
+    assert (
+        envelope.next_safe_action == "Proceed to 888_JUDGE if action is consequential."
+    )
 
 
 def test_build_embodied_envelope_hold():

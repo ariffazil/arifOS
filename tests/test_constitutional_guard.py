@@ -11,7 +11,12 @@ from arifos.runtime.middleware.constitutional_guard import constitutional_guard
 
 def test_guard_downgrades_shell_seal_when_floors_fail() -> None:
     """A tool returning SEAL with no metrics must be downgraded to VOID (hard floor F9 fails)."""
-    raw = {"verdict": "SEAL", "session_id": "test-1", "actor_id": "arif", "intent": "test"}
+    raw = {
+        "verdict": "SEAL",
+        "session_id": "test-1",
+        "actor_id": "arif",
+        "intent": "test",
+    }
     result = constitutional_guard("arifos_init", raw)
 
     assert result["verdict"] in ("PARTIAL", "VOID")
@@ -80,7 +85,12 @@ def test_guard_partial_on_missing_fields() -> None:
 
 def test_guard_reasoning_hash_present() -> None:
     """reasoning_hash must be a valid hex string."""
-    raw = {"verdict": "SEAL", "session_id": "test-4", "actor_id": "arif", "intent": "test"}
+    raw = {
+        "verdict": "SEAL",
+        "session_id": "test-4",
+        "actor_id": "arif",
+        "intent": "test",
+    }
     result = constitutional_guard("arifos_init", raw)
     assert len(result["reasoning_hash"]) == 64
     assert all(c in "0123456789abcdef" for c in result["reasoning_hash"])

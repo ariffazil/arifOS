@@ -58,7 +58,11 @@ def format_hard_sla_alert(verdict_entry: dict, age_hours: float) -> str:
 
 def format_drift_alert(flags: list[str]) -> str:
     lines = "\n".join(f"  • {f}" for f in flags)
-    return f"🚨 SLA NORM DRIFT DETECTED\n" f"{lines}\n" f"Sovereign re-baselining required."
+    return (
+        f"🚨 SLA NORM DRIFT DETECTED\n"
+        f"{lines}\n"
+        f"Sovereign re-baselining required."
+    )
 
 
 def format_flood_attack_alert(density: float, soft_count: int, hard_count: int) -> str:
@@ -160,7 +164,9 @@ class AlertDispatcher:
         }
         self.queue.append(entry)
         if self.telegram_available:
-            entry["sent"] = self._send(f"{ALERT_EMOJI.get(level, '⚠️')} {message}", level)
+            entry["sent"] = self._send(
+                f"{ALERT_EMOJI.get(level, '⚠️')} {message}", level
+            )
         self.sent_log.append(entry)
 
     def alert_sla_expiry(self, entry: dict, age_hours: float) -> None:
@@ -177,18 +183,29 @@ class AlertDispatcher:
             {"type": "DRIFT", "flags": flags},
         )
 
-    def alert_flood_attack(self, density: float, soft_count: int, hard_count: int) -> None:
+    def alert_flood_attack(
+        self, density: float, soft_count: int, hard_count: int
+    ) -> None:
         self.alert(
             AlertLevel.EXISTENTIAL,
             format_flood_attack_alert(density, soft_count, hard_count),
-            {"type": "FLOOD_ATTACK", "density": density, "soft": soft_count, "hard": hard_count},
+            {
+                "type": "FLOOD_ATTACK",
+                "density": density,
+                "soft": soft_count,
+                "hard": hard_count,
+            },
         )
 
     def alert_reminder(self, pending_hard: int, oldest_hours: float) -> None:
         self.alert(
             AlertLevel.INFO,
             format_affirmative_ack_reminder(pending_hard, oldest_hours),
-            {"type": "REMINDER", "pending_hard": pending_hard, "oldest_hours": oldest_hours},
+            {
+                "type": "REMINDER",
+                "pending_hard": pending_hard,
+                "oldest_hours": oldest_hours,
+            },
         )
 
     def alert_vitals(self, vitals: dict) -> None:

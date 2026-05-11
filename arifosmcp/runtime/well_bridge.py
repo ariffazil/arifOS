@@ -185,7 +185,9 @@ async def anchor_well_to_vault(
         res = await seal(
             session_id="WELL-AUTO-SYNC",
             summary=summary,
-            verdict="SEAL" if readiness["verdict"] in ("OPTIMAL", "FUNCTIONAL") else "HOLD",
+            verdict=(
+                "SEAL" if readiness["verdict"] in ("OPTIMAL", "FUNCTIONAL") else "HOLD"
+            ),
             telemetry=telemetry,
             source_agent="well",
             pipeline_stage="999_VAULT",

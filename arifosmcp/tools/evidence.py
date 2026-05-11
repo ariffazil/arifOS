@@ -24,11 +24,14 @@ def arif_evidence_fetch(
         "arif_evidence_fetch", {"url": url or "", "query": query or ""}, actor_id
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_evidence_fetch", floor_check["reason"], floor_check["failed_floors"])
+        return _hold(
+            "arif_evidence_fetch", floor_check["reason"], floor_check["failed_floors"]
+        )
 
     if mode == "fetch":
         return _ok(
-            "arif_evidence_fetch", {"url": url, "content": "", "status": 200, "archived": False}
+            "arif_evidence_fetch",
+            {"url": url, "content": "", "status": 200, "archived": False},
         )
     if mode == "search":
         return _ok("arif_evidence_fetch", {"query": query, "results": []})
@@ -38,6 +41,8 @@ def arif_evidence_fetch(
             {"url": url, "archived": True, "archive_id": uuid.uuid4().hex[:8]},
         )
     if mode == "verify":
-        return _ok("arif_evidence_fetch", {"url": url, "verified": False, "note": "stub"})
+        return _ok(
+            "arif_evidence_fetch", {"url": url, "verified": False, "note": "stub"}
+        )
 
     return _hold("arif_evidence_fetch", f"Unknown mode: {mode}")

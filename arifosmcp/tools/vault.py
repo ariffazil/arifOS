@@ -14,7 +14,9 @@ from arifosmcp.schemas.verdict import SealOutput
 
 
 def arif_vault_seal(
-    mode: Literal["seal", "verify", "chain", "list", "dry_run", "seal_card", "render"] = "seal",
+    mode: Literal[
+        "seal", "verify", "chain", "list", "dry_run", "seal_card", "render"
+    ] = "seal",
     payload: str = "",
     session_id: str | None = None,
     ack_irreversible: bool = False,

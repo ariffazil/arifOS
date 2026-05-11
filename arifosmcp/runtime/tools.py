@@ -158,17 +158,23 @@ def check_adaptation_status() -> dict[str, Any]:
     }
 
 
-async def INIT_ANCHOR(raw_input: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def INIT_ANCHOR(
+    raw_input: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:
     del ctx
     return await _wrap_call("INIT_ANCHOR", raw_input=raw_input, **kwargs)
 
 
-async def AGI_REASON(query: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def AGI_REASON(
+    query: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REASON", query=query, **kwargs)
 
 
-async def AGI_REFLECT(topic: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def AGI_REFLECT(
+    topic: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REFLECT", topic=topic, **kwargs)
 
@@ -241,9 +247,13 @@ async def audit_rules(session_id: str | None = None, **kwargs: Any) -> dict[str,
 
 
 async def reality_atlas(
-    operation: str = "ingest", bundles: list[dict[str, Any]] | None = None, **kwargs: Any
+    operation: str = "ingest",
+    bundles: list[dict[str, Any]] | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
-    return await _wrap_call("reality_atlas", operation=operation, bundles=bundles or [], **kwargs)
+    return await _wrap_call(
+        "reality_atlas", operation=operation, bundles=bundles or [], **kwargs
+    )
 
 
 async def verify_vault_ledger(full_scan: bool = False, **kwargs: Any) -> dict[str, Any]:
@@ -291,7 +301,9 @@ def _get_sync_langfuse_tracer():
 
         public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
         secret_key = os.getenv("LANGFUSE_SECRET_KEY")
-        base_url = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com").rstrip("/")
+        base_url = os.getenv(
+            "LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com"
+        ).rstrip("/")
 
         if not (public_key and secret_key):
             return None
@@ -312,7 +324,12 @@ def _get_sync_langfuse_tracer():
                     body["tags"] = tags
                 payload = {
                     "batch": [
-                        {"id": str(uuid.uuid4()), "type": "trace", "body": body, "timestamp": ts}
+                        {
+                            "id": str(uuid.uuid4()),
+                            "type": "trace",
+                            "body": body,
+                            "timestamp": ts,
+                        }
                     ]
                 }
                 # Fire-and-forget — no .close() needed for sync httpx in this pattern
@@ -403,7 +420,10 @@ def _constitutional_gate(
     except ValueError as exc:
         # Pydantic validation failure (e.g., invalid URL)
         return _hold(
-            tool_name, f"Constitutional gate blocked: {exc}", ["F12"], session_id=session_id
+            tool_name,
+            f"Constitutional gate blocked: {exc}",
+            ["F12"],
+            session_id=session_id,
         )
 
     _RESPONSE_CONTEXT.set({"actor_id": actor_id, "session_id": session_id})
@@ -456,7 +476,9 @@ def _constitutional_gate(
                 )
 
             # Block execution overclaims
-            if not runtime.get("side_effects_allowed") and _output_claims_execution(input_text):
+            if not runtime.get("side_effects_allowed") and _output_claims_execution(
+                input_text
+            ):
                 return _hold(
                     tool_name,
                     "REGISTRY TRIPWIRE: execution overclaim — side_effects_allowed is False",
@@ -490,12 +512,16 @@ def _output_claims_execution(output: str) -> bool:
 def _verified_arifos_tools(runtime: dict[str, Any]) -> set[str]:
     """Return verified arifOS MCP tool names, not provider shell capabilities."""
     # Use arifos_public_tools (canonical13) or verified_arifos_tools as source of truth
-    verified = runtime.get("arifos_public_tools") or runtime.get("verified_arifos_tools")
+    verified = runtime.get("arifos_public_tools") or runtime.get(
+        "verified_arifos_tools"
+    )
     if not verified:
         # Fallback to tools_live but FILTER out shell capabilities (read/write/exec)
         # only keeping tools with arif_ prefix.
         live = runtime.get("tools_live", [])
-        verified = [tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")]
+        verified = [
+            tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")
+        ]
     return {str(tool) for tool in verified or []}
 
 
@@ -504,7 +530,9 @@ def _runtime_claim_boundary(card: dict[str, Any], key: str) -> str | None:
     return boundary.get(key) or boundary.get(f"{key}_claim_policy")
 
 
-def _actor_for_response(session_id: str | None = None, candidate: str | None = None) -> str:
+def _actor_for_response(
+    session_id: str | None = None, candidate: str | None = None
+) -> str:
     """Return the validated actor_id for response consistency."""
     if candidate and candidate != "anonymous" and candidate != "null":
         return candidate
@@ -699,11 +727,15 @@ class NineSignalOutput:
             or self.payload.get("result", {}).get("nine_signal")
         )
         if not nine_signal:
-            self.violations.append(f"[{self.tool_name}] nine_signal block absent [KERNEL_EVALS P0]")
+            self.violations.append(
+                f"[{self.tool_name}] nine_signal block absent [KERNEL_EVALS P0]"
+            )
 
         # 2. Non-SEAL verdicts MUST have reasons[]
         if self.verdict in ("HOLD", "VOID", "SABAR", "SESAT"):
-            reasons_field = self.payload.get("reasons") or self.payload.get("reason") or []
+            reasons_field = (
+                self.payload.get("reasons") or self.payload.get("reason") or []
+            )
             if not reasons_field:
                 self.violations.append(
                     f"[{self.tool_name}] {self.verdict} without reasons[] "
@@ -785,21 +817,29 @@ def _enforce_nine_signal(
         # nine_signal already present — tool applied it; do not re-wrap and
         # corrupt _violations.  nine_signal may be at top level OR nested
         # inside result{} (if _ok() injected it there).  Check both.
-        nine = response.get("nine_signal") or response.get("result", {}).get("nine_signal")
+        nine = response.get("nine_signal") or response.get("result", {}).get(
+            "nine_signal"
+        )
         if nine is not None:
             _status = response.get("status", "OK")
-            verdict = response.get("verdict") or ("SEAL" if _status == "OK" else _status)
+            verdict = response.get("verdict") or (
+                "SEAL" if _status == "OK" else _status
+            )
             # Normalize reasons BEFORE violation check — every HOLD/VOID/SABAR
             # must carry at least one reason string to satisfy F2 addendum.
             reasons = response.get("reasons")
             if not reasons:
                 reason_str = response.get("reason")
                 if reason_str:
-                    reasons = [reason_str] if isinstance(reason_str, str) else reason_str
+                    reasons = (
+                        [reason_str] if isinstance(reason_str, str) else reason_str
+                    )
                 else:
                     reasons = []
             if verdict in ("HOLD", "VOID", "SABAR", "SESAT") and not reasons:
-                reasons = [f"{verdict} — constitutional gate activated, see meta.reason"]
+                reasons = [
+                    f"{verdict} — constitutional gate activated, see meta.reason"
+                ]
             # F2 addendum: SEAL verdicts carry default reasons for audit completeness.
             # The F2 rule mandates reasons[] on non-SEAL; but populating them for SEAL
             # too makes every response self-describing without special-casing the checker.
@@ -821,7 +861,9 @@ def _enforce_nine_signal(
             out["_violations"] = (
                 []
                 if reasons
-                else [f"[{tool_name}] {verdict} without reasons[] [F2 addendum / Nine-Signal]"]
+                else [
+                    f"[{tool_name}] {verdict} without reasons[] [F2 addendum / Nine-Signal]"
+                ]
             )
             return out
 
@@ -982,7 +1024,9 @@ def _detect_scars(query: str | None, synthesis: str) -> list[str]:
         scars.append(
             "false_dilemma: query poses binary choice but reality has continuous alternatives"
         )
-    if any(k in ql for k in ["always", "never", "certainly", "definitely", "absolutely"]):
+    if any(
+        k in ql for k in ["always", "never", "certainly", "definitely", "absolutely"]
+    ):
         scars.append(
             "quantifier_risk: universal quantifiers cannot be verified by induction — F7 blocks"
         )
@@ -1038,7 +1082,9 @@ class _FileSessionStore:
 
     def __init__(self, path: str | None = None) -> None:
         self._using_explicit_path = bool(path or os.getenv("ARIFOS_SESSION_STORE_PATH"))
-        self._path = path or os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
+        self._path = path or os.getenv(
+            "ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json"
+        )
         try:
             os.makedirs(os.path.dirname(self._path), exist_ok=True)
         except OSError:
@@ -1153,7 +1199,9 @@ class _FileSessionStore:
 # In-memory registries (session store is now persistent)
 _SESSION_STORE = _FileSessionStore()
 _SESSIONS = _SESSION_STORE  # backward-compat alias for code that does _SESSIONS.get()
-_memory_engine = None  # Lazy MemoryEngine singleton (Postgres + Qdrant via memory_engine.py)
+_memory_engine = (
+    None  # Lazy MemoryEngine singleton (Postgres + Qdrant via memory_engine.py)
+)
 _VAULT_LEDGER: list[dict[str, Any]] = []
 _JUDGE_STATE_REGISTRY: dict[str, dict[str, Any]] = {}
 _JUDGE_CHAIN_REGISTRY: dict[str, dict[str, Any]] = {}
@@ -1228,9 +1276,9 @@ class JudgeCandidateInput(BaseModel):
 
 def _stable_hash(payload: dict[str, Any]) -> str:
     return hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode(
-            "utf-8"
-        )
+        json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+        ).encode("utf-8")
     ).hexdigest()
 
 
@@ -1308,7 +1356,9 @@ def _new_session(
             from arifosmcp.runtime.registry import build_governance_card
 
             sess["model_governance_card"] = build_governance_card(
-                session_id=sid, declared_model_key=declared_model_key, deployment_id=deployment_id
+                session_id=sid,
+                declared_model_key=declared_model_key,
+                deployment_id=deployment_id,
             )
             if not sess["model_governance_card"]:
                 sess["session_warnings"].append(
@@ -1335,7 +1385,9 @@ def _new_session(
             session_id=sid,
             actor_id=actor_id or "anonymous",
             authority_level=(
-                "sovereign" if actor_id == "arif" else ("operator" if actor_id else "anonymous")
+                "sovereign"
+                if actor_id == "arif"
+                else ("operator" if actor_id else "anonymous")
             ),
             auth_context={"source": "arif_session_init", "mode": "init"},
             stage="000",
@@ -1383,7 +1435,9 @@ def _ok(
         "audience": meta_payload.pop("audience", "machine"),
         "mode": meta_payload.get("mode", ""),
         "include_quote": meta_payload.pop("include_quote", True),
-        "context_event": meta_payload.pop("context_event", f"{tool} emitted a governed result."),
+        "context_event": meta_payload.pop(
+            "context_event", f"{tool} emitted a governed result."
+        ),
         "context_state": meta_payload.pop("context_state", result),
         "context_judgment": meta_payload.pop(
             "context_judgment",
@@ -1456,7 +1510,9 @@ def _hold(
 
     meta = {"reason": reason, "failed_floors": floors or []}
     if not extra_meta or "next_safe_action" not in extra_meta:
-        meta["next_safe_action"] = "Produce reversible design blueprint only; no execution."
+        meta["next_safe_action"] = (
+            "Produce reversible design blueprint only; no execution."
+        )
 
     if extra_meta:
         meta.update(extra_meta)
@@ -1596,7 +1652,9 @@ def _resolve_judge_contract(
 ) -> tuple[JudgeSealContract | None, dict[str, Any] | None]:
     by_hash = _JUDGE_STATE_REGISTRY.get(judge_state_hash) if judge_state_hash else None
     by_chain = (
-        _JUDGE_CHAIN_REGISTRY.get(constitutional_chain_id) if constitutional_chain_id else None
+        _JUDGE_CHAIN_REGISTRY.get(constitutional_chain_id)
+        if constitutional_chain_id
+        else None
     )
 
     if by_hash is None and by_chain is None:
@@ -1618,10 +1676,17 @@ def _resolve_judge_contract(
         return None, _hold(tool_name, "judge packet could not be resolved", [])
 
     contract = JudgeSealContract(**packet)
-    if constitutional_chain_id and contract.constitutional_chain_id != constitutional_chain_id:
-        return None, _hold(tool_name, "constitutional_chain_id does not match judge packet", [])
+    if (
+        constitutional_chain_id
+        and contract.constitutional_chain_id != constitutional_chain_id
+    ):
+        return None, _hold(
+            tool_name, "constitutional_chain_id does not match judge packet", []
+        )
     if judge_state_hash and contract.state_hash != judge_state_hash:
-        return None, _hold(tool_name, "judge_state_hash does not match judge packet", [])
+        return None, _hold(
+            tool_name, "judge_state_hash does not match judge packet", []
+        )
     return contract, None
 
 
@@ -1640,11 +1705,20 @@ def _resolve_vault_entry(
 
     entry = _VAULT_ENTRY_REGISTRY.get(vault_entry_id)
     if entry is None:
-        return None, _hold("arif_forge_execute", f"vault_entry_id not found: {vault_entry_id}", [])
-    if constitutional_chain_id and entry.get("constitutional_chain_id") != constitutional_chain_id:
-        return None, _hold("arif_forge_execute", "vault entry constitutional_chain_id mismatch", [])
+        return None, _hold(
+            "arif_forge_execute", f"vault_entry_id not found: {vault_entry_id}", []
+        )
+    if (
+        constitutional_chain_id
+        and entry.get("constitutional_chain_id") != constitutional_chain_id
+    ):
+        return None, _hold(
+            "arif_forge_execute", "vault entry constitutional_chain_id mismatch", []
+        )
     if judge_state_hash and entry.get("judge_state_hash") != judge_state_hash:
-        return None, _hold("arif_forge_execute", "vault entry judge_state_hash mismatch", [])
+        return None, _hold(
+            "arif_forge_execute", "vault entry judge_state_hash mismatch", []
+        )
     return entry, None
 
 
@@ -1667,7 +1741,9 @@ async def _elicit_irreversible_ack(
             [],
         )
 
-    await ctx.report_progress(15, 100, f"{tool_name}: requesting sovereign confirmation")
+    await ctx.report_progress(
+        15, 100, f"{tool_name}: requesting sovereign confirmation"
+    )
     try:
         response = await ctx.elicit(
             (
@@ -1687,7 +1763,9 @@ async def _elicit_irreversible_ack(
 
     if isinstance(response, AcceptedElicitation):
         if response.data.ack_irreversible:
-            await ctx.report_progress(35, 100, f"{tool_name}: sovereign confirmation accepted")
+            await ctx.report_progress(
+                35, 100, f"{tool_name}: sovereign confirmation accepted"
+            )
             return True, None
         return False, _hold(
             tool_name,
@@ -1701,7 +1779,9 @@ async def _elicit_irreversible_ack(
             [],
         )
     if isinstance(response, CancelledElicitation):
-        return False, _hold(tool_name, "Elicitation cancelled before irreversible confirmation", [])
+        return False, _hold(
+            tool_name, "Elicitation cancelled before irreversible confirmation", []
+        )
 
     return False, _hold(tool_name, "Unexpected elicitation response", [])
 
@@ -1742,7 +1822,9 @@ async def _elicit_judge_candidate(
     if isinstance(response, AcceptedElicitation):
         candidate_text = response.data.candidate.strip()
         if candidate_text:
-            await ctx.report_progress(35, 100, "arif_judge_deliberate: candidate accepted")
+            await ctx.report_progress(
+                35, 100, "arif_judge_deliberate: candidate accepted"
+            )
             return candidate_text, None
         return None, _hold("arif_judge_deliberate", "candidate cannot be empty", [])
     if isinstance(response, DeclinedElicitation):
@@ -1753,7 +1835,9 @@ async def _elicit_judge_candidate(
         )
     if isinstance(response, CancelledElicitation):
         return None, _hold(
-            "arif_judge_deliberate", "Elicitation cancelled before candidate selection", []
+            "arif_judge_deliberate",
+            "Elicitation cancelled before candidate selection",
+            [],
         )
 
     return None, _hold("arif_judge_deliberate", "Unexpected elicitation response", [])
@@ -1906,7 +1990,9 @@ def _arif_session_init(
             if "constitution_bound" not in invariants_checked:
                 invariants_checked.append("constitution_bound_default")
 
-        sess = _new_session(actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key)
+        sess = _new_session(
+            actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key
+        )
         sid = sess["session_id"]
 
         # Bind constitution hash to session at T=0
@@ -2284,7 +2370,11 @@ def _arif_sense_observe(
     _sync_trace(
         f"arif_sense_observe/{mode}",
         session_id=session_id,
-        metadata={"mode": mode, "actor_id": actor_id, "query_len": len(query) if query else 0},
+        metadata={
+            "mode": mode,
+            "actor_id": actor_id,
+            "query_len": len(query) if query else 0,
+        },
         tags=["arifOS", "111_SENSE", mode],
     )
 
@@ -2335,7 +2425,9 @@ def _arif_sense_observe(
                         evidence_receipt["receipt_id"] = receipt_id
                     except Exception as exc:
                         logger.warning(f"Evidence store unavailable: {exc}")
-                        receipt_id = evidence_receipt.get("receipt_id", "receipt://web/local")
+                        receipt_id = evidence_receipt.get(
+                            "receipt_id", "receipt://web/local"
+                        )
 
                     return _ok(
                         "arif_sense_observe",
@@ -2470,7 +2562,9 @@ def _arif_sense_observe(
         if url and minimax_bridge is not None:
             try:
                 img_result = asyncio.run(
-                    minimax_bridge.understand_image(url, "Describe this image concisely")
+                    minimax_bridge.understand_image(
+                        url, "Describe this image concisely"
+                    )
                 )
                 return _ok(
                     "arif_sense_observe",
@@ -2487,19 +2581,33 @@ def _arif_sense_observe(
             except Exception as exc:
                 logger.error("minimax_bridge.understand_image failed: %s", exc)
         return _ok(
-            "arif_sense_observe", {"url": url, "ingested": False, "note": "stub"}, delta_S=0.003
+            "arif_sense_observe",
+            {"url": url, "ingested": False, "note": "stub"},
+            delta_S=0.003,
         )
     if mode == "compass":
-        return _ok("arif_sense_observe", {"heading": "north", "confidence": 0.95}, delta_S=0.001)
+        return _ok(
+            "arif_sense_observe",
+            {"heading": "north", "confidence": 0.95},
+            delta_S=0.001,
+        )
     if mode == "atlas":
-        return _ok("arif_sense_observe", {"map": {}, "layers": layers or []}, delta_S=0.0)
+        return _ok(
+            "arif_sense_observe", {"map": {}, "layers": layers or []}, delta_S=0.0
+        )
     if mode == "entropy_dS":
         dS = random.uniform(-0.1, 0.1)
         return _ok(
-            "arif_sense_observe", {"delta_S": round(dS, 6), "trend": "stable"}, delta_S=abs(dS)
+            "arif_sense_observe",
+            {"delta_S": round(dS, 6), "trend": "stable"},
+            delta_S=abs(dS),
         )
     if mode == "vitals":
-        return _ok("arif_sense_observe", {"cpu": 12.5, "mem": 34.0, "io": "normal"}, delta_S=0.001)
+        return _ok(
+            "arif_sense_observe",
+            {"cpu": 12.5, "mem": 34.0, "io": "normal"},
+            delta_S=0.001,
+        )
 
     if mode == "extract_claims":
         text = query or ""
@@ -2634,7 +2742,12 @@ def _arif_evidence_fetch(
     When thinking_depth > 0, output includes ThinkingSequence + ResourceMetrics.
     """
     gate = _constitutional_gate(
-        "arif_evidence_fetch", mode, actor_id, session_id=session_id, url=url, query=query
+        "arif_evidence_fetch",
+        mode,
+        actor_id,
+        session_id=session_id,
+        url=url,
+        query=query,
     )
     if gate is not None:
         return gate
@@ -2643,7 +2756,11 @@ def _arif_evidence_fetch(
     _sync_trace(
         f"arif_evidence_fetch/{mode}",
         session_id=session_id,
-        metadata={"mode": mode, "actor_id": actor_id, "url_len": len(url) if url else 0},
+        metadata={
+            "mode": mode,
+            "actor_id": actor_id,
+            "url_len": len(url) if url else 0,
+        },
         tags=["arifOS", "222_EVIDENCE", mode],
     )
 
@@ -2653,7 +2770,9 @@ def _arif_evidence_fetch(
 
     _qdrant_url = _os.environ.get("QDRANT_URL", "").strip()
     _has_fetch_backend = bool(url)  # URL presence implies fetch is possible
-    _has_search_backend = bool(_qdrant_url)  # Qdrant configured = search backend available
+    _has_search_backend = bool(
+        _qdrant_url
+    )  # Qdrant configured = search backend available
     _has_local_index = False  # No local evidence corpus configured
 
     _backend_status = (
@@ -2750,25 +2869,33 @@ def _arif_evidence_fetch(
 
         # SSRF validation
         parsed = urllib.parse.urlparse(url)
-        if parsed.hostname in ("127.0.0.1", "localhost", "0.0.0.0") or parsed.hostname.startswith(
-            ("10.", "192.168.", "172.")
-        ):
+        if parsed.hostname in (
+            "127.0.0.1",
+            "localhost",
+            "0.0.0.0",
+        ) or parsed.hostname.startswith(("10.", "192.168.", "172.")):
             risk_flags.append("private_ip_access")
         if parsed.scheme not in ("http", "https"):
             risk_flags.append("scheme_blocked")
 
         if not risk_flags:
             try:
-                req = urllib.request.Request(url, headers={"User-Agent": "arifOS/1.0 F-WEB"})
+                req = urllib.request.Request(
+                    url, headers={"User-Agent": "arifOS/1.0 F-WEB"}
+                )
                 with urllib.request.urlopen(req, timeout=15) as resp:
-                    raw_content = resp.read(1024 * 512).decode("utf-8", errors="replace")
+                    raw_content = resp.read(1024 * 512).decode(
+                        "utf-8", errors="replace"
+                    )
                     fetch_status = resp.status
             except Exception as exc:
                 fetch_error = str(exc)
                 fetch_status = 0
 
         sanitized = raw_content[:5000] if raw_content else ""
-        content_hash = hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
+        content_hash = (
+            hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
+        )
 
         source = {
             "source_hash": content_hash,
@@ -2858,10 +2985,15 @@ def _arif_evidence_fetch(
                     "confidence": 0.0,
                     "recommendation": "Configure web_search backend to enable search mode.",
                 },
-                "meta": {"reason": "Search backend not configured", "failed_floors": []},
+                "meta": {
+                    "reason": "Search backend not configured",
+                    "failed_floors": [],
+                },
                 "timestamp": _now(),
             }
-        return _ok("arif_evidence_fetch", {"query": query, "results": []}, delta_S=0.001)
+        return _ok(
+            "arif_evidence_fetch", {"query": query, "results": []}, delta_S=0.001
+        )
 
     if mode == "archive":
         return _ok(
@@ -2872,7 +3004,9 @@ def _arif_evidence_fetch(
 
     if mode == "verify":
         return _ok(
-            "arif_evidence_fetch", {"url": url, "verified": False, "note": "stub"}, delta_S=0.001
+            "arif_evidence_fetch",
+            {"url": url, "verified": False, "note": "stub"},
+            delta_S=0.001,
         )
 
     if mode == "void_audit":
@@ -2939,7 +3073,12 @@ def _run_sequential_thinking(
         step_cost = cost_per_step * (1.0 + (step_num - 1) * 0.1)
         if total_cost + step_cost > budget:
             return _build_sequential_result(
-                steps, confidence_trajectory, total_cost, "budget_exhausted", depth, budget
+                steps,
+                confidence_trajectory,
+                total_cost,
+                "budget_exhausted",
+                depth,
+                budget,
             )
         total_cost += step_cost
 
@@ -2953,9 +3092,7 @@ def _run_sequential_thinking(
             "deliberate": "Evaluating evidence relationships and constraints",
             "exhaustive": "Exploring all logical branches and counterfactuals",
         }
-        thought = (
-            f"[Step {step_num}] {thinking_modes.get(mode, 'Analyzing')}. Query: {query[:50]}..."
-        )
+        thought = f"[Step {step_num}] {thinking_modes.get(mode, 'Analyzing')}. Query: {query[:50]}..."
 
         hypothesis = None
         if step_num == 1:
@@ -2965,9 +3102,7 @@ def _run_sequential_thinking(
 
         rejected = None
         if step_num > 2 and random.random() < 0.2:
-            rejected = (
-                f"Alternative hypothesis {step_num - 1} rejected due to insufficient evidence"
-            )
+            rejected = f"Alternative hypothesis {step_num - 1} rejected due to insufficient evidence"
 
         direction = "continue"
         if allow_early_termination and new_confidence >= confidence_threshold:
@@ -3014,7 +3149,9 @@ def _build_sequential_result(
 ) -> dict[str, Any]:
     """Build the final sequential thinking result structure."""
     final_confidence = confidence_trajectory[-1] if confidence_trajectory else 0.5
-    reasoning_quality = "shallow" if len(steps) <= 2 else "adequate" if len(steps) <= 4 else "deep"
+    reasoning_quality = (
+        "shallow" if len(steps) <= 2 else "adequate" if len(steps) <= 4 else "deep"
+    )
 
     confidence_spike = False
     if len(confidence_trajectory) >= 2:
@@ -3051,8 +3188,12 @@ def _build_sequential_result(
             "landauer_cost_per_step_eV": [s.get("landauer_cost_eV", 0) for s in steps],
             "total_thermodynamic_cost_eV": round(total_cost * 0.001, 6),
             "reasoning_efficiency": round(reasoning_efficiency, 4),
-            "confidence_per_token": round(final_confidence / max(total_cost * 800, 1), 6),
-            "insight_per_joule": round(final_confidence / max(total_cost * 0.001 * 1e3, 0.001), 4),
+            "confidence_per_token": round(
+                final_confidence / max(total_cost * 800, 1), 6
+            ),
+            "insight_per_joule": round(
+                final_confidence / max(total_cost * 0.001 * 1e3, 0.001), 4
+            ),
             "steps_executed": len(steps),
             "time_budget_exhausted": False,
             "budget_exhausted": total_cost >= budget,
@@ -3172,11 +3313,21 @@ def _arif_mind_reason(
         task_steps = []
         if query:
             # Split on sentence boundaries and numbered lists
-            raw_steps = [s.strip() for s in query.replace("\n", ". ").split(". ") if s.strip()]
+            raw_steps = [
+                s.strip() for s in query.replace("\n", ". ").split(". ") if s.strip()
+            ]
             for i, step_text in enumerate(raw_steps[:8], start=1):  # cap at 8 steps
                 reversible = not any(
                     verb in step_text.lower()
-                    for verb in ("delete", "remove", "drop", "seal", "commit", "deploy", "prune")
+                    for verb in (
+                        "delete",
+                        "remove",
+                        "drop",
+                        "seal",
+                        "commit",
+                        "deploy",
+                        "prune",
+                    )
                 )
                 task_steps.append(
                     {
@@ -3184,10 +3335,12 @@ def _arif_mind_reason(
                         "description": step_text,
                         "tool_hint": (
                             "arif_forge_execute"
-                            if "deploy" in step_text.lower() or "build" in step_text.lower()
+                            if "deploy" in step_text.lower()
+                            or "build" in step_text.lower()
                             else (
                                 "arif_evidence_fetch"
-                                if "fetch" in step_text.lower() or "search" in step_text.lower()
+                                if "fetch" in step_text.lower()
+                                or "search" in step_text.lower()
                                 else "arif_mind_reason"
                             )
                         ),
@@ -3247,7 +3400,11 @@ def _arif_mind_reason(
             )
         plan = _PLAN_REGISTRY.get(plan_id)
         if plan is None:
-            return _hold("arif_mind_reason", f"plan_id not found: {plan_id}", session_id=session_id)
+            return _hold(
+                "arif_mind_reason",
+                f"plan_id not found: {plan_id}",
+                session_id=session_id,
+            )
         return _ok(
             "arif_mind_reason",
             {
@@ -3444,7 +3601,9 @@ def _arif_mind_reason(
             anomalous_contrast=MindAnomalousContrast(
                 contrast_type=ContrastType.NONE,
             ),
-            thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
+            thermodynamic_state=ThermodynamicState(
+                delta_S=0.001, entropy_direction="stable"
+            ),
             meta={},
             delta_S=0.001,
             timestamp=_now(),
@@ -3485,7 +3644,9 @@ def _arif_mind_reason(
             axioms_used=default_axioms,
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
-            thermodynamic_state=ThermodynamicState(delta_S=0.005, entropy_direction="decreasing"),
+            thermodynamic_state=ThermodynamicState(
+                delta_S=0.005, entropy_direction="decreasing"
+            ),
             meta={},
             delta_S=0.005,
             timestamp=_now(),
@@ -3538,7 +3699,9 @@ def _arif_mind_reason(
             axioms_used=default_axioms,
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
-            thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
+            thermodynamic_state=ThermodynamicState(
+                delta_S=0.001, entropy_direction="stable"
+            ),
             meta={},
             delta_S=0.001,
             timestamp=_now(),
@@ -3546,7 +3709,12 @@ def _arif_mind_reason(
         return output
 
     if mode == "socratic":
-        questions = ["Why?", "What if not?", "What evidence supports?", "What would disprove?"]
+        questions = [
+            "Why?",
+            "What if not?",
+            "What evidence supports?",
+            "What would disprove?",
+        ]
         steps = [
             ReasoningStep(
                 step=1,
@@ -3593,7 +3761,9 @@ def _arif_mind_reason(
             ),
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
-            thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
+            thermodynamic_state=ThermodynamicState(
+                delta_S=0.001, entropy_direction="stable"
+            ),
             meta={},
             delta_S=0.001,
             timestamp=_now(),
@@ -3744,7 +3914,14 @@ async def _arif_mind_reason_tool(
 
     try:
         # Structural/deterministic modes — bypass LLM entirely
-        if mode not in ("reason", "reflect", "verify", "critique", "debate", "socratic"):
+        if mode not in (
+            "reason",
+            "reflect",
+            "verify",
+            "critique",
+            "debate",
+            "socratic",
+        ):
             result = _arif_mind_reason(
                 mode=mode,
                 query=query,
@@ -3780,8 +3957,12 @@ async def _arif_mind_reason_tool(
                 timeout=_TIMEOUT_MS / 1000.0,
             )
         except asyncio.TimeoutError:
-            logger.warning("333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
-            return _safe_void_fallback("arif_mind_reason", f"LLM timeout after {_TIMEOUT_MS}ms")
+            logger.warning(
+                "333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS
+            )
+            return _safe_void_fallback(
+                "arif_mind_reason", f"LLM timeout after {_TIMEOUT_MS}ms"
+            )
         except Exception as _exc:
             logger.warning(
                 "333_MIND cognitive module unavailable (%s); rule fallback active",
@@ -3807,7 +3988,10 @@ async def _arif_mind_reason_tool(
             )
             await trace.span(
                 "result",
-                input={"status": result.get("status"), "nine_signal": result.get("nine_signal")},
+                input={
+                    "status": result.get("status"),
+                    "nine_signal": result.get("nine_signal"),
+                },
             )
 
         return result
@@ -3857,9 +4041,15 @@ def _kernel_classify_task(task: str | None) -> str:
 def _kernel_depth_select(task: str | None) -> str:
     """Select T-tier based on task keywords."""
     tl = (task or "").lower()
-    if any(k in tl for k in ["deploy", "migrate", "irreversible", "seal", "commit", "production"]):
+    if any(
+        k in tl
+        for k in ["deploy", "migrate", "irreversible", "seal", "commit", "production"]
+    ):
         return "T4"
-    if any(k in tl for k in ["architecture", "design", "important", "consequential", "strategy"]):
+    if any(
+        k in tl
+        for k in ["architecture", "design", "important", "consequential", "strategy"]
+    ):
         return "T2"
     if any(k in tl for k in ["evidence", "verify", "source", "fact-check", "audit"]):
         return "T3"
@@ -3883,20 +4073,40 @@ def _kernel_risk_gate(task: str | None) -> tuple[str, int]:
     ]
     tl = (task or "").lower()
     score = sum(1 for k in risk_keywords if k in tl)
-    tier = "critical" if score >= 3 else "high" if score >= 2 else "medium" if score >= 1 else "low"
+    tier = (
+        "critical"
+        if score >= 3
+        else "high" if score >= 2 else "medium" if score >= 1 else "low"
+    )
     return tier, score
 
 
 def _kernel_reversibility_gate(task: str | None) -> bool:
     """Return True if task contains irreversible keywords."""
-    irreversible = ["seal", "commit", "deploy", "execute", "write", "generate", "destroy", "delete"]
+    irreversible = [
+        "seal",
+        "commit",
+        "deploy",
+        "execute",
+        "write",
+        "generate",
+        "destroy",
+        "delete",
+    ]
     tl = (task or "").lower()
     return any(k in tl for k in irreversible)
 
 
 def _kernel_authority_gate(task: str | None, actor_id: str | None) -> dict[str, Any]:
     """Return authority boundary assessment."""
-    sovereign_tasks = ["seal", "commit", "approve", "judge", "irreversible", "deploy production"]
+    sovereign_tasks = [
+        "seal",
+        "commit",
+        "approve",
+        "judge",
+        "irreversible",
+        "deploy production",
+    ]
     tl = (task or "").lower()
     required = "SOVEREIGN" if any(k in tl for k in sovereign_tasks) else "OPERATOR"
     actor_tier = (
@@ -3912,33 +4122,138 @@ def _kernel_workflow(depth: str) -> list[dict[str, Any]]:
     """Return structured workflow for a given T-tier."""
     workflows = {
         "T0": [
-            {"step": 1, "tool": "arif_sense_observe", "mode": "classify", "purpose": "intake"},
-            {"step": 2, "tool": "arif_mind_reason", "mode": "reason", "purpose": "cognition"},
-            {"step": 3, "tool": "arif_reply_compose", "mode": "compose", "purpose": "output"},
+            {
+                "step": 1,
+                "tool": "arif_sense_observe",
+                "mode": "classify",
+                "purpose": "intake",
+            },
+            {
+                "step": 2,
+                "tool": "arif_mind_reason",
+                "mode": "reason",
+                "purpose": "cognition",
+            },
+            {
+                "step": 3,
+                "tool": "arif_reply_compose",
+                "mode": "compose",
+                "purpose": "output",
+            },
         ],
         "T1": [
-            {"step": 1, "tool": "arif_sense_observe", "mode": "classify", "purpose": "intake"},
-            {"step": 2, "tool": "arif_kernel_route", "mode": "depth_select", "purpose": "gating"},
-            {"step": 3, "tool": "arif_mind_reason", "mode": "plan", "purpose": "cognition"},
-            {"step": 4, "tool": "arif_mind_reason", "mode": "reason", "purpose": "cognition"},
-            {"step": 5, "tool": "arif_reply_compose", "mode": "compose", "purpose": "output"},
+            {
+                "step": 1,
+                "tool": "arif_sense_observe",
+                "mode": "classify",
+                "purpose": "intake",
+            },
+            {
+                "step": 2,
+                "tool": "arif_kernel_route",
+                "mode": "depth_select",
+                "purpose": "gating",
+            },
+            {
+                "step": 3,
+                "tool": "arif_mind_reason",
+                "mode": "plan",
+                "purpose": "cognition",
+            },
+            {
+                "step": 4,
+                "tool": "arif_mind_reason",
+                "mode": "reason",
+                "purpose": "cognition",
+            },
+            {
+                "step": 5,
+                "tool": "arif_reply_compose",
+                "mode": "compose",
+                "purpose": "output",
+            },
         ],
         "T2": [
-            {"step": 1, "tool": "arif_sense_observe", "mode": "classify", "purpose": "intake"},
-            {"step": 2, "tool": "arif_kernel_route", "mode": "route", "purpose": "gating"},
-            {"step": 3, "tool": "arif_mind_reason", "mode": "plan", "purpose": "cognition"},
-            {"step": 4, "tool": "arif_mind_reason", "mode": "reason", "purpose": "cognition"},
-            {"step": 5, "tool": "arif_heart_critique", "mode": "critique", "purpose": "safety"},
-            {"step": 6, "tool": "arif_mind_reason", "mode": "synthesize", "purpose": "cognition"},
-            {"step": 7, "tool": "arif_reply_compose", "mode": "compose", "purpose": "output"},
+            {
+                "step": 1,
+                "tool": "arif_sense_observe",
+                "mode": "classify",
+                "purpose": "intake",
+            },
+            {
+                "step": 2,
+                "tool": "arif_kernel_route",
+                "mode": "route",
+                "purpose": "gating",
+            },
+            {
+                "step": 3,
+                "tool": "arif_mind_reason",
+                "mode": "plan",
+                "purpose": "cognition",
+            },
+            {
+                "step": 4,
+                "tool": "arif_mind_reason",
+                "mode": "reason",
+                "purpose": "cognition",
+            },
+            {
+                "step": 5,
+                "tool": "arif_heart_critique",
+                "mode": "critique",
+                "purpose": "safety",
+            },
+            {
+                "step": 6,
+                "tool": "arif_mind_reason",
+                "mode": "synthesize",
+                "purpose": "cognition",
+            },
+            {
+                "step": 7,
+                "tool": "arif_reply_compose",
+                "mode": "compose",
+                "purpose": "output",
+            },
         ],
         "T3": [
-            {"step": 1, "tool": "arif_sense_observe", "mode": "classify", "purpose": "intake"},
-            {"step": 2, "tool": "arif_kernel_route", "mode": "route", "purpose": "gating"},
-            {"step": 3, "tool": "arif_evidence_fetch", "mode": "fetch", "purpose": "evidence"},
-            {"step": 4, "tool": "arif_mind_reason", "mode": "reason", "purpose": "cognition"},
-            {"step": 5, "tool": "arif_mind_reason", "mode": "verify", "purpose": "cognition"},
-            {"step": 6, "tool": "arif_reply_compose", "mode": "compose", "purpose": "output"},
+            {
+                "step": 1,
+                "tool": "arif_sense_observe",
+                "mode": "classify",
+                "purpose": "intake",
+            },
+            {
+                "step": 2,
+                "tool": "arif_kernel_route",
+                "mode": "route",
+                "purpose": "gating",
+            },
+            {
+                "step": 3,
+                "tool": "arif_evidence_fetch",
+                "mode": "fetch",
+                "purpose": "evidence",
+            },
+            {
+                "step": 4,
+                "tool": "arif_mind_reason",
+                "mode": "reason",
+                "purpose": "cognition",
+            },
+            {
+                "step": 5,
+                "tool": "arif_mind_reason",
+                "mode": "verify",
+                "purpose": "cognition",
+            },
+            {
+                "step": 6,
+                "tool": "arif_reply_compose",
+                "mode": "compose",
+                "purpose": "output",
+            },
             {
                 "step": 7,
                 "tool": "arif_vault_seal",
@@ -3948,14 +4263,54 @@ def _kernel_workflow(depth: str) -> list[dict[str, Any]]:
             },
         ],
         "T4": [
-            {"step": 1, "tool": "arif_sense_observe", "mode": "classify", "purpose": "intake"},
-            {"step": 2, "tool": "arif_kernel_route", "mode": "route", "purpose": "gating"},
-            {"step": 3, "tool": "arif_mind_reason", "mode": "plan", "purpose": "cognition"},
-            {"step": 4, "tool": "arif_heart_critique", "mode": "critique", "purpose": "safety"},
-            {"step": 5, "tool": "arif_evidence_fetch", "mode": "verify", "purpose": "evidence"},
-            {"step": 6, "tool": "arif_judge_deliberate", "mode": "judge", "purpose": "sovereignty"},
-            {"step": 7, "tool": "arif_forge_execute", "mode": "dry_run", "purpose": "execution"},
-            {"step": 8, "tool": "arif_vault_seal", "mode": "seal_decision", "purpose": "audit"},
+            {
+                "step": 1,
+                "tool": "arif_sense_observe",
+                "mode": "classify",
+                "purpose": "intake",
+            },
+            {
+                "step": 2,
+                "tool": "arif_kernel_route",
+                "mode": "route",
+                "purpose": "gating",
+            },
+            {
+                "step": 3,
+                "tool": "arif_mind_reason",
+                "mode": "plan",
+                "purpose": "cognition",
+            },
+            {
+                "step": 4,
+                "tool": "arif_heart_critique",
+                "mode": "critique",
+                "purpose": "safety",
+            },
+            {
+                "step": 5,
+                "tool": "arif_evidence_fetch",
+                "mode": "verify",
+                "purpose": "evidence",
+            },
+            {
+                "step": 6,
+                "tool": "arif_judge_deliberate",
+                "mode": "judge",
+                "purpose": "sovereignty",
+            },
+            {
+                "step": 7,
+                "tool": "arif_forge_execute",
+                "mode": "dry_run",
+                "purpose": "execution",
+            },
+            {
+                "step": 8,
+                "tool": "arif_vault_seal",
+                "mode": "seal_decision",
+                "purpose": "audit",
+            },
         ],
     }
     return workflows.get(depth, workflows["T1"])
@@ -3998,7 +4353,9 @@ def _kernel_token_budget(depth: str) -> dict[str, Any]:
     return budgets.get(depth, budgets["T1"])
 
 
-def _kernel_authority_boundary(depth: str, risk_tier: str, is_irreversible: bool) -> dict[str, Any]:
+def _kernel_authority_boundary(
+    depth: str, risk_tier: str, is_irreversible: bool
+) -> dict[str, Any]:
     """Return authority boundary for a given task profile."""
     if depth == "T4" or is_irreversible or risk_tier in ("critical", "high"):
         return {
@@ -4013,12 +4370,31 @@ def _kernel_authority_boundary(depth: str, risk_tier: str, is_irreversible: bool
         }
     if depth == "T2" or risk_tier == "medium":
         return {
-            "llm_may": ["recommend", "draft", "compare", "analyze", "plan", "synthesize"],
-            "llm_must_not": ["approve", "self-authorize", "execute irreversible action"],
+            "llm_may": [
+                "recommend",
+                "draft",
+                "compare",
+                "analyze",
+                "plan",
+                "synthesize",
+            ],
+            "llm_must_not": [
+                "approve",
+                "self-authorize",
+                "execute irreversible action",
+            ],
             "human_judge": "optional",
         }
     return {
-        "llm_may": ["recommend", "draft", "compare", "analyze", "plan", "synthesize", "compose"],
+        "llm_may": [
+            "recommend",
+            "draft",
+            "compare",
+            "analyze",
+            "plan",
+            "synthesize",
+            "compose",
+        ],
         "llm_must_not": ["self-authorize", "override judge"],
         "human_judge": "not_required",
     }
@@ -4055,7 +4431,10 @@ def _build_orchestration(
         "workflow": workflow,
         "authority_boundary": authority_boundary,
         "gating_results": {
-            "depth_select": {"tier": depth, "rationale": f"Keyword-classified as {depth}"},
+            "depth_select": {
+                "tier": depth,
+                "rationale": f"Keyword-classified as {depth}",
+            },
             "risk_gate": {"tier": risk_tier, "score": risk_score},
             "reversibility_gate": {
                 "is_irreversible": is_irreversible,
@@ -4113,7 +4492,9 @@ def _arif_kernel_route(
 
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
-        return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
+        return _hold(
+            "arif_kernel_route", auth["reason"], ["F11"], session_id=session_id
+        )
 
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
@@ -4165,7 +4546,9 @@ def _arif_kernel_route(
 
     if mode == "kernel":
         return _ok(
-            "arif_kernel_route", {"status": "running", "uptime": time.time() % 10000}, delta_S=0.0
+            "arif_kernel_route",
+            {"status": "running", "uptime": time.time() % 10000},
+            delta_S=0.0,
         )
 
     if mode == "federation_health":
@@ -4250,7 +4633,11 @@ def _arif_kernel_route(
             import os
 
             manifest_path = os.path.join(
-                os.path.dirname(__file__), "..", "tools", "charters", "tool.charter.json"
+                os.path.dirname(__file__),
+                "..",
+                "tools",
+                "charters",
+                "tool.charter.json",
             )
             with open(manifest_path, encoding="utf-8") as f:
                 manifest = json.load(f)
@@ -4281,7 +4668,9 @@ def _arif_kernel_route(
                 current_allowed_modes[tool_name] = tool_data.get("safe_modes", [])
 
             manifest["current_allowed_modes"] = current_allowed_modes
-            return _ok("arif_kernel_route", manifest, delta_S=0.0, session_id=session_id)
+            return _ok(
+                "arif_kernel_route", manifest, delta_S=0.0, session_id=session_id
+            )
         except Exception as e:
             return _hold(
                 "arif_kernel_route",
@@ -4367,7 +4756,9 @@ def _arif_kernel_route(
                     "decision_basis": (
                         "read_only_status_probe" if not task else "task_orchestration"
                     ),
-                    "reversibility": "read_only" if orch["risk_tier"] == "low" else "evaluating",
+                    "reversibility": (
+                        "read_only" if orch["risk_tier"] == "low" else "evaluating"
+                    ),
                     "next_recommended_tool": "arif_kernel_route.list",
                 },
             },
@@ -4377,7 +4768,9 @@ def _arif_kernel_route(
 
     if mode == "telemetry":
         return _ok(
-            "arif_kernel_route", {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91}, delta_S=0.002
+            "arif_kernel_route",
+            {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91},
+            delta_S=0.002,
         )
 
     # ── Standalone governance gating modes ─────────────────────────────────────
@@ -4385,7 +4778,11 @@ def _arif_kernel_route(
         depth = _kernel_depth_select(task)
         return _ok(
             "arif_kernel_route",
-            {"depth_tier": depth, "task": task, "rationale": f"Keyword-classified as {depth}"},
+            {
+                "depth_tier": depth,
+                "task": task,
+                "rationale": f"Keyword-classified as {depth}",
+            },
             delta_S=0.0,
         )
 
@@ -4407,7 +4804,12 @@ def _arif_kernel_route(
         passed = estimate_val <= threshold
         return _ok(
             "arif_kernel_route",
-            {"estimate": estimate_val, "threshold": threshold, "passed": passed, "currency": "USD"},
+            {
+                "estimate": estimate_val,
+                "threshold": threshold,
+                "passed": passed,
+                "currency": "USD",
+            },
             delta_S=0.0,
         )
 
@@ -4556,7 +4958,9 @@ def _arif_reply_compose(
             delta_S=0.0,
         )
     if mode == "format":
-        stripped = "\n".join(s.strip() for s in (message or "").split("\n") if s.strip())
+        stripped = "\n".join(
+            s.strip() for s in (message or "").split("\n") if s.strip()
+        )
         return _ok(
             "arif_reply_compose",
             {"message": message, "composed": stripped, "delta_S": -0.01},
@@ -4565,17 +4969,26 @@ def _arif_reply_compose(
     if mode == "nudge":
         return _ok(
             "arif_reply_compose",
-            {"message": message, "nudge": "Consider F05 (Peace) and F06 (Empathy) before acting."},
+            {
+                "message": message,
+                "nudge": "Consider F05 (Peace) and F06 (Empathy) before acting.",
+            },
             delta_S=0.0,
         )
     if mode == "cite":
         return _ok(
-            "arif_reply_compose", {"message": message, "citations": citations or []}, delta_S=0.0
+            "arif_reply_compose",
+            {"message": message, "citations": citations or []},
+            delta_S=0.0,
         )
     if mode == "summary":
         return _ok(
             "arif_reply_compose",
-            {"message": message, "summary": message[:200] if message else "", "tone": "terse"},
+            {
+                "message": message,
+                "summary": message[:200] if message else "",
+                "tone": "terse",
+            },
             delta_S=0.0,
         )
     return _hold("arif_reply_compose", f"Unknown mode: {mode}")
@@ -4680,7 +5093,9 @@ async def _arif_reply_compose_tool(
                 elif hasattr(trace, "update"):
                     await trace.update(metadata={"status": "closed_by_safe_fallback"})
             except Exception as exc:
-                logger.warning("Langfuse trace cleanup failed for arif_reply_compose: %s", exc)
+                logger.warning(
+                    "Langfuse trace cleanup failed for arif_reply_compose: %s", exc
+                )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -4752,10 +5167,17 @@ def _arif_memory_recall(
         if _memory_engine is None:
             return _ok(
                 "arif_memory_recall",
-                {"query": query, "memories": [], "confidence": 0.0, "_degraded": "DB unavailable"},
+                {
+                    "query": query,
+                    "memories": [],
+                    "confidence": 0.0,
+                    "_degraded": "DB unavailable",
+                },
             )
         _result = _memory_op(
-            lambda: _run_async(_memory_engine.retrieve(query or "", tier=None, limit=10))
+            lambda: _run_async(
+                _memory_engine.retrieve(query or "", tier=None, limit=10)
+            )
         )
         if _result is None:
             return _ok(
@@ -4789,7 +5211,11 @@ def _arif_memory_recall(
         _result = _memory_op(
             lambda: _run_async(
                 _memory_engine.store(
-                    {"text": text, "session_id": session_id, "metadata": metadata or {}},
+                    {
+                        "text": text,
+                        "session_id": session_id,
+                        "metadata": metadata or {},
+                    },
                     tier=(metadata or {}).get("tier", "working"),
                 )
             )
@@ -4797,7 +5223,11 @@ def _arif_memory_recall(
         if _result is None:
             return _ok(
                 "arif_memory_recall",
-                {"stored": True, "memory_id": None, "_degraded": "DB connection failed"},
+                {
+                    "stored": True,
+                    "memory_id": None,
+                    "_degraded": "DB connection failed",
+                },
                 delta_S=0.002,
             )
         return _ok("arif_memory_recall", {"stored": True, **_result}, delta_S=0.002)
@@ -4842,7 +5272,9 @@ def _arif_memory_recall(
                 delta_S=0.0,
             )
         if _row:
-            _row["created_at"] = _row["created_at"].isoformat() if _row.get("created_at") else None
+            _row["created_at"] = (
+                _row["created_at"].isoformat() if _row.get("created_at") else None
+            )
             return _ok(
                 "arif_memory_recall",
                 {"memory_id": memory_id, "entry": _row, "found": True},
@@ -4895,7 +5327,9 @@ def _arif_memory_recall(
                 delta_S=0.0,
             )
         for r in _rows:
-            r["created_at"] = r["created_at"].isoformat() if r.get("created_at") else None
+            r["created_at"] = (
+                r["created_at"].isoformat() if r.get("created_at") else None
+            )
         return _ok(
             "arif_memory_recall",
             {"session_id": session_id, "entries": _rows, "count": len(_rows)},
@@ -4946,7 +5380,8 @@ def _arif_memory_recall(
                         "memory_id": memory_id,
                     }
                 await conn.execute(
-                    "UPDATE memory_store SET deleted_at = NOW() WHERE id = $1", uuid.UUID(memory_id)
+                    "UPDATE memory_store SET deleted_at = NOW() WHERE id = $1",
+                    uuid.UUID(memory_id),
                 )
                 return {"status": "success", "pruned": memory_id}
 
@@ -5077,7 +5512,10 @@ async def _arif_heart_critique(
     if evidence_receipt is not None and target:
         _safe_target = str(target)
         _injection_patterns = [
-            ("ignore.all.previous.instructions", "indirect_injection: ignore instructions pattern"),
+            (
+                "ignore.all.previous.instructions",
+                "indirect_injection: ignore instructions pattern",
+            ),
             ("forget.all.prior", "indirect_injection: forget prior context"),
             ("system.prompt", "indirect_injection: system prompt exfiltration attempt"),
             ("new.instructions:", "indirect_injection: new instructions override"),
@@ -5153,8 +5591,12 @@ async def _arif_heart_critique(
                 timeout=_TIMEOUT_MS / 1000.0,
             )
         except asyncio.TimeoutError:
-            logger.warning("666_HEART timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
-            return _safe_void_fallback("arif_heart_critique", f"LLM timeout after {_TIMEOUT_MS}ms")
+            logger.warning(
+                "666_HEART timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS
+            )
+            return _safe_void_fallback(
+                "arif_heart_critique", f"LLM timeout after {_TIMEOUT_MS}ms"
+            )
         except Exception as _exc:
             logger.warning(
                 "666_HEART module unavailable (%s); returning safe HOLD",
@@ -5181,7 +5623,9 @@ async def _arif_heart_critique(
             "autonomy_preservation_F04": {
                 "metric": "Does this action diminish 888's sovereignty?",
                 "floor": "F04",
-                "status": "PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL",
+                "status": (
+                    "PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"
+                ),
                 "value": 1.0 if result.get("risk_tier") in ("LOW", "AMBER") else 0.0,
             },
             "audit_clarity_F07": {
@@ -5193,13 +5637,18 @@ async def _arif_heart_critique(
             "reversibility_index_F01": {
                 "metric": "Time/Energy cost to undo the state change",
                 "floor": "F01",
-                "status": "PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL",
+                "status": (
+                    "PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"
+                ),
                 "value": 1.0 if result.get("risk_tier") in ("LOW", "AMBER") else 0.0,
-                "irreversibility_detected": result.get("risk_tier") in ("HIGH", "CRITICAL"),
+                "irreversibility_detected": result.get("risk_tier")
+                in ("HIGH", "CRITICAL"),
             },
             "empathy_score_kappa_r": result.get("empathy_score"),
             "dignity_verdict": (
-                "PRESERVED" if result.get("risk_tier") in ("LOW", "AMBER") else "COMPROMISED"
+                "PRESERVED"
+                if result.get("risk_tier") in ("LOW", "AMBER")
+                else "COMPROMISED"
             ),
         }
         result["dignity_breakdown"] = _dignity_breakdown
@@ -5208,7 +5657,10 @@ async def _arif_heart_critique(
             await trace.span(
                 "arif_heart_critique",
                 input={"mode": mode, "target": target},
-                metadata={"status": result.get("status"), "verdict": result.get("verdict")},
+                metadata={
+                    "status": result.get("status"),
+                    "verdict": result.get("verdict"),
+                },
             )
             await trace.span(
                 "result",
@@ -5269,7 +5721,11 @@ def _arif_gateway_connect(
       Gateway status with protocol, routing path, and agent capability map.
     """
     gate = _constitutional_gate(
-        "arif_gateway_connect", mode, actor_id, session_id=session_id, target_agent=target_agent
+        "arif_gateway_connect",
+        mode,
+        actor_id,
+        session_id=session_id,
+        target_agent=target_agent,
     )
     if gate is not None:
         return gate
@@ -5310,7 +5766,11 @@ def _arif_gateway_connect(
             )
         return _ok(
             "arif_gateway_connect",
-            {"target": target_agent, "handshake": "OK", "capability_token": uuid.uuid4().hex[:16]},
+            {
+                "target": target_agent,
+                "handshake": "OK",
+                "capability_token": uuid.uuid4().hex[:16],
+            },
             delta_S=0.001,
         )
     if mode == "relay":
@@ -5322,7 +5782,11 @@ def _arif_gateway_connect(
     if mode == "seal":
         return _ok(
             "arif_gateway_connect",
-            {"target": target_agent, "seal": "cross-agent-SEAL", "status": "pending_888"},
+            {
+                "target": target_agent,
+                "seal": "cross-agent-SEAL",
+                "status": "pending_888",
+            },
             delta_S=0.002,
         )
     return _hold("arif_gateway_connect", f"Unknown mode: {mode}")
@@ -5361,7 +5825,9 @@ def _arif_ops_measure(
     Returns:
       Health payload with status, metrics, and thermodynamic bands.
     """
-    gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
+    gate = _constitutional_gate(
+        "arif_ops_measure", mode, actor_id, session_id=session_id
+    )
     if gate is not None:
         return gate
 
@@ -5389,7 +5855,9 @@ def _arif_ops_measure(
         if estimate is not None and estimate < 0:
             return _hold("arif_ops_measure", "estimate must be >= 0", ["F12"])
         return _ok(
-            "arif_ops_measure", {"estimate": estimate or 0.0, "currency": "USD"}, delta_S=0.0
+            "arif_ops_measure",
+            {"estimate": estimate or 0.0, "currency": "USD"},
+            delta_S=0.0,
         )
     if mode == "predict":
         if estimate is not None and estimate < 0:
@@ -5400,7 +5868,11 @@ def _arif_ops_measure(
             delta_S=0.0,
         )
     if mode == "genius":
-        return _ok("arif_ops_measure", {"equation": "G = Q * T * T", "g_score": 0.97}, delta_S=0.0)
+        return _ok(
+            "arif_ops_measure",
+            {"equation": "G = Q * T * T", "g_score": 0.97},
+            delta_S=0.0,
+        )
     if mode == "psi_le":
         return _ok(
             "arif_ops_measure",
@@ -5500,7 +5972,11 @@ def _arif_ops_measure(
                     "system_clamped_count": 3,
                     "pass_through_rate": 0.94,
                 },
-                "omega_0_distribution": {"mean": 0.04, "std": 0.005, "within_band": 0.98},
+                "omega_0_distribution": {
+                    "mean": 0.04,
+                    "std": 0.005,
+                    "within_band": 0.98,
+                },
                 "recommendation": "Calibration is within F07 Humility band. No adjustment needed.",
             },
             delta_S=0.0,
@@ -5687,7 +6163,9 @@ def _arif_judge_deliberate(
                 _wealth_score = cand_obj.get("wealth_score")
                 _verification_surface = cand_obj.get("verification_surface")
         except Exception:
-            _parse_failed = True  # malformed JSON — cannot extract verification state safely
+            _parse_failed = (
+                True  # malformed JSON — cannot extract verification state safely
+            )
             # Safe fallback: do NOT silently allow old path.
             # Flag the candidate as unparseable so caller knows verification state is missing.
             # The caller (or upstream) should treat this as a partial/invalid candidate.
@@ -5700,7 +6178,9 @@ def _arif_judge_deliberate(
         session_id=session_id,
         candidate=candidate,
         witness_type=(
-            WitnessType.HUMAN if proof and proof.get("witness_type") == "human" else WitnessType.AI
+            WitnessType.HUMAN
+            if proof and proof.get("witness_type") == "human"
+            else WitnessType.AI
         ),
         constitutional_chain_id=constitutional_chain_id,
         session_registry=set(_SESSIONS.keys()),
@@ -5945,7 +6425,9 @@ async def _arif_judge_deliberate_tool(
 
     try:
         if mode != "history":
-            candidate, hold = await _elicit_judge_candidate(ctx, mode=mode, candidate=candidate)
+            candidate, hold = await _elicit_judge_candidate(
+                ctx, mode=mode, candidate=candidate
+            )
             if hold is not None:
                 return hold
         if ctx is not None:
@@ -6156,9 +6638,9 @@ def _arif_vault_seal(
             if os.getenv("ARIFOS_DEV_MODE", "0") == "1" and ack_irreversible
             else IrreversibilityLevel.IRREVERSIBLE
         )
-        if _irreversibility_rank(judge_contract.irreversibility_level) < _irreversibility_rank(
-            required_level.value
-        ):
+        if _irreversibility_rank(
+            judge_contract.irreversibility_level
+        ) < _irreversibility_rank(required_level.value):
             _reason = "judge irreversibility level is below vault seal requirement"
             return SealOutput(
                 status="HOLD",
@@ -6229,7 +6711,9 @@ def _arif_vault_seal(
                 }
                 for event in drift_events:
                     if event.get("event_type") not in valid_types:
-                        event["_warning"] = f"unknown event_type: {event.get('event_type')}"
+                        event["_warning"] = (
+                            f"unknown event_type: {event.get('event_type')}"
+                        )
                     event["sealed_at"] = (
                         datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
                     )
@@ -6251,7 +6735,9 @@ def _arif_vault_seal(
 
             drift_summary = {
                 "total_events": len(sess.get("drift_log", [])),
-                "event_types": list({e["event_type"] for e in sess.get("drift_log", [])}),
+                "event_types": list(
+                    {e["event_type"] for e in sess.get("drift_log", [])}
+                ),
             }
 
         entry = {
@@ -6371,7 +6857,12 @@ def _arif_vault_seal(
                 entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="stable"),
                 constitutional_compliance=ConstitutionalCompliance(
                     floors_invoked=["F01", "F02", "F11", "F13"],
-                    floor_results={"F01": "PASS", "F02": "PASS", "F11": "PASS", "F13": "PASS"},
+                    floor_results={
+                        "F01": "PASS",
+                        "F02": "PASS",
+                        "F11": "PASS",
+                        "F13": "PASS",
+                    },
                 ),
                 meta={},
                 actor_id=actor_id,
@@ -6434,7 +6925,9 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
+                entropy_delta=EntropyDelta(
+                    delta_S=0.001, entropy_direction="increasing"
+                ),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -6460,7 +6953,9 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
+                entropy_delta=EntropyDelta(
+                    delta_S=0.001, entropy_direction="increasing"
+                ),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -6486,7 +6981,9 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
+                entropy_delta=EntropyDelta(
+                    delta_S=0.001, entropy_direction="increasing"
+                ),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -6512,7 +7009,9 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
+                entropy_delta=EntropyDelta(
+                    delta_S=0.001, entropy_direction="increasing"
+                ),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -6605,7 +7104,11 @@ async def _arif_vault_seal_tool(
             trace = await _LANGFUSE_TRACER.trace(
                 name=f"arif_vault_seal/{mode}",
                 session_id=session_id,
-                metadata={"mode": mode, "actor_id": actor_id, "payload_length": len(payload)},
+                metadata={
+                    "mode": mode,
+                    "actor_id": actor_id,
+                    "payload_length": len(payload),
+                },
                 tags=["arifOS", "999_VAULT", mode],
             )
         except Exception:
@@ -6639,7 +7142,10 @@ async def _arif_vault_seal_tool(
             await trace.span(
                 "arif_vault_seal",
                 input={"mode": mode},
-                metadata={"status": result.get("status"), "verdict": result.get("verdict")},
+                metadata={
+                    "status": result.get("status"),
+                    "verdict": result.get("verdict"),
+                },
             )
         return result
     finally:
@@ -6689,7 +7195,10 @@ def _arif_forge_execute(
                         "arif_forge_execute",
                         f"FORGE GATE: side_effects_allowed is FALSE in runtime_truth for mode='{mode}'",
                         ["F1"],
-                        extra_meta={"event_type": "self_authorization_attempt", "severity": "high"},
+                        extra_meta={
+                            "event_type": "self_authorization_attempt",
+                            "severity": "high",
+                        },
                         session_id=session_id,
                     )
 
@@ -6844,7 +7353,9 @@ def _arif_forge_execute(
         if hold is not None:
             if plan_id:
                 _transition_plan_state(
-                    plan_id, "aborted", {"reason": "judge_contract_hold", "meta": hold["meta"]}
+                    plan_id,
+                    "aborted",
+                    {"reason": "judge_contract_hold", "meta": hold["meta"]},
                 )
             return _inject_nine_signal(
                 ForgeOutput(
@@ -6879,7 +7390,11 @@ def _arif_forge_execute(
         trace = ExecutionTrace(
             steps=[
                 ExecutionNode(
-                    step=1, action="manifest_parsed", artifact_id=None, delta_S=0.0, reversible=True
+                    step=1,
+                    action="manifest_parsed",
+                    artifact_id=None,
+                    delta_S=0.0,
+                    reversible=True,
                 ),
                 ExecutionNode(
                     step=2,
@@ -6925,14 +7440,20 @@ def _arif_forge_execute(
         )
         if plan_id:
             _transition_plan_state(
-                plan_id, "completed", {"mode": "engineer", "artifact_id": artifact_id_out}
+                plan_id,
+                "completed",
+                {"mode": "engineer", "artifact_id": artifact_id_out},
             )
         return _inject_nine_signal(output.model_dump(mode="json"), "OK")
 
     if mode == "query":
         bond = IrreversibilityBond(level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0)
         trace = ExecutionTrace(
-            steps=[ExecutionNode(step=1, action="query_executed", delta_S=0.0, reversible=True)],
+            steps=[
+                ExecutionNode(
+                    step=1, action="query_executed", delta_S=0.0, reversible=True
+                )
+            ],
             total_steps=1,
         )
         output = ForgeOutput(
@@ -6983,7 +7504,9 @@ def _arif_forge_execute(
     if mode == "write":
         artifact_id_out = uuid.uuid4().hex[:8]
         size = len(manifest.encode()) if manifest else 0
-        bond = IrreversibilityBond(level=IrreversibilityLevel.SEMI_IRREVERSIBLE, delta_S=0.001)
+        bond = IrreversibilityBond(
+            level=IrreversibilityLevel.SEMI_IRREVERSIBLE, delta_S=0.001
+        )
         trace = ExecutionTrace(
             steps=[
                 ExecutionNode(
@@ -7048,7 +7571,9 @@ def _arif_forge_execute(
         )
         if plan_id:
             _transition_plan_state(
-                plan_id, "completed", {"mode": "generate", "artifact_id": artifact_id_out}
+                plan_id,
+                "completed",
+                {"mode": "generate", "artifact_id": artifact_id_out},
             )
         return _inject_nine_signal(output.model_dump(mode="json"), "OK")
 
@@ -7061,7 +7586,9 @@ def _arif_forge_execute(
         if hold is not None:
             if plan_id:
                 _transition_plan_state(
-                    plan_id, "aborted", {"reason": "vault_entry_hold", "meta": hold["meta"]}
+                    plan_id,
+                    "aborted",
+                    {"reason": "vault_entry_hold", "meta": hold["meta"]},
                 )
             return _inject_nine_signal(
                 ForgeOutput(
@@ -7124,7 +7651,9 @@ def _arif_forge_execute(
             )
 
         output = ForgeOutput(
-            manifest=ForgeManifest(artifact_id=artifact_id_out, status=ManifestStatus.COMMITTED),
+            manifest=ForgeManifest(
+                artifact_id=artifact_id_out, status=ManifestStatus.COMMITTED
+            ),
             status="OK",
             result={"committed": True, "hash": artifact_id_out, "seal": "active"},
             irreversibility_bond=bond,
@@ -7377,7 +7906,9 @@ def _runtime_selftest(
     warnings: list[str] = []
 
     def _is_async_callable(handler: Any) -> bool:
-        return inspect.iscoroutinefunction(handler) or inspect.isasyncgenfunction(handler)
+        return inspect.iscoroutinefunction(handler) or inspect.isasyncgenfunction(
+            handler
+        )
 
     # 1. Registry check
     try:
@@ -7396,7 +7927,10 @@ def _runtime_selftest(
 
     # 2. Callability check — try each handler with minimal args (dry-run only)
     callability_results: dict[str, str] = {}
-    for name, handler in {**_CANONICAL_HANDLERS, **_RUNTIME_DIAGNOSTIC_HANDLERS}.items():
+    for name, handler in {
+        **_CANONICAL_HANDLERS,
+        **_RUNTIME_DIAGNOSTIC_HANDLERS,
+    }.items():
         try:
             # Only test read-only/safe handlers with empty args
             if name in (
@@ -7418,7 +7952,9 @@ def _runtime_selftest(
                 callability_results[name] = "SKIP"  # requires args or floor check
         except Exception:
             callability_results[name] = "SKIP"
-    call_pass = all(v in ("PASS", "SKIP", "SKIP_ASYNC") for v in callability_results.values())
+    call_pass = all(
+        v in ("PASS", "SKIP", "SKIP_ASYNC") for v in callability_results.values()
+    )
     checks["callability_check"] = {
         "verdict": "PASS" if call_pass else "PARTIAL",
         "details": callability_results,
@@ -7543,7 +8079,9 @@ def _runtime_selftest(
 
     # 9. Judge check
     try:
-        judge = _arif_judge_deliberate(candidate="test", mode="dry_run", actor_id="selftest")
+        judge = _arif_judge_deliberate(
+            candidate="test", mode="dry_run", actor_id="selftest"
+        )
         judge_ok = judge.get("status") in ("OK", "HOLD")
         checks["judge_check"] = {"verdict": "PASS" if judge_ok else "FAIL"}
         if not judge_ok:
@@ -7602,7 +8140,9 @@ def _runtime_selftest(
 
     # 13. Forge dry_run check
     try:
-        forge = _arif_forge_execute(mode="dry_run", query="echo test", actor_id="selftest")
+        forge = _arif_forge_execute(
+            mode="dry_run", query="echo test", actor_id="selftest"
+        )
         forge_status = forge.get("status")
         forge_result = forge.get("result", {})
         forge_ok = forge_status in ("OK", "HOLD")
@@ -7701,10 +8241,14 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
 }
 
 if len(_CANONICAL_HANDLERS) != 13:
-    raise RuntimeError(f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
+    raise RuntimeError(
+        f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}"
+    )
 
 if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
-    raise RuntimeError("Canonical handler registry does not match constitutional_map.py")
+    raise RuntimeError(
+        "Canonical handler registry does not match constitutional_map.py"
+    )
 
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_ping": _runtime_ping,
@@ -7746,7 +8290,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         return _enforce_nine_signal(tool_name, _dict_from_response(response))
 
     _wrapped = async_wrapper if inspect.iscoroutinefunction(handler) else wrapper
-    functools.wraps(handler)(_wrapped)  # copies __annotations__, __name__, __doc__, __wrapped__
+    functools.wraps(handler)(
+        _wrapped
+    )  # copies __annotations__, __name__, __doc__, __wrapped__
     _wrapped.__name__ = tool_name
     return _wrapped
 
@@ -7801,7 +8347,9 @@ def register_tools(
                     "stage_name": manifest.get("stage_name", ""),
                     "risk_tier": manifest.get("risk", {}).get("tier", "low"),
                     "irreversible": manifest.get("risk", {}).get("irreversible", False),
-                    "requires_human_ack": manifest.get("risk", {}).get("requires_human_ack", False),
+                    "requires_human_ack": manifest.get("risk", {}).get(
+                        "requires_human_ack", False
+                    ),
                     "canonical_order": manifest.get("canonical_order", []),
                 },
             )(wrapped)

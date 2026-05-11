@@ -136,7 +136,9 @@ def arifos_compute_physics(
                     results.append(outcome)
                     break
         if not results:
-            results = [sum(o * p for o, p in zip(outcomes, probabilities, strict=False))]
+            results = [
+                sum(o * p for o, p in zip(outcomes, probabilities, strict=False))
+            ]
         mean_val = sum(results) / len(results)
         variance_val = sum((x - mean_val) ** 2 for x in results) / len(results)
         sorted_res = sorted(results)
@@ -152,7 +154,11 @@ def arifos_compute_physics(
                 "iterations": iterations,
                 "mean": round(mean_val, 4),
                 "std_dev": round(math.sqrt(variance_val), 4),
-                "distribution": {"p10": round(p10, 4), "p50": round(p50, 4), "p90": round(p90, 4)},
+                "distribution": {
+                    "p10": round(p10, 4),
+                    "p50": round(p50, 4),
+                    "p90": round(p90, 4),
+                },
                 "confidence_intervals": {"90": [round(p10, 4), round(p90, 4)]},
             },
         }
@@ -192,7 +198,10 @@ def arifos_compute_physics(
             "domain": "math",
             "action": "entropy_audit",
             "canonical": "arifos_compute_physics[entropy_audit]",
-            "result": {"entropy_score": round(norm_entropy, 4), "multiple_IRRs": changes > 1},
+            "result": {
+                "entropy_score": round(norm_entropy, 4),
+                "multiple_IRRs": changes > 1,
+            },
         }
 
     if mode == "growth_runway":
@@ -206,14 +215,21 @@ def arifos_compute_physics(
             }
         first, last = cashflows[0], cashflows[-1]
         n = len(cashflows) - 1
-        cagr = (abs(last) / abs(first)) ** (1.0 / n) - 1 if first != 0 and n > 0 else 0.0
-        runway_months = first / burn_rate if burn_rate and burn_rate > 0 and first > 0 else 0
+        cagr = (
+            (abs(last) / abs(first)) ** (1.0 / n) - 1 if first != 0 and n > 0 else 0.0
+        )
+        runway_months = (
+            first / burn_rate if burn_rate and burn_rate > 0 and first > 0 else 0
+        )
         return {
             "agent": "T",
             "domain": "math",
             "action": "growth_runway_compute",
             "canonical": "arifos_compute_physics[growth_runway]",
-            "result": {"cagr": round(cagr, 4), "runway_months": round(runway_months, 1)},
+            "result": {
+                "cagr": round(cagr, 4),
+                "runway_months": round(runway_months, 1),
+            },
         }
 
     return {"error": f"Unknown mode: {mode}"}
@@ -281,7 +297,9 @@ def arifos_compute_finance(
     if mode == "npv":
         from core.organs._5_wealth import calculate_npv as _calc_npv
 
-        result = _calc_npv(initial_investment or 0, cash_flows or [], discount_rate, terminal_value)
+        result = _calc_npv(
+            initial_investment or 0, cash_flows or [], discount_rate, terminal_value
+        )
         npv_val = result.get("npv", 0.0)
         return {
             "agent": "V",
@@ -293,7 +311,9 @@ def arifos_compute_finance(
                 "discount_rate": discount_rate,
                 "initial_investment": initial_investment,
                 "terminal_value": terminal_value,
-                "criterion": "accept" if npv_val > 0 else "reject" if npv_val < 0 else "marginal",
+                "criterion": (
+                    "accept" if npv_val > 0 else "reject" if npv_val < 0 else "marginal"
+                ),
                 "flags": result.get("flags", []),
             },
         }
@@ -424,7 +444,9 @@ def arifos_compute_finance(
             "result": {
                 "pi": round(pi, 6) if pi is not None else None,
                 "npv": npv_future,
-                "criterion": "accept" if pi and pi > 1 else "reject" if pi else "undefined",
+                "criterion": (
+                    "accept" if pi and pi > 1 else "reject" if pi else "undefined"
+                ),
             },
         }
 
@@ -440,7 +462,10 @@ def arifos_compute_finance(
             }
         scored = [(c.get("score", 0), c) for c in candidates]
         scored.sort(key=lambda x: x[0], reverse=True)
-        ranked = [{"rank": i + 1, "candidate": c, "score": s} for i, (s, c) in enumerate(scored)]
+        ranked = [
+            {"rank": i + 1, "candidate": c, "score": s}
+            for i, (s, c) in enumerate(scored)
+        ]
         return {
             "agent": "V",
             "domain": "allocation",
@@ -461,7 +486,10 @@ def arifos_compute_finance(
             }
         scored = [(a.get("score", 0), a) for a in alternatives]
         scored.sort(key=lambda x: x[0], reverse=True)
-        ranked = [{"rank": i + 1, "alternative": a, "score": s} for i, (s, a) in enumerate(scored)]
+        ranked = [
+            {"rank": i + 1, "alternative": a, "score": s}
+            for i, (s, a) in enumerate(scored)
+        ]
         return {
             "agent": "V",
             "domain": "personal",
@@ -500,7 +528,11 @@ def arifos_compute_finance(
             "domain": "allocation",
             "action": "agent_budget_optimize",
             "canonical": "arifos_compute_finance[budget_optimize]",
-            "result": {"optimal_sequence": selected, "total_cost": spent, "budget": budget},
+            "result": {
+                "optimal_sequence": selected,
+                "total_cost": spent,
+                "budget": budget,
+            },
         }
 
     # ── CIVILIZATION SUSTAINABILITY ─────────────────────────────────────────
@@ -743,7 +775,11 @@ def arifos_compute_civilization(
             "domain": "meta",
             "action": "cross_evidence_synthesize",
             "canonical": "arifos_compute_civilization[cross_evidence_synthesize]",
-            "result": {"scene_id": scene_id, "synthesis": "pending", "evidence_count": 0},
+            "result": {
+                "scene_id": scene_id,
+                "synthesis": "pending",
+                "evidence_count": 0,
+            },
         }
 
     return {"error": f"Unknown civilization mode: {mode}"}
@@ -775,7 +811,11 @@ def arifos_oracle_bio(
 
     if mode == "snapshot_read":
         if not well_state.exists():
-            return {"agent": "P", "action": "well_state_read", "error": "WELL state not found"}
+            return {
+                "agent": "P",
+                "action": "well_state_read",
+                "error": "WELL state not found",
+            }
         with open(well_state) as f:
             state = json.load(f)
         return {
@@ -792,7 +832,11 @@ def arifos_oracle_bio(
 
     if mode == "readiness_check":
         if not well_state.exists():
-            return {"agent": "P", "action": "well_readiness_check", "error": "WELL state not found"}
+            return {
+                "agent": "P",
+                "action": "well_readiness_check",
+                "error": "WELL state not found",
+            }
         with open(well_state) as f:
             state = json.load(f)
         score = state.get("well_score", 0.5)
@@ -805,14 +849,20 @@ def arifos_oracle_bio(
                 "readiness": readiness,
                 "well_score": score,
                 "verdict": (
-                    "SEAL" if readiness == "HIGH" else "HOLD" if readiness == "LOW" else "PARTIAL"
+                    "SEAL"
+                    if readiness == "HIGH"
+                    else "HOLD" if readiness == "LOW" else "PARTIAL"
                 ),
             },
         }
 
     if mode == "floor_scan":
         if not well_state.exists():
-            return {"agent": "P", "action": "well_floor_scan", "error": "WELL state not found"}
+            return {
+                "agent": "P",
+                "action": "well_floor_scan",
+                "error": "WELL state not found",
+            }
         with open(well_state) as f:
             state = json.load(f)
         return {
@@ -872,7 +922,11 @@ def arifos_oracle_bio(
         #   friction_ratio ≤ 0.3  → 888_HOLD (anomaly: coercion, detachment, or spoofing)
 
         if not well_state.exists():
-            return {"agent": "P", "action": "well_deltascan", "error": "WELL state not found"}
+            return {
+                "agent": "P",
+                "action": "well_deltascan",
+                "error": "WELL state not found",
+            }
 
         with open(well_state) as f:
             current = json.load(f)
@@ -880,7 +934,9 @@ def arifos_oracle_bio(
         dims = dimensions or {}
         action_weight = float(dims.get("action_weight", 0.5))
         kappa_r = float(dims.get("kappa_r", current.get("kappa_r", 0.7)))
-        baseline_score = float(dims.get("baseline_well_score", current.get("well_score", 70.0)))
+        baseline_score = float(
+            dims.get("baseline_well_score", current.get("well_score", 70.0))
+        )
         current_score = float(current.get("well_score", 70.0))
 
         raw_delta = current_score - baseline_score
@@ -1032,7 +1088,9 @@ async def arifos_oracle_world(
         try:
             from arifosmcp.runtime.geox_bridge import call_geox_tool
 
-            result = await call_geox_tool("geox_list_skills", {"query": query, "domain": domain})
+            result = await call_geox_tool(
+                "geox_list_skills", {"query": query, "domain": domain}
+            )
             skills = result if isinstance(result, list) else result.get("skills", [])
             return {
                 "agent": "P",
@@ -1078,7 +1136,11 @@ async def arifos_oracle_world(
 TOOL_ALIAS_MAP: dict[str, tuple[str, str, dict]] = {
     # T_* → arifos_compute_physics
     "T_petrophysics_compute": ("arifos_compute_physics", "petrophysics", {}),
-    "T_stratigraphy_correlate": ("arifos_compute_physics", "stratigraphy_correlate", {}),
+    "T_stratigraphy_correlate": (
+        "arifos_compute_physics",
+        "stratigraphy_correlate",
+        {},
+    ),
     "T_geometry_build": ("arifos_compute_physics", "geometry_build", {}),
     "T_math_monte_carlo": ("arifos_compute_physics", "monte_carlo", {}),
     "T_math_entropy_audit": ("arifos_compute_physics", "entropy_audit", {}),
@@ -1092,19 +1154,35 @@ TOOL_ALIAS_MAP: dict[str, tuple[str, str, dict]] = {
     "V_profitability_index": ("arifos_compute_finance", "profitability_index", {}),
     "V_payback_evaluate": ("arifos_compute_finance", "payback", {}),
     "V_allocation_rank": ("arifos_compute_finance", "allocation_rank", {}),
-    "V_personal_decision_rank": ("arifos_compute_finance", "personal_decision_rank", {}),
+    "V_personal_decision_rank": (
+        "arifos_compute_finance",
+        "personal_decision_rank",
+        {},
+    ),
     "V_agent_budget_optimize": ("arifos_compute_finance", "budget_optimize", {}),
-    "V_civilization_sustainability": ("arifos_compute_finance", "civilization_sustainability", {}),
+    "V_civilization_sustainability": (
+        "arifos_compute_finance",
+        "civilization_sustainability",
+        {},
+    ),
     # V_civ also has a civilization route
     # M_* → arifos_compute_civilization
     "M_game_theory_solve": ("arifos_compute_civilization", "game_theory", {}),
-    "M_cross_evidence_synthesize": ("arifos_compute_civilization", "cross_evidence_synthesize", {}),
+    "M_cross_evidence_synthesize": (
+        "arifos_compute_civilization",
+        "cross_evidence_synthesize",
+        {},
+    ),
     # P_well_* + E_well_* → arifos_oracle_bio
     "P_well_state_read": ("arifos_oracle_bio", "snapshot_read", {}),
     "P_well_readiness_check": ("arifos_oracle_bio", "readiness_check", {}),
     "P_well_floor_scan": ("arifos_oracle_bio", "floor_scan", {}),
     "E_well_log": ("arifos_oracle_bio", "log_update", {}),
-    "E_well_anchor": ("arifos_oracle_bio", "log_update", {}),  # anchor uses same well state
+    "E_well_anchor": (
+        "arifos_oracle_bio",
+        "log_update",
+        {},
+    ),  # anchor uses same well state
     # P_geox_* + P_wealth_* → arifos_oracle_world
     "P_geox_scene_load": ("arifos_oracle_world", "geox_scene_load", {}),
     "P_geox_skills_query": ("arifos_oracle_world", "geox_skills_query", {}),

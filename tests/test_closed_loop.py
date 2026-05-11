@@ -100,7 +100,11 @@ async def test_skill_execution():
     from core.skill_bridge import execute_skill
 
     result = await execute_skill(
-        skill_name="vps-docker", action="check_status", params={}, session_id="test", dry_run=True
+        skill_name="vps-docker",
+        action="check_status",
+        params={},
+        session_id="test",
+        dry_run=True,
     )
 
     assert result["verdict"] == "SEAL"
@@ -138,7 +142,9 @@ async def test_all_skills_wired():
             except Exception as e:
                 print(f"    Warning: {skill_name} may not be fully wired: {e}")
 
-    print(f"  Skills Wired: OK ({wired_count}/{len(skills)} skills accept reality_bridge)")
+    print(
+        f"  Skills Wired: OK ({wired_count}/{len(skills)} skills accept reality_bridge)"
+    )
     return wired_count == len(skills)
 
 

@@ -17,7 +17,6 @@ import pytest
 
 from arifosmcp.runtime.jwt_auth import JWTVerificationResult
 
-
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
 
@@ -131,7 +130,8 @@ class TestRoutingFailSafety:
         bridge = GEOXBridge(geox_endpoint="http://localhost:8081")
         mock_handler = MagicMock(return_value="unexpected_string")
         with patch(
-            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler", return_value=mock_handler
+            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
+            return_value=mock_handler,
         ):
             result = asyncio.run(bridge._judge_pre_check("test_op", "internal"))
         assert result.get("verdict") == "HOLD"
@@ -162,11 +162,16 @@ class TestRoutingFailSafety:
         from arifosmcp.apps.geox_bridge import GEOXBridge
 
         bridge = GEOXBridge(geox_endpoint="http://localhost:8081")
-        mock_handler = MagicMock(return_value={"verdict": "HOLD", "hold_id": "888-test"})
+        mock_handler = MagicMock(
+            return_value={"verdict": "HOLD", "hold_id": "888-test"}
+        )
         with patch(
-            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler", return_value=mock_handler
+            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
+            return_value=mock_handler,
         ):
-            result = asyncio.run(bridge.compute_petrophysics({"classification": "internal"}))
+            result = asyncio.run(
+                bridge.compute_petrophysics({"classification": "internal"})
+            )
         assert "error" in result
         assert result.get("verdict", {}).get("verdict") != "SEAL"
 
@@ -182,7 +187,9 @@ class TestConstitutionalBreaches:
     geox must be updated to support Python 3.13 before these can run.
     """
 
-    @pytest.mark.skip(reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError")
+    @pytest.mark.skip(
+        reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError"
+    )
     def test_c1_uppercase_high_triggers_hold(self):
         """C1: uppercase HIGH must not bypass AUTO_APPROVE."""
         import importlib.util
@@ -204,7 +211,9 @@ class TestConstitutionalBreaches:
             result.get("requires_approval") is True
         ), f"HIGH (uppercase) must require approval, not AUTO_APPROVE; got {result}"
 
-    @pytest.mark.skip(reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError")
+    @pytest.mark.skip(
+        reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError"
+    )
     def test_c2_f1_breach_demotes_proceed_to_hold(self):
         """C2: amanah_locked=False must demote PROCEED to HOLD."""
         import sys
@@ -224,9 +233,13 @@ class TestConstitutionalBreaches:
         assert (
             result.verdict != "PROCEED"
         ), f"F1 breach must not PROCEED; got verdict={result.verdict}"
-        assert result.verdict == "HOLD", f"Expected HOLD for F1 breach, got {result.verdict}"
+        assert (
+            result.verdict == "HOLD"
+        ), f"Expected HOLD for F1 breach, got {result.verdict}"
 
-    @pytest.mark.skip(reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError")
+    @pytest.mark.skip(
+        reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError"
+    )
     def test_c2_amanah_locked_allows_proceed(self):
         """C2 inverse: amanah_locked=True with low risk may PROCEED."""
         import sys
@@ -246,7 +259,9 @@ class TestConstitutionalBreaches:
             result.verdict == "PROCEED"
         ), f"amanah_locked=True with strong params should PROCEED; got {result.verdict}"
 
-    @pytest.mark.skip(reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError")
+    @pytest.mark.skip(
+        reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError"
+    )
     def test_m2_u_ambiguity_out_of_range_raises(self):
         """M2: out-of-range u_ambiguity must raise ValueError.
 
@@ -276,7 +291,10 @@ class TestNoFailOpenSEAL:
         """verify_jwt must not raise or SEAL even when JWKS is unreachable."""
         from arifosmcp.runtime.jwt_auth import verify_jwt
 
-        with patch("arifosmcp.runtime.jwt_auth._fetch_jwks", side_effect=ConnectionError("down")):
+        with patch(
+            "arifosmcp.runtime.jwt_auth._fetch_jwks",
+            side_effect=ConnectionError("down"),
+        ):
             result = verify_jwt("a.b.c")
         assert isinstance(result, JWTVerificationResult)
         assert result.valid is False

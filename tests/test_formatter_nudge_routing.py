@@ -6,7 +6,6 @@ Pure-function modules — no mocking needed.
 
 from __future__ import annotations
 
-
 # =============================================================================
 # FORMATTER
 # =============================================================================
@@ -25,7 +24,13 @@ class TestSchemaTemplates:
     def test_all_templates_exist(self):
         from core.shared.formatter import SCHEMA_TEMPLATES
 
-        for name in ("analysis", "comparison", "code_review", "decision", "eureka_result"):
+        for name in (
+            "analysis",
+            "comparison",
+            "code_review",
+            "decision",
+            "eureka_result",
+        ):
             assert name in SCHEMA_TEMPLATES
 
     def test_template_has_required_fields(self):
@@ -199,7 +204,9 @@ class TestOutputFormatterSchemaMode:
         assert "answer" in result
 
     def test_schema_metadata_present(self):
-        result = self.fmt.format({"confidence": 0.8, "verdict": "SEAL"}, template_name="decision")
+        result = self.fmt.format(
+            {"confidence": 0.8, "verdict": "SEAL"}, template_name="decision"
+        )
         assert "_metadata" in result
         assert result["_metadata"]["template"] == "decision"
 
@@ -439,7 +446,10 @@ class TestRouteRefuse:
 
 class TestRoutingCompatibility:
     def test_shared_router_uses_canonical_category_mapping(self):
-        from core.enforcement.routing import compatibility_category_for_domain, detect_refusal_rule
+        from core.enforcement.routing import (
+            compatibility_category_for_domain,
+            detect_refusal_rule,
+        )
         from core.shared.routing import route_refuse
 
         query = "Please diagnose my symptoms"

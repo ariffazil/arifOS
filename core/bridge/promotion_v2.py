@@ -68,7 +68,11 @@ class PromotionBridge:
         """
         # Check promotable flag
         if not memory.governance.promotable_to_vault:
-            return False, "Not marked as promotable", PromotionOutcome.REJECTED_NON_CONSEQUENTIAL
+            return (
+                False,
+                "Not marked as promotable",
+                PromotionOutcome.REJECTED_NON_CONSEQUENTIAL,
+            )
 
         # Check confidence threshold
         if memory.governance.confidence < 0.85:
@@ -108,15 +112,25 @@ class PromotionBridge:
         has_signal = any(sig in text for sig in vault_signals)
 
         if not has_signal:
-            return False, "No vault-worthy signals", PromotionOutcome.REJECTED_NON_CONSEQUENTIAL
+            return (
+                False,
+                "No vault-worthy signals",
+                PromotionOutcome.REJECTED_NON_CONSEQUENTIAL,
+            )
 
         # Check memory type
         if memory.memory_type == MemoryType.CONSTITUTIONAL:
             return True, "Constitutional rule", PromotionOutcome.ELIGIBLE_FOR_SEAL
 
         if memory.memory_type == MemoryType.SEMANTIC:
-            if "arifos" in text and ("vault" in text or "memory" in text or "architecture" in text):
-                return True, "Core architecture doctrine", PromotionOutcome.ELIGIBLE_FOR_SEAL
+            if "arifos" in text and (
+                "vault" in text or "memory" in text or "architecture" in text
+            ):
+                return (
+                    True,
+                    "Core architecture doctrine",
+                    PromotionOutcome.ELIGIBLE_FOR_SEAL,
+                )
 
         if memory.memory_type == MemoryType.EPISODIC:
             if "decided" in text or "decision" in text:
@@ -128,7 +142,9 @@ class PromotionBridge:
             PromotionOutcome.REJECTED_NON_CONSEQUENTIAL,
         )
 
-    def promote(self, memory_id: str, session_id: str, force: bool = False) -> PromotionResult:
+    def promote(
+        self, memory_id: str, session_id: str, force: bool = False
+    ) -> PromotionResult:
         """
         Promote a memory record to vault with explicit outcome.
         """
@@ -151,7 +167,9 @@ class PromotionBridge:
         should_promote, reason, preliminary = self.classify_for_promotion(memory)
 
         if not should_promote and not force:
-            return PromotionResult(outcome=preliminary, memory_id=memory_id, reason=reason)
+            return PromotionResult(
+                outcome=preliminary, memory_id=memory_id, reason=reason
+            )
 
         # Check if already has vault seal ref (supersession check)
         if memory.lineage.vault_seal_ref:
@@ -236,12 +254,16 @@ class PromotionBridge:
             reason="Supersession failed",
         )
 
-    def _memory_to_vault_entry(self, memory: MemoryRecord, session_id: str) -> VaultEntry:
+    def _memory_to_vault_entry(
+        self, memory: MemoryRecord, session_id: str
+    ) -> VaultEntry:
         """Convert memory record to vault entry."""
         # Determine record type
         if memory.memory_type == MemoryType.CONSTITUTIONAL:
             record_type = VaultRecordType.POLICY
-        elif "decided" in memory.content.lower() or "decision" in memory.content.lower():
+        elif (
+            "decided" in memory.content.lower() or "decision" in memory.content.lower()
+        ):
             record_type = VaultRecordType.VERDICT
         elif "release" in memory.content.lower():
             record_type = VaultRecordType.RELEASE
@@ -274,7 +296,9 @@ class PromotionBridge:
                 risk_tier=memory.governance.sensitivity.value,
                 judgment_required=True,
                 human_confirmed=memory.source.origin.value == "user",
-                decision_authority="ARIF" if memory.source.origin.value == "user" else "SYSTEM",
+                decision_authority=(
+                    "ARIF" if memory.source.origin.value == "user" else "SYSTEM"
+                ),
                 policy_version="arifOS.constitution.v1",
             ),
             lineage=VaultLineage(
@@ -297,7 +321,9 @@ class PromotionBridge:
             project=memory.scope.project,
         )
 
-    async def process_session_for_promotion(self, session_id: str) -> list[PromotionResult]:
+    async def process_session_for_promotion(
+        self, session_id: str
+    ) -> list[PromotionResult]:
         """
         Scan session memories and promote consequential ones.
         Returns list of promotion results with explicit outcomes.

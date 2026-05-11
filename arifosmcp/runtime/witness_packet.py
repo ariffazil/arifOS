@@ -224,7 +224,8 @@ INJECTION_PATTERNS = [
     re.compile(r"ignore\s+(all\s+)?previous\s+instructions?", re.IGNORECASE),
     re.compile(r"ignore\s+(all\s+)?rules?", re.IGNORECASE),
     re.compile(
-        r"disregard\s+(all\s+)?(your|its)\s+(instructions|rules|programming)", re.IGNORECASE
+        r"disregard\s+(all\s+)?(your|its)\s+(instructions|rules|programming)",
+        re.IGNORECASE,
     ),
     # Prompt extraction
     re.compile(r"repeat\s+(your\s+)?(system\s+)?(instructions?|prompt)", re.IGNORECASE),
@@ -351,7 +352,13 @@ def _extract_uncertainty(parsed: dict[str, Any], raw_text: str) -> list[str]:
     statements: list[str] = []
 
     # From structured fields
-    for key in ("uncertainty", "uncertainty_tags", "limitations", "caveats", "known_limits"):
+    for key in (
+        "uncertainty",
+        "uncertainty_tags",
+        "limitations",
+        "caveats",
+        "known_limits",
+    ):
         if key in parsed and isinstance(parsed[key], list):
             for item in parsed[key]:
                 if isinstance(item, str) and item.strip():
@@ -461,7 +468,11 @@ def governance_card(model: str) -> dict[str, Any]:
         {
             "authority": "instrument_only",
             "allowed_tools": [],
-            "forbidden_roles": ["sovereign_judge", "irreversible_executor", "vault_sealer"],
+            "forbidden_roles": [
+                "sovereign_judge",
+                "irreversible_executor",
+                "vault_sealer",
+            ],
             "rate_limit": "unknown",
         },
     )

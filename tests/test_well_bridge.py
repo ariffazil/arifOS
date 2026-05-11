@@ -1,4 +1,7 @@
-from arifosmcp.runtime.well_bridge import get_biological_readiness, inject_biological_context
+from arifosmcp.runtime.well_bridge import (
+    get_biological_readiness,
+    inject_biological_context,
+)
 
 
 def test_well_readiness_exists():

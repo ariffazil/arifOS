@@ -161,7 +161,8 @@ class SchemaRegistry:
             "stage_order": self._master_schema.get("stage_order", []),
             "transitions": self._master_schema.get("transitions", {}),
             "tools_by_stage": {
-                packet.get("stage"): tool_id for tool_id, packet in self._tool_packets.items()
+                packet.get("stage"): tool_id
+                for tool_id, packet in self._tool_packets.items()
             },
         }
 

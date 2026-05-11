@@ -33,9 +33,13 @@ from pydantic import BaseModel, Field
 # ============================================================
 # CONFIGURATION
 # ============================================================
-VAULT999_DB = os.getenv("VAULT999_DB", "postgresql://arifos_admin:***@postgres:5432/vault999")
+VAULT999_DB = os.getenv(
+    "VAULT999_DB", "postgresql://arifos_admin:***@postgres:5432/vault999"
+)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-VAULT_WRITER_TOKEN_FILE = os.getenv("VAULT_WRITER_TOKEN_FILE", "/run/secrets/vault_writer_token")
+VAULT_WRITER_TOKEN_FILE = os.getenv(
+    "VAULT_WRITER_TOKEN_FILE", "/run/secrets/vault_writer_token"
+)
 
 
 # Load token from mounted Docker secret file
@@ -124,7 +128,9 @@ class RatifyRequest(BaseModel):
 # ============================================================
 # HASH FUNCTIONS
 # ============================================================
-def compute_seal_hash(prev_chain_hash: str, action: str, epoch: str, payload: dict) -> str:
+def compute_seal_hash(
+    prev_chain_hash: str, action: str, epoch: str, payload: dict
+) -> str:
     """BLAKE3(prev_chain_hash || action || epoch || canonical(payload)).
     For genesis, prev_chain_hash = blake3(b'VAULT999:GENESIS:arif-fazil:2026-04-18')."""
     canonical_json = json.dumps(payload, separators=(",", ":"), sort_keys=True)
@@ -169,25 +175,29 @@ class VaultDB:
 
         async with self.pool.acquire() as conn:
             # Get prev seal for chain linking
-            prev_row = await conn.fetchrow(
-                """
+            prev_row = await conn.fetchrow("""
                 SELECT id, seal_hash, chain_hash FROM vault_seals
                 ORDER BY epoch DESC LIMIT 1
-            """
-            )
+            """)
             prev_seal_id = prev_row["id"] if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
             from datetime import datetime
 
             epoch_val = (
-                datetime.fromisoformat(req.epoch) if isinstance(req.epoch, str) else req.epoch
+                datetime.fromisoformat(req.epoch)
+                if isinstance(req.epoch, str)
+                else req.epoch
             )
             prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
 
             # seal_hash = BLAKE3(prev_chain_hash | action | epoch | canonical(payload))
-            seal_hash = compute_seal_hash(prev_chain_hash, req.action, epoch_val, req.payload)
+            seal_hash = compute_seal_hash(
+                prev_chain_hash, req.action, epoch_val, req.payload
+            )
             # chain_hash = BLAKE3(prev_seal_hash | seal_hash)
-            chain_hash = compute_chain_hash(prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash)
+            chain_hash = compute_chain_hash(
+                prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash
+            )
 
             # Insert — actual vault_seals schema (no cooling_id, agent_id, etc.)
             row = await conn.fetchrow(
@@ -257,7 +267,9 @@ class VaultDB:
                 req.cooling_id,
             )
 
-            log.info(f"VOID written: cooling_id={req.cooling_id}, review_id={review_id}")
+            log.info(
+                f"VOID written: cooling_id={req.cooling_id}, review_id={review_id}"
+            )
             return {"review_id": review_id, "decision": "VOID", "status": "voided"}
 
     async def ratify(self, req: RatifyRequest) -> dict:
@@ -309,7 +321,10 @@ class VaultDB:
                 irreversibility_ack=req.irreversibility_ack,
                 irreversibility_class=req.irreversibility_class,
                 tags=[req.action_type, "ratified"],
-                metadata={"review_reason": req.review_reason, "reviewed_by": req.human_ratifier},
+                metadata={
+                    "review_reason": req.review_reason,
+                    "reviewed_by": req.human_ratifier,
+                },
             )
 
             # Insert vault_seals
@@ -353,7 +368,9 @@ class VaultDB:
                 json.dumps({"review_reason": req.review_reason}),
             )
 
-            log.info(f"RATIFY SEAL: cooling_id={req.cooling_id}, seal_id={seal_row['id']}")
+            log.info(
+                f"RATIFY SEAL: cooling_id={req.cooling_id}, seal_id={seal_row['id']}"
+            )
             return {
                 "seal_id": seal_row["id"],
                 "seal_hash": seal_row["seal_hash"],
@@ -432,15 +449,13 @@ async def ratify(req: RatifyRequest, _auth=Depends(verify_writer_token)):
 async def list_pending():
     """List all awaiting_human cooling_queue records"""
     async with db.pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
+        rows = await conn.fetch("""
             SELECT id::text, action_type, risk_class, judge_verdict, proposal_hash,
                    session_id, created_at, hold_initiated_at
             FROM cooling_queue
             WHERE status = 'awaiting_human'
             ORDER BY created_at ASC
-        """
-        )
+        """)
         return {"pending": [dict(r) for r in rows], "count": len(rows)}
 
 

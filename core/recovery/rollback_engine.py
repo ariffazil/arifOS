@@ -43,9 +43,7 @@ class RollbackEngine:
 
         # Perform deep copy to ensure isolation
         snapshot = copy.deepcopy(kernel)
-        checkpoint_id = (
-            f"cp-{session_id}-{int(time.time() * 1000)}-{len(self._checkpoints[session_id])}"
-        )
+        checkpoint_id = f"cp-{session_id}-{int(time.time() * 1000)}-{len(self._checkpoints[session_id])}"
         self._checkpoints[session_id].append(snapshot)
         self._checkpoint_meta[session_id].append(
             {
@@ -74,7 +72,9 @@ class RollbackEngine:
         Use this when HomeostaticCollapse exception is raised.
         """
         if session_id not in self._checkpoints or not self._checkpoints[session_id]:
-            logger.error(f"No checkpoints found for session {session_id}. Rollback failed.")
+            logger.error(
+                f"No checkpoints found for session {session_id}. Rollback failed."
+            )
             return None
 
         # The last checkpoint is the current failing state, so take the one before it
@@ -148,7 +148,9 @@ class OutcomeLedger:
             with open(self._persist_path, "a", encoding="utf-8") as fh:
                 fh.write(record.model_dump_json() + "\n")
         except Exception as e:
-            logger.warning("OutcomeLedger: failed to persist record %s: %s", record.decision_id, e)
+            logger.warning(
+                "OutcomeLedger: failed to persist record %s: %s", record.decision_id, e
+            )
 
     def load_recent(self, n: int = 10) -> list[OutcomeRecord]:
         """Read the last *n* OutcomeRecords from disk (newest-last order)."""
@@ -186,11 +188,19 @@ class OutcomeLedger:
         """
         records = self.load_recent(n)
         if not records:
-            return {"total": 0, "harm_count": 0, "pending": 0, "false_seals": 0, "last_id": None}
+            return {
+                "total": 0,
+                "harm_count": 0,
+                "pending": 0,
+                "false_seals": 0,
+                "last_id": None,
+            }
 
         harm_count = sum(1 for r in records if r.harm_detected)
         pending = sum(1 for r in records if r.outcome_status == OutcomeStatus.PENDING)
-        false_seals = sum(1 for r in records if r.verdict_issued == "SEAL" and r.harm_detected)
+        false_seals = sum(
+            1 for r in records if r.verdict_issued == "SEAL" and r.harm_detected
+        )
         return {
             "total": len(records),
             "harm_count": harm_count,
@@ -248,7 +258,9 @@ class OutcomeLedger:
         )
         self._records.append(record)
         self._save_record(record)
-        logger.debug("OutcomeLedger: recorded decision %s → %s", decision_id, verdict_issued)
+        logger.debug(
+            "OutcomeLedger: recorded decision %s → %s", decision_id, verdict_issued
+        )
         return record
 
     def resolve_outcome(
@@ -265,7 +277,10 @@ class OutcomeLedger:
         Call once the action has executed and the result is known.
         """
         for r in self._records:
-            if r.decision_id == decision_id and r.outcome_status == OutcomeStatus.PENDING:
+            if (
+                r.decision_id == decision_id
+                and r.outcome_status == OutcomeStatus.PENDING
+            ):
                 r.actual_outcome = actual_outcome
                 r.harm_detected = harm_detected
                 r.operator_override = operator_override
@@ -274,7 +289,11 @@ class OutcomeLedger:
                 r.outcome_status = (
                     OutcomeStatus.OVERRIDDEN
                     if operator_override
-                    else OutcomeStatus.FAILURE if harm_detected else OutcomeStatus.SUCCESS
+                    else (
+                        OutcomeStatus.FAILURE
+                        if harm_detected
+                        else OutcomeStatus.SUCCESS
+                    )
                 )
                 self._save_record(r)
                 logger.info(
@@ -308,7 +327,9 @@ class OutcomeLedger:
         - ``override_rate``    — fraction overridden by a human operator
         - ``harm_rate``        — overall fraction that caused observed harm
         """
-        resolved = [r for r in self._records if r.outcome_status != OutcomeStatus.PENDING]
+        resolved = [
+            r for r in self._records if r.outcome_status != OutcomeStatus.PENDING
+        ]
         if not resolved:
             return {
                 "resolved": 0,
@@ -327,10 +348,16 @@ class OutcomeLedger:
 
         return {
             "resolved": len(resolved),
-            "false_seal_rate": round(len(false_seals) / len(seals), 4) if seals else 0.0,
-            "false_void_rate": round(len(false_voids) / len(voids), 4) if voids else 0.0,
+            "false_seal_rate": (
+                round(len(false_seals) / len(seals), 4) if seals else 0.0
+            ),
+            "false_void_rate": (
+                round(len(false_voids) / len(voids), 4) if voids else 0.0
+            ),
             "override_rate": round(len(overrides) / len(resolved), 4),
-            "harm_rate": round(sum(1 for r in resolved if r.harm_detected) / len(resolved), 4),
+            "harm_rate": round(
+                sum(1 for r in resolved if r.harm_detected) / len(resolved), 4
+            ),
         }
 
     # ------------------------------------------------------------------

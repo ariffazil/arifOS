@@ -379,7 +379,13 @@ class ExecutionController:
             return False, f"Tools forbidden: {forbidden_tools}", {}
 
         # Check if write operations need approval
-        write_tools = {"write_file", "edit_file", "file_delete", "docker_deploy", "git_push"}
+        write_tools = {
+            "write_file",
+            "edit_file",
+            "file_delete",
+            "docker_deploy",
+            "git_push",
+        }
         requires_approval = any(t in write_tools for t in requested_tools)
 
         # Check if deploy operations
@@ -431,7 +437,9 @@ class ExecutionController:
             files_deleted=[],
             verdict=Verdict.SEAL if ok else Verdict.VOID,
             floors_triggered=[],
-            human_approval="REQUIRED" if context.get("requires_approval") else "NOT_REQUIRED",
+            human_approval=(
+                "REQUIRED" if context.get("requires_approval") else "NOT_REQUIRED"
+            ),
         )
 
         # Compute hash

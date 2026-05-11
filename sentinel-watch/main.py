@@ -23,7 +23,6 @@ from vitals import ACKMachine
 from drift_detector import DriftDetector
 from alert_dispatcher import AlertDispatcher
 
-
 # ── Config ────────────────────────────────────────────────────────────────────
 
 VAULT999_PATH = os.getenv("SENTINEL_VAULT999", "/root/.agent-workbench/vault999.jsonl")
@@ -118,7 +117,11 @@ def check_sla_expiry(state: SentinelState) -> None:
     for entry in expired:
         age_hours = (now - entry.ts) / 3600
         state.dispatcher.alert_sla_expiry(
-            {"chain_hash": entry.chain_hash, "verdict": entry.verdict, "tool": entry.tool},
+            {
+                "chain_hash": entry.chain_hash,
+                "verdict": entry.verdict,
+                "tool": entry.tool,
+            },
             age_hours,
         )
 

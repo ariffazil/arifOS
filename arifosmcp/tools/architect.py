@@ -157,7 +157,10 @@ async def _architect_review(query: str, context: dict, session_id: str) -> dict:
                 "status": "PASS" if "reversible" in existing.lower() else "WARN",
                 "notes": "Check reversibility",
             },
-            "F2_SIDDIQ": {"status": "PASS" if existing else "WARN", "notes": "Verify all claims"},
+            "F2_SIDDIQ": {
+                "status": "PASS" if existing else "WARN",
+                "notes": "Verify all claims",
+            },
             "F4_CLARITY": {
                 "status": "PASS" if len(existing) < 500 else "WARN",
                 "notes": "Complexity check",
@@ -220,8 +223,16 @@ def _suggest_boundaries(query: str) -> list[str]:
 def _suggest_api_contracts(query: str) -> list[dict]:
     """Suggest API contracts."""
     return [
-        {"method": "POST /design", "input": "DesignRequest", "output": "DesignResponse"},
-        {"method": "POST /review", "input": "ReviewRequest", "output": "ReviewResponse"},
+        {
+            "method": "POST /design",
+            "input": "DesignRequest",
+            "output": "DesignResponse",
+        },
+        {
+            "method": "POST /review",
+            "input": "ReviewRequest",
+            "output": "ReviewResponse",
+        },
     ]
 
 

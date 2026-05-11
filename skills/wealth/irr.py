@@ -19,7 +19,9 @@ def _round_value(value: float | None, digits: int = 6) -> float | None:
     return round(value, digits)
 
 
-def _build_cashflow_series(initial: float, flows: list[float], terminal: float = 0) -> list[float]:
+def _build_cashflow_series(
+    initial: float, flows: list[float], terminal: float = 0
+) -> list[float]:
     series = [-abs(initial), *flows]
     if terminal and len(series) > 1:
         series[-1] += terminal

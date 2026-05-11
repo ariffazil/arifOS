@@ -41,7 +41,8 @@ def arif_reply_compose(
 
                     pattern = re.compile(f"i am {s}", re.IGNORECASE)
                     message = pattern.sub(
-                        f"[IDENTITY CORRECTION: I am {anchor.get('soul_label')}]", message
+                        f"[IDENTITY CORRECTION: I am {anchor.get('soul_label')}]",
+                        message,
                     )
                     drift_events.append(
                         {
@@ -62,7 +63,8 @@ def arif_reply_compose(
 
         if _output_claims_web(message) and not truth.get("web_on"):
             message = (
-                "[TRUTH GATE: This model does not have web access in this deployment] " + message
+                "[TRUTH GATE: This model does not have web access in this deployment] "
+                + message
             )
             drift_events.append(
                 {
@@ -98,24 +100,35 @@ def arif_reply_compose(
             )
 
         if drift_events:
-            _arif_vault_seal(mode="dry_run", session_id=session_id, drift_events=drift_events)
+            _arif_vault_seal(
+                mode="dry_run", session_id=session_id, drift_events=drift_events
+            )
 
-    floor_check = check_floors("arif_reply_compose", {"message": message or ""}, actor_id)
+    floor_check = check_floors(
+        "arif_reply_compose", {"message": message or ""}, actor_id
+    )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_reply_compose", floor_check["reason"], floor_check["failed_floors"])
+        return _hold(
+            "arif_reply_compose", floor_check["reason"], floor_check["failed_floors"]
+        )
 
     if mode == "compose":
         return _ok(
-            "arif_reply_compose", {"message": message, "formatted": message, "tone": "neutral"}
+            "arif_reply_compose",
+            {"message": message, "formatted": message, "tone": "neutral"},
         )
     if mode == "format":
-        return _ok("arif_reply_compose", {"message": message, "style": style or "markdown"})
+        return _ok(
+            "arif_reply_compose", {"message": message, "style": style or "markdown"}
+        )
     if mode == "nudge":
         return _ok(
             "arif_reply_compose",
             {"message": message, "nudge": "Consider F5 (Peace) before acting."},
         )
     if mode == "cite":
-        return _ok("arif_reply_compose", {"message": message, "citations": citations or []})
+        return _ok(
+            "arif_reply_compose", {"message": message, "citations": citations or []}
+        )
 
     return _hold("arif_reply_compose", f"Unknown mode: {mode}")

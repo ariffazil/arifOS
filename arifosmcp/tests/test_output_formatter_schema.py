@@ -130,7 +130,9 @@ def test_all_required_fields_present():
         output = format_output(envelope)
 
         for field in required:
-            assert field in output, f"Platform {platform} missing required field '{field}'"
+            assert (
+                field in output
+            ), f"Platform {platform} missing required field '{field}'"
 
         print(f"✅ Platform '{platform}' has all required fields: {required}")
 
@@ -147,7 +149,9 @@ def test_tool_field_fallback():
     output = format_output(envelope)
 
     assert "tool" in output
-    assert output["tool"] == "unknown", f"Expected 'unknown' fallback, got: {output['tool']}"
+    assert (
+        output["tool"] == "unknown"
+    ), f"Expected 'unknown' fallback, got: {output['tool']}"
     print("✅ tool field fallback to 'unknown' works")
 
 

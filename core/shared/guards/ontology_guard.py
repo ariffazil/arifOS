@@ -122,7 +122,9 @@ class OntologyGuard:
             re.compile(pattern, re.IGNORECASE) for pattern in self.literalism_patterns
         ]
 
-    def check_literalism(self, output: str, symbolic_mode: bool = False) -> OntologyGuardResult:
+    def check_literalism(
+        self, output: str, symbolic_mode: bool = False
+    ) -> OntologyGuardResult:
         """
         Check if output treats symbolic language as literal physics.
 

@@ -210,7 +210,12 @@ def list_recent_verdicts_schema() -> dict[str, Any]:
         "inputSchema": {
             "type": "object",
             "properties": {
-                "limit": {"type": "integer", "default": 10, "minimum": 1, "maximum": 100},
+                "limit": {
+                    "type": "integer",
+                    "default": 10,
+                    "minimum": 1,
+                    "maximum": 100,
+                },
                 "verdict_filter": {
                     "type": "string",
                     "enum": ["all", "SEAL", "PARTIAL", "VOID", "SABAR", "HOLD"],
@@ -276,7 +281,9 @@ def get_chatgpt_manifest() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def map_chatgpt_health_to_canonical(chatgpt_health: dict[str, Any]) -> ConstitutionalHealthView:
+def map_chatgpt_health_to_canonical(
+    chatgpt_health: dict[str, Any],
+) -> ConstitutionalHealthView:
     """
     Map ChatGPT health response to canonical ConstitutionalHealthView.
 

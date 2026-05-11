@@ -19,7 +19,9 @@ class ThermoBudget:
     _sessions: dict[str, ThermoSnapshot] = field(default_factory=dict)
 
     def open_session(self, session_id: str) -> ThermoSnapshot:
-        return self._sessions.setdefault(session_id, ThermoSnapshot(session_id=session_id))
+        return self._sessions.setdefault(
+            session_id, ThermoSnapshot(session_id=session_id)
+        )
 
     def record_step(self, session_id: str, *, tokens: int) -> ThermoSnapshot:
         snap = self.open_session(session_id)

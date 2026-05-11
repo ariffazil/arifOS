@@ -8,7 +8,6 @@ import sys
 import time
 from pathlib import Path
 
-
 REPORT_PATH = Path("test-results.json")
 HTML_REPORT_DIR = Path("test-reports")
 

@@ -49,7 +49,9 @@ async def lsp_query(
     character: int = 0,
 ) -> RuntimeEnvelope | dict[str, Any]:
     """Query Language Server for code intelligence."""
-    logger.info("LSP_TOOL_CALLED", tool="lsp_query", file=file_path, query_type=query_type)
+    logger.info(
+        "LSP_TOOL_CALLED", tool="lsp_query", file=file_path, query_type=query_type
+    )
 
     bridge = get_lsp_bridge()
 
@@ -204,7 +206,9 @@ def register_lsp_tools(mcp: FastMCP) -> None:
 
     @mcp.tool()
     async def lsp_query_tool(
-        file_path: Annotated[str, Field(description="Path to the file to query with LSP.")],
+        file_path: Annotated[
+            str, Field(description="Path to the file to query with LSP.")
+        ],
         query_type: str,
         line: int = 0,
         character: int = 0,
@@ -226,7 +230,9 @@ def register_lsp_tools(mcp: FastMCP) -> None:
         return await lsp_go_to_definition(file_path, line, character)
 
     @mcp.tool()
-    async def lsp_find_references_tool(file_path: str, line: int, character: int) -> dict[str, Any]:
+    async def lsp_find_references_tool(
+        file_path: str, line: int, character: int
+    ) -> dict[str, Any]:
         return await lsp_find_references(file_path, line, character)
 
     @mcp.tool()
